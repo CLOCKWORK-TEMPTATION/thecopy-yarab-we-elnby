@@ -16,7 +16,6 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY apps/backend/package.json ./apps/backend/
 COPY packages/core-memory/package.json ./packages/core-memory/
-COPY packages/shared/package.json ./packages/shared/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install dependencies after manifests so Docker layer caching remains effective on Railway.
@@ -27,7 +26,6 @@ RUN if [ -f .npmrc ]; then sed -i '/^\/\/registry\.tiptap\.dev\/:_authToken=/d' 
 COPY packages/tsconfig/ ./packages/tsconfig/
 COPY apps/backend/ ./apps/backend/
 COPY packages/core-memory/ ./packages/core-memory/
-COPY packages/shared/ ./packages/shared/
 
 RUN if [ -f apps/backend/.npmrc ]; then sed -i '/^\/\/registry\.tiptap\.dev\/:_authToken=/d' apps/backend/.npmrc; fi && \
     pnpm --filter @the-copy/core-memory build && \
