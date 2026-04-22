@@ -205,6 +205,21 @@ jobs:
           BACKEND_HEALTH_PROBE_FAILURES=true \
           node apps/backend/scripts/verify-runtime-health.mjs
 
+      - name: Dump backend container logs on failure
+        if: failure()
+        run: |
+          echo "::group::backend container inspect"
+          docker inspect the-copy-backend-preflight --format \
+            '{{.State.Status}} exitCode={{.State.ExitCode}} startedAt={{.State.StartedAt}} finishedAt={{.State.FinishedAt}} error={{.State.Error}}' \
+            2>&1 || true
+          echo "::endgroup::"
+          echo "::group::backend container logs"
+          docker logs the-copy-backend-preflight 2>&1 || true
+          echo "::endgroup::"
+          echo "::group::postgres container logs"
+          docker compose -f docker-compose.infra.yml logs postgres 2>&1 || true
+          echo "::endgroup::"
+
       - name: Cleanup backend verification containers
         if: always()
         run: |
