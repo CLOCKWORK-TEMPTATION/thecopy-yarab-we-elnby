@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.7
+# Cache breaker: removed packages/ui and packages/shared
 FROM node:24-alpine AS builder
 
 RUN apk add --no-cache --virtual .build-deps \
