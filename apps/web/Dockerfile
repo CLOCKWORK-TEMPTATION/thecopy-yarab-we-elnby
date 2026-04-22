@@ -35,9 +35,7 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/breakapp/package.json ./packages/breakapp/
 COPY packages/core-memory/package.json ./packages/core-memory/
 COPY packages/prompt-engineering/package.json ./packages/prompt-engineering/
-COPY packages/shared/package.json ./packages/shared/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
-COPY packages/ui/package.json ./packages/ui/
 
 # Install dependencies after manifests so Docker layer caching remains effective on Railway.
 RUN --mount=type=secret,id=tiptap_pro_token,required=true \
@@ -57,8 +55,6 @@ COPY apps/web/ ./apps/web/
 COPY packages/breakapp/ ./packages/breakapp/
 COPY packages/core-memory/ ./packages/core-memory/
 COPY packages/prompt-engineering/ ./packages/prompt-engineering/
-COPY packages/shared/ ./packages/shared/
-COPY packages/ui/ ./packages/ui/
 COPY packages/tsconfig/ ./packages/tsconfig/
 
 RUN NODE_OPTIONS=--max-old-space-size=1536 pnpm --filter @the-copy/web build
