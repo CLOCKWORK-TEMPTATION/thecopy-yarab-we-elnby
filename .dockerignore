@@ -46,3 +46,8 @@ _bmad-output
 .agents
 .tools
 123
+
+# Packages removed from monorepo (dead code cleanup)
+packages/shared/
+packages/ui/
+packages/cinematography/
