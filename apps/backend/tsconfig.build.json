@@ -11,7 +11,20 @@
         "src/global.d.ts",
         "src/env.d.ts",
         "src/types/env.d.ts",
-        "src/types/module-alias.d.ts"
+        "src/types/module-alias.d.ts",
+        "src/memory/config.ts",
+        "src/memory/types.ts",
+        "src/memory/embeddings/generator.ts",
+        "src/memory/embeddings/mrl-optimizer.ts",
+        "src/memory/vector-store/client.ts",
+        "src/memory/vector-store/schema.ts",
+        "src/memory/indexer/repository-crawler.ts",
+        "src/memory/indexer/weaviate-indexing.service.ts",
+        "src/memory/indexer/git-watcher.ts",
+        "src/memory/retrieval/context-builder.ts",
+        "src/memory/retrieval/weaviate-retrieval.service.ts",
+        "src/memory/context/context-assembly.service.ts",
+        "src/memory/api/routes.ts"
     ],
     "exclude": [
         "node_modules",
