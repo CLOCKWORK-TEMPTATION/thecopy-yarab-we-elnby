@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "An elegant desk with a typewriter and a cup of coffee, suggesting a writer's workspace.",
+      "imageUrl": "https://images.unsplash.com/photo-1681230745734-4e59736c3660?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3cml0ZXIlMjBkZXNrfGVufDB8fHx8MTc2MTEwNTEzN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "writer desk"
+    },
+    {
+      "id": "editor-feature",
+      "description": "A close-up of an Arabic script on a vintage paper.",
+      "imageUrl": "https://images.unsplash.com/photo-1760727465678-0b20d2420879?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhcmFiaWMlMjBzY3JpcHR8ZW58MHx8fHwxNzYxMTA1MTM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "arabic script"
+    },
+    {
+      "id": "analysis-feature",
+      "description": "Magnifying glass over a book, symbolizing analysis.",
+      "imageUrl": "https://images.unsplash.com/photo-1547057740-4b18aac8eed2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtYWduaWZ5aW5nJTIwZ2xhc3N8ZW58MHx8fHwxNzYxMDg4ODI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "magnifying glass"
+    },
+    {
+      "id": "deep-analysis-feature",
+      "description": "Abstract representation of layers or depth.",
+      "imageUrl": "https://images.unsplash.com/photo-1518866586318-bbe74635b749?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhYnN0cmFjdCUyMGxheWVyc3xlbnwwfHx8fDE3NjExMDUxMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract layers"
+    },
+    {
+      "id": "brainstorm-feature",
+      "description": "An abstract visualization of a neural network in a galaxy, symbolizing AI collaboration.",
+      "imageUrl": "/20251022_1333_ورشة كتابة في الفضاء_simple_compose_01k85qkqbhe9b8ews92f9m2ec3.png",
+      "imageHint": "neural network"
+    }
+  ]
+}

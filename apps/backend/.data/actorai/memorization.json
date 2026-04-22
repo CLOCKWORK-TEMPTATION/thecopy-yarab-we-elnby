@@ -1,0 +1,15 @@
+[
+  {
+    "id": "fe5b5597-f768-404a-8ad2-089529d4c86a",
+    "kind": "memorization",
+    "createdAt": "2026-04-02T17:02:51.663Z",
+    "payload": {
+      "totalAttempts": 1,
+      "correctWords": 10,
+      "incorrectWords": 1,
+      "hesitationCount": 0,
+      "weakPoints": [],
+      "averageResponseTime": 1.2
+    }
+  }
+]

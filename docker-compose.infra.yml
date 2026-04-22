@@ -1,0 +1,101 @@
+name: thecopy
+
+# =========================================================
+# البنية التحتية لمشروع "النسخة" - docker-compose.infra.yml
+# يحتوي على: قاعدة بيانات PostgreSQL، ذاكرة تخزين Redis،
+# ومحرك البحث الدلالي Weaviate
+# =========================================================
+# للتشغيل: docker compose -f docker-compose.infra.yml up -d
+# للإيقاف: docker compose -f docker-compose.infra.yml down
+# =========================================================
+
+services:
+
+  # ----------------------------------------------------------
+  # قاعدة البيانات الرئيسية - PostgreSQL 16
+  # المنفذ الخارجي: 5433 (لتجنب التعارض مع أي نسخة محلية)
+  # ----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: thecopy
+      POSTGRES_PASSWORD: thecopy_dev
+      POSTGRES_DB: thecopy_dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thecopy -d thecopy_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - thecopy-net
+
+  # ----------------------------------------------------------
+  # مخزن البيانات السريع - Redis 7
+  # يعمل مع appendonly لضمان استمرارية البيانات على القرص
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - thecopy-net
+
+  # ----------------------------------------------------------
+  # محرك البحث الدلالي - Weaviate 1.28.4
+  # يستخدم للبحث الذكي في المحتوى دون نموذج تضمين مدمج
+  # ----------------------------------------------------------
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.28.4
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: none
+      CLUSTER_HOSTNAME: node1
+    volumes:
+      - weaviatedata:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8080/v1/.well-known/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - thecopy-net
+
+# ----------------------------------------------------------
+# الأحجام الدائمة - تحفظ البيانات بين إعادات التشغيل
+# ----------------------------------------------------------
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  weaviatedata:
+    driver: local
+
+# ----------------------------------------------------------
+# الشبكة المشتركة بين جميع الخدمات
+# ----------------------------------------------------------
+networks:
+  thecopy-net:
+    driver: bridge

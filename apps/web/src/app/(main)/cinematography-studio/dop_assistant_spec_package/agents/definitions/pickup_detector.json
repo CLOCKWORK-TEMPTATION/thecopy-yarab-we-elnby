@@ -1,0 +1,83 @@
+{
+  "key": "pickup_detector",
+  "name": "وكيل كشف الاحتياج للاستكمال",
+  "domain": "post",
+  "description": "ينتج طلبات استكمال منظمة بناءً على فجوات التغطية أو المونتاج أو الاستمرارية.",
+  "trigger": ["pickup.generation.requested", "rushes.review.completed"],
+  "reads": [
+    "continuity_flags",
+    "shots",
+    "takes",
+    "editorial_sequences",
+    "scene_plan_versions"
+  ],
+  "writes": ["pickup_requests"],
+  "input_schema": {
+    "type": "object",
+    "required": ["production_id"],
+    "properties": {
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "scene_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      },
+      "sequence_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      },
+      "editor_notes": {
+        "type": ["string", "null"]
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": ["pickup_candidates"],
+    "properties": {
+      "pickup_candidates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "reason_type",
+            "priority",
+            "description",
+            "evidence_refs",
+            "suggested_scope"
+          ],
+          "properties": {
+            "reason_type": {
+              "type": "string"
+            },
+            "priority": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "suggested_scope": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["always_before_creation"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["pickup_requests"]
+  }
+}

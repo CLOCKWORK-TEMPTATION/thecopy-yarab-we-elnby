@@ -1,0 +1,130 @@
+{
+  "pages": [
+    {
+      "slug": "actorai-arabic",
+      "path": "/actorai-arabic",
+      "title": "الممثل الذكي"
+    },
+    {
+      "slug": "analysis",
+      "path": "/analysis",
+      "title": "تحليل"
+    },
+    {
+      "slug": "apps-overview",
+      "path": "/apps-overview",
+      "title": "apps-overview"
+    },
+    {
+      "slug": "arabic-creative-writing-studio",
+      "path": "/arabic-creative-writing-studio",
+      "title": "استوديو الكتابة الإبداعية"
+    },
+    {
+      "slug": "arabic-prompt-engineering-studio",
+      "path": "/arabic-prompt-engineering-studio",
+      "title": "استوديو هندسة التوجيهات"
+    },
+    {
+      "slug": "art-director",
+      "path": "/art-director",
+      "title": "art-director"
+    },
+    {
+      "slug": "brain-storm-ai",
+      "path": "/brain-storm-ai",
+      "title": "brain-storm-ai"
+    },
+    {
+      "slug": "BREAKAPP",
+      "path": "/BREAKAPP",
+      "title": "BREAKAPP"
+    },
+    {
+      "slug": "breakdown",
+      "path": "/breakdown",
+      "title": "تفكيك"
+    },
+    {
+      "slug": "BUDGET",
+      "path": "/BUDGET",
+      "title": "BUDGET"
+    },
+    {
+      "slug": "cinematography-studio",
+      "path": "/cinematography-studio",
+      "title": "استوديو التصوير السينمائي"
+    },
+    {
+      "slug": "development",
+      "path": "/development",
+      "title": "تطوير"
+    },
+    {
+      "slug": "directors-studio",
+      "path": "/directors-studio",
+      "title": "استوديو المخرج"
+    },
+    {
+      "slug": "editor",
+      "path": "/editor",
+      "title": "كتابة"
+    },
+    {
+      "slug": "metrics-dashboard",
+      "path": "/metrics-dashboard",
+      "title": "metrics-dashboard"
+    },
+    {
+      "slug": "styleIST",
+      "path": "/styleIST",
+      "title": "styleIST"
+    }
+  ],
+  "metadata": {
+    "editor": {
+      "title": "كتابة",
+      "description": "محرر متخصص لكتابة سيناريوهات الأفلام والمسلسلات باللغة العربية، مع ميزات تنسيق متقدمة."
+    },
+    "analysis": {
+      "title": "تحليل",
+      "description": "نظام تحليل متقدم يمر بسبع محطات متخصصة لتحليل شامل ومتعمق للنص الدرامي."
+    },
+    "development": {
+      "title": "تطوير",
+      "description": "احصل على تحليل درامي آلي فوري لنصك، استنادًا إلى أشهر الهياكل القصصية والنماذج الأدبية."
+    },
+    "brainstorm": {
+      "title": "الورشة",
+      "description": "فريق من وكلاء الذكاء الاصطناعي يتعاونون لتقديم وجهات نظر متنوعة وأفكار مبتكرة لتطوير كتاباتك."
+    },
+    "breakdown": {
+      "title": "تفكيك",
+      "description": "تحليل تفصيلي وتفكيك للنص الدرامي إلى عناصره الأساسية لفهم أعمق."
+    },
+    "new": {
+      "title": "جديد",
+      "description": "ابدأ مشروعًا جديدًا أو استكشف أحدث الأدوات والميزات المتاحة."
+    },
+    "actorai-arabic": {
+      "title": "الممثل الذكي",
+      "description": "أداة ذكاء اصطناعي متخصصة لتطوير الشخصيات الدرامية وتحليل الأداء التمثيلي."
+    },
+    "arabic-creative-writing-studio": {
+      "title": "استوديو الكتابة الإبداعية",
+      "description": "بيئة متكاملة للكتابة الإبداعية باللغة العربية مع أدوات وموارد احترافية."
+    },
+    "arabic-prompt-engineering-studio": {
+      "title": "استوديو هندسة التوجيهات",
+      "description": "ورشة متخصصة لصياغة وتطوير توجيهات الذكاء الاصطناعي باللغة العربية."
+    },
+    "cinematography-studio": {
+      "title": "استوديو التصوير السينمائي",
+      "description": "أدوات وتقنيات متقدمة لتخطيط المشاهد وتصميم اللقطات السينمائية."
+    },
+    "directors-studio": {
+      "title": "استوديو المخرج",
+      "description": "منصة شاملة لإدارة المشاريع الدرامية من منظور المخرج السينمائي."
+    }
+  }
+}

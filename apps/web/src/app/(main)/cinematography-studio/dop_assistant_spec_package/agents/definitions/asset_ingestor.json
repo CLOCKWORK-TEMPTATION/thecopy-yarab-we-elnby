@@ -1,0 +1,113 @@
+{
+  "key": "asset_ingestor",
+  "name": "وكيل إدخال الأصول والمعايرة",
+  "domain": "assets",
+  "description": "يفهرس الأصل، يستخرج الميتاداتا، يقترح الروابط، ويبني وحدات المعرفة للبحث.",
+  "trigger": ["asset.created", "asset.reindex.requested"],
+  "reads": ["assets"],
+  "writes": ["assets", "asset_links", "knowledge_chunks", "provenance_claims"],
+  "input_schema": {
+    "type": "object",
+    "required": ["asset_id", "production_id"],
+    "properties": {
+      "asset_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "target_entity": {
+        "type": ["object", "null"],
+        "properties": {
+          "entity_type": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["entity_type", "entity_id"]
+      },
+      "force_reindex": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "normalized_title",
+      "detected_language",
+      "extracted_metadata",
+      "chunks_created",
+      "proposed_links",
+      "warnings"
+    ],
+    "properties": {
+      "normalized_title": {
+        "type": "string"
+      },
+      "detected_language": {
+        "type": ["string", "null"]
+      },
+      "extracted_metadata": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "chunks_created": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "proposed_links": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "entity_type",
+            "entity_id",
+            "relation_type",
+            "confidence"
+          ],
+          "properties": {
+            "entity_type": {
+              "type": "string"
+            },
+            "entity_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "relation_type": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      },
+      "warnings": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": false,
+    "review_when": ["dedupe_collision", "sensitive_provenance_conflict"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": [
+      "assets",
+      "asset_links",
+      "knowledge_chunks",
+      "provenance_claims"
+    ]
+  }
+}

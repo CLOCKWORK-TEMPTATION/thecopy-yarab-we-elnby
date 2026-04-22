@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "files": [
+    "src/global.d.ts",
+    "src/env.d.ts",
+    "src/types/env.d.ts",
+    "src/types/module-alias.d.ts",
+    "src/controllers/budget.controller.ts",
+    "src/services/budget.service.ts",
+    "src/services/budget/budget-fallback-analysis.ts",
+    "src/services/budget/budget-fallback-insights.ts",
+    "src/services/budget/budget-fallback.service.ts",
+    "src/services/budget/budget-runtime.config.ts",
+    "src/services/budget/budget-types.ts",
+    "src/services/gemini.service.ts"
+  ]
+}

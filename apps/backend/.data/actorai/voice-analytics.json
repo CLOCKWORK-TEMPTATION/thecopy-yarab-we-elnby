@@ -1,0 +1,41 @@
+[
+  {
+    "id": "103a10d4-8cd1-4c57-9ca3-f8e6b55ca83b",
+    "kind": "voice-analytics",
+    "createdAt": "2026-04-02T17:02:51.640Z",
+    "payload": {
+      "pitch": {
+        "value": 110,
+        "level": "medium",
+        "label": "ok"
+      },
+      "volume": {
+        "value": -20,
+        "level": "normal",
+        "label": "ok"
+      },
+      "speechRate": {
+        "wpm": 120,
+        "level": "normal",
+        "warning": null
+      },
+      "articulation": {
+        "score": 80,
+        "level": "good",
+        "label": "ok"
+      },
+      "breathing": {
+        "isBreathing": false,
+        "breathCount": 1,
+        "warning": null,
+        "lastBreathTime": 0
+      },
+      "pauses": {
+        "count": 1,
+        "averageDuration": 500,
+        "isEffective": true,
+        "feedback": "ok"
+      }
+    }
+  }
+]

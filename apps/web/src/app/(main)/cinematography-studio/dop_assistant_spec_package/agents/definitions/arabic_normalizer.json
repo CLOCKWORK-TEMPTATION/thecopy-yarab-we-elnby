@@ -1,0 +1,75 @@
+{
+  "key": "arabic_normalizer",
+  "name": "وكيل تطبيع العربية والمصطلحات",
+  "domain": "language",
+  "description": "يطبع النص العربي والهجين للبحث دون تعديل النص الأصلي.",
+  "trigger": [
+    "asset.ingested",
+    "script.version.parsed",
+    "knowledge.search.requested"
+  ],
+  "reads": ["knowledge_chunks", "scene_revisions", "voice_events"],
+  "writes": ["knowledge_chunks"],
+  "input_schema": {
+    "type": "object",
+    "required": ["production_id", "texts"],
+    "properties": {
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "texts": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "context": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "normalized_forms",
+      "aliases",
+      "term_collisions",
+      "search_expansions"
+    ],
+    "properties": {
+      "normalized_forms": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "aliases": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "term_collisions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "search_expansions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": false,
+    "review_when": ["new_shared_terminology_entry"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["knowledge_chunks"]
+  }
+}

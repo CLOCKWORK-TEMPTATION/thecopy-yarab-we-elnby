@@ -1,0 +1,499 @@
+/**
+ * @fileoverview Hook مخصص لإدارة أدوات أثناء التصوير
+ *
+ * هذا الـ Hook يوفر جميع الوظائف المطلوبة لمرحلة التصوير الفعلي
+ * بما في ذلك تحليل اللقطات وإدارة الإعدادات التقنية.
+ * يتضمن معالجة الأخطاء والتحقق من صحة البيانات.
+ *
+ * @module cinematography-studio/hooks/useProduction
+ */
+
+"use client";
+
+import { useState, useCallback, useMemo } from "react";
+import { toast } from "react-hot-toast";
+import type { VisualMood, ShotAnalysis } from "../types";
+import { ShotAnalysisSchema } from "../types";
+import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
+import { createLocalShotAnalysis } from "../lib/local-shot-analysis";
+import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
+import { useMediaInputPipeline } from "./useMediaInputPipeline";
+
+// ============================================
+// واجهات الحالة الداخلية
+// ============================================
+
+/**
+ * حالة تحليل اللقطة
+ */
+interface AnalysisState {
+  /** حالة التحليل جارية */
+  isAnalyzing: boolean;
+  /** نتيجة التحليل */
+  analysis: ShotAnalysis | null;
+  /** مصدر التحليل الفعلي */
+  source: "remote" | "local-fallback" | null;
+  /** رسالة الخطأ إن وجدت */
+  error: string | null;
+  /** سؤال المستخدم للمساعد */
+  question: string;
+}
+
+/**
+ * الإعدادات التقنية للكاميرا
+ */
+interface TechnicalSettings {
+  /** Focus Peaking */
+  focusPeaking: boolean;
+  /** False Color */
+  falseColor: boolean;
+  /** درجة حرارة اللون بالكلفن */
+  colorTemp: number;
+}
+
+// ============================================
+// الثوابت
+// ============================================
+
+/**
+ * الحالة الابتدائية للتحليل
+ */
+const initialAnalysisState: AnalysisState = {
+  isAnalyzing: false,
+  analysis: null,
+  source: null,
+  error: null,
+  question: "",
+};
+
+/**
+ * الإعدادات التقنية الافتراضية
+ */
+const defaultTechnicalSettings: TechnicalSettings = {
+  focusPeaking: true,
+  falseColor: false,
+  colorTemp: 3200,
+};
+
+interface ValidateShotResponse {
+  success?: boolean;
+  validation?: {
+    score?: number;
+    status?: string;
+    exposure?: string;
+    composition?: string;
+    focus?: string;
+    colorBalance?: string;
+    suggestions?: string[];
+    improvements?: string[];
+  };
+}
+
+interface ChatResponse {
+  success?: boolean;
+  data?: {
+    response?: string;
+  };
+}
+
+// ============================================
+// الـ Hook الرئيسي
+// ============================================
+
+/**
+ * Hook مخصص لإدارة أدوات أثناء التصوير
+ *
+ * يوفر هذا الـ Hook:
+ * - تحليل اللقطات بالذكاء الاصطناعي
+ * - إدارة الإعدادات التقنية للكاميرا
+ * - نظام تحذيرات ذكي
+ * - معالجة الأخطاء مع إشعارات Toast
+ *
+ * @example
+ * ```tsx
+ * const {
+ *   analysis,
+ *   isAnalyzing,
+ *   handleAnalyzeShot,
+ *   technicalSettings
+ * } = useProduction("noir");
+ * ```
+ *
+ * @param mood - المود البصري للمشروع
+ * @returns كائن يحتوي على الحالة والدوال المساعدة
+ */
+export function useProduction(mood: VisualMood = "noir") {
+  // ============================================
+  // الحالة
+  // ============================================
+
+  const [analysisState, setAnalysisState] =
+    useState<AnalysisState>(initialAnalysisState);
+  const [technicalSettings, setTechnicalSettings] = useState<TechnicalSettings>(
+    defaultTechnicalSettings
+  );
+  const mediaInput = useMediaInputPipeline("image");
+
+  // ============================================
+  // دوال التحليل
+  // ============================================
+
+  /**
+   * حد المهلة لمسار التحليل البعيد (ms).
+   */
+  const REMOTE_ANALYSIS_TIMEOUT_MS = 12_000;
+
+  /**
+   * تحليل اللقطة الحالية — مسار متوازٍ
+   *
+   * يبدأ الطلب البعيد والبديل المحلي معًا.
+   * إذا عاد البعيد بنتيجة صالحة قبل المهلة يُعتمد.
+   * إذا تأخر أو فشل يُثبَّت البديل المحلي فورًا.
+   */
+  const handleAnalyzeShot = useCallback(
+    async (file?: File | null) => {
+      const effectiveFile = file ?? mediaInput.state.analysisFile;
+
+      if (!effectiveFile) {
+        toast.error(
+          "يرجى اختيار صورة أو فيديو أو التقاط إطار من الكاميرا أولاً"
+        );
+        return;
+      }
+
+      setAnalysisState((prev) => ({
+        ...prev,
+        isAnalyzing: true,
+        error: null,
+      }));
+
+      toast.loading("جاري المسح الطيفي للقطة...", { id: "analyzing" });
+
+      // تجهيز البديل المحلي بالتوازي من اللحظة الأولى
+      const localPromise = createLocalShotAnalysis(effectiveFile, mood)
+        .then((analysis) => {
+          const validation = ShotAnalysisSchema.safeParse(analysis);
+          return validation.success ? validation.data : null;
+        })
+        .catch(() => null);
+
+      // الطلب البعيد مع مهلة واضحة
+      const formData = new FormData();
+      formData.set("image", effectiveFile);
+
+      const remotePromise = postStudioFormData<ValidateShotResponse>(
+        "/api/cineai/validate-shot",
+        formData,
+        {
+          timeoutMs: REMOTE_ANALYSIS_TIMEOUT_MS,
+          timeoutMessage:
+            "انتهت المهلة الزمنية لتحليل اللقطة. سيُستخدم التحليل المحلي.",
+        }
+      )
+        .then((remoteData) => {
+          if (!remoteData?.validation) {
+            return null;
+          }
+
+          const analysis = normalizeShotAnalysis(remoteData.validation);
+          const validation = ShotAnalysisSchema.safeParse(analysis);
+          return validation.success ? validation.data : null;
+        })
+        .catch(() => null);
+
+      const winner = await resolveAnalysisWinner({
+        remote: remotePromise,
+        local: localPromise,
+      });
+
+      if (winner?.source === "remote") {
+        setAnalysisState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          analysis: winner.value,
+          source: "remote",
+          error: null,
+        }));
+
+        if (winner.value.issues.length > 0) {
+          toast.success(
+            `تم التحليل بنجاح - يوجد ${winner.value.issues.length} ملاحظة`,
+            { id: "analyzing" }
+          );
+        } else {
+          toast.success("اللقطة جاهزة للتصوير!", { id: "analyzing" });
+        }
+        return;
+      }
+
+      if (winner?.source === "local-fallback") {
+        setAnalysisState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          error: null,
+          analysis: winner.value,
+          source: "local-fallback",
+        }));
+        toast.success("تم تفعيل التحليل المحلي البديل بنجاح", {
+          id: "analyzing",
+        });
+        return;
+      }
+
+      // كلا المسارين فشلا
+      setAnalysisState((prev) => ({
+        ...prev,
+        isAnalyzing: false,
+        source: null,
+        error: "فشل في تحليل اللقطة من جميع المصادر",
+      }));
+      toast.error("فشل في تحليل اللقطة", { id: "analyzing" });
+    },
+    [mediaInput.state.analysisFile, mood]
+  );
+
+  /**
+   * تحديث سؤال المستخدم
+   *
+   * @param question - السؤال الجديد
+   */
+  const setQuestion = useCallback((question: string) => {
+    setAnalysisState((prev) => ({
+      ...prev,
+      question,
+    }));
+  }, []);
+
+  /**
+   * إرسال سؤال للمساعد الذكي
+   */
+  const askAssistant = useCallback(async () => {
+    const { question } = analysisState;
+
+    if (!question.trim()) {
+      toast.error("يرجى كتابة سؤالك أولاً");
+      return;
+    }
+
+    try {
+      toast.loading("جاري البحث عن إجابة...", { id: "assistant" });
+
+      const response = await postStudioJson<ChatResponse>(
+        "/api/ai/chat",
+        {
+          message: analysisState.question,
+          context: {
+            assistant: "cinematography-assistant",
+            mood,
+            latestAnalysis: analysisState.analysis,
+          },
+        },
+        { requireCsrf: true }
+      );
+
+      toast.success(response.data?.response || "تم استلام الإجابة", {
+        id: "assistant",
+      });
+
+      // مسح السؤال بعد الإرسال
+      setAnalysisState((prev) => ({
+        ...prev,
+        question: "",
+      }));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "فشل في إرسال السؤال",
+        { id: "assistant" }
+      );
+    }
+  }, [analysisState.analysis, analysisState.question, mood]);
+
+  /**
+   * إعادة تعيين حالة التحليل
+   */
+  const resetAnalysis = useCallback(() => {
+    setAnalysisState(initialAnalysisState);
+    mediaInput.clearMedia();
+  }, [mediaInput.clearMedia]);
+
+  // ============================================
+  // دوال الإعدادات التقنية
+  // ============================================
+
+  /**
+   * تبديل إعداد Focus Peaking
+   */
+  const toggleFocusPeaking = useCallback(() => {
+    setTechnicalSettings((prev) => ({
+      ...prev,
+      focusPeaking: !prev.focusPeaking,
+    }));
+    toast.success(
+      technicalSettings.focusPeaking
+        ? "تم إيقاف Focus Peaking"
+        : "تم تفعيل Focus Peaking"
+    );
+  }, [technicalSettings.focusPeaking]);
+
+  /**
+   * تبديل إعداد False Color
+   */
+  const toggleFalseColor = useCallback(() => {
+    setTechnicalSettings((prev) => ({
+      ...prev,
+      falseColor: !prev.falseColor,
+    }));
+    toast.success(
+      technicalSettings.falseColor
+        ? "تم إيقاف False Color"
+        : "تم تفعيل False Color"
+    );
+  }, [technicalSettings.falseColor]);
+
+  /**
+   * تحديث درجة حرارة اللون
+   *
+   * @param colorTemp - درجة الحرارة بالكلفن
+   */
+  const setColorTemp = useCallback((colorTemp: number) => {
+    if (colorTemp >= 2000 && colorTemp <= 10000) {
+      setTechnicalSettings((prev) => ({
+        ...prev,
+        colorTemp,
+      }));
+    }
+  }, []);
+
+  /**
+   * تحديث درجة حرارة اللون من Slider (يأخذ مصفوفة)
+   *
+   * @param value - القيمة كمصفوفة من الـ Slider
+   */
+  const setColorTempFromSlider = useCallback(
+    (value: number[]) => {
+      const temp = value[0] ?? 3200;
+      setColorTemp(temp);
+    },
+    [setColorTemp]
+  );
+
+  /**
+   * قيمة درجة الحرارة كمصفوفة للـ Slider
+   */
+  const colorTempValue = useMemo(
+    () => [technicalSettings.colorTemp],
+    [technicalSettings.colorTemp]
+  );
+
+  // ============================================
+  // قيم محسوبة
+  // ============================================
+
+  /**
+   * درجة الحرارة الموصى بها بناءً على المود الحالي
+   */
+  const recommendedColorTemp = useMemo((): number => {
+    const moodDefaults: Record<VisualMood, number> = {
+      noir: 3200,
+      realistic: 5600,
+      surreal: 4500,
+      vintage: 3800,
+    };
+    return moodDefaults[mood];
+  }, [mood]);
+
+  /**
+   * التحقق من وجود تحليل جاهز
+   */
+  const hasAnalysis = useMemo((): boolean => {
+    return analysisState.analysis !== null;
+  }, [analysisState.analysis]);
+
+  /**
+   * التحقق من وجود مشاكل في اللقطة
+   */
+  const hasIssues = useMemo((): boolean => {
+    return (analysisState.analysis?.issues.length ?? 0) > 0;
+  }, [analysisState.analysis]);
+
+  /**
+   * حالة الجاهزية للتصوير
+   */
+  const isReadyToShoot = useMemo((): boolean => {
+    return hasAnalysis && !hasIssues;
+  }, [hasAnalysis, hasIssues]);
+
+  // ============================================
+  // القيمة المُرجعة
+  // ============================================
+
+  return {
+    // حالة التحليل
+    analysis: analysisState.analysis,
+    analysisSource: analysisState.source,
+    isAnalyzing: analysisState.isAnalyzing,
+    error: analysisState.error,
+    question: analysisState.question,
+
+    // دوال التحليل
+    handleAnalyzeShot,
+    setQuestion,
+    askAssistant,
+    resetAnalysis,
+
+    // إدخال الوسائط
+    mediaInput,
+
+    // الإعدادات التقنية
+    technicalSettings,
+    toggleFocusPeaking,
+    toggleFalseColor,
+    setColorTemp,
+    setColorTempFromSlider,
+    colorTempValue,
+
+    // قيم محسوبة
+    hasAnalysis,
+    hasIssues,
+    isReadyToShoot,
+    recommendedColorTemp,
+  };
+}
+
+export default useProduction;
+
+function normalizeShotAnalysis(
+  validation:
+    | {
+        score?: number;
+        status?: string;
+        exposure?: string;
+        composition?: string;
+        focus?: string;
+        colorBalance?: string;
+        suggestions?: string[];
+        improvements?: string[];
+      }
+    | undefined
+): ShotAnalysis {
+  const issues = [
+    ...(validation?.suggestions ?? []),
+    ...(validation?.improvements ?? []),
+  ].filter((value, index, array) => array.indexOf(value) === index);
+
+  return {
+    score: clampScore(validation?.score),
+    dynamicRange: validation?.composition || validation?.exposure || "غير متاح",
+    grainLevel: validation?.focus || validation?.colorBalance || "غير متاح",
+    issues,
+    exposure: clampScore(validation?.score),
+  };
+}
+
+function clampScore(value: number | undefined): number {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(value)));
+}

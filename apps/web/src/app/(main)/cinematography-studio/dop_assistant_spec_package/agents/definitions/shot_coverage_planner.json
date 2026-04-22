@@ -1,0 +1,98 @@
+{
+  "key": "shot_coverage_planner",
+  "name": "وكيل التخطيط للـshots والتغطية",
+  "domain": "planning",
+  "description": "يبني coverage requirements وsetups وshots من خطة المشهد.",
+  "trigger": ["scene.shot_plan.requested"],
+  "reads": [
+    "scene_plan_versions",
+    "scene_camera_specs",
+    "scene_lighting_specs",
+    "recce_reports",
+    "equipment_items"
+  ],
+  "writes": ["coverage_requirements", "setups", "shots", "shot_coverage_map"],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "scene_plan_version_id", "production_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "scene_plan_version_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "schedule_context": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      },
+      "equipment_context": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "coverage_requirements",
+      "setup_drafts",
+      "shot_drafts",
+      "coverage_map",
+      "gaps_or_risks"
+    ],
+    "properties": {
+      "coverage_requirements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "setup_drafts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "shot_drafts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "coverage_map": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "gaps_or_risks": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_schedule_publish"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": [
+      "coverage_requirements",
+      "setups",
+      "shots",
+      "shot_coverage_map"
+    ]
+  }
+}

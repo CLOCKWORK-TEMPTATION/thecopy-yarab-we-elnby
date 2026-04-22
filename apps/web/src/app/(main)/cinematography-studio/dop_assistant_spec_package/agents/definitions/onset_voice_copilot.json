@@ -1,0 +1,86 @@
+{
+  "key": "onset_voice_copilot",
+  "name": "وكيل المساعد الصوتي الموقعي",
+  "domain": "onset",
+  "description": "يفسر الكلام أثناء التصوير ويربطه بالكيان الصحيح ويقترح الإجراء المناسب.",
+  "trigger": ["voice.event.received"],
+  "reads": [
+    "voice_sessions",
+    "shooting_days",
+    "scenes",
+    "setups",
+    "shots",
+    "takes",
+    "comments"
+  ],
+  "writes": ["voice_events", "comments", "tasks", "agent_runs"],
+  "input_schema": {
+    "type": "object",
+    "required": ["voice_session_id", "production_id", "transcript"],
+    "properties": {
+      "voice_session_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "transcript": {
+        "type": "string"
+      },
+      "current_context": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      },
+      "allow_writes": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "intent",
+      "resolved_entity",
+      "action_proposal",
+      "confidence",
+      "follow_up_questions"
+    ],
+    "properties": {
+      "intent": {
+        "type": "string"
+      },
+      "resolved_entity": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      },
+      "action_proposal": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "follow_up_questions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": false,
+    "review_when": [
+      "writing_to_approved_entity",
+      "ambiguous_target",
+      "destructive_action"
+    ],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["voice_events", "comments", "tasks"]
+  }
+}

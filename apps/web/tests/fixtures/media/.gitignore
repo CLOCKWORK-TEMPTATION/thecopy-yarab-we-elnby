@@ -1,0 +1,4 @@
+# الملحقات تُولَّد محليًا عبر ensure-media-fixtures.mjs قبل تشغيل الاختبارات.
+# لا نُسلِّم النواتج الثنائية المولّدة داخل المستودع.
+sample-shot.png
+sample-footage.mp4

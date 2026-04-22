@@ -1,0 +1,123 @@
+rules:
+  - id: thecopy.reliability.prefer-process-env-bracket-notation
+    message: >-
+      استخدم process.env['KEY'] بدلاً من process.env.KEY للحفاظ على التوافق مع TypeScript الصارم
+      وتجنّب مشاكل TS4111 في هذا المستودع.
+    languages: [typescript, javascript]
+    severity: INFO
+    paths:
+      include:
+        - /apps/**/*.ts
+        - /apps/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+        - '**/scripts/**'
+    patterns:
+      - pattern: process.env.$VAR
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: ^[A-Z][A-Z0-9_]*$
+    metadata:
+      category: reliability
+      confidence: high
+
+  - id: thecopy.reliability.no-console-backend-runtime
+    message: >-
+      تجنب console.* في كود backend runtime. استخدم logger المركزي حتى تبقى السجلات قابلة للتتبع والتحكم.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/backend/src/**/*.ts
+        - /packages/shared/src/**/*.ts
+        - /packages/core-memory/src/**/*.ts
+      exclude:
+        - /apps/backend/src/config/env.ts
+        - /apps/backend/src/config/validate-env.ts
+        - /apps/backend/src/config/sentry.ts
+        - /apps/backend/src/config/tracing.ts
+        - /apps/backend/src/config/env-safe.ts
+        - /apps/backend/src/utils/logger.ts
+        - /apps/backend/src/middleware/security-logger.middleware.ts
+        - /apps/backend/src/examples/**
+        - /apps/backend/src/scripts/**
+        - /apps/backend/src/memory/**
+        - /apps/backend/src/modules/art-director/**
+        - /apps/backend/src/services/cache.service.ts
+        - /apps/backend/src/ocr-arabic-pdf-to-txt-pipeline/**
+        - /packages/shared/src/cache/redis.ts
+        - '**/*.test.ts'
+        - '**/*.spec.ts'
+        - '**/*.example.ts'
+        - '**/scripts/**'
+        - '**/skill-scripts/**'
+        - '**/mcp-server/**'
+        - '**/ocr-arabic-pdf-to-txt-pipeline/**'
+    pattern-either:
+      - pattern: console.log(...)
+      - pattern: console.error(...)
+      - pattern: console.warn(...)
+      - pattern: console.debug(...)
+    metadata:
+      category: reliability
+      confidence: high
+
+  - id: thecopy.reliability.no-console-web-runtime
+    message: >-
+      تجنب console.* في كود web runtime غير التشخيصي. استخدم logger أو طبقة observability عند الحاجة.
+    languages: [typescript, javascript]
+    severity: INFO
+    paths:
+      include:
+        - /apps/web/src/app/**/*.ts
+        - /apps/web/src/app/**/*.tsx
+        - /apps/web/src/lib/**/*.ts
+        - /apps/web/src/lib/**/*.tsx
+        - /apps/web/src/orchestration/**/*.ts
+        - /apps/web/src/proxy.ts
+        - /packages/breakapp/src/**/*.ts
+        - /packages/breakapp/src/**/*.tsx
+        - /packages/ui/src/**/*.ts
+        - /packages/ui/src/**/*.tsx
+      exclude:
+        - /apps/web/src/app/__smoke__/**
+        - /apps/web/src/app/(main)/art-director/**
+        - /apps/web/src/app/(main)/editor/server/**
+        - /apps/web/src/app/(main)/editor/scripts/**
+        - /apps/web/src/app/(main)/editor/skills/**
+        - /apps/web/src/app/(main)/editor/src/cli.ts
+        - /apps/web/src/app/(main)/editor/src/main.tsx
+        - /apps/web/src/app/(main)/editor/src/extensions/pipeline-*.ts
+        - /apps/web/src/app/(main)/editor/src/ocr-arabic-pdf-to-txt-pipeline/**
+        - /apps/web/src/lib/ai/**
+        - /apps/web/src/lib/ai/utils/logger.ts
+        - /apps/web/src/app/(main)/editor/src/utils/logger.ts
+        - /apps/web/src/lib/drama-analyst/services/loggerService.ts
+        - /apps/web/src/lib/drama-analyst/services/observability.ts
+        - /apps/web/src/lib/directors-editor/logger.ts
+        - /apps/web/src/lib/tracing.ts
+        - /apps/web/src/lib/web-vitals.ts
+        - /apps/web/src/components/**
+        - /apps/web/src/hooks/**
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+        - '**/*.example.ts'
+        - '**/*.example.tsx'
+        - '**/scripts/**'
+        - '**/skill-scripts/**'
+        - '**/mcp-server/**'
+    pattern-either:
+      - pattern: console.log(...)
+      - pattern: console.error(...)
+      - pattern: console.warn(...)
+      - pattern: console.debug(...)
+    metadata:
+      category: reliability
+      confidence: medium

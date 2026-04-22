@@ -1,0 +1,70 @@
+{
+  "key": "reference_retriever",
+  "name": "وكيل استرجاع المراجع",
+  "domain": "references",
+  "description": "يقترح المراجع البصرية الأنسب للمشهد من أصول المشروع أو المنظمة.",
+  "trigger": ["scene.visual_plan.requested", "scene.workspace.opened"],
+  "reads": ["assets", "asset_links", "knowledge_chunks", "look_bibles"],
+  "writes": ["agent_runs"],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "production_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "query_intent": {
+        "type": ["string", "null"]
+      },
+      "reference_scope": {
+        "type": ["string", "null"],
+        "enum": ["project", "organization", "mixed", null]
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "ranked_asset_ids",
+      "why_this_reference",
+      "coverage_of_style_dimensions",
+      "missing_reference_dimensions"
+    ],
+    "properties": {
+      "ranked_asset_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "why_this_reference": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "coverage_of_style_dimensions": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "missing_reference_dimensions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_persisting_official_reference_link"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": []
+  }
+}

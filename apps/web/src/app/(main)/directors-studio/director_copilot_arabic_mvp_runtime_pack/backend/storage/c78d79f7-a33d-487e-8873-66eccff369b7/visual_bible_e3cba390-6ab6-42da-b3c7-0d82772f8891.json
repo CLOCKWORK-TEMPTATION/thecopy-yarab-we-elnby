@@ -1,0 +1,18 @@
+{
+  "style_manifest": {
+    "intent": "نوير مصري",
+    "palette": ["shadow black", "dust beige", "sodium amber"],
+    "camera_language": "توازن بين اللقطات المتوسطة والـclose-ups مع حركة محسوبة",
+    "light_language": "مصادر ضوء عملية مع تباين متوسط إلى عالٍ",
+    "reference_notes": [null, null]
+  },
+  "reference_pack": {
+    "depth": "standard",
+    "character_visual_anchors": [
+      "تفاصيل يدين",
+      "مسافات داخل الكادر",
+      "خامات المكان"
+    ],
+    "set_texture": ["غبار", "دهانات قديمة", "عتمة مشوبة بلون دافئ"]
+  }
+}

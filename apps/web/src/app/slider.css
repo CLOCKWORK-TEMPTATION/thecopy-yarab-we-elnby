@@ -1,0 +1,60 @@
+/* Global reset */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* Scrolling area */
+html,
+body {
+  width: 100vw;
+  height: 800vh;
+  overflow: auto;
+  background: transparent;
+}
+
+/* Slider container fixed at center with 3D transforms */
+.slider {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 0) rotateX(0deg) rotateY(-25deg)
+    rotateZ(-120deg);
+  transform-style: preserve-3d;
+  transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+  user-select: none;
+  will-change: transform;
+}
+
+/* Card styles with 3D rotation and overlap - optimized for 4 cards */
+.card {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  transform: rotateX(20deg) rotateY(-10deg) rotateZ(130deg);
+  border: 2px solid rgba(255, 255, 255, 25%);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: -300px 0;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  left: 0%;
+}
+
+/* Hover state for cards */
+.card.hover-active {
+  transform: rotateX(20deg) rotateY(-10deg) rotateZ(130deg) translateZ(160px)
+    scale(1.03);
+  z-index: 999;
+}
+
+/* Ensure images fill their cards */
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none; /* Keep hover target on the card div */
+}

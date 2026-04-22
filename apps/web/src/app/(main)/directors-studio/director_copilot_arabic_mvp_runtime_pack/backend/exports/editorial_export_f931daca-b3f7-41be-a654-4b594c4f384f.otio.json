@@ -1,0 +1,36 @@
+{
+  "OTIO_SCHEMA": "Timeline.1",
+  "name": "فيلم اختبار",
+  "metadata": {
+    "scope": "project",
+    "shooting_day_id": null,
+    "scene_id": null,
+    "episode_id": null
+  },
+  "tracks": [
+    {
+      "OTIO_SCHEMA": "Track.1",
+      "name": "Video Track",
+      "children": [
+        {
+          "OTIO_SCHEMA": "Clip.2",
+          "name": "داخلي - مكتب - نهار",
+          "metadata": {
+            "scene_id": "d3197e68-4faf-47d7-849b-ebfe7162fa71",
+            "summary": "رجل يجلس أمام مكتب خشبي ويحمل حقيبة.",
+            "stable_scene_key": "68f50193055a13e35d0c"
+          }
+        },
+        {
+          "OTIO_SCHEMA": "Clip.2",
+          "name": "خارجي - موقف سيارات - ليل",
+          "metadata": {
+            "scene_id": "94da71dc-e00f-4be6-9ab3-3e246de2c6c8",
+            "summary": "سيارة حمراء تقف بينما المطر يهطل.",
+            "stable_scene_key": "be78067aaec3863546b3"
+          }
+        }
+      ]
+    }
+  ]
+}

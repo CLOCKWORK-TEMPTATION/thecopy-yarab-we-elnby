@@ -1,0 +1,31 @@
+# Build outputs
+**/.next/
+**/dist/
+**/build/
+**/out/
+**/coverage/
+**/.turbo/
+
+# Package managers
+**/node_modules/
+
+# Logs / tmp
+*.log
+**/tmp/
+**/temp/
+
+# Generated or archived cowork/runtime copies
+/.cowork-postmerge-runtime-b/
+
+# Docs / references / skills that are intentionally noisy
+/apps/web/src/app/(main)/editor/skills/
+/apps/web/src/app/(main)/BREAKAPP/docs/
+
+# Assets
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.gif
+**/*.svg
+**/*.pdf

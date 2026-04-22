@@ -1,0 +1,75 @@
+{
+  "key": "continuity_guard",
+  "name": "وكيل حارس الاستمرارية",
+  "domain": "continuity",
+  "description": "يفحص الاستمرارية مقابل الحالة المرجعية للمشهد أو اللقطة.",
+  "trigger": [
+    "take.created",
+    "continuity.check.requested",
+    "annotation.created"
+  ],
+  "reads": [
+    "continuity_states",
+    "takes",
+    "shots",
+    "annotations",
+    "scene_plan_versions"
+  ],
+  "writes": ["continuity_flags"],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "production_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "take_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "reference_state_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": ["flags", "evidence_refs", "confidence"],
+    "properties": {
+      "flags": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "evidence_refs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["always_before_resolution"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["continuity_flags"]
+  }
+}

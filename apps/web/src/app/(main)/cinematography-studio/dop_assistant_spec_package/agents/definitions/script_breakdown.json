@@ -1,0 +1,87 @@
+{
+  "key": "script_breakdown",
+  "name": "وكيل تحليل السيناريو",
+  "domain": "scripts",
+  "description": "يستخرج المشاهد والعناصر ويبني علاقات lineage بين النسخ.",
+  "trigger": ["script.parse.requested"],
+  "reads": ["script_versions", "assets", "knowledge_chunks"],
+  "writes": ["scenes", "scene_revisions", "scene_elements", "scene_lineage"],
+  "input_schema": {
+    "type": "object",
+    "required": ["script_version_id", "production_id"],
+    "properties": {
+      "script_version_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "language_hint": {
+        "type": ["string", "null"]
+      },
+      "episode_scope": {
+        "type": ["string", "null"]
+      },
+      "force_reparse": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "scene_drafts",
+      "element_drafts",
+      "lineage_suggestions",
+      "open_questions",
+      "confidence_summary"
+    ],
+    "properties": {
+      "scene_drafts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "element_drafts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "lineage_suggestions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "open_questions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "confidence_summary": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["always_before_publish"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": [
+      "scenes",
+      "scene_revisions",
+      "scene_elements",
+      "scene_lineage"
+    ]
+  }
+}

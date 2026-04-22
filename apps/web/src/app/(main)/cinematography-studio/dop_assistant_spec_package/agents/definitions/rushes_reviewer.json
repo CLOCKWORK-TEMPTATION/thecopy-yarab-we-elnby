@@ -1,0 +1,82 @@
+{
+  "key": "rushes_reviewer",
+  "name": "وكيل مراجعة الرشز",
+  "domain": "review",
+  "description": "يراجع الرشز على دفعات ويخرج ملاحظات تقنية وفنية واستمرارية أولية.",
+  "trigger": ["rushes.review.requested", "editorial.sequence.imported"],
+  "reads": ["assets", "takes", "shots", "scene_plan_versions", "annotations"],
+  "writes": ["agent_runs"],
+  "input_schema": {
+    "type": "object",
+    "required": ["production_id"],
+    "properties": {
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "asset_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "scene_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "shooting_day_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "technical_notes",
+      "creative_observations",
+      "suspected_coverage_gaps",
+      "continuity_suspicions"
+    ],
+    "properties": {
+      "technical_notes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "creative_observations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "suspected_coverage_gaps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "continuity_suspicions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_creating_flags_or_pickups"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": []
+  }
+}

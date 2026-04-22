@@ -1,0 +1,66 @@
+name: Hybrid Production Audit
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/src/app/(main)/**"
+      - "apps/backend/**"
+      - "scripts/hybrid-audit.js"
+      - ".github/workflows/hybrid-production-audit.yml"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: hybrid-production-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hybrid-production-audit:
+    name: Hybrid Production Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}" --depth=1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install audit dependency
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          if [ -z "$TIPTAP_PRO_TOKEN" ]; then
+            echo "Missing TIPTAP_PRO_TOKEN secret"
+            exit 1
+          fi
+          export TIPTAP_PRO_TOKEN
+          corepack enable
+          corepack prepare pnpm@10.32.1 --activate
+          mkdir -p .codex-hybrid-audit-runtime
+          pnpm add --dir .codex-hybrid-audit-runtime typescript@5.9.3
+
+      - name: Run hybrid audit
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENAI_API_KEY: ${{ secrets.GOOGLE_GENAI_API_KEY }}
+          VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          AI_PROVIDER="$(echo "$VARS_JSON" | jq -r '.HYBRID_AUDIT_AI_PROVIDER // "gemini"')"
+          AI_MODEL="$(echo "$VARS_JSON" | jq -r '.HYBRID_AUDIT_AI_MODEL // "gemini-2.5-flash"')"
+
+          export AI_PROVIDER
+          export AI_MODEL
+
+          NODE_PATH="$GITHUB_WORKSPACE/.codex-hybrid-audit-runtime/node_modules" node scripts/hybrid-audit.js

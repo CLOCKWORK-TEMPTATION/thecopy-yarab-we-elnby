@@ -1,0 +1,439 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: "10.32.1"
+  TURBO_TELEMETRY_DISABLED: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect affected apps
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - "apps/web/**"
+              - "packages/**"
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - "turbo.json"
+              - ".github/workflows/ci.yml"
+              - ".dockerignore"
+              - ".gitignore"
+              - "apps/web/Dockerfile"
+              - "scripts/ci/**"
+            backend:
+              - "apps/backend/**"
+              - "packages/**"
+              - "package.json"
+              - "pnpm-lock.yaml"
+              - "pnpm-workspace.yaml"
+              - "turbo.json"
+              - ".github/workflows/ci.yml"
+              - ".dockerignore"
+              - ".gitignore"
+              - "apps/backend/Dockerfile"
+              - "docker-compose.infra.yml"
+              - "scripts/ci/**"
+
+  verify-frontend:
+    name: Verify Frontend
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-turbo-frontend-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-frontend-
+
+      - name: Install dependencies
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          export TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          pnpm install --frozen-lockfile
+
+      - name: Run frontend checks
+        run: pnpm exec turbo run lint type-check test:coverage --filter=@the-copy/web --output-logs=errors-only
+
+      - name: Upload frontend coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/web/reports/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+
+  verify-backend:
+    name: Verify Backend
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-turbo-backend-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-backend-
+
+      - name: Install dependencies
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          export TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          pnpm install --frozen-lockfile
+
+      - name: Run backend checks
+        run: pnpm exec turbo run lint type-check test:coverage --filter=@the-copy/backend --output-logs=errors-only
+
+      - name: Upload backend coverage
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./apps/backend/coverage/lcov.info
+          flags: backend
+          fail_ci_if_error: false
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: [changes, verify-frontend]
+    if: needs.changes.outputs.frontend == 'true' && needs.verify-frontend.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-turbo-frontend-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-frontend-
+
+      - name: Install dependencies
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          export TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm exec turbo run build --filter=@the-copy/web --output-logs=errors-only
+        env:
+          NODE_ENV: production
+
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    needs: [changes, verify-backend]
+    if: needs.changes.outputs.backend == 'true' && needs.verify-backend.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Restore Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: ${{ runner.os }}-turbo-backend-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-backend-
+
+      - name: Install dependencies
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          export TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          pnpm install --frozen-lockfile
+
+      - name: Build backend
+        run: pnpm exec turbo run build --filter=@the-copy/backend --output-logs=errors-only
+
+  docker-build-frontend:
+    name: Docker Build Frontend
+    runs-on: ubuntu-latest
+    needs: [changes, build-frontend]
+    if: needs.changes.outputs.frontend == 'true' && needs.build-frontend.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Verify tracked dockerignore
+        run: node scripts/ci/check-dockerignore.mjs
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve Tiptap token
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          token="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          if [ -n "$token" ]; then
+            echo "::add-mask::$token"
+            echo "TIPTAP_PRO_TOKEN=$token" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build frontend image from clean checkout
+        run: |
+          docker buildx build \
+            --load \
+            --secret id=tiptap_pro_token,env=TIPTAP_PRO_TOKEN \
+            --file apps/web/Dockerfile \
+            --tag the-copy-web:ci \
+            .
+
+  docker-verify-backend:
+    name: Docker Verify Backend Runtime
+    runs-on: ubuntu-latest
+    needs: [changes, build-backend]
+    if: needs.changes.outputs.backend == 'true' && needs.build-backend.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Verify tracked dockerignore
+        run: node scripts/ci/check-dockerignore.mjs
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve backend verification secrets
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          gemini_key="$(echo "$SECRETS_JSON" | jq -r '.GEMINI_API_KEY // .GOOGLE_GENAI_API_KEY // .AI_API_KEY // empty')"
+          if [ -z "$gemini_key" ]; then
+            echo "Missing GEMINI_API_KEY or GOOGLE_GENAI_API_KEY or AI_API_KEY secret"
+            exit 1
+          fi
+          echo "::add-mask::$gemini_key"
+          echo "GEMINI_API_KEY=$gemini_key" >> "$GITHUB_ENV"
+          echo "GOOGLE_GENAI_API_KEY=$gemini_key" >> "$GITHUB_ENV"
+
+      - name: Build backend image from clean checkout
+        run: |
+          docker buildx build \
+            --load \
+            --file apps/backend/Dockerfile \
+            --tag the-copy-backend:ci \
+            .
+
+      - name: Start PostgreSQL for backend verification
+        run: docker compose -f docker-compose.infra.yml up -d postgres
+
+      - name: Start backend container
+        run: |
+          docker run -d \
+            --name the-copy-backend-ci \
+            --add-host=host.docker.internal:host-gateway \
+            -p 3001:3001 \
+            -e NODE_ENV=production \
+            -e DATABASE_URL=postgresql://thecopy:thecopy_dev@host.docker.internal:5433/thecopy_dev \
+            -e JWT_SECRET=ci-backend-runtime-secret-at-least-32-characters \
+            -e REDIS_ENABLED=false \
+            -e MEMORY_SYSTEM_ENABLED=false \
+            -e WEAVIATE_REQUIRED=false \
+            -e GEMINI_API_KEY="$GEMINI_API_KEY" \
+            -e GOOGLE_GENAI_API_KEY="$GOOGLE_GENAI_API_KEY" \
+            -e AGENT_REVIEW_MODEL=google-genai:gemini-2.5-flash \
+            -e FINAL_REVIEW_MODEL=google-genai:gemini-2.5-flash \
+            -e FINAL_REVIEW_MOCK_MODE=success \
+            the-copy-backend:ci
+
+      - name: Verify backend runtime endpoints
+        run: |
+          BACKEND_HEALTH_BASE_URL=http://127.0.0.1:3001 \
+          BACKEND_HEALTH_WAIT_SECONDS=120 \
+          BACKEND_HEALTH_PROBE_FILE_EXTRACT=true \
+          BACKEND_HEALTH_PROBE_TEXT_EXTRACT=true \
+          BACKEND_HEALTH_PROBE_FINAL_REVIEW=true \
+          BACKEND_HEALTH_PROBE_FAILURES=true \
+          node apps/backend/scripts/verify-runtime-health.mjs
+
+      - name: Cleanup backend verification containers
+        if: always()
+        run: |
+          docker rm -f the-copy-backend-ci 2>/dev/null || true
+          docker compose -f docker-compose.infra.yml down -v
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [changes, build-frontend]
+    if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true' && needs.build-frontend.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          export TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+          pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @the-copy/web exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm --filter @the-copy/web e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/reports/e2e
+          retention-days: 7
+
+  ci-status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    needs:
+      - verify-frontend
+      - verify-backend
+      - build-frontend
+      - build-backend
+      - docker-build-frontend
+      - docker-verify-backend
+      - e2e-tests
+    if: always()
+    steps:
+      - name: Evaluate pipeline status
+        run: |
+          echo "Frontend verify: ${{ needs.verify-frontend.result }}"
+          echo "Backend verify: ${{ needs.verify-backend.result }}"
+          echo "Frontend build: ${{ needs.build-frontend.result }}"
+          echo "Backend build: ${{ needs.build-backend.result }}"
+          echo "Frontend docker build: ${{ needs.docker-build-frontend.result }}"
+          echo "Backend docker verify: ${{ needs.docker-verify-backend.result }}"
+          echo "E2E tests: ${{ needs.e2e-tests.result }}"
+
+          if [[ "${{ needs.verify-frontend.result }}" == "failure" || "${{ needs.verify-frontend.result }}" == "cancelled" || \
+                "${{ needs.verify-backend.result }}" == "failure" || "${{ needs.verify-backend.result }}" == "cancelled" || \
+                "${{ needs.build-frontend.result }}" == "failure" || "${{ needs.build-frontend.result }}" == "cancelled" || \
+                "${{ needs.build-backend.result }}" == "failure" || "${{ needs.build-backend.result }}" == "cancelled" || \
+                "${{ needs.docker-build-frontend.result }}" == "failure" || "${{ needs.docker-build-frontend.result }}" == "cancelled" || \
+                "${{ needs.docker-verify-backend.result }}" == "failure" || "${{ needs.docker-verify-backend.result }}" == "cancelled" || \
+                "${{ needs.e2e-tests.result }}" == "failure" || "${{ needs.e2e-tests.result }}" == "cancelled" ]]; then
+            echo "CI pipeline failed"
+            exit 1
+          fi
+
+          echo "CI pipeline passed"

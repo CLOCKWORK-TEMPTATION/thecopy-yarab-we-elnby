@@ -1,0 +1,401 @@
+/* ==============================================================
+   Modern Floating UI — Editor Shell Scoped Theme
+   Scope: .editor-modern-floating (applied on the editor root only)
+   Notes:
+   - This is a PAGE-SCOPED theme; it does NOT alter the global dark theme.
+   - It affects the shell only (header/dock/sidebar/footer/background).
+   - It must NOT touch typography inside .screenplay-sheet / .ProseMirror.
+   ============================================================== */
+
+.editor-modern-floating {
+  /* warm paper surface */
+  --mf-canvas: #f5f1ea;
+  --mf-canvas-elevated: #faf6ef;
+  --mf-surface: #ffffff;
+  --mf-surface-soft: #fbf8f3;
+
+  /* text */
+  --mf-text: #1f1d1a;
+  --mf-text-strong: #111110;
+  --mf-text-muted: #6a635a;
+  --mf-text-faint: #8f8778;
+
+  /* borders / dividers */
+  --mf-border: rgba(31, 29, 26, 0.08);
+  --mf-border-strong: rgba(31, 29, 26, 0.14);
+  --mf-divider: rgba(31, 29, 26, 0.06);
+
+  /* accents (map onto brand palette but muted for daylight surfaces) */
+  --mf-accent: #c9744a; /* terracotta */
+  --mf-accent-soft: rgba(201, 116, 74, 0.14);
+  --mf-accent-ink: #7a3f21;
+  --mf-success: #2f9266;
+  --mf-success-soft: rgba(47, 146, 102, 0.14);
+  --mf-warning: #c08a1a;
+  --mf-warning-soft: rgba(192, 138, 26, 0.16);
+  --mf-danger: #b0493d;
+  --mf-danger-soft: rgba(176, 73, 61, 0.14);
+
+  /* radii */
+  --mf-r-pill: 9999px;
+  --mf-r-card: 22px;
+  --mf-r-chip: 14px;
+  --mf-r-control: 12px;
+
+  /* shadows — soft, warm, wide */
+  --mf-shadow-float:
+    0 22px 46px -24px rgba(31, 29, 26, 0.28),
+    0 6px 12px -8px rgba(31, 29, 26, 0.12);
+  --mf-shadow-lift:
+    0 14px 30px -18px rgba(31, 29, 26, 0.22),
+    0 4px 10px -6px rgba(31, 29, 26, 0.1);
+  --mf-shadow-soft: 0 8px 20px -12px rgba(31, 29, 26, 0.14);
+
+  /* motion */
+  --mf-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --mf-duration: 220ms;
+}
+
+/* --------------------------------------------------------------
+   Dark mode override — activated when the root <html> carries
+   class="dark" or data-theme="dark". Only the editor shell tokens
+   flip; the screenplay sheet itself keeps its paper-white surface
+   (handled elsewhere via --color-page-bg).
+   -------------------------------------------------------------- */
+:is(.dark, [data-theme="dark"]) .editor-modern-floating {
+  /* deep warm-neutral surfaces */
+  --mf-canvas: #0b0b0f;
+  --mf-canvas-elevated: #14141a;
+  --mf-surface: #1a1a22;
+  --mf-surface-soft: #22222c;
+
+  /* text */
+  --mf-text: #e8e6e1;
+  --mf-text-strong: #ffffff;
+  --mf-text-muted: #a8a8b2;
+  --mf-text-faint: #6d6d75;
+
+  /* borders / dividers */
+  --mf-border: rgba(255, 255, 255, 0.08);
+  --mf-border-strong: rgba(255, 255, 255, 0.14);
+  --mf-divider: rgba(255, 255, 255, 0.06);
+
+  /* accent soft variants rebalanced for dark */
+  --mf-accent-soft: rgba(201, 116, 74, 0.22);
+  --mf-success-soft: rgba(47, 146, 102, 0.22);
+  --mf-warning-soft: rgba(192, 138, 26, 0.24);
+  --mf-danger-soft: rgba(176, 73, 61, 0.22);
+
+  /* shadows — deeper for contrast against dark canvas */
+  --mf-shadow-float:
+    0 22px 46px -24px rgba(0, 0, 0, 0.65), 0 6px 12px -8px rgba(0, 0, 0, 0.35);
+  --mf-shadow-lift:
+    0 14px 30px -18px rgba(0, 0, 0, 0.55), 0 4px 10px -6px rgba(0, 0, 0, 0.3);
+  --mf-shadow-soft: 0 8px 20px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* --------------------------------------------------------------
+   Base canvas backdrop for the editor shell
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-root {
+  background: var(--mf-canvas) !important;
+  color: var(--mf-text);
+}
+
+.editor-modern-floating .app-bg-grid {
+  background: var(--mf-canvas);
+}
+
+/* --------------------------------------------------------------
+   Generic floating surface primitives (opt-in via classes)
+   -------------------------------------------------------------- */
+.editor-modern-floating .mf-surface {
+  background: var(--mf-surface);
+  color: var(--mf-text);
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-float);
+  border-radius: var(--mf-r-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.editor-modern-floating .mf-pill {
+  background: var(--mf-surface);
+  color: var(--mf-text);
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-lift);
+  border-radius: var(--mf-r-pill);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.editor-modern-floating .mf-chip {
+  background: var(--mf-surface-soft);
+  color: var(--mf-text);
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-soft);
+  border-radius: var(--mf-r-chip);
+}
+
+.editor-modern-floating .mf-divider {
+  background: var(--mf-divider);
+}
+
+/* --------------------------------------------------------------
+   Header / menubar tokens
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-header {
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 640px) {
+  .editor-modern-floating .app-header {
+    justify-content: center;
+    padding-inline: 0.75rem;
+  }
+
+  .editor-modern-floating .app-header-brand,
+  .editor-modern-floating .app-header-secondary {
+    display: none !important;
+  }
+
+  .editor-modern-floating .app-header-primary,
+  .editor-modern-floating .app-header-menubar {
+    max-width: calc(100vw - 1.5rem);
+  }
+
+  .editor-modern-floating .app-header [data-testid^="menu-section-"] {
+    min-width: auto;
+    padding-inline: 0.65rem;
+    font-size: 12px;
+  }
+
+  .editor-modern-floating .app-header [role="menu"] {
+    position: fixed !important;
+    top: 56px !important;
+    right: 0.75rem !important;
+    left: 0.75rem !important;
+    width: auto;
+    min-width: 0;
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+  }
+}
+
+/* --------------------------------------------------------------
+   Dock
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-dock-shell {
+  background: var(--mf-surface) !important;
+  border: 1px solid var(--mf-border) !important;
+  box-shadow: var(--mf-shadow-float) !important;
+  color: var(--mf-text);
+  border-radius: var(--mf-r-pill) !important;
+}
+
+.editor-modern-floating .app-dock-button {
+  color: var(--mf-text-muted);
+  background: transparent;
+  transition:
+    color var(--mf-duration) var(--mf-ease),
+    background-color var(--mf-duration) var(--mf-ease),
+    transform var(--mf-duration) var(--mf-ease);
+  border-radius: var(--mf-r-pill);
+}
+
+.editor-modern-floating .app-dock-button:hover {
+  color: var(--mf-text-strong);
+  background: var(--mf-surface-soft);
+}
+
+.editor-modern-floating .app-dock-button:active {
+  transform: scale(0.96);
+}
+
+.editor-modern-floating .app-dock-divider {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--mf-border-strong),
+    transparent
+  );
+}
+
+@media (max-width: 640px) {
+  .editor-modern-floating .app-dock {
+    width: calc(100vw - 1rem);
+  }
+
+  .editor-modern-floating .app-dock-shell {
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .editor-modern-floating .app-dock-shell::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------
+   Sidebar
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-sidebar-card {
+  background: var(--mf-surface) !important;
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-float);
+  color: var(--mf-text);
+  border-radius: var(--mf-r-card);
+}
+
+.editor-modern-floating .app-sidebar-search {
+  background: var(--mf-surface-soft);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text);
+}
+
+.editor-modern-floating .app-sidebar-search input::placeholder {
+  color: var(--mf-text-faint);
+}
+
+.editor-modern-floating .app-sidebar-section {
+  background: var(--mf-surface-soft);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text);
+  border-radius: var(--mf-r-control);
+}
+
+.editor-modern-floating .app-sidebar-section[data-open="true"] {
+  background: var(--mf-surface);
+  box-shadow: var(--mf-shadow-soft);
+}
+
+.editor-modern-floating .app-sidebar-item {
+  color: var(--mf-text-muted);
+}
+
+.editor-modern-floating .app-sidebar-item:hover {
+  color: var(--mf-text-strong);
+  background: var(--mf-surface-soft);
+}
+
+.editor-modern-floating .app-sidebar-focus-tip {
+  background: var(--mf-surface-soft);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text-muted);
+  border-radius: var(--mf-r-control);
+}
+
+/* --------------------------------------------------------------
+   Settings panel
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-settings-panel {
+  background: var(--mf-surface);
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-soft);
+  color: var(--mf-text);
+  border-radius: var(--mf-r-control);
+}
+
+.editor-modern-floating .app-settings-input,
+.editor-modern-floating .app-settings-select {
+  background: var(--mf-surface-soft);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text);
+  border-radius: var(--mf-r-control);
+}
+
+.editor-modern-floating .app-settings-primary {
+  background: var(--mf-accent);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--mf-r-pill);
+  transition: background-color var(--mf-duration) var(--mf-ease);
+}
+
+.editor-modern-floating .app-settings-primary:hover {
+  background: var(--mf-accent-ink);
+}
+
+.editor-modern-floating .app-settings-secondary {
+  background: var(--mf-surface-soft);
+  color: var(--mf-text-strong);
+  border: 1px solid var(--mf-border);
+  border-radius: var(--mf-r-pill);
+}
+
+.editor-modern-floating .app-settings-secondary:hover {
+  background: var(--mf-surface);
+  border-color: var(--mf-border-strong);
+}
+
+.editor-modern-floating .app-settings-info {
+  background: var(--mf-surface-soft);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text-muted);
+  border-radius: var(--mf-r-control);
+}
+
+/* --------------------------------------------------------------
+   Footer badges
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-footer {
+  background: transparent !important;
+  border-top: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.editor-modern-floating .app-footer-badge {
+  background: var(--mf-surface);
+  color: var(--mf-text);
+  border: 1px solid var(--mf-border);
+  box-shadow: var(--mf-shadow-soft);
+  border-radius: var(--mf-r-pill);
+}
+
+.editor-modern-floating .app-footer-badge[data-variant="accent"] {
+  background: var(--mf-accent-soft);
+  color: var(--mf-accent-ink);
+  border-color: transparent;
+}
+
+/* --------------------------------------------------------------
+   Status pills inside header (reused in AppHeader)
+   -------------------------------------------------------------- */
+.editor-modern-floating .app-header-status-approve {
+  background: var(--mf-success);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--mf-r-pill);
+}
+
+.editor-modern-floating .app-header-status-approve:hover {
+  background: #246d4f;
+}
+
+.editor-modern-floating .app-header-status-dismiss {
+  background: var(--mf-warning);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--mf-r-pill);
+}
+
+.editor-modern-floating .app-header-status-dismiss:hover {
+  background: #8f670f;
+}
+
+/* --------------------------------------------------------------
+   Focus ring (keyboard navigation)
+   -------------------------------------------------------------- */
+.editor-modern-floating :focus-visible {
+  outline: 2px solid var(--mf-accent);
+  outline-offset: 2px;
+  border-radius: 10px;
+}

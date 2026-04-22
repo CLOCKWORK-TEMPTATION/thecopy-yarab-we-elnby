@@ -1,0 +1,12 @@
+{
+  "bundle_name": "session_bundle_budget_app_2026-03-28_regenerated",
+  "generated_at": "2026-03-28",
+  "files": [
+    "00_transcript.md",
+    "01_executive_report.md",
+    "02_prd_database_api_agents.md",
+    "03_openapi_ddl_ui_execution_spec.md",
+    "04_openapi.yaml"
+  ],
+  "note": "Regenerated bundle after previous sandbox file expired."
+}

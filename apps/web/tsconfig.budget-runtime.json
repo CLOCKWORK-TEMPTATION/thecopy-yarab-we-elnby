@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "next-env.d.ts",
+    "src/env.d.ts",
+    "src/global.d.ts",
+    "src/app/(main)/BUDGET/page.tsx",
+    "src/app/api/app-state/[app]/route.ts",
+    "src/app/api/budget/analyze/route.ts",
+    "src/app/api/budget/export/route.ts",
+    "src/app/api/budget/generate/route.ts",
+    "src/lib/app-state-client.ts",
+    "tests/integration/budget-routes.integration.test.ts",
+    "tests/e2e/budget-runtime.spec.ts",
+    "vitest.integration.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["node_modules", ".next", "out", "dist", "build", "coverage"]
+}

@@ -1,0 +1,89 @@
+version: 2
+updates:
+  # ---------------------------------------------------------------
+  # 1. تحديث مكتبات الـ Frontend (Next.js Ecosystem)
+  # ---------------------------------------------------------------
+  - package-ecosystem: "npm"
+    # تحديد مسار الـ Frontend بدقة داخل الـ Monorepo
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+      time: "00:30" # التوقيت العالمي (فجر الأحد)
+    # فتح حد أقصى 10 طلبات سحب لتجنب إغراق القائمة
+    open-pull-requests-limit: 10
+    # إضافة وسوم لتسهيل الفلترة
+    labels:
+      - "frontend"
+      - "dependencies"
+      - "javascript"
+    # استراتيجية الـ Rebase التلقائي لتجنب تعارض الكود
+    rebase-strategy: "auto"
+
+  # ---------------------------------------------------------------
+  # 2. تحديث مكتبات الـ Backend (Node.js/Express Ecosystem)
+  # ---------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+      time: "00:30"
+    open-pull-requests-limit: 10
+    labels:
+      - "backend"
+      - "dependencies"
+      - "javascript"
+    rebase-strategy: "auto"
+
+  # ---------------------------------------------------------------
+  # 3. تحديث الحزم المشتركة وإدارة الجذر في الـ Monorepo
+  # ---------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+      time: "00:30"
+    open-pull-requests-limit: 10
+    labels:
+      - "workspace"
+      - "dependencies"
+      - "javascript"
+    rebase-strategy: "auto"
+
+  # ---------------------------------------------------------------
+  # 4. تحديث صور الـ Docker
+  # ---------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+    labels:
+      - "docker"
+      - "security"
+      - "infrastructure"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+    labels:
+      - "docker"
+      - "security"
+      - "infrastructure"
+
+  # ---------------------------------------------------------------
+  # 5. تحديث الـ GitHub Actions (لضمان أمان الـ CI/CD Pipeline)
+  # ---------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    # المسار الافتراضي للـ workflows
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "Thursday"
+    labels:
+      - "ci-cd"
+      - "devops"

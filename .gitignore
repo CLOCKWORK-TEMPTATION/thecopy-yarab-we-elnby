@@ -1,0 +1,865 @@
+# ==============================================================================
+# THE COPY - PROJECT GITIGNORE - COMPREHENSIVE
+# ==============================================================================
+
+# ==============================================================================
+# PYTHON VIRTUAL ENVIRONMENTS
+# ==============================================================================
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ==============================================================================
+# ENVIRONMENT & SECRETS
+# ==============================================================================
+.npmrc
+!/.npmrc
+.env*
+!.env.example
+!.env.template
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.crt
+*.cer
+*.der
+*.p7b
+*.p7c
+*.p7s
+*.pkcs12
+*.pkcs7
+secrets/
+credentials/
+.secrets/
+.credentials/
+auth.json
+service-account*.json
+firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist
+
+# ==============================================================================
+# NODE.JS & JAVASCRIPT - COMPREHENSIVE
+# ==============================================================================
+# Dependencies
+node_modules/
+.cowork-postmerge-runtime-b/node_modules
+jspm_packages/
+bower_components/
+web_modules/
+
+# Package manager files
+package-lock.json
+yarn.lock
+.yarn/
+.pnp.*
+.pnp.js
+.pnp.cjs
+!pnpm-lock.yaml
+frontend/pnpm-lock.yaml
+backend/pnpm-lock.yaml
+.pnpm-store/
+.pnpm-debug.log*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+lib-cov/
+coverage/
+*.lcov
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+typings/
+
+# ESLint cache
+.eslintcache
+.stylelintcache
+
+# Build outputs - ALL FRAMEWORKS
+.next/
+out/
+dist/
+build/
+.cache/
+.parcel-cache/
+.nuxt/
+.output/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vite/
+.rollup.cache/
+.svelte-kit/
+.turbo/
+.vercel/
+.netlify/
+
+# Storybook build outputs
+storybook-static/
+
+# Temporary folders
+.tmp/
+.temp/
+tmp/
+temp/
+
+# Webpack
+.webpack/
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional npm cache directory
+.npm/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test.local
+.env.production.local
+.env.local
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test/
+
+# yarn v2
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# ==============================================================================
+# DATABASES - COMPREHENSIVE
+# ==============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db-journal
+dump.rdb
+dump/
+*.sql
+*.backup
+*.bak
+*.dump
+*.mdb
+*.accdb
+*.dbf
+*.fdb
+*.gdb
+*.mdf
+*.ldf
+*.frm
+*.ibd
+*.MYD
+*.MYI
+
+# Database directories
+data/
+!**/src/**/data/
+db/
+!**/src/db/
+database/
+mysql/
+postgres/
+mongodb/
+redis/
+elasticsearch/
+cassandra/
+
+# ==============================================================================
+# LOGS & TEMPORARY FILES - COMPREHENSIVE
+# ==============================================================================
+logs/
+*.log
+log/
+*.log.*
+*.log-*
+*-debug.log*
+*-error.log*
+*-access.log*
+*-audit.log*
+*-security.log*
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.swo
+*.swn
+*~
+.#*
+#*#
+.DS_Store?
+ehthumbs.db
+Thumbs.db
+*.stackdump
+
+# ==============================================================================
+# OPERATING SYSTEMS - COMPREHENSIVE
+# ==============================================================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+$RECYCLE.BIN/
+Desktop.ini
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================================================
+# IDEs & EDITORS - COMPREHENSIVE
+# ==============================================================================
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+bin/
+obj/
+*.vcxproj.user
+*.vcxproj.filters
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.idea_modules/
+
+# Eclipse
+.metadata
+.recommenders/
+.project
+.classpath
+.c9/
+*.pydevproject
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.factorypath
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Atom
+.atom/
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+tags
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Xcode
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+DerivedData/
+*.hmap
+*.ipa
+*.xcuserstate
+project.xcworkspace/
+
+# Android Studio
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild
+.cxx/
+
+# ==============================================================================
+# COVERAGE & TESTING - COMPREHENSIVE
+# ==============================================================================
+coverage/
+.nyc_output/
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jest
+jest_*
+.jest/
+
+# Vitest temp files
+vitest.config.ts.timestamp-*.mjs
+vitest.config.ts.timestamp-*.js
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# ==============================================================================
+# CLOUD & DEPLOYMENT - COMPREHENSIVE
+# ==============================================================================
+# Firebase
+firebase.json
+.firebaserc
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log*
+
+# Vercel
+.vercel/
+vercel.json
+
+# Netlify
+.netlify/
+
+# AWS
+.aws/
+.elasticbeanstalk/
+
+# Google Cloud
+.gcloud/
+.google/
+
+# Heroku
+.heroku/
+
+# Docker
+docker-compose.override.yml
+.docker/
+.env.docker
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+
+# ==============================================================================
+# PROJECT SPECIFIC - COMPREHENSIVE
+# ==============================================================================
+# Exception for frontend src lib directories
+!frontend/src/**/lib/
+
+# AI/IDE-specific directories
+.claude/
+.cursor/
+.idx/
+.windsurf/
+.agent/
+.amazonq/
+.kilocode/
+.kiro/
+.qodo/
+.superdesign/
+.copilot/
+.github-copilot/
+.tabnine/
+.codeium/
+.aider/
+.amp/
+.augment/
+.bob/
+.codex/
+.codex-*.err
+.codex-*.out
+.codex-*-procs.txt
+.gemini/
+.qoder/
+.qodercli/
+.qwen/
+.roo/
+.shai/
+.opencode/
+.kiro-cli/
+.clinerules
+.codebuddy/
+.continue/
+.learnings/
+
+# Doc watcher temporary database files
+.doc-watcher.db
+.doc-watcher.db-shm
+.doc-watcher.db-wal
+
+# MCP Configuration files (contains API keys and tokens)
+mcp.json
+mcp_*.json
+*.mcp.json
+.kiro/settings/mcp.json
+.claude/settings/mcp.json
+.cursor/settings/mcp.json
+
+# Build logs & temporary files
+build_log*.txt
+sentry-wizard-*.log
+*.vsix
+temp_files.txt
+temp_json.json
+COMPLETED_FILES.txt
+CONFLICTS_RESOLVED.txt
+current_settings.txt
+technical-reality-report.json
+Ø§Ù„Ù…Ø­Ø±Ø±/
+Ø§Ø¹ØªÙ…Ø¯ Ø¯Ù‡/
+
+# Sentry
+.env.sentry-build-plugin
+.sentryclirc
+
+# Package lock file versions (duplicates)
+package.json.*
+pnpm-lock.yaml.*
+
+# Cursor IDE global storage
+**/AppData/Roaming/Cursor/User/globalStorage/
+**/globalStorage/
+nul
+
+# Security
+.securityignore
+security-report-*.md
+
+# ==============================================================================
+# MEDIA & ASSETS - LARGE FILES
+# ==============================================================================
+# Images
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.svg
+*.webp
+*.ico
+*.icns
+*.psd
+*.ai
+*.sketch
+*.fig
+*.xd
+!apps/web/public/**/*.gif
+!apps/web/public/**/*.ico
+!apps/web/public/**/*.jpeg
+!apps/web/public/**/*.jpg
+!apps/web/public/**/*.png
+!apps/web/public/**/*.svg
+!apps/web/public/**/*.webp
+
+# Videos
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.ogv
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+*.m4a
+
+# Documents
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.rtf
+*.odt
+*.ods
+*.odp
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bz2
+*.xz
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+# Fonts
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+!**/editor/fonts/*.ttf
+
+# ==============================================================================
+# ANALYSIS & REPORTS (Generated Files) - COMPREHENSIVE
+# ==============================================================================
+# Markdown reports and analysis files
+AGENT_*.md
+BACKGROUND_AGENT_*.md
+COMPLETION_*.md
+DASHBOARD_*.md
+DOCUMENTS_*.md
+EXECUTIVE_*.md
+FORMATTING_*.md
+GEMINI.md
+PRODUCTION_*.md
+PROJECT_*.md
+REPORTS_*.md
+SCREENPLAY_*.md
+SECURITY_*.md
+SESSION_*.md
+TECHNICAL_*.md
+TODO*.md
+UI_*.md
+VERIFICATION_*.md
+WORKFLOW_*.md
+
+# Temporary/Untitled files
+Untitled-*.*
+untitled-*.*
+temp-*.*
+test-*.*
+
+# Log files
+log.json
+*.log.json
+
+# Product/structure documentation (if generated)
+product.md
+structure.md
+tech.md
+guidelines.md
+
+# Scripts (if temporary)
+QUICK_*.ps1
+QUICK_*.sh
+REMOVE_*.sh
+activate-*.ps1
+kill-*.ps1
+manage-*.ps1
+run-*.ps1
+setup-*.ps1
+start-*.ps1
+stop-*.ps1
+test-*.ps1
+
+# ==============================================================================
+# DEVELOPMENT TOOLS & CACHES
+# ==============================================================================
+# Webpack
+.webpack/
+webpack-stats.json
+
+# Rollup
+.rollup.cache/
+
+# Parcel
+.parcel-cache/
+
+# Vite
+.vite/
+
+# SvelteKit
+.svelte-kit/
+
+# Nuxt
+.nuxt/
+.output/
+
+# Gatsby
+.cache/
+# public/ â€” excluded only for Gatsby build output, NOT Next.js static assets
+!apps/web/public/
+!apps/backend/public/
+!public/
+
+# VuePress
+.vuepress/dist/
+
+# Serverless
+.serverless/
+
+# FuseBox
+.fusebox/
+
+# DynamoDB Local
+.dynamodb/
+
+# TernJS
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test/
+
+# Yarn v2
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ==============================================================================
+# BACKUP & RECOVERY
+# ==============================================================================
+*.backup
+*.bak
+*.old
+*.orig
+*.save
+*-backup
+*-old
+*-orig
+backup/
+backups/
+old/
+archive/
+
+# ==============================================================================
+# MERGE CONFLICTS & GIT
+# ==============================================================================
+*.orig
+*.rej
+.git/
+.gitattributes
+.gitmodules
+
+# ==============================================================================
+# CUSTOM EXCLUSIONS
+# ==============================================================================
+# Add your custom exclusions here
+
+# AI tool mirrors (not covered above)
+.junie/
+.trae/
+.vibe/
+.specify/
+.cleanup/
+
+# Generated output (keep agent state files tracked)
+output/*
+!output/session-state.md
+!output/round-notes.md
+!output/code-map/
+!output/mind-map/
+!output/project-rules.md
+
+# Runtime & generated data
+agent_run.log
+memory/
+skills_library/
+WORKSPACE-EMBEDDING-SUMMARY.md
+
+# Build artifacts & generated reports
+dist-esbuild/
+*.tsbuildinfo*
+.lint-report.json
+ts_errors.txt
+tsc-output.txt
+**/reports/e2e/
+**/reports/lighthouse-*.json
+
+# Deprecated code markers
+**/_deprecated_*/
+
+# Systematize Framework
+.Systematize/exports/
+.Systematize/snapshots/
+.ariana/
+.traces/
+.ariana_saved_traces/
+.vault_secret_key
+
+# BMad Framework & Agents
+_bmad/
+_bmad-output/
+.agents/
+
+# Zig toolchain / large binaries
+.tools/
+
+# Codex rollout logs (contain env secrets)
+123/
+*.rollout.jsonl
+.embedding-hash-cache.json
+WORKSPACE-EMBEDDING-INDEX.json
+
+# thecopy directory (custom exclusion)
+thecopy/
+
+# ==============================================================================
+# ROOT TEMP/SCRATCH FILES (underscore-prefixed convention)
+# ==============================================================================
+_*.txt
+_*.ps1
+_*.log
+_*.bat
+
+# Generated reports (root-level, non-standard names)
+ART-DIRECTOR-FIX-REPORT.md
+PROBE_IMPLEMENTATION_SUMMARY.md
+RAILWAY_PRODUCTION_SETTINGS.md
+forensic-audit-report.md
+
+# Cowork post-merge runtime mirror (regenerated; not source)
+.cowork-postmerge-runtime-b/
+
+# Security scan artifacts (reveal vuln map — keep local)
+semgrep-report.json
+
+# Python virtualenvs (any *-venv folder anywhere, never commit)
+*-venv/
+.snyk-venv/
+__pycache__/
+*.pyc
+

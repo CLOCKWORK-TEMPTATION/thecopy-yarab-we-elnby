@@ -1,0 +1,5 @@
+{
+  "name": "ScriptBreakdown AI",
+  "description": "An AI-powered film production tool that breaks down scripts into scenes and distributes analysis to 12 specialized agents (Costume, VFX, Stunts, etc.).",
+  "requestFramePermissions": []
+}

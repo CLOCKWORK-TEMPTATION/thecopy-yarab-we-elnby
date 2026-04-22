@@ -1,0 +1,4364 @@
+openapi: 3.1.0
+info:
+  title: Arab Production Budget OS API
+  version: 0.1.0
+  summary: >
+    API for interactive budgeting, approvals, actuals reconciliation,
+    and AI-assisted planning for Arab film and TV productions.
+  description: >
+    This specification covers the core operating system for budgeting Arabic film
+    and television productions, with Egyptian-market-first assumptions and
+    governance-friendly AI workflows.
+
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://staging-api.example.com/v1
+    description: Staging
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Identity
+  - name: MasterData
+  - name: Projects
+  - name: Files
+  - name: Documents
+  - name: Scripts
+  - name: Breakdown
+  - name: Budgets
+  - name: Vendors
+  - name: RateCards
+  - name: Actuals
+  - name: Approvals
+  - name: Agents
+  - name: Reporting
+  - name: Audit
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    XTenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      description: Active tenant/company context.
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Idempotency key for POST action endpoints.
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 200
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectDocumentId:
+      name: project_document_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ScriptVersionId:
+      name: script_version_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SceneId:
+      name: scene_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BreakdownItemId:
+      name: item_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BudgetId:
+      name: budget_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BudgetVersionId:
+      name: budget_version_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    LineItemId:
+      name: line_item_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    VendorId:
+      name: vendor_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    QuoteId:
+      name: quote_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RateCardId:
+      name: rate_card_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BatchId:
+      name: batch_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ApprovalTemplateId:
+      name: template_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ApprovalInstanceId:
+      name: instance_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ApprovalStepId:
+      name: step_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExportJobId:
+      name: export_job_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Invalid request payload or query.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid authentication.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Authenticated but not allowed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Row version conflict, duplicate creation, or invalid state transition.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unprocessable:
+      description: Business validation failure.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - page_size
+        - total_items
+        - total_pages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+        total_items:
+          type: integer
+          minimum: 0
+        total_pages:
+          type: integer
+          minimum: 0
+
+    Meta:
+      type: object
+      required:
+        - request_id
+      properties:
+        request_id:
+          type: string
+        row_version:
+          type: integer
+          minimum: 1
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    ApiError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    StandardResponseBase:
+      type: object
+      required:
+        - meta
+      properties:
+        meta:
+          $ref: "#/components/schemas/Meta"
+        error:
+          $ref: "#/components/schemas/ApiError"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/StandardResponseBase"
+        - type: object
+          required:
+            - error
+          properties:
+            data:
+              type: object
+              additionalProperties: false
+
+    UserSummary:
+      type: object
+      required:
+        - id
+        - email
+        - full_name
+        - locale
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          enum: [active, invited, suspended, archived]
+
+    Permission:
+      type: object
+      required:
+        - code
+        - module
+      properties:
+        code:
+          type: string
+        module:
+          type: string
+        description:
+          type: string
+
+    Membership:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - role_code
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        role_code:
+          type: string
+        job_title:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, invited, archived]
+
+    MePayload:
+      type: object
+      required:
+        - user
+        - memberships
+        - permissions
+      properties:
+        user:
+          $ref: "#/components/schemas/UserSummary"
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/Membership"
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+
+    Currency:
+      type: object
+      required:
+        - code
+        - name_ar
+        - minor_unit
+        - is_active
+      properties:
+        code:
+          type: string
+          minLength: 3
+          maxLength: 3
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        minor_unit:
+          type: integer
+        is_active:
+          type: boolean
+
+    UnitType:
+      type: object
+      required:
+        - id
+        - code
+        - name_ar
+        - dimension
+        - is_active
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        dimension:
+          type: string
+        is_active:
+          type: boolean
+
+    Department:
+      type: object
+      required:
+        - id
+        - code
+        - name_ar
+        - sort_order
+        - is_active
+      properties:
+        id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        sort_order:
+          type: integer
+        is_active:
+          type: boolean
+
+    CostCode:
+      type: object
+      required:
+        - id
+        - department_id
+        - code
+        - name_ar
+        - is_active
+      properties:
+        id:
+          type: string
+          format: uuid
+        department_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        default_unit_type_id:
+          type: string
+          format: uuid
+        is_active:
+          type: boolean
+
+    TaxProfile:
+      type: object
+      required:
+        - id
+        - code
+        - name_ar
+        - formula_type
+        - effective_from
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name_ar:
+          type: string
+        name_en:
+          type: string
+        formula_type:
+          type: string
+          enum: [simple_rate, composite_rules, exempt, manual]
+        formula_json:
+          type: object
+          additionalProperties: true
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, inactive, archived]
+
+    Season:
+      type: object
+      required:
+        - id
+        - season_no
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        season_no:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+
+    Episode:
+      type: object
+      required:
+        - id
+        - episode_no
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        season_id:
+          type: string
+          format: uuid
+        episode_no:
+          type: integer
+        title:
+          type: string
+        planned_minutes:
+          type: integer
+        status:
+          type: string
+          enum: [active, archived]
+
+    ShootingBlock:
+      type: object
+      required:
+        - id
+        - block_no
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        block_no:
+          type: integer
+        name:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [planned, active, completed, archived]
+
+    Project:
+      type: object
+      required:
+        - id
+        - title_ar
+        - project_type
+        - format_type
+        - base_currency_code
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        title_ar:
+          type: string
+        title_en:
+          type: string
+        project_type:
+          type: string
+          enum: [film, series, short, season]
+        format_type:
+          type: string
+          enum: [film, series, anthology, other]
+        base_currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+        status:
+          type: string
+          enum: [draft, active, on_hold, archived]
+        start_prep_date:
+          type: string
+          format: date
+        start_shoot_date:
+          type: string
+          format: date
+        end_shoot_date:
+          type: string
+          format: date
+        settings_json:
+          type: object
+          additionalProperties: true
+
+    ProjectCreateRequest:
+      type: object
+      required:
+        - title_ar
+        - project_type
+        - format_type
+        - base_currency_code
+      properties:
+        title_ar:
+          type: string
+        title_en:
+          type: string
+        project_type:
+          type: string
+          enum: [film, series, short, season]
+        format_type:
+          type: string
+          enum: [film, series, anthology, other]
+        base_currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+        start_prep_date:
+          type: string
+          format: date
+        start_shoot_date:
+          type: string
+          format: date
+        end_shoot_date:
+          type: string
+          format: date
+
+    ProjectPatchRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+          minimum: 1
+        title_ar:
+          type: string
+        title_en:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, on_hold, archived]
+        start_prep_date:
+          type: string
+          format: date
+        start_shoot_date:
+          type: string
+          format: date
+        end_shoot_date:
+          type: string
+          format: date
+        settings_json:
+          type: object
+          additionalProperties: true
+
+    ProjectStructure:
+      type: object
+      required:
+        - project
+        - seasons
+        - episodes
+        - shooting_blocks
+      properties:
+        project:
+          $ref: "#/components/schemas/Project"
+        seasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/Season"
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Episode"
+        shooting_blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShootingBlock"
+
+    FileUploadInitiateRequest:
+      type: object
+      required:
+        - file_name
+        - content_type
+        - file_size
+        - sha256
+      properties:
+        file_name:
+          type: string
+        content_type:
+          type: string
+        file_size:
+          type: integer
+          minimum: 1
+        sha256:
+          type: string
+          minLength: 64
+          maxLength: 64
+        metadata_json:
+          type: object
+          additionalProperties: true
+
+    FileUploadInitiateResult:
+      type: object
+      required:
+        - upload_url
+        - upload_token
+        - expires_at
+      properties:
+        upload_url:
+          type: string
+          format: uri
+        upload_headers:
+          type: object
+          additionalProperties:
+            type: string
+        upload_token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+        tentative_document_id:
+          type: string
+          format: uuid
+
+    FileUploadCompleteRequest:
+      type: object
+      required:
+        - upload_token
+      properties:
+        upload_token:
+          type: string
+        row_version:
+          type: integer
+        final_sha256:
+          type: string
+          minLength: 64
+          maxLength: 64
+
+    Document:
+      type: object
+      required:
+        - id
+        - storage_key
+        - content_type
+        - file_size
+        - sha256
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        storage_key:
+          type: string
+        content_type:
+          type: string
+        file_size:
+          type: integer
+          minimum: 0
+        sha256:
+          type: string
+        metadata_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [uploaded, parsing, parsed, failed, archived]
+
+    ProjectDocument:
+      type: object
+      required:
+        - id
+        - project_id
+        - document_id
+        - document_type
+        - source_filename
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          enum: [script, quote, invoice, contract, permit, other]
+        source_filename:
+          type: string
+        language_code:
+          type: string
+        version_label:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+        document:
+          $ref: "#/components/schemas/Document"
+
+    ProjectDocumentCreateRequest:
+      type: object
+      required:
+        - document_id
+        - document_type
+        - source_filename
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          enum: [script, quote, invoice, contract, permit, other]
+        source_filename:
+          type: string
+        language_code:
+          type: string
+        version_label:
+          type: string
+
+    ScriptVersion:
+      type: object
+      required:
+        - id
+        - project_document_id
+        - version_no
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_document_id:
+          type: string
+          format: uuid
+        version_no:
+          type: integer
+        parser_version:
+          type: string
+        raw_text:
+          type: string
+        structured_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [draft, parsed, reviewed, archived]
+
+    ScriptParseRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        parse_mode:
+          type: string
+          enum: [auto, strict, manual_assist]
+          default: auto
+        language_hint:
+          type: string
+
+    Scene:
+      type: object
+      required:
+        - id
+        - scene_no
+        - review_status
+      properties:
+        id:
+          type: string
+          format: uuid
+        episode_id:
+          type: string
+          format: uuid
+        scene_no:
+          type: string
+        page_start:
+          type: number
+        page_end:
+          type: number
+        int_ext:
+          type: string
+          enum: [INT, EXT, INT_EXT, OTHER]
+        time_of_day:
+          type: string
+          enum: [DAY, NIGHT, DAWN, DUSK, OTHER]
+        location_name:
+          type: string
+        summary:
+          type: string
+        review_status:
+          type: string
+          enum: [proposed, accepted, edited, rejected]
+
+    ScenePatchRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        episode_id:
+          type: string
+          format: uuid
+        scene_no:
+          type: string
+        page_start:
+          type: number
+        page_end:
+          type: number
+        int_ext:
+          type: string
+          enum: [INT, EXT, INT_EXT, OTHER]
+        time_of_day:
+          type: string
+          enum: [DAY, NIGHT, DAWN, DUSK, OTHER]
+        location_name:
+          type: string
+        summary:
+          type: string
+        review_status:
+          type: string
+          enum: [proposed, accepted, edited, rejected]
+
+    BreakdownItem:
+      type: object
+      required:
+        - id
+        - scene_id
+        - item_type
+        - canonical_name
+        - quantity
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        item_type:
+          type: string
+          enum:
+            - character
+            - extra
+            - location
+            - vehicle
+            - animal
+            - child
+            - stunt
+            - vfx
+            - sfx
+            - prop
+            - wardrobe
+            - makeup
+            - transport
+            - accommodation
+            - equipment
+            - special_requirement
+            - other
+        canonical_name:
+          type: string
+        quantity:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        attributes_json:
+          type: object
+          additionalProperties: true
+        source_type:
+          type: string
+          enum: [agent, manual, import]
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+          enum: [proposed, accepted, edited, rejected]
+
+    BreakdownItemCreateRequest:
+      type: object
+      required:
+        - item_type
+        - canonical_name
+      properties:
+        item_type:
+          type: string
+        canonical_name:
+          type: string
+        quantity:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        attributes_json:
+          type: object
+          additionalProperties: true
+
+    BreakdownItemPatchRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        canonical_name:
+          type: string
+        quantity:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        attributes_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [proposed, accepted, edited, rejected]
+
+    BreakdownGenerationRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        options:
+          type: object
+          additionalProperties: true
+
+    Budget:
+      type: object
+      required:
+        - id
+        - project_id
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, archived]
+        current_version_id:
+          type: string
+          format: uuid
+        baseline_version_id:
+          type: string
+          format: uuid
+
+    BudgetCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    BudgetVersion:
+      type: object
+      required:
+        - id
+        - budget_id
+        - version_no
+        - label
+        - version_type
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        budget_id:
+          type: string
+          format: uuid
+        parent_version_id:
+          type: string
+          format: uuid
+        version_no:
+          type: integer
+        label:
+          type: string
+        version_type:
+          type: string
+          enum: [draft, scenario, baseline, revision]
+        scenario_code:
+          type: string
+        status:
+          type: string
+          enum: [editing, submitted, approved, rejected, frozen, archived]
+        source_script_version_id:
+          type: string
+          format: uuid
+        cpi_month:
+          type: string
+          format: date
+        generated_by:
+          type: string
+        generated_by_run_id:
+          type: string
+          format: uuid
+        grand_total_egp:
+          type: string
+
+    BudgetVersionCreateRequest:
+      type: object
+      required:
+        - label
+        - version_type
+      properties:
+        label:
+          type: string
+        version_type:
+          type: string
+          enum: [draft, scenario, baseline, revision]
+        scenario_code:
+          type: string
+        source_script_version_id:
+          type: string
+          format: uuid
+        parent_version_id:
+          type: string
+          format: uuid
+
+    BudgetDraftGenerationRequest:
+      type: object
+      required:
+        - row_version
+        - generation_mode
+      properties:
+        row_version:
+          type: integer
+        generation_mode:
+          type: string
+          enum:
+            - from_breakdown_and_rate_cards
+            - from_template_only
+            - from_previous_project
+        options:
+          type: object
+          additionalProperties: true
+
+    ValidationIssue:
+      type: object
+      required:
+        - id
+        - budget_version_id
+        - severity
+        - rule_code
+        - message_ar
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        budget_version_id:
+          type: string
+          format: uuid
+        line_item_id:
+          type: string
+          format: uuid
+        severity:
+          type: string
+          enum: [info, warning, error, critical]
+        rule_code:
+          type: string
+        message_ar:
+          type: string
+        details_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [open, resolved, ignored]
+
+    BudgetLineItem:
+      type: object
+      required:
+        - id
+        - budget_version_id
+        - source_type
+        - description
+        - quantity
+        - quoted_currency_code
+        - quoted_unit_cost
+        - subtotal_egp
+        - tax_amount_egp
+        - contingency_amount_egp
+        - total_egp
+        - allocation_scope
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        budget_version_id:
+          type: string
+          format: uuid
+        department_id:
+          type: string
+          format: uuid
+        cost_code_id:
+          type: string
+          format: uuid
+        parent_line_item_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum:
+            - manual
+            - template
+            - rate_card
+            - vendor_quote
+            - agent_proposal
+            - carry_forward
+            - actual_import
+        source_ref_type:
+          type: string
+        source_ref_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        quoted_currency_code:
+          type: string
+        quoted_unit_cost:
+          type: string
+        fx_snapshot_id:
+          type: string
+          format: uuid
+        base_unit_cost_egp:
+          type: string
+        subtotal_egp:
+          type: string
+        tax_profile_id:
+          type: string
+          format: uuid
+        tax_amount_egp:
+          type: string
+        contingency_pct:
+          type: string
+        contingency_amount_egp:
+          type: string
+        total_egp:
+          type: string
+        allocation_scope:
+          type: string
+          enum: [project, season, episode, block, scene]
+        assumption_summary:
+          type: string
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        sort_order:
+          type: integer
+        status:
+          type: string
+          enum: [proposed, active, rejected, archived]
+
+    BudgetLineItemCreateRequest:
+      type: object
+      required:
+        - row_version
+        - description
+        - quantity
+        - quoted_currency_code
+      properties:
+        row_version:
+          type: integer
+        department_id:
+          type: string
+          format: uuid
+        cost_code_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        quoted_currency_code:
+          type: string
+        quoted_unit_cost:
+          type: string
+        tax_profile_id:
+          type: string
+          format: uuid
+        allocation_scope:
+          type: string
+          enum: [project, season, episode, block, scene]
+
+    BudgetLineItemPatchRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        department_id:
+          type: string
+          format: uuid
+        cost_code_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        quoted_currency_code:
+          type: string
+        quoted_unit_cost:
+          type: string
+        tax_profile_id:
+          type: string
+          format: uuid
+        contingency_pct:
+          type: string
+        allocation_scope:
+          type: string
+          enum: [project, season, episode, block, scene]
+        status:
+          type: string
+          enum: [proposed, active, rejected, archived]
+
+    LineItemAllocation:
+      type: object
+      required:
+        - id
+        - line_item_id
+        - target_type
+        - target_id
+        - allocation_method
+        - allocation_value
+        - allocated_amount_egp
+      properties:
+        id:
+          type: string
+          format: uuid
+        line_item_id:
+          type: string
+          format: uuid
+        target_type:
+          type: string
+          enum: [project, season, episode, block, scene]
+        target_id:
+          type: string
+          format: uuid
+        allocation_method:
+          type: string
+          enum: [percentage, fixed_amount, driver_based]
+        allocation_value:
+          type: string
+        allocated_amount_egp:
+          type: string
+
+    AllocationCreateRequest:
+      type: object
+      required:
+        - row_version
+        - allocations
+      properties:
+        row_version:
+          type: integer
+        allocations:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - target_type
+              - target_id
+              - allocation_method
+              - allocation_value
+            properties:
+              target_type:
+                type: string
+                enum: [project, season, episode, block, scene]
+              target_id:
+                type: string
+                format: uuid
+              allocation_method:
+                type: string
+                enum: [percentage, fixed_amount, driver_based]
+              allocation_value:
+                type: string
+
+    VersionComparison:
+      type: object
+      required:
+        - base_version_id
+        - compare_version_id
+      properties:
+        base_version_id:
+          type: string
+          format: uuid
+        compare_version_id:
+          type: string
+          format: uuid
+        totals:
+          type: object
+          additionalProperties: true
+        deltas_by_department:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        deltas_by_cost_code:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    Vendor:
+      type: object
+      required:
+        - id
+        - name
+        - vendor_type
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        vendor_type:
+          type: string
+          enum: [individual, company, rental_house, service_provider, other]
+        tax_registration_no:
+          type: string
+        default_currency_code:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, archived]
+        notes:
+          type: string
+
+    VendorCreateRequest:
+      type: object
+      required:
+        - name
+        - vendor_type
+      properties:
+        name:
+          type: string
+        vendor_type:
+          type: string
+          enum: [individual, company, rental_house, service_provider, other]
+        tax_registration_no:
+          type: string
+        default_currency_code:
+          type: string
+        notes:
+          type: string
+
+    VendorQuote:
+      type: object
+      required:
+        - id
+        - project_id
+        - vendor_id
+        - quote_date
+        - currency_code
+        - status
+        - subtotal
+        - tax_amount
+        - total_amount
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        quote_no:
+          type: string
+        quote_date:
+          type: string
+          format: date
+        currency_code:
+          type: string
+        valid_until:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, normalized, approved, rejected, archived]
+        subtotal:
+          type: string
+        tax_amount:
+          type: string
+        total_amount:
+          type: string
+
+    VendorQuoteCreateRequest:
+      type: object
+      required:
+        - project_id
+        - quote_date
+        - currency_code
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        quote_no:
+          type: string
+        quote_date:
+          type: string
+          format: date
+        currency_code:
+          type: string
+        valid_until:
+          type: string
+          format: date
+
+    VendorQuoteItem:
+      type: object
+      required:
+        - id
+        - quote_id
+        - description
+        - quantity
+        - unit_cost
+        - line_subtotal
+        - normalization_status
+      properties:
+        id:
+          type: string
+          format: uuid
+        quote_id:
+          type: string
+          format: uuid
+        cost_code_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        unit_cost:
+          type: string
+        line_subtotal:
+          type: string
+        tax_profile_id:
+          type: string
+          format: uuid
+        attributes_json:
+          type: object
+          additionalProperties: true
+        normalization_status:
+          type: string
+          enum: [raw, normalized, mapped, needs_review]
+
+    VendorQuoteNormalizeRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        normalization_policy:
+          type: object
+          additionalProperties: true
+
+    RateCard:
+      type: object
+      required:
+        - id
+        - name
+        - scope
+        - currency_code
+        - effective_from
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        scope:
+          type: string
+          enum: [tenant, project]
+        currency_code:
+          type: string
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, inactive, archived]
+
+    RateCardCreateRequest:
+      type: object
+      required:
+        - name
+        - scope
+        - currency_code
+        - effective_from
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        scope:
+          type: string
+          enum: [tenant, project]
+        currency_code:
+          type: string
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: string
+          format: date
+
+    RateCardItem:
+      type: object
+      required:
+        - id
+        - rate_card_id
+        - cost_code_id
+        - role_or_service_name
+        - unit_type_id
+        - base_rate
+      properties:
+        id:
+          type: string
+          format: uuid
+        rate_card_id:
+          type: string
+          format: uuid
+        cost_code_id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: string
+          format: uuid
+        role_or_service_name:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        base_rate:
+          type: string
+        min_qty:
+          type: string
+        max_qty:
+          type: string
+        conditions_json:
+          type: object
+          additionalProperties: true
+
+    RateCardItemCreateRequest:
+      type: object
+      required:
+        - cost_code_id
+        - role_or_service_name
+        - unit_type_id
+        - base_rate
+      properties:
+        cost_code_id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: string
+          format: uuid
+        role_or_service_name:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        base_rate:
+          type: string
+        min_qty:
+          type: string
+        max_qty:
+          type: string
+        conditions_json:
+          type: object
+          additionalProperties: true
+
+    ExchangeRateSnapshot:
+      type: object
+      required:
+        - id
+        - rate_date
+        - from_currency_code
+        - to_currency_code
+        - source_name
+        - rate
+      properties:
+        id:
+          type: string
+          format: uuid
+        rate_date:
+          type: string
+          format: date
+        from_currency_code:
+          type: string
+        to_currency_code:
+          type: string
+        source_name:
+          type: string
+        source_reference:
+          type: string
+        rate:
+          type: string
+        fetched_at:
+          type: string
+          format: date-time
+
+    CpiIndex:
+      type: object
+      required:
+        - id
+        - month_date
+        - country_code
+        - index_value
+        - source_name
+      properties:
+        id:
+          type: string
+          format: uuid
+        month_date:
+          type: string
+          format: date
+        country_code:
+          type: string
+          minLength: 2
+          maxLength: 2
+        index_value:
+          type: string
+        source_name:
+          type: string
+        fetched_at:
+          type: string
+          format: date-time
+
+    ActualExpenseBatch:
+      type: object
+      required:
+        - id
+        - project_id
+        - import_source
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        import_source:
+          type: string
+        status:
+          type: string
+          enum: [draft, imported, reconciling, reconciled, failed, archived]
+        imported_by:
+          type: string
+          format: uuid
+        imported_at:
+          type: string
+          format: date-time
+
+    ActualExpenseBatchCreateRequest:
+      type: object
+      required:
+        - import_source
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        import_source:
+          type: string
+
+    ActualExpenseLine:
+      type: object
+      required:
+        - id
+        - batch_id
+        - expense_date
+        - description
+        - amount_currency_code
+        - amount_original
+        - amount_egp
+        - total_egp
+        - reconciliation_status
+      properties:
+        id:
+          type: string
+          format: uuid
+        batch_id:
+          type: string
+          format: uuid
+        expense_date:
+          type: string
+          format: date
+        vendor_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        cost_code_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        amount_currency_code:
+          type: string
+        amount_original:
+          type: string
+        fx_snapshot_id:
+          type: string
+          format: uuid
+        amount_egp:
+          type: string
+        tax_profile_id:
+          type: string
+          format: uuid
+        tax_amount_egp:
+          type: string
+        total_egp:
+          type: string
+        invoice_number:
+          type: string
+        external_ref:
+          type: string
+        reconciliation_status:
+          type: string
+          enum: [unmatched, matched, split, needs_review, ignored]
+
+    ActualExpenseLineCreateRequest:
+      type: object
+      required:
+        - expense_date
+        - description
+        - amount_currency_code
+        - amount_original
+      properties:
+        expense_date:
+          type: string
+          format: date
+        vendor_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        cost_code_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        unit_type_id:
+          type: string
+          format: uuid
+        amount_currency_code:
+          type: string
+        amount_original:
+          type: string
+        fx_snapshot_id:
+          type: string
+          format: uuid
+        tax_profile_id:
+          type: string
+          format: uuid
+        invoice_number:
+          type: string
+        external_ref:
+          type: string
+
+    ReconciliationRequest:
+      type: object
+      required:
+        - row_version
+        - target_budget_version_id
+      properties:
+        row_version:
+          type: integer
+        target_budget_version_id:
+          type: string
+          format: uuid
+        strategy:
+          type: object
+          additionalProperties: true
+
+    ExpenseBudgetLink:
+      type: object
+      required:
+        - id
+        - actual_expense_line_id
+        - budget_line_item_id
+        - match_type
+        - allocated_amount_egp
+      properties:
+        id:
+          type: string
+          format: uuid
+        actual_expense_line_id:
+          type: string
+          format: uuid
+        budget_line_item_id:
+          type: string
+          format: uuid
+        match_type:
+          type: string
+          enum: [exact, suggested, manual, split]
+        match_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        allocated_amount_egp:
+          type: string
+        approved_by:
+          type: string
+          format: uuid
+        approved_at:
+          type: string
+          format: date-time
+
+    ApprovalTemplate:
+      type: object
+      required:
+        - id
+        - module
+        - name
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        module:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, archived]
+
+    ApprovalTemplateCreateRequest:
+      type: object
+      required:
+        - module
+        - name
+        - steps
+      properties:
+        module:
+          type: string
+        name:
+          type: string
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - step_order
+              - role_code
+              - min_approvals
+            properties:
+              step_order:
+                type: integer
+              role_code:
+                type: string
+              min_approvals:
+                type: integer
+              is_mandatory:
+                type: boolean
+              sla_hours:
+                type: integer
+
+    ApprovalInstanceStep:
+      type: object
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected, requested_changes, skipped]
+        assignee_user_id:
+          type: string
+          format: uuid
+        acted_by:
+          type: string
+          format: uuid
+        acted_at:
+          type: string
+          format: date-time
+        comment:
+          type: string
+
+    ApprovalInstance:
+      type: object
+      required:
+        - id
+        - module
+        - entity_id
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        module:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        template_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, in_progress, approved, rejected, cancelled]
+        current_step_order:
+          type: integer
+        started_by:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalInstanceStep"
+
+    ApprovalActionRequest:
+      type: object
+      required:
+        - row_version
+      properties:
+        row_version:
+          type: integer
+        comment:
+          type: string
+
+    ApprovalInstanceCreateRequest:
+      type: object
+      required:
+        - template_id
+      properties:
+        template_id:
+          type: string
+          format: uuid
+
+    PatchSourceRef:
+      type: object
+      required:
+        - ref_type
+        - ref_id
+      properties:
+        ref_type:
+          type: string
+        ref_id:
+          type: string
+          format: uuid
+
+    PatchProposal:
+      type: object
+      required:
+        - patch_id
+        - op
+        - target_type
+        - reason_ar
+        - confidence_score
+        - payload
+      properties:
+        patch_id:
+          type: string
+          format: uuid
+        op:
+          type: string
+          enum:
+            - upsert_scene
+            - upsert_breakdown_item
+            - upsert_budget_line_item
+            - assign_tax_profile
+            - assign_fx_snapshot
+            - set_allocation
+            - create_validation_issue
+            - link_actual_to_budget
+            - create_question
+        target_type:
+          type: string
+        target_id:
+          type: string
+          format: uuid
+        reason_ar:
+          type: string
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        payload:
+          type: object
+          additionalProperties: true
+        source_refs:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatchSourceRef"
+
+    AgentArtifact:
+      type: object
+      required:
+        - id
+        - run_id
+        - artifact_type
+      properties:
+        id:
+          type: string
+          format: uuid
+        run_id:
+          type: string
+          format: uuid
+        artifact_type:
+          type: string
+        storage_document_id:
+          type: string
+          format: uuid
+        payload_json:
+          type: object
+          additionalProperties: true
+
+    AgentRun:
+      type: object
+      required:
+        - id
+        - project_id
+        - agent_name
+        - trigger_type
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        budget_version_id:
+          type: string
+          format: uuid
+        agent_name:
+          type: string
+        agent_version:
+          type: string
+        trigger_type:
+          type: string
+          enum: [user_action, system_event, scheduled]
+        input_ref_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [queued, running, completed, failed, needs_review, cancelled]
+        confidence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        proposed_patch_json:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatchProposal"
+        output_json:
+          type: object
+          additionalProperties: true
+        error_json:
+          type: object
+          additionalProperties: true
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentArtifact"
+
+    AgentRunCreateRequest:
+      type: object
+      required:
+        - project_id
+        - objective
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        budget_version_id:
+          type: string
+          format: uuid
+        entity_refs:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        objective:
+          type: string
+        constraints:
+          type: object
+          additionalProperties: true
+        options:
+          type: object
+          additionalProperties: true
+
+    AgentPatchApplyRequest:
+      type: object
+      required:
+        - row_version
+        - patch_ids
+      properties:
+        row_version:
+          type: integer
+        patch_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+        apply_mode:
+          type: string
+          enum: [selected_only, all_valid]
+          default: selected_only
+
+    ExportJob:
+      type: object
+      required:
+        - id
+        - module
+        - entity_id
+        - export_type
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+        module:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        export_type:
+          type: string
+          enum: [xlsx, pdf, csv]
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        document_id:
+          type: string
+          format: uuid
+        download_url:
+          type: string
+          format: uri
+        requested_by:
+          type: string
+          format: uuid
+        completed_at:
+          type: string
+          format: date-time
+
+    ExportRequest:
+      type: object
+      required:
+        - module
+        - entity_id
+        - export_type
+      properties:
+        module:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        export_type:
+          type: string
+          enum: [xlsx, pdf, csv]
+        options:
+          type: object
+          additionalProperties: true
+
+    AuditLog:
+      type: object
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - action
+        - source_type
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        actor_user_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        before_json:
+          type: object
+          additionalProperties: true
+        after_json:
+          type: object
+          additionalProperties: true
+        source_type:
+          type: string
+          enum: [api, agent, system, db_migration]
+        source_ref_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+paths:
+  /me:
+    get:
+      tags: [Identity]
+      summary: Get current authenticated user context.
+      operationId: getMe
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Current user profile and memberships.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    required: [data]
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/MePayload"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /currencies:
+    get:
+      tags: [MasterData]
+      summary: List active currencies.
+      operationId: listCurrencies
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Currency list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Currency"
+
+  /unit-types:
+    get:
+      tags: [MasterData]
+      summary: List unit types.
+      operationId: listUnitTypes
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Unit type list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/UnitType"
+
+  /departments:
+    get:
+      tags: [MasterData]
+      summary: List departments.
+      operationId: listDepartments
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Department list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Department"
+
+  /cost-codes:
+    get:
+      tags: [MasterData]
+      summary: List cost codes.
+      operationId: listCostCodes
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Cost code list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CostCode"
+
+  /tax-profiles:
+    get:
+      tags: [MasterData]
+      summary: List tax profiles.
+      operationId: listTaxProfiles
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Tax profile list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TaxProfile"
+    post:
+      tags: [MasterData]
+      summary: Create a tax profile.
+      operationId: createTaxProfile
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, name_ar, formula_type, effective_from]
+              properties:
+                code:
+                  type: string
+                name_ar:
+                  type: string
+                name_en:
+                  type: string
+                formula_type:
+                  type: string
+                  enum: [simple_rate, composite_rules, exempt, manual]
+                formula_json:
+                  type: object
+                  additionalProperties: true
+                effective_from:
+                  type: string
+                  format: date
+                effective_to:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Tax profile created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/TaxProfile"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects.
+      operationId: listProjects
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Paginated project list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Project"
+    post:
+      tags: [Projects]
+      summary: Create a new project.
+      operationId: createProject
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectCreateRequest"
+      responses:
+        "201":
+          description: Project created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Project"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /projects/{project_id}:
+    get:
+      tags: [Projects]
+      summary: Get project details.
+      operationId: getProject
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Project"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Projects]
+      summary: Update project details.
+      operationId: updateProject
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectPatchRequest"
+      responses:
+        "200":
+          description: Project updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Project"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /projects/{project_id}/structure:
+    get:
+      tags: [Projects]
+      summary: Get full project structure.
+      operationId: getProjectStructure
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Seasons, episodes, and shooting blocks.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ProjectStructure"
+
+  /files/initiate-upload:
+    post:
+      tags: [Files]
+      summary: Initiate file upload.
+      operationId: initiateFileUpload
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileUploadInitiateRequest"
+      responses:
+        "201":
+          description: Upload instructions created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FileUploadInitiateResult"
+
+  /files/complete-upload:
+    post:
+      tags: [Files]
+      summary: Complete upload and register the stored document.
+      operationId: completeFileUpload
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileUploadCompleteRequest"
+      responses:
+        "200":
+          description: Upload completed and document registered.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Document"
+
+  /projects/{project_id}/documents:
+    get:
+      tags: [Documents]
+      summary: List project documents.
+      operationId: listProjectDocuments
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Project document list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ProjectDocument"
+    post:
+      tags: [Documents]
+      summary: Attach an uploaded document to a project.
+      operationId: createProjectDocument
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectDocumentCreateRequest"
+      responses:
+        "201":
+          description: Project document created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ProjectDocument"
+
+  /documents/{document_id}:
+    get:
+      tags: [Documents]
+      summary: Get a document.
+      operationId: getDocument
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/DocumentId"
+      responses:
+        "200":
+          description: Document details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Document"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /project-documents/{project_document_id}/actions/parse-script:
+    post:
+      tags: [Scripts]
+      summary: Parse a script document into a structured script version.
+      operationId: parseScriptDocument
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectDocumentId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScriptParseRequest"
+      responses:
+        "202":
+          description: Script parse queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /project-documents/{project_document_id}/script-versions:
+    get:
+      tags: [Scripts]
+      summary: List script versions for a project document.
+      operationId: listScriptVersions
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectDocumentId"
+      responses:
+        "200":
+          description: Script versions.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ScriptVersion"
+
+  /script-versions/{script_version_id}:
+    get:
+      tags: [Scripts]
+      summary: Get a script version.
+      operationId: getScriptVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ScriptVersionId"
+      responses:
+        "200":
+          description: Script version details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ScriptVersion"
+
+  /script-versions/{script_version_id}/scenes:
+    get:
+      tags: [Scripts]
+      summary: List scenes for a script version.
+      operationId: listScenes
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ScriptVersionId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Scene list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Scene"
+
+  /scenes/{scene_id}:
+    patch:
+      tags: [Scripts]
+      summary: Update a scene after manual review.
+      operationId: patchScene
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/SceneId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScenePatchRequest"
+      responses:
+        "200":
+          description: Scene updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Scene"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /script-versions/{script_version_id}/actions/generate-breakdown:
+    post:
+      tags: [Breakdown]
+      summary: Generate scene breakdown items for a script version.
+      operationId: generateBreakdown
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ScriptVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakdownGenerationRequest"
+      responses:
+        "202":
+          description: Breakdown generation queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /scenes/{scene_id}/breakdown-items:
+    get:
+      tags: [Breakdown]
+      summary: List breakdown items for a scene.
+      operationId: listBreakdownItems
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/SceneId"
+      responses:
+        "200":
+          description: Breakdown items list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/BreakdownItem"
+    post:
+      tags: [Breakdown]
+      summary: Create a manual breakdown item for a scene.
+      operationId: createBreakdownItem
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/SceneId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakdownItemCreateRequest"
+      responses:
+        "201":
+          description: Breakdown item created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BreakdownItem"
+
+  /breakdown-items/{item_id}:
+    patch:
+      tags: [Breakdown]
+      summary: Review or edit a breakdown item.
+      operationId: patchBreakdownItem
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BreakdownItemId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakdownItemPatchRequest"
+      responses:
+        "200":
+          description: Breakdown item updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BreakdownItem"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /projects/{project_id}/budgets:
+    get:
+      tags: [Budgets]
+      summary: List budgets for a project.
+      operationId: listBudgets
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Budget list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Budget"
+    post:
+      tags: [Budgets]
+      summary: Create a budget container for a project.
+      operationId: createBudget
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetCreateRequest"
+      responses:
+        "201":
+          description: Budget created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Budget"
+
+  /budgets/{budget_id}/versions:
+    get:
+      tags: [Budgets]
+      summary: List budget versions.
+      operationId: listBudgetVersions
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetId"
+      responses:
+        "200":
+          description: Budget versions list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/BudgetVersion"
+    post:
+      tags: [Budgets]
+      summary: Create a budget version.
+      operationId: createBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetVersionCreateRequest"
+      responses:
+        "201":
+          description: Budget version created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BudgetVersion"
+
+  /budget-versions/{budget_version_id}:
+    get:
+      tags: [Budgets]
+      summary: Get a budget version.
+      operationId: getBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+      responses:
+        "200":
+          description: Budget version details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/BudgetVersion"
+                          - type: object
+                            properties:
+                              validation_issues:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/ValidationIssue"
+
+  /budget-versions/{budget_version_id}/line-items:
+    get:
+      tags: [Budgets]
+      summary: List line items in a budget version.
+      operationId: listBudgetLineItems
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Budget line item list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/BudgetLineItem"
+    post:
+      tags: [Budgets]
+      summary: Create a line item in a budget version.
+      operationId: createBudgetLineItem
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetLineItemCreateRequest"
+      responses:
+        "201":
+          description: Budget line item created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BudgetLineItem"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /budget-line-items/{line_item_id}:
+    patch:
+      tags: [Budgets]
+      summary: Update a budget line item.
+      operationId: patchBudgetLineItem
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/LineItemId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetLineItemPatchRequest"
+      responses:
+        "200":
+          description: Budget line item updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BudgetLineItem"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /budget-line-items/{line_item_id}/allocations:
+    post:
+      tags: [Budgets]
+      summary: Replace allocations for a line item.
+      operationId: setLineItemAllocations
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/LineItemId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllocationCreateRequest"
+      responses:
+        "200":
+          description: Allocations replaced.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/LineItemAllocation"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /budget-versions/{budget_version_id}/actions/generate-draft:
+    post:
+      tags: [Budgets]
+      summary: Generate a draft budget via orchestrated agents and rules.
+      operationId: generateBudgetDraft
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetDraftGenerationRequest"
+      responses:
+        "202":
+          description: Draft generation queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /budget-versions/{budget_version_id}/actions/recalculate:
+    post:
+      tags: [Budgets]
+      summary: Recalculate version totals, taxes, FX, and dependent formulas.
+      operationId: recalculateBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [row_version]
+              properties:
+                row_version:
+                  type: integer
+      responses:
+        "202":
+          description: Recalculation queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /budget-versions/{budget_version_id}/actions/validate:
+    post:
+      tags: [Budgets]
+      summary: Validate a budget version and generate issues.
+      operationId: validateBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [row_version]
+              properties:
+                row_version:
+                  type: integer
+      responses:
+        "202":
+          description: Validation queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /budget-versions/{budget_version_id}/actions/freeze:
+    post:
+      tags: [Budgets]
+      summary: Freeze a budget version.
+      operationId: freezeBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [row_version]
+              properties:
+                row_version:
+                  type: integer
+      responses:
+        "200":
+          description: Budget version frozen.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BudgetVersion"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /budget-versions/{budget_version_id}/actions/set-baseline:
+    post:
+      tags: [Budgets]
+      summary: Mark a budget version as the active baseline.
+      operationId: setBaselineBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [row_version]
+              properties:
+                row_version:
+                  type: integer
+      responses:
+        "200":
+          description: Baseline updated.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Budget"
+
+  /budget-versions/{budget_version_id}/comparison/{other_version_id}:
+    get:
+      tags: [Budgets]
+      summary: Compare two budget versions.
+      operationId: compareBudgetVersions
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - name: other_version_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Budget comparison result.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/VersionComparison"
+
+  /vendors:
+    get:
+      tags: [Vendors]
+      summary: List vendors.
+      operationId: listVendors
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Vendor list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Vendor"
+    post:
+      tags: [Vendors]
+      summary: Create a vendor.
+      operationId: createVendor
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorCreateRequest"
+      responses:
+        "201":
+          description: Vendor created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Vendor"
+
+  /vendors/{vendor_id}:
+    get:
+      tags: [Vendors]
+      summary: Get vendor details.
+      operationId: getVendor
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/VendorId"
+      responses:
+        "200":
+          description: Vendor details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Vendor"
+
+  /vendors/{vendor_id}/quotes:
+    post:
+      tags: [Vendors]
+      summary: Create a vendor quote.
+      operationId: createVendorQuote
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/VendorId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorQuoteCreateRequest"
+      responses:
+        "201":
+          description: Vendor quote created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/VendorQuote"
+
+  /vendor-quotes/{quote_id}:
+    get:
+      tags: [Vendors]
+      summary: Get quote details.
+      operationId: getVendorQuote
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/QuoteId"
+      responses:
+        "200":
+          description: Vendor quote with items.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: "#/components/schemas/VendorQuote"
+                          - type: object
+                            properties:
+                              items:
+                                type: array
+                                items:
+                                  $ref: "#/components/schemas/VendorQuoteItem"
+
+  /vendor-quotes/{quote_id}/actions/normalize:
+    post:
+      tags: [Vendors]
+      summary: Normalize quote items to canonical cost structure.
+      operationId: normalizeVendorQuote
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/QuoteId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorQuoteNormalizeRequest"
+      responses:
+        "202":
+          description: Quote normalization queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /rate-cards:
+    get:
+      tags: [RateCards]
+      summary: List rate cards.
+      operationId: listRateCards
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Rate cards.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/RateCard"
+    post:
+      tags: [RateCards]
+      summary: Create a rate card.
+      operationId: createRateCard
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateCardCreateRequest"
+      responses:
+        "201":
+          description: Rate card created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RateCard"
+
+  /rate-cards/{rate_card_id}/items:
+    get:
+      tags: [RateCards]
+      summary: List rate card items.
+      operationId: listRateCardItems
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/RateCardId"
+      responses:
+        "200":
+          description: Rate card items.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/RateCardItem"
+    post:
+      tags: [RateCards]
+      summary: Add an item to a rate card.
+      operationId: createRateCardItem
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/RateCardId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateCardItemCreateRequest"
+      responses:
+        "201":
+          description: Rate card item created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/RateCardItem"
+
+  /fx-snapshots:
+    get:
+      tags: [MasterData]
+      summary: Query stored FX snapshots.
+      operationId: listFxSnapshots
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - name: rate_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: from_currency_code
+          in: query
+          schema:
+            type: string
+        - name: to_currency_code
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: FX snapshots.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ExchangeRateSnapshot"
+
+  /cpi-indices:
+    get:
+      tags: [MasterData]
+      summary: Query CPI indices.
+      operationId: listCpiIndices
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - name: month_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: country_code
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CPI indices.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/CpiIndex"
+
+  /projects/{project_id}/actual-expense-batches:
+    get:
+      tags: [Actuals]
+      summary: List actual expense batches for a project.
+      operationId: listActualExpenseBatches
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Actual expense batches.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ActualExpenseBatch"
+    post:
+      tags: [Actuals]
+      summary: Create a new actual expense import batch.
+      operationId: createActualExpenseBatch
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ProjectId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActualExpenseBatchCreateRequest"
+      responses:
+        "201":
+          description: Actual expense batch created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ActualExpenseBatch"
+
+  /actual-expense-batches/{batch_id}:
+    get:
+      tags: [Actuals]
+      summary: Get actual expense batch details.
+      operationId: getActualExpenseBatch
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BatchId"
+      responses:
+        "200":
+          description: Actual expense batch details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ActualExpenseBatch"
+
+  /actual-expense-batches/{batch_id}/lines:
+    get:
+      tags: [Actuals]
+      summary: List actual expense lines in a batch.
+      operationId: listActualExpenseLines
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BatchId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Actual expense line list.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ActualExpenseLine"
+    post:
+      tags: [Actuals]
+      summary: Add an actual expense line to a batch.
+      operationId: createActualExpenseLine
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BatchId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActualExpenseLineCreateRequest"
+      responses:
+        "201":
+          description: Actual expense line created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ActualExpenseLine"
+
+  /actual-expense-batches/{batch_id}/actions/reconcile:
+    post:
+      tags: [Actuals]
+      summary: Reconcile actual expenses against a target budget version.
+      operationId: reconcileActualExpenses
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BatchId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReconciliationRequest"
+      responses:
+        "202":
+          description: Actuals reconciliation queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /approval-templates:
+    get:
+      tags: [Approvals]
+      summary: List approval templates.
+      operationId: listApprovalTemplates
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+      responses:
+        "200":
+          description: Approval templates.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ApprovalTemplate"
+    post:
+      tags: [Approvals]
+      summary: Create an approval template.
+      operationId: createApprovalTemplate
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalTemplateCreateRequest"
+      responses:
+        "201":
+          description: Approval template created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalTemplate"
+
+  /budget-versions/{budget_version_id}/approval-instances:
+    post:
+      tags: [Approvals]
+      summary: Create an approval workflow instance for a budget version.
+      operationId: createApprovalInstanceForBudgetVersion
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/BudgetVersionId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalInstanceCreateRequest"
+      responses:
+        "201":
+          description: Approval instance created.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstance"
+
+  /approval-instances/{instance_id}:
+    get:
+      tags: [Approvals]
+      summary: Get approval instance details.
+      operationId: getApprovalInstance
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ApprovalInstanceId"
+      responses:
+        "200":
+          description: Approval instance details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstance"
+
+  /approval-instances/{instance_id}/actions/submit:
+    post:
+      tags: [Approvals]
+      summary: Submit approval instance into workflow.
+      operationId: submitApprovalInstance
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ApprovalInstanceId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalActionRequest"
+      responses:
+        "200":
+          description: Approval instance submitted.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstance"
+
+  /approval-instance-steps/{step_id}/actions/approve:
+    post:
+      tags: [Approvals]
+      summary: Approve a workflow step.
+      operationId: approveApprovalStep
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ApprovalStepId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalActionRequest"
+      responses:
+        "200":
+          description: Step approved.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstanceStep"
+
+  /approval-instance-steps/{step_id}/actions/reject:
+    post:
+      tags: [Approvals]
+      summary: Reject a workflow step.
+      operationId: rejectApprovalStep
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ApprovalStepId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalActionRequest"
+      responses:
+        "200":
+          description: Step rejected.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstanceStep"
+
+  /approval-instance-steps/{step_id}/actions/request-changes:
+    post:
+      tags: [Approvals]
+      summary: Request changes on a workflow step.
+      operationId: requestChangesApprovalStep
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ApprovalStepId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalActionRequest"
+      responses:
+        "200":
+          description: Changes requested.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ApprovalInstanceStep"
+
+  /agents/{agent_name}/runs:
+    post:
+      tags: [Agents]
+      summary: Trigger a direct agent run.
+      operationId: createAgentRun
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - name: agent_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRunCreateRequest"
+      responses:
+        "202":
+          description: Agent run queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /agent-runs/{run_id}:
+    get:
+      tags: [Agents]
+      summary: Get agent run status, output, and proposed patches.
+      operationId: getAgentRun
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          description: Agent run details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+
+  /agent-runs/{run_id}/artifacts:
+    get:
+      tags: [Agents]
+      summary: List artifacts produced by an agent run.
+      operationId: listAgentArtifacts
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          description: Agent artifacts.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AgentArtifact"
+
+  /agent-runs/{run_id}/actions/apply-patch:
+    post:
+      tags: [Agents]
+      summary: Apply selected valid patches emitted by an agent run.
+      operationId: applyAgentPatches
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentPatchApplyRequest"
+      responses:
+        "202":
+          description: Patch application queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AgentRun"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /exports:
+    post:
+      tags: [Reporting]
+      summary: Queue an export job.
+      operationId: createExportJob
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportRequest"
+      responses:
+        "202":
+          description: Export job queued.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ExportJob"
+
+  /exports/{export_job_id}:
+    get:
+      tags: [Reporting]
+      summary: Get export job status.
+      operationId: getExportJob
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/ExportJobId"
+      responses:
+        "200":
+          description: Export job details.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ExportJob"
+
+  /audit-logs:
+    get:
+      tags: [Audit]
+      summary: Query audit logs.
+      operationId: listAuditLogs
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - name: entity_type
+          in: query
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Audit log entries.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponseBase"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AuditLog"

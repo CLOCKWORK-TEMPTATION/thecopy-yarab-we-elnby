@@ -1,0 +1,96 @@
+# ===================================================================
+# Gitleaks configuration for the-copy-monorepo
+# ===================================================================
+# يمتد على القواعد الافتراضية لـ Gitleaks ويضيف قواعد مخصصة للمستودع.
+# Extends Gitleaks defaults and adds project-specific rules.
+# ===================================================================
+
+title = "the-copy gitleaks config"
+
+[extend]
+useDefault = true
+
+# ===================================================================
+# Custom rules (project-specific)
+# ===================================================================
+
+[[rules]]
+id = "the-copy-postgres-connection-with-credentials"
+description = "PostgreSQL connection URL containing inline credentials"
+regex = '''postgres(?:ql)?:\/\/[A-Za-z0-9._-]+:[^@\s'"]+@[A-Za-z0-9.-]+'''
+tags = ["database", "credentials"]
+
+[[rules]]
+id = "the-copy-mongodb-connection-with-credentials"
+description = "MongoDB connection URL containing inline credentials"
+regex = '''mongodb(?:\+srv)?:\/\/[A-Za-z0-9._-]+:[^@\s'"]+@[A-Za-z0-9.-]+'''
+tags = ["database", "credentials"]
+
+[[rules]]
+id = "the-copy-mysql-connection-with-credentials"
+description = "MySQL connection URL containing inline credentials"
+regex = '''mysql:\/\/[A-Za-z0-9._-]+:[^@\s'"]+@[A-Za-z0-9.-]+'''
+tags = ["database", "credentials"]
+
+[[rules]]
+id = "the-copy-redis-connection-with-credentials"
+description = "Redis connection URL containing inline credentials"
+regex = '''redis:\/\/[A-Za-z0-9._-]+:[^@\s'"]+@[A-Za-z0-9.-]+'''
+tags = ["cache", "credentials"]
+
+[[rules]]
+id = "the-copy-private-key-block"
+description = "Hard-coded private key material"
+regex = '''-----BEGIN (?:RSA|DSA|EC|OPENSSH|PGP|ENCRYPTED)? ?PRIVATE KEY( BLOCK)?-----'''
+tags = ["key", "asymmetric-private-key"]
+
+[[rules]]
+id = "the-copy-inline-bearer-token"
+description = "Inline bearer token in source"
+regex = '''(?i)bearer\s+[A-Za-z0-9._~+/=-]{20,}'''
+tags = ["auth", "token"]
+
+# ===================================================================
+# Allowlist — placeholders and example files
+# ===================================================================
+
+[allowlist]
+description = "Global allowlist for example files and documented placeholders"
+
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''(^|/)\.env\.sample$''',
+  '''(^|/)\.env\.tiptap$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)docs/''',
+  '''(^|/)output/''',
+  '''(^|/)specs/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.next/''',
+  '''(^|/)dist/''',
+  '''(^|/)build/''',
+  '''(^|/)coverage/''',
+  '''(^|/)\.turbo/''',
+  '''(^|/)WORKSPACE-EMBEDDING-INDEX\.json$''',
+  '''(^|/)\.embedding-hash-cache\.json$''',
+  '''(^|/)pnpm-lock\.yaml$''',
+]
+
+regexes = [
+  # Documented placeholder values in .env files and docs
+  '''change-me-to-[A-Za-z0-9-]+''',
+  '''CHANGE-THIS[-_A-Z0-9]*''',
+  '''your[-_][A-Za-z0-9-]+[-_](?:key|secret|token|password)''',
+  '''(?i)example[-_](?:key|secret|token|password)''',
+  '''user:password@''',
+  '''postgres:postgres@''',
+  '''thecopy:thecopy_dev@''',
+  '''sslmode=require''',
+]
+
+stopwords = [
+  "example",
+  "placeholder",
+  "sample",
+  "dummy",
+]

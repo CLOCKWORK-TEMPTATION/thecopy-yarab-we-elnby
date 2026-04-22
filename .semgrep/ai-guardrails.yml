@@ -1,0 +1,242 @@
+rules:
+  - id: thecopy.ai.no-raw-gemini-service-generatecontent
+    message: >-
+      لا تستخدم geminiService.generateContent(...) مباشرة في طبقات التطبيق.
+      استخدم wrapper أعلى مستوى يمر عبر guardrails/caching/typed parsing، أو استخدم
+      platformGenAIService.generateJson<T>() / generateText() بحسب الحالة.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/**/*.ts
+        - /apps/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - /apps/backend/src/lib/ai/**
+        - /apps/backend/src/services/gemini.service.ts
+        - /apps/backend/src/services/platform-genai.service.ts
+        - /apps/backend/src/services/agents/core/geminiService.ts
+        - /apps/backend/src/memory/embeddings/**
+        - /apps/backend/src/services/rag/embeddings.service.ts
+        - /apps/web/src/ai/gemini-service.ts
+        - /apps/web/src/ai/gemini-core.ts
+        - /apps/web/src/lib/geminiService.ts
+        - /apps/web/src/lib/ai/gemini-core.ts
+        - /apps/web/src/lib/ai/gemini-service.ts
+        - /apps/web/src/lib/ai/services/gemini-service.ts
+        - /apps/web/src/lib/ai/stations/gemini-service.ts
+        - /apps/web/src/lib/drama-analyst/services/geminiService.ts
+        - /apps/web/src/lib/drama-analyst/services/platformGenAIService.ts
+        - /apps/web/src/app/(main)/arabic-creative-writing-studio/lib/gemini-service.ts
+        - /apps/web/src/app/(main)/styleIST/services/geminiService.ts
+        - /apps/web/src/app/(main)/breakdown/infrastructure/gemini/**
+        - /apps/web/src/app/(main)/editor/src/rag/embeddings.ts
+        - /apps/web/src/app/(main)/editor/src/rag/query.ts
+        - /apps/web/src/app/(main)/breakdown/infrastructure/agents/runner.ts
+        - /apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts
+        - /apps/web/src/app/api/breakdown/_lib/**
+        - /packages/shared/src/ai/gemini-service.ts
+        - /packages/prompt-engineering/src/lib/gemini-service.ts
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+        - '**/scripts/**'
+    pattern-either:
+      - patterns:
+          - pattern: $SERVICE.generateContent(...)
+          - metavariable-regex:
+              metavariable: $SERVICE
+              regex: ^(?:geminiService|sharedGeminiService|legacyGeminiService|rawGeminiService)$
+      - pattern: $OWNER.geminiService.generateContent(...)
+      - pattern: getGeminiClient(...).models.generateContent(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenAI } from "@google/genai";
+              ...
+          - pattern: $CLIENT.models.generateContent(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenAI } from '@google/genai';
+              ...
+          - pattern: $CLIENT.models.generateContent(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenerativeAI } from "@google/generative-ai";
+              ...
+          - pattern: $MODEL.generateContent(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenerativeAI } from '@google/generative-ai';
+              ...
+          - pattern: $MODEL.generateContent(...)
+      - patterns:
+          - pattern-inside: |
+              const $MODEL = $GENAI.getGenerativeModel(...);
+              ...
+          - pattern: $MODEL.generateContent(...)
+    metadata:
+      category: security
+      subcategory: llm
+      confidence: medium
+
+  - id: thecopy.ai.no-json-parse-raw-llm-response
+    message: >-
+      لا تعمل JSON.parse مباشرة على مخرجات LLM النصية. استخدم
+      platformGenAIService.generateJson<T>() أو طبقة parsing/validation مركزية بـ Zod.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/**/*.ts
+        - /apps/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - /apps/backend/src/services/gemini.service.ts
+        - /apps/backend/src/services/platform-genai.service.ts
+        - /apps/backend/src/services/agents/core/geminiService.ts
+        - /apps/backend/src/services/agents/core/gemini-prompt-helpers.ts
+        - /apps/backend/src/services/breakdown/service-helpers.ts
+        - /apps/web/src/lib/drama-analyst/services/platformGenAIService.ts
+        - /apps/web/src/app/api/breakdown/_lib/**
+        - /apps/web/src/app/(main)/breakdown/infrastructure/agents/runner.ts
+        - /apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+    pattern-either:
+      - patterns:
+          - pattern-inside: |
+              const $RESP = await geminiService.generateContent(...);
+              ...
+          - pattern: JSON.parse($RESP)
+      - patterns:
+          - pattern-inside: |
+              const $RESP = await platformGenAIService.generateText(...);
+              ...
+          - pattern: JSON.parse($RESP)
+      - patterns:
+          - pattern-inside: |
+              const $RESP = await $SERVICE.generateText(...);
+              ...
+          - metavariable-regex:
+              metavariable: $SERVICE
+              regex: ^(?:geminiService|platformGenAIService)$
+          - pattern: JSON.parse($RESP)
+      - patterns:
+          - pattern-inside: |
+              const $RESP = await $CLIENT.models.generateContent(...);
+              ...
+          - pattern-either:
+              - pattern: JSON.parse($RESP.text)
+              - pattern: JSON.parse($RESP.text || ...)
+              - pattern: JSON.parse($RESP.text ?? ...)
+    metadata:
+      category: security
+      subcategory: llm
+      confidence: medium
+
+  - id: thecopy.ai.no-provider-instantiation-outside-provider-layer
+    message: >-
+      لا تُنشئ مزود LLM مباشرة خارج طبقة provider/service المركزية.
+      وحّد الإنشاء داخل services المخصصة حتى لا تتكرر الأسرار والسياسات والـ guardrails.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/**/*.ts
+        - /apps/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - /apps/backend/src/lib/ai/**
+        - /apps/backend/src/services/gemini.service.ts
+        - /apps/backend/src/services/platform-genai.service.ts
+        - /apps/backend/src/services/agents/core/geminiService.ts
+        - /apps/backend/src/memory/embeddings/generator.ts
+        - /apps/backend/src/services/rag/embeddings.service.ts
+        - /apps/backend/src/ocr-arabic-pdf-to-txt-pipeline/**
+        - /apps/web/src/ai/gemini-service.ts
+        - /apps/web/src/ai/gemini-core.ts
+        - /apps/web/src/lib/geminiService.ts
+        - /apps/web/src/lib/ai/gemini-core.ts
+        - /apps/web/src/lib/ai/gemini-service.ts
+        - /apps/web/src/lib/ai/services/gemini-service.ts
+        - /apps/web/src/lib/ai/stations/gemini-service.ts
+        - /apps/web/src/lib/drama-analyst/services/geminiService.ts
+        - /apps/web/src/lib/drama-analyst/services/platformGenAIService.ts
+        - /apps/web/src/app/(main)/arabic-creative-writing-studio/lib/gemini-service.ts
+        - /apps/web/src/app/(main)/BUDGET/lib/geminiService.ts
+        - /apps/web/src/app/(main)/styleIST/services/geminiService.ts
+        - /apps/web/src/app/(main)/breakdown/infrastructure/gemini/client.ts
+        - /apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts
+        - /apps/web/src/app/api/breakdown/_lib/**
+        - /apps/web/src/app/(main)/editor/src/rag/embeddings.ts
+        - /apps/web/src/app/(main)/editor/src/rag/query.ts
+        - /apps/web/src/app/(main)/editor/src/ocr-arabic-pdf-to-txt-pipeline/**
+        - /packages/shared/src/ai/gemini-service.ts
+        - /packages/prompt-engineering/src/lib/gemini-service.ts
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+        - '**/scripts/**'
+        - '**/skill-scripts/**'
+    pattern-either:
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenerativeAI } from "@google/generative-ai";
+              ...
+          - pattern: new GoogleGenerativeAI(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenerativeAI } from '@google/generative-ai';
+              ...
+          - pattern: new GoogleGenerativeAI(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenAI } from "@google/genai";
+              ...
+          - pattern: new GoogleGenAI(...)
+      - patterns:
+          - pattern-inside: |
+              import { GoogleGenAI } from '@google/genai';
+              ...
+          - pattern: new GoogleGenAI(...)
+      - patterns:
+          - pattern-inside: |
+              import OpenAI from "openai";
+              ...
+          - pattern: new OpenAI(...)
+      - patterns:
+          - pattern-inside: |
+              import OpenAI from 'openai';
+              ...
+          - pattern: new OpenAI(...)
+      - patterns:
+          - pattern-inside: |
+              import Anthropic from "@anthropic-ai/sdk";
+              ...
+          - pattern: new Anthropic(...)
+      - patterns:
+          - pattern-inside: |
+              import Anthropic from '@anthropic-ai/sdk';
+              ...
+          - pattern: new Anthropic(...)
+      - patterns:
+          - pattern-inside: |
+              import { Mistral } from "@mistralai/mistralai";
+              ...
+          - pattern: new Mistral(...)
+      - patterns:
+          - pattern-inside: |
+              import { Mistral } from '@mistralai/mistralai';
+              ...
+          - pattern: new Mistral(...)
+    metadata:
+      category: security
+      subcategory: llm
+      confidence: high

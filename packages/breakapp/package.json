@@ -1,0 +1,49 @@
+{
+  "name": "@the-copy/breakapp",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./lib/auth": "./src/lib/auth.ts",
+    "./lib/roles": "./src/lib/roles.ts",
+    "./lib/types": "./src/lib/types/index.ts",
+    "./hooks/useSocket": "./src/hooks/useSocket.ts",
+    "./hooks/useGeolocation": "./src/hooks/useGeolocation.ts",
+    "./hooks/useQRCamera": "./src/hooks/useQRCamera.ts",
+    "./components/ConnectionTest": "./src/components/ConnectionTest.tsx",
+    "./components/maps/MapComponent": "./src/components/maps/MapComponent.tsx",
+    "./components/scanner/QRScanner": "./src/components/scanner/QRScanner.tsx"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules .turbo",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "axios": "^1.15.0",
+    "html5-qrcode": "^2.3.8",
+    "leaflet": "^1.9.4",
+    "next": "16.2.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@the-copy/tsconfig": "workspace:*",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.1",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "socket.io-client": "^4.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  }
+}

@@ -1,0 +1,266 @@
+import { TaskType } from '@core/enums';
+import { BaseAgent } from '../shared/BaseAgent';
+import { StandardAgentInput, StandardAgentOutput } from '../shared/standardAgentPattern';
+
+/**
+ * [AGENT_NAME] Agent - وكيل [ARABIC_NAME]
+ * يطبق النمط القياسي: RAG → Self-Critique → Constitutional → Uncertainty → Hallucination → Debate
+ * إخراج نصي فقط - لا JSON
+ *
+ * استبدل:
+ * - [AGENT_NAME] باسم الوكيل بالإنجليزية (مثل: CharacterVoice)
+ * - [ARABIC_NAME] باسم الوكيل بالعربية (مثل: صوت الشخصيات)
+ * - [TASK_TYPE] بنوع المهمة (مثل: TaskType.CHARACTER_VOICE)
+ * - [SYSTEM_PROMPT] بموجه النظام المناسب
+ */
+export class [AGENT_NAME]Agent extends BaseAgent {
+  constructor() {
+    super(
+      '[AGENT_DISPLAY_NAME]',
+      [TASK_TYPE],
+      '[SYSTEM_PROMPT]'
+    );
+
+    // Set agent-specific confidence floor
+    this.confidenceFloor = 0.75;
+  }
+
+  /**
+   * Build prompt for [task description]
+   */
+  protected buildPrompt(input: StandardAgentInput): string {
+    const { input: taskInput, context } = input;
+
+    // Extract relevant context
+    const originalText = context?.originalText || '';
+    const analysisReport = context?.analysisReport || null;
+    // Add more context fields specific to this agent
+
+    // Build structured prompt
+    let prompt = `[مهمة ${this.name}]\n\n`;
+
+    // Add context sections
+    if (originalText) {
+      prompt += `النص الأصلي:\n${originalText}\n\n`;
+    }
+
+    if (analysisReport) {
+      prompt += `تقرير التحليل السابق:\n${this.summarizeReport(analysisReport)}\n\n`;
+    }
+
+    // Add specific task
+    prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
+
+    // Add generation instructions
+    prompt += `التعليمات:
+1. قدم تحليلاً نصياً واضحاً ومباشراً
+2. ابدأ بملخص موجز (2-3 جمل)
+3. قدم التفاصيل بشكل منظم ومرتب
+4. اختتم بالنتائج الرئيسية والتوصيات
+5. لا تستخدم JSON أو تنسيقات البرمجة
+
+اكتب بلغة عربية فصحى واضحة، مع الحفاظ على الطابع المهني.`;
+
+    return prompt;
+  }
+
+  /**
+   * Post-process the output
+   */
+  protected async postProcess(output: StandardAgentOutput): Promise<StandardAgentOutput> {
+    // Clean up text
+    let processedText = this.cleanupText(output.text);
+
+    // Agent-specific quality assessment
+    const qualityScore = await this.assessQuality(processedText);
+
+    // Adjust confidence
+    const adjustedConfidence = (output.confidence * 0.7) + (qualityScore * 0.3);
+
+    return {
+      ...output,
+      text: processedText,
+      confidence: adjustedConfidence,
+      notes: this.generateNotes(output, qualityScore),
+      metadata: {
+        ...output.metadata,
+        qualityScore,
+        // Add agent-specific metadata
+      }
+    };
+  }
+
+  /**
+   * Clean up text formatting
+   */
+  private cleanupText(text: string): string {
+    // Remove JSON artifacts
+    text = text.replace(/```json[\s\S]*?```/g, '');
+    text = text.replace(/```[\s\S]*?```/g, '');
+    text = text.replace(/\{[\s\S]*?\}/g, (match) => {
+      // Keep curly braces only if they're part of natural text
+      if (match.includes('"') || match.includes(':')) return '';
+      return match;
+    });
+
+    // Remove excessive whitespace
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.trim();
+
+    // Structure the output if needed
+    const structured = this.structureOutput(text);
+
+    return structured || text;
+  }
+
+  /**
+   * Structure the output text
+   */
+  private structureOutput(text: string): string {
+    // This method should be customized per agent
+    // Example structure:
+    const lines = text.split('\n');
+    const structured: string[] = [];
+
+    let currentSection = '';
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Detect section headers
+      if (this.isSectionHeader(trimmed)) {
+        if (currentSection) {
+          structured.push(currentSection.trim());
+          structured.push('');
+        }
+        currentSection = trimmed + '\n';
+      } else if (trimmed) {
+        currentSection += trimmed + '\n';
+      }
+    }
+
+    if (currentSection) {
+      structured.push(currentSection.trim());
+    }
+
+    return structured.join('\n');
+  }
+
+  /**
+   * Check if line is a section header
+   */
+  private isSectionHeader(line: string): boolean {
+    // Customize based on agent's expected output structure
+    const headers = [
+      'التحليل',
+      'النتائج',
+      'التوصيات',
+      'الملاحظات',
+      'الخلاصة'
+    ];
+
+    return headers.some(header => line.startsWith(header));
+  }
+
+  /**
+   * Assess quality of the output
+   */
+  private async assessQuality(text: string): Promise<number> {
+    let score = 0.5; // Base score
+
+    // Check text length and substance
+    if (text.length > 500) score += 0.1;
+    if (text.length > 1000) score += 0.1;
+
+    // Check for structured content
+    const hasSections = this.detectSections(text);
+    if (hasSections) score += 0.15;
+
+    // Check for analytical depth
+    const analyticalWords = ['تحليل', 'نتيجة', 'سبب', 'أثر', 'علاقة', 'مقارنة'];
+    const hasAnalysis = analyticalWords.some(word => text.includes(word));
+    if (hasAnalysis) score += 0.15;
+
+    return Math.min(1, score);
+  }
+
+  /**
+   * Detect if text has clear sections
+   */
+  private detectSections(text: string): boolean {
+    const sectionMarkers = ['أولاً', 'ثانياً', 'ثالثاً', '1.', '2.', '•', '-'];
+    return sectionMarkers.some(marker => text.includes(marker));
+  }
+
+  /**
+   * Generate notes about the output
+   */
+  private generateNotes(output: StandardAgentOutput, qualityScore: number): string {
+    const notes: string[] = [];
+
+    // Confidence assessment
+    if (output.confidence > 0.85) {
+      notes.push('ثقة عالية في النتائج');
+    } else if (output.confidence > 0.65) {
+      notes.push('ثقة جيدة');
+    } else {
+      notes.push('ثقة متوسطة - يُنصح بالمراجعة');
+    }
+
+    // Quality assessment
+    if (qualityScore > 0.8) {
+      notes.push('جودة ممتازة');
+    } else if (qualityScore > 0.6) {
+      notes.push('جودة جيدة');
+    }
+
+    // Add original notes
+    if (output.notes) {
+      notes.push(output.notes);
+    }
+
+    return notes.join(' | ');
+  }
+
+  /**
+   * Summarize analysis report
+   */
+  private summarizeReport(report: any): string {
+    // Extract key points from report
+    if (typeof report === 'string') {
+      return report.substring(0, 500) + '...';
+    }
+
+    // If report is structured, extract main findings
+    const summary: string[] = [];
+
+    if (report.mainFindings) {
+      summary.push(`النتائج الرئيسية: ${report.mainFindings}`);
+    }
+
+    if (report.recommendations) {
+      summary.push(`التوصيات: ${report.recommendations}`);
+    }
+
+    return summary.join('\n') || 'تقرير التحليل متوفر';
+  }
+
+  /**
+   * Generate fallback response
+   */
+  protected async getFallbackResponse(input: StandardAgentInput): Promise<string> {
+    return `تحليل [وصف المهمة]:
+تم تحليل النص المقدم للكشف عن [العناصر المطلوبة].
+
+النتائج الأولية:
+- يحتاج النص إلى [ملاحظة عامة]
+- يمكن تحسين [جانب معين]
+
+التوصيات:
+يُنصح بتفعيل الخيارات المتقدمة للحصول على تحليل أكثر عمقاً ودقة.
+
+ملاحظة: حدث خطأ مؤقت. يُرجى المحاولة مرة أخرى أو تعديل المدخلات.`;
+  }
+}
+
+// Export singleton instance
+export const [AGENT_NAME_LOWER]Agent = new [AGENT_NAME]Agent();

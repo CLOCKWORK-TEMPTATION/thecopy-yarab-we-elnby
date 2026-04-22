@@ -1,0 +1,103 @@
+rules:
+  - id: thecopy.web.no-server-secret-in-use-client
+    message: >-
+      File marked with use client must not read server-side process.env secrets.
+      Only NEXT_PUBLIC_* is allowed in client code.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/web/src/**/*.ts
+        - /apps/web/src/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - /apps/web/src/env.ts
+        - /apps/web/src/env.test.ts
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+    patterns:
+      - pattern-either:
+          - pattern-inside: |
+              "use client";
+              ...
+          - pattern-inside: |
+              'use client';
+              ...
+      - pattern-regex: process\.env(?:\.[A-Z0-9_]+|\[['"][A-Z0-9_]+['"]\])
+      - pattern-not-regex: process\.env(?:\.NEXT_PUBLIC_[A-Z0-9_]+|\[['"]NEXT_PUBLIC_[A-Z0-9_]+['"]\])
+      - pattern-not-regex: process\.env(?:\.NODE_ENV|\[['"]NODE_ENV['"]\])
+    metadata:
+      category: security
+      framework: nextjs
+      confidence: high
+
+  - id: thecopy.web.no-localstorage-auth-token
+    message: >-
+      Do not store access/jwt/auth/session tokens in localStorage.
+      Prefer httpOnly secure cookies or a safer storage strategy.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/web/src/**/*.ts
+        - /apps/web/src/**/*.tsx
+        - /packages/**/*.ts
+        - /packages/**/*.tsx
+      exclude:
+        - '**/*.test.ts'
+        - '**/*.test.tsx'
+        - '**/*.spec.ts'
+        - '**/*.spec.tsx'
+    patterns:
+      - pattern-either:
+          - pattern: localStorage.setItem($KEY, $VALUE)
+          - pattern: window.localStorage.setItem($KEY, $VALUE)
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (?i).*(token|jwt|auth|session).*
+    metadata:
+      category: security
+      cwe: 'CWE-79'
+      confidence: medium
+
+  - id: thecopy.web.no-unsanitized-dangerouslysetinnerhtml
+    message: >-
+      dangerouslySetInnerHTML must be sanitized first, for example with DOMPurify.sanitize(...).
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/web/src/**/*.tsx
+        - /packages/**/*.tsx
+      exclude:
+        - '**/*.test.tsx'
+        - '**/*.test.ts'
+        - '**/*.spec.tsx'
+        - '**/*.spec.ts'
+    patterns:
+      - pattern: '<$EL ... dangerouslySetInnerHTML={{ __html: $HTML }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(...) }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHTML(...) }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHtml(...) }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeAllowedHTML(...) }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeUserHTML(...) }} ... />'
+      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitization.html(...) }} ... />'
+      - pattern-not-inside: |
+          const $HTML = DOMPurify.sanitize(...);
+          ...
+      - pattern-not-inside: |
+          const $HTML = sanitizeHTML(...);
+          ...
+      - pattern-not-inside: |
+          const $HTML = sanitizeHtml(...);
+          ...
+      - pattern-not-inside: |
+          const $HTML = sanitization.html(...);
+          ...
+    metadata:
+      category: security
+      framework: react
+      confidence: high

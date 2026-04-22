@@ -1,0 +1,95 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "ignoreDeprecations": "5.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "~/*": ["./src/*"],
+      "@editor/*": ["./src/app/(main)/editor/src/*"],
+      "@core/*": ["./src/lib/drama-analyst/*"],
+      "@agents/*": ["./src/lib/drama-analyst/agents/*"],
+      "@services/*": ["./src/lib/drama-analyst/services/*"],
+      "@orchestration/*": ["./src/lib/drama-analyst/orchestration/*"],
+      "@shared/*": ["./src/app/(main)/directors-studio/shared/*"],
+      "@the-copy/shared": ["../../packages/shared/src"],
+      "@the-copy/shared/*": ["../../packages/shared/src/*"],
+      "@the-copy/ui": ["../../packages/ui/src"],
+      "@the-copy/ui/*": ["../../packages/ui/src/*"],
+      "@the-copy/breakapp": ["../../packages/breakapp/src"],
+      "@the-copy/breakapp/*": ["../../packages/breakapp/src/*"],
+      "@the-copy/prompt-engineering": ["../../packages/prompt-engineering/src"],
+      "@the-copy/prompt-engineering/*": [
+        "../../packages/prompt-engineering/src/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "@react-three/fiber",
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ]
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/env.d.ts",
+    "src/global.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    // تم الإبقاء على ملفات النظام والاعتماديات لأن إزالتها ستؤدي إلى انهيار مترجم TypeScript وفشل بيئة التطوير بالكامل
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "build",
+    "coverage",
+    // تم الإبقاء على استثناء ملفات الاختبار لتجنب تداخلها مع بيئة الإنتاج ولتسريع عملية الترجمة
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+    // تمت إزالة كافة الاستثناءات الخاصة بالتطبيقات الفرعية ومسارات العمل بناءً على طلبك لكي يشملها المترجم
+  ]
+}

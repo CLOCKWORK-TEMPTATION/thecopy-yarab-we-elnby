@@ -1,0 +1,46 @@
+/* Source-of-truth note:
+   tokens/fonts are defined once in globals.css.
+   this file keeps only layout/reset glue for the app shell host.
+*/
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * صفحة المحرر تُدار عبر compact-mode ديناميكي للشاشات الصغيرة،
+ * لذلك يُرفع قفل عرض سطح المكتب العام (1280px) هنا فقط.
+ * الصفحات الأخرى تستمر في تطبيق قفل العرض المرجعي.
+ */
+html:has([data-editor-root="true"]),
+html:has([data-editor-root="true"]) body,
+html:has([data-editor-root="true"]) body.desktop-web-app,
+html:has([data-editor-root="true"]) body.desktop-web-app > * {
+  min-width: 0 !important;
+}
+
+body {
+  font-family: var(--font-family-ui);
+  background-color: var(--background, var(--color-bg));
+  color: var(--foreground, var(--color-text));
+  direction: rtl;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}

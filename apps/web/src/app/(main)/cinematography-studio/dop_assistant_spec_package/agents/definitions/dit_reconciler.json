@@ -1,0 +1,80 @@
+{
+  "key": "dit_reconciler",
+  "name": "وكيل مواءمة بيانات DIT",
+  "domain": "dit",
+  "description": "يطابق metadata الكاميرا والـDIT مع التيكات والأصول وقرارات اللون.",
+  "trigger": ["take.metadata.attached", "dit.batch.imported"],
+  "reads": ["takes", "assets", "shots", "scene_plan_versions", "cdl_decisions"],
+  "writes": ["takes", "asset_links", "cdl_decisions"],
+  "input_schema": {
+    "type": "object",
+    "required": ["production_id"],
+    "properties": {
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "take_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      },
+      "asset_batch_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      },
+      "dit_report": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "resolved_mappings",
+      "unresolved_items",
+      "metadata_conflicts",
+      "cdl_links"
+    ],
+    "properties": {
+      "resolved_mappings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "unresolved_items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "metadata_conflicts": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "cdl_links": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": [
+      "low_confidence_mapping",
+      "metadata_conflict",
+      "cdl_collision"
+    ],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["takes", "asset_links", "cdl_decisions"]
+  }
+}

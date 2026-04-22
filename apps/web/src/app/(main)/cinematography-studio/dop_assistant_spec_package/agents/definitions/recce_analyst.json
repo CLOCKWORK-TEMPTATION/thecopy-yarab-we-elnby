@@ -1,0 +1,83 @@
+{
+  "key": "recce_analyst",
+  "name": "وكيل تحليل المعاينة",
+  "domain": "locations",
+  "description": "يحول تقرير المعاينة إلى قيود ومخاطر وتحديثات مقترحة على الخطط.",
+  "trigger": ["recce.report.analyze.requested"],
+  "reads": ["recce_reports", "assets", "locations", "scenes"],
+  "writes": ["recce_observations", "scene_risks"],
+  "input_schema": {
+    "type": "object",
+    "required": ["recce_report_id", "production_id"],
+    "properties": {
+      "recce_report_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "scene_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "constraints_summary",
+      "lighting_constraints",
+      "movement_constraints",
+      "logistics_constraints",
+      "safety_flags",
+      "recommended_plan_updates"
+    ],
+    "properties": {
+      "constraints_summary": {
+        "type": "string"
+      },
+      "lighting_constraints": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "movement_constraints": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "logistics_constraints": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "safety_flags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "recommended_plan_updates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_plan_changes"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["recce_observations", "scene_risks"]
+  }
+}

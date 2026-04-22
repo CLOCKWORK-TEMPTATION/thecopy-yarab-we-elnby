@@ -1,0 +1,85 @@
+{
+  "key": "visual_intent",
+  "name": "وكيل القصد البصري",
+  "domain": "planning",
+  "description": "يبني brief بصري منظم للمشهد ويقترح المخاطر البصرية الأولية.",
+  "trigger": ["scene.visual_plan.requested"],
+  "reads": ["scene_revisions", "assets", "look_bibles", "comments"],
+  "writes": ["scene_plan_versions", "scene_visual_specs", "scene_risks"],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "production_id", "based_on_script_version_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "based_on_script_version_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "reference_asset_ids": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "director_notes": {
+        "type": ["string", "null"]
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "visual_summary",
+      "palette",
+      "contrast_profile",
+      "aspect_ratio_recommendation",
+      "emotional_axis",
+      "risks"
+    ],
+    "properties": {
+      "visual_summary": {
+        "type": "string"
+      },
+      "palette": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "contrast_profile": {
+        "type": "string"
+      },
+      "aspect_ratio_recommendation": {
+        "type": "string"
+      },
+      "emotional_axis": {
+        "type": "string"
+      },
+      "risks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_approval"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": [
+      "scene_plan_versions",
+      "scene_visual_specs",
+      "scene_risks"
+    ]
+  }
+}

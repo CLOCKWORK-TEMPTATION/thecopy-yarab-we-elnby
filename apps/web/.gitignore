@@ -1,0 +1,245 @@
+# Frontend (Next.js) - The Copy - COMPREHENSIVE
+
+# ==============================================================================
+# DEPENDENCIES - ALL PACKAGE MANAGERS
+# ==============================================================================
+node_modules/
+jspm_packages/
+bower_components/
+/.pnp
+.pnp.*
+.pnp.js
+.pnp.cjs
+
+# ==============================================================================
+# ENVIRONMENT VARIABLES - ALL VARIATIONS
+# ==============================================================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.staging
+.env.blue
+.env.green
+.env.*.local
+!.env.example
+!.env.template
+!.env.sample
+
+# ==============================================================================
+# NEXT.JS & REACT BUILD OUTPUT
+# ==============================================================================
+.next/
+out/
+/dist
+/build
+.vercel/
+.netlify/
+
+# ==============================================================================
+# BUILD TOOLS & BUNDLERS
+# ==============================================================================
+.cache/
+.parcel-cache/
+.webpack/
+.rollup.cache/
+.vite/
+.turbo/
+.nuxt/
+.output/
+.svelte-kit/
+
+# ==============================================================================
+# LOGS - COMPREHENSIVE
+# ==============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+build_log*.txt
+debug.log
+error.log
+
+# ==============================================================================
+# RUNTIME DATA
+# ==============================================================================
+pids/
+*.pid
+*.seed
+*.pid.lock
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ==============================================================================
+# COVERAGE & TESTING - COMPREHENSIVE
+# ==============================================================================
+coverage/
+*.lcov
+.nyc_output/
+lib-cov/
+test-results.json
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+jest_*
+.jest/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+playwright-report/
+test-results/
+
+# ==============================================================================
+# TYPESCRIPT
+# ==============================================================================
+*.tsbuildinfo
+.tscache/
+typings/
+tsconfig.tsbuildinfo
+
+# ==============================================================================
+# CACHE DIRECTORIES - COMPREHENSIVE
+# ==============================================================================
+.npm/
+.eslintcache
+.stylelintcache
+.cache/
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+.tern-port
+
+# ==============================================================================
+# PACKAGE FILES
+# ==============================================================================
+*.tgz
+.yarn-integrity
+.node_repl_history
+package.json.*
+package-lock.json
+yarn.lock
+.yarn/
+.pnpm-store/
+pnpm-lock.yaml.*
+
+# ==============================================================================
+# SYSTEM FILES
+# ==============================================================================
+.DS_Store
+Thumbs.db
+*.pem
+*.key
+*.crt
+*.cer
+
+# ==============================================================================
+# SENSITIVE FILES - COMPREHENSIVE
+# ==============================================================================
+.npmrc
+vercel.json
+.vercel/
+firestore.rules
+firebase.json
+.firebaserc
+.firebase/
+sentry.*.config.ts
+.env.sentry-build-plugin
+.sentryclirc
+firebase-adminsdk*.json
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+
+# ==============================================================================
+# TEMPORARY & IDE FILES
+# ==============================================================================
+temp_files.txt
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.next/
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
+*.iml
+*.ipr
+*.iws
+
+# ==============================================================================
+# STORYBOOK
+# ==============================================================================
+storybook-static/
+.storybook/build/
+
+# ==============================================================================
+# PWA & SERVICE WORKERS
+# ==============================================================================
+sw.js
+workbox-*.js
+precache-manifest.*.js
+
+# ==============================================================================
+# ANALYTICS & MONITORING
+# ==============================================================================
+.lighthouse/
+lighthouse-report.html
+bundle-analyzer-report.html
+
+# ==============================================================================
+# STATIC ASSETS - LARGE FILES
+# ==============================================================================
+# Images (if not needed in repo)
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+# *.webp
+# *.svg
+# *.ico
+
+# Videos (if not needed in repo)
+# *.mp4
+# *.avi
+# *.mov
+# *.webm
+
+# Audio (if not needed in repo)
+# *.mp3
+# *.wav
+# *.ogg
+
+# ==============================================================================
+# BACKUP & ARCHIVE
+# ==============================================================================
+*.backup
+*.old
+*.orig
+backup/
+backups/
+archive/
+
+# ==============================================================================
+# CUSTOM FRONTEND EXCLUSIONS
+# ==============================================================================
+# Add your custom frontend exclusions here
+
+

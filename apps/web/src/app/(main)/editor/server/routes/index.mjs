@@ -1,0 +1,135 @@
+/**
+ * @description تعريف مسارات API للخادم الخلفي
+ */
+
+import rateLimit from "express-rate-limit";
+import process from "node:process";
+import { sendJson } from "../utils/http-helpers.mjs";
+import {
+  handleExtract,
+  ANTIWORD_PREFLIGHT,
+} from "../controllers/extract-controller.mjs";
+import { handleTextExtract } from "../controllers/text-extract-controller.mjs";
+import { handleFinalReview } from "../controllers/final-review-controller.mjs";
+import { handleExportPdfA } from "../controllers/export-controller.mjs";
+import {
+  handleContextEnhance,
+  getGeminiContextHealth,
+} from "../ai-context-gemini.mjs";
+import { getPdfOcrAgentHealth } from "../pdf-ocr-agent-config.mjs";
+import {
+  getFinalReviewModel,
+  getFinalReviewRuntime,
+} from "../final-review.mjs";
+import {
+  DEFAULT_ANTIWORD_PATH,
+  DEFAULT_ANTIWORD_HOME,
+} from "../services/doc-extractor.mjs";
+import {
+  DOCX_TO_DOC_SCRIPT_PATH,
+  DOCX_TO_DOC_SCRIPT_EXISTS,
+} from "../services/docx-extractor.mjs";
+
+export const FILE_IMPORT_PREFLIGHT_WARNINGS = [...ANTIWORD_PREFLIGHT.warnings];
+if (!DOCX_TO_DOC_SCRIPT_EXISTS) {
+  FILE_IMPORT_PREFLIGHT_WARNINGS.push(
+    `DOCX converter script غير موجود: ${DOCX_TO_DOC_SCRIPT_PATH}`
+  );
+}
+
+const extractLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    sendJson(res, options.statusCode, {
+      success: false,
+      error: options.message,
+    });
+  },
+});
+
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    sendJson(res, options.statusCode, {
+      success: false,
+      error: options.message,
+    });
+  },
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: (req, res, next, options) => {
+    sendJson(res, options.statusCode, {
+      success: false,
+      error: options.message,
+    });
+  },
+});
+
+export const registerRoutes = (app) => {
+  app.get("/health", async (req, res) => {
+    const ocrAgent = await getPdfOcrAgentHealth();
+    const finalReviewRuntime = getFinalReviewRuntime();
+    res.status(200).json({
+      status: "ok",
+      ok: true,
+      service: "file-import-backend",
+      antiwordPath: process.env.ANTIWORD_PATH || DEFAULT_ANTIWORD_PATH,
+      antiwordHome: process.env.ANTIWORDHOME || DEFAULT_ANTIWORD_HOME,
+      antiwordBinaryAvailable: ANTIWORD_PREFLIGHT.binaryAvailable,
+      antiwordHomeExists: ANTIWORD_PREFLIGHT.antiwordHomeExists,
+      antiwordWarnings: FILE_IMPORT_PREFLIGHT_WARNINGS,
+      docxConverterScriptPath: DOCX_TO_DOC_SCRIPT_PATH,
+      docxConverterScriptExists: DOCX_TO_DOC_SCRIPT_EXISTS,
+      finalReviewConfigured: finalReviewRuntime.configured,
+      aiContextLayer: getGeminiContextHealth(),
+      ocrConfigured: ocrAgent.configured,
+      ocrAgent,
+      finalReviewModel: getFinalReviewModel(),
+      finalReviewProvider: finalReviewRuntime.provider,
+      finalReviewModelRequested: finalReviewRuntime.requestedModel,
+      finalReviewModelResolved: finalReviewRuntime.resolvedModel,
+      finalReviewFallbackApplied: finalReviewRuntime.fallbackApplied,
+      finalReviewFallbackReason: finalReviewRuntime.fallbackReason,
+      finalReviewApiBaseUrl: finalReviewRuntime.baseUrl,
+      finalReviewApiVersion: finalReviewRuntime.apiVersion,
+      finalReviewFallbackStatus: finalReviewRuntime.fallbackApplied
+        ? "active"
+        : "idle",
+      finalReviewChannel: {
+        channel: "final-review",
+        requestedModel: finalReviewRuntime.requestedModel,
+        resolvedModel: finalReviewRuntime.resolvedModel,
+        resolvedSpecifier: finalReviewRuntime.resolvedSpecifier,
+        provider: finalReviewRuntime.provider,
+        configured: finalReviewRuntime.configured,
+        fallbackApplied: finalReviewRuntime.fallbackApplied,
+        fallbackReason: finalReviewRuntime.fallbackReason,
+        apiBaseUrl: finalReviewRuntime.baseUrl,
+        apiVersion: finalReviewRuntime.apiVersion,
+        warnings: finalReviewRuntime.warnings,
+      },
+    });
+  });
+
+  app.post("/api/file-extract", extractLimiter, handleExtract);
+  app.post("/api/files/extract", extractLimiter, handleExtract);
+  app.post("/api/text-extract", extractLimiter, handleTextExtract);
+  app.post("/api/final-review", reviewLimiter, handleFinalReview);
+  app.post("/api/ai/context-enhance", aiLimiter, handleContextEnhance);
+  app.post("/api/export/pdfa", handleExportPdfA);
+
+  app.use((req, res) => {
+    sendJson(res, 404, { success: false, error: "Route not found." });
+  });
+};

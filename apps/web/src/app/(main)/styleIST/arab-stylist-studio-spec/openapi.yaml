@@ -1,0 +1,2215 @@
+openapi: 3.1.0
+info:
+  title: Arab Stylist Studio API
+  version: 0.1.0
+  summary: واجهات API الأساسية لمنصة Stylist عربية متعددة المستخدمين
+  description: |
+    هذه المواصفة تمثل نقطة بداية تنفيذية للنسخة الأولى من المنتج.
+    جميع العمليات الحساسة تعتمد على مصادقة خادمية وصلاحيات مرتبطة بالـ tenant والمشروع.
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: http://localhost:3000/v1
+    description: Local
+security:
+  - sessionAuth: []
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Tenants
+  - name: Productions
+  - name: Scripts
+  - name: Scenes
+  - name: Characters
+  - name: StyleBibles
+  - name: Looks
+  - name: Moodboards
+  - name: Assets
+  - name: Search
+  - name: Approvals
+  - name: Comments
+  - name: Continuity
+  - name: Vendors
+  - name: Jobs
+  - name: AIRuns
+  - name: Realtime
+  - name: Evals
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: تسجيل الدخول
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: إنهاء الجلسة
+      operationId: logout
+      responses:
+        "204":
+          description: Logged out
+
+  /me:
+    get:
+      tags: [Auth]
+      summary: معلومات المستخدم الحالي
+      operationId: getMe
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+
+  /tenants/{tenantId}/members:
+    get:
+      tags: [Tenants]
+      summary: أعضاء المؤسسة
+      operationId: listTenantMembers
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: Tenant members
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantMembersResponse"
+
+  /productions:
+    post:
+      tags: [Productions]
+      summary: إنشاء مشروع/إنتاج
+      operationId: createProduction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductionRequest"
+      responses:
+        "201":
+          description: Production created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionResponse"
+
+  /productions/{productionId}:
+    get:
+      tags: [Productions]
+      summary: قراءة مشروع
+      operationId: getProduction
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      responses:
+        "200":
+          description: Production data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionResponse"
+    patch:
+      tags: [Productions]
+      summary: تحديث مشروع
+      operationId: updateProduction
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductionRequest"
+      responses:
+        "200":
+          description: Updated production
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionResponse"
+
+  /productions/{productionId}/dashboard:
+    get:
+      tags: [Productions]
+      summary: ملخص المشروع
+      operationId: getProductionDashboard
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      responses:
+        "200":
+          description: Dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionDashboardResponse"
+
+  /productions/{productionId}/seasons:
+    post:
+      tags: [Productions]
+      summary: إنشاء موسم
+      operationId: createSeason
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSeasonRequest"
+      responses:
+        "201":
+          description: Season created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeasonResponse"
+
+  /productions/{productionId}/episodes:
+    post:
+      tags: [Productions]
+      summary: إنشاء حلقة
+      operationId: createEpisode
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEpisodeRequest"
+      responses:
+        "201":
+          description: Episode created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeResponse"
+
+  /assets/upload-url:
+    post:
+      tags: [Assets]
+      summary: إنشاء رابط رفع مباشر للأصل
+      operationId: createAssetUploadUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUploadUrlRequest"
+      responses:
+        "200":
+          description: Upload url generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUploadUrlResponse"
+
+  /assets/{assetId}:
+    get:
+      tags: [Assets]
+      summary: قراءة أصل
+      operationId: getAsset
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetResponse"
+    patch:
+      tags: [Assets]
+      summary: تحديث Metadata للأصل
+      operationId: updateAsset
+      parameters:
+        - $ref: "#/components/parameters/AssetId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetRequest"
+      responses:
+        "200":
+          description: Updated asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetResponse"
+
+  /productions/{productionId}/scripts:
+    post:
+      tags: [Scripts]
+      summary: تسجيل مستند سيناريو جديد بعد الرفع
+      operationId: createScriptDocument
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScriptDocumentRequest"
+      responses:
+        "201":
+          description: Script created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScriptDocumentResponse"
+
+  /scripts/{scriptId}:
+    get:
+      tags: [Scripts]
+      summary: قراءة مستند سيناريو
+      operationId: getScriptDocument
+      parameters:
+        - $ref: "#/components/parameters/ScriptId"
+      responses:
+        "200":
+          description: Script document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScriptDocumentResponse"
+
+  /scripts/{scriptId}/parse:
+    post:
+      tags: [Scripts]
+      summary: تشغيل وكيل تحليل السيناريو
+      operationId: parseScriptDocument
+      parameters:
+        - $ref: "#/components/parameters/ScriptId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParseScriptRequest"
+      responses:
+        "202":
+          description: Parsing queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /scripts/{scriptId}/scenes:
+    get:
+      tags: [Scenes]
+      summary: قراءة مشاهد السيناريو
+      operationId: listScenesByScript
+      parameters:
+        - $ref: "#/components/parameters/ScriptId"
+      responses:
+        "200":
+          description: Scenes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SceneListResponse"
+
+  /scenes/{sceneId}:
+    get:
+      tags: [Scenes]
+      summary: قراءة مشهد
+      operationId: getScene
+      parameters:
+        - $ref: "#/components/parameters/SceneId"
+      responses:
+        "200":
+          description: Scene
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SceneResponse"
+    patch:
+      tags: [Scenes]
+      summary: تعديل مشهد
+      operationId: updateScene
+      parameters:
+        - $ref: "#/components/parameters/SceneId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSceneRequest"
+      responses:
+        "200":
+          description: Scene updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SceneResponse"
+
+  /productions/{productionId}/characters:
+    get:
+      tags: [Characters]
+      summary: قائمة الشخصيات
+      operationId: listCharacters
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      responses:
+        "200":
+          description: Characters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterListResponse"
+    post:
+      tags: [Characters]
+      summary: إنشاء شخصية
+      operationId: createCharacter
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCharacterRequest"
+      responses:
+        "201":
+          description: Character created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+
+  /characters/{characterId}:
+    get:
+      tags: [Characters]
+      summary: قراءة شخصية
+      operationId: getCharacter
+      parameters:
+        - $ref: "#/components/parameters/CharacterId"
+      responses:
+        "200":
+          description: Character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+    patch:
+      tags: [Characters]
+      summary: تعديل شخصية
+      operationId: updateCharacter
+      parameters:
+        - $ref: "#/components/parameters/CharacterId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCharacterRequest"
+      responses:
+        "200":
+          description: Character updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+
+  /characters/{characterId}/style-bibles:
+    get:
+      tags: [StyleBibles]
+      summary: قائمة Style Bibles الخاصة بالشخصية
+      operationId: listStyleBibles
+      parameters:
+        - $ref: "#/components/parameters/CharacterId"
+      responses:
+        "200":
+          description: Style bibles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleBibleListResponse"
+
+  /characters/{characterId}/style-bibles/generate:
+    post:
+      tags: [StyleBibles]
+      summary: إنشاء Style Bible آليًا
+      operationId: generateStyleBible
+      parameters:
+        - $ref: "#/components/parameters/CharacterId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateStyleBibleRequest"
+      responses:
+        "202":
+          description: Style bible generation queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /style-bibles/{styleBibleId}:
+    get:
+      tags: [StyleBibles]
+      summary: قراءة Style Bible
+      operationId: getStyleBible
+      parameters:
+        - $ref: "#/components/parameters/StyleBibleId"
+      responses:
+        "200":
+          description: Style bible
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleBibleResponse"
+    patch:
+      tags: [StyleBibles]
+      summary: تعديل Style Bible
+      operationId: updateStyleBible
+      parameters:
+        - $ref: "#/components/parameters/StyleBibleId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStyleBibleRequest"
+      responses:
+        "200":
+          description: Style bible updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleBibleResponse"
+
+  /style-bibles/{styleBibleId}/approve:
+    post:
+      tags: [Approvals]
+      summary: اعتماد Style Bible
+      operationId: approveStyleBible
+      parameters:
+        - $ref: "#/components/parameters/StyleBibleId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionRequest"
+      responses:
+        "200":
+          description: Approval registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalResponse"
+
+  /scenes/{sceneId}/looks:
+    get:
+      tags: [Looks]
+      summary: قائمة Looks الخاصة بالمشهد
+      operationId: listSceneLooks
+      parameters:
+        - $ref: "#/components/parameters/SceneId"
+      responses:
+        "200":
+          description: Looks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookListResponse"
+
+  /scenes/{sceneId}/looks/generate:
+    post:
+      tags: [Looks]
+      summary: توليد Looks لمشهد
+      operationId: generateSceneLooks
+      parameters:
+        - $ref: "#/components/parameters/SceneId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateLooksRequest"
+      responses:
+        "202":
+          description: Look generation queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /looks/{lookId}:
+    get:
+      tags: [Looks]
+      summary: قراءة Look
+      operationId: getLook
+      parameters:
+        - $ref: "#/components/parameters/LookId"
+      responses:
+        "200":
+          description: Look
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookResponse"
+    patch:
+      tags: [Looks]
+      summary: تعديل Look
+      operationId: updateLook
+      parameters:
+        - $ref: "#/components/parameters/LookId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLookRequest"
+      responses:
+        "200":
+          description: Look updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookResponse"
+
+  /looks/{lookId}/items:
+    post:
+      tags: [Looks]
+      summary: إضافة عنصر إلى Look
+      operationId: addLookItem
+      parameters:
+        - $ref: "#/components/parameters/LookId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLookItemRequest"
+      responses:
+        "201":
+          description: Look item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookItemResponse"
+
+  /look-items/{lookItemId}:
+    delete:
+      tags: [Looks]
+      summary: حذف عنصر Look
+      operationId: deleteLookItem
+      parameters:
+        - $ref: "#/components/parameters/LookItemId"
+      responses:
+        "204":
+          description: Look item deleted
+
+  /looks/{lookId}/estimate-budget:
+    post:
+      tags: [Looks]
+      summary: تقدير ميزانية Look
+      operationId: estimateLookBudget
+      parameters:
+        - $ref: "#/components/parameters/LookId"
+      responses:
+        "200":
+          description: Budget estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetEstimateResponse"
+
+  /moodboards:
+    post:
+      tags: [Moodboards]
+      summary: إنشاء Moodboard
+      operationId: createMoodboard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMoodboardRequest"
+      responses:
+        "201":
+          description: Moodboard created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodboardResponse"
+
+  /moodboards/{moodboardId}:
+    get:
+      tags: [Moodboards]
+      summary: قراءة Moodboard
+      operationId: getMoodboard
+      parameters:
+        - $ref: "#/components/parameters/MoodboardId"
+      responses:
+        "200":
+          description: Moodboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodboardResponse"
+    patch:
+      tags: [Moodboards]
+      summary: تعديل Moodboard
+      operationId: updateMoodboard
+      parameters:
+        - $ref: "#/components/parameters/MoodboardId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMoodboardRequest"
+      responses:
+        "200":
+          description: Moodboard updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodboardResponse"
+
+  /moodboards/{moodboardId}/compose:
+    post:
+      tags: [Moodboards]
+      summary: تشغيل وكيل تركيب المودبورد
+      operationId: composeMoodboard
+      parameters:
+        - $ref: "#/components/parameters/MoodboardId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComposeMoodboardRequest"
+      responses:
+        "202":
+          description: Moodboard composition queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /moodboards/{moodboardId}/approve:
+    post:
+      tags: [Approvals]
+      summary: اعتماد Moodboard
+      operationId: approveMoodboard
+      parameters:
+        - $ref: "#/components/parameters/MoodboardId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionRequest"
+      responses:
+        "200":
+          description: Approval registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalResponse"
+
+  /images/generate:
+    post:
+      tags: [Assets]
+      summary: توليد صور مرجعية
+      operationId: generateImages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateImageRequest"
+      responses:
+        "202":
+          description: Image generation queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /images/edit:
+    post:
+      tags: [Assets]
+      summary: تعديل صورة مرجعية
+      operationId: editImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditImageRequest"
+      responses:
+        "202":
+          description: Image edit queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /comments:
+    post:
+      tags: [Comments]
+      summary: إنشاء تعليق
+      operationId: createComment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentRequest"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentResponse"
+    get:
+      tags: [Comments]
+      summary: قراءة التعليقات حسب الكيان
+      operationId: listComments
+      parameters:
+        - name: parent_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: parent_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Comments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+
+  /approvals:
+    post:
+      tags: [Approvals]
+      summary: إنشاء Workflow موافقة
+      operationId: createApproval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApprovalRequest"
+      responses:
+        "201":
+          description: Approval created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalResponse"
+
+  /approvals/{approvalId}/decision:
+    post:
+      tags: [Approvals]
+      summary: تسجيل قرار اعتماد أو رفض أو طلب تعديل
+      operationId: decideApproval
+      parameters:
+        - $ref: "#/components/parameters/ApprovalId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionRequest"
+      responses:
+        "200":
+          description: Approval decision stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalResponse"
+
+  /search:
+    post:
+      tags: [Search]
+      summary: بحث هجين عربي
+      operationId: hybridSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /productions/{productionId}/continuity/run:
+    post:
+      tags: [Continuity]
+      summary: تشغيل فحص استمرارية
+      operationId: runContinuity
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunContinuityRequest"
+      responses:
+        "202":
+          description: Continuity run queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /continuity-events:
+    get:
+      tags: [Continuity]
+      summary: قائمة مشاكل الاستمرارية
+      operationId: listContinuityEvents
+      parameters:
+        - name: production_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: episode_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: scene_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: severity
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ContinuitySeverity"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ContinuityStatus"
+      responses:
+        "200":
+          description: Continuity events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContinuityEventListResponse"
+
+  /continuity-events/{eventId}:
+    get:
+      tags: [Continuity]
+      summary: قراءة مشكلة استمرارية
+      operationId: getContinuityEvent
+      parameters:
+        - $ref: "#/components/parameters/EventId"
+      responses:
+        "200":
+          description: Continuity event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContinuityEventResponse"
+    patch:
+      tags: [Continuity]
+      summary: تعديل حالة أو وصف المشكلة
+      operationId: updateContinuityEvent
+      parameters:
+        - $ref: "#/components/parameters/EventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContinuityEventRequest"
+      responses:
+        "200":
+          description: Continuity event updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContinuityEventResponse"
+
+  /continuity-events/{eventId}/resolve:
+    post:
+      tags: [Continuity]
+      summary: حل مشكلة استمرارية
+      operationId: resolveContinuityEvent
+      parameters:
+        - $ref: "#/components/parameters/EventId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveContinuityEventRequest"
+      responses:
+        "200":
+          description: Continuity event resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContinuityEventResponse"
+
+  /vendors:
+    get:
+      tags: [Vendors]
+      summary: قائمة الموردين
+      operationId: listVendors
+      parameters:
+        - name: production_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Vendors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorListResponse"
+    post:
+      tags: [Vendors]
+      summary: إنشاء مورد
+      operationId: createVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorRequest"
+      responses:
+        "201":
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+
+  /vendors/{vendorId}/items:
+    get:
+      tags: [Vendors]
+      summary: قائمة عناصر المورد
+      operationId: listVendorItems
+      parameters:
+        - $ref: "#/components/parameters/VendorId"
+      responses:
+        "200":
+          description: Vendor items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorItemListResponse"
+    post:
+      tags: [Vendors]
+      summary: إنشاء عنصر مورد
+      operationId: createVendorItem
+      parameters:
+        - $ref: "#/components/parameters/VendorId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorItemRequest"
+      responses:
+        "201":
+          description: Vendor item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorItemResponse"
+
+  /looks/{lookId}/match-vendor-items:
+    post:
+      tags: [Vendors]
+      summary: مطابقة عناصر المورد مع Look
+      operationId: matchVendorItems
+      parameters:
+        - $ref: "#/components/parameters/LookId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchVendorItemsRequest"
+      responses:
+        "202":
+          description: Matching queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /jobs/{jobId}:
+    get:
+      tags: [Jobs]
+      summary: حالة Job
+      operationId: getJobStatus
+      parameters:
+        - $ref: "#/components/parameters/JobId"
+      responses:
+        "200":
+          description: Job state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobStatusResponse"
+
+  /ai/runs/{runId}:
+    get:
+      tags: [AIRuns]
+      summary: قراءة AI run
+      operationId: getAiRun
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          description: AI run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiRunResponse"
+
+  /productions/{productionId}/ai-runs:
+    get:
+      tags: [AIRuns]
+      summary: قائمة AI runs
+      operationId: listAiRuns
+      parameters:
+        - $ref: "#/components/parameters/ProductionId"
+        - name: agent_type
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/AiAgentType"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/RunStatus"
+      responses:
+        "200":
+          description: AI runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiRunListResponse"
+
+  /evals/run:
+    post:
+      tags: [Evals]
+      summary: تشغيل مجموعة تقييم
+      operationId: runEval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunEvalRequest"
+      responses:
+        "202":
+          description: Eval queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobQueuedResponse"
+
+  /realtime/client-secret:
+    post:
+      tags: [Realtime]
+      summary: إصدار client secret قصير العمر لجلسة Realtime
+      operationId: createRealtimeClientSecret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRealtimeClientSecretRequest"
+      responses:
+        "200":
+          description: Client secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRealtimeClientSecretResponse"
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantId:
+      {
+        name: tenantId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    ProductionId:
+      {
+        name: productionId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    ScriptId:
+      {
+        name: scriptId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    SceneId:
+      {
+        name: sceneId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    CharacterId:
+      {
+        name: characterId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    StyleBibleId:
+      {
+        name: styleBibleId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    LookId:
+      {
+        name: lookId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    LookItemId:
+      {
+        name: lookItemId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    MoodboardId:
+      {
+        name: moodboardId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    AssetId:
+      {
+        name: assetId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    ApprovalId:
+      {
+        name: approvalId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    EventId:
+      {
+        name: eventId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    VendorId:
+      {
+        name: vendorId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    JobId:
+      {
+        name: jobId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+    RunId:
+      {
+        name: runId,
+        in: path,
+        required: true,
+        schema: { type: string, format: uuid },
+      }
+
+  schemas:
+    UUID: { type: string, format: uuid }
+    Meta:
+      type: object
+      properties:
+        request_id: { type: string }
+        timestamp: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+        retryable: { type: boolean }
+    Envelope:
+      type: object
+      properties:
+        data: {}
+        meta: { $ref: "#/components/schemas/Meta" }
+        error:
+          oneOf:
+            - { $ref: "#/components/schemas/Error" }
+            - { type: "null" }
+    MembershipRole:
+      {
+        type: string,
+        enum: [owner, admin, stylist, reviewer, producer, viewer],
+      }
+    ProductionType: { type: string, enum: [film, series] }
+    ObjectStatus: { type: string, enum: [draft, in_review, approved, archived] }
+    RunStatus:
+      { type: string, enum: [queued, running, succeeded, failed, cancelled] }
+    ApprovalDecision:
+      { type: string, enum: [pending, approved, rejected, changes_requested] }
+    ContinuitySeverity: { type: string, enum: [low, medium, high, critical] }
+    ContinuityStatus:
+      { type: string, enum: [open, accepted, dismissed, resolved] }
+    AiAgentType:
+      type: string
+      enum:
+        [
+          orchestrator,
+          script_parsing,
+          character_style_bible,
+          scene_look,
+          reference_retrieval,
+          moodboard_composer,
+          image_generation_edit,
+          continuity,
+          approval_translation,
+          vendor_budget,
+          compliance_moderation,
+          evaluation,
+          voice_stylist,
+        ]
+    User:
+      type: object
+      required: [id, display_name, email]
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        display_name: { type: string }
+        email: { type: string, format: email }
+    TenantMembership:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        tenant_id: { $ref: "#/components/schemas/UUID" }
+        user_id: { $ref: "#/components/schemas/UUID" }
+        role: { $ref: "#/components/schemas/MembershipRole" }
+        status: { type: string }
+    Production:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        tenant_id: { $ref: "#/components/schemas/UUID" }
+        type: { $ref: "#/components/schemas/ProductionType" }
+        title_ar: { type: string }
+        title_en: { type: string, nullable: true }
+        status: { type: string }
+        country_code: { type: string, nullable: true }
+        era_label: { type: string, nullable: true }
+        visual_direction_summary: { type: string, nullable: true }
+        budget_total: { type: number, nullable: true }
+        currency: { type: string, nullable: true }
+    Season:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        season_number: { type: integer }
+        title: { type: string, nullable: true }
+    Episode:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        season_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        episode_number: { type: integer }
+        title: { type: string, nullable: true }
+        status: { type: string }
+    Asset:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        tenant_id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        asset_type: { type: string }
+        origin_type: { type: string }
+        storage_key: { type: string }
+        file_name: { type: string }
+        mime_type: { type: string }
+        rights_status: { type: string, nullable: true }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    ScriptDocument:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        episode_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        asset_id: { $ref: "#/components/schemas/UUID" }
+        version_no: { type: integer }
+        source_format: { type: string }
+        language_code: { type: string }
+        parse_status: { type: string }
+    Scene:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        episode_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        script_document_id: { $ref: "#/components/schemas/UUID" }
+        scene_number: { type: integer }
+        header_raw: { type: string, nullable: true }
+        location_raw: { type: string, nullable: true }
+        int_ext: { type: string, nullable: true }
+        time_of_day: { type: string, nullable: true }
+        chronology_order: { type: number, nullable: true }
+        narrative_summary: { type: string, nullable: true }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    Character:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        canonical_name: { type: string }
+        aliases_jsonb: { type: array, items: {} }
+        gender_presentation: { type: string, nullable: true }
+        age_band: { type: string, nullable: true }
+        social_class_notes: { type: string, nullable: true }
+        hometown_notes: { type: string, nullable: true }
+        narrative_role: { type: string, nullable: true }
+        style_status: { type: string }
+    StyleBible:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        character_id: { $ref: "#/components/schemas/UUID" }
+        version_no: { type: integer }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+        narrative_premise: { type: string, nullable: true }
+        palette_jsonb: { type: array, items: {} }
+        fabrics_jsonb: { type: array, items: {} }
+        silhouettes_jsonb: { type: array, items: {} }
+        accessories_jsonb: { type: array, items: {} }
+        hair_makeup_jsonb: { type: array, items: {} }
+        dos_jsonb: { type: array, items: {} }
+        donts_jsonb: { type: array, items: {} }
+        arc_evolution_jsonb: { type: array, items: {} }
+        rationale: { type: string, nullable: true }
+    LookItem:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        look_id: { $ref: "#/components/schemas/UUID" }
+        category: { type: string }
+        title: { type: string }
+        color: { type: string, nullable: true }
+        fabric: { type: string, nullable: true }
+        silhouette: { type: string, nullable: true }
+        layer_order: { type: integer, nullable: true }
+        estimated_cost: { type: number, nullable: true }
+        notes: { type: string, nullable: true }
+    Look:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        scene_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        character_id: { $ref: "#/components/schemas/UUID" }
+        style_bible_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        look_type: { type: string }
+        title: { type: string }
+        narrative_intent: { type: string, nullable: true }
+        fit_notes: { type: string, nullable: true }
+        budget_estimate: { type: number, nullable: true }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/LookItem" }
+    MoodboardItem:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        asset_id: { $ref: "#/components/schemas/UUID" }
+        sort_order: { type: integer }
+        layout_jsonb: { type: object, additionalProperties: true }
+        caption: { type: string, nullable: true }
+        rationale: { type: string, nullable: true }
+    Moodboard:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        scene_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        character_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        version_no: { type: integer }
+        title: { type: string }
+        objective: { type: string, nullable: true }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/MoodboardItem" }
+    Comment:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        parent_type: { type: string }
+        parent_id: { $ref: "#/components/schemas/UUID" }
+        body: { type: string }
+        author_id: { $ref: "#/components/schemas/UUID" }
+        created_at: { type: string, format: date-time }
+    Approval:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        parent_type: { type: string }
+        parent_id: { $ref: "#/components/schemas/UUID" }
+        workflow_type: { type: string }
+        stage: { type: string }
+        decision: { $ref: "#/components/schemas/ApprovalDecision" }
+        decision_note: { type: string, nullable: true }
+        decided_by: { $ref: "#/components/schemas/UUID", nullable: true }
+        decided_at: { type: string, format: date-time, nullable: true }
+    ContinuityEvent:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        production_id: { $ref: "#/components/schemas/UUID" }
+        episode_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        scene_id: { $ref: "#/components/schemas/UUID" }
+        character_id: { $ref: "#/components/schemas/UUID" }
+        look_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        previous_scene_id: { $ref: "#/components/schemas/UUID", nullable: true }
+        issue_type: { type: string }
+        severity: { $ref: "#/components/schemas/ContinuitySeverity" }
+        description: { type: string }
+        proposed_fix_jsonb: { type: object, additionalProperties: true }
+        status: { $ref: "#/components/schemas/ContinuityStatus" }
+    Vendor:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        name: { type: string }
+        region: { type: string, nullable: true }
+        catalog_url: { type: string, nullable: true }
+    VendorItem:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        vendor_id: { $ref: "#/components/schemas/UUID" }
+        category: { type: string }
+        title: { type: string }
+        color: { type: string, nullable: true }
+        price_amount: { type: number, nullable: true }
+        currency: { type: string, nullable: true }
+        stock_status: { type: string, nullable: true }
+    AiRun:
+      type: object
+      properties:
+        id: { $ref: "#/components/schemas/UUID" }
+        agent_type: { $ref: "#/components/schemas/AiAgentType" }
+        model_name: { type: string }
+        prompt_version: { type: string }
+        status: { $ref: "#/components/schemas/RunStatus" }
+        latency_ms: { type: integer, nullable: true }
+        cost_estimate: { type: number, nullable: true }
+        output_jsonb: { type: object, additionalProperties: true }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    LoginResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user: { $ref: "#/components/schemas/User" }
+                tenants:
+                  type: array
+                  items: { $ref: "#/components/schemas/TenantMembership" }
+    MeResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user: { $ref: "#/components/schemas/User" }
+    TenantMembersResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items: { $ref: "#/components/schemas/TenantMembership" }
+    CreateProductionRequest:
+      type: object
+      required: [type, title_ar]
+      properties:
+        type: { $ref: "#/components/schemas/ProductionType" }
+        title_ar: { type: string }
+        title_en: { type: string, nullable: true }
+        country_code: { type: string, nullable: true }
+        era_label: { type: string, nullable: true }
+        visual_direction_summary: { type: string, nullable: true }
+        budget_total: { type: number, nullable: true }
+        currency: { type: string, nullable: true }
+    UpdateProductionRequest:
+      type: object
+      properties:
+        title_ar: { type: string }
+        title_en: { type: string, nullable: true }
+        status: { type: string }
+        country_code: { type: string, nullable: true }
+        era_label: { type: string, nullable: true }
+        visual_direction_summary: { type: string, nullable: true }
+        budget_total: { type: number, nullable: true }
+        currency: { type: string, nullable: true }
+    ProductionResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Production" }
+    ProductionDashboardResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                counts: { type: object, additionalProperties: true }
+                latest_approvals:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/Approval" },
+                  }
+                open_continuity_issues:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/ContinuityEvent" },
+                  }
+                recent_ai_runs:
+                  { type: array, items: { $ref: "#/components/schemas/AiRun" } }
+    CreateSeasonRequest:
+      type: object
+      required: [season_number]
+      properties:
+        season_number: { type: integer }
+        title: { type: string, nullable: true }
+    SeasonResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Season" }
+    CreateEpisodeRequest:
+      type: object
+      required: [episode_number]
+      properties:
+        season_id: { type: string, format: uuid, nullable: true }
+        episode_number: { type: integer }
+        title: { type: string, nullable: true }
+        chronology_order: { type: number, nullable: true }
+    EpisodeResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Episode" }
+    CreateUploadUrlRequest:
+      type: object
+      required: [asset_type, file_name, mime_type]
+      properties:
+        production_id: { type: string, format: uuid, nullable: true }
+        asset_type: { type: string }
+        file_name: { type: string }
+        mime_type: { type: string }
+        metadata: { type: object, additionalProperties: true }
+    CreateUploadUrlResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                asset_id: { $ref: "#/components/schemas/UUID" }
+                upload_url: { type: string, format: uri }
+                expires_at: { type: string, format: date-time }
+    AssetResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Asset" }
+    UpdateAssetRequest:
+      type: object
+      properties:
+        rights_status: { type: string }
+        source_url: { type: string, nullable: true }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    CreateScriptDocumentRequest:
+      type: object
+      required: [asset_id, source_format, version_no]
+      properties:
+        asset_id: { type: string, format: uuid }
+        episode_id: { type: string, format: uuid, nullable: true }
+        source_format: { type: string }
+        version_no: { type: integer }
+    ScriptDocumentResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/ScriptDocument" }
+    ParseScriptRequest:
+      type: object
+      properties:
+        mode: { type: string, default: full }
+        reparse: { type: boolean, default: false }
+    JobQueuedResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                job_id: { $ref: "#/components/schemas/UUID" }
+                status: { $ref: "#/components/schemas/RunStatus" }
+    SceneListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  { type: array, items: { $ref: "#/components/schemas/Scene" } }
+    SceneResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Scene" }
+    UpdateSceneRequest:
+      type: object
+      properties:
+        header_raw: { type: string }
+        location_raw: { type: string }
+        int_ext: { type: string }
+        time_of_day: { type: string }
+        chronology_order: { type: number }
+        narrative_summary: { type: string }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    CreateCharacterRequest:
+      type: object
+      required: [canonical_name]
+      properties:
+        canonical_name: { type: string }
+        aliases_jsonb: { type: array, items: {} }
+        gender_presentation: { type: string, nullable: true }
+        age_band: { type: string, nullable: true }
+        social_class_notes: { type: string, nullable: true }
+        hometown_notes: { type: string, nullable: true }
+        narrative_role: { type: string, nullable: true }
+    UpdateCharacterRequest:
+      type: object
+      properties:
+        canonical_name: { type: string }
+        aliases_jsonb: { type: array, items: {} }
+        gender_presentation: { type: string, nullable: true }
+        age_band: { type: string, nullable: true }
+        social_class_notes: { type: string, nullable: true }
+        hometown_notes: { type: string, nullable: true }
+        narrative_role: { type: string, nullable: true }
+        style_status: { type: string }
+    CharacterResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Character" }
+    CharacterListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/Character" },
+                  }
+    GenerateStyleBibleRequest:
+      type: object
+      properties:
+        reference_asset_ids:
+          type: array
+          items: { type: string, format: uuid }
+        strict_constraints: { type: object, additionalProperties: true }
+    StyleBibleResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/StyleBible" }
+    StyleBibleListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/StyleBible" },
+                  }
+    UpdateStyleBibleRequest:
+      type: object
+      properties:
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+        narrative_premise: { type: string }
+        palette_jsonb: { type: array, items: {} }
+        fabrics_jsonb: { type: array, items: {} }
+        silhouettes_jsonb: { type: array, items: {} }
+        accessories_jsonb: { type: array, items: {} }
+        hair_makeup_jsonb: { type: array, items: {} }
+        dos_jsonb: { type: array, items: {} }
+        donts_jsonb: { type: array, items: {} }
+        arc_evolution_jsonb: { type: array, items: {} }
+        rationale: { type: string }
+    GenerateLooksRequest:
+      type: object
+      properties:
+        character_ids:
+          type: array
+          items: { type: string, format: uuid }
+        variant_count: { type: integer, default: 3 }
+        budget_cap: { type: number, nullable: true }
+        reference_asset_ids:
+          type: array
+          items: { type: string, format: uuid }
+        use_existing_style_bible: { type: boolean, default: true }
+    LookResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Look" }
+    LookListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  { type: array, items: { $ref: "#/components/schemas/Look" } }
+    UpdateLookRequest:
+      type: object
+      properties:
+        title: { type: string }
+        narrative_intent: { type: string }
+        fit_notes: { type: string }
+        budget_estimate: { type: number }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+    CreateLookItemRequest:
+      type: object
+      required: [category, title]
+      properties:
+        category: { type: string }
+        title: { type: string }
+        color: { type: string, nullable: true }
+        fabric: { type: string, nullable: true }
+        pattern: { type: string, nullable: true }
+        silhouette: { type: string, nullable: true }
+        layer_order: { type: integer, nullable: true }
+        vendor_item_id: { type: string, format: uuid, nullable: true }
+        source_asset_id: { type: string, format: uuid, nullable: true }
+        estimated_cost: { type: number, nullable: true }
+        notes: { type: string, nullable: true }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    LookItemResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/LookItem" }
+    BudgetEstimateResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                estimated_total: { type: number }
+                currency: { type: string }
+                breakdown:
+                  type: array
+                  items: { type: object, additionalProperties: true }
+    CreateMoodboardRequest:
+      type: object
+      required: [production_id, title]
+      properties:
+        production_id: { type: string, format: uuid }
+        character_id: { type: string, format: uuid, nullable: true }
+        scene_id: { type: string, format: uuid, nullable: true }
+        title: { type: string }
+        objective: { type: string, nullable: true }
+    UpdateMoodboardRequest:
+      type: object
+      properties:
+        title: { type: string }
+        objective: { type: string }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+    ComposeMoodboardRequest:
+      type: object
+      properties:
+        selected_asset_ids:
+          type: array
+          items: { type: string, format: uuid }
+        objective: { type: string, nullable: true }
+        layout_constraints: { type: object, additionalProperties: true }
+    MoodboardResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Moodboard" }
+    GenerateImageRequest:
+      type: object
+      properties:
+        context: { type: object, additionalProperties: true }
+        prompt_plan_id: { type: string, nullable: true }
+        reference_asset_ids:
+          type: array
+          items: { type: string, format: uuid }
+        variant_count: { type: integer, default: 1 }
+    EditImageRequest:
+      type: object
+      required: [source_asset_id, instructions]
+      properties:
+        source_asset_id: { type: string, format: uuid }
+        instructions: { type: string }
+        reference_asset_ids:
+          type: array
+          items: { type: string, format: uuid }
+    CreateCommentRequest:
+      type: object
+      required: [parent_type, parent_id, body]
+      properties:
+        parent_type: { type: string }
+        parent_id: { type: string, format: uuid }
+        body: { type: string }
+        rich_body_jsonb: { type: object, additionalProperties: true }
+    CommentResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Comment" }
+    CommentListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/Comment" },
+                  }
+    CreateApprovalRequest:
+      type: object
+      required: [parent_type, parent_id, workflow_type]
+      properties:
+        parent_type: { type: string }
+        parent_id: { type: string, format: uuid }
+        workflow_type: { type: string }
+        stage: { type: string, default: default }
+    ApprovalDecisionRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: { $ref: "#/components/schemas/ApprovalDecision" }
+        decision_note: { type: string, nullable: true }
+    ApprovalResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Approval" }
+    SearchRequest:
+      type: object
+      required: [production_id, query]
+      properties:
+        production_id: { type: string, format: uuid }
+        query: { type: string }
+        filters: { type: object, additionalProperties: true }
+        mode:
+          { type: string, enum: [lexical, semantic, hybrid], default: hybrid }
+        limit: { type: integer, default: 20 }
+    SearchResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                results:
+                  type: array
+                  items: { type: object, additionalProperties: true }
+    RunContinuityRequest:
+      type: object
+      properties:
+        episode_id: { type: string, format: uuid, nullable: true }
+        scope:
+          { type: string, enum: [scene, episode, production], default: episode }
+    ContinuityEventResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/ContinuityEvent" }
+    ContinuityEventListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/ContinuityEvent" },
+                  }
+    UpdateContinuityEventRequest:
+      type: object
+      properties:
+        description: { type: string }
+        proposed_fix_jsonb: { type: object, additionalProperties: true }
+        severity: { $ref: "#/components/schemas/ContinuitySeverity" }
+        status: { $ref: "#/components/schemas/ContinuityStatus" }
+    ResolveContinuityEventRequest:
+      type: object
+      required: [resolution_note]
+      properties:
+        resolution_note: { type: string }
+        status: { type: string, enum: [resolved, dismissed, accepted] }
+    CreateVendorRequest:
+      type: object
+      required: [name]
+      properties:
+        production_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        region: { type: string, nullable: true }
+        catalog_url: { type: string, nullable: true }
+        contact_jsonb: { type: object, additionalProperties: true }
+    VendorResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/Vendor" }
+    VendorListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/Vendor" },
+                  }
+    CreateVendorItemRequest:
+      type: object
+      required: [category, title]
+      properties:
+        sku: { type: string, nullable: true }
+        category: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        color: { type: string, nullable: true }
+        size_range: { type: string, nullable: true }
+        price_amount: { type: number, nullable: true }
+        currency: { type: string, nullable: true }
+        stock_status: { type: string, nullable: true }
+        asset_id: { type: string, format: uuid, nullable: true }
+        metadata_jsonb: { type: object, additionalProperties: true }
+    VendorItemResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/VendorItem" }
+    VendorItemListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/VendorItem" },
+                  }
+    MatchVendorItemsRequest:
+      type: object
+      properties:
+        vendor_ids:
+          type: array
+          items: { type: string, format: uuid }
+        budget_cap: { type: number, nullable: true }
+    JobStatusResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id: { $ref: "#/components/schemas/UUID" }
+                status: { $ref: "#/components/schemas/RunStatus" }
+                progress: { type: number, nullable: true }
+                result_ref:
+                  { type: object, nullable: true, additionalProperties: true }
+                error:
+                  { type: object, nullable: true, additionalProperties: true }
+    AiRunResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data: { $ref: "#/components/schemas/AiRun" }
+    AiRunListResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  { type: array, items: { $ref: "#/components/schemas/AiRun" } }
+    RunEvalRequest:
+      type: object
+      required: [dataset_id, target_agent, model_name]
+      properties:
+        dataset_id: { type: string, format: uuid }
+        target_agent: { $ref: "#/components/schemas/AiAgentType" }
+        model_name: { type: string }
+    CreateRealtimeClientSecretRequest:
+      type: object
+      required: [production_id, purpose]
+      properties:
+        production_id: { type: string, format: uuid }
+        purpose: { type: string }
+        session: { type: object, additionalProperties: true }
+    CreateRealtimeClientSecretResponse:
+      allOf:
+        - { $ref: "#/components/schemas/Envelope" }
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                client_secret: { type: string }
+                expires_at: { type: string }
+                session_id: { $ref: "#/components/schemas/UUID" }

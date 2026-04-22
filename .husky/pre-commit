@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+# ===================================================================
+# Pre-commit Hook — فحص أسرار الملفات المُرحَّلة
+# ===================================================================
+# يشغّل Gitleaks على الملفات المُرحَّلة فقط (protect --staged).
+# Runs Gitleaks against staged files only (fast, no full-repo scan).
+#
+# تنفيذ اختبارات الوحدة يحدث في pre-push (أسرع/أقل إزعاجًا هنا).
+# Full test suite runs in pre-push, not here.
+# ===================================================================
+
+set -e
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "❌ gitleaks غير مثبت. ثبّته أولًا:"
+  echo "   Windows : scoop install gitleaks"
+  echo "   macOS   : brew install gitleaks"
+  echo "   Linux   : https://github.com/gitleaks/gitleaks#installing"
+  echo ""
+  echo "يمكن التجاوز فقط في حالة الطوارئ عبر SKIP_GITLEAKS=1 git commit ..."
+  if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
+    echo "⚠️  SKIP_GITLEAKS=1 — تخطّي الفحص."
+    exit 0
+  fi
+  exit 1
+fi
+
+echo "🔒 Gitleaks — فحص الأسرار في الملفات المُرحَّلة..."
+gitleaks protect --staged --redact --verbose --config=.gitleaks.toml

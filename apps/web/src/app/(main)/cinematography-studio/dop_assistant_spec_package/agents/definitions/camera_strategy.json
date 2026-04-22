@@ -1,0 +1,80 @@
+{
+  "key": "camera_strategy",
+  "name": "وكيل استراتيجية الكاميرا",
+  "domain": "planning",
+  "description": "يقترح العدسات والحركة والتغطية والاعتبارات التقنية الخاصة بالكاميرا.",
+  "trigger": ["scene.camera_plan.requested"],
+  "reads": [
+    "scene_plan_versions",
+    "scene_visual_specs",
+    "recce_reports",
+    "equipment_items"
+  ],
+  "writes": ["scene_camera_specs", "scene_equipment_recommendations"],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "scene_plan_version_id", "production_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "scene_plan_version_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "equipment_context": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      },
+      "location_constraints": {
+        "type": ["object", "null"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "coverage_strategy",
+      "lens_strategy",
+      "movement_strategy",
+      "sensor_mode",
+      "camera_notes",
+      "tradeoffs"
+    ],
+    "properties": {
+      "coverage_strategy": {
+        "type": "string"
+      },
+      "lens_strategy": {
+        "type": "string"
+      },
+      "movement_strategy": {
+        "type": "string"
+      },
+      "sensor_mode": {
+        "type": "string"
+      },
+      "camera_notes": {
+        "type": "string"
+      },
+      "tradeoffs": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_approval"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["scene_camera_specs", "scene_equipment_recommendations"]
+  }
+}

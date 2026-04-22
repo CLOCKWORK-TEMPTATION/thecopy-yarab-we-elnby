@@ -1,0 +1,27 @@
+{
+  "name": "mistral-ocr-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server for Mistral OCR — converts PDF to Markdown with normalization and optional LLM refinement",
+  "main": "index.ts",
+  "scripts": {
+    "start": "npx tsx index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "hono@<4.12.14": ">=4.12.14",
+      "@hono/node-server@<1.19.13": ">=1.19.13"
+    }
+  }
+}

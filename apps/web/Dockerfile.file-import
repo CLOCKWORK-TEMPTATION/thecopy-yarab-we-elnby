@@ -1,0 +1,57 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    antiword \
+    chromium \
+    chromium-sandbox \
+    fonts-noto \
+    fonts-noto-cjk \
+    poppler-utils \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV ANTIWORD_PATH=/usr/bin/antiword
+ENV ANTIWORDHOME=/usr/share/antiword
+ENV PYTHONUTF8=1
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc* ./
+COPY apps/backend/package.json ./apps/backend/package.json
+COPY packages/shared/package.json ./packages/shared/package.json
+
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
+
+RUN --mount=type=secret,id=tiptap_pro_token,required=true \
+    --mount=type=cache,id=file-import-npm-cache,target=/root/.npm \
+    sh -eu -c ' \
+    TIPTAP_PRO_TOKEN="$(cat /run/secrets/tiptap_pro_token)"; \
+    grep -v "^//registry.tiptap.dev/:_authToken=" .npmrc > /tmp/.npmrc.tiptap || true; \
+    printf "//registry.tiptap.dev/:_authToken=%s\nfetch-retries=5\nfetch-retry-mintimeout=10000\nfetch-retry-maxtimeout=120000\nfetch-timeout=120000\n" "$TIPTAP_PRO_TOKEN" >> /tmp/.npmrc.tiptap; \
+    NPM_CONFIG_USERCONFIG=/tmp/.npmrc.tiptap pnpm install --filter @the-copy/backend... --prod --frozen-lockfile; \
+    rm -f /tmp/.npmrc.tiptap; \
+    '
+
+COPY apps/backend/editor-runtime ./apps/backend/editor-runtime
+COPY apps/backend/src/ocr-arabic-pdf-to-txt-pipeline ./apps/backend/src/ocr-arabic-pdf-to-txt-pipeline
+COPY packages/shared ./packages/shared
+
+WORKDIR /app/apps/backend
+
+ENV FILE_IMPORT_HOST=0.0.0.0
+ENV FILE_IMPORT_PORT=8787
+
+EXPOSE 8787
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
+    CMD ["node", "-e", "fetch('http://localhost:8787/health').then(async r => { const body = await r.json().catch(() => null); process.exit(r.ok && body?.ok === true ? 0 : 1); }).catch(() => process.exit(1))"]
+
+CMD ["node", "editor-runtime/file-import-server.mjs"]

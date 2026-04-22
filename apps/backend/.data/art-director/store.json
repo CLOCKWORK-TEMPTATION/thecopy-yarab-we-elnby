@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "createdAt": "2026-04-02T17:00:58.426Z",
+  "updatedAt": "2026-04-16T14:39:19.590Z",
+  "locations": [
+    {
+      "id": "a2cb6c09-b28c-4cb1-9dd5-b623968ca9c8",
+      "name": "Nile Studio",
+      "nameAr": "استوديو النيل",
+      "type": "studio",
+      "address": "Cairo",
+      "features": [
+        "Parking"
+      ],
+      "createdAt": "2026-04-02T17:00:58.424Z",
+      "updatedAt": "2026-04-02T17:00:58.424Z"
+    },
+    {
+      "id": "35dc152d-b594-403b-b040-c4083ac57a37",
+      "name": "Baron Palace",
+      "nameAr": "قصر البارون",
+      "type": "interior",
+      "address": "مصر الجديدة، القاهرة",
+      "features": [
+        "إضاءة طبيعية",
+        "سقف عالي"
+      ],
+      "createdAt": "2026-04-16T00:08:54.737Z",
+      "updatedAt": "2026-04-16T00:08:54.737Z"
+    },
+    {
+      "id": "8ddd382e-b653-4509-b918-224f8733df88",
+      "name": "Test Palace 1776349949848",
+      "nameAr": "قصر الاختبار 1776349949848",
+      "type": "interior",
+      "address": "مصر الجديدة، القاهرة",
+      "features": [
+        "إضاءة طبيعية",
+        "سقف عالي",
+        "زخارف فنية"
+      ],
+      "createdAt": "2026-04-16T14:32:36.370Z",
+      "updatedAt": "2026-04-16T14:32:36.370Z"
+    },
+    {
+      "id": "2b951580-2b5b-4de9-9a3f-db45a9413dcf",
+      "name": "Test Palace 1776350324355",
+      "nameAr": "قصر الاختبار 1776350324355",
+      "type": "interior",
+      "address": "مصر الجديدة، القاهرة",
+      "features": [
+        "إضاءة طبيعية",
+        "سقف عالي",
+        "زخارف فنية"
+      ],
+      "createdAt": "2026-04-16T14:38:50.488Z",
+      "updatedAt": "2026-04-16T14:38:50.488Z"
+    },
+    {
+      "id": "f16cfd4e-678b-4a18-ba62-ae1cf0a5b3ff",
+      "name": "Test Palace 1776350357130",
+      "nameAr": "قصر الاختبار 1776350357130",
+      "type": "interior",
+      "address": "مصر الجديدة، القاهرة",
+      "features": [
+        "إضاءة طبيعية",
+        "سقف عالي",
+        "زخارف فنية"
+      ],
+      "createdAt": "2026-04-16T14:39:19.539Z",
+      "updatedAt": "2026-04-16T14:39:19.539Z"
+    }
+  ],
+  "setPieces": [],
+  "timeEntries": [],
+  "delays": [],
+  "productionBooks": [],
+  "styleGuides": [],
+  "decisions": [],
+  "previzScenes": [],
+  "virtualSets": [],
+  "conceptProjects": [],
+  "virtualProductions": [],
+  "lastProductionId": null,
+  "lastBookId": null,
+  "lastStyleGuideId": null
+}

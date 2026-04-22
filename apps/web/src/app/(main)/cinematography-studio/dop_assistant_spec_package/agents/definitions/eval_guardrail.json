@@ -1,0 +1,67 @@
+{
+  "key": "eval_guardrail",
+  "name": "وكيل التقييم والحواجز",
+  "domain": "quality",
+  "description": "يفحص اتساق المخرجات وصحة الـschema ويمنع النشر عند الحاجة.",
+  "trigger": ["agent.run.completed"],
+  "reads": ["agent_runs", "agent_definitions"],
+  "writes": ["evaluations", "agent_runs"],
+  "input_schema": {
+    "type": "object",
+    "required": ["agent_run_id", "production_id"],
+    "properties": {
+      "agent_run_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "policy_profile": {
+        "type": ["string", "null"]
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "schema_valid",
+      "completeness_score",
+      "risk_flags",
+      "publish_blocked",
+      "review_notes"
+    ],
+    "properties": {
+      "schema_valid": {
+        "type": "boolean"
+      },
+      "completeness_score": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "risk_flags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "publish_blocked": {
+        "type": "boolean"
+      },
+      "review_notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": false,
+    "review_when": ["publish_blocked_true"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["evaluations", "agent_runs"]
+  }
+}

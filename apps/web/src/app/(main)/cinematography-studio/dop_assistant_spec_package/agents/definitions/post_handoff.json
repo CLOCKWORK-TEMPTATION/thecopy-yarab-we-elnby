@@ -1,0 +1,93 @@
+{
+  "key": "post_handoff",
+  "name": "وكيل حزم التسليم",
+  "domain": "handoff",
+  "description": "يجمع حزم التسليم للمونتاج واللون وVFX مع manifest واضح.",
+  "trigger": ["handoff.requested"],
+  "reads": [
+    "assets",
+    "cdl_decisions",
+    "editorial_sequences",
+    "scene_plan_versions",
+    "pickup_requests"
+  ],
+  "writes": ["handoff_packages", "assets"],
+  "input_schema": {
+    "type": "object",
+    "required": [
+      "production_id",
+      "target_department",
+      "scope_type",
+      "scope_id"
+    ],
+    "properties": {
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "target_department": {
+        "type": "string",
+        "enum": ["editorial", "color", "vfx"]
+      },
+      "scope_type": {
+        "type": "string"
+      },
+      "scope_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "include_assets": {
+        "type": "boolean",
+        "default": true
+      },
+      "include_color_data": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "manifest",
+      "included_assets",
+      "missing_dependencies",
+      "delivery_notes",
+      "verification_status"
+    ],
+    "properties": {
+      "manifest": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "included_assets": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "missing_dependencies": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "delivery_notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "verification_status": {
+        "type": "string"
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_delivery"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": ["handoff_packages", "assets"]
+  }
+}

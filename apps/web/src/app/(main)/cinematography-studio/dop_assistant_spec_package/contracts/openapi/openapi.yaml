@@ -1,0 +1,7108 @@
+openapi: 3.1.0
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+info:
+  title: Director of Photography Assistant API
+  version: 1.0.0
+  summary: API for a web-based assistant platform for cinematography workflows
+  description: واجهة برمجية تأسيسية لمنصة مساعد مدير التصوير عبر التحضير والتصوير وما بعد الإنتاج.
+servers:
+  - url: https://api.example.com
+    description: Production
+  - url: https://staging-api.example.com
+    description: Staging
+security:
+  - bearerAuth: []
+tags:
+  - name: identity
+  - name: productions
+  - name: assets
+  - name: scripts
+  - name: scenes
+  - name: plans
+  - name: shooting
+  - name: continuity
+  - name: post
+  - name: agents
+  - name: sync
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    OrgIdHeader:
+      in: header
+      name: X-Org-Id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+    IfMatch:
+      in: header
+      name: If-Match
+      required: false
+      schema:
+        type: string
+  schemas:
+    UUID:
+      type: string
+      format: uuid
+    Timestamp:
+      type: string
+      format: date-time
+    RequestMeta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        cursor:
+          type:
+            - string
+            - "null"
+      required:
+        - request_id
+        - cursor
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - code
+        - message
+        - details
+    AsyncAccepted:
+      type: object
+      properties:
+        operation_id:
+          type: string
+        agent_run_id:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - queued
+            - running
+        status_url:
+          type: string
+      required:
+        - operation_id
+        - agent_run_id
+        - status
+        - status_url
+    Me:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        full_name:
+          type: string
+        memberships:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - user_id
+        - email
+        - full_name
+        - memberships
+    Production:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - film
+            - series
+        title_ar:
+          type: string
+        title_en:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - draft
+            - prep
+            - shooting
+            - post
+            - archived
+        default_language:
+          type: string
+        default_timezone:
+          type: string
+        row_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - title_ar
+        - title_en
+        - status
+        - default_language
+        - default_timezone
+        - row_version
+        - created_at
+    Episode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        season_number:
+          type: integer
+        episode_number:
+          type: integer
+        title:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        row_version:
+          type: integer
+      required:
+        - id
+        - production_id
+        - season_number
+        - episode_number
+        - title
+        - status
+        - row_version
+    Unit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        unit_type:
+          type: string
+        status:
+          type: string
+        row_version:
+          type: integer
+      required:
+        - id
+        - production_id
+        - name
+        - unit_type
+        - status
+        - row_version
+    ProductionDashboard:
+      type: object
+      properties:
+        production:
+          $ref: "#/components/schemas/Production"
+        counts:
+          type: object
+          additionalProperties: true
+        recent_activity:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        open_approvals:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        open_flags:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - production
+        - counts
+        - recent_activity
+        - open_approvals
+        - open_flags
+    Asset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        asset_kind:
+          type: string
+          enum:
+            - script
+            - image
+            - video
+            - audio
+            - pdf
+            - otio
+            - lut
+            - cdl
+            - clf
+            - note
+            - call_sheet
+            - other
+        filename:
+          type: string
+        mime_type:
+          type: string
+        storage_key:
+          type: string
+        checksum:
+          type: string
+        file_size:
+          type: integer
+        language_code:
+          type:
+            - string
+            - "null"
+        metadata_json:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - production_id
+        - asset_kind
+        - filename
+        - mime_type
+        - storage_key
+        - checksum
+        - file_size
+        - language_code
+        - metadata_json
+        - created_at
+    UploadSession:
+      type: object
+      properties:
+        upload_url:
+          type: string
+        upload_method:
+          type: string
+          enum:
+            - PUT
+            - POST
+        upload_headers:
+          type: object
+          additionalProperties:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+        temp_object_key:
+          type: string
+      required:
+        - upload_url
+        - upload_method
+        - upload_headers
+        - expires_at
+        - temp_object_key
+    AssetLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        relation_type:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - asset_id
+        - entity_type
+        - entity_id
+        - relation_type
+        - created_at
+    KnowledgeSearchResult:
+      type: object
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        score:
+          type: number
+        snippet:
+          type: string
+        asset_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        metadata:
+          type: object
+          additionalProperties: true
+      required:
+        - entity_type
+        - entity_id
+        - score
+        - snippet
+        - asset_id
+        - metadata
+    ScriptDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        name:
+          type: string
+        current_version_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - production_id
+        - episode_id
+        - name
+        - current_version_id
+        - created_at
+    ScriptVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        script_document_id:
+          type: string
+          format: uuid
+        asset_id:
+          type: string
+          format: uuid
+        version_label:
+          type: string
+        revision_color:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - uploaded
+            - parsed
+            - reviewed
+            - published
+            - superseded
+        row_version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - script_document_id
+        - asset_id
+        - version_label
+        - revision_color
+        - status
+        - row_version
+        - created_at
+    Scene:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        canonical_scene_code:
+          type: string
+        scene_title:
+          type:
+            - string
+            - "null"
+        int_ext:
+          type:
+            - string
+            - "null"
+        time_of_day:
+          type:
+            - string
+            - "null"
+        primary_location_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        status:
+          type: string
+        current_approved_plan_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        row_version:
+          type: integer
+      required:
+        - id
+        - production_id
+        - episode_id
+        - canonical_scene_code
+        - scene_title
+        - int_ext
+        - time_of_day
+        - primary_location_id
+        - status
+        - current_approved_plan_id
+        - row_version
+    SceneRevision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        script_version_id:
+          type: string
+          format: uuid
+        script_scene_number:
+          type: string
+        script_order:
+          type: integer
+        page_start:
+          type:
+            - number
+            - "null"
+        page_end:
+          type:
+            - number
+            - "null"
+        synopsis:
+          type:
+            - string
+            - "null"
+        scene_text:
+          type:
+            - string
+            - "null"
+        parse_confidence:
+          type:
+            - number
+            - "null"
+      required:
+        - id
+        - scene_id
+        - script_version_id
+        - script_scene_number
+        - script_order
+        - page_start
+        - page_end
+        - synopsis
+        - scene_text
+        - parse_confidence
+    SceneElement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        scene_revision_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        element_type:
+          type: string
+        name:
+          type: string
+        attributes_json:
+          type: object
+          additionalProperties: true
+        source_range_json:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - scene_id
+        - scene_revision_id
+        - element_type
+        - name
+        - attributes_json
+        - source_range_json
+    CoverageRequirement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        requirement_code:
+          type: string
+        requirement_type:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum:
+            - low
+            - normal
+            - high
+            - critical
+        mandatory:
+          type: boolean
+      required:
+        - id
+        - requirement_code
+        - requirement_type
+        - description
+        - priority
+        - mandatory
+    ScenePlanVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        version_no:
+          type: integer
+        based_on_script_version_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - draft
+            - in_review
+            - approved
+            - superseded
+            - archived
+        visual:
+          type: object
+          additionalProperties: true
+        camera:
+          type: object
+          additionalProperties: true
+        lighting:
+          type: object
+          additionalProperties: true
+        coverage_requirements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CoverageRequirement"
+      required:
+        - id
+        - scene_id
+        - version_no
+        - based_on_script_version_id
+        - status
+        - visual
+        - camera
+        - lighting
+        - coverage_requirements
+    SceneWorkspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        canonical_scene_code:
+          type: string
+        latest_revision:
+          $ref: "#/components/schemas/SceneRevision"
+        approved_plan:
+          oneOf:
+            - $ref: "#/components/schemas/ScenePlanVersion"
+            - type: "null"
+        references:
+          type: array
+          items:
+            $ref: "#/components/schemas/Asset"
+        setups:
+          type: array
+          items:
+            $ref: "#/components/schemas/Setup"
+        shots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Shot"
+        continuity_flags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContinuityFlag"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+      required:
+        - id
+        - canonical_scene_code
+        - latest_revision
+        - approved_plan
+        - references
+        - setups
+        - shots
+        - continuity_flags
+        - tasks
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        country:
+          type:
+            - string
+            - "null"
+        city:
+          type:
+            - string
+            - "null"
+        address:
+          type:
+            - string
+            - "null"
+        geo_lat:
+          type:
+            - number
+            - "null"
+        geo_lng:
+          type:
+            - number
+            - "null"
+        indoor_outdoor:
+          type:
+            - string
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - production_id
+        - name
+        - country
+        - city
+        - address
+        - geo_lat
+        - geo_lng
+        - indoor_outdoor
+        - notes
+    RecceReport:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        location_id:
+          type: string
+          format: uuid
+        recce_date:
+          type: string
+          format: date
+        summary:
+          type: string
+        constraints_json:
+          type: object
+          additionalProperties: true
+        sun_data_json:
+          type: object
+          additionalProperties: true
+        logistics_json:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - location_id
+        - recce_date
+        - summary
+        - constraints_json
+        - sun_data_json
+        - logistics_json
+    EquipmentItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        item_type:
+          type: string
+        brand:
+          type:
+            - string
+            - "null"
+        model:
+          type:
+            - string
+            - "null"
+        serial_no:
+          type:
+            - string
+            - "null"
+        inventory_code:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        metadata_json:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - production_id
+        - item_type
+        - brand
+        - model
+        - serial_no
+        - inventory_code
+        - status
+        - metadata_json
+    EquipmentKit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kit_type:
+          type: string
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - production_id
+        - name
+        - kit_type
+        - notes
+    ShootingDay:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        unit_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        day_number:
+          type: integer
+        shoot_date:
+          type: string
+          format: date
+        call_time:
+          type:
+            - string
+            - "null"
+          format: date-time
+        wrap_time:
+          type:
+            - string
+            - "null"
+          format: date-time
+        status:
+          type: string
+        row_version:
+          type: integer
+      required:
+        - id
+        - production_id
+        - episode_id
+        - unit_id
+        - day_number
+        - shoot_date
+        - call_time
+        - wrap_time
+        - status
+        - row_version
+    DaySceneAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        sort_order:
+          type: integer
+        planned_setups:
+          type:
+            - integer
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - shooting_day_id
+        - scene_id
+        - sort_order
+        - planned_setups
+        - notes
+    ShootingDayWorkspace:
+      type: object
+      properties:
+        shooting_day:
+          $ref: "#/components/schemas/ShootingDay"
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/DaySceneAssignment"
+        setups:
+          type: array
+          items:
+            $ref: "#/components/schemas/Setup"
+        shots:
+          type: array
+          items:
+            $ref: "#/components/schemas/Shot"
+        takes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Take"
+      required:
+        - shooting_day
+        - assignments
+        - setups
+        - shots
+        - takes
+    Setup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        setup_code:
+          type: string
+        origin:
+          type: string
+          enum:
+            - planned
+            - adhoc
+        description:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        camera_axis_json:
+          type: object
+          additionalProperties: true
+        row_version:
+          type: integer
+      required:
+        - id
+        - scene_id
+        - shooting_day_id
+        - setup_code
+        - origin
+        - description
+        - status
+        - camera_axis_json
+        - row_version
+    Shot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        setup_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        shot_code:
+          type: string
+        origin:
+          type: string
+          enum:
+            - planned
+            - adhoc
+        framing:
+          type:
+            - string
+            - "null"
+        shot_size:
+          type:
+            - string
+            - "null"
+        angle:
+          type:
+            - string
+            - "null"
+        movement:
+          type:
+            - string
+            - "null"
+        priority:
+          type: string
+          enum:
+            - low
+            - normal
+            - high
+            - critical
+        status:
+          type: string
+        row_version:
+          type: integer
+      required:
+        - id
+        - scene_id
+        - setup_id
+        - shot_code
+        - origin
+        - framing
+        - shot_size
+        - angle
+        - movement
+        - priority
+        - status
+        - row_version
+    Take:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        take_number:
+          type: integer
+        clip_name:
+          type: string
+        camera_roll:
+          type:
+            - string
+            - "null"
+        sound_roll:
+          type:
+            - string
+            - "null"
+        timecode_start:
+          type:
+            - string
+            - "null"
+        timecode_end:
+          type:
+            - string
+            - "null"
+        circle_take:
+          type: boolean
+        take_quality:
+          type:
+            - string
+            - "null"
+        metadata_json:
+          type: object
+          additionalProperties: true
+        row_version:
+          type: integer
+      required:
+        - id
+        - scene_id
+        - shot_id
+        - take_number
+        - clip_name
+        - camera_roll
+        - sound_roll
+        - timecode_start
+        - timecode_end
+        - circle_take
+        - take_quality
+        - metadata_json
+        - row_version
+    VoiceSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        status:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+      required:
+        - id
+        - production_id
+        - shooting_day_id
+        - status
+        - started_at
+        - ended_at
+    VoiceEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        voice_session_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        transcript:
+          type:
+            - string
+            - "null"
+        intent_json:
+          type: object
+          additionalProperties: true
+        entity_type:
+          type:
+            - string
+            - "null"
+        entity_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - voice_session_id
+        - event_type
+        - transcript
+        - intent_json
+        - entity_type
+        - entity_id
+        - created_at
+    ContinuityFlag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        setup_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        take_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        flag_type:
+          type: string
+        severity:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        resolution_note:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - scene_id
+        - setup_id
+        - shot_id
+        - take_id
+        - flag_type
+        - severity
+        - description
+        - status
+        - resolution_note
+        - created_at
+    EditorialSequence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        asset_id:
+          type: string
+          format: uuid
+        sequence_name:
+          type: string
+        format:
+          type: string
+        metadata_json:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - production_id
+        - episode_id
+        - asset_id
+        - sequence_name
+        - format
+        - metadata_json
+    ColorPipeline:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        standard_name:
+          type: string
+        working_space:
+          type: string
+        display_space:
+          type: string
+        config_asset_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - id
+        - production_id
+        - standard_name
+        - working_space
+        - display_space
+        - config_asset_id
+        - notes
+    CDLDecision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        scene_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        setup_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        take_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        slope_json:
+          type: object
+          additionalProperties: true
+        offset_json:
+          type: object
+          additionalProperties: true
+        power_json:
+          type: object
+          additionalProperties: true
+        saturation:
+          type:
+            - number
+            - "null"
+        source:
+          type: string
+      required:
+        - id
+        - production_id
+        - scene_id
+        - setup_id
+        - shot_id
+        - take_id
+        - slope_json
+        - offset_json
+        - power_json
+        - saturation
+        - source
+    PickupRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        reason_type:
+          type: string
+        priority:
+          type: string
+        description:
+          type: string
+        evidence_json:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - scene_id
+        - shot_id
+        - reason_type
+        - priority
+        - description
+        - evidence_json
+        - status
+        - created_at
+    HandoffPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        production_id:
+          type: string
+          format: uuid
+        target_department:
+          type: string
+          enum:
+            - editorial
+            - color
+            - vfx
+        scope_type:
+          type: string
+        scope_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        manifest_json:
+          type: object
+          additionalProperties: true
+        asset_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - production_id
+        - target_department
+        - scope_type
+        - scope_id
+        - status
+        - manifest_json
+        - asset_id
+        - created_at
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        parent_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        body:
+          type: string
+        created_by:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - parent_id
+        - body
+        - created_by
+        - created_at
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        assignee_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        status:
+          type: string
+        due_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        row_version:
+          type: integer
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - title
+        - description
+        - assignee_id
+        - status
+        - due_at
+        - row_version
+    Approval:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        requested_by:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        approver_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        status:
+          type: string
+        notes:
+          type:
+            - string
+            - "null"
+        decided_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        row_version:
+          type: integer
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - requested_by
+        - approver_id
+        - status
+        - notes
+        - decided_at
+        - row_version
+    AgentDefinition:
+      type: object
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+        domain:
+          type: string
+        description:
+          type: string
+        input_schema:
+          type: object
+          additionalProperties: true
+        output_schema:
+          type: object
+          additionalProperties: true
+        policy:
+          type: object
+          additionalProperties: true
+        is_active:
+          type: boolean
+      required:
+        - key
+        - name
+        - domain
+        - description
+        - input_schema
+        - output_schema
+        - policy
+        - is_active
+    AgentRun:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        agent_key:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - queued
+            - running
+            - needs_review
+            - completed
+            - failed
+            - cancelled
+        review_status:
+          type: string
+        input_payload:
+          type: object
+          additionalProperties: true
+        output_payload:
+          type: object
+          additionalProperties: true
+        error_payload:
+          type: object
+          additionalProperties: true
+        started_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        completed_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+      required:
+        - id
+        - agent_key
+        - entity_type
+        - entity_id
+        - status
+        - review_status
+        - input_payload
+        - output_payload
+        - error_payload
+        - started_at
+        - completed_at
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        before_json:
+          type: object
+          additionalProperties: true
+        after_json:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - action
+        - entity_type
+        - entity_id
+        - before_json
+        - after_json
+        - created_at
+    CreateProductionRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - film
+            - series
+        title_ar:
+          type: string
+        title_en:
+          type:
+            - string
+            - "null"
+        default_language:
+          type: string
+          default: ar
+        default_timezone:
+          type: string
+          default: Africa/Cairo
+      required:
+        - type
+        - title_ar
+        - title_en
+        - default_language
+        - default_timezone
+    PatchProductionRequest:
+      type: object
+      properties:
+        title_ar:
+          type:
+            - string
+            - "null"
+        title_en:
+          type:
+            - string
+            - "null"
+        status:
+          type:
+            - string
+            - "null"
+          enum:
+            - draft
+            - prep
+            - shooting
+            - post
+            - archived
+            - null
+        default_language:
+          type:
+            - string
+            - "null"
+        default_timezone:
+          type:
+            - string
+            - "null"
+      required: []
+    CreateUploadSessionRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        mime_type:
+          type: string
+        file_size:
+          type: integer
+        asset_kind:
+          type: string
+      required:
+        - production_id
+        - filename
+        - mime_type
+        - file_size
+        - asset_kind
+    CreateAssetRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        asset_kind:
+          type: string
+        filename:
+          type: string
+        mime_type:
+          type: string
+        temp_object_key:
+          type: string
+        checksum:
+          type: string
+        file_size:
+          type: integer
+        language_code:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - asset_kind
+        - filename
+        - mime_type
+        - temp_object_key
+        - checksum
+        - file_size
+        - language_code
+    CreateAssetLinkRequest:
+      type: object
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        relation_type:
+          type: string
+      required:
+        - entity_type
+        - entity_id
+        - relation_type
+    IngestAssetRequest:
+      type: object
+      properties:
+        target_entity:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+        force_reindex:
+          type: boolean
+          default: false
+      required: []
+    KnowledgeSearchRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        query:
+          type: string
+        mode:
+          type: string
+          enum:
+            - keyword
+            - semantic
+            - hybrid
+          default: hybrid
+        limit:
+          type: integer
+          default: 10
+        filters:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+      required:
+        - production_id
+        - query
+        - mode
+        - limit
+        - filters
+    CreateScriptDocumentRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        name:
+          type: string
+      required:
+        - production_id
+        - episode_id
+        - name
+    CreateScriptVersionRequest:
+      type: object
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        version_label:
+          type: string
+        revision_color:
+          type:
+            - string
+            - "null"
+      required:
+        - asset_id
+        - version_label
+        - revision_color
+    ParseScriptVersionRequest:
+      type: object
+      properties:
+        language_hint:
+          type:
+            - string
+            - "null"
+        episode_scope:
+          type:
+            - string
+            - "null"
+        force_reparse:
+          type: boolean
+          default: false
+      required: []
+    PublishScriptVersionRequest:
+      type: object
+      properties:
+        publish_note:
+          type:
+            - string
+            - "null"
+      required: []
+    PatchSceneRequest:
+      type: object
+      properties:
+        scene_title:
+          type:
+            - string
+            - "null"
+        int_ext:
+          type:
+            - string
+            - "null"
+        time_of_day:
+          type:
+            - string
+            - "null"
+        primary_location_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        status:
+          type:
+            - string
+            - "null"
+      required: []
+    GeneratePlanRequest:
+      type: object
+      properties:
+        based_on_script_version_id:
+          type: string
+          format: uuid
+        reference_asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        mode:
+          type: string
+          enum:
+            - draft
+            - refresh
+          default: draft
+      required:
+        - based_on_script_version_id
+        - reference_asset_ids
+        - mode
+    GenerateLightingPlanRequest:
+      type: object
+      properties:
+        scene_plan_version_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        based_on_script_version_id:
+          type: string
+          format: uuid
+        location_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        recce_report_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        reference_asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        mode:
+          type: string
+          enum:
+            - draft
+            - refresh
+          default: draft
+      required:
+        - based_on_script_version_id
+        - location_id
+        - recce_report_id
+        - reference_asset_ids
+        - mode
+    GenerateShotPlanRequest:
+      type: object
+      properties:
+        scene_plan_version_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        based_on_script_version_id:
+          type: string
+          format: uuid
+        reference_asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        include_camera:
+          type: boolean
+          default: true
+        include_lighting:
+          type: boolean
+          default: true
+        mode:
+          type: string
+          enum:
+            - draft
+            - refresh
+          default: draft
+      required:
+        - based_on_script_version_id
+        - reference_asset_ids
+        - include_camera
+        - include_lighting
+        - mode
+    ApproveScenePlanRequest:
+      type: object
+      properties:
+        scene_plan_version_id:
+          type: string
+          format: uuid
+        approval_note:
+          type:
+            - string
+            - "null"
+      required:
+        - scene_plan_version_id
+        - approval_note
+    CreateLocationRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        country:
+          type:
+            - string
+            - "null"
+        city:
+          type:
+            - string
+            - "null"
+        address:
+          type:
+            - string
+            - "null"
+        geo_lat:
+          type:
+            - number
+            - "null"
+        geo_lng:
+          type:
+            - number
+            - "null"
+        indoor_outdoor:
+          type:
+            - string
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - name
+        - country
+        - city
+        - address
+        - geo_lat
+        - geo_lng
+        - indoor_outdoor
+        - notes
+    CreateRecceReportRequest:
+      type: object
+      properties:
+        recce_date:
+          type: string
+          format: date
+        summary:
+          type: string
+        constraints_json:
+          type: object
+          additionalProperties: true
+        sun_data_json:
+          type: object
+          additionalProperties: true
+        logistics_json:
+          type: object
+          additionalProperties: true
+      required:
+        - recce_date
+        - summary
+        - constraints_json
+        - sun_data_json
+        - logistics_json
+    AnalyzeRecceRequest:
+      type: object
+      properties:
+        scene_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required: []
+    CreateEquipmentItemRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        item_type:
+          type: string
+        brand:
+          type:
+            - string
+            - "null"
+        model:
+          type:
+            - string
+            - "null"
+        serial_no:
+          type:
+            - string
+            - "null"
+        inventory_code:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+        metadata_json:
+          type: object
+          additionalProperties: true
+      required:
+        - production_id
+        - item_type
+        - brand
+        - model
+        - serial_no
+        - inventory_code
+        - status
+        - metadata_json
+    CreateEquipmentKitRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kit_type:
+          type: string
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - name
+        - kit_type
+        - notes
+    CreateShootingDayRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        unit_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        day_number:
+          type: integer
+        shoot_date:
+          type: string
+          format: date
+        call_time:
+          type:
+            - string
+            - "null"
+          format: date-time
+        wrap_time:
+          type:
+            - string
+            - "null"
+          format: date-time
+      required:
+        - production_id
+        - episode_id
+        - unit_id
+        - day_number
+        - shoot_date
+        - call_time
+        - wrap_time
+    CreateDaySceneAssignmentRequest:
+      type: object
+      properties:
+        scene_id:
+          type: string
+          format: uuid
+        sort_order:
+          type: integer
+        planned_setups:
+          type:
+            - integer
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - scene_id
+        - sort_order
+        - planned_setups
+        - notes
+    CreateSetupRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        scene_plan_version_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        origin:
+          type: string
+          enum:
+            - planned
+            - adhoc
+        setup_code:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        camera_axis_json:
+          type: object
+          additionalProperties: true
+      required:
+        - production_id
+        - scene_id
+        - scene_plan_version_id
+        - shooting_day_id
+        - origin
+        - setup_code
+        - description
+        - camera_axis_json
+    PatchSetupRequest:
+      type: object
+      properties:
+        description:
+          type:
+            - string
+            - "null"
+        camera_axis_json:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+        status:
+          type:
+            - string
+            - "null"
+      required: []
+    CreateShotRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        setup_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        scene_plan_version_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        origin:
+          type: string
+          enum:
+            - planned
+            - adhoc
+        shot_code:
+          type: string
+        framing:
+          type:
+            - string
+            - "null"
+        shot_size:
+          type:
+            - string
+            - "null"
+        angle:
+          type:
+            - string
+            - "null"
+        movement:
+          type:
+            - string
+            - "null"
+        priority:
+          type: string
+          enum:
+            - low
+            - normal
+            - high
+            - critical
+        description:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - scene_id
+        - setup_id
+        - scene_plan_version_id
+        - origin
+        - shot_code
+        - framing
+        - shot_size
+        - angle
+        - movement
+        - priority
+        - description
+    PatchShotRequest:
+      type: object
+      properties:
+        framing:
+          type:
+            - string
+            - "null"
+        shot_size:
+          type:
+            - string
+            - "null"
+        angle:
+          type:
+            - string
+            - "null"
+        movement:
+          type:
+            - string
+            - "null"
+        priority:
+          type:
+            - string
+            - "null"
+          enum:
+            - low
+            - normal
+            - high
+            - critical
+            - null
+        status:
+          type:
+            - string
+            - "null"
+        description:
+          type:
+            - string
+            - "null"
+      required: []
+    CreateTakeRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        take_number:
+          type: integer
+        clip_name:
+          type: string
+        camera_roll:
+          type:
+            - string
+            - "null"
+        sound_roll:
+          type:
+            - string
+            - "null"
+        timecode_start:
+          type:
+            - string
+            - "null"
+        timecode_end:
+          type:
+            - string
+            - "null"
+        circle_take:
+          type: boolean
+        take_quality:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - scene_id
+        - shot_id
+        - take_number
+        - clip_name
+        - camera_roll
+        - sound_roll
+        - timecode_start
+        - timecode_end
+        - circle_take
+        - take_quality
+    PatchTakeMetadataRequest:
+      type: object
+      properties:
+        metadata_json:
+          type: object
+          additionalProperties: true
+        source:
+          type: string
+          enum:
+            - manual
+            - camera
+            - dit
+            - imported
+      required:
+        - metadata_json
+        - source
+    CreateVoiceSessionRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        session_meta_json:
+          type: object
+          additionalProperties: true
+      required:
+        - production_id
+        - shooting_day_id
+        - session_meta_json
+    CreateVoiceEventRequest:
+      type: object
+      properties:
+        event_type:
+          type: string
+        transcript:
+          type:
+            - string
+            - "null"
+        intent_json:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+        entity_type:
+          type:
+            - string
+            - "null"
+        entity_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required:
+        - event_type
+        - transcript
+        - intent_json
+        - entity_type
+        - entity_id
+    CreateRealtimeSessionRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        voice_session_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required:
+        - production_id
+        - shooting_day_id
+        - voice_session_id
+    RealtimeSessionToken:
+      type: object
+      properties:
+        token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - token
+        - expires_at
+    CheckContinuityRequest:
+      type: object
+      properties:
+        take_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        reference_state_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required: []
+    ImportEditorialSequenceRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        episode_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        asset_id:
+          type: string
+          format: uuid
+        sequence_name:
+          type: string
+        format:
+          type: string
+      required:
+        - production_id
+        - episode_id
+        - asset_id
+        - sequence_name
+        - format
+    ReviewRushesRequest:
+      type: object
+      properties:
+        asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        scene_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        shooting_day_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+      required: []
+    GeneratePickupsRequest:
+      type: object
+      properties:
+        sequence_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        editor_notes:
+          type:
+            - string
+            - "null"
+      required: []
+    CreateColorPipelineRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        standard_name:
+          type: string
+        working_space:
+          type: string
+        display_space:
+          type: string
+        config_asset_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - standard_name
+        - working_space
+        - display_space
+        - config_asset_id
+        - notes
+    CreateCDLRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        scene_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        setup_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        shot_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        take_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        slope_json:
+          type: object
+          additionalProperties: true
+        offset_json:
+          type: object
+          additionalProperties: true
+        power_json:
+          type: object
+          additionalProperties: true
+        saturation:
+          type:
+            - number
+            - "null"
+        source:
+          type: string
+      required:
+        - production_id
+        - scene_id
+        - setup_id
+        - shot_id
+        - take_id
+        - slope_json
+        - offset_json
+        - power_json
+        - saturation
+        - source
+    CreateHandoffRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        target_department:
+          type: string
+          enum:
+            - editorial
+            - color
+            - vfx
+        scope_type:
+          type: string
+        scope_id:
+          type: string
+          format: uuid
+        include_assets:
+          type: boolean
+          default: true
+        include_color_data:
+          type: boolean
+          default: true
+      required:
+        - production_id
+        - target_department
+        - scope_type
+        - scope_id
+        - include_assets
+        - include_color_data
+    CreateCommentRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        parent_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        body:
+          type: string
+      required:
+        - production_id
+        - entity_type
+        - entity_id
+        - parent_id
+        - body
+    CreateTaskRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type:
+            - string
+            - "null"
+        assignee_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        due_at:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: "null"
+      required:
+        - production_id
+        - entity_type
+        - entity_id
+        - title
+        - description
+        - assignee_id
+        - due_at
+    CreateApprovalRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        approver_id:
+          oneOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - production_id
+        - entity_type
+        - entity_id
+        - approver_id
+        - notes
+    DecideApprovalRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - approved
+            - rejected
+        notes:
+          type:
+            - string
+            - "null"
+      required:
+        - status
+        - notes
+    CreateAgentRunRequest:
+      type: object
+      properties:
+        agent_key:
+          type: string
+        production_id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        input:
+          type: object
+          additionalProperties: true
+      required:
+        - agent_key
+        - production_id
+        - entity_type
+        - entity_id
+        - input
+    SyncChange:
+      type: object
+      properties:
+        change_id:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        operation:
+          type: string
+          enum:
+            - create
+            - patch
+            - delete
+        payload:
+          type: object
+          additionalProperties: true
+        local_row_version:
+          type:
+            - integer
+            - "null"
+        client_timestamp:
+          type: string
+          format: date-time
+      required:
+        - change_id
+        - entity_type
+        - entity_id
+        - operation
+        - payload
+        - local_row_version
+        - client_timestamp
+    SyncPushRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+        base_cursor:
+          type:
+            - string
+            - "null"
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/SyncChange"
+      required:
+        - production_id
+        - device_id
+        - base_cursor
+        - changes
+    SyncPushResponse:
+      type: object
+      properties:
+        accepted_change_ids:
+          type: array
+          items:
+            type: string
+        conflicts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        next_cursor:
+          type: string
+      required:
+        - accepted_change_ids
+        - conflicts
+        - next_cursor
+    SyncPullRequest:
+      type: object
+      properties:
+        production_id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+        since_cursor:
+          type:
+            - string
+            - "null"
+        scope:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+      required:
+        - production_id
+        - device_id
+        - since_cursor
+        - scope
+paths:
+  /v1/me:
+    get:
+      tags:
+        - identity
+      operationId: getMe
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Me"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/productions:
+    post:
+      tags:
+        - productions
+      operationId: createProduction
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Production"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductionRequest"
+  /v1/productions/{production_id}:
+    get:
+      tags:
+        - productions
+      operationId: getProduction
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: production_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Production"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+    patch:
+      tags:
+        - productions
+      operationId: patchProduction
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: production_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchProductionRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Production"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "409":
+          description: Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/productions/{production_id}/dashboard:
+    get:
+      tags:
+        - productions
+      operationId: getProductionDashboard
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: production_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProductionDashboard"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/assets/upload-sessions:
+    post:
+      tags:
+        - assets
+      operationId: createUploadSession
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/UploadSession"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUploadSessionRequest"
+  /v1/assets:
+    post:
+      tags:
+        - assets
+      operationId: createAsset
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Asset"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssetRequest"
+  /v1/assets/{asset_id}:
+    get:
+      tags:
+        - assets
+      operationId: getAsset
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Asset"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/assets/{asset_id}/links:
+    post:
+      tags:
+        - assets
+      operationId: createAssetLink
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AssetLink"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssetLinkRequest"
+  /v1/assets/{asset_id}/actions/ingest:
+    post:
+      tags:
+        - assets
+      operationId: ingestAsset
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Asset ingest queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestAssetRequest"
+  /v1/knowledge/search:
+    post:
+      tags:
+        - assets
+      operationId: searchKnowledge
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/KnowledgeSearchResult"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeSearchRequest"
+  /v1/script-documents:
+    post:
+      tags:
+        - scripts
+      operationId: createScriptDocument
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ScriptDocument"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScriptDocumentRequest"
+  /v1/script-documents/{doc_id}/versions:
+    post:
+      tags:
+        - scripts
+      operationId: createScriptVersion
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: doc_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ScriptVersion"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScriptVersionRequest"
+  /v1/script-versions/{version_id}/actions/parse:
+    post:
+      tags:
+        - scripts
+      operationId: parseScriptVersion
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: version_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParseScriptVersionRequest"
+  /v1/script-versions/{version_id}/scenes:
+    get:
+      tags:
+        - scripts
+      operationId: getScriptVersionScenes
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: version_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SceneRevision"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/script-versions/{version_id}/actions/publish:
+    post:
+      tags:
+        - scripts
+      operationId: publishScriptVersion
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: version_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ScriptVersion"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishScriptVersionRequest"
+  /v1/scenes/{scene_id}:
+    patch:
+      tags:
+        - scenes
+      operationId: patchScene
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchSceneRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Scene"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "409":
+          description: Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/scenes/{scene_id}/workspace:
+    get:
+      tags:
+        - scenes
+      operationId: getSceneWorkspace
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SceneWorkspace"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/scenes/{scene_id}/actions/generate-visual-plan:
+    post:
+      tags:
+        - plans
+      operationId: generateVisualPlan
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePlanRequest"
+  /v1/scenes/{scene_id}/actions/generate-camera-plan:
+    post:
+      tags:
+        - plans
+      operationId: generateCameraPlan
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePlanRequest"
+  /v1/scenes/{scene_id}/actions/generate-lighting-plan:
+    post:
+      tags:
+        - plans
+      operationId: generateLightingPlan
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateLightingPlanRequest"
+  /v1/scenes/{scene_id}/actions/generate-shot-plan:
+    post:
+      tags:
+        - plans
+      operationId: generateShotPlan
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateShotPlanRequest"
+  /v1/scenes/{scene_id}/actions/approve-plan:
+    post:
+      tags:
+        - plans
+      operationId: approveScenePlan
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ScenePlanVersion"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveScenePlanRequest"
+  /v1/scenes/{scene_id}/actions/check-continuity:
+    post:
+      tags:
+        - continuity
+      operationId: checkContinuity
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckContinuityRequest"
+  /v1/scenes/{scene_id}/continuity-flags:
+    get:
+      tags:
+        - continuity
+      operationId: listContinuityFlags
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ContinuityFlag"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/scenes/{scene_id}/actions/generate-pickups:
+    post:
+      tags:
+        - post
+      operationId: generatePickups
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneratePickupsRequest"
+  /v1/locations:
+    post:
+      tags:
+        - plans
+      operationId: createLocation
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Location"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLocationRequest"
+  /v1/locations/{location_id}/recce-reports:
+    post:
+      tags:
+        - plans
+      operationId: createRecceReport
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RecceReport"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecceReportRequest"
+  /v1/recce-reports/{recce_id}/actions/analyze:
+    post:
+      tags:
+        - plans
+      operationId: analyzeRecceReport
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: recce_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeRecceRequest"
+  /v1/equipment/items:
+    post:
+      tags:
+        - shooting
+      operationId: createEquipmentItem
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EquipmentItem"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEquipmentItemRequest"
+  /v1/equipment/kits:
+    post:
+      tags:
+        - shooting
+      operationId: createEquipmentKit
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/EquipmentKit"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEquipmentKitRequest"
+  /v1/shooting-days:
+    post:
+      tags:
+        - shooting
+      operationId: createShootingDay
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ShootingDay"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShootingDayRequest"
+  /v1/shooting-days/{day_id}/scene-assignments:
+    post:
+      tags:
+        - shooting
+      operationId: createDaySceneAssignment
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: day_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/DaySceneAssignment"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDaySceneAssignmentRequest"
+  /v1/shooting-days/{day_id}/workspace:
+    get:
+      tags:
+        - shooting
+      operationId: getShootingDayWorkspace
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: day_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ShootingDayWorkspace"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/setups:
+    post:
+      tags:
+        - shooting
+      operationId: createSetup
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Setup"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSetupRequest"
+  /v1/setups/{setup_id}:
+    patch:
+      tags:
+        - shooting
+      operationId: patchSetup
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: setup_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchSetupRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Setup"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "409":
+          description: Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/shots:
+    post:
+      tags:
+        - shooting
+      operationId: createShot
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Shot"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShotRequest"
+  /v1/shots/{shot_id}:
+    patch:
+      tags:
+        - shooting
+      operationId: patchShot
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: shot_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchShotRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Shot"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "409":
+          description: Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/takes:
+    post:
+      tags:
+        - shooting
+      operationId: createTake
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Take"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTakeRequest"
+  /v1/takes/{take_id}/metadata:
+    post:
+      tags:
+        - shooting
+      operationId: attachTakeMetadata
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: take_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Take"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchTakeMetadataRequest"
+  /v1/voice-sessions:
+    post:
+      tags:
+        - shooting
+      operationId: createVoiceSession
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/VoiceSession"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVoiceSessionRequest"
+  /v1/voice-sessions/{session_id}/events:
+    post:
+      tags:
+        - shooting
+      operationId: createVoiceEvent
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/VoiceEvent"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVoiceEventRequest"
+  /v1/realtime/sessions:
+    post:
+      tags:
+        - shooting
+      operationId: createRealtimeSession
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RealtimeSessionToken"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRealtimeSessionRequest"
+  /v1/editorial-sequences/import:
+    post:
+      tags:
+        - post
+      operationId: importEditorialSequence
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportEditorialSequenceRequest"
+  /v1/editorial-sequences/{sequence_id}/actions/review-rushes:
+    post:
+      tags:
+        - post
+      operationId: reviewRushes
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: sequence_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewRushesRequest"
+  /v1/color-pipelines:
+    post:
+      tags:
+        - post
+      operationId: createColorPipeline
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ColorPipeline"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateColorPipelineRequest"
+  /v1/cdls:
+    post:
+      tags:
+        - post
+      operationId: createCDL
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/CDLDecision"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCDLRequest"
+  /v1/handoffs:
+    post:
+      tags:
+        - post
+      operationId: createHandoff
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHandoffRequest"
+  /v1/comments:
+    post:
+      tags:
+        - agents
+      operationId: createComment
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Comment"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentRequest"
+  /v1/tasks:
+    post:
+      tags:
+        - agents
+      operationId: createTask
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Task"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+  /v1/approvals:
+    post:
+      tags:
+        - agents
+      operationId: createApproval
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Approval"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApprovalRequest"
+  /v1/approvals/{approval_id}/actions/decide:
+    post:
+      tags:
+        - agents
+      operationId: decideApproval
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Approval"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecideApprovalRequest"
+  /v1/agents:
+    get:
+      tags:
+        - agents
+      operationId: listAgents
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AgentDefinition"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/agents/{agent_key}:
+    get:
+      tags:
+        - agents
+      operationId: getAgentDefinition
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: agent_key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AgentDefinition"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/agent-runs:
+    post:
+      tags:
+        - agents
+      operationId: createAgentRun
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AsyncAccepted"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgentRunRequest"
+  /v1/agent-runs/{run_id}:
+    get:
+      tags:
+        - agents
+      operationId: getAgentRun
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AgentRun"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/agent-runs/{run_id}/actions/cancel:
+    post:
+      tags:
+        - agents
+      operationId: cancelAgentRun
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/AgentRun"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+  /v1/sync/push:
+    post:
+      tags:
+        - sync
+      operationId: syncPush
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SyncPushResponse"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncPushRequest"
+  /v1/sync/pull:
+    post:
+      tags:
+        - sync
+      operationId: syncPull
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      changes:
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: true
+                      next_cursor:
+                        type: string
+                    required:
+                      - changes
+                      - next_cursor
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SyncPullRequest"
+  /v1/audit/entity/{entity_type}/{entity_id}:
+    get:
+      tags:
+        - agents
+      operationId: getEntityAuditLogs
+      parameters:
+        - $ref: "#/components/parameters/OrgIdHeader"
+        - name: entity_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UUID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error
+        "403":
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  meta:
+                    $ref: "#/components/schemas/RequestMeta"
+                  error:
+                    oneOf:
+                      - $ref: "#/components/schemas/ApiError"
+                      - type: "null"
+                required:
+                  - data
+                  - meta
+                  - error

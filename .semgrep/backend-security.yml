@@ -1,0 +1,148 @@
+rules:
+  - id: thecopy.backend.req-body-destructure-without-zod
+    message: >-
+      لا تقرأ أو تفكك req.body مباشرة في الـ backend. نفّذ Zod parse/safeParse أولاً،
+      ثم استخدم validation.data أو body المتحقق منه.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/backend/src/**/*.ts
+        - /apps/backend/src/**/*.js
+      exclude:
+        - /apps/backend/src/**/*.test.ts
+        - /apps/backend/src/**/*.spec.ts
+        - /apps/backend/src/scripts/**
+    patterns:
+      - pattern-either:
+          - pattern: const { ... } = req.body
+          - pattern: const $X = req.body.$FIELD
+          - pattern: const { ... } = $REQ.body
+          - pattern: const $X = $REQ.body.$FIELD
+      - pattern-not-inside: |
+          const $VALIDATION = $SCHEMA.safeParse(req.body);
+          ...
+          const { ... } = $VALIDATION.data
+      - pattern-not-inside: |
+          const $BODY = $SCHEMA.parse(req.body);
+          ...
+          const { ... } = $BODY
+      - pattern-not-inside: |
+          const $VALIDATION = $SCHEMA.safeParse($REQ.body);
+          ...
+          const { ... } = $VALIDATION.data
+      - pattern-not-inside: |
+          const $BODY = $SCHEMA.parse($REQ.body);
+          ...
+          const { ... } = $BODY
+    metadata:
+      category: security
+      technology: [express, zod]
+      confidence: medium
+
+  - id: thecopy.backend.no-open-cors-with-credentials
+    message: >-
+      استخدام CORS مع origin="*" و credentials=true غير آمن. استخدم allowlist صريحة للأصول.
+    languages: [typescript, javascript]
+    severity: ERROR
+    paths:
+      include:
+        - /apps/backend/src/**/*.ts
+        - /apps/backend/src/**/*.js
+      exclude:
+        - /apps/backend/src/**/*.test.ts
+        - /apps/backend/src/**/*.spec.ts
+    pattern-either:
+      - pattern: |
+          cors({
+            ...,
+            origin: "*",
+            ...,
+            credentials: true,
+            ...
+          })
+      - pattern: |
+          cors({
+            ...,
+            credentials: true,
+            ...,
+            origin: "*",
+            ...
+          })
+      - pattern: |
+          cors({
+            ...,
+            origin: '*',
+            ...,
+            credentials: true,
+            ...
+          })
+      - pattern: |
+          cors({
+            ...,
+            credentials: true,
+            ...,
+            origin: '*',
+            ...
+          })
+    metadata:
+      category: security
+      cwe: 'CWE-346'
+
+  - id: thecopy.backend.no-token-in-json-auth-response
+    message: >-
+      في مسارات المصادقة الحساسة، لا تُرجع token داخل JSON إذا كنت تستخدم httpOnly cookie بالفعل.
+      فضّل الاكتفاء بالكوكي وتجنّب كشف الرمز لواجهة العميل.
+    languages: [typescript, javascript]
+    severity: WARNING
+    paths:
+      include:
+        - /apps/backend/src/**/*.ts
+        - /apps/backend/src/**/*.js
+      exclude:
+        - /apps/backend/src/**/*.test.ts
+        - /apps/backend/src/**/*.spec.ts
+    patterns:
+      - pattern-inside: |
+          res.cookie(...)
+          ...
+      - pattern-either:
+          - pattern: |
+              res.json({
+                ...,
+                token: $TOKEN,
+                ...
+              })
+          - pattern: |
+              res.json({
+                ...,
+                data: { ..., token: $TOKEN, ... },
+                ...
+              })
+          - pattern: |
+              res.status(...).json({
+                ...,
+                token: $TOKEN,
+                ...
+              })
+          - pattern: |
+              res.status(...).json({
+                ...,
+                data: { ..., token: $TOKEN, ... },
+                ...
+              })
+          - pattern: |
+              res["status"](...).json({
+                ...,
+                token: $TOKEN,
+                ...
+              })
+          - pattern: |
+              res["status"](...).json({
+                ...,
+                data: { ..., token: $TOKEN, ... },
+                ...
+              })
+    metadata:
+      category: security
+      confidence: medium

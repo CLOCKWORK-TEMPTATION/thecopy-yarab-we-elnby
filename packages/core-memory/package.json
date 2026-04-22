@@ -1,0 +1,23 @@
+{
+  "name": "@the-copy/core-memory",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./chunking": "./dist/chunking/index.js",
+    "./types": "./dist/types.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules .turbo",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@the-copy/tsconfig": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.6"
+  }
+}

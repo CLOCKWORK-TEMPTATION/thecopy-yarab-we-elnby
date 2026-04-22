@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "🔍 Semgrep — فحص القواعد الصارمة..."
+if command -v semgrep >/dev/null 2>&1; then
+  pnpm run security:semgrep
+else
+  echo "⚠️  semgrep غير مثبت محلياً — تخطّي الفحص (CI سيعمل الفحص إلزاميًا)."
+  echo "    للتثبيت:  pip install semgrep  أو  brew install semgrep"
+fi
+
+echo "✅ Pre-push verification..."
+pnpm prepush:verify

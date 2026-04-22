@@ -1,0 +1,57 @@
+{
+  "root": "The Copy Agent Layer",
+  "nodes": [
+    {
+      "id": "contract",
+      "label": "AGENTS.md"
+    },
+    {
+      "id": "operating",
+      "label": ".repo-agent/OPERATING-CONTRACT.md"
+    },
+    {
+      "id": "rag-contract",
+      "label": ".repo-agent/RAG-OPERATING-CONTRACT.md"
+    },
+    {
+      "id": "state",
+      "label": "output/session-state.md"
+    },
+    {
+      "id": "rounds",
+      "label": "output/round-notes.md"
+    },
+    {
+      "id": "code-map",
+      "label": "output/code-map/*"
+    },
+    {
+      "id": "mind-map",
+      "label": "output/mind-map/*"
+    },
+    {
+      "id": "copilot",
+      "label": ".github/copilot-instructions.md"
+    },
+    {
+      "id": "workspace-embeddings",
+      "label": "Workspace Code Embeddings"
+    },
+    {
+      "id": "backend-memory",
+      "label": "Backend Memory Retrieval"
+    },
+    {
+      "id": "backend-enhanced-rag",
+      "label": "Backend Enhanced RAG"
+    },
+    {
+      "id": "editor-code-rag",
+      "label": "Editor Code RAG"
+    },
+    {
+      "id": "web-legacy-rag",
+      "label": "Web Legacy RAG Utilities"
+    }
+  ]
+}

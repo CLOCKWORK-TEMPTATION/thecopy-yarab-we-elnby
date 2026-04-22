@@ -1,0 +1,101 @@
+.documentation-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.documentation-toolbar .btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.documentation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.doc-card {
+  position: relative;
+}
+
+.doc-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+.doc-header h3 {
+  font-size: 18px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.doc-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.doc-sections h4 {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.doc-sections ul {
+  list-style: none;
+}
+
+.doc-sections li {
+  padding: 8px 12px;
+  background: var(--secondary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.doc-meta {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.export-buttons .btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.elements-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.element-tag {
+  background: var(--primary);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .documentation-grid {
+    grid-template-columns: 1fr;
+  }
+}

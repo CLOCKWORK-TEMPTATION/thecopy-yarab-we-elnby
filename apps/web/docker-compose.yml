@@ -1,0 +1,77 @@
+name: thecopy-web
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://backend-thecopy-production.up.railway.app
+        NEXT_PUBLIC_BACKEND_URL: https://backend-thecopy-production.up.railway.app
+        NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL: https://backend-thecopy-production.up.railway.app/api/file-extract
+        NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL: https://backend-thecopy-production.up.railway.app/api/final-review
+      secrets:
+        - tiptap_pro_token
+    ports:
+      - "5000:5000"
+    env_file:
+      - ../../.env.docker
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      HOSTNAME: "0.0.0.0"
+      BACKEND_URL: http://backend:3001
+      EDITOR_RUNTIME_BASE_URL: http://backend:3001
+      FILE_IMPORT_BACKEND_URL: http://backend:3001
+      NEXT_PUBLIC_API_URL: https://backend-thecopy-production.up.railway.app
+      NEXT_PUBLIC_BACKEND_URL: https://backend-thecopy-production.up.railway.app
+      NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL: https://backend-thecopy-production.up.railway.app/api/file-extract
+      NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL: https://backend-thecopy-production.up.railway.app/api/final-review
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://127.0.0.1:5000/api/__health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "3001:3001"
+    env_file: ../../.env.docker
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      FRONTEND_URL: https://www.thecopy.app
+      CORS_ORIGIN: https://www.thecopy.app,https://thecopy-front.vercel.app,https://thecopy-front-git-main-amin9.vercel.app,https://thecopy-front-amin9.vercel.app,https://thecopy-front-6xny4taoe-amin9.vercel.app,http://localhost:5000
+      DATABASE_URL: postgresql://thecopy:thecopy_dev@host.docker.internal:5433/thecopy_dev
+      REDIS_ENABLED: "false"
+      MEMORY_SYSTEM_ENABLED: "false"
+      WEAVIATE_REQUIRED: "false"
+      AGENT_REVIEW_MODEL: google-genai:gemini-2.5-flash
+      FINAL_REVIEW_MODEL: google-genai:gemini-2.5-flash
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_GENAI_API_KEY: ${GOOGLE_GENAI_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "node", "scripts/verify-runtime-health.mjs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+secrets:
+  tiptap_pro_token:
+    file: ../../.env.docker

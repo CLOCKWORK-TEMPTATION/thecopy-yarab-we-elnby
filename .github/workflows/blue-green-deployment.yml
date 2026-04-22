@@ -1,0 +1,493 @@
+name: Blue-Green Deployment
+
+# This workflow handles production deployments using blue-green strategy
+# - On pull_request: Validates workflow syntax (no deployment)
+# - On push to main: Deploys to production after CI passes
+# - On workflow_dispatch: Manual deployment/rollback
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (blue/green)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - blue
+          - green
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        default: false
+        type: boolean
+
+# SECURITY: Restrict permissions to minimum required
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PNPM_VERSION: '10.32.1'
+  BLUE_PORT: 3001
+  GREEN_PORT: 3002
+  SSH_PRIVATE_KEY_SECRET_NAME: SSH_PRIVATE_KEY
+  SSH_HOST_SECRET_NAME: SSH_HOST
+  SSH_USER_SECRET_NAME: SSH_USER
+  PRODUCTION_URL_SECRET_NAME: PRODUCTION_URL
+  SLACK_WEBHOOK_URL_SECRET_NAME: SLACK_WEBHOOK_URL
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Verify tracked dockerignore
+        run: node scripts/ci/check-dockerignore.mjs
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve backend verification secrets
+        id: backend_verify
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          GEMINI_API_KEY="$(echo "$SECRETS_JSON" | jq -r '.GEMINI_API_KEY // .GOOGLE_GENAI_API_KEY // .AI_API_KEY // empty')"
+
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ Missing required verification secret (GEMINI_API_KEY / GOOGLE_GENAI_API_KEY / AI_API_KEY)"
+            exit 1
+          fi
+
+          echo "::add-mask::$GEMINI_API_KEY"
+          echo "gemini_key=$GEMINI_API_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Preflight backend Docker build
+        run: |
+          docker buildx build \
+            --load \
+            --file apps/backend/Dockerfile \
+            --tag the-copy-backend:deploy-preflight \
+            .
+
+      - name: Start PostgreSQL for preflight verification
+        run: docker compose -f docker-compose.infra.yml up -d postgres
+
+      - name: Start backend preflight container
+        env:
+          GEMINI_API_KEY: ${{ steps.backend_verify.outputs.gemini_key }}
+        run: |
+          docker run -d \
+            --name the-copy-backend-deploy-preflight \
+            --add-host=host.docker.internal:host-gateway \
+            -p 3001:3001 \
+            -e NODE_ENV=production \
+            -e DATABASE_URL=postgresql://thecopy:thecopy_dev@host.docker.internal:5433/thecopy_dev \
+            -e JWT_SECRET=blue-green-preflight-secret-at-least-32-characters \
+            -e REDIS_ENABLED=false \
+            -e MEMORY_SYSTEM_ENABLED=false \
+            -e WEAVIATE_REQUIRED=false \
+            -e GEMINI_API_KEY="$GEMINI_API_KEY" \
+            -e GOOGLE_GENAI_API_KEY="$GEMINI_API_KEY" \
+            -e AGENT_REVIEW_MODEL=google-genai:gemini-2.5-flash \
+            -e FINAL_REVIEW_MODEL=google-genai:gemini-2.5-flash \
+            -e FINAL_REVIEW_MOCK_MODE=success \
+            the-copy-backend:deploy-preflight
+
+      - name: Verify backend preflight runtime
+        run: |
+          BACKEND_HEALTH_BASE_URL=http://127.0.0.1:3001 \
+          BACKEND_HEALTH_WAIT_SECONDS=120 \
+          BACKEND_HEALTH_PROBE_FILE_EXTRACT=true \
+          BACKEND_HEALTH_PROBE_TEXT_EXTRACT=true \
+          BACKEND_HEALTH_PROBE_FINAL_REVIEW=true \
+          BACKEND_HEALTH_PROBE_FAILURES=true \
+          node apps/backend/scripts/verify-runtime-health.mjs
+
+      - name: Cleanup backend preflight containers
+        if: always()
+        run: |
+          docker rm -f the-copy-backend-deploy-preflight 2>/dev/null || true
+          docker compose -f docker-compose.infra.yml down -v
+
+      - name: Setup SSH
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_PRIVATE_KEY="$(echo "$SECRETS_JSON" | jq -r '.SSH_PRIVATE_KEY // empty')"
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ]; then
+            echo "❌ Missing required deployment secrets (SSH_PRIVATE_KEY / SSH_HOST / SSH_USER)"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          
+      - name: Deploy to production
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+          DEPLOY_ENVIRONMENT: ${{ github.event.inputs.environment || 'auto' }}
+        run: |
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+          TIPTAP_PRO_TOKEN="$(echo "$SECRETS_JSON" | jq -r '.TIPTAP_PRO_TOKEN // empty')"
+
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$TIPTAP_PRO_TOKEN" ]; then
+            echo "❌ Missing required deployment secrets (SSH_HOST / SSH_USER / TIPTAP_PRO_TOKEN)"
+            exit 1
+          fi
+
+          TIPTAP_PRO_TOKEN_B64="$(printf '%s' "$TIPTAP_PRO_TOKEN" | base64 -w0)"
+
+          # Create deployment script
+          cat > deploy.sh << 'EOF'
+          #!/bin/bash
+          set -euo pipefail
+
+          if [ -z "${TIPTAP_PRO_TOKEN:-}" ]; then
+            echo "TIPTAP_PRO_TOKEN is required for private @tiptap-pro registry access"
+            exit 1
+          fi
+
+          trap 'rm -f ~/.npmrc' EXIT
+
+          {
+            echo "auto-install-peers=false"
+            echo "@tiptap-pro:registry=https://registry.tiptap.dev/"
+            printf '//registry.tiptap.dev/:_authToken=%s\n' "$TIPTAP_PRO_TOKEN"
+          } > ~/.npmrc
+          
+          # Configuration
+          PROJECT_DIR="/opt/theeeecopy"
+          BLUE_PORT="${{ env.BLUE_PORT }}"
+          GREEN_PORT="${{ env.GREEN_PORT }}"
+          
+          # Create project directory if it doesn't exist
+          sudo mkdir -p "$PROJECT_DIR"
+          sudo chown $USER:$USER "$PROJECT_DIR"
+          
+          # Clone or update repository
+          if [ -d "$PROJECT_DIR/.git" ]; then
+            cd "$PROJECT_DIR"
+            git fetch origin
+            git reset --hard origin/main
+          else
+            git clone ${{ github.server_url }}/${{ github.repository }} "$PROJECT_DIR"
+            cd "$PROJECT_DIR"
+          fi
+
+          if ! command -v pnpm >/dev/null 2>&1; then
+            if ! command -v corepack >/dev/null 2>&1; then
+              echo "corepack is required on the deployment host"
+              exit 1
+            fi
+
+            corepack enable
+            corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+          fi
+          
+          # Install dependencies and build
+          pnpm install --frozen-lockfile --filter @the-copy/backend...
+          pnpm --filter @the-copy/backend build
+          
+          # Set environment variables
+          export BLUE_PORT="$BLUE_PORT"
+          export GREEN_PORT="$GREEN_PORT"
+          export NODE_ENV="production"
+          
+          # Run blue-green deployment
+          chmod +x scripts/deploy/blue-green-deploy.sh
+          ./scripts/deploy/blue-green-deploy.sh deploy
+          
+          # Cleanup old deployments (keep last 3)
+          cd "$PROJECT_DIR"
+          find . -name "backup.*" -type d | sort -r | tail -n +4 | xargs rm -rf || true
+          
+          echo "Deployment completed successfully"
+          EOF
+          
+          chmod +x deploy.sh
+          
+          # Copy deployment script and execute remotely
+          scp -i ~/.ssh/deploy_key deploy.sh "$SSH_USER@$SSH_HOST:/tmp/deploy.sh"
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" "export TIPTAP_PRO_TOKEN=\$(printf '%s' '$TIPTAP_PRO_TOKEN_B64' | base64 -d); bash /tmp/deploy.sh"
+          
+      - name: Verify deployment
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+          PRODUCTION_URL="$(echo "$SECRETS_JSON" | jq -r '.PRODUCTION_URL // empty')"
+
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$PRODUCTION_URL" ]; then
+            echo "❌ Missing required deployment secrets (SSH_HOST / SSH_USER / PRODUCTION_URL)"
+            exit 1
+          fi
+
+          # Wait for deployment to stabilize
+          sleep 30
+          
+          # Check health endpoint
+          max_attempts=10
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            if curl -f -s "${PRODUCTION_URL}/health" > /dev/null; then
+              echo "✅ Health check passed"
+              break
+            else
+              echo "⏳ Health check attempt $attempt/$max_attempts failed, retrying..."
+              sleep 10
+              attempt=$((attempt + 1))
+            fi
+          done
+          
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ Health check failed after $max_attempts attempts"
+            exit 1
+          fi
+          
+          # Check readiness endpoint
+          if curl -f -s "${PRODUCTION_URL}/health/ready" | jq -r '.status' | grep -q "ready"; then
+            echo "✅ Readiness check passed"
+          else
+            echo "❌ Readiness check failed"
+            exit 1
+          fi
+          
+          # Run smoke tests
+          echo "Running smoke tests..."
+          
+          # Test API endpoints
+          if curl -f -s "${PRODUCTION_URL}/api/health" > /dev/null; then
+            echo "✅ API health check passed"
+          else
+            echo "❌ API health check failed"
+            exit 1
+          fi
+
+          if curl -f -s "${PRODUCTION_URL}/api/editor-runtime/health" | jq -e '.ok == true and .status == "ok"' > /dev/null; then
+            echo "✅ Editor runtime health check passed"
+          else
+            echo "❌ Editor runtime health check failed"
+            exit 1
+          fi
+          
+          echo "✅ All deployment verification checks passed"
+          
+      - name: Cleanup SSH keys
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+        
+      - name: Notify deployment status
+        if: always()
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SLACK_WEBHOOK_URL="$(echo "$SECRETS_JSON" | jq -r '.SLACK_WEBHOOK_URL // empty')"
+
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "ℹ️ SLACK_WEBHOOK_URL not configured; skipping notification"
+            exit 0
+          fi
+
+          MESSAGE="Deployment ${{ job.status }} for ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}"
+          PAYLOAD="$(jq -n --arg text "$MESSAGE" '{text: $text}')"
+          curl -sS -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" > /dev/null
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment != 'auto'
+    environment: production
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup SSH
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_PRIVATE_KEY="$(echo "$SECRETS_JSON" | jq -r '.SSH_PRIVATE_KEY // empty')"
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ]; then
+            echo "❌ Missing required rollback secrets (SSH_PRIVATE_KEY / SSH_HOST / SSH_USER)"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          
+      - name: Perform rollback
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+          TARGET_ENVIRONMENT: ${{ github.event.inputs.environment }}
+        run: |
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ]; then
+            echo "❌ Missing required rollback secrets (SSH_HOST / SSH_USER)"
+            exit 1
+          fi
+
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" << EOF
+          cd /opt/theeeecopy
+          
+          # Get current active environment
+          CURRENT_ENV=\$(grep -oP 'localhost:\K[0-9]+' /etc/nginx/sites-available/theeeecopy | head -1)
+          if [ "\$CURRENT_ENV" = "${{ env.BLUE_PORT }}" ]; then
+            CURRENT_ENV="blue"
+            CURRENT_PORT="${{ env.BLUE_PORT }}"
+            TARGET_PORT="${{ env.GREEN_PORT }}"
+          else
+            CURRENT_ENV="green"
+            CURRENT_PORT="${{ env.GREEN_PORT }}"
+            TARGET_PORT="${{ env.BLUE_PORT }}"
+          fi
+          
+          echo "Current environment: \$CURRENT_ENV"
+          echo "Target environment: $TARGET_ENVIRONMENT"
+          
+          if [ "\$CURRENT_ENV" = "$TARGET_ENVIRONMENT" ]; then
+            echo "Already on $TARGET_ENVIRONMENT environment - no rollback needed"
+            exit 0
+          fi
+          
+          # Switch traffic back
+          ./scripts/deploy/blue-green-deploy.sh rollback
+          
+          echo "Rollback completed successfully"
+          EOF
+          
+      - name: Verify rollback
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+          PRODUCTION_URL="$(echo "$SECRETS_JSON" | jq -r '.PRODUCTION_URL // empty')"
+
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$PRODUCTION_URL" ]; then
+            echo "❌ Missing required rollback secrets (SSH_HOST / SSH_USER / PRODUCTION_URL)"
+            exit 1
+          fi
+
+          sleep 15
+          
+          # Verify health after rollback
+          if curl -f -s "${PRODUCTION_URL}/health" > /dev/null; then
+            echo "✅ Rollback verification passed"
+          else
+            echo "❌ Rollback verification failed"
+            exit 1
+          fi
+          
+      - name: Cleanup SSH keys
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+        
+      - name: Notify rollback status
+        if: always()
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SLACK_WEBHOOK_URL="$(echo "$SECRETS_JSON" | jq -r '.SLACK_WEBHOOK_URL // empty')"
+
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "ℹ️ SLACK_WEBHOOK_URL not configured; skipping notification"
+            exit 0
+          fi
+
+          MESSAGE="Rollback ${{ job.status }} for ${{ github.repository }}\nTarget Environment: ${{ github.event.inputs.environment }}\nInitiated by: ${{ github.actor }}"
+          PAYLOAD="$(jq -n --arg text "$MESSAGE" '{text: $text}')"
+          curl -sS -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_WEBHOOK_URL" > /dev/null
+
+  cleanup:
+    name: Cleanup Old Deployments
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    # Only run cleanup when deploy job ran successfully
+    if: needs.deploy.result == 'success' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup SSH
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_PRIVATE_KEY="$(echo "$SECRETS_JSON" | jq -r '.SSH_PRIVATE_KEY // empty')"
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ]; then
+            echo "❌ Missing required cleanup secrets (SSH_PRIVATE_KEY / SSH_HOST / SSH_USER)"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          
+      - name: Cleanup old deployments
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+        run: |
+          SSH_HOST="$(echo "$SECRETS_JSON" | jq -r '.SSH_HOST // empty')"
+          SSH_USER="$(echo "$SECRETS_JSON" | jq -r '.SSH_USER // empty')"
+
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ]; then
+            echo "❌ Missing required cleanup secrets (SSH_HOST / SSH_USER)"
+            exit 1
+          fi
+
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" << EOF
+          # Cleanup old PM2 processes
+          pm2 delete all 2>/dev/null || true
+          
+          # Cleanup old build artifacts (keep last 5)
+          cd /opt/theeeecopy
+          find . -name "backup.*" -type d | sort -r | tail -n +6 | xargs rm -rf || true
+          
+          # Cleanup old log files (keep last 30 days)
+          find /var/log -name "*.log" -mtime +30 -delete 2>/dev/null || true
+          
+          echo "Cleanup completed"
+          EOF
+          
+      - name: Cleanup SSH keys
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

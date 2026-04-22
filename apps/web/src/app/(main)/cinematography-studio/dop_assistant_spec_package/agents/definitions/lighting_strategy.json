@@ -1,0 +1,95 @@
+{
+  "key": "lighting_strategy",
+  "name": "وكيل استراتيجية الإضاءة",
+  "domain": "planning",
+  "description": "يقترح منطق الإضاءة والطاقة والتحكم اللوني والسلامة.",
+  "trigger": ["scene.lighting_plan.requested"],
+  "reads": [
+    "scene_plan_versions",
+    "scene_visual_specs",
+    "recce_reports",
+    "equipment_items"
+  ],
+  "writes": [
+    "scene_lighting_specs",
+    "scene_risks",
+    "scene_equipment_recommendations"
+  ],
+  "input_schema": {
+    "type": "object",
+    "required": ["scene_id", "scene_plan_version_id", "production_id"],
+    "properties": {
+      "scene_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "scene_plan_version_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "production_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "location_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      },
+      "recce_report_id": {
+        "type": ["string", "null"],
+        "format": "uuid"
+      }
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "lighting_intent",
+      "key_fill_practicals",
+      "color_temp_strategy",
+      "power_requirements",
+      "safety_notes",
+      "open_questions"
+    ],
+    "properties": {
+      "lighting_intent": {
+        "type": "string"
+      },
+      "key_fill_practicals": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "color_temp_strategy": {
+        "type": "string"
+      },
+      "power_requirements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "safety_notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "open_questions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "policy": {
+    "requires_human_review": true,
+    "review_when": ["before_approval"],
+    "can_edit_approved_entities": false,
+    "max_write_scope": [
+      "scene_lighting_specs",
+      "scene_risks",
+      "scene_equipment_recommendations"
+    ]
+  }
+}

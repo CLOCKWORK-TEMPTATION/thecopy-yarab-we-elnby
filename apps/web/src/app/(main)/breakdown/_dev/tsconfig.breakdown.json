@@ -1,0 +1,14 @@
+{
+  "extends": "../../../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["../**/*.ts", "../**/*.tsx"],
+  "exclude": [
+    "../_docs/**",
+    "../_dev/standalone-legacy/**",
+    "../tests/**",
+    "../**/*.test.ts",
+    "../**/*.test.tsx"
+  ]
+}

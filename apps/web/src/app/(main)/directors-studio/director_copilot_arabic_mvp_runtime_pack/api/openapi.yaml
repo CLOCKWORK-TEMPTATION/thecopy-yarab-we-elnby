@@ -1,0 +1,1693 @@
+openapi: 3.1.0
+info:
+  title: Director Copilot Arabic API
+  version: 1.0.0
+  description: مواصفة OpenAPI أولية لمنصة مساعد إخراجي ذكي للأفلام والمسلسلات العربية.
+servers:
+  - url: /api/v1
+    description: API v1
+tags:
+  - name: projects
+    description: إدارة المشاريع
+  - name: scripts
+    description: رفع النصوص وإدارة النسخ والتحليل
+  - name: scenes
+    description: المشاهد والـbreakdown والـstoryboard والـshot list
+  - name: schedules
+    description: الجدولة وcall sheets
+  - name: realtime
+    description: الجلسات الحية والصوت
+  - name: recordings
+    description: التسجيلات والتفريغ
+  - name: continuity
+    description: الاستمرارية والديلز
+  - name: approvals
+    description: الموافقات
+  - name: search
+    description: البحث الموحد
+  - name: editorial
+    description: التسليم التحريري
+  - name: assets
+    description: فحص provenance للأصول
+  - name: workflows
+    description: متابعة الأعمال غير المتزامنة
+paths:
+  /projects:
+    post:
+      summary: إنشاء مشروع
+      tags:
+        - projects
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "201":
+          description: تم الإنشاء
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnvelopeProject"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectCreateRequest"
+  /projects/{project_id}/scripts:upload:
+    post:
+      summary: رفع نص جديد للمشروع
+      tags:
+        - scripts
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                episode_id:
+                  type: string
+                  format: uuid
+                label:
+                  type: string
+                parse_now:
+                  type: boolean
+                  default: true
+              required:
+                - file
+  /script-versions/{script_version_id}:parse:
+    post:
+      summary: تحليل نسخة نصية إلى مشاهد
+      tags:
+        - scripts
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: script_version_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScriptParseRequest"
+  /scenes/{scene_id}:breakdown:
+    post:
+      summary: إنتاج breakdown للمشهد
+      tags:
+        - scenes
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SceneBreakdownRequest"
+  /projects/{project_id}/visual-bibles:generate:
+    post:
+      summary: توليد visual bible
+      tags:
+        - scenes
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisualBibleGenerateRequest"
+  /scenes/{scene_id}/storyboards:generate:
+    post:
+      summary: توليد storyboard للمشهد
+      tags:
+        - scenes
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StoryboardGenerateRequest"
+  /scenes/{scene_id}/shotlists:generate:
+    post:
+      summary: توليد shot list للمشهد
+      tags:
+        - scenes
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShotlistGenerateRequest"
+  /scenes/{scene_id}/previs:generate:
+    post:
+      summary: توليد previs فيديو للمشهد
+      tags:
+        - scenes
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrevisGenerateRequest"
+  /projects/{project_id}/schedules:generate:
+    post:
+      summary: توليد schedule version
+      tags:
+        - schedules
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleGenerateRequest"
+  /shooting-days/{shooting_day_id}/call-sheets:generate:
+    post:
+      summary: توليد call sheet
+      tags:
+        - schedules
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: shooting_day_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CallSheetGenerateRequest"
+  /realtime/sessions:
+    post:
+      summary: إنشاء جلسة realtime
+      tags:
+        - realtime
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "201":
+          description: تم الإنشاء
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RealtimeSessionEnvelope"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RealtimeSessionCreateRequest"
+  /recordings:
+    post:
+      summary: إنشاء recording وربطه بمشروع
+      tags:
+        - recordings
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "201":
+          description: تم الإنشاء
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordingEnvelope"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordingCreateRequest"
+  /recordings/{recording_id}:transcribe:
+    post:
+      summary: تفريغ التسجيل مع diarization
+      tags:
+        - recordings
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: recording_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranscriptionRequest"
+  /scenes/{scene_id}:continuity-report:
+    post:
+      summary: إنتاج تقرير استمرارية
+      tags:
+        - continuity
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: scene_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContinuityReportRequest"
+  /shooting-days/{shooting_day_id}:dailies-qa:
+    post:
+      summary: تشغيل dailies QA
+      tags:
+        - continuity
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: shooting_day_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailiesQARequest"
+  /approvals:
+    post:
+      summary: إنشاء طلب اعتماد
+      tags:
+        - approvals
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "201":
+          description: تم الإنشاء
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalEnvelope"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalRequestCreate"
+  /approvals/{approval_id}:decision:
+    post:
+      summary: تسجيل قرار اعتماد
+      tags:
+        - approvals
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "200":
+          description: نجاح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalEnvelope"
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecisionRequest"
+  /search:
+    post:
+      summary: بحث موحد داخل المشروع
+      tags:
+        - search
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "200":
+          description: نجاح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchEnvelope"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectSearchRequest"
+  /projects/{project_id}/editorial-exports:otio:
+    post:
+      summary: إنشاء OTIO export
+      tags:
+        - editorial
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "202":
+          description: تم قبول المهمة
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AsyncJobAccepted"
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditorialExportRequest"
+  /assets/{asset_id}:verify-provenance:
+    post:
+      summary: التحقق من provenance للأصل
+      tags:
+        - assets
+      responses:
+        "400":
+          description: طلب غير صالح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: غير مصرح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "500":
+          description: خطأ داخلي
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "200":
+          description: نجاح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProvenanceEnvelope"
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProvenanceVerifyRequest"
+  /workflows/{workflow_id}:
+    get:
+      summary: جلب حالة workflow
+      tags:
+        - workflows
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: نجاح
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowEnvelope"
+        "404":
+          description: غير موجود
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /workflows/{workflow_id}/events:
+    get:
+      summary: تيار أحداث workflow عبر SSE
+      tags:
+        - workflows
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: نجاح
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: 'event: workflow.updated\ndata: {\"status\":\"running\"}\n\n'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Meta:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        version:
+          type: string
+          default: v1
+      required:
+        - request_id
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        retryable:
+          type: boolean
+      required:
+        - code
+        - message
+        - retryable
+    ErrorEnvelope:
+      type: object
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorDetail"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - error
+        - meta
+    AsyncJobData:
+      type: object
+      properties:
+        workflow_id:
+          type: string
+        job_type:
+          type: string
+        status:
+          type: string
+          enum:
+            - queued
+            - running
+            - waiting_approval
+            - succeeded
+            - failed
+            - cancelled
+        status_url:
+          type: string
+        events_url:
+          type: string
+      required:
+        - workflow_id
+        - job_type
+        - status
+        - status_url
+    AsyncJobAccepted:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/AsyncJobData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    EnvelopeProject:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/Project"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    ProjectCreateRequest:
+      type: object
+      properties:
+        project_type:
+          type: string
+          enum:
+            - film
+            - series
+        title_ar:
+          type: string
+        title_en:
+          type: string
+        slug:
+          type: string
+        default_language_code:
+          type: string
+          default: ar
+        default_dialect_code:
+          type: string
+          default: ar-EG
+        logline:
+          type: string
+        synopsis:
+          type: string
+      required:
+        - project_type
+        - title_ar
+        - slug
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspace_id:
+          type: string
+          format: uuid
+        project_type:
+          type: string
+        title_ar:
+          type: string
+        title_en:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        default_language_code:
+          type: string
+        default_dialect_code:
+          type: string
+        logline:
+          type: string
+        synopsis:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - project_type
+        - title_ar
+        - slug
+        - status
+        - created_at
+    ScriptParseRequest:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+            - single_script
+            - episode_aware
+          default: single_script
+        language_code:
+          type: string
+          default: ar
+        dialect_code:
+          type: string
+          default: ar-EG
+        generate_scene_cards:
+          type: boolean
+          default: true
+    SceneBreakdownRequest:
+      type: object
+      properties:
+        include_entities:
+          type: boolean
+          default: true
+        include_risks:
+          type: boolean
+          default: true
+        approval_mode:
+          type: string
+          enum:
+            - draft
+            - submit
+          default: draft
+    VisualBibleGenerateRequest:
+      type: object
+      properties:
+        scope:
+          type: string
+          enum:
+            - project
+            - episode
+          default: project
+        episode_id:
+          type: string
+          format: uuid
+        reference_asset_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        style_intent:
+          type: string
+        output_depth:
+          type: string
+          enum:
+            - light
+            - standard
+            - deep
+          default: standard
+      required:
+        - scope
+    StoryboardGenerateRequest:
+      type: object
+      properties:
+        source_visual_bible_id:
+          type: string
+          format: uuid
+        frame_count_hint:
+          type: integer
+          minimum: 1
+          default: 8
+        consistency_mode:
+          type: string
+          enum:
+            - standard
+            - strict
+          default: strict
+        approval_mode:
+          type: string
+          enum:
+            - draft
+            - submit
+          default: draft
+    ShotlistGenerateRequest:
+      type: object
+      properties:
+        source_storyboard_id:
+          type: string
+          format: uuid
+        coverage_goal:
+          type: string
+          enum:
+            - minimal
+            - balanced
+            - full
+          default: balanced
+        camera_style:
+          type: string
+        blocking_intent:
+          type: string
+        approval_mode:
+          type: string
+          enum:
+            - draft
+            - submit
+          default: draft
+    PrevisGenerateRequest:
+      type: object
+      properties:
+        source_storyboard_id:
+          type: string
+          format: uuid
+        source_shotlist_id:
+          type: string
+          format: uuid
+        duration_sec:
+          type: integer
+          minimum: 1
+          maximum: 180
+          default: 20
+        aspect_ratio:
+          type: string
+          default: "16:9"
+        quality_profile:
+          type: string
+          enum:
+            - draft
+            - preview
+            - high
+          default: preview
+      required:
+        - source_storyboard_id
+        - source_shotlist_id
+    ScheduleGenerateRequest:
+      type: object
+      properties:
+        horizon:
+          type: string
+          enum:
+            - day
+            - week
+            - full_project
+          default: full_project
+        constraints:
+          type: object
+          properties:
+            group_by_location:
+              type: boolean
+              default: true
+            respect_day_night:
+              type: boolean
+              default: true
+            cast_availability:
+              type: boolean
+              default: true
+            avoid_company_moves:
+              type: boolean
+              default: false
+          additionalProperties: true
+        strategy:
+          type: string
+          enum:
+            - fast
+            - balanced
+            - cost_aware
+          default: balanced
+    CallSheetGenerateRequest:
+      type: object
+      properties:
+        schedule_version_id:
+          type: string
+          format: uuid
+        template_key:
+          type: string
+          default: standard
+        include_transport:
+          type: boolean
+          default: false
+        approval_mode:
+          type: string
+          enum:
+            - draft
+            - submit
+          default: draft
+      required:
+        - schedule_version_id
+    RealtimeSessionCreateRequest:
+      type: object
+      properties:
+        project_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum:
+            - voice_copilot
+            - rehearsal
+            - notes_only
+          default: voice_copilot
+        language_code:
+          type: string
+          default: ar-EG
+        input_modalities:
+          type: array
+          items:
+            type: string
+          default:
+            - audio
+            - text
+        output_modalities:
+          type: array
+          items:
+            type: string
+          default:
+            - audio
+            - text
+        provider_preference:
+          type: string
+          enum:
+            - auto
+            - openai
+            - google
+          default: auto
+      required:
+        - project_id
+    RealtimeSessionEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            session_id:
+              type: string
+            transport:
+              type: string
+              enum:
+                - ws
+                - webrtc
+            client_token:
+              type: string
+            session_url:
+              type: string
+            expires_at:
+              type: string
+              format: date-time
+          required:
+            - session_id
+            - transport
+            - expires_at
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    RecordingCreateRequest:
+      type: object
+      properties:
+        asset_id:
+          type: string
+          format: uuid
+        recording_kind:
+          type: string
+          enum:
+            - rehearsal
+            - meeting
+            - on_set_note
+            - dailies_audio
+            - other
+        scene_id:
+          type: string
+          format: uuid
+        shooting_day_id:
+          type: string
+          format: uuid
+        take_id:
+          type: string
+          format: uuid
+      required:
+        - asset_id
+        - recording_kind
+    RecordingEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            asset_id:
+              type: string
+              format: uuid
+            recording_kind:
+              type: string
+            scene_id:
+              type: string
+              format: uuid
+            shooting_day_id:
+              type: string
+              format: uuid
+            take_id:
+              type: string
+              format: uuid
+            captured_at:
+              type: string
+              format: date-time
+          required:
+            - id
+            - asset_id
+            - recording_kind
+            - captured_at
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    TranscriptionRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum:
+            - openai
+            - google
+            - auto
+          default: auto
+        model:
+          type: string
+          default: gpt-4o-transcribe-diarize
+        language_code:
+          type: string
+          default: ar
+        speaker_diarization:
+          type: boolean
+          default: true
+    ContinuityReportRequest:
+      type: object
+      properties:
+        compare_against:
+          type: array
+          items:
+            type: string
+            enum:
+              - script
+              - shotlist
+              - storyboard
+              - takes
+              - notes
+              - transcripts
+        severity_threshold:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+          default: medium
+        include_resolution_hints:
+          type: boolean
+          default: true
+    DailiesQARequest:
+      type: object
+      properties:
+        take_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        transcript_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        expected_scene_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        mode:
+          type: string
+          enum:
+            - coverage
+            - continuity
+            - editorial
+          default: coverage
+    ApprovalRequestCreate:
+      type: object
+      properties:
+        object_type:
+          type: string
+        object_id:
+          type: string
+          format: uuid
+        policy_key:
+          type: string
+        request_comment:
+          type: string
+      required:
+        - object_type
+        - object_id
+        - policy_key
+    ApprovalDecisionRequest:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum:
+            - approve
+            - reject
+            - request_changes
+        comment:
+          type: string
+      required:
+        - decision
+    ApprovalEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            object_type:
+              type: string
+            object_id:
+              type: string
+              format: uuid
+            policy_key:
+              type: string
+          required:
+            - id
+            - status
+            - object_type
+            - object_id
+            - policy_key
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    ProjectSearchRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        project_id:
+          type: string
+          format: uuid
+        filters:
+          type: object
+          properties:
+            source_types:
+              type: array
+              items:
+                type: string
+            language_code:
+              type: string
+            dialect_code:
+              type: string
+          additionalProperties: true
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+      required:
+        - query
+        - project_id
+    SearchEnvelope:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              source_type:
+                type: string
+              source_id:
+                type: string
+                format: uuid
+              snippet:
+                type: string
+              score:
+                type: number
+              source_ref:
+                type: string
+            required:
+              - rank
+              - source_type
+              - source_id
+              - snippet
+              - score
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    EditorialExportRequest:
+      type: object
+      properties:
+        scope:
+          type: string
+          enum:
+            - day
+            - scene
+            - episode
+            - project
+          default: day
+        shooting_day_id:
+          type: string
+          format: uuid
+        scene_id:
+          type: string
+          format: uuid
+        episode_id:
+          type: string
+          format: uuid
+        include_notes:
+          type: boolean
+          default: true
+        include_selected_takes_only:
+          type: boolean
+          default: true
+        format:
+          type: string
+          enum:
+            - otio
+          default: otio
+      required:
+        - scope
+    ProvenanceVerifyRequest:
+      type: object
+      properties:
+        asset_version_id:
+          type: string
+          format: uuid
+        strict:
+          type: boolean
+          default: true
+      required:
+        - asset_version_id
+    ProvenanceEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            asset_version_id:
+              type: string
+              format: uuid
+            verification_status:
+              type: string
+              enum:
+                - unknown
+                - verified
+                - failed
+                - not_available
+            manifest_uri:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+          required:
+            - asset_version_id
+            - verification_status
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+    WorkflowEnvelope:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            workflow_id:
+              type: string
+            project_id:
+              type: string
+              format: uuid
+            workflow_type:
+              type: string
+            status:
+              type: string
+            input:
+              type: object
+              additionalProperties: true
+            output:
+              type: object
+              additionalProperties: true
+            started_at:
+              type: string
+              format: date-time
+            finished_at:
+              type: string
+              format: date-time
+          required:
+            - workflow_id
+            - workflow_type
+            - status
+            - started_at
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+security:
+  - bearerAuth: []

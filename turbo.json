@@ -1,0 +1,55 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "turbo.json"
+  ],
+  "globalEnv": ["NODE_ENV", "CI"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "passThroughEnv": ["TIPTAP_PRO_TOKEN"],
+      "env": [
+        "PORT",
+        "BACKEND_URL",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_BACKEND_URL",
+        "NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL",
+        "NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL",
+        "NEXT_PUBLIC_CDN_URL",
+        "NEXT_PUBLIC_ENABLE_CDN",
+        "NEXT_PUBLIC_TRACING_ENABLED",
+        "NEXT_PUBLIC_AI_CONTEXT_ENDPOINT",
+        "NEXT_PUBLIC_AI_CONTEXT_ENABLED",
+        "NEXT_PUBLIC_OCR_PROVIDER",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_AUTH_TOKEN"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "type-check": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**", "reports/coverage/**"]
+    },
+    "format:check": {},
+    "clean": {
+      "cache": false
+    }
+  }
+}
