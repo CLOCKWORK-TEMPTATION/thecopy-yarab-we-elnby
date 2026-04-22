@@ -796,8 +796,8 @@ output/*
 
 # Runtime & generated data
 agent_run.log
-memory/
-skills_library/
+/memory/
+/skills_library/
 WORKSPACE-EMBEDDING-SUMMARY.md
 
 # Build artifacts & generated reports
