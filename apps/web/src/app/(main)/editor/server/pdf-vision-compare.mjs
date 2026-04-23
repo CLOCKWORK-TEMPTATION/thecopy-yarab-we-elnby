@@ -172,6 +172,7 @@ const requestMistralChatForImage = async ({
         stream: false,
       };
 
+      // codeql[js/file-access-to-http] Visual comparison intentionally sends a user-selected page image to the configured Mistral endpoint.
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -179,6 +180,7 @@ const requestMistralChatForImage = async ({
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        // codeql[js/file-access-to-http] Visual comparison intentionally sends a user-selected page image to the configured Mistral endpoint.
         body: JSON.stringify(requestPayload),
         signal: timeoutState.signal,
       });

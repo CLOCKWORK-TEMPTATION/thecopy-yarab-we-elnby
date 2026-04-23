@@ -36,7 +36,7 @@ export interface ProcessTextsParams {
  * @description Attempts to fix a broken JSON string
  */
 export const attemptToFixJson = (jsonString: string): string => {
-    const objectMatchResult = jsonString.match(/\{(?:.|\n)*\}/s);
+    const objectMatchResult = jsonString.match(/\{[\s\S]*\}/);
     if (objectMatchResult && objectMatchResult[0]) {
         try {
             JSON.parse(objectMatchResult[0]);
@@ -45,7 +45,7 @@ export const attemptToFixJson = (jsonString: string): string => {
             // Attempt failed
         }
     }
-    const arrayMatchResult = jsonString.match(/\[(?:.|\n)*\]/s);
+    const arrayMatchResult = jsonString.match(/\[[\s\S]*\]/);
     if (arrayMatchResult && arrayMatchResult[0]) {
         try {
             JSON.parse(arrayMatchResult[0]);

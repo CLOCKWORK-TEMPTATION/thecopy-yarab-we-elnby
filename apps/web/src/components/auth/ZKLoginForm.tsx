@@ -1,3 +1,5 @@
+"use client";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -10,8 +12,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 3. إرسال authVerifier للتحقق
  * 4. اشتقاق KEK وحفظه في الذاكرة
  */
-
-("use client");
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";

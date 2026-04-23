@@ -1,3 +1,5 @@
+"use client";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -10,8 +12,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 3. KEK يبقى في الذاكرة فقط
  * 4. توليد وعرض Recovery Key
  */
-
-("use client");
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";

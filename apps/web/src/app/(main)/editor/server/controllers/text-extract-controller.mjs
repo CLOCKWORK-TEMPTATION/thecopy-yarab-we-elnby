@@ -134,8 +134,6 @@ export const handleTextExtract = async (req, res) => {
       Math.min(timeoutMs, REQUEST_TIMEOUT_MS)
     );
 
-    const schemaText =
-      engineResult.schemaText || engineResult.schema_text || "";
     const schemaElements =
       engineResult.schemaElements || engineResult.schema_elements || [];
     const rawText = engineResult.rawText || engineResult.raw_text || text;

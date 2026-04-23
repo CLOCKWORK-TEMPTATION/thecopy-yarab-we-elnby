@@ -7,10 +7,62 @@
 
 import { tool } from "ai";
 import { z } from "zod";
-import { readFile, writeFile, stat, readdir, mkdir } from "node:fs/promises";
-import { basename, extname, dirname, join } from "node:path";
+import { open, writeFile, stat, readdir, mkdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, extname, dirname, join, resolve, relative, isAbsolute } from "node:path";
 import { execFileSync } from "node:child_process";
 import type { ClassificationResult } from "./types";
+
+const ALLOWED_FILE_ROOTS = [process.cwd(), tmpdir()].map((root) =>
+  resolve(root)
+);
+
+function isWithinAllowedRoot(targetPath: string): boolean {
+  return ALLOWED_FILE_ROOTS.some((root) => {
+    const relativePath = relative(root, targetPath);
+    return (
+      relativePath === "" ||
+      (!relativePath.startsWith("..") && !isAbsolute(relativePath))
+    );
+  });
+}
+
+function resolveToolPath(filePath: string): string {
+  const resolvedPath = resolve(filePath);
+  if (!isWithinAllowedRoot(resolvedPath)) {
+    throw new Error("المسار خارج نطاق مساحة العمل أو المجلد المؤقت المسموح.");
+  }
+  return resolvedPath;
+}
+
+async function writeTextFileSafely(
+  targetPath: string,
+  content: string,
+  overwrite: boolean
+): Promise<string> {
+  if (overwrite) {
+    await writeFile(targetPath, content, "utf-8");
+    return targetPath;
+  }
+
+  const ext = extname(targetPath);
+  const base = ext ? targetPath.slice(0, -ext.length) : targetPath;
+
+  for (let counter = 0; counter < 1000; counter++) {
+    const candidate = counter === 0 ? targetPath : `${base}_${counter}${ext}`;
+    try {
+      await writeFile(candidate, content, { encoding: "utf-8", flag: "wx" });
+      return candidate;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error("تعذر اختيار اسم ملف غير مستخدم داخل الحد المسموح.");
+}
 
 // ─── أداة قراءة الملفات ─────────────────────────────────────
 
@@ -32,39 +84,45 @@ export const readFileTool = tool({
     encoding: "utf-8" | "base64";
   }) => {
     try {
-      const fileStat = await stat(filePath);
-      const sizeKb = Math.round(fileStat.size / 1024);
-      const ext = extname(filePath).toLowerCase();
+      const resolvedPath = resolveToolPath(filePath);
+      const handle = await open(resolvedPath, "r");
+      try {
+        const fileStat = await handle.stat();
+        const sizeKb = Math.round(fileStat.size / 1024);
+        const ext = extname(resolvedPath).toLowerCase();
 
-      // ملفات PDF و الصور — إعادة معلومات وصفية فقط
-      if ([".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"].includes(ext)) {
+        // ملفات PDF و الصور — إعادة معلومات وصفية فقط
+        if ([".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"].includes(ext)) {
+          return JSON.stringify({
+            success: true,
+            type: "binary",
+            filename: basename(resolvedPath),
+            extension: ext,
+            size_kb: sizeKb,
+            message: `ملف ثنائي (${ext}) — الحجم: ${sizeKb} KB. استخدم أداة OCR للمعالجة.`,
+          });
+        }
+
+        // ملفات نصية
+        const content = await handle.readFile({ encoding: encoding as BufferEncoding });
+        const lineCount = encoding === "utf-8" ? content.split("\n").length : 0;
+
         return JSON.stringify({
           success: true,
-          type: "binary",
-          filename: basename(filePath),
+          type: "text",
+          filename: basename(resolvedPath),
           extension: ext,
           size_kb: sizeKb,
-          message: `ملف ثنائي (${ext}) — الحجم: ${sizeKb} KB. استخدم أداة OCR للمعالجة.`,
+          line_count: lineCount,
+          content:
+            content.length > 50_000
+              ? content.substring(0, 50_000) +
+                "\n\n... [تم اقتطاع المحتوى — الملف طويل جداً]"
+              : content,
         });
+      } finally {
+        await handle.close();
       }
-
-      // ملفات نصية
-      const content = await readFile(filePath, encoding as BufferEncoding);
-      const lineCount = encoding === "utf-8" ? content.split("\n").length : 0;
-
-      return JSON.stringify({
-        success: true,
-        type: "text",
-        filename: basename(filePath),
-        extension: ext,
-        size_kb: sizeKb,
-        line_count: lineCount,
-        content:
-          content.length > 50_000
-            ? content.substring(0, 50_000) +
-              "\n\n... [تم اقتطاع المحتوى — الملف طويل جداً]"
-            : content,
-      });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       return JSON.stringify({ success: false, error: msg });
@@ -96,33 +154,15 @@ export const writeFileTool = tool({
   }) => {
     try {
       // إنشاء المجلد إن لم يكن موجوداً
-      const dir = dirname(filePath);
+      const resolvedPath = resolveToolPath(filePath);
+      const dir = dirname(resolvedPath);
       await mkdir(dir, { recursive: true });
 
-      // التحقق من وجود الملف
-      let finalPath = filePath;
-      if (!overwrite) {
-        try {
-          await stat(filePath);
-          // الملف موجود — إضافة لاحقة رقمية
-          const ext = extname(filePath);
-          const base = filePath.slice(0, -ext.length);
-          let counter = 1;
-          while (true) {
-            finalPath = `${base}_${counter}${ext}`;
-            try {
-              await stat(finalPath);
-              counter++;
-            } catch {
-              break; // الملف غير موجود — يمكن الاستخدام
-            }
-          }
-        } catch {
-          // الملف غير موجود — المسار الأصلي صالح
-        }
-      }
-
-      await writeFile(finalPath, content, "utf-8");
+      const finalPath = await writeTextFileSafely(
+        resolvedPath,
+        content,
+        overwrite
+      );
       const sizeKb = Math.round(Buffer.byteLength(content, "utf-8") / 1024);
 
       return JSON.stringify({
@@ -158,7 +198,8 @@ export const listFilesTool = tool({
     extensions?: string[] | undefined;
   }) => {
     try {
-      const entries = await readdir(dirPath, { withFileTypes: true });
+      const resolvedDir = resolveToolPath(dirPath);
+      const entries = await readdir(resolvedDir, { withFileTypes: true });
       const files: Array<{
         name: string;
         type: string;
@@ -171,7 +212,7 @@ export const listFilesTool = tool({
           if (extensions && !extensions.includes(ext)) continue;
 
           try {
-            const fileStat = await stat(join(dirPath, entry.name));
+            const fileStat = await stat(join(resolvedDir, entry.name));
             files.push({
               name: entry.name,
               type: ext,
@@ -185,7 +226,7 @@ export const listFilesTool = tool({
 
       return JSON.stringify({
         success: true,
-        directory: dirPath,
+        directory: resolvedDir,
         total_files: files.length,
         files,
       });

@@ -117,7 +117,7 @@ export class LightingSimulator implements Plugin {
 
     // Determine key light based on location and time
     let keyLight: Light;
-    let fillLight: Light | undefined;
+    let fillLight: Light;
     let backLight: Light | undefined;
     const practicals: Light[] = [];
 
@@ -272,10 +272,10 @@ export class LightingSimulator implements Plugin {
 
     // Apply style modifications
     if (style === "low-key" || style === "noir") {
-      if (fillLight) fillLight.intensity *= 0.3;
+      fillLight.intensity *= 0.3;
       keyLight.intensity *= 0.8;
     } else if (style === "high-key") {
-      if (fillLight) fillLight.intensity *= 1.5;
+      fillLight.intensity *= 1.5;
       keyLight.intensity *= 1.2;
     }
 

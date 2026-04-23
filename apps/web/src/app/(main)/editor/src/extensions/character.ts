@@ -66,7 +66,7 @@ export const isCandidateCharacterName = (value: string): boolean => {
   if (!candidate) return false;
   if (!ARABIC_ONLY_WITH_NUMBERS_RE.test(candidate)) return false;
   if (isShortDialogueWord(candidate)) return false;
-  if (/[؟!؟,،"«»]/.test(candidate)) return false;
+  if (/[؟!,،"«»]/.test(candidate)) return false;
 
   const tokens = candidate.split(/\s+/).filter(Boolean);
   if (tokens.length === 0 || tokens.length > 5) return false;

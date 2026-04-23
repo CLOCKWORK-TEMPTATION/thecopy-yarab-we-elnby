@@ -32,7 +32,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         # تفعيل القواعد المتقدمة
-        queries: security-and-quality
+        queries: +security-and-quality,codeql/javascript-queries:AlertSuppression.ql
         
         # استثناء ملفات البناء والاختبارات فقط — السكربتات و workers تدخل ضمن الفحص لأنها مصدر فعلي للمخاطر.
         config: |

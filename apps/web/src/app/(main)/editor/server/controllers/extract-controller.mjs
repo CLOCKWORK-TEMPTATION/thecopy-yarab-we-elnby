@@ -6,7 +6,7 @@
 
 export const SHADOW_RUNTIME_REFERENCE_ONLY = true;
 
-import { writeFile, unlink } from "node:fs/promises";
+import { writeFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ExecFileClassifiedError } from "../exec-file-error-classifier.mjs";
@@ -188,10 +188,8 @@ const extractByType = async (buffer, extension, filename) => {
 
   if (extension === "docx") {
     // مسار المحرك المباشر: حفظ مؤقت ثم parseDocx
-    const tempPath = join(
-      tmpdir(),
-      `karank-${Date.now()}-${Math.random().toString(36).slice(2)}.docx`
-    );
+    const tempDir = await mkdtemp(join(tmpdir(), "karank-"));
+    const tempPath = join(tempDir, "input.docx");
     try {
       await writeFile(tempPath, buffer);
       let normalizedEngineResult;
@@ -221,7 +219,7 @@ const extractByType = async (buffer, extension, filename) => {
         rawExtractedText: normalizedEngineResult.rawText,
       };
     } finally {
-      await unlink(tempPath).catch(() => {});
+      await rm(tempDir, { recursive: true, force: true }).catch(() => {});
     }
   }
 

@@ -124,7 +124,7 @@ function splitParagraphs(text: string): string[] {
 
 function splitSentences(text: string): string[] {
   return text
-    .split(/[.!؟!]+/g)
+    .split(/[.!?؟]+/g)
     .map((sentence) => sentence.trim())
     .filter((sentence) => sentence.length > 0);
 }
@@ -374,7 +374,7 @@ export function buildFallbackSevenStationsResult(
   const tone = detectTone(normalizedText);
   const chunks = buildChunks(input.fullText, 1800);
 
-  const dialogueMatches = input.fullText.match(/[:«»""]+/g) || [];
+  const dialogueMatches = input.fullText.match(/[:«»"“”]+/g) || [];
   const dialogueRatio = clamp(
     Math.round((dialogueMatches.length / Math.max(sentences.length, 1)) * 20),
     15,

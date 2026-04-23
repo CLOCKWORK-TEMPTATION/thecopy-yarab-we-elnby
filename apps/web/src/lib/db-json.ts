@@ -6,7 +6,6 @@
  */
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { join } from "path";
-import { existsSync } from "fs";
 
 /** أنواع البيانات المخزنة */
 export interface DbProject {
@@ -75,14 +74,15 @@ const EMPTY_DB: Database = {
  */
 export async function getDb(): Promise<Database> {
   try {
-    if (!existsSync(DB_PATH)) {
+    const raw = await readFile(DB_PATH, "utf-8");
+    return JSON.parse(raw) as Database;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       await mkdir(DB_DIR, { recursive: true });
       await writeFile(DB_PATH, JSON.stringify(EMPTY_DB, null, 2), "utf-8");
       return structuredClone(EMPTY_DB);
     }
-    const raw = await readFile(DB_PATH, "utf-8");
-    return JSON.parse(raw) as Database;
-  } catch {
+
     return structuredClone(EMPTY_DB);
   }
 }

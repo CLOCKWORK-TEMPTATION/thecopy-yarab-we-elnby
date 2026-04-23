@@ -8,10 +8,18 @@ import type {
   PipelineAgentResult,
 } from "./pipeline-agent-types";
 
+function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
+  return event.origin === "" || event.origin === self.location.origin;
+}
+
 // Worker message handler
 self.addEventListener(
   "message",
   async (event: MessageEvent<PipelineAgentMessage>) => {
+    if (!isTrustedWorkerMessage(event)) {
+      return;
+    }
+
     const message = event.data;
 
     try {

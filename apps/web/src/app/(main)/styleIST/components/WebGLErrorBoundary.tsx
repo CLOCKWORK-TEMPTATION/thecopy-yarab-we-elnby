@@ -41,6 +41,9 @@ class WebGLErrorBoundary extends Component<Props, State> {
             <p className="text-xs mt-2 opacity-60">
               WebGL not supported in this environment
             </p>
+            {this.state.error?.message && (
+              <p className="mt-2 text-xs opacity-50">{this.state.error.message}</p>
+            )}
           </div>
         </div>
       );

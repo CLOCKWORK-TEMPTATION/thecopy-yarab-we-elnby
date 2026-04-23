@@ -884,7 +884,7 @@ export const generateCastingCall = (
  * Validate and normalize cast member data
  */
 export const normalizeCastMember = (member: any): CastMember => {
-  const gender = validateGender(member.gender || member.gender);
+  const gender = validateGender(member.gender || "Unknown");
   const role = validateRole(member.roleCategory || member.role);
 
   return {

@@ -1,4 +1,6 @@
+import { createHash } from "node:crypto";
 import { Router, type Request } from "express";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { signJwt, verifyJwt } from "@/utils/jwt-secret-manager";
 import {
   breakappService,
@@ -26,12 +28,37 @@ function verifyBreakappToken(request: Request): BreakappTokenPayload {
   return verifyJwt<BreakappTokenPayload>(token);
 }
 
+const breakappPublicAuthLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `ip:${ipKeyGenerator(req.ip ?? "unknown")}`,
+  message: { success: false, error: "تم تجاوز حد محاولات المصادقة" },
+});
+
+const breakappProtectedLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const token = getBearerToken(req);
+    if (token) {
+      const tokenHash = createHash("sha256").update(token).digest("hex");
+      return `token:${tokenHash}`;
+    }
+    return `ip:${ipKeyGenerator(req.ip ?? "unknown")}`;
+  },
+  message: { success: false, error: "تم تجاوز حد طلبات الخدمة" },
+});
+
 router.get("/health", async (_req, res) => {
   const health = await breakappService.getHealth();
   res.json({ success: true, data: health });
 });
 
-router.post("/auth/scan-qr", async (req, res) => {
+router.post("/auth/scan-qr", breakappPublicAuthLimiter, async (req, res) => {
   try {
     const qrToken = typeof req.body?.qr_token === "string" ? req.body.qr_token : "";
     if (!qrToken.trim()) {
@@ -67,15 +94,12 @@ router.post("/auth/scan-qr", async (req, res) => {
   }
 });
 
-router.post("/auth/verify", (req, res) => {
+router.post("/auth/verify", breakappPublicAuthLimiter, (req, res) => {
   try {
     const token =
       (typeof req.body?.token === "string" && req.body.token) ||
-      getBearerToken(req);
-    if (!token) {
-      res["status"](400).json({ valid: false, payload: null });
-      return;
-    }
+      getBearerToken(req) ||
+      "";
 
     const payload = verifyJwt<BreakappTokenPayload>(token);
     res.json({
@@ -91,7 +115,7 @@ router.post("/auth/verify", (req, res) => {
   }
 });
 
-router.get("/geo/vendors/nearby", async (req, res) => {
+router.get("/geo/vendors/nearby", breakappProtectedLimiter, async (req, res) => {
   try {
     verifyBreakappToken(req);
     const lat = Number(req.query["lat"]);
@@ -113,7 +137,7 @@ router.get("/geo/vendors/nearby", async (req, res) => {
   }
 });
 
-router.post("/geo/session", async (req, res) => {
+router.post("/geo/session", breakappProtectedLimiter, async (req, res) => {
   try {
     const auth = verifyBreakappToken(req);
     const projectId =
@@ -144,7 +168,7 @@ router.post("/geo/session", async (req, res) => {
   }
 });
 
-router.get("/vendors", (req, res) => {
+router.get("/vendors", breakappProtectedLimiter, (req, res) => {
   try {
     verifyBreakappToken(req);
     res.json(breakappService.getVendors());
@@ -156,10 +180,15 @@ router.get("/vendors", (req, res) => {
   }
 });
 
-router.get("/vendors/:id/menu", (req, res) => {
+router.get("/vendors/:id/menu", breakappProtectedLimiter, (req, res) => {
   try {
     verifyBreakappToken(req);
-    res.json(breakappService.getVendorMenu(req.params.id));
+    const vendorId = req.params["id"];
+    if (typeof vendorId !== "string") {
+      res["status"](400).json({ success: false, error: "معرف المورد مطلوب" });
+      return;
+    }
+    res.json(breakappService.getVendorMenu(vendorId));
   } catch (error) {
     res["status"](401).json({
       success: false,
@@ -168,7 +197,7 @@ router.get("/vendors/:id/menu", (req, res) => {
   }
 });
 
-router.get("/orders/my-orders", async (req, res) => {
+router.get("/orders/my-orders", breakappProtectedLimiter, async (req, res) => {
   try {
     const auth = verifyBreakappToken(req);
     const orders = await breakappService.listOrdersForUser(auth.sub);
@@ -181,7 +210,7 @@ router.get("/orders/my-orders", async (req, res) => {
   }
 });
 
-router.post("/orders", async (req, res) => {
+router.post("/orders", breakappProtectedLimiter, async (req, res) => {
   try {
     const auth = verifyBreakappToken(req);
     const sessionId =
@@ -215,10 +244,15 @@ router.post("/orders", async (req, res) => {
   }
 });
 
-router.post("/orders/session/:id/batch", async (req, res) => {
+router.post("/orders/session/:id/batch", breakappProtectedLimiter, async (req, res) => {
   try {
     verifyBreakappToken(req);
-    const batches = await breakappService.getSessionBatches(req.params.id);
+    const sessionId = req.params["id"];
+    if (typeof sessionId !== "string") {
+      res["status"](400).json({ success: false, error: "معرف الجلسة مطلوب" });
+      return;
+    }
+    const batches = await breakappService.getSessionBatches(sessionId);
     res.json(batches);
   } catch (error) {
     res["status"](401).json({

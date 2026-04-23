@@ -727,7 +727,7 @@ ${contextText}`;
     const words = text.split(/\s+/).filter((w) => w.length > 0);
     const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
-    const dialogueMatches = text.match(/["«»""].*?["«»""]/g) || [];
+    const dialogueMatches = text.match(/["“”«»].*?["“”«»]/g) || [];
     const dialogueText = dialogueMatches.join(" ");
     const dialogueWords = dialogueText.split(/\s+/).filter((w) => w.length > 0);
 

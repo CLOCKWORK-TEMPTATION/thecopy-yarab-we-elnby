@@ -108,9 +108,9 @@ export const initObservability = () => {
           maskAllText: false,
           blockAllMedia: false,
           networkDetailAllowUrls: [
-            /^https:\/\/api\.gemini\.google\.com/,
-            /^https:\/\/fonts\.googleapis\.com/,
-            /^https:\/\/fonts\.gstatic\.com/,
+            /^https:\/\/api\.gemini\.google\.com(?:\/|$)/,
+            /^https:\/\/fonts\.googleapis\.com(?:\/|$)/,
+            /^https:\/\/fonts\.gstatic\.com(?:\/|$)/,
           ],
         }),
         Sentry.browserTracingIntegration({

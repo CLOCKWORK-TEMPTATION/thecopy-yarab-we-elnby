@@ -208,11 +208,13 @@ const requestProofread = async ({
         },
       };
 
+      // codeql[js/file-access-to-http] Proofreading intentionally sends a user-selected page image and OCR text to Gemini.
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        // codeql[js/file-access-to-http] Proofreading intentionally sends a user-selected page image and OCR text to Gemini.
         body: JSON.stringify(body),
         signal: controller.signal,
       });

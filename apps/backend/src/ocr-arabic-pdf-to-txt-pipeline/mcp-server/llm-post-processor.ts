@@ -208,6 +208,7 @@ export class LLMPostProcessor {
         );
         let response: Response;
         try {
+          // codeql[js/file-access-to-http] Remote refinement explicitly sends user-selected OCR text to the configured LLM provider.
           response = await fetch(url, {
             method: "POST",
             headers: {
@@ -216,6 +217,7 @@ export class LLMPostProcessor {
               Accept: "application/json",
               "User-Agent": `${APP_NAME}/1.0`,
             },
+            // codeql[js/file-access-to-http] Remote refinement explicitly sends user-selected OCR text to the configured LLM provider.
             body: JSON.stringify({
               model:
                 this.config.model ||

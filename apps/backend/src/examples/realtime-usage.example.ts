@@ -101,7 +101,7 @@ export function streamAnalysisProgress(
  * Add this code to your BullMQ job processor to emit real-time updates
  */
 export async function exampleJobProcessorWithRealtime(job: any): Promise<any> {
-  const { userId, projectId } = job.data;
+  const { userId } = job.data;
 
   // Emit job started
   websocketService.emitJobStarted({

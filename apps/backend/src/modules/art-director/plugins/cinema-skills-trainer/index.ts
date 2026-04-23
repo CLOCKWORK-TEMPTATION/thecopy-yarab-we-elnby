@@ -28,6 +28,101 @@ type TrainingCategory =
   | "visual-effects"
   | "production-management";
 
+const TRAINING_CATEGORIES: readonly TrainingCategory[] = [
+  "camera-operation",
+  "lighting-setup",
+  "sound-recording",
+  "directing",
+  "set-design",
+  "color-grading",
+  "visual-effects",
+  "production-management",
+] as const;
+
+function isTrainingCategory(value: unknown): value is TrainingCategory {
+  return (
+    typeof value === "string" &&
+    TRAINING_CATEGORIES.includes(value as TrainingCategory)
+  );
+}
+
+function createSkillLevels(): Record<TrainingCategory, number> {
+  return {
+    "camera-operation": 0,
+    "lighting-setup": 0,
+    "sound-recording": 0,
+    directing: 0,
+    "set-design": 0,
+    "color-grading": 0,
+    "visual-effects": 0,
+    "production-management": 0,
+  };
+}
+
+function getSkillLevel(
+  skillLevels: Record<TrainingCategory, number>,
+  category: TrainingCategory
+): number {
+  switch (category) {
+    case "camera-operation":
+      return skillLevels["camera-operation"];
+    case "lighting-setup":
+      return skillLevels["lighting-setup"];
+    case "sound-recording":
+      return skillLevels["sound-recording"];
+    case "directing":
+      return skillLevels.directing;
+    case "set-design":
+      return skillLevels["set-design"];
+    case "color-grading":
+      return skillLevels["color-grading"];
+    case "visual-effects":
+      return skillLevels["visual-effects"];
+    case "production-management":
+      return skillLevels["production-management"];
+  }
+}
+
+function setSkillLevel(
+  skillLevels: Record<TrainingCategory, number>,
+  category: TrainingCategory,
+  value: number
+): void {
+  switch (category) {
+    case "camera-operation":
+      skillLevels["camera-operation"] = value;
+      return;
+    case "lighting-setup":
+      skillLevels["lighting-setup"] = value;
+      return;
+    case "sound-recording":
+      skillLevels["sound-recording"] = value;
+      return;
+    case "directing":
+      skillLevels.directing = value;
+      return;
+    case "set-design":
+      skillLevels["set-design"] = value;
+      return;
+    case "color-grading":
+      skillLevels["color-grading"] = value;
+      return;
+    case "visual-effects":
+      skillLevels["visual-effects"] = value;
+      return;
+    case "production-management":
+      skillLevels["production-management"] = value;
+      return;
+  }
+}
+
+function incrementCategoryCount(
+  counts: Record<TrainingCategory, number>,
+  category: TrainingCategory
+): void {
+  setSkillLevel(counts, category, getSkillLevel(counts, category) + 1);
+}
+
 interface VREquipment {
   id: string;
   name: string;
@@ -357,9 +452,9 @@ export class CinemaSkillsTrainer implements Plugin {
       scenarios = scenarios.filter((s) => s.difficulty === data.difficulty);
     }
 
-    const categoryCounts: Record<string, number> = {};
+    const categoryCounts = createSkillLevels();
     trainingScenarios.forEach((s) => {
-      categoryCounts[s.category] = (categoryCounts[s.category] || 0) + 1;
+      incrementCategoryCount(categoryCounts, s.category);
     });
 
     return {
@@ -398,16 +493,7 @@ export class CinemaSkillsTrainer implements Plugin {
         traineeId: data.traineeId,
         name: data.traineeName || "Trainee",
         completedScenarios: [],
-        skillLevels: {
-          "camera-operation": 0,
-          "lighting-setup": 0,
-          "sound-recording": 0,
-          directing: 0,
-          "set-design": 0,
-          "color-grading": 0,
-          "visual-effects": 0,
-          "production-management": 0,
-        },
+        skillLevels: createSkillLevels(),
         totalTrainingHours: 0,
         achievements: [],
         currentStreak: 0,
@@ -730,16 +816,7 @@ export class CinemaSkillsTrainer implements Plugin {
         traineeId: data.traineeId,
         name: "Trainee",
         completedScenarios: [],
-        skillLevels: {
-          "camera-operation": 0,
-          "lighting-setup": 0,
-          "sound-recording": 0,
-          directing: 0,
-          "set-design": 0,
-          "color-grading": 0,
-          "visual-effects": 0,
-          "production-management": 0,
-        },
+        skillLevels: createSkillLevels(),
         totalTrainingHours: 0,
         achievements: [],
         currentStreak: 0,
@@ -760,10 +837,11 @@ export class CinemaSkillsTrainer implements Plugin {
     progress.currentStreak++;
 
     const skillIncrease = Math.round(data.score / 10);
-    progress.skillLevels[scenario.category] = Math.min(
+    const newSkillLevel = Math.min(
       100,
-      (progress.skillLevels[scenario.category] || 0) + skillIncrease
+      getSkillLevel(progress.skillLevels, scenario.category) + skillIncrease
     );
+    setSkillLevel(progress.skillLevels, scenario.category, newSkillLevel);
 
     const newAchievements: Achievement[] = [];
     if (progress.completedScenarios.length === 1) {
@@ -794,7 +872,7 @@ export class CinemaSkillsTrainer implements Plugin {
         skillIncrease: {
           category: scenario.category,
           increase: skillIncrease,
-          newLevel: progress.skillLevels[scenario.category],
+          newLevel: newSkillLevel,
         },
         newAchievements,
         streak: progress.currentStreak,
@@ -857,6 +935,10 @@ export class CinemaSkillsTrainer implements Plugin {
     equipment: string[];
     duration: number;
   }): Promise<PluginOutput> {
+    if (!isTrainingCategory(data.category)) {
+      return { success: false, error: "Invalid training category" };
+    }
+
     const customScenario: TrainingScenario = {
       id: `custom-${uuidv4().substring(0, 8)}`,
       name: data.name,

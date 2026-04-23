@@ -1,5 +1,5 @@
 {
-  "branch": "unknown",
+  "branch": "main",
   "criticalInputHashes": {
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "4a3a0aa770b3369000605d1bd4345cff3536f39a1147ec4ba77b9dead7aa09b2",
@@ -56,7 +56,7 @@
   "driftReasons": [
     "لا يوجد drift مؤثر"
   ],
-  "headCommit": "unknown",
+  "headCommit": "83354f515322b48f81bd0c30f7a470c4c10871c6",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "d762fa4e2d2a4042465f45f5e49643d3da0d75a6ec0b2dfc28b5b88f75c57301"
   },
@@ -64,7 +64,7 @@
   "knowledgeStatus": "governed",
   "lastBootstrapTimestamp": "2026-04-22T17:23:47.185Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "4cfdc649cd8decc46705b4b3dd5bd8eb3fc308fc8b7e3e3346c3c58d3bf3bf14",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "3e614175cbe8b42b6747cd127ab979570d0b6ac0f7344895ddc9133948f6e17a",
     "output/code-map/code-map.json": "1c7d5b10a6faf470f64f4c6bf9dc1a71ec637462756898963d5989c9a4d9d865",
     "output/code-map/CODEMAP.md": "bae0df96720ed2059474ae44617c4fdf3da0f4a2f5a22add89daa631ab3ce642",
     "output/code-map/dependency-graph.md": "8ff0acd40b572f2e18afb272f1aaf177565500dc3a957486c5011e443176d2bf",
@@ -78,8 +78,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "e6281abbf237afdc48446d01921a5ce649bbdbf233ac68bf54f9fb6e48228d41",
     "output/mind-map/rag-topology.mmd": "662e6fcd3faafb3cc6d0dc5a79758a32ffcb93fa4c643dfcf50f4fa128052ddc",
-    "output/round-notes.md": "e2550021c51b7110fdba6d4d2d50c8d43fa60b061809f67d1b92b099ef86d26c",
-    "output/session-state.md": "75d8bc2094ab60c8cf7c779babb4b309bb6cce6bcf3900a10f11165bcb29dcb6"
+    "output/round-notes.md": "4badeebbe1c69fdbd5ff93ab086750c40278169c3f4474a5437f7dbcdfe264f8",
+    "output/session-state.md": "14f8591c358082b57500c175edc1f066a27f8f57111a8ed2fd6aa6135bed558a"
   },
   "referenceStatus": {
     "codeMapCurrent": true,

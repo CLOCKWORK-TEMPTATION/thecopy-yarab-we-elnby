@@ -72,7 +72,7 @@ export class MultiAgentDebateSystem {
     }
 
     // Subsequent rounds: Refinement based on others' proposals
-    while (currentRound < this.maxRounds && !consensus) {
+    while (currentRound < this.maxRounds) {
       currentRound++;
       log.info(
         "Debate refinement round started",

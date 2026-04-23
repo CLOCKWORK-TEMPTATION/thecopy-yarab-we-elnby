@@ -55,7 +55,7 @@ function mapMethodologyTip(methodologyId: string): string {
 }
 
 function computeIntensity(line: string): number {
-  const punctuationBoost = (line.match(/[!?؟!]/g) || []).length * 8;
+  const punctuationBoost = (line.match(/[!?؟]/g) || []).length * 8;
   const emotionBoost =
     (line.match(/حب|أحب|أخاف|خوف|قلب|روح|وعد|صعب|شوق|أمل|حزن/g) || []).length *
     6;

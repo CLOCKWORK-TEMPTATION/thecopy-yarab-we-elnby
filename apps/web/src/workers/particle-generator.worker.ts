@@ -583,9 +583,17 @@ function generateParticles(config: GenerateParticlesMessage["config"]) {
 
 // ====== Worker Message Handler ======
 
+function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
+  return event.origin === "" || event.origin === self.location.origin;
+}
+
 self.addEventListener(
   "message",
   (event: MessageEvent<GenerateParticlesMessage>) => {
+    if (!isTrustedWorkerMessage(event)) {
+      return;
+    }
+
     const { type, config } = event.data;
 
     if (type === "generate") {

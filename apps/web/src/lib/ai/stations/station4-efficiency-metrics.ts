@@ -633,7 +633,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
     else if (producibility.budgetEstimate === "very_high") budgetScore = 30;
 
     // Cast size factor (5-10 is optimal)
-    let castScore = 50;
+    let castScore: number;
     if (producibility.castSize <= 5) castScore = 40;
     else if (producibility.castSize <= 10) castScore = 70;
     else if (producibility.castSize <= 15) castScore = 60;

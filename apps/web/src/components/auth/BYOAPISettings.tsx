@@ -1,3 +1,5 @@
+"use client";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -9,8 +11,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 2. التخزين المحلي المشفر فقط
  * 3. الاتصال المباشر بمزود الخدمة
  */
-
-("use client");
 
 import { useState, useEffect } from "react";
 import {

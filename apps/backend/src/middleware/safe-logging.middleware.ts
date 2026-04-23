@@ -44,6 +44,17 @@ const NO_BODY_LOG_PATHS = [
   '/api/projects',
 ];
 
+const BLOCKED_PROPERTY_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+function sanitizeLogKey(key: string): string {
+  if (BLOCKED_PROPERTY_KEYS.has(key)) {
+    return '_blocked_property';
+  }
+
+  const normalized = key.replace(/[^\w.-]/g, '_').slice(0, 128);
+  return normalized || '_empty';
+}
+
 /**
  * تنظيف object من الحقول الحساسة
  */
@@ -57,20 +68,19 @@ function sanitizeObject(obj: unknown): unknown {
   }
 
   if (typeof obj === 'object') {
-    const sanitized: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(obj)) {
+    const sanitizedEntries = Object.entries(obj).map(([key, value]) => {
+      const safeKey = sanitizeLogKey(key);
       // استبدال الحقول الحساسة
       if (SENSITIVE_FIELDS.includes(key)) {
-        sanitized[key] = '[REDACTED]';
-      } else if (typeof value === 'object' && value !== null) {
-        sanitized[key] = sanitizeObject(value);
-      } else {
-        sanitized[key] = value;
+        return [safeKey, '[REDACTED]'] as const;
       }
-    }
+      if (typeof value === 'object' && value !== null) {
+        return [safeKey, sanitizeObject(value)] as const;
+      }
+      return [safeKey, value] as const;
+    });
 
-    return sanitized;
+    return Object.fromEntries(sanitizedEntries);
   }
 
   return obj;

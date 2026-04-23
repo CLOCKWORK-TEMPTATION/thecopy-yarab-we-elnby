@@ -400,9 +400,17 @@ function updateParticles(message: UpdateParticlesMessage) {
 
 // ====== Worker Message Handler ======
 
+function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
+  return event.origin === "" || event.origin === self.location.origin;
+}
+
 self.addEventListener(
   "message",
   (event: MessageEvent<UpdateParticlesMessage>) => {
+    if (!isTrustedWorkerMessage(event)) {
+      return;
+    }
+
     const { type } = event.data;
 
     if (type === "update") {

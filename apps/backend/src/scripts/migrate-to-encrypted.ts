@@ -98,8 +98,6 @@ async function migrateProject(
     const dekCipher = crypto.createCipheriv(ALGORITHM, masterKey, dekIv);
     const wrappedDEK =
       dekCipher.update(dek, undefined, 'base64') + dekCipher.final('base64');
-    const dekAuthTag = dekCipher.getAuthTag();
-
     await db.insert(encryptedDocuments).values({
       id: project.id,
       userId: project.userId!,

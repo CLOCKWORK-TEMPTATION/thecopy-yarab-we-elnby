@@ -126,7 +126,7 @@ const isValidMemoryCharacterName = (rawName: string): boolean => {
   const normalized = normalizeCharacterName(rawName);
   if (!normalized) return false;
   if (normalized.length < 2 || normalized.length > 40) return false;
-  if (/[؟!؟,،"«»]/.test(normalized)) return false;
+  if (/[؟!,،"«»]/.test(normalized)) return false;
 
   const tokens = normalized.split(/\s+/).filter(Boolean);
   if (tokens.length === 0 || tokens.length > 5) return false;

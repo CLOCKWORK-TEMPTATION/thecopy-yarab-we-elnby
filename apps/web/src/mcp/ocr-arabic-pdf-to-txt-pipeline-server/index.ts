@@ -236,16 +236,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const converter = new PDFToTextConverter(config);
     const { finalMarkdown } = await converter.convert();
 
-    // Attempt to save to outputPath if specified, or generate a default one
-    let savedPath = "Not saved (in-memory only)";
     let successMsg = "Document converted successfully.";
 
     try {
       const outPath = converter.resolveOutputPath();
-      const nonOverwritingPath = await converter.getNonOverwritingPath(outPath);
-      const { writeFile } = await import("node:fs/promises");
-      await writeFile(nonOverwritingPath, finalMarkdown, "utf-8");
-      savedPath = nonOverwritingPath;
+      const savedPath = await converter.writeNonOverwritingFile(
+        outPath,
+        finalMarkdown
+      );
       successMsg += ` Saved to ${savedPath}`;
     } catch (fsError) {
       console.error("Failed to write to file:", fsError);

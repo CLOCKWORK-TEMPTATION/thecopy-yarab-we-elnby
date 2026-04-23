@@ -65,7 +65,7 @@ export const detectSequenceViolation: DetectorFn = (trace, line, context) => {
         evidence,
         debug: {
           dialogueBlockDepth,
-          previousType: previousType ?? null,
+          previousType,
         },
       }),
     ];

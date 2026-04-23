@@ -23,7 +23,7 @@ export class MarkdownNormalizer {
   private readonly arabicDiacritics = /[\u064b-\u065f\u0670]/gu;
   private readonly nonWordPattern = /[^\w\u0600-\u06FF\s]/gu;
   private readonly whitespacePattern = /\s+/gu;
-  private readonly sentenceEndPattern = /[.!؟?!…»"]\s*$/u;
+  private readonly sentenceEndPattern = /[.!?؟…»"]\s*$/u;
 
   private readonly continuationPrefixRe = /^(?:\.{3}|…|،|(?:و|ثم)\s+)/u;
 

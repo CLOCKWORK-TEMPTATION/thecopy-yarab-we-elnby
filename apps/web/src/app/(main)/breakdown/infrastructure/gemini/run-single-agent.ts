@@ -1,4 +1,5 @@
 import { Schema, Type } from "@google/genai";
+import { z } from "zod";
 import { AGENT_PERSONAS } from "../agents/configs";
 import { getGeminiClient } from "./client";
 import { GEMINI_MODELS } from "../../domain/constants";
@@ -18,6 +19,17 @@ const singleAgentSchema: Schema = {
   },
   required: ["analysis", "suggestions", "warnings"],
 };
+
+const singleAgentPayloadSchema = z.object({
+  analysis: z.array(z.string()).default([]),
+  suggestions: z.array(z.string()).default([]),
+  warnings: z.array(z.string()).default([]),
+});
+
+function parseSingleAgentPayload(text: string): SingleAgentAnalysisPayload {
+  const parsed = JSON.parse(text.trim()) as unknown;
+  return singleAgentPayloadSchema.parse(parsed);
+}
 
 /**
  * تنفيذ استدعاء Gemini لوكيل تحليل منفرد.
@@ -56,5 +68,5 @@ Return ONLY valid JSON.`;
     return { analysis: [], suggestions: [], warnings: [] };
   }
 
-  return JSON.parse(response.text) as SingleAgentAnalysisPayload;
+  return parseSingleAgentPayload(response.text);
 };

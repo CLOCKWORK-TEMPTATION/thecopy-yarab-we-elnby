@@ -147,7 +147,7 @@ export const shouldMergeWrappedLines = (
   if (/^[-–—•●○]/.test(prev) || /^[-–—•●○]/.test(curr)) return false;
   if (/[:：]\s*$/.test(curr)) return false;
 
-  const prevEndsSentence = /[.!؟?!…»"]\s*$/.test(prev);
+  const prevEndsSentence = /[.!?؟…»"]\s*$/.test(prev);
   const startsAsContinuation = /^(?:\.{3}|…|،|(?:و|ثم)\s+)/.test(curr);
   if (!startsAsContinuation || prevEndsSentence) return false;
 

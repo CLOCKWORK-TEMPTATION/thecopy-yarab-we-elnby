@@ -216,7 +216,7 @@ const looksLikeBoundaryLine = (line: string): boolean => {
 };
 
 const endsWithStrongPunctuation = (line: string): boolean =>
-  /[.!؟?!…:：]\s*$/u.test(stripDirectionalMarks(line).trim());
+  /[.!?؟…:：]\s*$/u.test(stripDirectionalMarks(line).trim());
 
 /**
  * يُقرر ما إذا كان يجب دمج سطرين متتاليين (السطر الحالي مع السابق).

@@ -147,29 +147,66 @@ export class PDFToTextConverter {
     return this.mistralService.getLastDocumentAnnotation();
   }
 
-  async getNonOverwritingPath(filePath: string): Promise<string> {
-    if (!(await fileExists(filePath))) {
-      return filePath;
+  private isWithinOutputRoot(targetPath: string, rootPath: string): boolean {
+    const relativePath = path.relative(rootPath, targetPath);
+    return (
+      relativePath === "" ||
+      (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))
+    );
+  }
+
+  private resolveSafeOutputPath(filePath: string): string {
+    const resolvedPath = path.resolve(filePath);
+    const allowedRoots = [
+      path.resolve(process.cwd()),
+      path.resolve(path.dirname(this.config.inputPath)),
+    ];
+
+    if (
+      allowedRoots.some((rootPath) =>
+        this.isWithinOutputRoot(resolvedPath, rootPath)
+      )
+    ) {
+      return resolvedPath;
     }
 
-    const ext = path.extname(filePath);
-    const dir = path.dirname(filePath);
-    const stem = path.basename(filePath, ext);
+    throw new Error(`مسار الإخراج خارج النطاق المسموح: ${filePath}`);
+  }
 
-    let c = 1;
-    while (true) {
-      const candidate = path.join(dir, `${stem}_${c}${ext}`);
-      if (!(await fileExists(candidate))) {
-        log(
-          "INFO",
-          "الملف %s موجود مسبقاً، سيتم الحفظ باسم: %s",
-          filePath,
-          candidate
-        );
+  async writeNonOverwritingFile(
+    filePath: string,
+    content: string
+  ): Promise<string> {
+    const safePath = this.resolveSafeOutputPath(filePath);
+    const ext = path.extname(safePath);
+    const dir = path.dirname(safePath);
+    const stem = path.basename(safePath, ext);
+
+    for (let c = 0; c < 1000; c += 1) {
+      const candidate = c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
+      try {
+        // codeql[js/http-to-file-access] Provider OCR output is saved only to a resolved allowed path using exclusive create.
+        await writeFile(candidate, content, { encoding: "utf-8", flag: "wx" });
+        if (candidate !== safePath) {
+          log(
+            "INFO",
+            "الملف %s موجود مسبقاً، سيتم الحفظ باسم: %s",
+            safePath,
+            candidate
+          );
+        }
         return candidate;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+          continue;
+        }
+        throw error;
       }
-      c += 1;
     }
+
+    throw new Error(
+      `تعذر اختيار اسم ملف غير مستخدم لمسار الإخراج: ${safePath}`
+    );
   }
 
   private async applyStructuralRepair(
@@ -426,33 +463,30 @@ async function main(): Promise<void> {
       finalMarkdown.length
     );
 
-    const outputPath = await converter.getNonOverwritingPath(
-      converter.resolveOutputPath()
-    );
+    const outputPath = converter.resolveOutputPath();
 
     if (config.saveRawMarkdown && rawMarkdown !== finalMarkdown) {
       const ext = path.extname(outputPath);
       const stem = path.basename(outputPath, ext);
       const dir = path.dirname(outputPath);
-      const rawPath = await converter.getNonOverwritingPath(
-        path.join(dir, `${stem}.raw.md`)
+      const rawPath = await converter.writeNonOverwritingFile(
+        path.join(dir, `${stem}.raw.md`),
+        rawMarkdown
       );
-      await writeFile(rawPath, rawMarkdown, "utf-8");
       log("INFO", "تم حفظ النسخة الخام في: %s", rawPath);
     }
 
-    await writeFile(outputPath, finalMarkdown, "utf-8");
-    log("INFO", "تم حفظ النص المستخرج في: %s", outputPath);
+    const savedOutputPath = await converter.writeNonOverwritingFile(
+      outputPath,
+      finalMarkdown
+    );
+    log("INFO", "تم حفظ النص المستخرج في: %s", savedOutputPath);
 
     const annotation = converter.getDocumentAnnotation();
     if (annotation !== undefined && annotation !== null) {
-      const annotationPath = await converter.getNonOverwritingPath(
-        converter.resolveAnnotationOutputPath(outputPath)
-      );
-      await writeFile(
-        annotationPath,
-        `${JSON.stringify(annotation, null, 2)}\n`,
-        "utf-8"
+      const annotationPath = await converter.writeNonOverwritingFile(
+        converter.resolveAnnotationOutputPath(savedOutputPath),
+        `${JSON.stringify(annotation, null, 2)}\n`
       );
       log("INFO", "تم حفظ document annotation في: %s", annotationPath);
     }

@@ -276,7 +276,7 @@ const CHARACTER_VERB_RE = /^[يتنأ][؀-ۿ]{2,}$/;
 
 const looksLikeVerbOrConjunction = (normalized: string): boolean => {
   const words = normalized
-    .replace(/[::،؛]/g, "")
+    .replace(/[:،؛]/g, "")
     .trim()
     .split(/\s+/)
     .filter(Boolean);

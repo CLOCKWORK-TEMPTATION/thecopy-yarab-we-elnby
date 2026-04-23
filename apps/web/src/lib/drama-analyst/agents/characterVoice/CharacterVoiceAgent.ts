@@ -170,8 +170,8 @@ export class CharacterVoiceAgent extends BaseAgent {
     }
 
     // Clean up quotation marks
-    text = text.replace(/[""]/g, '"');
-    text = text.replace(/['']/g, "'");
+    text = text.replace(/["“”]/g, '"');
+    text = text.replace(/['‘’]/g, "'");
 
     // Ensure proper dialogue formatting
     text = this.formatDialogue(text);

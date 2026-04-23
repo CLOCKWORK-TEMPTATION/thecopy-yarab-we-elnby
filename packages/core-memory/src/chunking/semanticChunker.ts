@@ -48,8 +48,7 @@ export class SemanticChunker {
   }
 
   detectSentenceBoundaries(text: string): string[] {
-    const sentencePattern = /[^.!?؟]+[.!?؟]+/g;
-    const matches = text.match(sentencePattern);
+    const matches = text.replace(/([.!?؟]+)/g, "$1\n").split(/\n+/);
 
     if (matches && matches.length > 0) {
       return matches.map((sentence) => sentence.trim()).filter(Boolean);

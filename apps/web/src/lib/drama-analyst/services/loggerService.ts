@@ -98,7 +98,7 @@ class LoggerService {
     }
 
     // Handle plain objects
-    if (typeof context === "object" && context !== null) {
+    if (typeof context === "object") {
       const sanitized: any = {};
 
       for (const [key, value] of Object.entries(context)) {

@@ -489,20 +489,6 @@ export class BreakdownService {
     }
   }
 
-  private async batchExecuteUpdates(updatePromises: (() => Promise<unknown>)[], chunkSize: number): Promise<void> {
-    for (let i = 0; i < updatePromises.length; i += chunkSize) {
-      const chunk = updatePromises.slice(i, i + chunkSize);
-      await Promise.all(chunk.map((fn) => fn()));
-    }
-  }
-
-  private async batchExecuteInserts(insertValues: (typeof scenes.$inferInsert)[], chunkSize: number): Promise<void> {
-    for (let i = 0; i < insertValues.length; i += chunkSize) {
-      const chunk = insertValues.slice(i, i + chunkSize);
-      await db.insert(scenes).values(chunk);
-    }
-  }
-
   private async syncScenes(
     projectId: string,
     parsedScenes: ParsedScene[]

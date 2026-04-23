@@ -161,6 +161,7 @@ const requestKimiJudge = async ({
   while (attempt <= maxRetries) {
     const timeoutState = createTimeoutState(timeoutMs);
     try {
+      // codeql[js/file-access-to-http] Patch judging intentionally sends user-selected OCR text and page image data to Kimi.
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -168,6 +169,7 @@ const requestKimiJudge = async ({
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+        // codeql[js/file-access-to-http] Patch judging intentionally sends user-selected OCR text and page image data to Kimi.
         body: JSON.stringify({
           model: runtime.model,
           // kimi-k2.5: temperature/top_p/n/presence_penalty/frequency_penalty

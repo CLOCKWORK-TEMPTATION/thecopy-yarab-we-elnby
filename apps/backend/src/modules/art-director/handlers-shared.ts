@@ -93,13 +93,22 @@ export function parseList(value: unknown): string[] {
 }
 
 export function slugify(value: string): string {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9\u0600-\u06FF]+/g, "-")
-      .replace(/^-+|-+$/g, "") || DEFAULT_PRODUCTION_ID
-  );
+  let slug = "";
+  let needsSeparator = false;
+
+  for (const char of value.trim().toLowerCase()) {
+    if (/^[a-z0-9\u0600-\u06FF]$/u.test(char)) {
+      if (needsSeparator && slug.length > 0) {
+        slug += "-";
+      }
+      slug += char;
+      needsSeparator = false;
+    } else if (slug.length > 0) {
+      needsSeparator = true;
+    }
+  }
+
+  return slug || DEFAULT_PRODUCTION_ID;
 }
 
 export function uniqueById<T extends { id?: string }>(
