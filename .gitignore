@@ -863,3 +863,4 @@ semgrep-report.json
 __pycache__/
 *.pyc
 
+.replit
