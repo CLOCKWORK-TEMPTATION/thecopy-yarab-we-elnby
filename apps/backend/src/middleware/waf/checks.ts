@@ -59,6 +59,10 @@ export function isUserAgentBlacklisted(userAgent: string): boolean {
   );
 }
 
+function stringifyRequestValue(value: unknown): string {
+  return typeof value === "object" ? JSON.stringify(value) : String(value || "");
+}
+
 // ============================================================================
 // WAF Event Logging
 // ============================================================================
@@ -96,26 +100,21 @@ export function logWAFEvent(event: WAFEvent): void {
   }
 }
 
-// ============================================================================
-// Value Extraction (lookup object to keep complexity low)
-// ============================================================================
-
-const extractors: Record<string, (req: Request) => string> = {
-  body: (req) =>
-    typeof req.body === "object"
-      ? JSON.stringify(req.body)
-      : String(req.body || ""),
-  query: (req) =>
-    typeof req.query === "object"
-      ? JSON.stringify(req.query)
-      : String(req.query || ""),
-  headers: (req) => JSON.stringify(req.headers),
-  path: (req) => req.path + (req.originalUrl || ""),
-  cookies: (req) => JSON.stringify(req.cookies || {}),
-};
-
 export function extractValue(req: Request, location: string): string {
-  return extractors[location]?.(req) ?? "";
+  switch (location) {
+    case "body":
+      return stringifyRequestValue(req.body);
+    case "query":
+      return stringifyRequestValue(req.query);
+    case "headers":
+      return JSON.stringify(req.headers);
+    case "path":
+      return req.path + (req.originalUrl || "");
+    case "cookies":
+      return JSON.stringify(req.cookies || {});
+    default:
+      return "";
+  }
 }
 
 // ============================================================================

@@ -119,7 +119,7 @@ class WebSocketService {
     });
 
     this.io.on(WEBSOCKET_CONFIG.EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
-      logger.info(`[WebSocket] Client connected: ${socket.id}`);
+      logger.info('[WebSocket] Client connected');
 
       if (socket.authenticated && socket.userId) {
         const userRoom = createRoomName(WebSocketRoom.USER, socket.userId);
@@ -169,7 +169,7 @@ class WebSocketService {
             socketId: socket.id,
             reason: 'auth_timeout',
           });
-          logger.warn(`[WebSocket] Authentication timeout for socket: ${socket.id}`);
+          logger.warn('[WebSocket] Authentication timeout');
           socket.emit('auth_error', {
             reason: 'auth_timeout',
             message: 'Connection timed out. Please reconnect.',
@@ -192,13 +192,13 @@ class WebSocketService {
     });
 
     // Handle disconnection
-    socket.on(WEBSOCKET_CONFIG.EVENTS.DISCONNECT, (reason: string) => {
-      this.handleDisconnection(socket, reason);
+    socket.on(WEBSOCKET_CONFIG.EVENTS.DISCONNECT, () => {
+      this.handleDisconnection(socket);
     });
 
     // Handle errors
     socket.on(WEBSOCKET_CONFIG.EVENTS.ERROR, (error: Error) => {
-      logger.error(`[WebSocket] Socket error for ${socket.id}:`, error);
+      logger.error('[WebSocket] Socket error', error);
     });
 
     // Handle room subscriptions
@@ -382,7 +382,7 @@ class WebSocketService {
       const userRoom = createRoomName(WebSocketRoom.USER, data.userId);
       void socket.join(userRoom);
 
-      logger.warn(`[WebSocket] Development fallback auth used for socket ${socket.id} and user ${data.userId}`);
+      logger.warn('[WebSocket] Development fallback auth used');
 
       socket.emit(RealtimeEventType.AUTHENTICATED, {
         message: 'Authenticated successfully',
@@ -390,7 +390,7 @@ class WebSocketService {
         timestamp: new Date().toISOString(),
       });
     } else {
-      logger.warn(`[WebSocket] Authentication failed for socket: ${socket.id}`);
+      logger.warn('[WebSocket] Authentication failed');
       trackWebSocketAuth('ws:auth:denied', {
         socketId: socket.id,
         reason: 'missing_token',
@@ -461,8 +461,8 @@ class WebSocketService {
   /**
    * Handle client disconnection
    */
-  private handleDisconnection(socket: AuthenticatedSocket, reason: string): void {
-    logger.info(`[WebSocket] Client disconnected: ${socket.id}, reason: ${reason}`);
+  private handleDisconnection(socket: AuthenticatedSocket): void {
+    logger.info('[WebSocket] Client disconnected');
     this.connections.delete(socket.id);
     this.clearSessionExpiry(socket.id);
 
@@ -494,7 +494,7 @@ class WebSocketService {
     }
 
     void socket.join(room);
-    logger.info(`[WebSocket] Socket ${socket.id} joined room: ${room}`);
+    logger.info('[WebSocket] Socket joined room');
     socket.emit(RealtimeEventType.SYSTEM_INFO, {
       message: `Subscribed to room: ${room}`,
       timestamp: new Date().toISOString(),
@@ -506,7 +506,7 @@ class WebSocketService {
    */
   private handleRoomUnsubscription(socket: AuthenticatedSocket, room: string): void {
     void socket.leave(room);
-    logger.info(`[WebSocket] Socket ${socket.id} left room: ${room}`);
+    logger.info('[WebSocket] Socket left room');
     socket.emit(RealtimeEventType.SYSTEM_INFO, {
       message: `Unsubscribed from room: ${room}`,
       timestamp: new Date().toISOString(),
@@ -523,7 +523,7 @@ class WebSocketService {
     }
 
     this.io.emit(event.event, event.payload);
-    logger.debug(`[WebSocket] Broadcasted event: ${event.event}`);
+    logger.debug('[WebSocket] Broadcasted event');
   }
 
   /**
@@ -536,7 +536,7 @@ class WebSocketService {
     }
 
     this.io.to(room).emit(event.event, event.payload);
-    logger.debug(`[WebSocket] Sent event to room ${room}: ${event.event}`);
+    logger.debug('[WebSocket] Sent event to room');
   }
 
   /**
@@ -570,7 +570,7 @@ class WebSocketService {
     }
 
     this.io.emit(eventName, payload);
-    logger.debug(`[WebSocket] Broadcasted custom event: ${eventName}`);
+    logger.debug('[WebSocket] Broadcasted custom event');
   }
 
   /**

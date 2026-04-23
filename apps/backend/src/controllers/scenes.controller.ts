@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { db } from '@/db';
 import { scenes, projects } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { logger } from '@/utils/logger';
 import { z } from 'zod';
 import type { AuthRequest } from '@/middleware/auth.middleware';
@@ -29,16 +29,6 @@ async function verifyProjectOwnership(projectId: string, userId: string) {
     .from(projects)
     .where(and(eq(projects.id, projectId), eq(projects.userId, userId)));
   return project ?? null;
-}
-
-async function verifySceneOwnership(sceneId: string, userId: string) {
-  const [result] = await db
-    .select({ sceneId: scenes.id })
-    .from(scenes)
-    .innerJoin(projects, eq(scenes.projectId, projects.id))
-    .where(and(eq(scenes.id, sceneId), eq(projects.userId, userId)))
-    .limit(1);
-  return result ?? null;
 }
 
 const createSceneSchema = z.object({
@@ -234,15 +224,23 @@ export class ScenesController {
       }
 
       const validatedData = updateSceneSchema.parse(req.body);
-      const result = await verifySceneOwnership(id, req.user!.id);
-      if (!result) {
+      const ownedProjectIds = db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.userId, req.user!.id));
+      const [updatedScene] = await db
+        .update(scenes)
+        .set(validatedData)
+        .where(and(eq(scenes.id, id), inArray(scenes.projectId, ownedProjectIds)))
+        .returning();
+
+      if (!updatedScene) {
         res["status"](404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لتعديله' });
         return;
       }
 
-      const [updatedScene] = await db.update(scenes).set(validatedData).where(eq(scenes.id, id)).returning();
       res.json({ success: true, message: 'تم تحديث المشهد بنجاح', data: updatedScene });
-      logger.info('Scene updated successfully', { sceneId: id });
+      logger.info('Scene updated successfully');
     } catch (error) {
       if (handleZodError(error, res)) return;
       logger.error('Update scene error:', error);

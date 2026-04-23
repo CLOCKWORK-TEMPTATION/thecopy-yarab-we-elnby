@@ -3,13 +3,41 @@ import type { ScriptSegmentResponse } from "../../domain/models";
 const ENGLISH_SCENE_HEADING_PATTERN = /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s+/i;
 const ARABIC_SCENE_HEADING_PATTERN = /^(?:مشهد|م)(?:\s|$)/i;
 const LOCATION_PREFIX_PATTERN = /^(?:موقع|مكان|المكان|المنطقة)\s*:\s*/;
-const TRANSITION_PATTERN =
-  /^(?:CUT\s+TO|FADE\s+IN|FADE\s+OUT|DISSOLVE\s+TO|SMASH\s+CUT|MATCH\s+CUT|JUMP\s+CUT|WIPE\s+TO|IRIS\s+(?:IN|OUT)|قطع\s+إلى|تلاشي\s+(?:دخول|خروج)|ذوبان\s+إلى|قطع\s+مفاجئ|قطع\s+مطابق)\s*:?\s*$/i;
+const TRANSITION_PHRASES = new Set([
+  "CUT TO",
+  "FADE IN",
+  "FADE OUT",
+  "DISSOLVE TO",
+  "SMASH CUT",
+  "MATCH CUT",
+  "JUMP CUT",
+  "WIPE TO",
+  "IRIS IN",
+  "IRIS OUT",
+  "قطع إلى",
+  "تلاشي دخول",
+  "تلاشي خروج",
+  "ذوبان إلى",
+  "قطع مفاجئ",
+  "قطع مطابق",
+]);
 const CHARACTER_PATTERN = /^.{1,40}\s*:\s*$/;
 const ACTION_PREFIX_PATTERN = /^[\-–—(]/;
 
 function normalizeLine(line: string): string {
   return line.replace(/\u00A0/g, " ").trim();
+}
+
+function normalizeTransitionLine(line: string): string {
+  const normalized = normalizeLine(line).replace(/\s+/g, " ");
+  const withoutColon = normalized.endsWith(":")
+    ? normalized.slice(0, -1).trim()
+    : normalized;
+  return withoutColon.toUpperCase();
+}
+
+function looksLikeTransition(line: string): boolean {
+  return TRANSITION_PHRASES.has(normalizeTransitionLine(line));
 }
 
 function looksLikeSceneHeading(line: string): boolean {
@@ -41,7 +69,7 @@ function looksLikeHeaderContinuation(
   }
 
   if (
-    TRANSITION_PATTERN.test(trimmed) ||
+    looksLikeTransition(trimmed) ||
     CHARACTER_PATTERN.test(trimmed) ||
     ACTION_PREFIX_PATTERN.test(trimmed)
   ) {

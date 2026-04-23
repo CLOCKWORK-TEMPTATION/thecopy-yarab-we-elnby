@@ -84,7 +84,7 @@ export class CritiqueController {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      logger.error(`[CritiqueController] Error getting config for ${req.params["taskType"]}:`, error);
+      logger.error('[CritiqueController] Error getting config', error);
       res["status"](500).json({
         success: false,
         error: 'Failed to retrieve critique configuration',
@@ -134,7 +134,7 @@ export class CritiqueController {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      logger.error(`[CritiqueController] Error getting dimension details for ${req.params["taskType"]}:`, error);
+      logger.error('[CritiqueController] Error getting dimension details', error);
       res["status"](500).json({
         success: false,
         error: 'Failed to retrieve dimension details',

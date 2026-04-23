@@ -11,6 +11,49 @@ export interface SanitizationPatterns {
   description: string;
 }
 
+const SENSITIVE_KEY_FRAGMENTS = [
+  'password',
+  'passwd',
+  'pwd',
+  'secret',
+  'token',
+  'apiKey',
+  'api_key',
+  'accessToken',
+  'access_token',
+  'refreshToken',
+  'refresh_token',
+  'authorization',
+  'cookie',
+  'session',
+  'sessionId',
+  'creditCard',
+  'credit_card',
+  'cardNumber',
+  'card_number',
+  'ssn',
+  'socialSecurity',
+  'social_security',
+];
+
+const UNSAFE_LOG_KEYS = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
+
+function normalizeLogKey(key: string): string {
+  const normalized = key.replace(/[^\w.$-]/g, '_').slice(0, 120) || 'field';
+  return UNSAFE_LOG_KEYS.has(normalized) ? `blocked_${normalized}` : normalized;
+}
+
+function shouldRedactKey(key: string): boolean {
+  const lowerKey = key.toLowerCase();
+  return SENSITIVE_KEY_FRAGMENTS.some((sensitive) =>
+    lowerKey.includes(sensitive.toLowerCase())
+  );
+}
+
 /**
  * PII patterns to detect and sanitize
  */
@@ -139,45 +182,12 @@ export function sanitizeObject(obj: unknown): unknown {
 
   // Handle objects
   if (typeof obj === 'object') {
-    const sanitized: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(obj)) {
-      // Redact entire fields with sensitive key names
-      const sensitiveKeys = [
-        'password',
-        'passwd',
-        'pwd',
-        'secret',
-        'token',
-        'apiKey',
-        'api_key',
-        'accessToken',
-        'access_token',
-        'refreshToken',
-        'refresh_token',
-        'authorization',
-        'cookie',
-        'session',
-        'sessionId',
-        'creditCard',
-        'credit_card',
-        'cardNumber',
-        'card_number',
-        'ssn',
-        'socialSecurity',
-        'social_security',
-      ];
-
-      if (sensitiveKeys.some(sensitive =>
-        key.toLowerCase().includes(sensitive.toLowerCase())
-      )) {
-        sanitized[key] = '[REDACTED]';
-      } else {
-        sanitized[key] = sanitizeObject(value);
-      }
-    }
-
-    return sanitized;
+    return Object.fromEntries(
+      Object.entries(obj).map(([key, value]) => [
+        normalizeLogKey(key),
+        shouldRedactKey(key) ? '[REDACTED]' : sanitizeObject(value),
+      ])
+    );
   }
 
   // Return primitive values as-is
@@ -190,20 +200,21 @@ export function sanitizeObject(obj: unknown): unknown {
  */
 export const sanitizeLogFormat = {
   transform: (info: Record<string, unknown>) => {
-    // Sanitize the message
-    if (info['message'] && typeof info['message'] === 'string') {
-      info['message'] = sanitizeString(info['message']);
-    }
+    return Object.fromEntries(
+      Object.entries(info).map(([key, value]) => {
+        const safeKey = normalizeLogKey(key);
 
-    // Sanitize all metadata
-    const sanitizedInfo = { ...info };
-    for (const [key, value] of Object.entries(sanitizedInfo)) {
-      if (key !== 'level' && key !== 'timestamp' && key !== 'service') {
-        sanitizedInfo[key] = sanitizeObject(value);
-      }
-    }
+        if (key === 'message' && typeof value === 'string') {
+          return [safeKey, sanitizeString(value)];
+        }
 
-    return sanitizedInfo;
+        if (key === 'level' || key === 'timestamp' || key === 'service') {
+          return [safeKey, value];
+        }
+
+        return [safeKey, sanitizeObject(value)];
+      })
+    );
   },
 };
 

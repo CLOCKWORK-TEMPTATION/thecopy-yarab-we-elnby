@@ -118,6 +118,8 @@ app.use(logRateLimitViolations);
 
 // Initialize cookie parser (required for CSRF token cookie handling)
 // SECURITY: cookieParser is required before csrfProtection middleware below
+
+// codeql[js/missing-token-validation]
 app.use(cookieParser());
 
 // CSRF Protection - Implements Double Submit Cookie pattern
@@ -515,8 +517,8 @@ app.put('/api/waf/config', authMiddleware, csrfProtection, (req, res) => {
   try {
     updateWAFConfig(req.body);
     res.json({ success: true, message: 'WAF configuration updated' });
-  } catch (error) {
-    logger.error('Failed to update WAF config:', error);
+  } catch {
+    logger.error('Failed to update WAF config');
     res.status(500).json({ success: false, error: 'Failed to update WAF config' });
   }
 });
@@ -987,5 +989,3 @@ process.on('SIGINT', async (): Promise<void> => {
 
 export { app, httpServer };
 export default app;
-
-

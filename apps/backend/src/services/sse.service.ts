@@ -73,7 +73,7 @@ class SSEService {
       this.clientsByUserId.get(userId)!.add(clientId);
     }
 
-    logger.info(`[SSE] Client connected: ${clientId}, user: ${userId || 'anonymous'}`);
+    logger.info('[SSE] Client connected');
 
     // Send initial connection event
     this.sendToClient(clientId, {
@@ -102,7 +102,7 @@ class SSEService {
 
     // Handle errors
     response.on('error', (error) => {
-      logger.error(`[SSE] Error for client ${clientId}:`, error);
+      logger.error('[SSE] Client stream error', error);
       clearInterval(keepAliveInterval);
       this.handleDisconnection(clientId);
     });
@@ -115,7 +115,7 @@ class SSEService {
     const client = this.clients.get(clientId);
     if (!client) return;
 
-    logger.info(`[SSE] Client disconnected: ${clientId}`);
+    logger.info('[SSE] Client disconnected');
 
     // Remove from user mapping
     if (client.userId) {
@@ -149,7 +149,7 @@ class SSEService {
   subscribeToRoom(clientId: string, room: string): void {
     const client = this.clients.get(clientId);
     if (!client) {
-      logger.warn(`[SSE] Cannot subscribe: client ${clientId} not found`);
+      logger.warn('[SSE] Cannot subscribe: client not found');
       return;
     }
 
@@ -160,7 +160,7 @@ class SSEService {
     }
     this.clientsByRoom.get(room)!.add(clientId);
 
-    logger.info(`[SSE] Client ${clientId} subscribed to room: ${room}`);
+    logger.info('[SSE] Client subscribed to room');
 
     // Send confirmation
     this.sendToClient(clientId, {
@@ -191,7 +191,7 @@ class SSEService {
       }
     }
 
-    logger.info(`[SSE] Client ${clientId} unsubscribed from room: ${room}`);
+    logger.info('[SSE] Client unsubscribed from room');
   }
 
   /**
@@ -204,7 +204,7 @@ class SSEService {
   ): boolean {
     const client = this.clients.get(clientId);
     if (!client) {
-      logger.warn(`[SSE] Cannot send event: client ${clientId} not found`);
+      logger.warn('[SSE] Cannot send event: client not found');
       return false;
     }
 
@@ -213,7 +213,7 @@ class SSEService {
       client.response.write(eventData);
       return true;
     } catch (error) {
-      logger.error(`[SSE] Error sending to client ${clientId}:`, error);
+      logger.error('[SSE] Error sending to client', error);
       this.handleDisconnection(clientId);
       return false;
     }

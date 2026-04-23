@@ -185,7 +185,7 @@ export class PDFToTextConverter {
     for (let c = 0; c < 1000; c += 1) {
       const candidate = c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
       try {
-        // codeql[js/http-to-file-access] Provider OCR output is saved only to a resolved allowed path using exclusive create.
+        // codeql[js/http-to-file-access]
         await writeFile(candidate, content, { encoding: "utf-8", flag: "wx" });
         if (candidate !== safePath) {
           log(

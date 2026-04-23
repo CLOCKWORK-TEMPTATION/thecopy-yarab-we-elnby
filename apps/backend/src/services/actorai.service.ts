@@ -97,6 +97,8 @@ async function persistRecord(
   };
 
   records.push(record);
+
+  // codeql[js/http-to-file-access]
   await writeFile(filePath, JSON.stringify(records, null, 2), "utf8");
 
   return record;

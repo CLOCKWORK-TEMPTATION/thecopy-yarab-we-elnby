@@ -31,14 +31,8 @@ import {
   handleRiskAnalysis,
   handleProductionReadinessPrompt,
 } from "./handlers-visual";
-import {
-  handleInspirationAnalyze,
-  handleInspirationPalette,
-} from "./handlers-inspiration";
-import {
-  handleLocationSearch,
-  handleLocationAdd,
-} from "./handlers-location";
+import { handleInspirationAnalyze, handleInspirationPalette } from "./handlers-inspiration";
+import { handleLocationSearch, handleLocationAdd } from "./handlers-location";
 import {
   handleSetReusabilityAnalyze,
   handleSetPieceAdd,
@@ -142,7 +136,6 @@ function computeDashboardSummary(
 
 async function handleHealth(): Promise<ArtDirectorHandlerResponse> {
   const store = await readStore();
-
   return success({
     status: "ok",
     storage: { available: true, updatedAt: store.updatedAt },
@@ -160,51 +153,141 @@ async function handleDashboardSummary(): Promise<ArtDirectorHandlerResponse> {
   return success({ summary: computeDashboardSummary(store) });
 }
 
-type RouteHandler = (
-  payload: Record<string, unknown>
-) => Promise<ArtDirectorHandlerResponse> | ArtDirectorHandlerResponse;
+type OptionalRouteResponse = Promise<ArtDirectorHandlerResponse> |
+  ArtDirectorHandlerResponse | undefined;
 
-const ROUTE_HANDLERS = new Map<string, RouteHandler>([
-  ["GET health", () => handleHealth()],
-  ["GET plugins", () => handlePlugins()],
-  ["GET dashboard/summary", () => handleDashboardSummary()],
-  ["GET productivity/summary", () => handleProductivitySummary()],
-  ["GET documentation/state", () => handleDocumentationState()],
-  ["GET training/scenarios", (payload) => handleTrainingScenarios(payload)],
-  ["POST analyze/visual-consistency", (payload) => handleVisualConsistency(payload)],
-  ["POST translate/cinema-terms", (payload) => handleTerminologyTranslation(payload)],
-  ["POST optimize/budget", (payload) => handleBudgetOptimization(payload)],
-  ["POST simulate/lighting", (payload) => handleLightingSimulation(payload)],
-  ["POST analyze/risks", (payload) => handleRiskAnalysis(payload)],
-  [
-    "POST analyze/production-readiness",
-    (payload) => handleProductionReadinessPrompt(payload),
-  ],
-  ["POST inspiration/analyze", (payload) => handleInspirationAnalyze(payload)],
-  ["POST inspiration/palette", (payload) => handleInspirationPalette(payload)],
-  ["POST locations/search", (payload) => handleLocationSearch(payload)],
-  ["POST locations/add", (payload) => handleLocationAdd(payload)],
-  ["POST sets/reusability", (payload) => handleSetReusabilityAnalyze(payload)],
-  ["POST sets/add-piece", (payload) => handleSetPieceAdd(payload)],
-  ["POST sets/inventory", (payload) => handleSetInventory(payload)],
-  ["POST sets/sustainability-report", () => handleSustainabilityReport()],
-  ["POST analyze/productivity", (payload) => handleProductivityAnalyze(payload)],
-  ["POST productivity/log-time", (payload) => handleProductivityLogTime(payload)],
-  ["POST productivity/report-delay", (payload) => handleProductivityDelay(payload)],
-  ["POST productivity/recommendations", () => handleProductivityRecommendations()],
-  ["POST documentation/generate", (payload) => handleDocumentationGenerate(payload)],
-  ["POST documentation/style-guide", (payload) => handleDocumentationStyleGuide(payload)],
-  ["POST documentation/log-decision", (payload) => handleDocumentationDecision(payload)],
-  ["POST documentation/export", (payload) => handleDocumentationExport(payload)],
-  ["POST xr/previz/create-scene", (payload) => handlePrevizCreateScene(payload)],
-  ["POST xr/set-editor/create", (payload) => handleVirtualSetCreate(payload)],
-  ["POST training/scenarios", (payload) => handleTrainingScenarios(payload)],
-  ["POST concept-art/create-project", (payload) => handleConceptArtCreate(payload)],
-  [
-    "POST virtual-production/create",
-    (payload) => handleVirtualProductionCreate(payload),
-  ],
-]);
+function handleGetRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "health":
+      return handleHealth();
+    case "plugins":
+      return handlePlugins();
+    case "dashboard/summary":
+      return handleDashboardSummary();
+    case "productivity/summary":
+      return handleProductivitySummary();
+    case "documentation/state":
+      return handleDocumentationState();
+    case "training/scenarios":
+      return handleTrainingScenarios(payload);
+    default:
+      return undefined;
+  }
+}
+function handleAnalyzePostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "analyze/visual-consistency":
+      return handleVisualConsistency(payload);
+    case "analyze/risks":
+      return handleRiskAnalysis(payload);
+    case "analyze/production-readiness":
+      return handleProductionReadinessPrompt(payload);
+    case "analyze/productivity":
+      return handleProductivityAnalyze(payload);
+    default:
+      return undefined;
+  }
+}
+function handleProductionPostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "translate/cinema-terms":
+      return handleTerminologyTranslation(payload);
+    case "optimize/budget":
+      return handleBudgetOptimization(payload);
+    case "simulate/lighting":
+      return handleLightingSimulation(payload);
+    case "training/scenarios":
+      return handleTrainingScenarios(payload);
+    case "concept-art/create-project":
+      return handleConceptArtCreate(payload);
+    case "virtual-production/create":
+      return handleVirtualProductionCreate(payload);
+    default:
+      return undefined;
+  }
+}
+function handleInspirationLocationPostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "inspiration/analyze":
+      return handleInspirationAnalyze(payload);
+    case "inspiration/palette":
+      return handleInspirationPalette(payload);
+    case "locations/search":
+      return handleLocationSearch(payload);
+    case "locations/add":
+      return handleLocationAdd(payload);
+    default:
+      return undefined;
+  }
+}
+function handleSetProductivityPostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "sets/reusability":
+      return handleSetReusabilityAnalyze(payload);
+    case "sets/add-piece":
+      return handleSetPieceAdd(payload);
+    case "sets/inventory":
+      return handleSetInventory(payload);
+    case "sets/sustainability-report":
+      return handleSustainabilityReport();
+    case "productivity/log-time":
+      return handleProductivityLogTime(payload);
+    case "productivity/report-delay":
+      return handleProductivityDelay(payload);
+    case "productivity/recommendations":
+      return handleProductivityRecommendations();
+    default:
+      return undefined;
+  }
+}
+function handleDocumentationXrPostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  switch (routePath) {
+    case "documentation/generate":
+      return handleDocumentationGenerate(payload);
+    case "documentation/style-guide":
+      return handleDocumentationStyleGuide(payload);
+    case "documentation/log-decision":
+      return handleDocumentationDecision(payload);
+    case "documentation/export":
+      return handleDocumentationExport(payload);
+    case "xr/previz/create-scene":
+      return handlePrevizCreateScene(payload);
+    case "xr/set-editor/create":
+      return handleVirtualSetCreate(payload);
+    default:
+      return undefined;
+  }
+}
+function handlePostRoute(
+  routePath: string,
+  payload: Record<string, unknown>
+): OptionalRouteResponse {
+  return (
+    handleAnalyzePostRoute(routePath, payload) ??
+    handleProductionPostRoute(routePath, payload) ??
+    handleInspirationLocationPostRoute(routePath, payload) ??
+    handleSetProductivityPostRoute(routePath, payload) ??
+    handleDocumentationXrPostRoute(routePath, payload)
+  );
+}
 
 export async function handleArtDirectorRequest(params: {
   method: "GET" | "POST";
@@ -213,13 +296,16 @@ export async function handleArtDirectorRequest(params: {
   searchParams?: URLSearchParams;
 }): Promise<ArtDirectorHandlerResponse> {
   const routePath = params.path.join("/");
-  const routeKey = `${params.method} ${routePath}`;
 
   const payload = {
     ...Object.fromEntries(params.searchParams?.entries() ?? []),
     ...asRecord(params.body),
   };
 
-  const handler = ROUTE_HANDLERS.get(routeKey);
-  return handler ? handler(payload) : failure(`المسار غير مدعوم: ${routePath}`, 404);
+  const response =
+    params.method === "GET"
+      ? handleGetRoute(routePath, payload)
+      : handlePostRoute(routePath, payload);
+
+  return response ?? failure(`المسار غير مدعوم: ${routePath}`, 404);
 }

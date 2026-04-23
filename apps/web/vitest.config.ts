@@ -55,7 +55,6 @@ export default defineConfig({
         "postcss.config.*",
         ".env*",
       ],
-      all: true,
       skipFull: false,
       thresholds: {
         global: {
