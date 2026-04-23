@@ -311,6 +311,26 @@ app.post('/api/auth/recovery', authMiddleware, csrfProtection, manageRecoveryArt
 app.post('/api/analysis/seven-stations', authMiddleware, perUserAiLimiter, csrfProtection, analysisController.runSevenStationsPipeline.bind(analysisController));
 app.get('/api/analysis/stations-info', authMiddleware, analysisController.getStationDetails.bind(analysisController));
 
+// Seven Stations Pipeline — streaming endpoints (SSE-only, protected)
+app.post('/api/analysis/seven-stations/start', authMiddleware, perUserAiLimiter, csrfProtection, analysisController.startStreamSession.bind(analysisController));
+app.get('/api/analysis/seven-stations/stream/:analysisId', authMiddleware, analysisController.streamEvents.bind(analysisController));
+app.get('/api/analysis/seven-stations/:analysisId/snapshot', authMiddleware, analysisController.getAnalysisSnapshot.bind(analysisController));
+app.post('/api/analysis/seven-stations/:analysisId/retry/:stationId', authMiddleware, perUserAiLimiter, csrfProtection, analysisController.retryStation.bind(analysisController));
+app.post('/api/analysis/seven-stations/:analysisId/export', authMiddleware, csrfProtection, analysisController.exportAnalysis.bind(analysisController));
+
+// Lightweight telemetry sink for the analysis surface (best-effort, fire-and-forget)
+app.post('/api/telemetry', authMiddleware, (req, res) => {
+  try {
+    const body = req.body as { event?: string; payload?: unknown } | undefined;
+    if (body?.event) {
+      // logger drops to debug to avoid log noise
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (logger as any).debug?.('telemetry', { event: body.event, payload: body.payload });
+    }
+  } catch { /* swallow */ }
+  res.status(204).end();
+});
+
 // Enhanced Self-Critique endpoints (protected)
 app.get('/api/critique/config', authMiddleware, critiqueController.getAllCritiqueConfigs.bind(critiqueController));
 app.get('/api/critique/config/:taskType', authMiddleware, critiqueController.getCritiqueConfig.bind(critiqueController));

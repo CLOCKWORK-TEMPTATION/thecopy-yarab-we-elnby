@@ -1,6 +1,25 @@
 import { PipelineInput, PipelineRunResult, Station1Output, StationOutput } from '@/types';
 import { logger } from '@/utils/logger';
 import { multiAgentOrchestrator, TaskType } from './agents';
+import { agentRegistry } from './agents/registry';
+import {
+  analysisStreamRegistry,
+  type StationId,
+} from './analysisStream.registry';
+
+/**
+ * Maps the seven user-facing stations to the underlying agent task types.
+ * Order matters — events are emitted in this order during streaming.
+ */
+const STATION_TASKS: Array<{ stationId: StationId; task: TaskType }> = [
+  { stationId: 1, task: TaskType.CHARACTER_DEEP_ANALYZER },
+  { stationId: 2, task: TaskType.DIALOGUE_ADVANCED_ANALYZER },
+  { stationId: 3, task: TaskType.VISUAL_CINEMATIC_ANALYZER },
+  { stationId: 4, task: TaskType.THEMES_MESSAGES_ANALYZER },
+  { stationId: 5, task: TaskType.CULTURAL_HISTORICAL_ANALYZER },
+  { stationId: 6, task: TaskType.PRODUCIBILITY_ANALYZER },
+  { stationId: 7, task: TaskType.TARGET_AUDIENCE_ANALYZER },
+];
 
 export class AnalysisService {
 
@@ -280,5 +299,199 @@ export class AnalysisService {
     report += 'تم إجراء تحليل شامل باستخدام نظام الوكلاء المتعددين المتقدم.\n';
 
     return report;
+  }
+
+  // ==========================================================================
+  // Streaming pipeline (SSE-backed)
+  // ==========================================================================
+  /**
+   * Run the full pipeline for a session previously created in
+   * `analysisStreamRegistry`. Emits per-station events as each agent completes.
+   *
+   * The agents themselves do not currently expose token-level streaming, so we
+   * surface real progress at the station boundary plus a single 0.5 progress
+   * tick per station so the UI can show motion. No fake progress beyond that.
+   */
+  async runFullPipelineStreaming(args: {
+    analysisId: string;
+    fullText: string;
+    projectName: string;
+    language?: string;
+  }): Promise<void> {
+    const start = Date.now();
+    const { analysisId } = args;
+    const reg = analysisStreamRegistry;
+
+    reg.emit(analysisId, {
+      type: 'pipeline.started',
+      analysisId,
+      projectName: args.projectName,
+      capabilities: { exports: ['json', 'docx', 'pdf'] },
+    });
+
+    const results = new Map<TaskType, unknown>();
+    let allOk = true;
+
+    for (const { stationId, task } of STATION_TASKS) {
+      const stationStart = Date.now();
+      const at = new Date().toISOString();
+      const stationName = this.stationNameFor(stationId);
+      reg.emit(analysisId, { type: 'station.started', stationId, name: stationName, at });
+      reg.emit(analysisId, { type: 'station.progress', stationId, progress: 0.1 });
+
+      try {
+        const agent = agentRegistry.getAgent(task);
+        if (!agent) {
+          throw new Error(`Agent not registered for task ${task}`);
+        }
+
+        reg.emit(analysisId, { type: 'station.progress', stationId, progress: 0.5 });
+
+        const output = await agent.executeTask({
+          input: args.fullText,
+          context: {
+            projectName: args.projectName,
+            language: args.language || 'ar',
+            previousResults: Object.fromEntries(results),
+          },
+          options: {
+            enableRAG: true,
+            enableSelfCritique: true,
+            enableConstitutional: true,
+            enableUncertainty: true,
+            enableHallucination: true,
+          },
+        });
+
+        results.set(task, output);
+        const stationOutput = this.buildStationFor(stationId, output, results);
+        const confidence = this.extractConfidence(output);
+
+        reg.emit(analysisId, {
+          type: 'station.completed',
+          stationId,
+          output: stationOutput,
+          confidence,
+          durationMs: Date.now() - stationStart,
+        });
+      } catch (err) {
+        allOk = false;
+        const message = err instanceof Error ? err.message : 'فشل غير متوقع';
+        logger.error('Streaming station failed', { analysisId, stationId, message });
+        reg.emit(analysisId, { type: 'station.error', stationId, message });
+        reg.emit(analysisId, {
+          type: 'pipeline.warning',
+          warning: {
+            id: `${analysisId}:${stationId}:error`,
+            stationId,
+            severity: 'error',
+            message,
+            at: new Date().toISOString(),
+          },
+        });
+      }
+    }
+
+    reg.emit(analysisId, {
+      type: 'pipeline.completed',
+      status: allOk ? 'completed' : 'failed',
+      durationMs: Date.now() - start,
+    });
+  }
+
+  /**
+   * Re-run a single station/agent. Returns the freshly built station output.
+   * Used by the per-station retry endpoint.
+   */
+  async retryStation(args: {
+    analysisId: string;
+    stationId: StationId;
+    fullText: string;
+    projectName: string;
+    language?: string;
+  }): Promise<unknown> {
+    const mapping = STATION_TASKS.find((m) => m.stationId === args.stationId);
+    if (!mapping) {
+      throw new Error(`Unknown stationId ${args.stationId}`);
+    }
+    const agent = agentRegistry.getAgent(mapping.task);
+    if (!agent) {
+      throw new Error(`Agent not registered for task ${mapping.task}`);
+    }
+
+    const reg = analysisStreamRegistry;
+    const at = new Date().toISOString();
+    const stationName = this.stationNameFor(args.stationId);
+    reg.emit(args.analysisId, { type: 'station.started', stationId: args.stationId, name: stationName, at });
+    reg.emit(args.analysisId, { type: 'station.progress', stationId: args.stationId, progress: 0.5 });
+
+    const start = Date.now();
+    try {
+      const output = await agent.executeTask({
+        input: args.fullText,
+        context: { projectName: args.projectName, language: args.language || 'ar' },
+        options: {
+          enableRAG: true,
+          enableSelfCritique: true,
+          enableConstitutional: true,
+          enableUncertainty: true,
+          enableHallucination: true,
+        },
+      });
+      const built = this.buildStationFor(args.stationId, output, new Map([[mapping.task, output]]));
+      const confidence = this.extractConfidence(output);
+      reg.emit(args.analysisId, {
+        type: 'station.completed',
+        stationId: args.stationId,
+        output: built,
+        confidence,
+        durationMs: Date.now() - start,
+      });
+      return built;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'فشل غير متوقع';
+      reg.emit(args.analysisId, { type: 'station.error', stationId: args.stationId, message });
+      throw err;
+    }
+  }
+
+  private stationNameFor(stationId: StationId): string {
+    switch (stationId) {
+      case 1: return 'التحليل العميق للشخصيات';
+      case 2: return 'التحليل المتقدم للحوار';
+      case 3: return 'التحليل البصري والسينمائي';
+      case 4: return 'تحليل الموضوعات والرسائل';
+      case 5: return 'التحليل الثقافي والتاريخي';
+      case 6: return 'تحليل قابلية الإنتاج';
+      case 7: return 'تحليل الجمهور والتقرير النهائي';
+    }
+  }
+
+  private buildStationFor(
+    stationId: StationId,
+    agentResult: unknown,
+    results: Map<TaskType, unknown>
+  ): StationOutput | Station1Output {
+    switch (stationId) {
+      case 1: return this.runStation1(agentResult);
+      case 2: return this.runStation2(agentResult);
+      case 3: return this.runStation3(agentResult);
+      case 4: return this.runStation4(agentResult);
+      case 5: return this.runStation5(agentResult);
+      case 6: return this.runStation6(agentResult);
+      case 7: {
+        // runStation7 expects a Map keyed by TaskType
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return this.runStation7(agentResult, results as Map<TaskType, any>);
+      }
+    }
+  }
+
+  private extractConfidence(agentResult: unknown): number | null {
+    if (agentResult && typeof agentResult === 'object' && 'confidence' in agentResult) {
+      const c = (agentResult as { confidence: unknown }).confidence;
+      if (typeof c === 'number' && Number.isFinite(c)) return c;
+    }
+    return null;
   }
 }
