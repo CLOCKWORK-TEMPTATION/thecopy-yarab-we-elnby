@@ -43,6 +43,9 @@ export {
   scanQRAndLogin,
   verifyToken,
   generateDeviceHash,
+  refreshAccessToken,
+  getTokenExpiryMs,
+  logout,
   api,
 } from './lib/auth';
 
@@ -54,4 +57,3 @@ export {
   getRoleLabel,
   isValidRole,
 } from './lib/roles';
-

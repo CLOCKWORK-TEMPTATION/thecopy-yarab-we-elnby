@@ -12,7 +12,12 @@
     "./hooks/useSocket": "./src/hooks/useSocket.ts",
     "./hooks/useGeolocation": "./src/hooks/useGeolocation.ts",
     "./hooks/useQRCamera": "./src/hooks/useQRCamera.ts",
+    "./hooks/useAuthRefresh": "./src/hooks/useAuthRefresh.ts",
+    "./hooks/useCurrentUser": "./src/hooks/useCurrentUser.ts",
+    "./guards/RoleGuard": "./src/guards/RoleGuard.tsx",
     "./components/ConnectionTest": "./src/components/ConnectionTest.tsx",
+    "./components/ConnectionIndicator": "./src/components/ConnectionIndicator.tsx",
+    "./components/AppShell": "./src/components/AppShell.tsx",
     "./components/maps/MapComponent": "./src/components/maps/MapComponent.tsx",
     "./components/scanner/QRScanner": "./src/components/scanner/QRScanner.tsx"
   },

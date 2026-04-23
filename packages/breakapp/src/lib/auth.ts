@@ -12,6 +12,7 @@
 import axios, {
   type AxiosError,
   type AxiosInstance,
+  type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
 import {
@@ -28,8 +29,38 @@ const API_URL =
 let inMemoryAccessToken: string | null = null;
 
 /**
+ * علامة تمنع لا نهائية الاستدعاء المتكرر لـ refresh عند رفض الخادم
+ *
+ * @description
+ * السبب: لو فشل الـ refresh نفسه بـ 401 ما يجب أن نكرر محاولة refresh أخرى
+ * إلى ما لا نهاية. هذه العلامة تضمن محاولة واحدة فقط لكل طلب أصلي.
+ */
+const RETRY_FLAG = Symbol("breakapp.auth.retry");
+
+/**
+ * نوع مُمتد للطلب الداخلي يحمل علامة إعادة المحاولة
+ *
+ * @description
+ * يوسع InternalAxiosRequestConfig بخاصية رمزية تُستخدم فقط داخل هذا الملف
+ * لمنع إعادة محاولة الطلب أكثر من مرة بعد refresh.
+ */
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  [RETRY_FLAG]?: boolean;
+}
+
+/**
+ * طابور مُنتظرين أثناء جريان refresh واحد
+ *
+ * @description
+ * السبب: إذا وصلت عدة طلبات في نفس اللحظة ورجعت كلها 401، يجب أن يستدعي
+ * واحد فقط /auth/refresh وباقي الطلبات تنتظر النتيجة بدل أن تُحدث
+ * refresh متوازي ينتج عنه cookie جديد لكل محاولة.
+ */
+let refreshInFlight: Promise<string | null> | null = null;
+
+/**
  * مثيل Axios مُهيأ للتواصل مع الخادم
- * 
+ *
  * @description
  * يتضمن interceptors لإضافة رمز المصادقة تلقائياً لكل طلب
  */
@@ -38,6 +69,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // إضافة interceptor لتضمين رمز المصادقة في كل طلب
@@ -52,6 +84,66 @@ api.interceptors.request.use(
   },
   (error: AxiosError) => Promise.reject(error)
 );
+
+/**
+ * معالج ما بعد الاستجابة لإعادة إصدار الطلب بعد refresh
+ *
+ * @description
+ * السبب: الخادم يُصدر access_token قصير العمر ويحتفظ بـ refreshToken
+ * في httpOnly cookie. عند رد 401 أول مرة، نحاول الحصول على access_token
+ * جديد ثم نُعيد الطلب الأصلي مرة واحدة فقط. إن فشل refresh نمسح الذاكرة
+ * ونُبلغ طبقة React بالتحويل إلى شاشة QR.
+ */
+api.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error: AxiosError) => {
+    const originalConfig = error.config as RetryableRequestConfig | undefined;
+    const status = error.response?.status;
+
+    if (!originalConfig || status !== 401) {
+      return Promise.reject(error);
+    }
+
+    // لا نُعيد محاولة طلب /auth/refresh نفسه لتجنب الحلقة اللانهائية
+    const requestUrl = originalConfig.url ?? "";
+    if (requestUrl.includes("/auth/refresh") || requestUrl.includes("/auth/logout")) {
+      return Promise.reject(error);
+    }
+
+    if (originalConfig[RETRY_FLAG]) {
+      return Promise.reject(error);
+    }
+
+    originalConfig[RETRY_FLAG] = true;
+
+    const newToken = await refreshAccessToken();
+    if (!newToken) {
+      removeToken();
+      notifyAuthExpired();
+      return Promise.reject(error);
+    }
+
+    if (originalConfig.headers) {
+      originalConfig.headers.Authorization = `Bearer ${newToken}`;
+    }
+
+    return api.request(originalConfig);
+  }
+);
+
+/**
+ * بث حدث انتهاء الجلسة لطبقة React
+ *
+ * @description
+ * السبب: الحزمة لا تعرف Router مباشرةً؛ نُطلق CustomEvent يلتقطه AppShell
+ * أو أي hook عالمي ويقرر وجهة التحويل (`/BREAKAPP/login/qr`).
+ */
+function notifyAuthExpired(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("breakapp:auth-expired"));
+}
 
 /**
  * حفظ رمز JWT في الذاكرة فقط
@@ -160,6 +252,102 @@ export function isAuthenticated(): boolean {
  */
 export function getCurrentUser(): CurrentUser | null {
   return decodeCurrentPayload();
+}
+
+/**
+ * استخراج زمن انتهاء صلاحية الرمز الحالي بالملّي ثانية
+ *
+ * @description
+ * يستخرج الحقل `exp` من JWT ويُحوّله إلى ms. يُستخدم من قِبَل `useAuthRefresh`
+ * لجدولة الاستدعاء التلقائي قبل انتهاء الصلاحية.
+ *
+ * السبب: تجنُّب فشل 401 بالأساس عبر refresh استباقي أفضل بكثير من انتظار فشل
+ * الطلب ثم التعويض.
+ *
+ * @returns زمن الانتهاء بالملّي ثانية منذ epoch، أو null إن لم يكن هناك توكن صالح
+ */
+export function getTokenExpiryMs(): number | null {
+  const token = getToken();
+  if (!token) {
+    return null;
+  }
+  try {
+    const payloadBase64 = token.split(".")[1];
+    if (!payloadBase64) {
+      return null;
+    }
+    const decodedPayload = JSON.parse(atob(payloadBase64));
+    const parsed = JWTPayloadSchema.safeParse(decodedPayload);
+    if (!parsed.success) {
+      return null;
+    }
+    return parsed.data.exp * 1000;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * تجديد access_token باستخدام httpOnly cookie
+ *
+ * @description
+ * يستدعي `/auth/refresh` مع `withCredentials` (مُعطى أصلاً على المثيل) ليقرأ
+ * الخادم `refreshToken` cookie ويُصدر access_token جديد. عند الفشل يُرجع null
+ * ولا يرمي استثناء حتى يُدار التحويل إلى شاشة QR على مستوى الاستدعاء.
+ *
+ * السبب: الـ access_token قصير العمر وإعادة مصادقة QR ثقيلة؛ refresh صامت
+ * يحافظ على الجلسة دون تدخّل المستخدم.
+ *
+ * @returns التوكن الجديد أو null عند الفشل
+ */
+export async function refreshAccessToken(): Promise<string | null> {
+  if (refreshInFlight) {
+    return refreshInFlight;
+  }
+
+  refreshInFlight = (async (): Promise<string | null> => {
+    try {
+      const response = await api.post<{ access_token: string }>(
+        "/auth/refresh",
+        {}
+      );
+      const token = response.data?.access_token;
+      if (typeof token !== "string" || token.length === 0) {
+        return null;
+      }
+      storeToken(token);
+      return token;
+    } catch {
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
+}
+
+/**
+ * إنهاء الجلسة محلياً وعلى الخادم
+ *
+ * @description
+ * يستدعي `/auth/logout` ليطلب من الخادم مسح `refreshToken` cookie ثم يُنظّف
+ * التوكن من الذاكرة. يبتلع أخطاء الشبكة ليضمن مسح الذاكرة المحلية في كل الحالات.
+ *
+ * السبب: لا يجب أن تبقى جلسة العميل إذا فشل استدعاء الخادم — السلوك الافتراضي
+ * هو "اخرج دائماً" من المنظور المحلي.
+ */
+export async function logout(): Promise<void> {
+  try {
+    await api.post("/auth/logout", {});
+  } catch {
+    // نتجاهل الخطأ — مسح الذاكرة أولوية مطلقة
+  } finally {
+    removeToken();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("breakapp:auth-logged-out"));
+    }
+  }
 }
 
 /**

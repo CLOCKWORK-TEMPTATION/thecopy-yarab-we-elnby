@@ -308,3 +308,165 @@ export const sceneCostumes = pgTable('scene_costumes', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// ==========================================
+// BREAKAPP - On-Set Logistics
+// ==========================================
+// كل جداول هذا القسم مستقلة عن جداول users/projects الرئيسية
+// لأن مستخدمي BREAKAPP يُعرّفون عبر QR token (uuid حر) لا عبر users.id.
+// لذلك لا نستخدم FK نحو users — بل نخزن user_id كنص حر (breakapp-native).
+
+export const breakappProjects = pgTable('breakapp_projects', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  directorUserId: text('director_user_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const breakappProjectMembers = pgTable('breakapp_project_members', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => breakappProjects.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(),
+  role: text('role').$type<'director' | 'crew' | 'runner' | 'vendor' | 'admin'>().notNull(),
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+export const breakappVendors = pgTable('breakapp_vendors', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  isMobile: boolean('is_mobile').default(false).notNull(),
+  lat: real('lat'),
+  lng: real('lng'),
+  ownerUserId: text('owner_user_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const breakappMenuItems = pgTable('breakapp_menu_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  vendorId: uuid('vendor_id')
+    .notNull()
+    .references(() => breakappVendors.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: integer('price'),
+  available: boolean('available').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const breakappSessions = pgTable('breakapp_sessions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => breakappProjects.id, { onDelete: 'cascade' }),
+  directorUserId: text('director_user_id').notNull(),
+  lat: real('lat').notNull(),
+  lng: real('lng').notNull(),
+  startsAt: timestamp('starts_at').defaultNow().notNull(),
+  endsAt: timestamp('ends_at'),
+  status: text('status').$type<'active' | 'ended' | 'cancelled'>().default('active').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const breakappOrders = pgTable('breakapp_orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sessionId: uuid('session_id')
+    .notNull()
+    .references(() => breakappSessions.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(),
+  vendorId: uuid('vendor_id')
+    .notNull()
+    .references(() => breakappVendors.id, { onDelete: 'restrict' }),
+  status: text('status').$type<'pending' | 'processing' | 'completed' | 'cancelled'>().default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const breakappOrderItems = pgTable('breakapp_order_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('order_id')
+    .notNull()
+    .references(() => breakappOrders.id, { onDelete: 'cascade' }),
+  menuItemId: uuid('menu_item_id')
+    .notNull()
+    .references(() => breakappMenuItems.id, { onDelete: 'restrict' }),
+  quantity: integer('quantity').notNull(),
+});
+
+export const breakappOrderBatches = pgTable('breakapp_order_batches', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sessionId: uuid('session_id')
+    .notNull()
+    .references(() => breakappSessions.id, { onDelete: 'cascade' }),
+  vendorId: uuid('vendor_id')
+    .notNull()
+    .references(() => breakappVendors.id, { onDelete: 'restrict' }),
+  runnerId: text('runner_id'),
+  totalItems: integer('total_items').default(0).notNull(),
+  status: text('status').$type<'pending' | 'in-progress' | 'completed' | 'cancelled'>().default('pending').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const breakappRunnerLocations = pgTable('breakapp_runner_locations', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  runnerId: text('runner_id').notNull(),
+  sessionId: uuid('session_id')
+    .references(() => breakappSessions.id, { onDelete: 'set null' }),
+  lat: real('lat').notNull(),
+  lng: real('lng').notNull(),
+  accuracy: real('accuracy'),
+  recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+});
+
+export const breakappInviteTokens = pgTable('breakapp_invite_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => breakappProjects.id, { onDelete: 'cascade' }),
+  role: text('role').$type<'director' | 'crew' | 'runner' | 'vendor' | 'admin'>().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+  createdBy: text('created_by').notNull(),
+  qrPayload: text('qr_payload').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Refresh tokens لمستخدمي BREAKAPP — منفصل عن refreshTokens الأساسي
+// لأن user_id هنا نص حر قادم من QR، لا uuid مُقيّد بـ users.id.
+export const breakappRefreshTokens = pgTable('breakapp_refresh_tokens', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id').notNull(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => breakappProjects.id, { onDelete: 'cascade' }),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  revokedAt: timestamp('revoked_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type BreakappProject = typeof breakappProjects.$inferSelect;
+export type NewBreakappProject = typeof breakappProjects.$inferInsert;
+export type BreakappVendor = typeof breakappVendors.$inferSelect;
+export type NewBreakappVendor = typeof breakappVendors.$inferInsert;
+export type BreakappMenuItem = typeof breakappMenuItems.$inferSelect;
+export type NewBreakappMenuItem = typeof breakappMenuItems.$inferInsert;
+export type BreakappSession = typeof breakappSessions.$inferSelect;
+export type NewBreakappSession = typeof breakappSessions.$inferInsert;
+export type BreakappOrder = typeof breakappOrders.$inferSelect;
+export type NewBreakappOrder = typeof breakappOrders.$inferInsert;
+export type BreakappOrderItem = typeof breakappOrderItems.$inferSelect;
+export type NewBreakappOrderItem = typeof breakappOrderItems.$inferInsert;
+export type BreakappOrderBatch = typeof breakappOrderBatches.$inferSelect;
+export type NewBreakappOrderBatch = typeof breakappOrderBatches.$inferInsert;
+export type BreakappRunnerLocation = typeof breakappRunnerLocations.$inferSelect;
+export type NewBreakappRunnerLocation = typeof breakappRunnerLocations.$inferInsert;
+export type BreakappInviteToken = typeof breakappInviteTokens.$inferSelect;
+export type NewBreakappInviteToken = typeof breakappInviteTokens.$inferInsert;
+export type BreakappRefreshToken = typeof breakappRefreshTokens.$inferSelect;
+export type NewBreakappRefreshToken = typeof breakappRefreshTokens.$inferInsert;
+export type BreakappProjectMember = typeof breakappProjectMembers.$inferSelect;
+export type NewBreakappProjectMember = typeof breakappProjectMembers.$inferInsert;
