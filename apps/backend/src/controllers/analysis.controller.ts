@@ -7,7 +7,7 @@ import {
   type StationId,
 } from '@/services/analysisStream.registry';
 import { z } from 'zod';
-import { Document, Packer, Paragraph, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
 import { jsPDF } from 'jspdf';
 
 // تم إيقاف استيراد كود من الواجهة الأمامية لتجنب أخطاء rootDir في TypeScript
@@ -48,26 +48,46 @@ function parseLastEventId(header: string | string[] | undefined): number | null 
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
+/**
+ * DOCX export — Arabic / RTL is fully supported by Word readers when paragraphs
+ * are flagged `bidirectional: true`. This is a real RTL export.
+ */
 function buildDocx(snap: { projectName: string; finalReport: string | null; stations: Array<{ id: number; name: string; status: string; output: unknown; error: string | null }> }) {
-  const children: Paragraph[] = [
-    new Paragraph({ text: snap.projectName, heading: HeadingLevel.TITLE }),
-  ];
+  const rtlPara = (text: string, heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel]): Paragraph =>
+    new Paragraph({
+      text,
+      heading,
+      bidirectional: true,
+      alignment: AlignmentType.RIGHT,
+    });
+
+  const children: Paragraph[] = [rtlPara(snap.projectName, HeadingLevel.TITLE)];
   for (const s of snap.stations) {
-    children.push(new Paragraph({ text: `المحطة ${s.id} — ${s.name}`, heading: HeadingLevel.HEADING_1 }));
-    children.push(new Paragraph({ text: `الحالة: ${s.status}` }));
-    if (s.error) children.push(new Paragraph({ text: `خطأ: ${s.error}` }));
+    children.push(rtlPara(`المحطة ${s.id} — ${s.name}`, HeadingLevel.HEADING_1));
+    children.push(rtlPara(`الحالة: ${s.status}`));
+    if (s.error) children.push(rtlPara(`خطأ: ${s.error}`));
     if (s.output) {
       const text = stationOutputToText(s.output);
-      for (const line of text.split('\n')) children.push(new Paragraph({ text: line }));
+      for (const line of text.split('\n')) children.push(rtlPara(line));
     }
   }
   if (snap.finalReport) {
-    children.push(new Paragraph({ text: 'التقرير النهائي', heading: HeadingLevel.HEADING_1 }));
-    for (const line of snap.finalReport.split('\n')) children.push(new Paragraph({ text: line }));
+    children.push(rtlPara('التقرير النهائي', HeadingLevel.HEADING_1));
+    for (const line of snap.finalReport.split('\n')) children.push(rtlPara(line));
   }
   return new Document({ sections: [{ properties: {}, children }] });
 }
 
+/**
+ * PDF export — KNOWN LIMITATION: jsPDF's bundled core fonts (Helvetica/Times/
+ * Courier) do not contain Arabic glyphs and jsPDF performs no bidi reshaping.
+ * Embedding an Arabic font + reshaper is intentionally out of scope for this
+ * fixup. The PDF therefore renders Arabic strings as missing glyphs / boxes.
+ *
+ * Until an Arabic font is bundled, the PDF is best-effort and is generated as
+ * an English-only structural summary with a clear notice on the first page
+ * pointing the user to the DOCX export for a faithful Arabic / RTL rendering.
+ */
 function buildPdf(snap: { projectName: string; finalReport: string | null; stations: Array<{ id: number; name: string; status: string; output: unknown; error: string | null }> }): Buffer {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const margin = 40;
@@ -88,20 +108,35 @@ function buildPdf(snap: { projectName: string; finalReport: string | null; stati
     }
   };
 
-  writeLines(snap.projectName, 16);
+  // Honest notice — keeps the PDF usable for non-Arabic workflows and tells
+  // the user where to go for a real RTL export.
+  writeLines('Notice: PDF export uses jsPDF core fonts which do not include Arabic glyphs.', 9);
+  writeLines('For a faithful Arabic / RTL rendering, please use the DOCX export instead.', 9);
+  y += lineHeight;
+
+  writeLines(asciiSafe(snap.projectName), 16);
   y += lineHeight;
   for (const s of snap.stations) {
-    writeLines(`Station ${s.id} — ${s.name}`, 13);
+    writeLines(`Station ${s.id} - ${asciiSafe(s.name)}`, 13);
     writeLines(`Status: ${s.status}`);
-    if (s.error) writeLines(`Error: ${s.error}`);
-    if (s.output) writeLines(stationOutputToText(s.output));
+    if (s.error) writeLines(`Error: ${asciiSafe(s.error)}`);
+    if (s.output) writeLines(asciiSafe(stationOutputToText(s.output)));
     y += lineHeight;
   }
   if (snap.finalReport) {
     writeLines('Final Report', 13);
-    writeLines(snap.finalReport);
+    writeLines(asciiSafe(snap.finalReport));
   }
   return Buffer.from(doc.output('arraybuffer'));
+}
+
+/**
+ * Strip characters that the bundled jsPDF core fonts cannot render so the
+ * PDF doesn't fill with empty boxes. This is a deliberate downgrade — see
+ * the buildPdf docstring above.
+ */
+function asciiSafe(text: string): string {
+  return text.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '?');
 }
 
 function stationOutputToText(output: unknown): string {
