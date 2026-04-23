@@ -22,6 +22,16 @@ export interface AppSidebarProps {
   onToggleSection: (sectionId: string) => void;
   onItemAction: (sectionId: string, itemLabel: string) => void;
   settingsPanel: React.ReactNode;
+  /**
+   * نص المحرر الحالي — يُستخدم لحساب عدد مطابقات البحث داخل المستند.
+   * عند تزويده، يظهر قسم «نتائج من المحرر» في نتائج البحث (BUG-005).
+   */
+  documentText?: string;
+  /**
+   * يُستدعى عند الضغط على نتيجة المحرر — يطلب من الأب الانتقال
+   * إلى أول مطابقة داخل المحرر (تحديد + scrollIntoView).
+   */
+  onEditorSearchJump?: (query: string) => void;
 }
 
 /**
@@ -39,6 +49,8 @@ export function AppSidebar({
   onToggleSection,
   onItemAction,
   settingsPanel,
+  documentText = "",
+  onEditorSearchJump,
 }: AppSidebarProps): React.JSX.Element {
   const [searchQuery, setSearchQuery] = useState("");
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -57,8 +69,45 @@ export function AppSidebar({
     [normalizedQuery, sections]
   );
 
+  /**
+   * حساب عدد مطابقات البحث داخل نص المحرر (غير حساس للحالة).
+   * السبب: QA أشار إلى أن البحث في الشريط الجانبي لا يرى محتوى
+   * المحرر — كلمة «أمين» موجودة لكنه يُرجع «لا توجد نتائج» (BUG-005).
+   */
+  const editorMatchCount = useMemo(() => {
+    if (normalizedQuery.length === 0) return 0;
+    if (!documentText) return 0;
+    const haystack = documentText.toLowerCase();
+    let count = 0;
+    let index = 0;
+    while ((index = haystack.indexOf(normalizedQuery, index)) !== -1) {
+      count += 1;
+      index += normalizedQuery.length;
+    }
+    return count;
+  }, [normalizedQuery, documentText]);
+
+  /**
+   * مقتطف قصير من نص المحرر يحيط بأول مطابقة — لعرضه كمعاينة
+   * أسفل زر النتائج. يُظهر المستخدم أن البحث عثر على السياق الصحيح.
+   */
+  const editorMatchPreview = useMemo(() => {
+    if (editorMatchCount === 0) return "";
+    const idx = documentText.toLowerCase().indexOf(normalizedQuery);
+    if (idx === -1) return "";
+    const start = Math.max(0, idx - 24);
+    const end = Math.min(
+      documentText.length,
+      idx + normalizedQuery.length + 24
+    );
+    const prefix = start > 0 ? "…" : "";
+    const suffix = end < documentText.length ? "…" : "";
+    return `${prefix}${documentText.slice(start, end).replace(/\s+/g, " ").trim()}${suffix}`;
+  }, [editorMatchCount, documentText, normalizedQuery]);
+
   const hasAnySearchResult =
     normalizedQuery.length === 0 ||
+    editorMatchCount > 0 ||
     visibleSections.some((section) => section.filteredItems.length > 0);
 
   return (
@@ -112,6 +161,40 @@ export function AppSidebar({
           {!hasAnySearchResult && (
             <div className="app-sidebar-focus-tip px-3 py-2 text-right text-xs">
               لا توجد نتائج مطابقة للبحث.
+            </div>
+          )}
+
+          {normalizedQuery.length > 0 && editorMatchCount > 0 && (
+            <div className="mb-3" data-testid="sidebar-editor-search-results">
+              <HoverBorderGradient
+                as="button"
+                type="button"
+                suppressHydrationWarning
+                onClick={() => {
+                  if (onEditorSearchJump) {
+                    onEditorSearchJump(searchQuery.trim());
+                  }
+                }}
+                containerClassName="rounded-xl w-full"
+                className="app-sidebar-section group flex w-full flex-col items-stretch gap-1 rounded-xl bg-transparent p-3 text-right text-[color:var(--mf-text-muted)] transition-all duration-200 hover:text-[color:var(--mf-text-strong)] focus-visible:ring-2 focus-visible:ring-[color:var(--mf-accent)]/60 focus-visible:outline-none"
+                duration={2}
+              >
+                <span className="flex items-center justify-between gap-2 text-sm font-medium">
+                  <span className="text-[11px] font-normal text-[color:var(--mf-text-faint)]">
+                    اضغط للانتقال
+                  </span>
+                  <span>
+                    {editorMatchCount === 1
+                      ? "نتيجة واحدة في المحرر"
+                      : `${editorMatchCount} نتائج في المحرر`}
+                  </span>
+                </span>
+                {editorMatchPreview && (
+                  <span className="truncate text-[11px] text-[color:var(--mf-text-faint)]">
+                    {editorMatchPreview}
+                  </span>
+                )}
+              </HoverBorderGradient>
             </div>
           )}
 

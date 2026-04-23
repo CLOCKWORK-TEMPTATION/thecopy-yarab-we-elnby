@@ -33,9 +33,11 @@ import type {
 import type { ContextMemorySnapshot } from "./context-memory-manager";
 import { hasDirectDialogueCues, getDialogueProbability } from "./dialogue";
 import type { LineContextInfo } from "./document-context-graph";
+import { SCENE_NUMBER_EXACT_RE } from "./arabic-patterns";
 import { isCompleteSceneHeaderLine } from "./scene-header-top-line";
+import { isSceneHeader3Line } from "./scene-header-3";
 import { isTransitionLine } from "./transition";
-import { normalizeCharacterName } from "./text-utils";
+import { normalizeCharacterName, normalizeLine } from "./text-utils";
 import { pipelineRecorder } from "./pipeline-recorder";
 
 /**
@@ -71,6 +73,8 @@ export class HybridClassifier {
     lineCtx?: LineContextInfo
   ): HybridResult {
     pipelineRecorder.trackFile("hybrid-classifier.ts");
+    const normalizedLine = normalizeLine(line);
+
     // ── أولوية 1: أنماط regex حاسمة ──
     if (isStandaloneBasmalaLine(line)) {
       return { type: "basmala", confidence: 99, classificationMethod: "regex" };
@@ -84,12 +88,63 @@ export class HybridClassifier {
       };
     }
 
+    // ── أولوية 1.5: رأس مشهد جزئي (رقم المشهد فقط بدون header2، مثل 'مشهد 1:') ──
+    // isCompleteSceneHeaderLine يشترط وجود header2، هنا نكتشف الشكل الجزئي.
+    if (SCENE_NUMBER_EXACT_RE.test(normalizedLine)) {
+      return {
+        type: "scene_header_1",
+        confidence: 88,
+        classificationMethod: "regex",
+      };
+    }
+
     if (isTransitionLine(line)) {
       return {
         type: "transition",
         confidence: 95,
         classificationMethod: "regex",
       };
+    }
+
+    // ── أولوية 1.7: سطر مكان (scene_header_3) — يُفحص قبل الشخصية ──
+    // 'داخلي - المكان' و'خارجي - الموقع' يُصنَّفان كـ scene_header_3
+    if (isSceneHeader3Line(normalizedLine)) {
+      return {
+        type: "scene_header_3",
+        confidence: 90,
+        classificationMethod: "regex",
+      };
+    }
+
+    // ── أولوية 1.9: شخصية أحادية الرمز (تنتهي بـ ':' وقصيرة وليست رأس مشهد) ──
+    // isCharacterLine يرفض الأسماء أحادية الرمز بدون تأكيد مسبق — نُعيد قبولها هنا
+    // بشرط: لا تشترك مع أنماط الانتقال أو الوصف أو البسملة.
+    const isSingleTokenCharCandidate =
+      /[:：]\s*$/.test(normalizedLine) &&
+      !SCENE_NUMBER_EXACT_RE.test(normalizedLine) &&
+      !isTransitionLine(normalizedLine) &&
+      wordCount(normalizedLine) <= 4 &&
+      !/[.!؟،]/.test(normalizedLine.replace(/[:：]\s*$/, ""));
+
+    if (isSingleTokenCharCandidate) {
+      // إذا كان fallbackType شخصية أو الذاكرة تحتوي على الاسم → ثقة عالية
+      const characterName = normalizeCharacterName(line);
+      const seenCount = memory.characterFrequency.get(characterName) ?? 0;
+      if (fallbackType === "character" || seenCount >= 1) {
+        return {
+          type: "character",
+          confidence: seenCount >= 1 ? 92 : 84,
+          classificationMethod: "context",
+        };
+      }
+      // اسم غير معروف أحادي الرمز — ثقة معقولة بناءً على الشكل
+      if (wordCount(normalizedLine.replace(/[:：]\s*$/, "")) === 1) {
+        return {
+          type: "character",
+          confidence: 78,
+          classificationMethod: "regex",
+        };
+      }
     }
 
     // ── أولوية 2: شخصية معروفة من الذاكرة ──
