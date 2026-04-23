@@ -11,17 +11,17 @@
  * مع توجيه سريع للأقسام المناسبة حسب دور المستخدم
  */
 
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import {
   getCurrentUser,
-  isAuthenticated,
   removeToken,
   type CurrentUser,
 } from "@the-copy/breakapp";
-import { toast } from "@/hooks/use-toast";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { toast } from "@/hooks/use-toast";
 
 const ConnectionTest = dynamic(
   () => import("@the-copy/breakapp/components/ConnectionTest"),
@@ -40,13 +40,25 @@ const ConnectionTest = dynamic(
  */
 const ROLE_QUICK_LINKS: Record<
   string,
-  Array<{ label: string; href: string; description: string; color: string }>
+  { label: string; href: string; description: string; color: string }[]
 > = {
   director: [
     {
       label: "لوحة المخرج",
       href: "/BREAKAPP/director",
       description: "إدارة مواقع التصوير والموردين",
+      color: "bg-white/8 text-white border-white/12",
+    },
+    {
+      label: "الطلبات الحية",
+      href: "/BREAKAPP/director/orders-live",
+      description: "متابعة طلبات الجلسة لحظة بلحظة",
+      color: "bg-white/8 text-white border-white/12",
+    },
+    {
+      label: "خريطة عمال التوصيل",
+      href: "/BREAKAPP/director/runners-map",
+      description: "مواقع عمال التوصيل الأحياء",
       color: "bg-white/8 text-white border-white/12",
     },
     {
@@ -71,6 +83,46 @@ const ROLE_QUICK_LINKS: Record<
       description: "إدارة مهام التوصيل",
       color: "bg-white/8 text-white border-white/12",
     },
+    {
+      label: "التوصيلة الحالية",
+      href: "/BREAKAPP/runner/active-delivery",
+      description: "ملاحة وتنفيذ المهمة النشطة",
+      color: "bg-white/8 text-white border-white/12",
+    },
+  ],
+  admin: [
+    {
+      label: "إدارة المشاريع",
+      href: "/BREAKAPP/admin/projects",
+      description: "إنشاء المشاريع وتوليد رموز QR",
+      color: "bg-white/8 text-white border-white/12",
+    },
+    {
+      label: "إدارة الموردين",
+      href: "/BREAKAPP/admin/vendors",
+      description: "CRUD لقائمة الموردين",
+      color: "bg-white/8 text-white border-white/12",
+    },
+    {
+      label: "إدارة المستخدمين",
+      href: "/BREAKAPP/admin/users",
+      description: "إدارة الأعضاء والأدوار",
+      color: "bg-white/8 text-white border-white/12",
+    },
+  ],
+  vendor: [
+    {
+      label: "لوحة المورد",
+      href: "/BREAKAPP/vendor/dashboard",
+      description: "الطلبات الواردة وإحصائياتها",
+      color: "bg-white/8 text-white border-white/12",
+    },
+    {
+      label: "محرر قائمة الطعام",
+      href: "/BREAKAPP/vendor/menu-editor",
+      description: "إضافة أو تعديل أصناف الطعام",
+      color: "bg-white/8 text-white border-white/12",
+    },
   ],
 };
 
@@ -79,14 +131,9 @@ export default function DashboardPage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/BREAKAPP/login/qr");
-      return;
-    }
-
-    const userData = getCurrentUser();
-    setUser(userData);
-  }, [router]);
+    // المصادقة تحت مسؤولية (authenticated)/layout.tsx — هنا فقط نستخرج المستخدم
+    setUser(getCurrentUser());
+  }, []);
 
   /**
    * تسجيل الخروج

@@ -11,9 +11,6 @@
  * خاصة في بيئات التصوير الميدانية السريعة
  */
 
-import { useState, useCallback } from "react";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import {
   QRTokenSchema,
   generateDeviceHash,
@@ -21,9 +18,14 @@ import {
   storeToken,
   type AuthResponse,
 } from "@the-copy/breakapp";
-import type { QRScannerErrorDetail } from "@the-copy/breakapp/components/scanner/QRScanner";
-import { toast } from "@/hooks/use-toast";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { toast } from "@/hooks/use-toast";
+
+import type { QRScannerErrorDetail } from "@the-copy/breakapp/components/scanner/QRScanner";
 
 const QRScanner = dynamic(
   () => import("@the-copy/breakapp/components/scanner/QRScanner"),

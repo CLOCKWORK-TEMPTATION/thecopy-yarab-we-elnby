@@ -8,10 +8,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-23T05:13:22.071Z |
-| الفرع الحالي | `main` |
-| آخر commit | `072926afe94c5cabd3ac4366fd2c6f814f2c33ba` |
-| حالة working tree | غير نظيفة — 7 ملف متغير |
+| آخر مزامنة مرجعية | 2026-04-23T14:00:00.000Z |
+| الفرع الحالي | `chore/strict-baseline` |
+| آخر commit | `42c407e26d9dbd415a30c50401880d0abec99929` |
+| حالة working tree | تغييرات بنيوية BREAKAPP مفتوحة (غير موقّعة) |
 | مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
@@ -111,6 +111,16 @@ AGENTS.md
 - تموضع الكروت السبعة في هيرو الصفحة الرئيسية ثابت ومرجعي عبر كل المقاسات.
 - ممنوع إدخال breakpoint-based repositioning أو resize-driven layout updates لهذا التكوين إلا بطلب صريح جديد.
 - الملفان الحاكمان لهذا القيد هما `apps/web/src/lib/hero-config.ts` و `apps/web/src/hooks/use-hero-animation.ts`.
+
+## حالة تطبيق BREAKAPP (جولة 093)
+
+- **البنية:** كل الصفحات الحساسة داخل `apps/web/src/app/(main)/BREAKAPP/(authenticated)/` مع `RoleGuard` لكل دور (director/crew/runner/admin/vendor). صفحة `login/qr` داخل `(public)`.
+- **المستندات:** انتقلت كلياً من الراوتر إلى `docs/apps/web/breakapp/`.
+- **الحماية:** `RoleGuard` + `createRoleGuard` مُصدّرة من `@the-copy/breakapp/guards/RoleGuard`. خريطة الأدوار في `packages/breakapp/src/lib/roles.ts` شاملة 5 أدوار.
+- **الباك-إند:** 11 جدول `breakapp_*` مُضاف إلى `apps/backend/src/db/schema.ts` + migration يدوي `apps/backend/drizzle/0002_breakapp.sql` + repository/gateway/seed. 22 endpoint REST جديد + WebSocket namespace `breakapp-session:<id>`. لا PostGIS — Haversine داخل SQL.
+- **التخزين:** JSON file storage للـ breakapp حُذف كلياً — الـ DB هي الحقيقة.
+- **الأمن:** JWT في الذاكرة فقط، refresh token في httpOnly cookie، `refreshAccessToken()` + `logout()` + interceptor للـ 401.
+- **أعمال مفتوحة:** 1) `db:push` لم يُشغَّل (لا DATABASE_URL متاح). 2) seed vendors/menu items لم يُكتب سكربت مشغِّل له. 3) `UNIQUE(project_id,user_id)` على `breakapp_project_members` يحتاج migration لاحق. 4) 30 تحذير ESLint stylistic (a11y/import-order/nullish) غير مانعة. 5) 4 أخطاء TypeScript pre-existing في `apps/web/src/app/(main)/editor/src/**` من commit `42c407e` لا علاقة لها بالجولة.
 
 ## طبقة المعرفة والاسترجاع
 

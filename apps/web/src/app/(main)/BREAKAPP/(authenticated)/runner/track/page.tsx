@@ -11,13 +11,18 @@
  * دقيقة للمخرج عن توقيت وصول الطلبات
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { AxiosError } from "axios";
-import { api, type DeliveryTask } from "@the-copy/breakapp";
+import {
+  api,
+  getCurrentUser,
+  type DeliveryTask,
+} from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { toast } from "@/hooks/use-toast";
+import { AxiosError } from "axios";
+import { useState, useEffect, useCallback } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { toast } from "@/hooks/use-toast";
 
 /**
  * استجابة API للمهام المجمّعة
@@ -29,7 +34,6 @@ interface BatchTaskResponse {
 }
 
 export default function RunnerTrackPage() {
-  const [runnerId, setRunnerId] = useState<string>("");
   const [isTracking, setIsTracking] = useState(false);
   const [tasks, setTasks] = useState<DeliveryTask[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
@@ -38,15 +42,15 @@ export default function RunnerTrackPage() {
   const { position, error: geoError } = useGeolocation();
   const { connected, emit, on, off } = useSocket();
 
-  // الحصول على أو إنشاء معرّف Runner
-  useEffect(() => {
-    let id = localStorage.getItem("runnerId");
-    if (!id) {
-      id = `runner-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-      localStorage.setItem("runnerId", id);
-    }
-    setRunnerId(id);
-  }, []);
+  /**
+   * إصلاح ثغرة C5: runnerId يُستخرج من JWT (getCurrentUser) وليس من
+   * localStorage. ممنوع توليد معرّفات عشوائية محلياً لأن ذلك يسمح
+   * بانتحال هوية أي runner من جانب العميل. طبقة (authenticated) تضمن
+   * وجود جلسة صالحة؛ إن كان التوكن لا يمكن فك تشفيره نُظهر رسالة
+   * واضحة دون redirect لأن المسؤولية تقع على الـ layout الأعلى.
+   */
+  const currentUser = getCurrentUser();
+  const runnerId = currentUser?.userId ?? "";
 
   // تسجيل Runner والاستماع للمهام
   useEffect(() => {
@@ -234,7 +238,13 @@ export default function RunnerTrackPage() {
               <span className="text-sm text-white/55 font-cairo">
                 معرّف Runner:
               </span>
-              <p className="font-mono text-sm text-white">{runnerId}</p>
+              {runnerId ? (
+                <p className="font-mono text-sm text-white">{runnerId}</p>
+              ) : (
+                <p className="text-sm text-white/85 font-cairo">
+                  جلسة غير صالحة
+                </p>
+              )}
             </div>
             <div>
               <span className="text-sm text-white/55 font-cairo">

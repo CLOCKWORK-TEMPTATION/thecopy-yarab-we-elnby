@@ -11,12 +11,13 @@
  * والموردين المتاحين لتسهيل عملية التموين للفريق
  */
 
-import { useState, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
-import { AxiosError } from "axios";
 import { api, type Vendor, type VendorMapData } from "@the-copy/breakapp";
-import { toast } from "@/hooks/use-toast";
+import { AxiosError } from "axios";
+import dynamic from "next/dynamic";
+import { useState, useCallback, useMemo } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { toast } from "@/hooks/use-toast";
 
 // تحميل ديناميكي لمكون الخريطة لتجنب مشاكل SSR
 const MapComponent = dynamic(
@@ -164,6 +165,31 @@ export default function DirectorDashboard() {
             العودة للوحة التحكم
           </a>
         </div>
+
+        {/* شريط تنقّل تبويبات المخرج */}
+        <nav
+          aria-label="تبويبات المخرج"
+          className="mb-6 flex items-center gap-3"
+        >
+          <span
+            className="px-4 py-2 text-sm bg-white/8 text-white font-cairo rounded-[22px] border border-white/12"
+            aria-current="page"
+          >
+            الجلسة والموقع
+          </span>
+          <a
+            href="/BREAKAPP/director/orders-live"
+            className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
+          >
+            الطلبات الحيّة
+          </a>
+          <a
+            href="/BREAKAPP/director/runners-map"
+            className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
+          >
+            خريطة الـ Runners
+          </a>
+        </nav>
 
         {/* إدخال معرّف المشروع */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">

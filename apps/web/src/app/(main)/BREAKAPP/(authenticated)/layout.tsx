@@ -1,23 +1,19 @@
 "use client";
 
 /**
- * تخطيط الصفحات المحمية — Auth Guard
+ * تخطيط الصفحات المحمية — Authentication Guard
  *
  * @description
  * يتحقق من مصادقة المستخدم قبل عرض أي صفحة محمية
- * ويُوجّه غير المصادقين لصفحة تسجيل الدخول تلقائياً
+ * ويُوجّه غير المصادقين لصفحة تسجيل الدخول تلقائياً.
  *
- * السبب: حماية مركزية لجميع الصفحات التي تتطلب مصادقة
- * بدلاً من تكرار التحقق في كل صفحة على حدة
+ * السبب: حماية مركزية للمصادقة. أما فحص الدور (director/crew/...)
+ * فيتم في layouts فرعية باستخدام RoleGuard من @the-copy/breakapp.
  */
 
-import { useEffect, useState } from "react";
+import { getCurrentUser, isAuthenticated, type CurrentUser } from "@the-copy/breakapp";
 import { useRouter } from "next/navigation";
-import {
-  getCurrentUser,
-  isAuthenticated,
-  type CurrentUser,
-} from "@the-copy/breakapp";
+import { useEffect, useState } from "react";
 
 export default function AuthenticatedLayout({
   children,
@@ -35,6 +31,11 @@ export default function AuthenticatedLayout({
     }
 
     const userData = getCurrentUser();
+    if (!userData) {
+      router.replace("/BREAKAPP/login/qr");
+      return;
+    }
+
     setUser(userData);
     setChecking(false);
   }, [router]);

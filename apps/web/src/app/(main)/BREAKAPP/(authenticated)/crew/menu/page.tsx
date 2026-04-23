@@ -11,8 +11,6 @@
  * مما يحافظ على سير العمل بسلاسة
  */
 
-import { useState, useEffect, useCallback } from "react";
-import { AxiosError } from "axios";
 import {
   api,
   getCurrentUser,
@@ -21,8 +19,20 @@ import {
   type Order,
   type Vendor,
 } from "@the-copy/breakapp";
-import { toast } from "@/hooks/use-toast";
+import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import { AxiosError } from "axios";
+import { useState, useEffect, useCallback } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { toast } from "@/hooks/use-toast";
+
+/**
+ * حدث تحديث حالة الطلب عبر WebSocket
+ */
+interface OrderStatusUpdatePayload {
+  orderId: string;
+  status: Order["status"];
+}
 
 export default function CrewMenuPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -32,6 +42,8 @@ export default function CrewMenuPage() {
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [myOrders, setMyOrders] = useState<Order[]>([]);
+
+  const { connected, on, off } = useSocket({ auth: true });
 
   /**
    * جلب الموردين من الخادم
@@ -71,6 +83,39 @@ export default function CrewMenuPage() {
     fetchVendors();
     fetchMyOrders();
   }, [fetchVendors, fetchMyOrders]);
+
+  /**
+   * الاستماع لتحديثات حالة الطلبات في الوقت الفعلي
+   *
+   * السبب: حالة الطلب قد تتغيّر على الخادم (من المخرج أو المورد أو runner)
+   * بدون أن يُعيد المستخدم تحميل الصفحة، فنحدّث myOrders تلقائياً.
+   */
+  useEffect(() => {
+    if (!connected) return;
+
+    const statusHandler = (...args: unknown[]): void => {
+      const [payload] = args;
+      if (
+        !payload ||
+        typeof payload !== "object" ||
+        !("orderId" in payload) ||
+        !("status" in payload)
+      ) {
+        return;
+      }
+      const data = payload as OrderStatusUpdatePayload;
+      setMyOrders((prev: Order[]) =>
+        prev.map((order: Order) =>
+          order.id === data.orderId ? { ...order, status: data.status } : order
+        )
+      );
+    };
+
+    on("order:status:update", statusHandler);
+    return () => {
+      off("order:status:update", statusHandler);
+    };
+  }, [connected, on, off]);
 
   /**
    * جلب قائمة الطعام من مورد محدد
@@ -409,8 +454,16 @@ export default function CrewMenuPage() {
                       {getOrderStatusLabel(order.status)}
                     </span>
                   </div>
-                  <div className="text-sm text-white/85 font-cairo">
-                    {order.items.length} عنصر
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-white/85 font-cairo">
+                      {order.items.length} عنصر
+                    </div>
+                    <a
+                      href={`/BREAKAPP/crew/orders/${order.id}`}
+                      className="px-3 py-1.5 text-xs bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px]"
+                    >
+                      تفاصيل
+                    </a>
                   </div>
                 </div>
               ))}
