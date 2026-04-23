@@ -10,5 +10,8 @@ else
   echo "    للتثبيت:  pip install semgrep  أو  brew install semgrep"
 fi
 
+echo "🧪 Turbo affected — فحص التدقيق والأنواع على النطاق المتأثر..."
+pnpm exec turbo run lint type-check --filter=...[origin/main]
+
 echo "✅ Pre-push verification..."
 pnpm prepush:verify

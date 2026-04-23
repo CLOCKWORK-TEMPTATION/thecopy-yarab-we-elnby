@@ -68,6 +68,8 @@
       "brace-expansion@<1.1.13": ">=1.1.13",
       "brace-expansion@>=2.0.0 <2.0.3": ">=2.0.3",
       "handlebars@>=4.0.0 <4.7.9": ">=4.7.9",
+      "eslint-plugin-jsx-a11y>minimatch": "3.1.5",
+      "minimatch@3>brace-expansion": "1.1.13",
       "picomatch@<2.3.2": ">=2.3.2",
       "picomatch@>=4.0.0 <4.0.4": ">=4.0.4",
       "yaml@>=2.0.0 <2.8.3": ">=2.8.3",
@@ -155,14 +157,39 @@
     "workspace:embed": "node scripts/generate-workspace-embeddings.js"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@vitest/eslint-plugin": "^1.6.16",
     "cypress": "^15.13.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.5.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
     "sharp": "^0.34.5",
     "tsx": "^4.21.0",
     "turbo": "^2.5.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.59.0",
     "vitest": "^4.0.6",
     "winston": "^3.13.0",
     "zod": "^3.25.76"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx}": [
+      "eslint --config apps/web/eslint.config.js --max-warnings=0 --no-warn-ignored --fix",
+      "prettier --write"
+    ],
+    "apps/backend/**/*.{ts,tsx}": [
+      "eslint --config apps/backend/eslint.config.js --max-warnings=0 --no-warn-ignored --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,css,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "overrides": {
     "@types/d3-array": "^3.2.1",

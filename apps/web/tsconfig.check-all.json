@@ -1,18 +1,14 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
   "exclude": [
     "node_modules",
     ".next",
     "out",
     "dist",
     "build",
-    "coverage",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "tests/**",
-    "**/__tests__/**",
-    "**/__mocks__/**"
+    "coverage"
   ]
 }

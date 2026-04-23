@@ -6,21 +6,20 @@
     "declarationMap": false,
     "sourceMap": false,
     "rootDir": ".",
+    "types": ["node", "vitest/globals"],
     "incremental": true,
     "tsBuildInfoFile": "./.tsbuildinfo.check"
   },
   "include": [
-    "src/agents/**/*.ts",
-    "src/examples/**/*.ts",
-    "src/mcp-server.ts",
-    "src/scripts/**/*.ts",
-    "src/test/**/*.ts",
-    "scripts/**/*.ts"
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "agents/**/*.ts",
+    "examples/**/*.ts",
+    "mcp-server.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "db-performance-analysis"
-  ],
-  "files": []
+  ]
 }

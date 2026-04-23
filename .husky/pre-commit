@@ -28,3 +28,6 @@ fi
 
 echo "🔒 Gitleaks — فحص الأسرار في الملفات المُرحَّلة..."
 gitleaks protect --staged --redact --verbose --config=.gitleaks.toml
+
+echo "🧹 lint-staged — فحص وتنسيق الملفات المُرحَّلة..."
+pnpm exec lint-staged
