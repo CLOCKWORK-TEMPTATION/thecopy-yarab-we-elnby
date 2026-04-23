@@ -24,19 +24,50 @@ export const exportAsPdf = async (request: ExportRequest): Promise<void> => {
     WHOLE_DOCUMENT: true,
   });
 
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
-  container.style.width = "794px";
-  container.style.background = "#fff";
-  container.innerHTML = sanitizedHtml;
-  document.body.appendChild(container);
+  // BUG-010: jsPDF.html() يستدعي html2canvas داخلياً، و html2canvas
+  // يعدّل viewport المستند بشكل مؤقت لالتقاط المحتوى — ما يسبب
+  // تغيير زوم المحرر وتحريك الـ scroll لدى المستخدم.
+  //
+  // الحل:
+  // 1. نلتقط scrollX/scrollY قبل التشغيل ونُعيدها بعده.
+  // 2. نستخدم iframe مستقلاً ذا viewport ثابت بدل document الرئيسي،
+  //    فيعمل html2canvas داخله بدون مساس بصفحة المستخدم.
+  const previousScrollX = window.scrollX;
+  const previousScrollY = window.scrollY;
 
-  // jsPDF بيحتاج يشوف الـ body الداخلي مش الـ html wrapper
-  const innerBody = container.querySelector("body") ?? container;
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.position = "fixed";
+  iframe.style.left = "-10000px";
+  iframe.style.top = "0";
+  iframe.style.width = "794px";
+  iframe.style.height = "1123px";
+  iframe.style.border = "0";
+  iframe.style.pointerEvents = "none";
+  iframe.style.visibility = "hidden";
+  document.body.appendChild(iframe);
 
   try {
+    const iframeDoc = iframe.contentDocument;
+    if (!iframeDoc) {
+      throw new Error("pdf-export: تعذّر تحضير مستند داخلي لـ jsPDF");
+    }
+
+    iframeDoc.open();
+    iframeDoc.write(sanitizedHtml);
+    iframeDoc.close();
+
+    // ننتظر حتى يبني المتصفح شجرة DOM داخل iframe قبل الإلتقاط
+    await new Promise<void>((resolve) => {
+      if (iframeDoc.readyState === "complete") {
+        resolve();
+        return;
+      }
+      iframe.addEventListener("load", () => resolve(), { once: true });
+    });
+
+    const innerBody = iframeDoc.body;
+
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "pt",
@@ -56,11 +87,18 @@ export const exportAsPdf = async (request: ExportRequest): Promise<void> => {
         scale: 1.5,
         useCORS: true,
         logging: false,
+        // نمنع html2canvas من تحريك صفحة المستخدم أثناء الالتقاط
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 794,
+        windowHeight: 1123,
       },
     });
 
     pdf.save(`${fileBase}.pdf`);
   } finally {
-    container.remove();
+    iframe.remove();
+    // استرجاع موضع التمرير الأصلي كضمان إضافي حتى لا يقفز المحرر
+    window.scrollTo(previousScrollX, previousScrollY);
   }
 };

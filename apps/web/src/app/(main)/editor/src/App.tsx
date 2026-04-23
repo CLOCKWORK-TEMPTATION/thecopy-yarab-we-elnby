@@ -108,8 +108,10 @@ const CLASSIFIER_OPTION_COUNT = classificationTypeOptions.length;
 const ACTION_BLOCK_SPACING = getSpacingMarginTop("action", "action") || "0";
 
 interface EditorAutosaveSnapshot {
+  html: string;
   text: string;
   updatedAt: string;
+  version: 2;
 }
 
 const readTypingSystemSettings = (): TypingSystemSettings => {
@@ -257,7 +259,14 @@ export function App(): React.JSX.Element {
     }
 
     try {
-      await area.importClassifiedText(snapshot.text, "replace");
+      // النسخة 2: تحتوي على HTML كامل مع بيانات التصنيف — استعادة مباشرة بدون إعادة تصنيف
+      if (snapshot.version === 2 && snapshot.html?.trim()) {
+        area.editor.commands.setContent(snapshot.html, false);
+        area.editor.commands.focus("start");
+      } else {
+        // النسخة القديمة (نص فقط): استخدام المصنف مع تحذير
+        await area.importClassifiedText(snapshot.text, "replace");
+      }
       toast({
         title: "تمت استعادة المسودة",
         description: "استرجعنا آخر نسخة محفوظة تلقائيًا.",
@@ -299,11 +308,16 @@ export function App(): React.JSX.Element {
     const normalizedText = documentText.trim();
     if (!normalizedText) return;
 
+    const area = editorAreaRef.current;
+    const html = area ? area.getAllHtml() : "";
+
     scheduleAutoSave<EditorAutosaveSnapshot>(
       AUTOSAVE_DRAFT_STORAGE_KEY,
       {
+        html,
         text: normalizedText,
         updatedAt: new Date().toISOString(),
+        version: 2,
       },
       1500
     );
@@ -626,8 +640,9 @@ export function App(): React.JSX.Element {
       }
     };
 
-    document.addEventListener("keydown", handleGlobalShortcut);
-    return () => document.removeEventListener("keydown", handleGlobalShortcut);
+    // capture: true يضمن تنفيذ المعالج قبل أي handler آخر ومنع المتصفح من اعتراض Ctrl+B/I/Z
+    document.addEventListener("keydown", handleGlobalShortcut, true);
+    return () => document.removeEventListener("keydown", handleGlobalShortcut, true);
   }, []);
 
   const resolveMenuCommand = useMenuCommandResolver(editorAreaRef, toast);
@@ -693,6 +708,12 @@ export function App(): React.JSX.Element {
               sections={SIDEBAR_SECTIONS}
               openSectionId={openSidebarItem}
               isMobile={isMobile}
+              documentText={documentText}
+              onEditorSearchJump={(query) => {
+                const area = editorAreaRef.current;
+                if (!area) return;
+                area.findAndFocus(query);
+              }}
               onToggleSection={(sectionId) =>
                 setOpenSidebarItem((prev) =>
                   prev === sectionId ? null : sectionId
@@ -752,6 +773,12 @@ export function App(): React.JSX.Element {
                     : EDITOR_CANVAS_LEFT_GUTTER_PX
                 }px`,
                 paddingBottom: `${EDITOR_CANVAS_BOTTOM_OFFSET_PX}px`,
+              }}
+              onClick={(e) => {
+                // منح التركيز للمحرر عند النقر في المنطقة البيضاء خارج الورقة
+                const target = e.target as HTMLElement;
+                if (target.closest(".ProseMirror")) return;
+                editorAreaRef.current?.focusEditor();
               }}
             >
               <DotBackground />
