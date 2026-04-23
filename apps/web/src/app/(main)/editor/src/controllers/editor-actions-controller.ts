@@ -31,12 +31,14 @@ import {
   resolveBackendExtractionTimeoutMs,
 } from "../utils/file-import";
 import { logger } from "../utils/logger";
-import { loadFromStorage } from "../hooks";
+import { loadFromStorage, saveToStorage } from "../hooks";
 import { pipelineRecorder } from "../extensions/pipeline-recorder";
 
 interface EditorAutosaveSnapshot {
+  html?: string;
   text: string;
   updatedAt: string;
+  version?: 2;
 }
 
 const AUTOSAVE_DRAFT_STORAGE_KEY = "filmlane.autosave.document-text.v1";
@@ -412,9 +414,29 @@ export const handleMenuAction = async (
     case "insert-file":
       await openFile("insert", deps);
       break;
-    case "save-file":
-      await runExport("docx", deps, "screenplay.docx");
+    case "save-file": {
+      // BUG-009: Ctrl+S كان يُصدّر DOCX ويُجبر المستخدم على اختيار موقع
+      // تنزيل. السلوك المتوقع لاختصار الحفظ هو حفظ محلي فوري دون فتح
+      // مربع حوار، مع الاحتفاظ بتصدير DOCX متاحاً عبر القائمة صراحة.
+      const html = area.getAllHtml();
+      const text = area.getAllText();
+      const snapshot: EditorAutosaveSnapshot = {
+        html,
+        text,
+        updatedAt: new Date().toISOString(),
+        version: 2,
+      };
+      saveToStorage<EditorAutosaveSnapshot>(
+        AUTOSAVE_DRAFT_STORAGE_KEY,
+        snapshot
+      );
+      deps.toast({
+        title: "تم الحفظ محلياً",
+        description:
+          "تم حفظ المسودة الحالية في متصفحك. لتصدير الملف اختر «تصدير» من القائمة.",
+      });
       break;
+    }
     case "print-file":
       window.print();
       break;
@@ -582,6 +604,20 @@ export const handleSidebarItemAction = async (
   }
 
   if (sectionId === "projects") {
+    // BUG-008: كانت setContent تُستدعى دون فحص قفل السطح، ودون تحديث
+    // نموذج الصفحات/الحالة — ما يجعل القالب أحياناً لا يظهر للمستخدم.
+    // نضيف: فحص القفل + تفريغ السطح أولاً + انتظار دورة المحرر ثم
+    // حقن القالب وإعادة بناء النموذج.
+    if (deps.isProgressiveSurfaceLocked()) {
+      deps.toast({
+        title: "السطح مقفل",
+        description:
+          "أوقف عملية المعالجة الحالية أو انتظر انتهاءها ثم أعد اختيار المشروع.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const template =
       PROJECT_TEMPLATE_BY_NAME[
         itemLabel as keyof typeof PROJECT_TEMPLATE_BY_NAME
@@ -610,7 +646,8 @@ export const handleSidebarItemAction = async (
       <div data-type="action">${template.action}</div>
     `.trim();
 
-    area.editor.commands.setContent(html);
+    area.clear();
+    area.editor.chain().focus().setContent(html, true).run();
     area.editor.commands.focus("end");
     deps.toast({
       title: "تم تحميل المشروع",

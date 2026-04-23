@@ -198,6 +198,66 @@ export class EditorArea implements EditorHandle {
     this.editor.commands.focus("end");
   };
 
+  /**
+   * يبحث عن أول ظهور لنص (غير حساس لحالة الأحرف) داخل المستند،
+   * يضبط التحديد عليه، ويُمرِّر الشاشة لإظهاره.
+   * مخصص لتكامل صندوق بحث الشريط الجانبي (BUG-005).
+   *
+   * @param query - النص المراد البحث عنه
+   * @returns true إذا وُجد، false إذا لم يُعثر على تطابق
+   */
+  findAndFocus = (query: string): boolean => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return false;
+
+    const { doc } = this.editor.state;
+    let foundPos = -1;
+
+    doc.descendants((node, pos) => {
+      if (foundPos !== -1) return false;
+      if (node.isText && typeof node.text === "string") {
+        const idx = node.text.toLowerCase().indexOf(needle);
+        if (idx !== -1) {
+          foundPos = pos + idx;
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (foundPos === -1) return false;
+
+    const endPos = foundPos + needle.length;
+    this.editor
+      .chain()
+      .focus()
+      .setTextSelection({ from: foundPos, to: endPos })
+      .scrollIntoView()
+      .run();
+
+    return true;
+  };
+
+  /**
+   * يعد عدد ظهورات النص (غير حساس للحالة) داخل محتوى المستند.
+   * يستخدم في الشريط الجانبي لعرض عدد النتائج.
+   */
+  countTextMatches = (query: string): number => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return 0;
+
+    const haystack = this.getAllText().toLowerCase();
+    if (!haystack) return 0;
+
+    let count = 0;
+    let index = 0;
+    while ((index = haystack.indexOf(needle, index)) !== -1) {
+      count += 1;
+      index += needle.length;
+    }
+    return count;
+  };
+
   clear = (): void => {
     if (this.isSurfaceLocked()) return;
     this.progressiveSurfaceState = null;
@@ -272,14 +332,11 @@ export class EditorArea implements EditorHandle {
         return this.applyTextAlignCommand("center");
       case "align-left":
         return this.applyTextAlignCommand("left");
-      case "undo": {
-        const undo = (this.editor.commands as Record<string, unknown>)["undo"];
-        return typeof undo === "function" ? (undo as () => boolean)() : false;
-      }
-      case "redo": {
-        const redo = (this.editor.commands as Record<string, unknown>)["redo"];
-        return typeof redo === "function" ? (redo as () => boolean)() : false;
-      }
+      case "undo":
+        // chain().focus() يضمن أن ProseMirror يعرف سياق التحرير قبل تنفيذ التراجع
+        return this.editor.chain().focus().undo().run();
+      case "redo":
+        return this.editor.chain().focus().redo().run();
       case "select-all":
         this.editor.commands.selectAll();
         return true;
