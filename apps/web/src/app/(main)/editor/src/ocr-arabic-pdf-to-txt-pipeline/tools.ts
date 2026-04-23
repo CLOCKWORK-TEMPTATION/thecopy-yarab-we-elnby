@@ -9,7 +9,15 @@ import { tool } from "ai";
 import { z } from "zod";
 import { open, writeFile, stat, readdir, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, extname, dirname, join, resolve, relative, isAbsolute } from "node:path";
+import {
+  basename,
+  extname,
+  dirname,
+  join,
+  resolve,
+  relative,
+  isAbsolute,
+} from "node:path";
 import { execFileSync } from "node:child_process";
 import type { ClassificationResult } from "./types";
 
@@ -104,7 +112,9 @@ export const readFileTool = tool({
         }
 
         // ملفات نصية
-        const content = await handle.readFile({ encoding: encoding as BufferEncoding });
+        const content = await handle.readFile({
+          encoding: encoding as BufferEncoding,
+        });
         const lineCount = encoding === "utf-8" ? content.split("\n").length : 0;
 
         return JSON.stringify({

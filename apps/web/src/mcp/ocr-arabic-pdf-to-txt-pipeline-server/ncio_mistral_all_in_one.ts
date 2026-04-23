@@ -183,7 +183,8 @@ export class PDFToTextConverter {
     const stem = path.basename(safePath, ext);
 
     for (let c = 0; c < 1000; c += 1) {
-      const candidate = c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
+      const candidate =
+        c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
       try {
         // codeql[js/http-to-file-access]
         await writeFile(candidate, content, { encoding: "utf-8", flag: "wx" });
