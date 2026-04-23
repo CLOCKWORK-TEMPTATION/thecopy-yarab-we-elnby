@@ -2,6 +2,91 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 093 — استكمال BREAKAPP (المراحل 1+2+3): إصلاح بنية الحماية + ترحيل Drizzle + 11 صفحة + طبقة refresh-token — 2026-04-23
+
+### التاريخ والوقت
+
+2026-04-23T14:00:00+02:00
+
+### الهدف المباشر
+
+تنفيذ المراحل 1 و 2 و 3 من خطة استكمال BREAKAPP (مصدرها `docs/apps/web/breakapp/ANALYSIS_AND_COMPLETION_PLAN.md`) بشكل متوازٍ عبر 5 وكلاء مستقلين بملكية ملفات حصرية:
+
+1. **المرحلة 1** — إصلاح ثغرة الحماية الحرجة C1 (صفحات حساسة خارج `(authenticated)`)، C2 (غياب RBAC)، C5 (runner ID من localStorage)، C6 (docs داخل الراوتر).
+2. **المرحلة 2** — استكمال الباك-إند: ترحيل كامل من JSON file storage إلى Drizzle + PostgreSQL، إضافة 22 endpoint ناقص، WebSocket gateway، refresh-token flow.
+3. **المرحلة 3** — إنشاء 11 صفحة فرونت-إند جديدة (director, crew, runner, admin, vendor, profile) + طبقة AppShell + hooks مشتركة.
+
+### الاكتشاف الرئيسي
+
+- التقرير التحليلي افترض عدم وجود الباك-إند؛ في الحقيقة كان موجوداً جزئياً في `apps/backend/src/modules/breakapp/` مع JSON file storage (لا PostgreSQL)، 8 endpoints فقط، بدون gateway مخصص، وبدون refresh-token.
+- التقرير افترض JWT في `localStorage`؛ الحقيقة أن `packages/breakapp/src/lib/auth.ts` كان يستخدم in-memory فعلاً — C4 مُصلَحة جزئياً قبل الجولة.
+- ثغرة C5 (runner ID عشوائي من `localStorage`) كانت حرجة فعلياً: أي مستخدم يستطيع انتحال أي runner بتعديل القيمة.
+- الباك-إند يستخدم Drizzle ORM + node-postgres فعلاً (`db:generate`, `db:push` في `package.json`)، فلم يكن ترحيل ORM مطلوباً — فقط تمديد `schema.ts`.
+- PostGIS اختياري: `real lat/lng` + Haversine كـ SQL fragment يحقق متطلب "Nearby vendors" دون الحاجة لتفعيل امتداد PostgreSQL إضافي.
+
+### الملفات الأساسية المتأثرة
+
+**Stage 0 — إعادة الهيكلة (قبل إطلاق الوكلاء):**
+
+- نقل `apps/web/src/app/(main)/BREAKAPP/{dashboard,director,crew/menu,runner/track}/page.tsx` ← داخل `(authenticated)/`.
+- نقل `login/qr/page.tsx` ← داخل `(public)/`.
+- نقل `BREAKAPP/README.md` + `BREAKAPP/docs/` ← `docs/apps/web/breakapp/`.
+- نسخ `BREAKAPP_ANALYSIS_AND_COMPLETION_PLAN.md` من خارج المستودع إلى `docs/apps/web/breakapp/ANALYSIS_AND_COMPLETION_PLAN.md`.
+- إنشاء `packages/breakapp/src/guards/RoleGuard.tsx` — `<RoleGuard allowedRoles>` + `createRoleGuard()`.
+- إنشاء 5 sub-layouts محمية بالدور تحت `(authenticated)/{director,crew,runner,admin,vendor}/layout.tsx`.
+- توسيع `packages/breakapp/src/lib/roles.ts` ليشمل `vendor` + خرائط `defaultRedirect` لكل دور.
+- تحديث `BREAKAPP/page.tsx` الجذري ليعيد التوجيه حسب الدور عبر `getDefaultRedirect()` + حذف الفحص المكرر من `dashboard/page.tsx`.
+
+**Stage 1 — 5 وكلاء متوازيون:**
+
+- **BE (Drizzle + endpoints + gateway):** `apps/backend/src/db/schema.ts` (11 جدول `breakapp_*`)، `apps/backend/drizzle/0002_breakapp.sql` (migration يدوي)، `apps/backend/src/modules/breakapp/{service.ts,service.types.ts,routes.ts,repository.ts[new],gateway.ts[new],seed.ts[new]}`، `apps/backend/src/server.ts` (3 أسطر لـ gateway.attach)، `apps/backend/.env.example` (توثيق). 22 endpoint جديد: `/auth/{refresh,logout,me}`, `/orders/:id`, `/orders/:id/status`, `/orders/session/:id`, `/runners/{location,me/tasks,tasks/:id/status,session/:id}`, `/vendor/{orders,orders/:id/status,menu-items[CRUD]}`, `/admin/{projects,projects/:id/invites,vendors[CRUD],users}`. حذف JSON file storage كلياً.
+- **FE-Core (auth refresh + AppShell):** `packages/breakapp/src/lib/auth.ts` (+ `refreshAccessToken`, `logout`, `getTokenExpiryMs`, interceptor 401 مع de-dup + منع حلقة)، ملفات جديدة `components/AppShell.tsx`, `components/ConnectionIndicator.tsx`, `hooks/useAuthRefresh.ts`, `hooks/useCurrentUser.ts` + اختبارات. أحداث `window` عامة: `breakapp:auth-expired`, `breakapp:auth-logged-out`.
+- **FE-Director:** `director/orders-live/page.tsx`, `director/runners-map/page.tsx` جديدتان + تحديث `director/page.tsx` بشريط تبويبات.
+- **FE-Crew-Runner:** `crew/orders/[id]/page.tsx`, `runner/active-delivery/page.tsx` جديدتان + تعديل `crew/menu/page.tsx` (زر "تفاصيل" + realtime listener) + **إصلاح C5** في `runner/track/page.tsx` (`runnerId` من `getCurrentUser().userId` بدل `localStorage`).
+- **FE-Admin-Vendor-Profile:** 9 صفحات جديدة: `admin/{page,projects/page,projects/new/page,projects/[id]/invites/page,vendors/page,users/page}` + `vendor/{dashboard/page,menu-editor/page}` + `profile/page`. بدون dependencies جديدة — Google Charts URL لرموز QR.
+
+### النتائج التشغيلية
+
+- **type-check backend:** `pnpm --filter @the-copy/backend type-check` → PASS (مجموعات tsc كلها).
+- **test backend:** `pnpm --filter @the-copy/backend test` → PASS (1085 passed / 3 skipped / 0 failed).
+- **lint backend (breakapp files فقط):** 0 warnings, 0 errors.
+- **type-check breakapp package:** PASS.
+- **test breakapp package:** PASS (42/42).
+- **type-check web:** 4 أخطاء pre-existing فقط في `src/app/(main)/editor/src/**` من commit `42c407e` (غير متعلقة بالجولة). صفر أخطاء في أي ملف BREAKAPP أو package.
+- **lint web (BREAKAPP files):** 30 تحذير stylistic (`import/order` بعد autofix، `jsx-a11y/label-has-associated-control`، `prefer-nullish-coalescing`، `no-floating-promises`) — 0 errors. غير مانعة، متسقة مع ما قبل الجولة.
+
+### قرارات بنيوية موثقة
+
+- **لا PostGIS**: الحاجة محدودة لـ nearby-query؛ Haversine SQL أبسط ولا يتطلب امتداد DB.
+- **refresh tokens منفصل**: جدول `breakapp_refresh_tokens` مستقل عن `refresh_tokens` القائم، لأن `user_id` في BREAKAPP نص حر من QR (لا UUID من `users`). الدمج كان سيكسر FK.
+- **Migration يدوي**: `0002_breakapp.sql` كُتب يدوياً لتفادي أن يعيد `drizzle-kit generate` توليد diff من snapshots سابقة (0000/0001 تستخدم `varchar` والـ schema.ts يستخدم `uuid` — drift لم نتسبب فيه).
+- **Gateway تكميلي**: لم يُغيَّر سلوك `websocket.service.ts` القائم؛ أُضيف `breakappGateway.attach(io)` بعد `initialize` لبث `runner:location:update` لغرفة `breakapp-session:<id>` فقط.
+- **JWT في الذاكرة حصراً**: `inMemoryAccessToken` مع refresh عبر httpOnly cookie + `withCredentials: true`.
+- **Runner identity من JWT**: `runnerId = getCurrentUser().userId` — حذف `localStorage.getItem("runnerId")` والتوليد العشوائي نهائياً.
+
+### أعمال مفتوحة تحتاج قراراً
+
+1. **تطبيق migration**: `pnpm --filter @the-copy/backend db:push` أو `psql -f apps/backend/drizzle/0002_breakapp.sql` غير مُشغَّل لأن `DATABASE_URL` غير متاح في البيئة. يلزم تشغيله قبل أي اختبار تكاملي حي.
+2. **Seed vendors/menu items**: ثوابت موجودة في `apps/backend/src/modules/breakapp/seed.ts` لكن لا سكربت تنفيذ منفصل.
+3. **UNIQUE constraint**: `breakapp_project_members(project_id, user_id)` يعتمد على `onConflictDoNothing()` دون قيد فعلي — يحتاج migration لاحق.
+4. **`type-check:strict` + `lint:strict`**: يتجاوزان 8 GB heap على الماكينة الحالية؛ الرسمي المجزّأ يعمل.
+5. **MapComponent colored markers**: `runners-map` تحتاج توسيع `MapComponent` لدعم ألوان حسب حالة runner (available/busy/offline) + طبقة polyline للمسار.
+6. **Commit**: كل التغييرات بعد في working tree. لم يُنشأ commit — المستخدم سيقرر تقسيم commits أو دمجها.
+
+### تحقق مطابقة العقد
+
+- لا مصادر حقيقة جديدة خارج `output/session-state.md`.
+- لا إضعاف لأي فحص.
+- ديسكتوب فقط: لم يُدخَل أي breakpoint-based repositioning — كل الصفحات mono-layout.
+- Aceternity UI: `CardSpotlight`, `BackgroundBeams`, `NoiseBackground` مستخدمة في المكان المناسب دون تكرار محلي.
+- المستخدم المصادق يُستخرج عبر `getCurrentUser()` حصراً، صفر `localStorage` لبيانات المصادقة.
+
+### الخلاصة
+
+المراحل 1+2+3 من خطة BREAKAPP مُنجزة بصورة متوازية في جولة واحدة (5 وكلاء + Stage 0 مركزي). 3 ثغرات حرجة (C1/C2/C5) مُغلقة. 11 صفحة جديدة + 22 endpoint + طبقة refresh-token. الباك-إند جاهز بنيوياً على مستوى الكود؛ يتبقى تطبيق migration على DB حية لتسليم end-to-end.
+
+---
+
 ## جولة 092 — إتمام المرحلة 2: تقليص استثناءات Semgrep + رفع الشدّات — 2026-04-22
 
 ### التاريخ والوقت
@@ -6565,3 +6650,95 @@ inventory-only
 ### هل استلزم الأمر تحديث session-state
 
 نعم
+
+## الجولة 108
+
+### التاريخ والوقت
+
+2026-04-23T08:45:35.824Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد أعطال مفتوحة مرصودة في الفحص الحالي
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+---
+
+## جولة FE-Core — 2026-04-23 — BREAKAPP refresh-token + AppShell
+
+### النطاق
+
+وكيل FE-Core داخل حزمة `@the-copy/breakapp`. تنفيذ refresh-token flow، إطار AppShell الموحّد، مؤشر اتصال عالمي، وخطّافَي دورة المصادقة.
+
+### الملفات الجديدة
+
+- `packages/breakapp/src/components/AppShell.tsx`
+- `packages/breakapp/src/components/ConnectionIndicator.tsx`
+- `packages/breakapp/src/hooks/useAuthRefresh.ts`
+- `packages/breakapp/src/hooks/useCurrentUser.ts`
+- `packages/breakapp/tests/lib/auth-refresh.test.ts`
+- `packages/breakapp/tests/hooks/useAuthRefresh.test.tsx`
+- `packages/breakapp/tests/hooks/useCurrentUser.test.tsx`
+
+### الملفات المعدّلة
+
+- `packages/breakapp/src/lib/auth.ts` — أُضيف `refreshAccessToken`, `logout`, `getTokenExpiryMs`، ومعالِج 401 على response interceptor مع إعادة محاولة واحدة فقط وعلم `RETRY_FLAG` رمزي ومنع حلقة على `/auth/refresh` ذاته. الذاكرة (`inMemoryAccessToken`) تبقى هي الوحيدة؛ لا localStorage.
+- `packages/breakapp/src/index.ts` — تصدير `refreshAccessToken`, `getTokenExpiryMs`, `logout`.
+- `packages/breakapp/package.json` — إضافة subpath exports لـ `hooks/useAuthRefresh`, `hooks/useCurrentUser`, `components/ConnectionIndicator`, `components/AppShell`.
+
+### API مُصدَّر إلى وكلاء الفرونت
+
+- `AppShell({ title?, children, sidebarItems?, loginPath?, showLogout? })` — `@the-copy/breakapp/components/AppShell`.
+- `ConnectionIndicator({ pollIntervalMs?, showLabel?, className? })` — `@the-copy/breakapp/components/ConnectionIndicator`.
+- `useCurrentUser({ pollIntervalMs? }) => { user, loading, refresh }` — `@the-copy/breakapp/hooks/useCurrentUser`.
+- `useAuthRefresh({ skewMs?, minIntervalMs?, onExpired? })` — `@the-copy/breakapp/hooks/useAuthRefresh`.
+
+### قرارات تصميمية
+
+- 401 handling: علم رمزي `RETRY_FLAG` على config لمنع إعادة محاولة الطلب مرتين. `/auth/refresh` و`/auth/logout` يُستثنيان صراحةً لمنع الحلقة اللانهائية.
+- توازي refresh: مؤشّر واحد `refreshInFlight` يضمن أن الطلبات المتوازية التي تفشل كلها بـ 401 تستدعي refresh مرة واحدة فقط.
+- انتهاء الجلسة: `CustomEvent` بأسماء `breakapp:auth-expired` و`breakapp:auth-logged-out`. الحزمة لا تعتمد على Router داخلياً؛ `AppShell` يلتقط `onExpired` ويحوّل إلى `loginPath`.
+- AppShell: Tailwind خام فقط، `dir="rtl"`, `font-cairo`، ديسكتوب-first بلا `md:`/`lg:` — لا stacked layout، لا mobile fallback. sidebar يُخفى كلياً إذا لم تُمرَّر `sidebarItems`.
+
+### التحقق
+
+- `pnpm --filter @the-copy/breakapp type-check` — PASS (0 errors).
+- `pnpm --filter @the-copy/breakapp test` — PASS (42/42 tests، 5 ملفات اختبار).
+- `pnpm --filter @the-copy/web type-check` — FAIL بـ 4 أخطاء موجودة مسبقاً في ملفات المحرر (`editor/src/App.tsx`, `editor/src/components/editor/EditorArea.ts`, `editor/src/controllers/editor-actions-controller.ts`) — API Tiptap (`SetContentOptions`, `ChainedCommands.undo/redo`). هذه الأخطاء من commit `42c407e` (refactor(editor)) ولم تنتج عن تغييرات هذه الجولة ولا تتعلق باستهلاك `@the-copy/breakapp`.
+
+### ما بقي مفتوحاً
+
+- استهلاك `AppShell` و`useCurrentUser` في صفحات `apps/web/src/app/(main)/BREAKAPP/**` — خارج نطاق FE-Core، يعود للوكلاء المسؤولين عن الصفحات.
+- إصلاح أخطاء Tiptap في `apps/web/src/app/(main)/editor/**` — خارج نطاق FE-Core.

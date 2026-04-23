@@ -6,7 +6,7 @@
  * لضمان عدم وصول المستخدمين لصفحات غير مصرح لهم بها
  */
 
-export type UserRole = "director" | "crew" | "runner" | "admin";
+export type UserRole = "director" | "crew" | "runner" | "admin" | "vendor";
 
 export const ROLE_PERMISSIONS: Record<
   UserRole,
@@ -23,28 +23,51 @@ export const ROLE_PERMISSIONS: Record<
       "/BREAKAPP/director",
       "/BREAKAPP/crew/menu",
       "/BREAKAPP/runner/track",
+      "/BREAKAPP/profile",
     ],
-    defaultRedirect: "/BREAKAPP/dashboard",
+    defaultRedirect: "/BREAKAPP/director",
   },
   crew: {
     label: "عضو الطاقم",
-    allowedPaths: ["/BREAKAPP/dashboard", "/BREAKAPP/crew/menu"],
-    defaultRedirect: "/BREAKAPP/dashboard",
+    allowedPaths: [
+      "/BREAKAPP/dashboard",
+      "/BREAKAPP/crew/menu",
+      "/BREAKAPP/crew/orders",
+      "/BREAKAPP/profile",
+    ],
+    defaultRedirect: "/BREAKAPP/crew/menu",
   },
   runner: {
     label: "عامل التوصيل",
-    allowedPaths: ["/BREAKAPP/dashboard", "/BREAKAPP/runner/track"],
-    defaultRedirect: "/BREAKAPP/dashboard",
+    allowedPaths: [
+      "/BREAKAPP/dashboard",
+      "/BREAKAPP/runner/track",
+      "/BREAKAPP/runner/active-delivery",
+      "/BREAKAPP/profile",
+    ],
+    defaultRedirect: "/BREAKAPP/runner/track",
   },
   admin: {
     label: "المدير",
     allowedPaths: [
       "/BREAKAPP/dashboard",
+      "/BREAKAPP/admin",
       "/BREAKAPP/director",
       "/BREAKAPP/crew/menu",
       "/BREAKAPP/runner/track",
+      "/BREAKAPP/vendor",
+      "/BREAKAPP/profile",
     ],
-    defaultRedirect: "/BREAKAPP/dashboard",
+    defaultRedirect: "/BREAKAPP/admin",
+  },
+  vendor: {
+    label: "المورد",
+    allowedPaths: [
+      "/BREAKAPP/dashboard",
+      "/BREAKAPP/vendor",
+      "/BREAKAPP/profile",
+    ],
+    defaultRedirect: "/BREAKAPP/vendor/dashboard",
   },
 };
 

@@ -50,6 +50,7 @@ import { cineAIController } from '@/controllers/cineai.controller';
 import { websocketService } from '@/services/websocket.service';
 import { sseService } from '@/services/sse.service';
 import { breakappRouter } from '@/modules/breakapp/routes';
+import { breakappGateway } from '@/modules/breakapp/gateway';
 import { artDirectorRouter } from '@/modules/art-director/routes';
 import styleistRouter from '@/modules/styleist/routes';
 import { memoryHealthHandler, memoryRoutes, weaviateStore } from '@/memory';
@@ -257,6 +258,10 @@ setupMiddleware(app);
 try {
   websocketService.initialize(httpServer);
   logger.info('WebSocket service initialized');
+  const io = websocketService.getIO();
+  if (io) {
+    breakappGateway.attach(io);
+  }
 } catch (error) {
   logger.error('Failed to initialize WebSocket service:', error);
 }

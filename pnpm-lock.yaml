@@ -97,9 +97,6 @@ importers:
       express-jwt:
         specifier: ^8.5.1
         version: 8.5.1
-      flag:
-        specifier: ^5.0.1
-        version: 5.0.1(react@19.2.4)
       isomorphic-dompurify:
         specifier: ^3.7.1
         version: 3.7.1(@noble/hashes@1.8.0)
@@ -134,6 +131,9 @@ importers:
       eslint-plugin-unused-imports:
         specifier: ^4.4.1
         version: 4.4.1(@typescript-eslint/eslint-plugin@8.59.0(@typescript-eslint/parser@8.59.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))
+      flag:
+        specifier: ^5.0.1
+        version: 5.0.1(react@19.2.4)
       globals:
         specifier: ^17.5.0
         version: 17.5.0

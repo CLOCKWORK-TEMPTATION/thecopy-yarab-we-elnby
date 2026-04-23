@@ -7,12 +7,18 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import { useEffect, type CSSProperties } from "react";
+import {
+  getCurrentUser,
+  getDefaultRedirect,
+  isAuthenticated,
+  isValidRole,
+} from "@the-copy/breakapp";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@the-copy/breakapp";
+import { useEffect, type CSSProperties } from "react";
+
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const shellStyle: CSSProperties = {
@@ -27,12 +33,18 @@ export default function BREAKAPPHome() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.replace("/BREAKAPP/dashboard");
+    if (!isAuthenticated()) {
+      router.replace("/BREAKAPP/login/qr");
       return;
     }
 
-    router.replace("/BREAKAPP/login/qr");
+    const user = getCurrentUser();
+    if (user && isValidRole(user.role)) {
+      router.replace(getDefaultRedirect(user.role));
+      return;
+    }
+
+    router.replace("/BREAKAPP/dashboard");
   }, [router]);
 
   return (

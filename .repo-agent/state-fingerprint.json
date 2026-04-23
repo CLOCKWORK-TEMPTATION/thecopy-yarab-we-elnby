@@ -1,9 +1,9 @@
 {
-  "branch": "main",
+  "branch": "chore/strict-baseline",
   "criticalInputHashes": {
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "4a3a0aa770b3369000605d1bd4345cff3536f39a1147ec4ba77b9dead7aa09b2",
-    "apps/backend/package.json": "c36b76d5155b8ecc853601e64a1461a471a5ca2161580e72dc1362c545bf6661",
+    "apps/backend/package.json": "b13d51e38722b2bf6c4d58f94eb04500ff1d6f4e1fd91ca8be2fa6aa4dfb5cea",
     "apps/backend/src/memory/api/routes.ts": "ef4b1ea5329c77c6062ea3786234a3a3c8f6c0c1d311cd0bbcff41ad6ceba6b7",
     "apps/backend/src/memory/context/context-assembly.service.ts": "fec5d48a65b0e5ee7a6b6422b2e86bcc6e5c6d4593b888837f171ad25ff87324",
     "apps/backend/src/memory/embeddings/generator.ts": "79bb3ac82ae44fe079888d6580ae502d5c97bb758f8fee3d558cf690e1754822",
@@ -19,7 +19,7 @@
     "apps/backend/src/memory/vector-store/schema.ts": "b836d6b674af6f4505f87124742129cb1a379542753b2c8912e070b84a8d83a9",
     "apps/backend/src/services/rag/embeddings.service.ts": "fc2ad50359af491fc37bc716c79623e8567d0d71d48f7b41bab247707f01a6ee",
     "apps/backend/src/services/rag/enhancedRAG.service.ts": "f9a5c4861ad996b97b7666825cb030515d13e2999cfb409afeb4470e5e215719",
-    "apps/web/package.json": "a60aaac219024bce9f1f03f7bdba81a36776303a5af56858e32ac0f7a69d784d",
+    "apps/web/package.json": "3cb76d77e7a44431162f9985d327ff96fae7f523251ca7a5022701d794ff0004",
     "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "d14188570501d67a04ae8c079fdffd5ac500b1337624156268445080212a0323",
     "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "4c18d43e1016f528d9f08c6fb724fb7822f5cf4da687fff6c70845dc1bc3939e",
     "apps/web/src/app/(main)/editor/scripts/rag-smoke-test.ts": "0ac6b34ff195f2bcf79ab72e8b27651d7eb05ffa7918b9634c7803a01285d715",
@@ -38,7 +38,7 @@
     "apps/web/src/lib/ai/stations/gemini-service.ts": "5410a2dd1ef758e233b0ba0b99fa81d4bc14b9188d8d37b4f604b377500b0348",
     "apps/web/src/lib/ai/text-chunking.ts": "3dca6a405d6b61be103230611c588acc385948c297bc64973390e0664697bd65",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "1e1d14cab81646238b4d8c7f9821a4bf8ce8069d3c3dd2796388419bf2aebfe5",
-    "package.json": "53ad5d6e20b04cac485272c60d07970bad94d139daa3dbf39e73a74900da0662",
+    "package.json": "1f48674ba2b329e582aa14cb3a391d2147b3e3a6a009dbcc69c06400fab1a192",
     "packages/breakapp/package.json": "a5fce7173e57c1eba8c137619b48ac252d74ea6b2b15107bc1e08c6e237c5e67",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
@@ -56,15 +56,15 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "072926afe94c5cabd3ac4366fd2c6f814f2c33ba",
+  "headCommit": "42c407e26d9dbd415a30c50401880d0abec99929",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "d762fa4e2d2a4042465f45f5e49643d3da0d75a6ec0b2dfc28b5b88f75c57301"
   },
   "knowledgeHash": "d4243a9949f89bd3e781079c1e4ff530824cbef7d4872eeb87130b6bff9ac349",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-23T05:13:22.071Z",
+  "lastBootstrapTimestamp": "2026-04-23T08:45:35.824Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "b5f6ae3472b32ca08aefb43cef77d91405b1b1982592f0f68da58d44b49d858f",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "5735610d87adfe9031c81acb93ce65f1d7326d78ab7c4f4a15d029e63a1353e9",
     "output/code-map/code-map.json": "8a0ceaa22817f936eafa33f10df8d2052e606608fe27113eb79bc65b2d3afba9",
     "output/code-map/CODEMAP.md": "bae0df96720ed2059474ae44617c4fdf3da0f4a2f5a22add89daa631ab3ce642",
     "output/code-map/dependency-graph.md": "8ff0acd40b572f2e18afb272f1aaf177565500dc3a957486c5011e443176d2bf",
@@ -78,8 +78,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "e6281abbf237afdc48446d01921a5ce649bbdbf233ac68bf54f9fb6e48228d41",
     "output/mind-map/rag-topology.mmd": "662e6fcd3faafb3cc6d0dc5a79758a32ffcb93fa4c643dfcf50f4fa128052ddc",
-    "output/round-notes.md": "2bb366b09b0a38f3284fc2a4da4398d038ae93c4be858d44dee0fb5b39c34a5a",
-    "output/session-state.md": "0a193a104d828dc45c27a44ab8a1cd138eef3f5be95bb15ca16baa519be76f56"
+    "output/round-notes.md": "78d7013558eb3b277a9242ff2df8cedf4b3588ddfe5827966f1c907a4ca91596",
+    "output/session-state.md": "0aac058bf43fbeaf51cb26d8201ed2584320320f85b8887495aeff5be28827bc"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -143,6 +143,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "a677441a2d1b5a27bf68f185eea196e510bee65659c6670fa6facb13cf0527f4",
-  "workingTreeHash": "54719242eb696e45caecae721ece0666fb8361c6dbe0bcaea83c6420e1d5a78d"
+  "structuralHash": "62cc1a84a2065dc45dcad348e8cf4af7f958bbd7d93720000a8cd42f426cc540",
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }
