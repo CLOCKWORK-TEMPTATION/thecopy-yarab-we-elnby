@@ -18,6 +18,7 @@ import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
 import { createLocalShotAnalysis } from "../lib/local-shot-analysis";
 import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
 import { patchSession, readSession } from "../lib/session-storage";
+import { publishDiagnostics } from "../lib/diagnostics-bus";
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
 
 // ============================================
@@ -222,6 +223,34 @@ export function useProduction(mood: VisualMood = "noir") {
         : null,
     });
   }, [assistantState.answer, assistantState.lastQuestion]);
+
+  // نشر حالة المساعد لطبقة التشخيص.
+  useEffect(() => {
+    publishDiagnostics({
+      slice: "assistant",
+      data: {
+        isLoading: assistantState.isLoading,
+        lastQuestion: assistantState.lastQuestion,
+        answerLength: assistantState.answer?.length ?? 0,
+        error: assistantState.error,
+      },
+    });
+  }, [
+    assistantState.answer,
+    assistantState.error,
+    assistantState.isLoading,
+    assistantState.lastQuestion,
+  ]);
+
+  // عدّاد إعادة التركيب للتشخيص.
+  const productionRenderCount = useRef(0);
+  productionRenderCount.current += 1;
+  useEffect(() => {
+    publishDiagnostics({
+      slice: "renderCount",
+      data: { production: productionRenderCount.current },
+    });
+  });
 
   // ============================================
   // دوال التحليل

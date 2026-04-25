@@ -738,7 +738,7 @@ export const BASMALA_RAHIM_RE = /الرحيم/i;
 export const PARENTHETICAL_RE = /^[(（].*?[)）]$/;
 // Arabic 'ا' with tanween 'ً' forms combined character - intentional for Arabic text matching
 export const INLINE_DIALOGUE_GLUE_RE =
-  /^([\u0600-\u06FF]+[اً])([\u0600-\u06FF][\u0600-\u06FF\s]{0,20}?)\s*[:：]\s*(.+)$/;
+  /^([\u0600-\u06FF]+(?:ا|اً))([\u0600-\u06FF][\u0600-\u06FF\s]{0,20}?)\s*[:：]\s*(.+)$/;
 export const INLINE_DIALOGUE_RE = /^([^:：]{1,60}?)\s*[:：]\s*(.+)$/;
 
 export const ARABIC_ONLY_WITH_NUMBERS_RE =

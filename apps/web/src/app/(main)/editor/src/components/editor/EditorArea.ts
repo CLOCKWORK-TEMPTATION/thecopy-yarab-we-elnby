@@ -19,7 +19,10 @@ import {
   type ScreenplayBlock,
 } from "../../utils/file-import";
 import { maybeReconstructUnstructured } from "../../pipeline/unstructured";
-import { type ClipboardOrigin } from "../../types/editor-clipboard";
+import type {
+  ClipboardOrigin,
+  EditorClipboardOperationResult,
+} from "../../types/editor-clipboard";
 import type { RunEditorCommandOptions } from "../../types/editor-engine";
 import type {
   DocumentStats,
@@ -42,6 +45,10 @@ import {
   applyEditorTypography,
 } from "../../utils/editor-layout";
 import { EditorPageModel } from "../../utils/editor-page-model";
+import {
+  shouldClearProgressiveStateOnRunEnd,
+  shouldKeepSurfaceEditableAfterFailure,
+} from "./progressive-surface-guards";
 import type {
   FailureRecoveryAction,
   ProgressiveElement,
@@ -167,6 +174,9 @@ export class EditorArea implements EditorHandle {
     this.editor.on("update", this.handleEditorUpdate);
     this.editor.on("selectionUpdate", this.handleSelectionUpdate);
     this.editor.on("transaction", this.handleSelectionUpdate);
+    this.body.addEventListener("keydown", this.handleEditorClipboardShortcut, {
+      capture: true,
+    });
     if (typeof window !== "undefined") {
       window.addEventListener(
         PASTE_CLASSIFIER_ERROR_EVENT,
@@ -266,6 +276,7 @@ export class EditorArea implements EditorHandle {
     this.editor.commands.focus("start");
     this.pageModel.refreshPageModel(true);
     this.emitState();
+    this.props.onContentChange?.(this.getAllText());
     this.emitProgressiveState();
   };
 
@@ -580,16 +591,20 @@ export class EditorArea implements EditorHandle {
 
   hasSelection = (): boolean => !this.editor.state.selection.empty;
 
-  copySelectionToClipboard = async (): Promise<boolean> => {
+  copySelectionToClipboard =
+    async (): Promise<EditorClipboardOperationResult> => {
     const selectionOnly = this.hasSelection();
     return copyToClipboard(this.editor, selectionOnly);
   };
 
-  cutSelectionToClipboard = async (): Promise<boolean> => {
+  cutSelectionToClipboard =
+    async (): Promise<EditorClipboardOperationResult> => {
     return cutToClipboard(this.editor);
   };
 
-  pasteFromClipboard = async (origin: ClipboardOrigin): Promise<boolean> => {
+  pasteFromClipboard = async (
+    origin: ClipboardOrigin
+  ): Promise<EditorClipboardOperationResult> => {
     if (this.isSurfaceLocked()) {
       throw new Error(
         "لا يمكن بدء لصق جديد قبل استقرار النسخة الحالية أو تنفيذ استرداد صريح بعد الفشل."
@@ -747,6 +762,9 @@ export class EditorArea implements EditorHandle {
     this.editor.off("update", this.handleEditorUpdate);
     this.editor.off("selectionUpdate", this.handleSelectionUpdate);
     this.editor.off("transaction", this.handleSelectionUpdate);
+    this.body.removeEventListener("keydown", this.handleEditorClipboardShortcut, {
+      capture: true,
+    });
     if (typeof window !== "undefined") {
       window.removeEventListener(
         PASTE_CLASSIFIER_ERROR_EVENT,
@@ -770,6 +788,66 @@ export class EditorArea implements EditorHandle {
   private readonly handleSelectionUpdate = (): void => {
     const current = this.getCurrentFormat();
     this.props.onFormatChange?.(current);
+  };
+
+  private readonly handleEditorClipboardShortcut = (
+    event: KeyboardEvent
+  ): void => {
+    if (!(event.ctrlKey || event.metaKey)) return;
+
+    const key = event.key.toLowerCase();
+    if (key !== "a" && key !== "c" && key !== "x" && key !== "v") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (key === "a") {
+      this.runCommand({ command: "select-all" });
+      return;
+    }
+
+    if (key === "c") {
+      void this.copySelectionToClipboard().then((result) => {
+        if (!result.ok) this.props.onImportError?.(result.message);
+      });
+      return;
+    }
+
+    if (key === "x") {
+      void this.cutSelectionToClipboard().then((result) => {
+        if (!result.ok) this.props.onImportError?.(result.message);
+      });
+      return;
+    }
+
+    void this.pastePlainTextFromKeyboard().catch((error: unknown) => {
+      this.props.onImportError?.(
+        error instanceof Error
+          ? error.message
+          : "فشل الوصول إلى الحافظة من اختصار لوحة المفاتيح."
+      );
+    });
+  };
+
+  private readonly pastePlainTextFromKeyboard = async (): Promise<void> => {
+    if (typeof navigator === "undefined" || !navigator.clipboard?.readText) {
+      throw new Error("واجهة القراءة من الحافظة غير متاحة.");
+    }
+
+    const text = await navigator.clipboard.readText();
+    if (!text.trim()) {
+      throw new Error("لا يوجد نص قابل للصق في الحافظة.");
+    }
+
+    const inserted = this.editor.chain().focus().insertContent(text).run();
+    if (!inserted) {
+      throw new Error("تعذر إدراج النص من اختصار لوحة المفاتيح.");
+    }
+
+    this.pageModel.refreshPageModel(true);
+    this.scheduleCharacterWidowFix();
+    this.emitState();
+    this.props.onContentChange?.(this.getAllText());
   };
 
   private readonly handlePasteClassifierError = (event: Event): void => {
@@ -867,12 +945,14 @@ export class EditorArea implements EditorHandle {
         const activeRun = this.progressiveSurfaceState?.activeRun;
         if (!activeRun) return;
 
-        this.progressiveSurfaceState = {
+        const nextState: ProgressiveSurfaceState = {
           ...(this.progressiveSurfaceState as ProgressiveSurfaceState),
           activeRun: {
             ...activeRun,
             status: "failed-after-visible",
-            surfaceLocked: true,
+            surfaceLocked: !shouldKeepSurfaceEditableAfterFailure(
+              this.progressiveSurfaceState
+            ),
             latestFailureCode: event.code ?? null,
             latestFailureMessage: event.message,
             failureRecoveryRequired: true,
@@ -881,7 +961,8 @@ export class EditorArea implements EditorHandle {
             }),
           },
         };
-        this.applySurfaceLock(true);
+        this.progressiveSurfaceState = nextState;
+        this.applySurfaceLock(nextState.activeRun?.surfaceLocked ?? false);
         this.emitProgressiveState();
         return;
       }
@@ -889,10 +970,28 @@ export class EditorArea implements EditorHandle {
       case "run-end": {
         const activeRun = this.progressiveSurfaceState?.activeRun;
         const visibleVersion = this.progressiveSurfaceState?.visibleVersion;
-        if (!activeRun || !visibleVersion) return;
+        if (!activeRun || !visibleVersion) {
+          if (shouldClearProgressiveStateOnRunEnd(this.progressiveSurfaceState)) {
+            this.progressiveSurfaceState = null;
+            this.applySurfaceLock(false);
+            this.emitProgressiveState();
+          }
+          return;
+        }
 
         if (event.outcome === "failed-after-visible") {
-          this.applySurfaceLock(true);
+          const keepEditable = shouldKeepSurfaceEditableAfterFailure(
+            this.progressiveSurfaceState
+          );
+          this.progressiveSurfaceState = {
+            ...(this.progressiveSurfaceState as ProgressiveSurfaceState),
+            activeRun: {
+              ...activeRun,
+              surfaceLocked: !keepEditable,
+              failureRecoveryRequired: true,
+            },
+          };
+          this.applySurfaceLock(!keepEditable);
           this.emitProgressiveState();
           return;
         }

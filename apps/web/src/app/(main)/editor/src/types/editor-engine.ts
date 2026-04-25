@@ -6,7 +6,10 @@
  * مما يسمح بتبديل محرك التحرير دون تغيير المكونات المستهلكة.
  */
 
-import type { ClipboardOrigin } from "./editor-clipboard";
+import type {
+  ClipboardOrigin,
+  EditorClipboardOperationResult,
+} from "./editor-clipboard";
 import type { ScreenplayBlock } from "../utils/file-import/document-model";
 
 /**
@@ -46,7 +49,9 @@ export interface EditorEngineAdapter {
   getBlocks: () => ScreenplayBlock[];
   runCommand: (options: RunEditorCommandOptions) => boolean;
   hasSelection: () => boolean;
-  copySelectionToClipboard: () => Promise<boolean>;
-  cutSelectionToClipboard: () => Promise<boolean>;
-  pasteFromClipboard: (origin: ClipboardOrigin) => Promise<boolean>;
+  copySelectionToClipboard: () => Promise<EditorClipboardOperationResult>;
+  cutSelectionToClipboard: () => Promise<EditorClipboardOperationResult>;
+  pasteFromClipboard: (
+    origin: ClipboardOrigin
+  ) => Promise<EditorClipboardOperationResult>;
 }

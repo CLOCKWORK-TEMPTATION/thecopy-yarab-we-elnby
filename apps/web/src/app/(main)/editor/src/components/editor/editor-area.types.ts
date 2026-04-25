@@ -1,7 +1,10 @@
 import type { Editor } from "@tiptap/core";
 import type { ElementType } from "../../extensions/classification-types";
 import type { ScreenplayBlock } from "../../utils/file-import";
-import type { ClipboardOrigin } from "../../types/editor-clipboard";
+import type {
+  ClipboardOrigin,
+  EditorClipboardOperationResult,
+} from "../../types/editor-clipboard";
 import type { RunEditorCommandOptions } from "../../types/editor-engine";
 import type {
   ExtractionMethod,
@@ -89,9 +92,11 @@ export interface EditorHandle {
   ) => Promise<void>;
   getBlocks: () => ScreenplayBlock[];
   hasSelection: () => boolean;
-  copySelectionToClipboard: () => Promise<boolean>;
-  cutSelectionToClipboard: () => Promise<boolean>;
-  pasteFromClipboard: (origin: ClipboardOrigin) => Promise<boolean>;
+  copySelectionToClipboard: () => Promise<EditorClipboardOperationResult>;
+  cutSelectionToClipboard: () => Promise<EditorClipboardOperationResult>;
+  pasteFromClipboard: (
+    origin: ClipboardOrigin
+  ) => Promise<EditorClipboardOperationResult>;
   isSurfaceLocked: () => boolean;
   getProgressiveSurfaceState: () => ProgressiveSurfaceState | null;
   beginProgressivePreparation: (params: {

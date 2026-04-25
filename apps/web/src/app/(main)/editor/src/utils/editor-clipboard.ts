@@ -2,6 +2,7 @@ import type { Editor } from "@tiptap/core";
 import {
   FILMLANE_CLIPBOARD_MIME,
   type ClipboardOrigin,
+  type EditorClipboardOperationResult,
   type EditorClipboardPayload,
 } from "../types/editor-clipboard";
 import type { ScreenplayBlock } from "../utils/file-import";
@@ -20,6 +21,10 @@ const hashText = (value: string): string => {
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
 };
+
+const clipboardResult = (
+  result: EditorClipboardOperationResult
+): EditorClipboardOperationResult => result;
 
 // Validate clipboard payload structure
 const isValidClipboardPayload = (
@@ -45,8 +50,14 @@ const isValidClipboardPayload = (
 export const copyToClipboard = async (
   editor: Editor,
   selectionOnly = false
-): Promise<boolean> => {
-  if (typeof navigator === "undefined" || !navigator.clipboard) return false;
+): Promise<EditorClipboardOperationResult> => {
+  if (typeof navigator === "undefined" || !navigator.clipboard) {
+    return clipboardResult({
+      ok: false,
+      status: "unavailable",
+      message: "الحافظة غير متاحة في هذا المتصفح.",
+    });
+  }
 
   const hasSelection = !editor.state.selection.empty;
   const plainText = hasSelection
@@ -57,7 +68,15 @@ export const copyToClipboard = async (
       )
     : editor.getText();
 
-  if (!plainText.trim()) return false;
+  if (!plainText.trim()) {
+    return clipboardResult({
+      ok: false,
+      status: selectionOnly ? "empty-selection" : "empty-document",
+      message: selectionOnly
+        ? "لا يوجد نص محدد لنسخه."
+        : "لا يوجد محتوى يمكن نسخه.",
+    });
+  }
 
   const blocks =
     selectionOnly || !hasSelection
@@ -86,30 +105,77 @@ export const copyToClipboard = async (
         }),
       });
       await navigator.clipboard.write([clipboardItem]);
-      return true;
+      return clipboardResult({
+        ok: true,
+        status: "success",
+        message: "تم نسخ النص إلى الحافظة.",
+        textLength: plainText.length,
+        sourceKind: payload.sourceKind,
+      });
     }
   } catch {
     // fallback to plain text write when custom MIME fails.
   }
 
   if (typeof navigator.clipboard.writeText === "function") {
-    await navigator.clipboard.writeText(plainText);
-    return true;
+    try {
+      await navigator.clipboard.writeText(plainText);
+      return clipboardResult({
+        ok: true,
+        status: "success",
+        message: "تم نسخ النص إلى الحافظة.",
+        textLength: plainText.length,
+        sourceKind: payload.sourceKind,
+      });
+    } catch {
+      return clipboardResult({
+        ok: false,
+        status: "permission-denied",
+        message: "رفض المتصفح صلاحية الكتابة إلى الحافظة.",
+      });
+    }
   }
 
-  return false;
+  return clipboardResult({
+    ok: false,
+    status: "unavailable",
+    message: "واجهة الكتابة إلى الحافظة غير متاحة.",
+  });
 };
 
 /**
  * @description قص النص المحدد من المحرر ونسخه إلى الحافظة
  */
-export const cutToClipboard = async (editor: Editor): Promise<boolean> => {
-  if (editor.state.selection.empty) return false;
+export const cutToClipboard = async (
+  editor: Editor
+): Promise<EditorClipboardOperationResult> => {
+  if (editor.state.selection.empty) {
+    return clipboardResult({
+      ok: false,
+      status: "empty-selection",
+      message: "حدد نصاً قبل تنفيذ القص.",
+    });
+  }
 
   const copied = await copyToClipboard(editor, true);
-  if (!copied) return false;
+  if (!copied.ok) return copied;
 
-  return editor.chain().focus().deleteSelection().run();
+  const deleted = editor.chain().focus().deleteSelection().run();
+  if (!deleted) {
+    return clipboardResult({
+      ok: false,
+      status: "failed",
+      message: "تم النسخ لكن تعذر حذف التحديد من المحرر.",
+    });
+  }
+
+  return clipboardResult({
+    ok: true,
+    status: "success",
+    message: "تم قص النص المحدد إلى الحافظة.",
+    textLength: copied.textLength ?? 0,
+    sourceKind: copied.sourceKind ?? "selection",
+  });
 };
 
 /**
@@ -126,9 +192,15 @@ export const pasteFromClipboard = async (
     blocks: ScreenplayBlock[],
     mode: "insert"
   ) => Promise<void>
-): Promise<boolean> => {
+): Promise<EditorClipboardOperationResult> => {
   void origin;
-  if (typeof navigator === "undefined" || !navigator.clipboard) return false;
+  if (typeof navigator === "undefined" || !navigator.clipboard) {
+    return clipboardResult({
+      ok: false,
+      status: "unavailable",
+      message: "الحافظة غير متاحة في هذا المتصفح.",
+    });
+  }
 
   try {
     if (typeof navigator.clipboard.read === "function") {
@@ -169,27 +241,66 @@ export const pasteFromClipboard = async (
 
       if (blocksToImport) {
         await importStructuredBlocks(blocksToImport, "insert");
-        return true;
+        return clipboardResult({
+          ok: true,
+          status: "success",
+          message: "تم لصق كتل السيناريو من الحافظة.",
+          textLength: blocksToImport
+            .map((block) => block.text ?? "")
+            .join("\n").length,
+        });
       }
 
       if (textToImport) {
         await importClassifiedText(textToImport, "insert", {
           classificationProfile: "paste",
         });
-        return true;
+        return clipboardResult({
+          ok: true,
+          status: "success",
+          message: "تم لصق النص من الحافظة.",
+          textLength: textToImport.length,
+        });
       }
     }
   } catch {
     // fallback to readText below.
   }
 
-  if (typeof navigator.clipboard.readText !== "function") return false;
+  if (typeof navigator.clipboard.readText !== "function") {
+    return clipboardResult({
+      ok: false,
+      status: "unavailable",
+      message: "واجهة القراءة من الحافظة غير متاحة.",
+    });
+  }
 
-  const text = await navigator.clipboard.readText();
-  if (!text.trim()) return false;
+  let text = "";
+  try {
+    text = await navigator.clipboard.readText();
+  } catch {
+    return clipboardResult({
+      ok: false,
+      status: "permission-denied",
+      message: "رفض المتصفح صلاحية القراءة من الحافظة.",
+    });
+  }
+
+  if (!text.trim()) {
+    return clipboardResult({
+      ok: false,
+      status: "empty-clipboard",
+      message: "لا يوجد نص قابل للصق في الحافظة.",
+    });
+  }
 
   await importClassifiedText(text, "insert", {
     classificationProfile: "paste",
   });
-  return true;
+  return clipboardResult({
+    ok: true,
+    status: "success",
+    message: "تم لصق النص من الحافظة.",
+    textLength: text.length,
+  });
 };

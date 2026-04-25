@@ -29,6 +29,7 @@ import {
   patchSession,
   readSession,
 } from "../lib/session-storage";
+import { publishDiagnostics } from "../lib/diagnostics-bus";
 
 // ============================================
 // أنواع الإجراءات
@@ -149,6 +150,16 @@ function studioReducer(
 export function useCinematographyStudio() {
   const [state, dispatch] = useReducer(studioReducer, initialState);
   const hydratedFromStorage = useRef(false);
+  const studioRenderCount = useRef(0);
+  studioRenderCount.current += 1;
+
+  // نشر عدّاد إعادة التركيب لطبقة التشخيص.
+  useEffect(() => {
+    publishDiagnostics({
+      slice: "renderCount",
+      data: { studio: studioRenderCount.current },
+    });
+  });
 
   // استعادة الحالة من localStorage على أول mount فقط — مرة واحدة لتجنب
   // إعادة الكتابة فوق تنقل المستخدم اللاحق.

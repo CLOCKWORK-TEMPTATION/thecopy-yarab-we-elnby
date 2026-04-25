@@ -86,5 +86,5 @@ P3 (مُرحَّل):              5  (D-001, A-003, O-001, O-005, ضمنًا 1 h
 
 | المعرّف | الحالة | commit hash | ملاحظات |
 |---------|--------|-------------|---------|
-| A-001 | [PENDING] | — | قيد التنفيذ — رينيم `proxy.ts` → `middleware.ts` + تحديث استيراد الاختبار |
+| A-001 | [DONE] | `8e60e7f` | رُيِّن `proxy.ts` → `middleware.ts` + رُيِّن `proxy()` → `middleware()` + حُدِّث استيراد ملف الاختبار. `pnpm --filter web build` صار `EXIT=0` لأول مرة (مع تحذير deprecation فقط). 8/8 cinematography تمر، type-check نظيف. |
 

@@ -103,6 +103,22 @@
   box-sizing: border-box;
   margin: 0 auto !important;
   padding: 0 var(--page-margin-right) 0 var(--page-margin-left) !important;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.screenplay-sheet__body .ProseMirror:focus-visible {
+  outline: 2px solid rgba(201, 116, 74, 0.75) !important;
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+.screenplay-sheet__body[data-surface-locked="true"] {
+  cursor: progress;
+}
+
+.screenplay-sheet__body[data-surface-locked="true"] .ProseMirror {
+  cursor: progress;
 }
 
 .screenplay-sheet__body [data-tiptap-pagination] {

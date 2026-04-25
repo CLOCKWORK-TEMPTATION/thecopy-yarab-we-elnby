@@ -100,10 +100,24 @@
 .editor-modern-floating .app-root {
   background: var(--mf-canvas) !important;
   color: var(--mf-text);
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .editor-modern-floating .app-bg-grid {
   background: var(--mf-canvas);
+}
+
+.editor-modern-floating .app-main,
+.editor-modern-floating .app-stage,
+.editor-modern-floating .app-editor-main,
+.editor-modern-floating .app-editor-scroll {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.editor-modern-floating .app-editor-scroll {
+  overscroll-behavior-x: none;
 }
 
 /* --------------------------------------------------------------

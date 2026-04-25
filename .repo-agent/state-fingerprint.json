@@ -3,7 +3,7 @@
   "criticalInputHashes": {
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "4a3a0aa770b3369000605d1bd4345cff3536f39a1147ec4ba77b9dead7aa09b2",
-    "apps/backend/package.json": "b13d51e38722b2bf6c4d58f94eb04500ff1d6f4e1fd91ca8be2fa6aa4dfb5cea",
+    "apps/backend/package.json": "3fbbc6b51161f8b71b48b042603becfe30c3b068c3169688bef9ecbce338a855",
     "apps/backend/src/memory/api/routes.ts": "ef4b1ea5329c77c6062ea3786234a3a3c8f6c0c1d311cd0bbcff41ad6ceba6b7",
     "apps/backend/src/memory/context/context-assembly.service.ts": "fec5d48a65b0e5ee7a6b6422b2e86bcc6e5c6d4593b888837f171ad25ff87324",
     "apps/backend/src/memory/embeddings/generator.ts": "79bb3ac82ae44fe079888d6580ae502d5c97bb758f8fee3d558cf690e1754822",
@@ -38,7 +38,7 @@
     "apps/web/src/lib/ai/stations/gemini-service.ts": "5410a2dd1ef758e233b0ba0b99fa81d4bc14b9188d8d37b4f604b377500b0348",
     "apps/web/src/lib/ai/text-chunking.ts": "3dca6a405d6b61be103230611c588acc385948c297bc64973390e0664697bd65",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "1e1d14cab81646238b4d8c7f9821a4bf8ce8069d3c3dd2796388419bf2aebfe5",
-    "package.json": "c06752b221eaef3b8da64d2f7a4040607b6d04f93179e828f7309eaf7058a06a",
+    "package.json": "ea934d178bcdaa4f64da19551d139ea6da20ec4c3fecc9c7010a385edf4582dc",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
@@ -56,15 +56,15 @@
   "driftReasons": [
     "لا يوجد drift مؤثر"
   ],
-  "headCommit": "a2128a160bef99a551345af7ed36ff5d41db7e3e",
+  "headCommit": "8e60e7f1f55c365c91fdc1b60bb8d3de5fc441c5",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "d762fa4e2d2a4042465f45f5e49643d3da0d75a6ec0b2dfc28b5b88f75c57301"
   },
   "knowledgeHash": "d4243a9949f89bd3e781079c1e4ff530824cbef7d4872eeb87130b6bff9ac349",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-25T18:23:24.783Z",
+  "lastBootstrapTimestamp": "2026-04-25T20:06:34.757Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "a44fd49be6e40bd15d26f62099c62408c16ef92899e91f86fef72721e6f01b32",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "34c7f5ad3af638f76ba226b8110ee217c5f788a5a43ba1293b53dc4048efaa8d",
     "output/code-map/code-map.json": "1c7d5b10a6faf470f64f4c6bf9dc1a71ec637462756898963d5989c9a4d9d865",
     "output/code-map/CODEMAP.md": "bae0df96720ed2059474ae44617c4fdf3da0f4a2f5a22add89daa631ab3ce642",
     "output/code-map/dependency-graph.md": "8ff0acd40b572f2e18afb272f1aaf177565500dc3a957486c5011e443176d2bf",
@@ -78,8 +78,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "e6281abbf237afdc48446d01921a5ce649bbdbf233ac68bf54f9fb6e48228d41",
     "output/mind-map/rag-topology.mmd": "662e6fcd3faafb3cc6d0dc5a79758a32ffcb93fa4c643dfcf50f4fa128052ddc",
-    "output/round-notes.md": "0a22879901cebf4e7da1e442e8adca470e1e012e4524ae0ded7954ed6af38b0e",
-    "output/session-state.md": "fc6a5a603e6126eb8090a6120cc699231c41a7ca0e2447f26d681f77ab9a4746"
+    "output/round-notes.md": "018b866afbca9a32111266b225ee63526070e74609becfdde19bda10b424e821",
+    "output/session-state.md": "c278058234cf33b179844c8456b46aa044d88544b146d9796b0de93334567c0a"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -143,6 +143,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "44eeb33eb5108c55de18fe2d4faaba1b18f1aa7c2593794616bc28b54e847ab6",
-  "workingTreeHash": "d63d399fe3f2eb27ed681d7423e888260cffd08a26b11e62606bd3ab298cbf0c"
+  "structuralHash": "f57a3171dd6cac2e8fe55efc410a2cf3dec1b1dd6c97b6446cc5a99ab968dfef",
+  "workingTreeHash": "cd1a42a6381ac1830b6b87da26055178cccbb37df1987c10f31405e0db529125"
 }

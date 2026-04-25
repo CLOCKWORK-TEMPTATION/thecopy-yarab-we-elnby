@@ -7,6 +7,8 @@ import {
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
+import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
+import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
 // @ts-ignore — لا يوجد @types/jsdom مثبت، jsdom لها types بداخلها من الإصدار 28+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { JSDOM } from "jsdom";
@@ -655,7 +657,14 @@ suiteResults.push(
   await runSuite("cinematography-validate-shot-route", runRouteSuite),
   await runSuite("cinematography-media-hook", runMediaHookSuite),
   await runSuite("cinematography-session-storage", runSessionStorageSuite),
-  await runSuite("cinematography-camera-binding", runCameraBindingSuite)
+  await runSuite("cinematography-camera-binding", runCameraBindingSuite),
+  await runSuite("cinematography-slider-drag", async () => {
+    await runSliderDragSuite();
+  }),
+  await runSuite(
+    "cinematography-diagnostic-overlay",
+    runDiagnosticOverlaySuite
+  )
 );
 
 writeFileSync(

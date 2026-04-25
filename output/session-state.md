@@ -8,10 +8,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-25T18:23:24.783Z |
+| آخر مزامنة مرجعية | 2026-04-25T20:06:34.757Z |
 | الفرع الحالي | `main` |
-| آخر commit | `a2128a160bef99a551345af7ed36ff5d41db7e3e` |
-| حالة working tree | غير نظيفة — 7 ملف متغير |
+| آخر commit | `8e60e7f1f55c365c91fdc1b60bb8d3de5fc441c5` |
+| حالة working tree | غير نظيفة — 33 ملف متغير |
 | مستوى drift | `no-drift` |
 
 ## الحقيقة التشغيلية الحالية
@@ -221,17 +221,3 @@ AGENTS.md
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
-- `apps/web/src/app/(main)/analysis/lib/state-machine.ts:195` يُفشل `pnpm --dir apps/web build` بـ `Unreachable code detected` — pre-existing وخارج نطاق آخر جولة
-
-## ثوابت صفحة الاستوديو السينماتوغرافي (جولة 094)
-
-- مفتاح حفظ الجلسة الرسمي:
-
-```text
-cinematography-studio.session.v1
-```
-
-- لا يُحفظ فيديو ولا صور كاميرا في النسخة الحالية — تُحفظ فقط: `phase`, `view`, `mood`, `activeTool`, `technicalSettings`, `lastAnalysis` (نص فقط), `lastAssistant.answer`.
-- ربط بث الكاميرا بعنصر الفيديو يتم عبر `useEffect` في `useMediaInputPipeline.ts` يراقب `cameraPermission` و `previewType` — لا تُكسر هذه الآلية بإعادة فحص inline قبل تركيب الـ video.
-- المساعد الذكي يحتفظ بحالة مستقلة (`assistantAnswer`, `assistantError`, `assistantLastQuestion`, `isAssistantLoading`) ويُعرض داخل اللوحة عبر `data-testid="cine-assistant-panel"` — لا تعتمد اختبارات E2E الجديدة على `toast.success`.
-- ضمان جاهزية اختبارات التكامل: `apps/web/scripts/cinematography/run-integration-tests.ts` يستدعي `ensureMediaFixtures()` قبل أي سويت، فلا يفشل بـ ENOENT.

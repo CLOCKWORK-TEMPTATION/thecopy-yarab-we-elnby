@@ -21,7 +21,6 @@ import {
   type EditorEngineAdapter,
   type ReceptionSourceType,
   type RunDocumentThroughPasteWorkflowOptions,
-  type TypingSystemSettings,
 } from "../types";
 import {
   buildFileOpenPipelineAction,
@@ -62,14 +61,14 @@ export interface EditorActionsDeps {
     trigger: "manual-auto-check" | "manual-reclassify"
   ) => Promise<void>;
   restoreAutosaveDraft: () => Promise<void>;
-  typingSystemSettings: TypingSystemSettings;
+  recordDiagnostic: (title: string, message: string) => void;
 }
 
 export const openFile = async (
   mode: FileImportMode,
   deps: Pick<
     EditorActionsDeps,
-    "getArea" | "toast" | "isProgressiveSurfaceLocked"
+    "getArea" | "toast" | "isProgressiveSurfaceLocked" | "recordDiagnostic"
   >
 ): Promise<void> => {
   if (deps.isProgressiveSurfaceLocked()) {
@@ -122,6 +121,10 @@ export const openFile = async (
           description: readinessMessage,
           variant: "destructive",
         });
+        deps.recordDiagnostic(
+          mode === "replace" ? "تعذر فتح الملف" : "تعذر إدراج الملف",
+          readinessMessage
+        );
 
         logger.warn("PDF import blocked by OCR readiness", {
           scope: "file-import",
@@ -218,6 +221,10 @@ export const openFile = async (
       description: message,
       variant: "destructive",
     });
+    deps.recordDiagnostic(
+      mode === "replace" ? "تعذر فتح الملف" : "تعذر إدراج الملف",
+      message
+    );
     logger.error("File import pipeline failed", {
       scope: "file-import",
       data: error,
@@ -227,7 +234,7 @@ export const openFile = async (
 
 export const runExport = async (
   format: ExportFormat,
-  deps: Pick<EditorActionsDeps, "getArea" | "toast">,
+  deps: Pick<EditorActionsDeps, "getArea" | "toast" | "recordDiagnostic">,
   fileBase?: string
 ): Promise<void> => {
   const area = deps.getArea();
@@ -357,14 +364,16 @@ export const runExport = async (
       description: `تم تصدير الملف بصيغة ${labelByFormat[format]}.`,
     });
   } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "حدث خطأ غير معروف أثناء التصدير.";
     deps.toast({
       title: "تعذر التصدير",
-      description:
-        error instanceof Error
-          ? error.message
-          : "حدث خطأ غير معروف أثناء التصدير.",
+      description: message,
       variant: "destructive",
     });
+    deps.recordDiagnostic("تعذر التصدير", message);
     logger.error("Document export failed", {
       scope: "export",
       data: { format, error },
@@ -511,35 +520,69 @@ export const handleMenuAction = async (
       break;
     }
     case "copy":
-      if (!(await engine.copySelectionToClipboard())) {
-        document.execCommand("copy");
+      {
+        const result = await engine.copySelectionToClipboard();
+        if (!result.ok && !document.execCommand("copy")) {
+          deps.toast({
+            title: "تعذر النسخ",
+            description: result.message,
+            variant: "destructive",
+          });
+          deps.recordDiagnostic("تعذر النسخ", result.message);
+        } else if (result.ok) {
+          deps.toast({
+            title: "تم النسخ",
+            description: result.message,
+          });
+        }
       }
       break;
     case "cut":
-      if (!(await engine.cutSelectionToClipboard())) {
-        document.execCommand("cut");
+      {
+        const result = await engine.cutSelectionToClipboard();
+        if (!result.ok && !document.execCommand("cut")) {
+          deps.toast({
+            title: "تعذر القص",
+            description: result.message,
+            variant: "destructive",
+          });
+          deps.recordDiagnostic("تعذر القص", result.message);
+        } else if (result.ok) {
+          deps.toast({
+            title: "تم القص",
+            description: result.message,
+          });
+        }
       }
       break;
     case "paste": {
       try {
-        const pasted = await engine.pasteFromClipboard("menu");
-        if (pasted) {
+        const result = await engine.pasteFromClipboard("menu");
+        if (result.ok) {
           deps.toast({
             title: "تم اللصق",
-            description: "تم تمرير النص عبر المصنف وإدراجه.",
+            description: result.message,
           });
-          if (deps.typingSystemSettings.typingSystemMode === "auto-deferred") {
-            void deps.runDocumentThroughPasteWorkflow({
-              source: "manual-deferred",
-              reviewProfile: "interactive",
-              policyProfile: "interactive-legacy",
-            });
-          }
           break;
         }
-        document.execCommand("paste");
+        if (!document.execCommand("paste")) {
+          deps.toast({
+            title: "تعذر اللصق",
+            description: result.message,
+            variant: "destructive",
+          });
+          deps.recordDiagnostic("تعذر اللصق", result.message);
+        }
       } catch {
-        document.execCommand("paste");
+        if (!document.execCommand("paste")) {
+          const message = "فشل الوصول إلى الحافظة من هذا السياق.";
+          deps.toast({
+            title: "تعذر اللصق",
+            description: message,
+            variant: "destructive",
+          });
+          deps.recordDiagnostic("تعذر اللصق", message);
+        }
       }
       break;
     }

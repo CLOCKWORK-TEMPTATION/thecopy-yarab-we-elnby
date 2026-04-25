@@ -67,6 +67,26 @@ const buildSceneHeaderTopLineHtml = (
   return `<div data-type="scene_header_top_line"><div data-type="scene_header_1">${safeHeader1}</div><div data-type="scene_header_2">${safeHeader2}</div></div>`;
 };
 
+const insertTemplateTextAndSelect = (area: EditorArea, text: string): void => {
+  const selectionStart = area.editor.state.selection.from;
+  const inserted = area.editor
+    .chain()
+    .focus()
+    .insertContent(escapeHtml(text))
+    .run();
+
+  if (!inserted) return;
+
+  area.editor
+    .chain()
+    .focus()
+    .setTextSelection({
+      from: selectionStart,
+      to: selectionStart + text.length,
+    })
+    .run();
+};
+
 export const isInsertActionId = (
   actionId: string
 ): actionId is InsertActionId =>
@@ -172,7 +192,7 @@ export const runInsertMenuAction = ({
 
   area.setFormat(mappedElementType);
   if (template) {
-    area.editor.chain().focus().insertContent(escapeHtml(template)).run();
+    insertTemplateTextAndSelect(area, template);
   }
   toast({
     title: "تم الإدراج",

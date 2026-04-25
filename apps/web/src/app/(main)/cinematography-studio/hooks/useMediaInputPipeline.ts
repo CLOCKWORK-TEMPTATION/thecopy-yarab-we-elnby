@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { logger } from "@/lib/ai/utils/logger";
 import { cinematographyInputConfig } from "../lib/cinematography-config";
+import { publishDiagnostics } from "../lib/diagnostics-bus";
 import {
   captureFrameFromVideoElement,
   extractFrameFromVideoFile,
@@ -390,6 +391,18 @@ export function useMediaInputPipeline(
       video.srcObject = stream;
       video.play().catch(() => undefined);
     }
+  }, [state.cameraPermission, state.previewType]);
+
+  // نشر حالة الكاميرا لطبقة التشخيص — صفر تكلفة عند تعطيل العلم البيئي.
+  useEffect(() => {
+    publishDiagnostics({
+      slice: "camera",
+      data: {
+        permission: state.cameraPermission,
+        previewType: state.previewType,
+        lastFrameAt: state.cameraPermission === "granted" ? Date.now() : null,
+      },
+    });
   }, [state.cameraPermission, state.previewType]);
 
   const canAnalyze = useMemo(() => {

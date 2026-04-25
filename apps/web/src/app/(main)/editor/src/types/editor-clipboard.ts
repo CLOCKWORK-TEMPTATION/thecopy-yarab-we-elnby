@@ -35,6 +35,23 @@ export type ClipboardSourceKind = "selection" | "document";
  */
 export type ClipboardOrigin = "menu" | "shortcut" | "context" | "native";
 
+export type ClipboardOperationStatus =
+  | "success"
+  | "empty-document"
+  | "empty-selection"
+  | "empty-clipboard"
+  | "permission-denied"
+  | "unavailable"
+  | "failed";
+
+export interface EditorClipboardOperationResult {
+  ok: boolean;
+  status: ClipboardOperationStatus;
+  message: string;
+  textLength?: number;
+  sourceKind?: ClipboardSourceKind;
+}
+
 /**
  * حمولة الحافظة الداخلية — تُخزن مع MIME المخصص عند النسخ
  *

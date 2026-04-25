@@ -65,6 +65,22 @@ const DOFCalculator = dynamic(() => import("./tools/DOFCalculatorTool"), {
   ssr: false,
 });
 
+/**
+ * تحميل طبقة التشخيص فقط حين العلم البيئي مفعّل.
+ *
+ * النمط المستخدم: شرط `if` صارم على ثابت بُنيَ من `process.env.*` الذي يستبدله
+ * Next.js عند البناء (DefinePlugin). عندما يكون العلم غير مضبوط على "1" يصبح
+ * الشرط `false` فعليًا أثناء البناء، فيُحذف بلوك if كاملًا (dead-code elimination)
+ * بما فيه استدعاء `import()` — فلا يولّد webpack أي chunk للـ overlay.
+ */
+let DiagnosticOverlayContainer: React.ComponentType | null = null;
+if (process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS === "1") {
+  DiagnosticOverlayContainer = dynamic(
+    () => import("./diagnostics/DiagnosticOverlayContainer"),
+    { ssr: false }
+  );
+}
+
 interface ToolDefinition {
   id: string;
   name: string;
@@ -247,6 +263,8 @@ export const CineAIStudio: React.FC = () => {
       />
 
       <StudioStatusBar />
+
+      {DiagnosticOverlayContainer ? <DiagnosticOverlayContainer /> : null}
 
       <div className="grid min-h-[calc(100vh-84px)] grid-cols-[84px_minmax(0,1fr)]">
         <aside className="border-r border-[#343434] bg-[#050505] px-2 py-3">

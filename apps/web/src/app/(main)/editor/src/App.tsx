@@ -106,12 +106,20 @@ const LOCKED_EDITOR_SIZE_LABEL = textSizes[0]?.label ?? "12";
 const SUPPORTED_LEGACY_FORMAT_COUNT = Object.keys(formatClassMap).length;
 const CLASSIFIER_OPTION_COUNT = classificationTypeOptions.length;
 const ACTION_BLOCK_SPACING = getSpacingMarginTop("action", "action") || "0";
+const MAX_DIAGNOSTIC_EVENTS = 5;
 
 interface EditorAutosaveSnapshot {
-  html: string;
+  html?: string;
   text: string;
   updatedAt: string;
-  version: 2;
+  version?: 2;
+}
+
+interface EditorDiagnosticEvent {
+  id: string;
+  title: string;
+  message: string;
+  createdAt: string;
 }
 
 const readTypingSystemSettings = (): TypingSystemSettings => {
@@ -131,6 +139,30 @@ const readActiveProjectTitle = (): string | null => {
   const normalizedTitle =
     typeof project.title === "string" ? project.title.trim() : "";
   return normalizedTitle || "مشروع بدون عنوان";
+};
+
+const readAutosaveSnapshot = (): EditorAutosaveSnapshot | null =>
+  loadFromStorage<EditorAutosaveSnapshot | null>(
+    AUTOSAVE_DRAFT_STORAGE_KEY,
+    null
+  );
+
+const canRestoreAutosaveSnapshot = (
+  snapshot: EditorAutosaveSnapshot | null
+): snapshot is EditorAutosaveSnapshot =>
+  Boolean(snapshot?.text && snapshot.text.trim().length > 0);
+
+const applyAutosaveSnapshot = async (
+  area: EditorArea,
+  snapshot: EditorAutosaveSnapshot
+): Promise<void> => {
+  if (snapshot.version === 2 && snapshot.html?.trim()) {
+    area.editor.commands.setContent(snapshot.html, { emitUpdate: true });
+    area.editor.commands.focus("end");
+    return;
+  }
+
+  await area.importClassifiedText(snapshot.text, "replace");
 };
 
 /**
@@ -175,6 +207,28 @@ export function App(): React.JSX.Element {
   const [activeProjectTitle, setActiveProjectTitle] = useState<string | null>(
     () => readActiveProjectTitle()
   );
+  const [diagnosticEvents, setDiagnosticEvents] = useState<
+    EditorDiagnosticEvent[]
+  >([]);
+
+  const recordDiagnostic = useCallback(
+    (title: string, message: string): void => {
+      const normalizedTitle = title.trim() || "تشخيص المحرر";
+      const normalizedMessage = message.trim() || "حدث خطأ غير معروف.";
+      setDiagnosticEvents((current) =>
+        [
+          {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            title: normalizedTitle,
+            message: normalizedMessage,
+            createdAt: new Date().toISOString(),
+          },
+          ...current,
+        ].slice(0, MAX_DIAGNOSTIC_EVENTS)
+      );
+    },
+    []
+  );
 
   /* ── تركيب/تدمير EditorArea مرة واحدة فقط ── */
   useEffect(() => {
@@ -186,21 +240,42 @@ export function App(): React.JSX.Element {
       onContentChange: (text) => setDocumentText(text),
       onStatsChange: (nextStats) => setStats(nextStats),
       onFormatChange: (format) => setCurrentFormat(format),
-      onImportError: (message) =>
+      onImportError: (message) => {
+        recordDiagnostic("فشل تطبيق نظام الشك", message);
         toast({
           title: "فشل تطبيق نظام الشك",
           description: message,
           variant: "destructive",
-        }),
+        });
+      },
       onProgressiveStateChange: (state) => setProgressiveSurfaceState(state),
     });
     editorAreaRef.current = editorArea;
+
+    const snapshot = readAutosaveSnapshot();
+    if (canRestoreAutosaveSnapshot(snapshot)) {
+      void applyAutosaveSnapshot(editorArea, snapshot)
+        .then(() => {
+          setDocumentText(editorArea.getAllText());
+        })
+        .catch((error) => {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "حدث خطأ غير معروف أثناء الاستعادة التلقائية.";
+          recordDiagnostic("فشل الاستعادة التلقائية", message);
+          logger.warn("Automatic autosave restore failed", {
+            scope: "autosave",
+            data: error,
+          });
+        });
+    }
 
     return () => {
       editorArea.destroy();
       editorAreaRef.current = null;
     };
-  }, []);
+  }, [recordDiagnostic]);
 
   useEffect(() => {
     return subscribeIsMobile((nextIsMobile) => {
@@ -245,12 +320,9 @@ export function App(): React.JSX.Element {
     const area = editorAreaRef.current;
     if (!area) return;
 
-    const snapshot = loadFromStorage<EditorAutosaveSnapshot | null>(
-      AUTOSAVE_DRAFT_STORAGE_KEY,
-      null
-    );
+    const snapshot = readAutosaveSnapshot();
 
-    if (!snapshot?.text?.trim()) {
+    if (!canRestoreAutosaveSnapshot(snapshot)) {
       toast({
         title: "لا توجد مسودة",
         description: "لم نعثر على مسودة محفوظة لاستعادتها.",
@@ -259,14 +331,8 @@ export function App(): React.JSX.Element {
     }
 
     try {
-      // النسخة 2: تحتوي على HTML كامل مع بيانات التصنيف — استعادة مباشرة بدون إعادة تصنيف
-      if (snapshot.version === 2 && snapshot.html?.trim()) {
-        area.editor.commands.setContent(snapshot.html, { emitUpdate: false });
-        area.editor.commands.focus("start");
-      } else {
-        // النسخة القديمة (نص فقط): استخدام المصنف مع تحذير
-        await area.importClassifiedText(snapshot.text, "replace");
-      }
+      await applyAutosaveSnapshot(area, snapshot);
+      setDocumentText(area.getAllText());
       toast({
         title: "تمت استعادة المسودة",
         description: "استرجعنا آخر نسخة محفوظة تلقائيًا.",
@@ -276,6 +342,12 @@ export function App(): React.JSX.Element {
         scope: "autosave",
         data: error,
       });
+      recordDiagnostic(
+        "تعذرت استعادة المسودة",
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ غير معروف أثناء استعادة المسودة."
+      );
       toast({
         title: "تعذرت استعادة المسودة",
         description:
@@ -305,17 +377,14 @@ export function App(): React.JSX.Element {
   }, [typingSystemSettings]);
 
   useEffect(() => {
-    const normalizedText = documentText.trim();
-    if (!normalizedText) return;
-
     const area = editorAreaRef.current;
-    const html = area ? area.getAllHtml() : "";
+    if (!area) return;
 
     scheduleAutoSave<EditorAutosaveSnapshot>(
       AUTOSAVE_DRAFT_STORAGE_KEY,
       {
-        html,
-        text: normalizedText,
+        html: area.getAllHtml(),
+        text: area.getAllText(),
         updatedAt: new Date().toISOString(),
         version: 2,
       },
@@ -431,6 +500,12 @@ export function App(): React.JSX.Element {
           data: error,
         });
         if (!options.suppressToasts) {
+          recordDiagnostic(
+            "تعذر تشغيل نظام الكتابة",
+            error instanceof Error
+              ? error.message
+              : "حدث خطأ غير معروف أثناء المعالجة."
+          );
           toast({
             title: "تعذر تشغيل نظام الكتابة",
             description:
@@ -481,6 +556,12 @@ export function App(): React.JSX.Element {
           scope: "self-check",
           data: error,
         });
+        recordDiagnostic(
+          "تعذر تشغيل فحص التكامل",
+          error instanceof Error
+            ? error.message
+            : "حدث خطأ غير معروف أثناء فحص التكامل."
+        );
         toast({
           title: "تعذر تشغيل فحص التكامل",
           description:
@@ -491,7 +572,7 @@ export function App(): React.JSX.Element {
         });
       }
     },
-    []
+    [recordDiagnostic]
   );
 
   useEffect(() => {
@@ -552,6 +633,12 @@ export function App(): React.JSX.Element {
         description: "تم وسم كل العناصر الظاهرة في النسخة المعتمدة.",
       });
     } catch (error) {
+      recordDiagnostic(
+        "تعذر اعتماد النسخة",
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ غير معروف أثناء اعتماد النسخة."
+      );
       toast({
         title: "تعذر اعتماد النسخة",
         description:
@@ -561,7 +648,7 @@ export function App(): React.JSX.Element {
         variant: "destructive",
       });
     }
-  }, []);
+  }, [recordDiagnostic]);
 
   const dismissProgressiveFailure = useCallback((): void => {
     const area = editorAreaRef.current;
@@ -592,6 +679,18 @@ export function App(): React.JSX.Element {
 
       const area = editorAreaRef.current;
       if (!area) return;
+      const targetElement = event.target as HTMLElement | null;
+      const activeElement =
+        typeof document !== "undefined"
+          ? (document.activeElement as HTMLElement | null)
+          : null;
+      const isEditorFocused = Boolean(
+        targetElement?.closest(".ProseMirror") ||
+          activeElement?.closest(".ProseMirror") ||
+          targetElement?.isContentEditable ||
+          activeElement?.isContentEditable ||
+          area.editor.view.hasFocus()
+      );
 
       if (key in SHORTCUT_FORMAT_BY_DIGIT) {
         event.preventDefault();
@@ -614,6 +713,30 @@ export function App(): React.JSX.Element {
         case "n":
           event.preventDefault();
           void handleMenuActionRef.current?.("new-file");
+          break;
+        case "a":
+          if (isEditorFocused) {
+            event.preventDefault();
+            area.runCommand({ command: "select-all" });
+          }
+          break;
+        case "c":
+          if (isEditorFocused || area.hasSelection()) {
+            event.preventDefault();
+            void handleMenuActionRef.current?.("copy");
+          }
+          break;
+        case "x":
+          if (isEditorFocused || area.hasSelection()) {
+            event.preventDefault();
+            void handleMenuActionRef.current?.("cut");
+          }
+          break;
+        case "v":
+          if (isEditorFocused) {
+            event.preventDefault();
+            void handleMenuActionRef.current?.("paste");
+          }
           break;
         case "z":
           event.preventDefault();
@@ -657,7 +780,7 @@ export function App(): React.JSX.Element {
     runDocumentThroughPasteWorkflow,
     runForcedProductionSelfCheck,
     restoreAutosaveDraft,
-    typingSystemSettings,
+    recordDiagnostic,
   };
 
   const dispatchMenuAction = async (actionId: MenuActionId): Promise<void> => {
@@ -821,6 +944,30 @@ export function App(): React.JSX.Element {
         onDismissFailure={dismissProgressiveFailure}
         onClose={() => setShowPipelineMonitor(false)}
       />
+
+      {diagnosticEvents.length > 0 ? (
+        <aside
+          className="editor-diagnostics-log fixed right-4 bottom-20 z-50 w-[min(92vw,420px)] rounded-2xl border border-red-500/25 bg-red-950/85 p-3 text-right text-red-50 shadow-2xl backdrop-blur-xl"
+          data-testid="editor-diagnostics-log"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="mb-2 text-xs font-bold">سجل تشخيص المحرر</div>
+          <div className="space-y-2">
+            {diagnosticEvents.map((event) => (
+              <div
+                key={event.id}
+                className="rounded-xl border border-white/10 bg-white/5 p-2"
+              >
+                <div className="text-xs font-bold">{event.title}</div>
+                <div className="mt-1 text-[11px] leading-5 text-red-100/85">
+                  {event.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+      ) : null}
 
       <div className="sr-only">
         {screenplayFormats.map((format) => (

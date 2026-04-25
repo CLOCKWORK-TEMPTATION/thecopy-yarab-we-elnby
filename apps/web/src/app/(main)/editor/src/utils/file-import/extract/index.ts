@@ -8,6 +8,7 @@ import {
   isBackendExtractionConfigured,
   type BackendExtractOptions,
 } from "./backend-extract";
+import { extractFileInBrowser } from "./browser-extract";
 
 export * from "./backend-extract";
 export * from "./browser-extract";
@@ -44,15 +45,21 @@ const assertBackendConfiguration = (endpoint?: string): void => {
   }
 };
 
+const shouldUseBrowserTextExtraction = (fileType: ImportedFileType): boolean =>
+  fileType === "txt" || fileType === "fountain" || fileType === "fdx";
+
 /**
- * استخراج الملف عبر الباكند فقط (Backend-only strict).
- * لا يوجد أي fallback محلي سواءً للـ PDF أو باقي الصيغ.
+ * يستخرج النصوص المباشرة داخل المتصفح، ويُبقي الصيغ الثقيلة على الباكند.
  */
 export const extractImportedFile = async (
   file: File,
   options?: ExtractImportedFileOptions
 ): Promise<FileExtractionResult> => {
   const fileType = resolveImportedFileType(file);
+  if (shouldUseBrowserTextExtraction(fileType)) {
+    return extractFileInBrowser(file, fileType);
+  }
+
   const backendEndpoint = options?.backend?.endpoint;
   assertBackendConfiguration(backendEndpoint);
 

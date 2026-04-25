@@ -187,7 +187,7 @@ const computeLineQuality = (text: string): LineQuality => {
     arabicRatio,
     weirdCharRatio,
     hasStructuralMarkers:
-      /[:()\-]/u.test(text) ||
+      /[:()-]/u.test(text) ||
       /(?:^|\s)(?:مشهد|قطع|داخلي|خارجي|ليل|نهار)(?:\s|$)/u.test(text),
   };
 };
@@ -2019,6 +2019,15 @@ export const applyPasteClassifierFlowToView = async (
       }
     );
 
+    const finishRunWithFailure = (
+      stage: string,
+      message: string,
+      code: string
+    ): void => {
+      pipelineRecorder.logRunFailure(stage, message, code);
+      pipelineRecorder.finishRun();
+    };
+
     let activeRange = { from, to };
     let previewDocumentSignature: string | null = null;
     const previewDrafts = buildLiteralPreviewDrafts(previewText);
@@ -2029,7 +2038,14 @@ export const applyPasteClassifierFlowToView = async (
         activeRange,
         "preview-literal"
       );
-      if (!previewRender) return false;
+      if (!previewRender) {
+        finishRunWithFailure(
+          "local-classification",
+          "تعذر عرض المعاينة الأولية داخل المحرر.",
+          "PREVIEW_RENDER_FAILED"
+        );
+        return false;
+      }
       activeRange = { from: previewRender.from, to: previewRender.to };
       previewDocumentSignature = previewRender.documentSignature;
       pipelineRecorder.trackFile("paste-classifier.ts");
@@ -2109,7 +2125,14 @@ export const applyPasteClassifierFlowToView = async (
         activeRange,
         "karank-visible"
       );
-      if (!karankRender) return previewDrafts.length > 0;
+      if (!karankRender) {
+        finishRunWithFailure(
+          "karank",
+          "تعذر عرض نسخة محرك التصنيف الوسيط داخل المحرر.",
+          "KARANK_RENDER_FAILED"
+        );
+        return previewDrafts.length > 0;
+      }
 
       activeRange = { from: karankRender.from, to: karankRender.to };
       previewDocumentSignature = karankRender.documentSignature;
@@ -2130,7 +2153,16 @@ export const applyPasteClassifierFlowToView = async (
     });
     const locallyReviewed = applyAgentReview(initiallyClassified, customReview);
 
-    if (locallyReviewed.length === 0 || view.isDestroyed) return false;
+    if (locallyReviewed.length === 0 || view.isDestroyed) {
+      finishRunWithFailure(
+        "local-classification",
+        view.isDestroyed
+          ? "توقف مسار التصنيف لأن المحرر لم يعد نشطاً."
+          : "لم ينتج مسار التصنيف أي عناصر قابلة للعرض.",
+        view.isDestroyed ? "EDITOR_VIEW_DESTROYED" : "EMPTY_CLASSIFICATION"
+      );
+      return false;
+    }
 
     agentReviewLogger.telemetry("paste-pipeline-stage", {
       stage: "frontend-classify-complete",
@@ -2159,7 +2191,14 @@ export const applyPasteClassifierFlowToView = async (
       activeRange,
       "render-first"
     );
-    if (!renderResult) return previewDrafts.length > 0;
+    if (!renderResult) {
+      finishRunWithFailure(
+        "local-classification",
+        "تعذر عرض النسخة المصنفة داخل المحرر.",
+        "CLASSIFIED_RENDER_FAILED"
+      );
+      return previewDrafts.length > 0;
+    }
 
     agentReviewLogger.telemetry("paste-pipeline-stage", {
       stage: "frontend-render-first",
