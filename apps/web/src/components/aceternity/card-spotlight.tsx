@@ -2,15 +2,16 @@
 import React, { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+type CardSpotlightProps = React.HTMLAttributes<HTMLDivElement> & {
+  children: React.ReactNode;
+};
+
 export const CardSpotlight = ({
   children,
   className,
   style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) => {
+  ...rest
+}: CardSpotlightProps) => {
   const divRef = useRef<HTMLDivElement>(null);
   const [, setIsFocused] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -53,6 +54,7 @@ export const CardSpotlight = ({
       onMouseLeave={handleMouseLeave}
       className={cn("relative overflow-hidden", className)}
       style={style}
+      {...rest}
     >
       <div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-300"
