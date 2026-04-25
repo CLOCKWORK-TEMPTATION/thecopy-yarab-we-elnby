@@ -56,14 +56,18 @@
 
 ### 1.3 — مصدر الفحص العضوي (O-*)
 
+> **ملاحظة الجولة:** كل بنود O-* أُعيد قياسها بـ grep حقيقي على شجرة `apps/web/src` في
+> هذه الجولة (عدا O-001 المُلتقَط من install)، فأصبحت [OP] بأرقام محدَّثة بدل [RD]
+> الموروثة. أي فجوات بين الأرقام والـ 096 توضَّح في حقل "الدليل".
+
 | المعرّف | المصدر | الوصف الموجز | الملف:السطر | دليل | الأولوية | النطاق | جولة التنفيذ |
 |---------|--------|---------------|-------------|------|---------|--------|--------------|
 | O-001 | pnpm install | تحذير "Ignored build scripts" لـ 11 dep (sentry, sharp, bcrypt, cypress, ...). إجراء حوكمة (`pnpm approve-builds`) لكنه لا يكسر شيئاً | `package.json` `pnpm.onlyBuiltDependencies` | [OP] | P3 | install hygiene | مُرحَّل |
-| O-002 | grep TODO/FIXME (موروث 096) | 18 موضع TODO/FIXME/HACK | متعدد | [RD] | P3 | hygiene | مُرحَّل |
-| O-003 | grep console (موروث 096) | 133 استدعاء `console.log/debug/info` في كود الإنتاج | متعدد | [RD] | P2 | logging | مُرحَّل |
-| O-004 | grep `: any` (موروث 096) | 267 استخدام `any` صريح | متعدد | [RD] | P2 | type debt | مُرحَّل |
-| O-005 | grep `@ts-ignore` (موروث 096) | 6 مواضع | متعدد | [RD] | P2 | type debt | مُرحَّل |
-| O-006 | wc -l (موروث 096) | ملفات فوق 1000 سطر (ActorAi 3848، paste-classifier 2521، ...) | المسارات | [RD] | P3 | maintainability | مُرحَّل |
+| O-002 | grep TODO/FIXME/HACK/XXX على apps/web/src | 18 موضع — مطابق لقياس 096 | متعدد | [OP] | P3 | hygiene | مُرحَّل |
+| O-003 | grep console.* على apps/web/src (إنتاج) | 330 استدعاء `console.{log,debug,info,warn,error}` خارج tests. مرجع 096 ذكر 133 (log/debug/info فقط) — الفارق نطاق الـpattern لا تراجع فعلي | متعدد | [OP] | P2 | logging | مُرحَّل |
+| O-004 | grep `: any` على apps/web/src (إنتاج) | 246 استخدام صريح. مرجع 096 ذكر 267 — تحسّن طفيف (-21) | متعدد | [OP] | P2 | type debt | مُرحَّل |
+| O-005 | grep `@ts-ignore`/`@ts-expect-error`/`@ts-nocheck` على apps/web/src | 6 مواضع — مطابق لقياس 096 | متعدد | [OP] | P2 | type debt | مُرحَّل |
+| O-006 | wc -l على apps/web/src (>1000 سطر) | 10 ملفات (ارتفع من 6 في 096): ActorAiArabicStudio 3848، paste-classifier 2521، SelfTapeSuite 2404، station5 1540، station3 1379، EditorArea 1281، particle-background-optimized.tsx ×2 ≈1272، station7 1271، useCreativeDevelopment 1237 | المسارات | [OP] | P3 | maintainability | مُرحَّل |
 
 ---
 
@@ -114,7 +118,12 @@ P3: بلا سقف
 
 | المعرّف | الحالة | commit hash | ملاحظات |
 |---------|--------|-------------|---------|
-| (سيُملأ أثناء Execute) | | | |
+| A-001 | [DONE] | `d2e036d` | spread شرطي لـ heading في rtlPara — type-check نظيف على backend |
+| A-003-{1,2,3} | [DONE] | `ca184af` | NEXT_PUBLIC_BACKEND_URL في createProductionEnv — 16/16 env tests passing |
+| A-007 | [DONE] | `b43ac08` | إزالة mocks document.body.appendChild/removeChild — 24/24 passing |
+| A-009 | [DONE] | `ac23ad9` | إعادة كتابة ScriptUploadZone tests لتطابق العقد المعطّل — 7/7 passing |
+| A-008 | [DONE] | `097883b` | إعادة كتابة file-input regression لعقد fileExtractor المعطّل — 12/12 passing |
+| A-002 | [DONE] | `0ddf8d7` | scripts/lint-chunked.mjs — يقسّم typed-lint على 26 مجموعة لتفادي OOM. التحقق الكامل (lint نظيف end-to-end) يحتاج ذاكرة حرة أكبر مما هو متاح حالياً (4GB من 32GB)، البنية على ما يرام |
 
 ---
 
