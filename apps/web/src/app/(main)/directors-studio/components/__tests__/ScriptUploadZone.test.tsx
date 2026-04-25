@@ -1,211 +1,85 @@
 /**
  * اختبارات ScriptUploadZone.tsx
- * تغطي: رفع الملفات، الاستخراج، رسائل الأخطاء، التدفق الكامل
+ *
+ * المكون الآن إشعار "الاستيراد معطّل" يوجّه المستخدم إلى /editor (المالك الوحيد للاستيراد).
+ * الاختبارات القديمة كانت تفترض أنه لا يزال يحوي حقل ملف وdrag/drop، وهي وظيفة أُلغيت.
+ * هذه الاختبارات تحفظ نفس مستوى الصرامة عبر تغطية كل سلوكيات العقد الحالي:
+ *  - إظهار رسالة "الاستيراد معطّل" ووصفها.
+ *  - إظهار مسار /editor كنص code للمالك الوحيد للاستيراد.
+ *  - وجود زر التوجيه إلى المحرر.
+ *  - النقر على الزر يستدعي router.push("/editor") بالضبط (سلوك التحويل).
+ *  - الأيقونة التحذيرية AlertCircle ظاهرة (إعلان بصري للحالة).
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ScriptUploadZone from "../ScriptUploadZone";
 
-// Mocks
-vi.mock("@/hooks/use-toast", () => ({
-  useToast: () => ({
-    toast: vi.fn(),
+const routerPushMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: routerPushMock,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
   }),
 }));
 
-vi.mock("@/hooks/useProject", () => ({
-  useCreateProject: () => ({
-    mutateAsync: vi.fn(),
-    isPending: false,
-  }),
-  useAnalyzeScript: () => ({
-    mutateAsync: vi.fn(),
-    isPending: false,
-  }),
-}));
-
-vi.mock("@/app/(main)/directors-studio/lib/ProjectContext", () => ({
-  useCurrentProject: () => ({
-    setProject: vi.fn(),
-  }),
-}));
-
-vi.mock("@/components/aceternity/card-spotlight", () => ({
-  CardSpotlight: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="card-spotlight">{children}</div>
-  ),
-}));
-
-// Mock fileExtractor
-vi.mock("@/app/(main)/directors-studio/helpers/fileExtractor", () => ({
-  extractTextFromFile: vi.fn(),
-  getUserFriendlyErrorMessage: (err: Error) => err.message,
-  FileExtractionError: class extends Error {
-    constructor(
-      public type: string,
-      message: string
-    ) {
-      super(message);
-    }
-  },
-  ExtractionErrorType: {
-    UNSUPPORTED_TYPE: "UNSUPPORTED_TYPE",
-    FILE_READ_ERROR: "FILE_READ_ERROR",
-    PDF_PARSE_ERROR: "PDF_PARSE_ERROR",
-    DOCX_PARSE_ERROR: "DOCX_PARSE_ERROR",
-    EMPTY_CONTENT: "EMPTY_CONTENT",
-    FILE_TOO_LARGE: "FILE_TOO_LARGE",
-  },
-  isSupportedFileType: (file: File) => {
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    return ["txt", "pdf", "docx"].includes(ext || "");
-  },
-}));
-
-describe("ScriptUploadZone", () => {
+describe("ScriptUploadZone — disabled-import notice contract", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    routerPushMock.mockClear();
   });
 
-  it("should render upload zone with correct UI elements", () => {
+  it("renders the disabled-import title", () => {
     render(<ScriptUploadZone />);
-
-    expect(
-      screen.getByText("قم بتحميل السيناريو الخاص بك")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/اسحب وأفلت ملف PDF أو Word هنا/)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/الصيغ المدعومة: TXT, PDF, DOCX/)
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("button-choose-file")).toBeInTheDocument();
+    expect(screen.getByText("الاستيراد معطّل")).toBeInTheDocument();
   });
 
-  it("should have hidden file input with correct accept attribute", () => {
+  it("renders the description explaining import was removed", () => {
     render(<ScriptUploadZone />);
-
-    const fileInput = screen.getByTestId("file-input");
-    expect(fileInput).toHaveAttribute("type", "file");
-    expect(fileInput).toHaveAttribute("accept", ".txt,.pdf,.docx");
-    expect(fileInput).toHaveClass("hidden");
+    expect(
+      screen.getByText("تم إلغاء الاستيراد من هذه الصفحة")
+    ).toBeInTheDocument();
   });
 
-  it("should trigger file input click when button is clicked", async () => {
+  it("identifies /editor as the sole owner of import", () => {
+    render(<ScriptUploadZone />);
+    const editorPath = screen.getByText("/editor");
+    expect(editorPath).toBeInTheDocument();
+    expect(editorPath.tagName.toLowerCase()).toBe("code");
+  });
+
+  it("renders the redirect button labeled 'انتقل إلى المحرر'", () => {
+    render(<ScriptUploadZone />);
+    expect(
+      screen.getByRole("button", { name: "انتقل إلى المحرر" })
+    ).toBeInTheDocument();
+  });
+
+  it("redirects to /editor when the button is clicked", async () => {
     const user = userEvent.setup();
     render(<ScriptUploadZone />);
 
-    const button = screen.getByTestId("button-choose-file");
-    const fileInput = screen.getByTestId("file-input");
-
-    // Mock click on file input
-    const clickSpy = vi.spyOn(fileInput, "click");
-
+    const button = screen.getByRole("button", { name: "انتقل إلى المحرر" });
     await user.click(button);
 
-    expect(clickSpy).toHaveBeenCalled();
+    expect(routerPushMock).toHaveBeenCalledTimes(1);
+    expect(routerPushMock).toHaveBeenCalledWith("/editor");
   });
 
-  it("should show loading state when uploading", () => {
-    // Override the mock to show loading state
-    vi.mocked(require("@/hooks/useProject").useCreateProject).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: true,
-    });
-
+  it("does not redirect on render (only on explicit click)", () => {
     render(<ScriptUploadZone />);
-
-    expect(screen.getByText("جاري تحميل السيناريو...")).toBeInTheDocument();
+    expect(routerPushMock).not.toHaveBeenCalled();
   });
 
-  it("should handle drag over event", () => {
-    render(<ScriptUploadZone />);
-
-    const dropZone = screen.getByTestId("card-script-upload");
-
-    fireEvent.dragOver(dropZone);
-
-    // Drop zone should have different styling (checked via class)
-    expect(dropZone).toHaveClass("border-[var(--page-accent)]");
-  });
-
-  it("should handle drag leave event", () => {
-    render(<ScriptUploadZone />);
-
-    const dropZone = screen.getByTestId("card-script-upload");
-
-    fireEvent.dragOver(dropZone);
-    fireEvent.dragLeave(dropZone);
-
-    // Should return to normal styling
-    expect(dropZone).not.toHaveClass("border-[var(--page-accent)]");
-  });
-
-  it("should handle file drop with TXT file", async () => {
-    const { extractTextFromFile } =
-      await import("@/app/(main)/directors-studio/helpers/fileExtractor");
-
-    const mockText = "مشهد 1: داخلية - غرفة المعيشة - يوم";
-    vi.mocked(extractTextFromFile).mockResolvedValue(mockText);
-
-    const onContentLoaded = vi.fn();
-    render(<ScriptUploadZone onContentLoaded={onContentLoaded} />);
-
-    const file = new File([mockText], "script.txt", { type: "text/plain" });
-    const dropZone = screen.getByTestId("card-script-upload");
-
-    // Simulate file drop
-    fireEvent.drop(dropZone, {
-      dataTransfer: {
-        files: [file],
-      },
-    });
-
-    await waitFor(() => {
-      expect(extractTextFromFile).toHaveBeenCalledWith(file);
-    });
-  });
-
-  it("should display error for unsupported file types", async () => {
-    const { extractTextFromFile } =
-      await import("@/app/(main)/directors-studio/helpers/fileExtractor");
-
-    vi.mocked(extractTextFromFile).mockRejectedValue(
-      new Error("نوع الملف غير مدعوم")
-    );
-
-    render(<ScriptUploadZone />);
-
-    const file = new File(["content"], "script.doc", {
-      type: "application/msword",
-    });
-    const dropZone = screen.getByTestId("card-script-upload");
-
-    fireEvent.drop(dropZone, {
-      dataTransfer: {
-        files: [file],
-      },
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText(/نوع الملف غير مدعوم/)).toBeInTheDocument();
-    });
-  });
-
-  it("should reset file input after selection", async () => {
-    render(<ScriptUploadZone />);
-
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
-    const file = new File(["content"], "script.txt", { type: "text/plain" });
-
-    // Simulate file selection
-    fireEvent.change(fileInput, { target: { files: [file] } });
-
-    // Input value should be reset to allow re-selecting same file
-    await waitFor(() => {
-      expect(fileInput.value).toBe("");
-    });
+  it("contains no file input or drag-drop affordance (import is disabled)", () => {
+    const { container } = render(<ScriptUploadZone />);
+    expect(container.querySelector('input[type="file"]')).toBeNull();
+    expect(screen.queryByText(/اسحب وأفلت/)).toBeNull();
+    expect(screen.queryByText(/جاري تحميل السيناريو/)).toBeNull();
   });
 });
