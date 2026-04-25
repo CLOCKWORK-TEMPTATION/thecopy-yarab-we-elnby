@@ -27,6 +27,18 @@ vi.mock("@tanstack/react-query", async () => {
   };
 });
 
+// ProjectContext mock — useCurrentProject() يرمي خارج ProjectProvider في الإنتاج،
+// والصفحة تستهلكه مباشرةً. mock يوفّر مشروعاً افتراضياً للاختبار دون تشغيل
+// ProjectProvider الكامل (sessionStorage + window.dispatchEvent).
+vi.mock("@/app/(main)/directors-studio/lib/ProjectContext", () => ({
+  useCurrentProject: () => ({
+    project: { id: "test-project", name: "Test Project", scriptContent: null },
+    projectId: "test-project",
+    setProject: vi.fn(),
+    clearProject: vi.fn(),
+  }),
+}));
+
 describe("ScenesPage", () => {
   it.todo("validate-pipeline: renders the initial state with no scenes", () => {
     vi.mocked(useQuery).mockReturnValue({ data: [], isLoading: false });
