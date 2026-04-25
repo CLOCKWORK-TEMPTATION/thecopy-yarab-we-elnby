@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+
 import {
   createProjectViaDirectorsStudio,
   createUniqueCredentials,
@@ -6,7 +7,19 @@ import {
   signupThroughApi,
 } from "./helpers/directors-editor";
 
+const directorsEditorBackendFlag = [
+  process.env["RUN_BACKEND_E2E"],
+  process.env["DIRECTORS_EDITOR_E2E"],
+].find((value) => value?.trim());
+const runBackendBackedDirectorsEditorE2E = ["1", "true", "yes"].includes(
+  (directorsEditorBackendFlag ?? "").trim().toLowerCase()
+);
+
 test.describe("directors-editor end-to-end flow", () => {
+  test.skip(
+    !runBackendBackedDirectorsEditorE2E,
+    "TODO(directors-editor): فعّل RUN_BACKEND_E2E=1 عند توفر خلفية المصادقة والمشاريع لاختبار التكامل الحقيقي."
+  );
   test.describe.configure({ mode: "serial" });
   test.setTimeout(300_000);
 

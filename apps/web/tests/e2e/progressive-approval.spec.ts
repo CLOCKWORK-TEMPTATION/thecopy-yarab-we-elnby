@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
+
 import {
   fixturePaths,
   getEditorSurface,
+  installEditorRuntimeRouteMocks,
   openFile,
   waitForApproval,
 } from "./helpers/progressive";
@@ -11,12 +13,13 @@ test.describe("progressive approval", () => {
   test.setTimeout(240_000);
 
   test("marks every visible element after approval", async ({ page }) => {
+    await installEditorRuntimeRouteMocks(page);
     await page.goto("/editor", { waitUntil: "domcontentloaded" });
     await openFile(page, fixturePaths.docx);
     await waitForApproval(page);
 
     const beforeApproval = await getEditorSurface(page)
-      .locator("[data-element-id]")
+      .locator(":scope > [data-element-id]")
       .count();
     expect(beforeApproval).toBeGreaterThan(0);
 
@@ -24,7 +27,7 @@ test.describe("progressive approval", () => {
     await expect(page.getByTestId("app-header")).toContainText("معتمد");
 
     const approvedVersionIds = await page
-      .locator("[data-approved-version-id]")
+      .locator(".ProseMirror > [data-approved-version-id]")
       .evaluateAll((elements) =>
         elements
           .map((element) => element.getAttribute("data-approved-version-id"))

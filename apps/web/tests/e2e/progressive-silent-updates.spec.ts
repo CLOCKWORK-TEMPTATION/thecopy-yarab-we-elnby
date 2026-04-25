@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
+
 import {
   fixturePaths,
   getEditorSurface,
+  installEditorRuntimeRouteMocks,
   openFile,
   waitForApproval,
 } from "./helpers/progressive";
@@ -13,11 +15,11 @@ test.describe("progressive silent updates", () => {
   test("locks the surface before first visible file render and prevents a second file run", async ({
     page,
   }) => {
-    const fileImportStarts: string[] = [];
-    page.on("console", (msg) => {
-      const text = msg.text();
-      if (text.includes("[file-import] File import pipeline started")) {
-        fileImportStarts.push(text);
+    await installEditorRuntimeRouteMocks(page, { fileExtractDelayMs: 2_500 });
+    let fileExtractRequests = 0;
+    page.on("request", (request) => {
+      if (request.url().includes("/api/file-extract")) {
+        fileExtractRequests += 1;
       }
     });
 
@@ -43,7 +45,7 @@ test.describe("progressive silent updates", () => {
     }
     await page.waitForTimeout(1200);
 
-    expect(fileImportStarts).toHaveLength(1);
+    expect(fileExtractRequests).toBe(1);
     expect(chooserOpened).toBe(false);
 
     await waitForApproval(page);

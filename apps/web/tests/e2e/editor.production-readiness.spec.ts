@@ -1,6 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import { expect, test, type Page } from "@playwright/test";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,11 +11,14 @@ const installClipboardStub = async (page: Page) => {
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
       value: {
-        writeText: async (value: string) => {
+        writeText: (value: string) => {
           window.localStorage.setItem("__editor_test_clipboard__", value);
+          return Promise.resolve();
         },
-        readText: async () =>
-          window.localStorage.getItem("__editor_test_clipboard__") ?? "",
+        readText: () =>
+          Promise.resolve(
+            window.localStorage.getItem("__editor_test_clipboard__") ?? ""
+          ),
       },
     });
   });
@@ -123,9 +127,7 @@ test.describe("/editor production readiness", () => {
     await expect(editorSurface).not.toContainText("وصف الحدث...");
   });
 
-  test("القص والنسخ واللصق يعملون من القائمة والاختصارات", async ({
-    page,
-  }) => {
+  test("القص والنسخ واللصق يعملون من القائمة والاختصارات", async ({ page }) => {
     await installClipboardStub(page);
     await openEditorWithCleanStorage(page);
 
@@ -173,9 +175,9 @@ test.describe("/editor production readiness", () => {
     ).toBeVisible();
 
     await page.reload();
-    await expect(page.locator('[contenteditable="true"]').first()).toContainText(
-      "نص محفوظ بعد إعادة التحميل"
-    );
+    await expect(
+      page.locator('[contenteditable="true"]').first()
+    ).toContainText("نص محفوظ بعد إعادة التحميل");
   });
 
   test("التصدير ينتج ملفاً قابلاً للتنزيل برسالة واضحة", async ({ page }) => {
@@ -191,7 +193,32 @@ test.describe("/editor production readiness", () => {
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toContain("screenplay-export");
-    await expect(page.getByText("تم تصدير الملف بصيغة Fountain.")).toBeVisible();
+    await expect(
+      page.getByText("تم تصدير الملف بصيغة Fountain.")
+    ).toBeVisible();
+  });
+
+  test("سجل التشخيص يظهر عند فشل مسار حافظة قابل للتشخيص", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          readText: () =>
+            Promise.reject(new DOMException("denied", "NotAllowedError")),
+        },
+      });
+    });
+    await openEditorWithCleanStorage(page);
+
+    await openMenu(page, "تعديل");
+    await page.getByTestId("menu-action-paste").click();
+
+    await expect(page.getByTestId("editor-diagnostics-log")).toContainText(
+      "تعذر اللصق"
+    );
+    await expect(
+      page.locator('[contenteditable="true"]').first()
+    ).toHaveAttribute("contenteditable", "true");
   });
 
   test("التنقل بزر التبويب لا يسبب انزياحاً أفقياً للمحرر", async ({
@@ -214,15 +241,13 @@ test.describe("/editor production readiness", () => {
     expect(documentScrollLeft).toBe(0);
   });
 
-  test("عنصر المكتبة ينفذ إجراءً فعلياً داخل المحرر", async ({
-    page,
-  }) => {
+  test("عنصر المكتبة ينفذ إجراءً فعلياً داخل المحرر", async ({ page }) => {
     await openEditorWithCleanStorage(page);
 
     await page.getByRole("button", { name: /المكتبة/ }).click();
     await page.getByRole("button", { name: /المفضلة/ }).click();
-    await expect(page.locator('[contenteditable="true"]').first()).toContainText(
-      "اسم الشخصية:"
-    );
+    await expect(
+      page.locator('[contenteditable="true"]').first()
+    ).toContainText("اسم الشخصية:");
   });
 });

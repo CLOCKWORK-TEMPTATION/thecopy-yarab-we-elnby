@@ -1,6 +1,7 @@
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import pino, { type Logger } from "pino";
 
 /**
@@ -35,18 +36,26 @@ export class ConfigManager {
   readonly importWaitMs: number;
   readonly integrationTimeoutMs: number;
   readonly e2eTimeoutMs: number;
+  readonly liveIntegrationEnabled: boolean;
+  readonly liveIntegrationSkipReason: string;
 
   private constructor() {
     this.baseUrl = this.resolveUrl(
-      process.env["EDITOR_REAL_TEST_BASE_URL"],
-      "http://localhost:5000"
+      this.resolveFirstNonEmpty(
+        process.env["EDITOR_REAL_TEST_BASE_URL"],
+        process.env["PLAYWRIGHT_BASE_URL"]
+      ),
+      this.resolveDefaultBaseUrl()
     );
     this.fileExtractUrl = this.resolveUrl(
-      process.env["EDITOR_REAL_TEST_FILE_EXTRACT_URL"],
-      "http://localhost:3001/api/file-extract"
+      this.resolveFirstNonEmpty(
+        process.env["EDITOR_REAL_TEST_FILE_EXTRACT_URL"],
+        process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL
+      ),
+      new URL("/api/file-extract", this.baseUrl).toString()
     );
     this.fixturePath = path.resolve(
-      process.env["EDITOR_REAL_TEST_FIXTURE_PATH"] ||
+      this.resolveFirstNonEmpty(process.env["EDITOR_REAL_TEST_FIXTURE_PATH"]) ??
         ConfigManager.trackedEditorFixturePath
     );
     this.importWaitMs = this.resolveInteger(
@@ -61,6 +70,11 @@ export class ConfigManager {
       process.env["EDITOR_REAL_TEST_E2E_TIMEOUT_MS"],
       240_000
     );
+    this.liveIntegrationEnabled = ["1", "true", "yes"].includes(
+      (process.env["EDITOR_REAL_TEST_ENABLE"] ?? "").trim().toLowerCase()
+    );
+    this.liveIntegrationSkipReason =
+      "TODO(editor-runtime-integration): فعّل EDITOR_REAL_TEST_ENABLE=1 مع BACKEND_URL أو EDITOR_REAL_TEST_FILE_EXTRACT_URL عند توفر خدمة استخراج حية.";
   }
 
   static fromEnv(): ConfigManager {
@@ -99,8 +113,24 @@ export class ConfigManager {
   }
 
   private resolveUrl(rawValue: string | undefined, fallback: string): string {
-    const candidate = rawValue?.trim() || fallback;
+    const candidate = rawValue?.trim() ?? fallback;
     return new URL(candidate).toString();
+  }
+
+  private resolveDefaultBaseUrl(): string {
+    const port =
+      this.resolveFirstNonEmpty(
+        process.env["PLAYWRIGHT_PORT"],
+        process.env["WEB_PORT"],
+        process.env["PORT"]
+      ) ?? "5010";
+    return `http://127.0.0.1:${port}`;
+  }
+
+  private resolveFirstNonEmpty(
+    ...values: (string | undefined)[]
+  ): string | undefined {
+    return values.find((value) => value?.trim());
   }
 }
 
@@ -110,7 +140,7 @@ export class ConfigManager {
 export const createRealTestLogger = (scope: string): Logger =>
   pino({
     name: "editor-real-tests",
-    level: process.env["EDITOR_REAL_TEST_LOG_LEVEL"] || "info",
+    level: process.env["EDITOR_REAL_TEST_LOG_LEVEL"] ?? "info",
     base: {
       scope,
     },

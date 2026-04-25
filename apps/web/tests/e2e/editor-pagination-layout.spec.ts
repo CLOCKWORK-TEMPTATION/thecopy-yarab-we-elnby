@@ -4,6 +4,7 @@ import {
   ConfigManager,
   createRealTestLogger,
 } from "../shared/real-test-config";
+
 import {
   auditFooterSurface,
   auditPageGap,
@@ -11,7 +12,10 @@ import {
   readTerminalPaginationSummary,
   waitForLivePaginationState,
 } from "./helpers/editor-pagination";
-import { openFile } from "./helpers/progressive";
+import {
+  installEditorRuntimeRouteMocks,
+  openFile,
+} from "./helpers/progressive";
 
 const config = ConfigManager.fromEnv();
 const logger = createRealTestLogger("editor-pagination-e2e");
@@ -23,6 +27,7 @@ test.describe("تخطيط الصفحات الحي في المحرر", () => {
   test("يحافظ على الفوتر والفاصل وآخر صفحة عند استيراد ملف DOCX الحقيقي", async ({
     page,
   }) => {
+    await installEditorRuntimeRouteMocks(page);
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();

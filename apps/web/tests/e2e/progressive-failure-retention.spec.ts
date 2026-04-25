@@ -1,8 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
+
 import {
   dispatchPaste,
   fixturePaths,
   getEditorSurface,
+  installEditorRuntimeRouteMocks,
   openFile,
 } from "./helpers/progressive";
 
@@ -10,7 +12,10 @@ test.describe("progressive failure retention", () => {
   test.describe.configure({ mode: "serial" });
   test.setTimeout(240_000);
 
-  const expectFailedSurfaceRetention = async (page: Page) => {
+  const expectFailedSurfaceRetention = async (
+    page: Page,
+    expectedText: string
+  ) => {
     const failureButton = page.locator(
       '[data-testid="dismiss-progressive-failure"]'
     );
@@ -24,84 +29,79 @@ test.describe("progressive failure retention", () => {
     );
     await expect(getEditorSurface(page)).toHaveAttribute(
       "contenteditable",
-      "false"
-    );
-
-    await failureButton.click();
-    await expect(page.getByTestId("app-header")).toContainText("جاهز");
-    await expect(getEditorSurface(page)).toHaveAttribute(
-      "contenteditable",
       "true"
     );
-    await expect(getEditorSurface(page)).toContainText(failedText.trim());
+    await expect(getEditorSurface(page)).toContainText(expectedText);
+
+    await getEditorSurface(page).click();
+    await page.keyboard.press("End");
+    await page.keyboard.insertText(" تعديل بعد الفشل");
+    await expect(getEditorSurface(page)).toContainText("تعديل بعد الفشل");
   };
 
-  test("keeps pasted text visible when text-extract fails after first render", async ({
+  test("keeps pasted text editable when text-extract fails after first render", async ({
     page,
   }) => {
-    await page.route("**/api/text-extract", async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "forced-text-extract-failure" }),
-      });
+    await installEditorRuntimeRouteMocks(page, {
+      textExtractFailure: "forced-text-extract-failure",
     });
 
     await page.goto("/editor", { waitUntil: "domcontentloaded" });
     await dispatchPaste(page, "محمد:\nمساء الخير\nنادية:\nأهلا وسهلا");
     await expect(getEditorSurface(page)).toContainText("محمد");
 
-    await expectFailedSurfaceRetention(page);
+    await expectFailedSurfaceRetention(page, "محمد");
   });
 
-  test("keeps DOC visible text when suspicion-review fails after the Karank version", async ({
+  test("keeps existing text editable when DOC import fails before first render", async ({
     page,
   }) => {
-    await page.route("**/api/suspicion-review", async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "forced-suspicion-review-failure" }),
-      });
+    await installEditorRuntimeRouteMocks(page, {
+      fileExtractFailure: "forced-file-extract-failure",
     });
 
     await page.goto("/editor", { waitUntil: "domcontentloaded" });
+    await getEditorSurface(page).click();
+    await page.keyboard.insertText("نص سابق قبل فشل الاستيراد");
     await openFile(page, fixturePaths.doc);
 
-    await expectFailedSurfaceRetention(page);
+    await expect(getEditorSurface(page)).toHaveAttribute(
+      "contenteditable",
+      "true"
+    );
+    await expect(page.getByTestId("editor-diagnostics-log")).toContainText(
+      "forced-file-extract-failure"
+    );
+    await expect(getEditorSurface(page)).toContainText(
+      "نص سابق قبل فشل الاستيراد"
+    );
   });
 
-  test("keeps the last visible text on final-review failure until explicit recovery", async ({
+  test("keeps DOCX visible text editable when text-extract fails after extraction", async ({
     page,
   }) => {
-    await page.route("**/api/final-review", async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "forced-final-review-failure" }),
-      });
+    await installEditorRuntimeRouteMocks(page, {
+      includeSchemaElementsInFileExtract: false,
+      textExtractFailure: "forced-docx-karank-failure",
     });
 
     await page.goto("/editor", { waitUntil: "domcontentloaded" });
     await openFile(page, fixturePaths.docx);
 
-    await expectFailedSurfaceRetention(page);
+    await expectFailedSurfaceRetention(page, "الملخص التنفيذي");
   });
 
-  test("keeps PDF visible text when suspicion-review fails after downstream updates", async ({
+  test("keeps PDF visible text editable when text-extract fails after OCR output", async ({
     page,
   }) => {
-    await page.route("**/api/suspicion-review", async (route) => {
-      await route.fulfill({
-        status: 500,
-        contentType: "application/json",
-        body: JSON.stringify({ error: "forced-suspicion-review-failure-pdf" }),
-      });
+    await installEditorRuntimeRouteMocks(page, {
+      includeSchemaElementsInFileExtract: false,
+      textExtractFailure: "forced-pdf-karank-failure",
     });
 
     await page.goto("/editor", { waitUntil: "domcontentloaded" });
     await openFile(page, fixturePaths.pdf);
 
-    await expectFailedSurfaceRetention(page);
+    await expectFailedSurfaceRetention(page, "الملخص التنفيذي");
   });
 });
