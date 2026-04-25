@@ -1,99 +1,96 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createIntersectionObserver } from "./animations";
 
+/**
+ * vi.fn() في vitest v4 لا يكشف [[Construct]] بصورة قابلة للاستدعاء عبر `new`،
+ * فأي محاولة `new IntersectionObserverMock(...)` كانت تفشل بـ
+ * "TypeError: ... is not a constructor". الحل: استخدام class حقيقية مع spies
+ * مرفقة كـ static/instance fields. هذا يحفظ نفس مستوى التأكيد (تتبع الاستدعاءات
+ * + التحقق من الوسائط) مع توافق كامل مع `new`.
+ */
+
 describe("createIntersectionObserver", () => {
   const originalIntersectionObserver = window.IntersectionObserver;
 
+  // spy مشترك لتتبّع المُنشِئ ووسائطه
+  let constructorCalls: Array<{
+    callback: IntersectionObserverCallback;
+    options: IntersectionObserverInit | undefined;
+  }> = [];
+  let lastObserver: { observe: ReturnType<typeof vi.fn>; unobserve: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> } | null = null;
+
+  class IntersectionObserverMock {
+    public observe = vi.fn();
+    public unobserve = vi.fn();
+    public disconnect = vi.fn();
+    public takeRecords = vi.fn(() => []);
+    public root: Element | null = null;
+    public rootMargin = "";
+    public thresholds: ReadonlyArray<number> = [];
+    public callback: IntersectionObserverCallback;
+
+    constructor(
+      cb: IntersectionObserverCallback,
+      options?: IntersectionObserverInit
+    ) {
+      this.callback = cb;
+      constructorCalls.push({ callback: cb, options });
+      lastObserver = {
+        observe: this.observe,
+        unobserve: this.unobserve,
+        disconnect: this.disconnect,
+      };
+    }
+  }
+
   beforeEach(() => {
-    // Reset vi mocks
+    constructorCalls = [];
+    lastObserver = null;
     vi.clearAllMocks();
+    (window as unknown as { IntersectionObserver: typeof IntersectionObserverMock }).IntersectionObserver =
+      IntersectionObserverMock;
   });
 
   afterEach(() => {
-    // Restore original
     window.IntersectionObserver = originalIntersectionObserver;
   });
 
   it("should create an IntersectionObserver with default options", () => {
-    // Mock the global IntersectionObserver
-    const mockCallback = vi.fn();
-    const mockObserver = {
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    };
+    const myCallback = vi.fn();
+    const observer = createIntersectionObserver(myCallback);
 
-    // Assign mock directly to window
-    const IntersectionObserverMock = vi
-      .fn()
-      .mockImplementation(() => mockObserver);
-    window.IntersectionObserver = IntersectionObserverMock;
-
-    const observer = createIntersectionObserver(mockCallback);
-
-    expect(IntersectionObserverMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      { threshold: 0.1 } // Default options
-    );
-    expect(observer).toBe(mockObserver);
+    expect(constructorCalls).toHaveLength(1);
+    expect(constructorCalls[0].options).toEqual({ threshold: 0.1 });
+    expect(typeof constructorCalls[0].callback).toBe("function");
+    expect(observer).toBeInstanceOf(IntersectionObserverMock);
   });
 
   it("should create an IntersectionObserver with merged custom options", () => {
-    // Mock the global IntersectionObserver
-    const mockCallback = vi.fn();
-    const mockObserver = {
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-      disconnect: vi.fn(),
-    };
-
-    // Assign mock directly to window
-    const IntersectionObserverMock = vi
-      .fn()
-      .mockImplementation(() => mockObserver);
-    window.IntersectionObserver = IntersectionObserverMock;
-
+    const myCallback = vi.fn();
     const customOptions = { threshold: 0.5, rootMargin: "10px" };
-    createIntersectionObserver(mockCallback, customOptions);
+    createIntersectionObserver(myCallback, customOptions);
 
-    expect(IntersectionObserverMock).toHaveBeenCalledWith(
-      expect.any(Function),
-      { threshold: 0.5, rootMargin: "10px" } // Merged options
-    );
+    expect(constructorCalls).toHaveLength(1);
+    expect(constructorCalls[0].options).toEqual({
+      threshold: 0.5,
+      rootMargin: "10px",
+    });
   });
 
   it("should trigger the callback for each entry when intersection occurs", () => {
-    let observerCallback: IntersectionObserverCallback | null = null;
-
-    // Mock the global IntersectionObserver and capture the callback
-    const IntersectionObserverMock = vi.fn().mockImplementation((cb) => {
-      observerCallback = cb;
-      return {
-        observe: vi.fn(),
-        unobserve: vi.fn(),
-        disconnect: vi.fn(),
-      };
-    });
-    window.IntersectionObserver = IntersectionObserverMock;
-
     const myCallback = vi.fn();
     createIntersectionObserver(myCallback);
 
-    // Make sure we captured the callback
-    expect(observerCallback).not.toBeNull();
+    expect(constructorCalls).toHaveLength(1);
+    const observerCallback = constructorCalls[0].callback;
 
-    // Create some fake entries
     const entries = [
       { isIntersecting: true, target: document.createElement("div") },
       { isIntersecting: false, target: document.createElement("span") },
     ] as unknown as IntersectionObserverEntry[];
 
-    // Trigger the callback manually
-    if (observerCallback) {
-      observerCallback(entries, {} as IntersectionObserver);
-    }
+    observerCallback(entries, {} as IntersectionObserver);
 
-    // Verify our custom callback was called for each entry
     expect(myCallback).toHaveBeenCalledTimes(2);
     expect(myCallback).toHaveBeenNthCalledWith(1, entries[0], 0, entries);
     expect(myCallback).toHaveBeenNthCalledWith(2, entries[1], 1, entries);
