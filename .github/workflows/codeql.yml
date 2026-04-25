@@ -31,8 +31,8 @@ jobs:
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
-        # تفعيل القواعد المتقدمة
-        queries: +security-and-quality,codeql/javascript-queries:AlertSuppression.ql
+        # تفعيل قواعد security-and-quality الموسعة (ReDoS، property injection، إلخ).
+        queries: security-and-quality
         
         # استثناء ملفات البناء والاختبارات فقط — السكربتات و workers تدخل ضمن الفحص لأنها مصدر فعلي للمخاطر.
         config: |

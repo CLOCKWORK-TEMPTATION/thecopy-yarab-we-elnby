@@ -36,26 +36,35 @@ export interface ProcessTextsParams {
  * @description Attempts to fix a broken JSON string
  */
 export const attemptToFixJson = (jsonString: string): string => {
-    const objectMatchResult = jsonString.match(/\{[\s\S]*\}/);
-    if (objectMatchResult && objectMatchResult[0]) {
+    const objectCandidate = sliceBetween(jsonString, '{', '}');
+    if (objectCandidate) {
         try {
-            JSON.parse(objectMatchResult[0]);
-            return objectMatchResult[0];
+            JSON.parse(objectCandidate);
+            return objectCandidate;
         } catch {
             // Attempt failed
         }
     }
-    const arrayMatchResult = jsonString.match(/\[[\s\S]*\]/);
-    if (arrayMatchResult && arrayMatchResult[0]) {
+    const arrayCandidate = sliceBetween(jsonString, '[', ']');
+    if (arrayCandidate) {
         try {
-            JSON.parse(arrayMatchResult[0]);
-            return arrayMatchResult[0];
+            JSON.parse(arrayCandidate);
+            return arrayCandidate;
         } catch {
             // Attempt failed
         }
     }
     return jsonString;
 };
+
+function sliceBetween(input: string, openChar: string, closeChar: string): string | null {
+    const start = input.indexOf(openChar);
+    const end = input.lastIndexOf(closeChar);
+    if (start === -1 || end <= start) {
+        return null;
+    }
+    return input.slice(start, end + 1);
+}
 
 function resolveAdvancedModuleRole(taskType: TaskType, taskLabel: string): string {
   const fullTaskDesc = (TASK_DESCRIPTIONS_FOR_PROMPT as Record<string, string>)[taskType];
