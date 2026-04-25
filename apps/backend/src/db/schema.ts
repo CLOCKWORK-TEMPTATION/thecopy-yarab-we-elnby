@@ -448,6 +448,36 @@ export const breakappRefreshTokens = pgTable('breakapp_refresh_tokens', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// ربط الأجهزة بالمستخدمين — جولة 094 M5.02
+// كل قيد يمثّل جهازاً فريداً (device_hash) يخص مستخدم BREAKAPP معيّن.
+// أول تسجيل دخول يثبت الجهاز. أي device_hash مختلف بعد ذلك = 403.
+export const breakappDevices = pgTable('breakapp_devices', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id').notNull(),
+  deviceHash: text('device_hash').notNull(),
+  firstSeen: timestamp('first_seen').defaultNow().notNull(),
+  lastSeen: timestamp('last_seen').defaultNow().notNull(),
+  revokedAt: timestamp('revoked_at'),
+});
+
+// سجل التدقيق — جولة 094 M5.05
+// يُكتب بعد إنهاء الاستجابة (res.on('finish')) لـ writes الناجحة فقط.
+export const breakappAuditLogs = pgTable('breakapp_audit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id').notNull(),
+  role: text('role').notNull(),
+  projectId: text('project_id').notNull(),
+  action: text('action').notNull(),
+  resource: text('resource').notNull(),
+  resourceId: text('resource_id'),
+  method: text('method').notNull(),
+  path: text('path').notNull(),
+  statusCode: integer('status_code').notNull(),
+  ip: text('ip').notNull(),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export type BreakappProject = typeof breakappProjects.$inferSelect;
 export type NewBreakappProject = typeof breakappProjects.$inferInsert;
 export type BreakappVendor = typeof breakappVendors.$inferSelect;
@@ -470,3 +500,7 @@ export type BreakappRefreshToken = typeof breakappRefreshTokens.$inferSelect;
 export type NewBreakappRefreshToken = typeof breakappRefreshTokens.$inferInsert;
 export type BreakappProjectMember = typeof breakappProjectMembers.$inferSelect;
 export type NewBreakappProjectMember = typeof breakappProjectMembers.$inferInsert;
+export type BreakappDevice = typeof breakappDevices.$inferSelect;
+export type NewBreakappDevice = typeof breakappDevices.$inferInsert;
+export type BreakappAuditLog = typeof breakappAuditLogs.$inferSelect;
+export type NewBreakappAuditLog = typeof breakappAuditLogs.$inferInsert;

@@ -7,7 +7,7 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   MapPin,
   Plus,
@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { LocationSimple, ApiResponse } from "../types";
 import { fetchArtDirectorJson } from "../lib/api-client";
+import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface LocationFormData {
@@ -259,13 +260,13 @@ function SearchToolbar({
 }
 
 export default function Locations() {
+  const { state, updateLocationsState } = useArtDirectorPersistence();
   const [locations, setLocations] = useState<LocationSimple[]>([]);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [formData, setFormData] = useState<LocationFormData>(DEFAULT_FORM_DATA);
   const [error, setError] = useState<string | null>(null);
+  const { showAddForm, searchQuery, formData } = state.locations;
+  const initialSearchQueryRef = useRef(searchQuery);
 
-  const handleSearch = useCallback(async () => {
+  const fetchLocations = useCallback(async (query: string) => {
     setError(null);
 
     try {
@@ -274,7 +275,7 @@ export default function Locations() {
       >("/locations/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery || undefined }),
+        body: JSON.stringify({ query: query || undefined }),
       });
 
       if (data.success && data.data?.locations) {
@@ -289,7 +290,11 @@ export default function Locations() {
       setError(errorMessage);
       setLocations([]);
     }
-  }, [searchQuery]);
+  }, []);
+
+  const handleSearch = useCallback(async () => {
+    await fetchLocations(searchQuery);
+  }, [fetchLocations, searchQuery]);
 
   const handleAddLocation = useCallback(async () => {
     setError(null);
@@ -308,9 +313,12 @@ export default function Locations() {
       });
 
       if (data.success) {
-        setShowAddForm(false);
-        setFormData(DEFAULT_FORM_DATA);
-        void handleSearch();
+        updateLocationsState({
+          showAddForm: false,
+          formData: DEFAULT_FORM_DATA,
+          searchQuery: "",
+        });
+        await fetchLocations("");
       } else {
         setError(data.error ?? "فشل في إضافة الموقع");
       }
@@ -319,16 +327,26 @@ export default function Locations() {
         err instanceof Error ? err.message : "حدث خطأ أثناء الإضافة";
       setError(errorMessage);
     }
-  }, [formData, handleSearch]);
+  }, [fetchLocations, formData, updateLocationsState]);
 
-  const handleFormChange = useCallback((data: Partial<LocationFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  }, []);
+  const handleFormChange = useCallback(
+    (data: Partial<LocationFormData>) => {
+      updateLocationsState({
+        formData: {
+          ...formData,
+          ...data,
+        },
+      });
+    },
+    [formData, updateLocationsState]
+  );
 
   const handleCancelForm = useCallback(() => {
-    setShowAddForm(false);
-    setFormData(DEFAULT_FORM_DATA);
-  }, []);
+    updateLocationsState({
+      showAddForm: false,
+      formData: DEFAULT_FORM_DATA,
+    });
+  }, [updateLocationsState]);
 
   const locationsContent = useMemo(() => {
     if (locations.length === 0) {
@@ -341,8 +359,8 @@ export default function Locations() {
   }, [locations]);
 
   useEffect(() => {
-    void handleSearch();
-  }, [handleSearch]);
+    void fetchLocations(initialSearchQueryRef.current);
+  }, [fetchLocations]);
 
   return (
     <div className="art-director-page">
@@ -356,9 +374,9 @@ export default function Locations() {
 
       <SearchToolbar
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={(query) => updateLocationsState({ searchQuery: query })}
         onSearch={handleSearch}
-        onAddClick={() => setShowAddForm(true)}
+        onAddClick={() => updateLocationsState({ showAddForm: true })}
       />
 
       {error ? (

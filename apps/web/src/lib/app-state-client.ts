@@ -32,6 +32,34 @@ function buildAppStateUrl(appId: AppStateId): string {
   return new URL(path, resolveServerBaseUrl()).toString();
 }
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+
+  const cookieMatch = document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith("XSRF-TOKEN="));
+
+  if (!cookieMatch) return null;
+
+  const [, value] = cookieMatch.split("=");
+  return value ? decodeURIComponent(value) : null;
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  const existingToken = getCsrfToken();
+  if (existingToken) {
+    return existingToken;
+  }
+
+  await fetch("/api/health", {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+
+  return getCsrfToken();
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   const json = (await response.json()) as T;
   return json;
@@ -58,11 +86,19 @@ export async function persistRemoteAppState<T extends object>(
   appId: AppStateId,
   data: T
 ): Promise<T> {
+  const csrfToken = await ensureCsrfToken();
+  const headers = new Headers({
+    "Content-Type": "application/json",
+  });
+
+  if (csrfToken) {
+    headers.set("X-XSRF-TOKEN", csrfToken);
+    headers.set("x-xsrf-token", csrfToken);
+  }
+
   const response = await fetch(buildAppStateUrl(appId), {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     credentials: "same-origin",
     body: JSON.stringify({ data }),
   });
@@ -76,8 +112,17 @@ export async function persistRemoteAppState<T extends object>(
 }
 
 export async function clearRemoteAppState(appId: AppStateId): Promise<void> {
+  const csrfToken = await ensureCsrfToken();
+  const headers = new Headers();
+
+  if (csrfToken) {
+    headers.set("X-XSRF-TOKEN", csrfToken);
+    headers.set("x-xsrf-token", csrfToken);
+  }
+
   const response = await fetch(buildAppStateUrl(appId), {
     method: "DELETE",
+    headers,
     credentials: "same-origin",
   });
 

@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useReducer, useCallback, useMemo } from "react";
+import { useReducer, useCallback, useEffect, useMemo, useRef } from "react";
 import type {
   Phase,
   TabValue,
@@ -24,6 +24,11 @@ import {
   isValidTabValue,
   isValidVisualMood,
 } from "../types";
+import {
+  clearSession as clearPersistedSession,
+  patchSession,
+  readSession,
+} from "../lib/session-storage";
 
 // ============================================
 // أنواع الإجراءات
@@ -143,6 +148,46 @@ function studioReducer(
  */
 export function useCinematographyStudio() {
   const [state, dispatch] = useReducer(studioReducer, initialState);
+  const hydratedFromStorage = useRef(false);
+
+  // استعادة الحالة من localStorage على أول mount فقط — مرة واحدة لتجنب
+  // إعادة الكتابة فوق تنقل المستخدم اللاحق.
+  useEffect(() => {
+    if (hydratedFromStorage.current) {
+      return;
+    }
+    hydratedFromStorage.current = true;
+    const persisted = readSession();
+    if (!persisted) {
+      return;
+    }
+    if (persisted.phase) {
+      dispatch({ type: "SET_PHASE", payload: persisted.phase });
+    }
+    if (persisted.mood) {
+      dispatch({ type: "SET_VISUAL_MOOD", payload: persisted.mood });
+    }
+    if (persisted.view) {
+      dispatch({ type: "SET_ACTIVE_VIEW", payload: persisted.view });
+    }
+    if (persisted.activeTool !== undefined) {
+      dispatch({ type: "SET_ACTIVE_TOOL", payload: persisted.activeTool });
+    }
+  }, []);
+
+  // حفظ الحالة عند كل تغيير (بعد أول هيدرة فقط لتجنب الكتابة بقيم افتراضية فوق
+  // القيم المحفوظة قبل قراءتها).
+  useEffect(() => {
+    if (!hydratedFromStorage.current) {
+      return;
+    }
+    patchSession({
+      phase: state.currentPhase,
+      mood: state.visualMood,
+      view: state.activeView,
+      activeTool: state.activeTool,
+    });
+  }, [state.currentPhase, state.visualMood, state.activeView, state.activeTool]);
 
   // ============================================
   // دوال تحديث الحالة (محسنة للأداء)
@@ -217,6 +262,14 @@ export function useCinematographyStudio() {
     }
   }, []);
 
+  /**
+   * يمسح جلسة الاستوديو المحفوظة محليًا. لا يُعيد ضبط الحالة الحية،
+   * لكنه يضمن ألا تعود الحالة القديمة بعد إعادة التحميل.
+   */
+  const clearStudioSession = useCallback(() => {
+    clearPersistedSession();
+  }, []);
+
   // ============================================
   // قيم محسوبة (مشتقة من الحالة)
   // ============================================
@@ -271,6 +324,7 @@ export function useCinematographyStudio() {
     setActiveView,
     navigateToPhase,
     handleTabChange,
+    clearStudioSession,
 
     // قيم محسوبة
     currentTabValue,

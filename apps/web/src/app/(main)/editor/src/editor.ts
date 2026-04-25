@@ -21,7 +21,9 @@
  *   - `toolbar.ts` — يستورد `SCREENPLAY_ELEMENTS` لبناء القائمة المنسدلة.
  *   - `App.tsx` — يستورد `SCREENPLAY_ELEMENTS` لربط الاختصارات وعرض التسميات.
  */
-import { Editor } from "@tiptap/core";
+import { Editor, Extension } from "@tiptap/core";
+import { history, redo, undo } from "@tiptap/pm/history";
+import { keymap } from "@tiptap/pm/keymap";
 import { Basmala } from "./extensions/basmala";
 import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
 import { SceneHeader1 } from "./extensions/scene-header-1";
@@ -193,6 +195,20 @@ const ScreenplayPages = Pages.extend<
   Record<string, unknown>
 >({});
 
+const ScreenplayHistory = Extension.create({
+  name: "screenplayHistory",
+  addProseMirrorPlugins() {
+    return [
+      history(),
+      keymap({
+        "Mod-z": undo,
+        "Shift-Mod-z": redo,
+        "Mod-y": redo,
+      }),
+    ];
+  },
+});
+
 /**
  * إنشاء محرر السيناريو
  */
@@ -234,6 +250,7 @@ export function createScreenplayEditor(element: HTMLElement): Editor {
         header: PAGES_HEADER_TEMPLATE,
         footer: PAGES_FOOTER_TEMPLATE,
       }),
+      ScreenplayHistory,
       // عناصر السيناريو المخصصة
       Basmala,
       SceneHeaderTopLine,

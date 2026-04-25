@@ -661,5 +661,7 @@
     "discoveryWarnings": [],
     "governanceStatus": "governed"
   },
-  "openIssues": []
+  "openIssues": [
+    "لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص"
+  ]
 }

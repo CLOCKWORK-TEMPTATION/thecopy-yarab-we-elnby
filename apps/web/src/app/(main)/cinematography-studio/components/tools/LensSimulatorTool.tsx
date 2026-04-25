@@ -360,8 +360,9 @@ export function LensSimulatorTool({
                       key={preset.id}
                       type="button"
                       onClick={() => applyPreset(preset.id)}
+                      aria-pressed={settings.selectedPreset === preset.id}
                       className={cn(
-                        "rounded-[10px] border px-4 py-4 text-right transition-all",
+                        "rounded-[10px] border px-4 py-4 text-right transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707]",
                         settings.selectedPreset === preset.id
                           ? "border-[#e5b54f] bg-[#1f170a]"
                           : "border-[#343434] bg-[#0d0d0d] hover:border-[#73572a]"

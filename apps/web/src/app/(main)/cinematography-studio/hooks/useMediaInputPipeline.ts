@@ -286,7 +286,9 @@ export function useMediaInputPipeline(
       );
 
       streamRef.current = stream;
-      if (cameraVideoRef.current) {
+      // ربط أولي إن كان عنصر الفيديو متاحًا الآن. إن لم يكن (شائع لأن الـ video
+      // لا يُركَّب إلا عند previewType === "camera") سيلتقطه useEffect أدناه فور تركيبه.
+      if (cameraVideoRef.current && cameraVideoRef.current.srcObject !== stream) {
         cameraVideoRef.current.srcObject = stream;
         await cameraVideoRef.current.play().catch(() => undefined);
       }
@@ -371,6 +373,24 @@ export function useMediaInputPipeline(
       }
     };
   }, [stopCamera]);
+
+  // ربط البث بعنصر الفيديو فور توفره — يُغلق الـ race الذي كان يحدث
+  // عندما يصل البث قبل تركيب عنصر الفيديو في DOM (لأن الـ video لا يُركَّب
+  // إلا حين previewType === "camera").
+  useEffect(() => {
+    if (state.cameraPermission !== "granted") {
+      return;
+    }
+    const stream = streamRef.current;
+    const video = cameraVideoRef.current;
+    if (!stream || !video) {
+      return;
+    }
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
+      video.play().catch(() => undefined);
+    }
+  }, [state.cameraPermission, state.previewType]);
 
   const canAnalyze = useMemo(() => {
     return Boolean(state.analysisFile) && !state.isPreparing;

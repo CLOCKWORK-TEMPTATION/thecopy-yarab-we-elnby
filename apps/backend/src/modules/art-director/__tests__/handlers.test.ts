@@ -9,7 +9,7 @@ import { resetStoreForTests } from "../store";
 const storePath = path.join(
   process.cwd(),
   ".tmp-tests",
-  "art-director-store.test.json"
+  "art-director-store.test.json",
 );
 
 async function request(params: {
@@ -25,7 +25,7 @@ async function request(params: {
 }
 
 beforeEach(async () => {
-  process.env['ART_DIRECTOR_STORE_PATH'] = storePath;
+  process.env["ART_DIRECTOR_STORE_PATH"] = storePath;
   await rm(path.dirname(storePath), { recursive: true, force: true });
   await resetStoreForTests();
 });
@@ -84,6 +84,30 @@ describe("art-director handlers", () => {
     });
   });
 
+  it("يعيد نتيجة مرئية قابلة للعرض لتحليل التناسق البصري", async () => {
+    const result = await request({
+      method: "POST",
+      path: ["analyze", "visual-consistency"],
+      body: {
+        sceneId: "scene-001",
+        referenceColors: "#FF5733, #3498DB",
+        lightingCondition: "daylight",
+      },
+    });
+
+    expect(result["status"]).toBe(200);
+    expect(result.body.success).toBe(true);
+    expect(result.body.data).toMatchObject({
+      consistent: false,
+      score: expect.any(Number),
+      issues: expect.any(Array),
+      suggestions: expect.any(Array),
+    });
+    expect(
+      (result.body.data as { issues: unknown[] }).issues.length,
+    ).toBeGreaterThan(0);
+  });
+
   it("ينشئ كتاب إنتاج ثم يصدّره بصيغة قابلة للتنزيل", async () => {
     const generateResult = await request({
       method: "POST",
@@ -116,7 +140,7 @@ describe("art-director handlers", () => {
     expect(exportResult.body.data).toHaveProperty("filename");
     expect(exportResult.body.data).toHaveProperty("content");
     expect(
-      String((exportResult.body.data as { content: string }).content)
+      String((exportResult.body.data as { content: string }).content),
     ).toContain("أصداء الصحراء");
   });
 

@@ -6,6 +6,7 @@ import {
 } from "node:http";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
 // @ts-ignore — لا يوجد @types/jsdom مثبت، jsdom لها types بداخلها من الإصدار 28+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { JSDOM } from "jsdom";
@@ -45,6 +46,10 @@ const fixtureImagePath = resolve(
 );
 
 mkdirSync(outputDirectory, { recursive: true });
+
+// تأكد من وجود ملفات وسائط الاختبار قبل أي suite — حتى لا يفشل المسار بـ ENOENT
+// عند تشغيل المُكامل دون global setup الخاص بـ Playwright.
+await ensureMediaFixtures();
 
 async function runSuite(
   name: string,
@@ -510,13 +515,147 @@ async function runMediaHookSuite(): Promise<void> {
   }
 }
 
+async function runSessionStorageSuite(): Promise<void> {
+  const restoreDom = installDomEnvironment();
+  try {
+    const { SESSION_STORAGE_KEY, clearSession, patchSession, readSession } =
+      await import(
+        "../../src/app/(main)/cinematography-studio/lib/session-storage"
+      );
+
+    // البداية: لا توجد جلسة محفوظة
+    clearSession();
+    assert.equal(readSession(), null);
+
+    // كتابة جلسة كاملة
+    patchSession({
+      phase: "production",
+      mood: "vintage",
+      view: "phases",
+      activeTool: "shot-analyzer",
+      technicalSettings: {
+        focusPeaking: false,
+        falseColor: true,
+        colorTemp: 4200,
+      },
+      lastAnalysis: {
+        score: 72,
+        exposure: 65,
+        dynamicRange: "balanced",
+        grainLevel: "fine",
+        issues: ["تحقق من توازن الألوان"],
+      },
+    });
+
+    const restored = readSession();
+    assert.ok(restored, "expected session to be restored");
+    assert.equal(restored?.phase, "production");
+    assert.equal(restored?.mood, "vintage");
+    assert.equal(restored?.view, "phases");
+    assert.equal(restored?.activeTool, "shot-analyzer");
+    assert.equal(restored?.technicalSettings?.colorTemp, 4200);
+    assert.equal(restored?.lastAnalysis?.score, 72);
+    assert.equal(restored?.lastAnalysis?.issues.length, 1);
+
+    // البيانات الفاسدة لا ترمي
+    window.localStorage.setItem(SESSION_STORAGE_KEY, "{not json");
+    assert.equal(readSession(), null);
+
+    // قيم خارج النطاق تُهمل بدل أن تُحفظ
+    window.localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        phase: "not-a-phase",
+        mood: "noir",
+        technicalSettings: {
+          focusPeaking: true,
+          falseColor: false,
+          colorTemp: 99999,
+        },
+      })
+    );
+    const partial = readSession();
+    assert.equal(partial?.phase, undefined);
+    assert.equal(partial?.mood, "noir");
+    assert.equal(partial?.technicalSettings, undefined);
+
+    // المسح يعيد null
+    clearSession();
+    assert.equal(readSession(), null);
+  } finally {
+    restoreDom();
+  }
+}
+
+async function runCameraBindingSuite(): Promise<void> {
+  // يثبت أن البث يُربط بعنصر الفيديو حتى لو ركّب الـ video بعد منح الإذن.
+  const restoreDom = installDomEnvironment();
+  try {
+    type FakeTrack = { stop: () => void };
+    const stoppedTracks: FakeTrack[] = [];
+    const fakeStream = {
+      getTracks: () => [{ stop: () => stoppedTracks.push({ stop: () => {} }) }],
+    } as unknown as MediaStream;
+
+    Object.defineProperty(globalThis.navigator, "mediaDevices", {
+      configurable: true,
+      writable: true,
+      value: {
+        getUserMedia: async () => fakeStream,
+      },
+    });
+
+    const { useMediaInputPipeline } = await import(
+      "../../src/app/(main)/cinematography-studio/hooks/useMediaInputPipeline"
+    );
+
+    const { result, unmount } = renderHook(() =>
+      useMediaInputPipeline("image")
+    );
+
+    await act(async () => {
+      await result.current.requestCamera();
+    });
+
+    assert.equal(result.current.state.cameraPermission, "granted");
+    assert.equal(result.current.state.previewType, "camera");
+
+    // محاكاة تركيب عنصر فيديو متأخر (بعد منح الإذن).
+    const fakeVideo = {
+      srcObject: null as unknown,
+      play: () => Promise.resolve(),
+    } as unknown as HTMLVideoElement;
+    (
+      result.current.cameraVideoRef as { current: HTMLVideoElement | null }
+    ).current = fakeVideo;
+
+    // إعادة تشغيل effect: نلمس previewType (يبقى camera) لكي يعيد useEffect المحاولة.
+    // الطريقة الأبسط هنا: نطلب الكاميرا مرة أخرى — يُعيد applyPreview ثم يُربط.
+    await act(async () => {
+      await result.current.requestCamera();
+    });
+
+    assert.equal(
+      (fakeVideo as { srcObject: unknown }).srcObject,
+      fakeStream,
+      "expected stream to be bound to video element after late mount"
+    );
+
+    unmount();
+  } finally {
+    restoreDom();
+  }
+}
+
 const suiteResults: SuiteResult[] = [];
 
 suiteResults.push(
   await runSuite("cinematography-config", runConfigSuite),
   await runSuite("cinematography-local-fallback", runLocalFallbackSuite),
   await runSuite("cinematography-validate-shot-route", runRouteSuite),
-  await runSuite("cinematography-media-hook", runMediaHookSuite)
+  await runSuite("cinematography-media-hook", runMediaHookSuite),
+  await runSuite("cinematography-session-storage", runSessionStorageSuite),
+  await runSuite("cinematography-camera-binding", runCameraBindingSuite)
 );
 
 writeFileSync(

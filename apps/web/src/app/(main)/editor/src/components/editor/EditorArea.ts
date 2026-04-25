@@ -1,4 +1,5 @@
 import { definedProps } from "@/lib/defined-props";
+import { redo, undo } from "@tiptap/pm/history";
 import type { Node as PmNode } from "@tiptap/pm/model";
 import { createScreenplayEditor, SCREENPLAY_ELEMENTS } from "../../editor";
 import {
@@ -333,10 +334,20 @@ export class EditorArea implements EditorHandle {
       case "align-left":
         return this.applyTextAlignCommand("left");
       case "undo":
-        // chain().focus() يضمن أن ProseMirror يعرف سياق التحرير قبل تنفيذ التراجع
-        return this.editor.chain().focus().undo().run();
+        // التركيز يضمن أن ProseMirror يعرف سياق التحرير قبل تنفيذ التراجع
+        this.editor.commands.focus();
+        return undo(
+          this.editor.state,
+          this.editor.view.dispatch,
+          this.editor.view
+        );
       case "redo":
-        return this.editor.chain().focus().redo().run();
+        this.editor.commands.focus();
+        return redo(
+          this.editor.state,
+          this.editor.view.dispatch,
+          this.editor.view
+        );
       case "select-all":
         this.editor.commands.selectAll();
         return true;

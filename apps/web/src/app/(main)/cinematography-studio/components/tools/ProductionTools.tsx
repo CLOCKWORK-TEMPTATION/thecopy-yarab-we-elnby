@@ -37,6 +37,11 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
     handleAnalyzeShot,
     setQuestion,
     askAssistant,
+    dismissAssistantResult,
+    assistantAnswer,
+    assistantError,
+    assistantLastQuestion,
+    isAssistantLoading,
     toggleFocusPeaking,
     toggleFalseColor,
     setColorTempFromSlider,
@@ -57,11 +62,12 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
 
   const handleQuestionKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
+      if (event.key === "Enter" && !isAssistantLoading) {
+        event.preventDefault();
         askAssistant();
       }
     },
-    [askAssistant]
+    [askAssistant, isAssistantLoading]
   );
 
   const handleSelectImage = useCallback(() => {
@@ -378,7 +384,11 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                 </div>
               </div>
 
-              <div className="rounded-[10px] border border-[#2a2a2a] bg-[#070707] p-4">
+              <div
+                className="rounded-[10px] border border-[#2a2a2a] bg-[#070707] p-4"
+                aria-live="polite"
+                data-testid="cine-assistant-panel"
+              >
                 <p className="text-[11px] uppercase tracking-[0.26em] text-[#e5b54f]">
                   Ask Assistant
                 </p>
@@ -386,17 +396,71 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                   value={question}
                   onChange={handleQuestionChange}
                   onKeyDown={handleQuestionKeyDown}
+                  disabled={isAssistantLoading}
                   placeholder="اسأل عن العدسة أو التعريض أو حالة التركيز"
-                  className="mt-4 h-12 border-[#343434] bg-[#0d0d0d] text-white placeholder:text-[#6c675c]"
+                  aria-label="سؤال المساعد الذكي للتصوير"
+                  className="mt-4 h-12 border-[#343434] bg-[#0d0d0d] text-white placeholder:text-[#6c675c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707] disabled:opacity-60"
                 />
                 <Button
                   type="button"
                   onClick={askAssistant}
-                  className="mt-3 h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
+                  disabled={isAssistantLoading || !question.trim()}
+                  data-testid="cine-assistant-submit"
+                  className="mt-3 h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  إرسال السؤال
+                  {isAssistantLoading ? "جاري البحث عن إجابة..." : "إرسال السؤال"}
                 </Button>
+
+                {isAssistantLoading ? (
+                  <div
+                    className="mt-4 rounded-[8px] border border-[#343434] bg-[#0d0d0d] px-3 py-3 text-xs text-[#cdbf99]"
+                    data-testid="cine-assistant-loading"
+                  >
+                    جاري البحث عن إجابة من المساعد...
+                  </div>
+                ) : null}
+
+                {assistantError && !isAssistantLoading ? (
+                  <div
+                    className="mt-4 rounded-[8px] border border-[#6b2f2f] bg-[#211010] px-3 py-3 text-xs leading-6 text-[#f3b4b4]"
+                    role="alert"
+                    data-testid="cine-assistant-error"
+                  >
+                    <p className="font-semibold">تعذر إكمال الطلب</p>
+                    <p className="mt-1">{assistantError}</p>
+                    <button
+                      type="button"
+                      onClick={dismissAssistantResult}
+                      className="mt-2 text-[10px] uppercase tracking-[0.2em] text-[#f6cf72] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f]"
+                    >
+                      إخفاء
+                    </button>
+                  </div>
+                ) : null}
+
+                {assistantAnswer && !isAssistantLoading ? (
+                  <div
+                    className="mt-4 rounded-[8px] border border-[#343434] bg-[#0d0d0d] px-3 py-3 text-xs leading-7 text-[#e8dab3]"
+                    data-testid="cine-assistant-answer"
+                  >
+                    {assistantLastQuestion ? (
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-[#7f7b71]">
+                        {assistantLastQuestion}
+                      </p>
+                    ) : null}
+                    <p className="mt-2 whitespace-pre-line text-sm text-[#f2e4bc]">
+                      {assistantAnswer}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={dismissAssistantResult}
+                      className="mt-3 text-[10px] uppercase tracking-[0.2em] text-[#7f7b71] hover:text-[#f6cf72] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f]"
+                    >
+                      إخفاء
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -599,7 +663,8 @@ function ToggleRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-[10px] border border-[#262626] bg-[#070707] px-4 py-3 transition-colors hover:border-[#73572a]"
+      aria-pressed={active}
+      className="flex w-full items-center justify-between rounded-[10px] border border-[#262626] bg-[#070707] px-4 py-3 transition-colors hover:border-[#73572a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707]"
     >
       <div className="flex items-center gap-2">
         <Aperture className="h-4 w-4 text-[#e5b54f]" />

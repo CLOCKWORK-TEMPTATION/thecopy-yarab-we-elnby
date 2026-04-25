@@ -3,10 +3,55 @@
  * تغطي: دخول الصفحة، إضافة موقع، إنشاء لوحة مزاج، إضافة قطعة ديكور
  */
 
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+async function clearSavedArtDirectorState(page: Page) {
+  const primeResponse = await page.request.get("/api/app-state/art-director");
+  let csrfToken = (await page.context().cookies()).find(
+    (cookie) => cookie.name === "XSRF-TOKEN"
+  )?.value;
+
+  if (!csrfToken) {
+    const setCookie = primeResponse.headers()["set-cookie"] ?? "";
+    csrfToken = /XSRF-TOKEN=([^;]+)/.exec(setCookie)?.[1];
+  }
+
+  const clearOptions = csrfToken
+    ? {
+        headers: {
+          "X-XSRF-TOKEN": decodeURIComponent(csrfToken),
+          "x-xsrf-token": decodeURIComponent(csrfToken),
+        },
+      }
+    : {};
+  const clearResponse = await page.request.delete(
+    "/api/app-state/art-director",
+    clearOptions
+  );
+
+  expect([200, 204, 404]).toContain(clearResponse.status());
+}
+
+async function expectRemoteInspirationResult(page: Page) {
+  await expect
+    .poll(
+      async () => {
+        const response = await page.request.get("/api/app-state/art-director");
+        const payload = (await response.json()) as {
+          data?: { inspiration?: { result?: unknown } } | null;
+        };
+        return Boolean(payload.data?.inspiration?.result);
+      },
+      { timeout: 10000 }
+    )
+    .toBe(true);
+}
 
 test.describe("Art Director - مسار مدير الديكور والفن", () => {
+  test.describe.configure({ mode: "serial" });
+
   test.beforeEach(async ({ page }) => {
+    await clearSavedArtDirectorState(page);
     // الانتقال إلى صفحة art-director
     await page.goto("/art-director");
     // انتظار تحميل الصفحة
@@ -133,23 +178,49 @@ test.describe("Art Director - مسار مدير الديكور والفن", () =
     // اختيار الحقبة
     await page.selectOption("#era-select", "1920s");
 
-    // التقاط screenshot قبل التحليل
-    await page.screenshot({
-      path: "test-results/art-director-inspiration-form.png",
-      fullPage: true,
-    });
+    const stateSave = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/app-state/art-director") &&
+        response.request().method() === "PUT" &&
+        response.ok()
+    );
 
-    // الضغط على زر التحليل
     await page.click('button:has-text("تحليل المشهد")');
 
-    // انتظار ظهور النتائج أو رسالة خطأ
-    await page.waitForTimeout(3000);
-
-    // التقاط screenshot بعد التحليل
-    await page.screenshot({
-      path: "test-results/art-director-inspiration-result.png",
-      fullPage: true,
+    await expect(page.locator("text=نتائج التحليل")).toBeVisible({
+      timeout: 10000,
     });
+    await expect(page.getByText(/الباليت المقترح:/)).toBeVisible();
+    await stateSave;
+    await expectRemoteInspirationResult(page);
+
+    await page.reload();
+    await page.waitForSelector('h1:has-text("الإلهام البصري")', {
+      timeout: 10000,
+    });
+    await expect(descriptionField).toHaveValue(
+      "مشهد رومانسي في مقهى قديم بباريس في الثلاثينيات"
+    );
+    await expect(page.locator("text=نتائج التحليل")).toBeVisible();
+  });
+
+  test("تشغيل محلل التناسق البصري يعرض نتيجة واضحة", async ({ page }) => {
+    await page.click('nav button:has-text("جميع الأدوات")');
+    await page.waitForSelector('h1:has-text("جميع الأدوات")', {
+      timeout: 5000,
+    });
+
+    await page.click('button:has-text("محلل الاتساق البصري الذكي")');
+    await page.fill('input[aria-label="رقم المشهد"]', "scene-001");
+    await page.fill('input[aria-label="الألوان المرجعية"]', "#FF5733, #3498DB");
+    await page.selectOption('select[aria-label="حالة الإضاءة"]', "daylight");
+    await page.click('button:has-text("تنفيذ")');
+
+    await expect(page.locator("text=درجة الاتساق")).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator("text=مشاكل مكتشفة")).toBeVisible();
+    await expect(page.locator("text=نجح التنفيذ")).toBeVisible();
   });
 
   test("الانتقال إلى الديكورات وإضافة قطعة", async ({ page }) => {
@@ -177,23 +248,15 @@ test.describe("Art Director - مسار مدير الديكور والفن", () =
     await page.selectOption("#piece-condition", "excellent");
     await page.fill("#piece-dimensions", "200×80×90 سم");
 
-    // التقاط screenshot للنموذج
-    await page.screenshot({
-      path: "test-results/art-director-set-form.png",
-      fullPage: true,
-    });
-
     // حفظ القطعة
-    await page.click('button:has-text("إضافة")');
+    await page.getByRole("button", { name: "إضافة", exact: true }).click();
 
-    // انتظار معالجة الطلب
-    await page.waitForTimeout(3000);
-
-    // التقاط screenshot بعد الإضافة
-    await page.screenshot({
-      path: "test-results/art-director-set-added.png",
-      fullPage: true,
+    await expect(page.locator("text=كنبة كلاسيكية")).toBeVisible({
+      timeout: 10000,
     });
+    await expect(
+      page.getByRole("heading", { name: "تقرير الاستدامة" })
+    ).toBeVisible();
   });
 
   test("الإجراءات السريعة من لوحة التحكم", async ({ page }) => {

@@ -8,20 +8,27 @@
  */
 
 import { useState, useCallback, useMemo, type ChangeEvent } from "react";
-import { Play, Loader2 } from "lucide-react";
+import {
+  Play,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  Gauge,
+  ListChecks,
+} from "lucide-react";
 import { toolConfigs, type ToolId, type ToolInput } from "../core/toolConfigs";
 import { usePlugins } from "../hooks/usePlugins";
 import type { PluginInfo, ApiResponse } from "../types";
+import { fetchArtDirectorJson } from "../lib/api-client";
+import {
+  useArtDirectorPersistence,
+  type ArtDirectorExecutionResult,
+} from "../hooks/useArtDirectorPersistence";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 type FormData = Record<string, string>;
 
-interface ExecutionResult {
-  success: boolean;
-  data?: Record<string, unknown>;
-  error?: string;
-  [key: string]: unknown;
-}
+type ExecutionResult = ArtDirectorExecutionResult;
 
 interface InputFieldProps {
   input: ToolInput;
@@ -195,10 +202,143 @@ function NoToolSelected() {
 }
 
 interface ExecutionResultProps {
+  selectedTool: ToolId;
   result: ExecutionResult;
 }
 
-function ExecutionResultDisplay({ result }: ExecutionResultProps) {
+interface VisualIssue {
+  type: string;
+  severity: "low" | "medium" | "high";
+  description?: string;
+  descriptionAr?: string;
+  location?: string;
+  suggestion?: string;
+}
+
+interface VisualAnalysisData {
+  consistent: boolean;
+  score: number;
+  issues: VisualIssue[];
+  suggestions: string[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isVisualIssue(value: unknown): value is VisualIssue {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value["type"] === "string" &&
+    (value["severity"] === "low" ||
+      value["severity"] === "medium" ||
+      value["severity"] === "high")
+  );
+}
+
+function isVisualAnalysisData(value: unknown): value is VisualAnalysisData {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value["consistent"] === "boolean" &&
+    typeof value["score"] === "number" &&
+    Array.isArray(value["issues"]) &&
+    value["issues"].every(isVisualIssue) &&
+    Array.isArray(value["suggestions"]) &&
+    value["suggestions"].every((item) => typeof item === "string")
+  );
+}
+
+function SeverityBadge({ severity }: { severity: VisualIssue["severity"] }) {
+  const label =
+    severity === "high" ? "مرتفع" : severity === "medium" ? "متوسط" : "منخفض";
+
+  return <span className={`art-severity-badge ${severity}`}>{label}</span>;
+}
+
+function VisualConsistencyResult({ data }: { data: VisualAnalysisData }) {
+  return (
+    <div className="art-visual-result">
+      <div className="art-result-metrics">
+        <div className="art-result-metric">
+          <Gauge size={20} aria-hidden="true" />
+          <span>درجة الاتساق</span>
+          <strong>{data.score}%</strong>
+        </div>
+        <div className="art-result-metric">
+          {data.consistent ? (
+            <CheckCircle2 size={20} aria-hidden="true" />
+          ) : (
+            <AlertTriangle size={20} aria-hidden="true" />
+          )}
+          <span>حالة التناسق</span>
+          <strong>{data.consistent ? "متسق" : "يحتاج مراجعة"}</strong>
+        </div>
+      </div>
+
+      <section className="art-result-section">
+        <h4>
+          <ListChecks size={18} aria-hidden="true" />
+          مشاكل مكتشفة
+        </h4>
+        {data.issues.length === 0 ? (
+          <p className="art-result-empty">لم تظهر مشاكل مؤثرة في العينة.</p>
+        ) : (
+          <div className="art-result-issues">
+            {data.issues.map((issue, index) => (
+              <article key={`${issue.type}-${index}`} className="art-issue">
+                <div className="art-issue-header">
+                  <SeverityBadge severity={issue.severity} />
+                  <span>{issue.location ?? "موضع غير محدد"}</span>
+                </div>
+                <p>{issue.descriptionAr || issue.description}</p>
+                {issue.suggestion ? <small>{issue.suggestion}</small> : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {data.suggestions.length > 0 ? (
+        <section className="art-result-section">
+          <h4>التوصيات</h4>
+          <ul className="art-result-list">
+            {data.suggestions.map((suggestion, index) => (
+              <li key={index}>{suggestion}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function GenericResultData({ data }: { data?: Record<string, unknown> }) {
+  if (!data || Object.keys(data).length === 0) {
+    return (
+      <p className="art-result-empty">
+        اكتمل التنفيذ دون بيانات إضافية من الخادم.
+      </p>
+    );
+  }
+
+  return (
+    <details className="art-result-details" open>
+      <summary>تفاصيل النتيجة</summary>
+      <pre className="art-result-json">{JSON.stringify(data, null, 2)}</pre>
+    </details>
+  );
+}
+
+function ExecutionResultDisplay({
+  selectedTool,
+  result,
+}: ExecutionResultProps) {
+  const data = result.data;
+  const isVisualResult =
+    selectedTool === "visual-analyzer" && isVisualAnalysisData(data);
+
   return (
     <CardSpotlight className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.04] p-5 backdrop-blur-xl">
       <div
@@ -209,9 +349,18 @@ function ExecutionResultDisplay({ result }: ExecutionResultProps) {
         <div
           className={`art-result-status ${result.success ? "success" : "error"}`}
         >
-          {result.success ? "تم بنجاح" : "حدث خطأ"}
+          {result.success ? "نجح التنفيذ" : "فشل التنفيذ"}
         </div>
-        <pre className="art-result-json">{JSON.stringify(result, null, 2)}</pre>
+        {!result.success && result.error ? (
+          <p className="art-result-error">{result.error}</p>
+        ) : null}
+        {isVisualResult ? (
+          <VisualConsistencyResult data={data} />
+        ) : data === undefined ? (
+          <GenericResultData />
+        ) : (
+          <GenericResultData data={data} />
+        )}
       </div>
     </CardSpotlight>
   );
@@ -318,29 +467,66 @@ function ToolWorkspace({
         </div>
       </CardSpotlight>
 
-      {result ? <ExecutionResultDisplay result={result} /> : null}
+      {result ? (
+        <ExecutionResultDisplay selectedTool={selectedTool} result={result} />
+      ) : null}
     </div>
   );
 }
 
+function normalizeToolEndpoint(endpoint: string): string {
+  return endpoint.replace(/^\/api\/art-director/, "") || "/";
+}
+
 export default function Tools() {
   const { plugins, error: pluginsError } = usePlugins();
-  const [selectedTool, setSelectedTool] = useState<ToolId | null>(null);
-  const [formData, setFormData] = useState<FormData>({});
-  const [result, setResult] = useState<ExecutionResult | null>(null);
+  const { state, updateToolsState } = useArtDirectorPersistence();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedTool = useMemo<ToolId | null>(() => {
+    const toolId = state.tools.selectedTool;
+    return toolId && toolId in toolConfigs ? (toolId as ToolId) : null;
+  }, [state.tools.selectedTool]);
 
-  const handleFieldChange = useCallback((name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }, []);
+  const formData = useMemo<FormData>(
+    () => (selectedTool ? (state.tools.formsByTool[selectedTool] ?? {}) : {}),
+    [selectedTool, state.tools.formsByTool]
+  );
 
-  const handleToolSelect = useCallback((toolId: ToolId) => {
-    setSelectedTool(toolId);
-    setFormData({});
-    setResult(null);
-    setError(null);
-  }, []);
+  const result = useMemo<ExecutionResult | null>(
+    () =>
+      selectedTool ? (state.tools.resultsByTool[selectedTool] ?? null) : null,
+    [selectedTool, state.tools.resultsByTool]
+  );
+
+  const handleFieldChange = useCallback(
+    (name: string, value: string) => {
+      if (!selectedTool) return;
+
+      updateToolsState((current) => ({
+        ...current,
+        formsByTool: {
+          ...current.formsByTool,
+          [selectedTool]: {
+            ...(current.formsByTool[selectedTool] ?? {}),
+            [name]: value,
+          },
+        },
+      }));
+    },
+    [selectedTool, updateToolsState]
+  );
+
+  const handleToolSelect = useCallback(
+    (toolId: ToolId) => {
+      updateToolsState((current) => ({
+        ...current,
+        selectedTool: toolId,
+      }));
+      setError(null);
+    },
+    [updateToolsState]
+  );
 
   const handleExecute = useCallback(async () => {
     if (!selectedTool) return;
@@ -350,19 +536,25 @@ export default function Tools() {
 
     setLoading(true);
     setError(null);
-    setResult(null);
+    updateToolsState((current) => ({
+      ...current,
+      resultsByTool: {
+        ...current.resultsByTool,
+        [selectedTool]: null,
+      },
+    }));
 
     try {
-      const response = await fetch(config.endpoint, {
+      const data = await fetchArtDirectorJson<
+        ApiResponse<Record<string, unknown>>
+      >(normalizeToolEndpoint(config.endpoint), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const data: ApiResponse<Record<string, unknown>> = await response.json();
-
       const nextResult: ExecutionResult = {
-        success: data.success ?? response.ok,
+        success: data.success,
       };
       if (data.data) {
         nextResult.data = data.data;
@@ -371,23 +563,36 @@ export default function Tools() {
         nextResult.error = data.error;
       }
 
-      setResult(nextResult);
+      updateToolsState((current) => ({
+        ...current,
+        resultsByTool: {
+          ...current.resultsByTool,
+          [selectedTool]: nextResult,
+        },
+      }));
 
-      if (!response.ok || data.success === false) {
+      if (data.success === false) {
         setError(data.error ?? "فشل تنفيذ الأداة");
       }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "تعذر الاتصال بالخادم الرئيسي";
       setError(errorMessage);
-      setResult({
+      const nextResult: ExecutionResult = {
         success: false,
         error: errorMessage,
-      });
+      };
+      updateToolsState((current) => ({
+        ...current,
+        resultsByTool: {
+          ...current.resultsByTool,
+          [selectedTool]: nextResult,
+        },
+      }));
     } finally {
       setLoading(false);
     }
-  }, [selectedTool, formData]);
+  }, [formData, selectedTool, updateToolsState]);
 
   const selectedPlugin = useMemo(
     () => (selectedTool ? plugins.find((p) => p.id === selectedTool) : null),

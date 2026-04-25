@@ -10,13 +10,14 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
 import type { VisualMood, ShotAnalysis } from "../types";
 import { ShotAnalysisSchema } from "../types";
 import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
 import { createLocalShotAnalysis } from "../lib/local-shot-analysis";
 import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
+import { patchSession, readSession } from "../lib/session-storage";
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
 
 // ============================================
@@ -37,6 +38,20 @@ interface AnalysisState {
   error: string | null;
   /** سؤال المستخدم للمساعد */
   question: string;
+}
+
+/**
+ * حالة المساعد الذكي — منفصلة عن حالة التحليل لأن الإجابة والخطأ
+ * يجب أن يبقيا داخل لوحة المساعد لا في إشعار toast العابر.
+ */
+interface AssistantState {
+  isLoading: boolean;
+  /** آخر إجابة ناجحة */
+  answer: string | null;
+  /** آخر سؤال أُرسل بنجاح (لعرضه فوق الإجابة) */
+  lastQuestion: string | null;
+  /** آخر خطأ */
+  error: string | null;
 }
 
 /**
@@ -65,6 +80,16 @@ const initialAnalysisState: AnalysisState = {
   error: null,
   question: "",
 };
+
+const initialAssistantState: AssistantState = {
+  isLoading: false,
+  answer: null,
+  lastQuestion: null,
+  error: null,
+};
+
+/** حد المهلة لطلب المساعد الذكي (ms). */
+const ASSISTANT_REQUEST_TIMEOUT_MS = 15_000;
 
 /**
  * الإعدادات التقنية الافتراضية
@@ -129,10 +154,74 @@ export function useProduction(mood: VisualMood = "noir") {
 
   const [analysisState, setAnalysisState] =
     useState<AnalysisState>(initialAnalysisState);
+  const [assistantState, setAssistantState] = useState<AssistantState>(
+    initialAssistantState
+  );
   const [technicalSettings, setTechnicalSettings] = useState<TechnicalSettings>(
     defaultTechnicalSettings
   );
   const mediaInput = useMediaInputPipeline("image");
+  const persistenceHydrated = useRef(false);
+
+  // استعادة الإعدادات التقنية وآخر تحليل عند أول تركيب — ثم نسمح بالحفظ.
+  useEffect(() => {
+    if (persistenceHydrated.current) {
+      return;
+    }
+    persistenceHydrated.current = true;
+    const persisted = readSession();
+    if (!persisted) {
+      return;
+    }
+    if (persisted.technicalSettings) {
+      setTechnicalSettings(persisted.technicalSettings);
+    }
+    if (persisted.lastAnalysis) {
+      setAnalysisState((prev) => ({
+        ...prev,
+        analysis: persisted.lastAnalysis ?? null,
+        source: "local-fallback",
+      }));
+    }
+    if (persisted.lastAssistant?.answer) {
+      setAssistantState({
+        isLoading: false,
+        answer: persisted.lastAssistant.answer,
+        lastQuestion: persisted.lastAssistant.question ?? null,
+        error: null,
+      });
+    }
+  }, []);
+
+  // حفظ الإعدادات التقنية بعد الهيدرة الأولى.
+  useEffect(() => {
+    if (!persistenceHydrated.current) {
+      return;
+    }
+    patchSession({ technicalSettings });
+  }, [technicalSettings]);
+
+  // حفظ آخر تحليل وآخر إجابة مساعد (نص فقط، بدون وسائط).
+  useEffect(() => {
+    if (!persistenceHydrated.current) {
+      return;
+    }
+    patchSession({ lastAnalysis: analysisState.analysis });
+  }, [analysisState.analysis]);
+
+  useEffect(() => {
+    if (!persistenceHydrated.current) {
+      return;
+    }
+    patchSession({
+      lastAssistant: assistantState.answer
+        ? {
+            question: assistantState.lastQuestion,
+            answer: assistantState.answer,
+          }
+        : null,
+    });
+  }, [assistantState.answer, assistantState.lastQuestion]);
 
   // ============================================
   // دوال التحليل
@@ -265,54 +354,107 @@ export function useProduction(mood: VisualMood = "noir") {
   }, []);
 
   /**
-   * إرسال سؤال للمساعد الذكي
+   * إرسال سؤال للمساعد الذكي.
+   *
+   * - يضع حالة تحميل داخل لوحة المساعد (لا يعتمد على toast فقط).
+   * - يحترم مهلة محددة عبر `postStudioJson`.
+   * - عند النجاح: يعرض الإجابة داخل اللوحة ويمسح السؤال الحالي.
+   * - عند الفشل: يعرض الخطأ داخل اللوحة ويُبقي السؤال الذي كتبه المستخدم.
    */
   const askAssistant = useCallback(async () => {
-    const { question } = analysisState;
+    const trimmedQuestion = analysisState.question.trim();
 
-    if (!question.trim()) {
-      toast.error("يرجى كتابة سؤالك أولاً");
+    if (!trimmedQuestion) {
+      setAssistantState((prev) => ({
+        ...prev,
+        error: "يرجى كتابة سؤالك أولاً",
+      }));
       return;
     }
 
-    try {
-      toast.loading("جاري البحث عن إجابة...", { id: "assistant" });
+    if (assistantState.isLoading) {
+      // منع الإرسال المزدوج عبر زر الإدخال أو النقر المتكرر
+      return;
+    }
 
+    setAssistantState({
+      isLoading: true,
+      answer: null,
+      lastQuestion: trimmedQuestion,
+      error: null,
+    });
+
+    try {
       const response = await postStudioJson<ChatResponse>(
         "/api/ai/chat",
         {
-          message: analysisState.question,
+          message: trimmedQuestion,
           context: {
             assistant: "cinematography-assistant",
             mood,
             latestAnalysis: analysisState.analysis,
           },
         },
-        { requireCsrf: true }
+        {
+          requireCsrf: true,
+          timeoutMs: ASSISTANT_REQUEST_TIMEOUT_MS,
+          timeoutMessage:
+            "انتهت المهلة الزمنية للمساعد. تحقق من الاتصال ثم أعد المحاولة.",
+        }
       );
 
-      toast.success(response.data?.response || "تم استلام الإجابة", {
-        id: "assistant",
+      const answerText = response.data?.response?.trim();
+
+      if (!answerText) {
+        throw new Error("لم يصل المساعد بإجابة قابلة للعرض. حاول مرة أخرى.");
+      }
+
+      setAssistantState({
+        isLoading: false,
+        answer: answerText,
+        lastQuestion: trimmedQuestion,
+        error: null,
       });
 
-      // مسح السؤال بعد الإرسال
+      // مسح السؤال فقط بعد نجاح الإرسال
       setAnalysisState((prev) => ({
         ...prev,
         question: "",
       }));
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "فشل في إرسال السؤال",
-        { id: "assistant" }
-      );
+      const message =
+        error instanceof Error ? error.message : "فشل في إرسال السؤال";
+      setAssistantState((prev) => ({
+        ...prev,
+        isLoading: false,
+        answer: null,
+        error: message,
+      }));
     }
-  }, [analysisState.analysis, analysisState.question, mood]);
+  }, [
+    analysisState.analysis,
+    analysisState.question,
+    assistantState.isLoading,
+    mood,
+  ]);
+
+  /**
+   * مسح آخر إجابة/خطأ من لوحة المساعد دون مسح السؤال الحالي.
+   */
+  const dismissAssistantResult = useCallback(() => {
+    setAssistantState((prev) => ({
+      ...prev,
+      answer: null,
+      error: null,
+    }));
+  }, []);
 
   /**
    * إعادة تعيين حالة التحليل
    */
   const resetAnalysis = useCallback(() => {
     setAnalysisState(initialAnalysisState);
+    setAssistantState(initialAssistantState);
     mediaInput.clearMedia();
   }, [mediaInput.clearMedia]);
 
@@ -440,6 +582,13 @@ export function useProduction(mood: VisualMood = "noir") {
     setQuestion,
     askAssistant,
     resetAnalysis,
+    dismissAssistantResult,
+
+    // حالة المساعد الذكي
+    assistantAnswer: assistantState.answer,
+    assistantError: assistantState.error,
+    assistantLastQuestion: assistantState.lastQuestion,
+    isAssistantLoading: assistantState.isLoading,
 
     // إدخال الوسائط
     mediaInput,

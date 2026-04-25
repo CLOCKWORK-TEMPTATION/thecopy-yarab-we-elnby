@@ -84,9 +84,7 @@ function withStation(
 ): MachineState {
   return {
     ...state,
-    stations: state.stations.map((s) =>
-      s.id === stationId ? updater(s) : s
-    ),
+    stations: state.stations.map((s) => (s.id === stationId ? updater(s) : s)),
   };
 }
 
@@ -192,13 +190,14 @@ export function reducer(
           // tokens are a future capability — currently not rendered
           return next;
       }
-      return next;
     }
   }
 }
 
 export function selectProgress(state: MachineState): number {
-  const completed = state.stations.filter((s) => s.status === "completed").length;
+  const completed = state.stations.filter(
+    (s) => s.status === "completed"
+  ).length;
   return Math.round((completed / state.stations.length) * 100);
 }
 

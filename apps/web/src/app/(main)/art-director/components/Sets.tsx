@@ -11,6 +11,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { Boxes, Recycle, Leaf, Plus } from "lucide-react";
 import type { SetPiece, SustainabilityReport, ApiResponse } from "../types";
 import { fetchArtDirectorJson } from "../lib/api-client";
+import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface SetPieceFormData {
@@ -286,12 +287,12 @@ function AddPieceForm({
 }
 
 export default function Sets() {
+  const { state, updateSetsState } = useArtDirectorPersistence();
   const [pieces, setPieces] = useState<SetPiece[]>([]);
   const [report, setReport] = useState<SustainabilityReport | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<SetPieceFormData>(DEFAULT_FORM_DATA);
   const [error, setError] = useState<string | null>(null);
+  const { showAddForm, formData } = state.sets;
 
   const handleAddPiece = useCallback(async () => {
     setLoading(true);
@@ -305,8 +306,10 @@ export default function Sets() {
       });
 
       if (data.success) {
-        setShowAddForm(false);
-        setFormData(DEFAULT_FORM_DATA);
+        updateSetsState({
+          showAddForm: false,
+          formData: DEFAULT_FORM_DATA,
+        });
         await loadInventory();
         await loadSustainabilityReport();
       } else {
@@ -319,7 +322,7 @@ export default function Sets() {
     } finally {
       setLoading(false);
     }
-  }, [formData]);
+  }, [formData, updateSetsState]);
 
   const loadInventory = useCallback(async () => {
     setError(null);
@@ -372,14 +375,24 @@ export default function Sets() {
     }
   }, []);
 
-  const handleFormChange = useCallback((data: Partial<SetPieceFormData>) => {
-    setFormData((prev) => ({ ...prev, ...data }));
-  }, []);
+  const handleFormChange = useCallback(
+    (data: Partial<SetPieceFormData>) => {
+      updateSetsState({
+        formData: {
+          ...formData,
+          ...data,
+        },
+      });
+    },
+    [formData, updateSetsState]
+  );
 
   const handleCancelForm = useCallback(() => {
-    setShowAddForm(false);
-    setFormData(DEFAULT_FORM_DATA);
-  }, []);
+    updateSetsState({
+      showAddForm: false,
+      formData: DEFAULT_FORM_DATA,
+    });
+  }, [updateSetsState]);
 
   const piecesContent = useMemo(() => {
     if (pieces.length === 0) {
@@ -407,7 +420,7 @@ export default function Sets() {
       <div className="art-toolbar">
         <button
           className="art-btn"
-          onClick={() => setShowAddForm(true)}
+          onClick={() => updateSetsState({ showAddForm: true })}
           type="button"
         >
           <Plus size={18} aria-hidden="true" />

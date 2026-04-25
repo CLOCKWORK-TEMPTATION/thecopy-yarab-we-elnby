@@ -2,6 +2,82 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 094 — جاهزية إنتاج صفحة الاستوديو السينماتوغرافي (إصلاحات سلوكية محققة بالاختبار) — 2026-04-25
+
+### التاريخ والوقت
+
+2026-04-25T18:30:00+02:00
+
+### الهدف المباشر
+
+تنفيذ خطة جاهزية الإنتاج لصفحة `/cinematography-studio` المُسلَّمة في طلب المستخدم. الخطة تتضمن 9 مراحل (كاميرا، مساعد، منزلقات، حفظ، وصول، تشخيص، فيديو، تكامل، E2E) مع شرط حاسم: التسليم لا يُقبل إلا بإثبات تشغيلي.
+
+### النطاق المنفذ فعليًا في هذه الجولة
+
+تم تنفيذ المراحل التالية بإثبات اختباري حي وليس قراءة ساكنة:
+
+1. **المرحلة 1 — خط الأساس**: شغّلت `pnpm --dir apps/web test:cinematography:integration` فظهر فشل ENOENT لعدم وجود `tests/fixtures/media/sample-shot.png`. ولّدت ملفات الوسائط عبر `ensure-media-fixtures.mjs` فأصبحت السويتات الأربع تمر. أُضيف استدعاء `ensureMediaFixtures()` أعلى مشغل التكامل ليبوتستراب ملفات الوسائط تلقائيًا — لن تفشل أي جولة مستقبلية بنفس السبب.
+2. **المرحلة 2 — كاميرا**: عند تحليل `useMediaInputPipeline.ts` ظهر race حقيقي: `requestCamera()` يستدعي `getUserMedia` ثم يحاول ربط البث بـ `cameraVideoRef.current`، لكن عنصر الفيديو لا يُركَّب في DOM إلا حين `previewType === "camera"` — والذي يُعيَّن فقط بعد resolve البث، فتفلت لحظة الربط. الإصلاح: إضافة `useEffect` يراقب `cameraPermission` و `previewType` ويربط `streamRef.current` بـ `cameraVideoRef.current` فور توفر كليهما.
+3. **المرحلة 3 — مساعد ذكي**: السلوك القديم: `askAssistant` يعرض الإجابة عبر `toast.success` فقط بدون أي تخزين أو عرض داخل اللوحة، ولا يحترم مهلة. الإصلاح: حالة `AssistantState` مستقلة (`isLoading`, `answer`, `lastQuestion`, `error`) + مهلة `15s` عبر `postStudioJson`، + عرض داخل اللوحة (`data-testid="cine-assistant-panel"` + `aria-live="polite"`) لكل من loading، error، answer + منع إرسال مزدوج + إبقاء السؤال عند الفشل ومسحه فقط بعد النجاح + زر "إخفاء" داخل اللوحة + تعطيل الإدخال أثناء التحميل.
+4. **المرحلة 5 — حفظ الجلسة**: أنشأت `lib/session-storage.ts` تحت المفتاح `cinematography-studio.session.v1` مع `readSession()` و `patchSession()` و `clearSession()` متسامحة مع البيانات الفاسدة (تعيد `null` بدل الرمي) ومُحقِّقة من القيم (phases/views/moods من قائمة بيضاء، colorTemp ضمن `[2000,10000]`). وُصلت بـ `useCinematographyStudio` (phase, mood, view, activeTool) و `useProduction` (technicalSettings, lastAnalysis, lastAssistant.answer) — يحفظ بعد hydration الأولى فقط. لا يُحفظ فيديو ولا صور كاميرا في النسخة الحالية.
+5. **المرحلة 6 — وصول لوحة المفاتيح**: أُضيفت حلقات تركيز واضحة (`focus-visible:ring-2 ring-[#e5b54f] ring-offset-2 ring-offset-[#070707]`) لـ: زر إرسال المساعد، حقل المساعد، بطاقات قوالب العدسات، صفوف Toggle (Focus Peaking / False Color)، أزرار "إخفاء" داخل لوحة المساعد. أُضيفت `aria-pressed` للبطاقات و Toggle، `aria-label` لحقل المساعد، `role="alert"` لخطأ المساعد.
+6. **المرحلة 9 — اختبارات إثبات**: أُضيفت سويتان جديدتان داخل `apps/web/scripts/cinematography/run-integration-tests.ts`:
+   - `cinematography-session-storage`: تكتب جلسة كاملة، تتحقق من الاستعادة، تختبر فساد JSON، تختبر القيم الخارجة عن النطاق (تُهمَل بدل أن تُحفظ)، ثم المسح.
+   - `cinematography-camera-binding`: تثبت أن البث يُربط بعنصر فيديو مُركَّب لاحقًا — يثبت إصلاح race الكاميرا.
+
+### النطاق غير المنفذ في هذه الجولة (شفافية صريحة)
+
+- **المرحلة 4 (منزلقات العدسات)**: مراجعة `LensSimulatorTool.tsx` و `SliderNumberInput.tsx` أظهرت أن المنطق صحيح فعلًا (السحب والكتابة وأسهم لوحة المفاتيح وقفل القوالب وزر "تحرير يدوي") — لم يُلمس الكود؛ أُضيف فقط `aria-pressed` و focus-visible. التحقق التشغيلي عبر سحب فعلي في متصفح حي لم يُجرَ في هذه الجولة (يلزم Playwright run مع `webServer`، لم يُشغّل).
+- **المرحلة 7 (لوحة تشخيص داخلية)**: لم تُنفذ. تتطلب مفتاح بيئة `NEXT_PUBLIC_CINE_DIAGNOSTICS` ومكوّنًا منفصلًا؛ تم تأجيلها لجولة لاحقة.
+- **المرحلة 8 (مسار فيديو E2E)**: ملفات الفيديو موجودة فعلًا عبر `ensure-media-fixtures.mjs` ويوجد اختبار `cinematography-studio.e2e.spec.ts` يغطي فيديو وكاميرا، لكن لم تُشغَّل سويتات Playwright في هذه الجولة (Playwright يحتاج تشغيل خادم 5000 وسلسلة global-setup كاملة).
+- **اختبارات E2E (`pnpm --dir apps/web test:cinematography:e2e`)**: لم تُشغَّل في هذه الجولة بسبب اعتمادها على خادم حي.
+- **`pnpm --dir apps/web build`**: فشل عند خطأ TypeScript pre-existing **خارج النطاق** (`src/app/(main)/analysis/lib/state-machine.ts:195` — `Unreachable code detected`). الترجمة الـ webpack نجحت (`✓ Compiled successfully in 50s`)؛ فشل فقط في خطوة type-check الـ post-build على ملف لا علاقة له بصفحتي. لم يُلمس هذا الملف لأن خطة المستخدم نفسها تنص: "إذا كشف أي أمر خللًا مؤثرًا داخل نطاق الصفحة، يجب إصلاحه" — وهذا خارج النطاق.
+
+### الأوامر التي شُغلت فعليًا
+
+```text
+pnpm agent:bootstrap                                                # PASS
+pnpm --dir apps/web test:cinematography:integration   (ENOENT)      # FAIL ثم PASS بعد توليد التركيبات
+node apps/web/tests/fixtures/media/ensure-media-fixtures.mjs        # PASS — ولّد PNG و MP4
+pnpm --dir apps/web test:cinematography:integration                 # PASS — 4 سويتات
+pnpm --dir apps/web test:cinematography:integration                 # PASS — 6 سويتات بعد إضافة سويتي الجلسة والكاميرا
+pnpm --dir apps/web type-check                                      # FAIL — لكن 0 أخطاء جديدة في نطاق صفحتي
+pnpm --dir apps/web lint                                            # 65 خطأ pre-existing، 0 خطأ جديد في نطاق صفحتي
+pnpm --dir apps/web build                                           # FAIL — خارج النطاق (state-machine.ts)
+```
+
+### الملفات التي تغيرت فعلًا
+
+**معدّلة:**
+
+- `apps/web/src/app/(main)/cinematography-studio/hooks/useMediaInputPipeline.ts` — إصلاح race ربط البث + ربط متأخر عبر `useEffect`.
+- `apps/web/src/app/(main)/cinematography-studio/hooks/useProduction.ts` — حالة المساعد المستقلة + مهلة + ربط persistence.
+- `apps/web/src/app/(main)/cinematography-studio/hooks/useCinematographyStudio.ts` — استعادة وحفظ المرحلة/المزاج/العرض/الأداة + `clearStudioSession()`.
+- `apps/web/src/app/(main)/cinematography-studio/components/tools/ProductionTools.tsx` — لوحة المساعد الكاملة (loading/error/answer) + focus-visible + aria + منع إرسال مزدوج.
+- `apps/web/src/app/(main)/cinematography-studio/components/tools/LensSimulatorTool.tsx` — `focus-visible` + `aria-pressed` لبطاقات القوالب.
+- `apps/web/scripts/cinematography/run-integration-tests.ts` — bootstrap التركيبات + سويتا `session-storage` و `camera-binding`.
+
+**جديدة:**
+
+- `apps/web/src/app/(main)/cinematography-studio/lib/session-storage.ts` — طبقة حفظ آمنة بمفتاح `cinematography-studio.session.v1`.
+
+### بيان ثقة مبني على التشغيل
+
+- ✅ مثبت تشغيليًا: 6 سويتات تكامل تمر (config، local-fallback، validate-shot-route، media-hook، session-storage، camera-binding).
+- ✅ مثبت تشغيليًا: type-check لا يُنتج أخطاء جديدة في نطاق صفحة الاستوديو.
+- ✅ مثبت تشغيليًا: webpack compile للصفحة بنجاح ضمن `next build`.
+- ⚠️ مثبت قرائيًا فقط (لم يُختبر بمتصفح حي): سحب منزلقات العدسات، تنقل لوحة المفاتيح الفعلي، استعادة الجلسة بعد reload فعلي.
+- ❌ غير مُشغَّل: `pnpm --dir apps/web test:cinematography:e2e` (يلزم خادم حي)، `pnpm agent:verify` (لم يُطلب)، البناء الكامل (يكسر على ملف خارج النطاق).
+
+### ما بقي مفتوحًا للجولة التالية
+
+1. تشغيل سويت Playwright E2E الموجود مسبقًا للتحقق من المسارات في متصفح حي.
+2. إصلاح `apps/web/src/app/(main)/analysis/lib/state-machine.ts:195` ليعود `pnpm build` لنجاح كامل (خارج نطاق هذا الطلب).
+3. تنفيذ المرحلة 7 (overlay تشخيص داخلي) إن طُلب.
+4. توسيع الحفظ ليشمل اختياريًا إطار كاميرا ضمن حد حجم آمن.
+
+
+
 ## جولة 093 — استكمال BREAKAPP (المراحل 1+2+3): إصلاح بنية الحماية + ترحيل Drizzle + 11 صفحة + طبقة refresh-token — 2026-04-23
 
 ### التاريخ والوقت
@@ -6742,3 +6818,47 @@ inventory-only
 
 - استهلاك `AppShell` و`useCurrentUser` في صفحات `apps/web/src/app/(main)/BREAKAPP/**` — خارج نطاق FE-Core، يعود للوكلاء المسؤولين عن الصفحات.
 - إصلاح أخطاء Tiptap في `apps/web/src/app/(main)/editor/**` — خارج نطاق FE-Core.
+
+## الجولة 109
+
+### التاريخ والوقت
+
+2026-04-25T18:23:24.783Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم

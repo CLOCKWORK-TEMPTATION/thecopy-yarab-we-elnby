@@ -261,7 +261,7 @@ export function App(): React.JSX.Element {
     try {
       // النسخة 2: تحتوي على HTML كامل مع بيانات التصنيف — استعادة مباشرة بدون إعادة تصنيف
       if (snapshot.version === 2 && snapshot.html?.trim()) {
-        area.editor.commands.setContent(snapshot.html, false);
+        area.editor.commands.setContent(snapshot.html, { emitUpdate: false });
         area.editor.commands.focus("start");
       } else {
         // النسخة القديمة (نص فقط): استخدام المصنف مع تحذير
@@ -642,7 +642,8 @@ export function App(): React.JSX.Element {
 
     // capture: true يضمن تنفيذ المعالج قبل أي handler آخر ومنع المتصفح من اعتراض Ctrl+B/I/Z
     document.addEventListener("keydown", handleGlobalShortcut, true);
-    return () => document.removeEventListener("keydown", handleGlobalShortcut, true);
+    return () =>
+      document.removeEventListener("keydown", handleGlobalShortcut, true);
   }, []);
 
   const resolveMenuCommand = useMenuCommandResolver(editorAreaRef, toast);

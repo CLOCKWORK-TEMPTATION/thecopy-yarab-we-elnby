@@ -15,6 +15,12 @@
   --page-border: rgba(255, 255, 255, 0.1);
   --page-border-strong: rgba(194, 37, 92, 0.28);
   --page-text-muted: rgba(255, 255, 255, 0.62);
+  --art-primary: var(--page-accent);
+  --art-card: var(--page-surface);
+  --art-success: #4ade80;
+  --art-warning: #fbbf24;
+  --art-danger: #ef4444;
+  --art-text-muted: var(--page-text-muted);
 }
 
 .art-director-root {
@@ -267,6 +273,13 @@
   transform: none;
 }
 
+.art-btn:focus-visible,
+.art-tool-item:focus-visible,
+.art-director-nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(64, 165, 179, 0.28);
+}
+
 .art-btn-secondary {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--page-border);
@@ -285,16 +298,37 @@
   background: rgba(0, 0, 0, 0.28);
   color: white;
   font-size: 14px;
-  transition: border-color 0.3s ease;
+  min-height: 46px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .art-input:focus {
   outline: none;
   border-color: var(--page-accent);
+  background: rgba(0, 0, 0, 0.38);
+  box-shadow: 0 0 0 3px rgba(194, 37, 92, 0.18);
 }
 
 .art-input::placeholder {
   color: var(--page-text-muted);
+}
+
+.art-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.64;
+}
+
+select.art-input {
+  color-scheme: dark;
+  appearance: auto;
+}
+
+select.art-input option {
+  background: #111118;
+  color: #ffffff;
 }
 
 .art-form-group {
@@ -624,6 +658,153 @@
   white-space: pre-wrap;
 }
 
+.art-result-error {
+  margin-bottom: 16px;
+  color: #fecaca;
+  line-height: 1.8;
+}
+
+.art-result-details {
+  margin-top: 8px;
+}
+
+.art-result-details summary {
+  cursor: pointer;
+  color: var(--page-text-muted);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.art-visual-result {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.art-result-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.art-result-metric {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.art-result-metric svg {
+  color: var(--page-highlight);
+}
+
+.art-result-metric span {
+  color: var(--page-text-muted);
+  font-size: 13px;
+}
+
+.art-result-metric strong {
+  grid-column: 2;
+  font-size: 22px;
+}
+
+.art-result-section {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.art-result-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.art-result-empty {
+  color: var(--page-text-muted);
+  line-height: 1.8;
+}
+
+.art-result-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.art-issue {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.art-issue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--page-text-muted);
+  font-size: 12px;
+}
+
+.art-issue p {
+  margin-bottom: 6px;
+  line-height: 1.8;
+}
+
+.art-issue small {
+  color: var(--page-text-muted);
+  line-height: 1.7;
+}
+
+.art-severity-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.art-severity-badge.high {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.art-severity-badge.medium {
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.18);
+}
+
+.art-severity-badge.low {
+  color: #bbf7d0;
+  background: rgba(74, 222, 128, 0.16);
+}
+
+.art-result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.art-result-list li {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(64, 165, 179, 0.1);
+  line-height: 1.7;
+}
+
 @media (max-width: 1200px) {
   .art-grid-4 {
     grid-template-columns: repeat(2, 1fr);
@@ -672,5 +853,9 @@
 
   .art-director-logo-title {
     font-size: 16px;
+  }
+
+  .art-result-metrics {
+    grid-template-columns: 1fr;
   }
 }

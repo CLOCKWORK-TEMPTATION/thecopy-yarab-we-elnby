@@ -7,7 +7,7 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight, TextRevealCard
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
@@ -32,33 +32,18 @@ import Documentation from "./components/Documentation";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import {
+  ArtDirectorPersistenceProvider,
+  isArtDirectorTabId,
+  useArtDirectorPersistence,
+  type ArtDirectorTabId,
+} from "./hooks/useArtDirectorPersistence";
 
 interface NavItem {
-  id: TabId;
+  id: ArtDirectorTabId;
   icon: LucideIcon;
   label: string;
   labelEn: string;
-}
-
-type TabId =
-  | "dashboard"
-  | "tools"
-  | "inspiration"
-  | "locations"
-  | "sets"
-  | "productivity"
-  | "documentation";
-
-function isTabId(value: string | null): value is TabId {
-  return (
-    value === "dashboard" ||
-    value === "tools" ||
-    value === "inspiration" ||
-    value === "locations" ||
-    value === "sets" ||
-    value === "productivity" ||
-    value === "documentation"
-  );
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
@@ -127,8 +112,8 @@ function NavButton({ item, isActive, onClick }: NavButtonProps) {
 }
 
 interface NavigationProps {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
+  activeTab: ArtDirectorTabId;
+  onTabChange: (tab: ArtDirectorTabId) => void;
 }
 
 function Navigation({ activeTab, onTabChange }: NavigationProps) {
@@ -169,16 +154,27 @@ function HeroStrip() {
   );
 }
 
-export default function ArtDirectorStudio() {
+function ArtDirectorStudioInner() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { state, hydrated, setActiveTab } = useArtDirectorPersistence();
   const requestedTab = searchParams.get("tab");
-  const activeTab: TabId = isTabId(requestedTab) ? requestedTab : "dashboard";
+  const activeTab: ArtDirectorTabId = isArtDirectorTabId(requestedTab)
+    ? requestedTab
+    : hydrated
+      ? state.activeTab
+      : "dashboard";
+
+  useEffect(() => {
+    setActiveTab(activeTab);
+  }, [activeTab, setActiveTab]);
 
   const handleTabChange = useCallback(
-    (tab: TabId) => {
+    (tab: ArtDirectorTabId) => {
       const params = new URLSearchParams(searchParams.toString());
+      setActiveTab(tab);
+
       if (tab === "dashboard") {
         params.delete("tab");
       } else {
@@ -190,7 +186,7 @@ export default function ArtDirectorStudio() {
         scroll: false,
       });
     },
-    [pathname, router, searchParams]
+    [pathname, router, searchParams, setActiveTab]
   );
 
   const content = useMemo(() => {
@@ -238,5 +234,13 @@ export default function ArtDirectorStudio() {
         </CardSpotlight>
       </div>
     </div>
+  );
+}
+
+export default function ArtDirectorStudio() {
+  return (
+    <ArtDirectorPersistenceProvider>
+      <ArtDirectorStudioInner />
+    </ArtDirectorPersistenceProvider>
   );
 }

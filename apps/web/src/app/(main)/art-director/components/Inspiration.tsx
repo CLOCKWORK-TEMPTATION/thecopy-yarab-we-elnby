@@ -7,10 +7,11 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Palette, Sparkles, Image, Wand2 } from "lucide-react";
 import type { ColorPaletteInspiration, MoodBoard, ApiResponse } from "../types";
 import { fetchArtDirectorJson } from "../lib/api-client";
+import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface AnalysisApiResponse extends ApiResponse<MoodBoard> {
@@ -155,14 +156,50 @@ function PalettesGrid({ palettes }: PalettesGridProps) {
   );
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
+}
+
+function isPalette(value: unknown): value is ColorPaletteInspiration {
+  return (
+    isRecord(value) &&
+    typeof value["name"] === "string" &&
+    typeof value["nameAr"] === "string" &&
+    isStringArray(value["colors"])
+  );
+}
+
+function isMoodBoard(value: unknown): value is MoodBoard {
+  return (
+    isRecord(value) &&
+    typeof value["theme"] === "string" &&
+    typeof value["themeAr"] === "string" &&
+    isStringArray(value["keywords"]) &&
+    (value["suggestedPalette"] === undefined ||
+      isPalette(value["suggestedPalette"]))
+  );
+}
+
 export default function Inspiration() {
-  const [sceneDescription, setSceneDescription] = useState("");
-  const [mood, setMood] = useState("");
-  const [era, setEra] = useState("");
+  const { state, updateInspirationState } = useArtDirectorPersistence();
+  const { sceneDescription, mood, era } = state.inspiration;
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<MoodBoard | null>(null);
-  const [palettes, setPalettes] = useState<ColorPaletteInspiration[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const result = useMemo(
+    () =>
+      isMoodBoard(state.inspiration.result) ? state.inspiration.result : null,
+    [state.inspiration.result]
+  );
+  const palettes = useMemo<ColorPaletteInspiration[]>(
+    () => state.inspiration.palettes.filter(isPalette),
+    [state.inspiration.palettes]
+  );
 
   const handleAnalyze = useCallback(async () => {
     if (!sceneDescription.trim()) return;
@@ -185,7 +222,7 @@ export default function Inspiration() {
       );
 
       if (data.success && data.data) {
-        setResult(data.data);
+        updateInspirationState({ result: data.data });
       } else {
         setError(data.error ?? "فشل في تحليل المشهد");
       }
@@ -196,7 +233,7 @@ export default function Inspiration() {
     } finally {
       setLoading(false);
     }
-  }, [sceneDescription, mood, era]);
+  }, [era, mood, sceneDescription, updateInspirationState]);
 
   const handleGeneratePalette = useCallback(async () => {
     if (!mood) return;
@@ -215,7 +252,7 @@ export default function Inspiration() {
       );
 
       if (data.success && data.data?.palettes) {
-        setPalettes(data.data.palettes);
+        updateInspirationState({ palettes: data.data.palettes });
       } else {
         setError(data.error ?? "فشل في توليد الباليتات");
       }
@@ -226,7 +263,7 @@ export default function Inspiration() {
     } finally {
       setLoading(false);
     }
-  }, [mood]);
+  }, [mood, updateInspirationState]);
 
   return (
     <div className="art-director-page">
@@ -259,7 +296,11 @@ export default function Inspiration() {
                 className="art-input"
                 placeholder="صف المشهد بالتفصيل... مثال: مشهد رومانسي في مقهى قديم بباريس في الثلاثينيات"
                 value={sceneDescription}
-                onChange={(e) => setSceneDescription(e.target.value)}
+                onChange={(e) =>
+                  updateInspirationState({
+                    sceneDescription: e.target.value,
+                  })
+                }
                 rows={4}
                 style={{ resize: "none" }}
               />
@@ -272,7 +313,9 @@ export default function Inspiration() {
                   id="mood-select"
                   className="art-input"
                   value={mood}
-                  onChange={(e) => setMood(e.target.value)}
+                  onChange={(e) =>
+                    updateInspirationState({ mood: e.target.value })
+                  }
                 >
                   <option value="">اختر المزاج</option>
                   <option value="romantic">رومانسي</option>
@@ -290,7 +333,9 @@ export default function Inspiration() {
                   id="era-select"
                   className="art-input"
                   value={era}
-                  onChange={(e) => setEra(e.target.value)}
+                  onChange={(e) =>
+                    updateInspirationState({ era: e.target.value })
+                  }
                 >
                   <option value="">اختر الحقبة</option>
                   <option value="ancient">قديمة</option>

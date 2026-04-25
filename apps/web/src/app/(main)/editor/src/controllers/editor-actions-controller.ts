@@ -647,7 +647,7 @@ export const handleSidebarItemAction = async (
     `.trim();
 
     area.clear();
-    area.editor.chain().focus().setContent(html, true).run();
+    area.editor.chain().focus().setContent(html, { emitUpdate: true }).run();
     area.editor.commands.focus("end");
     deps.toast({
       title: "تم تحميل المشروع",
