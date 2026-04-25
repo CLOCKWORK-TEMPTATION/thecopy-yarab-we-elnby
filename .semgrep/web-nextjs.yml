@@ -57,11 +57,14 @@ rules:
           - pattern: window.localStorage.setItem($KEY, $VALUE)
       - metavariable-regex:
           metavariable: $KEY
-          regex: (?i).*(token|jwt|auth|session).*
+          regex: (?i).*(access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|bearer[_-]?token|jwt|session[_-]?token).*
     metadata:
       category: security
       cwe: 'CWE-79'
       confidence: medium
+      note: >-
+        Pattern targets only specific auth token names (accessToken, jwt, sessionToken, etc.).
+        Generic app state keys like SESSION_STORAGE_KEY are not auth tokens and are excluded.
 
   - id: thecopy.web.no-unsanitized-dangerouslysetinnerhtml
     message: >-

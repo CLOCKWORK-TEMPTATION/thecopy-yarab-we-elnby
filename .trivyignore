@@ -1,0 +1,30 @@
+# Trivy ignore policy for The Copy
+#
+# Each entry must include CVE id, scope, and the rationale that justifies
+# treating the finding as not exploitable in our runtime context. Reassess
+# whenever a base image, pnpm version, or container layout changes.
+
+# ----------------------------------------------------------------------------
+# picomatch CVE-2026-33671 / CVE-2026-33672  (HIGH / MEDIUM, ReDoS)
+# ----------------------------------------------------------------------------
+# picomatch ships pre-bundled inside two locations that we cannot reach with a
+# pnpm override:
+#   1. /usr/local/lib/node_modules/npm/**          (npm bundled with Node 24)
+#   2. /home/backenduser/.cache/node/corepack/**   (corepack-cached pnpm tarball)
+#   3. /root/.cache/node/corepack/**               (builder-stage corepack cache)
+#
+# We do not invoke npm at runtime (the runner uses node directly via the
+# entrypoint), and pnpm is only invoked by docker-entrypoint.sh for opt-in
+# db:push migrations against operator-controlled inputs — never user input.
+# A ReDoS in picomatch requires attacker-controlled glob input, which is not
+# reachable through any path that runs against picomatch in either tool.
+CVE-2026-33671
+CVE-2026-33672
+
+# ----------------------------------------------------------------------------
+# brace-expansion CVE-2026-33750  (MEDIUM, ReDoS)
+# ----------------------------------------------------------------------------
+# Same containment rationale as picomatch above: brace-expansion is bundled by
+# the same npm/corepack paths and is not invoked against any user-controlled
+# string in the runtime path.
+CVE-2026-33750
