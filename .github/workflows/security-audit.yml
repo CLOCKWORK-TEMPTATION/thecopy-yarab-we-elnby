@@ -161,6 +161,7 @@ jobs:
           output: trivy-${{ matrix.component }}.sarif
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .trivyignore
           exit-code: "0"
 
       - name: Upload Trivy report
@@ -176,4 +177,5 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          trivyignores: .trivyignore
           exit-code: "1"
