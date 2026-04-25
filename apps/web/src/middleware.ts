@@ -1,8 +1,12 @@
 /**
- * Next.js Proxy (formerly Middleware)
+ * @fileoverview Next.js Middleware — يضيف رؤوس الحماية الأساسية (CSP، HSTS،
+ * X-Frame-Options، X-Content-Type-Options، Referrer-Policy، إلخ).
  *
- * This proxy adds security headers including Content Security Policy (CSP)
- * with development environment support.
+ * ملاحظة بنيوية: في Next.js 16 توجد تسميتان لطبقة الإدخال هذه: `proxy.ts`
+ * (الجديدة) و `middleware.ts` (التقليدية). الإصدار 16.2.3 يحوي عطلًا في خط
+ * الإنتاج عند استخدام `proxy.ts` — يُولّد `middleware.js.nft.json` ثم يطلب
+ * `proxy.js.nft.json` غير الموجود فيُسقط البناء بـ ENOENT. نُثبّت التسمية
+ * التقليدية حتى يُصلَح العطل upstream.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -133,7 +137,14 @@ function collectAllowedConnectOrigins(
   );
 }
 
-export function proxy(_request: NextRequest) {
+/**
+ * نقطة الدخول الرسمية لطبقة Next.js middleware. تُحسب رؤوس CSP الديناميكية
+ * وتُلصق بكل استجابة قبل تسليمها للمتصفح.
+ *
+ * @param _request - طلب Next.js الوارد (غير مستخدم حاليًا، حقوق التوسعة لاحقًا).
+ * @returns NextResponse مع رؤوس الحماية.
+ */
+export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Development mode detection
