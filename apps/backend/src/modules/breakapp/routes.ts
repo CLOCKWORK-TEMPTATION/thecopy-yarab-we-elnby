@@ -9,7 +9,7 @@
  * - حماية حسب الدور عبر requireRole()
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
@@ -1057,7 +1057,8 @@ router.post('/admin/projects/:id/invites', adminWriteLimiter, requireAuth, requi
     const ttlMinutes = body.data.ttlMinutes ?? 60 * 24; // 24h
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
     // شكل qr_token المتوقّع: <projectId>:<role>:<userId>
-    const invitedUserId = `invite-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+    // المعرف يُستخدم في رمز دعوة، فلا يجوز توليده عبر Math.random (قابل للتخمين).
+    const invitedUserId = `invite-${Date.now()}-${randomBytes(12).toString('hex')}`;
     const qrPayload = `${projectId}:${body.data.role}:${invitedUserId}`;
 
     const token = await repo.createInviteToken({
