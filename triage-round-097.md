@@ -124,6 +124,10 @@ P3: بلا سقف
 | A-009 | [DONE] | `ac23ad9` | إعادة كتابة ScriptUploadZone tests لتطابق العقد المعطّل — 7/7 passing |
 | A-008 | [DONE] | `097883b` | إعادة كتابة file-input regression لعقد fileExtractor المعطّل — 12/12 passing |
 | A-002 | [DONE] | `0ddf8d7` | scripts/lint-chunked.mjs — يقسّم typed-lint على 26 مجموعة لتفادي OOM. التحقق الكامل (lint نظيف end-to-end) يحتاج ذاكرة حرة أكبر مما هو متاح حالياً (4GB من 32GB)، البنية على ما يرام |
+| A-011 | [DONE] | `72a3f7c` | تبديل إلى real timers قبل waitFor — 2/2 passing (timeout 10s → 106ms) |
+| A-010 | [DONE] | `8d7c994` | استبدال vi.fn().mockImplementation بـ class IntersectionObserverMock — 3/3 passing |
+| A-012a | [DONE] | `f54e522` | CardSpotlight يُمَرِّر HTML attributes — ProjectTabs 4/4 passing |
+| A-012b/c | [DONE] | `e2023fc` | mock ProjectContext في scenes/page + shots/page — 3/3 passing (4 todo سابقة محفوظة) |
 
 ---
 
