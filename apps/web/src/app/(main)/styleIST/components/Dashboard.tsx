@@ -20,9 +20,11 @@ import {
   PolarRadiusAxis,
   Legend,
 } from "recharts";
-import { performanceData, fabricStressTest } from "../data/mockHistoricalData";
-import { useProject } from "../contexts/ProjectContext";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { useProject } from "../contexts/ProjectContext";
+import { performanceData, fabricStressTest } from "../data/mockHistoricalData";
 
 // ==========================================
 // لوحة القيادة (Analytical Dashboard)

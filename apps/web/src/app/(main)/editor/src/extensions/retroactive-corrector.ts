@@ -16,9 +16,11 @@
  * يُصدّر:
  * - {@link retroactiveCorrectionPass} — الدالة الرئيسية
  */
-import type { ClassifiedDraft, ElementType } from "./classification-types";
-import type { ContextMemoryManager } from "./context-memory-manager";
+import { logger } from "../utils/logger";
+
+import { PRONOUN_ACTION_RE } from "./arabic-patterns";
 import { isCandidateCharacterName } from "./character";
+import { pipelineRecorder } from "./pipeline-recorder";
 import {
   normalizeLine,
   normalizeCharacterName,
@@ -31,9 +33,11 @@ import {
   startsWithBullet,
   hasSentencePunctuation,
 } from "./text-utils";
-import { PRONOUN_ACTION_RE } from "./arabic-patterns";
-import { logger } from "../utils/logger";
-import { pipelineRecorder } from "./pipeline-recorder";
+
+import type { ClassifiedDraft, ElementType } from "./classification-types";
+import type { ContextMemoryManager } from "./context-memory-manager";
+
+
 
 const correctorLogger = logger.createScope("retroactive-corrector");
 
@@ -109,7 +113,7 @@ const looksLikeCharacterStructurally = (text: string): boolean => {
 const correctedDraft = (
   original: ClassifiedDraft,
   newType: ElementType,
-  confidenceBoost: number = 0
+  confidenceBoost = 0
 ): ClassifiedDraft => {
   let text = original.text;
   if (original.type === "character" && newType === "dialogue") {
@@ -221,7 +225,7 @@ const applyPattern3_IsolatedDialogue = (
 
   for (let i = 0; i < classified.length; i++) {
     const current = classified[i];
-    if (!current || current.type !== "dialogue") continue;
+    if (current?.type !== "dialogue") continue;
 
     // تحقق: هل في سطر character/dialogue/parenthetical قبله مباشرة؟
     const prev = i > 0 ? classified[i - 1] : undefined;
@@ -358,7 +362,7 @@ const applyPattern5_UnconfirmedCharacterCluster = (
   const unconfirmedIndexes = new Set<number>();
   for (let i = 0; i < classified.length; i++) {
     const current = classified[i];
-    if (!current || current.type !== "character") continue;
+    if (current?.type !== "character") continue;
     const name = normalizeCharacterName(current.text);
     if (!name) continue;
     // إشارة (a): التكرار
@@ -424,7 +428,7 @@ const applyPattern6_ActionVerbInDialogueFlow = (
 
   for (let i = 0; i < classified.length; i++) {
     const current = classified[i];
-    if (!current || current.type !== "dialogue") continue;
+    if (current?.type !== "dialogue") continue;
 
     const text = normalizeLine(current.text);
     if (!text) continue;
@@ -470,7 +474,7 @@ const applyPattern7_OrphanedParenthetical = (
 
   for (let i = 0; i < classified.length; i++) {
     const current = classified[i];
-    if (!current || current.type !== "parenthetical") continue;
+    if (current?.type !== "parenthetical") continue;
 
     const prev = i > 0 ? classified[i - 1] : undefined;
     const next = i + 1 < classified.length ? classified[i + 1] : undefined;
@@ -499,7 +503,7 @@ const applyPattern8_LongTransition = (
 
   for (let i = 0; i < classified.length; i++) {
     const current = classified[i];
-    if (!current || current.type !== "transition") continue;
+    if (current?.type !== "transition") continue;
     if (wordCount(current.text) <= 6) continue;
     // transition حقيقي regex بثقة عالية → ما نلمسوش
     if (current.classificationMethod === "regex" && current.confidence >= 90)

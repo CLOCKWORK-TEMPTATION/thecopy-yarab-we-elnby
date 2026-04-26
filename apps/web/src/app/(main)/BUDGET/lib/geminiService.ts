@@ -1,6 +1,6 @@
 import { logger } from "@/lib/ai/utils/logger";
-import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 import { geminiService as dramaAnalystGeminiService } from "@/lib/drama-analyst/services/geminiService";
+import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
 /**
  * خدمة Gemini لتحليل السيناريوهات وتوليد الميزانيات
@@ -409,10 +409,10 @@ export class GeminiService {
     const prompt = `
       You are an expert film production budget analyst. Compare these two film budgets comprehensively.
 
-      Budget 1: ${JSON.stringify(budget1.metadata || {}, null, 2)}
+      Budget 1: ${JSON.stringify(budget1.metadata ?? {}, null, 2)}
       Grand Total 1: $${budget1.grandTotal.toLocaleString()}
 
-      Budget 2: ${JSON.stringify(budget2.metadata || {}, null, 2)}
+      Budget 2: ${JSON.stringify(budget2.metadata ?? {}, null, 2)}
       Grand Total 2: $${budget2.grandTotal.toLocaleString()}
 
       DETAILED COMPARISON ANALYSIS:

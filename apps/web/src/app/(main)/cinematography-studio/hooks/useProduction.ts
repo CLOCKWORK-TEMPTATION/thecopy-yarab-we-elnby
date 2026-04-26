@@ -12,14 +12,17 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
-import type { VisualMood, ShotAnalysis } from "../types";
-import { ShotAnalysisSchema } from "../types";
-import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
+
+import { publishDiagnostics } from "../lib/diagnostics-bus";
 import { createLocalShotAnalysis } from "../lib/local-shot-analysis";
 import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
 import { patchSession, readSession } from "../lib/session-storage";
-import { publishDiagnostics } from "../lib/diagnostics-bus";
+import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
+import { ShotAnalysisSchema } from "../types";
+
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
+
+import type { VisualMood, ShotAnalysis } from "../types";
 
 // ============================================
 // واجهات الحالة الداخلية
@@ -661,8 +664,8 @@ function normalizeShotAnalysis(
 
   return {
     score: clampScore(validation?.score),
-    dynamicRange: validation?.composition || validation?.exposure || "غير متاح",
-    grainLevel: validation?.focus || validation?.colorBalance || "غير متاح",
+    dynamicRange: validation?.composition ?? validation?.exposure ?? "غير متاح",
+    grainLevel: validation?.focus ?? validation?.colorBalance ?? "غير متاح",
     issues,
     exposure: clampScore(validation?.score),
   };

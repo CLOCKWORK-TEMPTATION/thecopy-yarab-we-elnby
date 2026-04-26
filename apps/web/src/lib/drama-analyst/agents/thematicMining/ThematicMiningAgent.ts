@@ -1,11 +1,13 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { THEMATIC_MINING_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 interface ThematicMiningContext {
   originalText?: string;
@@ -29,7 +31,7 @@ export class ThematicMiningAgent extends BaseAgent {
     super(
       "ThemeMiner AI",
       TaskType.THEMATIC_MINING,
-      THEMATIC_MINING_AGENT_CONFIG.systemPrompt || ""
+      THEMATIC_MINING_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.8;
@@ -39,12 +41,12 @@ export class ThematicMiningAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as ThematicMiningContext;
 
-    const originalText = ctx?.originalText || "";
-    const genre = ctx?.genre || "غير محدد";
-    const culturalContext = ctx?.culturalContext || "";
-    const extractionDepth = ctx?.extractionDepth || "intermediate";
-    const themeCategories = ctx?.themeCategories || ["universal", "social"];
-    const minimumThemes = ctx?.minimumThemes || 3;
+    const originalText = ctx?.originalText ?? "";
+    const genre = ctx?.genre ?? "غير محدد";
+    const culturalContext = ctx?.culturalContext ?? "";
+    const extractionDepth = ctx?.extractionDepth ?? "intermediate";
+    const themeCategories = ctx?.themeCategories ?? ["universal", "social"];
+    const minimumThemes = ctx?.minimumThemes ?? 3;
     const includeSymbols = ctx?.includeSymbols ?? true;
     const includeMotifs = ctx?.includeMotifs ?? true;
 
@@ -98,7 +100,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupThematicText(output.text);
+    const processedText = this.cleanupThematicText(output.text);
 
     const thematicDepth = await this.assessThematicDepth(processedText);
     const evidenceQuality = await this.assessEvidenceQuality(processedText);
@@ -136,7 +138,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
         themesIdentified: this.countThemes(processedText),
         symbolsIdentified: this.countSymbols(processedText),
         evidenceExamplesCount: this.countEvidenceExamples(processedText),
-      } as any,
+      },
     };
   }
 
@@ -204,7 +206,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
     score += Math.min(0.25, evidenceCount * 0.025);
 
-    const hasQuotes = (text.match(/["«]/g) || []).length;
+    const hasQuotes = (text.match(/["«]/g) ?? []).length;
     score += Math.min(0.15, hasQuotes * 0.015);
 
     return Math.min(1, score);
@@ -254,7 +256,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     score += Math.min(0.2, connectiveCount * 0.04);
 
     const hasStructure =
-      text.includes("أولاً") || text.includes("ثانياً") || text.match(/\d\./);
+      text.includes("أولاً") || text.includes("ثانياً") || (/\d\./.exec(text));
     if (hasStructure) score += 0.1;
 
     return Math.min(1, score);
@@ -313,7 +315,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
       intermediate: "متوسط - تحليل متوازن",
       deep: "عميق - استكشاف شامل",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   private translateCategory(category: string): string {
@@ -326,7 +328,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
       existential: "وجودية",
       moral: "أخلاقية",
     };
-    return categories[category] || category;
+    return categories[category] ?? category;
   }
 
   protected override async getFallbackResponse(

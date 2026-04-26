@@ -20,6 +20,7 @@ import {
   type MachineState,
 } from "../lib/state-machine";
 import { reportTelemetry } from "../lib/telemetry";
+
 import type { StationId, StreamEvent } from "../lib/types";
 
 interface UseAnalysisMachineOptions {

@@ -8,9 +8,9 @@ interface AppStateApiResponse<T extends object> {
 
 function resolveServerBaseUrl(): string {
   const baseUrl =
-    process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"] ||
-    process.env["BACKEND_URL"] ||
-    process.env["NEXT_PUBLIC_BACKEND_URL"] ||
+    process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"] ??
+    process.env["BACKEND_URL"] ??
+    process.env["NEXT_PUBLIC_BACKEND_URL"] ??
     process.env["NEXT_PUBLIC_API_URL"];
 
   if (!baseUrl) {

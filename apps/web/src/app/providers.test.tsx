@@ -2,6 +2,7 @@
 import { render, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import Providers from "./providers";
 
 vi.mock("@/components/providers/notification-provider", () => ({

@@ -8,21 +8,25 @@
  */
 
 import { Users } from "lucide-react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Button } from "@/components/ui/button";
 import {
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 import AgentCard from "../features/AgentCard";
+
 import type {
   BrainstormAgentDefinition,
   AgentState,
   BrainstormPhase,
 } from "../../types";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 
 interface AgentsSidebarProps {
   displayedAgents: readonly BrainstormAgentDefinition[];

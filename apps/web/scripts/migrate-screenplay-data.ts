@@ -18,9 +18,7 @@ export interface OldScreenplayFormat {
   createdAt: Date | string;
   updatedAt?: Date | string;
   htmlContent?: string;
-  metadata?: {
-    [key: string]: any;
-  };
+  metadata?: Record<string, any>;
 }
 
 /**
@@ -105,7 +103,7 @@ export async function migrateScreenplayData(
     ? oldData.content.trim().split(/\s+/).length
     : 0;
   const characterCount = oldData.content.length;
-  const sceneCount = (oldData.content.match(/مشهد\s*\d+/gi) || []).length;
+  const sceneCount = (oldData.content.match(/مشهد\s*\d+/gi) ?? []).length;
 
   // تجميع البيانات القديمة مع الجديدة
   return {
@@ -241,7 +239,7 @@ export function validateMigratedData(): boolean {
         }
 
         // التحقق من وجود metadata
-        if (!data.metadata || data.metadata.version !== "2.0") {
+        if (data.metadata?.version !== "2.0") {
           console.warn(`❌ Invalid metadata in key: ${key}`);
           return false;
         }

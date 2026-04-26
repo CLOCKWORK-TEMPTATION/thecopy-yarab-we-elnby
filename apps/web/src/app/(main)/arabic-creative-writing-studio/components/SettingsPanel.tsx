@@ -4,8 +4,13 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+
 import { AppSettings } from "@/app/(main)/arabic-creative-writing-studio/types";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -13,12 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Switch } from "@/components/ui/switch";
 
 export interface SettingsPanelProps {
   settings: AppSettings;
@@ -81,7 +82,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <Input
                   id="api-key"
                   type={showApiKey ? "text" : "password"}
-                  value={tempSettings.geminiApiKey || ""}
+                  value={tempSettings.geminiApiKey ?? ""}
                   onChange={(e) =>
                     updateTempSetting("geminiApiKey", e.target.value)
                   }

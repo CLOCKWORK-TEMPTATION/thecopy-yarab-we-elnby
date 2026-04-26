@@ -25,9 +25,9 @@ export interface SearchResult {
 
 export interface RagResponse {
   answer: string;
-  sources: Array<{
+  sources: {
     filePath: string;
     snippet: string;
     score: number;
-  }>;
+  }[];
 }

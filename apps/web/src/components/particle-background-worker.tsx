@@ -2,14 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+
 import { ParticleWorkerManager } from "@/workers/worker-manager";
-import type { Effect } from "@/workers/types";
+
 import {
   getDeviceCapabilities,
   getParticleLODConfig,
   logDeviceCapabilities,
   type ParticleLODConfig,
 } from "./device-detection";
+
+import type { Effect } from "@/workers/types";
 
 /**
  * Get optimal particle configuration using comprehensive LOD system
@@ -42,7 +45,7 @@ function getOptimalParticleConfig(): {
   const batchSize = Math.floor(lodConfig.particleCount * 0.22);
 
   // Log device capabilities in development
-  if (process.env["NODE_ENV"] === "development") {
+  if (process.env.NODE_ENV === "development") {
     logDeviceCapabilities();
   }
 
@@ -289,7 +292,7 @@ export default function WorkerParticleAnimation() {
 
     // Animation loop - now uses worker for physics calculations
     const animate = async () => {
-      if (!sceneRef.current || !sceneRef.current.isGenerated) {
+      if (!sceneRef.current?.isGenerated) {
         animationRef.current = requestAnimationFrame(animate);
         return;
       }
@@ -380,7 +383,7 @@ export default function WorkerParticleAnimation() {
     };
 
     const handleMouseMoveRotate = (e: MouseEvent) => {
-      if (!sceneRef.current || !sceneRef.current.isDragging) return;
+      if (!sceneRef.current?.isDragging) return;
 
       const deltaX = e.clientX - sceneRef.current.previousMouseX;
       const deltaY = e.clientY - sceneRef.current.previousMouseY;

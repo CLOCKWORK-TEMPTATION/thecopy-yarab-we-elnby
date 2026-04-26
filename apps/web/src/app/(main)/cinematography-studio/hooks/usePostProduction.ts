@@ -12,16 +12,19 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "react-hot-toast";
+
+import { createLocalFootageSummary } from "../lib/local-shot-analysis";
+import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
+import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
+import { ColorTemperatureSchema, ColorPaletteSchema } from "../types";
+
+import { useMediaInputPipeline } from "./useMediaInputPipeline";
+
 import type {
   VisualMood,
   ExportSettings,
   FootageAnalysisSummary,
 } from "../types";
-import { ColorTemperatureSchema, ColorPaletteSchema } from "../types";
-import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
-import { createLocalFootageSummary } from "../lib/local-shot-analysis";
-import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
-import { useMediaInputPipeline } from "./useMediaInputPipeline";
 
 // ============================================
 // واجهات الحالة الداخلية
@@ -260,7 +263,7 @@ export function usePostProduction(mood: VisualMood = "noir") {
           temperature: colorGrading.temperature,
         }
       );
-      const palette = data.palette || [];
+      const palette = data.palette ?? [];
 
       // التحقق من صحة اللوحة
       const validation = ColorPaletteSchema.safeParse(palette);
@@ -334,7 +337,7 @@ export function usePostProduction(mood: VisualMood = "noir") {
         { requireCsrf: true }
       );
 
-      toast.success(response.data?.response || "تم تحليل الإيقاع بنجاح!", {
+      toast.success(response.data?.response ?? "تم تحليل الإيقاع بنجاح!", {
         id: "rhythm",
       });
 
@@ -662,10 +665,10 @@ function normalizeFootageSummary(
 ): FootageAnalysisSummary {
   return {
     score: clampScore(validation?.score),
-    status: validation?.status || "unknown",
-    exposure: validation?.exposure || "غير متاح",
-    colorBalance: validation?.colorBalance || "غير متاح",
-    focus: validation?.focus || "غير متاح",
+    status: validation?.status ?? "unknown",
+    exposure: validation?.exposure ?? "غير متاح",
+    colorBalance: validation?.colorBalance ?? "غير متاح",
+    focus: validation?.focus ?? "غير متاح",
     suggestions: [
       ...(validation?.suggestions ?? []),
       ...(validation?.improvements ?? []),

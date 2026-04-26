@@ -11,8 +11,8 @@
  *  - useCinematographyStudio: phase transitions, tab mapping, view mode, visual mood
  */
 
-import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Global mocks

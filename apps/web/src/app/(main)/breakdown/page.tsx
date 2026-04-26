@@ -7,22 +7,25 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import { useEffect, useMemo, useState } from "react";
 import { Clapperboard, FileText, Sparkles } from "lucide-react";
-import appMetadata from "./metadata.json";
-import { BreakdownLoadingState } from "./breakdown-ui";
+import { useEffect, useMemo, useState } from "react";
+
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
 import BreakdownApp from "./App";
 import BreakdownContent from "./breakdown-content";
+import { BreakdownLoadingState } from "./breakdown-ui";
+import appMetadata from "./metadata.json";
 import {
   ViewSwitcher,
   VIEW_CONFIG,
   type BreakdownView,
 } from "./presentation/shared/view-switcher";
 import { WorkspaceGlowCard } from "./presentation/shared/workspace-glow-card";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
 
 export default function BreakdownPage() {
   const [activeView, setActiveView] = useState<BreakdownView>("workspace");

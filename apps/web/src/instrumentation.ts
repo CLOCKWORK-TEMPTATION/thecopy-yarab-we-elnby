@@ -1,10 +1,11 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { logger } from "@/lib/ai/utils/logger";
 
-import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
   const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"];
-  const isDevelopment = process.env["NODE_ENV"] === "development";
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   // تعطيل Sentry تماماً في Development لتجنب logging spam
   if (isDevelopment) {
@@ -21,12 +22,12 @@ export async function register() {
     // Server-side initialization
     Sentry.init({
       dsn,
-      environment: process.env["NODE_ENV"] || "development",
+      environment: process.env.NODE_ENV || "development",
       tracesSampleRate: isDevelopment ? 0.1 : 0.2,
       debug: false,
       tracePropagationTargets: [
         "localhost",
-        process.env["BACKEND_URL"] || "",
+        process.env["BACKEND_URL"] ?? "",
         "googleapis.com",
       ],
       integrations: [Sentry.httpIntegration()],
@@ -59,7 +60,7 @@ export async function register() {
     // Edge runtime initialization
     Sentry.init({
       dsn,
-      environment: process.env["NODE_ENV"] || "development",
+      environment: process.env.NODE_ENV || "development",
       tracesSampleRate: isDevelopment ? 0.1 : 0.2,
       debug: false,
       integrations: [],

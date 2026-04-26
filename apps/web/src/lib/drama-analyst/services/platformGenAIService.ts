@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { geminiService } from "./geminiService";
 
 interface GenerationOptions {
@@ -14,7 +15,7 @@ interface JsonGenerationOptions<T> extends GenerationOptions {
 function extractJsonPayload(text: string): string {
   const trimmed = text.trim();
   if (trimmed.startsWith("```")) {
-    const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
     if (fenced?.[1]) {
       return fenced[1].trim();
     }

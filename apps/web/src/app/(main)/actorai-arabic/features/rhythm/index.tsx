@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useState, type ChangeEvent } from "react";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,10 +13,12 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+
 import { useApp } from "../../context/AppContext";
-import { SAMPLE_SCRIPT } from "../../types/constants";
-import type { SceneRhythmAnalysis, TempoLevel } from "../../types";
 import { analyzeSceneRhythmText } from "../../lib/script-analysis";
+import { SAMPLE_SCRIPT } from "../../types/constants";
+
+import type { SceneRhythmAnalysis, TempoLevel } from "../../types";
 
 type RhythmTab = "map" | "comparison" | "monotony" | "suggestions";
 

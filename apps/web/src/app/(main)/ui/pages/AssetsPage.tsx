@@ -1,12 +1,13 @@
-import { logger } from "@/lib/ai/utils/logger";
 
+import { Upload, FolderOpen } from "lucide-react";
 import { useState } from "react";
+
+import { AssetsShelf } from "@/app/(main)/ui/components/AssetsShelf";
 import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
 import { UploadDock } from "@/app/(main)/ui/components/UploadDock";
-import { AssetsShelf } from "@/app/(main)/ui/components/AssetsShelf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FolderOpen } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
+import { logger } from "@/lib/ai/utils/logger";
 
 export function AssetsPage() {
   const notifications = useNotifications();

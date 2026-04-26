@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG } from "./agent";
 import { TARGET_AUDIENCE_ANALYZER_INSTRUCTIONS } from "./instructions";
 
@@ -18,7 +20,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     super(
       "AudienceCompass AI",
       TaskType.TARGET_AUDIENCE_ANALYZER,
-      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -35,13 +37,13 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
     const originalText =
-      ((contextObj as Record<string, unknown>)?.originalText as string) || "";
+      ((contextObj)?.originalText as string) || "";
     const genre =
-      ((contextObj as Record<string, unknown>)?.genre as string) || "";
+      ((contextObj)?.genre as string) || "";
     const themes =
-      ((contextObj as Record<string, unknown>)?.themes as string[]) || [];
+      ((contextObj)?.themes as string[]) || [];
     const previousAnalysis =
-      ((contextObj as Record<string, unknown>)?.previousAnalysis as string) ||
+      ((contextObj)?.previousAnalysis as string) ||
       "";
 
     // Build structured prompt
@@ -112,7 +114,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
-    let processedText = this.cleanupText(output.text);
+    const processedText = this.cleanupText(output.text);
 
     // Assess analysis quality
     const qualityMetrics = await this.assessAnalysisQuality(processedText);
@@ -304,7 +306,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
         ? input.context
         : {};
     const genre =
-      ((contextObj as Record<string, unknown>)?.genre as string) || "غير محدد";
+      ((contextObj)?.genre as string) || "غير محدد";
 
     return `تحليل الجمهور المستهدف:
 

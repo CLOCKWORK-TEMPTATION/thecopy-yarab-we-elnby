@@ -10,6 +10,12 @@
  * أو عندما يكون النوع غير مدعوم داخل المتصفح.
  */
 import { definedProps } from "@/lib/defined-props";
+
+import {
+  resolveEditorRuntimeHealthEndpoint,
+  resolveFileImportExtractEndpoint,
+} from "../../backend-endpoints";
+
 import type {
   FileExtractionResponse,
   FileExtractionResult,
@@ -17,10 +23,6 @@ import type {
   ImportedFileType,
 } from "../../../types/file-import";
 import type { ExtractionMeta } from "../../../types/unified-reception";
-import {
-  resolveEditorRuntimeHealthEndpoint,
-  resolveFileImportExtractEndpoint,
-} from "../../backend-endpoints";
 
 /** نقطة نهاية Backend المأخوذة من متغير البيئة */
 const ENV_BACKEND_ENDPOINT = resolveFileImportExtractEndpoint();
@@ -176,7 +178,7 @@ const parseBackendExtractionResult = (
   if (!body.success || !body.data) {
     const code = toNonEmptyString(body.errorCode);
     const message =
-      toNonEmptyString(body.error) ||
+      toNonEmptyString(body.error) ??
       "Backend extraction failed without details.";
     const fullMessage = code ? `${message} [${code}]` : message;
     const extractionError = createErrorWithCause(fullMessage, {
@@ -459,12 +461,12 @@ export const probeBackendPdfOcrReadiness = async (
       : [];
 
     const errorCode =
-      toNonEmptyString(pdftoppm?.errorCode) ||
-      (agentErrorCodes.length > 0 ? agentErrorCodes[0] : undefined) ||
+      toNonEmptyString(pdftoppm?.errorCode) ??
+      (agentErrorCodes.length > 0 ? agentErrorCodes[0] : undefined) ??
       "PDF_OCR_BACKEND_NOT_READY";
 
     const errorMessage =
-      toNonEmptyString(pdftoppm?.errorMessage) ||
+      toNonEmptyString(pdftoppm?.errorMessage) ??
       "Backend OCR readiness check failed.";
 
     return {

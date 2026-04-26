@@ -57,7 +57,7 @@ export class ErrorHandler {
     const timestamp = new Date().toISOString();
 
     // Determine error type if not provided
-    const errorType = type || this.categorizeError(error);
+    const errorType = type ?? this.categorizeError(error);
 
     // Build full context
     const fullContext: ErrorContext = {
@@ -261,10 +261,10 @@ export class ErrorHandler {
    * Error categorization rules
    * Maps keywords to error types
    */
-  private static readonly ERROR_PATTERNS: Array<{
+  private static readonly ERROR_PATTERNS: {
     type: ErrorType;
     keywords: string[];
-  }> = [
+  }[] = [
     {
       type: ErrorType.NETWORK_ERROR,
       keywords: ["network", "fetch", "connection", "timeout"],

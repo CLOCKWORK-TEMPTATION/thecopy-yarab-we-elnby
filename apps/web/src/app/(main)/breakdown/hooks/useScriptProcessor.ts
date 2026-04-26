@@ -9,13 +9,14 @@
  */
 
 import { useState, useCallback } from "react";
-import { Scene } from "../types";
+
+import { logError } from "../config";
 import {
   bootstrapBreakdownProject,
   parseBreakdownProject,
 } from "../infrastructure/platform-client";
-import { logError } from "../config";
 import { validateScriptSegmentResponse } from "../schemas";
+import { Scene } from "../types";
 
 /**
  * نوع رسالة الخطأ

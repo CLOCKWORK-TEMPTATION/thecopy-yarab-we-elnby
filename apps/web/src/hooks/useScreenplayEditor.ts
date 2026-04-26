@@ -7,8 +7,10 @@
  */
 
 import { useEffect, useCallback, useRef } from "react";
-import { useScreenplayStore } from "@/lib/stores/screenplayStore";
+
 import { ScreenplayClassifier } from "@/lib/screenplay/classifier";
+import { useScreenplayStore } from "@/lib/stores/screenplayStore";
+
 import type { FormattedLine } from "@/lib/stores/screenplayStore";
 
 /**
@@ -82,7 +84,7 @@ export function useScreenplayEditor(documentId?: string) {
         newFormattedLines.push({
           id: `line_${lineNumber}_${Date.now()}`,
           text: line,
-          type: lineType as any,
+          type: lineType,
           number: lineNumber,
         });
       }
@@ -154,7 +156,7 @@ export function useScreenplayEditor(documentId?: string) {
     (lineNumber: number, formatType: string) => {
       const newFormattedLines = [...formattedLines];
       if (newFormattedLines[lineNumber]) {
-        newFormattedLines[lineNumber].type = formatType as any;
+        newFormattedLines[lineNumber].type = formatType;
         setFormattedLines(newFormattedLines);
       }
     },
@@ -202,7 +204,7 @@ export function useScreenplayEditor(documentId?: string) {
           if (formattedLine && formattedLine.type !== formatType) {
             newFormattedLines[i] = {
               ...formattedLine,
-              type: formatType as FormattedLine["type"],
+              type: formatType,
             };
             hasChanges = true;
           }
@@ -313,7 +315,7 @@ export function useEditorSettings() {
 /**
  * hook للحفظ التلقائي
  */
-export function useAutoSave(interval: number = 30000) {
+export function useAutoSave(interval = 30000) {
   const { isDirty, saveDocument, updateSettings } = useScreenplayStore();
 
   useEffect(() => {

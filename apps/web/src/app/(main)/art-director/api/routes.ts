@@ -2,6 +2,7 @@
 // مسارات الواجهة البرمجية
 
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../core/PluginManager";
 import { PluginCategorySchema, PluginInput } from "../types";
 
@@ -15,6 +16,30 @@ function getRouteParam(req: Request, paramName: string): string | null {
   }
 
   return value;
+}
+
+function getRequestBody(req: Request): Record<string, unknown> {
+  const body: unknown = req.body;
+  return typeof body === "object" && body !== null
+    ? (body as Record<string, unknown>)
+    : {};
+}
+
+function toPluginInput(body: Record<string, unknown>): PluginInput {
+  const data = body["data"];
+  const options = body["options"];
+
+  return {
+    type: typeof body["type"] === "string" ? body["type"] : "",
+    data:
+      typeof data === "object" && data !== null
+        ? (data as Record<string, unknown>)
+        : {},
+    options:
+      typeof options === "object" && options !== null
+        ? (options as Record<string, unknown>)
+        : undefined,
+  };
 }
 
 // Health check
@@ -110,9 +135,9 @@ router.post("/plugins/:id/execute", async (req: Request, res: Response) => {
     });
   }
 
-  const input: PluginInput = req.body;
+  const input = toPluginInput(getRequestBody(req));
 
-  if (!input || !input.type) {
+  if (!input?.type) {
     return res.status(400).json({
       success: false,
       error: 'Invalid input: "type" field is required',
@@ -129,7 +154,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("visual-analyzer", {
       type: "analyze",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -139,7 +164,7 @@ router.post(
 router.post("/translate/cinema-terms", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("terminology-translator", {
     type: "translate",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -148,7 +173,7 @@ router.post("/translate/cinema-terms", async (req: Request, res: Response) => {
 router.post("/optimize/budget", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("budget-optimizer", {
     type: "optimize",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -157,7 +182,7 @@ router.post("/optimize/budget", async (req: Request, res: Response) => {
 router.post("/analyze/risks", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("risk-analyzer", {
     type: "analyze",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -166,7 +191,7 @@ router.post("/analyze/risks", async (req: Request, res: Response) => {
 router.post("/simulate/lighting", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("lighting-simulator", {
     type: "simulate",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -179,7 +204,7 @@ router.post(
       "production-readiness-report",
       {
         type: "build-prompt",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -190,7 +215,7 @@ router.post(
 router.post("/inspiration/analyze", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("creative-inspiration", {
     type: "analyze",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -198,7 +223,7 @@ router.post("/inspiration/analyze", async (req: Request, res: Response) => {
 router.post("/inspiration/moodboard", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("creative-inspiration", {
     type: "generate-moodboard",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -206,7 +231,7 @@ router.post("/inspiration/moodboard", async (req: Request, res: Response) => {
 router.post("/inspiration/palette", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("creative-inspiration", {
     type: "suggest-palette",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -215,7 +240,7 @@ router.post("/inspiration/palette", async (req: Request, res: Response) => {
 router.post("/locations/add", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("location-coordinator", {
     type: "add-location",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -223,7 +248,7 @@ router.post("/locations/add", async (req: Request, res: Response) => {
 router.post("/locations/search", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("location-coordinator", {
     type: "search",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -231,7 +256,7 @@ router.post("/locations/search", async (req: Request, res: Response) => {
 router.post("/locations/match", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("location-coordinator", {
     type: "match",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -239,7 +264,7 @@ router.post("/locations/match", async (req: Request, res: Response) => {
 router.post("/sets/add", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("location-coordinator", {
     type: "add-set",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -248,7 +273,7 @@ router.post("/sets/add", async (req: Request, res: Response) => {
 router.post("/sets/reusability", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("set-reusability", {
     type: "analyze",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -256,7 +281,7 @@ router.post("/sets/reusability", async (req: Request, res: Response) => {
 router.post("/sets/inventory", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("set-reusability", {
     type: "inventory",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -264,7 +289,7 @@ router.post("/sets/inventory", async (req: Request, res: Response) => {
 router.post("/sets/add-piece", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("set-reusability", {
     type: "add-piece",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -272,7 +297,7 @@ router.post("/sets/add-piece", async (req: Request, res: Response) => {
 router.post("/sets/find-reusable", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("set-reusability", {
     type: "find-reusable",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -282,7 +307,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("set-reusability", {
       type: "sustainability-report",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -292,7 +317,7 @@ router.post(
 router.post("/analyze/productivity", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("productivity-analyzer", {
     type: "analyze",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -300,7 +325,7 @@ router.post("/analyze/productivity", async (req: Request, res: Response) => {
 router.post("/productivity/log-time", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("productivity-analyzer", {
     type: "log-time",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -310,7 +335,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("productivity-analyzer", {
       type: "report-delay",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -321,7 +346,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("productivity-analyzer", {
       type: "recommendations",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -331,7 +356,7 @@ router.post(
 router.post("/documentation/generate", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("documentation-generator", {
     type: "generate-book",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -343,7 +368,7 @@ router.post(
       "documentation-generator",
       {
         type: "generate-style-guide",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -357,7 +382,7 @@ router.post(
       "documentation-generator",
       {
         type: "log-decision",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -367,7 +392,7 @@ router.post(
 router.post("/documentation/export", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("documentation-generator", {
     type: "export-book",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -380,7 +405,7 @@ router.post("/documentation/export", async (req: Request, res: Response) => {
 router.post("/xr/previz/create-scene", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("mr-previz-studio", {
     type: "create-scene",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -388,7 +413,7 @@ router.post("/xr/previz/create-scene", async (req: Request, res: Response) => {
 router.post("/xr/previz/add-object", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("mr-previz-studio", {
     type: "add-object",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -396,7 +421,7 @@ router.post("/xr/previz/add-object", async (req: Request, res: Response) => {
 router.post("/xr/previz/setup-camera", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("mr-previz-studio", {
     type: "setup-camera",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -406,7 +431,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("mr-previz-studio", {
       type: "simulate-movement",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -415,7 +440,7 @@ router.post(
 router.post("/xr/previz/ar-preview", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("mr-previz-studio", {
     type: "ar-preview",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -425,7 +450,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("mr-previz-studio", {
       type: "vr-walkthrough",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -455,7 +480,7 @@ router.get("/xr/previz/scenes", async (_req: Request, res: Response) => {
 router.post("/xr/set-editor/create", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("virtual-set-editor", {
     type: "create-set",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -465,7 +490,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("virtual-set-editor", {
       type: "add-element",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -476,7 +501,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("virtual-set-editor", {
       type: "modify-element",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -487,7 +512,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("virtual-set-editor", {
       type: "adjust-lighting",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -496,7 +521,7 @@ router.post(
 router.post("/xr/set-editor/add-cgi", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("virtual-set-editor", {
     type: "add-cgi",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -504,7 +529,7 @@ router.post("/xr/set-editor/add-cgi", async (req: Request, res: Response) => {
 router.post("/xr/set-editor/preview", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("virtual-set-editor", {
     type: "real-time-preview",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -512,7 +537,7 @@ router.post("/xr/set-editor/preview", async (req: Request, res: Response) => {
 router.post("/xr/set-editor/share", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("virtual-set-editor", {
     type: "share-vision",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -522,7 +547,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("virtual-set-editor", {
       type: "color-grade",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -552,7 +577,7 @@ router.get("/training/scenarios", async (req: Request, res: Response) => {
 router.post("/training/start", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("cinema-skills-trainer", {
     type: "start-scenario",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -568,7 +593,7 @@ router.get("/training/equipment", async (req: Request, res: Response) => {
 router.post("/training/simulate", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("cinema-skills-trainer", {
     type: "simulate-equipment",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -576,7 +601,7 @@ router.post("/training/simulate", async (req: Request, res: Response) => {
 router.post("/training/evaluate", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("cinema-skills-trainer", {
     type: "evaluate-performance",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -584,7 +609,7 @@ router.post("/training/evaluate", async (req: Request, res: Response) => {
 router.post("/training/complete", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("cinema-skills-trainer", {
     type: "complete-scenario",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -637,7 +662,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("immersive-concept-art", {
       type: "create-project",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -648,7 +673,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("immersive-concept-art", {
       type: "create-model",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -659,7 +684,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("immersive-concept-art", {
       type: "create-environment",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -670,7 +695,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("immersive-concept-art", {
       type: "create-character",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -679,7 +704,7 @@ router.post(
 router.post("/concept-art/moodboard", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("immersive-concept-art", {
     type: "generate-moodboard",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -689,7 +714,7 @@ router.post(
   async (req: Request, res: Response) => {
     const result = await pluginManager.executePlugin("immersive-concept-art", {
       type: "create-vr-experience",
-      data: req.body,
+      data: getRequestBody(req),
     });
     res.json(result);
   }
@@ -698,7 +723,7 @@ router.post(
 router.post("/concept-art/sculpt", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("immersive-concept-art", {
     type: "sculpt-model",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -706,7 +731,7 @@ router.post("/concept-art/sculpt", async (req: Request, res: Response) => {
 router.post("/concept-art/material", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("immersive-concept-art", {
     type: "apply-material",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -714,7 +739,7 @@ router.post("/concept-art/material", async (req: Request, res: Response) => {
 router.post("/concept-art/render", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("immersive-concept-art", {
     type: "render-preview",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -722,7 +747,7 @@ router.post("/concept-art/render", async (req: Request, res: Response) => {
 router.post("/concept-art/export", async (req: Request, res: Response) => {
   const result = await pluginManager.executePlugin("immersive-concept-art", {
     type: "export-assets",
-    data: req.body,
+    data: getRequestBody(req),
   });
   res.json(result);
 });
@@ -747,7 +772,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "create-production",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -761,7 +786,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "setup-led-wall",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -775,7 +800,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "configure-camera",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -789,7 +814,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "start-tracking",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -803,7 +828,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "calculate-frustum",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -817,7 +842,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "setup-scene",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -831,7 +856,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "calculate-illusion",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -857,7 +882,7 @@ router.post("/virtual-production/vfx", async (req: Request, res: Response) => {
     "virtual-production-engine",
     {
       type: "add-vfx",
-      data: req.body,
+      data: getRequestBody(req),
     }
   );
   res.json(result);
@@ -870,7 +895,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "calibrate-system",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -884,7 +909,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "real-time-composite",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);
@@ -898,7 +923,7 @@ router.post(
       "virtual-production-engine",
       {
         type: "export-previz",
-        data: req.body,
+        data: getRequestBody(req),
       }
     );
     res.json(result);

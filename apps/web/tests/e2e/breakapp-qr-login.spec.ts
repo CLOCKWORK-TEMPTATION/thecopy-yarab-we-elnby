@@ -28,14 +28,14 @@ class QRLoginTestConfig {
 
   private constructor() {
     this.baseUrl = (
-      process.env["BREAKAPP_QR_E2E_BASE_URL"] || "http://localhost:5000"
+      process.env["BREAKAPP_QR_E2E_BASE_URL"] ?? "http://localhost:5000"
     ).replace(/\/+$/, "");
     this.routePath =
-      process.env["BREAKAPP_QR_E2E_ROUTE"] || "/BREAKAPP/login/qr";
+      process.env["BREAKAPP_QR_E2E_ROUTE"] ?? "/BREAKAPP/login/qr";
     this.mockBackend =
-      (process.env["BREAKAPP_QR_E2E_MOCK_BACKEND"] || "true") !== "false";
+      (process.env["BREAKAPP_QR_E2E_MOCK_BACKEND"] ?? "true") !== "false";
     this.qrRawValue =
-      process.env["BREAKAPP_QR_E2E_TOKEN"] ||
+      process.env["BREAKAPP_QR_E2E_TOKEN"] ??
       "test-project:test-user:test-nonce";
   }
 
@@ -54,7 +54,7 @@ class QRLoginTestConfig {
 const createTestLogger = (testName: string): Logger =>
   pino({
     name: "breakapp-qr-e2e",
-    level: process.env["BREAKAPP_QR_E2E_LOG_LEVEL"] || "info",
+    level: process.env["BREAKAPP_QR_E2E_LOG_LEVEL"] ?? "info",
     base: { test: testName },
   });
 
@@ -186,7 +186,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     });
     expect(response).not.toBeNull();
     const header =
-      response?.headers()["permissions-policy"] ||
+      response?.headers()["permissions-policy"] ??
       response?.headers()["Permissions-Policy"];
     logger.info({ header }, "permissions-policy header captured");
 

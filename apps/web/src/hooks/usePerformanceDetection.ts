@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+
 import {
   performanceDetector,
   type DeviceCapabilities,
@@ -82,7 +83,7 @@ export function usePerformanceDetection() {
   }, [capabilities]);
 
   const getBatteryLabel = useCallback((): string => {
-    if (!capabilities || !capabilities.hasBattery) return "N/A";
+    if (!capabilities?.hasBattery) return "N/A";
 
     const level = Math.round(capabilities.batteryLevel * 100);
     const status = capabilities.isCharging ? "(charging)" : "(discharging)";

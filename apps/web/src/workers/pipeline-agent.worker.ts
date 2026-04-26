@@ -146,7 +146,7 @@ async function executeStepLogic(
   const startTime = Date.now();
 
   // Simulate API call with timeout
-  const timeout = step.timeout || 60000;
+  const timeout = step.timeout ?? 60000;
 
   const executionPromise = new Promise((resolve) => {
     // In real implementation, this would call the API endpoint

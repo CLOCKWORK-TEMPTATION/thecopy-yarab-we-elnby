@@ -1,11 +1,12 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
+import { Plus, Pin, Trash2, Grid3x3, Layers, Lightbulb } from "lucide-react";
+import { useState } from "react";
+
 import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pin, Trash2, Grid3x3, Layers, Lightbulb } from "lucide-react";
 
 interface IdeaCard {
   id: string;
@@ -89,7 +90,7 @@ export function BrainstormPage() {
 
   const groupedIdeas = ideas.reduce(
     (acc, idea) => {
-      const group = idea.group || "عام";
+      const group = idea.group ?? "عام";
       if (!acc[group]) acc[group] = [];
       acc[group].push(idea);
       return acc;

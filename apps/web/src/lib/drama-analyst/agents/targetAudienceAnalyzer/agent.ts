@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from "@core/types";
-import { AIAgentConfig } from "@core/types";
+import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
+
 
 export const TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.TARGET_AUDIENCE_ANALYZER,

@@ -1,6 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
+
 import {
   Card,
   CardHeader,
@@ -8,7 +10,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { platformApps } from "@/config/apps.config";
-import { motion } from "framer-motion";
 
 export function AppGrid() {
   return (

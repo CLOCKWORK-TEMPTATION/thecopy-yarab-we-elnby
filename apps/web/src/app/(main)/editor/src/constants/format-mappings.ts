@@ -7,7 +7,9 @@ import {
   fromLegacyElementType,
   type ElementType,
 } from "../extensions/classification-types";
+
 import { formatShortcutMap, screenplayFormats } from "./formats";
+
 import type { InsertActionId } from "../controllers";
 import type { TypingSystemSettings } from "../types";
 
@@ -126,11 +128,11 @@ export const LIBRARY_ACTION_BY_ITEM = {
   المفضلة: "insert-template:character",
 } as const satisfies Record<string, InsertActionId>;
 
-export const TYPING_MODE_OPTIONS: ReadonlyArray<{
+export const TYPING_MODE_OPTIONS: readonly {
   value: TypingSystemSettings["typingSystemMode"];
   label: string;
   description: string;
-}> = [
+}[] = [
   {
     value: "plain",
     label: "يدوي (Plain)",

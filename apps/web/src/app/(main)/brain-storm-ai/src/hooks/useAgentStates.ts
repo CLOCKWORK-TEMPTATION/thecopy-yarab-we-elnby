@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+
 import type { AgentState, BrainstormAgentDefinition } from "../types";
 
 export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
@@ -71,7 +72,7 @@ export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
   /** الحصول على حالة وكيل */
   const getAgentState = useCallback(
     (agentId: string): AgentState => {
-      return agentStates.get(agentId) || { id: agentId, status: "idle" };
+      return agentStates.get(agentId) ?? { id: agentId, status: "idle" };
     },
     [agentStates]
   );

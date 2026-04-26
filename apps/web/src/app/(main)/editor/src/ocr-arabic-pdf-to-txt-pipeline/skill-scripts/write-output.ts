@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 interface OcrPageResult {
   index: number;
   markdown: string;
-  images: Array<{ id: string; bbox: Record<string, number> }>;
+  images: { id: string; bbox: Record<string, number> }[];
 }
 
 interface OcrResult {

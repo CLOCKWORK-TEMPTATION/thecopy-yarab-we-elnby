@@ -1,7 +1,9 @@
 import { AIRequest, AIResponse, Result } from "@core/types";
-import { sanitization } from "./sanitizationService";
-import { log } from "./loggerService";
+
 import { encodeRecord, decodeRecord, unflatten } from "../../utils/kv-utils";
+
+import { log } from "./loggerService";
+import { sanitization } from "./sanitizationService";
 
 // =====================================================
 // Backend Service Configuration
@@ -19,7 +21,7 @@ class BackendService {
   constructor() {
     this.config = {
       baseUrl:
-        process.env["NEXT_PUBLIC_BACKEND_URL"] || "http://localhost:3001",
+        process.env["NEXT_PUBLIC_BACKEND_URL"] ?? "http://localhost:3001",
       timeout: 60000,
       retries: 3,
     };
@@ -48,7 +50,7 @@ class BackendService {
         const errorText = await response.text();
         const errorData = decodeRecord(errorText);
         throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          errorData.message ?? `HTTP ${response.status}: ${response.statusText}`
         );
       }
 

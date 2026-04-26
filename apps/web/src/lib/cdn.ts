@@ -10,7 +10,7 @@
  * Get the CDN URL from environment variables
  * الحصول على رابط CDN من متغيرات البيئة
  */
-const CDN_URL = process.env["NEXT_PUBLIC_CDN_URL"] || "";
+const CDN_URL = process.env["NEXT_PUBLIC_CDN_URL"] ?? "";
 const ENABLE_CDN = process.env["NEXT_PUBLIC_ENABLE_CDN"] === "true";
 
 /**

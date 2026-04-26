@@ -1,6 +1,7 @@
-import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
 
 // أنواع النصوص المتوقعة في مصدر فاونتن حسب اتفاقياته
 const FOUNTAIN_EXPECTED_TYPES = new Set([

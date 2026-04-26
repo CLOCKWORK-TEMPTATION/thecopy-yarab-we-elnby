@@ -1,8 +1,10 @@
 import { Schema, Type } from "@google/genai";
 import { z } from "zod";
-import { AGENT_PERSONAS } from "../agents/configs";
-import { getGeminiClient } from "./client";
+
 import { GEMINI_MODELS } from "../../domain/constants";
+import { AGENT_PERSONAS } from "../agents/configs";
+
+import { getGeminiClient } from "./client";
 
 export interface SingleAgentAnalysisPayload {
   analysis: string[];

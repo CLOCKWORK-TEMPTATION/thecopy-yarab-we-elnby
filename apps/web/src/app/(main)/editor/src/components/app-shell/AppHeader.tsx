@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef } from "react";
 import { User, type LucideIcon } from "lucide-react";
+import React, { useCallback, useEffect, useId, useMemo, useRef } from "react";
+
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+
 import type { ProgressiveSurfaceState } from "../editor";
 
 /**
@@ -507,7 +509,7 @@ export function AppHeader({
 
       {/* مجموعة يسار (بصريًا في RTL): الحالة، الاعتماد، المشروع، الحساب، النسخة */}
       <div className="app-header-secondary flex items-center gap-2">
-        {(activeRun || visibleVersion) && (
+        {(activeRun ?? visibleVersion) && (
           <div
             className="mf-pill flex h-11 items-center gap-2 px-4 text-[11px] font-bold"
             data-testid="app-header-status"

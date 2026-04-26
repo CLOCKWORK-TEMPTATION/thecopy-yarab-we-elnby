@@ -1,10 +1,10 @@
 // أنواع البيانات المشتركة لنظام المحطات السبع
-export type StationInput = {
+export interface StationInput {
   text: string;
   prev?: unknown;
-};
+}
 
-export type StationOutput = {
+export interface StationOutput {
   summary: string;
   confidence: number;
   uncertainties?: {
@@ -16,19 +16,19 @@ export type StationOutput = {
     confidence: number;
   }[];
   meta?: Record<string, unknown>;
-};
+}
 
 export interface Station {
   id: `S${1 | 2 | 3 | 4 | 5 | 6 | 7}`;
   run(input: StationInput): Promise<StationOutput>;
 }
 
-export type OrchestrationResult = {
+export interface OrchestrationResult {
   stations: Record<string, StationOutput>;
   finalReport: string;
   totalConfidence: number;
   executionTime: number;
-};
+}
 
 // Pipeline types
 export interface PipelineInputSchema {

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from "react";
 import { motion } from "framer-motion";
+import React from "react";
 
 export interface SceneCardData {
   id: string;
@@ -99,7 +99,7 @@ const ContinuityTimeline: React.FC<ContinuityTimelineProps> = ({
                     {scene.time}
                   </span>
                   <p className="text-[9px] text-white/55 truncate mt-1 font-mono uppercase opacity-85">
-                    {scene.slugline.split(".")[1] || scene.slugline}
+                    {scene.slugline.split(".")[1] ?? scene.slugline}
                   </p>
                 </div>
               </motion.button>

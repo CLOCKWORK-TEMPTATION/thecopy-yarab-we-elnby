@@ -1,5 +1,6 @@
-import type { OcrPageResult, PageExtraction, PipelineConfig } from "../types";
 import { patchSuspiciousLinesFromOcr } from "./patch-apply";
+
+import type { OcrPageResult, PageExtraction, PipelineConfig } from "../types";
 
 export function applyOcrPatchesToPages(args: {
   pages: PageExtraction[];

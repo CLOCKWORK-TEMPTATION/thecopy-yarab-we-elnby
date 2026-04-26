@@ -10,10 +10,11 @@
  */
 
 import assert from "node:assert/strict";
+
 // @ts-expect-error — jsdom محمّل بنفس آلية باقي السويتات
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import * as React from "react";
-import { act, cleanup, fireEvent, render } from "@testing-library/react";
 
 interface BusModule {
   isDiagnosticsEnabled: () => boolean;
@@ -237,7 +238,7 @@ async function exerciseOverlayPresentation(
   );
   const root = visibleUtils.container.querySelector(
     '[data-testid="cine-diagnostic-overlay"]'
-  ) as HTMLElement | null;
+  );
   assert.ok(root, "overlay must render when visible=true");
   assert.equal(root?.getAttribute("role"), "status");
   assert.equal(root?.getAttribute("aria-live"), "polite");

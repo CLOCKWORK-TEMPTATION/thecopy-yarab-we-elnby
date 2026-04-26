@@ -34,9 +34,9 @@ export interface PersistedStudioSession {
   savedAt?: string;
 }
 
-const VALID_PHASES: ReadonlyArray<Phase> = ["pre", "production", "post"];
-const VALID_VIEWS: ReadonlyArray<ViewMode> = ["dashboard", "phases"];
-const VALID_MOODS: ReadonlyArray<VisualMood> = [
+const VALID_PHASES: readonly Phase[] = ["pre", "production", "post"];
+const VALID_VIEWS: readonly ViewMode[] = ["dashboard", "phases"];
+const VALID_MOODS: readonly VisualMood[] = [
   "noir",
   "realistic",
   "surreal",
@@ -92,17 +92,17 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
   const result: PersistedStudioSession = {};
 
   const phase = asString(candidate.phase);
-  if (phase && (VALID_PHASES as ReadonlyArray<string>).includes(phase)) {
+  if (phase && (VALID_PHASES as readonly string[]).includes(phase)) {
     result.phase = phase as Phase;
   }
 
   const view = asString(candidate.view);
-  if (view && (VALID_VIEWS as ReadonlyArray<string>).includes(view)) {
+  if (view && (VALID_VIEWS as readonly string[]).includes(view)) {
     result.view = view as ViewMode;
   }
 
   const mood = asString(candidate.mood);
-  if (mood && (VALID_MOODS as ReadonlyArray<string>).includes(mood)) {
+  if (mood && (VALID_MOODS as readonly string[]).includes(mood)) {
     result.mood = mood as VisualMood;
   }
 

@@ -31,7 +31,7 @@ export function validateUnstructuredResult(
 ): UnstructuredValidationResult {
   const errors: UnstructuredValidationError[] = [];
 
-  if (!result || result.version !== "unstructured-v1") {
+  if (result?.version !== "unstructured-v1") {
     return {
       ok: false,
       errors: [

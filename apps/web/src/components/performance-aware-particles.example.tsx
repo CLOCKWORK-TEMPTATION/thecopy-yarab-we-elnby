@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+
 import {
   usePerformanceDetection,
   useBatteryStatus,
@@ -54,7 +55,7 @@ export interface PerformanceAwareParticlesProps {
  * Main component with performance detection
  */
 export function PerformanceAwareParticles({
-  showDebug = process.env["NODE_ENV"] === "development",
+  showDebug = process.env.NODE_ENV === "development",
   onPerformanceChange,
   className = "",
   zIndex = -1,
@@ -150,7 +151,7 @@ export function PerformanceAwareParticles({
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      if (!systemRef.current || !systemRef.current.isHealthy?.()) return;
+      if (!systemRef.current?.isHealthy?.()) return;
 
       systemRef.current.onWindowResize(window.innerWidth, window.innerHeight);
     };
@@ -262,7 +263,7 @@ function PerformanceDebugPanel({
 
           {/* Device Info */}
           <div style={{ marginBottom: "0.5rem" }}>
-            <div>🖥️ Device: {perf.capabilities?.deviceType || "Unknown"}</div>
+            <div>🖥️ Device: {perf.capabilities?.deviceType ?? "Unknown"}</div>
             <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
               CPU: {perf.cpuCores} cores | RAM: {perf.deviceMemory}GB
             </div>
@@ -298,10 +299,10 @@ function PerformanceDebugPanel({
 
           {/* Particle Config */}
           <div style={{ marginBottom: "0.5rem" }}>
-            <div>✨ Particles: {perf.particleConfig?.maxParticles || 0}</div>
+            <div>✨ Particles: {perf.particleConfig?.maxParticles ?? 0}</div>
             <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              {perf.particleConfig?.updateFrequency || 0} FPS |{" "}
-              {perf.particleConfig?.textureQuality || "N/A"}
+              {perf.particleConfig?.updateFrequency ?? 0} FPS |{" "}
+              {perf.particleConfig?.textureQuality ?? "N/A"}
             </div>
           </div>
 
@@ -377,9 +378,9 @@ export function usePerformanceProfile() {
     isSlowNetwork: network.isSlowConnection,
     shouldDisable: perf.shouldDisable,
     shouldReduceQuality: perf.shouldReduceQuality,
-    particleCount: perf.particleConfig?.maxParticles || 0,
-    frameRate: perf.particleConfig?.updateFrequency || 0,
-    textureQuality: perf.particleConfig?.textureQuality || "low",
+    particleCount: perf.particleConfig?.maxParticles ?? 0,
+    frameRate: perf.particleConfig?.updateFrequency ?? 0,
+    textureQuality: perf.particleConfig?.textureQuality ?? "low",
   };
 }
 

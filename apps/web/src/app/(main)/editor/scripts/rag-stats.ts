@@ -1,5 +1,5 @@
-import { getIndexStats } from "../src/rag/indexer.js";
 import { logger } from "../src/rag/config.js";
+import { getIndexStats } from "../src/rag/indexer.js";
 
 async function main() {
   try {

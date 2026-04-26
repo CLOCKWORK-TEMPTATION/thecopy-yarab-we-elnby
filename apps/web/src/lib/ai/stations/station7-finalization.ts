@@ -1,14 +1,16 @@
-import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
 import { ConflictNetwork } from "../core/models/base-entities";
+import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
+import { logger } from "../utils/logger";
+import { saveText } from "../utils/saveText";
+
 import { GeminiService } from "./gemini-service";
-import { Station6Output } from "./station6-diagnostics-treatment";
 import { Station1Output } from "./station1-text-analysis";
 import { Station2Output } from "./station2-conceptual-analysis";
 import { Station3Output } from "./station3-network-builder";
 import { Station4Output } from "./station4-efficiency-metrics";
 import { Station5Output } from "./station5-dynamic-symbolic-stylistic";
-import { saveText } from "../utils/saveText";
-import { logger } from "../utils/logger";
+import { Station6Output } from "./station6-diagnostics-treatment";
+
 
 export interface Station7Input {
   conflictNetwork: ConflictNetwork;
@@ -100,7 +102,7 @@ export class Station7Finalization extends BaseStation<
   constructor(
     config: StationConfig<Station7Input, Station7Output>,
     geminiService: GeminiService,
-    outputDir: string = "analysis_output"
+    outputDir = "analysis_output"
   ) {
     super(config, geminiService);
     this.outputDir = outputDir;
@@ -341,15 +343,15 @@ export class Station7Finalization extends BaseStation<
 1. الطبيعة الأساسية للعمل والنوع الدرامي
 2. أبرز نقاط القوة الإبداعية
 3. التحديات الرئيسية المكتشفة
-4. التقييم العام (النتيجة: ${scoreMatrix?.overall || 0}/100)
+4. التقييم العام (النتيجة: ${scoreMatrix?.overall ?? 0}/100)
 5. التوصية النهائية
 
 معلومات أساسية:
-- عدد الشخصيات: ${s3?.conflictNetwork?.characters?.size || 0}
-- عدد الصراعات: ${s3?.conflictNetwork?.conflicts?.size || 0}
-- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore || 0}/100
-- نتيجة الصحة العامة: ${s6?.diagnosticsReport?.overallHealthScore || 0}/100
-- المشاكل الحرجة: ${s6?.diagnosticsReport?.criticalIssues?.length || 0}
+- عدد الشخصيات: ${s3?.conflictNetwork?.characters?.size ?? 0}
+- عدد الصراعات: ${s3?.conflictNetwork?.conflicts?.size ?? 0}
+- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore ?? 0}/100
+- نتيجة الصحة العامة: ${s6?.diagnosticsReport?.overallHealthScore ?? 0}/100
+- المشاكل الحرجة: ${s6?.diagnosticsReport?.criticalIssues?.length ?? 0}
 
 اكتب بأسلوب احترافي وموضوعي، مع التركيز على القيمة الإبداعية والإمكانات الإنتاجية.
 `;
@@ -460,9 +462,9 @@ export class Station7Finalization extends BaseStation<
 4. التهديدات (Threats): 5 تهديدات محتملة للتماسك السردي
 
 المعلومات المتاحة:
-- المشاكل الحرجة من المحطة 6: ${s6?.diagnosticsReport?.criticalIssues?.map((i) => i.description).join("; ") || "لا يوجد"}
-- التحذيرات: ${s6?.diagnosticsReport?.warnings?.map((w) => w.description).join("; ") || "لا يوجد"}
-- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore || 0}/100
+- المشاكل الحرجة من المحطة 6: ${s6?.diagnosticsReport?.criticalIssues?.map((i) => i.description).join("; ") ?? "لا يوجد"}
+- التحذيرات: ${s6?.diagnosticsReport?.warnings?.map((w) => w.description).join("; ") ?? "لا يوجد"}
+- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore ?? 0}/100
 
 قدم كل نقطة في جملة واحدة واضحة ومحددة. استخدم تنسيق نصي منظم بالشكل التالي:
 
@@ -527,10 +529,10 @@ export class Station7Finalization extends BaseStation<
 قم بتحليل مدى صدى العمل الدرامي مع الجمهور وتوقع استجابتهم:
 
 معلومات العمل:
-- النوع: ${(s2 as any)?.hybridGenre?.primary || "غير محدد"}
-- الجمهور المستهدف: ${(s2 as any)?.targetAudience?.primaryAudience || "غير محدد"}
-- القوة الرمزية: ${s5?.symbolicAnalysis?.depthScore || 0}/10
-- التناسق الأسلوبي: ${s5?.stylisticAnalysis?.toneAssessment?.toneConsistency || 0}/10
+- النوع: ${(s2 as any)?.hybridGenre?.primary ?? "غير محدد"}
+- الجمهور المستهدف: ${(s2 as any)?.targetAudience?.primaryAudience ?? "غير محدد"}
+- القوة الرمزية: ${s5?.symbolicAnalysis?.depthScore ?? 0}/10
+- التناسق الأسلوبي: ${s5?.stylisticAnalysis?.toneAssessment?.toneConsistency ?? 0}/10
 
 قدم تقييماً بصيغة نصية منظمة:
 
@@ -565,14 +567,14 @@ export class Station7Finalization extends BaseStation<
       const text = this.extractText(response.content);
       const parsed = this.parseAudienceResonance(text);
       return {
-        emotionalImpact: parsed.emotionalImpact || 5,
-        intellectualEngagement: parsed.intellectualEngagement || 5,
-        relatability: parsed.relatability || 5,
-        memorability: parsed.memorability || 5,
-        viralPotential: parsed.viralPotential || 5,
-        primaryResponse: parsed.primaryResponse || "غير متاح",
-        secondaryResponses: parsed.secondaryResponses || [],
-        controversialElements: parsed.controversialElements || [],
+        emotionalImpact: parsed.emotionalImpact ?? 5,
+        intellectualEngagement: parsed.intellectualEngagement ?? 5,
+        relatability: parsed.relatability ?? 5,
+        memorability: parsed.memorability ?? 5,
+        viralPotential: parsed.viralPotential ?? 5,
+        primaryResponse: parsed.primaryResponse ?? "غير متاح",
+        secondaryResponses: parsed.secondaryResponses ?? [],
+        controversialElements: parsed.controversialElements ?? [],
       };
     } catch {
       return {
@@ -1049,7 +1051,7 @@ ${finalReport.rewritingSuggestions
       if (content.report) return content.report;
       return String(content);
     }
-    return String(content || "");
+    return String(content ?? "");
   }
 
   private parseStructuredText(text: string): {
@@ -1109,19 +1111,19 @@ ${finalReport.rewritingSuggestions
       const trimmed = line.trim();
 
       if (trimmed.includes("التأثير العاطفي")) {
-        const match = trimmed.match(/(\d+)/);
+        const match = /(\d+)/.exec(trimmed);
         if (match?.[1]) result.emotionalImpact = parseInt(match[1]);
       } else if (trimmed.includes("التفاعل الفكري")) {
-        const match = trimmed.match(/(\d+)/);
+        const match = /(\d+)/.exec(trimmed);
         if (match?.[1]) result.intellectualEngagement = parseInt(match[1]);
       } else if (trimmed.includes("القابلية للارتباط")) {
-        const match = trimmed.match(/(\d+)/);
+        const match = /(\d+)/.exec(trimmed);
         if (match?.[1]) result.relatability = parseInt(match[1]);
       } else if (trimmed.includes("قابلية التذكر")) {
-        const match = trimmed.match(/(\d+)/);
+        const match = /(\d+)/.exec(trimmed);
         if (match?.[1]) result.memorability = parseInt(match[1]);
       } else if (trimmed.includes("الإمكانات الفيروسية")) {
-        const match = trimmed.match(/(\d+)/);
+        const match = /(\d+)/.exec(trimmed);
         if (match?.[1]) result.viralPotential = parseInt(match[1]);
       } else if (trimmed.includes("الاستجابة الأولية")) {
         currentSection = "primary";
@@ -1173,7 +1175,7 @@ ${finalReport.rewritingSuggestions
           const reasoning = line.split("التبرير:")[1]?.trim();
           if (reasoning) suggestion.reasoning = reasoning;
         } else if (line.includes("التأثير:")) {
-          const match = line.match(/(\d+)/);
+          const match = /(\d+)/.exec(line);
           if (match?.[1]) suggestion.impact = parseInt(match[1]);
         } else if (line.includes("الأولوية:")) {
           const priority = line.split("الأولوية:")[1]?.trim().toLowerCase();

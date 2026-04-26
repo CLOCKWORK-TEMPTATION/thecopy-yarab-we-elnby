@@ -1,3 +1,5 @@
+import { GoogleGenAI, Type, Schema } from "@google/genai";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -5,11 +7,13 @@ import { logger } from "@/lib/ai/utils/logger";
  * Google GenAI integration for advanced character analysis
  */
 
-import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { DEFAULT_CAST_MODEL } from "./constants";
-import type { CastAgentOptions } from "./types";
-import { ExtendedCastMember } from "../../types";
 import { getGeminiApiKeyFromEnv } from "../../infrastructure/gemini/env";
+import { ExtendedCastMember } from "../../types";
+
+import { DEFAULT_CAST_MODEL } from "./constants";
+
+import type { CastAgentOptions } from "./types";
+
 
 // ============================================
 // AI INITIALIZATION
@@ -19,7 +23,7 @@ import { getGeminiApiKeyFromEnv } from "../../infrastructure/gemini/env";
  * Initialize Google GenAI with API key - Safe handling
  */
 const getAI = (apiKey?: string): GoogleGenAI => {
-  const keyToUse = apiKey || getGeminiApiKeyFromEnv();
+  const keyToUse = apiKey ?? getGeminiApiKeyFromEnv();
 
   if (!keyToUse) {
     logger.warn("⚠️ Warning: GEMINI_API_KEY environment variable is not set.");
@@ -198,9 +202,9 @@ export const runCastAgent = async (
     const result = response.text ? JSON.parse(response.text) : { members: [] };
 
     // Post-process to ensure IDs exist
-    return (result.members || []).map((m: any, index: number) => ({
+    return (result.members ?? []).map((m: any, index: number) => ({
       ...m,
-      id: m.id || `char-${Date.now()}-${index}`,
+      id: m.id ?? `char-${Date.now()}-${index}`,
     }));
   } catch (error) {
     logger.error("Cast Agent Error:", error);

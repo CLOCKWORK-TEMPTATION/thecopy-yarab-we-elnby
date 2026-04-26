@@ -22,21 +22,16 @@
  *   - `App.tsx` — يستورد `SCREENPLAY_ELEMENTS` لربط الاختصارات وعرض التسميات.
  */
 import { Editor, Extension } from "@tiptap/core";
+import Bold from "@tiptap/extension-bold";
+import Document from "@tiptap/extension-document";
+import Italic from "@tiptap/extension-italic";
+import Text from "@tiptap/extension-text";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
 import { history, redo, undo } from "@tiptap/pm/history";
 import { keymap } from "@tiptap/pm/keymap";
-import { Basmala } from "./extensions/basmala";
-import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
-import { SceneHeader1 } from "./extensions/scene-header-1";
-import { SceneHeader2 } from "./extensions/scene-header-2";
-import { SceneHeader3 } from "./extensions/scene-header-3";
-import { Action } from "./extensions/action";
-import { Character } from "./extensions/character";
-import { Dialogue } from "./extensions/dialogue";
-import { Parenthetical } from "./extensions/parenthetical";
-import { Transition } from "./extensions/transition";
-import { ScreenplayCommands } from "./extensions/screenplay-commands";
-import { PasteClassifier } from "./extensions/paste-classifier";
 import { Pages } from "@tiptap-pro/extension-pages";
+
 import {
   FOOTER_HEIGHT_PX,
   FOOTER_TEMPLATE_LINE_COUNT,
@@ -48,14 +43,22 @@ import {
   PAGE_MARGIN_RIGHT_PX,
   PAGE_WIDTH_PX,
 } from "./constants";
+import { Action } from "./extensions/action";
+import { Basmala } from "./extensions/basmala";
+import { SceneHeader1 } from "./extensions/scene-header-1";
+import { SceneHeader2 } from "./extensions/scene-header-2";
+import { SceneHeader3 } from "./extensions/scene-header-3";
+import { Character } from "./extensions/character";
+import { Dialogue } from "./extensions/dialogue";
+import { Parenthetical } from "./extensions/parenthetical";
+import { ScreenplayCommands } from "./extensions/screenplay-commands";
+import { Transition } from "./extensions/transition";
+import { PasteClassifier } from "./extensions/paste-classifier";
+import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
+
+
 
 // الامتدادات الأساسية من Tiptap
-import Document from "@tiptap/extension-document";
-import Text from "@tiptap/extension-text";
-import Bold from "@tiptap/extension-bold";
-import Italic from "@tiptap/extension-italic";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
 
 /**
  * @description قائمة عناصر السيناريو المتاحة مع البيانات الوصفية لكل عنصر.
@@ -170,7 +173,7 @@ const PAGES_FOOTER_TEMPLATE = `${buildSpacerParagraphs(
   Math.max(1, PAGES_FOOTER_LINES - 1)
 )}<p>{page}.</p>`;
 
-type ScreenplayPagesOptions = {
+interface ScreenplayPagesOptions {
   pageFormat: {
     id: string;
     width: number;
@@ -188,7 +191,7 @@ type ScreenplayPagesOptions = {
   pageBreakBackground?: string;
   header: string;
   footer: string;
-};
+}
 
 const ScreenplayPages = Pages.extend<
   ScreenplayPagesOptions,

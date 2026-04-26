@@ -1,7 +1,8 @@
 "use client";
 
-import type { StationId, StationState } from "../lib/types";
 import { StationCard } from "./StationCard";
+
+import type { StationId, StationState } from "../lib/types";
 
 interface Props {
   stations: StationState[];

@@ -17,11 +17,13 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+
 import {
   getCurrentProject,
   setCurrentProject as storeSet,
   clearCurrentProject as storeClear,
 } from "@/lib/projectStore";
+
 import type { Project } from "@/types/api";
 
 /** الشكل الداخلي للمشروع المخزن */
@@ -49,7 +51,7 @@ const PROJECT_CHANGE_EVENT = "directors-studio:project-changed";
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [project, setProjectState] = useState<StoredProject | null>(() => {
     const stored = getCurrentProject();
-    return stored as StoredProject | null;
+    return stored;
   });
 
   const projectId = project?.id ?? "";
@@ -76,7 +78,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handler = () => {
       const stored = getCurrentProject();
-      setProjectState(stored as StoredProject | null);
+      setProjectState(stored);
     };
     window.addEventListener(PROJECT_CHANGE_EVENT, handler);
     window.addEventListener("storage", handler);

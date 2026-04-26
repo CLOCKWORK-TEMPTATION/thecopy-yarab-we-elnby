@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { TENSION_OPTIMIZER_AGENT_CONFIG } from "./agent";
 import {
   buildOriginalTextSection,
@@ -38,7 +40,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     super(
       "TensionMaster AI",
       TaskType.TENSION_OPTIMIZER,
-      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt || ""
+      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.81;
@@ -49,12 +51,12 @@ export class TensionOptimizerAgent extends BaseAgent {
     const ctx = context as TensionOptimizerContext;
 
     // Extract context with defaults
-    const originalText = ctx?.originalText || "";
-    const sceneBreakdown = ctx?.sceneBreakdown || [];
-    const currentTensionLevel = ctx?.currentTensionLevel || "medium";
-    const targetTensionLevel = ctx?.targetTensionLevel || "high";
-    const tensionType = ctx?.tensionType || "suspense";
-    const pacePreference = ctx?.pacePreference || "steady";
+    const originalText = ctx?.originalText ?? "";
+    const sceneBreakdown = ctx?.sceneBreakdown ?? [];
+    const currentTensionLevel = ctx?.currentTensionLevel ?? "medium";
+    const targetTensionLevel = ctx?.targetTensionLevel ?? "high";
+    const tensionType = ctx?.tensionType ?? "suspense";
+    const pacePreference = ctx?.pacePreference ?? "steady";
     const provideRecommendations = ctx?.provideRecommendations ?? true;
     const identifyPeaks = ctx?.identifyPeaks ?? true;
     const analyzeRelease = ctx?.analyzeRelease ?? true;
@@ -91,7 +93,7 @@ export class TensionOptimizerAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupTensionText(output.text);
+    const processedText = this.cleanupTensionText(output.text);
 
     const analysisDepth = await this.assessAnalysisDepth(processedText);
     const techniqueIdentification =
@@ -130,7 +132,7 @@ export class TensionOptimizerAgent extends BaseAgent {
         peaksIdentified: this.countPeaks(processedText),
         techniquesIdentified: this.countTechniques(processedText),
         recommendationsProvided: this.countRecommendations(processedText),
-      } as any,
+      },
     };
   }
 
@@ -324,7 +326,7 @@ export class TensionOptimizerAgent extends BaseAgent {
       critical: "حرج/ذروة",
       extreme: "شديد جداً",
     };
-    return levels[level] || level;
+    return levels[level] ?? level;
   }
 
   private translateTensionType(type: string): string {
@@ -336,7 +338,7 @@ export class TensionOptimizerAgent extends BaseAgent {
       dread: "خوف وقلق",
       urgency: "إلحاح وضيق وقت",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   private translatePace(pace: string): string {
@@ -347,7 +349,7 @@ export class TensionOptimizerAgent extends BaseAgent {
       explosive: "انفجاري ومفاجئ",
       variable: "متغير ومتذبذب",
     };
-    return paces[pace] || pace;
+    return paces[pace] ?? pace;
   }
 
   protected override async getFallbackResponse(

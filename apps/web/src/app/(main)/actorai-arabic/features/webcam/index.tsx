@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { useApp } from "../../context/AppContext";
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
 import { formatTime } from "../../lib/utils";

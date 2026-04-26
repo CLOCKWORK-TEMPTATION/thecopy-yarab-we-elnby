@@ -1,3 +1,7 @@
+import { parseAIVerdict } from "@editor/suspicion-engine/adapters/from-ai-verdict";
+import { buildAIReviewPayload } from "@editor/suspicion-engine/adapters/to-ai-payload";
+import { CircuitBreaker } from "@editor/suspicion-engine/resolvers/circuit-breaker";
+
 import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   AIReviewPayload,
@@ -5,9 +9,6 @@ import type {
   ResolutionOutcome,
   SuspicionCase,
 } from "@editor/suspicion-engine/types";
-import { buildAIReviewPayload } from "@editor/suspicion-engine/adapters/to-ai-payload";
-import { parseAIVerdict } from "@editor/suspicion-engine/adapters/from-ai-verdict";
-import { CircuitBreaker } from "@editor/suspicion-engine/resolvers/circuit-breaker";
 
 /**
  * @module resolvers/remote-ai-resolver

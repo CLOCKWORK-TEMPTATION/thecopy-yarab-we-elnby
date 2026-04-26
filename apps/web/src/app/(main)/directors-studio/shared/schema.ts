@@ -22,10 +22,10 @@ export const insertUserSchema = z.object({
   password: z.string(),
 });
 
-export type InsertUser = {
+export interface InsertUser {
   username: string;
   password: string;
-};
+}
 export type User = typeof users.$inferSelect;
 
 export const projects = pgTable("projects", {

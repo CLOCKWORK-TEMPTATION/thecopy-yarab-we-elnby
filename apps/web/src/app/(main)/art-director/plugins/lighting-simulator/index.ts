@@ -2,6 +2,7 @@
 // محاكي الإضاءة الذكي
 
 import { definedProps } from "@/lib/defined-props";
+
 import {
   Plugin,
   PluginInput,
@@ -111,7 +112,7 @@ export class LightingSimulator implements Plugin {
   ): Promise<PluginOutput> {
     const { scene, style = "naturalistic" } = data;
 
-    const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] || 5600;
+    const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] ?? 5600;
     const equipment: EquipmentItem[] = [];
     const alternatives: AlternativeSetup[] = [];
 
@@ -332,7 +333,7 @@ export class LightingSimulator implements Plugin {
       sunset: "Low angle, West",
       dusk: "Very low, West",
     };
-    return positions[timeOfDay] || "Variable";
+    return positions[timeOfDay] ?? "Variable";
   }
 
   private generateDiagram(setup: LightingSetup): string {
@@ -345,10 +346,10 @@ export class LightingSimulator implements Plugin {
     │     [BL]                            │
     │       ↓                             │
     │   ┌───────┐                         │
-    │   │Subject│ ← [KEY] ${setup.keyLight?.type || "N/A"}
+    │   │Subject│ ← [KEY] ${setup.keyLight?.type ?? "N/A"}
     │   └───────┘                         │
     │       ↑                             │
-    │     [FL]  ${setup.fillLight?.type || "N/A"}
+    │     [FL]  ${setup.fillLight?.type ?? "N/A"}
     │                                     │
     │   [CAM] ◉                           │
     │                                     │
@@ -454,7 +455,7 @@ export class LightingSimulator implements Plugin {
     currentSetup: LightingSetup;
   }): Promise<PluginOutput> {
     const { targetTime, currentSetup } = data;
-    const targetTemp = TIME_COLOR_TEMPS[targetTime] || 5600;
+    const targetTemp = TIME_COLOR_TEMPS[targetTime] ?? 5600;
 
     const adjustments = [];
 

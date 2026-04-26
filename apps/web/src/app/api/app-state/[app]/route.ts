@@ -10,7 +10,7 @@ import {
   proxyToBackend,
 } from "@/lib/server/backend-proxy";
 
-type RouteContext = { params: Promise<{ app: string }> };
+interface RouteContext { params: Promise<{ app: string }> }
 
 const AppStateRequestSchema = z.object({
   data: AppStatePayloadSchema,

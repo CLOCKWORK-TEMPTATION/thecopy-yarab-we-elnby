@@ -1,12 +1,14 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { ADAPTIVE_REWRITING_AGENT_CONFIG } from "./agent";
 // نفترض وجود هذه الأداة المساعدة أو يمكن استبدالها بـ RegExp عادي مع الحذر
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 /**
  * واجهة السياق الخاصة بإعادة الكتابة
@@ -34,7 +36,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     super(
       "RewriteMaster AI",
       TaskType.ADAPTIVE_REWRITING,
-      ADAPTIVE_REWRITING_AGENT_CONFIG?.systemPrompt ||
+      ADAPTIVE_REWRITING_AGENT_CONFIG?.systemPrompt ??
         "أنت خبير تحرير نصوص ومطور محتوى محترف."
     );
 
@@ -49,15 +51,15 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as AdaptiveRewritingContext;
 
-    const originalText = ctx?.originalText || "";
-    const rewritingGoals = ctx?.rewritingGoals || [];
-    const targetAudience = ctx?.targetAudience || "جمهور عام";
-    const targetTone = ctx?.targetTone || "محايدة/احترافية";
-    const targetLength = ctx?.targetLength || "same";
-    const preserveElements = ctx?.preserveElements || [];
-    const improvementFocus = ctx?.improvementFocus || ["clarity", "flow"];
-    const styleGuide = ctx?.styleGuide || "";
-    const constraints = ctx?.constraints || [];
+    const originalText = ctx?.originalText ?? "";
+    const rewritingGoals = ctx?.rewritingGoals ?? [];
+    const targetAudience = ctx?.targetAudience ?? "جمهور عام";
+    const targetTone = ctx?.targetTone ?? "محايدة/احترافية";
+    const targetLength = ctx?.targetLength ?? "same";
+    const preserveElements = ctx?.preserveElements ?? [];
+    const improvementFocus = ctx?.improvementFocus ?? ["clarity", "flow"];
+    const styleGuide = ctx?.styleGuide ?? "";
+    const constraints = ctx?.constraints ?? [];
 
     // استخدام وسوم XML لتنظيم المدخلات للنموذج اللغوي
     let prompt = `مهمة: إعادة كتابة تكيفية وتحسين للنص.\n\n`;
@@ -138,7 +140,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // تنظيف النص من أي بقايا كود أو علامات غير مرغوبة
-    let processedText = this.cleanupRewrittenText(output.text);
+    const processedText = this.cleanupRewrittenText(output.text);
 
     // حساب مقاييس الجودة المتعددة
     const goalAchievement = await this.assessGoalAchievement(processedText);
@@ -182,7 +184,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
           charCount: processedText.length,
           improvementCount: this.countImprovements(processedText),
         },
-      } as any,
+      },
     };
   }
 
@@ -351,7 +353,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
       double: "موسع جداً (ضعف الطول)",
       half: "ملخص مركز (نصف الطول)",
     };
-    return mapping[length] || length;
+    return mapping[length] ?? length;
   }
 
   private translateFocus(focus: string): string {
@@ -366,7 +368,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
       structure: "الهيكلية والتنظيم",
       seo: "تحسين محركات البحث",
     };
-    return mapping[focus] || focus;
+    return mapping[focus] ?? focus;
   }
 
   protected override async getFallbackResponse(

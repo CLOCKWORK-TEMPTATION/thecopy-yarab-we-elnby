@@ -1,12 +1,14 @@
 "use client";
 
-import { definedProps } from "@/lib/defined-props";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { definedProps } from "@/lib/defined-props";
 import {
   pipelineRecorder,
   type PipelineEvent,
   type RecordedAICorrection,
 } from "@editor/extensions/pipeline-recorder";
+
 import type { ProgressiveSurfaceState } from "../editor";
 
 // ─── أنواع ─────────────────────────────────────────────────────────

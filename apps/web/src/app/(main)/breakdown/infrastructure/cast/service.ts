@@ -4,6 +4,7 @@ import {
   CastAnalysisOptions,
   CastAnalysisResult,
 } from "../../domain/models";
+
 import { runCastAgent } from "./local";
 
 // ============================================
@@ -595,7 +596,7 @@ export const extractSceneMetadata = (
 
   for (const pattern of locationPatterns) {
     const match = header.match(pattern);
-    if (match && match[1]) {
+    if (match?.[1]) {
       location = match[1].trim();
       break;
     }
@@ -691,7 +692,7 @@ function calculateAgeRanges(
 
   members.forEach((member) => {
     const age = member.ageRange || "Unknown";
-    ranges[age] = (ranges[age] || 0) + 1;
+    ranges[age] = (ranges[age] ?? 0) + 1;
   });
 
   return ranges;
@@ -712,7 +713,7 @@ function generateCastInsights(
   }
 
   // Gender balance insight
-  const genderRatio = summary.maleCount / (summary.femaleCount || 1);
+  const genderRatio = summary.maleCount / (summary.femaleCount ?? 1);
   if (genderRatio > 2) {
     insights.push(
       `Male-dominated cast: ${summary.maleCount} male vs ${summary.femaleCount} female characters.`
@@ -818,7 +819,7 @@ export const exportCastToCSV = (
     const extended = m as ExtendedCastMember;
     return [
       m.name,
-      extended.nameArabic || "",
+      extended.nameArabic ?? "",
       extended.roleCategory || m.role,
       extended.ageRange || m.age,
       m.gender,
@@ -884,16 +885,16 @@ export const generateCastingCall = (
  * Validate and normalize cast member data
  */
 export const normalizeCastMember = (member: any): CastMember => {
-  const gender = validateGender(member.gender || "Unknown");
-  const role = validateRole(member.roleCategory || member.role);
+  const gender = validateGender(member.gender ?? "Unknown");
+  const role = validateRole(member.roleCategory ?? member.role);
 
   return {
-    name: member.name || "Unknown",
+    name: member.name ?? "Unknown",
     role,
-    age: member.ageRange || member.age || "Unknown",
+    age: member.ageRange ?? member.age ?? "Unknown",
     gender,
-    description: member.visualDescription || member.description || "",
-    motivation: member.motivation || "",
+    description: member.visualDescription ?? member.description ?? "",
+    motivation: member.motivation ?? "",
   };
 };
 

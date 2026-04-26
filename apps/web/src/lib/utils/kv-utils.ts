@@ -41,7 +41,7 @@ export function unflatten(flat: Record<string, string>): Record<string, any> {
         if (!Object.prototype.hasOwnProperty.call(current, part)) {
           current[part] = {};
         }
-        current = current[part] || Object.create(null);
+        current = current[part] ?? Object.create(null);
       }
     }
 

@@ -62,12 +62,8 @@ export async function callGeminiText(
     maxTokens?: number;
   }
 ): Promise<string> {
-  try {
-    const response = await geminiCore.chatWithAI(prompt);
-    return toText(response);
-  } catch (error) {
-    throw error;
-  }
+  const response = await geminiCore.chatWithAI(prompt);
+  return toText(response);
 }
 
 // Core Gemini functions that call Backend API
@@ -75,42 +71,30 @@ export const geminiCore = {
   // Analyze screenplay content via Backend
   async analyzeScreenplay(
     content: string,
-    _analysisType: string = "structure",
+    _analysisType = "structure",
     projectId?: string
   ) {
     if (!projectId) {
       throw new Error("projectId is required for screenplay analysis");
     }
 
-    try {
-      const response = await analyzeScript(projectId, content);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await analyzeScript(projectId, content);
+    return response.data;
   },
 
   // Generate shot suggestions via Backend
   async generateShotSuggestion(
     sceneDescription: string,
-    shotType: string = "medium"
+    shotType = "medium"
   ) {
-    try {
-      const response = await getShotSuggestion(sceneDescription, shotType);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await getShotSuggestion(sceneDescription, shotType);
+    return response.data;
   },
 
   // Chat with AI via Backend
   async chatWithAI(message: string, context?: Record<string, unknown>) {
-    try {
-      const response = await chatWithAI(message, undefined, context);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await chatWithAI(message, undefined, context);
+    return response.data;
   },
 };
 

@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
-import { fireEvent, renderWithApp, screen } from "../test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useApp } from "../context/AppContext";
 import { APP_STORAGE_KEY } from "../lib/storage";
+import { fireEvent, renderWithApp, screen } from "../test-utils";
 
 function TestHarness() {
   const { currentView, theme, user, navigate, toggleTheme, handleRegister } =

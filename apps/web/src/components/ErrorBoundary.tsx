@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import * as Sentry from "@sentry/nextjs";
+import React from "react";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -42,7 +42,7 @@ class ErrorBoundary extends React.Component<
 
   override render() {
     if (this.state.hasError) {
-      const FallbackComponent = this.props.fallback || DefaultErrorFallback;
+      const FallbackComponent = this.props.fallback ?? DefaultErrorFallback;
       return (
         <FallbackComponent
           error={this.state.error!}
@@ -89,7 +89,7 @@ function DefaultErrorFallback({
               We apologize for the inconvenience. The error has been reported to
               our team.
             </p>
-            {process.env["NODE_ENV"] === "development" && (
+            {process.env.NODE_ENV === "development" && (
               <details className="mt-4 text-left">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700">
                   Error details

@@ -1,10 +1,11 @@
-import type { UnstructuredReconstructionResult } from "./types";
+import { classifyUnstructuredLines } from "./classifier";
 import { detectUnstructured } from "./detect";
 import { normalizeForUnstructuredWork } from "./normalize";
 import { segmentToChunks, splitCutSceneGlue } from "./segmenter";
-import { classifyUnstructuredLines } from "./classifier";
-import { validateUnstructuredResult } from "./validator";
 import { toStructuredBlocks, toStructuredText } from "./to-structured";
+import { validateUnstructuredResult } from "./validator";
+
+import type { UnstructuredReconstructionResult } from "./types";
 
 export interface MaybeReconstructOptions {
   threshold: number;

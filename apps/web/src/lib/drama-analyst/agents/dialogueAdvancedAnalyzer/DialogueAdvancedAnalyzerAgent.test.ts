@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { DialogueAdvancedAnalyzerAgent } from "./DialogueAdvancedAnalyzerAgent";
+
 import { TaskType } from "@core/types";
+
+import { DialogueAdvancedAnalyzerAgent } from "./DialogueAdvancedAnalyzerAgent";
 
 describe("DialogueAdvancedAnalyzerAgent", () => {
   let agent: DialogueAdvancedAnalyzerAgent;

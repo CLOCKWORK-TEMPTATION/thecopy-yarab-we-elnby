@@ -1,7 +1,8 @@
 import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
+import { toText } from "../gemini-core";
+
 import { GeminiService, GeminiModel } from "./gemini-service";
 import { Station3Output } from "./station3-network-builder";
-import { toText } from "../gemini-core";
 
 // Interfaces for Station 4
 export interface Station4Input {
@@ -45,11 +46,11 @@ export interface QualityAssessment {
 export interface ProducibilityAnalysis {
   technicalFeasibility: number; // 0-10
   budgetEstimate: "low" | "medium" | "high" | "very_high";
-  productionChallenges: Array<{
+  productionChallenges: {
     type: string;
     description: string;
     severity: "low" | "medium" | "high";
-  }>;
+  }[];
   locationRequirements: string[];
   specialEffectsNeeded: boolean;
   castSize: number;
@@ -59,11 +60,11 @@ export interface RhythmAnalysis {
   overallPace: "very_slow" | "slow" | "medium" | "fast" | "very_fast";
   paceVariation: number;
   sceneLengths: number[];
-  actBreakdown: Array<{
+  actBreakdown: {
     act: number;
     averagePace: string;
     tensionProgression: number[];
-  }>;
+  }[];
   recommendations: string[];
 }
 
@@ -77,11 +78,11 @@ export interface Recommendation {
 
 export interface UncertaintyReport {
   overallConfidence: number;
-  uncertainties: Array<{
+  uncertainties: {
     type: "epistemic" | "aleatoric";
     aspect: string;
     note: string;
-  }>;
+  }[];
 }
 
 export interface Station4Output {
@@ -372,7 +373,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
   protected async process(input: Station4Input): Promise<Station4Output> {
     const startTime = Date.now();
     const agentsUsed: string[] = [];
-    let tokensUsed = 0;
+    const tokensUsed = 0;
 
     // Extract options with defaults
     const options = {

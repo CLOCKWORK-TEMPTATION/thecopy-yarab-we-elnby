@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,10 +12,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -20,17 +21,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+
 import { useApp } from "../../context/AppContext";
-import { formatTime } from "../../lib/utils";
-import { SAMPLE_SCRIPT, ACTING_METHODOLOGIES } from "../../types/constants";
-import type { AnalysisResult, ChatMessage, Recording } from "../../types";
 import {
   analyzeScriptText,
   buildPartnerResponse,
 } from "../../lib/script-analysis";
 import { buildTakeInsights } from "../../lib/self-tape";
+import { formatTime } from "../../lib/utils";
+import { SAMPLE_SCRIPT, ACTING_METHODOLOGIES } from "../../types/constants";
+
+import type { AnalysisResult, ChatMessage, Recording } from "../../types";
 
 const INITIAL_RECORDINGS: Recording[] = [
   {

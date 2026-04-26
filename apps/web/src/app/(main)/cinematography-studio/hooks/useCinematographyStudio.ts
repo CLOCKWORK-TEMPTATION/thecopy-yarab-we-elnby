@@ -11,6 +11,20 @@
 "use client";
 
 import { useReducer, useCallback, useEffect, useMemo, useRef } from "react";
+
+import { publishDiagnostics } from "../lib/diagnostics-bus";
+import {
+  clearSession as clearPersistedSession,
+  patchSession,
+  readSession,
+} from "../lib/session-storage";
+import {
+  TAB_VALUE_BY_PHASE,
+  PHASE_BY_TAB,
+  isValidTabValue,
+  isValidVisualMood,
+} from "../types";
+
 import type {
   Phase,
   TabValue,
@@ -18,18 +32,6 @@ import type {
   ViewMode,
   CineStudioState,
 } from "../types";
-import {
-  TAB_VALUE_BY_PHASE,
-  PHASE_BY_TAB,
-  isValidTabValue,
-  isValidVisualMood,
-} from "../types";
-import {
-  clearSession as clearPersistedSession,
-  patchSession,
-  readSession,
-} from "../lib/session-storage";
-import { publishDiagnostics } from "../lib/diagnostics-bus";
 
 // ============================================
 // أنواع الإجراءات

@@ -1,6 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,13 +13,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Textarea } from "@/components/ui/textarea";
+
 import { useApp } from "../../context/AppContext";
+
 import type { MemorizationStats } from "../../types";
 
 const INITIAL_STATS: MemorizationStats = {
@@ -164,14 +167,13 @@ export function MemorizationView() {
       const weakWords: string[] = [];
       correctWords.forEach((word, index) => {
         if (
-          userWords[index] &&
-          userWords[index].toLowerCase() === word.toLowerCase()
+          userWords[index]?.toLowerCase() === word.toLowerCase()
         ) {
           correct++;
         } else {
           incorrect++;
           weakWords.push(word);
-          const currentCount = weakPointsMap.get(word) || 0;
+          const currentCount = weakPointsMap.get(word) ?? 0;
           setWeakPointsMap((prev) => new Map(prev).set(word, currentCount + 1));
         }
       });

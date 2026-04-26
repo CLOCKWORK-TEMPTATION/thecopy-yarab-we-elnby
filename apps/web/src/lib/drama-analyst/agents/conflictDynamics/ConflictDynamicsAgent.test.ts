@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ConflictDynamicsAgent } from "./ConflictDynamicsAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { ConflictDynamicsAgent } from "./ConflictDynamicsAgent";
 
 vi.mock("../../services/geminiService", () => ({
   geminiService: {

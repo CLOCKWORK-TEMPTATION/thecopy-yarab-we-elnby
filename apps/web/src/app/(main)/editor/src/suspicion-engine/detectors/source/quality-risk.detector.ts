@@ -1,6 +1,7 @@
-import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
 
 // يكشف نصوص منخفضة الجودة قد تكون صُنِّفت بشكل خاطئ
 // الدرجة تتناسب طردياً مع (1 - qualityScore) مضروباً بعامل 0.8

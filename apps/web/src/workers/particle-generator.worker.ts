@@ -201,7 +201,7 @@ const dist_c = (px: number, py: number): number => {
   const cx = 0.0;
   const cy = BASELINE + X_HEIGHT * 0.5;
   const r = 0.2;
-  let ring = sdRing(px, py, cx, cy, r, STROKE_WIDTH);
+  const ring = sdRing(px, py, cx, cy, r, STROKE_WIDTH);
   const cutBox = sdBox(px - (cx + r * 0.5), py - cy, 0.15, 0.14, 0);
   return opSubtract(ring, cutBox);
 };
@@ -540,7 +540,7 @@ function generateParticles(config: GenerateParticlesMessage["config"]) {
           type: "progress",
           progress,
           count: generatedCount,
-        } as ParticleGenerationResult);
+        });
       }
     }
   }
@@ -604,7 +604,7 @@ self.addEventListener(
           {
             type: "complete",
             ...result,
-          } as ParticleGenerationResult,
+          },
           {
             transfer: [
               result.positions.buffer,
@@ -619,7 +619,7 @@ self.addEventListener(
         self.postMessage({
           type: "error",
           error: error instanceof Error ? error.message : "Unknown error",
-        } as ParticleGenerationResult);
+        });
       }
     }
   }

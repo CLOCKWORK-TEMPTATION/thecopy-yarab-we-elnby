@@ -1,12 +1,14 @@
 import { TaskType } from "@core/types";
+
+import { log } from "../../services/loggerService";
+import { platformGenAIService } from "../../services/platformGenAIService";
+
 import {
   StandardAgentInput,
   StandardAgentOptions,
   StandardAgentOutput,
-} from "./standardAgentPattern";
-import { executeStandardAgentPattern } from "./standardAgentPattern";
-import { log } from "../../services/loggerService";
-import { platformGenAIService } from "../../services/platformGenAIService";
+ executeStandardAgentPattern } from "./standardAgentPattern";
+
 
 /**
  * Base Agent Class - النمط القياسي لجميع الوكلاء
@@ -17,7 +19,7 @@ export abstract class BaseAgent {
   protected name: string;
   protected taskType: TaskType;
   protected systemPrompt: string;
-  protected confidenceFloor: number = 0.7;
+  protected confidenceFloor = 0.7;
 
   constructor(name: string, taskType: TaskType, systemPrompt: string) {
     this.name = name;

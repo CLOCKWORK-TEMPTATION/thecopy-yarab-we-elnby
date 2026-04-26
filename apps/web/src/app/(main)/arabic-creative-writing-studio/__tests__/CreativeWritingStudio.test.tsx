@@ -5,7 +5,9 @@
 
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
+
 import { CreativeWritingStudio } from "@/app/(main)/arabic-creative-writing-studio/components/CreativeWritingStudio";
+
 import type { AppSettings } from "@/app/(main)/arabic-creative-writing-studio/types";
 
 // Mock dependencies

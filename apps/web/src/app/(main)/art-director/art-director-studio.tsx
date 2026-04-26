@@ -7,8 +7,6 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight, TextRevealCard
  */
 
-import { useCallback, useEffect, useMemo } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Palette,
@@ -20,18 +18,21 @@ import {
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo } from "react";
 import "./art-director.css";
 
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+
 import Dashboard from "./components/Dashboard";
-import Tools from "./components/Tools";
+import Documentation from "./components/Documentation";
 import Inspiration from "./components/Inspiration";
 import Locations from "./components/Locations";
-import Sets from "./components/Sets";
 import Productivity from "./components/Productivity";
-import Documentation from "./components/Documentation";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import Sets from "./components/Sets";
+import Tools from "./components/Tools";
 import {
   ArtDirectorPersistenceProvider,
   isArtDirectorTabId,

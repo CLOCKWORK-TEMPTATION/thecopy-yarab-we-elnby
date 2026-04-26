@@ -134,11 +134,11 @@ export interface PhaseDisplayInfo {
 
 /** نتيجة النقاش من الخادم */
 export interface DebateResult {
-  proposals: Array<{
+  proposals: {
     agentId: string;
     proposal: string;
     confidence: number;
-  }>;
+  }[];
   consensus?: boolean;
   finalDecision?: string;
   judgeReasoning?: string;

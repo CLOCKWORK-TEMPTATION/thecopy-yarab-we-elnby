@@ -8,13 +8,12 @@ import {
   PAGE_MARGIN_RIGHT_PX,
   PAGE_MARGIN_TOP_PX,
   PAGE_WIDTH_PX,
-} from "../constants";
-import {
+
   applyEditorFormatStyleVariables,
   LOCKED_EDITOR_FONT_FAMILY,
   LOCKED_EDITOR_FONT_SIZE,
-  LOCKED_EDITOR_LINE_HEIGHT,
-} from "../constants";
+  LOCKED_EDITOR_LINE_HEIGHT} from "../constants";
+
 
 /**
  * @description أدوات مساعدة لتطبيق تخطيط وطباعة محرر السيناريو

@@ -5,6 +5,7 @@
  * Client-side Gemini service that calls server-side API routes
  */
 
+import { fileToBase64 } from "../lib/utils";
 import {
   DesignBrief,
   ProfessionalDesignResult,
@@ -12,7 +13,6 @@ import {
   FitAnalysisResult,
   ImageGenerationSize,
 } from "../types";
-import { fileToBase64 } from "../lib/utils";
 
 const API_ENDPOINT = "/api/styleist/execute";
 
@@ -119,7 +119,7 @@ async function callGeminiAPI(
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.error || "API request failed");
+    throw new Error(error.error ?? "API request failed");
   }
 
   return response.json();
@@ -212,7 +212,7 @@ export const generateVirtualFit = async (
   return {
     compatibilityScore: getNumberValue(result.compatibilityScore),
     safetyIssues: getStringArray(result.safetyIssues),
-    fabricNotes: getStringValue(result.fabricNotes || result.fitDescription),
+    fabricNotes: getStringValue(result.fabricNotes ?? result.fitDescription),
     movementPrediction: getStringValue(result.movementPrediction),
   };
 };

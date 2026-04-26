@@ -15,7 +15,7 @@ export interface BlockExportRequest {
   blocks?: ScreenplayBlock[];
 }
 
-export type DocxParagraphPreset = {
+export interface DocxParagraphPreset {
   alignment: "right" | "center" | "left" | "justify";
   bold?: boolean;
   italics?: boolean;
@@ -23,7 +23,7 @@ export type DocxParagraphPreset = {
   spacingAfterPt?: number;
   indentStartTwip?: number;
   indentEndTwip?: number;
-};
+}
 
 const DEFAULT_EXPORT_FILE_BASE = "screenplay";
 

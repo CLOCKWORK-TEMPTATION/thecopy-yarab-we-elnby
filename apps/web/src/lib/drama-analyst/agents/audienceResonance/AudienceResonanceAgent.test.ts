@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { AudienceResonanceAgent } from "./AudienceResonanceAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { AudienceResonanceAgent } from "./AudienceResonanceAgent";
 
 // Mock geminiService
 vi.mock("@/ai/gemini-service", () => ({

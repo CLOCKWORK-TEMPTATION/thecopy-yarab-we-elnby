@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useCallback, memo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Edit, Trash2, User, AlertTriangle, Users } from "lucide-react";
+import { useState, useCallback, memo } from "react";
+
+import CharacterFormDialog from "@/app/(main)/directors-studio/components/CharacterFormDialog";
+import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,12 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, User, AlertTriangle, Users } from "lucide-react";
-import CharacterFormDialog from "@/app/(main)/directors-studio/components/CharacterFormDialog";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
-import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
 import { useToast } from "@/hooks/use-toast";
+
 import type { Character } from "@/types/api";
 
 const CharacterCard = memo(function CharacterCard({
@@ -196,7 +198,7 @@ export default function CharactersPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertTriangle className="h-12 w-12 text-destructive" />
-        <p className="text-destructive">{(error as Error).message}</p>
+        <p className="text-destructive">{(error).message}</p>
       </div>
     );
   }

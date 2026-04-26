@@ -421,7 +421,7 @@ self.addEventListener(
           {
             type: "updated",
             ...result,
-          } as UpdateParticlesResult,
+          },
           {
             transfer: [
               result.positions.buffer,
@@ -434,7 +434,7 @@ self.addEventListener(
         self.postMessage({
           type: "error",
           error: error instanceof Error ? error.message : "Unknown error",
-        } as UpdateParticlesResult);
+        });
       }
     }
   }

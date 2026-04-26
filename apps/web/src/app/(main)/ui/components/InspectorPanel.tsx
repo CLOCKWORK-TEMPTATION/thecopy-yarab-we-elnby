@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { X, Calendar, User, Tag, Link as LinkIcon } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InspectorPanelProps {
   isOpen: boolean;
@@ -181,7 +182,7 @@ export function InspectorPanel({
             <div className="text-[var(--color-muted)]" dir="rtl">
               {typeof sceneData.linksIn === "number"
                 ? sceneData.linksIn
-                : sceneData.linksIn?.length || 0}{" "}
+                : sceneData.linksIn?.length ?? 0}{" "}
               مشهد
             </div>
           </div>
@@ -194,7 +195,7 @@ export function InspectorPanel({
             <div className="text-[var(--color-muted)]" dir="rtl">
               {typeof sceneData.linksOut === "number"
                 ? sceneData.linksOut
-                : sceneData.linksOut?.length || 0}{" "}
+                : sceneData.linksOut?.length ?? 0}{" "}
               مشهد
             </div>
           </div>

@@ -26,7 +26,7 @@ async function fetchWithAuth(
 ): Promise<Response> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(options.headers || {}),
+    ...(options.headers ?? {}),
   };
 
   const response = await fetch(url, {
@@ -68,7 +68,7 @@ export async function loginUser(
 
   if (!response.ok || !data.success) {
     throw new Error(
-      data.error || data.details?.[0]?.message || "فشل تسجيل الدخول"
+      data.error ?? data.details?.[0]?.message ?? "فشل تسجيل الدخول"
     );
   }
 
@@ -92,7 +92,7 @@ export async function registerUser(
 
   if (!response.ok || !data.success) {
     throw new Error(
-      data.error || data.details?.[0]?.message || "فشل إنشاء الحساب"
+      data.error ?? data.details?.[0]?.message ?? "فشل إنشاء الحساب"
     );
   }
 
@@ -122,7 +122,7 @@ export async function getCurrentUser(): Promise<unknown> {
  */
 export async function runSevenStationsAnalysis(
   text: string,
-  async: boolean = true
+  async = true
 ): Promise<ApiResponse<unknown>> {
   const response = await fetchWithAuth("/api/analysis/seven-stations", {
     method: "POST",

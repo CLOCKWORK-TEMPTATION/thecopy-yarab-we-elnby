@@ -8,13 +8,6 @@
  */
 
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import {
   Palette,
   MapPin,
   Boxes,
@@ -24,10 +17,20 @@ import {
   Clock,
   type LucideIcon,
 } from "lucide-react";
-import { usePlugins } from "../hooks/usePlugins";
-import type { ApiResponse, PluginInfo } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { usePlugins } from "../hooks/usePlugins";
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ApiResponse, PluginInfo } from "../types";
 
 type TabId =
   | "dashboard"

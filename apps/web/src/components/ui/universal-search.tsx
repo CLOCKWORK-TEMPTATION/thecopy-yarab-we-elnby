@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -17,9 +16,11 @@ import {
   Loader2,
   type LucideIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 /**
  * Universal Search Component
@@ -378,7 +379,7 @@ function SearchResultItem({
   isSelected,
   onClick,
 }: SearchResultItemProps) {
-  const Icon = result.icon || categoryIcons[result.category];
+  const Icon = result.icon ?? categoryIcons[result.category];
 
   return (
     <motion.button

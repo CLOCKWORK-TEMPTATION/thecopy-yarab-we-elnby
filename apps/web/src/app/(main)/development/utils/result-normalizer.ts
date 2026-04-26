@@ -77,7 +77,7 @@ function normalizeBrainstorm(
     for (const proposal of raw.proposals) {
       if (proposal.agentId && proposal.text?.trim()) {
         taskResults[proposal.agentId] = {
-          agentName: proposal.agentName || proposal.agentId,
+          agentName: proposal.agentName ?? proposal.agentId,
           agentId: proposal.agentId,
           text: proposal.text,
           confidence: proposal.confidence ?? 0,
@@ -100,11 +100,11 @@ function normalizeWorkflow(
   raw: WorkflowResponse,
   task: DevelopmentTaskDefinition
 ): UnifiedDevelopmentReport {
-  const results = raw.results || {};
+  const results = raw.results ?? {};
   const finalStep = results[task.finalStepId];
-  const finalText = finalStep?.output?.text || "";
+  const finalText = finalStep?.output?.text ?? "";
   const confidence = finalStep?.output?.confidence;
-  const metadata = raw.metrics as Record<string, unknown> | undefined;
+  const metadata = raw.metrics;
 
   const aiResponse: AIResponseData = {
     text: finalText,
@@ -126,8 +126,8 @@ function normalizeWorkflow(
   for (const [stepId, step] of Object.entries(results)) {
     if (step.status === "completed" && step.output?.text?.trim()) {
       taskResults[stepId] = {
-        agentName: step.agentId || stepId,
-        agentId: step.agentId || stepId,
+        agentName: step.agentId ?? stepId,
+        agentId: step.agentId ?? stepId,
         text: step.output.text,
         confidence: step.output.confidence ?? 0,
         timestamp: new Date().toISOString(),
@@ -155,9 +155,9 @@ export function normalizeResult(
 
   // Workflow responses have a `results` object with step outputs
   if ("results" in data && typeof data.results === "object") {
-    return normalizeWorkflow(data as unknown as WorkflowResponse, task);
+    return normalizeWorkflow(data, task);
   }
 
   // Brainstorm responses have proposals/finalDecision
-  return normalizeBrainstorm(data as unknown as BrainstormResponse, task);
+  return normalizeBrainstorm(data, task);
 }

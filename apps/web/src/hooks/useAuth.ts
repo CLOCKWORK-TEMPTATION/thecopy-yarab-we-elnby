@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import { getCurrentUser } from "@/lib/api";
 
 export function useAuth() {

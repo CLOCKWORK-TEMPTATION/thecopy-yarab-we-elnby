@@ -1,16 +1,18 @@
 import { useCallback, useMemo, useState } from "react";
-import type {
-  Scene,
-  SceneBreakdown,
-  ScenarioAnalysis,
-  Version,
-} from "../../domain/models";
+
 import { AGENTS } from "../../constants";
 import { logError } from "../../domain/errors";
 import {
   getBreakdownScene,
   reanalyzeBreakdownScene,
 } from "../../infrastructure/platform-client";
+
+import type {
+  Scene,
+  SceneBreakdown,
+  ScenarioAnalysis,
+  Version,
+} from "../../domain/models";
 
 interface UseSceneAnalysisOptions {
   scenes: Scene[];

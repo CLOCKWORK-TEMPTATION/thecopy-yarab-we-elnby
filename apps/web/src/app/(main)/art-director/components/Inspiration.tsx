@@ -7,12 +7,17 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useMemo } from "react";
 import { Palette, Sparkles, Image, Wand2 } from "lucide-react";
-import type { ColorPaletteInspiration, MoodBoard, ApiResponse } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
-import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
+import { useState, useCallback, useMemo } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ColorPaletteInspiration, MoodBoard, ApiResponse } from "../types";
+
+
 
 interface AnalysisApiResponse extends ApiResponse<MoodBoard> {
   data?: MoodBoard;

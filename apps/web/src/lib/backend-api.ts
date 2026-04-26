@@ -5,8 +5,8 @@ function normalizeBaseUrl(url?: string | null): string | null {
 
 export function getBackendBaseUrl(): string | null {
   return normalizeBaseUrl(
-    process.env["NEXT_PUBLIC_BACKEND_URL"] ||
-      process.env["NEXT_PUBLIC_API_URL"] ||
+    process.env["NEXT_PUBLIC_BACKEND_URL"] ??
+      process.env["NEXT_PUBLIC_API_URL"] ??
       null
   );
 }
@@ -70,7 +70,7 @@ export async function postToBackend<TResponse = unknown>(
         error?: string;
         message?: string;
       };
-      message = payload.message || payload.error || message;
+      message = payload.message ?? payload.error ?? message;
     } catch {
       // ignore JSON parse failure and keep generic message
     }

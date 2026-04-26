@@ -1,5 +1,6 @@
-import { jsPDF } from "jspdf";
 import DOMPurify from "isomorphic-dompurify";
+import { jsPDF } from "jspdf";
+
 import {
   type ExportRequest,
   buildFullHtmlDocument,

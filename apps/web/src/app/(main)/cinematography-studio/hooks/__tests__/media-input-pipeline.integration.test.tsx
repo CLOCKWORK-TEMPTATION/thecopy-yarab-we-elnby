@@ -9,6 +9,7 @@
 
 import { renderHook, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useMediaInputPipeline } from "../useMediaInputPipeline";
 
 interface MediaDevicesSnapshot {

@@ -1,5 +1,7 @@
 "use client";
 
+import { Bot, Sparkles, Film, Users } from "lucide-react";
+
 import AIChatPanel from "@/app/(main)/directors-studio/components/AIChatPanel";
 import {
   Card,
@@ -8,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Bot, Sparkles, Film, Users } from "lucide-react";
 
 export default function AIAssistantPage() {
   return (

@@ -7,15 +7,11 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  analyzePrompt,
+  comparePrompts,
+  generateEnhancementSuggestions,
+} from "@the-copy/prompt-engineering";
 import {
   Sparkles,
   Wand2,
@@ -41,23 +37,30 @@ import {
   ArrowDown,
   PenTool,
 } from "lucide-react";
+import * as React from "react";
+
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+
 import {
-  analyzePrompt,
-  comparePrompts,
-  generateEnhancementSuggestions,
-} from "@the-copy/prompt-engineering";
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
+import { cn } from "@/lib/utils";
 import type {
   PromptAnalysis,
   PromptTemplate,
   PromptCategory,
 } from "@the-copy/prompt-engineering";
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 const CATEGORY_LABELS: Record<PromptCategory, string> = {
   creative_writing: "كتابة إبداعية",
@@ -85,11 +88,11 @@ const getScoreBgColor = (score: number) => {
   return "bg-red-500/20";
 };
 
-type PromptHistoryEntry = {
+interface PromptHistoryEntry {
   prompt: string;
   timestamp: Date;
   score: number;
-};
+}
 
 interface PersistedPromptHistoryEntry {
   prompt: string;

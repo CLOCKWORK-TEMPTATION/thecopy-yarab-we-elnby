@@ -7,12 +7,15 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import SevenStations from "./seven-stations";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 import { AreaChart, BrainCircuit, Gauge, Network } from "lucide-react";
+
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
+import SevenStations from "./seven-stations";
+
 
 const METRICS = [
   { label: "محطات التحليل", value: "7", icon: AreaChart },

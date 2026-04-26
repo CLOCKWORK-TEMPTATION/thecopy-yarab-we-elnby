@@ -1,4 +1,5 @@
 import { ProcessedFile, Result } from "../core/types";
+
 import { log } from "./loggerService";
 
 // =====================================================
@@ -91,7 +92,7 @@ const FILE_TYPE_HANDLERS: FileTypeHandler[] = [
  */
 function getFileHandler(file: File): FileTypeHandler {
   return (
-    FILE_TYPE_HANDLERS.find((handler) => handler.matches(file)) || {
+    FILE_TYPE_HANDLERS.find((handler) => handler.matches(file)) ?? {
       matches: () => true,
       process: async (_, buffer) => tryDecodeUtf8(buffer),
     }
@@ -113,7 +114,7 @@ async function processFile(file: File): Promise<ProcessedFile | null> {
 
     const processed: ProcessedFile = {
       fileName: file.name,
-      content: textContent || "",
+      content: textContent ?? "",
       sizeBytes: file.size,
       mimeType: file.type,
       textContent: textContent ?? "",

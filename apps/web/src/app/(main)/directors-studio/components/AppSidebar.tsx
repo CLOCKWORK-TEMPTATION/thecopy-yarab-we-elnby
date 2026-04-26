@@ -1,6 +1,18 @@
 "use client";
 
 import {
+  Film,
+  FileText,
+  Layers,
+  Users,
+  Camera,
+  Sparkles,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -12,17 +24,6 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  Film,
-  FileText,
-  Layers,
-  Users,
-  Camera,
-  Sparkles,
-  Settings,
-  HelpCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {

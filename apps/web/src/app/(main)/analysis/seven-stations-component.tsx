@@ -10,10 +10,9 @@
  *   relationship graph, full Arabic / RTL.
  */
 
-import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
-import { useAnalysisMachine } from "./hooks/useAnalysisMachine";
 import { ExportBar } from "./components/ExportBar";
 import { FinalReport } from "./components/FinalReport";
 import { InputPanel } from "./components/InputPanel";
@@ -21,6 +20,7 @@ import { PipelineProgress } from "./components/PipelineProgress";
 import { RelationshipGraph } from "./components/RelationshipGraph";
 import { StationsBoard } from "./components/StationsBoard";
 import { WarningsPanel } from "./components/WarningsPanel";
+import { useAnalysisMachine } from "./hooks/useAnalysisMachine";
 
 const RESUME_QUERY_PARAM = "analysis";
 

@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Plus,
   Maximize2,
@@ -14,6 +11,10 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import * as React from "react";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /**
  * Infinite Canvas Component for Brainstorming
@@ -72,7 +73,7 @@ export function InfiniteCanvas({
 
   // Node state
   const [nodes, setNodes] = React.useState<IdeaNode[]>(
-    externalNodes || [
+    externalNodes ?? [
       {
         id: "1",
         content: "الفكرة الرئيسية",
@@ -363,7 +364,7 @@ export function InfiniteCanvas({
               style={{
                 left: `${(node.position.x / 2000) * 100}%`,
                 top: `${(node.position.y / 1500) * 100}%`,
-                backgroundColor: node.color || "var(--brand)",
+                backgroundColor: node.color ?? "var(--brand)",
               }}
             />
           ))}
@@ -401,7 +402,7 @@ export function InfiniteCanvas({
                   key={`${node.id}-${connId}`}
                   d={getBezierPath(connectedNode, node)}
                   className="infinite-canvas__connection"
-                  style={{ stroke: node.color || "var(--border)" }}
+                  style={{ stroke: node.color ?? "var(--border)" }}
                 />
               );
             })

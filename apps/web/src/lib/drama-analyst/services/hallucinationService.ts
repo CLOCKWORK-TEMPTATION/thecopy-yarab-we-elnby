@@ -6,6 +6,7 @@
  */
 
 import { HallucinationDetection, FactCheck } from "../core/types";
+
 import { log } from "./loggerService";
 import { platformGenAIService } from "./platformGenAIService";
 
@@ -156,7 +157,7 @@ ${JSON.stringify(analysisReport, null, 2).substring(0, 1000)}
 
       return {
         claim,
-        isSupported: parsed.isSupported || false,
+        isSupported: parsed.isSupported ?? false,
         sources: Array.isArray(parsed.sources) ? parsed.sources : [],
         confidence:
           typeof parsed.confidence === "number" ? parsed.confidence : 0.5,

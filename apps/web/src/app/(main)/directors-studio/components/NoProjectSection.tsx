@@ -1,16 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useCreateProject, useProjects } from "@/hooks/useProject";
-import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
-import { directorsEditorLogger } from "@/lib/directors-editor/logger";
-import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
-import type { Project } from "@/types/api";
 import {
   AlertCircle,
   CheckCircle2,
@@ -20,6 +9,20 @@ import {
   PlusCircle,
   Sparkles,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useCreateProject, useProjects } from "@/hooks/useProject";
+import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
+import { directorsEditorLogger } from "@/lib/directors-editor/logger";
+
+import type { Project } from "@/types/api";
+
 
 const normalizeProject = (project: Project): Project => ({
   ...project,

@@ -1,4 +1,3 @@
-import { Outlet, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Palette,
@@ -9,6 +8,7 @@ import {
   Film,
   Wrench,
 } from "lucide-react";
+import { Outlet, NavLink } from "react-router-dom";
 import "./Layout.css";
 
 const navItems = [

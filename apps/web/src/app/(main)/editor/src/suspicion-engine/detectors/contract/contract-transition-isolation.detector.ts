@@ -1,6 +1,7 @@
+import { createSignal } from "@editor/suspicion-engine/helpers";
+
 import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import type { GateBreakEvidence } from "@editor/suspicion-engine/types";
-import { createSignal } from "@editor/suspicion-engine/helpers";
 
 /**
  * @module contract/contract-transition-isolation.detector
@@ -122,7 +123,7 @@ export const detectContractTransitionIsolation: DetectorFn = (
   }
 
   // ── قاعدة 2: السطر يحوي جسمًا إضافيًا بعد كلمة الانتقال ──
-  const bodyMatch = text.match(TRANSITION_BODY_EXTRACT_RE);
+  const bodyMatch = TRANSITION_BODY_EXTRACT_RE.exec(text);
   const body = bodyMatch?.[1]?.trim() ?? "";
 
   // جسم إضافي قصير مثل "TO" يُعد جزءًا من كلمة الانتقال نفسها.

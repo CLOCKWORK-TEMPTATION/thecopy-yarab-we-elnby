@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { renderWithApp, screen, fireEvent } from "../test-utils";
-import { WebcamAnalysisView } from "../features/webcam/index";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { MemorizationView } from "../features/memorization/index";
+import { WebcamAnalysisView } from "../features/webcam/index";
 import { formatTime } from "../lib/utils";
+import { renderWithApp, screen, fireEvent } from "../test-utils";
 
 // ── formatTime utility ──
 

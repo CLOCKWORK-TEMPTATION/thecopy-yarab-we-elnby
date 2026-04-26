@@ -6,11 +6,13 @@
  */
 
 import { useCallback, useState } from "react";
+
 import {
   exportToJSON,
   exportToMarkdown,
   copyToClipboard,
 } from "../../lib/export";
+
 import type { ExportResult } from "../../lib/export";
 import type { Session, DebateMessage } from "../../types";
 
@@ -19,10 +21,10 @@ interface ExportControlsProps {
   messages: DebateMessage[];
 }
 
-type FeedbackState = {
+interface FeedbackState {
   type: "idle" | "success" | "error";
   message?: string;
-};
+}
 
 const FEEDBACK_TIMEOUT = 2500;
 
@@ -32,7 +34,7 @@ function feedbackFromResult(
 ): FeedbackState {
   return result.ok
     ? { type: "success", message: successMsg }
-    : { type: "error", message: result.error || "فشل التصدير" };
+    : { type: "error", message: result.error ?? "فشل التصدير" };
 }
 
 export function ExportControls({ session, messages }: ExportControlsProps) {

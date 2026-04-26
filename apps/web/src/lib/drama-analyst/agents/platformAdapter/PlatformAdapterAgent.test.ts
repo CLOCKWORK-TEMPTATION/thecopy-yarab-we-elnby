@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { PlatformAdapterAgent } from "./PlatformAdapterAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "../../../../core/types";
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { PlatformAdapterAgent } from "./PlatformAdapterAgent";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({

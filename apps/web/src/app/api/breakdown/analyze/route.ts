@@ -1,4 +1,3 @@
-import { logger } from "@/lib/ai/utils/logger";
 
 /**
  * مسار التحليل المُدمج لخدمة البريك دون
@@ -7,10 +6,13 @@ import { logger } from "@/lib/ai/utils/logger";
  * لا يتطلب مصادقة أو خلفية منفصلة.
  */
 
-import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+
+import { NextRequest, NextResponse } from "next/server";
+
 import { segmentScriptLocally } from "@/app/(main)/breakdown/infrastructure/screenplay/local-segmenter";
 import { analyzeBreakdownLocally } from "@/app/api/breakdown/_lib/breakdown-gemini-server";
+import { logger } from "@/lib/ai/utils/logger";
 import { getBackendBaseUrl } from "@/lib/server/backend-proxy";
 
 export async function POST(request: NextRequest) {

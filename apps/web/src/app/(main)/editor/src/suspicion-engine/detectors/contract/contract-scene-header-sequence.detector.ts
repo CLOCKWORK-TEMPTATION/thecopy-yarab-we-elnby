@@ -1,7 +1,8 @@
+import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { ElementType } from "@editor/extensions/classification-types";
 import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import type { ContextContradictionEvidence } from "@editor/suspicion-engine/types";
-import type { ElementType } from "@editor/extensions/classification-types";
-import { createSignal } from "@editor/suspicion-engine/helpers";
 
 /**
  * @module contract/contract-scene-header-sequence.detector
@@ -134,7 +135,7 @@ export const detectContractSceneHeaderSequence: DetectorFn = (
 
   // ── حالة 2: رأس-1 ظهر بعد رأس-2 أو رأس-3 مباشرة داخل نفس الحزمة ──
   if (rank === 1 && isSceneHeader(previousType)) {
-    const previousRank = SCENE_HEADER_RANK.get(previousType as ElementType);
+    const previousRank = SCENE_HEADER_RANK.get(previousType!);
     if (previousRank !== undefined && previousRank > rank) {
       const evidence: ContextContradictionEvidence = {
         signalType: "context-contradiction",

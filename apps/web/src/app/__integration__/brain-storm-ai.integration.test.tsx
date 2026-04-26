@@ -3,15 +3,17 @@
  * تركز على العقد الحالي للمكوّن بدل نصوص قديمة لم تعد موجودة.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import BrainStormContent from "../(main)/brain-storm-ai/src/components/BrainStormContent";
+import { conductDebate } from "../(main)/brain-storm-ai/src/lib/api";
 import {
   exportToJSON,
   exportToMarkdown,
 } from "../(main)/brain-storm-ai/src/lib/export";
-import { conductDebate } from "../(main)/brain-storm-ai/src/lib/api";
+
 import type {
   Session,
   DebateMessage,
@@ -220,10 +222,10 @@ describe("تكامل brain-storm-ai — العقد الحالي", () => {
       style: {},
     } as unknown as HTMLAnchorElement);
     vi.spyOn(document.body, "appendChild").mockImplementation(
-      (node) => node as ChildNode
+      (node) => node
     );
     vi.spyOn(document.body, "removeChild").mockImplementation(
-      (node) => node as ChildNode
+      (node) => node
     );
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();

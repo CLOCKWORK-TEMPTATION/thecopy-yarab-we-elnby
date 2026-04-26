@@ -12,6 +12,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,10 +21,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -30,12 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateCharacter, useUpdateCharacter } from "@/hooks/useProject";
+
 import type {
   Character,
   CreateCharacterRequest,
-  UpdateCharacterRequest,
 } from "@/types/api";
 
 /**
@@ -170,7 +171,7 @@ export default function CharacterFormDialog({
         if (isEditing && character) {
           await updateCharacter.mutateAsync({
             id: character.id,
-            data: payload as UpdateCharacterRequest,
+            data: payload,
           });
           toast(MESSAGES.updateSuccess);
         } else {

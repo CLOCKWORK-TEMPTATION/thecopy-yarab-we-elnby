@@ -1,15 +1,18 @@
 "use client";
 
 import * as React from "react";
-import type { LucideIcon } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+
 import {
   clampToStep,
   getStepPrecision,
   parseNumericInput,
 } from "../../lib/control-utils";
+
+import type { LucideIcon } from "lucide-react";
 
 interface SliderNumberInputProps {
   label: string;

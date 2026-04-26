@@ -27,7 +27,7 @@ export interface LogContext {
 }
 
 /** يسمح بتسجيل debug فقط في بيئة التطوير */
-const canDebug = (): boolean => process.env["NODE_ENV"] === "development";
+const canDebug = (): boolean => process.env.NODE_ENV === "development";
 
 const TEST_QUIET_INFO_SCOPES = new Set([
   "paste.final-review",
@@ -51,7 +51,7 @@ const shouldSuppressTestDiagnosticInfo = (
   message: string,
   context?: LogContext
 ): boolean => {
-  if (process.env["NODE_ENV"] !== "test") return false;
+  if (process.env.NODE_ENV !== "test") return false;
   if (process.env["ENABLE_TEST_DIAGNOSTIC_LOGS"] === "true") return false;
   if (level !== "info") return false;
   const scope = context?.scope ?? "";

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
 import { getCached, setCached, invalidateCache } from "@/lib/redis";
 
 export interface CacheOptions {
@@ -23,7 +24,7 @@ export interface CacheOptions {
  */
 function generateCacheKey(
   request: NextRequest,
-  prefix: string = "api"
+  prefix = "api"
 ): string {
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -66,7 +67,7 @@ export function withCache<T = any>(
             "X-Cache": "HIT",
             "Cache-Control": `public, s-maxage=${ttl}, stale-while-revalidate=${ttl * 2}`,
           },
-        }) as NextResponse<T>;
+        });
       }
 
       // If not in cache, execute handler
@@ -84,7 +85,7 @@ export function withCache<T = any>(
         }) as NextResponse<T>;
       }
 
-      return response as NextResponse<T>;
+      return response;
     } catch {
       // If caching fails, execute handler normally
       const response = await handler(request);

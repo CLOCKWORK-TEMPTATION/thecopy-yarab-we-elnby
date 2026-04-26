@@ -65,7 +65,7 @@ export interface AADParams {
 export function generateSalt(): CryptoBuffer {
   return crypto.getRandomValues(
     new Uint8Array(CRYPTO_CONSTANTS.SALT_LENGTH)
-  ) as CryptoBuffer;
+  );
 }
 
 /**
@@ -74,7 +74,7 @@ export function generateSalt(): CryptoBuffer {
 export function generateIV(): CryptoBuffer {
   return crypto.getRandomValues(
     new Uint8Array(CRYPTO_CONSTANTS.AES_IV_LENGTH)
-  ) as CryptoBuffer;
+  );
 }
 
 /**
@@ -157,7 +157,7 @@ export async function deriveAuthVerifier(
     256 // 256 بت
   );
 
-  return new Uint8Array(verifierBits) as CryptoBuffer;
+  return new Uint8Array(verifierBits);
 }
 
 /**
@@ -166,7 +166,7 @@ export async function deriveAuthVerifier(
 export function buildAAD(params: AADParams): CryptoBuffer {
   const encoder = new TextEncoder();
   const aadString = `${params.userId}:${params.docId}:${params.version}`;
-  return encoder.encode(aadString) as CryptoBuffer;
+  return encoder.encode(aadString);
 }
 
 /**
@@ -184,7 +184,7 @@ export async function encryptData(
   const ciphertext = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",
-      iv: iv as CryptoBuffer,
+      iv: iv,
       additionalData: aad as CryptoBuffer,
       tagLength: CRYPTO_CONSTANTS.AES_TAG_LENGTH,
     },
@@ -232,7 +232,7 @@ export async function wrapDEK(
 
   const wrappedKey = await crypto.subtle.wrapKey("raw", dek, kek, {
     name: "AES-GCM",
-    iv: iv as CryptoBuffer,
+    iv: iv,
     tagLength: CRYPTO_CONSTANTS.AES_TAG_LENGTH,
   });
 
@@ -358,7 +358,7 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return bytes.buffer as ArrayBuffer;
+  return bytes.buffer;
 }
 
 /**

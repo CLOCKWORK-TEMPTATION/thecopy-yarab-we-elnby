@@ -3,14 +3,15 @@
  * @description ثوابت وإعدادات مصنف اللصق التلقائي
  */
 
-import { logger } from "../utils/logger";
-import type { LineType } from "../types";
 import {
   resolveFileImportExtractEndpoint,
   resolveFinalReviewEndpoint,
   resolveSuspicionReviewEndpoint,
   resolveTextExtractEndpoint,
 } from "../utils/backend-endpoints";
+import { logger } from "../utils/logger";
+
+import type { LineType } from "../types";
 
 /** رقم نسخة Command API — v2 */
 export const COMMAND_API_VERSION = "2.0" as const;

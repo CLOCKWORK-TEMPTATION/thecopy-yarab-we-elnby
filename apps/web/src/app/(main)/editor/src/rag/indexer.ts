@@ -1,10 +1,10 @@
+import { getAllCodeFiles, chunkFile } from "./chunker";
 import {
   qdrantClient,
   RAG_COLLECTION_NAME,
   EMBEDDING_DIMENSIONS,
   logger,
 } from "./config";
-import { getAllCodeFiles, chunkFile } from "./chunker";
 import { generateEmbeddingsBatch } from "./embeddings";
 import { CodeChunk } from "./types";
 
@@ -87,7 +87,7 @@ export async function indexCodebase(rootDir: string): Promise<void> {
           payload: {
             content: chunk.content,
             ...chunk.metadata,
-          } as Record<string, unknown>,
+          },
         };
       });
 

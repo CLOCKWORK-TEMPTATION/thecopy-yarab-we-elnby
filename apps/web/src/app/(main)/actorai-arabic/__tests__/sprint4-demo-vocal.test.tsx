@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
 import React from "react";
-import { renderWithApp, screen, fireEvent, waitFor } from "../test-utils";
+import { describe, it, expect } from "vitest";
+
 import { DemoView } from "../features/demo/index";
 import { VocalExercisesView } from "../features/vocal/index";
+import { renderWithApp, screen, fireEvent, waitFor } from "../test-utils";
 
 const activateDemoTab = async (tabName: string) => {
   const tabTrigger = screen.getByRole("tab", { name: tabName });
@@ -144,7 +145,7 @@ describe("VocalExercisesView", () => {
   it("يبدأ التمرين عند الضغط على الزر", () => {
     renderWithApp(<VocalExercisesView />);
     const startButtons = screen.getAllByText("▶️ ابدأ التمرين");
-    fireEvent.click(startButtons[0]!);
+    fireEvent.click(startButtons[0]);
     expect(screen.getByText("⏹️ إنهاء التمرين")).toBeInTheDocument();
     expect(screen.getByText("🎯")).toBeInTheDocument();
     expect(screen.getByText("00:00")).toBeInTheDocument();
@@ -153,7 +154,7 @@ describe("VocalExercisesView", () => {
   it("يعطل أزرار التمارين الأخرى عند تفعيل تمرين", () => {
     renderWithApp(<VocalExercisesView />);
     const startButtons = screen.getAllByText("▶️ ابدأ التمرين");
-    fireEvent.click(startButtons[0]!);
+    fireEvent.click(startButtons[0]);
     // The active exercise button should show "جاري التمرين"
     expect(screen.getByText("⏸️ جاري التمرين...")).toBeInTheDocument();
     // Other buttons should be disabled

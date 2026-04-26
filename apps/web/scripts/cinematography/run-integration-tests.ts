@@ -1,24 +1,27 @@
 import assert from "node:assert/strict";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import {
   createServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
-import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
-import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
+
 // @ts-ignore — لا يوجد @types/jsdom مثبت، jsdom لها types بداخلها من الإصدار 28+
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-import { JSDOM } from "jsdom";
+ 
 import { renderHook, act, cleanup } from "@testing-library/react";
+import { JSDOM } from "jsdom";
 import { NextRequest } from "next/server";
+
 import { createCinematographyInputConfig } from "../../src/app/(main)/cinematography-studio/lib/cinematography-config";
 import {
   createLocalFootageSummary,
   createLocalShotAnalysis,
 } from "../../src/app/(main)/cinematography-studio/lib/local-shot-analysis";
+import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
+
+import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
+import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
 
 interface SuiteResult {
   name: string;
@@ -28,7 +31,7 @@ interface SuiteResult {
 }
 
 interface FixtureServerState {
-  receivedBodies: Array<Record<string, unknown>>;
+  receivedBodies: Record<string, unknown>[];
 }
 
 interface StartedFixtureServer {
@@ -71,7 +74,7 @@ async function runSuite(
     return result;
   } catch (error) {
     const message =
-      error instanceof Error ? error.stack || error.message : String(error);
+      error instanceof Error ? error.stack ?? error.message : String(error);
     const result: SuiteResult = {
       name,
       status: "failed",
@@ -110,7 +113,7 @@ async function startFixtureServer(): Promise<StartedFixtureServer> {
 
   const server = createServer(
     async (request: IncomingMessage, response: ServerResponse) => {
-      const requestUrl = new URL(request.url || "/", "http://127.0.0.1");
+      const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
       const fixtureMode =
         requestUrl.searchParams.get("fixtureMode") === "fail"
           ? "fail"
@@ -427,7 +430,7 @@ async function runRouteSuite(): Promise<void> {
 
     assert.equal(missingImageResponse.status, 400);
     assert.equal(missingImagePayload.success, false);
-    assert.match(missingImagePayload.error || "", /Image is required/);
+    assert.match(missingImagePayload.error ?? "", /Image is required/);
 
     const failureForm = new FormData();
     failureForm.set("image", createFixtureImageFile());
@@ -446,7 +449,7 @@ async function runRouteSuite(): Promise<void> {
 
     assert.equal(failureResponse.status, 503);
     assert.equal(failurePayload.success, false);
-    assert.match(failurePayload.error || "", /Fixture backend failure/);
+    assert.match(failurePayload.error ?? "", /Fixture backend failure/);
   } finally {
     await fixture.close();
     process.env.BACKEND_URL = snapshot.backendUrl;
@@ -493,7 +496,7 @@ async function runMediaHookSuite(): Promise<void> {
       );
     });
 
-    assert.match(result.current.state.error || "", /صيغة الملف غير مدعومة/);
+    assert.match(result.current.state.error ?? "", /صيغة الملف غير مدعومة/);
     assert.ok(warnCalls.some((call) => call.includes("media error")));
     assert.ok(warnCalls.some((call) => call.includes("WARN")));
 
@@ -508,7 +511,7 @@ async function runMediaHookSuite(): Promise<void> {
     });
 
     assert.equal(result.current.state.cameraPermission, "unsupported");
-    assert.match(result.current.state.error || "", /لا يدعم الوصول للكاميرا/);
+    assert.match(result.current.state.error ?? "", /لا يدعم الوصول للكاميرا/);
 
     unmount();
   } finally {
@@ -593,7 +596,7 @@ async function runCameraBindingSuite(): Promise<void> {
   // يثبت أن البث يُربط بعنصر الفيديو حتى لو ركّب الـ video بعد منح الإذن.
   const restoreDom = installDomEnvironment();
   try {
-    type FakeTrack = { stop: () => void };
+    interface FakeTrack { stop: () => void }
     const stoppedTracks: FakeTrack[] = [];
     const fakeStream = {
       getTracks: () => [{ stop: () => stoppedTracks.push({ stop: () => {} }) }],

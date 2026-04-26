@@ -1,9 +1,11 @@
 // CineArchitect AI - On-Set Virtual Set Editor
 // محرر الديكورات الافتراضي في الموقع
 
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface VirtualSetElement {
   id: string;
@@ -90,7 +92,7 @@ interface Vector3D {
   z: number;
 }
 
-const virtualSets: Map<string, VirtualSet> = new Map();
+const virtualSets = new Map<string, VirtualSet>();
 
 export class VirtualSetEditor implements Plugin {
   id = "virtual-set-editor";
@@ -197,20 +199,20 @@ export class VirtualSetEditor implements Plugin {
 
     const element: VirtualSetElement = {
       id: uuidv4(),
-      name: data.element.name || "New Element",
-      type: data.element.type || "prop",
-      position: data.element.position || { x: 0, y: 0, z: 0 },
-      rotation: data.element.rotation || { x: 0, y: 0, z: 0 },
-      scale: data.element.scale || { x: 1, y: 1, z: 1 },
-      material: data.element.material || {
+      name: data.element.name ?? "New Element",
+      type: data.element.type ?? "prop",
+      position: data.element.position ?? { x: 0, y: 0, z: 0 },
+      rotation: data.element.rotation ?? { x: 0, y: 0, z: 0 },
+      scale: data.element.scale ?? { x: 1, y: 1, z: 1 },
+      material: data.element.material ?? {
         type: "solid",
         color: "#808080",
         roughness: 0.5,
         metalness: 0,
         opacity: 1,
       },
-      visibility: data.element.visibility || "visible",
-      layer: data.element.layer || "virtual",
+      visibility: data.element.visibility ?? "visible",
+      layer: data.element.layer ?? "virtual",
       ...definedProps({
         cgiAsset: data.element.cgiAsset,
       }),
@@ -294,11 +296,11 @@ export class VirtualSetEditor implements Plugin {
     if (data.addNew) {
       const newLight: LightingAdjustment = {
         id: uuidv4(),
-        type: data.adjustment.type || "key",
-        color: data.adjustment.color || "#ffffff",
+        type: data.adjustment.type ?? "key",
+        color: data.adjustment.color ?? "#ffffff",
         intensity: data.adjustment.intensity ?? 1.0,
         temperature: data.adjustment.temperature ?? 5600,
-        position: data.adjustment.position || { x: 0, y: 3, z: 0 },
+        position: data.adjustment.position ?? { x: 0, y: 3, z: 0 },
         softness: data.adjustment.softness ?? 0.5,
         castShadows: data.adjustment.castShadows ?? true,
       };
@@ -376,12 +378,12 @@ export class VirtualSetEditor implements Plugin {
 
     const cgi: CGIExtension = {
       id: uuidv4(),
-      name: data.extension.name || "CGI Extension",
-      type: data.extension.type || "set-extension",
-      assetUrl: data.extension.assetUrl || "",
-      position: data.extension.position || { x: 0, y: 0, z: -10 },
-      scale: data.extension.scale || { x: 1, y: 1, z: 1 },
-      blendMode: data.extension.blendMode || "normal",
+      name: data.extension.name ?? "CGI Extension",
+      type: data.extension.type ?? "set-extension",
+      assetUrl: data.extension.assetUrl ?? "",
+      position: data.extension.position ?? { x: 0, y: 0, z: -10 },
+      scale: data.extension.scale ?? { x: 1, y: 1, z: 1 },
+      blendMode: data.extension.blendMode ?? "normal",
     };
 
     set.cgiExtensions.push(cgi);
@@ -444,7 +446,7 @@ export class VirtualSetEditor implements Plugin {
 
   private async shareVision(data: {
     setId: string;
-    collaborators: Array<{ name: string; role: string; email?: string }>;
+    collaborators: { name: string; role: string; email?: string }[];
   }): Promise<PluginOutput> {
     const set = virtualSets.get(data.setId);
     if (!set) {
@@ -510,8 +512,8 @@ export class VirtualSetEditor implements Plugin {
       saturation: data.grading.saturation ?? 1,
       temperature: data.grading.temperature ?? 0,
       tint: data.grading.tint ?? 0,
-      shadows: data.grading.shadows || "#000000",
-      highlights: data.grading.highlights || "#ffffff",
+      shadows: data.grading.shadows ?? "#000000",
+      highlights: data.grading.highlights ?? "#ffffff",
       lut: data.grading.lut,
     };
 

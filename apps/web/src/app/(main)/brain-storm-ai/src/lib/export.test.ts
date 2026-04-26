@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Session, DebateMessage } from "../types";
+
 import {
   exportToJSON,
   exportToMarkdown,
@@ -7,6 +7,8 @@ import {
   prepareExportData,
   buildMarkdownContent,
 } from "./export";
+
+import type { Session, DebateMessage } from "../types";
 import type { ExportData } from "./export";
 
 function makeSession(overrides?: Partial<Session>): Session {
@@ -117,10 +119,10 @@ describe("exportToJSON", () => {
       style: {},
     } as unknown as HTMLAnchorElement);
     vi.spyOn(document.body, "appendChild").mockImplementation(
-      (n) => n as ChildNode
+      (n) => n
     );
     vi.spyOn(document.body, "removeChild").mockImplementation(
-      (n) => n as ChildNode
+      (n) => n
     );
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();
@@ -150,10 +152,10 @@ describe("exportToMarkdown", () => {
       style: {},
     } as unknown as HTMLAnchorElement);
     vi.spyOn(document.body, "appendChild").mockImplementation(
-      (n) => n as ChildNode
+      (n) => n
     );
     vi.spyOn(document.body, "removeChild").mockImplementation(
-      (n) => n as ChildNode
+      (n) => n
     );
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();

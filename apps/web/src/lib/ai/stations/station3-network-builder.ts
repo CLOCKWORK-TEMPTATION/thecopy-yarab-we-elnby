@@ -1,8 +1,9 @@
+import { toText, safeSub } from "../utils/text-utils";
+
 import { BaseStation, StationInput } from "./base-station";
 import { GeminiService, GeminiModel } from "./gemini-service";
 import { Station1Output } from "./station1-text-analysis";
 import { Station2Output } from "./station2-conceptual-analysis";
-import { toText, safeSub } from "../utils/text-utils";
 
 // Define types locally for now
 export enum RelationshipType {
@@ -106,7 +107,7 @@ export interface CharacterArc {
   characterName: string;
   arcType: "positive" | "negative" | "flat" | "transformational" | "fall";
   arcDescription: string;
-  keyMoments: Array<{ timestamp: Date; description: string; impact: number }>;
+  keyMoments: { timestamp: Date; description: string; impact: number }[];
   transformation: string;
   confidence: number;
 }
@@ -124,9 +125,9 @@ export interface ConflictNetwork {
 }
 
 export class ConflictNetworkImpl implements ConflictNetwork {
-  public characters: Map<string, Character> = new Map();
-  public relationships: Map<string, Relationship> = new Map();
-  public conflicts: Map<string, Conflict> = new Map();
+  public characters = new Map<string, Character>();
+  public relationships = new Map<string, Relationship>();
+  public conflicts = new Map<string, Conflict>();
 
   constructor(
     public id: string,
@@ -222,20 +223,20 @@ export interface Station3Output {
     intensityProgression: number[];
   };
   characterArcs: Map<string, CharacterArc>;
-  pivotPoints: Array<{
+  pivotPoints: {
     timestamp: string;
     description: string;
     impact: number;
     affectedElements: string[];
-  }>;
+  }[];
   diagnosticsReport: DiagnosticReport;
   uncertaintyReport: {
     confidence: number;
-    uncertainties: Array<{
+    uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
-    }>;
+    }[];
   };
   metadata: {
     analysisTimestamp: Date;
@@ -770,7 +771,7 @@ class NetworkAnalyzer {
     const mainConflict = conflicts.reduce(
       (strongest, current) =>
         current.strength > strongest.strength ? current : strongest,
-      conflicts[0] || this.createDefaultConflict()
+      conflicts[0] ?? this.createDefaultConflict()
     );
 
     // تحديد الصراعات الثانوية
@@ -782,7 +783,7 @@ class NetworkAnalyzer {
     const conflictTypes = new Map<string, number>();
     for (const conflict of conflicts) {
       const typeName = conflict.subject.toString();
-      conflictTypes.set(typeName, (conflictTypes.get(typeName) || 0) + 1);
+      conflictTypes.set(typeName, (conflictTypes.get(typeName) ?? 0) + 1);
     }
 
     // حساب تقدم شدة الصراع
@@ -908,13 +909,13 @@ class NetworkAnalyzer {
     _character: Character,
     conflicts: Conflict[],
     relationships: Relationship[]
-  ): Array<{ timestamp: Date; description: string; impact: number }> {
+  ): { timestamp: Date; description: string; impact: number }[] {
     // استخراج اللحظات الرئيسية من الصراعات والعلاقات
-    const keyMoments: Array<{
+    const keyMoments: {
       timestamp: Date;
       description: string;
       impact: number;
-    }> = [];
+    }[] = [];
 
     // إضافة لحظات من الصراعات
     for (const conflict of conflicts) {
@@ -981,19 +982,19 @@ class NetworkAnalyzer {
     network: ConflictNetwork,
     _context: Station3Context
   ): Promise<
-    Array<{
+    {
       timestamp: string;
       description: string;
       impact: number;
       affectedElements: string[];
-    }>
+    }[]
   > {
-    const pivotPoints: Array<{
+    const pivotPoints: {
       timestamp: string;
       description: string;
       impact: number;
       affectedElements: string[];
-    }> = [];
+    }[] = [];
 
     // تحليل الصراعات للعثور على نقاط التحول
     for (const conflict of network.conflicts.values()) {
@@ -1006,7 +1007,7 @@ class NetworkAnalyzer {
 
         pivotPoints.push({
           timestamp:
-            conflict.timestamps?.[0]?.toISOString() || new Date().toISOString(),
+            conflict.timestamps?.[0]?.toISOString() ?? new Date().toISOString(),
           description: `نقطة تحول: ${conflict.name}`,
           impact: conflict.strength / 10,
           affectedElements: affectedCharacters,
@@ -1170,17 +1171,17 @@ export class Station3NetworkBuilder extends BaseStation {
     conflicts: Conflict[]
   ): {
     confidence: number;
-    uncertainties: Array<{
+    uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
-    }>;
+    }[];
   } {
-    const uncertainties: Array<{
+    const uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
-    }> = [];
+    }[] = [];
 
     // حساب الثقة بناءً على جودة البيانات
     let confidence = 0.8; // قيمة ابتدائية
@@ -1261,14 +1262,14 @@ export class Station3NetworkBuilder extends BaseStation {
       return {
         id: `char_${index + 1}`,
         name: character.name,
-        description: analysis?.role || "شخصية رئيسية",
+        description: analysis?.role ?? "شخصية رئيسية",
         profile: {
-          personalityTraits: (analysis?.personalityTraits || []).join(", "),
+          personalityTraits: (analysis?.personalityTraits ?? []).join(", "),
           motivationsGoals: [
-            ...(analysis?.motivations || []),
-            ...(analysis?.goals || []),
+            ...(analysis?.motivations ?? []),
+            ...(analysis?.goals ?? []),
           ].join(", "),
-          potentialArc: analysis?.arc?.description || "",
+          potentialArc: analysis?.arc?.description ?? "",
         },
         metadata: {
           source: "Station1_Analysis",

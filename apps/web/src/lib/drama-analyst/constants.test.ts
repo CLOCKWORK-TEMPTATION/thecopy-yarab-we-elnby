@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import {
   MIN_FILES_REQUIRED,
   TASKS_REQUIRING_COMPLETION_SCOPE,

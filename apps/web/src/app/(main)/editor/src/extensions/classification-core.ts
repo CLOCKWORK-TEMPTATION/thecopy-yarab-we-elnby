@@ -1,19 +1,3 @@
-import type {
-  ClassifiedLine,
-  DetectorFinding,
-  ElementType,
-  LLMReviewPacket,
-  SuspicionRoutingBand,
-  SuspiciousLine,
-} from "./classification-types";
-import type { SequenceDisagreement } from "./structural-sequence-optimizer";
-import {
-  hasActionVerbStructure,
-  isActionCueLine,
-  isActionVerbStart,
-  matchesActionStartPattern,
-  startsWithBullet,
-} from "./text-utils";
 import {
   CONVERSATIONAL_MARKERS_RE,
   FULL_ACTION_VERB_SET,
@@ -26,16 +10,33 @@ import {
   VOCATIVE_RE,
 } from "./arabic-patterns";
 import {
-  CLASSIFICATION_SEQUENCE_VIOLATION_SEVERITY,
-  CLASSIFICATION_VALID_SEQUENCES,
-  suggestTypeFromClassificationSequence,
-} from "./classification-sequence-rules";
-import {
   calculateTotalSuspicion,
   computeEscalationScore,
   extractContextWindow,
   isCriticalMismatchFromFindings,
 } from "./classification-scoring";
+import {
+  CLASSIFICATION_SEQUENCE_VIOLATION_SEVERITY,
+  CLASSIFICATION_VALID_SEQUENCES,
+  suggestTypeFromClassificationSequence,
+} from "./classification-sequence-rules";
+import {
+  hasActionVerbStructure,
+  isActionCueLine,
+  isActionVerbStart,
+  matchesActionStartPattern,
+  startsWithBullet,
+} from "./text-utils";
+
+import type {
+  ClassifiedLine,
+  DetectorFinding,
+  ElementType,
+  LLMReviewPacket,
+  SuspicionRoutingBand,
+  SuspiciousLine,
+} from "./classification-types";
+import type { SequenceDisagreement } from "./structural-sequence-optimizer";
 
 export interface ReviewerConfig {
   readonly contextRadius: number;
@@ -139,7 +140,7 @@ const hasEmbeddedNarrativeActionInDialogue = (text: string): boolean => {
   const normalized = (text ?? "").replace(/[\u200f\u200e\ufeff]/g, "").trim();
   if (!normalized) return false;
 
-  const thenMatch = normalized.match(CONNECTOR_THEN_ACTION_RE);
+  const thenMatch = CONNECTOR_THEN_ACTION_RE.exec(normalized);
   if (thenMatch?.[1]) {
     const verbToken = cleanArabicToken(thenMatch[1]);
     if (
@@ -528,7 +529,7 @@ const createSplitCharacterFragmentDetector = (): SuspicionDetector => ({
     if (hasStrongNarrativeActionSignal(features.normalized)) return null;
 
     const nextLine = context[linePosition + 1];
-    if (!nextLine || nextLine.assignedType !== "character") return null;
+    if (nextLine?.assignedType !== "character") return null;
 
     const nextFeatures = extractTextFeatures(nextLine.text);
     if (!nextFeatures.endsWithColon) return null;

@@ -22,7 +22,7 @@ const TRANSITION_PHRASES = new Set([
   "قطع مطابق",
 ]);
 const CHARACTER_PATTERN = /^.{1,40}\s*:\s*$/;
-const ACTION_PREFIX_PATTERN = /^[\-–—(]/;
+const ACTION_PREFIX_PATTERN = /^[-–—(]/;
 
 function normalizeLine(line: string): string {
   return line.replace(/\u00A0/g, " ").trim();

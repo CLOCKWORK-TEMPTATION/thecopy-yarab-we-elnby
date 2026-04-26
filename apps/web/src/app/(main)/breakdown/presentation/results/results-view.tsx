@@ -1,4 +1,3 @@
-import React from "react";
 import {
   BarChart3,
   BrainCircuit,
@@ -12,6 +11,17 @@ import {
   MapPin,
   RotateCcw,
 } from "lucide-react";
+import React from "react";
+
+
+import { useSceneAnalysis } from "../../application/workspace/use-scene-analysis";
+import { useToastQueue } from "../../application/workspace/use-toast-queue";
+import CastBreakdownView from "../cast/cast-breakdown-view";
+import ToastContainer from "../shared/toast-container";
+
+import AgentCard from "./agent-card";
+import ScenarioNavigator from "./scenario-navigator";
+
 import type {
   BreakdownReport,
   Scene,
@@ -19,12 +29,6 @@ import type {
   ScenarioAnalysis,
   TechnicalBreakdownKey,
 } from "../../domain/models";
-import { useToastQueue } from "../../application/workspace/use-toast-queue";
-import { useSceneAnalysis } from "../../application/workspace/use-scene-analysis";
-import CastBreakdownView from "../cast/cast-breakdown-view";
-import AgentCard from "./agent-card";
-import ScenarioNavigator from "./scenario-navigator";
-import ToastContainer from "../shared/toast-container";
 
 interface ResultsViewProps {
   report: BreakdownReport | null;
@@ -61,7 +65,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
       return [];
     }
 
-    return analysis[key] as string[];
+    return analysis[key];
   };
 
   return (

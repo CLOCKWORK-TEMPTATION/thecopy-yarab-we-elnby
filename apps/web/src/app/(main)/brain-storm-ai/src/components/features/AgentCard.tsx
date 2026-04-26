@@ -7,19 +7,25 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useMemo } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Badge } from "@/components/ui/badge";
-import { getCollaborators } from "../../lib/catalog";
+import { Button } from "@/components/ui/button";
+
 import {
   STATUS_COLORS,
   CATEGORY_COLORS,
   CATEGORY_NAMES,
 } from "../../constants";
-import type { BrainstormAgentDefinition, AgentState } from "../../types";
+import { getCollaborators } from "../../lib/catalog";
+
 import AgentIconComponent from "./AgentIconComponent";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { BrainstormAgentDefinition, AgentState } from "../../types";
+
+
 
 interface AgentCardProps {
   agent: BrainstormAgentDefinition;

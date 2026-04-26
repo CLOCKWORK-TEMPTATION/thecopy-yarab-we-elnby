@@ -38,14 +38,14 @@ declare global {
 
 class AnalyticsService {
   private config: GA4Config;
-  private isInitialized: boolean = false;
+  private isInitialized = false;
   private userProperties: UserProperties = {};
   private customDimensions: Record<string, any> = {};
 
   constructor(config: Partial<GA4Config>) {
     this.config = {
       measurementId: "",
-      debug: process.env["NODE_ENV"] === "development",
+      debug: process.env.NODE_ENV === "development",
       enableEnhancedEcommerce: true,
       enableUserProperties: true,
       enableCustomDimensions: true,
@@ -93,7 +93,7 @@ class AnalyticsService {
     document.head.appendChild(script);
 
     // Initialize gtag
-    window.dataLayer = window.dataLayer || [];
+    window.dataLayer = window.dataLayer ?? [];
     window.gtag = function () {
       window.dataLayer?.push(arguments);
     };
@@ -260,7 +260,7 @@ class AnalyticsService {
       window.addEventListener("load", () => {
         const navigation = performance.getEntriesByType(
           "navigation"
-        )[0] as PerformanceNavigationTiming;
+        )[0]!;
 
         this.sendEvent("navigation_timing", {
           dom_content_loaded: Math.round(
@@ -293,7 +293,7 @@ class AnalyticsService {
     // Track unhandled promise rejections
     window.addEventListener("unhandledrejection", (event) => {
       this.sendEvent("unhandled_promise_rejection", {
-        error_message: event.reason?.message || "Unknown error",
+        error_message: event.reason?.message ?? "Unknown error",
         page_location: window.location.href,
       });
     });
@@ -415,7 +415,7 @@ class AnalyticsService {
     });
   }
 
-  public trackFeatureUsage(feature: string, usage_count: number = 1): void {
+  public trackFeatureUsage(feature: string, usage_count = 1): void {
     this.sendEvent("feature_usage", {
       event_category: "Feature Usage",
       feature: feature,

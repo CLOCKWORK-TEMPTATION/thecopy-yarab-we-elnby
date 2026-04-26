@@ -1,8 +1,9 @@
 "use client";
 
-import { logger } from "@/lib/ai/utils/logger";
 import { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
+import { logger } from "@/lib/ai/utils/logger";
 
 export default function Error({
   error,

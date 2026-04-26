@@ -6,13 +6,14 @@
  */
 
 import { RAGContext, RetrievedChunk } from "../core/types";
+
 import { log } from "./loggerService";
 
 export class RAGService {
   private chunkSize: number;
   private overlap: number;
 
-  constructor(chunkSize: number = 500, overlap: number = 50) {
+  constructor(chunkSize = 500, overlap = 50) {
     this.chunkSize = chunkSize;
     this.overlap = overlap;
   }
@@ -25,7 +26,7 @@ export class RAGService {
     query: string,
     originalText: string,
     analysisReport: any,
-    topK: number = 5
+    topK = 5
   ): Promise<RAGContext> {
     log.debug("Retrieving context for query", null, "RAGService");
 

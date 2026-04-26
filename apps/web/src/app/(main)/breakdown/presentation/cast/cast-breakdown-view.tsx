@@ -8,12 +8,6 @@
  * مع تحليلات متقدمة وتصدير للملفات.
  */
 
-import React, { useState, useMemo } from "react";
-import {
-  CastMember,
-  ExtendedCastMember,
-  CastAnalysisResult,
-} from "../../domain/models";
 import {
   UserCircle,
   Star,
@@ -40,7 +34,14 @@ import {
   Users2,
   Shield,
 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+
 import { logError } from "../../domain/errors";
+import {
+  CastMember,
+  ExtendedCastMember,
+  CastAnalysisResult,
+} from "../../domain/models";
 
 // ============================================
 // الأنواع
@@ -114,7 +115,7 @@ function exportCastToCSV(members: CastMember[] | ExtendedCastMember[]): string {
     const extended = member as ExtendedCastMember;
     return [
       member.name,
-      extended.nameArabic || "",
+      extended.nameArabic ?? "",
       extended.roleCategory || member.role,
       extended.ageRange || member.age,
       member.gender,
@@ -454,14 +455,14 @@ const StatisticsPanel: React.FC<{
     const male = cast.filter((c) => c.gender === "Male").length;
     const female = cast.filter((c) => c.gender === "Female").length;
     const totalDialogue = cast.reduce(
-      (sum, c) => sum + (c.dialogueCount || 0),
+      (sum, c) => sum + (c.dialogueCount ?? 0),
       0
     );
 
     const ageGroups: Record<string, number> = {};
     cast.forEach((c) => {
       const age = c.ageRange || "Unknown";
-      ageGroups[age] = (ageGroups[age] || 0) + 1;
+      ageGroups[age] = (ageGroups[age] ?? 0) + 1;
     });
 
     return { total, leads, supporting, male, female, totalDialogue, ageGroups };
@@ -531,7 +532,7 @@ const NetworkVisualization: React.FC<{
 
   // Find relationships
   const edges = useMemo(() => {
-    const connections: Array<{ from: number; to: number; type: string }> = [];
+    const connections: { from: number; to: number; type: string }[] = [];
     nodes.forEach((node, i) => {
       node.relationships?.forEach((rel) => {
         const targetIndex = nodes.findIndex((n) => n.name === rel.character);
@@ -631,14 +632,14 @@ const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({
       const extended = member as ExtendedCastMember;
       return {
         ...member,
-        dialogueCount: extended.scenePresence?.dialogueLines || 0,
-        firstScene: extended.scenePresence?.sceneNumbers?.[0] || 1,
+        dialogueCount: extended.scenePresence?.dialogueLines ?? 0,
+        firstScene: extended.scenePresence?.sceneNumbers?.[0] ?? 1,
         lastScene:
           extended.scenePresence?.sceneNumbers?.[
             extended.scenePresence.sceneNumbers.length - 1
-          ] || 1,
+          ] ?? 1,
         totalScenes: 10, // Default, should be passed from props
-        sceneAppearances: extended.scenePresence?.sceneNumbers || [],
+        sceneAppearances: extended.scenePresence?.sceneNumbers ?? [],
       } as CastCardData;
     });
   }, [cast]);
@@ -697,7 +698,7 @@ const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({
           comparison = a.gender.localeCompare(b.gender);
           break;
         case "dialogueCount":
-          comparison = (a.dialogueCount || 0) - (b.dialogueCount || 0);
+          comparison = (a.dialogueCount ?? 0) - (b.dialogueCount ?? 0);
           break;
       }
 
@@ -750,7 +751,7 @@ const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({
   };
 
   const handleExportJSON = () => {
-    const data = analysisResult || {
+    const data = analysisResult ?? {
       members: sortedCast,
       summary: {},
       insights: [],

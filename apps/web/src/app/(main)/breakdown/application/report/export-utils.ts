@@ -91,7 +91,7 @@ export function exportBreakdownToMarkdown(
  * (للمشاهد وبيانات الإنتاج)
  */
 export function exportBreakdownToCSV(
-  scenes: Array<Record<string, unknown>>,
+  scenes: Record<string, unknown>[],
   scriptTitle: string
 ): void {
   if (!scenes || scenes.length === 0) return;
@@ -161,7 +161,7 @@ function formatSectionTitle(key: string): string {
     makeup: "المكياج",
     extras: "الكومبارس",
   };
-  return titles[key] || key;
+  return titles[key] ?? key;
 }
 
 /**

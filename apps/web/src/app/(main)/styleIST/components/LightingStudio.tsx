@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useRef, useState, Suspense, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
   useTexture,
@@ -13,9 +11,13 @@ import {
   Environment,
   Html,
 } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import React, { useRef, useState, Suspense, useEffect } from "react";
 import * as THREE from "three";
-import WebGLErrorBoundary from "./WebGLErrorBoundary";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import WebGLErrorBoundary from "./WebGLErrorBoundary";
 
 type FilmLook = "STD" | "NOIR" | "MATRIX" | "KODAK" | "BLADERUNNER";
 
@@ -44,7 +46,7 @@ const Mannequin = ({ textureUrl, color }: LightingStudioProps) => {
       <mesh ref={meshRef} position={[0, 1.5, 0]} castShadow receiveShadow>
         <capsuleGeometry args={[0.5, 2, 4, 16]} />
         <meshStandardMaterial
-          color={textureUrl ? "white" : color || "#cccccc"}
+          color={textureUrl ? "white" : color ?? "#cccccc"}
           map={textureUrl ? texture : null}
           roughness={0.7}
           metalness={0.1}

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "./shared/standardAgentPattern";
 import {
   executeAgentTask,
   isAgentUpgraded,
@@ -11,7 +14,6 @@ import {
   creativeAgent,
   characterVoiceAgent,
 } from "./upgradedAgents";
-import { StandardAgentInput } from "./shared/standardAgentPattern";
 
 // Mock the geminiService
 vi.mock("../services/geminiService", () => ({

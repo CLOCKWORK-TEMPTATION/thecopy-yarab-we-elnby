@@ -32,7 +32,7 @@ export function extractSectionRegex(
   const pattern = new RegExp(`===\\s*${escapedTitle}\\s*===`, "i");
   const match = text.match(pattern);
 
-  if (!match || match.index === undefined) {
+  if (match?.index === undefined) {
     return "";
   }
 

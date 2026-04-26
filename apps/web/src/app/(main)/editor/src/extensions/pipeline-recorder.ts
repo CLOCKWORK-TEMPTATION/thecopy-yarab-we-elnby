@@ -330,7 +330,7 @@ class PipelineRecorder {
       metadata,
     });
 
-    const snaps = this._currentRun.snapshots as PipelineSnapshot[];
+    const snaps = this._currentRun.snapshots;
     snaps.push(snap);
 
     let changes = 0;
@@ -340,7 +340,7 @@ class PipelineRecorder {
       const prev = snaps.at(-2);
       if (prev) {
         const diff = computeDiff(prev, snap);
-        (this._currentRun.diffs as StageDiff[]).push(diff);
+        (this._currentRun.diffs).push(diff);
         changes = diff.changes.length;
         latencyMs = diff.latencyMs;
       }
@@ -364,14 +364,14 @@ class PipelineRecorder {
    */
   logAICorrection(correction: RecordedAICorrection): void {
     if (!this._currentRun) return;
-    (this._currentRun.aiCorrections as RecordedAICorrection[]).push(correction);
+    (this._currentRun.aiCorrections).push(correction);
     this._emit({ kind: "ai-correction", correction });
   }
 
   logApproval(approval: RecordedApproval): void {
     const targetRun = this._currentRun ?? this._lastCompletedRun;
     if (!targetRun) return;
-    (targetRun.approvals as RecordedApproval[]).push(approval);
+    (targetRun.approvals).push(approval);
     this._emit({ kind: "approval", approval });
   }
 

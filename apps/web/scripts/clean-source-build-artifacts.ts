@@ -16,7 +16,7 @@ interface CleanerDependencies {
 const defaultDependencies: CleanerDependencies = {
   pathExists: existsSync,
   readDirectory: async (targetPath) =>
-    readdir(targetPath, { withFileTypes: true }) as Promise<Dirent[]>,
+    readdir(targetPath, { withFileTypes: true }),
   removePath: async (targetPath) => {
     await rm(targetPath, { recursive: true, force: true });
   },

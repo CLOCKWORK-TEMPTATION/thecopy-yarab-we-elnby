@@ -1,8 +1,9 @@
-import type { SceneBreakdown } from "../../domain/models";
 import {
   analyzeBreakdownProject,
   bootstrapBreakdownProject,
 } from "../platform-client";
+
+import type { SceneBreakdown } from "../../domain/models";
 
 export const analyzeScene = async (
   sceneContent: string

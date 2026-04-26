@@ -1,8 +1,9 @@
 // frontend/src/lib/ai/rag/context-retriever.ts
 
 import { GeminiService } from "../stations/gemini-service";
-import { TextChunk, ContextMap } from "./text-chunking";
 import { logger } from "../utils/logger";
+
+import { TextChunk, ContextMap } from "./text-chunking";
 
 export interface RetrievalOptions {
   maxChunks?: number;
@@ -75,13 +76,13 @@ export class ContextRetriever {
       // استخراج الكيانات والمواضيع باستخدام Gemini
       const entities = await this.extractEntities(chunk.content);
       for (const entity of entities) {
-        const count = contextMap.entities.get(entity) || 0;
+        const count = contextMap.entities.get(entity) ?? 0;
         contextMap.entities.set(entity, count + 1);
       }
 
       const themes = await this.extractThemes(chunk.content);
       for (const theme of themes) {
-        const count = contextMap.themes.get(theme) || 0;
+        const count = contextMap.themes.get(theme) ?? 0;
         contextMap.themes.set(theme, count + 1);
       }
     }
@@ -102,8 +103,8 @@ export class ContextRetriever {
     options: RetrievalOptions = {}
   ): Promise<RetrievalResult> {
     const startTime = Date.now();
-    const maxChunks = options.maxChunks || 5;
-    const minRelevanceScore = options.minRelevanceScore || 0.3;
+    const maxChunks = options.maxChunks ?? 5;
+    const minRelevanceScore = options.minRelevanceScore ?? 0.3;
 
     // حساب درجات الصلة لكل جزء
     const relevanceScores = new Map<string, number>();
@@ -120,11 +121,11 @@ export class ContextRetriever {
     // ترتيب الأجزاء حسب درجة الصلة
     const sortedChunks = chunks
       .filter(
-        (chunk) => (relevanceScores.get(chunk.id) || 0) >= minRelevanceScore
+        (chunk) => (relevanceScores.get(chunk.id) ?? 0) >= minRelevanceScore
       )
       .sort(
         (a, b) =>
-          (relevanceScores.get(b.id) || 0) - (relevanceScores.get(a.id) || 0)
+          (relevanceScores.get(b.id) ?? 0) - (relevanceScores.get(a.id) ?? 0)
       )
       .slice(0, maxChunks);
 
@@ -194,7 +195,7 @@ export class ContextRetriever {
       return words
         .filter(
           (word) =>
-            word.length > 2 && word[0] && word[0] === word[0].toUpperCase()
+            word.length > 2 && word[0] === word[0]?.toUpperCase()
         )
         .slice(0, 10); // تحديد العدد لتجنب القوائم الطويلة
     }
@@ -241,7 +242,7 @@ export class ContextRetriever {
       const entities = words
         .filter(
           (word) =>
-            word.length > 2 && word[0] && word[0] === word[0].toUpperCase()
+            word.length > 2 && word[0] === word[0]?.toUpperCase()
         )
         .slice(0, 10); // تحديد العدد
 

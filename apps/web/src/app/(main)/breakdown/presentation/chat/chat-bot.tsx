@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2, Bot } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+
 import { useBreakdownChat } from "../../application/workspace/use-breakdown-chat";
+
 import ChatMessage from "./chat-message";
 
 const ChatBot: React.FC = () => {

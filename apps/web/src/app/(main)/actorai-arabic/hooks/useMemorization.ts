@@ -7,13 +7,16 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+
 import { postToBackend } from "@/lib/backend-api";
-import type { MemorizationStats } from "../types";
+
+import { createDeterministicMemorizationMask } from "../lib/studio-engines";
 import {
   VALIDATION_CONSTANTS,
   SAMPLE_MEMORIZATION_SCRIPT,
 } from "../types/constants";
-import { createDeterministicMemorizationMask } from "../lib/studio-engines";
+
+import type { MemorizationStats } from "../types";
 
 /**
  * مستوى حذف الكلمات
@@ -299,8 +302,7 @@ export function useMemorization(): UseMemorizationReturn {
 
     correctWords.forEach((word, index) => {
       if (
-        userWords[index] &&
-        userWords[index].toLowerCase() === word.toLowerCase()
+        userWords[index]?.toLowerCase() === word.toLowerCase()
       ) {
         correct++;
       } else {
@@ -308,7 +310,7 @@ export function useMemorization(): UseMemorizationReturn {
         weakWords.push(word);
 
         // تتبع نقاط الضعف
-        const currentCount = weakPointsMapRef.current.get(word) || 0;
+        const currentCount = weakPointsMapRef.current.get(word) ?? 0;
         weakPointsMapRef.current.set(word, currentCount + 1);
       }
     });

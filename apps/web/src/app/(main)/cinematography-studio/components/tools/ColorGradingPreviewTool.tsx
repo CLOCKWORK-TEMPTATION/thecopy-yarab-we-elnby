@@ -1,9 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Check,
   Contrast,
@@ -18,6 +14,12 @@ import {
   Thermometer,
   Wand2,
 } from "lucide-react";
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 

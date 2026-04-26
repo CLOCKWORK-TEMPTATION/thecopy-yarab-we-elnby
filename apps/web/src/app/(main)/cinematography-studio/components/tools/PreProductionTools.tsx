@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
 import {
   Camera,
   Clapperboard,
@@ -9,12 +8,16 @@ import {
   SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
+import React, { useMemo, useCallback } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+
 import { usePreProduction } from "../../hooks";
-import type { PreProductionToolsProps } from "../../types";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
+
+import type { PreProductionToolsProps } from "../../types";
 
 const PreProductionTools: React.FC<PreProductionToolsProps> = ({
   mood = "noir",

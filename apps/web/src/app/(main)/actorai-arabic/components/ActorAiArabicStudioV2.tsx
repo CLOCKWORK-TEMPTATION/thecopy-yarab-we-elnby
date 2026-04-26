@@ -8,14 +8,18 @@
  */
 
 import React, { lazy, Suspense, useMemo } from "react";
-import { AppProvider, useApp } from "../context/AppContext";
-import { AppHeader } from "../layout/AppHeader";
-import { AppFooter } from "../layout/AppFooter";
-import { NotificationBanner } from "../layout/NotificationBanner";
-import type { ViewType } from "../types";
+
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+
+import { AppProvider, useApp } from "../context/AppContext";
+import { AppFooter } from "../layout/AppFooter";
+import { AppHeader } from "../layout/AppHeader";
+import { NotificationBanner } from "../layout/NotificationBanner";
+
+import type { ViewType } from "../types";
+
 
 const HomeView = lazy(() =>
   import("../features/home").then((m) => ({ default: m.HomeView }))

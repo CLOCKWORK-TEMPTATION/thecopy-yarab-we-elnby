@@ -7,9 +7,10 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { Button } from "@/components/ui/button";
-import { useApp } from "../context/AppContext";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Button } from "@/components/ui/button";
+
+import { useApp } from "../context/AppContext";
 
 const NAV_ITEMS = [
   { view: "home", label: "🏠 الرئيسية" },

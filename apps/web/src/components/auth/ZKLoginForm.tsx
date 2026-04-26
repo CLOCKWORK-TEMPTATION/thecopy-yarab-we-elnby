@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -13,15 +16,14 @@ import { logger } from "@/lib/ai/utils/logger";
  * 4. اشتقاق KEK وحفظه في الذاكرة
  */
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import {
   deriveKEK,
   deriveAuthVerifier,
   uint8ArrayToBase64,
   base64ToUint8Array,
-} from "@/lib/crypto";
-import { getKeyManager } from "@/lib/crypto";
+ getKeyManager } from "@/lib/crypto";
+
 
 export function ZKLoginForm() {
   const router = useRouter();
@@ -48,7 +50,7 @@ export function ZKLoginForm() {
       const initData = await initResponse.json();
 
       if (!initData.success) {
-        setError(initData.error || "فشل في بدء تسجيل الدخول");
+        setError(initData.error ?? "فشل في بدء تسجيل الدخول");
         return;
       }
 
@@ -73,7 +75,7 @@ export function ZKLoginForm() {
       const verifyData = await verifyResponse.json();
 
       if (!verifyData.success) {
-        setError(verifyData.error || "بيانات اعتماد غير صحيحة");
+        setError(verifyData.error ?? "بيانات اعتماد غير صحيحة");
         return;
       }
 

@@ -3,11 +3,11 @@ import { GeminiService } from "../../ai/stations/gemini-service";
 export interface UncertaintyMetrics {
   confidence: number;
   type: "epistemic" | "aleatoric";
-  sources: Array<{
+  sources: {
     aspect: string;
     reason: string;
     reducible: boolean;
-  }>;
+  }[];
 }
 
 export interface UncertaintyQuantificationEngine {

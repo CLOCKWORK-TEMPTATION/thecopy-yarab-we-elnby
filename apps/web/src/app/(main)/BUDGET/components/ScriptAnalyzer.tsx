@@ -11,18 +11,7 @@
  * اتخاذ قرارات مدروسة حول الميزانية والإنتاج
  */
 
-import React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import {
   FileText,
   Sparkles,
@@ -34,6 +23,20 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
+import React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+
+
 import { AIAnalysis } from "../lib/types";
 
 /**

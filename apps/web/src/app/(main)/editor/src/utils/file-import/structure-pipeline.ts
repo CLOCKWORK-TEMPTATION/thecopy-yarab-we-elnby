@@ -12,13 +12,6 @@
  * يتضمن حارس إسقاط ({@link buildProjectionGuardReport}) لمنع
  * الكتابة التدميرية عند انهيار حاد في عدد الكتل.
  */
-import type { ScreenplayBlock } from "./document-model";
-import {
-  DEFAULT_STRUCTURE_PIPELINE_POLICY,
-  type ProjectionGuardReport,
-  type StructurePipelinePolicy,
-  type StructurePipelineResult,
-} from "../../types/structure-pipeline";
 import {
   DATE_PATTERNS,
   MIXED_NUMBER_RE,
@@ -40,6 +33,14 @@ import {
   matchesActionStartPattern,
   normalizeLine,
 } from "../../extensions/text-utils";
+import {
+  DEFAULT_STRUCTURE_PIPELINE_POLICY,
+  type ProjectionGuardReport,
+  type StructurePipelinePolicy,
+  type StructurePipelineResult,
+} from "../../types/structure-pipeline";
+
+import type { ScreenplayBlock } from "./document-model";
 
 type BlockFormatId = ScreenplayBlock["formatId"];
 
@@ -49,11 +50,11 @@ type BlockFormatId = ScreenplayBlock["formatId"];
  * @property expectingDialogueAfterCue - هل السطر التالي يُتوقع أن يكون حواراً بعد إشارة متحدث
  * @property previousFormat - تنسيق السطر السابق (لتحديد استمرار الحوار)
  */
-type ClassificationState = {
+interface ClassificationState {
   expectedSceneHeader: "scene_header_2" | "scene_header_3" | null;
   expectingDialogueAfterCue: boolean;
   previousFormat: BlockFormatId | null;
-};
+}
 
 const INLINE_SPEAKER_RE = /^([^:：]{1,30})\s*[:：]\s*(.+)$/u;
 const SPEAKER_CUE_RE = /^([^:：]{1,30})\s*[:：]\s*$/u;
@@ -99,7 +100,7 @@ const isTransitionLine = (line: string): boolean =>
 const isSceneHeader1Only = (line: string): boolean => {
   const normalized = normalizeLine(stripTrailingColon(line));
   if (!SCENE_NUMBER_EXACT_RE.test(normalized)) return false;
-  const numberPrefixMatch = normalized.match(/^(?:مشهد|scene)\s*[0-9٠-٩]+/iu);
+  const numberPrefixMatch = /^(?:مشهد|scene)\s*[0-9٠-٩]+/iu.exec(normalized);
   if (!numberPrefixMatch) return false;
   const remainder = normalized.slice(numberPrefixMatch[0].length).trim();
   return remainder.length === 0;
@@ -131,7 +132,7 @@ const splitCombinedSceneHeader = (
   const normalized = normalizeLine(stripTrailingColon(line));
   if (!SCENE_NUMBER_EXACT_RE.test(normalized)) return null;
 
-  const numberPrefixMatch = normalized.match(/^(?:مشهد|scene)\s*[0-9٠-٩]+/iu);
+  const numberPrefixMatch = /^(?:مشهد|scene)\s*[0-9٠-٩]+/iu.exec(normalized);
   if (!numberPrefixMatch) return null;
 
   const remainder = normalized.slice(numberPrefixMatch[0].length).trim();
@@ -194,7 +195,7 @@ const classifyLineLabelOnly = (
   line: string,
   state: ClassificationState
 ): BlockFormatId => {
-  if (/^بسم\b/u.test(line) || /^بسم الله/u.test(line)) {
+  if (/^بسم\b/u.test(line) || line.startsWith("بسم الله")) {
     state.expectedSceneHeader = null;
     state.expectingDialogueAfterCue = false;
     return "basmala";
@@ -260,13 +261,13 @@ const classifyLineLabelOnly = (
     return "transition";
   }
 
-  const cueOnlyMatch = line.match(SPEAKER_CUE_RE);
+  const cueOnlyMatch = SPEAKER_CUE_RE.exec(line);
   if (cueOnlyMatch && isLikelySpeakerName(cueOnlyMatch[1] ?? "")) {
     state.expectingDialogueAfterCue = true;
     return "character";
   }
 
-  const inlineSpeakerMatch = line.match(INLINE_SPEAKER_RE);
+  const inlineSpeakerMatch = INLINE_SPEAKER_RE.exec(line);
   if (inlineSpeakerMatch && isLikelySpeakerName(inlineSpeakerMatch[1] ?? "")) {
     state.expectingDialogueAfterCue = false;
     return "dialogue";
@@ -378,8 +379,8 @@ export const buildStructuredBlocksFromText = (
       state.expectingDialogueAfterCue = false;
       state.previousFormat = "scene_header_2";
       return [
-        { formatId: "scene_header_1" as BlockFormatId, text: split.header1 },
-        { formatId: "scene_header_2" as BlockFormatId, text: split.header2 },
+        { formatId: "scene_header_1", text: split.header1 },
+        { formatId: "scene_header_2", text: split.header2 },
       ];
     }
 

@@ -7,8 +7,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { NotificationType, Notification } from "../types";
+
 import { VALIDATION_CONSTANTS } from "../types/constants";
+
+import type { NotificationType, Notification } from "../types";
 
 /**
  * واجهة قيمة العودة من خطاف الإشعارات

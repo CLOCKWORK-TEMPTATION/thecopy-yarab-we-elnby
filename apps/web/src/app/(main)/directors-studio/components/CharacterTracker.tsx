@@ -7,12 +7,13 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
+import { CheckCircle2, AlertCircle, Eye } from "lucide-react";
 import { memo, useMemo, type ReactElement } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, AlertCircle, Eye } from "lucide-react";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 type ConsistencyStatus = "good" | "warning" | "issue";
 

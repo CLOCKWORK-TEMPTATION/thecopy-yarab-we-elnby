@@ -8,17 +8,18 @@ import { logger } from "@/lib/ai/utils/logger";
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
+import dynamic from "next/dynamic";
 import {
   Component,
   type ErrorInfo,
   type ReactNode,
   type CSSProperties,
 } from "react";
-import dynamic from "next/dynamic";
+
 import "./cinefit.css";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 
 const shellStyle: CSSProperties = {
   ["--page-accent" as string]: "var(--brand-bronze, #746842)",

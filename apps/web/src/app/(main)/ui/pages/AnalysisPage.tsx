@@ -1,17 +1,18 @@
-import { logger } from "@/lib/ai/utils/logger";
 
+import { ArrowRight, FileText, Network, Users, Brain } from "lucide-react";
 import { useState } from "react";
-import { SevenStationsDock } from "@/app/(main)/ui/components/SevenStationsDock";
-import { UploadDock } from "@/app/(main)/ui/components/UploadDock";
+
+import { CausalPlotGraph } from "@/app/(main)/ui/components/CausalPlotGraph";
 import { ConfidenceMeter } from "@/app/(main)/ui/components/ConfidenceMeter";
 import { DebateView } from "@/app/(main)/ui/components/DebateView";
-import { CausalPlotGraph } from "@/app/(main)/ui/components/CausalPlotGraph";
 import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
+import { SevenStationsDock } from "@/app/(main)/ui/components/SevenStationsDock";
+import { UploadDock } from "@/app/(main)/ui/components/UploadDock";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, FileText, Network, Users, Brain } from "lucide-react";
 import { useNotifications } from "@/hooks/use-notifications";
+import { logger } from "@/lib/ai/utils/logger";
 
 interface AnalysisPageProps {
   onAnalysisFinalized?: (summary: string) => void;
@@ -237,14 +238,14 @@ export function AnalysisPage({ onAnalysisFinalized }: AnalysisPageProps) {
               <Card className="p-6 bg-[var(--color-panel)] border-[var(--color-surface)]">
                 <h2 className="text-[var(--color-text)] mb-4" dir="rtl">
                   المحطة {currentStation}:{" "}
-                  {stations[currentStation - 1]?.title || ""}
+                  {stations[currentStation - 1]?.title ?? ""}
                 </h2>
 
                 {progress === "idle" && (
                   <div className="text-center py-8">
                     <p className="text-[var(--color-muted)] mb-6">
                       جاهز لبدء تحليل{" "}
-                      {stations[currentStation - 1]?.title || ""}
+                      {stations[currentStation - 1]?.title ?? ""}
                     </p>
                     <Button
                       onClick={handleRunStation}

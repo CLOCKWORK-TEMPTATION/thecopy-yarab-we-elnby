@@ -2,7 +2,6 @@
  * @description معالج مسبق لتصحيح أخطاء OCR الشائعة في النصوص العربية
  */
 
-import type { PreprocessResult } from "./types.js";
 import {
   CRITICAL_OCR_REPLACEMENTS,
   escapeRegExp,
@@ -10,6 +9,8 @@ import {
   normalizeSceneHeadersRobust,
   SCENE_HEADER_LINE_PATTERN,
 } from "./text-helpers.js";
+
+import type { PreprocessResult } from "./types.js";
 
 export class OCRPreprocessor {
   private static readonly NAME_PATTERNS = [
@@ -48,7 +49,7 @@ export class OCRPreprocessor {
 
     processed = this.normalizeSceneHeaders(processed, issues);
 
-    if (processed.match(/^-\s+/m)) {
+    if (/^-\s+/m.exec(processed)) {
       issues.push("توحيد علامات الكلام: - ← •");
       processed = processed.replace(/^-\s+/gm, "• ");
     }

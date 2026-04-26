@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+
 import * as api from "@/lib/api";
 
 export function useChatWithAI() {
@@ -8,7 +9,7 @@ export function useChatWithAI() {
       history,
     }: {
       message: string;
-      history: Array<{ role: string; content: string }>;
+      history: { role: string; content: string }[];
     }) =>
       api
         .chatWithAI(message, undefined, { history })

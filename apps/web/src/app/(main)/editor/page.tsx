@@ -1,12 +1,15 @@
 "use client";
 
-import React from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import type { ApiResponse, Project } from "@/lib/api-types";
-import { clearCurrentProject, setCurrentProject } from "@/lib/projectStore";
+import React from "react";
+
+
 import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
 import { directorsEditorLogger } from "@/lib/directors-editor/logger";
+import { clearCurrentProject, setCurrentProject } from "@/lib/projectStore";
+
+import type { ApiResponse, Project } from "@/lib/api-types";
 
 const EditorApp = dynamic(
   () => import("./src/App").then((m) => ({ default: m.App })),
@@ -99,7 +102,7 @@ export default function EditorPage() {
 
         if (!response.ok || !payload?.success || !project?.id) {
           const reason =
-            payload?.error ||
+            payload?.error ??
             `تعذر تحميل المشروع المطلوب (${response.status}).`;
           throw new Error(reason);
         }

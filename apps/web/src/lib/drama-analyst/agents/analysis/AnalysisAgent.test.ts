@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { AnalysisAgent } from "./AnalysisAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/types";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { AnalysisAgent } from "./AnalysisAgent";
 
 // Mock gemini-core module
 vi.mock("@/lib/ai/gemini-core", () => ({

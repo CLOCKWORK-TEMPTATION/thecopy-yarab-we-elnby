@@ -1,36 +1,19 @@
-import type {
-  SuspicionEngineInput,
-  SuspicionEngineOutput,
-  SuspicionWeightPolicy,
-  SuspicionSignal,
-  RoutingSummary,
-  WeightPolicyProfile,
-} from "@editor/suspicion-engine/types";
-import type {
-  DetectorFn,
-  DetectorContext,
-} from "@editor/suspicion-engine/detectors/detector-interface";
-import { assembleSuspicionFeatures } from "@editor/suspicion-engine/features/feature-assembler";
 import { buildSuspicionCase } from "@editor/suspicion-engine/aggregation/suspicion-case-builder";
-import { ResolutionCoordinator } from "@editor/suspicion-engine/resolvers/resolution-coordinator";
-import { localDeterministicResolver } from "@editor/suspicion-engine/resolvers/local-deterministic-resolver";
-import { localRepairResolver } from "@editor/suspicion-engine/resolvers/local-repair-resolver";
-import { noopResolver } from "@editor/suspicion-engine/resolvers/noop-resolver";
 import { createWeightPolicy } from "@editor/suspicion-engine/config";
 
 // ── Context detectors ──
-import { detectOrphanDialogue } from "@editor/suspicion-engine/detectors/context/orphan-dialogue.detector";
 import { detectCharacterFlow } from "@editor/suspicion-engine/detectors/context/character-flow.detector";
+import { detectOrphanDialogue } from "@editor/suspicion-engine/detectors/context/orphan-dialogue.detector";
 import { detectSequenceViolation } from "@editor/suspicion-engine/detectors/context/sequence-violation.detector";
 
 // ── Gate-break detectors ──
-import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
+import { detectOcrArtifact } from "@editor/suspicion-engine/detectors/corruption/ocr-artifact.detector";
+import { detectSplitCharacter } from "@editor/suspicion-engine/detectors/corruption/split-character.detector";
 import { detectActionGateBreak } from "@editor/suspicion-engine/detectors/gate-break/action-gate.detector";
+import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
 import { detectCharacterGateBreak } from "@editor/suspicion-engine/detectors/gate-break/character-gate.detector";
 
 // ── Corruption detectors ──
-import { detectSplitCharacter } from "@editor/suspicion-engine/detectors/corruption/split-character.detector";
-import { detectOcrArtifact } from "@editor/suspicion-engine/detectors/corruption/ocr-artifact.detector";
 import { detectWrappedDialogue } from "@editor/suspicion-engine/detectors/corruption/wrapped-dialogue.detector";
 
 // ── Cross-pass detectors ──
@@ -40,10 +23,10 @@ import { detectMultiOverride } from "@editor/suspicion-engine/detectors/cross-pa
 import { detectConfidenceAmbiguity } from "@editor/suspicion-engine/detectors/cross-pass/confidence-ambiguity.detector";
 
 // ── Source detectors ──
-import { detectQualityRisk } from "@editor/suspicion-engine/detectors/source/quality-risk.detector";
 import { detectImportProfile } from "@editor/suspicion-engine/detectors/source/import-profile.detector";
-import { detectSourceHintMismatch } from "@editor/suspicion-engine/detectors/source/source-hint-mismatch.detector";
+import { detectQualityRisk } from "@editor/suspicion-engine/detectors/source/quality-risk.detector";
 import { detectSchemaSeedConflict } from "@editor/suspicion-engine/detectors/source/schema-seed-conflict.detector";
+import { detectSourceHintMismatch } from "@editor/suspicion-engine/detectors/source/source-hint-mismatch.detector";
 
 // ── Contract detectors (مبنية على عقد arabic-screenplay-classifier) ──
 import { detectContractCharacterShape } from "@editor/suspicion-engine/detectors/contract/contract-character-shape.detector";
@@ -51,6 +34,24 @@ import { detectContractParentheticalPosition } from "@editor/suspicion-engine/de
 import { detectContractBasmalaUniqueness } from "@editor/suspicion-engine/detectors/contract/contract-basmala-uniqueness.detector";
 import { detectContractSceneHeaderSequence } from "@editor/suspicion-engine/detectors/contract/contract-scene-header-sequence.detector";
 import { detectContractTransitionIsolation } from "@editor/suspicion-engine/detectors/contract/contract-transition-isolation.detector";
+import { assembleSuspicionFeatures } from "@editor/suspicion-engine/features/feature-assembler";
+import { localDeterministicResolver } from "@editor/suspicion-engine/resolvers/local-deterministic-resolver";
+import { localRepairResolver } from "@editor/suspicion-engine/resolvers/local-repair-resolver";
+import { noopResolver } from "@editor/suspicion-engine/resolvers/noop-resolver";
+import { ResolutionCoordinator } from "@editor/suspicion-engine/resolvers/resolution-coordinator";
+
+import type {
+  DetectorFn,
+  DetectorContext,
+} from "@editor/suspicion-engine/detectors/detector-interface";
+import type {
+  SuspicionEngineInput,
+  SuspicionEngineOutput,
+  SuspicionWeightPolicy,
+  SuspicionSignal,
+  RoutingSummary,
+  WeightPolicyProfile,
+} from "@editor/suspicion-engine/types";
 
 // ── جميع الكاشفات في ترتيب ثابت ──
 const ALL_DETECTORS: readonly DetectorFn[] = [

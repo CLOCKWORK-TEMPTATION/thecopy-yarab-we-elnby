@@ -169,7 +169,7 @@ export function ProgressBar({
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={max}
-        aria-label={label || "نسبة الإنجاز"}
+        aria-label={label ?? "نسبة الإنجاز"}
         className="h-2 w-full overflow-hidden rounded-full bg-muted"
       >
         <div

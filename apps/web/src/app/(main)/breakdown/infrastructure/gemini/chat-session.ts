@@ -1,6 +1,8 @@
-import type { Chat } from "@google/genai";
 import { GEMINI_MODELS } from "../../domain/constants";
+
 import { getGeminiClient } from "./client";
+
+import type { Chat } from "@google/genai";
 
 export const createChatSession = (): Chat => {
   return getGeminiClient().chats.create({

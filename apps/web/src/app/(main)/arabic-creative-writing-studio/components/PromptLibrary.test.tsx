@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { PromptLibrary } from "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary";
 import { vi, describe, it, expect } from "vitest";
+
+import { PromptLibrary } from "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary";
 
 describe("PromptLibrary", () => {
   const defaultProps = {

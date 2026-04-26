@@ -224,7 +224,10 @@
   },
   "homepage": "https://github.com/CLOCKWORK-TEMPTATION/yarab-we-elnby-thecopy#readme",
   "dependencies": {
+    "@lancedb/lancedb": "^0.27.2",
+    "@qdrant/js-client-rest": "^1.17.0",
     "@vercel/analytics": "^2.0.1",
+    "apache-arrow": "18.1.0",
     "express-jwt": "^8.5.1",
     "isomorphic-dompurify": "^3.7.1",
     "timing-safe-equal": "^1.0.0"

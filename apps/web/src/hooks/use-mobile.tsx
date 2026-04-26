@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { isDesktopWebAppLocked } from "@/lib/desktop-shell";
 
 const MOBILE_BREAKPOINT = 768;

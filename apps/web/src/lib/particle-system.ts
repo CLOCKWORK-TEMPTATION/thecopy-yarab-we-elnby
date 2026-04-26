@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -7,7 +9,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * based on device capabilities, battery status, and network conditions.
  */
 
-import * as THREE from "three";
 import type { ParticleConfig } from "./performance-detection";
 
 export interface ParticleSystemOptions {
@@ -28,11 +29,11 @@ export class OptimizedParticleSystem {
   private velocities!: Float32Array;
   private alphas!: Float32Array;
   private animationId: number | null = null;
-  private lastFrameTime: number = 0;
+  private lastFrameTime = 0;
   private config: ParticleConfig;
   private targetFrameRate: number;
-  private frameSkipCounter: number = 0;
-  private isDestroyed: boolean = false;
+  private frameSkipCounter = 0;
+  private isDestroyed = false;
 
   constructor(options: ParticleSystemOptions) {
     this.canvas = options.canvas;

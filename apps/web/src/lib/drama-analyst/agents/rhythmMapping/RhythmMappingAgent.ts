@@ -1,11 +1,13 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { RHYTHM_MAPPING_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 interface RhythmMappingContext {
   originalText?: string;
@@ -29,7 +31,7 @@ export class RhythmMappingAgent extends BaseAgent {
     super(
       "RhythmMapper AI",
       TaskType.RHYTHM_MAPPING,
-      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt || ""
+      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.8;
@@ -39,14 +41,14 @@ export class RhythmMappingAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as RhythmMappingContext;
 
-    const originalText = ctx?.originalText || "";
-    const sceneBreakdown = ctx?.sceneBreakdown || [];
-    const focusAspects = ctx?.focusAspects || ["pacing", "tempo", "flow"];
+    const originalText = ctx?.originalText ?? "";
+    const sceneBreakdown = ctx?.sceneBreakdown ?? [];
+    const focusAspects = ctx?.focusAspects ?? ["pacing", "tempo", "flow"];
     const identifyPatterns = ctx?.identifyPatterns ?? true;
     const analyzeVariation = ctx?.analyzeVariation ?? true;
     const compareGenreNorms = ctx?.compareGenreNorms ?? false;
     const provideOptimization = ctx?.provideOptimization ?? true;
-    const genre = ctx?.genre || "غير محدد";
+    const genre = ctx?.genre ?? "غير محدد";
 
     let prompt = `مهمة رسم خريطة الإيقاع السردي\n\n`;
 
@@ -60,7 +62,7 @@ export class RhythmMappingAgent extends BaseAgent {
         const sceneDesc =
           typeof scene === "string"
             ? scene
-            : scene.description || `مشهد ${idx + 1}`;
+            : scene.description ?? `مشهد ${idx + 1}`;
         const sceneLength =
           typeof scene === "object" && scene.length
             ? ` (${scene.length} كلمة)`
@@ -180,7 +182,7 @@ ${
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupRhythmText(output.text);
+    const processedText = this.cleanupRhythmText(output.text);
 
     const analysisComprehensiveness =
       await this.assessAnalysisComprehensiveness(processedText);
@@ -220,7 +222,7 @@ ${
         patternsIdentified: this.countPatterns(processedText),
         beatsIdentified: this.countBeats(processedText),
         optimizationSuggestions: this.countOptimizations(processedText),
-      } as any,
+      },
     };
   }
 
@@ -332,7 +334,7 @@ ${
     const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
     score += Math.min(0.25, evidenceCount * 0.025);
 
-    const hasExamples = (text.match(/["«]/g) || []).length >= 2;
+    const hasExamples = (text.match(/["«]/g) ?? []).length >= 2;
     if (hasExamples) score += 0.15;
 
     return Math.min(1, score);
@@ -391,7 +393,7 @@ ${
       variation: "التنوع والديناميكية",
       patterns: "الأنماط المتكررة",
     };
-    return aspects[aspect] || aspect;
+    return aspects[aspect] ?? aspect;
   }
 
   protected override async getFallbackResponse(

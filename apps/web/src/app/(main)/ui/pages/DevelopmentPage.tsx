@@ -1,13 +1,5 @@
-import { logger } from "@/lib/ai/utils/logger";
 
-import { useState } from "react";
-import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
-import { TasksBoard } from "@/app/(main)/ui/components/TasksBoard";
-import { VersionsPanel } from "@/app/(main)/ui/components/VersionsPanel";
-import { RhythmMap } from "@/app/(main)/ui/components/RhythmMap";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 import {
   Lock,
   CheckCircle,
@@ -15,8 +7,17 @@ import {
   GitBranch,
   AlertCircle,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState } from "react";
+
+import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
+import { RhythmMap } from "@/app/(main)/ui/components/RhythmMap";
+import { TasksBoard } from "@/app/(main)/ui/components/TasksBoard";
+import { VersionsPanel } from "@/app/(main)/ui/components/VersionsPanel";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNotifications } from "@/hooks/use-notifications";
+import { logger } from "@/lib/ai/utils/logger";
 
 interface DevelopmentPageProps {
   isUnlocked?: boolean;

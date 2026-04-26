@@ -1,6 +1,6 @@
-import { logger } from "@/lib/ai/utils/logger";
-
 import { NextRequest, NextResponse } from "next/server";
+
+import { logger } from "@/lib/ai/utils/logger";
 import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
 export async function POST(request: NextRequest) {

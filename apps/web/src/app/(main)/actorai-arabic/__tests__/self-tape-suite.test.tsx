@@ -1,7 +1,8 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import React from "react";
-import { act, fireEvent, renderWithApp, screen } from "../test-utils";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+
 import { SelfTapeSuite } from "../self-tape-suite/components/SelfTapeSuite";
+import { act, fireEvent, renderWithApp, screen } from "../test-utils";
 
 const trackStop = vi.fn();
 const mockStream = {
@@ -112,7 +113,7 @@ describe("SelfTapeSuite", () => {
 
     vi.stubGlobal(
       "MediaRecorder",
-      MockMediaRecorder as unknown as typeof MediaRecorder
+      MockMediaRecorder
     );
   });
 

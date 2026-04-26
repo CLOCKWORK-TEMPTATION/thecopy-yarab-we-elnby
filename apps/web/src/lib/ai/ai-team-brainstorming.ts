@@ -8,8 +8,9 @@
  * - AITeamBrainstormingOutput - The return type for the aiTeamBrainstorming function.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const AITeamBrainstormingInputSchema = z.object({
   scriptConcept: z
@@ -94,12 +95,12 @@ const aiTeamBrainstormingFlow = ai.defineFlow(
         const taskResult = await agentTask.task;
         return {
           agentName: agentTask.agentName,
-          ideas: taskResult.output?.ideas || [],
+          ideas: taskResult.output?.ideas ?? [],
         };
       })
     );
 
-    const brainstormingSessionSummary = `Brainstorming session with ${numberOfAgents} agents for the script concept: ${scriptConcept}. Specific requests: ${specificRequests || "None"}.`;
+    const brainstormingSessionSummary = `Brainstorming session with ${numberOfAgents} agents for the script concept: ${scriptConcept}. Specific requests: ${specificRequests ?? "None"}.`;
 
     return {
       brainstormingSessionSummary,

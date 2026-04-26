@@ -341,14 +341,14 @@ export interface WorkflowTaskStep {
    * التبعيات على خطوات سابقة — تحدد ترتيب التنفيذ ومتطلبات الاعتماد.
    * تُترك فارغة للخطوات الأولى أو المستقلة.
    */
-  dependencies?: Array<{
+  dependencies?: {
     agentId: string;
     taskType: string;
     /** إذا كان true يتوقف التنفيذ عند فشل هذه التبعية */
     required?: boolean;
     /** الحد الأدنى لمستوى الثقة المقبول من التبعية */
     minConfidence?: number;
-  }>;
+  }[];
   /** إذا كان true يمكن تنفيذ هذه الخطوة بالتوازي مع خطوات أخرى */
   parallel?: boolean;
 }

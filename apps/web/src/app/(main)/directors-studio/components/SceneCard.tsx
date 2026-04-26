@@ -7,9 +7,6 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, memo, useCallback, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   MapPin,
   Clock,
@@ -19,12 +16,10 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { useState, memo, useCallback, useMemo } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,10 +30,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDeleteScene } from "@/hooks/useProject";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { useDeleteScene } from "@/hooks/useProject";
 
 type SceneStatus = "planned" | "in-progress" | "completed";
 

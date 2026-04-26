@@ -9,8 +9,8 @@
 
 "use client";
 
-import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 // Extend Window interface for TypeScript
 declare global {
@@ -32,7 +32,7 @@ export function PerformanceOptimizer() {
       // Log navigation timing
       const navigationTiming = performance.getEntriesByType(
         "navigation"
-      )[0] as PerformanceNavigationTiming;
+      )[0]!;
 
       if (navigationTiming) {
         const pageLoadTime =

@@ -25,7 +25,7 @@ export class MultiAgentDebateSystem {
   private maxRounds: number;
   private consensusThreshold: number;
 
-  constructor(maxRounds: number = 3, consensusThreshold: number = 0.8) {
+  constructor(maxRounds = 3, consensusThreshold = 0.8) {
     this.maxRounds = maxRounds;
     this.consensusThreshold = consensusThreshold;
   }
@@ -159,7 +159,7 @@ ${JSON.stringify(context, null, 2).substring(0, 2000)}
 
       return {
         agentId,
-        proposal: parsed.proposal || "",
+        proposal: parsed.proposal ?? "",
         supportingEvidence: Array.isArray(parsed.supportingEvidence)
           ? parsed.supportingEvidence
           : [],
@@ -285,8 +285,8 @@ ${JSON.stringify(context, null, 2).substring(0, 1000)}
       const parsed =
         await platformGenAIService.generateJson<JudgeResponse>(judgePrompt);
       return {
-        decision: parsed.decision || "",
-        reasoning: parsed.reasoning || "",
+        decision: parsed.decision ?? "",
+        reasoning: parsed.reasoning ?? "",
       };
     } catch (error) {
       log.error("Error in debate judge decision", error, "MultiAgentDebate");

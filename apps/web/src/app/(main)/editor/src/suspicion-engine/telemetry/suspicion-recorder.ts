@@ -1,11 +1,11 @@
-import type { SuspicionTelemetryEvent } from "@editor/suspicion-engine/types";
 import type { SuspicionTelemetryListener } from "./suspicion-metrics";
+import type { SuspicionTelemetryEvent } from "@editor/suspicion-engine/types";
 
 export class SuspicionRecorder implements SuspicionTelemetryListener {
   private readonly events: SuspicionTelemetryEvent[] = [];
   private readonly maxEvents: number;
 
-  constructor(maxEvents: number = 1000) {
+  constructor(maxEvents = 1000) {
     this.maxEvents = maxEvents;
   }
 

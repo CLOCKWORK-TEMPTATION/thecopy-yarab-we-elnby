@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { CheckCircle, Circle, Loader2, Eye } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";

@@ -11,15 +11,16 @@
  */
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Send, User, Bot } from "lucide-react";
-import { useChatWithAI } from "@/hooks/useAI";
+import { useState, useCallback, useMemo, memo } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useChatWithAI } from "@/hooks/useAI";
 
 /**
  * واجهة بيانات الرسالة
@@ -212,21 +213,21 @@ export default function AIChatPanel() {
                 content?: string;
                 message?: string;
               }
-            )?.response ||
+            )?.response ??
             (
               result as {
                 response?: string;
                 content?: string;
                 message?: string;
               }
-            )?.content ||
+            )?.content ??
             (
               result as {
                 response?: string;
                 content?: string;
                 message?: string;
               }
-            )?.message ||
+            )?.message ??
             "تم استلام الرد بنجاح.";
 
       setMessages((prev) =>

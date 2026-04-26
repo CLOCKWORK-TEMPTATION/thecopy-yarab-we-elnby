@@ -16,12 +16,14 @@ import { readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+
 import { createMCPClient } from "@ai-sdk/mcp";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 import { buildAgentConfig } from "./config";
-import { classifyPdfTool } from "./tools";
 import { skillOcrMistral, skillWriteOutput } from "./skill-tools";
+import { classifyPdfTool } from "./tools";
+
 import type { ClassificationResult } from "./types";
 
 type JsonRecord = Record<string, unknown>;
@@ -62,7 +64,7 @@ const parseArgs = (argv: string[]): OpenPdfAgentArgs => {
 
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
-    if (!key || !key.startsWith("--")) continue;
+    if (!key?.startsWith("--")) continue;
 
     const value = argv[index + 1];
     if (!value || value.startsWith("--")) continue;
@@ -73,7 +75,7 @@ const parseArgs = (argv: string[]): OpenPdfAgentArgs => {
 
   const readRequired = (name: string): string => {
     const value = args.get(name);
-    if (!value || !value.trim()) {
+    if (!value?.trim()) {
       throw new Error(`معامل مفقود: ${name}`);
     }
     return value.trim();
@@ -131,7 +133,7 @@ const runTool = async (
 };
 
 const toClassification = (value: JsonRecord): ClassificationResult | null => {
-  const requiredKeys: Array<keyof ClassificationResult> = [
+  const requiredKeys: (keyof ClassificationResult)[] = [
     "type",
     "pages",
     "size_mb",
@@ -289,7 +291,7 @@ const runMcpStage = async (
 
     const payload = toJsonRecord(response);
     const content = Array.isArray(payload["content"])
-      ? (payload["content"] as Array<Record<string, unknown>>)
+      ? (payload["content"] as Record<string, unknown>[])
       : [];
     const firstText = content.find(
       (item) => typeof item?.["text"] === "string"

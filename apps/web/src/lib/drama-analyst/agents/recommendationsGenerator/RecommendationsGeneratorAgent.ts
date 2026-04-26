@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { RECOMMENDATIONS_GENERATOR_AGENT_CONFIG } from "./agent";
 import { RECOMMENDATIONS_GENERATOR_INSTRUCTIONS } from "./instructions";
 
@@ -18,7 +20,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     super(
       "WisdomSynthesizer AI",
       TaskType.RECOMMENDATIONS_GENERATOR,
-      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt || ""
+      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -35,21 +37,21 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
     const originalText =
-      ((contextObj as Record<string, unknown>)?.originalText as string) || "";
+      ((contextObj)?.originalText as string) || "";
     const analysisResults =
-      ((contextObj as Record<string, unknown>)?.analysisResults as Record<
+      ((contextObj)?.analysisResults as Record<
         string,
         string
       >) || {};
     const previousStations =
-      ((contextObj as Record<string, unknown>)?.previousStations as Record<
+      ((contextObj)?.previousStations as Record<
         string,
         string
       >) || {};
     const focusAreas =
-      ((contextObj as Record<string, unknown>)?.focusAreas as string[]) || [];
+      ((contextObj)?.focusAreas as string[]) || [];
     const priorityLevel =
-      ((contextObj as Record<string, unknown>)?.priorityLevel as string) ||
+      ((contextObj)?.priorityLevel as string) ||
       "balanced";
 
     // Build structured prompt
@@ -141,7 +143,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
-    let processedText = this.cleanupText(output.text);
+    const processedText = this.cleanupText(output.text);
 
     // Assess recommendations quality
     const qualityMetrics =
@@ -294,10 +296,10 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
    */
   private countRecommendations(text: string): number {
     // Count numbered items, bullet points, and recommendation keywords
-    const numberedItems = (text.match(/^\d+\./gm) || []).length;
-    const bulletItems = (text.match(/^[-•]/gm) || []).length;
+    const numberedItems = (text.match(/^\d+\./gm) ?? []).length;
+    const bulletItems = (text.match(/^[-•]/gm) ?? []).length;
     const recommendationKeywords = (
-      text.match(/اقتراح|توصية|تحسين|تعديل/gi) || []
+      text.match(/اقتراح|توصية|تحسين|تعديل/gi) ?? []
     ).length;
 
     return Math.max(numberedItems, bulletItems, recommendationKeywords);
@@ -314,7 +316,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
       balanced: "متوازنة - تغطية شاملة لجميع الجوانب",
       critical: "حرجة - معالجة المشاكل الأساسية فقط",
     };
-    return priorities[priority] || priority;
+    return priorities[priority] ?? priority;
   }
 
   /**

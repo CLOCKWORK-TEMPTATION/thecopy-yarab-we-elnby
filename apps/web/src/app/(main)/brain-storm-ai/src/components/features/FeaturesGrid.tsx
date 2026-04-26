@@ -8,8 +8,10 @@
  */
 
 import { Brain, Layers, Zap, Shield } from "lucide-react";
-import type { BrainstormAgentStats } from "../../types";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { BrainstormAgentStats } from "../../types";
 
 interface FeaturesGridProps {
   agentStats: BrainstormAgentStats;

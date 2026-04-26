@@ -1,7 +1,9 @@
+import { GoogleGenAI } from "@google/genai";
+
 import { logger } from "@/lib/ai/utils/logger";
 
-import { GoogleGenAI } from "@google/genai";
 import { BreakdownError } from "../../domain/errors";
+
 import { getGeminiApiKeyFromEnv } from "./env";
 
 export interface AppConfig {
@@ -21,7 +23,7 @@ const getWindowValue = (key: string): string | undefined => {
 };
 
 export const getAPIKey = (): string => {
-  return getGeminiApiKeyFromEnv() || getWindowValue("GEMINI_API_KEY") || "";
+  return getGeminiApiKeyFromEnv() || getWindowValue("GEMINI_API_KEY") ?? "";
 };
 
 export const isValidAPIKey = (key: string): boolean => {
@@ -48,14 +50,14 @@ export const getAppConfig = (): AppConfig => {
     apiKey,
     isConfigured,
     environment:
-      (process.env["NODE_ENV"] as AppConfig["environment"]) || "development",
+      (process.env.NODE_ENV as AppConfig["environment"]) || "development",
   };
 };
 
 let geminiClient: GoogleGenAI | null = null;
 
 export const getGeminiClient = (apiKey?: string): GoogleGenAI => {
-  const resolvedKey = apiKey || getAPIKey();
+  const resolvedKey = apiKey ?? getAPIKey();
 
   if (!resolvedKey) {
     throw new BreakdownError(

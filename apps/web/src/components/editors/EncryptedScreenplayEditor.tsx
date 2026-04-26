@@ -7,8 +7,9 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+
 import {
   saveEncryptedDocument,
   loadEncryptedDocument,
@@ -108,9 +109,9 @@ export function EncryptedScreenplayEditor({
           setCurrentDocId(result.docId);
         }
         await loadDocumentsList();
-        onSave?.(result.docId || currentDocId || "");
+        onSave?.(result.docId ?? currentDocId ?? "");
       } else {
-        setError(result.error || "فشل الحفظ");
+        setError(result.error ?? "فشل الحفظ");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطأ في الحفظ");
@@ -134,7 +135,7 @@ export function EncryptedScreenplayEditor({
         setCurrentDocId(docIdToLoad);
         onLoad?.(result.content);
       } else {
-        setError(result.error || "فشل التحميل");
+        setError(result.error ?? "فشل التحميل");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطأ في التحميل");
@@ -165,7 +166,7 @@ export function EncryptedScreenplayEditor({
         }
         await loadDocumentsList();
       } else {
-        setError(result.error || "فشل الحذف");
+        setError(result.error ?? "فشل الحذف");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطأ في الحذف");

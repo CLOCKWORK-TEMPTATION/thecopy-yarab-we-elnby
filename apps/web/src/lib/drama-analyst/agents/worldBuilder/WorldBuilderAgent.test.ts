@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { WorldBuilderAgent } from "./WorldBuilderAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { WorldBuilderAgent } from "./WorldBuilderAgent";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({
@@ -261,7 +264,7 @@ describe("WorldBuilderAgent", () => {
       expect(result.metadata?.worldQuality).toBeDefined();
 
       if (result.metadata?.worldQuality) {
-        const quality = result.metadata.worldQuality as any;
+        const quality = result.metadata.worldQuality;
         expect(quality.consistency).toBeGreaterThanOrEqual(0);
         expect(quality.consistency).toBeLessThanOrEqual(1);
         expect(quality.detail).toBeGreaterThanOrEqual(0);

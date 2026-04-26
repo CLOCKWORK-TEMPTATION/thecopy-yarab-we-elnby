@@ -6,13 +6,13 @@ import { Plugin, PluginInput, PluginOutput, Budget } from "../../types";
 interface BudgetOptimizationInput {
   totalBudget: number;
   currency: string;
-  categories: Array<{
+  categories: {
     name: string;
     nameAr: string;
     requested: number;
     priority: "critical" | "high" | "medium" | "low";
     flexibility: number; // 0-1, how much can be adjusted
-  }>;
+  }[];
   constraints?: {
     minPerCategory?: Record<string, number>;
     maxPerCategory?: Record<string, number>;
@@ -24,7 +24,7 @@ interface OptimizationResult {
   optimizedTotal: number;
   savings: number;
   savingsPercentage: number;
-  allocations: Array<{
+  allocations: {
     name: string;
     nameAr: string;
     requested: number;
@@ -32,13 +32,13 @@ interface OptimizationResult {
     difference: number;
     notes: string;
     notesAr: string;
-  }>;
-  recommendations: Array<{
+  }[];
+  recommendations: {
     category: string;
     recommendation: string;
     recommendationAr: string;
     potentialSavings: number;
-  }>;
+  }[];
   warnings: string[];
 }
 
@@ -128,9 +128,9 @@ export class BudgetOptimizer implements Plugin {
 
     // First pass: allocate to critical and high priority
     for (const category of sortedCategories) {
-      const minAllocation = constraints?.minPerCategory?.[category.name] || 0;
+      const minAllocation = constraints?.minPerCategory?.[category.name] ?? 0;
       const maxAllocation =
-        constraints?.maxPerCategory?.[category.name] ||
+        constraints?.maxPerCategory?.[category.name] ??
         category.requested * 1.2;
 
       let allocated: number;

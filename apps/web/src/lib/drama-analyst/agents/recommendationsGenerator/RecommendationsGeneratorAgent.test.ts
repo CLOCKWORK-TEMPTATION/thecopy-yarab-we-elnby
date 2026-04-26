@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { TaskType } from "@core/enums";
-import { RecommendationsGeneratorAgent } from "./RecommendationsGeneratorAgent";
+
 import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { RecommendationsGeneratorAgent } from "./RecommendationsGeneratorAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({
   mockExecuteStandardPattern: vi.fn(),

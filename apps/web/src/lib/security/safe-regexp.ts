@@ -27,8 +27,8 @@ export function escapeRegExp(input: string): string {
  */
 export function createSafeRegExp(
   pattern: string,
-  flags: string = "g",
-  maxLength: number = 1000
+  flags = "g",
+  maxLength = 1000
 ): RegExp {
   // Validate input length to prevent ReDoS
   if (pattern.length > maxLength) {
@@ -70,7 +70,7 @@ export function createSafeRegExp(
 export function safeCountOccurrences(
   text: string,
   searchTerm: string,
-  caseInsensitive: boolean = false
+  caseInsensitive = false
 ): number {
   if (!text || !searchTerm) {
     return 0;
@@ -121,7 +121,7 @@ function simpleCountOccurrences(
 export function safeCountMultipleTerms(
   text: string,
   terms: string[],
-  caseInsensitive: boolean = false
+  caseInsensitive = false
 ): number {
   return terms.reduce(
     (count, term) => count + safeCountOccurrences(text, term, caseInsensitive),

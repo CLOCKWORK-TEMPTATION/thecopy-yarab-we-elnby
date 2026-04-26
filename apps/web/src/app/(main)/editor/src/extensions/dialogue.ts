@@ -13,12 +13,8 @@
  * سلوك Enter: الانتقال إلى {@link Action} (وصف).
  */
 import { Node, mergeAttributes } from "@tiptap/core";
-import type {
-  ClassificationContext,
-  ElementType,
-} from "./classification-types";
-import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
-import type { ContextMemorySnapshot } from "./context-memory-manager";
+
+import { collectActionEvidence } from "./action";
 import {
   CONVERSATIONAL_MARKERS_RE,
   CONVERSATIONAL_STARTS,
@@ -26,9 +22,16 @@ import {
   VOCATIVE_RE,
   VOCATIVE_TITLES_RE,
 } from "./arabic-patterns";
-import { collectActionEvidence } from "./action";
-import { hasDirectDialogueMarkers, normalizeLine } from "./text-utils";
 import { pipelineRecorder } from "./pipeline-recorder";
+import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
+import { hasDirectDialogueMarkers, normalizeLine } from "./text-utils";
+
+import type {
+  ClassificationContext,
+  ElementType,
+} from "./classification-types";
+import type { ContextMemorySnapshot } from "./context-memory-manager";
+
 
 /**
  * يفحص وجود دلائل حوار مباشر في النص:

@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CHARACTER_VOICE_AGENT_CONFIG } from "./agent";
 
 interface CharacterVoiceContext {
@@ -27,7 +29,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     super(
       "PersonaSynth AI",
       TaskType.CHARACTER_VOICE,
-      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -42,12 +44,12 @@ export class CharacterVoiceAgent extends BaseAgent {
 
     // Extract relevant context
     const ctx = context as CharacterVoiceContext;
-    const characterProfile = ctx?.characterProfile || null;
-    const sceneContext = ctx?.sceneContext || "";
-    const dialogueObjective = ctx?.dialogueObjective || "";
-    const existingDialogue = ctx?.existingDialogue || [];
-    const emotionalState = ctx?.emotionalState || "neutral";
-    const relationshipContext = ctx?.relationshipContext || {};
+    const characterProfile = ctx?.characterProfile ?? null;
+    const sceneContext = ctx?.sceneContext ?? "";
+    const dialogueObjective = ctx?.dialogueObjective ?? "";
+    const existingDialogue = ctx?.existingDialogue ?? [];
+    const emotionalState = ctx?.emotionalState ?? "neutral";
+    const relationshipContext = ctx?.relationshipContext ?? {};
 
     // Build structured prompt
     let prompt = `مهمة تركيب صوت الشخصية\n\n`;
@@ -116,7 +118,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up the dialogue text
-    let processedText = this.cleanupDialogue(output.text);
+    const processedText = this.cleanupDialogue(output.text);
 
     // Assess voice consistency
     const consistencyScore = await this.assessVoiceConsistency(processedText);
@@ -147,7 +149,7 @@ export class CharacterVoiceAgent extends BaseAgent {
         emotionalDepth: emotionalDepth,
         dialogueType: this.detectDialogueType(processedText),
         wordCount: processedText.split(/\s+/).length,
-      } as any,
+      },
     };
   }
 
@@ -368,10 +370,10 @@ export class CharacterVoiceAgent extends BaseAgent {
    */
   private detectDialogueType(text: string): string {
     if (text.includes("؟") && text.includes("!")) return "حوار متنوع";
-    if ((text.match(/؟/g) || []).length > 2) return "حوار استفهامي";
-    if ((text.match(/!/g) || []).length > 2) return "حوار انفعالي";
+    if ((text.match(/؟/g) ?? []).length > 2) return "حوار استفهامي";
+    if ((text.match(/!/g) ?? []).length > 2) return "حوار انفعالي";
     if (text.length > 500 && !text.includes('"')) return "مونولوج داخلي";
-    if ((text.match(/"/g) || []).length > 4) return "حوار متبادل";
+    if ((text.match(/"/g) ?? []).length > 4) return "حوار متبادل";
     return "حوار عادي";
   }
 
@@ -457,7 +459,7 @@ export class CharacterVoiceAgent extends BaseAgent {
       confident: "واثق",
       disappointed: "محبط",
     };
-    return states[state] || state;
+    return states[state] ?? state;
   }
 
   /**
@@ -467,7 +469,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const ctx = input.context as CharacterVoiceContext;
-    const character = ctx?.characterProfile?.name || "الشخصية";
+    const character = ctx?.characterProfile?.name ?? "الشخصية";
 
     return `تحليل صوت ${character}:
 الشخصية لديها نمط كلام مميز يعكس خلفيتها وشخصيتها.

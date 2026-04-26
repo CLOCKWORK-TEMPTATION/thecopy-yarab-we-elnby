@@ -1,6 +1,4 @@
-import React from "react";
 import { motion } from "framer-motion";
-import { Budget, AIAnalysis } from "../lib/types";
 import {
   TrendingUp,
   AlertTriangle,
@@ -12,6 +10,10 @@ import {
   Zap,
   Calendar,
 } from "lucide-react";
+import React from "react";
+
+import { Budget, AIAnalysis } from "../lib/types";
+
 
 interface BudgetAnalyticsProps {
   analysis: AIAnalysis;

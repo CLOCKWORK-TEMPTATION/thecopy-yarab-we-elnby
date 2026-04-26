@@ -4,9 +4,11 @@
  * يقرأ متغيرات البيئة من .env ويُعدّ الإعدادات الافتراضية.
  */
 
-import { config as dotenvConfig } from "dotenv";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { config as dotenvConfig } from "dotenv";
+
 import type { AgentConfig } from "./types";
 
 // ─── تحميل متغيرات البيئة ───────────────────────────────────

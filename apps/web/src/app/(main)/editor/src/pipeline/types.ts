@@ -1,11 +1,11 @@
-export type BBox = {
+export interface BBox {
   x: number;
   y: number;
   w: number;
   h: number;
-};
+}
 
-export type TextItem = {
+export interface TextItem {
   text: string;
   x: number;
   y: number;
@@ -14,9 +14,9 @@ export type TextItem = {
   page: number;
   fontName?: string;
   dir?: "ltr" | "rtl" | "ttb";
-};
+}
 
-export type ExtractedLine = {
+export interface ExtractedLine {
   id: string;
   page: number;
   lineNoOnPage: number;
@@ -26,9 +26,9 @@ export type ExtractedLine = {
   items?: TextItem[];
   quality: LineQuality;
   flags: string[];
-};
+}
 
-export type LineQuality = {
+export interface LineQuality {
   score: number; // 0..1
   reasons: string[];
   weirdCharRatio: number;
@@ -38,18 +38,18 @@ export type LineQuality = {
   hasBrokenArabicPattern: boolean;
   suspiciousDialoguePattern: boolean;
   probableArtifact: boolean;
-};
+}
 
-export type PageExtraction = {
+export interface PageExtraction {
   page: number;
   width?: number;
   height?: number;
   lines: ExtractedLine[];
   rawTextItemsCount: number;
   usedOcr: boolean;
-};
+}
 
-export type DocumentExtraction = {
+export interface DocumentExtraction {
   pages: PageExtraction[];
   metadata: {
     filePath: string;
@@ -59,9 +59,9 @@ export type DocumentExtraction = {
     finishedAt?: string;
   };
   stats: PipelineStats;
-};
+}
 
-export type PipelineStats = {
+export interface PipelineStats {
   pagesTotal: number;
   pagesWithTextLayer: number;
   pagesSentToOcr: number;
@@ -69,13 +69,13 @@ export type PipelineStats = {
   suspiciousLinesBeforePatch: number;
   patchedLines: number;
   suspiciousLinesAfterPatch: number;
-};
+}
 
-export type OcrPageResult = {
+export interface OcrPageResult {
   page: number;
   text: string;
   lines?: string[];
-};
+}
 
 export interface OcrProvider {
   name: string;
@@ -86,7 +86,7 @@ export interface OcrProvider {
   }): Promise<OcrPageResult[]>;
 }
 
-export type PipelineConfig = {
+export interface PipelineConfig {
   lineMerge: {
     yTolerance: number;
     xGapMergeThreshold: number;
@@ -110,4 +110,4 @@ export type PipelineConfig = {
   domain: {
     screenplayArabicMode: boolean;
   };
-};
+}

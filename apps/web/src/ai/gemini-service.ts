@@ -83,8 +83,8 @@ export class GeminiService {
     if (apiKey || typeof window === "undefined") {
       // Server-side or with explicit API key
       const key =
-        apiKey ||
-        process.env["GEMINI_API_KEY"] ||
+        apiKey ??
+        process.env["GEMINI_API_KEY"] ??
         process.env["GOOGLE_GENAI_API_KEY"];
       if (key) {
         const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -95,8 +95,8 @@ export class GeminiService {
 
   // Get model with configuration
   getModel(
-    modelName: string = "gemini-1.5-flash",
-    configName: string = "analysis"
+    modelName = "gemini-1.5-flash",
+    configName = "analysis"
   ) {
     if (!this.genAI) {
       throw new Error("Gemini AI not initialized");
@@ -107,7 +107,7 @@ export class GeminiService {
       throw new Error(`Unknown model: ${modelName}`);
     }
 
-    const config = GEMINI_CONFIGS[configName] || GEMINI_CONFIGS["analysis"];
+    const config = GEMINI_CONFIGS[configName] ?? GEMINI_CONFIGS["analysis"];
 
     return this.genAI.getGenerativeModel({
       model: model.version,
@@ -128,7 +128,7 @@ export class GeminiService {
   // Get model capabilities
   getModelCapabilities(modelName: string): string[] {
     const model = GEMINI_MODELS[modelName];
-    return model?.capabilities || [];
+    return model?.capabilities ?? [];
   }
 
   // Test connection to Gemini API
@@ -145,7 +145,7 @@ export class GeminiService {
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to connect to Gemini API",
+        error: error.message ?? "Failed to connect to Gemini API",
       };
     }
   }
@@ -185,7 +185,7 @@ ${text}`;
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to analyze text",
+        error: error.message ?? "Failed to analyze text",
       };
     }
   }
@@ -231,7 +231,7 @@ ${text}`;
     } catch (error: any) {
       return {
         success: false,
-        error: error.message || "Failed to enhance prompt",
+        error: error.message ?? "Failed to enhance prompt",
       };
     }
   }
@@ -250,7 +250,7 @@ ${text}`;
         throw new Error("Gemini AI not initialized");
       }
 
-      const modelName = options?.model || "gemini-1.5-flash";
+      const modelName = options?.model ?? "gemini-1.5-flash";
       const model = this.getModel(modelName, "chat");
 
       const result = await model.generateContent(prompt);

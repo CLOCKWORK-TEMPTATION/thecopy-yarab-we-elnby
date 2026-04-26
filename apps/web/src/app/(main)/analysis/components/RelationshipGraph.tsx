@@ -96,7 +96,7 @@ export function RelationshipGraph({ stations }: Props) {
 function extractRelationships(stations: StationState[]): Edge[] {
   const station1 = stations.find((s) => s.id === 1);
   const out = station1?.output as { relationships?: RawRelationship[] } | null;
-  const raw = Array.isArray(out?.relationships) ? out!.relationships! : [];
+  const raw = Array.isArray(out?.relationships) ? out.relationships : [];
   const edges: Edge[] = [];
   for (const r of raw) {
     const a = typeof r.character1 === "string" ? r.character1.trim() : "";

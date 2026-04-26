@@ -10,11 +10,12 @@
  *
  * كل مسار يفحص وجود Filmlane Payload Marker قبل إرجاع النص الخام.
  */
+import { extractPayloadFromText } from "../document-model";
+
 import type {
   FileExtractionResult,
   ImportedFileType,
 } from "../../../types/file-import";
-import { extractPayloadFromText } from "../document-model";
 
 /** يوحّد فواصل الأسطر إلى `\n` */
 const normalizeNewlines = (value: string): string =>

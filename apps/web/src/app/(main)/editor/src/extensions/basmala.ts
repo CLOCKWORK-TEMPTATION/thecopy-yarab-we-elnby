@@ -11,13 +11,14 @@
  * سلوك Enter: الانتقال إلى {@link SceneHeaderTopLine} (رأس مشهد).
  */
 import { Node, mergeAttributes } from "@tiptap/core";
-import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
+
 import {
   BASMALA_ALLAH_RE,
   BASMALA_BASM_RE,
   BASMALA_RAHIM_RE,
   BASMALA_RAHMAN_RE,
 } from "./arabic-patterns";
+import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import { normalizeLine } from "./text-utils";
 
 /**

@@ -49,7 +49,7 @@ export interface OcrPageResult {
   /** النص المستخرج بصيغة Markdown */
   markdown: string;
   /** الصور المكتشفة في الصفحة */
-  images: Array<{
+  images: {
     id: string;
     bbox: {
       top_left_x: number;
@@ -57,7 +57,7 @@ export interface OcrPageResult {
       bottom_right_x: number;
       bottom_right_y: number;
     };
-  }>;
+  }[];
 }
 
 /** نتيجة OCR كاملة */

@@ -6,22 +6,10 @@
  */
 
 import { TaskType } from "@core/types";
-import { BaseAgent } from "./shared/BaseAgent";
-import {
-  StandardAgentInput,
-  StandardAgentOutput,
-} from "./shared/standardAgentPattern";
+
 import { log } from "../services/loggerService";
 
 // Import upgraded agents
-import { CompletionAgent } from "./completion/CompletionAgent";
-import { CreativeAgent } from "./creative/CreativeAgent";
-import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
-import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
-import { StyleFingerprintAgent } from "./styleFingerprint/StyleFingerprintAgent";
-import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
-import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
-import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
 import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";
 import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
 import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
@@ -42,9 +30,22 @@ import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/Producibilit
 
 // الوكلاء الأربعة المتبقية من الترقية السابقة
 import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
-import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
+import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
+import { CompletionAgent } from "./completion/CompletionAgent";
+import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
+import { CreativeAgent } from "./creative/CreativeAgent";
+import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
 import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
 import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
+import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
+import { BaseAgent } from "./shared/BaseAgent";
+import {
+  StandardAgentInput,
+  StandardAgentOutput,
+} from "./shared/standardAgentPattern";
+import { StyleFingerprintAgent } from "./styleFingerprint/StyleFingerprintAgent";
+import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
+import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
 
 // Agent instances (singleton pattern)
 export const completionAgent = new CompletionAgent();
@@ -181,7 +182,7 @@ export async function executeAgentTask(
  */
 export function getAgentConfig(taskType: TaskType) {
   const agent = UPGRADED_AGENTS.get(taskType);
-  return agent?.getConfig() || null;
+  return agent?.getConfig() ?? null;
 }
 
 /**
@@ -211,7 +212,7 @@ export const AGENTS_TO_UPGRADE: TaskType[] = [
  * Batch execute multiple agent tasks
  */
 export async function batchExecuteAgentTasks(
-  tasks: Array<{ taskType: TaskType; input: StandardAgentInput }>
+  tasks: { taskType: TaskType; input: StandardAgentInput }[]
 ): Promise<StandardAgentOutput[]> {
   const results = await Promise.allSettled(
     tasks.map(({ taskType, input }) => executeAgentTask(taskType, input))
@@ -226,7 +227,7 @@ export async function batchExecuteAgentTasks(
       return {
         text: `فشل تنفيذ المهمة ${taskType}`,
         confidence: 0.0,
-        notes: result.reason?.message || "خطأ غير معروف",
+        notes: result.reason?.message ?? "خطأ غير معروف",
         metadata: {
           processingTime: 0,
           tokensUsed: 0,

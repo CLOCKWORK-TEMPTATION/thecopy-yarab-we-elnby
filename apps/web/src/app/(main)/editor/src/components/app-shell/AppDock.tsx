@@ -1,10 +1,13 @@
 import React from "react";
-import type { LucideIcon } from "lucide-react";
+
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+
 import {
   EDITOR_COMPOSITION_SHIFT_LEFT_PX,
   EDITOR_SHELL_DOCK_TOP_PX,
 } from "../../constants/shell-layout";
+
+import type { LucideIcon } from "lucide-react";
 
 export interface AppDockButtonItem {
   actionId: string;

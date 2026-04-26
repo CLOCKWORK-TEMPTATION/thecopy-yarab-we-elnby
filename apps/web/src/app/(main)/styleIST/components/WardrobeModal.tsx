@@ -1,13 +1,18 @@
 "use client";
+import React, { useState } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { logger } from "@/lib/ai/utils/logger";
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState } from "react";
-import type { WardrobeItem } from "../types";
 import { UploadCloudIcon, CheckCircleIcon } from "./icons";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { WardrobeItem } from "../types";
+
+
 
 interface WardrobePanelProps {
   onGarmentSelect: (garmentFile: File, garmentInfo: WardrobeItem) => void;
@@ -82,7 +87,7 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       if (!file.type.startsWith("image/")) {
         setError("Please select an image file.");

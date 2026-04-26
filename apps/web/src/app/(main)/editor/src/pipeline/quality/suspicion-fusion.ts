@@ -1,14 +1,16 @@
 import { PostClassificationReviewer } from "../../extensions/classification-core";
-import type {
-  ClassifiedLine,
-  SuspiciousLine as ClassificationSuspiciousLine,
-  SuspicionRoutingBand,
-} from "../../extensions/classification-types";
+
 import {
   type PipelineLineRef,
   type RawValidationResult,
   validateRawScreenplayLines,
 } from "./raw-screenplay-validator";
+
+import type {
+  ClassifiedLine,
+  SuspiciousLine as ClassificationSuspiciousLine,
+  SuspicionRoutingBand,
+} from "../../extensions/classification-types";
 
 export interface RawSuspiciousLineCandidate {
   readonly lineIndex: number;

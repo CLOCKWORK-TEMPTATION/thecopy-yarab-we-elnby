@@ -5,9 +5,12 @@
  */
 
 import React from "react";
-import { OutfitLayer } from "../types";
-import { Trash2Icon, PlusIcon } from "./icons";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { OutfitLayer } from "../types";
+
+import { Trash2Icon, PlusIcon } from "./icons";
 
 interface OutfitStackProps {
   outfitHistory: OutfitLayer[];
@@ -28,7 +31,7 @@ const OutfitStack: React.FC<OutfitStackProps> = ({
       <div className="space-y-2 flex-grow">
         {outfitHistory.map((layer, index) => (
           <div
-            key={layer.garment?.id || "base"}
+            key={layer.garment?.id ?? "base"}
             className="flex items-center justify-between bg-white/8 p-2 rounded-[16px] animate-fade-in border border-white/8 shadow-sm"
           >
             <div className="flex items-center overflow-hidden">

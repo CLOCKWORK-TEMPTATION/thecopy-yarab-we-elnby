@@ -3,10 +3,19 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+import { AnimatePresence, motion } from "framer-motion";
 import React, { useState, useEffect } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { urlToFile } from "../lib/utils";
+import {
+  generateGarmentAsset,
+  editGarmentImage,
+} from "../services/geminiService";
+import { getWardrobeItems, saveWardrobeItem } from "../services/styleistApi";
 import { defaultWardrobe } from "../wardrobe";
-import type { WardrobeItem, ImageGenerationSize } from "../types";
+
 import {
   UploadCloudIcon,
   CheckCircleIcon,
@@ -14,14 +23,10 @@ import {
   SparklesIcon,
   WandIcon,
 } from "./icons";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  generateGarmentAsset,
-  editGarmentImage,
-} from "../services/geminiService";
 import Spinner from "./Spinner";
-import { urlToFile } from "../lib/utils";
-import { getWardrobeItems, saveWardrobeItem } from "../services/styleistApi";
+
+import type { WardrobeItem, ImageGenerationSize } from "../types";
+
 
 interface WardrobeModalProps {
   isOpen: boolean;
@@ -76,7 +81,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       const file = e.target.files[0];
       const localUrl = URL.createObjectURL(file);
       const customGarmentInfo: WardrobeItem = {
@@ -356,13 +361,13 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                           />
                           <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                             <button
-                              onClick={() => startEditing(generatedItem!)}
+                              onClick={() => startEditing(generatedItem)}
                               className="bg-black/22 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-black border border-white/8 backdrop-blur-xl"
                             >
                               Edit
                             </button>
                             <button
-                              onClick={() => handleGarmentClick(generatedItem!)}
+                              onClick={() => handleGarmentClick(generatedItem)}
                               className="bg-[#d4b483] text-black px-6 py-2 rounded-full text-xs font-bold hover:bg-white"
                             >
                               Select

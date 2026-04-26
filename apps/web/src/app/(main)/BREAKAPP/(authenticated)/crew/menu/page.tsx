@@ -413,7 +413,7 @@ export default function CrewMenuPage() {
                     className="flex justify-between items-center"
                   >
                     <span className="text-white/85 font-cairo">
-                      {menuItem?.name || "عنصر غير معروف"}
+                      {menuItem?.name ?? "عنصر غير معروف"}
                     </span>
                     <span className="font-semibold text-white">
                       x{item.quantity}

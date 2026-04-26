@@ -60,7 +60,7 @@ class PerformanceDetector {
   private capabilities: DeviceCapabilities | null = null;
   private batteryManager: any = null;
   private connectionInfo: any = null;
-  private observers: Set<(caps: DeviceCapabilities) => void> = new Set();
+  private observers = new Set<(caps: DeviceCapabilities) => void>();
 
   constructor() {
     this.initializeBatteryAPI();
@@ -118,10 +118,10 @@ class PerformanceDetector {
     }
 
     return {
-      batteryLevel: this.batteryManager.level || 0.8,
-      isCharging: this.batteryManager.charging || false,
-      chargingTime: this.batteryManager.chargingTime || Infinity,
-      dischargingTime: this.batteryManager.dischargingTime || Infinity,
+      batteryLevel: this.batteryManager.level ?? 0.8,
+      isCharging: this.batteryManager.charging ?? false,
+      chargingTime: this.batteryManager.chargingTime ?? Infinity,
+      dischargingTime: this.batteryManager.dischargingTime ?? Infinity,
       hasBattery: true,
     };
   }
@@ -137,17 +137,17 @@ class PerformanceDetector {
     }
 
     return {
-      effectiveType: (this.connectionInfo.effectiveType || "4g") as any,
-      downlink: this.connectionInfo.downlink || 10,
-      rtt: this.connectionInfo.rtt || 50,
-      saveData: (this.connectionInfo.saveData || false) as boolean,
+      effectiveType: (this.connectionInfo.effectiveType ?? "4g"),
+      downlink: this.connectionInfo.downlink ?? 10,
+      rtt: this.connectionInfo.rtt ?? 50,
+      saveData: (this.connectionInfo.saveData ?? false) as boolean,
     };
   }
 
   private getHardwareInfo() {
     return {
-      cpuCores: (navigator as any).hardwareConcurrency || 4,
-      deviceMemory: (navigator as any).deviceMemory || 8,
+      cpuCores: (navigator as any).hardwareConcurrency ?? 4,
+      deviceMemory: (navigator as any).deviceMemory ?? 8,
       maxTouchPoints: navigator.maxTouchPoints || 0,
     };
   }
@@ -175,7 +175,7 @@ class PerformanceDetector {
 
   private getDeviceRefreshRate(): number {
     if ("screen" in window && "refreshRate" in window.screen) {
-      return (window.screen as any).refreshRate || 60;
+      return (window.screen as any).refreshRate ?? 60;
     }
     return 60;
   }

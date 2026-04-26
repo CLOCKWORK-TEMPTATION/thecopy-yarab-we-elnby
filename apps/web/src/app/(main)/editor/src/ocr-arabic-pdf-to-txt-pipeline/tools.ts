@@ -5,8 +5,7 @@
  * تعمل مباشرةً داخل الوكيل بدون الحاجة لخادم MCP خارجي.
  */
 
-import { tool } from "ai";
-import { z } from "zod";
+import { execFileSync } from "node:child_process";
 import { open, writeFile, stat, readdir, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
@@ -18,7 +17,10 @@ import {
   relative,
   isAbsolute,
 } from "node:path";
-import { execFileSync } from "node:child_process";
+
+import { tool } from "ai";
+import { z } from "zod";
+
 import type { ClassificationResult } from "./types";
 
 const ALLOWED_FILE_ROOTS = [process.cwd(), tmpdir()].map((root) =>
@@ -210,11 +212,11 @@ export const listFilesTool = tool({
     try {
       const resolvedDir = resolveToolPath(dirPath);
       const entries = await readdir(resolvedDir, { withFileTypes: true });
-      const files: Array<{
+      const files: {
         name: string;
         type: string;
         size_kb?: number;
-      }> = [];
+      }[] = [];
 
       for (const entry of entries) {
         if (entry.isFile()) {

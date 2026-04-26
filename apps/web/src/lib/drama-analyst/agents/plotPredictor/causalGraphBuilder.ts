@@ -223,7 +223,7 @@ ${text}
       if (!parsed.hasRelation) return null;
 
       return {
-        type: parsed.type || "indirect",
+        type: parsed.type ?? "indirect",
         strength: typeof parsed.strength === "number" ? parsed.strength : 0.5,
       };
     } catch {

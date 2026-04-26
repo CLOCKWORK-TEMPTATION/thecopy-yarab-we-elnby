@@ -8,9 +8,10 @@
  */
 
 import dynamic from "next/dynamic";
+
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 const ActorAiArabicStudio = dynamic(

@@ -54,7 +54,7 @@ const DEFAULT_PANTONE = {
  * استخراج كود البانتون الأقرب (محاكاة)
  */
 export const extractPantone = (
-  colorFamily: string = "black"
+  colorFamily = "black"
 ): { code: string; name: string; hex: string } => {
   const key = colorFamily.toLowerCase();
   return PANTONE_MAP[key] ?? DEFAULT_PANTONE;
@@ -65,7 +65,7 @@ export const extractPantone = (
  */
 export const estimateFabricUsage = (
   type: string,
-  _fabricWidth: number = 150
+  _fabricWidth = 150
 ): number => {
   // حساب تقريبي بالمتر الطولي (عرض 150 سم)
   switch (type.toLowerCase()) {

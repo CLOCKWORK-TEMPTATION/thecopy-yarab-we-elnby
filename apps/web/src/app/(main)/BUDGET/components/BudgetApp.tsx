@@ -1,8 +1,5 @@
-import { logger } from "@/lib/ai/utils/logger";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import toast, { Toaster } from "react-hot-toast";
 import {
   FileText,
   Calculator,
@@ -27,6 +24,11 @@ import {
   Award,
   Target,
 } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import toast, { Toaster } from "react-hot-toast";
+
+import { logger } from "@/lib/ai/utils/logger";
+
 import { INITIAL_BUDGET_TEMPLATE, BUDGET_TEMPLATES } from "../lib/constants";
 import {
   Budget,
@@ -37,13 +39,14 @@ import {
   AIAnalysis,
   UserPreferences,
 } from "../lib/types";
+
 // geminiService نُقل إلى API routes لأسباب أمنية — لا يُستدعى مباشرة من العميل
-import { TopSheet } from "./TopSheet";
+import { BudgetAnalytics } from "./BudgetAnalytics";
 import { DetailView } from "./DetailView";
 import { EnhancedChart } from "./EnhancedChart";
-import { BudgetAnalytics } from "./BudgetAnalytics";
-import { TemplateSelector } from "./TemplateSelector";
 import { ExportModal } from "./ExportModal";
+import { TemplateSelector } from "./TemplateSelector";
+import { TopSheet } from "./TopSheet";
 
 // Utility functions
 const formatCurrency = (value: number) =>
@@ -61,7 +64,7 @@ const recalculateBudget = (budget: Budget): Budget => {
       const newItems = category.items.map((item) => ({
         ...item,
         total: item.amount * item.rate,
-        lastModified: item.lastModified || new Date().toISOString(),
+        lastModified: item.lastModified ?? new Date().toISOString(),
       }));
 
       const catTotal = newItems.reduce((sum, item) => sum + item.total, 0);
@@ -86,9 +89,9 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
   initialBudget,
   initialScript,
 }) => {
-  const [scriptText, setScriptText] = useState(initialScript || "");
+  const [scriptText, setScriptText] = useState(initialScript ?? "");
   const [budget, setBudget] = useState<Budget>(
-    initialBudget || INITIAL_BUDGET_TEMPLATE
+    initialBudget ?? INITIAL_BUDGET_TEMPLATE
   );
   const [status, setStatus] = useState<ProcessingStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +99,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [savedBudgets, setSavedBudgets] = useState<SavedBudget[]>([]);
   const [budgetName, setBudgetName] = useState(
-    initialBudget?.metadata?.title || ""
+    initialBudget?.metadata?.title ?? ""
   );
   const [, setSelectedTemplate] = useState<string>("independent-feature");
   const [showExportModal, setShowExportModal] = useState(false);
@@ -132,7 +135,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
   useEffect(() => {
     if (initialBudget) {
       setBudget(recalculateBudget(initialBudget));
-      setBudgetName(initialBudget.metadata?.title || "");
+      setBudgetName(initialBudget.metadata?.title ?? "");
       setStatus("complete");
     }
     if (initialScript) {
@@ -218,9 +221,9 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
           });
           const genData = await genResponse.json();
           if (!genResponse.ok) {
-            throw new Error(genData.error || "فشل في توليد الميزانية");
+            throw new Error(genData.error ?? "فشل في توليد الميزانية");
           }
-          const aiResponse = genData.data?.budget || genData.budget;
+          const aiResponse = genData.data?.budget ?? genData.budget;
 
           setStatus("calculating");
           const cleanBudget = recalculateBudget(aiResponse);
@@ -257,9 +260,9 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
       );
     } catch (e: any) {
       logger.error("Budget generation failed", { error: e });
-      setError(e.message || "Failed to generate budget. Please try again.");
+      setError(e.message ?? "Failed to generate budget. Please try again.");
       setStatus("error");
-      toast.error(e.message || "Failed to generate budget");
+      toast.error(e.message ?? "Failed to generate budget");
     }
   };
 

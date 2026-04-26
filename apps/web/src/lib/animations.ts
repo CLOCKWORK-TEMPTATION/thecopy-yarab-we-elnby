@@ -42,7 +42,7 @@ export function createScrollAnimation(
     const animation = element.animate(keyframes, {
       timeline: new ScrollTimelineConstructor({
         source: document.documentElement,
-        axis: config.axis || "block",
+        axis: config.axis ?? "block",
       }),
       fill: "both",
     });
@@ -70,8 +70,8 @@ export function fadeInOnScroll(element: HTMLElement): Animation | null {
  */
 export function scaleOnScroll(
   element: HTMLElement,
-  from: number = 0.8,
-  to: number = 1
+  from = 0.8,
+  to = 1
 ): Animation | null {
   return createScrollAnimation(element, [
     { transform: `scale(${from})` },
@@ -84,7 +84,7 @@ export function scaleOnScroll(
  */
 export function parallaxEffect(
   element: HTMLElement,
-  speed: number = 0.5
+  speed = 0.5
 ): Animation | null {
   return createScrollAnimation(element, [
     { transform: `translateY(0)` },
@@ -152,8 +152,8 @@ export const durations = {
  * For animating lists with delay
  */
 export function staggerAnimation(
-  delay: number = 0.1,
-  staggerChildren: number = 0.05
+  delay = 0.1,
+  staggerChildren = 0.05
 ) {
   return {
     initial: { opacity: 0, y: 20 },
@@ -259,7 +259,7 @@ export function generateParticleBurst(
   x: number,
   y: number,
   config: Partial<ParticleConfig> = {}
-): Array<{
+): {
   x: number;
   y: number;
   vx: number;
@@ -267,7 +267,7 @@ export function generateParticleBurst(
   color: string;
   size: number;
   lifetime: number;
-}> {
+}[] {
   const {
     count = 20,
     colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A"],

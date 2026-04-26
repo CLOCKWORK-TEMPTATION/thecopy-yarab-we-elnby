@@ -17,6 +17,7 @@
  */
 
 import { logger } from "../utils/logger";
+
 import type { ElementType } from "./classification-types";
 
 const learnerLogger = logger.createScope("weight-learner");

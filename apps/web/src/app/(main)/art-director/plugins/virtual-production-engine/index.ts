@@ -1,9 +1,11 @@
 // CineArchitect AI - Virtual Production Engine & Pre-visualization
 // محرك الإنتاج الافتراضي والتصور المسبق
 
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface VirtualProduction {
   id: string;
@@ -128,7 +130,7 @@ interface Vector3D {
   z: number;
 }
 
-const productions: Map<string, VirtualProduction> = new Map();
+const productions = new Map<string, VirtualProduction>();
 
 const illusionLibrary: OpticalIllusion[] = [
   {
@@ -320,10 +322,10 @@ export class VirtualProductionEngine implements Plugin {
       dimensions: data.dimensions,
       pixelPitch: data.pixelPitch,
       resolution: { width: resolutionWidth, height: resolutionHeight },
-      curvature: data.curvature || 0,
+      curvature: data.curvature ?? 0,
       panels: panelCount,
       brightness: 1500,
-      colorSpace: data.colorSpace || "rec709",
+      colorSpace: data.colorSpace ?? "rec709",
     };
 
     production.ledWalls.push(ledWall);
@@ -359,8 +361,8 @@ export class VirtualProductionEngine implements Plugin {
       return { success: false, error: "Production not found" };
     }
 
-    const sensorSize = data.lens.sensorSize || { width: 36, height: 24 };
-    const focalLength = data.lens.focalLength || 35;
+    const sensorSize = data.lens.sensorSize ?? { width: 36, height: 24 };
+    const focalLength = data.lens.focalLength ?? 35;
     const fov =
       2 * Math.atan(sensorSize.width / (2 * focalLength)) * (180 / Math.PI);
 
@@ -369,10 +371,10 @@ export class VirtualProductionEngine implements Plugin {
       name: data.name,
       type: data.type,
       tracked: data.type !== "virtual" && !!data.trackingSystem,
-      trackingSystem: data.trackingSystem || "inside-out",
+      trackingSystem: data.trackingSystem ?? "inside-out",
       lens: {
         focalLength,
-        aperture: data.lens.aperture || 2.8,
+        aperture: data.lens.aperture ?? 2.8,
         sensorSize,
         calibrated: false,
         ...definedProps({
@@ -445,7 +447,7 @@ export class VirtualProductionEngine implements Plugin {
       id: uuidv4(),
       startTime: new Date(),
       cameraId: camera.id,
-      fps: data.targetFps || 120,
+      fps: data.targetFps ?? 120,
       latency:
         camera.trackingSystem === "mocap"
           ? 8
@@ -683,7 +685,7 @@ export class VirtualProductionEngine implements Plugin {
         };
         break;
 
-      default:
+      default: {
         const illusion = illusionLibrary.find(
           (i) => i.type === data.illusionType
         );
@@ -693,6 +695,7 @@ export class VirtualProductionEngine implements Plugin {
             cameraRequirements: illusion.cameraRequirements,
           };
         }
+      }
     }
 
     return {
@@ -752,7 +755,7 @@ export class VirtualProductionEngine implements Plugin {
       type: data.type,
       realTime: data.realTime,
       gpuAccelerated: true,
-      parameters: data.parameters || this.getDefaultVFXParameters(data.type),
+      parameters: data.parameters ?? this.getDefaultVFXParameters(data.type),
     };
 
     production.visualEffects.push(effect);
@@ -786,7 +789,7 @@ export class VirtualProductionEngine implements Plugin {
       environment: { type: "foliage", density: 100, wind: 0.3 },
     };
 
-    return defaults[type] || {};
+    return defaults[type] ?? {};
   }
 
   private async calibrateSystem(data: {
@@ -880,7 +883,7 @@ export class VirtualProductionEngine implements Plugin {
           latency: camera.tracked
             ? `${camera.trackingSystem === "mocap" ? "8" : "15"}ms`
             : "N/A",
-          colorSpace: production.ledWalls[0]?.colorSpace || "rec709",
+          colorSpace: production.ledWalls[0]?.colorSpace ?? "rec709",
         },
         streamUrl: `/vp/composite/${production.id}/live`,
         recordUrl: `/vp/composite/${production.id}/record`,

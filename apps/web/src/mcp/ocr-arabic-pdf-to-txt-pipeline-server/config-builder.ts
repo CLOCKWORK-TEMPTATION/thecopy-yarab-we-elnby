@@ -3,6 +3,9 @@
  */
 
 import process from "node:process";
+
+import { clamp, isTruthy, toNumberFloat, toNumberInt } from "./text-helpers.js";
+
 import type {
   ConfigManager,
   LLMConfig,
@@ -11,7 +14,6 @@ import type {
   ParsedArgs,
   PreOCRConfig,
 } from "./types.js";
-import { clamp, isTruthy, toNumberFloat, toNumberInt } from "./text-helpers.js";
 
 const DEFAULT_LLM_MODEL = "kimi-k2.5";
 const DEFAULT_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
@@ -31,7 +33,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
-    if (!token || !token.startsWith("--")) {
+    if (!token?.startsWith("--")) {
       continue;
     }
 
@@ -138,17 +140,17 @@ export function buildConfig(argv: string[]): ConfigManager {
     .toLowerCase();
   const tableFormat =
     tableRaw === "markdown" || tableRaw === "html"
-      ? (tableRaw as "markdown" | "html")
+      ? (tableRaw)
       : undefined;
   const annotationSchemaPath =
     argOptionalString(args, "mistral-annotation-schema") ??
-    (process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() || undefined);
+    (process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ?? undefined);
   const annotationPrompt =
     argOptionalString(args, "mistral-annotation-prompt") ??
-    (process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() || undefined);
+    (process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() ?? undefined);
   const annotationOutputPath =
     argOptionalString(args, "mistral-annotation-output") ??
-    (process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() || undefined);
+    (process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ?? undefined);
 
   const mistral: MistralOCRConfig = {
     model: argString(

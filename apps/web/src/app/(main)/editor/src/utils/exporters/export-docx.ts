@@ -182,7 +182,7 @@ const buildTopLineParagraph = (
 export const exportToDocx = async (
   content: string,
 
-  filename: string = "screenplay.docx",
+  filename = "screenplay.docx",
 
   options?: ExportToDocxOptions
 ): Promise<void> => {
@@ -229,7 +229,7 @@ export const exportToDocx = async (
     if (block.formatId === "scene_header_1") {
       const next = blocks[i + 1];
 
-      if (next && next.formatId === "scene_header_2") {
+      if (next?.formatId === "scene_header_2") {
         paragraphs.push(buildTopLineParagraph(text, next.text, modules));
 
         i += 1;

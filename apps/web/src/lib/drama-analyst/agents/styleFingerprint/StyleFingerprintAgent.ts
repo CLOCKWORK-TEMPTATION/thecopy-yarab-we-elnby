@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { STYLE_FINGERPRINT_AGENT_CONFIG } from "./agent";
 
 interface StyleFingerprintContext {
@@ -25,7 +27,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     super(
       "AuthorDNA AI",
       TaskType.STYLE_FINGERPRINT,
-      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt || ""
+      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.85;
@@ -35,15 +37,15 @@ export class StyleFingerprintAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as StyleFingerprintContext;
 
-    const originalText = ctx?.originalText || "";
-    const compareWithText = ctx?.compareWithText || "";
-    const analysisDepth = ctx?.analysisDepth || "detailed";
-    const focusAreas = ctx?.focusAreas || [
+    const originalText = ctx?.originalText ?? "";
+    const compareWithText = ctx?.compareWithText ?? "";
+    const analysisDepth = ctx?.analysisDepth ?? "detailed";
+    const focusAreas = ctx?.focusAreas ?? [
       "lexical",
       "syntactic",
       "rhetorical",
     ];
-    const authorSamples = ctx?.authorSamples || [];
+    const authorSamples = ctx?.authorSamples ?? [];
 
     let prompt = `مهمة استخراج بصمة الأسلوب الأدبي\n\n`;
 
@@ -109,7 +111,7 @@ export class StyleFingerprintAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupStyleText(output.text);
+    const processedText = this.cleanupStyleText(output.text);
 
     const analyticalDepth = await this.assessAnalyticalDepth(processedText);
     const specificity = await this.assessSpecificity(processedText);
@@ -146,7 +148,7 @@ export class StyleFingerprintAgent extends BaseAgent {
         },
         dimensionsAnalyzed: this.countDimensions(processedText),
         examplesProvided: this.countExamples(processedText),
-      } as any,
+      },
     };
   }
 
@@ -211,13 +213,13 @@ export class StyleFingerprintAgent extends BaseAgent {
   private async assessSpecificity(text: string): Promise<number> {
     let score = 0.6;
 
-    const hasQuotes = (text.match(/["«]/g) || []).length;
+    const hasQuotes = (text.match(/["«]/g) ?? []).length;
     score += Math.min(0.2, hasQuotes * 0.02);
 
     const hasExamples = text.includes("مثال") || text.includes("مثل");
     if (hasExamples) score += 0.1;
 
-    const hasNumbers = (text.match(/\d+%|\d+\.\d+|نسبة|معدل|متوسط/g) || [])
+    const hasNumbers = (text.match(/\d+%|\d+\.\d+|نسبة|معدل|متوسط/g) ?? [])
       .length;
     score += Math.min(0.1, hasNumbers * 0.02);
 
@@ -258,7 +260,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     }, 0);
     score += Math.min(0.25, evidenceCount * 0.05);
 
-    const hasDirectQuotes = (text.match(/["«][^"»]{10,}["»]/g) || []).length;
+    const hasDirectQuotes = (text.match(/["«][^"»]{10,}["»]/g) ?? []).length;
     if (hasDirectQuotes >= 3) score += 0.15;
 
     return Math.min(1, score);
@@ -310,7 +312,7 @@ export class StyleFingerprintAgent extends BaseAgent {
       detailed: "مفصل",
       comprehensive: "شامل ومعمق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   private translateFocusArea(area: string): string {
@@ -321,7 +323,7 @@ export class StyleFingerprintAgent extends BaseAgent {
       thematic: "موضوعي",
       stylistic: "أسلوبي",
     };
-    return areas[area] || area;
+    return areas[area] ?? area;
   }
 
   protected override async getFallbackResponse(

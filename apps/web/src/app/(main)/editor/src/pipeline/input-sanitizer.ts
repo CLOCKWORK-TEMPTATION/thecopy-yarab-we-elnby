@@ -84,7 +84,7 @@ const pstyleBracketPrefix: SanitizationRule = {
     const cleaned = text
       .split("\n")
       .map((line) => {
-        const match = line.match(PSTYLE_LINE_RE);
+        const match = PSTYLE_LINE_RE.exec(line);
         if (match) {
           matchCount += 1;
           if (samples.length < MAX_SAMPLE_MATCHES) {
@@ -165,7 +165,7 @@ const doubleBracketMetadata: SanitizationRule = {
     const cleaned = text
       .split("\n")
       .map((line) => {
-        const match = line.match(BRACKET_META_LINE_RE);
+        const match = BRACKET_META_LINE_RE.exec(line);
         if (match) {
           matchCount += 1;
           if (samples.length < MAX_SAMPLE_MATCHES) {

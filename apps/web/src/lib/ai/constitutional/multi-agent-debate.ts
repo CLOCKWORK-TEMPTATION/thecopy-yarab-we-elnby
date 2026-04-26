@@ -1,7 +1,8 @@
 // frontend/src/lib/ai/constitutional/multi-agent-debate.ts
 
-import { GeminiService } from "../../ai/stations/gemini-service";
 import { stripHtmlTags } from "@/lib/security/sanitize-html";
+
+import { GeminiService } from "../../ai/stations/gemini-service";
 
 export interface DebateParticipant {
   role: "prosecutor" | "defender" | "judge";
@@ -77,7 +78,7 @@ export class MultiAgentDebateSystem {
       analysisType: string;
       previousResults?: any;
     },
-    maxRounds: number = 3
+    maxRounds = 3
   ): Promise<DebateResult> {
     console.log(
       `[Multi-Agent Debate] Starting debate with max ${maxRounds} rounds`
@@ -527,11 +528,9 @@ export class MultiAgentDebateSystem {
     text: string,
     participant: string
   ): DebateArgument {
-    const argumentMatch = text.match(
-      /الحجة:\s*([^\n]+(?:\n(?!الأدلة|قوة)[^\n]+)*)/
-    );
-    const evidenceMatch = text.match(/الأدلة:\s*((?:\n\s*-[^\n]+)+)/);
-    const strengthMatch = text.match(/قوة الحجة:\s*(\d+(?:\.\d+)?)/);
+    const argumentMatch = /الحجة:\s*([^\n]+(?:\n(?!الأدلة|قوة)[^\n]+)*)/.exec(text);
+    const evidenceMatch = /الأدلة:\s*((?:\n\s*-[^\n]+)+)/.exec(text);
+    const strengthMatch = /قوة الحجة:\s*(\d+(?:\.\d+)?)/.exec(text);
 
     const argument = argumentMatch?.[1]?.trim() ?? text;
     const evidenceText = evidenceMatch?.[1] ?? "";

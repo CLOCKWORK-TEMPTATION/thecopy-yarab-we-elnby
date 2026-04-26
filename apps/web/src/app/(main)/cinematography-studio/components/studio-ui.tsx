@@ -1,14 +1,16 @@
 "use client";
 
 import * as React from "react";
-import type { LucideIcon } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
-type StatusItem = {
+import type { LucideIcon } from "lucide-react";
+
+interface StatusItem {
   label: string;
   value: React.ReactNode;
   valueClassName?: string;
-};
+}
 
 interface StudioStatusBarProps {
   leftItems?: StatusItem[];

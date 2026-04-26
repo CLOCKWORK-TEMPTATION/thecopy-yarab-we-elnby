@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import dynamic from "next/dynamic";
 import {
   AreaChart,
   BookOpenText,
@@ -16,24 +14,27 @@ import {
   AlertCircle,
   Download,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useEffect, useState, useTransition } from "react";
 
+import { useToast } from "@/hooks/use-toast";
 import { runFullPipeline } from "@/lib/actions/analysis";
 import {
   loadRemoteAppState,
   persistRemoteAppState,
 } from "@/lib/app-state-client";
-import { useToast } from "@/hooks/use-toast";
+
 // import { textChunker, type ContextMap } from "@/lib/ai/text-chunking";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Textarea } from "./ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 // Minimal ContextMap type to avoid missing type errors when chunking is disabled
-type ContextMap = {
-  chunks: Array<{ id: string; content: string }>;
+interface ContextMap {
+  chunks: { id: string; content: string }[];
   totalTokens: number;
-};
+}
 
 interface AnalysisSnapshot {
   text: string;

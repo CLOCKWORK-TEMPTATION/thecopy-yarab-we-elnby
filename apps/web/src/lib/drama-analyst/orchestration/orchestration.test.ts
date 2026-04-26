@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { TaskType } from "@core/enums";
 
 // Mock dependencies
@@ -97,7 +98,7 @@ describe("AIAgentOrchestraManager", () => {
 
     it("validate-pipeline: should return default description for unknown task", () => {
       const description = orchestraManager.getEnhancedDescription(
-        "UNKNOWN_TASK" as TaskType
+        "UNKNOWN_TASK"
       );
 
       expect(description).toContain("وصف غير متوفر");
@@ -115,7 +116,7 @@ describe("AIAgentOrchestraManager", () => {
 
     it("validate-pipeline: should return null for unknown agent capabilities", () => {
       const capabilities = orchestraManager.getAgentCapabilities(
-        "UNKNOWN" as TaskType
+        "UNKNOWN"
       );
 
       expect(capabilities).toBeNull();
@@ -145,7 +146,7 @@ describe("AIAgentOrchestraManager", () => {
 
     it("validate-pipeline: should handle unknown task types", () => {
       const collaborators = orchestraManager.getCollaborationSuggestions(
-        "UNKNOWN" as TaskType
+        "UNKNOWN"
       );
 
       expect(collaborators).toEqual([]);
@@ -319,7 +320,7 @@ describe("AIAgentOrchestraManager", () => {
 
     it("validate-pipeline: should return empty array for task with no episodes", () => {
       const episodes = orchestraManager.getRelevantEpisodes(
-        "UNKNOWN" as TaskType
+        "UNKNOWN"
       );
 
       expect(episodes).toEqual([]);

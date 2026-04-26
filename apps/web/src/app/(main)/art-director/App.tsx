@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import Tools from "./pages/Tools";
+import Documentation from "./pages/Documentation";
 import Inspiration from "./pages/Inspiration";
 import Locations from "./pages/Locations";
-import Sets from "./pages/Sets";
 import Productivity from "./pages/Productivity";
-import Documentation from "./pages/Documentation";
+import Sets from "./pages/Sets";
+import Tools from "./pages/Tools";
 
 function App() {
   return (

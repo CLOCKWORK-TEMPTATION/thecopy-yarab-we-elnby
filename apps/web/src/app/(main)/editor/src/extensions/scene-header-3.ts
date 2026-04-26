@@ -13,7 +13,7 @@
  * وعدد الكلمات ≤ 14 ولا يوجد ترقيم جمل أو أفعال وصف → يُصنّف كموقع تفصيلي.
  */
 import { Node, mergeAttributes } from "@tiptap/core";
-import type { ClassificationContext } from "./classification-types";
+
 import {
   SCENE_HEADER3_MULTI_LOCATION_EXACT_RE,
   SCENE_HEADER3_PREFIX_RE,
@@ -28,6 +28,8 @@ import {
   matchesActionStartPattern,
   normalizeLine,
 } from "./text-utils";
+
+import type { ClassificationContext } from "./classification-types";
 
 /**
  * يفحص ما إذا كان السطر موقعاً تفصيلياً (مثل "شقة سيد — غرفة النوم").

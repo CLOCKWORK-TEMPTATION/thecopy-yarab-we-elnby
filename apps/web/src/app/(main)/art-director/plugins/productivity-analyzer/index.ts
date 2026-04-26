@@ -1,5 +1,6 @@
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface TimeEntry {
   id: string;
@@ -80,9 +81,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   descriptionAr = "قياس كفاءة عمليات الإنتاج وتقديم رؤى لتحسينها";
   category = "ai-analytics" as const;
 
-  private timeEntries: Map<string, TimeEntry> = new Map();
-  private delays: Map<string, Delay> = new Map();
-  private blockers: Map<string, Blocker> = new Map();
+  private timeEntries = new Map<string, TimeEntry>();
+  private delays = new Map<string, Delay>();
+  private blockers = new Map<string, Blocker>();
 
   async initialize(): Promise<void> {
     console.log(`[${this.name}] Initialized`);
@@ -97,9 +98,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
           input.data as { taskId: string; actualHours: number; notes?: string }
         );
       case "report-delay":
-        return this.reportDelay(input.data as unknown as Partial<Delay>);
+        return this.reportDelay(input.data);
       case "report-blocker":
-        return this.reportBlocker(input.data as unknown as Partial<Blocker>);
+        return this.reportBlocker(input.data);
       case "resolve-blocker":
         return this.resolveBlocker(input.data as { blockerId: string });
       case "analyze":
@@ -137,10 +138,10 @@ export class PerformanceProductivityAnalyzer implements Plugin {
       department: data.department,
       assignee: data.assignee,
       plannedHours: data.plannedHours,
-      actualHours: data.actualHours || 0,
+      actualHours: data.actualHours ?? 0,
       startTime: new Date(),
       status: (data.status as TimeEntry["status"]) || "planned",
-      notes: data.notes || "",
+      notes: data.notes ?? "",
     };
 
     this.timeEntries.set(entry.id, entry);
@@ -218,9 +219,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
       id: uuidv4(),
       taskId: data.taskId,
       reason: data.reason,
-      reasonAr: data.reasonAr || data.reason,
+      reasonAr: data.reasonAr ?? data.reason,
       hoursLost: data.hoursLost,
-      category: data.category || "other",
+      category: data.category ?? "other",
     };
 
     this.delays.set(delay.id, delay);
@@ -246,8 +247,8 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     const blocker: Blocker = {
       id: uuidv4(),
       description: data.description,
-      descriptionAr: data.descriptionAr || data.description,
-      severity: data.severity || "medium",
+      descriptionAr: data.descriptionAr ?? data.description,
+      severity: data.severity ?? "medium",
       department: data.department,
       reportedAt: new Date(),
     };
@@ -424,11 +425,11 @@ export class PerformanceProductivityAnalyzer implements Plugin {
       .filter((e) => e.endTime)
       .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-    const trends: Array<{
+    const trends: {
       date: string;
       efficiency: number;
       tasksCompleted: number;
-    }> = [];
+    }[] = [];
 
     const groupedByDay: Record<string, TimeEntry[]> = {};
     for (const entry of entries) {
@@ -475,16 +476,16 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     const delays = Array.from(this.delays.values());
     const blockers = Array.from(this.blockers.values());
 
-    const recommendations: Array<{
+    const recommendations: {
       priority: string;
       suggestion: string;
       suggestionAr: string;
-    }> = [];
+    }[] = [];
 
     const delayCategories: Record<string, number> = {};
     for (const delay of delays) {
       delayCategories[delay.category] =
-        (delayCategories[delay.category] || 0) + delay.hoursLost;
+        (delayCategories[delay.category] ?? 0) + delay.hoursLost;
     }
 
     const topDelayCategory = Object.entries(delayCategories).sort(

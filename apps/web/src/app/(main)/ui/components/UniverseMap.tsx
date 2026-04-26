@@ -1,15 +1,18 @@
-import React, { useState } from "react";
-import { DynamicMotionDiv } from "@/components/ui/dynamic-motion";
-import { UniverseNode } from "./UniverseNode";
-import { ZoomIn, ZoomOut, Grid3x3, Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
+import { ZoomIn, ZoomOut, Grid3x3, Maximize2 ,
   FileEdit,
   BarChart3,
   Code2,
   Lightbulb,
   FolderOpen,
 } from "lucide-react";
+import React, { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { DynamicMotionDiv } from "@/components/ui/dynamic-motion";
+
+import { UniverseNode } from "./UniverseNode";
+
+
 
 type View = "editor" | "analysis" | "development" | "brainstorm" | "assets";
 
@@ -102,8 +105,6 @@ export function UniverseMap({
 }: UniverseMapProps) {
   const [currentZoom, setCurrentZoom] = useState<"far" | "mid" | "near">(zoom);
   const [showGrid, setShowGrid] = useState(grid);
-  const [] = useState(false);
-  const [] = useState({ x: 0, y: 0 });
 
   const scale = zoomScales[currentZoom];
 

@@ -8,12 +8,22 @@
  */
 
 import React, { useState, useMemo, useCallback } from "react";
+
 import {
   CreativePrompt,
   CreativeGenre,
   WritingTechnique,
   DifficultyLevel,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,16 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 export interface PromptLibraryProps {
   onPromptSelect: (prompt: CreativePrompt) => void;

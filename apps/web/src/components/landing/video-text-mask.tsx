@@ -1,7 +1,8 @@
 "use client";
 
-import { logger } from "@/lib/ai/utils/logger";
 import { forwardRef } from "react";
+
+import { logger } from "@/lib/ai/utils/logger";
 
 interface VideoTextMaskProps {
   videoSrc: string;

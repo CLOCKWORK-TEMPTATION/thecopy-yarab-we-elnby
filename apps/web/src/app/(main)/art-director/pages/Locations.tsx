@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { MapPin, Plus, Search, Building, Trees, Mountain } from "lucide-react";
+import { useState } from "react";
+
 import "./Locations.css";
 import { artDirectorApiPath } from "../lib/api-client";
 

@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
-import Image from "next/image";
 import {
   AlertTriangle,
   Aperture,
@@ -15,13 +13,18 @@ import {
   Trash2,
   Video,
 } from "lucide-react";
+import Image from "next/image";
+import React, { useCallback, useRef } from "react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+
 import { useProduction } from "../../hooks";
-import type { ProductionToolsProps } from "../../types";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
+
+import type { ProductionToolsProps } from "../../types";
 
 const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
   const {

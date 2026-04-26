@@ -4,8 +4,9 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { NextRequest } from "next/server";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 interface RuntimeServer {
   port: number;

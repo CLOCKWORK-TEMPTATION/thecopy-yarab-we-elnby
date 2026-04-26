@@ -1,6 +1,7 @@
-import type { EditorArea } from "../components/editor";
 import { insertMenuDefinitions, type EditorStyleFormatId } from "../constants";
 import { fromLegacyElementType } from "../extensions/classification-types";
+
+import type { EditorArea } from "../components/editor";
 
 export type InsertActionId =
   | `insert-template:${EditorStyleFormatId}`
@@ -12,12 +13,12 @@ export interface MenuToastPayload {
   variant?: "default" | "destructive";
 }
 
-type InsertMenuActionRuntime = {
+interface InsertMenuActionRuntime {
   actionId: InsertActionId;
   area: EditorArea;
   toast: (payload: MenuToastPayload) => void;
   getNextPhotoMontageNumber: () => number;
-};
+}
 
 const INSERT_DEFINITION_BY_ID = insertMenuDefinitions.reduce<
   Record<EditorStyleFormatId, (typeof insertMenuDefinitions)[number]>
@@ -106,10 +107,10 @@ export const runInsertMenuAction = ({
   const definition = INSERT_DEFINITION_BY_ID[rawId];
   const template = (definition.defaultTemplate ?? "").trim();
   const sceneHeader1Template = (
-    INSERT_DEFINITION_BY_ID["scene_header_1"].defaultTemplate ?? "مشهد 1:"
+    INSERT_DEFINITION_BY_ID.scene_header_1.defaultTemplate ?? "مشهد 1:"
   ).trim();
   const sceneHeader2Template = (
-    INSERT_DEFINITION_BY_ID["scene_header_2"].defaultTemplate ??
+    INSERT_DEFINITION_BY_ID.scene_header_2.defaultTemplate ??
     "داخلي - المكان - الوقت"
   ).trim();
 

@@ -11,7 +11,7 @@ async function fetchStyleist<T>(
 ): Promise<T> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(options.headers || {}),
+    ...(options.headers ?? {}),
   };
 
   const response = await fetch(`${STYLEIST_API}${path}`, {
@@ -27,7 +27,7 @@ async function fetchStyleist<T>(
   const data = await response.json();
 
   if (!response.ok || !data.success) {
-    throw new Error(data.error || "فشل في العملية");
+    throw new Error(data.error ?? "فشل في العملية");
   }
 
   return data.data as T;

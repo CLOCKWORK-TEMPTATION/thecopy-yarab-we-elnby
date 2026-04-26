@@ -1,6 +1,7 @@
-import type { AlternativePullEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { AlternativePullEvidence } from "@editor/suspicion-engine/types";
 
 const SCHEMA_SEED_STAGE = "schema-hint";
 

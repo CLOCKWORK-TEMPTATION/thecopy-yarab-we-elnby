@@ -7,7 +7,6 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   BarChart3,
   Clock,
@@ -17,9 +16,15 @@ import {
   CheckCircle2,
   TimerReset,
 } from "lucide-react";
-import type { ApiResponse } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
+import { useState, useCallback, useEffect, useMemo } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ApiResponse } from "../types";
+
+
 
 interface TimeFormData {
   task: string;

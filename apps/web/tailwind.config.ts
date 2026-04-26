@@ -1,5 +1,6 @@
-import type { Config } from "tailwindcss";
 import tailwindAnimate from "tailwindcss-animate";
+
+import type { Config } from "tailwindcss";
 
 /**
  * UI Design System - December 2025

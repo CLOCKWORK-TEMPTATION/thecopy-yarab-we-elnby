@@ -102,7 +102,7 @@ export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
     const hasScene2 = SCENE2_RE.test(norm);
 
     if (hasScene1 || hasScene2) {
-      const m1 = norm.match(SCENE1_RE);
+      const m1 = SCENE1_RE.exec(norm);
       if (m1) {
         const scenePart = m1[0];
         if (!scenePart) {
@@ -117,7 +117,7 @@ export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
         push("scene_header_1", raw, h1, 0.95, ["E_SCENE_1_MATCH"]);
       }
 
-      const m2 = norm.match(SCENE2_RE);
+      const m2 = SCENE2_RE.exec(norm);
       if (m2) {
         const sceneTime = m2[1];
         const sceneSpace = m2[2];
@@ -166,7 +166,7 @@ export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
       continue;
     }
 
-    const inline = norm.match(INLINE_SPEAKER_RE);
+    const inline = INLINE_SPEAKER_RE.exec(norm);
     if (inline) {
       const speaker = inline[1]?.trim();
       const spoken = inline[2]?.trim();

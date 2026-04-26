@@ -10,16 +10,17 @@
  * - إثبات مسار الفشل القادم من الخدمة الخلفية.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createServer,
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
+
 import { NextRequest } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 interface FixtureServerState {
-  receivedBodies: Array<Record<string, unknown>>;
+  receivedBodies: Record<string, unknown>[];
 }
 
 interface StartedFixtureServer {

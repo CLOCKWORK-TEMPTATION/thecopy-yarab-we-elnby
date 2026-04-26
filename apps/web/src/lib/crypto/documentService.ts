@@ -48,7 +48,7 @@ export async function saveEncryptedDocument(
     }
 
     // تحديد docId (جديد أو تحديث)
-    const docId = params.docId || generateDocId();
+    const docId = params.docId ?? generateDocId();
     const version = params.docId ? await getNextVersion(params.docId) : 1;
 
     // تشفير المحتوى
@@ -87,13 +87,13 @@ export async function saveEncryptedDocument(
     if (!data.success) {
       return {
         success: false,
-        error: data.error || "فشل في حفظ المستند",
+        error: data.error ?? "فشل في حفظ المستند",
       };
     }
 
     return {
       success: true,
-      docId: data.data.id || docId,
+      docId: data.data.id ?? docId,
     };
   } catch (error) {
     logger.error("خطأ في حفظ المستند المشفر:", error);
@@ -131,7 +131,7 @@ export async function loadEncryptedDocument(
     if (!data.success) {
       return {
         success: false,
-        error: data.error || "فشل في تحميل المستند",
+        error: data.error ?? "فشل في تحميل المستند",
       };
     }
 
@@ -174,13 +174,13 @@ export async function loadEncryptedDocument(
  */
 export async function listEncryptedDocuments(): Promise<{
   success: boolean;
-  documents?: Array<{
+  documents?: {
     id: string;
     version: number;
     ciphertextSize: number;
     createdAt: string;
     lastModified: string;
-  }>;
+  }[];
   error?: string;
 }> {
   try {
@@ -193,7 +193,7 @@ export async function listEncryptedDocuments(): Promise<{
     if (!data.success) {
       return {
         success: false,
-        error: data.error || "فشل في جلب قائمة المستندات",
+        error: data.error ?? "فشل في جلب قائمة المستندات",
       };
     }
 
@@ -227,7 +227,7 @@ export async function deleteEncryptedDocument(
     if (!data.success) {
       return {
         success: false,
-        error: data.error || "فشل في حذف المستند",
+        error: data.error ?? "فشل في حذف المستند",
       };
     }
 

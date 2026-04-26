@@ -4,6 +4,7 @@
  * تمنع رجوع العطل: بطاقة تشير إلى مسار غير موجود أو مسار بدون بطاقة
  */
 import { describe, it, expect } from "vitest";
+
 import {
   platformApps,
   getAppById,

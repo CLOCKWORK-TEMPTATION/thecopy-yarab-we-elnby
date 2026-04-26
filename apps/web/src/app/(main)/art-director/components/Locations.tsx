@@ -7,7 +7,6 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   MapPin,
   Plus,
@@ -17,10 +16,16 @@ import {
   Mountain,
   type LucideIcon,
 } from "lucide-react";
-import type { LocationSimple, ApiResponse } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
-import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { useArtDirectorPersistence } from "../hooks/useArtDirectorPersistence";
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { LocationSimple, ApiResponse } from "../types";
+
+
 
 interface LocationFormData {
   name: string;

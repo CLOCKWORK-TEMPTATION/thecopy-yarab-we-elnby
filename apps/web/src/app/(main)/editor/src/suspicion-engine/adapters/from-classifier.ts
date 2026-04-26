@@ -1,3 +1,5 @@
+import { createClassificationTrace } from "@editor/suspicion-engine/trace/classification-trace";
+
 import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   ClassificationTrace,
@@ -8,7 +10,6 @@ import type {
   LineQuality,
   ResolutionOutcome,
 } from "@editor/suspicion-engine/types";
-import { createClassificationTrace } from "@editor/suspicion-engine/trace/classification-trace";
 
 export interface PassVoteLogEntry {
   readonly lineIndex: number;

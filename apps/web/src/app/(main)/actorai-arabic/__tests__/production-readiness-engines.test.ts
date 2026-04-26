@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+
 import { SAMPLE_SCRIPT } from "../lib/constants";
-import type { WebcamAnalysisFrameSample } from "../lib/studio-engines";
 import {
   analyzeDemoScript,
   buildSceneRhythmAnalysis,
@@ -9,6 +9,8 @@ import {
   generateSelfTapeReview,
   scoreRecordedPerformance,
 } from "../lib/studio-engines";
+
+import type { WebcamAnalysisFrameSample } from "../lib/studio-engines";
 
 describe("createDeterministicMemorizationMask", () => {
   const text = "هذا نص عربي قصير يصلح لاختبار الحذف الحتمي بين الكلمات";

@@ -7,8 +7,9 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import type { BrainstormAgentStats, Session } from "../../types";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { BrainstormAgentStats, Session } from "../../types";
 
 interface BrainStormHeaderProps {
   agentStats: BrainstormAgentStats;

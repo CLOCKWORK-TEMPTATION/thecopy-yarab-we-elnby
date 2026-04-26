@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 
+
+import { detectContractBasmalaUniqueness } from "./contract-basmala-uniqueness.detector";
+import { detectContractCharacterShape } from "./contract-character-shape.detector";
+import { detectContractParentheticalPosition } from "./contract-parenthetical-position.detector";
+import { detectContractSceneHeaderSequence } from "./contract-scene-header-sequence.detector";
+import { detectContractTransitionIsolation } from "./contract-transition-isolation.detector";
+
 import type { ClassifiedDraft } from "@editor/extensions/classification-types";
+import type { DetectorContext } from "@editor/suspicion-engine/detectors/detector-interface";
 import type {
   ClassificationTrace,
   SuspicionFeature,
 } from "@editor/suspicion-engine/types";
-import type { DetectorContext } from "@editor/suspicion-engine/detectors/detector-interface";
-
-import { detectContractCharacterShape } from "./contract-character-shape.detector";
-import { detectContractParentheticalPosition } from "./contract-parenthetical-position.detector";
-import { detectContractBasmalaUniqueness } from "./contract-basmala-uniqueness.detector";
-import { detectContractSceneHeaderSequence } from "./contract-scene-header-sequence.detector";
-import { detectContractTransitionIsolation } from "./contract-transition-isolation.detector";
 
 // ── Helpers لبناء fixtures خفيفة ──
 

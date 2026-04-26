@@ -8,12 +8,12 @@
  */
 
 import { useCallback, useEffect, useReducer } from "react";
-import { useToast } from "@/hooks/use-toast";
+
 import { toText } from "@/ai/gemini-core";
-import { loadRemoteAppState } from "@/lib/app-state-client";
-import { getTaskById } from "../utils/task-catalog";
-import { normalizeResult } from "../utils/result-normalizer";
+import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/ai/utils/logger";
+import { loadRemoteAppState } from "@/lib/app-state-client";
+
 import {
   CreativeTaskType,
   CREATIVE_TASK_LABELS,
@@ -28,6 +28,9 @@ import {
   type WorkflowTaskTarget,
   submitInputSchema,
 } from "../types";
+import { normalizeResult } from "../utils/result-normalizer";
+import { getTaskById } from "../utils/task-catalog";
+
 
 // ============================================
 // الثوابت
@@ -80,11 +83,11 @@ interface BrainstormDebateResponse {
   success: boolean;
   error?: string;
   result?: {
-    proposals?: Array<{
+    proposals?: {
       agentId: string;
       proposal: string;
       confidence: number;
-    }>;
+    }[];
     consensus?: boolean;
     finalDecision?: string;
     judgeReasoning?: string;
@@ -378,7 +381,9 @@ export function useCreativeDevelopment() {
           localStorage.removeItem("sevenStationsAnalysis");
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to restore seven stations analysis", error);
+      }
     }
 
     // التحقق من بيانات الجلسة
@@ -402,7 +407,9 @@ export function useCreativeDevelopment() {
           });
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to restore station session analysis", error);
+      }
     }
 
     void loadRemoteAppState<AnalysisSnapshot>("analysis")
@@ -703,7 +710,7 @@ export function useCreativeDevelopment() {
                     .filter(Boolean)
                     .join("\n\n"),
                   phase: 3,
-                  sessionId: state.analysisId || `development-${Date.now()}`,
+                  sessionId: state.analysisId ?? `development-${Date.now()}`,
                 },
                 agentIds: targetAgentIds,
               }),
@@ -864,7 +871,7 @@ export function useCreativeDevelopment() {
 
     if (!validationResult.success) {
       const errorMessage =
-        validationResult.error.errors[0]?.message || "يرجى التحقق من المدخلات";
+        validationResult.error.errors[0]?.message ?? "يرجى التحقق من المدخلات";
       dispatch({ type: "SET_ERROR", payload: errorMessage });
       return;
     }
@@ -949,7 +956,7 @@ export function useCreativeDevelopment() {
           : "",
         state.additionalInfo ? `معلومات إضافية: ${state.additionalInfo}` : "",
         "النص الأصلي:",
-        request.context.files[0]?.textContent || "",
+        request.context.files[0]?.textContent ?? "",
       ].filter(Boolean);
 
       const debatePayload: BrainstormDebatePayload = {
@@ -966,7 +973,7 @@ export function useCreativeDevelopment() {
             .filter(Boolean)
             .join("\n\n"),
           phase: 3,
-          sessionId: state.analysisId || `development-${Date.now()}`,
+          sessionId: state.analysisId ?? `development-${Date.now()}`,
         },
         agentIds,
       };
@@ -986,18 +993,18 @@ export function useCreativeDevelopment() {
 
       if (!response.ok || !payload?.success) {
         const errorMsg =
-          payload?.error ||
+          payload?.error ??
           `فشل تنفيذ المهمة عبر الباك إند (رمز الحالة: ${response.status})`;
         throw new Error(errorMsg);
       }
 
       const finalText =
-        payload.result?.finalDecision?.trim() ||
-        payload.result?.judgeReasoning?.trim() ||
+        payload.result?.finalDecision?.trim() ??
+        payload.result?.judgeReasoning?.trim() ??
         payload.result?.proposals
           ?.map((proposal) => proposal.proposal)
           .filter(Boolean)
-          .join("\n\n") ||
+          .join("\n\n") ??
         "لم يتم إرجاع محتوى من الباك إند";
 
       const result: AIResponseData = {
@@ -1048,7 +1055,7 @@ export function useCreativeDevelopment() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${state.selectedTask || "result"}_report.txt`;
+    a.download = `${state.selectedTask ?? "result"}_report.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }, [state.aiResponse, state.selectedTask]);
@@ -1059,7 +1066,7 @@ export function useCreativeDevelopment() {
   const showReport = useCallback(() => {
     dispatch({
       type: "SET_SHOW_REPORT_MODAL",
-      payload: state.selectedTask || "result",
+      payload: state.selectedTask ?? "result",
     });
   }, [state.selectedTask]);
 
@@ -1171,7 +1178,7 @@ export function useCreativeDevelopment() {
       agentName: state.selectedTask
         ? CREATIVE_TASK_LABELS[state.selectedTask]
         : "التقرير",
-      agentId: state.selectedTask || "unknown",
+      agentId: state.selectedTask ?? "unknown",
       text: toText(state.aiResponse.raw),
       confidence: 1.0,
       timestamp: new Date().toISOString(),

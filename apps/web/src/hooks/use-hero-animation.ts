@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useLayoutEffect, type RefObject } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useState, useLayoutEffect, type RefObject } from "react";
+
 import { heroConfig, type ResponsiveConfig } from "../lib/hero-config";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -29,7 +30,7 @@ export const useHeroAnimation = (
     if (!responsiveValues || !containerRef.current || !triggerRef.current)
       return;
 
-    const phase3Images = gsap.utils.toArray(".phase-3-img") as HTMLElement[];
+    const phase3Images = gsap.utils.toArray(".phase-3-img");
 
     const ctx = gsap.context(() => {
       // Performance optimization: reduce distance and improve scrub for smoothness
@@ -178,17 +179,17 @@ export const useHeroAnimation = (
           y: 0,
           top: (i) =>
             i < responsiveValues.cardPositions.length
-              ? responsiveValues.cardPositions[i]?.top || "50%"
+              ? responsiveValues.cardPositions[i]?.top ?? "50%"
               : "100vh",
           left: (i) =>
             i < responsiveValues.cardPositions.length
-              ? responsiveValues.cardPositions[i]?.left || "50%"
+              ? responsiveValues.cardPositions[i]?.left ?? "50%"
               : "50%",
 
           // استخدام الدوران من الكونفيج بدلاً من 0
           rotation: (i) =>
             i < responsiveValues.cardPositions.length
-              ? responsiveValues.cardPositions[i]?.rotation || 0
+              ? responsiveValues.cardPositions[i]?.rotation ?? 0
               : 0,
 
           scale: responsiveValues.scale,

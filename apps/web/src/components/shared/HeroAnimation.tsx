@@ -1,13 +1,16 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
 
 import Link from "next/link";
-import { VideoTextMask } from "./VideoTextMask";
-import { useHeroAnimation } from "@/hooks/use-hero-animation";
+import { useRef, useState, type CSSProperties } from "react";
+
+
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import { IntroVideoModal } from "./IntroVideoModal";
+import { useHeroAnimation } from "@/hooks/use-hero-animation";
 import images from "@/lib/images";
+
+import { IntroVideoModal } from "./IntroVideoModal";
+import { VideoTextMask } from "./VideoTextMask";
 
 interface HeroAnimationProps {
   onContinue?: () => void;

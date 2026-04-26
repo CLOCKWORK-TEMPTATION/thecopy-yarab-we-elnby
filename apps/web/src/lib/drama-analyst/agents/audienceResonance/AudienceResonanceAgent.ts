@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { AUDIENCE_RESONANCE_AGENT_CONFIG } from "./agent";
 
 interface AudienceResonanceContext {
@@ -31,11 +33,11 @@ interface AudienceResonanceContext {
   };
   contentType?: string;
   platform?: string;
-  previousResponses?: Array<{
+  previousResponses?: {
     audienceSegment: string;
     response: string;
     resonanceScore: number;
-  }>;
+  }[];
 }
 
 /**
@@ -48,7 +50,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     super(
       "EmpathyMatrix AI",
       TaskType.AUDIENCE_RESONANCE,
-      AUDIENCE_RESONANCE_AGENT_CONFIG.systemPrompt || ""
+      AUDIENCE_RESONANCE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -63,11 +65,11 @@ export class AudienceResonanceAgent extends BaseAgent {
 
     // Extract relevant context
     const ctx = context as AudienceResonanceContext;
-    const originalText = ctx?.originalText || "";
-    const targetAudience = ctx?.targetAudience || null;
-    const contentType = ctx?.contentType || "محتوى درامي";
-    const platform = ctx?.platform || "غير محدد";
-    const previousResponses = ctx?.previousResponses || [];
+    const originalText = ctx?.originalText ?? "";
+    const targetAudience = ctx?.targetAudience ?? null;
+    const contentType = ctx?.contentType ?? "محتوى درامي";
+    const platform = ctx?.platform ?? "غير محدد";
+    const previousResponses = ctx?.previousResponses ?? [];
 
     // Build structured prompt
     let prompt = `[مهمة تحليل الصدى الجماهيري]\n\n`;
@@ -148,7 +150,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up the analysis text
-    let processedText = this.cleanupAnalysis(output.text);
+    const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
     const comprehensiveness = await this.assessComprehensiveness(processedText);
@@ -179,7 +181,7 @@ export class AudienceResonanceAgent extends BaseAgent {
         actionability,
         analysisType: this.detectAnalysisType(processedText),
         wordCount: processedText.split(/\s+/).length,
-      } as any,
+      },
     };
   }
 

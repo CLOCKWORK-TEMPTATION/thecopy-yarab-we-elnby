@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import type {
-  ParticleVelocity,
-  ParticlePosition,
-  EffectConfig,
-} from "@/components/particle-effects";
+
+import {
+  getDeviceCapabilities,
+  getParticleLODConfig,
+  logDeviceCapabilities,
+} from "@/components/device-detection";
 import {
   applySparkEffect,
   applyWaveEffect,
@@ -16,11 +17,6 @@ import {
   calculateVortexColor,
   performanceMonitor,
 } from "@/components/particle-effects";
-import {
-  getDeviceCapabilities,
-  getParticleLODConfig,
-  logDeviceCapabilities,
-} from "@/components/device-detection";
 import {
   BASELINE,
   STROKE_WIDTH,
@@ -32,6 +28,12 @@ import {
   SAMPLING_BOUNDS,
   PARTICLE_THRESHOLDS,
 } from "@/components/particle-letters.constants";
+
+import type {
+  ParticleVelocity,
+  ParticlePosition,
+  EffectConfig,
+} from "@/components/particle-effects";
 
 type Effect = "default" | "spark" | "wave" | "vortex";
 
@@ -63,7 +65,7 @@ function getOptimalParticleCount(): {
   const batchSize = Math.floor(lodConfig.particleCount * 0.22);
 
   // Log device capabilities in development
-  if (process.env["NODE_ENV"] === "development") {
+  if (process.env.NODE_ENV === "development") {
     logDeviceCapabilities();
   }
 
@@ -90,7 +92,7 @@ const requestIdle = (
           timeRemaining: () => Math.max(0, 50),
           didTimeout: false,
         }),
-      options?.timeout || 0
+      options?.timeout ?? 0
     ) as any;
   }
 };
@@ -261,7 +263,7 @@ const dist_c = (px: number, py: number): number => {
   const cx = LETTER_POSITIONS.C;
   const cy = BASELINE + X_HEIGHT * 0.5;
   const r = 0.2;
-  let ring = sdRing(px, py, cx, cy, r, STROKE_WIDTH);
+  const ring = sdRing(px, py, cx, cy, r, STROKE_WIDTH);
   const cutBox = sdBox(px - (cx + r * 0.5), py - cy, 0.15, 0.14, 0);
   return opSubtract(ring, cutBox);
 };
@@ -995,7 +997,7 @@ export default function OptimizedParticleAnimation() {
 
     // Animation loop with batch processing
     const animate = () => {
-      if (!sceneRef.current || !sceneRef.current.isGenerated) {
+      if (!sceneRef.current?.isGenerated) {
         animationRef.current = requestAnimationFrame(animate);
         return;
       }
@@ -1037,7 +1039,7 @@ export default function OptimizedParticleAnimation() {
       updateCameraPosition(camera, rotationX, rotationY);
 
       // Process particles in batches for better performance
-      const processParticlesInBatches = (batchSize: number = 800) => {
+      const processParticlesInBatches = (batchSize = 800) => {
         let currentIndex = 0;
 
         const processBatch = () => {
@@ -1134,7 +1136,7 @@ export default function OptimizedParticleAnimation() {
       };
 
       // Throttle animation to prevent performance issues
-      if (currentTime - (sceneRef.current.lastFrameTime || 0) > 16) {
+      if (currentTime - (sceneRef.current.lastFrameTime ?? 0) > 16) {
         sceneRef.current.lastFrameTime = currentTime;
         processParticlesInBatches();
       } else {
@@ -1154,7 +1156,7 @@ export default function OptimizedParticleAnimation() {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (!sceneRef.current || !sceneRef.current.isDragging) return;
+      if (!sceneRef.current?.isDragging) return;
 
       const deltaX = event.clientX - sceneRef.current.previousMouseX;
       const deltaY = event.clientY - sceneRef.current.previousMouseY;

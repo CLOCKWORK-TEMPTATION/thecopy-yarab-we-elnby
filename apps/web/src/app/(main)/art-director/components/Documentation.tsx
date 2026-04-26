@@ -7,11 +7,16 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useEffect } from "react";
 import { FileText, Book, PenTool, Download, Plus } from "lucide-react";
-import type { ProductionBook, StyleGuide, ApiResponse } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
+import { useState, useCallback, useEffect } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ProductionBook, StyleGuide, ApiResponse } from "../types";
+
+
 
 interface BookFormData {
   projectName: string;
@@ -482,7 +487,7 @@ export default function Documentation() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectName:
-              productionBook?.title || bookForm.projectName || "مشروع جديد",
+              productionBook?.title ?? bookForm.projectName || "مشروع جديد",
           }),
         }
       );
@@ -516,7 +521,7 @@ export default function Documentation() {
           body: JSON.stringify({
             ...decisionForm,
             projectName:
-              productionBook?.title ||
+              productionBook?.title ??
               bookForm.projectName ||
               bookForm.projectNameAr ||
               "art-director-default",

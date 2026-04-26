@@ -18,10 +18,11 @@
  * reverse-classification-pass, retroactive-corrector.
  */
 
+import { logger } from "../utils/logger";
+
+import { pipelineRecorder } from "./pipeline-recorder";
 import { isCompleteSceneHeaderLine } from "./scene-header-top-line";
 import { normalizeLine } from "./text-utils";
-import { logger } from "../utils/logger";
-import { pipelineRecorder } from "./pipeline-recorder";
 
 const dcgLogger = logger.createScope("document-context-graph");
 

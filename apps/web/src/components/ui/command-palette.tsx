@@ -1,9 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import {
   Search,
   FileEdit,
@@ -21,6 +17,12 @@ import {
   Mic,
   type LucideIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+
 
 /**
  * Smart Command Palette Component

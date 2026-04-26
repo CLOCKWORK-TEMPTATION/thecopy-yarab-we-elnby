@@ -1,6 +1,8 @@
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface Location {
   id: string;
@@ -77,8 +79,8 @@ export class LocationSetCoordinator implements Plugin {
     "قاعدة بيانات ذكية للمواقع والديكورات مع جدولة متقدمة وإدارة التصاريح";
   category = "resource-management" as const;
 
-  private locations: Map<string, Location> = new Map();
-  private setDesigns: Map<string, SetDesign> = new Map();
+  private locations = new Map<string, Location>();
+  private setDesigns = new Map<string, SetDesign>();
 
   async initialize(): Promise<void> {
     console.log(`[${this.name}] Initialized`);
@@ -87,9 +89,9 @@ export class LocationSetCoordinator implements Plugin {
   async execute(input: PluginInput): Promise<PluginOutput> {
     switch (input.type) {
       case "add-location":
-        return this.addLocation(input.data as unknown as Partial<Location>);
+        return this.addLocation(input.data);
       case "search":
-        return this.searchLocations(input.data as unknown as SearchCriteria);
+        return this.searchLocations(input.data);
       case "get-location":
         return this.getLocation(input.data as { id: string });
       case "update-availability":
@@ -101,9 +103,9 @@ export class LocationSetCoordinator implements Plugin {
           input.data as { locationId: string; permit: Permit }
         );
       case "add-set":
-        return this.addSetDesign(input.data as unknown as Partial<SetDesign>);
+        return this.addSetDesign(input.data);
       case "get-sets":
-        return this.getSetDesigns(input.data as { locationId?: string });
+        return this.getSetDesigns(input.data);
       case "match":
         return this.matchLocationToScene(
           input.data as { sceneRequirements: Record<string, unknown> }
@@ -131,21 +133,21 @@ export class LocationSetCoordinator implements Plugin {
     const location: Location = {
       id: uuidv4(),
       name: data.name,
-      nameAr: data.nameAr || data.name,
+      nameAr: data.nameAr ?? data.name,
       type: data.type,
-      address: data.address || "",
-      city: data.city || "",
-      country: data.country || "",
-      availability: data.availability || [],
-      permits: data.permits || [],
-      amenities: data.amenities || [],
-      restrictions: data.restrictions || [],
-      photos: data.photos || [],
-      costPerDay: data.costPerDay || 0,
-      currency: data.currency || "USD",
-      rating: data.rating || 0,
-      tags: data.tags || [],
-      notes: data.notes || "",
+      address: data.address ?? "",
+      city: data.city ?? "",
+      country: data.country ?? "",
+      availability: data.availability ?? [],
+      permits: data.permits ?? [],
+      amenities: data.amenities ?? [],
+      restrictions: data.restrictions ?? [],
+      photos: data.photos ?? [],
+      costPerDay: data.costPerDay ?? 0,
+      currency: data.currency ?? "USD",
+      rating: data.rating ?? 0,
+      tags: data.tags ?? [],
+      notes: data.notes ?? "",
       createdAt: new Date(),
       updatedAt: new Date(),
       ...definedProps({
@@ -316,14 +318,14 @@ export class LocationSetCoordinator implements Plugin {
       id: uuidv4(),
       locationId: data.locationId,
       name: data.name,
-      nameAr: data.nameAr || data.name,
-      description: data.description || "",
-      dimensions: data.dimensions || { width: 0, height: 0, depth: 0 },
-      materials: data.materials || [],
-      estimatedCost: data.estimatedCost || 0,
-      buildTime: data.buildTime || 0,
-      photos: data.photos || [],
-      status: data.status || "concept",
+      nameAr: data.nameAr ?? data.name,
+      description: data.description ?? "",
+      dimensions: data.dimensions ?? { width: 0, height: 0, depth: 0 },
+      materials: data.materials ?? [],
+      estimatedCost: data.estimatedCost ?? 0,
+      buildTime: data.buildTime ?? 0,
+      photos: data.photos ?? [],
+      status: data.status ?? "concept",
       createdAt: new Date(),
     };
 
@@ -361,11 +363,11 @@ export class LocationSetCoordinator implements Plugin {
     sceneRequirements: Record<string, unknown>;
   }): Promise<PluginOutput> {
     const reqs = data.sceneRequirements;
-    const scores: Array<{
+    const scores: {
       location: Location;
       score: number;
       reasons: string[];
-    }> = [];
+    }[] = [];
 
     for (const location of this.locations.values()) {
       let score = 0;
@@ -419,10 +421,10 @@ export class LocationSetCoordinator implements Plugin {
     startDate: string;
     endDate: string;
   }): Promise<PluginOutput> {
-    const schedule: Array<{
+    const schedule: {
       location: Location;
       bookings: AvailabilitySlot[];
-    }> = [];
+    }[] = [];
 
     const from = new Date(data.startDate);
     const to = new Date(data.endDate);

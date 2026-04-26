@@ -1,6 +1,7 @@
-import type { ContextContradictionEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { ContextContradictionEvidence } from "@editor/suspicion-engine/types";
 
 export const detectSequenceViolation: DetectorFn = (trace, line, context) => {
   const { previousType, nextType, dialogueBlockDepth } =

@@ -4,18 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import StartScreen from "./components/StartScreen";
+
 import FittingRoom from "./components/FittingRoom";
 import Header from "./components/Header";
+import { RotateCcwIcon, ShirtIcon, ChevronRightIcon } from "./components/icons";
 import Spinner from "./components/Spinner";
+import StartScreen from "./components/StartScreen";
+import { getFriendlyErrorMessage } from "./lib/utils";
 import { generateProfessionalDesign } from "./services/geminiService";
 import { saveDesign } from "./services/styleistApi";
 import { DesignBrief, ProfessionalDesignResult } from "./types";
-import { RotateCcwIcon, ShirtIcon, ChevronRightIcon } from "./components/icons";
-import { getFriendlyErrorMessage } from "./lib/utils";
 
 type AppMode = "home" | "director" | "fitting";
 
@@ -53,18 +55,18 @@ const App: React.FC = () => {
         projectId: "styleist-default",
         lookTitle: data.lookTitle,
         dramaticDescription: data.dramaticDescription,
-        breakdown: data.breakdown as Record<string, string>,
+        breakdown: data.breakdown,
         rationale: data.rationale,
-        productionNotes: data.productionNotes as Record<string, string>,
+        productionNotes: data.productionNotes,
         imagePrompt: data.imagePrompt,
         conceptArtUrl: data.conceptArtUrl,
-        realWeather: data.realWeather as Record<string, unknown>,
+        realWeather: data.realWeather,
         brief: brief as unknown as Record<string, string>,
       }).catch(() => {
         // Silent fail — design is still available in UI state
       });
     } catch (err) {
-      setError(getFriendlyErrorMessage(err as any, "Design generation failed"));
+      setError(getFriendlyErrorMessage(err, "Design generation failed"));
       setDirectorView("brief");
     }
   };

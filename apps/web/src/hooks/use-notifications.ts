@@ -1,4 +1,5 @@
 import { create } from "zustand";
+
 import type { Notification } from "@/components/ui/notification-center";
 
 /**

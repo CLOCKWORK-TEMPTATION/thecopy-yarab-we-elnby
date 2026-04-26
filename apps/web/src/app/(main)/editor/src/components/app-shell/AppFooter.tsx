@@ -1,4 +1,5 @@
 import React from "react";
+
 import type { DocumentStats } from "../editor/editor-area.types";
 
 /**

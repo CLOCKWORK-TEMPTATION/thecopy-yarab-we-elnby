@@ -10,8 +10,9 @@
  * - GenerateConflictNetworkOutput - نوع الإخراج لدالة generateConflictNetwork.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const GenerateConflictNetworkInputSchema = z.object({
   analyzedText: z

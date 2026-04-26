@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
 import { useApp } from "../../context/AppContext";
 
 export function DashboardView() {
@@ -19,7 +20,7 @@ export function DashboardView() {
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-white">
-          📊 مرحباً، {user?.name || "ضيف"}!
+          📊 مرحباً، {user?.name ?? "ضيف"}!
         </h2>
         <Badge
           variant="secondary"

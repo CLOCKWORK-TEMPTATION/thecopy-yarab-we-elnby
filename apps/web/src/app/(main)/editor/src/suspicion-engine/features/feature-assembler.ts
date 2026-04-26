@@ -1,14 +1,15 @@
+import { extractCompetitionFeatures } from "./competition-features";
+import { extractContextFeatures } from "./context-features";
+import { extractCrossPassFeatures } from "./cross-pass-features";
+import { extractGateFeatures } from "./gate-features";
+import { extractRawQualityFeatures } from "./raw-quality-features";
+
 import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   ClassificationTrace,
   SuspicionFeature,
   StabilityFeatures,
 } from "@editor/suspicion-engine/types";
-import { extractGateFeatures } from "./gate-features";
-import { extractContextFeatures } from "./context-features";
-import { extractRawQualityFeatures } from "./raw-quality-features";
-import { extractCrossPassFeatures } from "./cross-pass-features";
-import { extractCompetitionFeatures } from "./competition-features";
 
 function extractStabilityFeatures(
   trace: ClassificationTrace

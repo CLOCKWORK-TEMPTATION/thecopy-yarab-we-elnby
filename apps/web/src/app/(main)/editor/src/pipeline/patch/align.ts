@@ -1,10 +1,10 @@
 import { editDistanceRatio } from "../metrics";
 
-export type LineMatch = {
+export interface LineMatch {
   sourceIndex: number;
   ocrIndex: number;
   score: number; // 0..1 similarity
-};
+}
 
 export function simpleLineAlignment(
   sourceLines: string[],

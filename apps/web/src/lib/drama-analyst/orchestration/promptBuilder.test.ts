@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { buildPrompt } from "./promptBuilder";
-import { AIRequest } from "@core/types";
+
 import { TaskType } from "@core/enums";
+import { AIRequest } from "@core/types";
+
+import { buildPrompt } from "./promptBuilder";
 
 // Mock the orchestration module
 vi.mock("./orchestration", () => ({

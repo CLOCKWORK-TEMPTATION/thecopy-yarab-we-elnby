@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
   Palette,
   MapPin,
@@ -9,6 +7,9 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+
 import "./Dashboard.css";
 import { artDirectorApiPath } from "../lib/api-client";
 
@@ -65,7 +66,7 @@ function Dashboard() {
     fetch(artDirectorApiPath("/plugins"))
       .then((res) => res.json())
       .then((data) => {
-        setPlugins(data.plugins || []);
+        setPlugins(data.plugins ?? []);
         setLoading(false);
       })
       .catch(() => setLoading(false));

@@ -7,8 +7,20 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useState, useEffect, useCallback } from "react";
+
+import { GeminiService } from "@/ai/gemini-service";
+import {
+  exportProjectDocument,
+  type ExportFormat,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+import {
+  ACTIVE_WEEKLY_CHALLENGE,
+  FEATURED_DAILY_PROMPT,
+  type FeaturedWeeklyChallenge,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
 import {
   CreativePrompt,
   CreativeProject,
@@ -17,27 +29,21 @@ import {
   CreativeGenre,
   WritingTechnique,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
-import type { PromptLibraryProps } from "./PromptLibrary";
-import type { WritingEditorProps } from "./WritingEditor";
-import type { SettingsPanelProps } from "./SettingsPanel";
-import { GeminiService } from "@/ai/gemini-service";
-import {
-  ACTIVE_WEEKLY_CHALLENGE,
-  FEATURED_DAILY_PROMPT,
-  type FeaturedWeeklyChallenge,
-} from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
-import {
-  exportProjectDocument,
-  type ExportFormat,
-} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { PromptLibraryProps } from "./PromptLibrary";
+import type { WritingEditorProps } from "./WritingEditor";
+import type { SettingsPanelProps } from "./SettingsPanel";
 import {
   loadRemoteAppState,
   persistRemoteAppState,
@@ -49,10 +55,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 const PromptLibrary = dynamic<PromptLibraryProps>(
   () =>
@@ -178,7 +180,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     type: "success" | "error" | "warning" | "info";
     message: string;
   } | null>(null);
-  const geminiApiKey = settings.geminiApiKey?.trim() || "";
+  const geminiApiKey = settings.geminiApiKey?.trim() ?? "";
   const isGeminiConfigured = geminiApiKey.length > 0;
   const analysisBlockedReason =
     "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.";
@@ -287,19 +289,19 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
       id: `project_${Date.now()}`,
       title: prompt ? prompt.title : "مشروع جديد",
       content: "",
-      promptId: prompt?.id || "",
-      genre: prompt?.genre || "cross_genre",
+      promptId: prompt?.id ?? "",
+      genre: prompt?.genre ?? "cross_genre",
       wordCount: 0,
       characterCount: 0,
       paragraphCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-      tags: prompt?.tags || [],
+      tags: prompt?.tags ?? [],
       isCompleted: false,
     };
 
     setCurrentProject(newProject);
-    setSelectedPrompt(prompt || null);
+    setSelectedPrompt(prompt ?? null);
     setActiveChallenge(null);
     setCurrentView("editor");
   }, []);
@@ -386,7 +388,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
           showNotification("success", "تم تحليل النص بنجاح 📊");
           return response.data;
         }
-        showNotification("error", response.error || "فشل في تحليل النص");
+        showNotification("error", response.error ?? "فشل في تحليل النص");
         return null;
       } catch {
         showNotification("error", "حدث خطأ أثناء تحليل النص");
@@ -420,7 +422,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
           showNotification("success", "تم تحسين المحفز بنجاح 🚀");
           return response.data;
         }
-        showNotification("error", response.error || "فشل في تحسين المحفز");
+        showNotification("error", response.error ?? "فشل في تحسين المحفز");
         return null;
       } catch {
         showNotification("error", "حدث خطأ أثناء تحسين المحفز");
@@ -737,7 +739,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
                   result.success ? "success" : "error",
                   result.success
                     ? "تم اختبار الاتصال بنجاح"
-                    : result.error || "فشل اختبار الاتصال"
+                    : result.error ?? "فشل اختبار الاتصال"
                 );
               } else {
                 showNotification("warning", analysisBlockedReason);

@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import {
   getCurrentProject,
   setCurrentProject,
   clearCurrentProject,
 } from "../projectStore";
+
 import type { Project } from "../projectStore";
 
 describe("projectStore", () => {

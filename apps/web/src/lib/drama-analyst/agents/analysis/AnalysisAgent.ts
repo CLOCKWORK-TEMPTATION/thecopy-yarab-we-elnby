@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { ANALYSIS_AGENT_CONFIG } from "./agent";
 
 interface AnalysisContext {
@@ -25,7 +27,7 @@ export class AnalysisAgent extends BaseAgent {
     super(
       "CritiqueArchitect AI",
       TaskType.ANALYSIS,
-      ANALYSIS_AGENT_CONFIG.systemPrompt || ""
+      ANALYSIS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -40,12 +42,12 @@ export class AnalysisAgent extends BaseAgent {
 
     // Extract relevant context
     const ctx = context as AnalysisContext;
-    const originalText = ctx?.originalText || "";
-    const previousAnalysis = ctx?.previousAnalysis || null;
-    const targetAudience = ctx?.targetAudience || "";
-    const genre = ctx?.genre || "";
-    const analysisDepth = ctx?.analysisDepth || "moderate";
-    const focusAreas = ctx?.focusAreas || [];
+    const originalText = ctx?.originalText ?? "";
+    const previousAnalysis = ctx?.previousAnalysis ?? null;
+    const targetAudience = ctx?.targetAudience ?? "";
+    const genre = ctx?.genre ?? "";
+    const analysisDepth = ctx?.analysisDepth ?? "moderate";
+    const focusAreas = ctx?.focusAreas ?? [];
 
     // Build structured prompt
     let prompt = `مهمة التحليل النقدي المعماري\n\n`;
@@ -128,7 +130,7 @@ export class AnalysisAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up the analysis text
-    let processedText = this.cleanupAnalysis(output.text);
+    const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
     const structuralScore = await this.assessStructuralAnalysis(processedText);
@@ -165,7 +167,7 @@ export class AnalysisAgent extends BaseAgent {
         analyticalDepth: depthScore,
         analysisType: this.detectAnalysisType(processedText),
         wordCount: processedText.split(/\s+/).length,
-      } as any,
+      },
     };
   }
 
@@ -205,7 +207,7 @@ export class AnalysisAgent extends BaseAgent {
       // Detect section headers
       if (
         this.isAnalysisSectionHeader(line) ||
-        (line.match(/^\d+\./) && nextLine && !nextLine.match(/^\d+\./))
+        ((/^\d+\./.exec(line)) && nextLine && !(/^\d+\./.exec(nextLine)))
       ) {
         if (inSection && formatted.length > 0) {
           formatted.push("");
@@ -276,7 +278,7 @@ export class AnalysisAgent extends BaseAgent {
     }
 
     // Check for specific examples
-    if (text.match(/\d+\./)) {
+    if (/\d+\./.exec(text)) {
       score += 0.1;
     }
 
@@ -448,7 +450,7 @@ export class AnalysisAgent extends BaseAgent {
       moderate: "متوسط",
       deep: "عميق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   /**

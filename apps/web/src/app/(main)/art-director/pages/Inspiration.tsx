@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { Palette, Sparkles, Image, Wand2 } from "lucide-react";
+import { useState } from "react";
+
 import "./Inspiration.css";
 import { artDirectorApiPath } from "../lib/api-client";
 

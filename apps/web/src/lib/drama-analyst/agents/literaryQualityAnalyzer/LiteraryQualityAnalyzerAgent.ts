@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { LITERARY_QUALITY_ANALYZER_AGENT_CONFIG } from "./agent";
 import { LITERARY_QUALITY_ANALYZER_INSTRUCTIONS } from "./instructions";
 
@@ -18,7 +20,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     super(
       "AestheticsJudge AI",
       TaskType.LITERARY_QUALITY_ANALYZER,
-      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor (high due to critical nature)
@@ -35,14 +37,14 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
     const originalText =
-      ((contextObj as Record<string, unknown>)?.originalText as string) || "";
+      ((contextObj)?.originalText as string) || "";
     const styleAnalysis =
-      ((contextObj as Record<string, unknown>)?.styleAnalysis as string) || "";
+      ((contextObj)?.styleAnalysis as string) || "";
     const thematicAnalysis =
-      ((contextObj as Record<string, unknown>)?.thematicAnalysis as string) ||
+      ((contextObj)?.thematicAnalysis as string) ||
       "";
     const previousStations =
-      ((contextObj as Record<string, unknown>)?.previousStations as Record<
+      ((contextObj)?.previousStations as Record<
         string,
         string
       >) || {};
@@ -122,7 +124,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
-    let processedText = this.cleanupText(output.text);
+    const processedText = this.cleanupText(output.text);
 
     // Assess evaluation quality
     const qualityMetrics = await this.assessEvaluationQuality(processedText);

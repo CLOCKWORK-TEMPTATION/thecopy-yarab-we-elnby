@@ -1,9 +1,10 @@
+import { applyWeights } from "@editor/suspicion-engine/scoring/weighting-policy";
+
+import type { ElementType } from "@editor/extensions/classification-types";
 import type {
   SuspicionSignal,
   SuspicionWeightPolicy,
 } from "@editor/suspicion-engine/types";
-import type { ElementType } from "@editor/extensions/classification-types";
-import { applyWeights } from "@editor/suspicion-engine/scoring/weighting-policy";
 
 // ─── Internal Helpers ─────────────────────────────────────────────────────────
 

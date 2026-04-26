@@ -1,12 +1,13 @@
-import type { Editor } from "@tiptap/core";
 import {
   FILMLANE_CLIPBOARD_MIME,
   type ClipboardOrigin,
   type EditorClipboardOperationResult,
   type EditorClipboardPayload,
 } from "../types/editor-clipboard";
-import type { ScreenplayBlock } from "../utils/file-import";
 import { htmlToScreenplayBlocks } from "../utils/file-import";
+
+import type { ScreenplayBlock } from "../utils/file-import";
+import type { Editor } from "@tiptap/core";
 
 /**
  * @description أدوات مساعدة لعمليات الحافظة في محرر السيناريو

@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
 import { motion } from "framer-motion";
+import React, { useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -15,8 +15,9 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { Budget } from "../lib/types";
+
 import { COLOR_PALETTE } from "../lib/constants";
+import { Budget } from "../lib/types";
 
 interface EnhancedChartProps {
   budget: Budget;
@@ -37,7 +38,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
           budget.grandTotal > 0
             ? ((section.total / budget.grandTotal) * 100).toFixed(1)
             : "0",
-        color: section.color || "#3B82F6",
+        color: section.color ?? "#3B82F6",
       }))
       .filter((item) => item.value > 0);
 
@@ -49,7 +50,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
           section: section.name,
           value: cat.total,
           code: cat.code,
-          color: section.color || "#3B82F6",
+          color: section.color ?? "#3B82F6",
         }))
       )
       .filter((cat) => cat.value > 0)
@@ -81,11 +82,11 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       },
       {
         name: "Final",
-        atl: budget.sections.find((s) => s.id === "atl")?.total || 0,
+        atl: budget.sections.find((s) => s.id === "atl")?.total ?? 0,
         production:
-          budget.sections.find((s) => s.id === "production")?.total || 0,
-        post: budget.sections.find((s) => s.id === "post")?.total || 0,
-        other: budget.sections.find((s) => s.id === "other")?.total || 0,
+          budget.sections.find((s) => s.id === "production")?.total ?? 0,
+        post: budget.sections.find((s) => s.id === "post")?.total ?? 0,
+        other: budget.sections.find((s) => s.id === "other")?.total ?? 0,
       },
     ];
 
@@ -107,7 +108,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
       return (
         <div
           className={`p-3 rounded-[22px] shadow-lg border ${

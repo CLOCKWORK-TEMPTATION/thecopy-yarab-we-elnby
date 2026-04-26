@@ -1,7 +1,8 @@
 import { AlertCircle, Clapperboard, FileText, Sparkles } from "lucide-react";
+
 import { useScriptWorkspace } from "../../application/workspace/use-script-workspace";
-import ResultsView from "../results/results-view";
 import ChatBot from "../chat/chat-bot";
+import ResultsView from "../results/results-view";
 import ToastContainer from "../shared/toast-container";
 
 function BreakdownApp() {

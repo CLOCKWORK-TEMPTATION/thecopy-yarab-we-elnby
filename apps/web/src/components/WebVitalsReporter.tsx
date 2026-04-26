@@ -1,7 +1,8 @@
 "use client";
 
-import { logger } from "@/lib/ai/utils/logger";
 import { useEffect } from "react";
+
+import { logger } from "@/lib/ai/utils/logger";
 import { initializeWebVitals } from "@/lib/web-vitals";
 
 /**
@@ -21,7 +22,7 @@ export default function WebVitalsReporter() {
     // Initialize Web Vitals reporting on mount
     initializeWebVitals();
 
-    if (process.env["NODE_ENV"] === "development") {
+    if (process.env.NODE_ENV === "development") {
       logger.info("[WebVitalsReporter] Web Vitals tracking initialized");
     }
   }, []);

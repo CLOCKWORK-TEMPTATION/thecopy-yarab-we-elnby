@@ -2,6 +2,7 @@ import {
   ConflictNetwork,
   Conflict,
   Relationship,
+  Character,
 } from "../core/models/base-entities";
 
 export interface DiagnosticReport {
@@ -93,14 +94,14 @@ export interface RedundancyIssue {
   consolidationSuggestion: string;
 }
 
-type DiagnosticIssueSummary = {
+interface DiagnosticIssueSummary {
   structuralIssues: StructuralIssue[];
   isolatedCharacters: DiagnosticReport["isolatedCharacters"];
   abandonedConflicts: DiagnosticReport["abandonedConflicts"];
   overloadedCharacters: DiagnosticReport["overloadedCharacters"];
   weakConnections: DiagnosticReport["weakConnections"];
   redundancies: DiagnosticReport["redundancies"];
-};
+}
 
 export class NetworkDiagnostics {
   private network: ConflictNetwork;
@@ -172,9 +173,7 @@ export class NetworkDiagnostics {
   } {
     const isolatedChars: IsolatedCharacterIssue[] = [];
 
-    for (const [characterId, character] of Object.entries(
-      this.network.characters
-    )) {
+    for (const [characterId, character] of this.getCharacterEntries()) {
       const relationships = this.getCharacterRelationships(characterId);
       const conflicts = this.getCharacterConflicts(characterId);
 
@@ -218,9 +217,7 @@ export class NetworkDiagnostics {
 
     if (!this.network.conflicts) return { totalAbandoned: 0, conflicts: [] };
 
-    for (const [conflictId, conflict] of Object.entries(
-      this.network.conflicts
-    )) {
+    for (const [conflictId, conflict] of this.getConflictEntries()) {
       const daysSinceLastUpdate = this.calculateDaysSinceLastUpdate(conflict);
 
       if (daysSinceLastUpdate > 30) {
@@ -254,9 +251,7 @@ export class NetworkDiagnostics {
   } {
     const overloadedChars: OverloadedCharacterIssue[] = [];
 
-    for (const [characterId, character] of Object.entries(
-      this.network.characters
-    )) {
+    for (const [characterId, character] of this.getCharacterEntries()) {
       const relationships = this.getCharacterRelationships(characterId);
       const conflicts = this.getCharacterConflicts(characterId);
 
@@ -288,37 +283,32 @@ export class NetworkDiagnostics {
     const weakConnections: WeakConnectionIssue[] = [];
 
     // Check weak relationships
-    for (const relationshipArray of Object.values(this.network.relationships)) {
-      for (const relationship of relationshipArray) {
-        if ((relationship.strength ?? 0) < 4) {
-          weakConnections.push({
-            connectionType: "relationship",
-            elementId:
-              relationship.id ??
-              `${relationship.source}-${relationship.target}`,
-            weakness: "قوة العلاقة ضعيفة",
-            strengthScore: relationship.strength,
-            improvementSuggestions: [
-              "أضف مشاهد تفاعل أكثر بين الشخصيتين",
-              "طور الخلفية المشتركة للشخصيتين",
-              "أنشئ صراعاً يجمع بينهما",
-            ],
-          });
-        }
+    for (const relationship of this.getRelationships()) {
+      if ((relationship.strength ?? 0) < 4) {
+        weakConnections.push({
+          connectionType: "relationship",
+          elementId:
+            relationship.id ?? `${relationship.source}-${relationship.target}`,
+          weakness: "قوة العلاقة ضعيفة",
+          strengthScore: relationship.strength ?? 0,
+          improvementSuggestions: [
+            "أضف مشاهد تفاعل أكثر بين الشخصيتين",
+            "طور الخلفية المشتركة للشخصيتين",
+            "أنشئ صراعاً يجمع بينهما",
+          ],
+        });
       }
     }
 
     // Check weak conflict involvement
     if (this.network.conflicts) {
-      for (const [conflictId, conflict] of Object.entries(
-        this.network.conflicts
-      )) {
+      for (const [conflictId, conflict] of this.getConflictEntries()) {
         if ((conflict.strength ?? 0) < 4) {
           weakConnections.push({
             connectionType: "conflict_involvement",
             elementId: conflict.id ?? conflictId,
             weakness: "مشاركة ضعيفة في الصراع",
-            strengthScore: conflict.strength,
+            strengthScore: conflict.strength ?? 0,
             improvementSuggestions: [
               "زد من حدة الصراع",
               "أضف نقاط تحول مهمة",
@@ -373,18 +363,30 @@ export class NetworkDiagnostics {
   }
 
   // Helper methods
+  private getCharacterEntries(): [string, Character][] {
+    return Array.from(this.network.characters.entries());
+  }
+
+  private getRelationships(): Relationship[] {
+    return Array.from(this.network.relationships.values());
+  }
+
+  private getConflictEntries(): [string, Conflict][] {
+    if (!this.network.conflicts) return [];
+    return Array.from(this.network.conflicts.entries());
+  }
+
   private getCharacterRelationships(characterId: string): Relationship[] {
-    return Object.values(this.network.relationships)
-      .flat()
-      .filter(
-        (rel) => rel.source === characterId || rel.target === characterId
-      );
+    return this.getRelationships().filter(
+      (rel) => rel.source === characterId || rel.target === characterId
+    );
   }
 
   private getCharacterConflicts(characterId: string): Conflict[] {
-    if (!this.network.conflicts) return [];
-    return Object.values(this.network.conflicts).filter((conflict) =>
-      conflict.involvedCharacters?.includes(characterId)
+    return this.getConflictEntries()
+      .map(([, conflict]) => conflict)
+      .filter((conflict) =>
+        conflict.involvedCharacters?.includes(characterId)
     );
   }
 
@@ -431,7 +433,7 @@ export class NetworkDiagnostics {
     // Characters whose removal would disconnect the network
     const criticalNodes: string[] = [];
 
-    for (const charId of Object.keys(this.network.characters)) {
+    for (const charId of this.network.characters.keys()) {
       const relationships = this.getCharacterRelationships(charId);
       if (relationships.length >= 3) {
         // High connectivity threshold
@@ -465,7 +467,7 @@ export class NetworkDiagnostics {
   private suggestConflictInvolvement(): string[] {
     const suggestions: string[] = [];
     if (!this.network.conflicts) return suggestions;
-    const conflicts = Object.values(this.network.conflicts);
+    const conflicts = this.getConflictEntries().map(([, conflict]) => conflict);
 
     for (const conflict of conflicts.slice(0, 2)) {
       suggestions.push(`إشراك في الصراع: ${conflict.name ?? "صراع غير معروف"}`);
@@ -477,7 +479,7 @@ export class NetworkDiagnostics {
   private calculateDaysSinceLastUpdate(conflict: Conflict): number {
     if (!conflict.timestamps || conflict.timestamps.length === 0) return 365; // Very old
 
-    const lastUpdate = conflict.timestamps![conflict.timestamps.length - 1];
+    const lastUpdate = conflict.timestamps[conflict.timestamps.length - 1];
     if (!lastUpdate) return 365; // No valid timestamp
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - lastUpdate.getTime());
@@ -503,12 +505,12 @@ export class NetworkDiagnostics {
 
   private findDuplicateRelationships(): string[][] {
     const duplicates: string[][] = [];
-    const allRelationships = Object.values(this.network.relationships).flat();
+    const allRelationships = this.getRelationships();
 
     for (let i = 0; i < allRelationships.length; i++) {
       for (let j = i + 1; j < allRelationships.length; j++) {
-        const rel1 = allRelationships[i] as Relationship;
-        const rel2 = allRelationships[j] as Relationship;
+        const rel1 = allRelationships[i];
+        const rel2 = allRelationships[j];
 
         if (this.areRelationshipsSimilar(rel1, rel2)) {
           duplicates.push([
@@ -525,7 +527,7 @@ export class NetworkDiagnostics {
   private findSimilarConflicts(): string[][] {
     const groups: string[][] = [];
     if (!this.network.conflicts) return groups;
-    const conflicts = Object.entries(this.network.conflicts);
+    const conflicts = this.getConflictEntries();
     const processed = new Set<string>();
 
     for (const [conflictId, conflict] of conflicts) {
@@ -572,8 +574,8 @@ export class NetworkDiagnostics {
       conflict1.subject === conflict2.subject &&
       conflict1.scope === conflict2.scope &&
       this.hasOverlappingCharacters(
-        conflict1.involvedCharacters || [],
-        conflict2.involvedCharacters || []
+        conflict1.involvedCharacters ?? [],
+        conflict2.involvedCharacters ?? []
       )
     );
   }

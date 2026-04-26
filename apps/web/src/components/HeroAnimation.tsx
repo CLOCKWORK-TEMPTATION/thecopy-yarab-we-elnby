@@ -1,13 +1,15 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
 import dynamic from "next/dynamic";
-
 import Link from "next/link";
-import { VideoTextMask } from "./VideoTextMask";
+import { useRef, useState, type CSSProperties } from "react";
+
+
 import { useHeroAnimation } from "@/hooks/use-hero-animation";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
 import images from "@/lib/images";
+
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { VideoTextMask } from "./VideoTextMask";
 
 const IntroVideoModal = dynamic(
   () =>

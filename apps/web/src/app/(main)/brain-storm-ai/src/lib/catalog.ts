@@ -25,7 +25,7 @@ export async function fetchBrainstormCatalog(): Promise<BrainstormCatalog> {
   const payload = (await response.json()) as BrainstormCatalogApiResponse;
 
   if (!payload.success || !payload.data) {
-    throw new Error(payload.error || "فشل تحميل كتالوج Brain Storm AI");
+    throw new Error(payload.error ?? "فشل تحميل كتالوج Brain Storm AI");
   }
 
   return payload.data;

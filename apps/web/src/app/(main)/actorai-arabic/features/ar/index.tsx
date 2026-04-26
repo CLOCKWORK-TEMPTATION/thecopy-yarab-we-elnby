@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { useApp } from "../../context/AppContext";
 import {
   AR_FEATURES,
@@ -27,6 +29,7 @@ import {
   GESTURE_CONTROLS,
   SHOT_TYPES,
 } from "../../types/constants";
+
 import type {
   BlockingMark,
   CameraEyeSettings,

@@ -1,6 +1,8 @@
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface Review {
   id: string;
@@ -74,7 +76,7 @@ export class CollaborativeReviewPlatform implements Plugin {
   descriptionAr = "نظام مراجعة وملاحظات تعاونية في الوقت الفعلي لفرق الإنتاج";
   category = "collaboration" as const;
 
-  private reviews: Map<string, Review> = new Map();
+  private reviews = new Map<string, Review>();
 
   async initialize(): Promise<void> {
     console.log(`[${this.name}] Initialized`);
@@ -87,7 +89,7 @@ export class CollaborativeReviewPlatform implements Plugin {
       case "reply":
         return this.addReply(input.data as unknown as AddReplyInput);
       case "list":
-        return this.getReviews(input.data as unknown as GetReviewsInput);
+        return this.getReviews(input.data);
       case "update-status":
         return this.updateStatus(
           input.data as { reviewId: string; status: Review["status"] }
@@ -119,10 +121,10 @@ export class CollaborativeReviewPlatform implements Plugin {
       content: data.content,
       timestamp: new Date(),
       status: "pending",
-      priority: data.priority || "medium",
-      category: data.category || "general",
+      priority: data.priority ?? "medium",
+      category: data.category ?? "general",
       replies: [],
-      attachments: data.attachments || [],
+      attachments: data.attachments ?? [],
       ...definedProps({
         contentAr: data.contentAr,
       }),

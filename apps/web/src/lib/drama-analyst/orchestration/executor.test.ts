@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { prepareFiles, submitTask } from "./executor";
-import { readFiles } from "@services/fileReaderService";
-import { callModel } from "@services/apiService";
+
 import { AIRequest, ProcessedFile } from "@core/types";
+import { callModel } from "@services/apiService";
+import { readFiles } from "@services/fileReaderService";
+
+import { prepareFiles, submitTask } from "./executor";
 
 // Mock dependencies
 vi.mock("@services/fileReaderService");

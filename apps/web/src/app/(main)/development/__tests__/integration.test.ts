@@ -19,8 +19,8 @@
  *  T053 — handleCatalogSubmit is defined and callable
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Global mocks (must be hoisted before module imports that use them)
@@ -399,7 +399,7 @@ describe("T048: isLoading transitions", () => {
       ok: false,
       status: 500,
       json: async () => ({ error: "server error" }),
-    } as unknown as Response);
+    });
 
     const { result } = mountHook();
     await prepareForExecution(result);
@@ -430,7 +430,7 @@ describe("T049: Empty result handling", () => {
           proposals: [],
         },
       }),
-    } as unknown as Response);
+    });
 
     const { result } = mountHook();
 

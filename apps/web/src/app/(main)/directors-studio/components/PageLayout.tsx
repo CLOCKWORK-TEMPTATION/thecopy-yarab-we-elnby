@@ -7,12 +7,14 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import type { CSSProperties, ReactNode } from "react";
-import DashboardHero from "./DashboardHero";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
+import DashboardHero from "./DashboardHero";
+
+import type { CSSProperties, ReactNode } from "react";
 
 interface PageLayoutProps {
   children: ReactNode;

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { platformApps, type PlatformApp } from "@/config/apps.config";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,8 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { platformApps, type PlatformApp } from "@/config/apps.config";
 
 export default function AppsOverviewPage() {
   // فصل التطبيقات المفعّلة عن المعطّلة بشكل صريح وصادق

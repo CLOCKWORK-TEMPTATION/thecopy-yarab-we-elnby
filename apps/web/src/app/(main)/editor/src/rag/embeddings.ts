@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+
 import { OPENROUTER_API_KEY, EMBEDDING_MODEL, logger } from "./config";
 
 const openrouter = new OpenAI({

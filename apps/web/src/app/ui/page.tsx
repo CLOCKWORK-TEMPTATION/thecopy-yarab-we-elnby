@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
-import images from "@/lib/images";
 import LauncherCenterCard from "@/components/LauncherCenterCard";
 import { getEnabledApps, FEATURED_APP_PATHS } from "@/config/apps.config";
+import images from "@/lib/images";
 
 // تكوين شبكة العرض
 const CENTER_CELLS = [5, 6, 9, 10];

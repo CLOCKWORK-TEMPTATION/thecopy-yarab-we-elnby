@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CharacterDeepAnalyzerAgent } from "./CharacterDeepAnalyzerAgent";
+
 import { TaskType } from "@core/types";
+
+import { CharacterDeepAnalyzerAgent } from "./CharacterDeepAnalyzerAgent";
 
 describe("CharacterDeepAnalyzerAgent", () => {
   let agent: CharacterDeepAnalyzerAgent;

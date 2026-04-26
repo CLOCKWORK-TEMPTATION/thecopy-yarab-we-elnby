@@ -18,6 +18,7 @@
  */
 import { Node, mergeAttributes } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
+
 import { SCENE_NUMBER_EXACT_RE } from "./arabic-patterns";
 import { isSceneHeader2Line } from "./scene-header-2";
 import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
@@ -46,7 +47,7 @@ export const splitSceneHeaderLine = (
     .replace(/\s*-\s*/g, " - ");
   if (!normalized) return null;
 
-  const sceneMatch = normalized.match(/^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(.*)$/i);
+  const sceneMatch = /^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(.*)$/i.exec(normalized);
   const scenePrefix = sceneMatch?.[1];
   if (!sceneMatch || !scenePrefix) return null;
 
@@ -90,7 +91,7 @@ export const isCompleteSceneHeaderLine = (line: string): boolean => {
   if (!SCENE_NUMBER_EXACT_RE.test(normalized)) return false;
 
   const parts = splitSceneHeaderLine(normalized);
-  if (!parts || !parts.header2) return false;
+  if (!parts?.header2) return false;
 
   return isSceneHeader2Line(parts.header2);
 };

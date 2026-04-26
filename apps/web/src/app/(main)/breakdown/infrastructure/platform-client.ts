@@ -8,17 +8,17 @@ import type {
   ShootingScheduleDay,
 } from "../domain/models";
 
-type ApiEnvelope<T> = {
+interface ApiEnvelope<T> {
   success: boolean;
   data?: T;
   error?: string;
   details?: unknown;
-};
+}
 
-type RequestOptions = {
+interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
-};
+}
 
 function getAppOrigin(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -33,7 +33,7 @@ function getCsrfToken(): string | null {
     return null;
   }
 
-  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+  const match = /(?:^|;\s*)XSRF-TOKEN=([^;]+)/.exec(document.cookie);
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
@@ -83,7 +83,7 @@ async function fetchBreakdown<T>(
   const payload = (await response.json()) as ApiEnvelope<T>;
 
   if (!response.ok || !payload.success || payload.data === undefined) {
-    throw new Error(payload.error || "فشل طلب البريك دون");
+    throw new Error(payload.error ?? "فشل طلب البريك دون");
   }
 
   return payload.data;

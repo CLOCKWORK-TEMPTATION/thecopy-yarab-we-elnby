@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { loginUser } from "@/lib/api";
 
 export default function LoginPage() {
@@ -21,7 +22,7 @@ export default function LoginPage() {
       await loginUser(email, password);
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول");
+      setError(err.message ?? "فشل تسجيل الدخول");
     } finally {
       setLoading(false);
     }

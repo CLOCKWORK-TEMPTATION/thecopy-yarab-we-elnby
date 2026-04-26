@@ -7,7 +7,7 @@ declare module "@qdrant/js-client-rest" {
   export class QdrantClient {
     constructor(config: { url: string; apiKey: string });
     getCollections(): Promise<{
-      collections: Array<{ name: string }>;
+      collections: { name: string }[];
     }>;
     deleteCollection(name: string): Promise<unknown>;
     createCollection(
@@ -22,11 +22,11 @@ declare module "@qdrant/js-client-rest" {
       name: string,
       params: {
         wait: boolean;
-        points: Array<{
+        points: {
           id: number;
           vector: number[];
           payload: Record<string, unknown>;
-        }>;
+        }[];
       },
     ): Promise<unknown>;
     search(
@@ -37,11 +37,11 @@ declare module "@qdrant/js-client-rest" {
         with_payload: boolean;
       },
     ): Promise<
-      Array<{
+      {
         id: string | number;
         score: number;
         payload?: Record<string, unknown> | null;
-      }>
+      }[]
     >;
     getCollection(name: string): Promise<{
       points_count: number;

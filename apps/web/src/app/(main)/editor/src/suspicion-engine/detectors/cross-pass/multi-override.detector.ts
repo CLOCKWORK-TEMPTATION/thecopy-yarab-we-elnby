@@ -1,6 +1,7 @@
-import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
 
 // يكشف الأسطر التي تعرضت لتجاوز من 3 تمريرات مختلفة أو أكثر
 // هذا مؤشر قوي على أن التصنيف غير مستقر بنيوياً
@@ -30,11 +31,11 @@ export const detectMultiOverride: DetectorFn = (trace, _line, context) => {
 
   // نجمع أبرز التصويتات المتعارضة للأدلة (نأخذ أول صوت لكل نوع)
   const seenTypes = new Set<string>();
-  const conflictingVotes: Array<{
+  const conflictingVotes: {
     stage: string;
     suggestedType: typeof dominantType;
     confidence: number;
-  }> = [];
+  }[] = [];
 
   for (const vote of trace.passVotes) {
     if (!seenTypes.has(vote.suggestedType)) {

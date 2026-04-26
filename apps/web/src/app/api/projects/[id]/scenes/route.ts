@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import {
   buildProxyErrorResponse,
   proxyToBackend,
@@ -7,7 +8,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ id: string }> };
+interface RouteContext { params: Promise<{ id: string }> }
 
 export async function GET(request: NextRequest, ctx: RouteContext) {
   try {

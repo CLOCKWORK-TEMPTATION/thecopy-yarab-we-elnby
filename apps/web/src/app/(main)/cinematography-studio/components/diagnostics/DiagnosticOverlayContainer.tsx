@@ -11,12 +11,14 @@
 
 import * as React from "react";
 import { toast } from "react-hot-toast";
-import { SESSION_STORAGE_KEY } from "../../lib/session-storage";
+
 import {
   snapshotDiagnostics,
   subscribeDiagnostics,
   type DiagnosticsPayload,
 } from "../../lib/diagnostics-bus";
+import { SESSION_STORAGE_KEY } from "../../lib/session-storage";
+
 import {
   DiagnosticOverlay,
   type DiagnosticAssistantView,

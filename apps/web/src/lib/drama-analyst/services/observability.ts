@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+
 import { log } from "./loggerService";
 // No-op replacements for missing GA functions
 const sendGAEvent = (..._args: any[]) => {};
@@ -35,7 +36,7 @@ const sanitizeForLogging = (data: any): any => {
 // Sentry configuration for production monitoring
 export const initObservability = () => {
   const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"] ?? "";
-  const environment = process.env["NODE_ENV"];
+  const environment = process.env.NODE_ENV;
   const isProduction = environment === "production";
 
   if (dsn) {
@@ -75,7 +76,7 @@ export const initObservability = () => {
 
           // Skip network errors for failed resources
           if (event.exception) {
-            const errorMessage = event.exception.values?.[0]?.value || "";
+            const errorMessage = event.exception.values?.[0]?.value ?? "";
             if (
               errorMessage.includes("Failed to fetch") ||
               errorMessage.includes("NetworkError") ||
@@ -90,7 +91,7 @@ export const initObservability = () => {
         event.tags = {
           ...event.tags,
           component: "drama-analyst",
-          version: process.env["NEXT_PUBLIC_APP_VERSION"] || "1.0.0",
+          version: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
         };
 
         event.user = {
@@ -119,7 +120,7 @@ export const initObservability = () => {
       ],
 
       // Release tracking
-      release: process.env["NEXT_PUBLIC_APP_VERSION"] || "1.0.0",
+      release: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
 
       // Additional options
       maxBreadcrumbs: 50,
@@ -145,7 +146,7 @@ export const initObservability = () => {
     // Set additional context
     Sentry.setContext("app", {
       name: "Drama Analyst",
-      version: process.env["NEXT_PUBLIC_APP_VERSION"] || "1.0.0",
+      version: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
       environment,
     });
 
@@ -261,7 +262,7 @@ const initWebVitalsMonitoring = () => {
   import("./webVitalsService")
     .then(({ initWebVitals }) => {
       const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"] ?? "";
-      const isProduction = process.env["NODE_ENV"] === "production";
+      const isProduction = process.env.NODE_ENV === "production";
       const webVitalsConfig = {
         enableGA4: !!process.env["NEXT_PUBLIC_GA4_MEASUREMENT_ID"],
         enableSentry: !!dsn,
@@ -279,7 +280,7 @@ const initWebVitalsMonitoring = () => {
     .catch((error) => {
       log.error(
         "❌ Failed to initialize Web Vitals monitoring",
-        { message: error?.message || "Unknown error" },
+        { message: error?.message ?? "Unknown error" },
         "Observability"
       );
     });
@@ -406,7 +407,7 @@ export const setContext = (key: string, context: Record<string, any>) => {
 // Analytics monitoring setup
 const initAnalyticsMonitoring = () => {
   const ga4Id = process.env["NEXT_PUBLIC_GA4_MEASUREMENT_ID"];
-  const environment = process.env["NODE_ENV"];
+  const environment = process.env.NODE_ENV;
 
   if (ga4Id) {
     log.info(
@@ -422,7 +423,7 @@ const initAnalyticsMonitoring = () => {
 
         // Set user context for GA4 (sanitized)
         setGAUserProperties({
-          app_version: process.env["NEXT_PUBLIC_APP_VERSION"] || "1.0.0",
+          app_version: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
           environment,
           platform: "web",
           // session_id removed for security
@@ -430,7 +431,7 @@ const initAnalyticsMonitoring = () => {
 
         // Track app initialization
         sendGAEvent("app_initialized", {
-          app_version: process.env["NEXT_PUBLIC_APP_VERSION"] || "1.0.0",
+          app_version: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
           environment,
           timestamp: new Date().toISOString(),
         });
@@ -444,7 +445,7 @@ const initAnalyticsMonitoring = () => {
       .catch((error) => {
         log.error(
           "❌ Failed to initialize Google Analytics 4",
-          { message: error?.message || "Unknown error" },
+          { message: error?.message ?? "Unknown error" },
           "Observability"
         );
       });
@@ -459,7 +460,7 @@ const initAnalyticsMonitoring = () => {
 
 // Uptime monitoring setup
 const initUptimeMonitoring = () => {
-  const environment = process.env["NODE_ENV"];
+  const environment = process.env.NODE_ENV;
   const isProduction = environment === "production";
 
   log.info(
@@ -491,7 +492,7 @@ const initUptimeMonitoring = () => {
     .catch((error) => {
       log.error(
         "❌ Failed to initialize Uptime monitoring",
-        { message: error?.message || "Unknown error" },
+        { message: error?.message ?? "Unknown error" },
         "Observability"
       );
     });

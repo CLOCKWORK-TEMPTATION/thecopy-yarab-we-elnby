@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   BrainCircuit,
   Layers,
@@ -11,6 +9,9 @@ import {
   Film,
   Camera,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import {
   SidebarMenu,
   SidebarMenuItem,

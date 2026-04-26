@@ -6,22 +6,24 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
 import { useAgentStates } from "../hooks/useAgentStates";
 import { useBrainstormCatalog } from "../hooks/useBrainstormCatalog";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useSession } from "../hooks/useSession";
 import { useSessionPersistence } from "../hooks/useSessionPersistence";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { exportToJSON, exportToMarkdown } from "../lib/export";
-import BrainStormHeader from "./layout/BrainStormHeader";
+
 import ControlPanel from "./features/ControlPanel";
 import DebatePanel from "./features/DebatePanel";
 import { ExportControls } from "./features/ExportControls";
-import { SessionHistory } from "./features/SessionHistory";
-import { FinalResult } from "./features/FinalResult";
-import AgentsSidebar from "./layout/AgentsSidebar";
 import FeaturesGrid from "./features/FeaturesGrid";
+import { FinalResult } from "./features/FinalResult";
 import { KeyboardShortcutsHelp } from "./features/KeyboardShortcutsHelp";
-import type { BrainstormPhase } from "../types";
+import { SessionHistory } from "./features/SessionHistory";
+import AgentsSidebar from "./layout/AgentsSidebar";
+import BrainStormHeader from "./layout/BrainStormHeader";
+
 
 export default function BrainStormContent() {
   const {
@@ -200,7 +202,7 @@ export default function BrainStormContent() {
             },
             withMemory: 0,
           }}
-          error={error || "فشل تحميل بيانات Brain Storm AI من الباك إند"}
+          error={error ?? "فشل تحميل بيانات Brain Storm AI من الباك إند"}
           currentSession={null}
         />
       </div>
@@ -221,7 +223,7 @@ export default function BrainStormContent() {
           <ControlPanel
             phases={phases}
             activePhase={activePhase}
-            setActivePhase={(p) => setActivePhase(p as BrainstormPhase)}
+            setActivePhase={(p) => setActivePhase(p)}
             currentSession={currentSession}
             brief={brief}
             setBrief={setBrief}

@@ -1,9 +1,10 @@
-import type { EditorArea } from "../components/editor";
 import { runInsertMenuAction } from "./insert-menu-controller";
+
+import type { EditorArea } from "../components/editor";
 
 const createArea = () => {
   const inserted: string[] = [];
-  const selections: Array<{ from: number; to: number }> = [];
+  const selections: { from: number; to: number }[] = [];
 
   const chain = () => ({
     focus: vi.fn().mockReturnThis(),

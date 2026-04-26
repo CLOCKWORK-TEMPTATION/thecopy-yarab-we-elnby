@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+
 import { DirectorsEditorConfigManager } from "./config-manager";
 
 const ORIGINAL_ENV = { ...process.env };

@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { SparklesCore } from "./sparkles";
 import { AnimatePresence, motion } from "framer-motion";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+
 import { cn } from "../../lib/utils";
 import { DotsVerticalIcon } from "../icons";
+
+import { SparklesCore } from "./sparkles";
 
 interface CompareProps {
   firstImage?: string;

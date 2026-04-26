@@ -8,11 +8,11 @@
  * @see utils/file-import/ — خط أنابيب الاستيراد الكامل
  */
 
-import type { ScreenplayBlock } from "../utils/file-import/document-model";
 import type {
   ExtractionMeta,
   FirstVisibleSourceKind,
 } from "./unified-reception";
+import type { ScreenplayBlock } from "../utils/file-import/document-model";
 
 /**
  * وضع الاستيراد — يُحدد كيفية تعامل المحرر مع المحتوى المستورد

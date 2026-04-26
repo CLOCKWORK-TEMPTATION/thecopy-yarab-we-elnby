@@ -1,6 +1,10 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,10 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { useVoiceAnalytics, VoiceMetrics } from "../hooks/useVoiceAnalytics";
 
 // ==================== مكون عرض الموجة الصوتية ====================

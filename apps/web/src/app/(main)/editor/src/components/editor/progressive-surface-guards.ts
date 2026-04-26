@@ -7,8 +7,8 @@ export const hasVisibleProgressiveVersion = (
   state: ProgressiveSurfaceState | null
 ): boolean =>
   Boolean(
-    state?.visibleVersion ||
-    state?.activeRun?.currentVisibleVersionId ||
+    state?.visibleVersion ??
+    state?.activeRun?.currentVisibleVersionId ??
     state?.visibleElements?.length
   );
 

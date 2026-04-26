@@ -18,8 +18,10 @@
  */
 
 import { logger } from "@editor/utils/logger";
-import type { SanitizationReport } from "./input-sanitizer";
+
 import { needsSanitization, sanitizeInput } from "./input-sanitizer";
+
+import type { SanitizationReport } from "./input-sanitizer";
 
 const sanitizedPipelineLogger = logger.createScope("pipeline.sanitized-import");
 

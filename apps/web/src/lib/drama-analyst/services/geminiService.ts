@@ -1,10 +1,12 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
+
+import { config } from "../config/environment";
 import { AIRequest, AIResponse } from "../core/types";
 import { buildPrompt } from "../orchestration/promptBuilder";
-import { config } from "../config/environment";
-import { sanitization } from "./sanitizationService";
+
 import { log } from "./loggerService";
+import { sanitization } from "./sanitizationService";
 
 // =====================================================
 // Gemini Service Configuration

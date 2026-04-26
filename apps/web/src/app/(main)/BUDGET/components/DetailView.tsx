@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, ChevronUp, Edit2, Save, X } from "lucide-react";
+import React, { useState, useMemo } from "react";
+
 import { Budget, LineItem } from "../lib/types";
 
 interface DetailViewProps {
@@ -37,11 +38,11 @@ export const DetailView: React.FC<DetailViewProps> = ({
   const filteredItems = useMemo(() => {
     if (!searchTerm) return null;
 
-    const results: Array<{
+    const results: {
       section: string;
       category: string;
       item: LineItem;
-    }> = [];
+    }[] = [];
     budget.sections.forEach((section) => {
       section.categories.forEach((category) => {
         category.items.forEach((item) => {

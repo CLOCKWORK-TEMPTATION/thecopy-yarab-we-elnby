@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ThemesMessagesAnalyzerAgent } from "./ThemesMessagesAnalyzerAgent";
+
 import { TaskType } from "@core/types";
+
+import { ThemesMessagesAnalyzerAgent } from "./ThemesMessagesAnalyzerAgent";
 
 describe("ThemesMessagesAnalyzerAgent", () => {
   let agent: ThemesMessagesAnalyzerAgent;

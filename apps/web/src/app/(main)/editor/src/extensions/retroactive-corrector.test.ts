@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { retroactiveCorrectionPass } from "./retroactive-corrector";
+
 import type { ClassifiedDraft } from "./classification-types";
 
 const draft = (

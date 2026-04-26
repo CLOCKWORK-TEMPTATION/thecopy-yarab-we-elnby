@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { ProducibilityAnalyzerAgent } from "./ProducibilityAnalyzerAgent";
+
 import { TaskType } from "@core/types";
+
+import { ProducibilityAnalyzerAgent } from "./ProducibilityAnalyzerAgent";
 
 describe("ProducibilityAnalyzerAgent", () => {
   let agent: ProducibilityAnalyzerAgent;

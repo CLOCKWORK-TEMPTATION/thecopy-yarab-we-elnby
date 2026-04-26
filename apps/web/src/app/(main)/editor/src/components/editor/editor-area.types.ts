@@ -1,6 +1,4 @@
-import type { Editor } from "@tiptap/core";
 import type { ElementType } from "../../extensions/classification-types";
-import type { ScreenplayBlock } from "../../utils/file-import";
 import type {
   ClipboardOrigin,
   EditorClipboardOperationResult,
@@ -19,6 +17,8 @@ import type {
   ReceptionSourceType,
   VisibleVersion,
 } from "../../types/unified-reception";
+import type { ScreenplayBlock } from "../../utils/file-import";
+import type { Editor } from "@tiptap/core";
 
 /**
  * @description إحصائيات المستند لغرض العرض في شريط الحالة.

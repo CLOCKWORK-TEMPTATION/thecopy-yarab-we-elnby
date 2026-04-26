@@ -161,9 +161,9 @@ function validateEnvironment() {
 function getGeminiApiKey(serverEnv: z.infer<typeof serverSchema>): string {
   // In production (main branch), use PROD key, otherwise use STAGING key
   if (serverEnv.NODE_ENV === "production") {
-    return serverEnv.GEMINI_API_KEY_PROD || "";
+    return serverEnv.GEMINI_API_KEY_PROD ?? "";
   }
-  return serverEnv.GEMINI_API_KEY_STAGING || "";
+  return serverEnv.GEMINI_API_KEY_STAGING ?? "";
 }
 
 // Validate environment on module load
@@ -171,7 +171,7 @@ const env = validateEnvironment();
 
 // Export type-safe environment variables
 export const serverEnv = env.server as z.infer<typeof serverSchema>;
-export const clientEnv = env.client as z.infer<typeof clientSchema>;
+export const clientEnv = env.client;
 
 // Helper function to get the correct Gemini API key (server-side only)
 export const getApiKey = () => {
@@ -203,6 +203,6 @@ export const getEnvironmentInfo = () => ({
 });
 
 // Development helpers
-if (process.env["NODE_ENV"] === "development") {
+if (process.env.NODE_ENV === "development") {
   void getEnvironmentInfo();
 }

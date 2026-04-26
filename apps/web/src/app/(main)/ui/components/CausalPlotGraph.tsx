@@ -1,7 +1,8 @@
-import { useState } from "react";
 import { Network, Filter, Play, AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -63,7 +64,7 @@ export function CausalPlotGraph({
   const [currentFilter, setCurrentFilter] = useState(filter);
 
   // No Causal Links State
-  if (noLinks || (edges && edges.length === 0 && nodes && nodes.length > 0)) {
+  if (noLinks || (edges?.length === 0 && nodes && nodes.length > 0)) {
     return (
       <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
         <div className="text-center">
@@ -222,7 +223,7 @@ export function CausalPlotGraph({
                     y1={`${fromNode.y}%`}
                     x2={`${toNode.x}%`}
                     y2={`${toNode.y}%`}
-                    stroke={edgeColors[edge.type || "normal"]}
+                    stroke={edgeColors[edge.type ?? "normal"]}
                     strokeWidth={1 + edge.weight * 2}
                     strokeOpacity={0.3 + edge.weight * 0.4}
                     markerEnd="url(#arrowhead)"

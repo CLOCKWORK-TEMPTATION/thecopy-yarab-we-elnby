@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import { useState, memo, useMemo, useCallback, type ReactElement } from "react";
 
-import { cn } from "@/lib/utils";
 import { toText } from "@/ai/gemini-core";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { cn } from "@/lib/utils";
+
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
@@ -23,7 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -41,12 +42,22 @@ interface Station {
 }
 
 type Status = "pending" | "running" | "completed" | "failed";
+type StationResults = Partial<Record<number, unknown>>;
+type UnknownRecord = Record<string, unknown>;
 
 interface StationCardProps {
   station: Station;
   status: Status;
-  results: any;
+  results: StationResults;
   isActive: boolean;
+}
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toRecord(value: unknown): UnknownRecord {
+  return isRecord(value) ? value : {};
 }
 
 /**
@@ -77,7 +88,7 @@ function exportStationToFile(
 /**
  * Get full text output from station result
  */
-function getStationFullText(id: number, data: any): string {
+function getStationFullText(id: number, data: unknown): string {
   if (!data) return "";
 
   // If data is already a string, return it
@@ -85,87 +96,105 @@ function getStationFullText(id: number, data: any): string {
     return data;
   }
 
+  const record = toRecord(data);
+
   // Try to extract text from common structures
   let text = "";
 
   switch (id) {
-    case 1:
+    case 1: {
       text += "## الشخصيات الرئيسية:\n";
-      if (Array.isArray(data.majorCharacters)) {
-        text += data.majorCharacters
-          .map((c: any) => `- ${toText(c)}`)
+      if (Array.isArray(record.majorCharacters)) {
+        text += record.majorCharacters
+          .map((character: unknown) => `- ${toText(character)}`)
           .join("\n");
       } else {
-        text += toText(data.majorCharacters);
+        text += toText(record.majorCharacters);
       }
+      const narrativeStyleAnalysis = toRecord(record.narrativeStyleAnalysis);
       text += "\n\n## التحليل السردي:\n";
-      text += `النغمة العامة: ${toText(data.narrativeStyleAnalysis?.overallTone)}\n`;
-      text += `تحليل الوتيرة: ${toText(data.narrativeStyleAnalysis?.pacingAnalysis)}\n`;
-      text += `أسلوب اللغة: ${toText(data.narrativeStyleAnalysis?.languageStyle)}\n`;
+      text += `النغمة العامة: ${toText(narrativeStyleAnalysis.overallTone)}\n`;
+      text += `تحليل الوتيرة: ${toText(narrativeStyleAnalysis.pacingAnalysis)}\n`;
+      text += `أسلوب اللغة: ${toText(narrativeStyleAnalysis.languageStyle)}\n`;
       break;
+    }
 
-    case 2:
+    case 2: {
       text += "## بيان القصة:\n";
-      text += toText(data.storyStatement) + "\n\n";
+      text += toText(record.storyStatement) + "\n\n";
       text += "## النوع الهجين:\n";
       text += toText(
-        typeof data.hybridGenre === "object"
-          ? data.hybridGenre?.genre
-          : data.hybridGenre
+        isRecord(record.hybridGenre)
+          ? record.hybridGenre.genre
+          : record.hybridGenre
       );
       break;
+    }
 
-    case 3:
+    case 3: {
+      const networkSummary = toRecord(record.networkSummary);
       text += "## ملخص الشبكة:\n";
-      text += `عدد الشخصيات: ${toText(data.networkSummary?.charactersCount)}\n`;
-      text += `عدد العلاقات: ${toText(data.networkSummary?.relationshipsCount)}\n`;
-      text += `عدد الصراعات: ${toText(data.networkSummary?.conflictsCount)}\n`;
-      if (data.conflictNetwork) {
-        text += "\n## شبكة الصراع:\n" + toText(data.conflictNetwork);
+      text += `عدد الشخصيات: ${toText(networkSummary.charactersCount)}\n`;
+      text += `عدد العلاقات: ${toText(networkSummary.relationshipsCount)}\n`;
+      text += `عدد الصراعات: ${toText(networkSummary.conflictsCount)}\n`;
+      if (record.conflictNetwork) {
+        text += "\n## شبكة الصراع:\n" + toText(record.conflictNetwork);
       }
       break;
+    }
 
-    case 4:
+    case 4: {
+      const efficiencyMetrics = toRecord(record.efficiencyMetrics);
+      const recommendations = toRecord(record.recommendations);
       text += "## مقاييس الكفاءة:\n";
-      text += `الدرجة الإجمالية: ${toText(data.efficiencyMetrics?.overallEfficiencyScore)}/100\n\n`;
-      if (data.recommendations?.priorityActions) {
+      text += `الدرجة الإجمالية: ${toText(efficiencyMetrics.overallEfficiencyScore)}/100\n\n`;
+      if (recommendations.priorityActions) {
         text += "## التوصيات ذات الأولوية:\n";
-        if (Array.isArray(data.recommendations.priorityActions)) {
-          text += data.recommendations.priorityActions
-            .map((a: any) => `- ${toText(a)}`)
+        if (Array.isArray(recommendations.priorityActions)) {
+          text += recommendations.priorityActions
+            .map((action: unknown) => `- ${toText(action)}`)
             .join("\n");
         } else {
-          text += toText(data.recommendations.priorityActions);
+          text += toText(recommendations.priorityActions);
         }
       }
       break;
+    }
 
-    case 5:
+    case 5: {
       text += "## التحليل الديناميكي:\n";
-      text += toText(data.dynamicAnalysisResults || data);
+      text += toText(record.dynamicAnalysisResults ?? data);
       break;
+    }
 
-    case 6:
+    case 6: {
+      const diagnosticsReport = toRecord(record.diagnosticsReport);
       text += "## تقرير التشخيص:\n";
-      text += `درجة الصحة العامة: ${toText(data.diagnosticsReport?.overallHealthScore)}/100\n\n`;
-      if (data.diagnosticsReport?.criticalIssues) {
+      text += `درجة الصحة العامة: ${toText(diagnosticsReport.overallHealthScore)}/100\n\n`;
+      if (diagnosticsReport.criticalIssues) {
         text += "## المشاكل الحرجة:\n";
-        if (Array.isArray(data.diagnosticsReport.criticalIssues)) {
-          text += data.diagnosticsReport.criticalIssues
-            .map((i: any) => `- ${toText(i.description || i)}`)
+        if (Array.isArray(diagnosticsReport.criticalIssues)) {
+          text += diagnosticsReport.criticalIssues
+            .map((issue: unknown) => {
+              const issueRecord = toRecord(issue);
+              return `- ${toText(issueRecord.description ?? issue)}`;
+            })
             .join("\n");
         } else {
-          text += toText(data.diagnosticsReport.criticalIssues);
+          text += toText(diagnosticsReport.criticalIssues);
         }
       }
       break;
+    }
 
-    case 7:
+    case 7: {
+      const finalReport = toRecord(record.finalReport);
       text += "## التقرير النهائي:\n";
       text += toText(
-        data.finalReport?.executiveSummary || data.executiveSummary || data
+        finalReport.executiveSummary ?? record.executiveSummary ?? data
       );
       break;
+    }
 
     default:
       // Try to convert entire object to text
@@ -259,7 +288,7 @@ const StationCard = memo(
               </div>
               <div>{statusIcons[status]}</div>
             </CardHeader>
-            {(hasResults || isActive) && (
+            {(hasResults ?? isActive) && (
               <CardContent className="flex-1">
                 {isActive && status === "running" && (
                   <div className="flex items-center justify-center py-8">

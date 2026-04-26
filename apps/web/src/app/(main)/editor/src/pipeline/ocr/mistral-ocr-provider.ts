@@ -1,14 +1,15 @@
 import { randomInt } from "node:crypto";
+
 import type { OcrPageResult, OcrProvider } from "../types";
 
-type MistralOcrResponse = {
-  pages?: Array<{
+interface MistralOcrResponse {
+  pages?: {
     index?: number;
     markdown?: string;
     text?: string;
-  }>;
+  }[];
   document_annotation?: string | null;
-};
+}
 
 const CANONICAL_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
 const CANONICAL_MISTRAL_OCR_ENDPOINT = "https://api.mistral.ai/v1/ocr";
@@ -66,7 +67,7 @@ export class MistralOcrProvider implements OcrProvider {
     const data = await this.requestJsonWithRetry(body);
 
     const out: OcrPageResult[] = [];
-    for (const p of data.pages || []) {
+    for (const p of data.pages ?? []) {
       const page = p.index ?? -1;
       const text = (p.text ?? p.markdown ?? "").trim();
       out.push({

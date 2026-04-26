@@ -207,8 +207,8 @@ export class TerminologyTranslator implements Plugin {
   descriptionAr = "ترجمة المصطلحات الفنية السينمائية بدقة عالية";
   category = "collaboration" as const;
 
-  private terms: Map<string, CinemaTerm> = new Map();
-  private termsAr: Map<string, CinemaTerm> = new Map();
+  private terms = new Map<string, CinemaTerm>();
+  private termsAr = new Map<string, CinemaTerm>();
 
   async initialize(): Promise<void> {
     // Build lookup maps
@@ -226,7 +226,7 @@ export class TerminologyTranslator implements Plugin {
       case "lookup":
         return this.lookup(input.data as any);
       case "list":
-        return this.listTerms(input.data as any);
+        return this.listTerms(input.data);
       case "search":
         return this.searchTerms(input.data as any);
       default:
@@ -303,7 +303,7 @@ export class TerminologyTranslator implements Plugin {
     const { term } = data;
 
     // Search in both languages
-    let found = this.terms.get(term.toLowerCase()) || this.termsAr.get(term);
+    let found = this.terms.get(term.toLowerCase()) ?? this.termsAr.get(term);
 
     if (!found) {
       const matches = this.searchTermsInternal(term, "en");

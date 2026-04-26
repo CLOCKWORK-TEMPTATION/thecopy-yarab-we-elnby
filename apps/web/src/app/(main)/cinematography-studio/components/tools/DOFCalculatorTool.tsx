@@ -1,16 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Aperture,
   BookOpen,
@@ -20,6 +9,19 @@ import {
   Target,
   ZoomIn,
 } from "lucide-react";
+import * as React from "react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 

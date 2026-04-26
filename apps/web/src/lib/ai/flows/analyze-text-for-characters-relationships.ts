@@ -7,8 +7,9 @@
  * - AnalyzeTextForCharactersRelationshipsOutput - نوع الإرجاع لدالة analyzeTextForCharactersRelationships.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const AnalyzeTextForCharactersRelationshipsInputSchema = z.object({
   text: z.string().describe("النص الدرامي المراد تحليله."),

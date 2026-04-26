@@ -33,7 +33,7 @@ export interface HistoryController<T> {
 export const useHistory = <T>(initialState: T): HistoryController<T> => {
   let index = 0;
   const history: T[] = [initialState];
-  const listeners: Array<(state: T) => void> = [];
+  const listeners: ((state: T) => void)[] = [];
 
   const getCurrentState = (): T => {
     const state = history[index];

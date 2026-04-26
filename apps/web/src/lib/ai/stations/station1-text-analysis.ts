@@ -31,7 +31,7 @@ export interface DialogueMetrics {
   distinctiveness: number;
   naturalness: number;
   subtext: number;
-  issues: Array<{
+  issues: {
     type:
       | "redundancy"
       | "inconsistency"
@@ -41,7 +41,7 @@ export interface DialogueMetrics {
     location: string;
     severity: "low" | "medium" | "high";
     suggestion: string;
-  }>;
+  }[];
 }
 
 export interface VoiceProfile {
@@ -53,13 +53,13 @@ export interface VoiceProfile {
 
 export interface VoiceAnalysis {
   profiles: Map<string, VoiceProfile>;
-  overlapIssues: Array<{
+  overlapIssues: {
     character1: string;
     character2: string;
     similarity: number;
     examples: string[];
     recommendation: string;
-  }>;
+  }[];
   overallDistinctiveness: number;
 }
 
@@ -98,12 +98,12 @@ export interface Station1Output {
   };
   uncertaintyReport: {
     confidence: number;
-    uncertainties: Array<{
+    uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
       reducible: boolean;
-    }>;
+    }[];
   };
   metadata: {
     analysisTimestamp: Date;
@@ -116,11 +116,11 @@ export interface Station1Output {
 }
 
 interface CharactersResponse {
-  characters: Array<{
+  characters: {
     name: string;
     role: string;
     prominence: number;
-  }>;
+  }[];
 }
 
 interface CharacterAnalysisResponse {
@@ -139,28 +139,28 @@ interface DialogueAnalysisResponse {
   distinctiveness: number;
   naturalness: number;
   subtext: number;
-  issues: Array<{
+  issues: {
     type: string;
     location: string;
     severity: string;
     suggestion: string;
-  }>;
+  }[];
 }
 
 interface VoiceAnalysisResponse {
-  profiles: Array<{
+  profiles: {
     character: string;
     distinctiveness: number;
     characteristics: string[];
     sample_lines: string[];
-  }>;
-  overlaps: Array<{
+  }[];
+  overlaps: {
     character1: string;
     character2: string;
     similarity: number;
     examples: string[];
     recommendation: string;
-  }>;
+  }[];
   overall_distinctiveness: number;
 }
 
@@ -325,7 +325,7 @@ Generate a concise, engaging logline in Arabic.`;
 
   private async identifyMajorCharacters(
     text: string
-  ): Promise<Array<{ name: string; role: string; prominence: number }>> {
+  ): Promise<{ name: string; role: string; prominence: number }[]> {
     const contextText = text.slice(0, Math.min(20000, text.length));
 
     const prompt = `Analyze this narrative and identify the major characters.
@@ -381,7 +381,7 @@ ${contextText}`;
 
   private async analyzeCharactersInDepth(
     text: string,
-    charactersData: Array<{ name: string; role: string; prominence: number }>
+    charactersData: { name: string; role: string; prominence: number }[]
   ): Promise<CharacterProfile[]> {
     const analyses = await this.processInBatches(
       charactersData,
@@ -684,7 +684,7 @@ ${contextText}`;
 
       const parsed = this.parseJSON<NarrativeStyleResponse>(response.content);
 
-      if (!parsed || !parsed.overall_tone) {
+      if (!parsed?.overall_tone) {
         throw new Error("Invalid narrative style response");
       }
 
@@ -727,7 +727,7 @@ ${contextText}`;
     const words = text.split(/\s+/).filter((w) => w.length > 0);
     const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
-    const dialogueMatches = text.match(/["“”«»].*?["“”«»]/g) || [];
+    const dialogueMatches = text.match(/["“”«»].*?["“”«»]/g) ?? [];
     const dialogueText = dialogueMatches.join(" ");
     const dialogueWords = dialogueText.split(/\s+/).filter((w) => w.length > 0);
 
@@ -751,19 +751,19 @@ ${contextText}`;
     voice: VoiceAnalysis
   ): {
     confidence: number;
-    uncertainties: Array<{
+    uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
       reducible: boolean;
-    }>;
+    }[];
   } {
-    const uncertainties: Array<{
+    const uncertainties: {
       type: "epistemic" | "aleatoric";
       aspect: string;
       note: string;
       reducible: boolean;
-    }> = [];
+    }[] = [];
 
     const avgCharConfidence =
       characters.length > 0
@@ -834,12 +834,12 @@ ${contextText}`;
     if (typeof content === "string") {
       text = content;
     } else if (content && typeof content === "object" && "raw" in content) {
-      text = String(content.raw || "");
+      text = String(content.raw ?? "");
     } else {
       throw new Error("Invalid content format");
     }
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = /\{[\s\S]*\}/.exec(text);
     if (!jsonMatch) {
       throw new Error("No JSON found in response");
     }
@@ -852,7 +852,7 @@ ${contextText}`;
       return content.trim();
     }
     if (content && typeof content === "object" && "raw" in content) {
-      return String(content.raw || "").trim();
+      return String(content.raw ?? "").trim();
     }
     return "";
   }
@@ -883,14 +883,14 @@ ${contextText}`;
     return "flat";
   }
 
-  private normalizeIssues(issues: Array<any>): DialogueMetrics["issues"] {
+  private normalizeIssues(issues: any[]): DialogueMetrics["issues"] {
     return issues
-      .filter((i) => i && i.type && i.location)
+      .filter((i) => i?.type && i.location)
       .map((i) => ({
         type: this.normalizeIssueType(i.type),
         location: String(i.location),
         severity: this.normalizeSeverity(i.severity),
-        suggestion: String(i.suggestion || ""),
+        suggestion: String(i.suggestion ?? ""),
       }));
   }
 

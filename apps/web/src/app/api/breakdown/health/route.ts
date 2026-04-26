@@ -5,8 +5,9 @@
  * يُستخدم أيضًا لضبط رمز CSRF قبل إرسال الطلبات.
  */
 
-import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+
+import { NextRequest, NextResponse } from "next/server";
 
 const CSRF_COOKIE_NAME = "XSRF-TOKEN";
 
@@ -23,7 +24,7 @@ function ensureCsrfCookie(request: NextRequest, response: NextResponse): void {
     const token = generateCsrfToken();
     response.cookies.set(CSRF_COOKIE_NAME, token, {
       httpOnly: false,
-      secure: process.env["NODE_ENV"] === "production",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 24 * 60 * 60,
       path: "/",

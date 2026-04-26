@@ -6,9 +6,10 @@
  * بدون الحاجة إلى server جاري
  */
 
-import { POST } from "../route";
-import { generateBudgetFromScript } from "@/app/(main)/BUDGET/lib/geminiService";
 import { INITIAL_BUDGET_TEMPLATE } from "@/app/(main)/BUDGET/lib/constants";
+import { generateBudgetFromScript } from "@/app/(main)/BUDGET/lib/geminiService";
+
+import { POST } from "../route";
 
 // Mock Gemini service
 jest.mock("@/app/(main)/BUDGET/lib/geminiService", () => ({
