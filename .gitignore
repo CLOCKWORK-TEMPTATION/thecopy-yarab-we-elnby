@@ -671,6 +671,9 @@ Untitled-*.*
 untitled-*.*
 temp-*.*
 test-*.*
+# استثناء: test-utils.tsx لـ actorai-arabic ملف infrastructure حقيقي
+# يستورده 24 ملف اختبار من "../test-utils" — ليس ملفاً مؤقتاً.
+!apps/web/src/app/(main)/actorai-arabic/test-utils.tsx
 
 # Log files
 log.json

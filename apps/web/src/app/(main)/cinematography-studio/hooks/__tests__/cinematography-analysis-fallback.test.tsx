@@ -80,6 +80,12 @@ describe("cinematography fallback timing", () => {
       await vi.advanceTimersByTimeAsync(3_200);
     });
 
+    // waitFor يعتمد على setTimeout الحقيقي للـpolling؛ تحت fake timers يتعلّق
+    // ولا يصل إلى timeout. كل العمل المتزامن للحالة قد اكتمل بعد
+    // advanceTimersByTimeAsync(3_200) (3000ms للرفض البعيد + 700ms للنجاح
+    // المحلي + microtasks)، فالتبديل إلى real timers هنا آمن وضروري.
+    vi.useRealTimers();
+
     await waitFor(() => {
       expect(result.current.analysisSource).toBe("local-fallback");
       expect(result.current.analysis?.score).toBe(82);
@@ -126,6 +132,9 @@ describe("cinematography fallback timing", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3_200);
     });
+
+    // نفس سبب الإصلاح في الاختبار الأول: waitFor + fake timers يتعلّق.
+    vi.useRealTimers();
 
     await waitFor(() => {
       expect(result.current.footageAnalysisSource).toBe("local-fallback");

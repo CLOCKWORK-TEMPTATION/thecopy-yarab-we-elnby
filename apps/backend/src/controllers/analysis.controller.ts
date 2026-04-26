@@ -56,7 +56,7 @@ function buildDocx(snap: { projectName: string; finalReport: string | null; stat
   const rtlPara = (text: string, heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel]): Paragraph =>
     new Paragraph({
       text,
-      heading,
+      ...(heading !== undefined ? { heading } : {}),
       bidirectional: true,
       alignment: AlignmentType.RIGHT,
     });
