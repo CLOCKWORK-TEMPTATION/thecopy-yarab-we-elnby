@@ -8,7 +8,7 @@
     "src/env.d.ts",
     "src/types/env.d.ts",
     "src/types/module-alias.d.ts",
-    "src/mcp-server.ts"
+    "src/ocr-arabic-pdf-to-txt-pipeline/skill-scripts/write-output.ts"
   ],
   "exclude": [
     "node_modules",
