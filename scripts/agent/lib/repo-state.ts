@@ -17,6 +17,8 @@ import {
   type DriftLevel,
 } from "./constants";
 import { collectKnowledgeInventory, type KnowledgeInventory } from "./knowledge-systems";
+import { collectCodeMemoryHealth } from "./code-memory/status";
+import type { CodeMemoryHealth } from "./code-memory/types";
 import {
   fileExists,
   formatTimestamp,
@@ -70,6 +72,7 @@ export interface RepoFacts {
   openIssues: string[];
   referenceFiles: string[];
   knowledgeInventory: KnowledgeInventory;
+  codeMemory: CodeMemoryHealth;
 }
 
 export interface ReferenceStatus {
@@ -384,6 +387,7 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
   const doctorText = await readTextIfExists(fromRepoRoot("scripts/doctor.ps1"));
   const specifyText = await readTextIfExists(fromRepoRoot(".specify/scripts/powershell/update-agent-context.ps1"));
   const knowledgeInventory = await collectKnowledgeInventory();
+  const codeMemory = await collectCodeMemoryHealth();
   const openIssues = await collectCurrentOpenIssues(rootEnvExampleText, backendPackage, databaseGuideText);
 
   const gitChangedFiles = runGitCommand(["status", "--short"])
@@ -428,6 +432,10 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:verify",
     "agent:refresh-maps",
     "agent:start",
+    "agent:memory:index",
+    "agent:memory:search",
+    "agent:memory:status",
+    "agent:memory:verify",
     "workspace:embed",
   ];
 
@@ -459,6 +467,10 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
       "scripts/agent/verify-state.ts",
       "scripts/agent/refresh-maps.ts",
       "scripts/agent/start-agent.ps1",
+      "scripts/agent/code-memory-index.ts",
+      "scripts/agent/code-memory-search.ts",
+      "scripts/agent/code-memory-status.ts",
+      "scripts/agent/code-memory-verify.ts",
       "scripts/generate-workspace-embeddings.js",
       "apps/web/package.json",
       "apps/backend/package.json",
@@ -478,6 +490,7 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
       FINGERPRINT_PATH,
     ],
     knowledgeInventory,
+    codeMemory,
   };
 }
 
@@ -517,6 +530,15 @@ export function createFactsHash(facts: RepoFacts): string {
           artifacts: system.artifacts,
           dependencies: system.dependencies,
         })),
+      },
+      codeMemory: {
+        exists: facts.codeMemory.exists,
+        stale: facts.codeMemory.stale,
+        totalFiles: facts.codeMemory.totalFiles,
+        totalChunks: facts.codeMemory.totalChunks,
+        embeddedChunks: facts.codeMemory.embeddedChunks,
+        coverageRate: facts.codeMemory.coverageRate,
+        storage: facts.codeMemory.storage,
       },
     }),
   );

@@ -833,6 +833,7 @@ _bmad-output/
 *.rollout.jsonl
 .embedding-hash-cache.json
 WORKSPACE-EMBEDDING-INDEX.json
+.agent-code-memory/
 
 # thecopy directory (custom exclusion)
 thecopy/
