@@ -1,0 +1,146 @@
+# ===================================================================
+# .github/workflows/quality-gate.yml — STR-098 Foundation Gate
+# ===================================================================
+# يكمّل ci.yml الموجود ولا يكرّره. مسؤوليته الوحيدة:
+#   1. تطبيق ratchet الديون التقنية عبر scripts/audit-tech-debt.sh
+#   2. تطبيق ميزانية الترحيل عبر scripts/audit-migration-budget.sh
+#
+# لماذا workflow منفصل بدلاً من إضافة job في ci.yml:
+#   - ci.yml بنيته 504 سطر مع dependency-flow معقَّد (paths-filter، concurrency،
+#     turbo cache). أي تعديل يكسر استقرار شهور.
+#   - quality-gate يجب أن يعمل على كل PR بلا استثناء، بدون paths-filter،
+#     لأن أي تعديل يمكن أن يلامس metric.
+#   - فصل المسؤوليات يُسهّل reasoning عند فشل واحد منهما.
+#
+# الترقية المتوقَّعة عبر STR-099..STR-104:
+#   - STR-099: إضافة gate يفحص test_failures_* بعد إغلاقها
+#   - STR-100: إضافة gate يفحص lint_errors/warnings بعد إغلاقها
+#   - STR-104: إضافة gates Sentry/Axiom/Mozilla Observatory
+# ===================================================================
+
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tech-debt-ratchet:
+    name: Tech Debt Ratchet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install jq (لقراءة tech-debt-baseline.json)
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+          jq --version
+
+      - name: Verify baseline file exists
+        run: |
+          if [ ! -f tech-debt-baseline.json ]; then
+            echo "::error::tech-debt-baseline.json مفقود — يجب أن يُلتزم في STR-098."
+            exit 1
+          fi
+          echo "baseline موجود: $(wc -l < tech-debt-baseline.json) سطر"
+
+      - name: Run tech-debt ratchet audit
+        run: |
+          chmod +x scripts/audit-tech-debt.sh
+          bash scripts/audit-tech-debt.sh
+
+  migration-budget:
+    name: Migration Budget
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install jq
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+
+      - name: Detect STR round from branch name
+        id: round
+        run: |
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          echo "branch=$branch"
+          if [[ "$branch" =~ str-([0-9]{3}) ]]; then
+            echo "STR_ROUND=${BASH_REMATCH[1]}" >> "$GITHUB_ENV"
+            echo "round=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "STR_ROUND=" >> "$GITHUB_ENV"
+            echo "round=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run migration budget audit
+        run: |
+          chmod +x scripts/audit-migration-budget.sh
+          bash scripts/audit-migration-budget.sh
+
+  baseline-integrity:
+    name: Baseline Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install jq
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+
+      - name: Reject baseline-relaxation in same PR
+        run: |
+          # لو الـ PR نفسه يعدّل tech-debt-baseline.json بزيادة أي قيمة → رفض.
+          # السماح فقط بالتقليل أو الإبقاء.
+          if ! git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q "tech-debt-baseline.json"; then
+            echo "[OK] الـ PR لا يعدّل baseline."
+            exit 0
+          fi
+
+          echo "[CHECK] الـ PR يعدّل tech-debt-baseline.json — فحص اتجاه التغيير..."
+          old=$(git show HEAD~1:tech-debt-baseline.json 2>/dev/null || echo '{}')
+          new=$(cat tech-debt-baseline.json)
+
+          violations=0
+          for key in console_calls_web_src console_calls_backend_src any_type_web_src any_type_backend_src ts_ignore_total todo_fixme_hack_total files_over_1000_lines files_over_500_lines; do
+            old_val=$(echo "$old" | jq -r ".static_metrics.$key.value // 0")
+            new_val=$(echo "$new" | jq -r ".static_metrics.$key.value // 0")
+            if [ "$new_val" -gt "$old_val" ]; then
+              echo "::error::baseline-relaxation: $key زادت من $old_val إلى $new_val — مرفوض."
+              violations=$((violations + 1))
+            elif [ "$new_val" -lt "$old_val" ]; then
+              echo "[GAIN] $key: $old_val → $new_val"
+            fi
+          done
+
+          if [ "$violations" -gt 0 ]; then
+            echo "::error::PR رُفض: محاولة إضعاف baseline في $violations metric."
+            exit 1
+          fi
+          echo "[OK] baseline تحسّن أو ثبت — مقبول."

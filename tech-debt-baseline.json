@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "schema_version": "1.0.0",
+    "owner": "STR-098 Foundation",
+    "purpose": "خط أساس مُجمَّد للديون التقنية. كل metric يُعامَل كحد أعلى ratchet أحادي الاتجاه (تقليل فقط، لا زيادة).",
+    "rationale": "أي PR يزيد قيمة هنا = quality-gate يفشل آلياً. هذا يحقق ratchet effect عبر STR-099..STR-104."
+  },
+  "frozen_at": {
+    "commit": "c25fc9f09b6f16afebc447a024b8f541f67014e3",
+    "branch": "str-098-foundation-completion",
+    "round": "STR-098",
+    "date": "2026-04-26",
+    "method": "live-static-grep",
+    "note": "test_failures و lint_* تبقى null حتى أول CI run يُجمّدها بقياس فعلي. حتى ذلك الحين، scripts/audit-tech-debt.sh يتجاهل الـ null."
+  },
+  "static_metrics": {
+    "console_calls_web_src": {
+      "value": 355,
+      "rule": "grep -rE \"console\\.(log|info|warn|error|debug)\" apps/web/src --include=\"*.ts\" --include=\"*.tsx\" | grep -v .test. | grep -v .spec. | wc -l",
+      "target_round": "STR-101"
+    },
+    "console_calls_backend_src": {
+      "value": 175,
+      "rule": "grep -rE \"console\\.(log|info|warn|error|debug)\" apps/backend/src --include=\"*.ts\" | grep -v .test. | grep -v .spec. | wc -l",
+      "target_round": "STR-101"
+    },
+    "any_type_web_src": {
+      "value": 217,
+      "rule": "grep -rE \":\\s*any\\b\" apps/web/src --include=\"*.ts\" --include=\"*.tsx\" | grep -v .test. | wc -l",
+      "target_round": "STR-101"
+    },
+    "any_type_backend_src": {
+      "value": 59,
+      "rule": "grep -rE \":\\s*any\\b\" apps/backend/src --include=\"*.ts\" | grep -v .test. | wc -l",
+      "target_round": "STR-101"
+    },
+    "ts_ignore_total": {
+      "value": 0,
+      "rule": "grep -r \"@ts-ignore\" apps/web/src apps/backend/src --include=\"*.ts\" --include=\"*.tsx\" | wc -l",
+      "target_round": "STR-101",
+      "note": "صفر فعلاً — الفئة مغلقة قبل البدء."
+    },
+    "todo_fixme_hack_total": {
+      "value": 22,
+      "rule": "grep -rE \"(TODO|FIXME|HACK)\" apps/web/src apps/backend/src packages --include=\"*.ts\" --include=\"*.tsx\" | wc -l",
+      "target_round": "STR-101"
+    },
+    "files_over_1000_lines": {
+      "value": 21,
+      "rule": "find apps/web/src apps/backend/src packages -type f \\( -name \"*.ts\" -o -name \"*.tsx\" \\) -exec wc -l {} \\; | awk '$1 > 1000' | wc -l",
+      "target_round": "STR-102"
+    },
+    "files_over_500_lines": {
+      "value": 138,
+      "rule": "find apps/web/src apps/backend/src packages -type f \\( -name \"*.ts\" -o -name \"*.tsx\" \\) -exec wc -l {} \\; | awk '$1 > 500' | wc -l",
+      "target_round": "STR-102"
+    }
+  },
+  "runtime_metrics": {
+    "_comment": "تُملأ تلقائياً في أول CI run ناجح. حتى ذلك الحين، audit-tech-debt.sh يتخطى أي metric قيمته null. السكريبت نفسه يحدّث هذه القيم لو detected زيادة فعلية أول مرة.",
+    "test_failures_web": null,
+    "test_failures_backend": null,
+    "test_total_web": null,
+    "test_total_backend": null,
+    "lint_errors_web": null,
+    "lint_warnings_web": null,
+    "lint_errors_backend": null,
+    "lint_warnings_backend": null,
+    "build_status_web": null,
+    "build_status_backend": null,
+    "test_coverage_percent_web": null,
+    "test_coverage_percent_backend": null
+  },
+  "migration_budget_per_priority": {
+    "_comment": "نسبة [DEFERRED] المسموحة من إجمالي بنود نفس الأولوية في triage-round-{NNN}.md. أي تجاوز = audit-migration-budget.sh يفشل.",
+    "P0": 0,
+    "P1": 15,
+    "P2": 30,
+    "P3": 100
+  },
+  "round_targets": {
+    "STR-098": "بناء quality-gate + audit scripts + baseline + commit-msg hook + توثيق المخطط",
+    "STR-099": "إغلاق test_failures_* إلى صفر",
+    "STR-100": "إغلاق lint_errors_* + lint_warnings_* إلى صفر",
+    "STR-101": "console_* + any_* + todo_fixme_hack إلى صفر، ts_ignore يبقى صفراً",
+    "STR-102": "files_over_1000_lines إلى صفر، files_over_500_lines إلى صفر",
+    "STR-103": "إكمال الميزات + Agentic RAG (يحتاج feature-completion-spec.md منفصلاً)",
+    "STR-104": "البنية التحتية الإنتاجية الكاملة + Mozilla Observatory A+ + DR runbook"
+  }
+}

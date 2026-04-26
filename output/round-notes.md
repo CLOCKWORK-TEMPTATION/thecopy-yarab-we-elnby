@@ -7970,3 +7970,137 @@ inventory-only
 ### هل استلزم الأمر تحديث session-state
 
 نعم
+
+
+## STR-098 — Foundation Completion Round (الترقيم الاستراتيجي)
+
+### التاريخ والوقت
+
+2026-04-26T05:30:00+02:00
+
+### نوع الجولة
+
+جولة استراتيجية (`STR-` prefix). أول جولة من سلسلة استراتيجية مكوَّنة من سبع جولات: `STR-098 → STR-099 → STR-100 → STR-101 → STR-102 → STR-103 → STR-104`.
+
+### تنبيه على الترقيم
+
+`STR-NNN` ترقيم استراتيجي مستقل عن عدّاد الجلسات التشغيلي العام في `round-notes.md` (الذي بلغ 117 قبل هذه الجولة). الفرق:
+
+- جلسات `bootstrap` تُسجَّل بالعدّاد العام (098..117 الموجودة سابقاً = bootstraps).
+- الجولات الاستراتيجية تُسجَّل بـ `STR-NNN` لأن كل واحدة قد تنقسم لـ `STR-NNN.<rank>` جلسات تنفيذ.
+
+التداخل الاسمي مع "098..104" السابقة في هذا الملف مقصود التمييز عبر البادئة `STR-`.
+
+### مرجعية الاستلام
+
+- المخطط الاستراتيجي الكامل: `docs/strategic-plan-098-104.md` (يُلتزَم في commit STR-098 الأول).
+- مصفوفة القرارات التقنية (Sentry + Axiom + GitHub Actions + Vercel Preview + Railway Branch): محسومة قبل الجولة.
+- HEAD وقت بدء الجولة: `c25fc9f09b6f16afebc447a024b8f541f67014e3`.
+
+### Pre-Flight STR-098
+
+- الفرع: تم إنشاء `str-098-foundation-completion` من `main`.
+- working tree على Windows: نظيف (مؤكَّد من المستخدم).
+- working tree على Linux container: 2340 ملف "modified" — التحقق العميق أثبت 100% منها `CRLF↔LF noise`. عيّنة 10 ملفات + `git diff --shortstat` بدون `-w` (392277/392277 تماثل تام) + مع `-w` (1 ملف فقط، 6+/13-) = ضوضاء filesystem mount لا تعديلات حقيقية.
+- اكتشاف Sentry مُركَّب بالكامل سلفاً في commits `3a0bf42` + `c752530` (commits قبل بدء STR-098).
+- اكتشاف 7 GitHub Actions workflows فعّالة.
+- اكتشاف Husky + lint-staged مُهيَّآن في الجذر + `apps/web` + `apps/backend`.
+- النتيجة: STR-098 ضاق نطاقها من "Foundation Round من الصفر" إلى "Foundation Completion Round" — يُكمل ما هو ناقص فقط.
+
+### القياس الحي للديون التقنية وقت تجميد baseline
+
+| المقياس | القيمة | المنهج |
+|---|---:|---|
+| `console.*` web src | 355 | `grep -rE` مع استثناء `.test.` و `.spec.` |
+| `console.*` backend src | 175 | نفسه |
+| `: any` web src | 217 | `grep -rE ":\\s*any\\b"` |
+| `: any` backend src | 59 | نفسه |
+| `@ts-ignore` total | 0 | (الفئة مغلقة فعلاً قبل البدء) |
+| `TODO/FIXME/HACK` total | 22 | `grep -rE` |
+| ملفات > 1000 سطر | 21 | `find ... wc -l ... awk '$1 > 1000'` |
+| ملفات > 500 سطر | 138 | نفسه مع threshold 500 |
+| `test_failures_*` | null | يُلتقَط في أول CI run ناجح |
+| `lint_*` | null | يُلتقَط في أول CI run ناجح |
+
+ملاحظة: أرقام المخطط الأصلي (133 console / 267 any / 6 ts-ignore / 18 TODO / 6 ملفات > 1000) كانت من Pre-Flight جولة 096. القياس الحي بعد commits Sentry الثلاثة كشف اختلافاً جوهرياً — `tech-debt-baseline.json` يعكس الواقع التشغيلي لا الأرقام التاريخية، التزاماً بالقاعدة الحاكمة.
+
+### ما تغيّر فعلاً (ملفات جديدة معلَّقة)
+
+سبعة ملفات جديدة جاهزة لـ commit STR-098 (لم تُرحَّل بعد بسبب fsmonitor index extension في Linux container):
+
+1. `tech-debt-baseline.json` — العقد البياني الأساس.
+2. `scripts/audit-tech-debt.sh` — حارس ratchet أحادي الاتجاه. اختُبِر: EXIT=0 على baseline متطابق، EXIT=1 على zero violations محقَّقة.
+3. `scripts/audit-migration-budget.sh` — حارس ميزانية الترحيل P0=0 / P1=15% / P2=30% / P3=∞. اختُبِر: EXIT=0 (skip) قبل أول triage.
+4. `scripts/update-baseline.py` — مُحدِّث Python يتخطى node_modules ويرفض الزيادة. اختُبِر dry-run.
+5. `.github/workflows/quality-gate.yml` — workflow مستقل بثلاث jobs مكمل لـ ci.yml الموجود (لا يكرّره).
+6. `.husky/commit-msg` — اختُبِر: قبول `feat(ci): STR-098 — وصف`، رفض `added some stuff`.
+7. `docs/strategic-plan-098-104.md` — العقد الاستراتيجي الكامل (13 قسم) المُلتزَم.
+
+### ما تم التحقق منه مباشرة
+
+- `bash scripts/audit-tech-debt.sh` على baseline متوافق → EXIT=0، 8/8 metrics OK.
+- `bash scripts/audit-migration-budget.sh` بدون `triage-round-098.md` → EXIT=0 (skip متوقَّع).
+- `bash .husky/commit-msg <good-msg>` → EXIT=0.
+- `bash .husky/commit-msg <bad-msg>` → EXIT=1 + رسالة خطأ واضحة.
+- `python3 scripts/update-baseline.py --dry-run` → EXIT=1 (يكتشف 219 vs 217 في `: any` بسبب فرق Python regex عن grep — bash هو المرجع، Python overcount في `: any` بـ 2 occurrences فقط، موثَّق).
+- `bash -n` syntax check على كل الـ shell scripts → نظيف.
+- `python3 -c "import ast; ast.parse(...)"` على update-baseline.py → نظيف.
+
+### ما لم يُنفَّذ في هذه الجلسة
+
+- `git add` + `git commit` + `git push`: تعذَّر من حاوية Linux. الـ `.git/index` يحتوي امتداد `fsmonitor` لا تفهمه نسخة git في الحاوية، بالإضافة إلى صلاحيات mount لا تسمح بـ `rm .git/index.lock`. يجب التنفيذ من Windows native terminal.
+- فتح PR على GitHub: يعتمد على اكتمال `git push`.
+- تشغيل `quality-gate.yml` فعلياً على PR: يحتاج push + PR.
+
+### الأوامر المطلوبة من Windows لإغلاق STR-098
+
+```powershell
+cd "C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy"
+
+# تأكيد الفرع
+git branch --show-current
+# إذا كان str-098-foundation-completion → استمر
+# إذا كان main → git checkout str-098-foundation-completion
+
+# إضافة الملفات السبعة الجديدة فقط (لا CRLF noise)
+git add tech-debt-baseline.json
+git add scripts/audit-tech-debt.sh
+git add scripts/audit-migration-budget.sh
+git add scripts/update-baseline.py
+git add .github/workflows/quality-gate.yml
+git add .husky/commit-msg
+git add docs/strategic-plan-098-104.md
+
+# تأكيد ما هو staged
+git diff --cached --name-status
+
+# Commit برسالة تطابق نمط .husky/commit-msg
+git commit -m "feat(ci): STR-098 — Foundation Completion Round (quality-gate + audit scripts + baseline + commit-msg + strategic plan)"
+
+# إضافة output/round-notes.md و output/session-state.md المحدَّثتين
+git add output/round-notes.md output/session-state.md
+git commit -m "docs(state): STR-098 — تحديث session-state و round-notes بسجل الجولة"
+
+# Push وفتح PR
+git push -u origin str-098-foundation-completion
+```
+
+### حالات التوقف
+
+- **عملية**: `git operations` غير ممكنة من حاوية Linux. حُلَّ بالخروج إلى Windows.
+- **منهجية**: لا.
+
+### هل استلزم الأمر تحديث session-state
+
+نعم — تم تحديث:
+- `بيانات التحكم` لتعكس الفرع الجديد + HEAD الفعلي.
+- إضافة قسم `ملفات STR-098 معلَّقة`.
+- إضافة قسم `STR-098 — حالة الإنجاز`.
+
+### ما بقي مفتوحاً
+
+- تنفيذ git operations يدوياً على Windows.
+- فتح PR للمراجعة البشرية.
+- بعد المراجعة والدمج: تحديث session-state.md ليعكس الدمج في main.
+- بدء `STR-099 — إغلاق test_failures_*` (يحتاج Pre-Flight جديد لقياس عدد الاختبارات الفاشلة فعلياً، إذ أرقام المخطط الأصلي 68 قد تكون تغيّرت بعد commits Sentry).
+
