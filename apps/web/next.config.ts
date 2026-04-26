@@ -99,6 +99,13 @@ const nextConfig = {
     removeConsole: process.env["NODE_ENV"] === "production",
   },
 
+  // Suppress middleware deprecation warning (using middleware.ts instead of proxy.ts due to Next.js 16.2.3 bug)
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
+
   experimental: {
     ...(buildCpuCount ? { cpus: buildCpuCount } : {}),
     ...(staticGenerationConcurrency
@@ -324,7 +331,12 @@ const sentryConfig =
         tunnelRoute: "/monitoring",
         sourcemaps: {
           disable: false,
-          ignore: ["**/*manifest*.js", "**/*reference-manifest*.js"],
+          ignore: [
+            "**/*manifest*.js",
+            "**/*reference-manifest*.js",
+            "**/node_modules/**",
+          ],
+          filesToDeleteAfterUpload: true,
         },
       }
     : null;

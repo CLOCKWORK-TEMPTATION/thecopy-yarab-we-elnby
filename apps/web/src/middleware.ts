@@ -2,11 +2,10 @@
  * @fileoverview Next.js Middleware — يضيف رؤوس الحماية الأساسية (CSP، HSTS،
  * X-Frame-Options، X-Content-Type-Options، Referrer-Policy، إلخ).
  *
- * ملاحظة بنيوية: في Next.js 16 توجد تسميتان لطبقة الإدخال هذه: `proxy.ts`
- * (الجديدة) و `middleware.ts` (التقليدية). الإصدار 16.2.3 يحوي عطلًا في خط
- * الإنتاج عند استخدام `proxy.ts` — يُولّد `middleware.js.nft.json` ثم يطلب
- * `proxy.js.nft.json` غير الموجود فيُسقط البناء بـ ENOENT. نُثبّت التسمية
- * التقليدية حتى يُصلَح العطل upstream.
+ * ملاحظة: في Next.js 16 توجد تسميتان لطبقة الإدخال هذه: `proxy.ts` (الجديدة)
+ * و `middleware.ts` (التقليدية). نستخدم التسمية التقليدية حاليًا بسبب عطل في
+ * Next.js 16.2.3 عند استخدام `proxy.ts` في الإنتاج. التحذير عن middleware
+ * منتهي الصلاحية مكتوم في next.config.ts.
  */
 
 import { NextRequest, NextResponse } from "next/server";
