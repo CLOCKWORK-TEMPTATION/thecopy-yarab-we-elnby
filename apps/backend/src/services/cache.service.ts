@@ -17,23 +17,14 @@
 
 import crypto from 'crypto';
 
+import * as Sentry from '@sentry/node';
 import { createClient } from 'redis';
 
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
 import { logger } from '@/lib/logger';
 
-// Optional Sentry import (only if SENTRY_DSN is configured)
-let Sentry: typeof import('@sentry/node') | null = null;
-try {
-  if (env.SENTRY_DSN) {
-    // Dynamic import to avoid errors if @sentry/node is not installed
-    const sentryModule = require('@sentry/node');
-    Sentry = sentryModule;
-  }
-} catch {
-  // Sentry not installed or not configured - this is fine, monitoring is optional
-}
+const sentryEnabled = Boolean(env.SENTRY_DSN);
 
 interface CacheEntry<T> {
   data: T;
@@ -126,16 +117,16 @@ export class CacheService {
 
       // Sentinel configuration
       if (process.env.REDIS_SENTINEL_ENABLED === 'true') {
-        const sentinels = (process.env.REDIS_SENTINELS || '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
+        const sentinels = (process.env.REDIS_SENTINELS ?? '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
           .split(',')
           .map(s => {
             const [host, port] = s.trim().split(':');
-            return { host: host || '127.0.0.1', port: parseInt(port || '26379') };
+            return { host: host ?? '127.0.0.1', port: parseInt(port ?? '26379') };
           });
 
         redisConfig = {
           sentinels,
-          name: process.env.REDIS_MASTER_NAME || 'mymaster',
+          name: process.env.REDIS_MASTER_NAME ?? 'mymaster',
         };
 
         if (process.env.REDIS_PASSWORD) {
@@ -153,8 +144,8 @@ export class CacheService {
         };
       } else {
         redisConfig = {
-          host: process.env.REDIS_HOST || 'localhost',
-          port: parseInt(process.env.REDIS_PORT || '6379'),
+          host: process.env.REDIS_HOST ?? 'localhost',
+          port: parseInt(process.env.REDIS_PORT ?? '6379'),
         };
 
         if (process.env.REDIS_PASSWORD) {
@@ -185,12 +176,12 @@ export class CacheService {
       );
       this.redis = redisClient;
 
-      redisClient.on('error', (error) => {
+      redisClient.on('error', (error: Error) => {
         logger.warn('Redis connection error, falling back to memory cache:', error.message);
         this.updateRedisHealth('error');
         this.metrics.errors++;
 
-        if (Sentry) {
+        if (sentryEnabled) {
           Sentry.captureException(error, {
             tags: { component: 'cache-service', layer: 'redis' },
             level: 'warning',
@@ -209,7 +200,7 @@ export class CacheService {
       });
 
       // Attempt to connect
-      redisClient.connect().catch((error) => {
+      redisClient.connect().catch((error: Error) => {
         logger.warn('Redis initial connection failed, using memory cache only:', error.message);
         this.updateRedisHealth('error');
         this.redis = null;
@@ -241,7 +232,7 @@ export class CacheService {
    * Check if Redis is available for operations
    */
   private isRedisAvailable(): boolean {
-    return this.redis !== null && this.redis.isOpen;
+    return this.redis?.isOpen === true;
   }
 
   /**
@@ -277,7 +268,7 @@ export class CacheService {
     operation: string,
     layer?: string
   ): void {
-    if (!Sentry) return;
+    if (!sentryEnabled) return;
 
     Sentry.captureException(error, {
       tags: {

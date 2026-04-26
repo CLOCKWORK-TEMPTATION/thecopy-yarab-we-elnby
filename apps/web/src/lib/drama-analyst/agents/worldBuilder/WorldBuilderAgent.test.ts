@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TaskType } from "@core/enums";
 
-import { StandardAgentInput } from "../shared/standardAgentPattern";
-
 import { WorldBuilderAgent } from "./WorldBuilderAgent";
+
+import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({
@@ -14,7 +14,6 @@ vi.mock("../../services/geminiService", () => ({
       .mockResolvedValue("Mock AI response for world building"),
   },
 }));
-
 
 let agent: WorldBuilderAgent;
 
@@ -168,9 +167,9 @@ function registerLowConfidencePathTests(): void {
       expect(result).toBeDefined();
       expect(result.confidence).toBeDefined();
 
-      if (result.confidence < 0.95) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(
+        true
+      );
     });
 
     it("should handle uncertainty in world consistency", async () => {
@@ -282,19 +281,20 @@ function registerPostProcessingAndQualityAssessmentTests(): void {
 
       const result = await agent.executeTask(input);
 
-      expect(result.metadata?.worldQuality).toBeDefined();
-
-      if (result.metadata?.worldQuality) {
-        const quality = result.metadata.worldQuality;
-        expect(quality.consistency).toBeGreaterThanOrEqual(0);
-        expect(quality.consistency).toBeLessThanOrEqual(1);
-        expect(quality.detail).toBeGreaterThanOrEqual(0);
-        expect(quality.detail).toBeLessThanOrEqual(1);
-        expect(quality.creativity).toBeGreaterThanOrEqual(0);
-        expect(quality.creativity).toBeLessThanOrEqual(1);
-        expect(quality.coherence).toBeGreaterThanOrEqual(0);
-        expect(quality.coherence).toBeLessThanOrEqual(1);
+      const quality = result.metadata?.worldQuality;
+      expect(quality).toBeDefined();
+      if (!quality) {
+        throw new Error("Expected world quality metadata");
       }
+
+      expect(quality.consistency).toBeGreaterThanOrEqual(0);
+      expect(quality.consistency).toBeLessThanOrEqual(1);
+      expect(quality.detail).toBeGreaterThanOrEqual(0);
+      expect(quality.detail).toBeLessThanOrEqual(1);
+      expect(quality.creativity).toBeGreaterThanOrEqual(0);
+      expect(quality.creativity).toBeLessThanOrEqual(1);
+      expect(quality.coherence).toBeGreaterThanOrEqual(0);
+      expect(quality.coherence).toBeLessThanOrEqual(1);
     });
 
     it("should add appropriate notes based on world quality", async () => {
@@ -360,7 +360,6 @@ function registerErrorHandlingTests(): void {
       const input: StandardAgentInput = {
         input: "ابنِ عالماً",
         options: {},
-        context: undefined as any,
       };
 
       const result = await agent.executeTask(input);
@@ -402,7 +401,6 @@ function registerAdvancedOptionsTests(): void {
     it("should use default options when not provided", async () => {
       const input: StandardAgentInput = {
         input: "ابنِ عالماً",
-        options: undefined as any,
         context: {},
       };
 
