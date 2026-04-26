@@ -111,9 +111,11 @@ describe("CreativeWritingStudio - اختبار الدخان", () => {
   it("يجب أن يحتوي على العنوان الرئيسي", () => {
     render(<CreativeWritingStudio />);
 
-    expect(screen.getByRole("heading", {
-      name: "استوديو الكتابة الإبداعية",
-    })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: "استوديو الكتابة الإبداعية",
+      })
+    ).toBeInTheDocument();
   });
 
   /**
@@ -202,9 +204,11 @@ describe("CreativeWritingStudio - اختبارات شاملة", () => {
     render(<CreativeWritingStudio />);
 
     // التحقق من العناصر الأساسية
-    expect(screen.getByRole("heading", {
-      name: "استوديو الكتابة الإبداعية",
-    })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: "استوديو الكتابة الإبداعية",
+      })
+    ).toBeInTheDocument();
     expect(screen.getByText("🏠 الرئيسية")).toBeInTheDocument();
     expect(screen.getByText("📚 مكتبة المحفزات")).toBeInTheDocument();
     expect(screen.getByText("✍️ المحرر")).toBeInTheDocument();

@@ -12,14 +12,9 @@
 
  */
 
-
-
 import { NextRequest, NextResponse } from "next/server";
 
-
-
 interface ContentSecurityPolicyOptions {
-
   isDevelopment: boolean;
 
   allowedDevOrigin?: string;
@@ -29,37 +24,21 @@ interface ContentSecurityPolicyOptions {
   cdnOrigin?: string;
 
   connectOrigins?: string[];
-
 }
-
-
 
 function getOriginFromUrl(url: string | undefined): string {
-
   if (!url) {
-
     return "";
-
   }
-
-
 
   try {
-
     return new URL(url).origin;
-
   } catch {
-
     return "";
-
   }
-
 }
 
-
-
 export function buildContentSecurityPolicy({
-
   isDevelopment,
 
   allowedDevOrigin,
@@ -69,23 +48,14 @@ export function buildContentSecurityPolicy({
   cdnOrigin,
 
   connectOrigins = [],
-
 }: ContentSecurityPolicyOptions): string | null {
-
   if (isDevelopment) {
-
     return null;
-
   }
 
-
-
   const connectSrcParts = Array.from(
-
     new Set(
-
       [
-
         "'self'",
 
         "https://apis.google.com",
@@ -103,29 +73,18 @@ export function buildContentSecurityPolicy({
         sentryOrigin,
 
         cdnOrigin,
-
       ].filter(Boolean)
-
     )
-
   );
 
-
-
   const frameAncestors = allowedDevOrigin
-
     ? `frame-ancestors 'self' ${allowedDevOrigin}`
-
     : "frame-ancestors 'none'";
 
-
-
   return [
-
     "default-src 'self'",
 
     [
-
       "script-src",
 
       "'self'",
@@ -143,7 +102,6 @@ export function buildContentSecurityPolicy({
       "https://*.sentry.io",
 
       cdnOrigin,
-
     ]
 
       .filter(Boolean)
@@ -155,7 +113,6 @@ export function buildContentSecurityPolicy({
     "child-src 'self' blob:",
 
     [
-
       "style-src",
 
       "'self'",
@@ -167,7 +124,6 @@ export function buildContentSecurityPolicy({
       "https://fonts.googleapis.com",
 
       cdnOrigin,
-
     ]
 
       .filter(Boolean)
@@ -175,7 +131,6 @@ export function buildContentSecurityPolicy({
       .join(" "),
 
     [
-
       "font-src",
 
       "'self'",
@@ -187,7 +142,6 @@ export function buildContentSecurityPolicy({
       "data:",
 
       cdnOrigin,
-
     ]
 
       .filter(Boolean)
@@ -195,7 +149,6 @@ export function buildContentSecurityPolicy({
       .join(" "),
 
     [
-
       "img-src",
 
       "'self'",
@@ -217,7 +170,6 @@ export function buildContentSecurityPolicy({
       "https://*.googleapis.com",
 
       cdnOrigin,
-
     ]
 
       .filter(Boolean)
@@ -239,32 +191,20 @@ export function buildContentSecurityPolicy({
     frameAncestors,
 
     "upgrade-insecure-requests",
-
   ].join("; ");
-
 }
 
-
-
 function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
-
   return Array.from(
-
     new Set(
-
       urls
 
         .map((url) => getOriginFromUrl(url))
 
         .filter((origin): origin is string => Boolean(origin))
-
     )
-
   );
-
 }
-
-
 
 /**
 
@@ -281,10 +221,7 @@ function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
  */
 
 export function proxy(_request: NextRequest) {
-
   const response = NextResponse.next();
-
-
 
   // Development mode detection
 
@@ -297,7 +234,6 @@ export function proxy(_request: NextRequest) {
   const cdnOrigin = getOriginFromUrl(process.env["NEXT_PUBLIC_CDN_URL"]);
 
   const connectOrigins = collectAllowedConnectOrigins([
-
     process.env["NEXT_PUBLIC_API_URL"],
 
     process.env["NEXT_PUBLIC_BACKEND_URL"],
@@ -311,11 +247,9 @@ export function proxy(_request: NextRequest) {
     process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL,
 
     process.env["NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL"],
-
   ]);
 
   const contentSecurityPolicy = buildContentSecurityPolicy({
-
     isDevelopment,
 
     allowedDevOrigin,
@@ -325,31 +259,20 @@ export function proxy(_request: NextRequest) {
     cdnOrigin,
 
     connectOrigins,
-
   });
 
-
-
   if (contentSecurityPolicy) {
-
     response.headers.set("Content-Security-Policy", contentSecurityPolicy);
-
   }
-
-
 
   // Additional security headers
 
   if (!isDevelopment) {
-
     response.headers.set(
-
       "Strict-Transport-Security",
 
       "max-age=31536000; includeSubDomains; preload"
-
     );
-
   }
 
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -360,18 +283,11 @@ export function proxy(_request: NextRequest) {
 
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
-
-
   return response;
-
 }
 
-
-
 export const config = {
-
   matcher: [
-
     /*
 
      * Match all request paths except:
@@ -387,8 +303,5 @@ export const config = {
      */
 
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-
   ],
-
 };
-
