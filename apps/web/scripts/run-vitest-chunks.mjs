@@ -6,8 +6,7 @@ import { fileURLToPath } from "node:url";
 const appRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const repoRoot = resolve(appRoot, "../..");
 const chunkSize = Number.parseInt(process.env.VITEST_CHUNK_SIZE ?? "24", 10);
-const testFilePattern =
-  /\.(?:test|spec)\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx)$/u;
+const testFilePattern = /\.(?:test|spec)\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx)$/u;
 const excludedSegments = new Set([
   "node_modules",
   "dist",
@@ -25,9 +24,7 @@ function isExcluded(filePath) {
   if (normalized.includes("/tests/e2e/")) {
     return true;
   }
-  return normalized
-    .split("/")
-    .some((segment) => excludedSegments.has(segment));
+  return normalized.split("/").some((segment) => excludedSegments.has(segment));
 }
 
 function collectTestFiles(root) {

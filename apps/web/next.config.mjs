@@ -114,6 +114,7 @@ const nextConfig = {
     ...(enableWebpackMemoryOptimizations
       ? { webpackMemoryOptimizations: true }
       : {}),
+    serverSourceMaps: true, // إجبار Next.js على توليد .map لكل server chunks
     // SRI disabled: incompatible with standalone output in Next.js 16
     // sri: { algorithm: "sha256" },
     optimizePackageImports: [
@@ -246,8 +247,22 @@ const nextConfig = {
 
   // Webpack configuration for handling Node.js built-in modules and critical dependency warnings
   // Note: In Next.js 16, Turbopack is default. Webpack config is kept for fallback compatibility.
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev, defaultLoaders, webpack }) => {
     // حذف config.devtool اليدوي - الاعتماد على إدارة Next.js الداخلية عبر productionBrowserSourceMaps
+
+    // شبكة أمان: إجبار توليد source maps لكل JS files (Phase 1.H)
+    if (!dev && webpack) {
+      config.plugins.push(
+        new webpack.SourceMapDevToolPlugin({
+          filename: "[file].map",
+          moduleFilenameTemplate: "webpack://[namespace]/[resource-path]",
+          include: /\.(js|mjs)$/,
+          exclude: /node_modules/,
+          noSources: false,
+          append: false, // دع Next.js يدير الـ pragma لتجنب التكرار
+        })
+      );
+    }
 
     if (!isServer) {
       // Don't resolve Node.js modules on client side
@@ -290,12 +305,6 @@ const nextConfig = {
       },
     ];
 
-    // إزالة إخفاء التحذيرات المحظور - إصلاح إضعاف الفحص
-    config.stats = {
-      ...config.stats,
-      // إزالة warnings: false و warningsFilter
-    };
-
     return config;
   },
 };
@@ -309,16 +318,18 @@ const sentryConfig =
         org: sentryOrg,
         project: sentryProject,
         silent: !process.env["CI"],
-        widenClientFileUpload: true, // إبقاء مع assets whitelist
         hideSourceMaps: process.env["NODE_ENV"] === "production",
         tunnelRoute: "/monitoring",
         sourcemaps: {
           disable: false,
-          assets: [ // whitelist صريح، لا blacklist
+          assets: [
+            // whitelist صريح يغطي كل المسارات الرسمية
             ".next/static/chunks/**/*.js",
             ".next/static/chunks/**/*.js.map",
             ".next/server/**/*.js",
             ".next/server/**/*.js.map",
+            ".next/standalone/**/*.js",
+            ".next/standalone/**/*.js.map",
           ],
           ignore: [
             "**/*manifest*.js",
@@ -327,6 +338,7 @@ const sentryConfig =
           ],
           filesToDeleteAfterUpload: true,
         },
+        widenClientFileUpload: true, // يحقن debug ids في كل chunks، assets whitelist يتحكم في الرفع
       }
     : null;
 

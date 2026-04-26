@@ -2,6 +2,156 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 101 — حل جذري لتحذيرات Sentry source map (إجبار توليد + شبكة أمان + verify) — 2026-04-26
+
+### التاريخ والوقت
+
+2026-04-26 — فرع `fix/sentry-sourcemaps-root`، commit `2ec7645`.
+
+### قاعدة الفحوصات الحاكمة
+
+- مقروءة ومثبتة. التعديل **يقوّي** الفحص: حذف `config.stats = { warnings: false, warningsFilter: [/source map/] }` وهو إخفاء صريح كان مخالفًا للقاعدة. أُضيف فحص جديد `scripts/verify-sourcemap-coverage.ts` يكشف غياب `.map` لأي `.js` في `.next/`. **لا إضعاف، بل إغلاق ثغرة قائمة + إضافة فحص جديد.**
+
+### الدافع
+
+البناء السابق (`31d409b`) على `main` أصدر **71 تحذيرًا** `could not determine a source map reference` على Vercel. السبب الجذري بعد فحص [Untitled-4.txt](../Untitled-4.txt): 71 ملف client بنطاق `-270` إلى `-410` يخرج إلى القرص بصيغة `(no sourcemap found)`، لأن `config.devtool = 'eval-source-map'` يدويًا في next.config.mjs لا ينتج `.map` منفصلة لكل chunk. الخطة السابقة (`sourcemaps.assets` whitelist وحدها) لم تحل لأنها تحدد *ما يُرفع*، لا تجبر *توليد maps*.
+
+### التغيير
+
+ملفان فقط (معزول عن drift آخر في working tree):
+
+1. [apps/web/next.config.mjs](../apps/web/next.config.mjs):
+   - حذف `config.devtool = isServer ? 'source-map' : 'eval-source-map'` (إدارة Next.js الداخلية تتولى).
+   - حذف كتلة `config.stats = { warnings: false, warningsFilter }` (إصلاح إضعاف فحص محظور).
+   - إضافة `experimental.serverSourceMaps: true` (إجبار توليد maps لـ server chunks).
+   - إضافة `webpack.SourceMapDevToolPlugin` كشبكة أمان (Phase 1.H) مع `append: false` لتفادي تكرار pragma.
+   - توسيع `sourcemaps.assets` لتشمل `.next/standalone/**`.
+   - إبقاء `widenClientFileUpload: true` (يحقن debug ids في كل chunks)؛ `assets` whitelist يضبط نطاق الرفع.
+
+2. [apps/web/scripts/verify-sourcemap-coverage.ts](../apps/web/scripts/verify-sourcemap-coverage.ts) (ملف جديد):
+   - يفحص `.next/static/chunks`, `.next/server`, `.next/standalone`.
+   - يستثني manifests/runtime/polyfills المشروعة.
+   - يُفشل العملية إن وُجد `.js` بلا `.map` مقابل.
+   - يُشغَّل يدويًا حتى ربطه بـ `build` script في commit لاحق (متعمد: لتجنب كسر بناء Vercel قبل التأكد من DIFF محليًا).
+
+### التحقق التشغيلي
+
+- التعديلات مطبقة على فرع منعزل `fix/sentry-sourcemaps-root` (لا push إلى `main`).
+- التحقق المتبقي يعتمد على Vercel preview (تلقائي عند push):
+  - `grep -c "could not determine a source map reference" preview-build.log` يجب أن يكون 0.
+  - `grep -c "no sourcemap found" preview-build.log` يجب أن يكون 0.
+- اختبار التكامل في Sentry (route مؤقت) لم يُنفَّذ بعد.
+
+### اكتشافات حرجة من جولة 100 سابقة (موروثة)
+
+تسريب `TIPTAP_PRO_TOKEN` في turbo dry-run، غياب `.gitattributes`، path aliases ميتة، URL Railway مدمج في docker-compose، اعتماديات Dockerfile غير موثقة — لا تزال مفتوحة، خارج نطاق هذه الجولة.
+
+### الحالة التشغيلية
+
+- مدير الحزم: `pnpm@10.32.1` (ثابت).
+- مساحة العمل: `apps/* + packages/*` (ثابتة).
+- المنافذ والتطبيقات والحزم: ثابتة.
+- `session-state.md`: لم يُحدَّث في هذه الجولة لأن الحقيقة البنيوية لم تتغير (التغيير في إعداد build، لا في entry points أو ports أو commands). `session-state.md` لا يزال يحوي drift سابق (الفرع/commit) موروث من جولة 100.
+
+### ما تغيّر
+
+- `apps/web/next.config.mjs` (تعديل) + `apps/web/scripts/verify-sourcemap-coverage.ts` (ملف جديد).
+
+### ما ثبت
+
+- إخفاء التحذيرات الصريح (`config.stats.warningsFilter`) أُغلق.
+- `productionBrowserSourceMaps: true` × `eval-source-map` تعارض أُغلق.
+- فحص جديد للتغطية مكتوب وجاهز للربط بـ build.
+
+### ما بقي مفتوحًا
+
+- **تأكيد Vercel preview**: التحذيرات = 0 (يحتاج فحص السجل بعد النشر التلقائي).
+- **اختبار تكامل Sentry**: route مؤقت `/api/__sentry-test` يرمي خطأ، فحص stack trace في Sentry UI.
+- **ربط `verify-sourcemap-coverage.ts` بـ build**: يُؤجَّل حتى إثبات DIFF منخفض على Vercel — وإلا يكسر البناء.
+- **تنظيف**: حذف route المؤقت قبل الدمج إلى main.
+- **drift غير معزول** في working tree (7 ملفات: tests، tsconfig، proxy، manifest، إلخ) موروث من قبل الجولة، خارج نطاقها.
+
+### handoff brief
+
+- **التغيير**: 2 ملف على فرع `fix/sentry-sourcemaps-root` (commit `2ec7645`)، push نجح.
+- **التحقق المباشر**: غير مكتمل — يعتمد على Vercel preview.
+- **المفتوح**: انتظار preview log، اختبار تكامل، تنظيف، دمج.
+
+---
+
+## جولة 100 — جرد بيئة توحيد المستودع (Environment Unification Matrix) — 21 طبقة + Dry-Run — 2026-04-26
+
+### التاريخ والوقت
+
+2026-04-26 — جلسة قراءة-فقط، لا تعديلات على مصادر الكود.
+
+### قاعدة الفحوصات الحاكمة
+
+- مقروءة ومثبتة. لم يُمس أي ملف فحص أو تحقق أو اختبار أو بناء أو أمن. الجولة قراءة + أربعة أوامر dry-run + إنتاج تقرير مرجعي في `output/environment-unification-matrix.md`. **لا إضعاف لأي فحص قائم.**
+
+### الدافع
+
+طلب تشغيلي صريح بإنتاج "مصفوفة متطلبات توحيد البيئة" لتجهيز sandbox/worktree معزول مطابق للبيئة الحاكمة، وذلك لمنع صراعات اعتماديات أو فروقات منصات عند دفع تغييرات لاحقًا. الأمر التوجيهي امتد على 21 طبقة، الأخيرة منها فحص جاف فعلي.
+
+### التغيير
+
+ملف واحد جديد: [output/environment-unification-matrix.md](environment-unification-matrix.md) — 6 أقسام:
+1. مصفوفة متطلبات الطبقات 1-7 (مدير الحزم، Node، إعدادات pnpm، native binaries، monorepo، env، auto-install scripts).
+2. أوامر إعداد sandbox خام جاهزة للنسخ.
+3. Risk Register للطبقات 1-7 (12 خطر).
+4. مصفوفة الطبقات الموسّعة 8-20 (system deps، browsers، خدمات، Git، TypeScript، أدوات الأمان، Containers، نظام الملفات، editor/formatter، شبكة، CI/CD، أداء runtime، Turbo cache).
+5. نتائج فحوصات Dry-Run (Layer 21).
+6. Risk Register الموسّع (مخاطر 13-29).
+
+### التحقق التشغيلي
+
+أربعة فحوصات Dry-Run (Layer 21):
+
+| # | الأمر | النتيجة |
+|---|---|---|
+| 1 | `pnpm install --frozen-lockfile --dry-run` | ❌ pnpm 10.32.1 لا يدعم flag `--dry-run` (`Unknown option`) — الفحص غير قابل للتنفيذ كما طُلب |
+| 2 | `pnpm exec tsc --noEmit` على `packages/core-memory` (بديل لغياب tsconfig جذر) | ✅ نظيف، صفر أخطاء |
+| 2-alt | `pnpm exec turbo run type-check --dry-run=text` | ✅ الرسم البياني صحيح، 1767 input file لـ web type-check |
+| 3 | `pnpm exec turbo run build --dry-run=json` | ⚠️ نجح بنيويًا لكن **سرّب القيمة الكاملة لـ `TIPTAP_PRO_TOKEN`** في حقل `passthrough` ضمن stdout |
+| 4 | `pnpm list --depth=0 --json` | ✅ 8 deps جذرية، lockfile متّسق |
+
+### اكتشافات حرجة جديدة
+
+1. **🔴 تسريب TIPTAP_PRO_TOKEN في turbo dry-run:** turbo.json يصنّف التوكن كـ `passThroughEnv` و dry-run يطبع قيمته. يستوجب تدوير التوكن فورًا في cloud.tiptap.dev.
+2. **🔴 غياب `.gitattributes`:** خطر CRLF/LF على hooks و YAML CI في مستودع متعدد المنصات.
+3. **🔴 path aliases ميتة:** `@the-copy/shared` و `@the-copy/ui` مذكورة في tsconfig.json لكن الحزم محذوفة.
+4. **🔴 URL إنتاج Railway مدمج** في docker-compose.yml كقيم ARG افتراضية.
+5. **🔴 session-state.md قديم:** يقول الفرع `main` و 27 ملف drift، الواقع الفرع `fix/sentry-sourcemaps-root` و 3 ملفات تغيير محلية فقط، آخر commit مختلف.
+6. **🔴 اعتماديات Dockerfile غير موثّقة في README:** antiword + poppler-utils + chromium + font-noto-arabic + python3 + make + g++ غير مذكورة في قسم المتطلبات.
+
+### الحالة التشغيلية
+
+- لم تتغيّر الحقيقة التشغيلية للمستودع. لم تُحدَّث `session-state.md` لأن:
+  - مدير الحزم ثابت `pnpm@10.32.1`.
+  - مساحة العمل ثابتة `apps/* + packages/*`.
+  - المنافذ ثابتة (web 5000، backend 3001، postgres 5433، redis 6379، weaviate 8080).
+  - التطبيقات والحزم لم تتغيّر.
+- session-state موجود فيه drift ذاتي (الفرع و آخر commit و عدد الملفات) لكنه drift سابق على هذه الجولة، ليس ناتجًا عنها.
+
+### ما تغيّر
+
+- ملف جديد فقط: `output/environment-unification-matrix.md` (مرجعي، مشتق، يحق توليده).
+
+### ما ثبت
+
+- العقد التشغيلي مقروء ومحترم.
+- المستودع مُعدّ للتشغيل عبر منصات متعددة (253 إصابة لمفاتيح linux-x64/darwin-arm64/win32-x64 في pnpm-lock).
+- CI متوافق مع المحلي تمامًا في `pnpm@10.32.1`.
+
+### ما بقي مفتوحًا
+
+- تدوير `TIPTAP_PRO_TOKEN` (خارج صلاحيات هذه الجلسة).
+- إضافة `.gitattributes` و حذف path aliases الميتة (تعديل تشغيلي خارج نطاق الجولة).
+- تحديث session-state.md ليطابق الواقع (يحتاج `pnpm agent:bootstrap` أو تحديث يدوي).
+- إغلاق drift البنيوي القائم سابقًا.
+
+---
+
 ## جولة 099 — تقوية Sentry لـ Release Health (release + tracePropagation + PII) — 2026-04-26
 
 ### التاريخ والوقت
