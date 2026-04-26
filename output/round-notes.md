@@ -7302,3 +7302,48 @@ inventory-only
 ### هل استلزم الأمر تحديث session-state
 
 نعم
+
+## الجولة 116
+
+### التاريخ والوقت
+
+2026-04-26T03:25:00+03:00
+
+### نوع الجولة
+
+استكمال الجولة 097 — حل تعارضات الدمج
+
+### ما الذي تغيّر
+
+- دُمِج `origin/main` في `round-097-debt-cleanup` عبر `git merge --no-ff` (commit `8dbbf4a`، parents: `219f3ae` + `7b87d4f`).
+- تعارضان جذريان حُلَّا بترجيح إصلاحات الجولة 097 (`--ours`):
+  - `apps/web/src/app/(main)/directors-studio/components/__tests__/ScriptUploadZone.test.tsx`: main طبّق تحسينات تجميلية على نسخة قديمة كانت تختبر وظيفة upload مزالة. 097 أعاد الكتابة لتطابق عقد إشعار "الاستيراد معطّل". الترجيح: 097 (يصلح اختباراً كان فاشلاً 100%).
+  - `apps/web/src/lib/animations.test.ts`: main أضاف if-guard على نسخة قديمة مبنية على `vi.fn().mockImplementation` كمُنشِئ — نمط لا يدعمه vitest v4. 097 استبدله بـ class IntersectionObserverMock حقيقية. الترجيح: 097.
+- الاختباران بعد الدمج: 10/10 passed.
+- الفرع `round-097-debt-cleanup` أصبح قابلاً للدمج على GitHub بدون تعارض.
+
+### ما الذي تم تشغيله والتحقق منه
+
+- `git merge origin/main --no-ff --no-commit`: 2 conflicts كما متوقَّع.
+- `git checkout --ours <files>` ثم `git add`: حلّ التعارضين.
+- `pnpm exec vitest run ScriptUploadZone.test.tsx animations.test.ts`: 2 files / 10 tests / **all passed** (1.64s).
+- `git commit` ←  `8dbbf4a` (merge commit).
+- التحقق من تطابق الملفات الإشكالية مع origin/main: NO_DIFF (لم نُدخل تعديلات على ملفات أخرى منسوبة لـ main).
+- `pnpm --filter @the-copy/backend type-check`: EXIT=0 (الباك اند نظيف بعد الدمج).
+- `pnpm --filter @the-copy/web type-check`: **يكشف أخطاء موروثة من origin/main** (5 أماكن في `orchestrator.ts`، `station2-conceptual-analysis.ts`، `backendService.ts`، اثنان `worker.ts`) — تأكَّد بمقارنة الملفات مع `origin/main` أن لا واحد منها أُحدِث بالدمج.
+- Auto-push hook: نَشَر `8dbbf4a` إلى `origin/round-097-debt-cleanup` بدون `--force`.
+
+### ما بقي مفتوحًا
+
+- 5 أخطاء type-check جديدة على web موروثة من main (مرشَّحة كـ R-* أو D-* في triage الجولة 098):
+  - `src/lib/ai/stations/orchestrator.ts:308-312` — TS2322: Station{1..5}Output لا يطابقون JsonRecord (Index signature).
+  - `src/lib/ai/stations/station2-conceptual-analysis.ts:731,741,751` — TS2322: exactOptionalPropertyTypes (artist/director/author).
+  - `src/lib/drama-analyst/services/backendService.ts:94` — TS2322: unknown ↔ AIResponse.
+  - `src/workers/particle-generator.worker.ts:20` و `particle-physics.worker.ts:43` — TS6196: types مُعرَّفة وغير مستخدمة.
+- A-002 lint chunked verify كاملاً مؤجل (نفس الوضع).
+- A-006 sweep لـ 21 ملف actorai-arabic المتبقية (نفس الوضع).
+- باقي البنود المُرحَّلة من جولة 097 لم تتغيّر.
+
+### هل استلزم الأمر تحديث session-state
+
+نعم — قسم "الأعطال المفتوحة الآن" يجب أن يضمّ الأخطاء الموروثة الخمسة.
