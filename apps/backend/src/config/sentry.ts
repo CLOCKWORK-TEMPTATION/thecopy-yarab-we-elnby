@@ -21,6 +21,21 @@ export const APM_CONFIG = {
   errorRateThreshold: 5,
 };
 
+function buildTracePropagationTargets(): Array<string | RegExp> {
+  // Distributed tracing عبر حدود web↔backend. نضيف أهداف ثابتة + أي host قادم من env.
+  const targets: Array<string | RegExp> = [
+    'localhost',
+    /^https:\/\/www\.thecopy\.app/,
+    /^https:\/\/.*\.vercel\.app/,
+    /^https:\/\/.*\.railway\.app/,
+  ];
+
+  const frontendUrl = process.env['FRONTEND_URL']?.trim();
+  if (frontendUrl) targets.push(frontendUrl);
+
+  return targets;
+}
+
 function buildSentryInitConfig(dsn: string, isProduction: boolean) {
   const profilingIntegration =
     isProduction
@@ -32,10 +47,13 @@ function buildSentryInitConfig(dsn: string, isProduction: boolean) {
     environment: process.env['NODE_ENV'] || 'development',
     release:
       process.env['SENTRY_RELEASE'] ||
-      `the-copy-backend@${process.env['npm_package_version'] || '1.0.0'}`,
+      (process.env['RAILWAY_GIT_COMMIT_SHA']
+        ? `the-copy-backend@${process.env['RAILWAY_GIT_COMMIT_SHA'].slice(0, 12)}`
+        : `the-copy-backend@${process.env['npm_package_version'] || '1.0.0'}`),
     serverName:
       process.env['HOSTNAME'] || process.env['SENTRY_SERVER_NAME'] || 'backend-server',
     tracesSampleRate: isProduction ? APM_CONFIG.tracesSampleRate : 1.0,
+    tracePropagationTargets: buildTracePropagationTargets(),
     profilesSampleRate: isProduction ? APM_CONFIG.profilesSampleRate : 1.0,
     sendDefaultPii: false,
     integrations: profilingIntegration ? [profilingIntegration()] : [],

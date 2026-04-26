@@ -30,22 +30,9 @@ function getSentryErrorHandler(): ErrorRequestHandler {
   return cachedErrorHandler;
 }
 
-export const sentryRequestHandler = (
-  _req: Request,
-  _res: Response,
-  next: NextFunction
-) => {
-  next();
-};
-
-export const sentryTracingHandler = (
-  _req: Request,
-  _res: Response,
-  next: NextFunction
-) => {
-  next();
-};
-
+// Note: لا حاجة لـ sentryRequestHandler/sentryTracingHandler يدويين في @sentry/node v8+.
+// التتبع يتم تلقائياً عبر OpenTelemetry-based instrumentation عند استدعاء Sentry.init().
+// نُبقي فقط على expressErrorHandler الرسمي للالتقاط النهائي للأخطاء.
 export const sentryErrorHandler: ErrorRequestHandler = (error, req, res, next) =>
   getSentryErrorHandler()(error, req, res, next);
 

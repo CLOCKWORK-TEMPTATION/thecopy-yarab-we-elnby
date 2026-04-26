@@ -2,6 +2,82 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 099 — تقوية Sentry لـ Release Health (release + tracePropagation + PII) — 2026-04-26
+
+### التاريخ والوقت
+
+2026-04-26T (current session)
+
+### قاعدة الفحوصات الحاكمة
+
+- مقروءة ومثبتة. التعديل لا يمس أي ملف فحص أو تحقق أو اختبار. كل التغييرات في ملفات runtime telemetry فقط (`instrumentation-client.ts`, `instrumentation.ts`, `apps/backend/src/config/sentry.ts`, `apps/backend/src/middleware/sentry.middleware.ts`).
+
+### الدافع
+
+مراجعة جودة تطبيق Sentry مقابل [Release Health](https://docs.sentry.io/product/releases/health/) كشفت أن `release` غائب كلياً في الـ web init (client + server + edge)، مما يُلغي قدرة Sentry على إنتاج Crash-free Sessions/Users و Adoption لكل deploy. كذلك `tracePropagationTargets` غائب في الـ backend، فلا يربط Sentry traces الـ web مع backend عبر حدود Vercel↔Railway.
+
+### التغيير
+
+1. **Web client** — `apps/web/src/instrumentation-client.ts`:
+   - `release` يُحسب من `NEXT_PUBLIC_SENTRY_RELEASE` ثم `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` (Vercel يكشفه تلقائياً للعميل) كصيغة `the-copy-web@<sha-12>`.
+   - `sendDefaultPii: false` صراحة.
+
+2. **Web server + edge** — `apps/web/src/instrumentation.ts`:
+   - helper `resolveSentryRelease()` يقرأ `SENTRY_RELEASE` ثم `VERCEL_GIT_COMMIT_SHA` ثم `RAILWAY_GIT_COMMIT_SHA`.
+   - `release` و `sendDefaultPii: false` مضافان في كلا runtimes.
+
+3. **Backend** — `apps/backend/src/config/sentry.ts`:
+   - `tracePropagationTargets` جديد: `localhost`, `*.thecopy.app`, `*.vercel.app`, `*.railway.app`, و `FRONTEND_URL` إن وُجد.
+   - `release` صار يقدّم `RAILWAY_GIT_COMMIT_SHA` على `npm_package_version` كـ fallback.
+
+4. **Backend middleware** — `apps/backend/src/middleware/sentry.middleware.ts`:
+   - حذف `sentryRequestHandler` و `sentryTracingHandler` (كانا shims فارغين، غير مستخدمَين، مضلِّلَين). v8+ من `@sentry/node` يعتمد OpenTelemetry instrumentation تلقائياً.
+   - `expressErrorHandler` (المرسوم رسمياً) يبقى كما هو.
+
+### التحقق التشغيلي
+
+- `pnpm --dir apps/web run type-check`: **0 أخطاء، EXIT_CODE=0** [OP].
+- `pnpm --dir apps/backend run type-check`: **EXIT_CODE=0** عبر كل الـ projects (core-config → memory-editor) [OP].
+- `pnpm agent:verify`: نبّه إلى drift بنيوي قائم أصلاً قبل التعديل (session-state يقول `hard-drift` و working-tree غير نظيفة من 5 ملفات سابقة) — ليس ناتجاً عن هذه الجولة. لا يُسوّى آلياً بدون bootstrap كامل.
+
+### المتغيرات البيئية المطلوبة (لتفعيل Release Health فعلياً)
+
+#### على Vercel (مشروع `the-copy-web`)
+
+- `NEXT_PUBLIC_SENTRY_DSN` ✅ (موضوع بالفعل).
+- `SENTRY_AUTH_TOKEN` — مطلوب لرفع source maps من `withSentryConfig` في build. يُولَّد من Sentry → Settings → Auth Tokens بصلاحية `project:releases` + `project:read`.
+- `SENTRY_ORG=me-6dq` (من URL لقطتك).
+- `SENTRY_PROJECT=the-copy-web`.
+- (تأكيد) Vercel → Project Settings → Environment Variables → "Automatically expose System Environment Variables" مفعّل، حتى يُكشف `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` للعميل.
+
+#### على Railway (خدمة backend)
+
+- `SENTRY_DSN` ✅ (موضوع بالفعل).
+- `SENTRY_AUTH_TOKEN` — نفس الـ token (أو منفصل بنفس الصلاحيات).
+- `SENTRY_ORG=me-6dq`.
+- `SENTRY_PROJECT=the-copy-backend`.
+- `FRONTEND_URL=https://www.thecopy.app` (لتفعيل distributed tracing من backend ← web).
+- `RAILWAY_GIT_COMMIT_SHA` يُكشَف تلقائياً من Railway — لا يحتاج إعداداً.
+
+### حالة Sentry بعد الجولة
+
+| الطبقة | release | tracePropagation | sendDefaultPii | حالة |
+|---|---|---|---|---|
+| Backend (Express) | `the-copy-backend@<sha>` | ✅ جديد | `false` | جاهز — ينتظر `SENTRY_AUTH_TOKEN` و `FRONTEND_URL` على Railway |
+| Next.js Server (nodejs) | `the-copy-web@<sha>` (جديد) | ✅ كان موجوداً | `false` (جديد) | جاهز — ينتظر env vars Vercel |
+| Next.js Edge | `the-copy-web@<sha>` (جديد) | n/a | `false` (جديد) | جاهز |
+| Next.js Client (Browser) | `the-copy-web@<sha>` (جديد) | ✅ كان موجوداً | `false` (جديد) | جاهز |
+
+### المتبقي مفتوحاً
+
+- إضافة env vars المذكورة أعلاه في Vercel و Railway ثم إعادة النشر.
+- بعد النشر: التحقق من Sentry → Releases أن releases تظهر تلقائياً مع Adoption و Crash-free %.
+- اختبار distributed trace من web → backend (طلب API يولّد span واحد ممتد عبر الخدمتين).
+- مراجعة `maskAllText: false` في replay — يلتقط نصوص المستخدم؛ يحتاج قرار PII صريح قبل الإنتاج.
+- drift البنيوي قبل الجولة (5 ملفات working-tree) لا يزال قائماً ويحتاج bootstrap كامل لتسويته.
+
+---
+
 ## جولة 098 — استكمال تهيئة Sentry للكلاينت في Next.js — 2026-04-26
 
 ### التاريخ والوقت
@@ -7810,6 +7886,51 @@ inventory-only
 ### التاريخ والوقت
 
 2026-04-26T04:08:43.714Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 127
+
+### التاريخ والوقت
+
+2026-04-26T04:42:28.190Z
 
 ### نوع الجولة
 

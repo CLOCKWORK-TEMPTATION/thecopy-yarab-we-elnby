@@ -3,9 +3,23 @@ import * as Sentry from "@sentry/nextjs";
 import { logger } from "@/lib/ai/utils/logger";
 
 
+// مصدر release موحّد (server + edge): override يدوي ثم Vercel/Railway commit SHA.
+function resolveSentryRelease(): string | undefined {
+  const explicit = process.env["SENTRY_RELEASE"] ?? process.env["NEXT_PUBLIC_SENTRY_RELEASE"];
+  if (explicit) return explicit;
+
+  const sha =
+    process.env["VERCEL_GIT_COMMIT_SHA"] ??
+    process.env["RAILWAY_GIT_COMMIT_SHA"] ??
+    process.env["NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA"];
+
+  return sha ? `the-copy-web@${sha.slice(0, 12)}` : undefined;
+}
+
 export async function register() {
   const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"];
   const isDevelopment = process.env.NODE_ENV === "development";
+  const release = resolveSentryRelease();
 
   // تعطيل Sentry تماماً في Development لتجنب logging spam
   if (isDevelopment) {
@@ -23,6 +37,8 @@ export async function register() {
     Sentry.init({
       dsn,
       environment: process.env.NODE_ENV || "development",
+      ...(release ? { release } : {}),
+      sendDefaultPii: false,
       tracesSampleRate: isDevelopment ? 0.1 : 0.2,
       debug: false,
       tracePropagationTargets: [
@@ -61,6 +77,8 @@ export async function register() {
     Sentry.init({
       dsn,
       environment: process.env.NODE_ENV || "development",
+      ...(release ? { release } : {}),
+      sendDefaultPii: false,
       tracesSampleRate: isDevelopment ? 0.1 : 0.2,
       debug: false,
       integrations: [],

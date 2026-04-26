@@ -5,6 +5,14 @@ import { logger } from "@/lib/ai/utils/logger";
 const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"];
 const isDevelopment = process.env.NODE_ENV === "development";
 
+// Release identifier for Sentry Release Health (Crash-free Sessions/Users + Adoption).
+// مصدر منفرد للحقيقة: override يدوي ثم Vercel system env (مكشوفة تلقائياً للعميل).
+const releaseSha =
+  process.env["NEXT_PUBLIC_SENTRY_RELEASE"] ||
+  (process.env["NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA"]
+    ? `the-copy-web@${process.env["NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA"].slice(0, 12)}`
+    : undefined);
+
 if (isDevelopment) {
   logger.info("[Sentry] Client disabled in development mode");
 } else if (!dsn) {
@@ -13,6 +21,8 @@ if (isDevelopment) {
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV || "development",
+    ...(releaseSha ? { release: releaseSha } : {}),
+    sendDefaultPii: false,
     tracesSampleRate: 0.2,
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
