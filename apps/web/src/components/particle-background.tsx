@@ -749,7 +749,12 @@ export default function V0ParticleAnimation() {
         particleCount,
       } = sceneRef.current;
 
-      if (!geometry || particleCount === 0 || !velocities || !originalPositions) {
+      if (
+        !geometry ||
+        particleCount === 0 ||
+        !velocities ||
+        !originalPositions
+      ) {
         renderer.render(scene, camera);
         animationId = requestAnimationFrame(animate);
         return;

@@ -27,7 +27,7 @@ export const VideoTextMask = forwardRef<HTMLDivElement, VideoTextMaskProps>(
               onError={(e) => {
                 logger.warn(
                   { videoSrc, mediaError: e.currentTarget.error },
-                  "video failed to load",
+                  "video failed to load"
                 );
                 setHasError(true);
               }}

@@ -1083,7 +1083,10 @@ export default function OptimizedParticleAnimation() {
                   time
                 );
               } catch (error) {
-                logger.warn({ err: error }, "particle effect computation failed");
+                logger.warn(
+                  { err: error },
+                  "particle effect computation failed"
+                );
               }
             }
 

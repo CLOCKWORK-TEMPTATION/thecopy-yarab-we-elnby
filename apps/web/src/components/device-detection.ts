@@ -449,7 +449,7 @@ export function logDeviceCapabilities(): void {
       pixelRatio: capabilities.pixelRatio,
       lowPowerMode: capabilities.isLowPowerMode,
     },
-    "device capabilities",
+    "device capabilities"
   );
 
   logger.debug(
@@ -461,6 +461,6 @@ export function logDeviceCapabilities(): void {
       shadows: lodConfig.enableShadows,
       quality: lodConfig.textureQuality,
     },
-    "particle LOD config",
+    "particle LOD config"
   );
 }

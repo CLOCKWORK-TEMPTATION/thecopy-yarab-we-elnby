@@ -142,7 +142,10 @@ export default function FileUpload({
             f.name === file.name ? { ...f, status: "error", progress: 0 } : f
           )
         );
-        logger.error({ err: error, fileName: file.name }, "خطأ في معالجة الملف");
+        logger.error(
+          { err: error, fileName: file.name },
+          "خطأ في معالجة الملف"
+        );
       }
     },
     [onFileContent]
