@@ -8,6 +8,16 @@ import {
 
 import { POST } from "./route";
 
+interface AnalyzeResponse {
+  success: boolean;
+  data?: {
+    analysis: {
+      summary: string;
+    };
+  };
+  error?: string;
+}
+
 vi.mock("@/lib/server/backend-proxy", () => ({
   buildProxyErrorResponse: vi.fn(
     (error: unknown, fallbackMessage: string) =>
@@ -44,11 +54,11 @@ describe("/api/budget/analyze", () => {
     });
 
     const response = await POST(request);
-    const result = await response.json();
+    const result = (await response.json()) as AnalyzeResponse;
 
     expect(response.status).toBe(200);
     expect(result.success).toBe(true);
-    expect(result.data.analysis.summary).toBe("ok");
+    expect(result.data?.analysis.summary).toBe("ok");
     expect(proxyToBackend).toHaveBeenCalledWith(
       request,
       "/api/budget/analyze"
@@ -66,7 +76,7 @@ describe("/api/budget/analyze", () => {
     });
 
     const response = await POST(request);
-    const result = await response.json();
+    const result = (await response.json()) as AnalyzeResponse;
 
     expect(response.status).toBe(503);
     expect(result.success).toBe(false);

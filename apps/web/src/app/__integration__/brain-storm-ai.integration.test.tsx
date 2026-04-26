@@ -20,8 +20,8 @@ import type {
 } from "../(main)/brain-storm-ai/src/types";
 
 vi.mock("@/lib/app-state-client", () => ({
-  loadRemoteAppState: vi.fn(async () => null),
-  persistRemoteAppState: vi.fn(async () => undefined),
+  loadRemoteAppState: vi.fn(() => Promise.resolve(null)),
+  persistRemoteAppState: vi.fn(() => Promise.resolve(undefined)),
 }));
 
 vi.mock("../(main)/brain-storm-ai/src/hooks/useAgentStates", () => ({
@@ -135,8 +135,19 @@ vi.mock("../(main)/brain-storm-ai/src/hooks/useKeyboardShortcuts", () => ({
   useKeyboardShortcuts: vi.fn(),
 }));
 
-vi.mock("../(main)/brain-storm-ai/src/lib/api", () => ({
-  conductDebate: vi.fn(async ({ agentIds }) => ({
+interface DebateRequest {
+  agentIds: string[];
+}
+
+interface PersistedBrainstormState {
+  sessions: Array<{
+    session: Session;
+    messages: DebateMessage[];
+  }>;
+}
+
+function createDebateSuccess(agentIds: string[]) {
+  return {
     success: true,
     result: {
       proposals: [
@@ -150,7 +161,15 @@ vi.mock("../(main)/brain-storm-ai/src/lib/api", () => ({
       finalDecision: "الفكرة قابلة للتطوير مع بعض التحسينات",
       judgeReasoning: "بناءً على تحليل شامل للجوانب المختلفة",
     },
-  })),
+  };
+}
+
+function resolveDebateSuccess({ agentIds }: DebateRequest) {
+  return Promise.resolve(createDebateSuccess(agentIds));
+}
+
+vi.mock("../(main)/brain-storm-ai/src/lib/api", () => ({
+  conductDebate: vi.fn(resolveDebateSuccess),
 }));
 
 describe("تكامل brain-storm-ai — العقد الحالي", () => {
@@ -162,21 +181,7 @@ describe("تكامل brain-storm-ai — العقد الحالي", () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.mocked(conductDebate).mockReset();
-    vi.mocked(conductDebate).mockImplementation(async ({ agentIds }) => ({
-      success: true,
-      result: {
-        proposals: [
-          {
-            agentId: agentIds[0],
-            proposal: "اقتراح تحليلي شامل للفكرة المقدمة",
-            confidence: 0.85,
-          },
-        ],
-        consensus: true,
-        finalDecision: "الفكرة قابلة للتطوير مع بعض التحسينات",
-        judgeReasoning: "بناءً على تحليل شامل للجوانب المختلفة",
-      },
-    }));
+    vi.mocked(conductDebate).mockImplementation(resolveDebateSuccess);
   });
 
   it("ينشئ جلسة جديدة ويعرض التقدم بعد اكتمال المرحلة الأولى", async () => {
@@ -224,7 +229,7 @@ describe("تكامل brain-storm-ai — العقد الحالي", () => {
     const raw = localStorage.getItem("brainstorm_sessions");
     expect(raw).toBeTruthy();
 
-    const parsed = JSON.parse(raw!);
+    const parsed = JSON.parse(raw!) as PersistedBrainstormState;
     expect(parsed.sessions).toHaveLength(1);
     expect(parsed.sessions[0].session.brief).toBe("فكرة لمشروع برمجي");
     expect(parsed.sessions[0].messages).toHaveLength(2);
