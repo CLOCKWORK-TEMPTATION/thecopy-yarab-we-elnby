@@ -33,7 +33,7 @@ const mechanicalContractRules = {
   "max-depth": ["error", 4],
   "max-lines": [
     "error",
-    { max: 1000, skipBlankLines: true, skipComments: true },
+    { max: 500, skipBlankLines: true, skipComments: true },
   ],
   "max-lines-per-function": [
     "error",

@@ -101,9 +101,9 @@ export abstract class BaseAgent {
   /**
    * Optional post-processing - agents can override this
    */
-  protected async postProcess(
+  protected postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput | Promise<StandardAgentOutput> {
     // Default: no post-processing
     return output;
   }

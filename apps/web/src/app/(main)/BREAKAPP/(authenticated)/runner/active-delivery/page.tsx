@@ -20,7 +20,6 @@ import {
 } from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -79,10 +78,10 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
         await api.get<DeliveryTaskWithLocation[]>("/runners/me/tasks");
       setTasks(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب المهام",
-        description: axiosError.message || "تعذّر تحميل مهام التوصيل",
+        description: axiosError.message ?? "تعذّر تحميل مهام التوصيل",
         variant: "destructive",
       });
     } finally {
@@ -172,10 +171,10 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
           description: `تم تغيير حالة المهمة إلى: ${labels[status]}`,
         });
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل تحديث الحالة",
-          description: axiosError.message || "تعذّر تحديث حالة المهمة",
+          description: axiosError.message ?? "تعذّر تحديث حالة المهمة",
           variant: "destructive",
         });
       } finally {

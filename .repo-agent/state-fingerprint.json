@@ -1,7 +1,7 @@
 {
-  "branch": "main",
+  "branch": "codex/validate-fix-20260426",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "bc3e1dc5fb08d8c1c8abcd467889dff628c20a20f03354c7c8c1cbfd1fc31bbe",
+    ".agent-code-memory/manifest.json": "3c4042128eee1825ccabb46fc12d6de1bdf2c3729bb043d41bf06106f9a149a7",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
@@ -72,30 +72,30 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "7ae9286726a1aeb457e48b47dd9f0252c9cf3d8b",
+  "headCommit": "233aaccf62b2c7a2a186e9da882ca01917a9ccd7",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "a58640c3970de2dbd1a5ff204bf7e871770f0586a7ddf9e7ef2a8da81e48f0fe",
   "knowledgeStatus": "ungoverned",
-  "lastBootstrapTimestamp": "2026-04-26T14:42:27.025Z",
+  "lastBootstrapTimestamp": "2026-04-26T15:02:47.742Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "714aca6026c1646e74f9d1608649b37f5e1cbadae8f706c3ac8c109e8a678dfc",
-    "output/code-map/code-map.json": "bf768171791aec398556463991c34ada9491a3f2c7c96289f9d618dee1b4f66a",
-    "output/code-map/CODEMAP.md": "21b570aead2520d23f3c47508266ecabcae145ec484cf93291b221517cd2cb07",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "62d32a54f5c9acd9c1c25ba7686b78e1c149e52951cca9dca9dd9ef5e4f1e321",
+    "output/code-map/code-map.json": "5b4f59b1ae0e9b161e5a9f04312453295ed79c0032cbf6fb689e1da67a98722c",
+    "output/code-map/CODEMAP.md": "0551e7e4df89387e81d1b8370a056453e89072865e591f26d791cdfd5346ca2c",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "b77d21f989a36d35437832bf0fb2ff2937fcd73fff8464f483fab5f00454e77e",
     "output/code-map/rag-entrypoints.md": "a9f7ac6caf82f61967eb6b46c626b8431098af9165a63070a051209fe5eecf1b",
     "output/code-map/rag-systems.md": "54049de34464de13c355b0504707023b31fe2482489bc098559d49300084204a",
     "output/code-map/runtime-flows.md": "6de542bf4efe54f3e0b973cf196a05147416c7bbe156b7f6f57bf316941b4070",
-    "output/mind-map/mindmap-summary.md": "86037dd1d3c503cfe1ca02bd23c4b3835deadbb2eb984b312757d11d55872d57",
+    "output/mind-map/mindmap-summary.md": "f9f0e5f2b355d86f68ddbeb9e5287124adfc38854c964d2e265ff47da7eec73e",
     "output/mind-map/mindmap.json": "29998bc641b102a1ef6c797945a49d9731982290a607a34d61bdef952e69d604",
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "61c7b3fb33735b3f521e189346e9add31924e58f22f16cfca1ef498e21426c0e",
-    "output/session-state.md": "3fae166b5868d327d1231472cbc1a091130ee7ff120feed6fd0909e7421dd083"
+    "output/round-notes.md": "11b8a846ebc80d25845342dc133ad8a4f602827886b11c1cafa36845daee2fc8",
+    "output/session-state.md": "6b6c3af564b548633b2f9f1a6b7407f2f6d43b73c2a3984d4db33434b86a3d4a"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -105,7 +105,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "543f023fe6eac1d0e0c838dbd6ae50c01cfe1dd92eaa49d7d0d3e5c43c8f8c35",
+  "repoFactsHash": "ea9fa734b5aa00e1cb97616f301e15e8e7d59876509340d0d64e99d0ec87a646",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -175,6 +175,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "1549214cb89c4bad6b40f4ca2a6dff732b4e0a8c68905dc71ce1a1e558511bad",
-  "workingTreeHash": "b8a1521f42a967764329185410f2d325fa0131bd17b411ba842d296782daff2f"
+  "structuralHash": "ccedc2250a1824095f6c6038b3f8d1e0d4c31392d8a22bff6bf93bb9a7ec6d22",
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }

@@ -224,10 +224,13 @@ export async function batchExecuteAgentTasks(
     } else {
       const task = tasks[index];
       const taskType = task?.taskType ?? "unknown";
+      const reason = result.reason as unknown;
+      const reasonMessage =
+        reason instanceof Error ? reason.message : "خطأ غير معروف";
       return {
         text: `فشل تنفيذ المهمة ${taskType}`,
         confidence: 0.0,
-        notes: result.reason?.message ?? "خطأ غير معروف",
+        notes: [reasonMessage],
         metadata: {
           processingTime: 0,
           tokensUsed: 0,

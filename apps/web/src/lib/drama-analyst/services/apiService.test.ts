@@ -23,6 +23,16 @@ vi.mock("./loggerService", () => ({
 }));
 
 type CallModelResult = Awaited<ReturnType<typeof callModel>>;
+interface ErrorPayload {
+  code?: string;
+  message: string;
+  cause?: unknown;
+}
+
+interface ErrorCallModelResult {
+  ok: false;
+  error: ErrorPayload;
+}
 
 const mockedGeminiService = vi.mocked(geminiService);
 const mockedLog = vi.mocked(log);
@@ -41,12 +51,33 @@ function expectOkResult(result: CallModelResult) {
   return result;
 }
 
-function expectErrorResult(result: CallModelResult) {
+function normalizeErrorPayload(
+  error: NonNullable<CallModelResult["error"]>
+): ErrorPayload {
+  if (error instanceof Error) {
+    const payload: ErrorPayload = { message: error.message };
+    const cause = (error as Error & { cause?: unknown }).cause;
+    if (cause !== undefined) {
+      payload.cause = cause;
+    }
+    return payload;
+  }
+  return error;
+}
+
+function expectErrorResult(result: CallModelResult): ErrorCallModelResult {
   expect(result.ok).toBe(false);
   if (result.ok) {
     throw new Error("Expected error result");
   }
-  return result;
+  if (!result.error) {
+    throw new Error("Expected error payload");
+  }
+  return {
+    ...result,
+    ok: false,
+    error: normalizeErrorPayload(result.error),
+  };
 }
 
 describe("APIService", () => {

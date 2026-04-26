@@ -9,7 +9,12 @@
  * 5. Error handling and validation
  */
 
-import express, { Express } from 'express';
+import express, {
+  type Express,
+  type NextFunction,
+  type Request,
+  type Response,
+} from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 
@@ -162,9 +167,9 @@ describe('Backend API Integration Tests', () => {
     });
 
     // Error handling middleware
-    app.use((err: any, req: any, res: any, next: any) => {
-      res.status(err.status || 500).json({
-        error: err.message || 'Internal server error',
+    app.use((err: Error & { status?: number }, _req: Request, res: Response, _next: NextFunction) => {
+      res.status(err.status ?? 500).json({
+        error: err.message.length > 0 ? err.message : 'Internal server error',
       });
     });
   });

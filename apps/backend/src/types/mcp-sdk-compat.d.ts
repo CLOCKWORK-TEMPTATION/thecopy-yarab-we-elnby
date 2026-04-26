@@ -1,3 +1,5 @@
+import type { JSONRPCMessage, MCPTransport } from "@ai-sdk/mcp";
+
 declare module "@modelcontextprotocol/sdk/client/stdio" {
   export interface StdioClientTransportOptions {
     command: string;
@@ -5,8 +7,14 @@ declare module "@modelcontextprotocol/sdk/client/stdio" {
     env?: Record<string, string | undefined>;
   }
 
-  export class StdioClientTransport {
+  export class StdioClientTransport implements MCPTransport {
     constructor(options: StdioClientTransportOptions);
+    start(): Promise<void>;
+    send(message: JSONRPCMessage): Promise<void>;
+    close(): Promise<void>;
+    onclose?: () => void;
+    onerror?: (error: Error) => void;
+    onmessage?: (message: JSONRPCMessage) => void;
   }
 }
 
@@ -23,7 +31,7 @@ declare module "@modelcontextprotocol/sdk/server" {
   export type RequestHandler = (
     request: { params: { name: string; arguments?: unknown } },
     extra: unknown,
-  ) => Promise<unknown> | unknown;
+  ) => unknown;
 
   export class Server {
     constructor(info: ServerInfo, capabilities: ServerCapabilities);

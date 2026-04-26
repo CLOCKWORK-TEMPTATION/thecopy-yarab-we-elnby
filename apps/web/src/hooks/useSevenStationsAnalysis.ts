@@ -190,19 +190,21 @@ export function useSevenStationsAnalysis(
       }
 
       // تحليل الاستجابة
-      const data = await response.json();
+      const data = (await response.json()) as unknown;
 
       // قبول أي بيانات تحتوي success أو detailedResults أو stationOutputs
       // بدون رفض صارم عبر Zod (البنية تختلف بين AI و fallback)
       const parseResult = AnalysisResultSchema.safeParse(data);
 
+      let analysisResult: AnalysisResult;
       if (parseResult.success) {
-        setResult(parseResult.data);
+        analysisResult = parseResult.data;
       } else {
         // البيانات قد تكون بصيغة pipeline payload أو backend response
         // نقبلها كما هي لأن المكوّنات تتعامل مع الشكلين
-        setResult(data as AnalysisResult);
+        analysisResult = data as AnalysisResult;
       }
+      setResult(analysisResult);
 
       // حفظ handoff لصفحة التطوير
       try {
@@ -214,7 +216,7 @@ export function useSevenStationsAnalysis(
 
       setStatus("success");
       showSuccess();
-      onSuccess?.(data);
+      onSuccess?.(analysisResult);
     } catch (err) {
       setStatus("error");
       const errorMessage =

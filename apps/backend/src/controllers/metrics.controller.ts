@@ -176,9 +176,9 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/cache/snapshot */
-  async getCacheSnapshot(_req: Request, res: Response): Promise<void> {
+  getCacheSnapshot(_req: Request, res: Response): void {
     try {
-      const snapshot = await cacheMetricsService.takeSnapshot();
+      const snapshot = cacheMetricsService.takeSnapshot();
       res.json({ success: true, data: snapshot });
     } catch (error) {
       logger.error('Failed to get cache snapshot:', error);
@@ -198,9 +198,9 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/cache/health */
-  async getCacheHealth(_req: Request, res: Response): Promise<void> {
+  getCacheHealth(_req: Request, res: Response): void {
     try {
-      const health = await cacheMetricsService.getHealthStatus();
+      const health = cacheMetricsService.getHealthStatus();
       res.json({ success: true, data: health });
     } catch (error) {
       logger.error('Failed to get cache health:', error);
@@ -209,7 +209,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/cache/report?start=...&end=... */
-  async getCacheReport(req: Request, res: Response): Promise<void> {
+  getCacheReport(req: Request, res: Response): void {
     try {
       const parsed = parseDateRange(req.query['start'], req.query['end']);
       const range = 'error' in parsed ? defaultDateRange() : parsed;
@@ -219,7 +219,7 @@ export class MetricsController {
         return;
       }
 
-      const report = await generateCacheReport(range.startTime, range.endTime);
+      const report = generateCacheReport(range.startTime, range.endTime);
       res.json({ success: true, data: report });
     } catch (error) {
       logger.error('Failed to generate cache report:', error);

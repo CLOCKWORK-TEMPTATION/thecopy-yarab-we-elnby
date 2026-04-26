@@ -12,7 +12,6 @@
  */
 
 import { api } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
@@ -83,10 +82,10 @@ export default function AdminProjectInvitesPage() {
         description: "يمكنك نسخه أو عرضه مباشرة",
       });
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "فشل توليد الرمز",
-        description: axiosError.message || "حدث خطأ غير متوقع",
+        description: axiosError.message ?? "حدث خطأ غير متوقع",
         variant: "destructive",
       });
     } finally {

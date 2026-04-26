@@ -13,7 +13,6 @@
  */
 
 import { api } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -37,10 +36,10 @@ export default function AdminProjectsPage() {
       const response = await api.get<AdminProject[]>("/admin/projects");
       setProjects(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب المشاريع",
-        description: axiosError.message || "تعذّر تحميل المشاريع",
+        description: axiosError.message ?? "تعذّر تحميل المشاريع",
         variant: "destructive",
       });
     } finally {

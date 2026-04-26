@@ -231,7 +231,7 @@ export function EditorPage() {
             }}
             sceneData={selectedScene}
             onUpdate={(data) => {
-              logger.info("Update scene:", data);
+              logger.info({ sceneId: data.id }, "Update scene");
             }}
           />
         )}

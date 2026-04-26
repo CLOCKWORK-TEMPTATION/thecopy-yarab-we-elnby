@@ -13,6 +13,10 @@ import dotenvSafe from 'dotenv-safe';
 
 let safeCheckRan = false;
 
+function writeConfigWarning(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
+
 function resolveExamplePath(): string | null {
   const candidates = [
     process.env['BACKEND_ENV_EXAMPLE_FILE']?.trim(),
@@ -70,7 +74,7 @@ export function runEnvSafeCheck(): EnvSafeCheckResult {
       );
     }
 
-    logger.warn(
+    writeConfigWarning(
       `[env-safe] تحذير — متغيّرات مفقودة مقارنةً بـ ${examplePath}: ${missing.join(', ')}. ` +
         `سيتم المتابعة في وضع التطوير.`
     );

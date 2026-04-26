@@ -7,15 +7,17 @@
  * tracing was disabled.
  */
 
+import { logger } from '@/lib/logger';
+
 import type { NodeSDK } from '@opentelemetry/sdk-node';
 
 const TRACING_ENABLED = process.env['TRACING_ENABLED'] === 'true';
 const OTEL_EXPORTER_OTLP_ENDPOINT =
-  process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] || 'http://localhost:4318/v1/traces';
-const SERVICE_NAME = process.env['SERVICE_NAME'] || 'thecopy-backend';
-const SERVICE_VERSION = process.env.npm_package_version || '1.0.0';
-const ENVIRONMENT = process.env.NODE_ENV || 'development';
-const OTEL_LOG_LEVEL = process.env['OTEL_LOG_LEVEL'] || 'info';
+  process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ?? 'http://localhost:4318/v1/traces';
+const SERVICE_NAME = process.env['SERVICE_NAME'] ?? 'thecopy-backend';
+const SERVICE_VERSION = process.env.npm_package_version ?? '1.0.0';
+const ENVIRONMENT = process.env.NODE_ENV ?? 'development';
+const OTEL_LOG_LEVEL = process.env['OTEL_LOG_LEVEL'] ?? 'info';
 
 function loadOtelModules() {
   const { NodeSDK } = require('@opentelemetry/sdk-node') as typeof import('@opentelemetry/sdk-node');
@@ -82,7 +84,7 @@ export function initTracing(): NodeSDK | null {
         '@opentelemetry/instrumentation-http': {
           enabled: true,
           ignoreIncomingRequestHook: (request) => {
-            const url = request.url || '';
+            const url = request.url ?? '';
             return url.includes('/health') || url.includes('/metrics');
           },
         },

@@ -13,7 +13,6 @@
 
 import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import {
   useCallback,
   useEffect,
@@ -154,10 +153,10 @@ export default function DirectorOrdersLivePage() {
       );
       setOrders(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الطلبات",
-        description: axiosError.message || "تعذّر تحميل الطلبات",
+        description: axiosError.message ?? "تعذّر تحميل الطلبات",
         variant: "destructive",
       });
     } finally {
@@ -183,10 +182,10 @@ export default function DirectorOrdersLivePage() {
       });
       setRunners(mapped);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الـ Runners",
-        description: axiosError.message || "تعذّر تحميل قائمة الـ runners",
+        description: axiosError.message ?? "تعذّر تحميل قائمة الـ runners",
         variant: "destructive",
       });
     }
@@ -263,10 +262,10 @@ export default function DirectorOrdersLivePage() {
       });
       await fetchOrders();
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "فشل الـ Batching",
-        description: axiosError.message || "تعذّر تشغيل التجميع",
+        description: axiosError.message ?? "تعذّر تشغيل التجميع",
         variant: "destructive",
       });
     } finally {
@@ -291,10 +290,10 @@ export default function DirectorOrdersLivePage() {
           description: `أصبحت حالة الطلب: ${STATUS_LABELS[status]}`,
         });
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل التحديث",
-          description: axiosError.message || "تعذّر تحديث الحالة",
+          description: axiosError.message ?? "تعذّر تحديث الحالة",
           variant: "destructive",
         });
       }
@@ -325,10 +324,10 @@ export default function DirectorOrdersLivePage() {
           description: `تم إسناد الطلب للـ runner: ${runnerId}`,
         });
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل الإسناد",
-          description: axiosError.message || "تعذّر إسناد الطلب",
+          description: axiosError.message ?? "تعذّر إسناد الطلب",
           variant: "destructive",
         });
       } finally {

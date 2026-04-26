@@ -8,24 +8,26 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
+export interface InspectorSceneData {
+  id: string;
+  title: string;
+  description?: string;
+  beats?: string[];
+  duration?: string;
+  characters?: string[];
+  linksIn?: string[] | number | undefined;
+  linksOut?: string[] | number | undefined;
+  status?: "draft" | "final" | "alt" | "flagged" | undefined;
+  branch?: "A" | "B" | "C" | undefined;
+  act?: number | undefined;
+  beat?: string | undefined;
+}
+
 interface InspectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  sceneData?: {
-    id: string;
-    title: string;
-    description?: string;
-    beats?: string[];
-    duration?: string;
-    characters?: string[];
-    linksIn?: string[] | number | undefined;
-    linksOut?: string[] | number | undefined;
-    status?: "draft" | "final" | "alt" | "flagged" | undefined;
-    branch?: "A" | "B" | "C" | undefined;
-    act?: number | undefined;
-    beat?: string | undefined;
-  };
-  onUpdate?: (data: any) => void;
+  sceneData?: InspectorSceneData;
+  onUpdate?: (data: InspectorSceneData) => void;
 }
 
 export function InspectorPanel({

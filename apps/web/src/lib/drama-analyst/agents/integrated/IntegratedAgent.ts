@@ -489,7 +489,7 @@ export class IntegratedAgent extends BaseAgent {
       if (mainFindings) {
         summary.push(`النتائج الرئيسية: ${mainFindings}`);
       }
-      const recommendations = resultRecord.recommendations;
+      const recommendations = resultRecord["recommendations"];
       if (recommendations) {
         const recs =
           typeof recommendations === "string"

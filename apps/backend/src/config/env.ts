@@ -30,6 +30,10 @@ function stripWrappingQuotes(value: string): string {
   return value.replace(/^['"]|['"]$/g, '');
 }
 
+function writeConfigWarning(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
+
 function isPlaceholderEnvValue(key: string, value?: string | null): boolean {
   const trimmed = stripWrappingQuotes(value?.trim() ?? '');
   if (!trimmed) {
@@ -83,7 +87,7 @@ function ensureEnvLoaded(): void {
 
   const configuredPath = process.env['BACKEND_ENV_FILE']?.trim();
   const candidatePaths = [
-    configuredPath || null,
+    configuredPath ?? null,
     ...collectEnvCandidates(process.cwd()),
     ...collectEnvCandidates(__dirname),
   ];
@@ -201,7 +205,9 @@ if (
   parsedEnv.NODE_ENV === 'development' &&
   (parsedEnv.JWT_SECRET.includes('dev-secret') || parsedEnv.JWT_SECRET.includes('CHANGE-THIS'))
 ) {
-  logger.warn('[ENV] Development JWT_SECRET is using default value. Set a project-specific secret for realistic auth testing.');
+  writeConfigWarning(
+    '[ENV] Development JWT_SECRET is using default value. Set a project-specific secret for realistic auth testing.'
+  );
 }
 
 export const env = parsedEnv;

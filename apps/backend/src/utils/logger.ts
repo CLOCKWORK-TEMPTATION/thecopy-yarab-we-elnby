@@ -24,7 +24,3 @@ export {
   type Logger,
   type LogContext,
 } from '@/lib/logger';
-
-// تصدير افتراضي للتوافق مع نمط `import logger from '...'`
-import { logger as unifiedLogger } from '@/lib/logger';
-export default unifiedLogger;

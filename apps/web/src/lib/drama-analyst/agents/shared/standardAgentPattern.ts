@@ -13,6 +13,8 @@
 
 import { callGeminiText, toText } from "@/lib/ai/gemini-core";
 
+import { CONSTITUTIONAL_RULES } from "./constitutionalRules";
+
 import type { ModelId } from "@/lib/ai/gemini-core";
 
 export { formatAgentOutput } from "./standardAgentFormat";
@@ -94,7 +96,7 @@ export interface HallucinationCheckResult {
   correctedText: string;
 }
 
-interface ExecutionMetadata {
+interface ExecutionMetadata extends Record<string, unknown> {
   ragUsed: boolean;
   critiqueIterations: number;
   constitutionalViolations: number;
@@ -106,6 +108,12 @@ interface ExecutionMetadata {
 interface ExecutionState {
   currentText: string;
   confidence: number;
+}
+
+interface NormalizedExecutionArgs {
+  taskPrompt: string;
+  options: StandardAgentOptions;
+  context?: Record<string, unknown>;
 }
 
 // =====================================================
@@ -271,67 +279,6 @@ ${critique.substring(0, 1000)}
 // =====================================================
 // Constitutional AI
 // =====================================================
-
-const CONSTITUTIONAL_RULES = [
-  {
-    name: "احترام النص الأصلي",
-    description: "يجب عدم تحريف أو تغيير المعنى الأساسي للنص الأصلي",
-    check: (text: string) => {
-      // Simple heuristic: output shouldn't contradict input
-      return (
-        !text.toLowerCase().includes("على عكس النص") &&
-        !text.toLowerCase().includes("خلافًا لما ورد")
-      );
-    },
-  },
-  {
-    name: "عدم المبالغة",
-    description: "تجنب الادعاءات المبالغ فيها أو غير المدعومة",
-    check: (text: string) => {
-      const exaggerations = [
-        "دائمًا",
-        "أبدًا",
-        "كل",
-        "لا شيء",
-        "مستحيل",
-        "حتمًا",
-      ];
-      const lowerText = text.toLowerCase();
-      const count = exaggerations.filter((word) =>
-        lowerText.includes(word)
-      ).length;
-      return count < 3;
-    },
-  },
-  {
-    name: "الوضوح والدقة",
-    description: "يجب أن يكون التحليل واضحًا ودقيقًا",
-    check: (text: string) => {
-      return text.length > 50 && !text.includes("...") && !text.includes("إلخ");
-    },
-  },
-  {
-    name: "الموضوعية",
-    description: "تجنب الأحكام الشخصية المفرطة",
-    check: (text: string) => {
-      const subjective = ["أعتقد", "في رأيي", "أظن", "ربما"];
-      const lowerText = text.toLowerCase();
-      const count = subjective.filter((phrase) =>
-        lowerText.includes(phrase)
-      ).length;
-      return count < 2;
-    },
-  },
-  {
-    name: "الاحترام والأدب",
-    description: "تجنب اللغة المسيئة أو غير المحترمة",
-    check: (text: string) => {
-      const offensive = ["سخيف", "غبي", "تافه", "عديم القيمة"];
-      const lowerText = text.toLowerCase();
-      return !offensive.some((word) => lowerText.includes(word));
-    },
-  },
-];
 
 async function performConstitutionalCheck(
   text: string,
@@ -643,7 +590,8 @@ async function applyHallucinationStep(
   const unsupported = hallucinationResult.claims.filter(
     (claim) => !claim.supported
   ).length;
-  notes.push(`تصحيح هلوسة: ${unsupported} ادعاء غير مدعوم`);
+  notes.push("تصحيح هلوسة");
+  notes.push(`${unsupported} ادعاء غير مدعوم`);
 
   return {
     currentText: hallucinationResult.correctedText,
@@ -664,11 +612,70 @@ function addDebateNoteIfNeeded(
   }
 }
 
+function normalizeContext(
+  context: StandardAgentInput["context"]
+): Record<string, unknown> | undefined {
+  if (typeof context === "string") {
+    return { originalText: context };
+  }
+  if (context && typeof context === "object" && !Array.isArray(context)) {
+    return context;
+  }
+  return undefined;
+}
+
+function normalizeExecutionArgs(
+  taskPromptOrAgentName: string,
+  optionsOrPrompt: StandardAgentOptions | string,
+  contextOrInput?: Record<string, unknown> | StandardAgentInput
+): NormalizedExecutionArgs {
+  if (typeof optionsOrPrompt !== "string") {
+    const normalized: NormalizedExecutionArgs = {
+      taskPrompt: taskPromptOrAgentName,
+      options: optionsOrPrompt,
+    };
+    if (contextOrInput !== undefined) {
+      normalized.context = contextOrInput as Record<string, unknown>;
+    }
+    return normalized;
+  }
+
+  const input = contextOrInput as StandardAgentInput | undefined;
+  const context = normalizeContext(input?.context);
+  const legacyContext = {
+    ...(context ?? {}),
+    agentName: taskPromptOrAgentName,
+  };
+
+  return {
+    taskPrompt: `${optionsOrPrompt}\n\n${input?.input ?? ""}`.trim(),
+    options: input?.options ?? {},
+    context: legacyContext,
+  };
+}
+
 export async function executeStandardAgentPattern(
   taskPrompt: string,
   options: StandardAgentOptions,
   context?: Record<string, unknown>
+): Promise<StandardAgentOutput>;
+export async function executeStandardAgentPattern(
+  agentName: string,
+  prompt: string,
+  input?: StandardAgentInput,
+  model?: string
+): Promise<StandardAgentOutput>;
+export async function executeStandardAgentPattern(
+  taskPromptOrAgentName: string,
+  optionsOrPrompt: StandardAgentOptions | string,
+  contextOrInput?: Record<string, unknown> | StandardAgentInput,
+  _model?: string
 ): Promise<StandardAgentOutput> {
+  const { taskPrompt, options, context } = normalizeExecutionArgs(
+    taskPromptOrAgentName,
+    optionsOrPrompt,
+    contextOrInput
+  );
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
   const notes: string[] = [];
   const metadata = createExecutionMetadata();
@@ -690,38 +697,31 @@ export async function executeStandardAgentPattern(
       currentText: generatedText,
       confidence: 0.7,
     };
-    const stepOptions: StandardAgentOptions = {
-      ...mergedOptions,
-      enableSelfCritique: options.enableSelfCritique,
-      enableConstitutional: options.enableConstitutional,
-      enableUncertainty: options.enableUncertainty,
-      enableHallucination: options.enableHallucination,
-    };
     state = await applySelfCritiqueStep(
       state,
       finalPrompt,
-      stepOptions,
+      mergedOptions,
       metadata,
       notes
     );
     state = await applyConstitutionalStep(
       state,
       taskPrompt,
-      stepOptions,
+      mergedOptions,
       metadata,
       notes
     );
     state = await applyUncertaintyStep(
       state,
       finalPrompt,
-      stepOptions,
+      mergedOptions,
       metadata,
       notes
     );
     state = await applyHallucinationStep(
       state,
       taskPrompt,
-      stepOptions,
+      mergedOptions,
       metadata,
       notes
     );

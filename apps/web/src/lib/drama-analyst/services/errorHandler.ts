@@ -207,9 +207,7 @@ export class ErrorHandler {
   /**
    * Get errors by severity
    */
-  getErrorsBySeverity(
-    severity: ErrorSeverity
-  ): DetailedError[] {
+  getErrorsBySeverity(severity: ErrorSeverity): DetailedError[] {
     return this.errorHistory.filter((error) => error.severity === severity);
   }
 

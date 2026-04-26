@@ -3,15 +3,21 @@
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
 
-
 import { log } from "./loggerService";
-import { reportError, addBreadcrumb } from "./observability";
+import { addBreadcrumb } from "./observability";
+import {
+  checkPerformanceThresholds,
+  getMetricUnit,
+  getResourceType,
+  sendMetricToCustomEndpoint,
+  sendMetricToGA4,
+  sendMetricToSentry,
+  trackWebVitalsInitialized,
+} from "./webVitalsDispatch";
 
 import type { Metric } from "web-vitals";
-// No-op replacement for missing GA function
-const sendGAEvent = (..._args: unknown[]) => {};
 
-interface WebVitalsConfig {
+export interface WebVitalsConfig {
   enableGA4: boolean;
   enableSentry: boolean;
   enableConsoleLog: boolean;
@@ -19,7 +25,7 @@ interface WebVitalsConfig {
   debug: boolean;
 }
 
-interface CustomMetric {
+export interface CustomMetric {
   name: string;
   value: number;
   delta: number;
@@ -30,7 +36,7 @@ interface CustomMetric {
   customData?: Record<string, unknown>;
 }
 
-type NavigatorWithConnection = Navigator & {
+export type NavigatorWithConnection = Navigator & {
   connection?: {
     effectiveType?: string;
   };
@@ -50,7 +56,7 @@ type GtagFunction = (
   params?: Record<string, unknown>
 ) => void;
 
-type WindowWithGtag = Window & {
+export type WindowWithGtag = Window & {
   gtag?: GtagFunction;
 };
 
@@ -203,7 +209,7 @@ class WebVitalsService {
               customData: {
                 url: resourceEntry.name,
                 size: resourceEntry.transferSize,
-                type: this.getResourceType(resourceEntry.name),
+                type: getResourceType(resourceEntry.name),
                 initiatorType: resourceEntry.initiatorType,
               },
             };
@@ -487,7 +493,7 @@ class WebVitalsService {
     // Log to console if enabled
     if (this.config.enableConsoleLog) {
       log.info(
-        `📊 ${name}: ${metric.value.toFixed(2)}${this.getMetricUnit(name)}`,
+        `📊 ${name}: ${metric.value.toFixed(2)}${getMetricUnit(name)}`,
         null,
         "WebVitalsService"
       );
@@ -495,17 +501,17 @@ class WebVitalsService {
 
     // Send to Google Analytics 4
     if (this.config.enableGA4) {
-      this.sendToGA4(name, metric);
+      sendMetricToGA4(this.config, name, metric);
     }
 
     // Send to Sentry
     if (this.config.enableSentry) {
-      this.sendToSentry(name, metric);
+      sendMetricToSentry(this.config, name, metric);
     }
 
     // Send to custom endpoint
     if (this.config.customEndpoint) {
-      this.sendToCustomEndpoint(name, metric);
+      sendMetricToCustomEndpoint(this.config.customEndpoint, name, metric);
     }
 
     // Add breadcrumb
@@ -515,166 +521,7 @@ class WebVitalsService {
     });
 
     // Check for performance issues
-    this.checkPerformanceThresholds(name, metric);
-  }
-
-  private sendToGA4(name: string, metric: CustomMetric): void {
-    try {
-      // Send detailed Web Vitals data to GA4 using our analytics service
-      sendGAEvent("web_vitals", {
-        metric_name: metric.name,
-        metric_value: Math.round(metric.value),
-        metric_delta: Math.round(metric.delta),
-        metric_rating: metric.rating,
-        metric_id: metric.id,
-        navigation_type: metric.navigationType,
-        // Add performance thresholds for analysis
-        is_good: metric.rating === "good",
-        is_needs_improvement: metric.rating === "needs-improvement",
-        is_poor: metric.rating === "poor",
-        // Add timing context
-        timestamp: Date.now(),
-        user_agent: navigator.userAgent,
-        connection_type:
-          (navigator as NavigatorWithConnection).connection?.effectiveType ??
-          "unknown",
-        // Add custom data
-        ...metric.customData,
-      });
-
-      // Send individual metric events for better segmentation
-      sendGAEvent(`web_vital_${metric.name.toLowerCase()}`, {
-        value: Math.round(metric.value),
-        rating: metric.rating,
-        delta: Math.round(metric.delta),
-        id: metric.id,
-        ...metric.customData,
-      });
-
-      if (this.config.debug) {
-        log.debug(
-          `📊 GA4 Web Vitals event sent: ${name}`,
-          metric,
-          "WebVitalsService"
-        );
-      }
-    } catch {
-      log.error("❌ Failed to send to GA4", null, "WebVitalsService");
-
-      // Fallback to direct gtag if available
-      const analyticsWindow =
-        typeof window !== "undefined" ? (window as WindowWithGtag) : null;
-
-      if (analyticsWindow?.gtag) {
-        try {
-          analyticsWindow.gtag("event", name, {
-            event_category: "Web Vitals",
-            event_label: metric.id,
-            value: Math.round(metric.value),
-            custom_map: metric.customData,
-          });
-        } catch {
-          log.error("❌ Fallback GA4 also failed", null, "WebVitalsService");
-        }
-      }
-    }
-  }
-
-  private sendToSentry(name: string, metric: CustomMetric): void {
-    try {
-      // Add breadcrumb for Sentry
-      addBreadcrumb(`Web Vitals: ${name}`, "web-vitals", {
-        value: metric.value,
-        delta: metric.delta,
-        rating: metric.rating,
-        id: metric.id,
-        navigationType: metric.navigationType,
-        ...metric.customData,
-      });
-
-      // Report performance issues to Sentry
-      if (metric.rating === "poor") {
-        reportError(new Error(`Poor Web Vital: ${name}`), {
-          metric: {
-            name: metric.name,
-            value: metric.value,
-            rating: metric.rating,
-            delta: metric.delta,
-            id: metric.id,
-            navigationType: metric.navigationType,
-            customData: metric.customData,
-          },
-        });
-      }
-
-      if (this.config.debug) {
-        log.debug(
-          `📊 Sentry Web Vitals event sent: ${name}`,
-          metric,
-          "WebVitalsService"
-        );
-      }
-    } catch {
-      log.error("❌ Failed to send to Sentry", null, "WebVitalsService");
-    }
-  }
-
-  private sendToCustomEndpoint(name: string, metric: CustomMetric): void {
-    if (!this.config.customEndpoint) return;
-
-    fetch(this.config.customEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        value: metric.value,
-        delta: metric.delta,
-        id: metric.id,
-        timestamp: Date.now(),
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-        ...metric.customData,
-      }),
-    }).catch(() => {
-      log.error(
-        `Failed to send metric to custom endpoint`,
-        null,
-        "WebVitalsService"
-      );
-    });
-  }
-
-  private checkPerformanceThresholds(name: string, metric: CustomMetric): void {
-    const thresholds = {
-      CLS: 0.25,
-      FID: 100,
-      FCP: 1800,
-      LCP: 2500,
-      TTFB: 800,
-      APICallTime: 3000,
-      FileProcessingTime: 5000,
-      LongTask: 50,
-    };
-
-    const threshold = thresholds[name as keyof typeof thresholds];
-    if (threshold && metric.value > threshold) {
-      const message = `⚠️ Performance threshold exceeded: ${name} = ${metric.value.toFixed(2)} (threshold: ${threshold})`;
-
-      if (this.config.enableSentry) {
-        reportError(new Error(message), {
-          metric: name,
-          value: metric.value,
-          threshold,
-          ...metric.customData,
-        });
-      }
-
-      if (this.config.enableConsoleLog) {
-        log.warn(message, null, "WebVitalsService");
-      }
-    }
+    checkPerformanceThresholds(this.config, name, metric);
   }
 
   private measureCustomMetric(
@@ -694,39 +541,6 @@ class WebVitalsService {
     };
 
     this.handleMetric(name, customMetric);
-  }
-
-  private getMetricUnit(name: string): string {
-    const units: Record<string, string> = {
-      CLS: "",
-      INP: "ms",
-      FCP: "ms",
-      LCP: "ms",
-      TTFB: "ms",
-      NavigationTiming: "ms",
-      SlowResource: "ms",
-      LongTask: "ms",
-      APICallTime: "ms",
-      FileProcessingTime: "ms",
-      AppLoadTime: "ms",
-    };
-
-    return units[name] ?? "ms";
-  }
-
-  private getResourceType(url: string): string {
-    if (url.includes(".js")) return "javascript";
-    if (url.includes(".css")) return "stylesheet";
-    if (
-      url.includes(".png") ||
-      url.includes(".jpg") ||
-      url.includes(".jpeg") ||
-      url.includes(".webp")
-    )
-      return "image";
-    if (url.includes(".woff") || url.includes(".ttf")) return "font";
-    if (url.includes("api")) return "api";
-    return "other";
   }
 
   // Public methods
@@ -802,15 +616,7 @@ export const initWebVitals = (config?: Partial<WebVitalsConfig>) => {
 
   // Track Web Vitals initialization in analytics
   try {
-    sendGAEvent("web_vitals_initialized", {
-      config: {
-        enableGA4: config?.enableGA4,
-        enableSentry: config?.enableSentry,
-        enableConsoleLog: config?.enableConsoleLog,
-        debug: config?.debug,
-      },
-      timestamp: Date.now(),
-    });
+    trackWebVitalsInitialized(config);
   } catch {
     log.error(
       "❌ Failed to track Web Vitals initialization",
@@ -830,6 +636,3 @@ export const destroyWebVitals = () => {
     webVitalsService = null;
   }
 };
-
-// Export types
-export type { WebVitalsConfig, CustomMetric };

@@ -123,6 +123,7 @@ function runBackend() {
       "src/global.d.ts",
       "src/env.d.ts",
       "src/types/env.d.ts",
+      "src/types/mcp-sdk-compat.d.ts",
       "src/types/module-alias.d.ts",
       ...(chunk.include ?? []),
       ...(chunk.files ?? []),

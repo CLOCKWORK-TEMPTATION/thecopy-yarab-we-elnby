@@ -165,7 +165,18 @@ function detectEmotionalTone(text: string): TextAnalysis["emotionalTone"] {
   return "neutral";
 }
 
-function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
+interface TextStats {
+  words: string[];
+  paragraphs: string[];
+  sentences: string[];
+  averageWordsPerSentence: number;
+  averageSentencesPerParagraph: number;
+  readabilityScore: number;
+  vocabularyDiversity: number;
+  sentenceVariety: number;
+}
+
+function collectTextStats(text: string): TextStats {
   const trimmedText = text.trim();
   const words = trimmedText ? trimmedText.split(/\s+/).filter(Boolean) : [];
   const paragraphs = trimmedText
@@ -193,46 +204,95 @@ function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
           Math.max(...sentenceLengths) - Math.min(...sentenceLengths) + 50
         )
       : 50;
-  const readabilityScore = clampMetric(100 - averageWordsPerSentence * 2);
+
+  return {
+    words,
+    paragraphs,
+    sentences,
+    averageWordsPerSentence,
+    averageSentencesPerParagraph,
+    readabilityScore: clampMetric(100 - averageWordsPerSentence * 2),
+    vocabularyDiversity: clampMetric(vocabularyDiversity),
+    sentenceVariety: clampMetric(sentenceVariety),
+  };
+}
+
+function buildFallbackTextAnalysis(
+  text: string,
+  stats: TextStats,
+  suggestions: string[]
+): TextAnalysis {
+  return {
+    wordCount: stats.words.length,
+    characterCount: text.length,
+    paragraphCount: stats.paragraphs.length,
+    sentenceCount: stats.sentences.length,
+    averageWordsPerSentence: stats.averageWordsPerSentence,
+    averageSentencesPerParagraph: stats.averageSentencesPerParagraph,
+    readabilityScore: stats.readabilityScore,
+    vocabularyDiversity: stats.vocabularyDiversity,
+    sentenceVariety: stats.sentenceVariety,
+    emotionalTone: detectEmotionalTone(text),
+    qualityMetrics: {
+      clarity: stats.readabilityScore,
+      creativity: stats.vocabularyDiversity,
+      coherence: clampMetric(
+        (stats.readabilityScore + stats.sentenceVariety) / 2
+      ),
+      impact: clampMetric(
+        (stats.vocabularyDiversity + stats.sentenceVariety) / 2
+      ),
+    },
+    suggestions,
+  };
+}
+
+function resolveAnalysisSuggestions(
+  rawAnalysis: Record<string, unknown>,
+  fallbackSuggestions: string[]
+): string[] {
+  if (Array.isArray(rawAnalysis["suggestions"])) {
+    return rawAnalysis["suggestions"].filter(
+      (suggestion): suggestion is string => typeof suggestion === "string"
+    );
+  }
+
+  return typeof rawAnalysis["analysis"] === "string"
+    ? [rawAnalysis["analysis"]]
+    : fallbackSuggestions;
+}
+
+function resolveEmotionalTone(
+  text: string,
+  rawAnalysis: Record<string, unknown>
+): TextAnalysis["emotionalTone"] {
+  return rawAnalysis["emotionalTone"] === "positive" ||
+    rawAnalysis["emotionalTone"] === "negative" ||
+    rawAnalysis["emotionalTone"] === "neutral"
+    ? rawAnalysis["emotionalTone"]
+    : detectEmotionalTone(text);
+}
+
+function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
+  const stats = collectTextStats(text);
   const fallbackSuggestions = [
     "راجع تنوع الجمل والإيقاع قبل الاعتماد النهائي.",
   ];
 
   if (!isRecord(rawAnalysis)) {
-    return {
-      wordCount: words.length,
-      characterCount: text.length,
-      paragraphCount: paragraphs.length,
-      sentenceCount: sentences.length,
-      averageWordsPerSentence,
-      averageSentencesPerParagraph,
-      readabilityScore,
-      vocabularyDiversity: clampMetric(vocabularyDiversity),
-      sentenceVariety: clampMetric(sentenceVariety),
-      emotionalTone: detectEmotionalTone(text),
-      qualityMetrics: {
-        clarity: readabilityScore,
-        creativity: clampMetric(vocabularyDiversity),
-        coherence: clampMetric((readabilityScore + sentenceVariety) / 2),
-        impact: clampMetric((vocabularyDiversity + sentenceVariety) / 2),
-      },
-      suggestions: fallbackSuggestions,
-    };
+    return buildFallbackTextAnalysis(text, stats, fallbackSuggestions);
   }
 
   const qualityMetrics = isRecord(rawAnalysis["qualityMetrics"])
     ? rawAnalysis["qualityMetrics"]
     : {};
-  const suggestions = Array.isArray(rawAnalysis["suggestions"])
-    ? rawAnalysis["suggestions"].filter(
-        (suggestion): suggestion is string => typeof suggestion === "string"
-      )
-    : typeof rawAnalysis["analysis"] === "string"
-      ? [rawAnalysis["analysis"]]
-      : fallbackSuggestions;
+  const suggestions = resolveAnalysisSuggestions(
+    rawAnalysis,
+    fallbackSuggestions
+  );
 
   return {
-    wordCount: numberFromRecord(rawAnalysis, "wordCount", words.length),
+    wordCount: numberFromRecord(rawAnalysis, "wordCount", stats.words.length),
     characterCount: numberFromRecord(
       rawAnalysis,
       "characterCount",
@@ -241,60 +301,59 @@ function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
     paragraphCount: numberFromRecord(
       rawAnalysis,
       "paragraphCount",
-      paragraphs.length
+      stats.paragraphs.length
     ),
     sentenceCount: numberFromRecord(
       rawAnalysis,
       "sentenceCount",
-      sentences.length
+      stats.sentences.length
     ),
     averageWordsPerSentence: numberFromRecord(
       rawAnalysis,
       "averageWordsPerSentence",
-      averageWordsPerSentence
+      stats.averageWordsPerSentence
     ),
     averageSentencesPerParagraph: numberFromRecord(
       rawAnalysis,
       "averageSentencesPerParagraph",
-      averageSentencesPerParagraph
+      stats.averageSentencesPerParagraph
     ),
     readabilityScore: numberFromRecord(
       rawAnalysis,
       "readabilityScore",
-      readabilityScore
+      stats.readabilityScore
     ),
     vocabularyDiversity: numberFromRecord(
       rawAnalysis,
       "vocabularyDiversity",
-      clampMetric(vocabularyDiversity)
+      stats.vocabularyDiversity
     ),
     sentenceVariety: numberFromRecord(
       rawAnalysis,
       "sentenceVariety",
-      clampMetric(sentenceVariety)
+      stats.sentenceVariety
     ),
-    emotionalTone:
-      rawAnalysis["emotionalTone"] === "positive" ||
-      rawAnalysis["emotionalTone"] === "negative" ||
-      rawAnalysis["emotionalTone"] === "neutral"
-        ? rawAnalysis["emotionalTone"]
-        : detectEmotionalTone(text),
+    emotionalTone: resolveEmotionalTone(text, rawAnalysis),
     qualityMetrics: {
-      clarity: numberFromRecord(qualityMetrics, "clarity", readabilityScore),
+      clarity: numberFromRecord(
+        qualityMetrics,
+        "clarity",
+        stats.readabilityScore
+      ),
       creativity: numberFromRecord(
         qualityMetrics,
         "creativity",
-        clampMetric(vocabularyDiversity)
+        stats.vocabularyDiversity
       ),
       coherence: numberFromRecord(
         qualityMetrics,
         "coherence",
-        clampMetric((readabilityScore + sentenceVariety) / 2)
+        clampMetric((stats.readabilityScore + stats.sentenceVariety) / 2)
       ),
       impact: numberFromRecord(
         qualityMetrics,
         "impact",
-        clampMetric((vocabularyDiversity + sentenceVariety) / 2)
+        clampMetric((stats.vocabularyDiversity + stats.sentenceVariety) / 2)
       ),
     },
     suggestions: suggestions.length > 0 ? suggestions : fallbackSuggestions,

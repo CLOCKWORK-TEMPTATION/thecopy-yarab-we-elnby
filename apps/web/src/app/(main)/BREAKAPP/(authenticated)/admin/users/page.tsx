@@ -12,7 +12,6 @@
  */
 
 import { api, getRoleLabel } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -49,10 +48,10 @@ export default function AdminUsersPage() {
         setSelectedProjectId(first.id);
       }
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب المشاريع",
-        description: axiosError.message || "تعذّر تحميل المشاريع",
+        description: axiosError.message ?? "تعذّر تحميل المشاريع",
         variant: "destructive",
       });
     } finally {
@@ -72,10 +71,10 @@ export default function AdminUsersPage() {
       });
       setMembers(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الأعضاء",
-        description: axiosError.message || "تعذّر تحميل قائمة الأعضاء",
+        description: axiosError.message ?? "تعذّر تحميل قائمة الأعضاء",
         variant: "destructive",
       });
     } finally {

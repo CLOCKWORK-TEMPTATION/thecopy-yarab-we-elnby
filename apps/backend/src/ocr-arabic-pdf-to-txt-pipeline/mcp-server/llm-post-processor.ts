@@ -384,7 +384,7 @@ export class QualityChecker {
     const m = s1.length;
     const n = s2.length;
     const dp: number[][] = Array.from({ length: m + 1 }, () =>
-      Array.from<number>({ length: n + 1 }, () => 0)
+      Array.from({ length: n + 1 }, () => 0)
     );
 
     for (let i = 0; i <= m; i += 1) dp[i][0] = i;

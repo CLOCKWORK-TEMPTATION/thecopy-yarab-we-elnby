@@ -12,9 +12,9 @@
  * لكنهما يفوّضان للوغر الموحَّد بدلاً من الكتابة المباشرة في console.
  */
 
-import { createModuleLogger, logger as unifiedLogger } from '@/lib/logger';
+import { createModuleLogger, logger as unifiedLogger } from "@/lib/logger";
 
-import type { UnifiedLogger } from '@/lib/logger';
+import type { UnifiedLogger } from "@/lib/logger";
 
 // إعادة تصدير الـ logger الموحَّد كاسم متوافق
 export const logger: UnifiedLogger = unifiedLogger;
@@ -22,17 +22,17 @@ export default logger;
 
 // واجهة LogLevel القديمة للحفاظ على التوافق
 export interface LogLevel {
-  ERROR: 'error';
-  WARN: 'warn';
-  INFO: 'info';
-  DEBUG: 'debug';
+  ERROR: "error";
+  WARN: "warn";
+  INFO: "info";
+  DEBUG: "debug";
 }
 
-const LEVEL_MAP: Record<keyof LogLevel, 'error' | 'warn' | 'info' | 'debug'> = {
-  ERROR: 'error',
-  WARN: 'warn',
-  INFO: 'info',
-  DEBUG: 'debug',
+const LEVEL_MAP: Record<keyof LogLevel, "error" | "warn" | "info" | "debug"> = {
+  ERROR: "error",
+  WARN: "warn",
+  INFO: "info",
+  DEBUG: "debug",
 };
 
 const LEVEL_PRIORITY: Record<keyof LogLevel, number> = {
@@ -49,9 +49,9 @@ const LEVEL_PRIORITY: Record<keyof LogLevel, number> = {
  */
 export class Logger {
   private readonly child: UnifiedLogger;
-  private logLevel: keyof LogLevel = 'INFO';
+  private logLevel: keyof LogLevel = "INFO";
 
-  constructor(scope = 'legacy-logger') {
+  constructor(scope = "legacy-logger") {
     this.child = createModuleLogger(scope);
   }
 
@@ -64,22 +64,22 @@ export class Logger {
   }
 
   error(message: string, meta?: unknown): void {
-    if (!this.shouldLog('ERROR')) return;
+    if (!this.shouldLog("ERROR")) return;
     this.child.error(this.coerceMeta(meta), message);
   }
 
   warn(message: string, meta?: unknown): void {
-    if (!this.shouldLog('WARN')) return;
+    if (!this.shouldLog("WARN")) return;
     this.child.warn(this.coerceMeta(meta), message);
   }
 
   info(message: string, meta?: unknown): void {
-    if (!this.shouldLog('INFO')) return;
+    if (!this.shouldLog("INFO")) return;
     this.child.info(this.coerceMeta(meta), message);
   }
 
   debug(message: string, meta?: unknown): void {
-    if (!this.shouldLog('DEBUG')) return;
+    if (!this.shouldLog("DEBUG")) return;
     this.child.debug(this.coerceMeta(meta), message);
   }
 
@@ -87,7 +87,7 @@ export class Logger {
     if (meta === undefined || meta === null) {
       return {};
     }
-    if (typeof meta === 'object' && !Array.isArray(meta)) {
+    if (typeof meta === "object" && !Array.isArray(meta)) {
       return meta as Record<string, unknown>;
     }
     return { meta };

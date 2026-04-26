@@ -5,7 +5,7 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 
 import { env } from "@/config/env";
-import { logger } from "@/lib/logger";
+import { logger } from "@/utils/logger";
 
 import { sanitizeRequestLogs } from "./log-sanitization.middleware";
 import {

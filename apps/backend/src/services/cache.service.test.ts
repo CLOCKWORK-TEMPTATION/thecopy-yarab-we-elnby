@@ -85,7 +85,7 @@ function internals(): CacheServiceInternals {
 }
 
 beforeEach(() => {
-  process.env.REDIS_URL = undefined;
+  delete process.env.REDIS_URL;
   process.env.REDIS_HOST = 'localhost';
   process.env.REDIS_PORT = '6379';
 

@@ -20,6 +20,21 @@ export interface CacheStats {
   hitRate: number;
 }
 
+interface PendingAction {
+  id: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+function isPendingAction(value: unknown): value is PendingAction {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as { id?: unknown }).id === "string"
+  );
+}
+
 class CacheService {
   private cacheConfigs = new Map<string, CacheConfig>();
   private isServiceWorkerSupported = false;
@@ -383,15 +398,17 @@ class CacheService {
   }
 
   // Offline action management
-  private async getPendingActions(): Promise<unknown[]> {
+  private async getPendingActions(): Promise<PendingAction[]> {
     try {
       const actionsText = localStorage.getItem("pending-actions");
       if (!actionsText) return [];
       const actionTexts = actionsText.split("\n\n");
-      return actionTexts.map((text) => {
-        const flat = decodeRecord(text);
-        return unflatten(flat);
-      });
+      return actionTexts
+        .map((text) => {
+          const flat = decodeRecord(text);
+          return unflatten(flat);
+        })
+        .filter(isPendingAction);
     } catch (error) {
       log.error("❌ Failed to get pending actions", error, "CacheService");
       return [];
@@ -402,10 +419,7 @@ class CacheService {
     try {
       const actions = await this.getPendingActions();
       const filteredActions = actions.filter(
-        (action) => {
-          const actionObj = action as { id?: string };
-          return actionObj.id !== actionId;
-        }
+        (action) => action.id !== actionId
       );
       const filteredTexts = filteredActions.map((action) =>
         encodeRecord(action)
@@ -416,11 +430,10 @@ class CacheService {
     }
   }
 
-  private async executeAction(action: unknown): Promise<void> {
+  private async executeAction(action: PendingAction): Promise<void> {
     // Implement action execution logic
-    const actionObj = action as { type?: string };
     log.info(
-      `🔄 Executing pending action: ${actionObj.type ?? "unknown"}`,
+      `🔄 Executing pending action: ${action.type ?? "unknown"}`,
       action,
       "CacheService"
     );

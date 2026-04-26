@@ -26,8 +26,6 @@
 
 import pino, { type Logger as PinoLogger, type LoggerOptions } from 'pino';
 
-import { isDevelopment, isProduction } from '@/config/env';
-
 // ----------------------------------------------------------------------------
 // قائمة المسارات المعرّضة للأسرار (يقوم pino بإخفائها تلقائياً)
 // ----------------------------------------------------------------------------
@@ -78,13 +76,15 @@ const REDACT_PATHS: readonly string[] = [
 // خيارات pino الأساسية
 // ----------------------------------------------------------------------------
 function buildLoggerOptions(): LoggerOptions {
-  const baseLevel = isDevelopment ? 'debug' : isProduction ? 'info' : 'warn';
+  const nodeEnv = process.env.NODE_ENV;
+  const baseLevel =
+    nodeEnv === 'development' ? 'debug' : nodeEnv === 'production' ? 'info' : 'warn';
 
   const options: LoggerOptions = {
     level: process.env.LOG_LEVEL ?? baseLevel,
     base: {
       service: 'the-copy-backend',
-      env: process.env.NODE_ENV ?? 'unknown',
+      env: nodeEnv ?? 'unknown',
       pid: process.pid,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -105,7 +105,7 @@ function buildLoggerOptions(): LoggerOptions {
   };
 
   // وضع التطوير: pino-pretty عند الطلب فقط (يبقى JSON الافتراضي حتى في dev لمنع كسر CI)
-  if (isDevelopment && process.env.LOG_PRETTY === 'true') {
+  if (nodeEnv === 'development' && process.env.LOG_PRETTY === 'true') {
     options.transport = {
       target: 'pino-pretty',
       options: {
@@ -161,11 +161,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  *
  * يُلفّ كذلك child() حتى يحصل الـ logger الفرعي على نفس التوافق.
  */
-type AnyLogFn = (...args: unknown[]) => void;
-
 function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
   return new Proxy(base, {
-    get(target, prop, receiver) {
+    get(target, prop, receiver): unknown {
       if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
         const original = target[method];
@@ -178,16 +176,16 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
           // Winston-style: (message: string, errorOrContext?: Error | object)
           if (typeof arg1 === 'string' && arg2 !== undefined) {
             if (arg2 instanceof Error) {
-              original.call(target, { err: arg2 }, arg1);
+              Reflect.apply(original, target, [{ err: arg2 }, arg1]);
               return;
             }
             if (isPlainObject(arg2)) {
-              original.call(target, arg2, arg1);
+              Reflect.apply(original, target, [arg2, arg1]);
               return;
             }
           }
           // Pino-style أو نص بدون ميتا: مرر كما هو
-          original.call(target, arg1, arg2, ...rest);
+          Reflect.apply(original, target, [arg1, arg2, ...rest]);
         };
       }
 
@@ -201,7 +199,8 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
         };
       }
 
-      return Reflect.get(target, prop, receiver);
+      const value = Reflect.get(target, prop, receiver) as unknown;
+      return value;
     },
   });
 }
