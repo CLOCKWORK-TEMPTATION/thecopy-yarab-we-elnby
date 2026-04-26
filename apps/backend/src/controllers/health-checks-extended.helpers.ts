@@ -1,7 +1,7 @@
 import { getEditorIntegrationHealth } from "@/editor/runtime";
 import { weaviateStore } from "@/memory";
 import { platformGenAIService } from "@/services/platform-genai.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import { getAnalyticsHealth } from "@/utils/connectivity-telemetry";
 
 import type { HealthCheck, HealthStatus, ReadinessStatus, DetailedHealthStatus } from "./health-checks.helpers.js";

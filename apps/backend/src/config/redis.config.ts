@@ -5,7 +5,7 @@
  */
 
 import { createClient } from 'redis';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const BULLMQ_MIN_REDIS_VERSION = '5.0.0';
 

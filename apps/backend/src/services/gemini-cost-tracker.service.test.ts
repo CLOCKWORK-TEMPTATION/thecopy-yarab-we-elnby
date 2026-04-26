@@ -29,7 +29,7 @@ vi.mock('./cache.service', () => ({
 }));
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('./notification.service', () => ({
 
 import { GeminiCostTrackerService, geminiCostTracker } from './gemini-cost-tracker.service';
 import { cacheService } from './cache.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 describe('GeminiCostTrackerService', () => {
   let service: GeminiCostTrackerService;

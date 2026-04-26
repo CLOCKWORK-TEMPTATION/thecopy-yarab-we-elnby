@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { authService } from '@/services/auth.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import type { AuthRequest } from '@/middleware/auth.middleware';
 import { issueCsrfCookie } from '@/middleware/csrf.middleware';

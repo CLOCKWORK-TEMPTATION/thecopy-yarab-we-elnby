@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { cineAIService } from '@/services/cineai.service';
 import { definedProps } from '@/utils/defined-props';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const validateShotSchema = z.object({
   imageBase64: z.string().optional(),

@@ -10,7 +10,7 @@ import type { AgentConfig } from '../../../config/agentConfigs';
 import {
   TASKS_EXPECTING_JSON_RESPONSE,
 } from '../../../config/agentPrompts';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import {
   constructPromptParts,
   attemptToFixJson,

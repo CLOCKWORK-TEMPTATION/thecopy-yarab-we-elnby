@@ -5,7 +5,7 @@
  * stats, rate limit management, alert system.
  */
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import type {
   WAFConfig,
   WAFRule,

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { budgetService } from '@/services/budget.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const generateBudgetSchema = z.object({
   scenario: z.string().min(1, 'Scenario is required'),

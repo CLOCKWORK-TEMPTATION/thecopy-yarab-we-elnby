@@ -21,7 +21,7 @@
 
 import { SelfCritiqueResult } from "@core/types";
 import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 /**
  * فئة وحدة النقد الذاتي

@@ -9,7 +9,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';

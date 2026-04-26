@@ -200,8 +200,7 @@ if (
   parsedEnv.NODE_ENV === 'development' &&
   (parsedEnv.JWT_SECRET.includes('dev-secret') || parsedEnv.JWT_SECRET.includes('CHANGE-THIS'))
 ) {
-  // eslint-disable-next-line no-console
-  console.warn('[ENV] Development JWT_SECRET is using default value. Set a project-specific secret for realistic auth testing.');
+  logger.warn('[ENV] Development JWT_SECRET is using default value. Set a project-specific secret for realistic auth testing.');
 }
 
 export const env = parsedEnv;

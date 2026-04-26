@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 
 import type { EmbeddingProvider } from "@the-copy/core-memory";
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import { embeddingGenerator } from "../../memory/embeddings/generator";
 import { cacheService } from "../cache.service";
 

@@ -4,7 +4,7 @@ import helmet from "helmet";
 import compression from "compression";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { env } from "@/config/env";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import {
   logSecurityEvent,
   SecurityEventType,

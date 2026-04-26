@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { metricsAggregator } from '@/services/metrics-aggregator.service';
 import { resourceMonitor } from '@/services/resource-monitor.service';
 import { cacheMetricsService } from '@/services/cache-metrics.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import {
   getSnapshotData,
   parseDateRange,

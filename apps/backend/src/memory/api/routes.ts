@@ -8,7 +8,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { definedProps } from "@/utils/defined-props";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 import { mrlOptimizer } from "../embeddings/mrl-optimizer";
 import { weaviateIndexingService } from "../indexer/weaviate-indexing.service";

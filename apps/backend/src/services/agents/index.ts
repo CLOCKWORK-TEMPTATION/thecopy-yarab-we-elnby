@@ -1,5 +1,5 @@
 import { AIAgentConfig, TaskType, AgentConfigMapping } from "@core/types";
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Agent configuration mapping

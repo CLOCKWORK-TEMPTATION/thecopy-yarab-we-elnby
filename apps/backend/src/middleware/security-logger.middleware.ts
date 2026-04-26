@@ -13,7 +13,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { captureMessage } from '@/config/sentry';
 import { cacheService } from '@/services/cache.service';
 

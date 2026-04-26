@@ -4,7 +4,7 @@
  */
 
 import { instructionsLoader, type InstructionSet } from './instructions-loader';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 export class AgentInstructionsService {
   private static instance: AgentInstructionsService;

@@ -25,7 +25,7 @@ vi.mock('./resource-monitor.service', () => ({
   },
 }));
 
-vi.mock('@/utils/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),
@@ -39,7 +39,7 @@ import { register } from '@/middleware/metrics.middleware';
 import { redisMetricsRegistry } from './redis-metrics.service';
 import { queueManager } from '@/queues/queue.config';
 import { resourceMonitor } from './resource-monitor.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 describe('MetricsAggregatorService', () => {
   let service: MetricsAggregatorService;

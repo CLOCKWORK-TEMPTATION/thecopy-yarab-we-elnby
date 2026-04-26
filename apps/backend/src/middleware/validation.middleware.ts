@@ -6,7 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodSchema } from 'zod';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Validate request body against a Zod schema

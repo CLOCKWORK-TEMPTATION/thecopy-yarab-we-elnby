@@ -11,7 +11,7 @@ import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "./shared/standardAgentPattern";
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Import upgraded agents
 import { CompletionAgent } from "./completion/CompletionAgent";

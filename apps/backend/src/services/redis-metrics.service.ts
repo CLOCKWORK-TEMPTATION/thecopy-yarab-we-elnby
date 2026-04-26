@@ -10,7 +10,7 @@
 
 import { RedisClientType } from 'redis';
 import { Counter, Histogram, Gauge, Registry } from 'prom-client';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Redis metrics registry
 export const redisMetricsRegistry = new Registry();

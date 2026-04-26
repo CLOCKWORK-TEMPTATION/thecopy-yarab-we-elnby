@@ -29,11 +29,10 @@ import { shotsController } from '@/controllers/shots.controller';
 import { aiController } from '@/controllers/ai.controller';
 import { actorAiController } from '@/controllers/actorai.controller';
 import { breakdownController } from '@/controllers/breakdown.controller';
-import { createEncryptedDocument, getEncryptedDocument, updateEncryptedDocument, deleteEncryptedDocument, listEncryptedDocuments } from '@/controllers/encryptedDocs.controller';
-import { closeDatabase, initializeDatabase, databaseAvailable } from '@/db';
-import { logger } from '@/lib/logger';
 import { authMiddleware } from '@/middleware/auth.middleware';
 import { actorAiService } from '@/services/actorai.service';
+import { logger } from '@/lib/logger';
+import { closeDatabase, initializeDatabase, databaseAvailable } from '@/db';
 
 import { initializeWorkers, shutdownQueues } from '@/queues';
 import { setupBullBoard, getAuthenticatedBullBoardRouter } from '@/middleware/bull-board.middleware';
@@ -352,6 +351,7 @@ app.delete('/api/projects/:id', authMiddleware, csrfProtection, projectsControll
 app.post('/api/projects/:id/analyze', authMiddleware, perUserAiLimiter, csrfProtection, projectsController.analyzeScript.bind(projectsController));
 
 // Zero-Knowledge Encrypted Documents endpoints (protected)
+import { createEncryptedDocument, getEncryptedDocument, updateEncryptedDocument, deleteEncryptedDocument, listEncryptedDocuments } from '@/controllers/encryptedDocs.controller';
 app.post('/api/docs', authMiddleware, csrfProtection, createEncryptedDocument);
 app.get('/api/docs/:id', authMiddleware, getEncryptedDocument);
 app.put('/api/docs/:id', authMiddleware, csrfProtection, updateEncryptedDocument);

@@ -1,7 +1,7 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '@/db';
 import { costumeDesigns, wardrobeItems, sceneCostumes } from '@/db/schema';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ==========================================
 // StyleIST Service — CRUD for Costume Designs, Wardrobe, Scene-Costumes

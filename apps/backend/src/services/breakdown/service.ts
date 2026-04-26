@@ -12,7 +12,7 @@ import {
   shootingSchedules,
 } from '@/db/schema';
 import { geminiService } from '@/services/gemini.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { parseScreenplay } from './parser';
 import {
   aiBreakdownSchema,

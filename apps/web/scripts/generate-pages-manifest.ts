@@ -139,7 +139,7 @@ function generateManifest(): void {
   // Write manifest file
   fs.writeFileSync(
     OUTPUT_FILE,
-    JSON.stringify({ pages, metadata: PAGE_METADATA }, null, 2)
+    `${JSON.stringify({ pages, metadata: PAGE_METADATA }, null, 2)}\n`
   );
 
   console.log(`\n✨ Generated manifest with ${pages.length} pages`);

@@ -8,7 +8,7 @@
  */
 
 import { BaseAgent } from '../shared/BaseAgent';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import {
   DebateConfig,
   DebateParticipant,

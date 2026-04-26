@@ -8,7 +8,7 @@
 
 import { websocketService } from './websocket.service';
 import { sseService } from './sse.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import {
   RealtimeEvent,
   RealtimeEventType,

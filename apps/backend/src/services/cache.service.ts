@@ -19,7 +19,7 @@ import { createClient } from 'redis';
 import crypto from 'crypto';
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Optional Sentry import (only if SENTRY_DSN is configured)
 let Sentry: typeof import('@sentry/node') | null = null;

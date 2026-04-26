@@ -12,7 +12,7 @@ import {
   CausalRelation,
 } from "@core/types";
 import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 interface CausalRelationAssessment {
   hasRelation?: boolean;

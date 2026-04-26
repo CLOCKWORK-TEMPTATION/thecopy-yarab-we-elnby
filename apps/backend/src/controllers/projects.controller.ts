@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { projects } from '@/db/schema';
 import { AnalysisService } from '@/services/analysis.service';
 import { eq, desc, and } from 'drizzle-orm';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import type { AuthRequest } from '@/middleware/auth.middleware';
 import { getParamAsString } from '@/middleware/auth.middleware';

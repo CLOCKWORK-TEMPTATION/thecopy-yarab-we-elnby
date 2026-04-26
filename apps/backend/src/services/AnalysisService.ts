@@ -1,5 +1,5 @@
 import type { Script } from '../types/types';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 export interface CharacterDialogueStat {
   name: string;

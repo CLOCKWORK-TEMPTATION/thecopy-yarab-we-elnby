@@ -17,7 +17,7 @@ import {
 } from './types';
 import { StandardAgentOutput } from '../shared/standardAgentPattern';
 import { AgentDebator } from './agentDebator';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Default debate configuration

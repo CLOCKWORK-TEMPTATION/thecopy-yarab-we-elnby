@@ -18,7 +18,7 @@ import { z } from 'zod';
 import { env } from '@/config/env';
 import { websocketService } from '@/services/websocket.service';
 import { signJwt, verifyJwt } from '@/utils/jwt-secret-manager';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 import { breakappGateway } from './gateway';
 import * as repo from './repository';

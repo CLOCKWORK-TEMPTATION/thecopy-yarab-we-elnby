@@ -6,7 +6,7 @@
  */
 
 import { Request, Response } from 'express';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { enhancedSelfCritiqueModule } from '@/services/agents/shared/enhancedSelfCritique';
 import { getCritiqueConfiguration, getAllCritiqueConfigurations } from '@/services/agents/shared/critiqueConfigurations';
 import { TaskType } from '@core/types';

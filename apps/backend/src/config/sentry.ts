@@ -1,5 +1,5 @@
 /** Sentry Configuration — lazy-loads packages only when DSN is configured. */
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 type SentryModule = typeof import('@sentry/node');
 export type SeverityLevel = import('@sentry/node').SeverityLevel;
@@ -146,8 +146,7 @@ export function captureException(error: Error, context?: Record<string, unknown>
     return;
   }
 
-  // eslint-disable-next-line no-console
-  console.error('[Sentry] Exception:', error, context);
+  logger.error('[Sentry] Exception:', error, context);
 }
 
 export function captureMessage(
@@ -169,8 +168,7 @@ export function captureMessage(
   }
 
   // eslint-disable-next-line no-console
-  console.log(`[Sentry] ${level.toUpperCase()}: ${message}`, context);
-}
+  loggyr.lefU
 
 export function trackMetric(name: string, value: number, unit: string = 'ms') {
   if (isSentryEnabled()) {

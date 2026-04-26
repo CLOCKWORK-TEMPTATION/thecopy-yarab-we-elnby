@@ -4,7 +4,7 @@
  */
 
 import { Request } from "express";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import type { WAFRule } from "./waf-types";
 
 // Maximum length of content to check against patterns to prevent ReDoS

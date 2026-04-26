@@ -7,7 +7,7 @@
 import simpleGit, { SimpleGit } from "simple-git";
 import { EventEmitter } from "eventemitter3";
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 import type { GitChangeEvent } from "../types";
 

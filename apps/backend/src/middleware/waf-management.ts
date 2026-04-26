@@ -3,7 +3,7 @@
  * Configuration updates, IP blocking, stats, alerts, and custom rule management.
  */
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import type { WAFConfig, WAFRule, WAFEvent, WAFEventType } from "./waf-types";
 import { escapeRegex, isRegexSafe } from "./waf-helpers";
 import {

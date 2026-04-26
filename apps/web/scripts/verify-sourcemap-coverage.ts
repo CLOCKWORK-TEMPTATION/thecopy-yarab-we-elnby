@@ -71,7 +71,9 @@ const ignoredJsFiles = allJsFiles.filter((file) =>
 const missing = uploadedJsFiles.filter((file) => !fs.existsSync(`${file}.map`));
 const orphanedMaps = uploadedJsFiles
   .map((file) => `${file}.map`)
-  .filter((mapFile) => fs.existsSync(mapFile) && !fs.existsSync(mapFile.slice(0, -4)));
+  .filter(
+    (mapFile) => fs.existsSync(mapFile) && !fs.existsSync(mapFile.slice(0, -4))
+  );
 
 if (missing.length > 0) {
   console.error(

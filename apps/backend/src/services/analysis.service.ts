@@ -2,12 +2,12 @@ import { logger } from '@/lib/logger';
 import { PipelineInput, PipelineRunResult, Station1Output, StationOutput } from '@/types';
 
 import { multiAgentOrchestrator, TaskType, type OrchestrationOutput } from './agents';
+import type { StandardAgentOutput } from './agents/core/types';
+import { agentRegistry } from './agents/registry';
 import {
   analysisStreamRegistry,
   type StationId,
 } from './analysisStream.registry';
-import type { StandardAgentOutput } from './agents/core/types';
-import { agentRegistry } from './agents/registry';
 
 /**
  * Maps the seven user-facing stations to the underlying agent task types.

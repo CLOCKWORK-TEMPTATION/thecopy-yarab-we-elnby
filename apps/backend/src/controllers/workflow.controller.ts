@@ -5,7 +5,7 @@
 
 import { Request, Response } from 'express';
 import { getPresetWorkflow, PRESET_WORKFLOWS, type PresetWorkflowName } from '@/services/agents/core/workflow-presets';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { StandardAgentInput } from '@/services/agents/core/types';
 import { workflowExecutor } from '@/services/agents/core/workflow-executor';
 import { WorkflowStatus, type WorkflowConfig, type WorkflowEvent, type WorkflowMetrics } from '@/services/agents/core/workflow-types';

@@ -7,7 +7,7 @@
 
 import { cacheService } from './cache.service';
 import { getGeminiCacheStats } from './gemini-cache.strategy';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 export interface CacheMetricsSnapshot {
   timestamp: Date;

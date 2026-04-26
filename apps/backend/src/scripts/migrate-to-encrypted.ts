@@ -8,6 +8,7 @@ import { projects } from '../db/schema';
 import { encryptedDocuments } from '../db/zkSchema';
 import * as crypto from 'crypto';
 import * as readline from 'readline';
+import { logger } from '@/lib/logger';
 
 const MIGRATION_VERSION = 1;
 const ALGORITHM = 'aes-256-gcm';
@@ -57,7 +58,7 @@ function encrypt(
 }
 
 async function createBackup() {
-  console.log('📦 Creating backup...');
+  logger.info('📦 Creating backup...');
 
   try {
     const allProjects = await db.select().from(projects);
@@ -73,10 +74,10 @@ async function createBackup() {
 
     await fs.writeFile(backupPath, JSON.stringify(backupData, null, 2));
 
-    console.log(`✅ Backup created: ${backupPath}`);
+    logger.info(`✅ Backup created: ${backupPath}`);
     return backupPath;
   } catch (error) {
-    console.error('❌ Backup failed:', error);
+    logger.error('❌ Backup failed:', error);
     throw error;
   }
 }

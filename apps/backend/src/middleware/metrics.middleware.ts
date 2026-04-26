@@ -6,7 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Counter, Histogram, Gauge, Registry, collectDefaultMetrics } from 'prom-client';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Create a custom registry
 export const register = new Registry();

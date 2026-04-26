@@ -14,7 +14,7 @@
  * ولكن لا يبث لغرفة الجلسة. هذا الـ gateway يكمّل تلك النقطة الناقصة.
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 import * as repo from './repository';
 import { breakappService } from './service';

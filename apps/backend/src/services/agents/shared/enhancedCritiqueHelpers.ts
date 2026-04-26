@@ -5,7 +5,7 @@
 
 import type { CritiqueConfiguration, DimensionScore, EnhancedCritiqueResult } from "./critiqueTypes";
 import type { CritiqueDimension } from "./critiqueTypes";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 /** حساب النتيجة الإجمالية من درجات الأبعاد */
 export function calculateOverallScore(

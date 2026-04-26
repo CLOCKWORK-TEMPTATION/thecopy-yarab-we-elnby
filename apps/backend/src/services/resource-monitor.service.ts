@@ -5,7 +5,7 @@
  */
 
 import { Gauge, Counter, Histogram } from 'prom-client';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
 import os from 'os';
 

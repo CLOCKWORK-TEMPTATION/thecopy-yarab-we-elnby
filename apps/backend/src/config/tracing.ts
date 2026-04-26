@@ -101,8 +101,7 @@ export function initTracing(): NodeSDK | null {
   process.on('SIGTERM', () => {
     sdk
       .shutdown()
-      // eslint-disable-next-line no-console
-      .catch((error: unknown) => console.error('OpenTelemetry shutdown failed', error))
+      .catch((error: unknown) => logger.error('OpenTelemetry shutdown failed', error))
       .finally(() => process.exit(0));
   });
 

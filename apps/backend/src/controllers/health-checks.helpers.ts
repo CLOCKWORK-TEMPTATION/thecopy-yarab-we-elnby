@@ -5,7 +5,7 @@ import { createClient } from "redis";
 import { getRedisConfig } from "../config/redis.config.js";
 import { isRedisEnabled } from "../config/redis-gate.js";
 import { db } from "../db/index.js";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 export interface HealthCheck {
   status: "healthy" | "degraded" | "unhealthy";

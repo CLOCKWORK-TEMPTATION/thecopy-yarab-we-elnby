@@ -8,7 +8,7 @@
 import { Job } from 'bullmq';
 import { queueManager, QueueName } from '@/queues/queue.config';
 import { warmGeminiCache } from '@/services/gemini-cache.strategy';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Job data types
 export interface CacheWarmingJobData {

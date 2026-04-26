@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { env } from '@/config/env';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { cacheService } from './cache.service';
 import { trackGeminiRequest, trackGeminiCache } from '@/middleware/metrics.middleware';
 import {

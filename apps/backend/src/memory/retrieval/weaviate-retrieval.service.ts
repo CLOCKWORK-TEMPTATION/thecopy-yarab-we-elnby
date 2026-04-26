@@ -5,7 +5,7 @@ import type { RetrievalHit } from "@the-copy/core-memory";
 
 import { embeddingsService } from "@/services/rag/embeddings.service";
 import { definedProps } from "@/utils/defined-props";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 import type {
   ContextContentType,

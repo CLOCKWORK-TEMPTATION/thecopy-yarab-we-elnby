@@ -70,8 +70,7 @@ export function runEnvSafeCheck(): EnvSafeCheckResult {
       );
     }
 
-    // eslint-disable-next-line no-console
-    console.warn(
+    logger.warn(
       `[env-safe] تحذير — متغيّرات مفقودة مقارنةً بـ ${examplePath}: ${missing.join(', ')}. ` +
         `سيتم المتابعة في وضع التطوير.`
     );

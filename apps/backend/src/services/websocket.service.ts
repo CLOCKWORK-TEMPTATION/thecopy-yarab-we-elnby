@@ -10,7 +10,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import type { ServerOptions } from 'socket.io';
 import { getWebSocketConfig, WEBSOCKET_CONFIG } from '@/config/websocket.config';
 import { env } from '@/config/env';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { authService } from './auth.service';
 import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
 import {

@@ -3,7 +3,7 @@
  * دوال آمنة للتعامل مع التعبيرات النمطية لتجنب ReDoS attacks
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Count occurrences of a term safely

@@ -5,7 +5,7 @@
  */
 
 import { Queue, Worker, QueueOptions, WorkerOptions, ConnectionOptions, Job } from 'bullmq';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const isProduction = process.env['NODE_ENV'] === 'production';
 

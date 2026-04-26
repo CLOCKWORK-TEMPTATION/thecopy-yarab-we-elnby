@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { z } from "zod";
 
 import { brainstormService } from "@/services/brainstorm.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import {
   getBrainstormAgentById,
   getBrainstormAgents,

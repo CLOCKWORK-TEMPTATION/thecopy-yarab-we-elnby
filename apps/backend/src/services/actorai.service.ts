@@ -7,7 +7,7 @@ import { count, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { actoraiAnalytics } from "@/db/schema";
 import { trackAnalyticsPersistence } from "@/utils/connectivity-telemetry";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 type AnalyticsCategory = "voice" | "webcam" | "memorization";
 

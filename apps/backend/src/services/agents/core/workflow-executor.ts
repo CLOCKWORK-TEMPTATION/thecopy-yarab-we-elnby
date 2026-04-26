@@ -2,7 +2,7 @@
  * Workflow Executor - Executes multi-agent workflows with dependency management
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { StandardAgentInput, StandardAgentOutput } from './types';
 import {
   WorkflowConfig,

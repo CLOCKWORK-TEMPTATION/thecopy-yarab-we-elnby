@@ -8,7 +8,7 @@
 import express, { Router } from 'express';
 import { ExpressAdapter } from '@bull-board/express';
 import { authMiddleware } from '@/middleware/auth.middleware';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { rateLimit } from 'express-rate-limit';
 
 // Create Express adapter for Bull Board

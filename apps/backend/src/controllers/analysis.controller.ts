@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { queueAIAnalysis } from '@/queues/jobs/ai-analysis.job';
 import { AnalysisService } from '@/services/analysis.service';
 import {

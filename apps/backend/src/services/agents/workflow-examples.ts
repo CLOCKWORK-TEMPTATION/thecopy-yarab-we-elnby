@@ -7,7 +7,7 @@ import { multiAgentOrchestrator } from './orchestrator';
 import { createWorkflow } from './core';
 import { TaskType } from './core/enums';
 import { StandardAgentInput } from './core/types';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Example 1: Using Preset Workflows

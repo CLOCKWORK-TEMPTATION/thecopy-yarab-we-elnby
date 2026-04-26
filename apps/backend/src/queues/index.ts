@@ -14,7 +14,7 @@ import { registerCacheWarmingWorker } from './jobs/cache-warming.job';
 import { queueManager } from './queue.config';
 import { checkRedisVersion } from '@/config/redis.config';
 import { isRedisEnabled } from '@/config/redis-gate';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /** حالة تفعيل نظام قوائم الانتظار */
 let queueSystemEnabled = false;

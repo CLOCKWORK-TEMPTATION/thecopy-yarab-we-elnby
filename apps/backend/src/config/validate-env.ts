@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const envSchema = z.object({
   // Runtime
@@ -70,20 +71,16 @@ export type Environment = z.infer<typeof envSchema>;
 export function validateEnvironment(): Environment {
   try {
     const validated = envSchema.parse(process.env);
-    // eslint-disable-next-line no-console
-    console.log('✅ Environment variables validated successfully');
+    logger.info('✅ Environment variables validated successfully');
     return validated;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('❌ Invalid environment variables:');
+    logger.error('❌ Invalid environment variables:');
     if (error instanceof z.ZodError) {
       error.issues.forEach(err => {
-        // eslint-disable-next-line no-console
-        console.error(`  - ${err.path.join('.')}: ${err.message}`);
+        logger.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
     }
-    // eslint-disable-next-line no-console
-    console.error('\n📋 Please check your .env file against backend/.env.example');
+    logger.error('\n📋 Please check your .env file against backend/.env.example');
     process.exit(1);
   }
 }

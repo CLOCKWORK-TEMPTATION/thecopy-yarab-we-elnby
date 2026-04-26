@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import ExcelJS from 'exceljs';
 import { platformGenAIService } from '@/services/platform-genai.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { getBudgetRuntimeConfig } from '@/services/budget/budget-runtime.config';
 import { buildFallbackBudgetRuntime } from '@/services/budget/budget-fallback.service';
 import type {

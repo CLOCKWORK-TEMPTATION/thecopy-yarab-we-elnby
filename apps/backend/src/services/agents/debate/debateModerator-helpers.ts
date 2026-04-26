@@ -4,7 +4,7 @@
  */
 
 import { geminiService } from '@/services/gemini.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { DebateArgument } from './types';
 
 /**

@@ -6,7 +6,7 @@
 import weaviate, { type Properties, WeaviateClient } from "weaviate-client";
 import { env } from "@/config/env";
 import { definedProps } from "@/utils/defined-props";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 type WeaviateCollectionSchema = unknown;
 

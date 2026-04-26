@@ -3,7 +3,7 @@
  * Advanced rules system with parameters, priorities, and dynamic learning
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 export type RuleSeverity = 'critical' | 'major' | 'minor' | 'warning';
 export type RulePriority = 'high' | 'medium' | 'low';

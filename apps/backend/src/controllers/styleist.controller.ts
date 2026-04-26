@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { styleistService } from '@/services/styleist.service';
 import { definedProps } from '@/utils/defined-props';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const styleistSchema = z.object({
   action: z.string().min(1, 'Action is required'),

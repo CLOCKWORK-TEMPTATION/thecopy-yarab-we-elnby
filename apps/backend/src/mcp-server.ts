@@ -3,7 +3,7 @@ import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mc
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import helmet from 'helmet';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Create an MCP server
 const server = new McpServer({

@@ -6,7 +6,7 @@ import {
 } from "./standardAgentPattern";
 import { executeStandardAgentPattern } from "./standardAgentPattern";
 import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 /**
  * واجهة إعدادات الوكيل

@@ -30,7 +30,7 @@ vi.mock('@/middleware/metrics.middleware', () => ({
 }));
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -48,7 +48,7 @@ vi.mock('os', () => ({
 }));
 
 import { ResourceMonitorService, resourceMonitor } from './resource-monitor.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
 
 describe('ResourceMonitorService', () => {

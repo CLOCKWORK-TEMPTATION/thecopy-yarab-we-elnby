@@ -6,7 +6,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 import type { EmbeddingResult, MultimodalInput, TaskType } from "../types";
 

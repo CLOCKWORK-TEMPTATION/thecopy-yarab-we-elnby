@@ -5,7 +5,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * CSP Configuration

@@ -8,7 +8,7 @@
  */
 
 import { geminiService } from '@/services/gemini.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { DebateArgument, ConsensusResult, Vote } from './types';
 import {
   calculateConfidenceAgreement,

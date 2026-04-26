@@ -8,7 +8,7 @@ import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { sseService } from '@/services/sse.service';
 import { websocketService } from '@/services/websocket.service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { RealtimeEventType } from '@/types/realtime.types';
 
 export class RealtimeController {

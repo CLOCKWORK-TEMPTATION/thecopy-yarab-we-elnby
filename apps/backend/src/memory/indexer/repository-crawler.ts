@@ -11,7 +11,7 @@ import { promisify } from "util";
 
 import { glob } from "glob";
 
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 
 import type { FileInfo, CrawlOptions } from "../types";
 

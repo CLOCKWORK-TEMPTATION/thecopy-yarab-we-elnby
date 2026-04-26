@@ -7,7 +7,7 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import {
   DebateSession,
   DebateConfig,

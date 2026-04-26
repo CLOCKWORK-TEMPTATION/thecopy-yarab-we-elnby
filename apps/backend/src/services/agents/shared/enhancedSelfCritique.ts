@@ -13,7 +13,7 @@ import {
 } from "./critiqueConfigurations";
 import type { CritiqueDimension } from "./critiqueTypes";
 import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/utils/logger";
+import { logger } from "@/lib/logger";
 import {
   calculateOverallScore,
   determineLevel,

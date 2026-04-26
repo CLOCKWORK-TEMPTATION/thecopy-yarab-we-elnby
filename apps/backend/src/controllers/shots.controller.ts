@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { db } from '@/db';
 import { shots, scenes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import type { AuthRequest } from '@/middleware/auth.middleware';
 import { getParamAsString } from '@/middleware/auth.middleware';

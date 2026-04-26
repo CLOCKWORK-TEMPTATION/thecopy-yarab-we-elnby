@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express';
 import { styleistService } from './service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const router = Router();

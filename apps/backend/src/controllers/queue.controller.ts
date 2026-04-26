@@ -6,7 +6,7 @@
 
 import { Request, Response } from 'express';
 import { queueManager, QueueName } from '@/queues/queue.config';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 export class QueueController {
   /**

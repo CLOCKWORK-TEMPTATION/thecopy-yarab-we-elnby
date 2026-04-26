@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { actorAiService } from '@/services/actorai.service';
 import { definedProps } from '@/utils/defined-props';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const MAX_ANALYTICS_PAYLOAD_BYTES = 1024 * 1024;
 

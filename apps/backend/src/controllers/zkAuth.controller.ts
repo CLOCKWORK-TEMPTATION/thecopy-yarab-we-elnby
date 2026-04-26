@@ -5,7 +5,7 @@ import { users, recoveryArtifacts } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { signJwt } from '@/utils/jwt-secret-manager';
 import { issueCsrfCookie } from '@/middleware/csrf.middleware';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const SALT_ROUNDS = 10;

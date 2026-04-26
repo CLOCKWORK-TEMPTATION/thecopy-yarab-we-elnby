@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { z } from 'zod';
 import type { AuthRequest } from '@/middleware/auth.middleware';
 import { breakdownService } from '@/services/breakdown/service';
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 const bootstrapSchema = z.object({
   title: z.string().optional(),
