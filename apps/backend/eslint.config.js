@@ -6,6 +6,8 @@ const prettier = require("eslint-config-prettier");
 const globals = require("globals");
 const tseslint = require("typescript-eslint");
 
+const typecheckProject = process.env.ESLINT_CONTRACT_TSCONFIG ?? "./tsconfig.check.json";
+
 const mechanicalContractRules = {
   "@typescript-eslint/no-explicit-any": "error",
   "@typescript-eslint/no-floating-promises": "error",
@@ -55,7 +57,7 @@ module.exports = tseslint.config(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: ["./tsconfig.check.json"],
+        project: [typecheckProject],
         tsconfigRootDir: __dirname,
       },
       globals: {
@@ -70,7 +72,7 @@ module.exports = tseslint.config(
     settings: {
       "import/resolver": {
         typescript: {
-          project: "./tsconfig.check.json",
+          project: typecheckProject,
         },
         node: true,
       },

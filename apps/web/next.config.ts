@@ -77,8 +77,12 @@ const nextConfig = {
   // Force @google/genai to only be loaded server-side
   serverExternalPackages: ["@google/genai", "puppeteer", "sharp"],
 
-  // Disable production browser sourcemaps (security best practice)
-  productionBrowserSourceMaps: false,
+  // Source maps must be generated so Sentry's bundler plugin can upload them
+  // (otherwise Sentry shows minified stack traces in production).
+  // الأمان محفوظ عبر `hideSourceMaps: true` داخل `withSentryConfig` أدناه،
+  // والذي يحذف `//# sourceMappingURL=...` من bundles المنتجة بعد الرفع،
+  // فلا تنكشف source maps للمتصفح رغم توليدها أثناء البناء.
+  productionBrowserSourceMaps: true,
 
   // Ensure correct root when multiple lockfiles exist (silences Next.js warning)
   // يؤشر إلى جذر الـ monorepo لتتبع الملفات من packages/ و apps/ معًا

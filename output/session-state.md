@@ -8,11 +8,12 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-26T04:42:28.190Z |
-| الفرع الحالي | `main` |
-| آخر commit | `3a0bf429dd404ef6daee6e50d48949fc5a7ddf1a` |
-| حالة working tree | غير نظيفة — 6 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر مزامنة مرجعية | 2026-04-26T05:30:00+02:00 |
+| الفرع الحالي | `str-098-foundation-completion` |
+| آخر commit | `c25fc9f09b6f16afebc447a024b8f541f67014e3` (قبل commit STR-098) |
+| حالة working tree | 7 ملفات جديدة في انتظار commit STR-098 (انظر "ملفات معلَّقة"). 2340 ملف "modified" في view الـ Linux container ضوضاء `CRLF↔LF` فقط — `git diff -w` يُثبت أن كل المحتوى الفعلي ثابت. على Windows native git: tree نظيف. |
+| مستوى drift | `STR-098 in-progress — pending commit` |
+| الجولة الاستراتيجية النشطة | `STR-098 — Foundation Completion Round` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -265,3 +266,22 @@ Code memory is current.
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+## ملفات STR-098 معلَّقة (في انتظار commit على Windows)
+
+ملفات مُنشأة ومُختبرة محلياً، لكن تعذَّر `git add` من حاوية Linux بسبب `core.fsmonitor` extension في الـ index:
+
+- `tech-debt-baseline.json` — خط أساس مُجمَّد (8 static_metrics + runtime_metrics nulls + budget + targets)
+- `scripts/audit-tech-debt.sh` — حارس ratchet (مُختبَر، EXIT=0 على baseline حالي)
+- `scripts/audit-migration-budget.sh` — حارس ميزانية ترحيل (مُختبَر، EXIT=0)
+- `scripts/update-baseline.py` — مُحدِّث baseline بـ Python (يتخطى node_modules)
+- `.github/workflows/quality-gate.yml` — workflow بثلاث jobs (tech-debt-ratchet، migration-budget، baseline-integrity)
+- `.husky/commit-msg` — يفرض نمط `<type>(<scope>): STR-NNN[.M] — <وصف>` (مُختبَر accept + reject)
+- `docs/strategic-plan-098-104.md` — العقد الاستراتيجي الكامل (13 قسماً)
+
+## STR-098 — حالة الإنجاز
+
+- ✅ بُني محلياً وتم اختباره
+- ⏳ Pending: `git add` + `git commit` + `git push` (على Windows native git)
+- ⏳ Pending: تحديث `output/round-notes.md` بسجل STR-098
+- ⏳ Pending: فتح PR للمراجعة البشرية
