@@ -1,5 +1,7 @@
 import { log } from "./loggerService";
 
+type ErrorSeverity = "low" | "medium" | "high" | "critical";
+
 export enum ErrorType {
   NETWORK_ERROR = "NETWORK_ERROR",
   API_ERROR = "API_ERROR",
@@ -18,14 +20,14 @@ export interface ErrorContext {
   url?: string;
   component?: string;
   action?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DetailedError extends Error {
   type: ErrorType;
   context: ErrorContext;
   originalError?: Error;
-  severity: "low" | "medium" | "high" | "critical";
+  severity: ErrorSeverity;
   recoverable: boolean;
   errorId: string;
 }
@@ -35,7 +37,9 @@ export class ErrorHandler {
   private errorHistory: DetailedError[] = [];
   private maxHistorySize = 100;
 
-  private constructor() {}
+  private constructor() {
+    this.errorHistory = [];
+  }
 
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
@@ -48,10 +52,10 @@ export class ErrorHandler {
    * Handle and categorize errors with detailed context
    */
   handleError(
-    error: Error | unknown,
+    error: unknown,
     context: Partial<ErrorContext> = {},
     type?: ErrorType,
-    severity: "low" | "medium" | "high" | "critical" = "medium"
+    severity: ErrorSeverity = "medium"
   ): DetailedError {
     const errorId = this.generateErrorId();
     const timestamp = new Date().toISOString();
@@ -103,7 +107,7 @@ export class ErrorHandler {
    * Handle network-related errors
    */
   handleNetworkError(
-    error: Error | unknown,
+    error: unknown,
     context: Partial<ErrorContext> = {},
     url?: string
   ): DetailedError {
@@ -126,7 +130,7 @@ export class ErrorHandler {
    * Handle API-related errors
    */
   handleAPIError(
-    error: Error | unknown,
+    error: unknown,
     context: Partial<ErrorContext> = {},
     endpoint?: string
   ): DetailedError {
@@ -204,7 +208,7 @@ export class ErrorHandler {
    * Get errors by severity
    */
   getErrorsBySeverity(
-    severity: "low" | "medium" | "high" | "critical"
+    severity: ErrorSeverity
   ): DetailedError[] {
     return this.errorHistory.filter((error) => error.severity === severity);
   }
@@ -241,9 +245,10 @@ export class ErrorHandler {
       {} as Record<ErrorType, number>
     );
 
-    const bySeverity = ["low", "medium", "high", "critical"].reduce(
+    const severities: ErrorSeverity[] = ["low", "medium", "high", "critical"];
+    const bySeverity = severities.reduce(
       (acc, severity) => {
-        acc[severity] = this.getErrorsBySeverity(severity as any).length;
+        acc[severity] = this.getErrorsBySeverity(severity).length;
         return acc;
       },
       {} as Record<string, number>
@@ -291,7 +296,7 @@ export class ErrorHandler {
    * Categorize error based on patterns
    * Reduced cyclomatic complexity from 14 to 4
    */
-  private categorizeError(error: Error | unknown): ErrorType {
+  private categorizeError(error: unknown): ErrorType {
     if (!(error instanceof Error)) {
       return ErrorType.UNKNOWN_ERROR;
     }
@@ -313,7 +318,7 @@ export class ErrorHandler {
     return ErrorType.UNKNOWN_ERROR;
   }
 
-  private isRecoverable(type: ErrorType, severity: string): boolean {
+  private isRecoverable(type: ErrorType, severity: ErrorSeverity): boolean {
     if (severity === "critical") return false;
     if (type === ErrorType.NETWORK_ERROR) return true;
     if (type === ErrorType.API_ERROR) return true;
@@ -419,10 +424,10 @@ export const errorHandler = ErrorHandler.getInstance();
 
 // Export convenience functions
 export const handleError = (
-  error: Error | unknown,
+  error: unknown,
   context?: Partial<ErrorContext>,
   type?: ErrorType,
-  severity?: "low" | "medium" | "high" | "critical"
+  severity?: ErrorSeverity
 ) => errorHandler.handleError(error, context, type, severity);
 
 export const handleNetworkError = (

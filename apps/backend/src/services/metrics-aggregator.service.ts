@@ -125,8 +125,6 @@ export class MetricsAggregatorService {
   private snapshots: MetricsSnapshot[] = [];
   private maxSnapshots = 1000; // Keep last 1000 snapshots (~8 hours at 30s interval)
 
-  constructor() {}
-
   /**
    * Parse Prometheus metrics into structured data
    */
@@ -170,9 +168,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate database metrics
    */
-  private async aggregateDatabaseMetrics(
+  private aggregateDatabaseMetrics(
     parsed: ParsedPrometheusMetrics
-  ): Promise<MetricsSnapshot['database']> {
+  ): MetricsSnapshot['database'] {
     const dbMetrics = {
       totalQueries: 0,
       avgQueryDuration: 0,
@@ -305,9 +303,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate API metrics
    */
-  private async aggregateApiMetrics(
+  private aggregateApiMetrics(
     parsed: ParsedPrometheusMetrics
-  ): Promise<MetricsSnapshot['api']> {
+  ): MetricsSnapshot['api'] {
     const apiMetrics = {
       totalRequests: 0,
       avgResponseTime: 0,
@@ -365,9 +363,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate Gemini API metrics
    */
-  private async aggregateGeminiMetrics(
+  private aggregateGeminiMetrics(
     parsed: ParsedPrometheusMetrics
-  ): Promise<MetricsSnapshot['gemini']> {
+  ): MetricsSnapshot['gemini'] {
     let totalRequests = 0;
     let cacheHits = 0;
     let cacheMisses = 0;

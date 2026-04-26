@@ -73,9 +73,9 @@ export function generateGeminiCacheKey(
     text?: string;
     analysisType?: string;
     entityId?: string;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
     message?: string;
-    context?: any;
+    context?: unknown;
     sceneDescription?: string;
     shotType?: string;
   }
@@ -88,7 +88,7 @@ export function generateGeminiCacheKey(
       ? crypto.createHash('sha256').update(JSON.stringify(params.options)).digest('hex').substring(0, 8)
       : '';
 
-    return `${keyPrefix}:${params.entityId}:${params.analysisType || 'default'}${optionsHash ? `:${optionsHash}` : ''}`;
+    return `${keyPrefix}:${params.entityId}:${params.analysisType ?? 'default'}${optionsHash ? `:${optionsHash}` : ''}`;
   }
 
   // For text-based analysis
@@ -100,7 +100,7 @@ export function generateGeminiCacheKey(
       .digest('hex')
       .substring(0, 16);
 
-    return `${keyPrefix}:${params.analysisType || 'default'}:${textHash}`;
+    return `${keyPrefix}:${params.analysisType ?? 'default'}:${textHash}`;
   }
 
   // For chat messages
@@ -126,7 +126,7 @@ export function generateGeminiCacheKey(
       .digest('hex')
       .substring(0, 16);
 
-    return `${keyPrefix}:${params.shotType || 'default'}:${sceneHash}`;
+    return `${keyPrefix}:${params.shotType ?? 'default'}:${sceneHash}`;
   }
 
   // Fallback to generic key
@@ -142,7 +142,7 @@ export function getGeminiCacheTTL(analysisType?: string): number {
   }
 
   const ttl = GEMINI_CACHE_TTL[analysisType as keyof typeof GEMINI_CACHE_TTL];
-  return ttl || GEMINI_CACHE_TTL.default;
+  return ttl ?? GEMINI_CACHE_TTL.default;
 }
 
 /**
@@ -177,7 +177,7 @@ export async function cachedGeminiCall<T>(
       apiCall()
         .then(async (fresh) => {
           await cacheService.set(cacheKey, fresh, ttl);
-          await cacheService.set(staleKey, fresh, options.staleTTL || ttl * 2);
+          await cacheService.set(staleKey, fresh, options.staleTTL ?? ttl * 2);
           logger.debug(`Revalidated cache: ${cacheKey}`);
         })
         .catch((error) => {
@@ -200,7 +200,7 @@ export async function cachedGeminiCall<T>(
     // If stale-while-revalidate, also store in stale cache
     if (options?.staleWhileRevalidate) {
       const staleKey = `${cacheKey}:stale`;
-      await cacheService.set(staleKey, result, options.staleTTL || ttl * 2);
+      await cacheService.set(staleKey, result, options.staleTTL ?? ttl * 2);
     }
 
     return result;
@@ -219,7 +219,7 @@ export async function warmGeminiCache(
     id: string;
     analysisType: string;
   }[],
-  processor: (entity: { type: string; id: string; analysisType: string }) => Promise<any>
+  processor: (entity: { type: string; id: string; analysisType: string }) => Promise<unknown>
 ): Promise<void> {
   logger.info(`Warming cache for ${entities.length} entities`);
 
@@ -281,12 +281,12 @@ export async function invalidateGeminiCache(
 /**
  * Get cache statistics for Gemini operations
  */
-export async function getGeminiCacheStats(): Promise<{
+export function getGeminiCacheStats(): {
   totalHits: number;
   totalMisses: number;
   hitRate: number;
   redisStatus: string;
-}> {
+} {
   const stats = cacheService.getStats();
 
   return {
@@ -381,14 +381,3 @@ export async function analyzeTextWithCache<T>(
   return analyzeWithCache(cacheKey, ttl, analyzeFn);
 }
 
-export default {
-  generateGeminiCacheKey,
-  getGeminiCacheTTL,
-  cachedGeminiCall,
-  warmGeminiCache,
-  invalidateGeminiCache,
-  getGeminiCacheStats,
-  getAdaptiveTTL,
-  analyzeWithCache,
-  analyzeTextWithCache,
-};

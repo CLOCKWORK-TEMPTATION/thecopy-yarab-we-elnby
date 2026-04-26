@@ -15,6 +15,11 @@ interface RuleCritiqueResponse {
   violationDescription?: string;
 }
 
+interface ConstitutionalContext {
+  originalText: string;
+  analysisReport: unknown;
+}
+
 export class ConstitutionalAISystem {
   private rules: ConstitutionalRule[];
 
@@ -109,10 +114,7 @@ export class ConstitutionalAISystem {
    */
   async applyConstitutionalRules(
     output: string,
-    context: {
-      originalText: string;
-      analysisReport: any;
-    }
+    context: ConstitutionalContext
   ): Promise<{
     isValid: boolean;
     violations: RuleViolation[];
@@ -183,7 +185,7 @@ export class ConstitutionalAISystem {
   private async critiqueWithRule(
     output: string,
     rule: ConstitutionalRule,
-    context: any
+    context: ConstitutionalContext
   ): Promise<{
     hasViolation: boolean;
     violationDescription: string;
@@ -238,7 +240,7 @@ ${JSON.stringify(context.analysisReport, null, 2).substring(0, 1000)}
   private async reviseWithRule(
     output: string,
     rule: ConstitutionalRule,
-    context: any,
+    context: ConstitutionalContext,
     violationDescription: string
   ): Promise<string> {
     const revisionPrompt = `

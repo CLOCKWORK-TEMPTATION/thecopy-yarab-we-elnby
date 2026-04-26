@@ -788,21 +788,21 @@
   },
   "codeMemory": {
     "exists": true,
-    "stale": false,
-    "generatedAt": "2026-04-26T14:30:11.758Z",
+    "stale": true,
+    "generatedAt": "2026-04-26T14:42:26.297Z",
     "totalFiles": 1993,
-    "totalChunks": 5199,
-    "embeddedChunks": 5199,
+    "totalChunks": 5198,
+    "embeddedChunks": 5198,
     "coverageRate": 1,
-    "missingChunks": 0,
-    "deletedChunks": 0,
-    "changedFiles": 0,
+    "missingChunks": 5,
+    "deletedChunks": 5,
+    "changedFiles": 1,
     "storage": {
       "local": "lancedb",
       "qdrant": "not-configured"
     },
     "qdrantCollection": null,
-    "message": "Code memory is current."
+    "message": "Code memory is stale."
   },
   "openIssues": [
     "لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص"

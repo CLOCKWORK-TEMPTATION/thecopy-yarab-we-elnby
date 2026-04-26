@@ -11,7 +11,7 @@ import { THEMATIC_MINING_AGENT_CONFIG } from "./agent";
 
 interface ThematicMiningContext {
   originalText?: string;
-  analysisReport?: any;
+  analysisReport?: unknown;
   genre?: string;
   culturalContext?: string;
   extractionDepth?: string; // 'surface', 'intermediate', 'deep'
@@ -39,7 +39,7 @@ export class ThematicMiningAgent extends BaseAgent {
 
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
-    const ctx = context as ThematicMiningContext;
+    const ctx = this.getThematicContext(context);
 
     const originalText = ctx?.originalText ?? "";
     const genre = ctx?.genre ?? "غير محدد";
@@ -50,26 +50,81 @@ export class ThematicMiningAgent extends BaseAgent {
     const includeSymbols = ctx?.includeSymbols ?? true;
     const includeMotifs = ctx?.includeMotifs ?? true;
 
-    let prompt = `مهمة استخراج الثيمات والموضوعات الأدبية\n\n`;
+    return [
+      this.buildOpeningPrompt(originalText),
+      this.buildContextPrompt({
+        genre,
+        culturalContext,
+        extractionDepth,
+        themeCategories,
+        minimumThemes,
+        includeSymbols,
+        includeMotifs,
+      }),
+      `المهمة المطلوبة:\n${taskInput}\n\n`,
+      this.buildInstructionPrompt({
+        minimumThemes,
+        includeSymbols,
+        includeMotifs,
+      }),
+    ].join("");
+  }
 
+  private getThematicContext(
+    context: StandardAgentInput["context"]
+  ): ThematicMiningContext {
+    if (typeof context !== "object" || context === null || Array.isArray(context)) {
+      return {};
+    }
+    return context as ThematicMiningContext;
+  }
+
+  private buildOpeningPrompt(originalText: string): string {
     if (originalText) {
-      prompt += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
+      return `مهمة استخراج الثيمات والموضوعات الأدبية\n\nالنص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
     }
 
-    prompt += `معلومات السياق:\n`;
+    return `مهمة استخراج الثيمات والموضوعات الأدبية\n\n`;
+  }
+
+  private buildContextPrompt(context: {
+    genre: string;
+    culturalContext: string;
+    extractionDepth: string;
+    themeCategories: string[];
+    minimumThemes: number;
+    includeSymbols: boolean;
+    includeMotifs: boolean;
+  }): string {
+    const {
+      genre,
+      culturalContext,
+      extractionDepth,
+      themeCategories,
+      minimumThemes,
+      includeSymbols,
+      includeMotifs,
+    } = context;
+    let prompt = `معلومات السياق:\n`;
     prompt += `- النوع الأدبي: ${genre}\n`;
     if (culturalContext) {
       prompt += `- السياق الثقافي: ${culturalContext}\n`;
     }
     prompt += `- عمق الاستخراج: ${this.translateDepth(extractionDepth)}\n`;
-    prompt += `- فئات الثيمات المطلوبة: ${themeCategories.map(this.translateCategory).join("، ")}\n`;
+    prompt += `- فئات الثيمات المطلوبة: ${themeCategories.map((category) => this.translateCategory(category)).join("، ")}\n`;
     prompt += `- الحد الأدنى للثيمات: ${minimumThemes}\n`;
     prompt += `- استخراج الرموز: ${includeSymbols ? "نعم" : "لا"}\n`;
     prompt += `- استخراج الموتيفات: ${includeMotifs ? "نعم" : "لا"}\n\n`;
+    return prompt;
+  }
 
-    prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
-
-    prompt += `التعليمات:
+  private buildInstructionPrompt(options: {
+    minimumThemes: number;
+    includeSymbols: boolean;
+    includeMotifs: boolean;
+  }): string {
+    const { minimumThemes, includeSymbols, includeMotifs } = options;
+    return `التعليمات:
 
 1. **نظرة عامة** (2-3 جمل): لخص الطابع الموضوعي العام للنص
 
@@ -93,8 +148,6 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
 
 اكتب بشكل نصي تحليلي مباشر مع أمثلة نصية محددة.
 لا تستخدم JSON أو قوائم برمجية. نص تحليلي أدبي واضح.`;
-
-    return prompt;
   }
 
   protected override async postProcess(
@@ -102,10 +155,10 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupThematicText(output.text);
 
-    const thematicDepth = await this.assessThematicDepth(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
-    const insightfulness = await this.assessInsightfulness(processedText);
-    const coherence = await this.assessCoherence(processedText);
+    const thematicDepth = this.assessThematicDepth(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
+    const insightfulness = this.assessInsightfulness(processedText);
+    const coherence = this.assessCoherence(processedText);
 
     const qualityScore =
       thematicDepth * 0.3 +
@@ -153,7 +206,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessThematicDepth(text: string): Promise<number> {
+  private assessThematicDepth(text: string): number {
     let score = 0.5;
 
     const thematicTerms = [
@@ -189,7 +242,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceMarkers = [
@@ -212,7 +265,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     return Math.min(1, score);
   }
 
-  private async assessInsightfulness(text: string): Promise<number> {
+  private assessInsightfulness(text: string): number {
     let score = 0.5;
 
     const insightWords = [
@@ -239,7 +292,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     return Math.min(1, score);
   }
 
-  private async assessCoherence(text: string): Promise<number> {
+  private assessCoherence(text: string): number {
     let score = 0.7;
 
     const connectiveWords = [
@@ -331,10 +384,10 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     return categories[category] ?? category;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `نظرة عامة:
+    return Promise.resolve(`نظرة عامة:
 النص يحمل طابعاً موضوعياً يستكشف قضايا إنسانية وفكرية متنوعة.
 
 الثيمة الرئيسية الأولى:
@@ -348,7 +401,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
 الرسالة الجوهرية:
 النص يسعى لإيصال رسالة حول [موضوع عام يحتاج تحديد].
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير نص أطول للحصول على استخراج موضوعي أكثر عمقاً ودقة مع أمثلة نصية محددة.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير نص أطول للحصول على استخراج موضوعي أكثر عمقاً ودقة مع أمثلة نصية محددة.`);
   }
 }
 

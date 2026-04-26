@@ -158,12 +158,12 @@ export class GeminiCostTrackerService {
       if (cached) {
         return cached;
       }
-    } catch (error) {
+    } catch {
       logger.debug('Cache unavailable, using memory store', { key });
     }
 
     // Fallback to memory store
-    return this.memoryStore.get(key) || null;
+    return this.memoryStore.get(key) ?? null;
   }
 
   /**
@@ -172,7 +172,7 @@ export class GeminiCostTrackerService {
   private async saveUsage(key: string, usage: UsagePeriod, ttl: number): Promise<void> {
     try {
       await cacheService.set(key, usage, ttl);
-    } catch (error) {
+    } catch {
       logger.debug('Cache unavailable, saving to memory store only', { key });
     }
 
@@ -445,21 +445,21 @@ export class GeminiCostTrackerService {
     const dailyUsage = await this.getDailyUsage();
     const monthlyUsage = await this.getMonthlyUsage();
 
-    const dailyCost = dailyUsage?.cost || 0;
-    const monthlyCost = monthlyUsage?.cost || 0;
+    const dailyCost = dailyUsage?.cost ?? 0;
+    const monthlyCost = monthlyUsage?.cost ?? 0;
 
     return {
       daily: {
         cost: dailyCost,
-        tokens: dailyUsage?.tokens.total || 0,
-        requests: dailyUsage?.requestCount || 0,
+        tokens: dailyUsage?.tokens.total ?? 0,
+        requests: dailyUsage?.requestCount ?? 0,
         limitReached: dailyCost >= THRESHOLDS.DAILY_COST_LIMIT,
         percentOfLimit: (dailyCost / THRESHOLDS.DAILY_COST_LIMIT) * 100,
       },
       monthly: {
         cost: monthlyCost,
-        tokens: monthlyUsage?.tokens.total || 0,
-        requests: monthlyUsage?.requestCount || 0,
+        tokens: monthlyUsage?.tokens.total ?? 0,
+        requests: monthlyUsage?.requestCount ?? 0,
         budget: this.monthlyBudget,
         percentOfBudget: (monthlyCost / this.monthlyBudget) * 100,
         quotaWarning: monthlyCost >= this.monthlyBudget * THRESHOLDS.MONTHLY_QUOTA_WARNING,
@@ -476,7 +476,7 @@ export class GeminiCostTrackerService {
       this.memoryStore.delete(dailyKey);
       try {
         await cacheService.delete(dailyKey);
-      } catch (error) {
+      } catch {
         logger.debug('Failed to delete from cache', { dailyKey });
       }
     }
@@ -486,7 +486,7 @@ export class GeminiCostTrackerService {
       this.memoryStore.delete(monthlyKey);
       try {
         await cacheService.delete(monthlyKey);
-      } catch (error) {
+      } catch {
         logger.debug('Failed to delete from cache', { monthlyKey });
       }
     }
@@ -496,4 +496,3 @@ export class GeminiCostTrackerService {
 }
 
 export const geminiCostTracker = new GeminiCostTrackerService();
-export default geminiCostTracker;

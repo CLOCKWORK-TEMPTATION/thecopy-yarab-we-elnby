@@ -155,7 +155,7 @@ function cloneTemplate(title?: string): BudgetDocument {
   const budget = JSON.parse(JSON.stringify(DEFAULT_TEMPLATE)) as BudgetDocument;
   budget.metadata = {
     ...budget.metadata,
-    title: title || 'Untitled Project',
+    title: title ?? 'Untitled Project',
   };
   return budget;
 }
@@ -231,30 +231,30 @@ function sanitizeBudget(candidate: unknown, title?: string): BudgetDocument {
       title: getStringField(
         sourceMetadata,
         'title',
-        title || template.metadata?.title || 'Untitled Project'
+        title ?? template.metadata?.title ?? 'Untitled Project'
       ),
       director: getStringField(
         sourceMetadata,
         'director',
-        template.metadata?.director || ''
+        template.metadata?.director ?? ''
       ),
       producer: getStringField(
         sourceMetadata,
         'producer',
-        template.metadata?.producer || ''
+        template.metadata?.producer ?? ''
       ),
       productionCompany: getStringField(
         sourceMetadata,
         'productionCompany',
-        template.metadata?.productionCompany || ''
+        template.metadata?.productionCompany ?? ''
       ),
       shootingDays: getNumberField(
         sourceMetadata,
         'shootingDays',
-        template.metadata?.shootingDays || 0
+        template.metadata?.shootingDays ?? 0
       ),
       locations: normalizeStringList(sourceMetadata["locations"]),
-      genre: getStringField(sourceMetadata, 'genre', template.metadata?.genre || ''),
+      genre: getStringField(sourceMetadata, 'genre', template.metadata?.genre ?? ''),
     },
     sections: sections.map((sectionCandidate, sectionIndex) => {
       const section = asRecord(sectionCandidate);
@@ -427,7 +427,7 @@ export class BudgetService {
     reason: string
   ): BudgetRuntimeResult {
     logger.warn('budget_runtime_fallback_used', {
-      title: title || 'Untitled Production Budget',
+      title: title ?? 'Untitled Production Budget',
       reason,
     });
 
@@ -442,7 +442,7 @@ export class BudgetService {
 
     if (config.aiMode === 'fallback-only') {
       logger.info('budget_runtime_fallback_forced', {
-        title: title || 'Untitled Production Budget',
+        title: title ?? 'Untitled Production Budget',
       });
       return this.buildFallbackRuntime(
         scenario,
@@ -553,7 +553,7 @@ export class BudgetService {
   async exportBudget(budget: BudgetDocument): Promise<Buffer> {
     const normalizedBudget = sanitizeBudget(
       budget,
-      budget.metadata?.title || 'Production Budget'
+      budget.metadata?.title ?? 'Production Budget'
     );
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'The Copy Backend';

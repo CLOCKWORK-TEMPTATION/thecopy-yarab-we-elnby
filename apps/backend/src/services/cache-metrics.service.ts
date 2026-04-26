@@ -74,7 +74,7 @@ class CacheMetricsService {
    */
   async takeSnapshot(): Promise<CacheMetricsSnapshot> {
     const stats = cacheService.getStats();
-    const geminiStats = await getGeminiCacheStats();
+    const geminiStats = getGeminiCacheStats();
 
     const totalRequests = stats.metrics.hits.total + stats.metrics.misses;
     const hitRate = totalRequests > 0 ? (stats.metrics.hits.total / totalRequests) * 100 : 0;
