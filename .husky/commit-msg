@@ -1,0 +1,71 @@
+#!/usr/bin/env sh
+# ===================================================================
+# .husky/commit-msg — فرض نمط رسائل STR-* للجولات الاستراتيجية
+# ===================================================================
+# الأنماط المقبولة:
+#   1. <type>(<scope>): STR-NNN[.M] — <وصف>
+#      مثال: feat(ci): STR-098 — إضافة quality-gate workflow
+#      مثال: fix(web): STR-099.3 — إصلاح cinematography-analysis-fallback
+#
+#   2. <type>(<scope>): <وصف>
+#      مثال: chore(deps): تحديث pnpm إلى 10.32.1
+#      (مسموح للصيانة العابرة خارج الجولات الاستراتيجية)
+#
+#   3. Merge ... | Revert ... | Initial commit ...
+#      (تُتخطى تلقائياً)
+#
+# لا يضعف هذا الـ hook أي فحص قائم — يضيف فحصاً جديداً فقط.
+# ===================================================================
+
+set -e
+
+commit_msg_file="$1"
+[ -z "$commit_msg_file" ] && exit 0
+[ ! -f "$commit_msg_file" ] && exit 0
+
+commit_msg=$(head -1 "$commit_msg_file")
+
+# تخطي merge/revert/initial
+case "$commit_msg" in
+  Merge\ *|"Merge pull request"*|Revert\ *|"Initial commit"*|"Initial Commit"*)
+    exit 0
+    ;;
+esac
+
+# تخطي رسائل WIP (يُفرض الفحص في pre-push بدلاً منه)
+case "$commit_msg" in
+  WIP*|wip*|"fixup!"*|"squash!"*|"amend!"*)
+    exit 0
+    ;;
+esac
+
+# نمط 1: STR-NNN صريح مع em-dash أو dash
+if printf '%s' "$commit_msg" | grep -Eq '^[a-z]+(\([a-zA-Z0-9_/.-]+\))?:[[:space:]]+STR-[0-9]{3}(\.[0-9]+)?[[:space:]]+[—-][[:space:]]+.+'; then
+  exit 0
+fi
+
+# نمط 2: conventional commit بدون STR-* (للصيانة)
+if printf '%s' "$commit_msg" | grep -Eq '^[a-z]+(\([a-zA-Z0-9_/.-]+\))?:[[:space:]]+.{3,}'; then
+  exit 0
+fi
+
+# رفض
+echo ""
+echo "============================================================"
+echo " رسالة الـ commit لا تطابق النمط المعتمد:"
+echo ""
+echo "   '$commit_msg'"
+echo ""
+echo " الأنماط المقبولة:"
+echo ""
+echo "   1. <type>(<scope>): STR-NNN[.M] — <وصف>"
+echo "      مثال: feat(ci): STR-098 — إضافة quality-gate workflow"
+echo ""
+echo "   2. <type>(<scope>): <وصف>"
+echo "      مثال: chore(deps): تحديث pnpm إلى 10.32.1"
+echo ""
+echo " types مقبولة: feat, fix, refactor, docs, chore, test,"
+echo "               style, perf, build, ci, revert"
+echo ""
+echo "============================================================"
+exit 1

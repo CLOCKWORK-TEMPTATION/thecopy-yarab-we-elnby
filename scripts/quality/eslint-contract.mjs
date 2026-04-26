@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -109,7 +109,45 @@ function addCount(map, key, amount = 1) {
   map[key] = (map[key] ?? 0) + amount;
 }
 
+function createBackendLintProject(target) {
+  if (project !== "backend") {
+    return null;
+  }
+
+  const safeName = target.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 120);
+  const tempConfig = resolve(config.root, `.tsconfig.eslint-contract.${process.pid}.${safeName}.json`);
+  const isFile = /\.[cm]?[jt]sx?$/.test(target);
+  const include = [
+    "src/global.d.ts",
+    "src/env.d.ts",
+    "src/types/env.d.ts",
+    "src/types/module-alias.d.ts",
+    ...(isFile
+      ? [target]
+      : [
+          `${target}/**/*.ts`,
+          `${target}/**/*.tsx`,
+          `${target}/**/*.js`,
+          `${target}/**/*.mjs`,
+          `${target}/**/*.cjs`,
+        ]),
+  ];
+
+  const projectConfig = {
+    extends: "./tsconfig.check.json",
+    compilerOptions: {
+      noEmit: true,
+    },
+    include,
+    exclude: ["node_modules", "dist"],
+  };
+
+  writeFileSync(tempConfig, `${JSON.stringify(projectConfig, null, 2)}\n`);
+  return tempConfig;
+}
+
 function runEslint(target) {
+  const tempProject = createBackendLintProject(target);
   const result = spawnSync(
     process.execPath,
     [
@@ -123,9 +161,15 @@ function runEslint(target) {
     {
       cwd: config.root,
       encoding: "utf8",
+      env: tempProject
+        ? { ...process.env, ESLINT_CONTRACT_TSCONFIG: tempProject }
+        : process.env,
       maxBuffer: 1024 * 1024 * 200,
     },
   );
+  if (tempProject) {
+    rmSync(tempProject, { force: true });
+  }
 
   if (!result.stdout.trim()) {
     return {
