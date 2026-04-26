@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TaskType } from "@core/enums";
 
+import type { aiAgentOrchestra as aiAgentOrchestraType } from "./orchestration";
+
 // Mock dependencies
 vi.mock("@agents/index", () => ({
   AGENT_CONFIGS: [
@@ -59,25 +61,37 @@ vi.mock("@services/loggerService", () => ({
   },
 }));
 
-describe("AIAgentOrchestraManager", () => {
-  let orchestraManager: any;
+let orchestraManager: typeof aiAgentOrchestraType;
 
+describe("AIAgentOrchestraManager", () => {
   beforeEach(async () => {
     vi.resetModules();
     const orchestrationModule = await import("./orchestration");
-    orchestraManager = (orchestrationModule as any).aiAgentOrchestra;
+    orchestraManager = orchestrationModule.aiAgentOrchestra;
   });
 
+  registerSingletonTests();
+  registerAgentManagementTests();
+  registerCollaborationGraphTests();
+  registerExecutionOrderTests();
+  registerPerformanceMetricTests();
+  registerEpisodicMemoryTests();
+  registerEdgeCaseTests();
+});
+
+function registerSingletonTests(): void {
   describe("Singleton Pattern", () => {
     it("validate-pipeline: should return the same instance", async () => {
       const orchestrationModule = await import("./orchestration");
-      const instance1 = (orchestrationModule as any).aiAgentOrchestra;
-      const instance2 = (orchestrationModule as any).aiAgentOrchestra;
+      const instance1 = orchestrationModule.aiAgentOrchestra;
+      const instance2 = orchestrationModule.aiAgentOrchestra;
 
       expect(instance1).toBe(instance2);
     });
   });
+}
 
+function registerAgentManagementTests(): void {
   describe("Agent Management", () => {
     it("validate-pipeline: should initialize all agents", () => {
       const agents = orchestraManager.getAllAgents();
@@ -119,7 +133,9 @@ describe("AIAgentOrchestraManager", () => {
       expect(capabilities).toBeNull();
     });
   });
+}
 
+function registerCollaborationGraphTests(): void {
   describe("Collaboration Graph", () => {
     it("validate-pipeline: should build collaboration graph correctly", () => {
       const collaborators = orchestraManager.getCollaborationSuggestions(
@@ -148,7 +164,9 @@ describe("AIAgentOrchestraManager", () => {
       expect(collaborators).toEqual([]);
     });
   });
+}
 
+function registerExecutionOrderTests(): void {
   describe("Execution Order Optimization", () => {
     it("validate-pipeline: should optimize execution order based on dependencies", () => {
       const tasks = [TaskType.INTEGRATED, TaskType.CREATIVE, TaskType.ANALYSIS];
@@ -188,7 +206,9 @@ describe("AIAgentOrchestraManager", () => {
       expect(optimized).toContain(TaskType.ANALYSIS);
     });
   });
+}
 
+function registerPerformanceMetricTests(): void {
   describe("Performance Metrics", () => {
     it("validate-pipeline: should initialize performance metrics for all agents", () => {
       const metrics = orchestraManager.getPerformanceMetrics(TaskType.ANALYSIS);
@@ -270,7 +290,9 @@ describe("AIAgentOrchestraManager", () => {
       ).toBeLessThan(0.1);
     });
   });
+}
 
+function registerEpisodicMemoryTests(): void {
   describe("Episodic Memory", () => {
     it("validate-pipeline: should store episodes", () => {
       const episode = {
@@ -334,7 +356,9 @@ describe("AIAgentOrchestraManager", () => {
       expect(episodes[episodes.length - 2]).toEqual({ id: 2 });
     });
   });
+}
 
+function registerEdgeCaseTests(): void {
   describe("Edge Cases", () => {
     it("validate-pipeline: should handle circular dependencies gracefully", () => {
       const tasks = [TaskType.ANALYSIS, TaskType.CREATIVE, TaskType.INTEGRATED];
@@ -352,4 +376,4 @@ describe("AIAgentOrchestraManager", () => {
       expect(uniqueTasks.size).toBe(optimized.length);
     });
   });
-});
+}

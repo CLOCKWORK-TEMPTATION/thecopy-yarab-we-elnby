@@ -80,7 +80,7 @@ function createWAFEvent(params: WAFEventParams): WAFEvent {
     userAgent: params.userAgent,
     matchedValue: params.matchedValue,
     action: wafConfig.mode === "block" ? "blocked" : "monitored",
-    details: params.details || {},
+    details: params.details ?? {},
   };
 }
 

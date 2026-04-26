@@ -153,13 +153,13 @@ export function getWAFStats(): {
   let monitoredRequests = 0;
 
   for (const event of wafEvents) {
-    eventsByType[event.eventType] = (eventsByType[event.eventType] || 0) + 1;
+    eventsByType[event.eventType] = (eventsByType[event.eventType] ?? 0) + 1;
     eventsBySeverity[event.severity] =
-      (eventsBySeverity[event.severity] || 0) + 1;
+      (eventsBySeverity[event.severity] ?? 0) + 1;
 
     if (event.action === "blocked") {
       blockedRequests++;
-      ipCounts[event.ip] = (ipCounts[event.ip] || 0) + 1;
+      ipCounts[event.ip] = (ipCounts[event.ip] ?? 0) + 1;
     } else {
       monitoredRequests++;
     }

@@ -2,6 +2,11 @@ import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
 import {
+  asAgentContext,
+  readRecord,
+  readString,
+} from "../shared/contextAccess";
+import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
@@ -44,22 +49,29 @@ ${userInput}
 `;
 
     // إضافة السياق من المحطات السابقة
-    const contextObj =
-      typeof context === "object" && context !== null ? context : {};
-    const previousStations = (contextObj as any)?.previousStations;
-    if (previousStations) {
+    const previousStations = readRecord(
+      asAgentContext(context),
+      "previousStations"
+    );
+    if (Object.keys(previousStations).length > 0) {
       prompt += `## السياق من المحطات السابقة:\n`;
 
-      if (previousStations.analysis) {
-        prompt += `\n### التحليل الأولي:\n${previousStations.analysis}\n`;
+      const analysis = readString(previousStations, "analysis");
+      if (analysis) {
+        prompt += `\n### التحليل الأولي:\n${analysis}\n`;
       }
 
-      if (previousStations.characterAnalysis) {
-        prompt += `\n### تحليل الشخصيات:\n${previousStations.characterAnalysis}\n`;
+      const characterAnalysis = readString(
+        previousStations,
+        "characterAnalysis"
+      );
+      if (characterAnalysis) {
+        prompt += `\n### تحليل الشخصيات:\n${characterAnalysis}\n`;
       }
 
-      if (previousStations.thematicAnalysis) {
-        prompt += `\n### التحليل الموضوعي:\n${previousStations.thematicAnalysis}\n`;
+      const thematicAnalysis = readString(previousStations, "thematicAnalysis");
+      if (thematicAnalysis) {
+        prompt += `\n### التحليل الموضوعي:\n${thematicAnalysis}\n`;
       }
     }
 
@@ -89,7 +101,7 @@ ${userInput}
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -115,20 +127,20 @@ ${userInput}
       enhancedNotes.push("تنبؤات استكشافية تحتاج تحقق إضافي");
     }
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       notes: enhancedNotes,
-    };
+    });
   }
 
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `# تنبؤات الحبكة - وضع الطوارئ
+    return Promise.resolve(`# تنبؤات الحبكة - وضع الطوارئ
 
 بناءً على السياق المتاح، إليك تنبؤات أولية للحبكة:
 
@@ -149,7 +161,7 @@ ${userInput}
 - بناء التوتر تدريجياً نحو الذروة
 - الحفاظ على التماسك المنطقي للأحداث
 
-ملاحظة: هذه تنبؤات أولية. يُنصح بإعادة التحليل مع سياق إضافي للحصول على رؤى أعمق.`;
+ملاحظة: هذه تنبؤات أولية. يُنصح بإعادة التحليل مع سياق إضافي للحصول على رؤى أعمق.`);
   }
 }
 

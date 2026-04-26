@@ -1,17 +1,58 @@
 import * as Sentry from "@sentry/nextjs";
 
 import { log } from "./loggerService";
-// No-op replacements for missing GA functions
-const sendGAEvent = (..._args: any[]) => {};
-const setGAUserProperties = (..._args: any[]) => {};
 
-// Helper function to sanitize sensitive data from logs
-const sanitizeForLogging = (data: any): any => {
-  if (!data || typeof data !== "object") {
-    return data;
+// No-op replacements for missing GA functions
+const sendGAEvent = (..._args: unknown[]): void => {
+  void _args;
+};
+const setGAUserProperties = (..._args: unknown[]): void => {
+  void _args;
+};
+
+type SentryIntegration = ReturnType<typeof Sentry.linkedErrorsIntegration>;
+type SentryClientIntegrations = typeof Sentry & {
+  replayIntegration?: (options: {
+    maskAllText: boolean;
+    blockAllMedia: boolean;
+    networkDetailAllowUrls?: RegExp[];
+  }) => SentryIntegration;
+  browserTracingIntegration?: () => SentryIntegration;
+};
+
+const sentryClientIntegrations = Sentry as SentryClientIntegrations;
+
+const createSentryIntegrations = (): SentryIntegration[] => {
+  const integrations: SentryIntegration[] = [];
+
+  if (typeof sentryClientIntegrations.replayIntegration === "function") {
+    integrations.push(
+      sentryClientIntegrations.replayIntegration({
+        maskAllText: false,
+        blockAllMedia: false,
+        networkDetailAllowUrls: [
+          /^https:\/\/api\.gemini\.google\.com(?:\/|$)/,
+          /^https:\/\/fonts\.googleapis\.com(?:\/|$)/,
+          /^https:\/\/fonts\.gstatic\.com(?:\/|$)/,
+        ],
+      })
+    );
   }
 
-  const sanitized = { ...data };
+  if (
+    typeof sentryClientIntegrations.browserTracingIntegration === "function"
+  ) {
+    integrations.push(sentryClientIntegrations.browserTracingIntegration());
+  }
+
+  return integrations;
+};
+
+// Helper function to sanitize sensitive data from logs
+const sanitizeRecordForLogging = (
+  data: Record<string, unknown>
+): Record<string, unknown> => {
+  const sanitized: Record<string, unknown> = { ...data };
   const sensitiveKeys = [
     "dsn",
     "apiKey",
@@ -32,6 +73,11 @@ const sanitizeForLogging = (data: any): any => {
 
   return sanitized;
 };
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error && error.message.trim()
+    ? error.message
+    : "Unknown error";
 
 // Sentry configuration for production monitoring
 export const initObservability = () => {
@@ -104,20 +150,7 @@ export const initObservability = () => {
       },
 
       // Integrations
-      integrations: [
-        Sentry.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false,
-          networkDetailAllowUrls: [
-            /^https:\/\/api\.gemini\.google\.com(?:\/|$)/,
-            /^https:\/\/fonts\.googleapis\.com(?:\/|$)/,
-            /^https:\/\/fonts\.gstatic\.com(?:\/|$)/,
-          ],
-        }),
-        Sentry.browserTracingIntegration({
-          // routingInstrumentation: Sentry.reactRouterV6Instrumentation() - commented out until router is implemented
-        }),
-      ],
+      integrations: createSentryIntegrations(),
 
       // Release tracking
       release: process.env["NEXT_PUBLIC_APP_VERSION"] ?? "1.0.0",
@@ -280,7 +313,7 @@ const initWebVitalsMonitoring = () => {
     .catch((error) => {
       log.error(
         "❌ Failed to initialize Web Vitals monitoring",
-        { message: error?.message ?? "Unknown error" },
+        { message: getErrorMessage(error) },
         "Observability"
       );
     });
@@ -291,27 +324,13 @@ const initWebVitalsMonitoring = () => {
 const getRandomId = (): string => {
   const timestamp = Date.now();
 
-  // Try browser crypto API first
-  if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
+  // Try Web Crypto API first
+  if (globalThis.crypto?.getRandomValues) {
     const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
+    globalThis.crypto.getRandomValues(array);
     const first = array[0] ?? 0;
     const second = array[1] ?? 0;
     return `user_${timestamp}_${first.toString(36)}${second.toString(36)}`;
-  }
-
-  // Try Node.js crypto module (for SSR)
-  if (typeof globalThis !== "undefined") {
-    try {
-      // Dynamic import to avoid bundling issues
-      const cryptoModule = require("crypto");
-      if (cryptoModule?.randomBytes) {
-        const bytes = cryptoModule.randomBytes(8);
-        return `user_${timestamp}_${bytes.toString("hex")}`;
-      }
-    } catch {
-      // crypto module not available
-    }
   }
 
   // Fallback using more entropy sources (still not cryptographically secure,
@@ -352,15 +371,18 @@ const getSessionId = (): string => {
 };
 
 // Export Sentry utilities for manual error reporting
-export const reportError = (error: Error, context?: Record<string, any>) => {
+export const reportError = (
+  error: Error,
+  context?: Record<string, unknown>
+) => {
   log.error(
     "🚨 Manual error report",
-    { message: error?.message || "Unknown error" },
+    { message: error.message || "Unknown error" },
     "Observability"
   );
   Sentry.captureException(
     error,
-    context ? { extra: sanitizeForLogging(context) } : undefined
+    context ? { extra: sanitizeRecordForLogging(context) } : undefined
   );
 };
 
@@ -375,15 +397,15 @@ export const reportMessage = (
 export const addBreadcrumb = (
   message: string,
   category: string,
-  data?: Record<string, any>
+  data?: Record<string, unknown>
 ) => {
-  const breadcrumb: any = {
+  const breadcrumb: Parameters<typeof Sentry.addBreadcrumb>[0] = {
     message,
     category,
     level: "info",
   };
   if (data) {
-    breadcrumb.data = sanitizeForLogging(data);
+    breadcrumb.data = sanitizeRecordForLogging(data);
   }
   Sentry.addBreadcrumb(breadcrumb);
 };
@@ -400,8 +422,8 @@ export const setTag = (key: string, value: string) => {
   Sentry.setTag(key, value);
 };
 
-export const setContext = (key: string, context: Record<string, any>) => {
-  Sentry.setContext(key, sanitizeForLogging(context));
+export const setContext = (key: string, context: Record<string, unknown>) => {
+  Sentry.setContext(key, sanitizeRecordForLogging(context));
 };
 
 // Analytics monitoring setup
@@ -445,7 +467,7 @@ const initAnalyticsMonitoring = () => {
       .catch((error) => {
         log.error(
           "❌ Failed to initialize Google Analytics 4",
-          { message: error?.message ?? "Unknown error" },
+          { message: getErrorMessage(error) },
           "Observability"
         );
       });
@@ -492,7 +514,7 @@ const initUptimeMonitoring = () => {
     .catch((error) => {
       log.error(
         "❌ Failed to initialize Uptime monitoring",
-        { message: error?.message ?? "Unknown error" },
+        { message: getErrorMessage(error) },
         "Observability"
       );
     });

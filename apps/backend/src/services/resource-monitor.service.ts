@@ -100,6 +100,22 @@ export const concurrentRequests = new Gauge({
   registers: [register],
 });
 
+interface PromGaugeInternals {
+  hashMap?: Record<string, { value?: number } | undefined>;
+}
+
+/**
+ * Read the current synchronous value of a label-less prom-client Gauge.
+ *
+ * Why: prom-client only exposes Gauge values via the async `.get()` API or the
+ * private `hashMap` field. The hot paths here need a synchronous read while
+ * tracking concurrency, so we narrow through a typed view of the private state.
+ */
+function readGaugeCurrentValue(gauge: Gauge<string>): number {
+  const view = gauge as unknown as PromGaugeInternals;
+  return view.hashMap?.['']?.value ?? 0;
+}
+
 /**
  * Resource Monitor Service Class
  */
@@ -128,8 +144,6 @@ export class ResourceMonitorService {
       critical: 200,
     },
   };
-
-  constructor() {}
 
   /**
    * Calculate CPU usage percentage
@@ -236,7 +250,7 @@ export class ResourceMonitorService {
   /**
    * Track backpressure event
    */
-  trackBackpressure(type: string, details?: Record<string, any>): void {
+  trackBackpressure(type: string, details?: Record<string, unknown>): void {
     backpressureEvents.inc({ type });
     logger.warn('Backpressure event', { type, ...details });
   }
@@ -247,7 +261,7 @@ export class ResourceMonitorService {
   incrementConcurrentRequests(): void {
     concurrentRequests.inc();
 
-    const current = (concurrentRequests as any)?.hashMap?.['']?.value || 0;
+    const current = readGaugeCurrentValue(concurrentRequests);
     if (current > this.thresholds.concurrentRequests.critical) {
       this.trackBackpressure('concurrent_requests_critical', { count: current });
       resourceThresholdBreaches.inc({ resource: 'concurrent_requests', threshold: 'critical' });
@@ -315,10 +329,13 @@ export class ResourceMonitorService {
 
     for (const metric of metrics) {
       if (metric.name === 'the_copy_backpressure_events_total') {
-        backpressureCount = (metric.values || []).reduce((sum: number, val: any) => sum + (val.value || 0), 0);
+        backpressureCount = (metric.values ?? []).reduce(
+          (sum, val) => sum + (val.value ?? 0),
+          0
+        );
       }
       if (metric.name === 'the_copy_concurrent_requests') {
-        concurrentReqs = (metric.values?.[0])?.value || 0;
+        concurrentReqs = metric.values?.[0]?.value ?? 0;
       }
     }
 
@@ -387,7 +404,7 @@ export class ResourceMonitorService {
    * Check if system is under pressure
    */
   isUnderPressure(): boolean {
-    const cpuUsage = (systemCpuUsage as any)?.hashMap?.['']?.value || 0;
+    const cpuUsage = readGaugeCurrentValue(systemCpuUsage);
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
     const memoryPercent = ((totalMemory - freeMemory) / totalMemory) * 100;
@@ -400,4 +417,3 @@ export class ResourceMonitorService {
 }
 
 export const resourceMonitor = new ResourceMonitorService();
-export default resourceMonitor;

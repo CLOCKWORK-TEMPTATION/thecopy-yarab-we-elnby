@@ -1,6 +1,7 @@
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
+import { asAgentContext, readString } from "../shared/contextAccess";
 import {
   StandardAgentInput,
   StandardAgentOutput,
@@ -10,8 +11,8 @@ import { INTEGRATED_AGENT_CONFIG } from "./agent";
 
 interface IntegratedContext {
   originalText?: string;
-  analysisResults?: any;
-  creativeResults?: any;
+  analysisResults?: unknown;
+  creativeResults?: unknown;
   targetOutput?: "analysis" | "creative" | "synthesis";
   synthesisDepth?: "basic" | "moderate" | "deep";
   integrationStrategy?: "sequential" | "parallel" | "iterative";
@@ -41,7 +42,7 @@ export class IntegratedAgent extends BaseAgent {
     const { input: taskInput, context } = input;
 
     // Extract relevant context
-    const ctx = context as IntegratedContext;
+    const ctx = asAgentContext(context) as IntegratedContext;
     const originalText = ctx?.originalText ?? "";
     const analysisResults = ctx?.analysisResults ?? null;
     const creativeResults = ctx?.creativeResults ?? null;
@@ -133,10 +134,10 @@ export class IntegratedAgent extends BaseAgent {
     const processedText = this.cleanupSynthesis(output.text);
 
     // Assess integration quality
-    const integrationScore = await this.assessIntegration(processedText);
-    const balanceScore = await this.assessBalance(processedText);
-    const coherenceScore = await this.assessCoherence(processedText);
-    const qualityScore = await this.assessOverallQuality(processedText);
+    const integrationScore = this.assessIntegration(processedText);
+    const balanceScore = this.assessBalance(processedText);
+    const coherenceScore = this.assessCoherence(processedText);
+    const qualityScore = this.assessOverallQuality(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =
@@ -146,7 +147,7 @@ export class IntegratedAgent extends BaseAgent {
       coherenceScore * 0.15 +
       qualityScore * 0.05;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: Math.min(1, adjustedConfidence),
@@ -166,7 +167,7 @@ export class IntegratedAgent extends BaseAgent {
         synthesisType: this.detectSynthesisType(processedText),
         wordCount: processedText.split(/\s+/).length,
       },
-    };
+    });
   }
 
   /**
@@ -244,7 +245,7 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Assess integration quality
    */
-  private async assessIntegration(text: string): Promise<number> {
+  private assessIntegration(text: string): number {
     let score = 0.6; // Base score
 
     // Check for integration terms
@@ -273,7 +274,7 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Assess balance between analysis and creative
    */
-  private async assessBalance(text: string): Promise<number> {
+  private assessBalance(text: string): number {
     let score = 0.5; // Base score
 
     // Check for balance indicators
@@ -299,7 +300,7 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Assess coherence
    */
-  private async assessCoherence(text: string): Promise<number> {
+  private assessCoherence(text: string): number {
     let score = 0.6; // Base score
 
     // Check for coherence terms
@@ -329,7 +330,7 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Assess overall quality
    */
-  private async assessOverallQuality(text: string): Promise<number> {
+  private assessOverallQuality(text: string): number {
     let score = 0.5; // Base score
 
     // Check text length (longer usually means more comprehensive)
@@ -469,34 +470,45 @@ export class IntegratedAgent extends BaseAgent {
    * Summarize results
    */
   private summarizeResults(
-    results: any,
+    results: unknown,
     type: "analysis" | "creative"
   ): string {
     if (typeof results === "string") {
       return results.length > 500 ? results.substring(0, 500) + "..." : results;
     }
 
+    const resultRecord =
+      typeof results === "object" && results !== null && !Array.isArray(results)
+        ? (results as Record<string, unknown>)
+        : {};
+
     const summary: string[] = [];
 
     if (type === "analysis") {
-      if (results?.mainFindings) {
-        summary.push(`النتائج الرئيسية: ${results.mainFindings}`);
+      const mainFindings = readString(resultRecord, "mainFindings");
+      if (mainFindings) {
+        summary.push(`النتائج الرئيسية: ${mainFindings}`);
       }
-      if (results?.recommendations) {
+      const recommendations = resultRecord.recommendations;
+      if (recommendations) {
         const recs =
-          typeof results.recommendations === "string"
-            ? results.recommendations
-            : Array.isArray(results.recommendations)
-              ? results.recommendations.join(", ")
+          typeof recommendations === "string"
+            ? recommendations
+            : Array.isArray(recommendations)
+              ? recommendations
+                  .filter((item) => typeof item === "string")
+                  .join(", ")
               : "توصيات متوفرة";
         summary.push(`التوصيات: ${recs}`);
       }
     } else {
-      if (results?.content) {
-        summary.push(`المحتوى الإبداعي: ${results.content}`);
+      const content = readString(resultRecord, "content");
+      if (content) {
+        summary.push(`المحتوى الإبداعي: ${content}`);
       }
-      if (results?.creativeElements) {
-        summary.push(`العناصر الإبداعية: ${results.creativeElements}`);
+      const creativeElements = readString(resultRecord, "creativeElements");
+      if (creativeElements) {
+        summary.push(`العناصر الإبداعية: ${creativeElements}`);
       }
     }
 
@@ -509,10 +521,10 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `تكامل تركيبى - منسق التحليل والإبداع:
+    return Promise.resolve(`تكامل تركيبى - منسق التحليل والإبداع:
 تم إجراء تكامل أولي بين نتائج التحليل والإبداع.
 
 التركيب الأولي:
@@ -525,7 +537,7 @@ export class IntegratedAgent extends BaseAgent {
 2. (عالية) تحسين التوازن بين الجوانب المختلفة
 3. (متوسطة) تعزيز التماسك الشامل
 
-ملاحظة: حدث خطأ مؤقت في معالجة التكامل. يُرجى المحاولة مرة أخرى أو تفعيل الخيارات المتقدمة للحصول على تكامل أكثر عمقاً ودقة.`;
+ملاحظة: حدث خطأ مؤقت في معالجة التكامل. يُرجى المحاولة مرة أخرى أو تفعيل الخيارات المتقدمة للحصول على تكامل أكثر عمقاً ودقة.`);
   }
 }
 

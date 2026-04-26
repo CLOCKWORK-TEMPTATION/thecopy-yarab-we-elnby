@@ -157,10 +157,10 @@ export class RedisMetricsService {
 
     for (const metric of metrics) {
       if (metric.name === 'the_copy_redis_cache_hits_total') {
-        hits = (metric.values || []).reduce((sum: number, val: any) => sum + (val.value || 0), 0);
+        hits = (metric.values ?? []).reduce((sum, val) => sum + (val.value ?? 0), 0);
       }
       if (metric.name === 'the_copy_redis_cache_misses_total') {
-        misses = (metric.values || []).reduce((sum: number, val: any) => sum + (val.value || 0), 0);
+        misses = (metric.values ?? []).reduce((sum, val) => sum + (val.value ?? 0), 0);
       }
     }
 
@@ -228,11 +228,11 @@ export class RedisMetricsService {
     }
 
     // Initial update
-    this.updateServerMetrics();
+    void this.updateServerMetrics();
 
     // Periodic updates
     this.metricsUpdateInterval = setInterval(() => {
-      this.updateServerMetrics();
+      void this.updateServerMetrics();
     }, intervalMs);
 
     logger.info('Redis metrics collection started', { intervalMs });
@@ -317,9 +317,9 @@ export class RedisMetricsService {
     return {
       cache: cacheStats,
       server: {
-        memoryUsage: parseInt(serverMetrics["used_memory"] || '0'),
-        connectedClients: parseInt(serverMetrics["connected_clients"] || '0'),
-        uptime: parseInt(serverMetrics["uptime_in_seconds"] || '0'),
+        memoryUsage: parseInt(serverMetrics["used_memory"] ?? '0'),
+        connectedClients: parseInt(serverMetrics["connected_clients"] ?? '0'),
+        uptime: parseInt(serverMetrics["uptime_in_seconds"] ?? '0'),
       },
       latency: latencyMetrics,
     };
@@ -343,4 +343,3 @@ export function trackRedisLatency(operation: string, duration: number, success: 
   );
 }
 
-export default RedisMetricsService;

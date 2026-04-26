@@ -48,15 +48,18 @@ export async function handleSetReusabilityAnalyze(
   return success({ data: result.data ?? {} });
 }
 
-function buildStoredSetPiece(
-  rawPiece: Record<string, unknown>,
-  name: string,
-  nameAr: string,
-  payload: Record<string, unknown>,
-  category: string,
-  dimensions: { width: number; height: number; depth: number },
-  estimatedValue: number
-): StoredSetPiece {
+interface StoredSetPieceInput {
+  category: string;
+  dimensions: { width: number; height: number; depth: number };
+  estimatedValue: number;
+  name: string;
+  nameAr: string;
+  payload: Record<string, unknown>;
+  rawPiece: Record<string, unknown>;
+}
+
+function buildStoredSetPiece(input: StoredSetPieceInput): StoredSetPiece {
+  const { rawPiece, name, nameAr, payload, category, dimensions, estimatedValue } = input;
   return {
     id: asString(rawPiece["id"]) || randomUUID(),
     name: asString(rawPiece["name"]) || name,
@@ -110,15 +113,15 @@ export async function handleSetPieceAdd(
     return failure("تعذر قراءة بيانات القطعة المُضافة", 500);
   }
 
-  const storedPiece = buildStoredSetPiece(
-    rawPiece,
+  const storedPiece = buildStoredSetPiece({
+    category,
+    dimensions,
+    estimatedValue,
     name,
     nameAr,
     payload,
-    category,
-    dimensions,
-    estimatedValue
-  );
+    rawPiece,
+  });
 
   await updateStore((store) => {
     store.setPieces = uniqueById<StoredSetPiece>(store.setPieces, storedPiece);

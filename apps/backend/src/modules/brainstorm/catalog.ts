@@ -735,9 +735,19 @@ export function getBrainstormAgents(): BrainstormAgentCatalogItem[] {
   );
 }
 
+const TASK_TYPE_VALUES: readonly string[] = Object.values(TaskType);
+
+function isTaskTypeId(agentId: string): agentId is TaskType {
+  return TASK_TYPE_VALUES.includes(agentId);
+}
+
 export function getBrainstormAgentById(
   agentId: string
 ): BrainstormAgentCatalogItem | undefined {
+  if (!isTaskTypeId(agentId)) {
+    return undefined;
+  }
+
   return getBrainstormAgents().find((agent) => agent.id === agentId);
 }
 

@@ -47,7 +47,7 @@ export function isRegexSafe(pattern: RegExp): boolean {
   }
 
   // Check for excessive backtracking indicators
-  const quantifierCount = (patternStr.match(/[+*?]/g) || []).length;
+  const quantifierCount = (patternStr.match(/[+*?]/g) ?? []).length;
   if (quantifierCount > 10) {
     return false;
   }

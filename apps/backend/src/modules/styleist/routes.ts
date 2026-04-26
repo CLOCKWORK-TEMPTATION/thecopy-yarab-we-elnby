@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 
 import { styleistService } from './service';
 
-const router = Router();
+export const styleistRouter = Router();
 
 const createDesignBodySchema = z.object({
   projectId: z.string().min(1),
@@ -31,7 +31,7 @@ const updateSceneCostumeBodySchema = z.object({
 // Costume Designs
 // ==========================================
 
-router.get('/designs', async (req: Request, res: Response) => {
+styleistRouter.get('/designs', async (req: Request, res: Response) => {
   try {
     const projectId = req.query["projectId"] as string;
     if (!projectId) {
@@ -46,7 +46,7 @@ router.get('/designs', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/designs/:id', async (req: Request, res: Response) => {
+styleistRouter.get('/designs/:id', async (req: Request, res: Response) => {
   try {
     const design = await styleistService.getDesignById(req.params["id"] as string);
     if (!design) {
@@ -60,7 +60,7 @@ router.get('/designs/:id', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/designs', async (req: Request, res: Response) => {
+styleistRouter.post('/designs', async (req: Request, res: Response) => {
   try {
     const validation = createDesignBodySchema.safeParse(req.body);
     if (!validation.success) {
@@ -76,7 +76,7 @@ router.post('/designs', async (req: Request, res: Response) => {
   }
 });
 
-router.delete('/designs/:id', async (req: Request, res: Response) => {
+styleistRouter.delete('/designs/:id', async (req: Request, res: Response) => {
   try {
     await styleistService.deleteDesign(req.params["id"] as string);
     res.json({ success: true });
@@ -90,7 +90,7 @@ router.delete('/designs/:id', async (req: Request, res: Response) => {
 // Wardrobe Items
 // ==========================================
 
-router.get('/wardrobe', async (req: Request, res: Response) => {
+styleistRouter.get('/wardrobe', async (req: Request, res: Response) => {
   try {
     const projectId = req.query["projectId"] as string;
     if (!projectId) {
@@ -105,7 +105,7 @@ router.get('/wardrobe', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/wardrobe', async (req: Request, res: Response) => {
+styleistRouter.post('/wardrobe', async (req: Request, res: Response) => {
   try {
     const validation = createWardrobeBodySchema.safeParse(req.body);
     if (!validation.success) {
@@ -121,7 +121,7 @@ router.post('/wardrobe', async (req: Request, res: Response) => {
   }
 });
 
-router.delete('/wardrobe/:id', async (req: Request, res: Response) => {
+styleistRouter.delete('/wardrobe/:id', async (req: Request, res: Response) => {
   try {
     await styleistService.deleteWardrobeItem(req.params["id"] as string);
     res.json({ success: true });
@@ -135,7 +135,7 @@ router.delete('/wardrobe/:id', async (req: Request, res: Response) => {
 // Scene-Costume Assignments
 // ==========================================
 
-router.get('/scene-costumes', async (req: Request, res: Response) => {
+styleistRouter.get('/scene-costumes', async (req: Request, res: Response) => {
   try {
     const projectId = req.query["projectId"] as string;
     if (!projectId) {
@@ -150,7 +150,7 @@ router.get('/scene-costumes', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/scene-costumes', async (req: Request, res: Response) => {
+styleistRouter.post('/scene-costumes', async (req: Request, res: Response) => {
   try {
     const validation = assignSceneCostumeBodySchema.safeParse(req.body);
     if (!validation.success) {
@@ -165,7 +165,7 @@ router.post('/scene-costumes', async (req: Request, res: Response) => {
   }
 });
 
-router.put('/scene-costumes/:sceneId', async (req: Request, res: Response) => {
+styleistRouter.put('/scene-costumes/:sceneId', async (req: Request, res: Response) => {
   try {
     const validation = updateSceneCostumeBodySchema.safeParse(req.body);
     if (!validation.success) {
@@ -185,4 +185,3 @@ router.put('/scene-costumes/:sceneId', async (req: Request, res: Response) => {
   }
 });
 
-export default router;

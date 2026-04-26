@@ -12,13 +12,19 @@
 
 import { readdir, mkdir } from "node:fs/promises";
 import { join, extname, basename, resolve } from "node:path";
+import { format as formatLogLine } from "node:util";
 
 import { createMCPClient } from "@ai-sdk/mcp";
 import { openai } from "@ai-sdk/openai";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio";
 import { generateText, stepCountIs } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
+
+
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 // ─── ألوان الطرفية ──────────────────────────────────────────
 
@@ -33,7 +39,7 @@ const C = {
 } as const;
 
 function log(prefix: string, color: string, msg: string): void {
-  console.error(`${color}${C.bold}[${prefix}]${C.reset} ${msg}`);
+  writeStderr(`${color}${C.bold}[${prefix}]${C.reset} ${msg}`);
 }
 
 // ─── تحليل المعاملات ────────────────────────────────────────
@@ -47,7 +53,7 @@ interface BatchArgs {
 function parseBatchArgs(): BatchArgs {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error(
+    writeStderr(
       "الاستخدام: npx tsx src/batch.ts <مجلد_PDF> [--output <مجلد>] [--format txt|md]"
     );
     process.exit(1);
@@ -196,7 +202,7 @@ outputPath: ${outputPath}
   const failed = results.filter((r) => !r.success).length;
   const totalTimeMs = results.reduce((sum, r) => sum + r.timeMs, 0);
 
-  console.error();
+  writeStderr();
   log("ملخص", C.green, "═".repeat(50));
   log("ملخص", C.green, `الإجمالي: ${pdfFiles.length} ملف`);
   log("ملخص", C.green, `نجاح: ${succeeded} | فشل: ${failed}`);
@@ -224,6 +230,6 @@ outputPath: ${outputPath}
 }
 
 main().catch((error) => {
-  console.error("خطأ غير متوقع:", error);
+  writeStderr("خطأ غير متوقع:", error);
   process.exit(1);
 });

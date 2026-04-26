@@ -4,6 +4,7 @@
  */
 
 import * as crypto from 'crypto';
+import { format as formatLogLine } from 'node:util';
 import * as readline from 'readline';
 
 import { logger } from '@/lib/logger';
@@ -12,6 +13,13 @@ import { db } from '../db';
 import { projects } from '../db/schema';
 import { encryptedDocuments } from '../db/zkSchema';
 
+function writeStdout(...args: unknown[]): void {
+  process.stdout.write(formatLogLine(...args) + "\n");
+}
+
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 const MIGRATION_VERSION = 1;
 const ALGORITHM = 'aes-256-gcm';
@@ -90,7 +98,7 @@ async function migrateProject(
   masterKey: Buffer
 ) {
   if (!project.scriptContent) {
-    console.log(`⏭️  Skipping project ${project.id} (no content)`);
+    writeStdout(`⏭️  Skipping project ${project.id} (no content)`);
     return;
   }
 
@@ -116,23 +124,23 @@ async function migrateProject(
       lastModified: project.updatedAt,
     });
 
-    console.log(`✅ Migrated project: ${project.id}`);
+    writeStdout(`✅ Migrated project: ${project.id}`);
   } catch (error) {
-    console.error(`❌ Failed to migrate project ${project.id}:`, error);
+    writeStderr(`❌ Failed to migrate project ${project.id}:`, error);
     throw error;
   }
 }
 
 async function main() {
-  console.log('🔐 Zero-Knowledge Migration Script');
-  console.log('==================================\n');
+  writeStdout('🔐 Zero-Knowledge Migration Script');
+  writeStdout('==================================\n');
 
-  console.log('⚠️  WARNING: This will encrypt all existing projects.');
-  console.log('⚠️  Make sure you have a backup before proceeding.\n');
+  writeStdout('⚠️  WARNING: This will encrypt all existing projects.');
+  writeStdout('⚠️  Make sure you have a backup before proceeding.\n');
 
   const shouldContinue = await confirm('Do you want to continue?');
   if (!shouldContinue) {
-    console.log('Migration cancelled.');
+    writeStdout('Migration cancelled.');
     process.exit(0);
   }
 
@@ -147,18 +155,18 @@ async function main() {
   });
 
   if (!masterPassword || masterPassword.length < 12) {
-    console.error('❌ Password must be at least 12 characters');
+    writeStderr('❌ Password must be at least 12 characters');
     process.exit(1);
   }
 
   const salt = crypto.randomBytes(SALT_LENGTH);
   const masterKey = deriveKey(masterPassword, salt);
 
-  console.log('\n🔄 Starting migration...\n');
+  writeStdout('\n🔄 Starting migration...\n');
 
   try {
     const allProjects = await db.select().from(projects);
-    console.log(`Found ${allProjects.length} projects to migrate\n`);
+    writeStdout(`Found ${allProjects.length} projects to migrate\n`);
 
     let successCount = 0;
     let errorCount = 0;
@@ -167,24 +175,24 @@ async function main() {
       try {
         await migrateProject(project, masterKey);
         successCount++;
-      } catch (error) {
+      } catch {
         errorCount++;
       }
     }
 
-    console.log('\n📊 Migration Summary:');
-    console.log(`   ✅ Successful: ${successCount}`);
-    console.log(`   ❌ Failed: ${errorCount}`);
-    console.log(`   💾 Backup: ${backupPath}`);
+    writeStdout('\n📊 Migration Summary:');
+    writeStdout(`   ✅ Successful: ${successCount}`);
+    writeStdout(`   ❌ Failed: ${errorCount}`);
+    writeStdout(`   💾 Backup: ${backupPath}`);
   } catch (error) {
-    console.error('\n❌ Migration failed:', error);
+    writeStderr('\n❌ Migration failed:', error);
     process.exit(1);
   }
 }
 
 if (require.main === module) {
   main().catch((error) => {
-    console.error('Fatal error:', error);
+    writeStderr('Fatal error:', error);
     process.exit(1);
   });
 }

@@ -24,7 +24,7 @@ export { formatAgentOutput } from "./standardAgentFormat";
 export interface StandardAgentInput {
   input: string;
   options?: StandardAgentOptions;
-  context?: string | Record<string, any>;
+  context?: string | Record<string, unknown>;
 }
 
 export interface StandardAgentOptions {
@@ -58,9 +58,9 @@ export interface StandardAgentOutput {
     completionQuality?: number;
     creativityScore?: number;
     sceneQuality?: number;
-    worldQuality?: any;
+    worldQuality?: unknown;
     processingTime?: number;
-    [key: string]: any; // Allow additional metadata properties
+    [key: string]: unknown;
   };
 }
 
@@ -94,6 +94,20 @@ export interface HallucinationCheckResult {
   correctedText: string;
 }
 
+interface ExecutionMetadata {
+  ragUsed: boolean;
+  critiqueIterations: number;
+  constitutionalViolations: number;
+  uncertaintyScore: number;
+  hallucinationDetected: boolean;
+  debateRounds: number;
+}
+
+interface ExecutionState {
+  currentText: string;
+  confidence: number;
+}
+
 // =====================================================
 // Default Options
 // =====================================================
@@ -114,10 +128,7 @@ const DEFAULT_OPTIONS: StandardAgentOptions = {
 // RAG: Retrieval-Augmented Generation
 // =====================================================
 
-async function performRAG(
-  input: string,
-  context?: string
-): Promise<RAGContext> {
+function performRAG(input: string, context?: string): RAGContext {
   if (!context || context.length < 100) {
     return { chunks: [], relevanceScores: [] };
   }
@@ -493,17 +504,8 @@ ${unsupportedClaims.map((c) => `- ${c.claim}`).join("\n")}
 // Standard Agent Execution
 // =====================================================
 
-export async function executeStandardAgentPattern(
-  taskPrompt: string,
-  options: StandardAgentOptions,
-  context?: Record<string, unknown>
-): Promise<StandardAgentOutput> {
-  const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
-  const notes: string[] = [];
-  let currentText = "";
-  let confidence = 0.7;
-
-  const metadata = {
+function createExecutionMetadata(): ExecutionMetadata {
+  return {
     ragUsed: false,
     critiqueIterations: 0,
     constitutionalViolations: 0,
@@ -511,111 +513,223 @@ export async function executeStandardAgentPattern(
     hallucinationDetected: false,
     debateRounds: 0,
   };
+}
+
+function createPromptWithOptionalRag(
+  taskPrompt: string,
+  context: Record<string, unknown> | undefined,
+  options: StandardAgentOptions,
+  metadata: ExecutionMetadata,
+  notes: string[]
+): string {
+  const originalText = context?.originalText;
+  if (!options.enableRAG || typeof originalText !== "string") {
+    return taskPrompt;
+  }
+
+  const ragContext = performRAG(taskPrompt, originalText);
+  metadata.ragUsed = ragContext.chunks.length > 0;
+  if (metadata.ragUsed) {
+    notes.push(`استخدم RAG: ${ragContext.chunks.length} أجزاء ذات صلة`);
+  }
+
+  return buildPromptWithRAG(taskPrompt, ragContext);
+}
+
+async function applySelfCritiqueStep(
+  state: ExecutionState,
+  finalPrompt: string,
+  options: StandardAgentOptions,
+  metadata: ExecutionMetadata,
+  notes: string[]
+): Promise<ExecutionState> {
+  if (!options.enableSelfCritique) return state;
+
+  const critiqueResult = await performSelfCritique(
+    state.currentText,
+    finalPrompt,
+    "gemini-1.5-flash",
+    options.temperature ?? 0.3,
+    options.maxIterations ?? 3
+  );
+
+  metadata.critiqueIterations = critiqueResult.iterations;
+  if (critiqueResult.improved) {
+    notes.push(`تم التحسين عبر ${critiqueResult.iterations} دورة نقد ذاتي`);
+  }
+
+  return {
+    currentText: critiqueResult.finalText,
+    confidence: state.confidence * critiqueResult.improvementScore,
+  };
+}
+
+async function applyConstitutionalStep(
+  state: ExecutionState,
+  taskPrompt: string,
+  options: StandardAgentOptions,
+  metadata: ExecutionMetadata,
+  notes: string[]
+): Promise<ExecutionState> {
+  if (!options.enableConstitutional) return state;
+
+  const constitutionalResult = await performConstitutionalCheck(
+    state.currentText,
+    taskPrompt,
+    "gemini-1.5-flash",
+    options.temperature ?? 0.3
+  );
+
+  metadata.constitutionalViolations = constitutionalResult.violations.length;
+  if (!constitutionalResult.compliant) {
+    notes.push(`تصحيح دستوري: ${constitutionalResult.violations.join(", ")}`);
+  }
+
+  return {
+    currentText: constitutionalResult.correctedText,
+    confidence: constitutionalResult.compliant
+      ? state.confidence
+      : state.confidence * 0.9,
+  };
+}
+
+async function applyUncertaintyStep(
+  state: ExecutionState,
+  finalPrompt: string,
+  options: StandardAgentOptions,
+  metadata: ExecutionMetadata,
+  notes: string[]
+): Promise<ExecutionState> {
+  if (!options.enableUncertainty) return state;
+
+  const uncertaintyMetrics = await measureUncertainty(
+    state.currentText,
+    finalPrompt,
+    "gemini-1.5-flash",
+    options.temperature ?? 0.3
+  );
+
+  metadata.uncertaintyScore = uncertaintyMetrics.score;
+  if (uncertaintyMetrics.uncertainAspects.length > 0) {
+    notes.push(
+      `جوانب غير مؤكدة: ${uncertaintyMetrics.uncertainAspects.length}`
+    );
+  }
+
+  return {
+    currentText: state.currentText,
+    confidence: Math.min(state.confidence, uncertaintyMetrics.confidence),
+  };
+}
+
+async function applyHallucinationStep(
+  state: ExecutionState,
+  taskPrompt: string,
+  options: StandardAgentOptions,
+  metadata: ExecutionMetadata,
+  notes: string[]
+): Promise<ExecutionState> {
+  if (!options.enableHallucination) return state;
+
+  const hallucinationResult = await detectHallucinations(
+    state.currentText,
+    taskPrompt,
+    "gemini-1.5-flash"
+  );
+
+  metadata.hallucinationDetected = hallucinationResult.detected;
+  if (!hallucinationResult.detected) return state;
+
+  const unsupported = hallucinationResult.claims.filter(
+    (claim) => !claim.supported
+  ).length;
+  notes.push(`تصحيح هلوسة: ${unsupported} ادعاء غير مدعوم`);
+
+  return {
+    currentText: hallucinationResult.correctedText,
+    confidence: state.confidence * 0.85,
+  };
+}
+
+function addDebateNoteIfNeeded(
+  confidence: number,
+  options: StandardAgentOptions,
+  notes: string[]
+): void {
+  if (
+    options.enableDebate &&
+    confidence < (options.confidenceThreshold ?? 0.7)
+  ) {
+    notes.push("الثقة منخفضة - يُوصى بتفعيل النقاش متعدد الوكلاء");
+  }
+}
+
+export async function executeStandardAgentPattern(
+  taskPrompt: string,
+  options: StandardAgentOptions,
+  context?: Record<string, unknown>
+): Promise<StandardAgentOutput> {
+  const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
+  const notes: string[] = [];
+  const metadata = createExecutionMetadata();
 
   try {
-    // Step 1: RAG
-    let finalPrompt = taskPrompt;
-    if (mergedOptions.enableRAG && context?.originalText) {
-      const ragContext = await performRAG(
-        taskPrompt,
-        context.originalText as string
-      );
-      finalPrompt = buildPromptWithRAG(taskPrompt, ragContext);
-      metadata.ragUsed = ragContext.chunks.length > 0;
-      if (metadata.ragUsed) {
-        notes.push(`استخدم RAG: ${ragContext.chunks.length} أجزاء ذات صلة`);
-      }
-    }
+    const finalPrompt = createPromptWithOptionalRag(
+      taskPrompt,
+      context,
+      mergedOptions,
+      metadata,
+      notes
+    );
 
-    // Initial generation
-    currentText = await callGeminiText(finalPrompt, {
+    const generatedText = await callGeminiText(finalPrompt, {
       temperature: mergedOptions.temperature ?? 0.3,
     });
 
-    // Step 2: Self-Critique
-    if (options.enableSelfCritique) {
-      const critiqueResult = await performSelfCritique(
-        currentText,
-        finalPrompt,
-        "gemini-1.5-flash",
-        mergedOptions.temperature ?? 0.3,
-        mergedOptions.maxIterations ?? 3
-      );
-      currentText = critiqueResult.finalText;
-      metadata.critiqueIterations = critiqueResult.iterations;
-      confidence *= critiqueResult.improvementScore;
-      if (critiqueResult.improved) {
-        notes.push(`تم التحسين عبر ${critiqueResult.iterations} دورة نقد ذاتي`);
-      }
-    }
+    let state: ExecutionState = {
+      currentText: generatedText,
+      confidence: 0.7,
+    };
+    const stepOptions: StandardAgentOptions = {
+      ...mergedOptions,
+      enableSelfCritique: options.enableSelfCritique,
+      enableConstitutional: options.enableConstitutional,
+      enableUncertainty: options.enableUncertainty,
+      enableHallucination: options.enableHallucination,
+    };
+    state = await applySelfCritiqueStep(
+      state,
+      finalPrompt,
+      stepOptions,
+      metadata,
+      notes
+    );
+    state = await applyConstitutionalStep(
+      state,
+      taskPrompt,
+      stepOptions,
+      metadata,
+      notes
+    );
+    state = await applyUncertaintyStep(
+      state,
+      finalPrompt,
+      stepOptions,
+      metadata,
+      notes
+    );
+    state = await applyHallucinationStep(
+      state,
+      taskPrompt,
+      stepOptions,
+      metadata,
+      notes
+    );
+    addDebateNoteIfNeeded(state.confidence, mergedOptions, notes);
 
-    // Step 3: Constitutional Check
-    if (options.enableConstitutional) {
-      const constitutionalResult = await performConstitutionalCheck(
-        currentText,
-        taskPrompt,
-        "gemini-1.5-flash",
-        mergedOptions.temperature ?? 0.3
-      );
-      currentText = constitutionalResult.correctedText;
-      metadata.constitutionalViolations =
-        constitutionalResult.violations.length;
-      if (!constitutionalResult.compliant) {
-        notes.push(
-          `تصحيح دستوري: ${constitutionalResult.violations.join(", ")}`
-        );
-        confidence *= 0.9;
-      }
-    }
-
-    // Step 4: Uncertainty Quantification
-    if (options.enableUncertainty) {
-      const uncertaintyMetrics = await measureUncertainty(
-        currentText,
-        finalPrompt,
-        "gemini-1.5-flash",
-        mergedOptions.temperature ?? 0.3
-      );
-      metadata.uncertaintyScore = uncertaintyMetrics.score;
-      confidence = Math.min(confidence, uncertaintyMetrics.confidence);
-      if (uncertaintyMetrics.uncertainAspects.length > 0) {
-        notes.push(
-          `جوانب غير مؤكدة: ${uncertaintyMetrics.uncertainAspects.length}`
-        );
-      }
-    }
-
-    // Step 5: Hallucination Detection
-    if (options.enableHallucination) {
-      const hallucinationResult = await detectHallucinations(
-        currentText,
-        taskPrompt,
-        "gemini-1.5-flash"
-      );
-      metadata.hallucinationDetected = hallucinationResult.detected;
-      if (hallucinationResult.detected) {
-        currentText = hallucinationResult.correctedText;
-        const unsupported = hallucinationResult.claims.filter(
-          (c) => !c.supported
-        ).length;
-        notes.push(`تصحيح هلوسة: ${unsupported} ادعاء غير مدعوم`);
-        confidence *= 0.85;
-      }
-    }
-
-    // Step 6: Debate (Optional - if confidence is low)
-    if (
-      mergedOptions.enableDebate &&
-      confidence < (mergedOptions.confidenceThreshold ?? 0.7)
-    ) {
-      notes.push("الثقة منخفضة - يُوصى بتفعيل النقاش متعدد الوكلاء");
-      // Debate would be handled at orchestration level
-    }
-
-    // Final output
     return {
-      text: toText(currentText),
-      confidence: Math.round(confidence * 100) / 100,
+      text: toText(state.currentText),
+      confidence: Math.round(state.confidence * 100) / 100,
       notes,
       metadata,
     };

@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import { logger } from "../src/lib/logger";
+
 const uploadIgnorePatterns = [
   /(?:^|[\\/])[^\\/]*manifest[^\\/]*\.js$/,
   /(?:^|[\\/])webpack-runtime.*\.js$/,
@@ -76,20 +78,20 @@ const orphanedMaps = uploadedJsFiles
   );
 
 if (missing.length > 0) {
-  console.error(
+  logger.error(
     `${missing.length} uploadable JS files are missing source maps:`
   );
-  missing.forEach((f) => console.error(`  ${f}`));
+  missing.forEach((f) => logger.error(`  ${f}`));
   process.exit(1);
 }
 
 if (orphanedMaps.length > 0) {
-  console.error(`${orphanedMaps.length} source maps have no JS counterpart:`);
-  orphanedMaps.forEach((f) => console.error(`  ${f}`));
+  logger.error(`${orphanedMaps.length} source maps have no JS counterpart:`);
+  orphanedMaps.forEach((f) => logger.error(`  ${f}`));
   process.exit(1);
 }
 
-console.log(
+logger.info(
   [
     `${uploadedJsFiles.length} uploadable JS files have source maps`,
     `${ignoredJsFiles.length} generated framework/stub JS files are excluded from upload`,

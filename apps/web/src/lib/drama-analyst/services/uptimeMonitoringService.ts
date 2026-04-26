@@ -2,9 +2,12 @@
 // Monitors application uptime, health, and performance metrics
 
 import { log } from "./loggerService";
-// No-op replacement for missing GA function
-const sendGAEvent = (..._args: any[]) => {};
 import { addBreadcrumb, reportError } from "./observability";
+
+// No-op replacement for missing GA function
+const sendGAEvent = (..._args: unknown[]): void => {
+  void _args;
+};
 
 interface UptimeConfig {
   enableGA4: boolean;
@@ -32,6 +35,48 @@ interface PerformanceMetrics {
   memoryLeaks: boolean;
   slowOperations: string[];
 }
+
+type PerformanceWithMemory = Performance & {
+  memory?: {
+    usedJSHeapSize?: unknown;
+  };
+};
+
+const stringifyUnknown = (value: unknown): string | undefined => {
+  if (value instanceof Error) {
+    return value.message;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint"
+  ) {
+    return value.toString();
+  }
+
+  if (typeof value === "symbol") {
+    return value.description ?? "symbol";
+  }
+
+  if (typeof value === "function") {
+    return value.name ? `[function ${value.name}]` : "[function]";
+  }
+
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[unserializable value]";
+  }
+};
 
 class UptimeMonitoringService {
   private config: UptimeConfig;
@@ -251,8 +296,8 @@ class UptimeMonitoringService {
   }
 
   private getMemoryUsage(): number {
-    if ("memory" in performance) {
-      const memory = (performance as any).memory;
+    const memory = (performance as PerformanceWithMemory).memory;
+    if (typeof memory?.usedJSHeapSize === "number") {
       return memory.usedJSHeapSize / 1024 / 1024; // Convert to MB
     }
     return 0;
@@ -342,7 +387,7 @@ class UptimeMonitoringService {
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno,
-        error: event.error?.toString(),
+        error: stringifyUnknown(event.error),
       });
     });
 
@@ -350,8 +395,8 @@ class UptimeMonitoringService {
     window.addEventListener("unhandledrejection", (event) => {
       this.errorCount++;
       this.trackEvent("unhandled_rejection", {
-        reason: event.reason?.toString(),
-        promise: event.promise?.toString(),
+        reason: stringifyUnknown(event.reason),
+        promise: stringifyUnknown(event.promise),
       });
     });
   }
@@ -394,7 +439,10 @@ class UptimeMonitoringService {
     });
   }
 
-  private trackEvent(eventName: string, eventData: Record<string, any>): void {
+  private trackEvent(
+    eventName: string,
+    eventData: Record<string, unknown>
+  ): void {
     try {
       // Track in GA4
       if (this.config.enableGA4) {

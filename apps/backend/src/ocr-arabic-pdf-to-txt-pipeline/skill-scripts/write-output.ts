@@ -10,6 +10,15 @@
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { format as formatLogLine } from "node:util";
+
+
+function writeStdout(...args: unknown[]): void {
+  process.stdout.write(formatLogLine(...args) + "\n");
+}
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 // ─── أنواع البيانات ───────────────────────────────────────────
 
@@ -49,7 +58,7 @@ function parseArgs(): { input: string; format: OutputFormat; output: string } {
   }
 
   if (!input || !output) {
-    console.error(
+    writeStderr(
       "الاستخدام: npx tsx write-output.ts --input <json> --format <txt|txt-raw|md> --output <ملف>"
     );
     process.exit(1);
@@ -147,13 +156,14 @@ function main(): void {
   try {
     const raw = readFileSync(input, "utf-8");
     data = JSON.parse(raw) as OcrResult;
-  } catch (err: any) {
-    console.error(`فشل قراءة ملف الإدخال: ${err.message}`);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    writeStderr(`فشل قراءة ملف الإدخال: ${message}`);
     process.exit(1);
   }
 
   if (!data.pages || data.pages.length === 0) {
-    console.error("الملف لا يحتوي صفحات — تحقق من نتائج OCR");
+    writeStderr("الملف لا يحتوي صفحات — تحقق من نتائج OCR");
     process.exit(1);
   }
 
@@ -170,13 +180,13 @@ function main(): void {
 
   const sizeKb = Math.round(Buffer.byteLength(content, "utf-8") / 1024);
 
-  console.error(`تم الكتابة: ${output}`);
-  console.error(`الصيغة: ${format.toUpperCase()}`);
-  console.error(`الصفحات: ${data.pages.length}`);
-  console.error(`الحجم: ${sizeKb} KB`);
+  writeStderr(`تم الكتابة: ${output}`);
+  writeStderr(`الصيغة: ${format.toUpperCase()}`);
+  writeStderr(`الصفحات: ${data.pages.length}`);
+  writeStderr(`الحجم: ${sizeKb} KB`);
 
   // ملخص على stdout
-  console.log(
+  writeStdout(
     JSON.stringify({
       success: true,
       format,

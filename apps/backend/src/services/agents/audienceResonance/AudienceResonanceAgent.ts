@@ -47,7 +47,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     super(
       "EmpathyMatrix AI",
       TaskType.AUDIENCE_RESONANCE,
-      AUDIENCE_RESONANCE_AGENT_CONFIG.systemPrompt || ""
+      AUDIENCE_RESONANCE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -61,9 +61,9 @@ export class AudienceResonanceAgent extends BaseAgent {
     let prompt = `[مهمة تحليل الصدى الجماهيري]\n\n`;
     prompt += this.buildContentSection(ctx);
     prompt += this.buildAudienceSection(ctx?.targetAudience);
-    prompt += `نوع المحتوى: ${ctx?.contentType || "محتوى درامي"}\n`;
-    prompt += `المنصة: ${ctx?.platform || "غير محدد"}\n\n`;
-    prompt += this.buildPreviousResponsesSection(ctx?.previousResponses || []);
+    prompt += `نوع المحتوى: ${ctx?.contentType ?? "محتوى درامي"}\n`;
+    prompt += `المنصة: ${ctx?.platform ?? "غير محدد"}\n\n`;
+    prompt += this.buildPreviousResponsesSection(ctx?.previousResponses ?? []);
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += this.getResonanceInstructions();
 
@@ -71,7 +71,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   }
 
   private buildContentSection(ctx: AudienceResonanceContext | undefined): string {
-    const originalText = ctx?.originalText || "";
+    const originalText = ctx?.originalText ?? "";
     if (!originalText) return "";
     return `المحتوى المراد تحليله:\n${originalText.substring(0, 2000)}\n\n`;
   }
@@ -97,13 +97,14 @@ export class AudienceResonanceAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     // Clean up the analysis text
     const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
-    const comprehensiveness = await this.assessComprehensiveness(processedText);
-    const insightDepth = await this.assessInsightDepth(processedText);
-    const actionability = await this.assessActionability(processedText);
+    const comprehensiveness = this.assessComprehensiveness(processedText);
+    const insightDepth = this.assessInsightDepth(processedText);
+    const actionability = this.assessActionability(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =
@@ -184,7 +185,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     return headers.some((h) => line.includes(h)) || /^#+\s/.test(line) || /^\*\*\d+\./.test(line) || /^[١-٩]\.\s\*\*/.test(line);
   }
 
-  private async assessComprehensiveness(text: string): Promise<number> {
+  private assessComprehensiveness(text: string): number {
     let score = 0.5;
     const requiredSections = ["عاطفي", "نفسي", "استجابة", "توصيات", "مخاطر"];
     const sectionsFound = requiredSections.filter((s) => text.includes(s)).length;
@@ -194,7 +195,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessInsightDepth(text: string): Promise<number> {
+  private assessInsightDepth(text: string): number {
     let score = 0.5;
     const analyticalWords = ["يرتبط", "يعكس", "يشير", "يكشف", "يظهر", "نتيجة", "سبب", "تأثير", "علاقة", "نمط", "ديناميكية", "آلية"];
     score += Math.min(0.3, analyticalWords.filter((w) => text.includes(w)).length * 0.03);
@@ -203,7 +204,7 @@ export class AudienceResonanceAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessActionability(text: string): Promise<number> {
+  private assessActionability(text: string): number {
     let score = 0.5;
     const actionVerbs = ["يُنصح", "يجب", "يمكن", "ينبغي", "يُفضل", "تعزيز", "تحسين", "تجنب", "إضافة", "تعديل"];
     score += Math.min(0.3, actionVerbs.filter((v) => text.includes(v)).length * 0.05);
@@ -282,6 +283,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   protected override async getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     const ctx = input.context as AudienceResonanceContext;
     const audienceInfo = ctx?.targetAudience ? "محدد" : "عام";
 

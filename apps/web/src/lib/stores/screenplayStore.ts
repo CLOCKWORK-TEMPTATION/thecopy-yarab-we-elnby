@@ -38,21 +38,51 @@ const defaultState = {
 export function useScreenplayStore() {
   return {
     ...defaultState,
-    setContent: (_content: string) => {},
-    setFormattedLines: (_lines: FormattedLine[]) => {},
-    setCursorPosition: (_position: number) => {},
-    setSelection: (_selection: SelectionRange | null) => {},
-    saveDocument: async () => {},
-    loadDocument: async (_id: string) => {},
-    exportDocument: async (_format?: string) => "",
-    markDirty: () => {},
-    markClean: () => {},
-    calculateStats: () => {},
-    setCurrentFormat: (_format: string) => {},
-    updateSettings: (_settings: Partial<ScreenplaySettings>) => {},
-    setFontSize: (_size: number) => {},
-    setFontFamily: (_family: string) => {},
-    toggleTheme: () => {},
+    setContent: (_content: string) => {
+      void _content;
+    },
+    setFormattedLines: (_lines: FormattedLine[]) => {
+      void _lines;
+    },
+    setCursorPosition: (_position: number) => {
+      void _position;
+    },
+    setSelection: (_selection: SelectionRange | null) => {
+      void _selection;
+    },
+    saveDocument: () => Promise.resolve(),
+    loadDocument: (_id: string) => {
+      void _id;
+      return Promise.resolve();
+    },
+    exportDocument: (_format?: string) => {
+      void _format;
+      return Promise.resolve("");
+    },
+    markDirty: () => {
+      void defaultState.isDirty;
+    },
+    markClean: () => {
+      void defaultState.isDirty;
+    },
+    calculateStats: () => {
+      void defaultState.stats;
+    },
+    setCurrentFormat: (_format: string) => {
+      void _format;
+    },
+    updateSettings: (_settings: Partial<ScreenplaySettings>) => {
+      void _settings;
+    },
+    setFontSize: (_size: number) => {
+      void _size;
+    },
+    setFontFamily: (_family: string) => {
+      void _family;
+    },
+    toggleTheme: () => {
+      void defaultState.settings.theme;
+    },
   };
 }
 

@@ -9,7 +9,6 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 
 import { queueManager, QueueName } from './queue.config';
 
-describe('Queue Configuration', () => {
   afterEach(async () => {
     // Clean up queues after each test
     await queueManager.close();
@@ -40,6 +39,7 @@ describe('Queue Configuration', () => {
     });
 
     it('should register a worker successfully', async () => {
+      await Promise.resolve();
       const mockProcessor = vi.fn().mockResolvedValue({ success: true });
 
       const worker = queueManager.registerWorker(
@@ -119,7 +119,7 @@ describe('Queue Configuration', () => {
 
     it('should close all queues and workers gracefully', async () => {
       const queue1 = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const queue2 = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
+      queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
 
       const mockProcessor = vi.fn().mockResolvedValue({ success: true });
       queueManager.registerWorker(QueueName.AI_ANALYSIS, mockProcessor);
@@ -258,4 +258,3 @@ describe('Queue Configuration', () => {
       expect(QueueName.CACHE_WARMING).toBe('cache-warming');
     });
   });
-});

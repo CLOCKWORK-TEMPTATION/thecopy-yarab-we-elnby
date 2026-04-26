@@ -80,7 +80,7 @@ describe("AudienceResonanceAgent", () => {
       },
     });
 
-    const prompt = mockExecuteStandardPattern.mock.calls[0]?.[0];
+    const prompt = mockExecuteStandardPattern.mock.calls[0]?.[0] as string;
 
     expect(prompt).toContain("معلومات الجمهور المستهدف");
     expect(prompt).toContain("الشباب الحضري");

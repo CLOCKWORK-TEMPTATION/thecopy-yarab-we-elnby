@@ -30,7 +30,8 @@ const STORE_NAME = "documents";
 async function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to open search index"));
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
@@ -59,7 +60,8 @@ export async function indexDocument(
   return new Promise((resolve, reject) => {
     const request = store.put(indexedDoc);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to index document"));
   });
 }
 
@@ -70,7 +72,8 @@ export async function searchIndex(query: string): Promise<SearchResult[]> {
   const allDocs = await new Promise<IndexedDocument[]>((resolve, reject) => {
     const request = store.getAll();
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to read search index"));
   });
   const results: SearchResult[] = [];
   for (const doc of allDocs) {
@@ -125,6 +128,7 @@ export async function clearIndex(): Promise<void> {
   return new Promise((resolve, reject) => {
     const request = store.clear();
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to clear search index"));
   });
 }

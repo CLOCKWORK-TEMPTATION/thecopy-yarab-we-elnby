@@ -9,6 +9,14 @@ import { logger } from '@/lib/logger';
 
 import type { Request, Response, NextFunction } from 'express';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
 /**
  * CSP Configuration
  */
@@ -147,14 +155,15 @@ export function securityHeadersMiddleware(
  * CSP Violation Reporter
  */
 export function cspViolationReporter(req: Request, res: Response) {
-  if (req.body?.['csp-report']) {
-    const report = req.body['csp-report'];
+  const body: unknown = req.body;
+  const report = isRecord(body) ? body['csp-report'] : undefined;
 
+  if (isRecord(report)) {
     logger.warn('CSP Violation:', {
-      documentUri: report['document-uri'],
-      violatedDirective: report['violated-directive'],
-      blockedUri: report['blocked-uri'],
-      disposition: report.disposition,
+      documentUri: asOptionalString(report['document-uri']),
+      violatedDirective: asOptionalString(report['violated-directive']),
+      blockedUri: asOptionalString(report['blocked-uri']),
+      disposition: asOptionalString(report['disposition']),
     });
 
     // في الإنتاج: يمكن إرسال التقارير إلى خدمة monitoring

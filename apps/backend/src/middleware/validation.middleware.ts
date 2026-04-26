@@ -5,88 +5,80 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { z, ZodSchema } from 'zod';
+import { z } from 'zod';
 
 import { logger } from '@/lib/logger';
 
 /**
  * Validate request body against a Zod schema
  */
-export function validateBody<T extends ZodSchema>(schema: T) {
+export function validateBody<T extends z.ZodTypeAny>(schema: T) {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const validated = schema.parse(req.body);
-      req.body = validated;
+    const result = schema.safeParse(req.body as unknown);
+    if (result.success) {
+      const validatedBody: unknown = result.data;
+      req.body = validatedBody;
       next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        logger.warn('Validation error:', { errors: error.issues, path: req.path });
-        res.status(400).json({
-          success: false,
-          error: 'بيانات غير صالحة',
-          details: error.issues.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        });
-      } else {
-        next(error);
-      }
+      return;
     }
+
+    logger.warn('Validation error:', { errors: result.error.issues, path: req.path });
+    res.status(400).json({
+      success: false,
+      error: 'بيانات غير صالحة',
+      details: result.error.issues.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      })),
+    });
   };
 }
 
 /**
  * Validate request query parameters
  */
-export function validateQuery<T extends ZodSchema>(schema: T) {
+export function validateQuery<T extends z.ZodTypeAny>(schema: T) {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const validated = schema.parse(req.query);
-      req.query = validated as Record<string, string | string[] | undefined>;
+    const result = schema.safeParse(req.query);
+    if (result.success) {
+      req.query = result.data as Record<string, string | string[] | undefined>;
       next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        logger.warn('Query validation error:', { errors: error.issues, path: req.path });
-        res.status(400).json({
-          success: false,
-          error: 'معاملات استعلام غير صالحة',
-          details: error.issues.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        });
-      } else {
-        next(error);
-      }
+      return;
     }
+
+    logger.warn('Query validation error:', { errors: result.error.issues, path: req.path });
+    res.status(400).json({
+      success: false,
+      error: 'معاملات استعلام غير صالحة',
+      details: result.error.issues.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      })),
+    });
   };
 }
 
 /**
  * Validate request params
  */
-export function validateParams<T extends ZodSchema>(schema: T) {
+export function validateParams<T extends z.ZodTypeAny>(schema: T) {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const validated = schema.parse(req.params);
-      req.params = validated as Record<string, string>;
+    const result = schema.safeParse(req.params);
+    if (result.success) {
+      req.params = result.data as Record<string, string>;
       next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        logger.warn('Params validation error:', { errors: error.issues, path: req.path });
-        res.status(400).json({
-          success: false,
-          error: 'معاملات المسار غير صالحة',
-          details: error.issues.map((err) => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        });
-      } else {
-        next(error);
-      }
+      return;
     }
+
+    logger.warn('Params validation error:', { errors: result.error.issues, path: req.path });
+    res.status(400).json({
+      success: false,
+      error: 'معاملات المسار غير صالحة',
+      details: result.error.issues.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      })),
+    });
   };
 }
 

@@ -3,6 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { authMiddleware, type AuthRequest } from './auth.middleware';
 
+import type { AuthService } from '../services/auth.service';
+
 // Mock auth service
 vi.mock('../services/auth.service', () => ({
   authService: {
@@ -26,11 +28,13 @@ const MOCK_USER = {
   lastName: 'User',
 };
 
+type MockAuthService = Pick<AuthService, 'verifyToken' | 'getUserById'>;
+
 describe('authMiddleware', () => {
   let mockRequest: Partial<AuthRequest>;
   let mockResponse: Partial<Response>;
   let mockNext: NextFunction;
-  let authService: any;
+  let authService: MockAuthService;
 
   beforeEach(async () => {
     mockRequest = {
@@ -51,223 +55,219 @@ describe('authMiddleware', () => {
     vi.clearAllMocks();
   });
 
+  registerAuthorizationHeaderTests(() => ({ authService, mockNext, mockRequest, mockResponse }));
+  registerCookieTests(() => ({ authService, mockNext, mockRequest, mockResponse }));
+  registerErrorTests(() => ({ authService, mockNext, mockRequest, mockResponse }));
+  registerEdgeCaseTests(() => ({ authService, mockNext, mockRequest, mockResponse }));
+});
+
+interface AuthTestContext {
+  authService: MockAuthService;
+  mockNext: NextFunction;
+  mockRequest: Partial<AuthRequest>;
+  mockResponse: Partial<Response>;
+}
+
+function authenticate(context: AuthTestContext): Promise<void> {
+  return authMiddleware(
+    context.mockRequest as AuthRequest,
+    context.mockResponse as Response,
+    context.mockNext
+  );
+}
+
+function mockMissingToken(authService: MockAuthService): void {
+  vi.mocked(authService.verifyToken).mockImplementation(() => {
+    throw new Error('jwt must be provided');
+  });
+}
+
+function registerAuthorizationHeaderTests(getContext: () => AuthTestContext): void {
   describe('Token from Authorization header', () => {
     it('should successfully authenticate with valid Bearer token', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: `Bearer ${MOCK_TOKEN}`,
       };
 
-      vi.mocked(authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID });
-      vi.mocked(authService.getUserById).mockResolvedValue(MOCK_USER);
+      vi.mocked(context.authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID, sub: MOCK_USER_ID });
+      vi.mocked(context.authService.getUserById).mockResolvedValue(MOCK_USER);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(authService.verifyToken).toHaveBeenCalledWith(MOCK_TOKEN);
-      expect(authService.getUserById).toHaveBeenCalledWith(MOCK_USER_ID);
-      expect(mockRequest.userId).toBe(MOCK_USER_ID);
-      expect(mockRequest.user).toEqual(MOCK_USER);
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(context.authService.verifyToken).toHaveBeenCalledWith(MOCK_TOKEN);
+      expect(context.authService.getUserById).toHaveBeenCalledWith(MOCK_USER_ID);
+      expect(context.mockRequest.userId).toBe(MOCK_USER_ID);
+      expect(context.mockRequest.user).toEqual(MOCK_USER);
+      expect(context.mockNext).toHaveBeenCalled();
+      expect(context.mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should return 401 if Authorization header is missing Bearer prefix', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: 'InvalidPrefix token',
       };
-      mockRequest.cookies = {};
+      context.mockRequest.cookies = {};
 
-      vi.mocked(authService.verifyToken).mockImplementation(() => {
-        throw new Error('jwt must be provided');
-      });
+      mockMissingToken(context.authService);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح - يرجى تسجيل الدخول',
       });
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
   });
+}
 
+function registerCookieTests(getContext: () => AuthTestContext): void {
   describe('Token from Cookie', () => {
     it('should successfully authenticate with valid cookie token', async () => {
-      mockRequest.cookies = { accessToken: MOCK_TOKEN };
+      const context = getContext();
+      context.mockRequest.cookies = { accessToken: MOCK_TOKEN };
 
-      vi.mocked(authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID });
-      vi.mocked(authService.getUserById).mockResolvedValue(MOCK_USER);
+      vi.mocked(context.authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID, sub: MOCK_USER_ID });
+      vi.mocked(context.authService.getUserById).mockResolvedValue(MOCK_USER);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(authService.verifyToken).toHaveBeenCalledWith(MOCK_TOKEN);
-      expect(authService.getUserById).toHaveBeenCalledWith(MOCK_USER_ID);
-      expect(mockRequest.userId).toBe(MOCK_USER_ID);
-      expect(mockRequest.user).toEqual(MOCK_USER);
-      expect(mockNext).toHaveBeenCalled();
+      expect(context.authService.verifyToken).toHaveBeenCalledWith(MOCK_TOKEN);
+      expect(context.authService.getUserById).toHaveBeenCalledWith(MOCK_USER_ID);
+      expect(context.mockRequest.userId).toBe(MOCK_USER_ID);
+      expect(context.mockRequest.user).toEqual(MOCK_USER);
+      expect(context.mockNext).toHaveBeenCalled();
     });
 
     it('should prioritize Authorization header over cookie', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: `Bearer ${MOCK_HEADER_TOKEN}`,
       };
-      mockRequest.cookies = { accessToken: MOCK_COOKIE_TOKEN };
+      context.mockRequest.cookies = { accessToken: MOCK_COOKIE_TOKEN };
 
-      vi.mocked(authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID });
-      vi.mocked(authService.getUserById).mockResolvedValue(MOCK_USER);
+      vi.mocked(context.authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID, sub: MOCK_USER_ID });
+      vi.mocked(context.authService.getUserById).mockResolvedValue(MOCK_USER);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(authService.verifyToken).toHaveBeenCalledWith(MOCK_HEADER_TOKEN);
-      expect(mockNext).toHaveBeenCalled();
+      expect(context.authService.verifyToken).toHaveBeenCalledWith(MOCK_HEADER_TOKEN);
+      expect(context.mockNext).toHaveBeenCalled();
     });
   });
+}
 
+function registerErrorTests(getContext: () => AuthTestContext): void {
   describe('Error cases', () => {
     it('should return 401 if no token provided', async () => {
-      mockRequest.headers = {};
-      mockRequest.cookies = {};
+      const context = getContext();
+      context.mockRequest.headers = {};
+      context.mockRequest.cookies = {};
 
-      vi.mocked(authService.verifyToken).mockImplementation(() => {
-        throw new Error('jwt must be provided');
-      });
+      mockMissingToken(context.authService);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح - يرجى تسجيل الدخول',
       });
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
 
     it('should return 401 if token verification fails', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: `Bearer ${MOCK_INVALID_TOKEN}`,
       };
 
-      vi.mocked(authService.verifyToken).mockImplementation(() => {
+      vi.mocked(context.authService.verifyToken).mockImplementation(() => {
         throw new Error('Mock invalid token error');
       });
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'رمز التحقق غير صالح',
       });
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
 
     it('should return 401 if user not found', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: `Bearer ${MOCK_TOKEN}`,
       };
 
-      vi.mocked(authService.verifyToken).mockReturnValue({ userId: NONEXISTENT_USER_ID });
-      vi.mocked(authService.getUserById).mockResolvedValue(null);
+      vi.mocked(context.authService.verifyToken).mockReturnValue({ userId: NONEXISTENT_USER_ID, sub: NONEXISTENT_USER_ID });
+      vi.mocked(context.authService.getUserById).mockResolvedValue(null);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'المستخدم غير موجود',
       });
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
 
     it('should handle database errors gracefully', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: `Bearer ${MOCK_TOKEN}`,
       };
 
-      vi.mocked(authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID });
-      vi.mocked(authService.getUserById).mockRejectedValue(
+      vi.mocked(context.authService.verifyToken).mockReturnValue({ userId: MOCK_USER_ID, sub: MOCK_USER_ID });
+      vi.mocked(context.authService.getUserById).mockRejectedValue(
         new Error('Mock database connection error')
       );
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'رمز التحقق غير صالح',
       });
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
   });
+}
 
+function registerEdgeCaseTests(getContext: () => AuthTestContext): void {
   describe('Edge cases', () => {
     it('should handle undefined cookies object', async () => {
-      mockRequest.headers = {};
-      delete mockRequest.cookies;
+      const context = getContext();
+      context.mockRequest.headers = {};
+      delete context.mockRequest.cookies;
 
-      vi.mocked(authService.verifyToken).mockImplementation(() => {
-        throw new Error('jwt must be provided');
-      });
+      mockMissingToken(context.authService);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
 
     it('should handle empty string token', async () => {
-      mockRequest.headers = {
+      const context = getContext();
+      context.mockRequest.headers = {
         authorization: 'Bearer ',
       };
 
-      vi.mocked(authService.verifyToken).mockImplementation(() => {
-        throw new Error('jwt must be provided');
-      });
+      mockMissingToken(context.authService);
 
-      await authMiddleware(
-        mockRequest as AuthRequest,
-        mockResponse as Response,
-        mockNext
-      );
+      await authenticate(context);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(context.mockResponse.status).toHaveBeenCalledWith(401);
+      expect(context.mockNext).not.toHaveBeenCalled();
     });
   });
-});
+}

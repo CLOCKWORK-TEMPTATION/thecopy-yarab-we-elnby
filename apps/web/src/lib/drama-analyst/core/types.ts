@@ -7,7 +7,7 @@ export interface Result<T, E = Error> {
     | {
         code: string;
         message: string;
-        cause?: any;
+        cause?: unknown;
       };
 }
 
@@ -15,8 +15,8 @@ export interface AIRequest {
   agent: string;
   prompt: string;
   files?: { fileName: string; sizeBytes: number }[];
-  params?: any;
-  parameters?: any;
+  params?: Record<string, unknown>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface AIResponse {
@@ -24,7 +24,7 @@ export interface AIResponse {
   tokensUsed?: number;
   meta?: Record<string, unknown>;
   raw?: string;
-  parsed?: any;
+  parsed?: unknown;
   agent?: string;
 }
 
@@ -88,10 +88,16 @@ export interface AIAgentCapabilities {
   creativeGeneration?: boolean;
   analyticalReasoning?: boolean;
   outputType?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-export type CacheStrategy = "none" | "memory" | "disk";
+export type CacheStrategy =
+  | "none"
+  | "memory"
+  | "disk"
+  | "adaptive"
+  | "aggressive"
+  | "selective";
 
 export interface AIAgentConfig {
   id: string;
@@ -107,16 +113,16 @@ export interface AIAgentConfig {
   collaboratesWith?: string[];
   enhances?: string[];
   parallelizable?: boolean;
-  cacheStrategy?: CacheStrategy | string;
+  cacheStrategy?: CacheStrategy;
   confidenceThreshold?: number;
   prompt?: string;
   systemInstruction?: string;
   systemPrompt?: string;
-  fewShotExamples?: any[];
+  fewShotExamples?: unknown[];
   chainOfThoughtTemplate?: string;
   temperature?: number;
   maxTokens?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============================================
@@ -185,7 +191,7 @@ export interface AgentProposal {
 export interface RAGContext {
   retrievedChunks: RetrievedChunk[];
   sourceText: string;
-  analysisReport: any;
+  analysisReport: unknown;
   relevanceScores: number[];
 }
 

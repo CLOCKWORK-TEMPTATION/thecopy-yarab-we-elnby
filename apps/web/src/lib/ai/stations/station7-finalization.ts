@@ -1098,9 +1098,24 @@ ${finalReport.rewritingSuggestions
       if (typeof record["raw"] === "string") return record["raw"];
       if (typeof record["text"] === "string") return record["text"];
       if (typeof record["report"] === "string") return record["report"];
+      // Avoid no-base-to-string by checking if content is safe to convert
+      if (content === null || content === undefined) {
+        return "";
+      }
+      // Only use String() for primitive types, not objects
+      if (typeof content === "number" || typeof content === "boolean") {
+        return String(content);
+      }
+      return "";
+    }
+    if (content === null || content === undefined) {
+      return "";
+    }
+    // Only use String() for primitive types, not objects
+    if (typeof content === "number" || typeof content === "boolean") {
       return String(content);
     }
-    return String(content ?? "");
+    return "";
   }
 
   private parseStructuredText(text: string): {

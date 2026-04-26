@@ -57,24 +57,30 @@ function createMockRequest(overrides: Partial<Request> = {}): Request {
     ip: "192.168.1.100",
     socket: { remoteAddress: "192.168.1.100" },
     get: vi.fn((header: string) => {
-      if (header === "User-Agent") return overrides.headers?.["user-agent"] || "Mozilla/5.0";
+      if (header === "User-Agent") return overrides.headers?.["user-agent"] ?? "Mozilla/5.0";
       return undefined;
     }),
     ...overrides,
   } as unknown as Request;
 }
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Response & {
+  json: MockFn;
+  setHeader: MockFn;
+  status: MockFn;
+};
+
 // Helper to create mock response
-function createMockResponse(): Response {
+function createMockResponse(): MockResponse {
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
     setHeader: vi.fn().mockReturnThis(),
   };
-  return res as unknown as Response;
+  return res as unknown as MockResponse;
 }
 
-describe("WAF Middleware", () => {
   beforeEach(() => {
     resetWAFConfig();
     clearAllRateLimits();
@@ -670,4 +676,3 @@ describe("WAF Middleware", () => {
       }
     );
   });
-});

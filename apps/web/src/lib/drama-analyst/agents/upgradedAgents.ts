@@ -14,9 +14,6 @@ import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAge
 import { AnalysisAgent } from "./analysis/AnalysisAgent";
 
 // المجموعة الأولى - الوكلاء السبعة الجديدة
-import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
-import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
-import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
 
 // الوكلاء الأربعة المتبقية من الترقية السابقة
 import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
@@ -26,12 +23,14 @@ import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
 import { CompletionAgent } from "./completion/CompletionAgent";
 import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
 import { CreativeAgent } from "./creative/CreativeAgent";
+import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
 import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
 import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
 import { IntegratedAgent } from "./integrated/IntegratedAgent";
 import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
 import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
 import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
+import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
 import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
 import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
 import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
@@ -45,6 +44,7 @@ import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudi
 import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
 import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
 import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
+import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
 import { WorldBuilderAgent } from "./worldBuilder/WorldBuilderAgent";
 
 // Agent instances (singleton pattern)

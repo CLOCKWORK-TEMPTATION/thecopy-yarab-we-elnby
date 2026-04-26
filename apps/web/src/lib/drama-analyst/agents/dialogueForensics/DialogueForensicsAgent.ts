@@ -2,6 +2,7 @@ import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
+import { asAgentContext, recordString } from "../shared/contextAccess";
 import {
   StandardAgentInput,
   StandardAgentOutput,
@@ -11,8 +12,8 @@ import { DIALOGUE_FORENSICS_AGENT_CONFIG } from "./agent";
 
 interface DialogueForensicsContext {
   originalText?: string;
-  analysisReport?: any;
-  characters?: any[];
+  analysisReport?: unknown;
+  characters?: unknown[];
   dialogueSamples?: string[];
   focusAreas?: string[]; // ['authenticity', 'subtext', 'rhythm', 'character-voice', 'exposition']
   analyzePatterns?: boolean;
@@ -38,7 +39,7 @@ export class DialogueForensicsAgent extends BaseAgent {
 
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
-    const ctx = context as DialogueForensicsContext;
+    const ctx = asAgentContext(context) as DialogueForensicsContext;
 
     const originalText = ctx?.originalText ?? "";
     const characters = ctx?.characters ?? [];
@@ -54,29 +55,11 @@ export class DialogueForensicsAgent extends BaseAgent {
 
     let prompt = `مهمة تشريح وتحليل الحوار الدرامي\n\n`;
 
-    if (originalText) {
-      prompt += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
-    }
+    prompt += this.buildOriginalTextSection(originalText);
+    prompt += this.buildCharactersSection(characters);
+    prompt += this.buildDialogueSamplesSection(dialogueSamples);
 
-    if (characters.length > 0) {
-      prompt += `الشخصيات في الحوار:\n`;
-      characters.slice(0, 6).forEach((char: any, idx: number) => {
-        const charName =
-          typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
-        prompt += `${idx + 1}. ${charName}\n`;
-      });
-      prompt += "\n";
-    }
-
-    if (dialogueSamples.length > 0) {
-      prompt += `نماذج حوارية للتحليل:\n`;
-      dialogueSamples.slice(0, 3).forEach((sample, idx) => {
-        prompt += `[حوار ${idx + 1}]: "${sample.substring(0, 200)}..."\n`;
-      });
-      prompt += "\n";
-    }
-
-    prompt += `مجالات التركيز: ${focusAreas.map(this.translateFocusArea).join("، ")}\n`;
+    prompt += `مجالات التركيز: ${focusAreas.map((area) => this.translateFocusArea(area)).join("، ")}\n`;
     prompt += `تحليل الأنماط: ${analyzePatterns ? "نعم" : "لا"}\n`;
     prompt += `تحديد المشاكل: ${identifyProblems ? "نعم" : "لا"}\n`;
     prompt += `تقديم توصيات: ${provideRecommendations ? "نعم" : "لا"}\n\n`;
@@ -112,34 +95,7 @@ export class DialogueForensicsAgent extends BaseAgent {
    - هل يكشف عن الشخصيات؟
    - هل يبني التوتر أو يحل الصراع؟
 
-${
-  analyzePatterns
-    ? `7. **الأنماط المتكررة**:
-   - عادات حوارية مميزة
-   - تقنيات متكررة (جيدة أو سيئة)
-   - الموتيفات الحوارية`
-    : ""
-}
-
-${
-  identifyProblems
-    ? `8. **المشاكل الشائعة**:
-   - الحوار التعليمي الواضح (On-the-nose dialogue)
-   - الإفراط في الشرح والتوضيح
-   - التكرار غير المبرر
-   - عدم التمايز بين الشخصيات
-   - الافتعال أو عدم الطبيعية`
-    : ""
-}
-
-${
-  provideRecommendations
-    ? `9. **التوصيات والتحسينات**:
-   - اقتراحات محددة وقابلة للتطبيق
-   - أمثلة على كيفية إعادة صياغة حوارات ضعيفة
-   - استراتيجيات لتقوية الحوار`
-    : ""
-}
+${this.buildConditionalInstructions(analyzePatterns, identifyProblems, provideRecommendations)}
 
 10. **التقييم النهائي**: درجة من 10 مع تبرير موجز
 
@@ -150,15 +106,84 @@ ${
     return prompt;
   }
 
+  private buildOriginalTextSection(originalText: string): string {
+    return originalText
+      ? `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`
+      : "";
+  }
+
+  private buildCharactersSection(characters: unknown[]): string {
+    if (characters.length === 0) return "";
+
+    const lines = characters.slice(0, 6).map((char, idx) => {
+      const charRecord =
+        typeof char === "object" && char !== null && !Array.isArray(char)
+          ? (char as Record<string, unknown>)
+          : {};
+      const charName =
+        typeof char === "string"
+          ? char
+          : recordString(charRecord, "name", `شخصية ${idx + 1}`);
+      return `${idx + 1}. ${charName}`;
+    });
+
+    return `الشخصيات في الحوار:\n${lines.join("\n")}\n\n`;
+  }
+
+  private buildDialogueSamplesSection(dialogueSamples: string[]): string {
+    if (dialogueSamples.length === 0) return "";
+
+    const lines = dialogueSamples
+      .slice(0, 3)
+      .map(
+        (sample, idx) => `[حوار ${idx + 1}]: "${sample.substring(0, 200)}..."`
+      );
+
+    return `نماذج حوارية للتحليل:\n${lines.join("\n")}\n\n`;
+  }
+
+  private buildConditionalInstructions(
+    analyzePatterns: boolean,
+    identifyProblems: boolean,
+    provideRecommendations: boolean
+  ): string {
+    const sections: string[] = [];
+
+    if (analyzePatterns) {
+      sections.push(`7. **الأنماط المتكررة**:
+   - عادات حوارية مميزة
+   - تقنيات متكررة (جيدة أو سيئة)
+   - الموتيفات الحوارية`);
+    }
+
+    if (identifyProblems) {
+      sections.push(`8. **المشاكل الشائعة**:
+   - الحوار التعليمي الواضح (On-the-nose dialogue)
+   - الإفراط في الشرح والتوضيح
+   - التكرار غير المبرر
+   - عدم التمايز بين الشخصيات
+   - الافتعال أو عدم الطبيعية`);
+    }
+
+    if (provideRecommendations) {
+      sections.push(`9. **التوصيات والتحسينات**:
+   - اقتراحات محددة وقابلة للتطبيق
+   - أمثلة على كيفية إعادة صياغة حوارات ضعيفة
+   - استراتيجيات لتقوية الحوار`);
+    }
+
+    return sections.length > 0 ? `${sections.join("\n\n")}\n` : "";
+  }
+
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupDialogueText(output.text);
 
-    const authenticity = await this.assessAuthenticity(processedText);
-    const characterization = await this.assessCharacterization(processedText);
-    const functionality = await this.assessFunctionality(processedText);
-    const technicalQuality = await this.assessTechnicalQuality(processedText);
+    const authenticity = this.assessAuthenticity(processedText);
+    const characterization = this.assessCharacterization(processedText);
+    const functionality = this.assessFunctionality(processedText);
+    const technicalQuality = this.assessTechnicalQuality(processedText);
 
     const qualityScore =
       authenticity * 0.3 +
@@ -168,7 +193,7 @@ ${
 
     const adjustedConfidence = output.confidence * 0.5 + qualityScore * 0.5;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -192,7 +217,7 @@ ${
         recommendationsProvided: this.countRecommendations(processedText),
         dialogueSamplesAnalyzed: this.countDialogueSamples(processedText),
       },
-    };
+    });
   }
 
   private cleanupDialogueText(text: string): string {
@@ -206,7 +231,7 @@ ${
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessAuthenticity(text: string): Promise<number> {
+  private assessAuthenticity(text: string): number {
     let score = 0.5;
 
     const authenticityTerms = [
@@ -233,7 +258,7 @@ ${
     return Math.min(1, Math.max(0, score));
   }
 
-  private async assessCharacterization(text: string): Promise<number> {
+  private assessCharacterization(text: string): number {
     let score = 0.6;
 
     const charTerms = [
@@ -255,7 +280,7 @@ ${
     return Math.min(1, score);
   }
 
-  private async assessFunctionality(text: string): Promise<number> {
+  private assessFunctionality(text: string): number {
     let score = 0.5;
 
     const functionalTerms = [
@@ -280,7 +305,7 @@ ${
     return Math.min(1, score);
   }
 
-  private async assessTechnicalQuality(text: string): Promise<number> {
+  private assessTechnicalQuality(text: string): number {
     let score = 0.6;
 
     const technicalTerms = [
@@ -362,10 +387,10 @@ ${
     return areas[area] ?? area;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `نظرة عامة:
+    return Promise.resolve(`نظرة عامة:
 الحوار في النص يحتاج إلى تقييم شامل للأصالة والوظيفة الدرامية.
 
 الأصالة والطبيعية:
@@ -389,7 +414,7 @@ ${
 
 التقييم: 6.5/10 - حوار وظيفي يحتاج صقل وتعميق
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من نماذج الحوار للحصول على تحليل تشريحي أكثر تفصيلاً ودقة مع أمثلة محددة وتوصيات قابلة للتطبيق.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من نماذج الحوار للحصول على تحليل تشريحي أكثر تفصيلاً ودقة مع أمثلة محددة وتوصيات قابلة للتطبيق.`);
   }
 }
 

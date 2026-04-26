@@ -43,7 +43,7 @@ describe("CharacterDeepAnalyzerAgent", () => {
       },
     });
 
-    const prompt = mockExecuteStandardPattern.mock.calls[0]?.[0];
+    const prompt = mockExecuteStandardPattern.mock.calls[0]?.[0] as string;
 
     expect(prompt).toContain("أحمد");
     expect(prompt).toContain("تمهيد سابق");

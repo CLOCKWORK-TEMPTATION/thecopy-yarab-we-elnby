@@ -28,7 +28,7 @@ function buildHoursByDepartment(
   entries: StoredTimeEntry[]
 ): Record<string, number> {
   return entries.reduce<Record<string, number>>((acc, entry) => {
-    acc[entry.department] = (acc[entry.department] || 0) + entry.actualHours;
+    acc[entry.department] = (acc[entry.department] ?? 0) + entry.actualHours;
     return acc;
   }, {});
 }

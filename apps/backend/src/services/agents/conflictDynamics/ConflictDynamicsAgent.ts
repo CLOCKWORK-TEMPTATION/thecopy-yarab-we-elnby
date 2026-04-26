@@ -49,7 +49,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     super(
       "ConflictAnalyzer AI",
       TaskType.CONFLICT_DYNAMICS,
-      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt || ""
+      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.82;
@@ -76,10 +76,10 @@ export class ConflictDynamicsAgent extends BaseAgent {
    */
   private buildConflictContextSection(ctx: ConflictDynamicsContext | undefined): string {
     let section = "";
-    const originalText = ctx?.originalText || "";
-    const characters = ctx?.characters || [];
-    const plotPoints = ctx?.plotPoints || [];
-    const conflictTypes = ctx?.conflictTypes || ["internal", "interpersonal"];
+    const originalText = ctx?.originalText ?? "";
+    const characters = ctx?.characters ?? [];
+    const plotPoints = ctx?.plotPoints ?? [];
+    const conflictTypes = ctx?.conflictTypes ?? ["internal", "interpersonal"];
 
     if (originalText) {
       section += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
@@ -101,7 +101,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     let result = `الشخصيات الرئيسية:\n`;
     characters.slice(0, 5).forEach((char, idx) => {
       const charName =
-        typeof char === "string" ? char : char.name || `شخصية ${idx + 1}`;
+        typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
       result += `${idx + 1}. ${charName}\n`;
     });
     return result + "\n";
@@ -115,7 +115,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     let result = `نقاط الحبكة الرئيسية:\n`;
     plotPoints.slice(0, 4).forEach((point, idx) => {
       const pointText =
-        typeof point === "string" ? point : point.description || `نقطة ${idx + 1}`;
+        typeof point === "string" ? point : point.description ?? `نقطة ${idx + 1}`;
       result += `${idx + 1}. ${pointText}\n`;
     });
     return result + "\n";
@@ -189,13 +189,14 @@ export class ConflictDynamicsAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     const processedText = cleanupConflictText(output.text);
 
     const conflictIdentification =
-      await assessConflictIdentification(processedText);
-    const analysisDepth = await assessAnalysisDepth(processedText);
-    const evidenceQuality = await assessEvidenceQuality(processedText);
-    const insightfulness = await assessInsightfulness(processedText);
+      assessConflictIdentification(processedText);
+    const analysisDepth = assessAnalysisDepth(processedText);
+    const evidenceQuality = assessEvidenceQuality(processedText);
+    const insightfulness = assessInsightfulness(processedText);
 
     const qualityScore =
       conflictIdentification * 0.3 +
@@ -311,12 +312,13 @@ export class ConflictDynamicsAgent extends BaseAgent {
       "man-vs-technology": "ضد التكنولوجيا",
       "man-vs-supernatural": "ضد الخارق",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return `نظرة عامة:
 النص يحتوي على عدة مستويات من الصراعات التي تحرك الأحداث وتطور الشخصيات.
 

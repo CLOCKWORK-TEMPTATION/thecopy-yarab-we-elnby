@@ -371,7 +371,7 @@ export class MistralOCRService {
     }
 
     const content = await readFile(this.config.annotationSchemaPath, "utf-8");
-    const parsed = JSON.parse(content);
+    const parsed: unknown = JSON.parse(content);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error("ملف annotation schema يجب أن يكون كائن JSON.");
     }

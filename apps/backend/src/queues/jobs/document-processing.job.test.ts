@@ -14,6 +14,18 @@ import {
   DocumentProcessingJobData,
 } from './document-processing.job';
 
+import type { Job } from 'bullmq';
+
+function requireDocumentProcessingJob(
+  job: Job<unknown, unknown, string> | null | undefined
+): Job<DocumentProcessingJobData, unknown, string> {
+  expect(job).toBeDefined();
+  if (!job) {
+    throw new Error('Expected document processing job to exist');
+  }
+  return job as Job<DocumentProcessingJobData, unknown, string>;
+}
+
 vi.mock('redis', () => ({
   createClient: () => ({
     on: vi.fn(),
@@ -22,7 +34,6 @@ vi.mock('redis', () => ({
   }),
 }));
 
-describe('Document Processing Job', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -63,9 +74,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.fileType).toBe('pdf');
+      expect(job.data.fileType).toBe('pdf');
     });
 
     it('should handle DOCX documents', async () => {
@@ -79,9 +90,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.fileType).toBe('docx');
+      expect(job.data.fileType).toBe('docx');
     });
 
     it('should handle TXT documents', async () => {
@@ -95,9 +106,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.fileType).toBe('txt');
+      expect(job.data.fileType).toBe('txt');
     });
 
     it('should include project ID when provided', async () => {
@@ -112,9 +123,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.projectId).toBe('proj-789');
+      expect(job.data.projectId).toBe('proj-789');
     });
 
     it('should include processing options', async () => {
@@ -134,9 +145,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options).toEqual({
+      expect(job.data.options).toEqual({
         extractScenes: true,
         extractCharacters: true,
         extractDialogue: true,
@@ -193,12 +204,12 @@ describe('Document Processing Job', () => {
       expect(jobId).toBeDefined();
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options?.extractScenes).toBe(true);
-      expect(job?.data.options?.extractCharacters).toBe(true);
-      expect(job?.data.options?.extractDialogue).toBe(true);
-      expect(job?.data.options?.generateSummary).toBe(true);
+      expect(job.data.options?.extractScenes).toBe(true);
+      expect(job.data.options?.extractCharacters).toBe(true);
+      expect(job.data.options?.extractDialogue).toBe(true);
+      expect(job.data.options?.generateSummary).toBe(true);
     }, 10000);
 
     it('should process document with minimal options', async () => {
@@ -413,9 +424,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options?.extractScenes).toBe(true);
+      expect(job.data.options?.extractScenes).toBe(true);
     });
 
     it('should handle character extraction option', async () => {
@@ -432,9 +443,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options?.extractCharacters).toBe(true);
+      expect(job.data.options?.extractCharacters).toBe(true);
     });
 
     it('should handle dialogue extraction option', async () => {
@@ -451,9 +462,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options?.extractDialogue).toBe(true);
+      expect(job.data.options?.extractDialogue).toBe(true);
     });
 
     it('should handle summary generation option', async () => {
@@ -470,9 +481,9 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.options?.generateSummary).toBe(true);
+      expect(job.data.options?.generateSummary).toBe(true);
     });
   });
 
@@ -488,10 +499,10 @@ describe('Document Processing Job', () => {
       const jobId = await queueDocumentProcessing(jobData);
 
       const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
-      const job = await queue.getJob(jobId);
+      const job = requireDocumentProcessingJob(await queue.getJob(jobId));
 
-      expect(job?.data.documentId).toBe('doc-result');
-      expect(job?.data.userId).toBe('user-result');
+      expect(job.data.documentId).toBe('doc-result');
+      expect(job.data.userId).toBe('user-result');
     });
   });
 
@@ -531,4 +542,3 @@ describe('Document Processing Job', () => {
       expect(job?.name).toBe('document-processing');
     });
   });
-});

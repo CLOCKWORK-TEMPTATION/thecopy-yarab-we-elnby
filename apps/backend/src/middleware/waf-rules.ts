@@ -16,7 +16,7 @@ export const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack Detected via libinjection",
     description: "Detects SQL injection using common patterns",
     pattern:
-      /(\bSELECT\b\s+(\*|(?:[`"'\[]?[a-z_][\w$.\]`"']*\s*,\s*)*[`"'\[]?[a-z_][\w$.\]`"']*)\s+\bFROM\b\s+[`"'\[]?[a-z_][\w$.\]`"']*)|(\bINSERT\b\s+INTO\b[\s\S]{0,120}\bVALUES\b)|(\bUPDATE\b\s+[`"'\[]?[a-z_][\w$.\]`"']*\s+\bSET\b)|(\bDELETE\b\s+FROM\b\s+[`"'\[]?[a-z_][\w$.\]`"']*)|(\bDROP\b\s+(TABLE|DATABASE|VIEW|FUNCTION|PROCEDURE)\b)|(\bCREATE\b\s+(TABLE|DATABASE|VIEW|FUNCTION|PROCEDURE)\b)|(\bALTER\b\s+(TABLE|DATABASE)\b)|(\bTRUNCATE\b\s+TABLE\b)|(\bEXEC(?:UTE)?\b\s+[\w@])|(\bUNION\b\s+(ALL\s+)?SELECT\b)|(\bDECLARE\b\s+@?\w+)|(\b(OR|AND)\b\s+[\w'"]\s*[=<>])|(\'\s*(OR|AND)\s+\'?\d)|(\bHAVING\b\s+\d)|(\bORDER\s+BY\b\s+\d)/gi,
+      /(\bSELECT\b\s+(\*|(?:[`"'[]?[a-z_][\w$.\]`"']*\s*,\s*)*[`"'[]?[a-z_][\w$.\]`"']*)\s+\bFROM\b\s+[`"'[]?[a-z_][\w$.\]`"']*)|(\bINSERT\b\s+INTO\b[\s\S]{0,120}\bVALUES\b)|(\bUPDATE\b\s+[`"'[]?[a-z_][\w$.\]`"']*\s+\bSET\b)|(\bDELETE\b\s+FROM\b\s+[`"'[]?[a-z_][\w$.\]`"']*)|(\bDROP\b\s+(TABLE|DATABASE|VIEW|FUNCTION|PROCEDURE)\b)|(\bCREATE\b\s+(TABLE|DATABASE|VIEW|FUNCTION|PROCEDURE)\b)|(\bALTER\b\s+(TABLE|DATABASE)\b)|(\bTRUNCATE\b\s+TABLE\b)|(\bEXEC(?:UTE)?\b\s+[\w@])|(\bUNION\b\s+(ALL\s+)?SELECT\b)|(\bDECLARE\b\s+@?\w+)|(\b(OR|AND)\b\s+[\w'"]\s*[=<>])|('\s*(OR|AND)\s+'?\d)|(\bHAVING\b\s+\d)|(\bORDER\s+BY\b\s+\d)/gi,
     locations: ["body", "query", "path"],
     action: "block",
     severity: "critical",
@@ -27,7 +27,7 @@ export const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack: Common Injection Testing Detected",
     description: "Detects common SQL injection test payloads",
     pattern:
-      /(\'\s*(--|#|\/\*))|(\b(WAITFOR|BENCHMARK|SLEEP)\s*\()|(\bCHAR\s*\(\d+\))|(\bCONCAT\s*\(.*\))|(\bCONVERT\s*\()/gi,
+      /('\s*(--|#|\/\*))|(\b(WAITFOR|BENCHMARK|SLEEP)\s*\()|(\bCHAR\s*\(\d+\))|(\bCONCAT\s*\(.*\))|(\bCONVERT\s*\()/gi,
     locations: ["body", "query", "path"],
     action: "block",
     severity: "critical",
@@ -49,7 +49,7 @@ export const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack: SQL Tautology Detected",
     description: "Detects SQL tautologies (always-true conditions)",
     pattern:
-      /(\'\s*OR\s+\'?[^']*\'?\s*=\s*\'?[^']*\'?)|(\d+\s*=\s*\d+)|(\'\s*=\s*\')|(\bOR\s+1\s*=\s*1\b)|(\bAND\s+1\s*=\s*1\b)/gi,
+      /('\s*OR\s+'?[^']*'?\s*=\s*'?[^']*'?)|(\d+\s*=\s*\d+)|('\s*=\s*')|(\bOR\s+1\s*=\s*1\b)|(\bAND\s+1\s*=\s*1\b)/gi,
     locations: ["body", "query"],
     action: "block",
     severity: "high",

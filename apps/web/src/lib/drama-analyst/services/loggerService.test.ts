@@ -23,10 +23,12 @@ describe("LoggerService", () => {
 
   describe("Logging Levels", () => {
     it("should log at correct levels", () => {
-      const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "info")
+        .mockImplementation(() => undefined);
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => undefined);
 
       logger.info("Test info message");
       logger.error("Test error message");
@@ -38,10 +40,12 @@ describe("LoggerService", () => {
     it("should respect log level configuration", () => {
       logger.setLevel(LogLevel.ERROR);
 
-      const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "info")
+        .mockImplementation(() => undefined);
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => undefined);
 
       logger.info("This should not log");
       logger.error("This should log");
@@ -76,7 +80,7 @@ describe("LoggerService", () => {
 
     it("should limit buffer size", () => {
       // Set max logs to 5 for testing
-      (logger as any).maxLogs = 5;
+      Object.assign(logger, { maxLogs: 5 });
 
       for (let i = 0; i < 10; i++) {
         logger.info(`Message ${i}`);
@@ -113,7 +117,9 @@ describe("LoggerService", () => {
       process.env.NODE_ENV = "production";
 
       const prodLogger = new LoggerService();
-      const consoleSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "info")
+        .mockImplementation(() => undefined);
 
       prodLogger.info("Test message");
       expect(consoleSpy).not.toHaveBeenCalled();
@@ -135,9 +141,9 @@ describe("LoggerService", () => {
   describe("Error Handling", () => {
     it("should handle invalid inputs gracefully", () => {
       expect(() => {
-        logger.info(null as any);
-        logger.info(undefined as any);
-        logger.info(123 as any);
+        logger.info(null as unknown as string);
+        logger.info(undefined as unknown as string);
+        logger.info(123 as unknown as string);
       }).not.toThrow();
     });
   });

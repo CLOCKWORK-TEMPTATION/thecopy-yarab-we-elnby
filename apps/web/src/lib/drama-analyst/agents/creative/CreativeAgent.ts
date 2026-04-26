@@ -3,6 +3,11 @@ import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
 import {
+  asAgentContext,
+  readString,
+  readStringArray,
+} from "../shared/contextAccess";
+import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
@@ -34,13 +39,16 @@ export class CreativeAgent extends BaseAgent {
     const { input: taskInput, context } = input;
 
     // Extract relevant context
-    const contextObj =
-      typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj as any)?.originalText ?? "";
-    const developmentFocus = (contextObj as any)?.developmentFocus ?? "general";
-    const creativeConstraints = (contextObj as any)?.constraints ?? [];
-    const targetAudience = (contextObj as any)?.targetAudience ?? "عام";
-    const creativeGoals = (contextObj as any)?.goals ?? [];
+    const contextObj = asAgentContext(context);
+    const originalText = readString(contextObj, "originalText");
+    const developmentFocus = readString(
+      contextObj,
+      "developmentFocus",
+      "general"
+    );
+    const creativeConstraints = readStringArray(contextObj, "constraints");
+    const targetAudience = readString(contextObj, "targetAudience", "عام");
+    const creativeGoals = readStringArray(contextObj, "goals");
 
     // Build structured prompt
     let prompt = `${CREATIVE_MODE_INSTRUCTIONS}\n\n`;
@@ -100,8 +108,8 @@ export class CreativeAgent extends BaseAgent {
     const processedText = this.cleanupCreativeText(output.text);
 
     // Assess creative quality
-    const creativityScore = await this.assessCreativity(processedText);
-    const practicalityScore = await this.assessPracticality(processedText);
+    const creativityScore = this.assessCreativity(processedText);
+    const practicalityScore = this.assessPracticality(processedText);
 
     // Balance confidence between creativity and practicality
     const adjustedConfidence =
@@ -116,7 +124,7 @@ export class CreativeAgent extends BaseAgent {
       practicalityScore
     );
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -129,7 +137,7 @@ export class CreativeAgent extends BaseAgent {
         implementationDifficulty:
           this.calculateImplementationDifficulty(practicalityScore),
       },
-    };
+    });
   }
 
   /**
@@ -219,7 +227,7 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Assess creativity score
    */
-  private async assessCreativity(text: string): Promise<number> {
+  private assessCreativity(text: string): number {
     let score = 0.5; // Base score
 
     // Check for innovative keywords
@@ -262,7 +270,7 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Assess practicality score
    */
-  private async assessPracticality(text: string): Promise<number> {
+  private assessPracticality(text: string): number {
     let score = 0.6; // Base score for practicality
 
     // Check for actionable language
@@ -367,14 +375,16 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Generate fallback response for creative tasks
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const focus =
-      (typeof input.context === "object" && input.context?.developmentFocus) ??
-      "general";
+    const focus = readString(
+      asAgentContext(input.context),
+      "developmentFocus",
+      "general"
+    );
 
-    return `تحليل إبداعي:
+    return Promise.resolve(`تحليل إبداعي:
 لتطوير ${this.translateFocus(focus)} في النص المقدم، يمكن التركيز على تعزيز العناصر الأساسية وإضافة عمق أكبر.
 
 مقترحات التطوير:
@@ -383,7 +393,7 @@ export class CreativeAgent extends BaseAgent {
 - إضافة طبقات من المعنى والرمزية
 - تحسين البنية السردية
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة للحصول على تحليل أعمق ومقترحات أكثر تفصيلاً.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة للحصول على تحليل أعمق ومقترحات أكثر تفصيلاً.`);
   }
 }
 

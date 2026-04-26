@@ -18,7 +18,7 @@ const VALUE_EXTRACTORS: Record<RequestLocation, (req: Request) => string> = {
   body: (req) =>
     typeof req.body === "object"
       ? JSON.stringify(req.body)
-      : String(req.body || ""),
+      : String(req.body ?? ""),
   query: (req) =>
     typeof req.query === "object"
       ? JSON.stringify(req.query)
@@ -125,7 +125,7 @@ function checkRuleForLocation(
     let matchedValue = value.substring(0, 100);
     try {
       const match = rule.pattern.exec(value.substring(0, 1000));
-      if (match && match[0]) {
+      if (match?.[0]) {
         matchedValue = match[0].substring(0, 100);
       }
       rule.pattern.lastIndex = 0;
@@ -174,7 +174,7 @@ export function isRegexSafe(pattern: RegExp): boolean {
     return false;
   }
 
-  const quantifierCount = (patternStr.match(/[+*?]/g) || []).length;
+  const quantifierCount = (patternStr.match(/[+*?]/g) ?? []).length;
   if (quantifierCount > 10) {
     return false;
   }

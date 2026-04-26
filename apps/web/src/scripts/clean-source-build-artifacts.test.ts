@@ -11,17 +11,38 @@ import {
 
 const temporaryDirectories: string[] = [];
 
+const createDirectoryEntry = (
+  name: string,
+  isDirectory: boolean
+): import("node:fs").Dirent =>
+  ({
+    name,
+    isDirectory: () => isDirectory,
+  }) as unknown as import("node:fs").Dirent;
+
+const createBusyError = (code: "EBUSY" | "ENOTEMPTY"): Error =>
+  Object.assign(new Error(code === "EBUSY" ? "busy" : "not empty"), { code });
+
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories
       .splice(0)
-      .map(async (directoryPath) =>
+      .map((directoryPath) =>
         rm(directoryPath, { recursive: true, force: true })
       )
   );
 });
 
 describe("clearNextDirectory", () => {
+  registerClearNextDirectoryRemovalTests();
+  registerClearNextDirectoryBusyTests();
+});
+
+describe("removeNestedNextDirs", () => {
+  registerRemoveNestedNextDirsTests();
+});
+
+function registerClearNextDirectoryRemovalTests(): void {
   it("removes the full directory when no cache mount blocks deletion", async () => {
     const rootDirectory = await mkdir(
       path.join(os.tmpdir(), `clean-build-${Date.now()}`),
@@ -39,39 +60,58 @@ describe("clearNextDirectory", () => {
     await expect(access(nextDirectory)).rejects.toThrow();
   });
 
-  it("preserves cache when the directory cannot be removed because it is busy", async () => {
-    const nextDirectory = "/app/apps/web/.next";
+  it("treats ENOTEMPTY like a transient Windows cleanup error", async () => {
+    const nextDirectory = "C:\\app\\apps\\web\\.next";
     const removedTargets: string[] = [];
-    const removePath = vi.fn(async (targetPath: string) => {
-      if (
-        targetPath === nextDirectory ||
-        targetPath === path.join(nextDirectory, "cache")
-      ) {
-        const error = new Error("busy");
-        Object.assign(error, { code: "EBUSY" });
-        throw error;
+    const removePath = vi.fn((targetPath: string) => {
+      if (targetPath === nextDirectory) {
+        return Promise.reject(createBusyError("ENOTEMPTY"));
       }
 
       removedTargets.push(targetPath);
+      return Promise.resolve();
     });
 
     const removedPaths = await clearNextDirectory(nextDirectory, {
       pathExists: () => true,
-      readDirectory: async () =>
-        [
-          {
-            name: "cache",
-            isDirectory: () => true,
-          },
-          {
-            name: "server",
-            isDirectory: () => true,
-          },
-          {
-            name: "trace",
-            isDirectory: () => false,
-          },
-        ] as unknown as import("node:fs").Dirent[],
+      readDirectory: () =>
+        Promise.resolve([createDirectoryEntry("_events_33376.json", false)]),
+      removePath,
+    });
+
+    expect(removedTargets).toEqual([
+      path.join(nextDirectory, "_events_33376.json"),
+    ]);
+    expect(removedPaths).toEqual([
+      path.join(nextDirectory, "_events_33376.json"),
+    ]);
+  });
+}
+
+function registerClearNextDirectoryBusyTests(): void {
+  it("preserves cache when the directory cannot be removed because it is busy", async () => {
+    const nextDirectory = "/app/apps/web/.next";
+    const removedTargets: string[] = [];
+    const removePath = vi.fn((targetPath: string) => {
+      if (
+        targetPath === nextDirectory ||
+        targetPath === path.join(nextDirectory, "cache")
+      ) {
+        return Promise.reject(createBusyError("EBUSY"));
+      }
+
+      removedTargets.push(targetPath);
+      return Promise.resolve();
+    });
+
+    const removedPaths = await clearNextDirectory(nextDirectory, {
+      pathExists: () => true,
+      readDirectory: () =>
+        Promise.resolve([
+          createDirectoryEntry("cache", true),
+          createDirectoryEntry("server", true),
+          createDirectoryEntry("trace", false),
+        ]),
       removePath,
     });
 
@@ -89,37 +129,27 @@ describe("clearNextDirectory", () => {
   it("skips busy entries gracefully in Docker overlay filesystem", async () => {
     const nextDirectory = "/app/apps/web/.next";
     const removedTargets: string[] = [];
-    const removePath = vi.fn(async (targetPath: string) => {
+    const removePath = vi.fn((targetPath: string) => {
       if (
         targetPath === nextDirectory ||
         targetPath === path.join(nextDirectory, "cache") ||
         targetPath === path.join(nextDirectory, "server")
       ) {
-        const error = new Error("busy");
-        Object.assign(error, { code: "EBUSY" });
-        throw error;
+        return Promise.reject(createBusyError("EBUSY"));
       }
 
       removedTargets.push(targetPath);
+      return Promise.resolve();
     });
 
     const removedPaths = await clearNextDirectory(nextDirectory, {
       pathExists: () => true,
-      readDirectory: async () =>
-        [
-          {
-            name: "cache",
-            isDirectory: () => true,
-          },
-          {
-            name: "server",
-            isDirectory: () => true,
-          },
-          {
-            name: "trace",
-            isDirectory: () => false,
-          },
-        ] as unknown as import("node:fs").Dirent[],
+      readDirectory: () =>
+        Promise.resolve([
+          createDirectoryEntry("cache", true),
+          createDirectoryEntry("server", true),
+          createDirectoryEntry("trace", false),
+        ]),
       removePath,
     });
 
@@ -136,56 +166,15 @@ describe("clearNextDirectory", () => {
 
     const removedPaths = await clearNextDirectory(nextDirectory, {
       pathExists: () => true,
-      readDirectory: async () => {
-        const error = new Error("busy");
-        Object.assign(error, { code: "EBUSY" });
-        throw error;
-      },
-      removePath: async () => {
-        const error = new Error("busy");
-        Object.assign(error, { code: "EBUSY" });
-        throw error;
-      },
+      readDirectory: () => Promise.reject(createBusyError("EBUSY")),
+      removePath: () => Promise.reject(createBusyError("EBUSY")),
     });
 
     expect(removedPaths).toEqual([`${nextDirectory} (preserved: busy)`]);
   });
+}
 
-  it("treats ENOTEMPTY like a transient Windows cleanup error", async () => {
-    const nextDirectory = "C:\\app\\apps\\web\\.next";
-    const removedTargets: string[] = [];
-    const removePath = vi.fn(async (targetPath: string) => {
-      if (targetPath === nextDirectory) {
-        const error = new Error("not empty");
-        Object.assign(error, { code: "ENOTEMPTY" });
-        throw error;
-      }
-
-      removedTargets.push(targetPath);
-    });
-
-    const removedPaths = await clearNextDirectory(nextDirectory, {
-      pathExists: () => true,
-      readDirectory: async () =>
-        [
-          {
-            name: "_events_33376.json",
-            isDirectory: () => false,
-          },
-        ] as unknown as import("node:fs").Dirent[],
-      removePath,
-    });
-
-    expect(removedTargets).toEqual([
-      path.join(nextDirectory, "_events_33376.json"),
-    ]);
-    expect(removedPaths).toEqual([
-      path.join(nextDirectory, "_events_33376.json"),
-    ]);
-  });
-});
-
-describe("removeNestedNextDirs", () => {
+function registerRemoveNestedNextDirsTests(): void {
   it("cleans nested build artifacts below the source root", async () => {
     const rootDirectory = await mkdir(
       path.join(os.tmpdir(), `nested-build-${Date.now()}`),
@@ -213,23 +202,16 @@ describe("removeNestedNextDirs", () => {
 
     const removedPaths = await removeNestedNextDirs(rootDirectory, {
       pathExists: () => true,
-      readDirectory: async (targetPath) => {
+      readDirectory: (targetPath) => {
         if (targetPath === rootDirectory) {
-          return [
-            {
-              name: "feature",
-              isDirectory: () => true,
-            },
-          ] as unknown as import("node:fs").Dirent[];
+          return Promise.resolve([createDirectoryEntry("feature", true)]);
         }
 
-        const error = new Error("busy");
-        Object.assign(error, { code: "EBUSY" });
-        throw error;
+        return Promise.reject(createBusyError("EBUSY"));
       },
-      removePath: async () => undefined,
+      removePath: () => Promise.resolve(),
     });
 
     expect(removedPaths).toEqual([]);
   });
-});
+}

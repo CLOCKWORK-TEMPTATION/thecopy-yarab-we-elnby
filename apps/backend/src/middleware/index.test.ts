@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, type NextFunction, type Request, type Response } from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
@@ -40,7 +40,18 @@ vi.mock('./slo-metrics.middleware', () => ({
   ERROR_BUDGETS: { api: { availability: 43.2 }, auth: { successRate: 216 }, gemini: { successRate: 2160 }, database: { availability: 21.6 } },
 }));
 
-describe('Middleware Setup', () => {
+interface ReceivedBody {
+  received: unknown;
+}
+
+interface SuccessBody {
+  success: boolean;
+}
+
+function getResponseBody<T>(response: { body: unknown }): T {
+  return response.body as T;
+}
+
   let app: Express;
 
   beforeEach(async () => {
@@ -94,7 +105,7 @@ describe('Middleware Setup', () => {
       
       // Request without Origin header should succeed
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({ success: true });
+      expect(getResponseBody<SuccessBody>(response)).toEqual({ success: true });
     });
 
     it('should block requests from disallowed origins', async () => {
@@ -122,7 +133,8 @@ describe('Middleware Setup', () => {
   describe('Body parsing middleware', () => {
     it('should parse JSON body', async () => {
       app.post('/json-test', (req, res) => {
-        res.json({ received: req.body });
+        const received: unknown = req.body;
+        res.json({ received });
       });
 
       const testData = { name: 'Test', value: 123 };
@@ -132,12 +144,13 @@ describe('Middleware Setup', () => {
         .send(testData)
         .set('Content-Type', 'application/json');
 
-      expect(response.body.received).toEqual(testData);
+      expect(getResponseBody<ReceivedBody>(response).received).toEqual(testData);
     });
 
     it('should parse URL-encoded body', async () => {
       app.post('/form-test', (req, res) => {
-        res.json({ received: req.body });
+        const received: unknown = req.body;
+        res.json({ received });
       });
 
       const response = await request(app)
@@ -145,7 +158,7 @@ describe('Middleware Setup', () => {
         .send('name=Test&value=123')
         .set('Content-Type', 'application/x-www-form-urlencoded');
 
-      expect(response.body.received).toEqual({
+      expect(getResponseBody<ReceivedBody>(response).received).toEqual({
         name: 'Test',
         value: '123',
       });
@@ -211,7 +224,7 @@ describe('Middleware Setup', () => {
   describe('Error handling middleware', () => {
     it('should handle errors gracefully', async () => {
       // Add explicit error handler for test
-      app.use((error: Error, req: any, res: any, next: any) => {
+      app.use((_error: Error, _req: Request, res: Response, _next: NextFunction) => {
         res.status(500).json({
           success: false,
           error: 'حدث خطأ داخلي في الخادم',
@@ -221,7 +234,7 @@ describe('Middleware Setup', () => {
       const response = await request(app).get('/error');
 
       expect(response.status).toBe(500);
-      expect(response.body).toMatchObject({
+      expect(getResponseBody<SuccessBody>(response)).toMatchObject({
         success: false,
       });
     });
@@ -232,7 +245,7 @@ describe('Middleware Setup', () => {
       vi.mocked(logger.error).mockClear();
 
       // Add explicit error handler that logs
-      app.use((error: Error, req: any, res: any, next: any) => {
+      app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
         logger.error('Unhandled error:', error);
         res.status(500).json({ success: false });
       });
@@ -243,4 +256,3 @@ describe('Middleware Setup', () => {
       expect(logger.error).toHaveBeenCalled();
     });
   });
-});

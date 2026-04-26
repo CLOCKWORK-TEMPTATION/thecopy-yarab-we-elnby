@@ -161,7 +161,7 @@ export function createEmptyStore(): ArtDirectorStore {
 
 export function resolveStorePath(): string {
   return (
-    process.env['ART_DIRECTOR_STORE_PATH'] ||
+    process.env['ART_DIRECTOR_STORE_PATH'] ??
     path.join(process.cwd(), ".data", "art-director", "store.json")
   );
 }

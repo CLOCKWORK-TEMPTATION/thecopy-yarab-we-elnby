@@ -2,6 +2,11 @@ import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
 import {
+  asAgentContext,
+  readRecord,
+  readString,
+} from "../shared/contextAccess";
+import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
@@ -49,23 +54,34 @@ ${userInput}
 `;
 
     // إضافة السياق من المحطات السابقة
-    if (typeof context === "object" && context?.previousStations) {
+    const previousStations = readRecord(
+      asAgentContext(context),
+      "previousStations"
+    );
+    if (Object.keys(previousStations).length > 0) {
       prompt += `## السياق من المحطات السابقة:\n`;
 
-      if (context.previousStations.analysis) {
-        prompt += `\n### التحليل الأولي:\n${context.previousStations.analysis}\n`;
+      const analysis = readString(previousStations, "analysis");
+      if (analysis) {
+        prompt += `\n### التحليل الأولي:\n${analysis}\n`;
       }
 
-      if (context.previousStations.thematicAnalysis) {
-        prompt += `\n### التحليل الموضوعي:\n${context.previousStations.thematicAnalysis}\n`;
+      const thematicAnalysis = readString(previousStations, "thematicAnalysis");
+      if (thematicAnalysis) {
+        prompt += `\n### التحليل الموضوعي:\n${thematicAnalysis}\n`;
       }
 
-      if (context.previousStations.characterAnalysis) {
-        prompt += `\n### تحليل الشخصيات:\n${context.previousStations.characterAnalysis}\n`;
+      const characterAnalysis = readString(
+        previousStations,
+        "characterAnalysis"
+      );
+      if (characterAnalysis) {
+        prompt += `\n### تحليل الشخصيات:\n${characterAnalysis}\n`;
       }
 
-      if (context.previousStations.culturalContext) {
-        prompt += `\n### السياق الثقافي:\n${context.previousStations.culturalContext}\n`;
+      const culturalContext = readString(previousStations, "culturalContext");
+      if (culturalContext) {
+        prompt += `\n### السياق الثقافي:\n${culturalContext}\n`;
       }
     }
 
@@ -141,7 +157,7 @@ ${userInput}
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -180,7 +196,7 @@ ${userInput}
       worldQuality.coherence * 0.1;
     const adjustedConfidence = output.confidence * 0.6 + qualityScore * 0.4;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       confidence: adjustedConfidence,
@@ -191,7 +207,7 @@ ${userInput}
         worldLength: cleanedText.length,
         sectionsCount: this.countSections(cleanedText),
       },
-    };
+    });
   }
 
   /**
@@ -285,10 +301,10 @@ ${userInput}
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `# عالم درامي - نسخة أولية
+    return Promise.resolve(`# عالم درامي - نسخة أولية
 
 ## نظرة عامة
 عالم درامي غني بالإمكانيات السردية، يحتاج إلى تطوير تفصيلي.
@@ -311,7 +327,7 @@ ${userInput}
 ## ملاحظات للكتّاب
 هذا العالم يوفر إطاراً أساسياً للسرد. يُنصح بتطوير التفاصيل الدقيقة حسب احتياجات القصة المحددة.
 
-ملاحظة: هذه نسخة أولية. لبناء عالم أكثر تفصيلاً وغنىً، يُرجى تفعيل الخيارات المتقدمة وتوفير مزيد من السياق والمتطلبات المحددة.`;
+ملاحظة: هذه نسخة أولية. لبناء عالم أكثر تفصيلاً وغنىً، يُرجى تفعيل الخيارات المتقدمة وتوفير مزيد من السياق والمتطلبات المحددة.`);
   }
 }
 

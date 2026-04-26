@@ -2,6 +2,20 @@
  * Prompt builder utilities for TensionOptimizerAgent
  * Extracted to reduce buildPrompt complexity
  */
+import { recordString } from "../shared/contextAccess";
+
+interface TensionInfoOptions {
+  currentLevel: string;
+  targetLevel: string;
+  tensionType: string;
+  pacePreference: string;
+  identifyPeaks: boolean;
+  analyzeRelease: boolean;
+  provideRecommendations: boolean;
+  translateLevel: (level: string) => string;
+  translateTensionType: (type: string) => string;
+  translatePace: (pace: string) => string;
+}
 
 /**
  * Build original text section
@@ -14,15 +28,19 @@ export function buildOriginalTextSection(originalText: string): string {
 /**
  * Build scene breakdown section
  */
-export function buildSceneBreakdownSection(sceneBreakdown: any[]): string {
+export function buildSceneBreakdownSection(sceneBreakdown: unknown[]): string {
   if (sceneBreakdown.length === 0) return "";
 
   let section = `تفصيل المشاهد:\n`;
-  sceneBreakdown.slice(0, 5).forEach((scene: any, idx: number) => {
+  sceneBreakdown.slice(0, 5).forEach((scene, idx: number) => {
+    const sceneRecord =
+      typeof scene === "object" && scene !== null && !Array.isArray(scene)
+        ? (scene as Record<string, unknown>)
+        : {};
     const sceneDesc =
       typeof scene === "string"
         ? scene
-        : (scene.description ?? `مشهد ${idx + 1}`);
+        : recordString(sceneRecord, "description", `مشهد ${idx + 1}`);
     section += `${idx + 1}. ${sceneDesc}\n`;
   });
   section += "\n";
@@ -32,18 +50,20 @@ export function buildSceneBreakdownSection(sceneBreakdown: any[]): string {
 /**
  * Build tension information section
  */
-export function buildTensionInfoSection(
-  currentLevel: string,
-  targetLevel: string,
-  tensionType: string,
-  pacePreference: string,
-  identifyPeaks: boolean,
-  analyzeRelease: boolean,
-  provideRecommendations: boolean,
-  translateLevel: (level: string) => string,
-  translateTensionType: (type: string) => string,
-  translatePace: (pace: string) => string
-): string {
+export function buildTensionInfoSection(options: TensionInfoOptions): string {
+  const {
+    currentLevel,
+    targetLevel,
+    tensionType,
+    pacePreference,
+    identifyPeaks,
+    analyzeRelease,
+    provideRecommendations,
+    translateLevel,
+    translateTensionType,
+    translatePace,
+  } = options;
+
   let section = `معلومات التوتر:\n`;
   section += `- المستوى الحالي: ${translateLevel(currentLevel)}\n`;
   section += `- المستوى المستهدف: ${translateLevel(targetLevel)}\n`;

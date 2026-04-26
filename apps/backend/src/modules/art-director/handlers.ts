@@ -143,6 +143,7 @@ async function handleHealth(): Promise<ArtDirectorHandlerResponse> {
 }
 
 async function handlePlugins(): Promise<ArtDirectorHandlerResponse> {
+  await Promise.resolve();
   const plugins = getPluginCatalog();
   return success({ plugins, count: plugins.length });
 }

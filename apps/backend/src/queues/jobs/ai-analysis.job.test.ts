@@ -10,7 +10,18 @@ import { queueManager, QueueName } from '@/queues/queue.config';
 
 import { queueAIAnalysis, registerAIAnalysisWorker, AIAnalysisJobData } from './ai-analysis.job';
 
-describe('AI Analysis Job Processing', () => {
+import type { Job } from 'bullmq';
+
+function requireAIAnalysisJob(
+  job: Job<unknown, unknown, string> | null | undefined
+): Job<AIAnalysisJobData, unknown, string> {
+  expect(job).toBeDefined();
+  if (!job) {
+    throw new Error('Expected AI analysis job to exist');
+  }
+  return job as Job<AIAnalysisJobData, unknown, string>;
+}
+
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
@@ -92,9 +103,9 @@ describe('AI Analysis Job Processing', () => {
       const jobId = await queueAIAnalysis(jobData);
 
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
 
-      expect(job?.data.options).toEqual(customOptions);
+      expect(job.data.options).toEqual(customOptions);
     });
 
     it('should apply retry configuration', async () => {
@@ -151,10 +162,8 @@ describe('AI Analysis Job Processing', () => {
       const completedJob = await queue.getJob(jobId);
 
       // Job should be processed
-      if (completedJob) {
-        const state = await completedJob.getState();
-        expect(['completed', 'active', 'waiting']).toContain(state);
-      }
+      const state = await requireAIAnalysisJob(completedJob).getState();
+      expect(['completed', 'active', 'waiting']).toContain(state);
     }, 10000);
 
     it('should process character analysis job', async () => {
@@ -171,8 +180,8 @@ describe('AI Analysis Job Processing', () => {
       expect(jobId).toBeDefined();
 
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
-      expect(job?.data.type).toBe('character');
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
+      expect(job.data.type).toBe('character');
     });
 
     it('should process shot analysis job', async () => {
@@ -189,8 +198,8 @@ describe('AI Analysis Job Processing', () => {
       expect(jobId).toBeDefined();
 
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
-      expect(job?.data.type).toBe('shot');
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
+      expect(job.data.type).toBe('shot');
     });
 
     it('should process project analysis job', async () => {
@@ -207,8 +216,8 @@ describe('AI Analysis Job Processing', () => {
       expect(jobId).toBeDefined();
 
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
-      expect(job?.data.type).toBe('project');
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
+      expect(job.data.type).toBe('project');
     });
   });
 
@@ -238,18 +247,18 @@ describe('AI Analysis Job Processing', () => {
     it('should handle invalid analysis type', async () => {
       registerAIAnalysisWorker();
 
-      const jobData: any = {
+      const jobData = {
         type: 'invalid-type',
         entityId: 'test-id',
         userId: 'user-id',
         analysisType: 'full',
-      };
+      } as unknown as AIAnalysisJobData;
 
       const jobId = await queueAIAnalysis(jobData);
 
       // Job should be added but will fail during processing
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
 
       expect(job).toBeDefined();
     });
@@ -331,10 +340,10 @@ describe('AI Analysis Job Processing', () => {
 
       const jobId = await queueAIAnalysis(jobData);
       const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
-      const job = await queue.getJob(jobId);
+      const job = requireAIAnalysisJob(await queue.getJob(jobId));
 
-      expect(job?.data.entityId).toBe('shot-entity');
-      expect(job?.data.type).toBe('shot');
+      expect(job.data.entityId).toBe('shot-entity');
+      expect(job.data.type).toBe('shot');
     });
   });
 
@@ -430,4 +439,3 @@ describe('AI Analysis Job Processing', () => {
       jobIds.forEach((id) => expect(id).toBeDefined());
     });
   });
-});

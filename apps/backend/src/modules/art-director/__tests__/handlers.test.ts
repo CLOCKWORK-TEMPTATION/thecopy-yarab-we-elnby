@@ -99,15 +99,17 @@ describe("art-director handlers", () => {
 
     expect(result.status).toBe(200);
     expect(result.body.success).toBe(true);
-    expect(result.body.data).toMatchObject({
-      consistent: false,
-      score: expect.any(Number),
-      issues: expect.any(Array),
-      suggestions: expect.any(Array),
-    });
-    expect(
-      (result.body.data as { issues: unknown[] }).issues.length,
-    ).toBeGreaterThan(0);
+    const data = result.body.data as {
+      consistent: boolean;
+      score: unknown;
+      issues: unknown[];
+      suggestions: unknown[];
+    };
+    expect(data.consistent).toBe(false);
+    expect(typeof data.score).toBe("number");
+    expect(Array.isArray(data.issues)).toBe(true);
+    expect(Array.isArray(data.suggestions)).toBe(true);
+    expect(data.issues.length).toBeGreaterThan(0);
   });
 
   it("ينشئ كتاب إنتاج ثم يصدّره بصيغة قابلة للتنزيل", async () => {

@@ -56,6 +56,23 @@ const CSRF_EXEMPT_PATHS = [
   '/metrics',
 ];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getCookieValue(req: Request, name: string): string | undefined {
+  const cookies: unknown = req.cookies;
+  if (!isRecord(cookies)) {
+    return undefined;
+  }
+  const value = cookies[name];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function getHeaderValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 /**
  * Check if a path is exempt from CSRF protection
  */
@@ -78,7 +95,7 @@ function isExemptPath(path: string): boolean {
  * SECURITY: Uses Double Submit Cookie pattern to prevent CSRF attacks
  */
 function ensureCsrfCookie(req: Request, res: Response): void {
-  if (!req.cookies[CSRF_COOKIE_NAME]) {
+  if (!getCookieValue(req, CSRF_COOKIE_NAME)) {
     issueCsrfCookie(res);
   }
 }
@@ -96,8 +113,8 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     return next();
   }
 
-  const cookieToken = req.cookies[CSRF_COOKIE_NAME];
-  const headerToken = req.headers[CSRF_HEADER_NAME.toLowerCase()] as string;
+  const cookieToken = getCookieValue(req, CSRF_COOKIE_NAME);
+  const headerToken = getHeaderValue(req.headers[CSRF_HEADER_NAME.toLowerCase()]);
 
   if (!cookieToken || !headerToken) {
     logger.warn('CSRF validation failed: Missing token', {
@@ -165,5 +182,5 @@ export function issueCsrfCookie(res: Response): string {
  * Useful for including in API responses
  */
 export function getCsrfToken(req: Request): string | undefined {
-  return req.cookies[CSRF_COOKIE_NAME];
+  return getCookieValue(req, CSRF_COOKIE_NAME);
 }

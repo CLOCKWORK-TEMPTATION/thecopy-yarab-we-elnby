@@ -16,8 +16,8 @@ interface EventParams {
   event_category?: string;
   event_label?: string;
   value?: number;
-  custom_map?: Record<string, any>;
-  [key: string]: any;
+  custom_map?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface UserProperties {
@@ -25,7 +25,7 @@ interface UserProperties {
   session_id?: string;
   user_type?: string;
   subscription_status?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 declare global {
@@ -36,11 +36,16 @@ declare global {
   }
 }
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error && error.message.trim()
+    ? error.message
+    : "Unknown error";
+
 class AnalyticsService {
   private config: GA4Config;
   private isInitialized = false;
   private userProperties: UserProperties = {};
-  private customDimensions: Record<string, any> = {};
+  private customDimensions: Record<string, unknown> = {};
 
   constructor(config: Partial<GA4Config>) {
     this.config = {
@@ -94,8 +99,8 @@ class AnalyticsService {
 
     // Initialize gtag
     window.dataLayer = window.dataLayer ?? [];
-    window.gtag = function () {
-      window.dataLayer?.push(arguments);
+    window.gtag = (...args: unknown[]) => {
+      window.dataLayer?.push(args);
     };
 
     // Configure GA4
@@ -291,7 +296,7 @@ class AnalyticsService {
     // Track unhandled promise rejections
     window.addEventListener("unhandledrejection", (event) => {
       this.sendEvent("unhandled_promise_rejection", {
-        error_message: event.reason?.message ?? "Unknown error",
+        error_message: getErrorMessage(event.reason),
         page_location: window.location.href,
       });
     });
@@ -326,7 +331,7 @@ class AnalyticsService {
     }
   }
 
-  public setCustomDimensions(dimensions: Record<string, any>): void {
+  public setCustomDimensions(dimensions: Record<string, unknown>): void {
     if (!this.isInitialized) return;
 
     this.customDimensions = { ...this.customDimensions, ...dimensions };
@@ -403,7 +408,7 @@ class AnalyticsService {
   public trackUserEngagement(
     action: string,
     component: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ): void {
     this.sendEvent("user_engagement", {
       event_category: "User Interaction",
@@ -501,7 +506,7 @@ class AnalyticsService {
     return { ...this.userProperties };
   }
 
-  public getCustomDimensions(): Record<string, any> {
+  public getCustomDimensions(): Record<string, unknown> {
     return { ...this.customDimensions };
   }
 
@@ -513,7 +518,7 @@ class AnalyticsService {
 
     // Clear global functions
     if (window.gtag) {
-      delete (window as any).gtag;
+      delete window.gtag;
     }
 
     this.isInitialized = false;

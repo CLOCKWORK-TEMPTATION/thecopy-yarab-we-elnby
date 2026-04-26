@@ -38,7 +38,7 @@ interface StoredActorAiRecord {
 }
 
 function resolveStoreRoot(): string {
-  return process.env['ACTORAI_STORE_DIR'] || path.join(process.cwd(), ".data", "actorai");
+  return process.env['ACTORAI_STORE_DIR'] ?? path.join(process.cwd(), ".data", "actorai");
 }
 
 function resolveStorePath(kind: ActorAiRecordKind): string {
@@ -131,7 +131,7 @@ export class ActorAiService {
       const [created] = await db
         .insert(actoraiAnalytics)
         .values({
-          userId: userId || null,
+          userId: userId ?? null,
           category,
           payload: (payload["data"] ?? payload) as Record<string, unknown>,
           metadata: (payload["metadata"] ?? {}) as Record<string, unknown>,

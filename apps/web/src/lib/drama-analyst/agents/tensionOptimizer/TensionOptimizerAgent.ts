@@ -1,6 +1,7 @@
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
+import { asAgentContext } from "../shared/contextAccess";
 import {
   StandardAgentInput,
   StandardAgentOutput,
@@ -19,8 +20,8 @@ import {
 
 interface TensionOptimizerContext {
   originalText?: string;
-  analysisReport?: any;
-  sceneBreakdown?: any[];
+  analysisReport?: unknown;
+  sceneBreakdown?: unknown[];
   currentTensionLevel?: string; // 'low', 'medium', 'high', 'critical'
   targetTensionLevel?: string;
   tensionType?: string; // 'suspense', 'conflict', 'anticipation', 'mystery'
@@ -48,7 +49,7 @@ export class TensionOptimizerAgent extends BaseAgent {
 
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
-    const ctx = context as TensionOptimizerContext;
+    const ctx = asAgentContext(context) as TensionOptimizerContext;
 
     // Extract context with defaults
     const originalText = ctx?.originalText ?? "";
@@ -65,18 +66,18 @@ export class TensionOptimizerAgent extends BaseAgent {
     let prompt = `مهمة تحسين وتحليل التوتر الدرامي\n\n`;
     prompt += buildOriginalTextSection(originalText);
     prompt += buildSceneBreakdownSection(sceneBreakdown);
-    prompt += buildTensionInfoSection(
-      currentTensionLevel,
-      targetTensionLevel,
+    prompt += buildTensionInfoSection({
+      currentLevel: currentTensionLevel,
+      targetLevel: targetTensionLevel,
       tensionType,
       pacePreference,
       identifyPeaks,
       analyzeRelease,
       provideRecommendations,
-      this.translateLevel.bind(this),
-      this.translateTensionType.bind(this),
-      this.translatePace.bind(this)
-    );
+      translateLevel: (level) => this.translateLevel(level),
+      translateTensionType: (type) => this.translateTensionType(type),
+      translatePace: (pace) => this.translatePace(pace),
+    });
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += getBaseInstructions();
     prompt += buildConditionalInstructions(
@@ -95,11 +96,11 @@ export class TensionOptimizerAgent extends BaseAgent {
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupTensionText(output.text);
 
-    const analysisDepth = await this.assessAnalysisDepth(processedText);
+    const analysisDepth = this.assessAnalysisDepth(processedText);
     const techniqueIdentification =
-      await this.assessTechniqueIdentification(processedText);
-    const practicalValue = await this.assessPracticalValue(processedText);
-    const insightfulness = await this.assessInsightfulness(processedText);
+      this.assessTechniqueIdentification(processedText);
+    const practicalValue = this.assessPracticalValue(processedText);
+    const insightfulness = this.assessInsightfulness(processedText);
 
     const qualityScore =
       analysisDepth * 0.3 +
@@ -109,7 +110,7 @@ export class TensionOptimizerAgent extends BaseAgent {
 
     const adjustedConfidence = output.confidence * 0.5 + qualityScore * 0.5;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -133,7 +134,7 @@ export class TensionOptimizerAgent extends BaseAgent {
         techniquesIdentified: this.countTechniques(processedText),
         recommendationsProvided: this.countRecommendations(processedText),
       },
-    };
+    });
   }
 
   private cleanupTensionText(text: string): string {
@@ -147,7 +148,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessAnalysisDepth(text: string): Promise<number> {
+  private assessAnalysisDepth(text: string): number {
     let score = 0.5;
 
     const tensionTerms = [
@@ -190,7 +191,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessTechniqueIdentification(text: string): Promise<number> {
+  private assessTechniqueIdentification(text: string): number {
     let score = 0.5;
 
     const techniques = [
@@ -219,7 +220,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessPracticalValue(text: string): Promise<number> {
+  private assessPracticalValue(text: string): number {
     let score = 0.6;
 
     const practicalTerms = [
@@ -245,7 +246,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessInsightfulness(text: string): Promise<number> {
+  private assessInsightfulness(text: string): number {
     let score = 0.5;
 
     const insightWords = [
@@ -352,10 +353,10 @@ export class TensionOptimizerAgent extends BaseAgent {
     return paces[pace] ?? pace;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `تقييم التوتر الحالي:
+    return Promise.resolve(`تقييم التوتر الحالي:
 النص يحتوي على مستوى توتر متوسط يحتاج إلى تعزيز وتحسين لتحقيق التأثير الدرامي المطلوب.
 
 تحليل منحنى التوتر:
@@ -382,7 +383,7 @@ export class TensionOptimizerAgent extends BaseAgent {
 التقييم النهائي: 6/10
 التوتر موجود وفعال جزئياً، لكن هناك إمكانات كبيرة غير مستغلة لتحويله إلى تجربة أكثر إثارة وإشباعاً.
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من تفاصيل المشاهد للحصول على تحليل توتر أكثر دقة مع توصيات محددة وقابلة للتطبيق.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من تفاصيل المشاهد للحصول على تحليل توتر أكثر دقة مع توصيات محددة وقابلة للتطبيق.`);
   }
 }
 

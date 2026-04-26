@@ -18,13 +18,29 @@ interface AnalysisContext {
   focusAreas?: string[];
 }
 
+function stringifySummaryValue(value: unknown): string {
+  switch (typeof value) {
+    case "string":
+      return value;
+    case "number":
+    case "boolean":
+    case "bigint":
+    case "symbol":
+      return String(value);
+    case "object":
+      return value === null ? "" : JSON.stringify(value) ?? "";
+    default:
+      return "";
+  }
+}
+
 /** Analysis Agent - وكيل التحليل النقدي المعماري */
 export class AnalysisAgent extends BaseAgent {
   constructor() {
     super(
       "CritiqueArchitect AI",
       TaskType.ANALYSIS,
-      ANALYSIS_AGENT_CONFIG.systemPrompt || ""
+      ANALYSIS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -48,11 +64,11 @@ export class AnalysisAgent extends BaseAgent {
    
   private buildContextSection(ctx: AnalysisContext | undefined): string {
     let section = "";
-    const originalText = ctx?.originalText || "";
-    const genre = ctx?.genre || "";
-    const targetAudience = ctx?.targetAudience || "";
-    const analysisDepth = ctx?.analysisDepth || "moderate";
-    const focusAreas = ctx?.focusAreas || [];
+    const originalText = ctx?.originalText ?? "";
+    const genre = ctx?.genre ?? "";
+    const targetAudience = ctx?.targetAudience ?? "";
+    const analysisDepth = ctx?.analysisDepth ?? "moderate";
+    const focusAreas = ctx?.focusAreas ?? [];
 
     if (originalText) {
       section += `النص المراد تحليله:\n${this.truncateText(originalText, 2000)}\n\n`;
@@ -83,16 +99,17 @@ export class AnalysisAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     // Clean up the analysis text
     const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
-    const structuralScore = await this.assessStructuralAnalysis(processedText);
-    const dialecticalScore = await this.assessDialecticalAnalysis(processedText);
-    const recommendationsScore = await this.assessRecommendations(
+    const structuralScore = this.assessStructuralAnalysis(processedText);
+    const dialecticalScore = this.assessDialecticalAnalysis(processedText);
+    const recommendationsScore = this.assessRecommendations(
       processedText
     );
-    const depthScore = await this.assessAnalyticalDepth(processedText);
+    const depthScore = this.assessAnalyticalDepth(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =
@@ -178,7 +195,7 @@ export class AnalysisAgent extends BaseAgent {
     return headers.some((header) => line.includes(header));
   }
 
-  private async assessStructuralAnalysis(text: string): Promise<number> {
+  private assessStructuralAnalysis(text: string): number {
     let score = 0.6;
     const structuralTerms = ["بنية", "هيكل", "حبكة", "إيقاع", "مشهد", "اقتصاد", "ثغرة", "انتظام"];
     if (structuralTerms.some((term) => text.includes(term))) score += 0.2;
@@ -187,7 +204,7 @@ export class AnalysisAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessDialecticalAnalysis(text: string): Promise<number> {
+  private assessDialecticalAnalysis(text: string): number {
     let score = 0.5;
     const dialecticalTerms = ["أطروحة", "نقيض", "تركيب", "تناقض", "توتر"];
     if (dialecticalTerms.some((term) => text.includes(term))) score += 0.3;
@@ -195,7 +212,7 @@ export class AnalysisAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessRecommendations(text: string): Promise<number> {
+  private assessRecommendations(text: string): number {
     let score = 0.5;
     if (text.includes("توصية") || text.includes("ينصح")) score += 0.2;
     if (["أولوية", "حرجة", "عالية", "متوسطة"].some((t) => text.includes(t))) score += 0.2;
@@ -203,7 +220,7 @@ export class AnalysisAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessAnalyticalDepth(text: string): Promise<number> {
+  private assessAnalyticalDepth(text: string): number {
     let score = 0.5;
     if (text.length > 1000) score += 0.2;
     if (text.length > 2000) score += 0.2;
@@ -260,7 +277,7 @@ export class AnalysisAgent extends BaseAgent {
       moderate: "متوسط",
       deep: "عميق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
    
@@ -273,7 +290,7 @@ export class AnalysisAgent extends BaseAgent {
     const summary: string[] = [];
 
     if (obj?.['mainFindings']) {
-      summary.push(`النتائج الرئيسية: ${obj['mainFindings']}`);
+      summary.push(`النتائج الرئيسية: ${stringifySummaryValue(obj['mainFindings'])}`);
     }
 
     if (obj?.['recommendations']) {
@@ -287,11 +304,11 @@ export class AnalysisAgent extends BaseAgent {
     }
 
     if (obj?.['strengths']) {
-      summary.push(`نقاط القوة: ${obj['strengths']}`);
+      summary.push(`نقاط القوة: ${stringifySummaryValue(obj['strengths'])}`);
     }
 
     if (obj?.['weaknesses']) {
-      summary.push(`نقاط الضعف: ${obj['weaknesses']}`);
+      summary.push(`نقاط الضعف: ${stringifySummaryValue(obj['weaknesses'])}`);
     }
 
     return summary.join("\n") || "تحليل سابق متوفر";
@@ -300,6 +317,7 @@ export class AnalysisAgent extends BaseAgent {
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return ANALYSIS_FALLBACK_RESPONSE;
   }
 }

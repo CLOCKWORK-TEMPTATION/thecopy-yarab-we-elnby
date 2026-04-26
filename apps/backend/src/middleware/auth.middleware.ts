@@ -30,9 +30,9 @@ export function getParamAsString(paramValue: string | string[] | undefined): str
 }
 
 function resolveToken(req: Request): string {
-  const authHeader = String(req.headers.authorization || '');
+  const authHeader = String(req.headers.authorization ?? '');
   const [headerType, headerTokenValue] = authHeader.split(' ');
-  const cookieToken = String(req.cookies?.["accessToken"] || '');
+  const cookieToken = String(req.cookies?.["accessToken"] ?? '');
 
   const headerTokensMap: Record<string, string | undefined> = {
     'Bearer': headerTokenValue
@@ -41,7 +41,7 @@ function resolveToken(req: Request): string {
   const headerToken =
     typeof headerType === 'string' ? headerTokensMap[headerType] : undefined;
 
-  return String(headerToken || cookieToken || '');
+  return String(headerToken ?? cookieToken ?? '');
 }
 
 async function verifyAndAttachUser(req: Request, res: Response, next: NextFunction): Promise<void> {

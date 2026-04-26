@@ -46,9 +46,9 @@ function buildLogger(): UnifiedLogger {
   }
   // استيراد ديناميكي على مستوى الـ module (يعمل في server فقط)
   // نسخة pino محمَّلة كسلوك server-only ومعزولة عن المتصفح بـ 'server-only' داخل ملفها.
-   
-  const serverModule =
-    require("./logger.server") as typeof import("./logger.server");
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const serverModule = require("./logger.server") as typeof import("./logger.server");
   return serverModule.buildServerLogger();
 }
 

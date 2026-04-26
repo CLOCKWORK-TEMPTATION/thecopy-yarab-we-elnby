@@ -11,6 +11,15 @@
 import { execFileSync } from "node:child_process";
 import { statSync } from "node:fs";
 import { basename } from "node:path";
+import { format as formatLogLine } from "node:util";
+
+
+function writeStdout(...args: unknown[]): void {
+  process.stdout.write(formatLogLine(...args) + "\n");
+}
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 // ─── أنواع البيانات ───────────────────────────────────────────
 
@@ -190,9 +199,9 @@ function classifyPdf(pdfPath: string): ClassificationResult {
 const pdfPath = process.argv[2];
 
 if (!pdfPath) {
-  console.error("الاستخدام: npx tsx classify-pdf.ts <مسار_ملف_PDF>");
+  writeStderr("الاستخدام: npx tsx classify-pdf.ts <مسار_ملف_PDF>");
   process.exit(1);
 }
 
 const result = classifyPdf(pdfPath);
-console.log(JSON.stringify(result, null, 2));
+writeStdout(JSON.stringify(result, null, 2));

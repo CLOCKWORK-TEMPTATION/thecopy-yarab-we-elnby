@@ -4,10 +4,13 @@
  * Avoid loading Sentry packages unless a DSN is configured.
  */
 
+import { createRequire } from 'node:module';
+
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
 type SentryModule = typeof import('@sentry/node');
 
+const loadModule = createRequire(__filename);
 let sentryModule: SentryModule | null = null;
 let cachedErrorHandler: ErrorRequestHandler | null = null;
 
@@ -16,7 +19,7 @@ function isSentryEnabled(): boolean {
 }
 
 function getSentryModule(): SentryModule {
-  sentryModule ??= require('@sentry/node') as SentryModule;
+  sentryModule ??= loadModule('@sentry/node') as SentryModule;
   return sentryModule;
 }
 
@@ -25,8 +28,7 @@ function getSentryErrorHandler(): ErrorRequestHandler {
     return (error, _req, _res, next) => next(error);
   }
 
-  cachedErrorHandler ??=
-    (require('@sentry/node') as typeof import('@sentry/node')).expressErrorHandler();
+  cachedErrorHandler ??= getSentryModule().expressErrorHandler();
   return cachedErrorHandler;
 }
 
@@ -48,7 +50,7 @@ export function trackError(req: Request, res: Response, next: NextFunction) {
     Sentry.setUser({
       id: req.user.id,
       email: req.user.email,
-      ip_address: req.ip || req.socket.remoteAddress || null,
+      ip_address: req.ip ?? req.socket.remoteAddress ?? null,
     });
   }
 

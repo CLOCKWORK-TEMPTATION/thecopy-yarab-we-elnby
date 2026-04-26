@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { TaskType } from "@core/enums";
 
+import type {
+  getAgentConfig as getAgentConfigType,
+  listAgentConfigs as listAgentConfigsType,
+} from "./agentFactory";
+
 // مخزن وكلاء الذكاء الاصطناعي - محاكاة التكوينات الأساسية
 vi.mock("@agents/index", () => ({
   AGENT_CONFIGS: [
@@ -62,10 +67,10 @@ vi.mock("@agents/index", () => ({
   ],
 }));
 
-describe("AgentFactory", () => {
-  let getAgentConfig: any;
-  let listAgentConfigs: any;
+let getAgentConfig: typeof getAgentConfigType;
+let listAgentConfigs: typeof listAgentConfigsType;
 
+describe("AgentFactory", () => {
   beforeEach(async () => {
     vi.resetModules();
     const agentFactoryModule = await import("./agentFactory");
@@ -73,6 +78,13 @@ describe("AgentFactory", () => {
     listAgentConfigs = agentFactoryModule.listAgentConfigs;
   });
 
+  registerGetAgentConfigTests();
+  registerListAgentConfigsTests();
+  registerIntegrationTests();
+  registerEdgeCaseTests();
+});
+
+function registerGetAgentConfigTests(): void {
   describe("getAgentConfig", () => {
     it("should return agent config for valid task type", () => {
       const config = getAgentConfig(TaskType.ANALYSIS);
@@ -169,7 +181,9 @@ describe("AgentFactory", () => {
       expect(config?.confidenceThreshold).toBe(0.8);
     });
   });
+}
 
+function registerListAgentConfigsTests(): void {
   describe("listAgentConfigs", () => {
     it("should return all agent configurations", () => {
       const configs = listAgentConfigs();
@@ -231,7 +245,9 @@ describe("AgentFactory", () => {
       expect(categories).toContain("creative");
     });
   });
+}
 
+function registerIntegrationTests(): void {
   describe("Integration", () => {
     it("should allow getting config and listing all configs", () => {
       const allConfigs = listAgentConfigs();
@@ -250,10 +266,12 @@ describe("AgentFactory", () => {
       });
     });
   });
+}
 
+function registerEdgeCaseTests(): void {
   describe("Edge Cases", () => {
     it("should handle null task type gracefully", () => {
-      const config = getAgentConfig(null as any);
+      const config = getAgentConfig(null);
 
       expect(config).toBeUndefined();
     });
@@ -271,4 +289,4 @@ describe("AgentFactory", () => {
       expect(config1).toEqual(config2);
     });
   });
-});
+}

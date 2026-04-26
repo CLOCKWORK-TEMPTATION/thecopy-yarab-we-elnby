@@ -1,6 +1,12 @@
 import { TaskType } from "../../enums";
 import { BaseAgent } from "../shared/BaseAgent";
 import {
+  asAgentContext,
+  readRecord,
+  readString,
+  recordText,
+} from "../shared/contextAccess";
+import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
@@ -30,11 +36,10 @@ export class PlatformAdapterAgent extends BaseAgent {
     const { input: userInput, context } = input;
 
     // Extract platform-specific context
-    const contextObj =
-      typeof context === "object" && context !== null ? context : {};
-    const targetPlatform = (contextObj as any)?.targetPlatform ?? "غير محدد";
-    const sourceContent = (contextObj as any)?.sourceContent ?? userInput;
-    const constraints = (contextObj as any)?.constraints ?? {};
+    const contextObj = asAgentContext(context);
+    const targetPlatform = readString(contextObj, "targetPlatform", "غير محدد");
+    const sourceContent = readString(contextObj, "sourceContent", userInput);
+    const constraints = readRecord(contextObj, "constraints");
 
     let prompt = `## مهمة تحويل المحتوى للمنصة
 
@@ -58,32 +63,41 @@ ${sourceContent.substring(0, 2000)}
     // Add platform-specific constraints
     if (Object.keys(constraints).length > 0) {
       prompt += `### قيود المنصة:\n`;
-      if (constraints.characterLimit) {
-        prompt += `- حد الأحرف: ${constraints.characterLimit}\n`;
+      const characterLimit = recordText(constraints, "characterLimit");
+      if (characterLimit) {
+        prompt += `- حد الأحرف: ${characterLimit}\n`;
       }
-      if (constraints.videoLength) {
-        prompt += `- طول الفيديو: ${constraints.videoLength}\n`;
+      const videoLength = recordText(constraints, "videoLength");
+      if (videoLength) {
+        prompt += `- طول الفيديو: ${videoLength}\n`;
       }
-      if (constraints.imageSpecs) {
-        prompt += `- مواصفات الصور: ${constraints.imageSpecs}\n`;
+      const imageSpecs = recordText(constraints, "imageSpecs");
+      if (imageSpecs) {
+        prompt += `- مواصفات الصور: ${imageSpecs}\n`;
       }
-      if (constraints.hashtagCount) {
-        prompt += `- عدد الهاشتاغات: ${constraints.hashtagCount}\n`;
+      const hashtagCount = recordText(constraints, "hashtagCount");
+      if (hashtagCount) {
+        prompt += `- عدد الهاشتاغات: ${hashtagCount}\n`;
       }
       prompt += `\n`;
     }
 
     // Add context from previous stations if available
-    const previousStations = (contextObj as any)?.previousStations;
-    if (previousStations) {
+    const previousStations = readRecord(contextObj, "previousStations");
+    if (Object.keys(previousStations).length > 0) {
       prompt += `### السياق من المحطات السابقة:\n`;
 
-      if (previousStations.analysis) {
-        prompt += `\n**التحليل الأولي:**\n${previousStations.analysis.substring(0, 500)}\n`;
+      const analysis = readString(previousStations, "analysis");
+      if (analysis) {
+        prompt += `\n**التحليل الأولي:**\n${analysis.substring(0, 500)}\n`;
       }
 
-      if (previousStations.targetAudience) {
-        prompt += `\n**الجمهور المستهدف:**\n${previousStations.targetAudience.substring(0, 300)}\n`;
+      const previousTargetAudience = readString(
+        previousStations,
+        "targetAudience"
+      );
+      if (previousTargetAudience) {
+        prompt += `\n**الجمهور المستهدف:**\n${previousTargetAudience.substring(0, 300)}\n`;
       }
     }
 
@@ -127,7 +141,7 @@ ${sourceContent.substring(0, 2000)}
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -153,27 +167,26 @@ ${sourceContent.substring(0, 2000)}
       enhancedNotes.push("تحويل أولي - يُنصح بالمراجعة والتحسين");
     }
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       notes: enhancedNotes,
-    };
+    });
   }
 
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const contextObj =
-      typeof input.context === "object" && input.context !== null
-        ? input.context
-        : {};
-    const targetPlatform =
-      (contextObj as any)?.targetPlatform ?? "المنصة المستهدفة";
+    const targetPlatform = readString(
+      asAgentContext(input.context),
+      "targetPlatform",
+      "المنصة المستهدفة"
+    );
 
-    return `# تحويل المحتوى - وضع الطوارئ
+    return Promise.resolve(`# تحويل المحتوى - وضع الطوارئ
 
 ## المنصة المستهدفة: ${targetPlatform}
 
@@ -198,7 +211,7 @@ ${sourceContent.substring(0, 2000)}
 ### الخطوة التالية:
 يُنصح بتفعيل جميع الخيارات المتقدمة (RAG، التحليل الدستوري، كشف الهلوسة) للحصول على تحويل دقيق ومُحسّن للمنصة.
 
-ملاحظة: هذا تحليل احتياطي. للحصول على نتائج أفضل، يرجى المحاولة مرة أخرى مع توفير سياق أكثر اكتمالاً.`;
+ملاحظة: هذا تحليل احتياطي. للحصول على نتائج أفضل، يرجى المحاولة مرة أخرى مع توفير سياق أكثر اكتمالاً.`);
   }
 }
 

@@ -23,7 +23,6 @@ import {
   SUSPICION_REVIEW_ENDPOINT,
   PASTE_CLASSIFIER_ERROR_EVENT,
 } from "./paste-classifier-config";
-export { PASTE_CLASSIFIER_ERROR_EVENT } from "./paste-classifier-config";
 import {
   generateItemId,
   normalizeRawInputText,
@@ -34,34 +33,12 @@ import {
 } from "./paste-classifier-helpers";
 import { fetchUnifiedTextExtract } from "../utils/file-import";
 import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
-import type {
-  ImportSource,
-  LineQuality,
-  PassStage,
-  SourceHints,
-  SuspicionCase,
-} from "@editor/suspicion-engine/types";
 import { createDefaultSuspicionEngine } from "@editor/suspicion-engine/engine";
 import {
   collectTracesFromMap,
   applyPreRenderActions,
   type LineRepairRecord,
 } from "@editor/suspicion-engine/adapters/from-classifier";
-import type {
-  AgentCommand,
-  ReviewRoutingStats as FinalReviewRoutingStats,
-  FinalReviewRequestPayload,
-  FinalReviewResponsePayload,
-  FinalReviewSuspiciousLinePayload,
-} from "@editor/types/final-review";
-import type {
-  SuspicionReviewContextLine,
-  SuspicionReviewDiscoveredLine,
-  SuspicionReviewLinePayload,
-  SuspicionReviewRequestPayload,
-  SuspicionReviewResponsePayload,
-  SuspicionReviewReviewedLine,
-} from "@editor/types/suspicion-review";
 import {
   buildContextLines,
   buildFinalReviewSuspiciousLinePayload,
@@ -119,13 +96,36 @@ import {
   applyViterbiOverrides,
 } from "./structural-sequence-optimizer";
 import { isTransitionLine } from "./transition";
-
 import type {
   ClassifiedDraft,
   ClassificationContext,
   ElementType,
 } from "./classification-types";
 import type { SequenceOptimizationResult } from "./structural-sequence-optimizer";
+import type {
+  ImportSource,
+  LineQuality,
+  PassStage,
+  SourceHints,
+  SuspicionCase,
+} from "@editor/suspicion-engine/types";
+import type {
+  AgentCommand,
+  ReviewRoutingStats as FinalReviewRoutingStats,
+  FinalReviewRequestPayload,
+  FinalReviewResponsePayload,
+  FinalReviewSuspiciousLinePayload,
+} from "@editor/types/final-review";
+import type {
+  SuspicionReviewContextLine,
+  SuspicionReviewDiscoveredLine,
+  SuspicionReviewLinePayload,
+  SuspicionReviewRequestPayload,
+  SuspicionReviewResponsePayload,
+  SuspicionReviewReviewedLine,
+} from "@editor/types/suspicion-review";
+
+export { PASTE_CLASSIFIER_ERROR_EVENT } from "./paste-classifier-config";
 
 // ── Re-entry guard + text dedup ──────────────────────────────────────────────
 let pipelineRunning = false;

@@ -4,7 +4,7 @@
  */
 import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
-export async function assessConflictIdentification(text: string): Promise<number> {
+export function assessConflictIdentification(text: string): number {
   let score = 0.5;
 
   const conflictTerms = [
@@ -23,7 +23,7 @@ export async function assessConflictIdentification(text: string): Promise<number
   return Math.min(1, score);
 }
 
-export async function assessAnalysisDepth(text: string): Promise<number> {
+export function assessAnalysisDepth(text: string): number {
   let score = 0.5;
 
   const depthIndicators = [
@@ -42,7 +42,7 @@ export async function assessAnalysisDepth(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessEvidenceQuality(text: string): Promise<number> {
+export function assessEvidenceQuality(text: string): number {
   let score = 0.6;
 
   const evidenceMarkers = [
@@ -52,13 +52,13 @@ export async function assessEvidenceQuality(text: string): Promise<number> {
   const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
   score += Math.min(0.25, sumCounts(evidenceCount) * 0.025);
 
-  const hasQuotes = (text.match(/["«]/g) || []).length;
+  const hasQuotes = (text.match(/["«]/g) ?? []).length;
   score += Math.min(0.15, hasQuotes * 0.015);
 
   return Math.min(1, score);
 }
 
-export async function assessInsightfulness(text: string): Promise<number> {
+export function assessInsightfulness(text: string): number {
   let score = 0.5;
 
   const insightWords = [
@@ -134,7 +134,7 @@ export function translateConflictType(type: string): string {
     "man-vs-technology": "ضد التكنولوجيا",
     "man-vs-supernatural": "ضد الخارق",
   };
-  return types[type] || type;
+  return types[type] ?? type;
 }
 
 interface ThresholdCheck {

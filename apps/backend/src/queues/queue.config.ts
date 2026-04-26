@@ -113,16 +113,16 @@ class QueueManager {
           logger.debug('Job waiting', { queue: name, jobId: String(job.id) });
         });
 
-        queue.on('active' as any, (job: Job) => {
+        queue.on('active', (job: Job) => {
           logger.debug('Job active', { queue: name, jobId: String(job.id) });
         });
 
-        queue.on('completed' as any, (job: Job) => {
+        queue.on('completed', (job: Job) => {
           logger.debug('Job completed', { queue: name, jobId: String(job.id) });
         });
       }
 
-      queue.on('failed' as any, (job: Job, err: Error) => {
+      queue.on('failed', (job: Job, err: Error) => {
         logger.error('Job failed', { queue: name, jobId: String(job.id), error: err.message });
       });
 
@@ -137,7 +137,7 @@ class QueueManager {
    */
   registerWorker(
     name: QueueName,
-    processor: (job: Job) => Promise<any>,
+    processor: (job: Job) => Promise<unknown>,
     options?: Partial<WorkerOptions>
   ): Worker {
     if (this.workers.has(name)) {
@@ -276,4 +276,3 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-export default queueManager;

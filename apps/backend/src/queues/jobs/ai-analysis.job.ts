@@ -137,7 +137,7 @@ async function processAIAnalysis(job: Job<AIAnalysisJobData>): Promise<AIAnalysi
         analysisResult = await analyzeProject(entityId, analysisType, options);
         break;
       default:
-        throw new Error(`نوع تحليل غير معروف: ${type}`);
+        throw new Error('نوع تحليل غير معروف');
     }
 
     await job.updateProgress(100);

@@ -259,6 +259,19 @@ function getSlowRequestThresholdMs(path: string): number {
   return LONG_RUNNING_API_PATHS.has(path) ? 30_000 : 1_000;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getRoutePath(req: Request): string {
+  const route: unknown = (req as { route?: unknown }).route;
+  if (!isRecord(route)) {
+    return req.path;
+  }
+  const routePath = route['path'];
+  return typeof routePath === 'string' ? routePath : req.path;
+}
+
 /**
  * Middleware to track HTTP metrics
  */
@@ -271,7 +284,7 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
   // Track response
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    const route = req.route?.path || req.path;
+    const route = getRoutePath(req);
     const method = req.method;
     const statusCode = res.statusCode.toString();
 
@@ -459,4 +472,3 @@ export const metricsBundle = {
   updateCacheMemorySize,
   updateRedisMemoryUsage,
 };
-

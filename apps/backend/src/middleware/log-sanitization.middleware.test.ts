@@ -6,7 +6,10 @@ import {
   PII_PATTERNS,
 } from './log-sanitization.middleware';
 
-describe('Log Sanitization Middleware', () => {
+function sanitizeObjectAs<T>(input: T): T {
+  return sanitizeObject(input) as T;
+}
+
   describe('sanitizeString', () => {
     it('should redact email addresses', () => {
       const input = 'User email is test@example.com';
@@ -128,7 +131,7 @@ describe('Log Sanitization Middleware', () => {
           age: 30,
         },
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.user.name).toBe('John Doe');
       expect(result.user.email).toBe('[EMAIL_REDACTED]');
       expect(result.user.age).toBe(30);
@@ -140,7 +143,7 @@ describe('Log Sanitization Middleware', () => {
         password: 'supersecret123',
         confirmPassword: 'supersecret123',
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.username).toBe('testuser');
       expect(result.password).toBe('[REDACTED]');
       expect(result.confirmPassword).toBe('[REDACTED]');
@@ -154,7 +157,7 @@ describe('Log Sanitization Middleware', () => {
         secret: 'my-secret',
         normalField: 'normal-value',
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.apiKey).toBe('[REDACTED]');
       expect(result.accessToken).toBe('[REDACTED]');
       expect(result.refreshToken).toBe('[REDACTED]');
@@ -169,7 +172,7 @@ describe('Log Sanitization Middleware', () => {
           { name: 'User 2', email: 'user2@example.com' },
         ],
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.users[0].name).toBe('User 1');
       expect(result.users[0].email).toBe('[EMAIL_REDACTED]');
       expect(result.users[1].name).toBe('User 2');
@@ -187,7 +190,7 @@ describe('Log Sanitization Middleware', () => {
           },
         },
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.level1.level2.level3.email).toBe('[EMAIL_REDACTED]');
       expect(result.level1.level2.level3.password).toBe('[REDACTED]');
     });
@@ -198,7 +201,7 @@ describe('Log Sanitization Middleware', () => {
         undefinedValue: undefined,
         email: 'test@example.com',
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.nullValue).toBe(null);
       expect(result.undefinedValue).toBe(undefined);
       expect(result.email).toBe('[EMAIL_REDACTED]');
@@ -213,7 +216,7 @@ describe('Log Sanitization Middleware', () => {
           null,
         ],
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
       expect(result.data[0]).toContain('[EMAIL_REDACTED]');
       expect(result.data[1]).toBe(123);
       expect(result.data[2].email).toBe('[EMAIL_REDACTED]');
@@ -258,7 +261,7 @@ describe('Log Sanitization Middleware', () => {
           authorization: 'Bearer token123',
         },
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
 
       expect(result.method).toBe('POST');
       expect(result.url).toBe('/api/auth/login');
@@ -276,7 +279,7 @@ describe('Log Sanitization Middleware', () => {
         },
         timestamp: '2024-01-01T00:00:00Z',
       };
-      const result = sanitizeObject(input);
+      const result = sanitizeObjectAs<typeof input>(input);
 
       expect(result.error).toBe('Authentication failed');
       expect(result.user.email).toBe('[EMAIL_REDACTED]');
@@ -292,4 +295,3 @@ describe('Log Sanitization Middleware', () => {
       expect(result).not.toContain('AIzaSyD-xxxxxxxxxxxxx');
     });
   });
-});

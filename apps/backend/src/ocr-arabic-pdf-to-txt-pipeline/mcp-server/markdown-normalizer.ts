@@ -39,7 +39,7 @@ export class MarkdownNormalizer {
     /^(?:قطع|اختفاء|تحول|انتقال|fade|cut|dissolve|wipe)(?:\s+(?:إلى|to))?[:\s]*$/iu;
   private readonly characterRe =
     /^\s*(?:صوت\s+)?[\u0600-\u06FF][\u0600-\u06FF\s0-9٠-٩]{0,30}:?\s*$/u;
-  private readonly parentheticalRe = /^[\(（].*?[\)）]$/u;
+  private readonly parentheticalRe = /^[(（].*?[)）]$/u;
   private readonly inlineDialogueGlueRe =
     /^([\u0600-\u06FF]+(?:اً))([\u0600-\u06FF][\u0600-\u06FF\s]{0,20}?)\s*[:：]\s*(.+)$/u;
   private readonly inlineDialogueRe = /^([^:：]{1,60}?)\s*[:：]\s*(.+)$/u;
@@ -104,9 +104,9 @@ export class MarkdownNormalizer {
     if (mode === "none") return text;
 
     if (mode === "arabic") {
-      return text.replace(toArabicDigitRegex, (m) => westernToArabicDigitMap[m] || m);
+      return text.replace(toArabicDigitRegex, (m) => westernToArabicDigitMap[m] ?? m);
     } else if (mode === "western") {
-      return text.replace(toWesternDigitRegex, (m) => arabicToWesternDigitMap[m] || m);
+      return text.replace(toWesternDigitRegex, (m) => arabicToWesternDigitMap[m] ?? m);
     }
 
     return text;
@@ -384,7 +384,7 @@ export class MarkdownNormalizer {
         continue;
       }
       const stripped = line
-        .replace(/^[\-*•·∙⋅●○◦■□▪▫◆◇–—−‒―‣⁃+\s]+/u, "")
+        .replace(/^[-*•·∙⋅●○◦■□▪▫◆◇–—−‒―‣⁃+\s]+/u, "")
         .trim();
       out.push(`- ${stripped}`);
     }

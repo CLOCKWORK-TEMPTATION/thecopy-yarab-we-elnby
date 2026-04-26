@@ -8,6 +8,21 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { artDirectorRouter } from "../routes";
 import { resetStoreForTests } from "../store";
 
+interface PluginsResponseBody {
+  success: boolean;
+  count: number;
+  plugins: unknown[];
+}
+
+interface LocationSearchResponseBody {
+  success: boolean;
+  data: {
+    locations: {
+      nameAr?: string;
+    }[];
+  };
+}
+
 const storePath = path.join(
   process.cwd(),
   ".tmp-tests",
@@ -30,11 +45,12 @@ beforeEach(async () => {
 describe("art-director routes", () => {
   it("يعيد قائمة الأدوات عبر المسار الرسمي للباك إند", async () => {
     const response = await request(createTestApp()).get("/api/art-director/plugins");
+    const body = response.body as unknown as PluginsResponseBody;
 
     expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-    expect(response.body.count).toBeGreaterThan(0);
-    expect(Array.isArray(response.body.plugins)).toBe(true);
+    expect(body.success).toBe(true);
+    expect(body.count).toBeGreaterThan(0);
+    expect(Array.isArray(body.plugins)).toBe(true);
   });
 
   it("يسجل موقعًا ويعيده عبر البحث من خلال router الرسمي", async () => {
@@ -49,17 +65,20 @@ describe("art-director routes", () => {
         address: "Cairo",
         features: ["Parking", "Rigging"],
       });
+    const addBody = addResponse.body as unknown as { success: boolean };
 
     expect(addResponse.status).toBe(200);
-    expect(addResponse.body.success).toBe(true);
+    expect(addBody.success).toBe(true);
 
     const searchResponse = await request(app)
       .post("/api/art-director/locations/search")
       .send({ query: "النيل" });
+    const searchBody =
+      searchResponse.body as unknown as LocationSearchResponseBody;
 
     expect(searchResponse.status).toBe(200);
-    expect(searchResponse.body.success).toBe(true);
-    expect(searchResponse.body.data.locations).toEqual(
+    expect(searchBody.success).toBe(true);
+    expect(searchBody.data.locations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           nameAr: "استوديو النيل",

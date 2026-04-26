@@ -214,7 +214,7 @@ const MOOD_LABELS: Record<string, string> = {
 };
 
 export function buildMoodThemeLabel(mood: string): string {
-  return MOOD_LABELS[mood] || "محايد";
+  return MOOD_LABELS[mood] ?? "محايد";
 }
 
 export function buildProductionId(name: string): string {

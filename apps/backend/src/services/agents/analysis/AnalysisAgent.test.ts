@@ -14,7 +14,6 @@ vi.mock("@/ai/gemini-service", () => ({
   },
 }));
 
-describe("AnalysisAgent", () => {
   let agent: AnalysisAgent;
 
   beforeEach(() => {
@@ -170,7 +169,10 @@ describe("AnalysisAgent", () => {
 
   describe("Error Handling", () => {
     it("should handle errors gracefully", async () => {
-      vi.spyOn(agent as any, "buildPrompt").mockImplementation(() => {
+      const promptBuilder = agent as unknown as {
+        buildPrompt: (input: StandardAgentInput) => string;
+      };
+      vi.spyOn(promptBuilder, "buildPrompt").mockImplementation(() => {
         throw new Error("Test error");
       });
 
@@ -193,16 +195,14 @@ describe("AnalysisAgent", () => {
         context: {},
       };
       // Force an error
-      vi.spyOn(agent as any, "executeTask").mockRejectedValueOnce(
+      const executableAgent = agent as unknown as {
+        executeTask: (input: StandardAgentInput) => Promise<unknown>;
+      };
+      vi.spyOn(executableAgent, "executeTask").mockRejectedValueOnce(
         new Error("Test error")
       );
 
-      try {
-        await agent.executeTask(input);
-      } catch (error) {
-        // Should be caught by BaseAgent
-        expect(error).toBeDefined();
-      }
+      await expect(agent.executeTask(input)).rejects.toThrow("Test error");
     });
   });
 
@@ -319,4 +319,3 @@ describe("AnalysisAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
-});

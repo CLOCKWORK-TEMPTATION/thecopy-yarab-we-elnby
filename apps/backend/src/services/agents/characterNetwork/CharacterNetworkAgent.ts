@@ -50,7 +50,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     super(
       "SocialGraph AI",
       TaskType.CHARACTER_NETWORK,
-      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.82;
@@ -65,11 +65,14 @@ export class CharacterNetworkAgent extends BaseAgent {
     prompt += buildOriginalTextSection(options.originalText);
     prompt += buildCharactersSection(options.characters);
     prompt += buildFocusCharactersSection(options.focusCharacters);
-    prompt += buildAnalysisOptionsSection(
-      options.relationshipTypes, this.translateRelationType.bind(this),
-      options.analyzeEvolution, options.trackInfluence,
-      options.identifyGroups, options.mapPowerDynamics
-    );
+    prompt += buildAnalysisOptionsSection({
+      analyzeEvolution: options.analyzeEvolution,
+      identifyGroups: options.identifyGroups,
+      mapPowerDynamics: options.mapPowerDynamics,
+      relationshipTypes: options.relationshipTypes,
+      trackInfluence: options.trackInfluence,
+      translateFn: this.translateRelationType.bind(this),
+    });
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += getBaseInstructions();
     prompt += buildConditionalInstructions(
@@ -91,13 +94,14 @@ export class CharacterNetworkAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     const processedText = this.cleanupNetworkText(output.text);
 
     const networkComprehensiveness =
-      await this.assessNetworkComprehensiveness(processedText);
-    const relationshipDepth = await this.assessRelationshipDepth(processedText);
-    const structuralInsight = await this.assessStructuralInsight(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
+      this.assessNetworkComprehensiveness(processedText);
+    const relationshipDepth = this.assessRelationshipDepth(processedText);
+    const structuralInsight = this.assessStructuralInsight(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
 
     const qualityScore =
       networkComprehensiveness * 0.3 +
@@ -145,7 +149,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessNetworkComprehensiveness(text: string): Promise<number> {
+  private assessNetworkComprehensiveness(text: string): number {
     let score = 0.5;
     const networkTerms = ["شبكة", "علاقة", "رابط", "اتصال", "تفاعل", "ارتباط", "شخصية"];
     score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, networkTerms)) * 0.015);
@@ -155,7 +159,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessRelationshipDepth(text: string): Promise<number> {
+  private assessRelationshipDepth(text: string): number {
     let score = 0.5;
     const relTypes = ["عائلية", "رومانسية", "صداقة", "عدائية", "مهنية", "سلطوية"];
     score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, relTypes)) * 0.04);
@@ -165,7 +169,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessStructuralInsight(text: string): Promise<number> {
+  private assessStructuralInsight(text: string): number {
     let score = 0.5;
     const structuralTerms = ["بنية", "هيكل", "نمط", "هرمية", "دائرية", "مركزية", "موزعة", "متشابكة"];
     score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, structuralTerms)) * 0.04);
@@ -175,11 +179,11 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
     const evidenceMarkers = ["مثل", "كما في", "نرى", "يظهر", "في المشهد", "عندما"];
     score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, evidenceMarkers)) * 0.025);
-    if ((text.match(/["«]/g) || []).length >= 2) score += 0.15;
+    if ((text.match(/["«]/g) ?? []).length >= 2) score += 0.15;
     return Math.min(1, score);
   }
 
@@ -240,12 +244,13 @@ export class CharacterNetworkAgent extends BaseAgent {
 
   private translateRelationType(type: string): string {
     const types: Record<string, string> = { family: "عائلية", romantic: "رومانسية", professional: "مهنية", adversarial: "عدائية", friendship: "صداقة", mentor: "إرشادية", rivalry: "تنافسية", alliance: "تحالفية" };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return NETWORK_FALLBACK_RESPONSE;
   }
 }

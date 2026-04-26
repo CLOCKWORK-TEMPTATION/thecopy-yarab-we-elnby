@@ -1,22 +1,27 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { format as formatLogLine } from "node:util";
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from "@modelcontextprotocol/sdk/server";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ErrorCode,
   McpError,
-} from "@modelcontextprotocol/sdk/types.js";
+} from "@modelcontextprotocol/sdk/types";
 import { parse as parseEnv } from "dotenv";
+
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const collectEnvCandidates = (startPath, limit = 5) => {
-  const candidates = [];
+const collectEnvCandidates = (startPath: string, limit = 5): string[] => {
+  const candidates: string[] = [];
   let current = resolve(startPath);
 
   for (let index = 0; index < limit; index += 1) {
@@ -31,9 +36,13 @@ const collectEnvCandidates = (startPath, limit = 5) => {
   return candidates;
 };
 
-const stripWrappingQuotes = (value) => value.replace(/^['"]|['"]$/g, "");
+const stripWrappingQuotes = (value: string): string =>
+  value.replace(/^['"]|['"]$/g, "");
 
-const isPlaceholderEnvValue = (key, value) => {
+const isPlaceholderEnvValue = (
+  key: string,
+  value: string | undefined
+): boolean => {
   const trimmed = stripWrappingQuotes((value ?? "").trim());
   if (!trimmed) {
     return true;
@@ -50,11 +59,11 @@ const isPlaceholderEnvValue = (key, value) => {
   return false;
 };
 
-const applyEnvFile = (filePath) => {
+const applyEnvFile = (filePath: string): void => {
   const parsed = parseEnv(readFileSync(filePath));
 
   for (const [key, rawValue] of Object.entries(parsed)) {
-    const value = rawValue.trim();
+    const value = typeof rawValue === "string" ? rawValue.trim() : "";
     const existingValue = process.env[key];
 
     if (isPlaceholderEnvValue(key, value)) {
@@ -67,7 +76,7 @@ const applyEnvFile = (filePath) => {
   }
 };
 
-const seen = new Set();
+const seen = new Set<string>();
 for (const candidate of [
   ...collectEnvCandidates(process.cwd()),
   ...collectEnvCandidates(__dirname),
@@ -207,6 +216,7 @@ const convertDocumentInputSchema = {
 };
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
+  await Promise.resolve();
   return {
     tools: [
       {
@@ -316,8 +326,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       );
       successMsg += ` Saved to ${savedPath}`;
     } catch (fsError) {
-      console.error("Failed to write to file:", fsError);
-      successMsg += ` Note: Failed to write to file: ${fsError}`;
+      const fsErrorMessage =
+        fsError instanceof Error ? fsError.message : String(fsError);
+      writeStderr("Failed to write to file:", fsError);
+      successMsg += ` Note: Failed to write to file: ${fsErrorMessage}`;
     }
 
     return {
@@ -342,13 +354,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-async function run() {
+async function run(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Mistral OCR MCP Server running on stdio");
+  writeStderr("Mistral OCR MCP Server running on stdio");
 }
 
 run().catch((error) => {
-  console.error("Fatal error:", error);
+  writeStderr("Fatal error:", error);
   process.exit(1);
 });

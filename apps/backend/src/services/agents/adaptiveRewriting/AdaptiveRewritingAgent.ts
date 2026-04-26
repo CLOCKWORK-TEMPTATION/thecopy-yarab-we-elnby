@@ -19,7 +19,7 @@ interface AdaptiveRewritingContext {
   rewritingGoals?: string[];
   targetAudience?: string;
   targetTone?: string;
-  targetLength?: "shorter" | "same" | "longer" | "double" | "half" | string;
+  targetLength?: string;
   preserveElements?: string[];
   improvementFocus?: string[]; // e.g., ['pacing', 'dialogue', 'clarity']
   styleGuide?: string;
@@ -36,7 +36,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     super(
       "RewriteMaster AI",
       TaskType.ADAPTIVE_REWRITING,
-      ADAPTIVE_REWRITING_AGENT_CONFIG?.systemPrompt ||
+      ADAPTIVE_REWRITING_AGENT_CONFIG?.systemPrompt ??
         "أنت خبير تحرير نصوص ومطور محتوى محترف."
     );
 
@@ -64,15 +64,15 @@ export class AdaptiveRewritingAgent extends BaseAgent {
    
   private extractRewritingOptions(ctx: AdaptiveRewritingContext | undefined) {
     return {
-      originalText: ctx?.originalText || "",
-      rewritingGoals: ctx?.rewritingGoals || [],
-      targetAudience: ctx?.targetAudience || "جمهور عام",
-      targetTone: ctx?.targetTone || "محايدة/احترافية",
-      targetLength: ctx?.targetLength || "same",
-      preserveElements: ctx?.preserveElements || [],
-      improvementFocus: ctx?.improvementFocus || ["clarity", "flow"],
-      styleGuide: ctx?.styleGuide || "",
-      constraints: ctx?.constraints || [],
+      originalText: ctx?.originalText ?? "",
+      rewritingGoals: ctx?.rewritingGoals ?? [],
+      targetAudience: ctx?.targetAudience ?? "جمهور عام",
+      targetTone: ctx?.targetTone ?? "محايدة/احترافية",
+      targetLength: ctx?.targetLength ?? "same",
+      preserveElements: ctx?.preserveElements ?? [],
+      improvementFocus: ctx?.improvementFocus ?? ["clarity", "flow"],
+      styleGuide: ctx?.styleGuide ?? "",
+      constraints: ctx?.constraints ?? [],
     };
   }
 
@@ -141,15 +141,16 @@ export class AdaptiveRewritingAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     // تنظيف النص من أي بقايا كود أو علامات غير مرغوبة
     const processedText = this.cleanupRewrittenText(output.text);
 
     // حساب مقاييس الجودة المتعددة
-    const goalAchievement = await this.assessGoalAchievement(processedText);
+    const goalAchievement = this.assessGoalAchievement(processedText);
     const qualityImprovement =
-      await this.assessQualityImprovement(processedText);
-    const coherence = await this.assessCoherence(processedText);
-    const creativity = await this.assessCreativity(processedText);
+      this.assessQualityImprovement(processedText);
+    const coherence = this.assessCoherence(processedText);
+    const creativity = this.assessCreativity(processedText);
 
     // حساب درجة الجودة الكلية (Weighted Score)
     const qualityScore =
@@ -197,7 +198,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessGoalAchievement(text: string): Promise<number> {
+  private assessGoalAchievement(text: string): number {
     let score = 0.5;
     const terms = ["تم تحسين", "بنجاح", "أفضل", "أكثر دقة", "تحقيق الهدف", "صياغة أقوى", "معالجة", "تم تطوير", "النسخة المعدلة"];
     score += Math.min(0.3, sumCounts(safeCountMultipleTerms(text, terms)) * 0.05);
@@ -205,7 +206,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessQualityImprovement(text: string): Promise<number> {
+  private assessQualityImprovement(text: string): number {
     let score = 0.5;
     const indicators = ["دقة", "وضوح", "إيجاز", "سلاسة", "احترافية", "خالٍ من الأخطاء", "محكم", "بليغ", "منقح"];
     score += Math.min(0.3, sumCounts(safeCountMultipleTerms(text, indicators)) * 0.04);
@@ -213,7 +214,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessCoherence(text: string): Promise<number> {
+  private assessCoherence(text: string): number {
     let score = 0.6;
     const connectives = ["لذلك", "بالتالي", "علاوة على", "في حين", "بينما", "نتيجة لـ", "من ناحية أخرى", "كما أن", "فضلاً عن"];
     score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, connectives)) * 0.03);
@@ -221,7 +222,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessCreativity(text: string): Promise<number> {
+  private assessCreativity(text: string): number {
     let score = 0.4;
     const words = ["مبتكر", "جذاب", "فريد", "إلهام", "حيوي", "تشبيه", "استعارة", "أسلوب", "بصمة"];
     score += Math.min(0.4, sumCounts(safeCountMultipleTerms(text, words)) * 0.08);
@@ -270,17 +271,18 @@ export class AdaptiveRewritingAgent extends BaseAgent {
 
   private translateLength(length: string): string {
     const mapping: Record<string, string> = { shorter: "مختصر (أقصر من النص الأصلي)", same: "نفس الطول تقريباً", longer: "مفصل (أطول من النص الأصلي)", double: "موسع جداً (ضعف الطول)", half: "ملخص مركز (نصف الطول)" };
-    return mapping[length] || length;
+    return mapping[length] ?? length;
   }
 
   private translateFocus(focus: string): string {
     const mapping: Record<string, string> = { pacing: "ضبط الإيقاع والسرعة", dialogue: "تحسين الحوارات", description: "إغناء الوصف", clarity: "الوضوح والمباشرة", impact: "قوة التأثير العاطفي/الإقناعي", characterization: "عمق الشخصيات", atmosphere: "بناء الأجواء العامة", structure: "الهيكلية والتنظيم", seo: "تحسين محركات البحث" };
-    return mapping[focus] || focus;
+    return mapping[focus] ?? focus;
   }
 
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return `عذراً، واجه الوكيل صعوبة في إتمام عملية إعادة الكتابة بشكل كامل.
     
 التحليل الأولي:

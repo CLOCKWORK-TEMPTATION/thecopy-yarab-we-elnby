@@ -26,7 +26,7 @@ export class CompletionAgent extends BaseAgent {
     super(
       "NarrativeContinuum AI",
       TaskType.COMPLETION,
-      COMPLETION_AGENT_CONFIG.systemPrompt || ""
+      COMPLETION_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -132,6 +132,7 @@ export class CompletionAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     // Ensure the output is properly formatted
     let processedText = output.text;
 
@@ -139,7 +140,7 @@ export class CompletionAgent extends BaseAgent {
     processedText = this.cleanupText(processedText);
 
     // Validate completion quality
-    const qualityScore = await this.assessCompletionQuality(processedText);
+    const qualityScore = this.assessCompletionQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence = output.confidence * 0.7 + qualityScore * 0.3;
@@ -153,8 +154,8 @@ export class CompletionAgent extends BaseAgent {
         ...output.metadata,
         completionQuality: qualityScore,
         characterConsistency:
-          await this.checkCharacterConsistency(processedText),
-        narrativeFlow: await this.checkNarrativeFlow(processedText),
+          this.checkCharacterConsistency(processedText),
+        narrativeFlow: this.checkNarrativeFlow(processedText),
       },
     };
   }
@@ -190,7 +191,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Assess completion quality
    */
-  private async assessCompletionQuality(text: string): Promise<number> {
+  private assessCompletionQuality(text: string): number {
     // Simple heuristic-based quality assessment
     let score = 0.5; // Base score
 
@@ -218,7 +219,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Check character consistency
    */
-  private async checkCharacterConsistency(_text: string): Promise<number> {
+  private checkCharacterConsistency(_text: string): number {
     // This would ideally check against character profiles
     // For now, return a reasonable default
     return 0.85;
@@ -227,7 +228,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Check narrative flow
    */
-  private async checkNarrativeFlow(text: string): Promise<number> {
+  private checkNarrativeFlow(text: string): number {
     // Check for logical connectors and flow
     const connectors = [
       "ثم",
@@ -292,7 +293,7 @@ export class CompletionAgent extends BaseAgent {
       chapter: "فصل كامل",
       ending: "نهاية القصة",
     };
-    return scopes[scope] || scope;
+    return scopes[scope] ?? scope;
   }
 
   /**
@@ -306,7 +307,7 @@ export class CompletionAgent extends BaseAgent {
       thematic_consistency: "الاتساق الموضوعي",
       emotional_arc: "القوس العاطفي",
     };
-    return enhancements[enhancement] || enhancement;
+    return enhancements[enhancement] ?? enhancement;
   }
 
   /**
@@ -315,6 +316,7 @@ export class CompletionAgent extends BaseAgent {
   protected override async getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context

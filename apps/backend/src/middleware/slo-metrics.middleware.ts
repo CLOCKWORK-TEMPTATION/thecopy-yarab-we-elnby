@@ -210,7 +210,7 @@ function calculateP95(latencies: number[]): number {
 
   const sorted = [...latencies].sort((a, b) => a - b);
   const index = Math.ceil(sorted.length * 0.95) - 1;
-  return sorted[Math.max(0, index)] || 0;
+  return sorted[Math.max(0, index)] ?? 0;
 }
 
 /**
@@ -350,10 +350,10 @@ export function trackDatabaseQuery(success: boolean, operation?: string) {
 
   if (success) {
     state.successfulRequests++;
-    sloDbQueriesTotal.inc({ status: 'success', operation: operation || 'unknown' });
+    sloDbQueriesTotal.inc({ status: 'success', operation: operation ?? 'unknown' });
   } else {
     state.failedRequests++;
-    sloDbQueriesTotal.inc({ status: 'failure', operation: operation || 'unknown' });
+    sloDbQueriesTotal.inc({ status: 'failure', operation: operation ?? 'unknown' });
   }
 
   // Update compliance

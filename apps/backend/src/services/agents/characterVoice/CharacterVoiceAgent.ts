@@ -35,7 +35,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     super(
       "PersonaSynth AI",
       TaskType.CHARACTER_VOICE,
-      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -50,8 +50,8 @@ export class CharacterVoiceAgent extends BaseAgent {
       `مهمة تركيب صوت الشخصية\n\n`,
       this.buildProfileSection(ctx?.characterProfile),
       this.buildSceneSection(ctx),
-      this.buildDialogueSamplesSection(ctx?.existingDialogue || []),
-      this.buildRelationshipSection(ctx?.relationshipContext || {}),
+      this.buildDialogueSamplesSection(ctx?.existingDialogue ?? []),
+      this.buildRelationshipSection(ctx?.relationshipContext ?? {}),
       ctx?.dialogueObjective ? `هدف الحوار: ${ctx.dialogueObjective}\n\n` : "",
       `المهمة المطلوبة:\n${taskInput}\n\n`,
       this.getVoiceInstructions(),
@@ -62,7 +62,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   private buildSceneSection(ctx: CharacterVoiceContext | undefined): string {
     let section = "";
     if (ctx?.sceneContext) section += `سياق المشهد:\n${ctx.sceneContext}\n\n`;
-    section += `الحالة العاطفية: ${this.translateEmotionalState(ctx?.emotionalState || "neutral")}\n\n`;
+    section += `الحالة العاطفية: ${this.translateEmotionalState(ctx?.emotionalState ?? "neutral")}\n\n`;
     return section;
   }
 
@@ -104,13 +104,14 @@ export class CharacterVoiceAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    await Promise.resolve();
     // Clean up the dialogue text
     const processedText = this.cleanupDialogue(output.text);
 
     // Assess voice consistency
-    const consistencyScore = await this.assessVoiceConsistency(processedText);
-    const naturalityScore = await this.assessNaturality(processedText);
-    const emotionalDepth = await this.assessEmotionalDepth(processedText);
+    const consistencyScore = this.assessVoiceConsistency(processedText);
+    const naturalityScore = this.assessNaturality(processedText);
+    const emotionalDepth = this.assessEmotionalDepth(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =
@@ -226,7 +227,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     return formatted.join("\n");
   }
 
-  private async assessVoiceConsistency(text: string): Promise<number> {
+  private assessVoiceConsistency(text: string): number {
     let score = 0.7;
     const hasFormal = ["لقد", "إن", "ذلك", "هذا", "أولئك"].some((w) => text.includes(w));
     const hasInformal = ["يعني", "كده", "أوكي", "ماشي"].some((w) => text.includes(w));
@@ -243,7 +244,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     return variance < 5 ? 0.15 : 0;
   }
 
-  private async assessNaturality(text: string): Promise<number> {
+  private assessNaturality(text: string): number {
     let score = 0.6;
     const markers = ["آه", "أوه", "حسناً", "ربما", "أعتقد", "أظن", "يبدو"];
     const markerCount = markers.reduce((count, m) => count + (text.split(m).length - 1), 0);
@@ -253,7 +254,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessEmotionalDepth(text: string): Promise<number> {
+  private assessEmotionalDepth(text: string): number {
     let score = 0.5;
     const emotionalWords = ["أحب", "أكره", "خائف", "سعيد", "حزين", "غاضب", "قلق", "متحمس", "محبط", "فخور", "خجول", "متردد", "أشعر", "إحساس", "عاطفة", "قلب", "روح"];
     const emotionCount = emotionalWords.reduce((count, w) => count + (text.split(w).length - 1), 0);
@@ -266,7 +267,7 @@ export class CharacterVoiceAgent extends BaseAgent {
    * Detect dialogue type
    */
   private detectDialogueType(text: string): string {
-    const charCount = (char: string) => (text.match(new RegExp(char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    const charCount = (char: string) => (text.match(new RegExp(char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []).length;
     if (text.includes("؟") && text.includes("!")) return "حوار متنوع";
     if (charCount("؟") > 2) return "حوار استفهامي";
     if (charCount("!") > 2) return "حوار انفعالي";
@@ -312,15 +313,16 @@ export class CharacterVoiceAgent extends BaseAgent {
 
   private translateEmotionalState(state: string): string {
     const states: Record<string, string> = { neutral: "محايد", happy: "سعيد", sad: "حزين", angry: "غاضب", fearful: "خائف", anxious: "قلق", excited: "متحمس", confused: "مرتبك", confident: "واثق", disappointed: "محبط" };
-    return states[state] || state;
+    return states[state] ?? state;
   }
 
   protected override async getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     const ctx = input.context as CharacterVoiceContext;
     const profile = ctx?.characterProfile;
-    const character = (typeof profile === "object" && profile !== null ? (profile).name : undefined) || "الشخصية";
+    const character = (typeof profile === "object" && profile !== null ? (profile).name : undefined) ?? "الشخصية";
 
     return `تحليل صوت ${character}:
 الشخصية لديها نمط كلام مميز يعكس خلفيتها وشخصيتها.

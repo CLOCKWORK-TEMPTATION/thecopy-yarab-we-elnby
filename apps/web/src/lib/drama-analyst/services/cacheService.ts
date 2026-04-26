@@ -383,7 +383,7 @@ class CacheService {
   }
 
   // Offline action management
-  private async getPendingActions(): Promise<any[]> {
+  private async getPendingActions(): Promise<unknown[]> {
     try {
       const actionsText = localStorage.getItem("pending-actions");
       if (!actionsText) return [];
@@ -402,7 +402,10 @@ class CacheService {
     try {
       const actions = await this.getPendingActions();
       const filteredActions = actions.filter(
-        (action) => action.id !== actionId
+        (action) => {
+          const actionObj = action as { id?: string };
+          return actionObj.id !== actionId;
+        }
       );
       const filteredTexts = filteredActions.map((action) =>
         encodeRecord(action)
@@ -413,10 +416,11 @@ class CacheService {
     }
   }
 
-  private async executeAction(action: any): Promise<void> {
+  private async executeAction(action: unknown): Promise<void> {
     // Implement action execution logic
+    const actionObj = action as { type?: string };
     log.info(
-      `🔄 Executing pending action: ${action.type}`,
+      `🔄 Executing pending action: ${actionObj.type ?? "unknown"}`,
       action,
       "CacheService"
     );

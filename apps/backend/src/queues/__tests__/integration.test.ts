@@ -13,7 +13,22 @@ import {
 } from '@/queues/jobs/document-processing.job';
 import { queueManager, QueueName } from '@/queues/queue.config';
 
-describe('Queue Integration Tests', () => {
+function requireQueuedJob<T>(job: T | null | undefined): T {
+  expect(job).toBeDefined();
+  if (!job) {
+    throw new Error('Expected queued job to exist');
+  }
+  return job;
+}
+
+function requireJobId(jobId: string | number | undefined): string {
+  expect(jobId).toBeDefined();
+  if (jobId === undefined) {
+    throw new Error('Expected BullMQ job id to exist');
+  }
+  return String(jobId);
+}
+
   beforeAll(() => {
     // Initialize workers
     registerAIAnalysisWorker();
@@ -52,10 +67,8 @@ describe('Queue Integration Tests', () => {
       await new Promise((resolve) => setTimeout(resolve, 4000));
 
       // Check job state
-      if (job) {
-        const state = await job.getState();
-        expect(['completed', 'active', 'waiting', 'delayed']).toContain(state);
-      }
+      const state = await requireQueuedJob(job).getState();
+      expect(['completed', 'active', 'waiting', 'delayed']).toContain(state);
     }, 10000);
 
     it('should process multiple jobs in sequence', async () => {
@@ -115,7 +128,8 @@ describe('Queue Integration Tests', () => {
     it('should retry failed job with exponential backoff', async () => {
       // Create a mock processor that fails initially
       let attemptCount = 0;
-      const failingProcessor = vi.fn(async (job: any) => {
+      const failingProcessor = vi.fn(async () => {
+        await Promise.resolve();
         attemptCount++;
         if (attemptCount < 3) {
           throw new Error(`Attempt ${attemptCount} failed`);
@@ -147,20 +161,19 @@ describe('Queue Integration Tests', () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify job was retried
-      const updatedJob = await testQueue.getJob(job.id!);
+      const updatedJob = await testQueue.getJob(requireJobId(job.id));
 
-      if (updatedJob) {
-        const state = await updatedJob.getState();
-        // Job should eventually complete or still be retrying
-        expect(['completed', 'active', 'waiting', 'failed']).toContain(state);
-      }
+      const state = await requireQueuedJob(updatedJob).getState();
+      // Job should eventually complete or still be retrying
+      expect(['completed', 'active', 'waiting', 'failed']).toContain(state);
 
       await worker.close();
     }, 10000);
 
     it('should fail job after max retry attempts', async () => {
       let attemptCount = 0;
-      const alwaysFailingProcessor = vi.fn(async (job: any) => {
+      const alwaysFailingProcessor = vi.fn(async () => {
+        await Promise.resolve();
         attemptCount++;
         throw new Error(`Permanent failure at attempt ${attemptCount}`);
       });
@@ -186,13 +199,11 @@ describe('Queue Integration Tests', () => {
       // Wait for all retry attempts
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const updatedJob = await testQueue.getJob(job.id!);
+      const updatedJob = await testQueue.getJob(requireJobId(job.id));
 
-      if (updatedJob) {
-        const state = await updatedJob.getState();
-        // After max retries, should be failed or active
-        expect(['failed', 'active', 'waiting']).toContain(state);
-      }
+      const state = await requireQueuedJob(updatedJob).getState();
+      // After max retries, should be failed or active
+      expect(['failed', 'active', 'waiting']).toContain(state);
 
       // Should have attempted multiple times
       expect(attemptCount).toBeGreaterThan(0);
@@ -201,7 +212,7 @@ describe('Queue Integration Tests', () => {
     }, 10000);
 
     it('should handle job timeout', async () => {
-      const slowProcessor = vi.fn(async (job: any) => {
+      const slowProcessor = vi.fn(async () => {
         // Simulate long processing
         await new Promise((resolve) => setTimeout(resolve, 5000));
         return { success: true };
@@ -221,38 +232,23 @@ describe('Queue Integration Tests', () => {
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const updatedJob = await testQueue.getJob(job.id!);
+      const updatedJob = await testQueue.getJob(requireJobId(job.id));
 
-      if (updatedJob) {
-        const state = await updatedJob.getState();
-        expect(['active', 'waiting', 'completed', 'failed']).toContain(state);
-      }
+      const state = await requireQueuedJob(updatedJob).getState();
+      expect(['active', 'waiting', 'completed', 'failed']).toContain(state);
 
       await worker.close();
     }, 15000);
 
     it('should handle job stalling and recovery', async () => {
-      // Create processor that simulates stalling
-      const stallingProcessor = vi.fn(async (job: any) => {
-        // Process quickly to avoid actual stall
-        return { success: true };
-      });
-
       const testQueue = queueManager.getQueue(QueueName.AI_ANALYSIS);
 
       const job = await testQueue.add('stall-test', { data: 'test' });
 
-      // Monitor for stalled jobs
-      const stalledPromise = new Promise((resolve) => {
-        testQueue.on('stalled', (jobId) => {
-          resolve(jobId);
-        });
-      });
-
       // Wait a bit
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const updatedJob = await testQueue.getJob(job.id!);
+      const updatedJob = await testQueue.getJob(requireJobId(job.id));
       expect(updatedJob).toBeDefined();
     }, 10000);
   });
@@ -357,11 +353,9 @@ describe('Queue Integration Tests', () => {
 
       const job = await queue.getJob(jobId);
 
-      if (job) {
-        const state = await job.getState();
-        // Job should be waiting or delayed, not completed
-        expect(['waiting', 'delayed', 'paused']).toContain(state);
-      }
+      const state = await requireQueuedJob(job).getState();
+      // Job should be waiting or delayed, not completed
+      expect(['waiting', 'delayed', 'paused']).toContain(state);
 
       // Resume queue
       await queueManager.resumeQueue(QueueName.DOCUMENT_PROCESSING);
@@ -389,11 +383,17 @@ describe('Queue Integration Tests', () => {
       const lowJob = await queue.getJob(lowPriorityId);
       const highJob = await queue.getJob(highPriorityId);
 
-      expect(lowJob?.opts.priority).toBe(2);
-      expect(highJob?.opts.priority).toBe(1);
+      const lowPriority = requireQueuedJob(lowJob).opts.priority;
+      const highPriority = requireQueuedJob(highJob).opts.priority;
+
+      expect(lowPriority).toBe(2);
+      expect(highPriority).toBe(1);
 
       // Lower number = higher priority in BullMQ
-      expect(highJob?.opts.priority!).toBeLessThan(lowJob?.opts.priority!);
+      if (lowPriority === undefined || highPriority === undefined) {
+        throw new Error('Expected priority values to exist');
+      }
+      expect(highPriority).toBeLessThan(lowPriority);
     });
   });
 
@@ -484,7 +484,8 @@ describe('Queue Integration Tests', () => {
 
   describe('Error Propagation', () => {
     it('should propagate errors correctly', async () => {
-      const errorProcessor = vi.fn(async (job: any) => {
+      const errorProcessor = vi.fn(async () => {
+        await Promise.resolve();
         throw new Error('Test error propagation');
       });
 
@@ -505,14 +506,11 @@ describe('Queue Integration Tests', () => {
       // Wait for job to fail
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const updatedJob = await testQueue.getJob(job.id!);
+      const updatedJob = await testQueue.getJob(requireJobId(job.id));
 
-      if (updatedJob) {
-        const state = await updatedJob.getState();
-        expect(['failed', 'active', 'waiting']).toContain(state);
-      }
+      const state = await requireQueuedJob(updatedJob).getState();
+      expect(['failed', 'active', 'waiting']).toContain(state);
 
       await worker.close();
     }, 10000);
   });
-});

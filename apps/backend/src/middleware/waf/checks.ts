@@ -37,7 +37,7 @@ export function getClientIP(req: Request): string {
       }
     }
   }
-  return req.ip || req.socket.remoteAddress || "unknown";
+  return req.ip ?? req.socket.remoteAddress ?? "unknown";
 }
 
 export function isIPWhitelisted(ip: string): boolean {
@@ -63,7 +63,19 @@ export function isUserAgentBlacklisted(userAgent: string): boolean {
 }
 
 function stringifyRequestValue(value: unknown): string {
-  return typeof value === "object" ? JSON.stringify(value) : String(value || "");
+  switch (typeof value) {
+    case "string":
+      return value;
+    case "number":
+    case "boolean":
+    case "bigint":
+    case "symbol":
+      return String(value);
+    case "object":
+      return value === null ? "" : JSON.stringify(value) ?? "";
+    default:
+      return "";
+  }
 }
 
 // ============================================================================
@@ -185,7 +197,7 @@ function extractMatchValue(pattern: RegExp, value: string): string {
   let matchedValue = value.substring(0, 100);
   try {
     const match = pattern.exec(value.substring(0, 1000));
-    if (match && match[0]) {
+    if (match?.[0]) {
       matchedValue = match[0].substring(0, 100);
     }
     pattern.lastIndex = 0;

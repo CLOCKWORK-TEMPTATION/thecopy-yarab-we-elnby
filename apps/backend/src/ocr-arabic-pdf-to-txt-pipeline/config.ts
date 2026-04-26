@@ -6,10 +6,16 @@
 
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { format as formatLogLine } from "node:util";
 
 import { config as dotenvConfig } from "dotenv";
 
 import type { AgentConfig } from "./types";
+
+
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 // ─── تحميل متغيرات البيئة ───────────────────────────────────
 
@@ -42,7 +48,7 @@ export function validateEnvironment(): { valid: boolean; missing: string[] } {
   }
 
   if (warnings.length > 0) {
-    console.error(`⚠ مفاتيح موصى بها غير موجودة: ${warnings.join(", ")}`);
+    writeStderr(`⚠ مفاتيح موصى بها غير موجودة: ${warnings.join(", ")}`);
   }
 
   return { valid: missing.length === 0, missing };

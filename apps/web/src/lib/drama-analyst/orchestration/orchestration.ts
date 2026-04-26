@@ -133,8 +133,9 @@ class AIAgentOrchestraManager {
   /**
    * Get enhanced task description with AI capabilities
    */
-  public getEnhancedDescription(taskType: TaskType): string {
-    const agent = this.agents.get(taskType);
+  public getEnhancedDescription(taskType: TaskType | string): string {
+    const knownTaskType = toKnownTaskType(taskType);
+    const agent = knownTaskType ? this.agents.get(knownTaskType) : undefined;
     return agent
       ? (agent.description ?? `وصف غير متوفر للمهمة: ${taskType}`)
       : `وصف غير متوفر للمهمة: ${taskType}`;
@@ -144,17 +145,21 @@ class AIAgentOrchestraManager {
    * Get agent capabilities for a task
    */
   public getAgentCapabilities(
-    taskType: TaskType
+    taskType: TaskType | string
   ): AIAgentCapabilities | null | undefined {
-    const agent = this.agents.get(taskType);
+    const knownTaskType = toKnownTaskType(taskType);
+    const agent = knownTaskType ? this.agents.get(knownTaskType) : undefined;
     return agent ? agent.capabilities : null;
   }
 
   /**
    * Get collaboration suggestions for a task
    */
-  public getCollaborationSuggestions(taskType: TaskType): TaskType[] {
-    const collaborators = this.collaborationGraph.get(taskType);
+  public getCollaborationSuggestions(taskType: TaskType | string): TaskType[] {
+    const knownTaskType = toKnownTaskType(taskType);
+    const collaborators = knownTaskType
+      ? this.collaborationGraph.get(knownTaskType)
+      : undefined;
     return collaborators ? Array.from(collaborators) : [];
   }
 
@@ -188,9 +193,12 @@ class AIAgentOrchestraManager {
    * Get performance metrics for monitoring
    */
   public getPerformanceMetrics(
-    taskType: TaskType
+    taskType: TaskType | string
   ): AgentPerformanceMetrics | undefined {
-    return this.performanceMetrics.get(taskType);
+    const knownTaskType = toKnownTaskType(taskType);
+    return knownTaskType
+      ? this.performanceMetrics.get(knownTaskType)
+      : undefined;
   }
 
   /**
@@ -228,8 +236,13 @@ class AIAgentOrchestraManager {
   /**
    * Memory management for episodic learning
    */
-  public storeEpisode(taskType: TaskType, episode: unknown): void {
-    const episodes = this.episodicMemory.get(taskType) ?? [];
+  public storeEpisode(taskType: TaskType | string, episode: unknown): void {
+    const knownTaskType = toKnownTaskType(taskType);
+    if (!knownTaskType) {
+      return;
+    }
+
+    const episodes = this.episodicMemory.get(knownTaskType) ?? [];
     episodes.push(episode);
 
     // Keep only recent episodes (memory management)
@@ -237,14 +250,20 @@ class AIAgentOrchestraManager {
       episodes.splice(0, episodes.length - 100);
     }
 
-    this.episodicMemory.set(taskType, episodes);
+    this.episodicMemory.set(knownTaskType, episodes);
   }
 
   /**
    * Retrieve relevant episodes for learning
    */
-  public getRelevantEpisodes(taskType: TaskType, limit = 10): unknown[] {
-    const episodes = this.episodicMemory.get(taskType) ?? [];
+  public getRelevantEpisodes(
+    taskType: TaskType | string,
+    limit = 10
+  ): unknown[] {
+    const knownTaskType = toKnownTaskType(taskType);
+    const episodes = knownTaskType
+      ? (this.episodicMemory.get(knownTaskType) ?? [])
+      : [];
     return episodes.slice(-limit);
   }
 }
@@ -277,7 +296,9 @@ export class AIAgentMonitor {
   private static instance: AIAgentMonitor;
   private performanceLog = new Map<TaskType, PerformanceLogEntry[]>();
 
-  private constructor() {}
+  private constructor() {
+    // Singleton constructor is intentionally private.
+  }
 
   public static getInstance(): AIAgentMonitor {
     if (!AIAgentMonitor.instance) {

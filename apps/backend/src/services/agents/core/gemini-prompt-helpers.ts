@@ -28,7 +28,7 @@ export interface ProcessTextsParams {
   specialRequirements: string;
   additionalInfo: string;
   completionScope?: string;
-  selectedCompletionEnhancements?: TaskType[];
+  selectedCompletionEnhancements?: string[];
   previousContextText?: string;
 }
 
@@ -177,15 +177,15 @@ function addUserRequirements(parts: Part[], params: ProcessTextsParams): void {
     userRequirementsSection += `\n**تحسينات الاستكمال المطلوبة (يجب دمجها بفعالية في النص المستكمل):**\n`;
     selectedCompletionEnhancements.forEach(enhancementId => {
       const enhancementDetail = COMPLETION_ENHANCEMENT_OPTIONS.find(opt => opt.id === enhancementId);
-      const enhancementInstructions = TASK_SPECIFIC_INSTRUCTIONS[enhancementId] || `تطبيق مبادئ ${enhancementDetail?.label || enhancementId}.`;
+      const enhancementInstructions = TASK_SPECIFIC_INSTRUCTIONS[enhancementId] ?? `تطبيق مبادئ ${enhancementDetail?.label ?? enhancementId}.`;
 
-      let goalSummary = enhancementDetail?.label || enhancementId;
+      let goalSummary = enhancementDetail?.label ?? enhancementId;
       const goalText = safeRegexMatchGroup(enhancementInstructions, /\*\*الهدف:\*\*\s*([^\r\n]+)/, 1);
       if (goalText) {
         goalSummary = goalText;
       }
 
-      userRequirementsSection += `- **${enhancementDetail?.label || enhancementId}:** ${goalSummary}. (راجع التعليمات التفصيلية لهذه المهمة إذا لزم الأمر).\n`;
+      userRequirementsSection += `- **${enhancementDetail?.label ?? enhancementId}:** ${goalSummary}. (راجع التعليمات التفصيلية لهذه المهمة إذا لزم الأمر).\n`;
     });
     hasUserSpecs = true;
   }
@@ -204,8 +204,8 @@ export const constructPromptParts = (params: ProcessTextsParams): Part[] => {
   const { processedFiles, taskType, previousContextText } = params;
   const parts: Part[] = [];
 
-  const taskDescription = (TASK_DESCRIPTIONS_FOR_PROMPT)[taskType] || "مهمة عامة";
-  const taskLabel = taskDescription.split(':')[0]?.trim() || taskDescription;
+  const taskDescription = (TASK_DESCRIPTIONS_FOR_PROMPT)[taskType] ?? "مهمة عامة";
+  const taskLabel = taskDescription.split(':')[0]?.trim() ?? taskDescription;
   const taskSpecificRole = resolveTaskSpecificRole(taskType, taskLabel);
 
   parts.push({ text: PROMPT_PERSONA_BASE.replace('CritiqueConstruct AI', `CritiqueConstruct AI. ${taskSpecificRole}`) });
@@ -231,7 +231,7 @@ export const constructPromptParts = (params: ProcessTextsParams): Part[] => {
 
   const jsonReminderTasks = TASKS_EXPECTING_JSON_RESPONSE.map(t => {
     const desc = (TASK_DESCRIPTIONS_FOR_PROMPT)[t];
-    return desc?.split(':')[0]?.trim() || t;
+    return desc?.split(':')[0]?.trim() ?? t;
   }).join(', ');
   parts.push({ text: `\n\n**تذكير بتعليمات الإخراج الصارمة**: اللغة العربية الفصحى. إذا كانت المهمة تتطلب إخراج JSON (مثل مهام: ${jsonReminderTasks}), يجب أن يكون ردك الأساسي هو كائن JSON صالح يتبع الواجهة المحددة للمهمة، وقد يكون محاطًا بـ \`\`\`json ... \`\`\`.` });
 
@@ -248,9 +248,9 @@ export function buildErrorMessage(error: GeminiError & { status?: number; messag
 
   if (error.toString?.().toLowerCase().includes("api_key")) {
     errorMessage = "مفتاح Gemini API مفقود أو غير صالح. يرجى التأكد من تكوين متغير البيئة API_KEY بشكل صحيح.";
-  } else if (error.message && error.message.toLowerCase().includes("request entity size is larger than limit")) {
+  } else if (error.message?.toLowerCase().includes("request entity size is larger than limit")) {
     errorMessage = "حجم الملفات المرسلة أو حجم السياق الكلي يتجاوز الحد المسموح به من Gemini API. يرجى محاولة تقليل حجم الملفات أو عددها، أو تقصير نطاق الاستكمال إذا كنت تستخدم الاستكمال التكراري.";
-  } else if (error.message && (error.message.toLowerCase().includes("unsupported mime type") || error.message.toLowerCase().includes("invalid_argument"))) {
+  } else if (error.message?.toLowerCase().includes("unsupported mime type") || error.message?.toLowerCase().includes("invalid_argument")) {
     errorMessage = "واجهت Gemini API مشكلة في معالجة أحد أنواع الملفات المرفوعة أو محتواها. يرجى التحقق من أن الملفات هي من الأنواع المدعومة (نصوص، صور، PDF، DOCX بعد المعالجة) وأنها غير تالفة.";
   } else if (error.status && (error.status === 400 || error.status.toString() === 'INVALID_ARGUMENT')) {
     errorMessage = `خطأ في الطلب إلى Gemini API (قد يكون بسبب محتوى غير متوقع أو تنسيق خاطئ): ${error.message || 'وسيطات غير صالحة.'}`;
@@ -260,7 +260,7 @@ export function buildErrorMessage(error: GeminiError & { status?: number; messag
 
   if (error.response?.error?.message) {
     errorMessage = `خطأ من Gemini API: ${error.response.error.message}`;
-  } else if (error.message && error.message.includes("content") && error.message.includes("blocked")) {
+  } else if (error.message?.includes("content") && error.message.includes("blocked")) {
     errorMessage = `تم حظر المحتوى بواسطة Gemini API بسبب سياسات الأمان. ${error.message}`;
   }
 

@@ -30,7 +30,7 @@ export function wafMiddleware(
 
   const ctx: RequestContext = {
     ip: getClientIP(req),
-    userAgent: req.headers["user-agent"] || "",
+    userAgent: req.headers["user-agent"] ?? "",
     path: req.path,
     method: req.method,
   };
@@ -49,7 +49,7 @@ export function wafMiddleware(
   if (blockResult?.blocked) {
     return sendBlockResponse(
       res,
-      blockResult.statusCode || 403,
+      blockResult.statusCode ?? 403,
       blockResult.message
     );
   }

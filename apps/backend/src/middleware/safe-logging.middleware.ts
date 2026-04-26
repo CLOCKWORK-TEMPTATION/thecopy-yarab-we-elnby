@@ -205,7 +205,9 @@ export function bodySanitizationMiddleware(
 export function preventConsoleLogsInProduction() {
   if (process.env.NODE_ENV === 'production') {
     // Override console methods
-    const noop = () => {};
+    const noop = (..._args: unknown[]): void => {
+      return undefined;
+    };
 
     // eslint-disable-next-line no-console
     console.log = noop;

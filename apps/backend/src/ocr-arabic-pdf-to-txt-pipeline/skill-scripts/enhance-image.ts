@@ -16,6 +16,15 @@
 
 import { readdirSync, mkdirSync, statSync, existsSync } from "node:fs";
 import { join, basename, extname } from "node:path";
+import { format as formatLogLine } from "node:util";
+
+
+function writeStdout(...args: unknown[]): void {
+  process.stdout.write(formatLogLine(...args) + "\n");
+}
+function writeStderr(...args: unknown[]): void {
+  process.stderr.write(formatLogLine(...args) + "\n");
+}
 
 // ─── تحليل المعاملات ──────────────────────────────────────────
 
@@ -30,7 +39,7 @@ function parseArgs(): { input: string; output: string } {
   }
 
   if (!input || !output) {
-    console.error(
+    writeStderr(
       "الاستخدام: npx tsx enhance-image.ts --input <مجلد_أو_صورة> --output <مجلد_أو_صورة>"
     );
     process.exit(1);
@@ -80,10 +89,10 @@ async function main(): Promise<void> {
 
   if (inputStat.isFile()) {
     // معالجة صورة واحدة
-    console.error(`تحسين: ${basename(input)}`);
+    writeStderr(`تحسين: ${basename(input)}`);
     await enhanceImage(input, output);
-    console.error(`تم: ${output}`);
-    console.log(JSON.stringify({ success: true, files_processed: 1 }));
+    writeStderr(`تم: ${output}`);
+    writeStdout(JSON.stringify({ success: true, files_processed: 1 }));
     return;
   }
 
@@ -99,11 +108,11 @@ async function main(): Promise<void> {
     });
 
     if (imageFiles.length === 0) {
-      console.error("لا توجد صور في المجلد المحدد");
+      writeStderr("لا توجد صور في المجلد المحدد");
       process.exit(1);
     }
 
-    console.error(`معالجة ${imageFiles.length} صورة...`);
+    writeStderr(`معالجة ${imageFiles.length} صورة...`);
     let processed = 0;
 
     for (const file of imageFiles) {
@@ -115,17 +124,18 @@ async function main(): Promise<void> {
         processed++;
 
         if (processed % 10 === 0) {
-          console.error(`  تقدم: ${processed}/${imageFiles.length}`);
+          writeStderr(`  تقدم: ${processed}/${imageFiles.length}`);
         }
-      } catch (err: any) {
-        console.error(`  فشل تحسين ${file}: ${err.message}`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        writeStderr(`  فشل تحسين ${file}: ${message}`);
       }
     }
 
-    console.error(
+    writeStderr(
       `تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`
     );
-    console.log(
+    writeStdout(
       JSON.stringify({
         success: true,
         files_processed: processed,
@@ -136,8 +146,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.error("المدخل ليس ملفاً ولا مجلداً صالحاً");
+  writeStderr("المدخل ليس ملفاً ولا مجلداً صالحاً");
   process.exit(1);
 }
 
-main();
+void main();

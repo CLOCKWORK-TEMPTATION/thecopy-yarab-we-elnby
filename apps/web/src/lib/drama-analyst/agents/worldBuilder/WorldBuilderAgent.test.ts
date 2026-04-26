@@ -15,14 +15,27 @@ vi.mock("../../services/geminiService", () => ({
   },
 }));
 
-describe("WorldBuilderAgent", () => {
-  let agent: WorldBuilderAgent;
 
+let agent: WorldBuilderAgent;
+
+describe("WorldBuilderAgent", () => {
   beforeEach(() => {
     agent = new WorldBuilderAgent();
     vi.clearAllMocks();
   });
 
+  registerConfigurationTests();
+  registerSuccessPathTests();
+  registerLowConfidencePathTests();
+  registerHallucinationDetectionPathTests();
+  registerPostProcessingAndQualityAssessmentTests();
+  registerErrorHandlingTests();
+  registerAdvancedOptionsTests();
+  registerWorldBibleStructureTests();
+  registerIntegrationWithStandardPatternTests();
+});
+
+function registerConfigurationTests(): void {
   describe("Configuration", () => {
     it("should initialize with correct configuration", () => {
       const config = agent.getConfig();
@@ -44,7 +57,9 @@ describe("WorldBuilderAgent", () => {
       expect(config.confidenceFloor).toBe(0.9);
     });
   });
+}
 
+function registerSuccessPathTests(): void {
   describe("Success Path", () => {
     it("should execute world building task successfully", async () => {
       const input: StandardAgentInput = {
@@ -133,7 +148,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.metadata?.worldLength).toBeGreaterThan(0);
     });
   });
+}
 
+function registerLowConfidencePathTests(): void {
   describe("Low Confidence Path", () => {
     it("should trigger debate when confidence is below threshold", async () => {
       const input: StandardAgentInput = {
@@ -192,7 +209,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
+}
 
+function registerHallucinationDetectionPathTests(): void {
   describe("Hallucination Detection Path", () => {
     it("should detect and handle unsupported world elements", async () => {
       const input: StandardAgentInput = {
@@ -233,7 +252,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.confidence).toBeGreaterThanOrEqual(0);
     });
   });
+}
 
+function registerPostProcessingAndQualityAssessmentTests(): void {
   describe("Post-Processing and Quality Assessment", () => {
     it("should clean JSON blocks from output", async () => {
       const input: StandardAgentInput = {
@@ -317,7 +338,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.confidence).toBeLessThanOrEqual(1);
     });
   });
+}
 
+function registerErrorHandlingTests(): void {
   describe("Error Handling", () => {
     it("should return fallback response on error", async () => {
       const input: StandardAgentInput = {
@@ -346,7 +369,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
+}
 
+function registerAdvancedOptionsTests(): void {
   describe("Advanced Options", () => {
     it("should respect all advanced options", async () => {
       const input: StandardAgentInput = {
@@ -387,7 +412,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
+}
 
+function registerWorldBibleStructureTests(): void {
   describe("World Bible Structure", () => {
     it("should include fundamental laws section", async () => {
       const input: StandardAgentInput = {
@@ -441,7 +468,9 @@ describe("WorldBuilderAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
+}
 
+function registerIntegrationWithStandardPatternTests(): void {
   describe("Integration with Standard Pattern", () => {
     it("should execute full standard pattern pipeline", async () => {
       // اختبار تنفيذ خط أنابيب النمط القياسي الكامل
@@ -468,4 +497,4 @@ describe("WorldBuilderAgent", () => {
       expect(result.metadata).toBeDefined();
     });
   });
-});
+}

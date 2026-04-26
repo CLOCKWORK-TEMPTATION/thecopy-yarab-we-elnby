@@ -1,10 +1,18 @@
-import { Router } from 'express';
+import { Router, type RequestHandler } from 'express';
 
-import { analyzeVoice, analyzeWebcam } from '../controllers/actorai.controller';
+import { actorAiController } from '../controllers/actorai.controller';
 
 const router = Router();
 
-router.post('/voice-analytics', analyzeVoice);
-router.post('/webcam-analysis', analyzeWebcam);
+const saveVoiceAnalytics: RequestHandler = (req, res) => {
+  void actorAiController.saveVoiceAnalytics(req, res);
+};
+
+const saveWebcamAnalysis: RequestHandler = (req, res) => {
+  void actorAiController.saveWebcamAnalysis(req, res);
+};
+
+router.post('/voice-analytics', saveVoiceAnalytics);
+router.post('/webcam-analysis', saveWebcamAnalysis);
 
 export { router as actoraiRouter };

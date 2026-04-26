@@ -201,13 +201,19 @@ export function field<T>(obj: unknown, name: string, fallback: T): T {
 }
 
 export function str(value: unknown): string {
-  if (typeof value === "string") {
-    return value;
+  switch (typeof value) {
+    case "string":
+      return value;
+    case "number":
+    case "boolean":
+    case "bigint":
+    case "symbol":
+      return String(value);
+    case "object":
+      return value === null ? "" : JSON.stringify(value) ?? "";
+    default:
+      return "";
   }
-  if (value === null || value === undefined) {
-    return "";
-  }
-  return String(value);
 }
 
 export function toNumberInt(raw: string | undefined, fallback: number): number {

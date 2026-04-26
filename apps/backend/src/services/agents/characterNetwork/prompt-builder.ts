@@ -21,7 +21,7 @@ export function buildCharactersSection(characters: (string | { name?: string; ro
   let section = `الشخصيات في الشبكة:\n`;
   characters.slice(0, 8).forEach((char, idx: number) => {
     const charName =
-      typeof char === "string" ? char : char.name || `شخصية ${idx + 1}`;
+      typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
     const charRole =
       typeof char === "object" && char.role ? ` - ${char.role}` : "";
     section += `${idx + 1}. ${charName}${charRole}\n`;
@@ -41,14 +41,24 @@ export function buildFocusCharactersSection(focusCharacters: string[]): string {
 /**
  * Build analysis options section
  */
-export function buildAnalysisOptionsSection(
-  relationshipTypes: string[],
-  translateFn: (type: string) => string,
-  analyzeEvolution: boolean,
-  trackInfluence: boolean,
-  identifyGroups: boolean,
-  mapPowerDynamics: boolean
-): string {
+interface AnalysisOptionsSectionInput {
+  analyzeEvolution: boolean;
+  identifyGroups: boolean;
+  mapPowerDynamics: boolean;
+  relationshipTypes: string[];
+  trackInfluence: boolean;
+  translateFn: (type: string) => string;
+}
+
+export function buildAnalysisOptionsSection(input: AnalysisOptionsSectionInput): string {
+  const {
+    analyzeEvolution,
+    identifyGroups,
+    mapPowerDynamics,
+    relationshipTypes,
+    trackInfluence,
+    translateFn,
+  } = input;
   let section = `أنواع العلاقات للتحليل: ${relationshipTypes.map(translateFn).join("، ")}\n`;
   section += `تحليل التطور: ${analyzeEvolution ? "نعم" : "لا"}\n`;
   section += `تتبع النفوذ: ${trackInfluence ? "نعم" : "لا"}\n`;

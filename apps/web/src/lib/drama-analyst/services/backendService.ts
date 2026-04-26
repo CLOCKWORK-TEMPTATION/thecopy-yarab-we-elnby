@@ -27,7 +27,7 @@ class BackendService {
     };
   }
 
-  private async makeRequest<T>(endpoint: string, data: any): Promise<T> {
+  private async makeRequest<T>(endpoint: string, data: unknown): Promise<T> {
     const url = `${this.config.baseUrl}${endpoint}`;
 
     const controller = new AbortController();
@@ -58,10 +58,10 @@ class BackendService {
       const parsedData = decodeRecord(responseText);
       const responseObj = unflatten(parsedData);
       return responseObj as T;
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId);
 
-      if (error.name === "AbortError") {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new Error("Request timeout");
       }
 
@@ -94,8 +94,8 @@ class BackendService {
           response
         ) as AIResponse;
         return { ok: true, value: sanitizedResponse };
-      } catch (error: any) {
-        lastError = error;
+      } catch (error: unknown) {
+        lastError = error instanceof Error ? error : null;
         log.error(
           `❌ Backend API error (attempt ${attempt})`,
           error,
@@ -129,8 +129,10 @@ class BackendService {
     }
 
     const error = new Error(userMessage);
-    (error as any).code = errorCode;
-    (error as any).cause = lastError;
+    if (lastError) {
+      (error as Error & { code?: string }).code = errorCode;
+      (error as Error & { cause?: Error }).cause = lastError;
+    }
 
     return {
       ok: false,

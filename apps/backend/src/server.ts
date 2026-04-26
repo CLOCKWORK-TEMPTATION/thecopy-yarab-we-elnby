@@ -1,9 +1,5 @@
 import './bootstrap/runtime-alias';
 
-// Initialize OpenTelemetry tracing (MUST be before any other imports)
-import { initTracing } from '@/config/tracing';
-initTracing();
-
 import { createServer } from 'http';
 import { createServer as createNetServer } from 'net';
 
@@ -12,41 +8,58 @@ import express, { Application } from 'express';
 import { z } from 'zod';
 
 import { env } from '@/config/env';
-import { HealthController } from '@/controllers/health.controller';
-import { authController } from '@/controllers/auth.controller';
-import { projectsController } from '@/controllers/projects.controller';
-import { scenesController } from '@/controllers/scenes.controller';
-import { charactersController } from '@/controllers/characters.controller';
-import { shotsController } from '@/controllers/shots.controller';
-import { aiController } from '@/controllers/ai.controller';
-import { actorAiController } from '@/controllers/actorai.controller';
-import { breakdownController } from '@/controllers/breakdown.controller';
-import { authMiddleware } from '@/middleware/auth.middleware';
-import { actorAiService } from '@/services/actorai.service';
-import { logger } from '@/lib/logger';
-import { closeDatabase, initializeDatabase, databaseAvailable } from '@/db';
-
-import { initializeWorkers, shutdownQueues } from '@/queues';
-import { setupBullBoard, getAuthenticatedBullBoardRouter } from '@/middleware/bull-board.middleware';
 import { isRedisEnabled } from '@/config/redis-gate';
 import { initializeSentry } from '@/config/sentry';
+import { initTracing } from '@/config/tracing';
+import { actorAiController } from '@/controllers/actorai.controller';
+import { aiController } from '@/controllers/ai.controller';
 import { AnalysisController } from '@/controllers/analysis.controller';
-import { checkRedisHealth } from '@/utils/redis-health';
-import { critiqueController } from '@/controllers/critique.controller';
 import { appStateController } from '@/controllers/appState.controller';
-import { budgetController } from '@/controllers/budget.controller';
+import { authController } from '@/controllers/auth.controller';
 import { brainstormController } from '@/controllers/brainstorm.controller';
-import { workflowController } from '@/controllers/workflow.controller';
-import { styleistController } from '@/controllers/styleist.controller';
+import { breakdownController } from '@/controllers/breakdown.controller';
+import { budgetController } from '@/controllers/budget.controller';
+import { charactersController } from '@/controllers/characters.controller';
 import { cineAIController } from '@/controllers/cineai.controller';
-import { websocketService } from '@/services/websocket.service';
-import { sseService } from '@/services/sse.service';
-import { breakappRouter } from '@/modules/breakapp/routes';
-import { breakappGateway } from '@/modules/breakapp/gateway';
-import { artDirectorRouter } from '@/modules/art-director/routes';
-import styleistRouter from '@/modules/styleist/routes';
-import { memoryHealthHandler, memoryRoutes, weaviateStore } from '@/memory';
+import { critiqueController } from '@/controllers/critique.controller';
+import { createEncryptedDocument, getEncryptedDocument, updateEncryptedDocument, deleteEncryptedDocument, listEncryptedDocuments } from '@/controllers/encryptedDocs.controller';
+import { HealthController } from '@/controllers/health.controller';
+import { metricsController } from '@/controllers/metrics.controller';
+import { projectsController } from '@/controllers/projects.controller';
+import { queueController } from '@/controllers/queue.controller';
+import { scenesController } from '@/controllers/scenes.controller';
+import { shotsController } from '@/controllers/shots.controller';
+import { styleistController } from '@/controllers/styleist.controller';
+import { workflowController } from '@/controllers/workflow.controller';
+import { zkSignup, zkLoginInit, zkLoginVerify, manageRecoveryArtifact } from '@/controllers/zkAuth.controller';
+import { closeDatabase, initializeDatabase, databaseAvailable } from '@/db';
 import { registerEditorRuntimeRoutes } from '@/editor/runtime';
+import { logger } from '@/lib/logger';
+import { memoryHealthHandler, memoryRoutes, weaviateStore } from '@/memory';
+import { setupMiddleware, errorHandler, perUserAiLimiter } from '@/middleware';
+import { authMiddleware } from '@/middleware/auth.middleware';
+import { setupBullBoard, getAuthenticatedBullBoardRouter } from '@/middleware/bull-board.middleware';
+import { cspMiddleware, securityHeadersMiddleware } from '@/middleware/csp.middleware';
+import { csrfProtection } from '@/middleware/csrf.middleware';
+import { metricsMiddleware, metricsEndpoint } from '@/middleware/metrics.middleware';
+import { logAuthAttempts, logRateLimitViolations } from '@/middleware/security-logger.middleware';
+import { sentryErrorHandler, trackError, trackPerformance } from '@/middleware/sentry.middleware';
+import { sloMetricsMiddleware } from '@/middleware/slo-metrics.middleware';
+import { wafMiddleware, getWAFStats, getWAFEvents, blockIP, unblockIP, getBlockedIPs, updateWAFConfig, getWAFConfig, type WAFConfig } from '@/middleware/waf.middleware';
+import { artDirectorRouter } from '@/modules/art-director/routes';
+import { breakappGateway } from '@/modules/breakapp/gateway';
+import { breakappRouter } from '@/modules/breakapp/routes';
+import { styleistRouter } from '@/modules/styleist/routes';
+import { initializeWorkers, shutdownQueues } from '@/queues';
+import { actorAiService } from '@/services/actorai.service';
+import { sseService } from '@/services/sse.service';
+import { websocketService } from '@/services/websocket.service';
+import { checkRedisHealth } from '@/utils/redis-health';
+
+import type { Server } from 'http';
+
+// Initialize OpenTelemetry tracing before application setup.
+initTracing();
 
 // Initialize Sentry monitoring (must be first)
 initializeSentry();
@@ -55,6 +68,34 @@ const wafIpBodySchema = z.object({
   ip: z.string().min(1),
   reason: z.string().optional(),
 }).passthrough();
+
+const telemetryBodySchema = z.object({
+  event: z.string().optional(),
+  payload: z.unknown().optional(),
+}).passthrough();
+
+const wafConfigUpdateSchema = z.object({
+  enabled: z.boolean().optional(),
+  mode: z.enum(['block', 'monitor']).optional(),
+  logLevel: z.enum(['minimal', 'standard', 'verbose']).optional(),
+  rules: z.record(z.string(), z.boolean()).optional(),
+  whitelist: z.object({
+    ips: z.array(z.string()).optional(),
+    paths: z.array(z.string()).optional(),
+    userAgents: z.array(z.string()).optional(),
+  }).partial().optional(),
+  blacklist: z.object({
+    ips: z.array(z.string()).optional(),
+    countries: z.array(z.string()).optional(),
+    userAgents: z.array(z.string()).optional(),
+  }).partial().optional(),
+  rateLimit: z.object({
+    windowMs: z.number().optional(),
+    maxRequests: z.number().optional(),
+    blockDurationMs: z.number().optional(),
+  }).partial().optional(),
+  customRules: z.array(z.unknown()).optional(),
+}).partial().passthrough();
 
 function resolveTrustProxySetting(): boolean | number | string {
   const configuredValue = process.env['TRUST_PROXY']?.trim();
@@ -95,7 +136,6 @@ app.use(trackPerformance);
 app.use(metricsMiddleware);
 
 // SLO Metrics tracking (Availability, Latency, Error Budget)
-import { sloMetricsMiddleware } from '@/middleware/slo-metrics.middleware';
 app.use(sloMetricsMiddleware);
 
 // WAF (Web Application Firewall) - must be early in the chain
@@ -141,8 +181,8 @@ app.use((req, res, next): void => {
 
   const origin = req.get('Origin');
   const referer = req.get('Referer');
-  const contentType = req.get('Content-Type') || '';
-  const userAgent = req.get('User-Agent') || '';
+  const contentType = req.get('Content-Type') ?? '';
+  const userAgent = req.get('User-Agent') ?? '';
 
   // SECURITY: بناء مجموعة origins المسموح بها مُطبّعة عبر URL parsing
   // تمنع المطابقة الحرفية عبر startsWith التي كانت عرضة لهجمات من نوع
@@ -182,7 +222,7 @@ app.use((req, res, next): void => {
       (contentType.includes('application/json') && userAgent.toLowerCase().includes('mozilla'));
 
     if (isBrowserRequest) {
-      const sanitizedPath = req.path.replace(/[^\w\-\/]/g, '');
+      const sanitizedPath = req.path.replace(/[^\w\-/]/g, '');
       const sanitizedMethod = req.method.replace(/[^A-Z]/g, '');
       logger.warn('CSRF: Missing Origin/Referer', {
         path: sanitizedPath,
@@ -203,7 +243,7 @@ app.use((req, res, next): void => {
   if (origin) {
     const normalizedOrigin = parseOriginStrict(origin);
     if (!normalizedOrigin || !allowedOriginSet.has(normalizedOrigin)) {
-      const sanitizedOrigin = origin.replace(/[^\w\-\:\.]/g, '');
+      const sanitizedOrigin = origin.replace(/[^\w\-:.]/g, '');
       logger.warn('CSRF: Origin mismatch', { origin: sanitizedOrigin });
       res.status(403).json({
         success: false,
@@ -227,7 +267,7 @@ app.use((req, res, next): void => {
       return;
     }
     if (!allowedOriginSet.has(refererOrigin)) {
-      const sanitizedReferer = refererOrigin.replace(/[^\w\-\:\.]/g, '');
+      const sanitizedReferer = refererOrigin.replace(/[^\w\-:.]/g, '');
       logger.warn('CSRF: Referer mismatch', { referer: sanitizedReferer });
       res.status(403).json({
         success: false,
@@ -298,7 +338,6 @@ app.post('/api/auth/refresh', csrfProtection, authController.refresh.bind(authCo
 app.get('/api/auth/me', authMiddleware, authController.getCurrentUser.bind(authController));
 
 // Zero-Knowledge Auth endpoints (public)
-import { zkSignup, zkLoginInit, zkLoginVerify, manageRecoveryArtifact } from '@/controllers/zkAuth.controller';
 app.post('/api/auth/zk-signup', zkSignup);
 app.post('/api/auth/zk-login-init', zkLoginInit);
 app.post('/api/auth/zk-login-verify', zkLoginVerify);
@@ -318,11 +357,13 @@ app.post('/api/analysis/seven-stations/:analysisId/export', authMiddleware, csrf
 // Lightweight telemetry sink for the analysis surface (best-effort, fire-and-forget)
 app.post('/api/telemetry', authMiddleware, (req, res) => {
   try {
-    const body = req.body as { event?: string; payload?: unknown } | undefined;
-    if (body?.event) {
+    const parsedBody = telemetryBodySchema.safeParse(req.body);
+    if (parsedBody.success && parsedBody.data.event) {
       // logger drops to debug to avoid log noise
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (logger as any).debug?.('telemetry', { event: body.event, payload: body.payload });
+      logger.debug('telemetry', {
+        event: parsedBody.data.event,
+        payload: parsedBody.data.payload,
+      });
     }
   } catch { /* swallow */ }
   res.status(204).end();
@@ -343,18 +384,6 @@ app.delete('/api/projects/:id', authMiddleware, csrfProtection, projectsControll
 app.post('/api/projects/:id/analyze', authMiddleware, perUserAiLimiter, csrfProtection, projectsController.analyzeScript.bind(projectsController));
 
 // Zero-Knowledge Encrypted Documents endpoints (protected)
-import { createEncryptedDocument, getEncryptedDocument, updateEncryptedDocument, deleteEncryptedDocument, listEncryptedDocuments } from '@/controllers/encryptedDocs.controller';
-import { metricsController } from '@/controllers/metrics.controller';
-import { queueController } from '@/controllers/queue.controller';
-import { setupMiddleware, errorHandler, perUserAiLimiter } from '@/middleware';
-import { cspMiddleware, securityHeadersMiddleware } from '@/middleware/csp.middleware';
-import { csrfProtection } from '@/middleware/csrf.middleware';
-import { metricsMiddleware, metricsEndpoint } from '@/middleware/metrics.middleware';
-import { logAuthAttempts, logRateLimitViolations } from '@/middleware/security-logger.middleware';
-import { sentryErrorHandler, trackError, trackPerformance } from '@/middleware/sentry.middleware';
-import { wafMiddleware, getWAFStats, getWAFEvents, blockIP, unblockIP, getBlockedIPs, updateWAFConfig, getWAFConfig } from '@/middleware/waf.middleware';
-
-import type { Server } from 'http';
 app.post('/api/docs', authMiddleware, csrfProtection, createEncryptedDocument);
 app.get('/api/docs/:id', authMiddleware, getEncryptedDocument);
 app.put('/api/docs/:id', authMiddleware, csrfProtection, updateEncryptedDocument);
@@ -543,7 +572,13 @@ app.get('/api/waf/config', authMiddleware, (_req, res) => {
 
 app.put('/api/waf/config', authMiddleware, csrfProtection, (req, res) => {
   try {
-    updateWAFConfig(req.body);
+    const validation = wafConfigUpdateSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ success: false, error: 'Invalid WAF config' });
+      return;
+    }
+
+    updateWAFConfig(validation.data as Partial<WAFConfig>);
     res.json({ success: true, message: 'WAF configuration updated' });
   } catch {
     logger.error('Failed to update WAF config');
@@ -782,113 +817,125 @@ async function startListening(port: number): Promise<void> {
   });
 }
 
+async function initializeDatabaseForBootstrap(
+  startupWarnings: string[]
+): Promise<void> {
+  try {
+    await initializeDatabase();
+    if (databaseAvailable) {
+      logger.info('Database schema is ready');
+      return;
+    }
+
+    const message =
+      'Database is unavailable. Backend will continue in degraded mode until PostgreSQL becomes reachable.';
+    startupWarnings.push(message);
+    logger.warn(message);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Database initialization failed.';
+    startupWarnings.push(message);
+    logger.warn('Database initialization failed; continuing in degraded mode', {
+      errorMessage: message,
+    });
+  }
+}
+
+async function initializeQueueServices(
+  startupWarnings: string[]
+): Promise<void> {
+  if (!isRedisEnabled()) {
+    logger.info('Queue workers skipped — Redis is disabled');
+    return;
+  }
+
+  const redisOk = await checkRedisHealth();
+  if (!redisOk) {
+    const message =
+      'Redis is required but not reachable. Queue workers and Bull Board are disabled until Redis becomes available.';
+    startupWarnings.push(message);
+    logger.warn(message);
+    return;
+  }
+
+  logger.info('Redis is reachable');
+
+  try {
+    await initializeWorkers();
+    logger.info('Background job workers initialized');
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to initialize job workers.';
+    startupWarnings.push(message);
+    logger.error('Failed to initialize job workers:', error);
+  }
+
+  try {
+    setupBullBoard();
+    const authenticatedBullBoardRouter = getAuthenticatedBullBoardRouter();
+    app.use('/admin/queues', authenticatedBullBoardRouter);
+    logger.info(
+      'Bull Board dashboard available at /admin/queues (authenticated)'
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to setup Bull Board.';
+    startupWarnings.push(message);
+    logger.error('Failed to setup Bull Board:', error);
+  }
+}
+
+async function registerRuntimeRoutesForBootstrap(
+  startupWarnings: string[]
+): Promise<void> {
+  try {
+    await withBootstrapTimeout(
+      registerEditorRuntimeRoutes(app),
+      'Editor runtime route registration'
+    );
+    logger.info('Editor runtime routes mounted through apps/backend');
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to register editor runtime routes.';
+    startupWarnings.push(message);
+    logger.error('Failed to register editor runtime routes:', error);
+  }
+}
+
+async function bootstrapWeaviateForServer(
+  startupWarnings: string[]
+): Promise<void> {
+  try {
+    await withBootstrapTimeout(weaviateStore.bootstrap(), 'Weaviate bootstrap');
+    logger.info('Weaviate bootstrap evaluated', weaviateStore.getStatus());
+
+    const weaviateStatus = weaviateStore.getStatus();
+    if (weaviateStatus.required && weaviateStatus.state !== 'connected') {
+      const message =
+        'Weaviate is required but not available. Memory routes will stay degraded until connectivity is restored.';
+      startupWarnings.push(message);
+      logger.warn(message, weaviateStatus);
+    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Weaviate bootstrap failed.';
+    startupWarnings.push(message);
+    logger.error('Weaviate bootstrap failed:', error);
+  }
+}
+
 async function bootstrapServer(): Promise<void> {
   try {
     const startupWarnings: string[] = [];
 
-    try {
-      await initializeDatabase();
-      if (databaseAvailable) {
-        logger.info('Database schema is ready');
-      } else {
-        const message =
-          'Database is unavailable. Backend will continue in degraded mode until PostgreSQL becomes reachable.';
-        startupWarnings.push(message);
-        logger.warn(message);
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Database initialization failed.';
-      startupWarnings.push(message);
-      logger.warn('Database initialization failed; continuing in degraded mode', {
-        errorMessage: message,
-      });
-    }
-
-    // Redis pre-check
-    if (isRedisEnabled()) {
-      const redisOk = await checkRedisHealth();
-      if (!redisOk) {
-        const message =
-          'Redis is required but not reachable. Queue workers and Bull Board are disabled until Redis becomes available.';
-        startupWarnings.push(message);
-        logger.warn(message);
-      } else {
-        logger.info('Redis is reachable');
-
-        // Initialize background job workers (BullMQ) — only when Redis is available
-        try {
-          await initializeWorkers();
-          logger.info('Background job workers initialized');
-        } catch (error) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : 'Failed to initialize job workers.';
-          startupWarnings.push(message);
-          logger.error('Failed to initialize job workers:', error);
-        }
-
-        // Setup Bull Board dashboard for queue monitoring (with authentication)
-        try {
-          setupBullBoard();
-          const authenticatedBullBoardRouter = getAuthenticatedBullBoardRouter();
-          app.use('/admin/queues', authenticatedBullBoardRouter);
-          logger.info(
-            'Bull Board dashboard available at /admin/queues (authenticated)'
-          );
-        } catch (error) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : 'Failed to setup Bull Board.';
-          startupWarnings.push(message);
-          logger.error('Failed to setup Bull Board:', error);
-        }
-      }
-    } else {
-      logger.info('Queue workers skipped — Redis is disabled');
-    }
-
-    try {
-      await withBootstrapTimeout(
-        registerEditorRuntimeRoutes(app),
-        'Editor runtime route registration'
-      );
-      logger.info('Editor runtime routes mounted through apps/backend');
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to register editor runtime routes.';
-      startupWarnings.push(message);
-      logger.error('Failed to register editor runtime routes:', error);
-    }
-
-    try {
-      await withBootstrapTimeout(
-        weaviateStore.bootstrap(),
-        'Weaviate bootstrap'
-      );
-      logger.info('Weaviate bootstrap evaluated', weaviateStore.getStatus());
-
-      const weaviateStatus = weaviateStore.getStatus();
-      if (weaviateStatus.required && weaviateStatus.state !== 'connected') {
-        const message =
-          'Weaviate is required but not available. Memory routes will stay degraded until connectivity is restored.';
-        startupWarnings.push(message);
-        logger.warn(message, weaviateStatus);
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Weaviate bootstrap failed.';
-      startupWarnings.push(message);
-      logger.error('Weaviate bootstrap failed:', error);
-    }
+    await initializeDatabaseForBootstrap(startupWarnings);
+    await initializeQueueServices(startupWarnings);
+    await registerRuntimeRoutesForBootstrap(startupWarnings);
+    await bootstrapWeaviateForServer(startupWarnings);
 
     // 404 handler
     app.use((_req, res) => {
@@ -936,9 +983,8 @@ if (isServerEntryProcess()) {
   void bootstrapServer();
 }
 
-// Graceful shutdown
-process.on('SIGTERM', async (): Promise<void> => {
-  logger.info('SIGTERM received, shutting down gracefully');
+async function shutdownGracefully(signal: 'SIGTERM' | 'SIGINT'): Promise<void> {
+  logger.info(`${signal} received, shutting down gracefully`);
 
   // Shutdown real-time services
   try {
@@ -975,47 +1021,14 @@ process.on('SIGTERM', async (): Promise<void> => {
   } else {
     process.exit(0);
   }
+}
+
+process.on('SIGTERM', () => {
+  void shutdownGracefully('SIGTERM');
 });
 
-process.on('SIGINT', async (): Promise<void> => {
-  logger.info('SIGINT received, shutting down gracefully');
-
-  // Shutdown real-time services
-  try {
-    sseService.shutdown();
-    await websocketService.shutdown();
-    logger.info('Real-time services shut down');
-  } catch (error) {
-    logger.error('Error shutting down real-time services:', error);
-  }
-
-  // Close queues
-  try {
-    await shutdownQueues();
-  } catch (error) {
-    logger.error('Error shutting down queues:', error);
-  }
-
-  // Disconnect Weaviate
-  try {
-    await weaviateStore.disconnect();
-    logger.info('Weaviate disconnected');
-  } catch (error) {
-    logger.error('Error disconnecting Weaviate:', error);
-  }
-
-  // Close database connections
-  await closeDatabase();
-
-  if (runningServer) {
-    runningServer.close(() => {
-      logger.info('Server closed');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
+process.on('SIGINT', () => {
+  void shutdownGracefully('SIGINT');
 });
 
 export { app, httpServer };
-export default app;

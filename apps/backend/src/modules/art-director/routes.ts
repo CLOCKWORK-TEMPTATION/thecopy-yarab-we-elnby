@@ -11,6 +11,22 @@ function getRouteSegments(pathname: string): string[] {
     .filter(Boolean);
 }
 
+function stringifyQueryValue(value: unknown): string {
+  switch (typeof value) {
+    case "string":
+      return value;
+    case "number":
+    case "boolean":
+    case "bigint":
+    case "symbol":
+      return String(value);
+    case "object":
+      return value === null ? "" : JSON.stringify(value) ?? "";
+    default:
+      return "";
+  }
+}
+
 async function respond(req: Request, res: Response): Promise<void> {
   const method = req.method.toUpperCase();
 
@@ -27,13 +43,13 @@ async function respond(req: Request, res: Response): Promise<void> {
     Object.entries(req.query).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         value.forEach((item) => {
-          searchEntries.push([key, String(item)]);
+          searchEntries.push([key, stringifyQueryValue(item)]);
         });
         return;
       }
 
       if (value !== undefined) {
-        searchEntries.push([key, String(value)]);
+        searchEntries.push([key, stringifyQueryValue(value)]);
       }
     });
 

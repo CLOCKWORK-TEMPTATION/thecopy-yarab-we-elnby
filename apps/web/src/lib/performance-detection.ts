@@ -56,10 +56,30 @@ export interface ParticleConfig {
   textureQuality: "high" | "medium" | "low";
 }
 
+interface BatteryManagerLike extends EventTarget {
+  level?: number;
+  charging?: boolean;
+  chargingTime?: number;
+  dischargingTime?: number;
+}
+
+interface NetworkInformationLike extends EventTarget {
+  effectiveType?: DeviceCapabilities["effectiveType"];
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
+
+interface NavigatorWithDeviceCapabilities extends Navigator {
+  getBattery?: () => Promise<BatteryManagerLike>;
+  connection?: NetworkInformationLike;
+  deviceMemory?: number;
+}
+
 class PerformanceDetector {
   private capabilities: DeviceCapabilities | null = null;
-  private batteryManager: any = null;
-  private connectionInfo: any = null;
+  private batteryManager: BatteryManagerLike | null = null;
+  private connectionInfo: NetworkInformationLike | null = null;
   private observers = new Set<(caps: DeviceCapabilities) => void>();
 
   constructor() {
@@ -69,29 +89,36 @@ class PerformanceDetector {
   }
 
   private initializeBatteryAPI(): void {
-    if ("getBattery" in navigator) {
-      (navigator as any).getBattery().then((battery: any) => {
-        this.batteryManager = battery;
-        this.updateCapabilities();
-        battery.addEventListener("levelchange", () =>
-          this.updateCapabilities()
-        );
-        battery.addEventListener("chargingchange", () =>
-          this.updateCapabilities()
-        );
-        battery.addEventListener("chargingtimechange", () =>
-          this.updateCapabilities()
-        );
-        battery.addEventListener("dischargingtimechange", () =>
-          this.updateCapabilities()
-        );
-      });
+    const deviceNavigator = navigator as NavigatorWithDeviceCapabilities;
+    if (deviceNavigator.getBattery) {
+      void deviceNavigator
+        .getBattery()
+        .then((battery) => {
+          this.batteryManager = battery;
+          this.updateCapabilities();
+          battery.addEventListener("levelchange", () =>
+            this.updateCapabilities()
+          );
+          battery.addEventListener("chargingchange", () =>
+            this.updateCapabilities()
+          );
+          battery.addEventListener("chargingtimechange", () =>
+            this.updateCapabilities()
+          );
+          battery.addEventListener("dischargingtimechange", () =>
+            this.updateCapabilities()
+          );
+        })
+        .catch(() => {
+          this.batteryManager = null;
+        });
     }
   }
 
   private initializeConnectionAPI(): void {
-    if ("connection" in navigator) {
-      this.connectionInfo = (navigator as any).connection;
+    const deviceNavigator = navigator as NavigatorWithDeviceCapabilities;
+    if (deviceNavigator.connection) {
+      this.connectionInfo = deviceNavigator.connection;
       this.updateCapabilities();
       this.connectionInfo.addEventListener("change", () =>
         this.updateCapabilities()
@@ -129,7 +156,7 @@ class PerformanceDetector {
   private getNetworkInfo() {
     if (!this.connectionInfo) {
       return {
-        effectiveType: "4g" as const,
+        effectiveType: "4g",
         downlink: 10,
         rtt: 50,
         saveData: false,
@@ -140,14 +167,15 @@ class PerformanceDetector {
       effectiveType: this.connectionInfo.effectiveType ?? "4g",
       downlink: this.connectionInfo.downlink ?? 10,
       rtt: this.connectionInfo.rtt ?? 50,
-      saveData: (this.connectionInfo.saveData ?? false) as boolean,
+      saveData: this.connectionInfo.saveData ?? false,
     };
   }
 
   private getHardwareInfo() {
+    const deviceNavigator = navigator as NavigatorWithDeviceCapabilities;
     return {
-      cpuCores: (navigator as any).hardwareConcurrency ?? 4,
-      deviceMemory: (navigator as any).deviceMemory ?? 8,
+      cpuCores: deviceNavigator.hardwareConcurrency ?? 4,
+      deviceMemory: deviceNavigator.deviceMemory ?? 8,
       maxTouchPoints: navigator.maxTouchPoints || 0,
     };
   }
@@ -175,7 +203,7 @@ class PerformanceDetector {
 
   private getDeviceRefreshRate(): number {
     if ("screen" in window && "refreshRate" in window.screen) {
-      return (window.screen as any).refreshRate ?? 60;
+      return window.screen.refreshRate ?? 60;
     }
     return 60;
   }

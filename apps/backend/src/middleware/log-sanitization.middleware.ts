@@ -81,7 +81,7 @@ export const PII_PATTERNS: SanitizationPatterns[] = [
 
   // API Keys (common patterns)
   {
-    pattern: /(["']?(?:api[_-]?key|apikey|access[_-]?token|auth[_-]?token)["']?\s*[:=]\s*["']?)([A-Za-z0-9_\-]+)(["']?)/gi,
+    pattern: /(["']?(?:api[_-]?key|apikey|access[_-]?token|auth[_-]?token)["']?\s*[:=]\s*["']?)([A-Za-z0-9_-]+)(["']?)/gi,
     replacement: '$1[API_KEY_REDACTED]$3',
     description: 'API keys',
   },

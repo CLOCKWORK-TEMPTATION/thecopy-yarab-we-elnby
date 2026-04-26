@@ -7,7 +7,7 @@ const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack Detected via libinjection",
     description: "Detects SQL injection using common patterns",
     pattern:
-      /(\bSELECT\b\s+(?:\*|[a-z_][\w.]*)(?:\s*,\s*(?:\*|[a-z_][\w.]*))*\s+\bFROM\b\s+[a-z_][\w.]*)|(\bINSERT\b\s+\bINTO\b\s+[a-z_][\w.]*(?:\s*\([^)]{0,200}\))?\s+\bVALUES\b)|(\bUPDATE\b\s+[a-z_][\w.]*\s+\bSET\b)|(\bDELETE\b\s+\bFROM\b\s+[a-z_][\w.]*)|(\bDROP\b\s+\bTABLE\b)|(\bCREATE\b\s+\bTABLE\b)|(\bALTER\b\s+\bTABLE\b)|(\bTRUNCATE\b\s+\bTABLE\b)|(\bEXEC(?:UTE)?\b\s+[a-z_][\w.]*)|(\bUNION\b\s+(?:ALL\s+)?\bSELECT\b)|(\bDECLARE\b\s+@[a-z_][\w]*)|(\b(OR|AND)\b\s+[\w'"]\s*[=<>])|(\'\s*(OR|AND)\s+\'?\d)|(\bHAVING\b\s+\d)|(\bORDER\s+BY\b\s+\d)/gi,
+      /(\bSELECT\b\s+(?:\*|[a-z_][\w.]*)(?:\s*,\s*(?:\*|[a-z_][\w.]*))*\s+\bFROM\b\s+[a-z_][\w.]*)|(\bINSERT\b\s+\bINTO\b\s+[a-z_][\w.]*(?:\s*\([^)]{0,200}\))?\s+\bVALUES\b)|(\bUPDATE\b\s+[a-z_][\w.]*\s+\bSET\b)|(\bDELETE\b\s+\bFROM\b\s+[a-z_][\w.]*)|(\bDROP\b\s+\bTABLE\b)|(\bCREATE\b\s+\bTABLE\b)|(\bALTER\b\s+\bTABLE\b)|(\bTRUNCATE\b\s+\bTABLE\b)|(\bEXEC(?:UTE)?\b\s+[a-z_][\w.]*)|(\bUNION\b\s+(?:ALL\s+)?\bSELECT\b)|(\bDECLARE\b\s+@[a-z_][\w]*)|(\b(OR|AND)\b\s+[\w'"]\s*[=<>])|('\s*(OR|AND)\s+'?\d)|(\bHAVING\b\s+\d)|(\bORDER\s+BY\b\s+\d)/gi,
     locations: ["body", "query", "path"],
     action: "block",
     severity: "critical",
@@ -18,7 +18,7 @@ const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack: Common Injection Testing Detected",
     description: "Detects common SQL injection test payloads",
     pattern:
-      /(\'\s*(--|#|\/\*))|(\b(WAITFOR|BENCHMARK|SLEEP)\s*\()|(\bCHAR\s*\(\d+\))|(\bCONCAT\s*\(.*\))|(\bCONVERT\s*\()/gi,
+      /('\s*(--|#|\/\*))|(\b(WAITFOR|BENCHMARK|SLEEP)\s*\()|(\bCHAR\s*\(\d+\))|(\bCONCAT\s*\(.*\))|(\bCONVERT\s*\()/gi,
     locations: ["body", "query", "path"],
     action: "block",
     severity: "critical",
@@ -40,7 +40,7 @@ const SQL_INJECTION_PATTERNS: WAFRule[] = [
     name: "SQL Injection Attack: SQL Tautology Detected",
     description: "Detects SQL tautologies (always-true conditions)",
     pattern:
-      /(\'\s*OR\s+\'?[^']*\'?\s*=\s*\'?[^']*\'?)|(\d+\s*=\s*\d+)|(\'\s*=\s*\')|(\bOR\s+1\s*=\s*1\b)|(\bAND\s+1\s*=\s*1\b)/gi,
+      /('\s*OR\s+'?[^']*'?\s*=\s*'?[^']*'?)|(\d+\s*=\s*\d+)|('\s*=\s*')|(\bOR\s+1\s*=\s*1\b)|(\bAND\s+1\s*=\s*1\b)/gi,
     locations: ["body", "query"],
     action: "block",
     severity: "high",

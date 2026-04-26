@@ -49,6 +49,20 @@ function collectReferenceAnchors(referenceText: string): string[] {
   return unique(anchors).sort((a, b) => b.length - a.length);
 }
 
+function splitPendingAtAnchor(
+  pending: string,
+  anchor: string
+): { left: string; right: string } | null {
+  const index = pending.indexOf(anchor);
+  if (index <= 0) {
+    return null;
+  }
+
+  const left = pending.slice(0, index).trim();
+  const right = pending.slice(index).trim();
+  return left && right ? { left, right } : null;
+}
+
 function splitByAnchors(lines: string[], anchors: string[]): string[] {
   if (anchors.length === 0) return lines;
 
@@ -59,16 +73,12 @@ function splitByAnchors(lines: string[], anchors: string[]): string[] {
     while (changed) {
       changed = false;
       for (const anchor of anchors) {
-        const index = pending.indexOf(anchor);
-        if (index > 0) {
-          const left = pending.slice(0, index).trim();
-          const right = pending.slice(index).trim();
-          if (left && right) {
-            out.push(left);
-            pending = right;
-            changed = true;
-            break;
-          }
+        const split = splitPendingAtAnchor(pending, anchor);
+        if (split) {
+          out.push(split.left);
+          pending = split.right;
+          changed = true;
+          break;
         }
       }
     }

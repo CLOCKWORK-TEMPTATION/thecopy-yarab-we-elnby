@@ -40,7 +40,7 @@ export async function readFiles(
     }
 
     return { ok: true, value: successful };
-  } catch (e: any) {
+  } catch (e: unknown) {
     return {
       ok: false,
       error: e instanceof Error ? e : new Error("فشل في قراءة الملفات"),
@@ -57,7 +57,25 @@ export async function readFiles(
  */
 interface FileTypeHandler {
   matches: (file: File) => boolean;
-  process: (file: File, buffer: Buffer) => Promise<string | undefined>;
+  process: (
+    file: File,
+    buffer: Buffer
+  ) => string | undefined | Promise<string | undefined>;
+}
+
+interface MammothModule {
+  convertToPlainText: (input: {
+    arrayBuffer: ArrayBuffer;
+  }) => Promise<{ value?: unknown }>;
+}
+
+function isMammothModule(value: unknown): value is MammothModule {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const moduleCandidate = value as { convertToPlainText?: unknown };
+  return typeof moduleCandidate.convertToPlainText === "function";
 }
 
 const FILE_TYPE_HANDLERS: FileTypeHandler[] = [
@@ -67,23 +85,23 @@ const FILE_TYPE_HANDLERS: FileTypeHandler[] = [
       file.type === "text/markdown" ||
       file.name.endsWith(".txt") ||
       file.name.endsWith(".md"),
-    process: async (_, buffer) => tryDecodeUtf8(buffer),
+    process: (_, buffer) => tryDecodeUtf8(buffer),
   },
   {
     matches: (file) =>
       file.type ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
       file.name.endsWith(".docx"),
-    process: async (file) => extractDocxText(file),
+    process: (file) => extractDocxText(file),
   },
   {
     matches: (file) =>
       file.type === "application/pdf" || file.name.endsWith(".pdf"),
-    process: async () => undefined, // PDF سيتم إرساله كـ binary
+    process: () => undefined, // PDF سيتم إرساله كـ binary
   },
   {
     matches: (file) => file.type.startsWith("image/"),
-    process: async () => undefined, // الصور سيتم إرسالها كـ binary
+    process: () => undefined, // الصور سيتم إرسالها كـ binary
   },
 ];
 
@@ -94,7 +112,7 @@ function getFileHandler(file: File): FileTypeHandler {
   return (
     FILE_TYPE_HANDLERS.find((handler) => handler.matches(file)) ?? {
       matches: () => true,
-      process: async (_, buffer) => tryDecodeUtf8(buffer),
+      process: (_, buffer) => tryDecodeUtf8(buffer),
     }
   );
 }
@@ -128,7 +146,7 @@ async function processFile(file: File): Promise<ProcessedFile | null> {
       "FileReaderService"
     );
     return processed;
-  } catch (error: any) {
+  } catch (error: unknown) {
     log.error(
       `❌ Failed to process file: ${file.name}`,
       error,
@@ -160,18 +178,28 @@ function tryDecodeUtf8(buffer: Buffer): string | undefined {
 async function extractDocxText(file: File): Promise<string | undefined> {
   try {
     // استيراد ديناميكي لـ mammoth
-    const mammoth = await import("mammoth");
+    const mammoth: unknown = await import("mammoth");
+    if (!isMammothModule(mammoth)) {
+      log.warn(
+        `⚠️ DOCX extractor unavailable: ${file.name}`,
+        null,
+        "FileReaderService"
+      );
+      return undefined;
+    }
+
     const arrayBuffer = await file.arrayBuffer();
 
-    const result = await (mammoth as any).convertToPlainText({ arrayBuffer });
+    const result = await mammoth.convertToPlainText({ arrayBuffer });
+    const text = typeof result.value === "string" ? result.value : "";
 
-    if (result.value && result.value.trim().length > 0) {
+    if (text.trim().length > 0) {
       log.debug(
         `✅ Extracted text from DOCX: ${file.name}`,
         null,
         "FileReaderService"
       );
-      return result.value;
+      return text;
     }
 
     log.warn(

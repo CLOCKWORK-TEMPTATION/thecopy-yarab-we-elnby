@@ -14,9 +14,9 @@ export function log(
   const ts = new Date().toISOString();
   const line = `${ts} - ${APP_NAME} - ${level} - ${util.format(message, ...args)}`;
   if (level === "ERROR" || level === "CRITICAL") {
-    console.error(line);
+    process.stderr.write(`${line}\n`);
   } else {
-    console.log(line);
+    process.stdout.write(`${line}\n`);
   }
 }
 

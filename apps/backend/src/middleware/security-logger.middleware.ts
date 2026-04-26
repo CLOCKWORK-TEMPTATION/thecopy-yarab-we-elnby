@@ -55,8 +55,8 @@ export function logSecurityEvent(
   req: Request,
   details?: Record<string, unknown>
 ): void {
-  const clientIP = req.ip || req.socket?.remoteAddress || 'unknown';
-  const userAgent = req.get?.('User-Agent') || 'unknown';
+  const clientIP = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
+  const userAgent = req.get?.('User-Agent') ?? 'unknown';
 
   const securityEvent = {
     type,

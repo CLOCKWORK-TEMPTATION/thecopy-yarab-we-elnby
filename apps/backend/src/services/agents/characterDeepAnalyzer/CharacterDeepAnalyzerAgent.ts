@@ -17,7 +17,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     super(
       "CharacterDeepAnalyzer AI",
       TaskType.CHARACTER_DEEP_ANALYZER,
-      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.75;
@@ -88,6 +88,7 @@ ${previousAnalysis.substring(0, 1000)}
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return `# تحليل شخصية (احتياطي)
 
 نواجه صعوبة في إجراء التحليل العميق الكامل حالياً. إليك ملاحظات أولية:

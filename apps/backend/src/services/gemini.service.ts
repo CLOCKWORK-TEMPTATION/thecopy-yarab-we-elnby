@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  type GenerateContentResult,
+  type GenerativeModel,
+} from '@google/generative-ai';
 
 import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
@@ -48,13 +52,12 @@ interface GeminiRequestConfig {
 
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private model: any;
+  private model: GenerativeModel;
   private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
   private readonly DEFAULT_MODEL = 'gemini-2.5-flash';
 
   constructor() {
-    const apiKey = env.GEMINI_API_KEY || env.GOOGLE_GENAI_API_KEY;
+    const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_GENAI_API_KEY;
     if (!apiKey || apiKey.trim().length === 0) {
       throw new Error('GEMINI_API_KEY أو GOOGLE_GENAI_API_KEY غير محدد في البيئة');
     }
@@ -65,17 +68,17 @@ export class GeminiService {
   /**
    * Track token usage from Gemini API response
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async trackTokenUsage(apiResult: any, analysisType: string): Promise<void> {
+  private async trackTokenUsage(
+    apiResult: GenerateContentResult | null,
+    analysisType: string
+  ): Promise<void> {
     try {
-      // Extract usage metadata from the response
       const usageMetadata = apiResult?.response?.usageMetadata;
 
       if (usageMetadata) {
-        const inputTokens = usageMetadata.promptTokenCount || 0;
-        const outputTokens = usageMetadata.candidatesTokenCount || 0;
+        const inputTokens = usageMetadata.promptTokenCount ?? 0;
+        const outputTokens = usageMetadata.candidatesTokenCount ?? 0;
 
-        // Track usage and cost
         await geminiCostTracker.trackUsage(inputTokens, outputTokens, analysisType);
       } else {
         logger.debug('No usage metadata in Gemini response', { analysisType });
@@ -136,8 +139,8 @@ export class GeminiService {
     }
 
     return {
-      sanitizedInput: inputValidation.sanitizedContent || input,
-      sanitizedOutput: outputValidation.sanitizedContent || output,
+      sanitizedInput: inputValidation.sanitizedContent ?? input,
+      sanitizedOutput: outputValidation.sanitizedContent ?? output,
       warnings
     };
   }
@@ -165,8 +168,7 @@ export class GeminiService {
         ttl = getGeminiCacheTTL(cacheCategory);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let apiResult: any = null;
+      let apiResult: GenerateContentResult | null = null;
 
       // Execute cached call with stale-while-revalidate
       const result = await cachedGeminiCall(
@@ -177,15 +179,17 @@ export class GeminiService {
           this.applyGuardrails(prompt, '', requestType, 'system');
 
           // Execute with timeout to prevent hanging requests
-          apiResult = await Promise.race([
+          apiResult = await Promise.race<GenerateContentResult>([
             this.model.generateContent(prompt),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Gemini request timeout')), this.REQUEST_TIMEOUT)
+            new Promise<GenerateContentResult>((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Gemini request timeout')),
+                this.REQUEST_TIMEOUT
+              )
             ),
           ]);
 
-           
-          return (apiResult).response.text();
+          return apiResult.response.text();
         },
         {
           staleWhileRevalidate: true,
@@ -245,7 +249,7 @@ export class GeminiService {
       'full': 'analysis',
       'default': 'analysis',
     };
-    const cacheCategory: GeminiCacheCategory = validCategories[analysisType] || 'analysis';
+    const cacheCategory: GeminiCacheCategory = validCategories[analysisType] ?? 'analysis';
 
     return this.executeGeminiRequest({
       requestType: `analyze-${analysisType}`,
@@ -265,8 +269,8 @@ export class GeminiService {
   async generateText(prompt: string, _options?: { temperature?: number; maxTokens?: number }): Promise<string> {
     try {
       const result = await this.model.generateContent(prompt);
-       
-      return (result).response.text();
+
+      return result.response.text();
     } catch (error) {
       logger.error('Error in generateText:', error);
       throw error;
@@ -303,8 +307,7 @@ ${text}`;
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async chatWithAI(message: string, context?: any): Promise<string> {
+  async chatWithAI(message: string, context?: unknown): Promise<string> {
     const prompt = context
       ? `أنت مساعد ذكاء اصطناعي متخصص في تحليل الأعمال الدرامية العربية. استخدم السياق التالي للإجابة على السؤال:
 
@@ -395,7 +398,7 @@ ${text}`;
 ${text}`,
     };
 
-    return prompts[analysisType as keyof typeof prompts] || prompts.characters;
+    return prompts[analysisType as keyof typeof prompts] ?? prompts.characters;
   }
 }
 
@@ -405,18 +408,18 @@ ${text}`,
 let geminiServiceInstance: GeminiService | null = null;
 
 function resolveGeminiService(): GeminiService {
-  if (!geminiServiceInstance) {
-    geminiServiceInstance = new GeminiService();
-  }
-
+  geminiServiceInstance ??= new GeminiService();
   return geminiServiceInstance;
 }
 
 export const geminiService = new Proxy({} as GeminiService, {
   get(_target, property, _receiver) {
     const service = resolveGeminiService();
-    const value = Reflect.get(service, property, service);
+    const value: unknown = Reflect.get(service, property, service);
 
-    return typeof value === 'function' ? value.bind(service) : value;
+    if (typeof value === 'function') {
+      return (value as (...args: unknown[]) => unknown).bind(service);
+    }
+    return value;
   },
 });

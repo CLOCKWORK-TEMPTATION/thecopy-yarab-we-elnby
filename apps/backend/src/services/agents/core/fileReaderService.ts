@@ -16,7 +16,7 @@ export interface ProcessedFile {
  * @function readFileAsText
  * @description Reads a file and returns its content as text (Node.js implementation)
  */
-const readFileAsText = async (fileBuffer: Buffer, encoding: BufferEncoding = 'utf-8'): Promise<string> => {
+const readFileAsText = (fileBuffer: Buffer, encoding: BufferEncoding = 'utf-8'): string => {
   return fileBuffer.toString(encoding);
 };
 
@@ -24,7 +24,7 @@ const readFileAsText = async (fileBuffer: Buffer, encoding: BufferEncoding = 'ut
  * @function readFileAsBase64
  * @description Reads a file and returns its content as Base64 (Node.js implementation)
  */
-const readFileAsBase64 = async (fileBuffer: Buffer): Promise<string> => {
+const readFileAsBase64 = (fileBuffer: Buffer): string => {
   return fileBuffer.toString('base64');
 };
 
@@ -45,9 +45,10 @@ function getErrorMessage(e: unknown): string {
 }
 
 async function processTextFile(file: FileInput): Promise<ProcessedFile> {
+  await Promise.resolve();
   const { name, mimeType, buffer, size } = file;
   try {
-    const content = await readFileAsText(buffer);
+    const content = readFileAsText(buffer);
     return { name, mimeType, content, isBase64: false, size };
   } catch (e: unknown) {
     logger.error(`Error reading text file ${name} (${mimeType}):`, e);
@@ -76,9 +77,10 @@ async function processDocxFile(file: FileInput): Promise<ProcessedFile> {
 }
 
 async function processBase64File(file: FileInput): Promise<ProcessedFile> {
+  await Promise.resolve();
   const { name, mimeType, buffer, size } = file;
   try {
-    const content = await readFileAsBase64(buffer);
+    const content = readFileAsBase64(buffer);
     return { name, mimeType, content, isBase64: true, size };
   } catch (e: unknown) {
     logger.error(`Error reading base64 file ${name} (${mimeType}):`, e);
@@ -88,10 +90,11 @@ async function processBase64File(file: FileInput): Promise<ProcessedFile> {
 }
 
 async function processFallbackFile(file: FileInput): Promise<ProcessedFile> {
+  await Promise.resolve();
   const { name, mimeType, buffer, size } = file;
   logger.warn(`Unsupported file type ${mimeType} for file ${name}. Attempting to read as text.`);
   try {
-    const content = await readFileAsText(buffer);
+    const content = readFileAsText(buffer);
     return {
       name,
       mimeType,

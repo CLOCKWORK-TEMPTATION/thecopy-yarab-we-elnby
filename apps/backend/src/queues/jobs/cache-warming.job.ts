@@ -94,7 +94,7 @@ export async function queueCacheWarming(data: CacheWarmingJobData): Promise<stri
   const queue = queueManager.getQueue(QueueName.CACHE_WARMING);
 
   const job = await queue.add('cache-warming', data, {
-    priority: data.priority || 5,
+    priority: data.priority ?? 5,
     attempts: 2, // Only retry once
     backoff: {
       type: 'exponential',

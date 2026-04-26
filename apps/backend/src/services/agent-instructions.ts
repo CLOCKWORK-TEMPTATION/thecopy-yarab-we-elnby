@@ -9,8 +9,11 @@ import { instructionsLoader, type InstructionSet } from './instructions-loader';
 
 export class AgentInstructionsService {
   private static instance: AgentInstructionsService;
+  private readonly loader: typeof instructionsLoader;
   
-  private constructor() {}
+  private constructor(loader: typeof instructionsLoader = instructionsLoader) {
+    this.loader = loader;
+  }
   
   static getInstance(): AgentInstructionsService {
     if (!AgentInstructionsService.instance) {
@@ -23,28 +26,28 @@ export class AgentInstructionsService {
    * تحميل تعليمات وكيل محدد
    */
   async getInstructions(agentId: string): Promise<InstructionSet> {
-    return await instructionsLoader.loadInstructions(agentId);
+    return await this.loader.loadInstructions(agentId);
   }
 
   /**
    * تحميل مسبق لتعليمات وكلاء متعددة
    */
   async preloadAgents(agentIds: string[]): Promise<void> {
-    await instructionsLoader.preloadInstructions(agentIds);
+    await this.loader.preloadInstructions(agentIds);
   }
 
   /**
    * الحصول على حالة التخزين المؤقت
    */
   getCacheStatus() {
-    return instructionsLoader.getCacheStatus();
+    return this.loader.getCacheStatus();
   }
 
   /**
    * مسح التخزين المؤقت
    */
   clearCache(): void {
-    instructionsLoader.clearCache();
+    this.loader.clearCache();
   }
 
   /**
