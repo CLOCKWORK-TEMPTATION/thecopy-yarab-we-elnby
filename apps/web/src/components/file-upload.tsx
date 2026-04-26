@@ -6,6 +6,9 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { createModuleLogger } from "@/lib/logger";
+
+const logger = createModuleLogger("components.file-upload");
 
 interface FileUploadProps {
   onFileContent: (content: string, filename: string) => void;
@@ -139,7 +142,7 @@ export default function FileUpload({
             f.name === file.name ? { ...f, status: "error", progress: 0 } : f
           )
         );
-        console.error("خطأ في معالجة الملف:", error);
+        logger.error({ err: error, fileName: file.name }, "خطأ في معالجة الملف");
       }
     },
     [onFileContent]

@@ -12,6 +12,10 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
+import { createModuleLogger } from "@/lib/logger";
+
+const logger = createModuleLogger("components.performance-optimizer");
+
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
@@ -35,7 +39,7 @@ export function PerformanceOptimizer() {
       if (navigationTiming) {
         const pageLoadTime =
           navigationTiming.loadEventEnd - navigationTiming.fetchStart;
-        console.log(`[Performance] Page load time: ${pageLoadTime}ms`);
+        logger.info({ pageLoadTime, pathname }, "page load time");
 
         // Report to analytics if needed
         if (window.gtag) {

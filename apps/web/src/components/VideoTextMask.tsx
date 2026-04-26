@@ -1,5 +1,9 @@
 import { forwardRef, useState } from "react";
 
+import { createModuleLogger } from "@/lib/logger";
+
+const logger = createModuleLogger("components.video-text-mask");
+
 interface VideoTextMaskProps {
   videoSrc: string;
   text: string;
@@ -21,9 +25,9 @@ export const VideoTextMask = forwardRef<HTMLDivElement, VideoTextMaskProps>(
               muted
               playsInline
               onError={(e) => {
-                console.warn(
-                  `Video failed to load: ${videoSrc}`,
-                  e.currentTarget.error
+                logger.warn(
+                  { videoSrc, mediaError: e.currentTarget.error },
+                  "video failed to load",
                 );
                 setHasError(true);
               }}

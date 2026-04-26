@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
+import { createModuleLogger } from "@/lib/logger";
 import { ParticleWorkerManager } from "@/workers/worker-manager";
 
 import {
@@ -13,6 +14,8 @@ import {
 } from "./device-detection";
 
 import type { Effect } from "@/workers/types";
+
+const logger = createModuleLogger("components.particle-background-worker");
 
 /**
  * Get optimal particle configuration using comprehensive LOD system
@@ -239,7 +242,7 @@ export default function WorkerParticleAnimation() {
         setIsGenerating(false);
         setGenerationProgress(100);
       } catch (error) {
-        console.error("Failed to generate particles:", error);
+        logger.error({ err: error }, "failed to generate particles");
         setIsGenerating(false);
       }
     };
@@ -364,7 +367,7 @@ export default function WorkerParticleAnimation() {
           colorAttribute.needsUpdate = true;
         }
       } catch (error) {
-        console.warn("Worker update failed, skipping frame:", error);
+        logger.warn({ err: error }, "worker update failed, skipping frame");
       }
 
       renderer.render(scene, camera);
@@ -474,7 +477,7 @@ export default function WorkerParticleAnimation() {
           sceneRef.current = null;
         }
       } catch (error) {
-        console.error("Cleanup error:", error);
+        logger.error({ err: error }, "cleanup error");
       }
     };
 

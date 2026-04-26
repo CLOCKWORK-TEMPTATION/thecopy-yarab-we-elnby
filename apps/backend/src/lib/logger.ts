@@ -26,7 +26,12 @@
 
 import pino, { type Logger as PinoLogger, type LoggerOptions } from 'pino';
 
-import { isDevelopment, isProduction } from '@/config/env';
+// نقرأ NODE_ENV مباشرة بدلاً من الاستيراد من @/config/env
+// لمنع كسر vi.mock في الاختبارات التي لا تُصدِّر isDevelopment / isProduction.
+// هذا يحافظ على نفس السلوك (env-based level switching) بدون إنشاء coupling
+// بين الـ logger وملف env validation.
+const isDevelopment = process.env['NODE_ENV'] === 'development';
+const isProduction = process.env['NODE_ENV'] === 'production';
 
 // ----------------------------------------------------------------------------
 // قائمة المسارات المعرّضة للأسرار (يقوم pino بإخفائها تلقائياً)
@@ -161,14 +166,15 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  *
  * يُلفّ كذلك child() حتى يحصل الـ logger الفرعي على نفس التوافق.
  */
-type AnyLogFn = (...args: unknown[]) => void;
+// نوع مساعد لتوحيد توقيع pino المرن (يقبل string أو object كأول argument)
+type FlexibleLogFn = (objOrMsg: unknown, msg?: unknown, ...args: unknown[]) => void;
 
 function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
   return new Proxy(base, {
     get(target, prop, receiver) {
       if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
-        const original = target[method];
+        const original = target[method] as unknown as FlexibleLogFn;
         return function adaptedLogMethod(
           this: unknown,
           arg1: unknown,
