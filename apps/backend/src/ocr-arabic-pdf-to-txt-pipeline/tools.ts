@@ -5,13 +5,36 @@
  * تعمل مباشرةً داخل الوكيل بدون الحاجة لخادم MCP خارجي.
  */
 
-import { tool } from "ai";
-import { z } from "zod";
+import { execFileSync } from "node:child_process";
 import { open, writeFile, stat, readdir, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, extname, dirname, join, resolve, relative, isAbsolute } from "node:path";
-import { execFileSync } from "node:child_process";
+
+import { z } from "zod";
+
+import { defineTool } from "./tool-runtime";
+
 import type { ClassificationResult } from "./types";
+
+interface ReadFileInput {
+  filePath: string;
+  encoding: "utf-8" | "base64";
+}
+
+interface WriteFileInput {
+  filePath: string;
+  content: string;
+  overwrite: boolean;
+}
+
+interface ListFilesInput {
+  dirPath: string;
+  extensions?: string[];
+}
+
+interface ClassifyPdfInput {
+  pdfPath: string;
+}
 
 const ALLOWED_FILE_ROOTS = [process.cwd(), tmpdir()].map((root) =>
   resolve(root)
@@ -66,7 +89,7 @@ async function writeTextFileSafely(
 
 // ─── أداة قراءة الملفات ─────────────────────────────────────
 
-export const readFileTool = tool({
+export const readFileTool = defineTool<ReadFileInput>({
   description:
     "قراءة محتوى ملف من نظام الملفات. يدعم الملفات النصية (txt, md, json, csv). للملفات الثنائية يُعيد معلومات وصفية فقط.",
   inputSchema: z.object({
@@ -126,7 +149,7 @@ export const readFileTool = tool({
 
 // ─── أداة كتابة الملفات ─────────────────────────────────────
 
-export const writeFileTool = tool({
+export const writeFileTool = defineTool<WriteFileInput>({
   description:
     "كتابة محتوى نصي إلى ملف. يُنشئ المجلدات تلقائياً إن لم تكن موجودة. يتجنب الكتابة فوق الملفات الموجودة.",
   inputSchema: z.object({
@@ -166,7 +189,7 @@ export const writeFileTool = tool({
 
 // ─── أداة سرد الملفات ───────────────────────────────────────
 
-export const listFilesTool = tool({
+export const listFilesTool = defineTool<ListFilesInput>({
   description:
     "سرد الملفات في مجلد محدد مع تصفية اختيارية حسب الامتداد. مفيد لاكتشاف ملفات PDF في مجلد.",
   inputSchema: z.object({
@@ -180,11 +203,11 @@ export const listFilesTool = tool({
     try {
       const resolvedDir = resolveToolPath(dirPath);
       const entries = await readdir(resolvedDir, { withFileTypes: true });
-      const files: Array<{
+      const files: {
         name: string;
         type: string;
         size_kb?: number;
-      }> = [];
+      }[] = [];
 
       for (const entry of entries) {
         if (entry.isFile()) {
@@ -219,7 +242,7 @@ export const listFilesTool = tool({
 
 // ─── أداة تصنيف PDF ─────────────────────────────────────────
 
-export const classifyPdfTool = tool({
+export const classifyPdfTool = defineTool<ClassifyPdfInput>({
   description:
     "تصنيف ملف PDF وتحديد نوعه (نصي / ممسوح / مختلط / محمي) والمحرك الأنسب لمعالجته. الخطوة الأولى قبل أي عملية OCR.",
   inputSchema: z.object({

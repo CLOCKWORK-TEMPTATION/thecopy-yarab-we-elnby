@@ -29,25 +29,30 @@
  *                    └───────────────────┘
  */
 
-import { ToolLoopAgent, stepCountIs } from "ai";
-import { createMCPClient } from "@ai-sdk/mcp";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { openai } from "@ai-sdk/openai";
 import { resolve } from "node:path";
 
+import { createMCPClient } from "@ai-sdk/mcp";
+import { openai } from "@ai-sdk/openai";
+
+import {
+  StdioClientTransport,
+  ToolLoopAgent,
+  stepCountIs,
+  type ToolSet,
+} from "./ai-runtime.js";
 import { buildAgentConfig, validateEnvironment } from "./config";
 import {
-  readFileTool,
-  writeFileTool,
-  listFilesTool,
-  classifyPdfTool,
-} from "./tools";
-import {
   skillClassifyPdf,
+  skillEnhanceImages,
   skillOcrMistral,
   skillWriteOutput,
-  skillEnhanceImages,
 } from "./skill-tools";
+import {
+  classifyPdfTool,
+  listFilesTool,
+  readFileTool,
+  writeFileTool,
+} from "./tools";
 
 // ─── ألوان الطرفية ──────────────────────────────────────────
 
@@ -63,7 +68,7 @@ const C = {
 } as const;
 
 function log(prefix: string, color: string, msg: string): void {
-  console.error(`${color}${C.bold}[${prefix}]${C.reset} ${msg}`);
+  process.stderr.write(`${color}${C.bold}[${prefix}]${C.reset} ${msg}\n`);
 }
 
 // ─── إنشاء عميل MCP ────────────────────────────────────────
@@ -160,7 +165,7 @@ async function buildAgent() {
 
   // إنشاء عميل MCP للاتصال بخادم OCR
   let mcpClient: Awaited<ReturnType<typeof createOcrMcpClient>> | null = null;
-  let mcpTools: Record<string, unknown> = {};
+  let mcpTools: ToolSet = {};
 
   try {
     mcpClient = await createOcrMcpClient(config.mcpServerPath);
@@ -177,7 +182,7 @@ async function buildAgent() {
   }
 
   // دمج كل الأدوات: محلية + مهارة (skill) + MCP
-  const allTools = {
+  const allTools: ToolSet = {
     // أدوات نظام الملفات
     classify_pdf: classifyPdfTool,
     read_file: readFileTool,
@@ -202,10 +207,10 @@ async function buildAgent() {
   );
 
   // بناء الوكيل
-  const agent = new ToolLoopAgent({
+  const agent = new ToolLoopAgent<never, ToolSet>({
     model: openai(config.agentModel),
     instructions: AGENT_INSTRUCTIONS,
-    tools: allTools as Record<string, unknown>,
+    tools: allTools,
     stopWhen: stepCountIs(config.maxSteps),
 
     // ─── دوال رد النداء ─────────────────────────────
@@ -234,32 +239,21 @@ async function buildAgent() {
 
 // ─── واجهة سطر الأوامر ──────────────────────────────────────
 
-async function main(): Promise<void> {
-  log("بدء", C.green, "وكيل OCR العربي — Vercel AI SDK v6");
-  log("بدء", C.dim, "─".repeat(50));
-
-  const { agent, mcpClient, config } = await buildAgent();
-
-  // تحليل معاملات سطر الأوامر
-  const args = process.argv.slice(2);
-  let userPrompt: string;
-
+function buildUserPrompt(args: string[], defaultInputDir: string): string {
   if (args.length === 0) {
-    // وضع تفاعلي — طلب افتراضي
-    userPrompt = `اسرد ملفات PDF في المجلد: ${config.defaultInputDir}`;
     log("وضع", C.yellow, "لم يُحدد ملف — سيتم سرد ملفات PDF المتاحة");
-  } else if (args[0] === "--prompt" || args[0] === "-p") {
-    // طلب نصي حر
-    userPrompt = args.slice(1).join(" ");
-  } else {
-    // مسار ملف PDF مباشر
-    const pdfPath = resolve(args[0]);
-    const outputFormat = args.includes("--txt") ? "txt" : "md";
-    const outputPath = args
-      .find((a) => a.startsWith("--output="))
-      ?.split("=")[1];
+    return `اسرد ملفات PDF في المجلد: ${defaultInputDir}`;
+  }
 
-    userPrompt = `حوّل ملف PDF التالي إلى ${outputFormat}:
+  if (args[0] === "--prompt" || args[0] === "-p") {
+    return args.slice(1).join(" ");
+  }
+
+  const pdfPath = resolve(args[0]);
+  const outputFormat = args.includes("--txt") ? "txt" : "md";
+  const outputPath = args.find((a) => a.startsWith("--output="))?.split("=")[1];
+
+  return `حوّل ملف PDF التالي إلى ${outputFormat}:
 المسار: ${pdfPath}${outputPath ? `\nمسار الإخراج: ${outputPath}` : ""}
 
 الخطوات:
@@ -267,7 +261,17 @@ async function main(): Promise<void> {
 2. إذا كان ممسوحاً أو مختلطاً — نفّذ OCR عبر convert_document_to_markdown
 3. اكتب النتيجة في ملف ${outputFormat}
 4. أبلغني بالنتائج`;
-  }
+}
+
+async function main(): Promise<void> {
+  log("بدء", C.green, "وكيل OCR العربي — Vercel AI SDK v6");
+  log("بدء", C.dim, "─".repeat(50));
+
+  const { agent, mcpClient, config } = await buildAgent();
+  const userPrompt = buildUserPrompt(
+    process.argv.slice(2),
+    config.defaultInputDir
+  );
 
   log("طلب", C.blue, userPrompt.substring(0, 150));
   log("بدء", C.dim, "─".repeat(50));
@@ -279,13 +283,16 @@ async function main(): Promise<void> {
     });
 
     // عرض النتيجة النهائية
-    console.error();
+    process.stderr.write("\n");
     log("نتيجة", C.green, "─".repeat(50));
-    console.error(result.text);
+    process.stderr.write(`${result.text ?? ""}\n`);
     log("نتيجة", C.green, "─".repeat(50));
 
     // إحصائيات الاستخدام
-    const usage = result.usage as unknown as Record<string, number> | undefined;
+    const usage =
+      result.usage && typeof result.usage === "object"
+        ? (result.usage as Record<string, number>)
+        : undefined;
     if (usage) {
       const input = usage["promptTokens"] ?? usage["inputTokens"] ?? 0;
       const output = usage["completionTokens"] ?? usage["outputTokens"] ?? 0;
@@ -301,7 +308,7 @@ async function main(): Promise<void> {
     const msg = error instanceof Error ? error.message : String(error);
     log("خطأ", C.red, `فشل تشغيل الوكيل: ${msg}`);
     if (error instanceof Error && error.stack) {
-      console.error(error.stack);
+      process.stderr.write(`${error.stack}\n`);
     }
     process.exitCode = 1;
   } finally {
@@ -320,6 +327,8 @@ async function main(): Promise<void> {
 // ─── نقطة الدخول ────────────────────────────────────────────
 
 main().catch((error) => {
-  console.error("خطأ غير متوقع:", error);
+  const details =
+    error instanceof Error ? (error.stack ?? error.message) : String(error);
+  process.stderr.write(`خطأ غير متوقع: ${details}\n`);
   process.exit(1);
 });

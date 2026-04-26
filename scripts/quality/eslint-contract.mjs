@@ -12,6 +12,10 @@ const args = process.argv.slice(2);
 const updateBaseline = args.includes("--update-baseline");
 const projectArg = args.find((arg) => arg.startsWith("--project="));
 const project = projectArg?.slice("--project=".length);
+const targetArgs = args
+  .filter((arg) => arg.startsWith("--target="))
+  .map((arg) => arg.slice("--target=".length))
+  .filter(Boolean);
 
 const projects = {
   web: {
@@ -81,7 +85,7 @@ if (!project || !projects[project]) {
 
 const eslintBin = resolve(repoRoot, "node_modules/eslint/bin/eslint.js");
 const config = projects[project];
-const targets = config.targets ?? config.discoverTargets(config.root);
+const targets = targetArgs.length > 0 ? targetArgs : (config.targets ?? config.discoverTargets(config.root));
 
 function readBaseline() {
   if (!existsSync(baselinePath)) {
@@ -109,7 +113,7 @@ function runEslint(target) {
   const result = spawnSync(
     process.execPath,
     [
-      "--max-old-space-size=8192",
+      "--max-old-space-size=16384",
       eslintBin,
       target,
       "--format",

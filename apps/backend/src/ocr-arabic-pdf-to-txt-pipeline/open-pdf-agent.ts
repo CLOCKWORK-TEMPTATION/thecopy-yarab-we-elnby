@@ -16,12 +16,14 @@ import { readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { createMCPClient } from "@ai-sdk/mcp";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
+import { createMCPClient } from "@ai-sdk/mcp";
+
+import { StdioClientTransport } from "./ai-runtime.js";
 import { buildAgentConfig } from "./config";
-import { classifyPdfTool } from "./tools";
 import { skillOcrMistral, skillWriteOutput } from "./skill-tools";
+import { classifyPdfTool } from "./tools";
+
 import type { ClassificationResult } from "./types";
 
 type JsonRecord = Record<string, unknown>;
@@ -34,6 +36,31 @@ interface OpenPdfAgentArgs {
   pages: string;
 }
 
+interface PipelineFootprint {
+  checkedDirectories: string[];
+  checkedFiles: string[];
+}
+
+interface McpStageResult {
+  summary: string | null;
+  llmEnabled: boolean;
+  llmModel: string | null;
+  llmReferencePath: string | null;
+}
+
+interface SuccessPayloadInput {
+  rawText: string;
+  markdownText: string;
+  classification: ClassificationResult;
+  warnings: string[];
+  attempts: string[];
+  footprint: PipelineFootprint | null;
+  mcpStageEnabled: boolean;
+  mcpStage: McpStageResult;
+  mcpServerPath: string;
+  outputMcpMdPath: string;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -43,7 +70,7 @@ const toStringArray = (value: unknown): string[] =>
     : [];
 
 const toJsonRecord = (value: unknown): JsonRecord =>
-  value && typeof value === "object" ? (value as JsonRecord) : {};
+  typeof value === "object" && value ? (value as JsonRecord) : {};
 
 const writeStderr = (message: string): void => {
   process.stderr.write(`${message}\n`);
@@ -62,10 +89,10 @@ const parseArgs = (argv: string[]): OpenPdfAgentArgs => {
 
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
-    if (!key || !key.startsWith("--")) continue;
+    if (key?.startsWith("--") !== true) continue;
 
     const value = argv[index + 1];
-    if (!value || value.startsWith("--")) continue;
+    if (value?.startsWith("--") !== false) continue;
 
     args.set(key, value);
     index += 1;
@@ -73,7 +100,7 @@ const parseArgs = (argv: string[]): OpenPdfAgentArgs => {
 
   const readRequired = (name: string): string => {
     const value = args.get(name);
-    if (!value || !value.trim()) {
+    if (!value?.trim()) {
       throw new Error(`معامل مفقود: ${name}`);
     }
     return value.trim();
@@ -123,15 +150,16 @@ const runTool = async (
         : `فشلت الأداة ${toolName}`;
     throw new Error(reason);
   }
-  if (typeof parsed["error"] === "string" && parsed["error"].trim()) {
-    throw new Error(parsed["error"].trim());
+  const parsedError = parsed["error"];
+  if (typeof parsedError === "string" && parsedError.trim()) {
+    throw new Error(parsedError.trim());
   }
 
   return parsed;
 };
 
 const toClassification = (value: JsonRecord): ClassificationResult | null => {
-  const requiredKeys: Array<keyof ClassificationResult> = [
+  const requiredKeys: (keyof ClassificationResult)[] = [
     "type",
     "pages",
     "size_mb",
@@ -148,7 +176,8 @@ const toClassification = (value: JsonRecord): ClassificationResult | null => {
     type: value["type"] as ClassificationResult["type"],
     pages: Number(value["pages"] ?? 0),
     size_mb: Number(value["size_mb"] ?? 0),
-    filename: String(value["filename"] ?? ""),
+    filename:
+      typeof value["filename"] === "string" ? value["filename"] : "",
     has_arabic: Boolean(value["has_arabic"]),
     recommended_engine: value[
       "recommended_engine"
@@ -173,10 +202,7 @@ const verifyPathType = async (
 const verifyPipelineFootprint = async (
   agentRoot: string,
   mcpServerPath: string
-): Promise<{
-  checkedDirectories: string[];
-  checkedFiles: string[];
-}> => {
+): Promise<PipelineFootprint> => {
   const mcpRoot = dirname(mcpServerPath);
   const requiredDirectories = [
     agentRoot,
@@ -226,12 +252,7 @@ const runMcpStage = async (
   mcpServerPath: string,
   rawTxtPath: string,
   normalizedMdOutputPath: string
-): Promise<{
-  summary: string | null;
-  llmEnabled: boolean;
-  llmModel: string | null;
-  llmReferencePath: string | null;
-}> => {
+): Promise<McpStageResult> => {
   const llmReferencePathRaw =
     process.env["OPEN_PDF_AGENT_LLM_REFERENCE_PATH"] ?? "";
   const llmReferencePath = llmReferencePathRaw.trim() || null;
@@ -287,7 +308,7 @@ const runMcpStage = async (
 
     const payload = toJsonRecord(response);
     const content = Array.isArray(payload["content"])
-      ? (payload["content"] as Array<Record<string, unknown>>)
+      ? (payload["content"] as Record<string, unknown>[])
       : [];
     const firstText = content.find(
       (item) => typeof item?.["text"] === "string"
@@ -295,7 +316,7 @@ const runMcpStage = async (
 
     return {
       summary:
-        firstText && typeof firstText["text"] === "string"
+        typeof firstText?.["text"] === "string"
           ? firstText["text"]
           : null,
       llmEnabled,
@@ -306,6 +327,41 @@ const runMcpStage = async (
     await client.close();
   }
 };
+
+const buildSuccessPayload = ({
+  rawText,
+  markdownText,
+  classification,
+  warnings,
+  attempts,
+  footprint,
+  mcpStageEnabled,
+  mcpStage,
+  mcpServerPath,
+  outputMcpMdPath,
+}: SuccessPayloadInput): JsonRecord => ({
+  success: true,
+  text: rawText,
+  textRaw: rawText,
+  textMarkdown: markdownText,
+  classification,
+  warnings,
+  attempts,
+  meta: {
+    textStage: "pre-format",
+    textFormat: "txt-raw",
+    footprint,
+    mcpStageEnabled,
+    mcp: {
+      serverPath: mcpServerPath,
+      outputPath: outputMcpMdPath,
+      summary: mcpStage.summary,
+      llmEnabled: mcpStage.llmEnabled,
+      llmModel: mcpStage.llmModel,
+      llmReferencePath: mcpStage.llmReferencePath,
+    },
+  },
+});
 
 const main = async (): Promise<void> => {
   const args = parseArgs(process.argv.slice(2));
@@ -328,10 +384,7 @@ const main = async (): Promise<void> => {
     process.env["OPEN_PDF_AGENT_ENABLE_MCP_STAGE"] ?? "true"
   );
 
-  let footprint: {
-    checkedDirectories: string[];
-    checkedFiles: string[];
-  } | null = null;
+  let footprint: PipelineFootprint | null = null;
   if (verifyFootprintEnabled) {
     footprint = await verifyPipelineFootprint(agentRoot, mcpServerPath);
     attempts.push("pipeline-footprint-verified");
@@ -388,12 +441,7 @@ const main = async (): Promise<void> => {
     throw new Error("النص الخام الناتج من OCR فارغ.");
   }
 
-  let mcpStage: {
-    summary: string | null;
-    llmEnabled: boolean;
-    llmModel: string | null;
-    llmReferencePath: string | null;
-  } = {
+  let mcpStage: McpStageResult = {
     summary: null,
     llmEnabled: false,
     llmModel: null,
@@ -418,29 +466,18 @@ const main = async (): Promise<void> => {
     attempts.push("mcp-stage-skipped");
   }
 
-  const payload = {
-    success: true,
-    text: rawText,
-    textRaw: rawText,
-    textMarkdown: markdownText,
+  const payload = buildSuccessPayload({
+    rawText,
+    markdownText,
     classification,
     warnings,
     attempts,
-    meta: {
-      textStage: "pre-format",
-      textFormat: "txt-raw",
-      footprint,
-      mcpStageEnabled,
-      mcp: {
-        serverPath: mcpServerPath,
-        outputPath: outputMcpMdPath,
-        summary: mcpStage.summary,
-        llmEnabled: mcpStage.llmEnabled,
-        llmModel: mcpStage.llmModel,
-        llmReferencePath: mcpStage.llmReferencePath,
-      },
-    },
-  };
+    footprint,
+    mcpStageEnabled,
+    mcpStage,
+    mcpServerPath,
+    outputMcpMdPath,
+  });
 
   process.stdout.write(JSON.stringify(payload));
 };

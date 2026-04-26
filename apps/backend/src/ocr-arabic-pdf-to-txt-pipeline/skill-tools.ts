@@ -14,15 +14,42 @@
  * وتُعيد النتيجة بصيغة JSON.
  */
 
-import { tool } from "ai";
-import { z } from "zod";
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { stat } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { stat } from "node:fs/promises";
+import { promisify } from "node:util";
+
+import { z } from "zod";
+
+import { defineTool } from "./tool-runtime";
+
+interface SkillClassifyPdfInput {
+  pdfPath: string;
+}
+
+interface SkillOcrMistralInput {
+  input: string;
+  output: string;
+  pages: string;
+}
+
+interface SkillWriteOutputInput {
+  input: string;
+  format: "txt" | "txt-raw" | "md";
+  output: string;
+}
+
+interface SkillEnhanceImagesInput {
+  input: string;
+  output: string;
+}
 
 const execFileAsync = promisify(execFile);
+
+function writeStderr(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
 
 // ─── مسارات السكريبتات ──────────────────────────────────────
 
@@ -70,7 +97,7 @@ async function runScript(
 // أداة 1: تصنيف PDF (classify-pdf.ts)
 // ═══════════════════════════════════════════════════════════════
 
-export const skillClassifyPdf = tool({
+export const skillClassifyPdf = defineTool<SkillClassifyPdfInput>({
   description: `تصنيف ملف PDF وتحديد نوعه (نصي / ممسوح ضوئياً / مختلط / محمي) والمحرك الأنسب لمعالجته.
 هذه هي الخطوة الأولى الإلزامية قبل أي عملية OCR.
 تعتمد على أدوات النظام (pdfinfo, pdftotext) لتحليل الملف.
@@ -91,7 +118,7 @@ export const skillClassifyPdf = tool({
     try {
       const { stdout, stderr } = await runScript("classify-pdf.ts", [pdfPath]);
       if (stderr) {
-        console.error(`[skill/classify] ${stderr}`);
+        writeStderr(`[skill/classify] ${stderr}`);
       }
       return (
         stdout ||
@@ -108,7 +135,7 @@ export const skillClassifyPdf = tool({
 // أداة 2: OCR عبر Mistral (ocr-mistral.ts)
 // ═══════════════════════════════════════════════════════════════
 
-export const skillOcrMistral = tool({
+export const skillOcrMistral = defineTool<SkillOcrMistralInput>({
   description: `استخراج النص من ملف PDF عبر Mistral OCR 3 — المحرك الأساسي بدقة 99%+ للعربية.
 يتطلب متغير البيئة MISTRAL_API_KEY.
 يُنتج ملف JSON يحتوي نتائج OCR لكل صفحة (markdown + صور مكتشفة).
@@ -152,7 +179,7 @@ export const skillOcrMistral = tool({
       );
 
       if (stderr) {
-        console.error(`[skill/ocr] ${stderr}`);
+        writeStderr(`[skill/ocr] ${stderr}`);
       }
 
       return (
@@ -170,7 +197,7 @@ export const skillOcrMistral = tool({
 // أداة 3: كتابة المخرجات (write-output.ts)
 // ═══════════════════════════════════════════════════════════════
 
-export const skillWriteOutput = tool({
+export const skillWriteOutput = defineTool<SkillWriteOutputInput>({
   description: `تحويل نتائج OCR (ملف JSON) إلى ملف نصي بصيغة TXT أو Markdown.
 
 صيغة TXT: نص خام مع فواصل صفحات بسيطة
@@ -202,7 +229,7 @@ export const skillWriteOutput = tool({
       ]);
 
       if (stderr) {
-        console.error(`[skill/write] ${stderr}`);
+        writeStderr(`[skill/write] ${stderr}`);
       }
 
       return (
@@ -220,7 +247,7 @@ export const skillWriteOutput = tool({
 // أداة 4: تحسين الصور (enhance-image.ts)
 // ═══════════════════════════════════════════════════════════════
 
-export const skillEnhanceImages = tool({
+export const skillEnhanceImages = defineTool<SkillEnhanceImagesInput>({
   description: `تحسين جودة صور PDF الممسوحة قبل OCR — يرفع دقة الاستخراج بشكل ملحوظ.
 
 العمليات:
@@ -257,7 +284,7 @@ export const skillEnhanceImages = tool({
       ]);
 
       if (stderr) {
-        console.error(`[skill/enhance] ${stderr}`);
+        writeStderr(`[skill/enhance] ${stderr}`);
       }
 
       return (
