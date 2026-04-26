@@ -2,6 +2,47 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 098 — استكمال تهيئة Sentry للكلاينت في Next.js — 2026-04-26
+
+### التاريخ والوقت
+
+2026-04-26T (current session)
+
+### قاعدة الفحوصات الحاكمة
+
+- مقروءة ومثبتة. التعديل لا يمس ملفات فحص أو تحقق أو اختبار، بل ملف runtime telemetry جديد.
+
+### التغيير
+
+- إضافة `apps/web/src/instrumentation-client.ts` — تهيئة Sentry للمتصفح (browser runtime).
+- السبب: `apps/web/src/instrumentation.ts` كان يقتصر على runtimes `nodejs` و `edge` فقط، وأخطاء المتصفح لا تُلتقط.
+- الملف الجديد يقرأ `NEXT_PUBLIC_SENTRY_DSN`، يعطّل Sentry تلقائيًا في `development` أو عند غياب الـ DSN، ويفعّل `browserTracingIntegration` و `replayIntegration`، ويصدّر `onRouterTransitionStart` لربط Next.js router events.
+
+### التحقق التشغيلي
+
+- `pnpm --filter web type-check`: **0 أخطاء** [OP].
+
+### المتغيرات البيئية المطلوبة
+
+- على Vercel: `NEXT_PUBLIC_SENTRY_DSN` (DSN مشروع `the-copy-web` على Sentry).
+- على Railway: `SENTRY_DSN` (DSN مشروع `the-copy-backend` على Sentry).
+
+### حالة Sentry بعد الجولة
+
+| الطبقة | ملف التهيئة | حالة |
+|---|---|---|
+| Backend (Express) | `apps/backend/src/config/sentry.ts` | جاهز كود — ينتظر `SENTRY_DSN` على Railway |
+| Next.js Server | `apps/web/src/instrumentation.ts` (`nodejs`) | جاهز كود — ينتظر `NEXT_PUBLIC_SENTRY_DSN` على Vercel |
+| Next.js Edge | `apps/web/src/instrumentation.ts` (`edge`) | جاهز كود — ينتظر `NEXT_PUBLIC_SENTRY_DSN` على Vercel |
+| Next.js Client (Browser) | `apps/web/src/instrumentation-client.ts` | **جديد** — ينتظر `NEXT_PUBLIC_SENTRY_DSN` على Vercel |
+
+### المتبقي مفتوحًا
+
+- إعداد قيم DSN في Vercel و Railway وإعادة النشر.
+- اختبار end-to-end بعد إعادة النشر: `throw new Error()` من المتصفح يجب أن يظهر في `the-copy-web` Issues.
+
+---
+
 ## جولة 096 — إغلاق ديون تقنية: Discovery → Triage → Execute — 2026-04-26
 
 ### التاريخ والوقت
@@ -7701,6 +7742,94 @@ inventory-only
 - output/code-map/code-map.json
 - output/code-map/CODEMAP.md
 - output/code-map/entrypoints.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 125
+
+### التاريخ والوقت
+
+2026-04-26T01:23:02.794Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`no-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 126
+
+### التاريخ والوقت
+
+2026-04-26T04:08:43.714Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
 - output/session-state.md
 - .repo-agent/AGENT-CONTEXT.generated.md
 
