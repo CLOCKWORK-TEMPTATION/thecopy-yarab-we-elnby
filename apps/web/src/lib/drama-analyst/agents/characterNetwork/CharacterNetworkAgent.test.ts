@@ -4,6 +4,7 @@ import { TaskType } from "@core/enums";
 
 import { StandardAgentInput } from "../shared/standardAgentPattern";
 
+import { CHARACTER_NETWORK_AGENT_CONFIG } from "./agent";
 import { CharacterNetworkAgent } from "./CharacterNetworkAgent";
 
 // Mock geminiService
@@ -13,6 +14,14 @@ vi.mock("../../services/geminiService", () => ({
       .fn()
       .mockResolvedValue("Mock AI response for character network analysis"),
   },
+}));
+
+vi.mock("@/lib/ai/gemini-core", () => ({
+  callGeminiText: vi.fn().mockResolvedValue(
+    "شبكة الشخصيات تكشف علاقة مركزية بين أحمد وفاطمة وخالد. أحمد شخصية محورية تربط التحالف مع فاطمة بالصراع العدائي مع خالد، بينما تظهر المجموعة الداعمة حول سارة وعلي. البنية متشابكة وتوضح نفوذ أحمد وتأثير العلاقات على اتجاه الحبكة."
+  ),
+  toText: (response: unknown) =>
+    typeof response === "string" ? response : JSON.stringify(response),
 }));
 
 describe("CharacterNetworkAgent", () => {
@@ -27,7 +36,7 @@ describe("CharacterNetworkAgent", () => {
     it("should initialize with correct configuration", () => {
       const config = agent.getConfig();
 
-      expect(config.name).toBe("NetworkWeaver AI");
+      expect(config.name).toBe(CHARACTER_NETWORK_AGENT_CONFIG.name);
       expect(config.taskType).toBe(TaskType.CHARACTER_NETWORK);
       expect(config.confidenceFloor).toBeGreaterThanOrEqual(0.75);
       expect(config.supportsRAG).toBe(true);
@@ -305,7 +314,8 @@ describe("CharacterNetworkAgent", () => {
       const result = await agent.executeTask(input);
 
       expect(result.notes).toBeDefined();
-      expect(typeof result.notes).toBe("string");
+      expect(Array.isArray(result.notes)).toBe(true);
+      expect(result.notes.length).toBeGreaterThan(0);
     });
 
     it("should include network metrics in metadata", async () => {

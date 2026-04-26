@@ -14,8 +14,6 @@
 - المسارات أو الآليات القديمة التي كانت تنفذ منطقًا إنتاجيًا داخل الويب لا تُعد مرجعًا تشغيليًا نهائيًا حتى لو ظلت موجودة كـ compatibility shim.
 
 المرجع المفصل هنا:
-- [docs/FRONTEND-BACKEND-STATE.md](docs/FRONTEND-BACKEND-STATE.md)
-- [docs/API.md](docs/API.md)
 - [apps/web/docs/API.md](apps/web/docs/API.md)
 
 ---
@@ -213,8 +211,8 @@ the-copy-monorepo/
 │   └── tsconfig/               # @the-copy/tsconfig — إعدادات TypeScript الأساسية المشتركة
 │
 ├── docs/                       # التوثيق المشترك
-│   ├── DIRECTIVE-PLATFORM-DOCS-WRITER.md  # الأمر التوجيهي لكتابة التوثيق
-│   └── adr/                    # سجلات قرارات المعمارية (Architecture Decision Records)
+│   ├── DATABASE.md             # دليل قاعدة البيانات (مرجَّع من فحوصات الوكلاء)
+│   └── ADR/                    # سجلات قرارات المعمارية (Architecture Decision Records)
 │
 ├── scripts/                    # سكربتات التشغيل والصيانة
 │   ├── start-app.ps1           # يشغّل التطبيق الكامل (Windows)
@@ -430,8 +428,8 @@ the-copy-monorepo/
 
 | الملف | الوصف |
 |---|---|
-| `docs/DIRECTIVE-PLATFORM-DOCS-WRITER.md` | الأمر التوجيهي الكامل لكتابة توثيق المنصة |
-| `docs/adr/` | سجلات قرارات المعمارية (Architecture Decision Records) |
+| `docs/DATABASE.md` | دليل قاعدة البيانات (مرجَّع من فحوصات `scripts/agent/lib/repo-state.ts`) |
+| `docs/ADR/` | سجلات قرارات المعمارية (Architecture Decision Records) |
 | `.env.example` | المرجع الكامل لجميع متغيرات البيئة مع شرح كل متغير |
 
 ---
