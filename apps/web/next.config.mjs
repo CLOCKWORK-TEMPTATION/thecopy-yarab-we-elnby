@@ -303,6 +303,7 @@ const sentrySourceMapIgnore = [
   sentryDistPath("static/chunks/framework.*"),
   sentryDistPath("static/chunks/polyfills-*"),
   sentryDistPath("static/chunks/webpack-*"),
+  sentryDistPath("server/**/*manifest*.js"),
   sentryDistPath("static/chunks/app/**/loading-*.js"),
   sentryDistPath("static/chunks/app/**/route-*.js"),
   sentryDistPath("static/chunks/app/_global-error/page-*.js"),

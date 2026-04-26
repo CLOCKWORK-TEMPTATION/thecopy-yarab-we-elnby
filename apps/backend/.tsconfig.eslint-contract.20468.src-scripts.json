@@ -8,7 +8,11 @@
     "src/env.d.ts",
     "src/types/env.d.ts",
     "src/types/module-alias.d.ts",
-    "src/ocr-arabic-pdf-to-txt-pipeline/types.ts"
+    "src/scripts/**/*.ts",
+    "src/scripts/**/*.tsx",
+    "src/scripts/**/*.js",
+    "src/scripts/**/*.mjs",
+    "src/scripts/**/*.cjs"
   ],
   "exclude": [
     "node_modules",

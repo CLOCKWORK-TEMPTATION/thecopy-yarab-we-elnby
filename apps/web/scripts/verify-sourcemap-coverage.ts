@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 const uploadIgnorePatterns = [
-  /(?:^|[\\/])manifest.*\.js$/,
+  /(?:^|[\\/])[^\\/]*manifest[^\\/]*\.js$/,
   /(?:^|[\\/])webpack-runtime.*\.js$/,
   /(?:^|[\\/])runtime-.*\.js$/,
   /(?:^|[\\/])polyfills-.*\.js$/,
