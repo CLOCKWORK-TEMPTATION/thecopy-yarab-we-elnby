@@ -1,307 +1,131 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AIRequest, ProcessedFile } from "@core/types";
-import { callModel } from "@services/apiService";
-import { readFiles } from "@services/fileReaderService";
+import { geminiService } from "@/ai/gemini-service";
+import { cachedGeminiCall } from "@/lib/redis";
+import { AnalysisType } from "@/types/enums";
 
-import { prepareFiles, submitTask } from "./executor";
+import {
+  PipelineOrchestrator,
+  submitTask,
+  type PipelineStep,
+} from "./executor";
 
-// Mock dependencies
-vi.mock("@services/fileReaderService");
-vi.mock("@services/apiService");
+vi.mock("@/ai/gemini-service", () => ({
+  geminiService: {
+    generateText: vi.fn(),
+  },
+}));
 
-const mockReadFiles = vi.mocked(readFiles);
-const mockCallModel = vi.mocked(callModel);
+vi.mock("@/lib/ai/utils/logger", () => ({
+  logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
+
+vi.mock("@/lib/redis", () => ({
+  cachedGeminiCall: vi.fn(),
+  generateGeminiCacheKey: vi.fn(() => "cache-key"),
+}));
+
+const makeStep = (
+  id: string,
+  dependencies: string[] = []
+): PipelineStep => ({
+  id,
+  name: id,
+  description: `Step ${id}`,
+  type: AnalysisType.QUICK,
+  config: {} as PipelineStep["config"],
+  dependencies,
+});
 
 describe("Executor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(cachedGeminiCall).mockImplementation(
+      async (_key, factory) => factory()
+    );
   });
 
-  describe("prepareFiles", () => {
-    it.todo("validate-pipeline: should handle empty file list", () => {});
+  it("validate-pipeline: executes pipeline steps and stores results", async () => {
+    vi.mocked(geminiService.generateText)
+      .mockResolvedValueOnce("first result")
+      .mockResolvedValueOnce("second result");
 
-    const _skipAsync = async () => {
-      const result = await prepareFiles({ files: [] });
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("NO_FILES");
-      }
-    };
-
-    it.todo("validate-pipeline: should handle oversized files", () => {});
-
-    const _skipAsync = async () => {
-      const oversizedFile = new File(["content"], "test.txt", {
-        type: "text/plain",
-      });
-      Object.defineProperty(oversizedFile, "size", { value: 21 * 1024 * 1024 });
-
-      const result = await prepareFiles({ files: [oversizedFile] });
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("FILE_TOO_LARGE");
-        expect(result.error.message).toContain("20MB");
-      }
-    };
-
-    it.todo("validate-pipeline: should process files successfully", () => {});
-
-    const _skipAsync = async () => {
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      Object.defineProperty(file, "size", { value: 100 });
-
-      const mockProcessedFiles: ProcessedFile[] = [
-        {
-          name: "test.txt",
-          content: "content",
-          type: "text",
-          size: 100,
-        },
-      ];
-
-      mockReadFiles.mockResolvedValueOnce({
-        ok: true,
-        value: mockProcessedFiles,
-      });
-
-      const result = await prepareFiles({ files: [file] });
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value).toEqual(mockProcessedFiles);
-      }
-      expect(mockReadFiles).toHaveBeenCalledWith([file]);
-    };
-
-    it.todo(
-      "validate-pipeline: should handle file processing errors",
-      () => {}
+    const orchestrator = new PipelineOrchestrator();
+    const execution = await orchestrator.executePipeline(
+      "pipeline-1",
+      [makeStep("step-1"), makeStep("step-2", ["step-1"])],
+      { content: "script" }
     );
 
-    const _skipAsync = async () => {
-      const file = new File(["content"], "test.txt", { type: "text/plain" });
-      Object.defineProperty(file, "size", { value: 100 });
-
-      mockReadFiles.mockResolvedValueOnce({
-        ok: false,
-        error: {
-          code: "FILE_READ_ERROR",
-          message: "Failed to read file",
-          cause: new Error("Read error"),
-        },
-      });
-
-      const result = await prepareFiles({ files: [file] });
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("FILE_READ_ERROR");
-      }
-    };
-
-    it.todo("validate-pipeline: should handle multiple files", () => {});
-
-    const _skipAsync = async () => {
-      const file1 = new File(["content1"], "test1.txt", { type: "text/plain" });
-      const file2 = new File(["content2"], "test2.txt", { type: "text/plain" });
-
-      Object.defineProperty(file1, "size", { value: 100 });
-      Object.defineProperty(file2, "size", { value: 200 });
-
-      const mockProcessedFiles: ProcessedFile[] = [
-        { name: "test1.txt", content: "content1", type: "text", size: 100 },
-        { name: "test2.txt", content: "content2", type: "text", size: 200 },
-      ];
-
-      mockReadFiles.mockResolvedValueOnce({
-        ok: true,
-        value: mockProcessedFiles,
-      });
-
-      const result = await prepareFiles({ files: [file1, file2] });
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value).toHaveLength(2);
-      }
-    };
+    expect(execution.status).toBe("completed");
+    expect(execution.progress).toBe(100);
+    expect(execution.results.get("step-1")?.success).toBe(true);
+    expect(execution.results.get("step-1")?.data).toBe("first result");
+    expect(execution.results.get("step-2")?.success).toBe(true);
+    expect(geminiService.generateText).toHaveBeenCalledTimes(2);
   });
 
-  describe("submitTask", () => {
-    const mockRequest: AIRequest = {
+  it("validate-pipeline: records step failure without losing execution state", async () => {
+    vi.mocked(geminiService.generateText).mockRejectedValueOnce(
+      new Error("Model unavailable")
+    );
+
+    const orchestrator = new PipelineOrchestrator();
+    const execution = await orchestrator.executePipeline(
+      "pipeline-error",
+      [makeStep("step-1")],
+      { content: "script" }
+    );
+
+    const result = execution.results.get("step-1");
+
+    expect(execution.status).toBe("completed");
+    expect(result?.success).toBe(false);
+    expect(result?.error).toBe("Model unavailable");
+    expect(result?.cached).toBe(false);
+  });
+
+  it("validate-pipeline: exposes execution status by id", async () => {
+    vi.mocked(geminiService.generateText).mockResolvedValueOnce("result");
+
+    const orchestrator = new PipelineOrchestrator();
+    const execution = await orchestrator.executePipeline(
+      "pipeline-visible",
+      [makeStep("step-1")],
+      { content: "script" }
+    );
+
+    expect(orchestrator.getExecution("pipeline-visible")).toBe(execution);
+    expect(orchestrator.getExecution("missing")).toBeUndefined();
+  });
+
+  it("validate-pipeline: rejects cancelling an already completed execution", async () => {
+    vi.mocked(geminiService.generateText).mockResolvedValueOnce("result");
+
+    const orchestrator = new PipelineOrchestrator();
+    await orchestrator.executePipeline(
+      "pipeline-completed",
+      [makeStep("step-1")],
+      { content: "script" }
+    );
+
+    expect(orchestrator.cancelExecution("pipeline-completed")).toBe(false);
+  });
+
+  it("validate-pipeline: submitTask returns a submitted task envelope", async () => {
+    const taskRequest = {
       agent: "analysis",
-      files: [
-        {
-          name: "test.txt",
-          content: "test content",
-          type: "text",
-          size: 100,
-        },
-      ],
+      files: [{ name: "test.txt", content: "content" }],
     };
 
-    it.todo("validate-pipeline: should handle empty files list", () => {});
+    const result = await submitTask(taskRequest);
 
-    const _skipAsync = async () => {
-      const request = { ...mockRequest, files: [] };
-
-      const result = await submitTask(request);
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("NO_FILES");
-      }
-    };
-
-    it.todo("validate-pipeline: should handle undefined files", () => {});
-
-    const _skipAsync = async () => {
-      const request = { ...mockRequest, files: undefined as any };
-
-      const result = await submitTask(request);
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("NO_FILES");
-      }
-    };
-
-    it.todo("validate-pipeline: should submit task successfully", () => {});
-
-    const _skipAsync = async () => {
-      mockCallModel.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          agent: "analysis",
-          raw: "analysis result",
-          meta: {
-            provider: "gemini",
-            model: "gemini-1.5-flash",
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-
-      const result = await submitTask(mockRequest);
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.agent).toBe("analysis");
-        expect(result.value.raw).toBe("analysis result");
-      }
-      expect(mockCallModel).toHaveBeenCalledWith(mockRequest);
-    };
-
-    it.todo("validate-pipeline: should handle API errors", () => {});
-
-    const _skipAsync = async () => {
-      mockCallModel.mockResolvedValueOnce({
-        ok: false,
-        error: {
-          code: "API_ERROR",
-          message: "API call failed",
-          cause: new Error("Network error"),
-        },
-      });
-
-      const result = await submitTask(mockRequest);
-
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("API_ERROR");
-      }
-    };
-
-    it.todo("validate-pipeline: should handle different agents", () => {});
-
-    const _skipAsync = async () => {
-      const creativeRequest = { ...mockRequest, agent: "creative" };
-
-      mockCallModel.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          agent: "creative",
-          raw: "creative result",
-          meta: {
-            provider: "gemini",
-            model: "gemini-1.5-flash",
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-
-      const result = await submitTask(creativeRequest);
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.agent).toBe("creative");
-      }
-    };
-
-    it.todo("validate-pipeline: should handle multiple files", () => {});
-
-    const _skipAsync = async () => {
-      const multiFileRequest: AIRequest = {
-        agent: "analysis",
-        files: [
-          { name: "test1.txt", content: "content1", type: "text", size: 100 },
-          { name: "test2.txt", content: "content2", type: "text", size: 200 },
-        ],
-      };
-
-      mockCallModel.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          agent: "analysis",
-          raw: "multi-file analysis result",
-          meta: {
-            provider: "gemini",
-            model: "gemini-1.5-flash",
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-
-      const result = await submitTask(multiFileRequest);
-
-      expect(result.ok).toBe(true);
-      expect(mockCallModel).toHaveBeenCalledWith(multiFileRequest);
-    };
-
-    it.todo(
-      "validate-pipeline: should handle requests with parameters",
-      () => {}
-    );
-
-    const _skipAsync = async () => {
-      const requestWithParams: AIRequest = {
-        ...mockRequest,
-        parameters: {
-          completionScope: "full",
-          style: "formal",
-        },
-      };
-
-      mockCallModel.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          agent: "analysis",
-          raw: "parameterized result",
-          meta: {
-            provider: "gemini",
-            model: "gemini-1.5-flash",
-            timestamp: new Date().toISOString(),
-          },
-        },
-      });
-
-      const result = await submitTask(requestWithParams);
-
-      expect(result.ok).toBe(true);
-      expect(mockCallModel).toHaveBeenCalledWith(requestWithParams);
-    };
+    expect(result.success).toBe(true);
+    expect(result.status).toBe("submitted");
+    expect(result.taskId).toMatch(/^task_/);
+    expect(result.data).toBe(taskRequest);
   });
 });

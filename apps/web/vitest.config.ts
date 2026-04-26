@@ -22,6 +22,7 @@ export default defineConfig({
       "**/build/**",
       "**/e2e/**",
       "**/tests/e2e/**",
+      "../../qa/e2e/**",
     ],
     globals: true,
     coverage: {

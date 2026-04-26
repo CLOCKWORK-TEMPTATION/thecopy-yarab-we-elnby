@@ -105,7 +105,7 @@ describe("شبكة انحدار: analysis", () => {
 
     it("بنية handoff تحتوي مسار المصدر والوجهة", () => {
       const analysisCard = platformApps.find((a) => a.id === "analysis");
-      const devCard = platformApps.find((a) => a.id === "creative-writing");
+      const devCard = platformApps.find((a) => a.id === "script-development");
 
       expect(analysisCard).toBeDefined();
       expect(devCard).toBeDefined();

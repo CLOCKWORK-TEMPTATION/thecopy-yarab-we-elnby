@@ -1,159 +1,79 @@
-/**
- * اختبارات وحدة لمسار إنشاء الميزانية
- *
- * @description
- * يختبر منطق إنشاء الميزانية باستخدام Gemini API
- * بدون الحاجة إلى server جاري
- */
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { INITIAL_BUDGET_TEMPLATE } from "@/app/(main)/BUDGET/lib/constants";
-import { generateBudgetFromScript } from "@/app/(main)/BUDGET/lib/geminiService";
+import {
+  buildProxyErrorResponse,
+  proxyToBackend,
+} from "@/lib/server/backend-proxy";
 
-import { POST } from "../route";
+import { POST } from "./route";
 
-// Mock Gemini service
-jest.mock("@/app/(main)/BUDGET/lib/geminiService", () => ({
-  generateBudgetFromScript: jest.fn(),
+vi.mock("@/lib/server/backend-proxy", () => ({
+  buildProxyErrorResponse: vi.fn(
+    (error: unknown, fallbackMessage: string) =>
+      Response.json(
+        {
+          success: false,
+          error:
+            error instanceof Error && error.message
+              ? error.message
+              : fallbackMessage,
+        },
+        { status: 503 }
+      )
+  ),
+  proxyToBackend: vi.fn(),
 }));
-
-const mockGenerateBudgetFromScript =
-  generateBudgetFromScript as jest.MockedFunction<
-    typeof generateBudgetFromScript
-  >;
 
 describe("/api/budget/generate", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  describe("POST", () => {
-    it("ينشئ ميزانية بنجاح مع سيناريو صالح", async () => {
-      const mockBudget = {
-        ...INITIAL_BUDGET_TEMPLATE,
-        grandTotal: 50000,
-        metadata: { title: "Test Movie" },
-      };
+  it("يمرر طلب إنشاء الميزانية إلى خدمة الخلفية", async () => {
+    const proxiedResponse = Response.json({
+      success: true,
+      data: { budget: { grandTotal: 50000 } },
+    });
+    vi.mocked(proxyToBackend).mockResolvedValueOnce(proxiedResponse);
 
-      mockGenerateBudgetFromScript.mockResolvedValue(mockBudget);
-
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          title: "Test Movie",
-          scenario:
-            "This is a test scenario for a movie production that should be long enough to pass validation.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(result.success).toBe(true);
-      expect(result.data.budget).toEqual(mockBudget);
-      expect(mockGenerateBudgetFromScript).toHaveBeenCalledWith(
-        "This is a test scenario for a movie production that should be long enough to pass validation.",
-        INITIAL_BUDGET_TEMPLATE
-      );
+    const request = new NextRequest("http://localhost/api/budget/generate", {
+      method: "POST",
+      body: JSON.stringify({ scenario: "سيناريو صالح للميزانية" }),
+      headers: { "Content-Type": "application/json" },
     });
 
-    it("يرفض سيناريو قصير جداً", async () => {
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario: "short",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
+    const response = await POST(request);
+    const result = await response.json();
 
-      const response = await POST(request as any);
-      const result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.success).toBe(true);
+    expect(result.data.budget.grandTotal).toBe(50000);
+    expect(proxyToBackend).toHaveBeenCalledWith(
+      request,
+      "/api/budget/generate"
+    );
+  });
 
-      expect(response.status).toBe(400);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("السيناريو قصير جداً");
+  it("يعيد استجابة خطأ عند فشل الاتصال بخدمة إنشاء الميزانية", async () => {
+    const error = new Error("backend unavailable");
+    vi.mocked(proxyToBackend).mockRejectedValueOnce(error);
+
+    const request = new NextRequest("http://localhost/api/budget/generate", {
+      method: "POST",
+      body: JSON.stringify({ scenario: "سيناريو صالح للميزانية" }),
+      headers: { "Content-Type": "application/json" },
     });
 
-    it("يرفض طلب بدون سيناريو", async () => {
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: { "Content-Type": "application/json" },
-      });
+    const response = await POST(request);
+    const result = await response.json();
 
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("السيناريو مطلوب");
-    });
-
-    it("يحدث البيانات الوصفية بالعنوان", async () => {
-      const mockBudget = {
-        ...INITIAL_BUDGET_TEMPLATE,
-        grandTotal: 75000,
-      };
-
-      mockGenerateBudgetFromScript.mockResolvedValue(mockBudget);
-
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          title: "Updated Title",
-          scenario:
-            "This is a detailed scenario for testing metadata update functionality.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(result.success).toBe(true);
-      expect(result.data.budget.metadata?.title).toBe("Updated Title");
-    });
-
-    it("يعالج خطأ Gemini API", async () => {
-      mockGenerateBudgetFromScript.mockRejectedValue(
-        new Error("Gemini API error")
-      );
-
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario: "This is a valid scenario for testing error handling.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Gemini API error");
-    });
-
-    it("يعالج خطأ غير متوقع", async () => {
-      mockGenerateBudgetFromScript.mockRejectedValue("string error");
-
-      const request = new Request("http://localhost/api/budget/generate", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario: "This is a valid scenario for testing unexpected error.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("حدث خطأ غير متوقع");
-    });
+    expect(response.status).toBe(503);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("backend unavailable");
+    expect(buildProxyErrorResponse).toHaveBeenCalledWith(
+      error,
+      "تعذر الاتصال بخدمة إنشاء الميزانية"
+    );
   });
 });

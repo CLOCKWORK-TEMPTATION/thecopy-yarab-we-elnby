@@ -10,6 +10,8 @@ import { expect, afterEach, vi } from "vitest";
 
 expect.extend(matchers);
 
+vi.mock("server-only", () => ({}));
+
 vi.mock("@/components/aceternity/noise-background", () => ({
   NoiseBackground: ({ className }: { className?: string }) =>
     React.createElement("div", {

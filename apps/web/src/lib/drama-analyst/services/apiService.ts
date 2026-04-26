@@ -41,11 +41,15 @@ class APIService {
       return { ok: true, value: geminiResponse };
     } catch (error: any) {
       log.error("❌ Gemini API call failed", error, "APIService");
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Gemini API call failed";
       return {
         ok: false,
         error: {
           code: "GEMINI_API_ERROR",
-          message: error.message ?? "Gemini API call failed",
+          message,
           cause: error,
         },
       };

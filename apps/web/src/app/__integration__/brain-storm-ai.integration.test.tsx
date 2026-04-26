@@ -161,6 +161,22 @@ describe("تكامل brain-storm-ai — العقد الحالي", () => {
     localStorage.clear();
     vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.mocked(conductDebate).mockReset();
+    vi.mocked(conductDebate).mockImplementation(async ({ agentIds }) => ({
+      success: true,
+      result: {
+        proposals: [
+          {
+            agentId: agentIds[0],
+            proposal: "اقتراح تحليلي شامل للفكرة المقدمة",
+            confidence: 0.85,
+          },
+        ],
+        consensus: true,
+        finalDecision: "الفكرة قابلة للتطوير مع بعض التحسينات",
+        judgeReasoning: "بناءً على تحليل شامل للجوانب المختلفة",
+      },
+    }));
   });
 
   it("ينشئ جلسة جديدة ويعرض التقدم بعد اكتمال المرحلة الأولى", async () => {

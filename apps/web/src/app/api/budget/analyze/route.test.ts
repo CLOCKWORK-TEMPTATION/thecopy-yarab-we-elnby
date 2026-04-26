@@ -1,140 +1,79 @@
-/**
- * اختبارات وحدة لمسار تحليل الميزانية
- *
- * @description
- * يختبر منطق تحليل السيناريو باستخدام Gemini API
- * بدون الحاجة إلى server جاري
- */
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { geminiService } from "@/app/(main)/BUDGET/lib/geminiService";
+import {
+  buildProxyErrorResponse,
+  proxyToBackend,
+} from "@/lib/server/backend-proxy";
 
-import { POST } from "../route";
+import { POST } from "./route";
 
-// Mock Gemini service
-jest.mock("@/app/(main)/BUDGET/lib/geminiService", () => ({
-  geminiService: {
-    analyzeScript: jest.fn(),
-  },
+vi.mock("@/lib/server/backend-proxy", () => ({
+  buildProxyErrorResponse: vi.fn(
+    (error: unknown, fallbackMessage: string) =>
+      Response.json(
+        {
+          success: false,
+          error:
+            error instanceof Error && error.message
+              ? error.message
+              : fallbackMessage,
+        },
+        { status: 503 }
+      )
+  ),
+  proxyToBackend: vi.fn(),
 }));
-
-const mockAnalyzeScript = geminiService.analyzeScript as jest.MockedFunction<
-  typeof geminiService.analyzeScript
->;
 
 describe("/api/budget/analyze", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  describe("POST", () => {
-    it("يحلل السيناريو بنجاح مع سيناريو صالح", async () => {
-      const mockAnalysis = {
-        summary: "Test analysis summary",
-        recommendations: ["Rec 1", "Rec 2"],
-        riskFactors: ["Risk 1"],
-        costOptimization: ["Opt 1"],
-        shootingSchedule: {
-          totalDays: 30,
-          phases: {
-            preProduction: 10,
-            production: 15,
-            postProduction: 5,
-          },
-        },
-      };
+  it("يمرر طلب التحليل إلى خدمة الخلفية", async () => {
+    const proxiedResponse = Response.json({
+      success: true,
+      data: { analysis: { summary: "ok" } },
+    });
+    vi.mocked(proxyToBackend).mockResolvedValueOnce(proxiedResponse);
 
-      mockAnalyzeScript.mockResolvedValue(mockAnalysis);
-
-      const request = new Request("http://localhost/api/budget/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario:
-            "This is a test scenario for analysis that should be long enough.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(result.success).toBe(true);
-      expect(result.data.analysis).toEqual(mockAnalysis);
-      expect(mockAnalyzeScript).toHaveBeenCalledWith(
-        "This is a test scenario for analysis that should be long enough."
-      );
+    const request = new NextRequest("http://localhost/api/budget/analyze", {
+      method: "POST",
+      body: JSON.stringify({ scenario: "سيناريو صالح للتحليل" }),
+      headers: { "Content-Type": "application/json" },
     });
 
-    it("يرفض سيناريو قصير جداً", async () => {
-      const request = new Request("http://localhost/api/budget/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario: "short",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
+    const response = await POST(request);
+    const result = await response.json();
 
-      const response = await POST(request as any);
-      const result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.success).toBe(true);
+    expect(result.data.analysis.summary).toBe("ok");
+    expect(proxyToBackend).toHaveBeenCalledWith(
+      request,
+      "/api/budget/analyze"
+    );
+  });
 
-      expect(response.status).toBe(400);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("السيناريو قصير جداً");
+  it("يعيد استجابة خطأ عند فشل الاتصال بخدمة التحليل", async () => {
+    const error = new Error("backend unavailable");
+    vi.mocked(proxyToBackend).mockRejectedValueOnce(error);
+
+    const request = new NextRequest("http://localhost/api/budget/analyze", {
+      method: "POST",
+      body: JSON.stringify({ scenario: "سيناريو صالح للتحليل" }),
+      headers: { "Content-Type": "application/json" },
     });
 
-    it("يرفض طلب بدون سيناريو", async () => {
-      const request = new Request("http://localhost/api/budget/analyze", {
-        method: "POST",
-        body: JSON.stringify({}),
-        headers: { "Content-Type": "application/json" },
-      });
+    const response = await POST(request);
+    const result = await response.json();
 
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("السيناريو مطلوب");
-    });
-
-    it("يعالج خطأ Gemini API", async () => {
-      mockAnalyzeScript.mockRejectedValue(new Error("Gemini analysis error"));
-
-      const request = new Request("http://localhost/api/budget/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario:
-            "This is a valid scenario for testing error handling in analysis.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Gemini analysis error");
-    });
-
-    it("يعالج خطأ غير متوقع", async () => {
-      mockAnalyzeScript.mockRejectedValue("unexpected error");
-
-      const request = new Request("http://localhost/api/budget/analyze", {
-        method: "POST",
-        body: JSON.stringify({
-          scenario:
-            "This is a valid scenario for testing unexpected error handling.",
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request as any);
-      const result = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("حدث خطأ غير متوقع");
-    });
+    expect(response.status).toBe(503);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("backend unavailable");
+    expect(buildProxyErrorResponse).toHaveBeenCalledWith(
+      error,
+      "تعذر الاتصال بخدمة تحليل الميزانية"
+    );
   });
 });
