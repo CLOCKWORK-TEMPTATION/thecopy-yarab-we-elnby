@@ -1,14 +1,19 @@
 {
   "extends": "./tsconfig.check.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "tsBuildInfoFile": "./.tsbuildinfo.contract.18896.src-routes"
   },
   "include": [
     "src/global.d.ts",
     "src/env.d.ts",
     "src/types/env.d.ts",
     "src/types/module-alias.d.ts",
-    "src/ocr-arabic-pdf-to-txt-pipeline/mcp-server/text-helpers.ts"
+    "src/routes/**/*.ts",
+    "src/routes/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
