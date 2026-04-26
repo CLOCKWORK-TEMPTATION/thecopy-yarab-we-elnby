@@ -8,11 +8,11 @@
     "src/env.d.ts",
     "src/types/env.d.ts",
     "src/types/module-alias.d.ts",
-    "src/config/**/*.ts",
-    "src/config/**/*.tsx",
-    "src/config/**/*.js",
-    "src/config/**/*.mjs",
-    "src/config/**/*.cjs"
+    "src/db/**/*.ts",
+    "src/db/**/*.tsx",
+    "src/db/**/*.js",
+    "src/db/**/*.mjs",
+    "src/db/**/*.cjs"
   ],
   "exclude": [
     "node_modules",
