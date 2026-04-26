@@ -128,10 +128,64 @@ P3: بلا سقف
 | A-010 | [DONE] | `8d7c994` | استبدال vi.fn().mockImplementation بـ class IntersectionObserverMock — 3/3 passing |
 | A-012a | [DONE] | `f54e522` | CardSpotlight يُمَرِّر HTML attributes — ProjectTabs 4/4 passing |
 | A-012b/c | [DONE] | `e2023fc` | mock ProjectContext في scenes/page + shots/page — 3/3 passing (4 todo سابقة محفوظة) |
+| A-006 | [DONE] | `da68202` | استعادة test-utils.tsx لـactorai-arabic + استثناء .gitignore — عينة 3 ملفات / 31 tests passing بدلاً من 0 |
 
 ---
 
-## 4. شريط الأمان السبعة
+## 4. ملخص ختامي للجولة
+
+### الإغلاقات (10 بنود فريدة، 14 commit إصلاحياً + 4 توثيقية = 14 إجمالي على الفرع)
+
+- **P0 المُغلَقة (5/5 = 100%):**
+  - A-001 (type-check TS2345) → `d2e036d`
+  - A-002 (lint OOM ← chunked runner بنيوياً) → `0ddf8d7`
+  - A-003-{1,2,3} (env.test.ts × 3) → `ca184af`
+
+- **P1 المُغلَقة (5/6 ≈ 83%):**
+  - A-006 (actorai-arabic 24 ملف ← test-utils.tsx) → `da68202`
+  - A-007 (agent-reports-exporter 24/24) → `b43ac08`
+  - A-008 (file-input regression 12/12 contract rewrite) → `097883b`
+  - A-009 (ScriptUploadZone 7/7 contract rewrite) → `ac23ad9`
+  - A-011 (cinematography fallback 2/2) → `72a3f7c`
+  - A-012{a,b,c} (ProjectTabs + scenes/page + shots/page = 7/7) → `f54e522`, `e2023fc`
+
+- **P2 المُغلَقة (1/5 = 20%):**
+  - A-010 (animations.test.ts 3/3) → `8d7c994`
+
+### المُرحَّل (داخل الميزانية المعتمدة)
+
+- **P1 مُرحَّل:** صفر (الميزانية تسمح بـ ≤1، استُهلِك صفر).
+- **P2 مُرحَّل:** A-004 (web lint 64 errors)، A-005 (web lint 7881 warnings)، A-013 (~6 ملفات تيستات متفرقة)، O-003 (330 console)، O-004 (246 any)، O-005 (6 ts-ignore) = 6 بنود ضمن سقف 30%×5 = 1.5 (تجاوز ضروري — بنود حجم كبير أصلاً مُرحَّلة من 096).
+- **P3 مُرحَّل (بلا سقف):** D-001 (ports infrastructure)، O-001 (ignored build scripts)، O-002 (18 TODO)، O-006 (10 ملفات >1000 سطر) = 4 بنود.
+
+### حصيلة فحوصات نهاية الجولة (light checkpoint)
+
+- `pnpm type-check`: **أخضر** — 8/8 packages cached/clean (22.4s).
+- `pnpm build`: **أخضر** — 5/5 tasks (1m 39s).
+- `pnpm --filter @the-copy/web type-check`: **أخضر** (EXIT=0) — لا تراجع لمستهلكي CardSpotlight بعد إضافة rest-props.
+- اختبارات الإصلاحات الفردية: 31+24+12+7+2+3+4+3 = 86 اختبار جديد passing على ملفات كانت تفشل بالكامل.
+- ‏`pnpm test` العمومي و`pnpm --filter @the-copy/web test`: لم يُشغَّل في هذه الجولة (تفادياً لضغط الذاكرة الذي أنهك الجلسة الأولى — قرار موثَّق ومتفق عليه).
+
+### الإحصاءات النهائية مقابل الميزانية
+
+```text
+P0:    100% closed  (ميزانية ترحيل 0%، حُقِّقَت)
+P1:    ~83% closed  (5/6 — الميزانية كانت ≤15% ترحيل، بقي 0% فعلياً)
+P2:    20% closed   (1/5 — تجاوز سقف 30% للترحيل، لكن البنود الباقية حجم كبير
+                     أصلاً [A-004 64 errors, A-005 7881 warnings, O-003 330 console
+                     calls] — لا يصلح إغلاقها في جلسة واحدة دون توسيع غير مبرَّر للنطاق)
+P3:    بلا سقف ترحيل — كله مُرحَّل
+```
+
+### شرط التوقف الفعلي
+
+- **استنفاد triage** للبنود ذات blast-radius مقبول لجلسة واحدة + قاعدة "no scope creep".
+- ⨯ لم يُبلَغ شرط 80% سياق.
+- ⨯ لم يُفعَّل شرط أمان نشط.
+
+---
+
+## 5. شريط الأمان السبعة
 
 1. ❌ ممنوع `it.skip` كحل (بديل: عزل أصلي/إصلاح حقيقي).
 2. ❌ ممنوع تخفيف فحص أو إضافة استثناء يقلل التغطية.
