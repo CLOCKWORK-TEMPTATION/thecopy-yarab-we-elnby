@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TaskType } from "@core/enums";
 
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { CHARACTER_NETWORK_AGENT_CONFIG } from "./agent";
 import { CharacterNetworkAgent } from "./CharacterNetworkAgent";
@@ -12,11 +12,24 @@ vi.mock("../../services/geminiService", () => ({
   geminiService: {
     generateContent: vi
       .fn()
-      .mockResolvedValue("Mock AI response for character network analysis"),
+      .mockResolvedValue(
+        "شبكة الشخصيات تكشف علاقة مركزية بين أحمد وفاطمة وخالد. أحمد شخصية محورية تربط التحالف مع فاطمة بالصراع العدائي مع خالد، بينما تظهر المجموعة الداعمة حول سارة وعلي."
+      ),
+    generateText: vi.fn().mockResolvedValue(
+      "شبكة الشخصيات تكشف علاقة مركزية بين أحمد وفاطمة وخالد. أحمد شخصية محورية تربط التحالف مع فاطمة بالصراع العدائي مع خالد، بينما تظهر المجموعة الداعمة حول سارة وعلي."
+    ),
   },
 }));
 
 vi.mock("@/lib/ai/gemini-core", () => ({
+  callGeminiText: vi.fn().mockResolvedValue(
+    "شبكة الشخصيات تكشف علاقة مركزية بين أحمد وفاطمة وخالد. أحمد شخصية محورية تربط التحالف مع فاطمة بالصراع العدائي مع خالد، بينما تظهر المجموعة الداعمة حول سارة وعلي. البنية متشابكة وتوضح نفوذ أحمد وتأثير العلاقات على اتجاه الحبكة."
+  ),
+  toText: (response: unknown) =>
+    typeof response === "string" ? response : JSON.stringify(response),
+}));
+
+vi.mock("@/ai/gemini-core", () => ({
   callGeminiText: vi.fn().mockResolvedValue(
     "شبكة الشخصيات تكشف علاقة مركزية بين أحمد وفاطمة وخالد. أحمد شخصية محورية تربط التحالف مع فاطمة بالصراع العدائي مع خالد، بينما تظهر المجموعة الداعمة حول سارة وعلي. البنية متشابكة وتوضح نفوذ أحمد وتأثير العلاقات على اتجاه الحبكة."
   ),
@@ -335,8 +348,11 @@ describe("CharacterNetworkAgent", () => {
 
   describe("Error Handling", () => {
     it("should return fallback response on error", async () => {
+      const { callGeminiText } = await import("@/lib/ai/gemini-core");
+      vi.mocked(callGeminiText).mockRejectedValueOnce(new Error("API Error"));
+
       const input: StandardAgentInput = {
-        input: "",
+        input: "حلل الشبكة",
         options: {},
         context: {},
       };

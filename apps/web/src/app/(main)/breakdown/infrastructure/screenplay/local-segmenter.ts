@@ -55,7 +55,7 @@ function looksLikeSceneHeading(line: string): boolean {
     return false;
   }
 
-  if (/^مشهد\s+رقم\b/i.test(trimmed)) {
+  if (/^مشهد\s+رقم(?:\s|$)/i.test(trimmed)) {
     return /[:|–—-]|داخلي|خارجي|ليل|نهار|صباح|مساء/i.test(trimmed);
   }
 
