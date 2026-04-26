@@ -111,10 +111,7 @@ describe("SelfTapeSuite", () => {
       value: vi.fn(),
     });
 
-    vi.stubGlobal(
-      "MediaRecorder",
-      MockMediaRecorder
-    );
+    vi.stubGlobal("MediaRecorder", MockMediaRecorder);
   });
 
   afterEach(() => {

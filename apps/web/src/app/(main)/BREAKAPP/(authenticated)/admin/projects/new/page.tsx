@@ -63,8 +63,7 @@ export default function AdminNewProjectPage() {
         const axiosError = error as AxiosError;
         toast({
           title: "فشل الإنشاء",
-          description:
-            axiosError.message || "تعذّر إنشاء المشروع، حاول مجدداً",
+          description: axiosError.message || "تعذّر إنشاء المشروع، حاول مجدداً",
           variant: "destructive",
         });
       } finally {
@@ -82,9 +81,7 @@ export default function AdminNewProjectPage() {
             <h1 className="text-3xl font-bold text-white mb-2 font-cairo">
               مشروع جديد
             </h1>
-            <p className="text-white/55 font-cairo">
-              أدخل اسم المشروع لإنشائه
-            </p>
+            <p className="text-white/55 font-cairo">أدخل اسم المشروع لإنشائه</p>
           </div>
           <Link
             href="/BREAKAPP/admin/projects"

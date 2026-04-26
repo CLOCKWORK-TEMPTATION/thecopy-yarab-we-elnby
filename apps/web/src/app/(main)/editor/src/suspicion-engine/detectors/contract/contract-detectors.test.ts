@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-
 import { detectContractBasmalaUniqueness } from "./contract-basmala-uniqueness.detector";
 import { detectContractCharacterShape } from "./contract-character-shape.detector";
 import { detectContractParentheticalPosition } from "./contract-parenthetical-position.detector";

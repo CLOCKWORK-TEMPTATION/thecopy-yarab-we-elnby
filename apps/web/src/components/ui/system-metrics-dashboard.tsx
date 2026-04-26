@@ -641,31 +641,30 @@ export default function SystemMetricsDashboard() {
       )}
 
       {/* Recommendations */}
-      {reportData?.recommendations &&
-        reportData.recommendations.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Server className="w-5 h-5" />
-                توصيات التحسين
-              </CardTitle>
-              <CardDescription>اقتراحات لتحسين أداء النظام</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {reportData.recommendations.map((rec, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm p-2 rounded hover:bg-muted"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+      {reportData?.recommendations && reportData.recommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Server className="w-5 h-5" />
+              توصيات التحسين
+            </CardTitle>
+            <CardDescription>اقتراحات لتحسين أداء النظام</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {reportData.recommendations.map((rec, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm p-2 rounded hover:bg-muted"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span>{rec}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

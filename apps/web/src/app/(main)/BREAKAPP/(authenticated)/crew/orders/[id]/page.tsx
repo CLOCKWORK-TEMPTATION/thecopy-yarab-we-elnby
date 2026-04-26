@@ -35,9 +35,9 @@ interface OrderWithDetails extends Order {
   vendorId?: string;
   estimatedArrival?: string;
   items: (Order["items"][number] & {
-      menuItem?: Pick<MenuItem, "id" | "name">;
-      name?: string;
-    })[];
+    menuItem?: Pick<MenuItem, "id" | "name">;
+    name?: string;
+  })[];
 }
 
 /**
@@ -149,9 +149,8 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
     setCancelling(true);
     try {
       await api.patch(`/orders/${order.id}/status`, { status: "cancelled" });
-      setOrder(
-        (prev: OrderWithDetails | null): OrderWithDetails | null =>
-          prev ? { ...prev, status: "cancelled" } : prev
+      setOrder((prev: OrderWithDetails | null): OrderWithDetails | null =>
+        prev ? { ...prev, status: "cancelled" } : prev
       );
       toast({
         title: "تم الإلغاء",

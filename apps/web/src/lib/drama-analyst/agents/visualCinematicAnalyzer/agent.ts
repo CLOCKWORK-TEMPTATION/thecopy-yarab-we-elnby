@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const VISUAL_CINEMATIC_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.VISUAL_CINEMATIC_ANALYZER,

@@ -35,7 +35,7 @@ const createEditor = (options?: {
       },
     },
     getText: vi.fn(() => options?.text ?? "نص كامل"),
-    getHTML: vi.fn(() => "<div data-type=\"action\">نص كامل</div>"),
+    getHTML: vi.fn(() => '<div data-type="action">نص كامل</div>'),
     chain: vi.fn(() => ({
       focus: vi.fn().mockReturnThis(),
       deleteSelection: vi.fn().mockReturnThis(),

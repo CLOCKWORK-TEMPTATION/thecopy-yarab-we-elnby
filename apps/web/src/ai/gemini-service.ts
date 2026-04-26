@@ -94,10 +94,7 @@ export class GeminiService {
   }
 
   // Get model with configuration
-  getModel(
-    modelName = "gemini-1.5-flash",
-    configName = "analysis"
-  ) {
+  getModel(modelName = "gemini-1.5-flash", configName = "analysis") {
     if (!this.genAI) {
       throw new Error("Gemini AI not initialized");
     }

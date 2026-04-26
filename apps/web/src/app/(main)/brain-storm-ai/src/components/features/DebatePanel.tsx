@@ -27,7 +27,6 @@ import {
 
 import type { DebateMessage } from "../../types";
 
-
 interface DebatePanelProps {
   messages: DebateMessage[];
 }

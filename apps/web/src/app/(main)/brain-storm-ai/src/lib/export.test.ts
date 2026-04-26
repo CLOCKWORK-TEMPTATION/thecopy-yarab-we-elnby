@@ -118,12 +118,8 @@ describe("exportToJSON", () => {
       click: vi.fn(),
       style: {},
     } as unknown as HTMLAnchorElement);
-    vi.spyOn(document.body, "appendChild").mockImplementation(
-      (n) => n
-    );
-    vi.spyOn(document.body, "removeChild").mockImplementation(
-      (n) => n
-    );
+    vi.spyOn(document.body, "appendChild").mockImplementation((n) => n);
+    vi.spyOn(document.body, "removeChild").mockImplementation((n) => n);
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();
   });
@@ -151,12 +147,8 @@ describe("exportToMarkdown", () => {
       click: vi.fn(),
       style: {},
     } as unknown as HTMLAnchorElement);
-    vi.spyOn(document.body, "appendChild").mockImplementation(
-      (n) => n
-    );
-    vi.spyOn(document.body, "removeChild").mockImplementation(
-      (n) => n
-    );
+    vi.spyOn(document.body, "appendChild").mockImplementation((n) => n);
+    vi.spyOn(document.body, "removeChild").mockImplementation((n) => n);
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();
   });

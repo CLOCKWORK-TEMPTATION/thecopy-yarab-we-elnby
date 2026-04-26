@@ -150,10 +150,7 @@ export default function VendorMenuEditorPage() {
       setSubmitting(true);
       try {
         if (editingId) {
-          await api.patch<MenuItem>(
-            `/vendor/menu-items/${editingId}`,
-            payload
-          );
+          await api.patch<MenuItem>(`/vendor/menu-items/${editingId}`, payload);
           toast({ title: "تم التحديث", description: "تم تعديل العنصر" });
         } else {
           await api.post<MenuItem>("/vendor/menu-items", payload);

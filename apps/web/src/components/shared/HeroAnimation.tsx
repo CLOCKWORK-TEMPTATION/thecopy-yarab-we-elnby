@@ -1,9 +1,7 @@
 "use client";
 
-
 import Link from "next/link";
 import { useRef, useState, type CSSProperties } from "react";
-
 
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { useHeroAnimation } from "@/hooks/use-hero-animation";

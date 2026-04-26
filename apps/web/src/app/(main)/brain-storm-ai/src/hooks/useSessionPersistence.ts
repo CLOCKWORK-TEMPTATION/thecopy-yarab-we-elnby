@@ -39,8 +39,8 @@ interface PersistedSavedSession {
     startTime: string;
   };
   messages: (Omit<DebateMessage, "timestamp"> & {
-      timestamp: string;
-    })[];
+    timestamp: string;
+  })[];
   savedAt: string;
 }
 

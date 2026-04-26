@@ -30,7 +30,9 @@ export function StationCard({ station, canRetry, onRetry }: Props) {
           <p className="text-[11px] tracking-[0.2em] text-white/40">
             المحطة {station.id}
           </p>
-          <h3 className="text-sm font-semibold text-white/90">{station.name}</h3>
+          <h3 className="text-sm font-semibold text-white/90">
+            {station.name}
+          </h3>
         </div>
         <span
           className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] ${statusColor}`}
@@ -47,7 +49,10 @@ export function StationCard({ station, canRetry, onRetry }: Props) {
       </header>
 
       {(station.status === "running" || station.status === "queued") && (
-        <Progress value={Math.round(station.progress * 100)} className="h-1.5" />
+        <Progress
+          value={Math.round(station.progress * 100)}
+          className="h-1.5"
+        />
       )}
 
       {station.confidence != null && station.status === "completed" && (
@@ -66,47 +71,61 @@ export function StationCard({ station, canRetry, onRetry }: Props) {
         </p>
       )}
 
-      {canRetry && (station.status === "failed" || station.status === "completed") && (
-        <div className="mt-auto pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onRetry(station.id)}
-            className="w-full gap-2"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            إعادة تشغيل المحطة
-          </Button>
-        </div>
-      )}
+      {canRetry &&
+        (station.status === "failed" || station.status === "completed") && (
+          <div className="mt-auto pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onRetry(station.id)}
+              className="w-full gap-2"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              إعادة تشغيل المحطة
+            </Button>
+          </div>
+        )}
     </article>
   );
 }
 
 function labelFor(status: StationState["status"]): string {
   switch (status) {
-    case "idle": return "في الانتظار";
-    case "queued": return "في الطابور";
-    case "running": return "قيد التنفيذ";
-    case "completed": return "مكتملة";
-    case "failed": return "فشل";
+    case "idle":
+      return "في الانتظار";
+    case "queued":
+      return "في الطابور";
+    case "running":
+      return "قيد التنفيذ";
+    case "completed":
+      return "مكتملة";
+    case "failed":
+      return "فشل";
   }
 }
 
 function colorFor(status: StationState["status"]): string {
   switch (status) {
-    case "running": return "bg-sky-500/15 text-sky-200 border border-sky-500/25";
-    case "completed": return "bg-emerald-500/15 text-emerald-200 border border-emerald-500/25";
-    case "failed": return "bg-rose-500/15 text-rose-200 border border-rose-500/25";
-    case "queued": return "bg-violet-500/15 text-violet-200 border border-violet-500/25";
-    default: return "bg-white/5 text-white/55 border border-white/10";
+    case "running":
+      return "bg-sky-500/15 text-sky-200 border border-sky-500/25";
+    case "completed":
+      return "bg-emerald-500/15 text-emerald-200 border border-emerald-500/25";
+    case "failed":
+      return "bg-rose-500/15 text-rose-200 border border-rose-500/25";
+    case "queued":
+      return "bg-violet-500/15 text-violet-200 border border-violet-500/25";
+    default:
+      return "bg-white/5 text-white/55 border border-white/10";
   }
 }
 
 function summarizeOutput(output: unknown): string | null {
   if (!output || typeof output !== "object") return null;
-  const o = output as { details?: { fullAnalysis?: unknown }; finalReport?: unknown };
+  const o = output as {
+    details?: { fullAnalysis?: unknown };
+    finalReport?: unknown;
+  };
   const text =
     (typeof o.details?.fullAnalysis === "string" && o.details.fullAnalysis) ||
     (typeof o.finalReport === "string" && o.finalReport) ||

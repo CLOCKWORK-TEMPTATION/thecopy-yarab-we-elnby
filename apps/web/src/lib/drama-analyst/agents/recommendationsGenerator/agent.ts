@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const RECOMMENDATIONS_GENERATOR_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.RECOMMENDATIONS_GENERATOR,

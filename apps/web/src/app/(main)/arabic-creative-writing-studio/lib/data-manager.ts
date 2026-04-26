@@ -8,7 +8,6 @@ import { logger } from "@/lib/ai/utils/logger";
 // dataManager.ts
 // مدير البيانات المحلية لاستوديو الكتابة الإبداعية
 
-
 export class DataManager {
   private static instance: DataManager;
   private storage = new Map<string, any>();

@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 
-
 import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
 import { directorsEditorLogger } from "@/lib/directors-editor/logger";
 import { clearCurrentProject, setCurrentProject } from "@/lib/projectStore";

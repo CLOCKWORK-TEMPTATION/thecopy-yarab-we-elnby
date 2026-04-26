@@ -151,10 +151,7 @@ export const durations = {
  * Stagger animation helper
  * For animating lists with delay
  */
-export function staggerAnimation(
-  delay = 0.1,
-  staggerChildren = 0.05
-) {
+export function staggerAnimation(delay = 0.1, staggerChildren = 0.05) {
   return {
     initial: { opacity: 0, y: 20 },
     animate: {

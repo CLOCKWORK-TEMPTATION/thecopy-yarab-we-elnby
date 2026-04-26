@@ -34,10 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateCharacter, useUpdateCharacter } from "@/hooks/useProject";
 
-import type {
-  Character,
-  CreateCharacterRequest,
-} from "@/types/api";
+import type { Character, CreateCharacterRequest } from "@/types/api";
 
 /**
  * واجهة خصائص مكوّن حوار نموذج الشخصية

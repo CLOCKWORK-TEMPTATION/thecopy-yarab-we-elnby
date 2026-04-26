@@ -35,7 +35,6 @@ import type { MenuToastPayload } from "./insert-menu-controller";
 import type { EditorArea, FileImportMode } from "../components/editor";
 import type { MenuActionId, ExportFormat } from "../constants/menu-definitions";
 
-
 interface EditorAutosaveSnapshot {
   html?: string;
   text: string;

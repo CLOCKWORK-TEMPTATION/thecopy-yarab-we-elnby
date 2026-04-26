@@ -63,18 +63,14 @@ export interface AADParams {
  * توليد ملح عشوائي
  */
 export function generateSalt(): CryptoBuffer {
-  return crypto.getRandomValues(
-    new Uint8Array(CRYPTO_CONSTANTS.SALT_LENGTH)
-  );
+  return crypto.getRandomValues(new Uint8Array(CRYPTO_CONSTANTS.SALT_LENGTH));
 }
 
 /**
  * توليد IV عشوائي
  */
 export function generateIV(): CryptoBuffer {
-  return crypto.getRandomValues(
-    new Uint8Array(CRYPTO_CONSTANTS.AES_IV_LENGTH)
-  );
+  return crypto.getRandomValues(new Uint8Array(CRYPTO_CONSTANTS.AES_IV_LENGTH));
 }
 
 /**

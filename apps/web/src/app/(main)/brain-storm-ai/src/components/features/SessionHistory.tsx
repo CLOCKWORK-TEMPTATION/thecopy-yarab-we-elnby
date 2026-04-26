@@ -47,7 +47,7 @@ export function SessionHistory({
       showFeedback({
         sessionId: saved.session.id,
         type: result.ok ? "success" : "error",
-        message: result.ok ? "تم تصدير JSON" : result.error ?? "فشل التصدير",
+        message: result.ok ? "تم تصدير JSON" : (result.error ?? "فشل التصدير"),
       });
     },
     [showFeedback]
@@ -61,7 +61,7 @@ export function SessionHistory({
         type: result.ok ? "success" : "error",
         message: result.ok
           ? "تم تصدير Markdown"
-          : result.error ?? "فشل التصدير",
+          : (result.error ?? "فشل التصدير"),
       });
     },
     [showFeedback]
@@ -95,9 +95,7 @@ export function SessionHistory({
         <div className="space-y-2 max-h-80 overflow-y-auto">
           {sessions.map((saved) => {
             const activeFeedback =
-              feedback?.sessionId === saved.session.id
-                ? feedback
-                : null;
+              feedback?.sessionId === saved.session.id ? feedback : null;
 
             return (
               <CardSpotlight

@@ -10,10 +10,10 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 const nextTypeScriptConfig = nextCoreWebVitals.find(
-  (config) => config.name === "next/typescript",
+  (config) => config.name === "next/typescript"
 );
 const nextConfigs = nextCoreWebVitals.filter(
-  (config) => config.name !== "next/typescript",
+  (config) => config.name !== "next/typescript"
 );
 
 const mechanicalContractRules = {
@@ -28,7 +28,7 @@ const mechanicalContractRules = {
   "@typescript-eslint/no-unsafe-call": "error",
   "@typescript-eslint/no-unsafe-member-access": "error",
   "@typescript-eslint/no-unsafe-return": "error",
-  "complexity": ["error", { max: 20 }],
+  complexity: ["error", { max: 20 }],
   "import/no-unresolved": "error",
   "max-depth": ["error", 4],
   "max-lines": [
@@ -150,10 +150,7 @@ export default tseslint.config(
     },
   },
   {
-    files: [
-      "**/*.{test,spec}.{ts,tsx}",
-      "**/__tests__/**/*.{ts,tsx}",
-    ],
+    files: ["**/*.{test,spec}.{ts,tsx}", "**/__tests__/**/*.{ts,tsx}"],
     plugins: {
       vitest,
     },
@@ -161,5 +158,5 @@ export default tseslint.config(
       ...vitest.configs.recommended.rules,
     },
   },
-  prettier,
+  prettier
 );

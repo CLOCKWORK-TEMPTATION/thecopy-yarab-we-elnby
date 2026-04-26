@@ -27,7 +27,7 @@ export function detectUnstructured(
 
   const hasSceneNoSpace = /مشهد\d+/u.test(raw);
   const hasCutSceneGlue = /قطع\s*مشهد\s*\d+/u.test(raw);
-  const hasBullets = raw.includes('');
+  const hasBullets = raw.includes("");
   const inlineSpeakerCount = (raw.match(/[^:\n]{1,50}[：:]\s*\S+/gu) ?? [])
     .length;
 

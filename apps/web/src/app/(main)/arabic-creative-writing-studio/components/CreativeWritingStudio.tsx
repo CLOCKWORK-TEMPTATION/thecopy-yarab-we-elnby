@@ -739,7 +739,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
                   result.success ? "success" : "error",
                   result.success
                     ? "تم اختبار الاتصال بنجاح"
-                    : result.error ?? "فشل اختبار الاتصال"
+                    : (result.error ?? "فشل اختبار الاتصال")
                 );
               } else {
                 showNotification("warning", analysisBlockedReason);

@@ -207,7 +207,7 @@ export class AnalysisAgent extends BaseAgent {
       // Detect section headers
       if (
         this.isAnalysisSectionHeader(line) ||
-        ((/^\d+\./.exec(line)) && nextLine && !(/^\d+\./.exec(nextLine)))
+        (/^\d+\./.exec(line) && nextLine && !/^\d+\./.exec(nextLine))
       ) {
         if (inSection && formatted.length > 0) {
           formatted.push("");

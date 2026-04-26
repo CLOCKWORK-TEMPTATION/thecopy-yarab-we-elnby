@@ -205,7 +205,7 @@ export class IntegratedAgent extends BaseAgent {
       // Detect section headers
       if (
         this.isSynthesisSectionHeader(line) ||
-        ((/^\d+\./.exec(line)) && nextLine && !(/^\d+\./.exec(nextLine)))
+        (/^\d+\./.exec(line) && nextLine && !/^\d+\./.exec(nextLine))
       ) {
         if (inSection && formatted.length > 0) {
           formatted.push("");

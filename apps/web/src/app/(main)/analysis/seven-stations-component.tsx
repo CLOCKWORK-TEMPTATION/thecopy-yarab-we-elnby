@@ -50,7 +50,9 @@ export default function SevenStationsComponent() {
     if (resumeId === machine.state.analysisId) return;
     const url = new URL(window.location.href);
     url.searchParams.set(RESUME_QUERY_PARAM, machine.state.analysisId);
-    router.replace(`${url.pathname}?${url.searchParams.toString()}`, { scroll: false });
+    router.replace(`${url.pathname}?${url.searchParams.toString()}`, {
+      scroll: false,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [machine.state.analysisId]);
 
@@ -77,10 +79,12 @@ export default function SevenStationsComponent() {
   return (
     <div className="container mx-auto max-w-7xl space-y-8 p-4 md:p-6" dir="rtl">
       <header className="space-y-2 text-right">
-        <h2 className="text-2xl font-bold text-white">المحطات السبع للتحليل الدرامي</h2>
+        <h2 className="text-2xl font-bold text-white">
+          المحطات السبع للتحليل الدرامي
+        </h2>
         <p className="text-sm text-white/60">
-          تحليل عميق للنص الدرامي عبر سبع محطات متخصصة، مع بثّ مباشر للتقدم
-          ودعم لإعادة تشغيل أي محطة على حدة.
+          تحليل عميق للنص الدرامي عبر سبع محطات متخصصة، مع بثّ مباشر للتقدم ودعم
+          لإعادة تشغيل أي محطة على حدة.
         </p>
       </header>
 

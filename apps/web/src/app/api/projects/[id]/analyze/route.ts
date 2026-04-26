@@ -8,7 +8,9 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteContext { params: Promise<{ id: string }> }
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
 
 export async function POST(request: NextRequest, ctx: RouteContext) {
   try {

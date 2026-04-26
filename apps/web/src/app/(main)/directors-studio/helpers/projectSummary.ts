@@ -30,14 +30,14 @@ export type CharacterTrackerProps = ComponentProps<typeof CharacterTracker>;
  * لذلك نحتاج نوعاً وسيطاً للتحويل
  */
 export type ProjectCharacterInput = readonly (Omit<
-    CharacterTrackerProps["characters"][number],
-    "consistencyStatus" | "lastSeen"
-  > & {
-    consistencyStatus?:
-      | CharacterTrackerProps["characters"][number]["consistencyStatus"]
-      | null;
-    lastSeen?: string | null;
-  })[];
+  CharacterTrackerProps["characters"][number],
+  "consistencyStatus" | "lastSeen"
+> & {
+  consistencyStatus?:
+    | CharacterTrackerProps["characters"][number]["consistencyStatus"]
+    | null;
+  lastSeen?: string | null;
+})[];
 
 /**
  * القيم الافتراضية لحالة اتساق الشخصية
@@ -69,8 +69,8 @@ export function prepareCharacterList(
 
   return characters.map((character) => ({
     ...character,
-    consistencyStatus: (character.consistencyStatus ??
-      DEFAULT_CONSISTENCY_STATUS),
+    consistencyStatus:
+      character.consistencyStatus ?? DEFAULT_CONSISTENCY_STATUS,
     lastSeen: character.lastSeen ?? DEFAULT_LAST_SEEN,
   }));
 }

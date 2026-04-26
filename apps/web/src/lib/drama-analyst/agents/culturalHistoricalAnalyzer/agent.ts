@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const CULTURAL_HISTORICAL_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.CULTURAL_HISTORICAL_ANALYZER,

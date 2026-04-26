@@ -135,10 +135,7 @@ const LENS_PRESETS: LensPreset[] = [
 ];
 
 // Calculate field of view based on focal length and sensor size
-const calculateFOV = (
-  focalLength: number,
-  sensorWidth = 36
-): number => {
+const calculateFOV = (focalLength: number, sensorWidth = 36): number => {
   return 2 * Math.atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
 };
 

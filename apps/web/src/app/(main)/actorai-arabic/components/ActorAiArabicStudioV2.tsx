@@ -20,7 +20,6 @@ import { NotificationBanner } from "../layout/NotificationBanner";
 
 import type { ViewType } from "../types";
 
-
 const HomeView = lazy(() =>
   import("../features/home").then((m) => ({ default: m.HomeView }))
 );

@@ -66,9 +66,7 @@ export const suggestTypeFromClassificationSequence = (
   features: ClassificationSequenceSuggestionFeatures
 ): ElementType | null => {
   if (prevType === "character") {
-    return features.isParenthetical
-      ? ("parenthetical")
-      : ("dialogue");
+    return features.isParenthetical ? "parenthetical" : "dialogue";
   }
 
   if (prevType === "parenthetical") {

@@ -151,11 +151,9 @@ export async function ensureMediaFixtures() {
 if (process.argv[1] && process.argv[1] === __filename) {
   ensureMediaFixtures()
     .then((result) => {
-       
       console.log(JSON.stringify(result, null, 2));
     })
     .catch((error) => {
-       
       console.error("[ensure-media-fixtures] failed:", error);
       process.exit(1);
     });

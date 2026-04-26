@@ -62,7 +62,7 @@ export class RhythmMappingAgent extends BaseAgent {
         const sceneDesc =
           typeof scene === "string"
             ? scene
-            : scene.description ?? `مشهد ${idx + 1}`;
+            : (scene.description ?? `مشهد ${idx + 1}`);
         const sceneLength =
           typeof scene === "object" && scene.length
             ? ` (${scene.length} كلمة)`

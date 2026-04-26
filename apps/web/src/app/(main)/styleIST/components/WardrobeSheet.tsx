@@ -27,7 +27,6 @@ import Spinner from "./Spinner";
 
 import type { WardrobeItem, ImageGenerationSize } from "../types";
 
-
 interface WardrobeModalProps {
   isOpen: boolean;
   onClose: () => void;

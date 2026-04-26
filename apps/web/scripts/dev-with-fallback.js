@@ -27,7 +27,6 @@ async function findOpenPort(start) {
   let port = start;
   // Try up to 50 ports ahead
   for (let i = 0; i < 50; i++) {
-     
     const free = await checkPort(port);
     if (free) return port;
     port += 1;

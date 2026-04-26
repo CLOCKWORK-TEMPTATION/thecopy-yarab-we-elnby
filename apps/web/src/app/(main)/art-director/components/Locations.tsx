@@ -25,8 +25,6 @@ import { fetchArtDirectorJson } from "../lib/api-client";
 
 import type { LocationSimple, ApiResponse } from "../types";
 
-
-
 interface LocationFormData {
   name: string;
   nameAr: string;

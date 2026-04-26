@@ -689,10 +689,10 @@ export function App(): React.JSX.Element {
           : null;
       const isEditorFocused = Boolean(
         targetElement?.closest(".ProseMirror") ??
-          activeElement?.closest(".ProseMirror") ??
-          targetElement?.isContentEditable ??
-          activeElement?.isContentEditable ??
-          area.editor.view.hasFocus()
+        activeElement?.closest(".ProseMirror") ??
+        targetElement?.isContentEditable ??
+        activeElement?.isContentEditable ??
+        area.editor.view.hasFocus()
       );
 
       if (key in SHORTCUT_FORMAT_BY_DIGIT) {

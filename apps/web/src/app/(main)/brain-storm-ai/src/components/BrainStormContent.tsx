@@ -24,7 +24,6 @@ import { SessionHistory } from "./features/SessionHistory";
 import AgentsSidebar from "./layout/AgentsSidebar";
 import BrainStormHeader from "./layout/BrainStormHeader";
 
-
 export default function BrainStormContent() {
   const {
     catalog,

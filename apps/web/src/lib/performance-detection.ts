@@ -137,7 +137,7 @@ class PerformanceDetector {
     }
 
     return {
-      effectiveType: (this.connectionInfo.effectiveType ?? "4g"),
+      effectiveType: this.connectionInfo.effectiveType ?? "4g",
       downlink: this.connectionInfo.downlink ?? 10,
       rtt: this.connectionInfo.rtt ?? 50,
       saveData: (this.connectionInfo.saveData ?? false) as boolean,

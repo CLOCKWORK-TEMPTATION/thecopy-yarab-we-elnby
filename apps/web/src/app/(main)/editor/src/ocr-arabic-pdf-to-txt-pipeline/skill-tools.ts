@@ -23,7 +23,6 @@ import { promisify } from "node:util";
 import { tool } from "ai";
 import { z } from "zod";
 
-
 const execFileAsync = promisify(execFile);
 
 // ─── مسارات السكريبتات ──────────────────────────────────────

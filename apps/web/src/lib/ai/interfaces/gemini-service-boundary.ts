@@ -103,7 +103,7 @@ export function createGeminiServiceBoundary(
         response.content !== null &&
         "raw" in response.content
       ) {
-        return (response.content).raw;
+        return response.content.raw;
       }
 
       return String(response.content);

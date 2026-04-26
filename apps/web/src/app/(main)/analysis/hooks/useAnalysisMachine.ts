@@ -33,7 +33,11 @@ interface UseAnalysisMachineReturn {
   progress: number;
   isRunning: boolean;
   allCompleted: boolean;
-  start: (input: { text: string; projectId?: string; projectName?: string }) => Promise<void>;
+  start: (input: {
+    text: string;
+    projectId?: string;
+    projectName?: string;
+  }) => Promise<void>;
   reset: () => void;
   retryStation: (stationId: StationId, text: string) => Promise<void>;
   exportAs: (format: "json" | "docx" | "pdf") => Promise<void>;
@@ -96,7 +100,11 @@ export function useAnalysisMachine(
   }, [opts.resumeAnalysisId]);
 
   const start = useCallback(
-    async (input: { text: string; projectId?: string; projectName?: string }) => {
+    async (input: {
+      text: string;
+      projectId?: string;
+      projectName?: string;
+    }) => {
       try {
         lastTextRef.current = input.text;
         dispatch({
@@ -139,7 +147,11 @@ export function useAnalysisMachine(
       dispatch({ type: "RETRY_REQUESTED", stationId });
       reportTelemetry("analysis.retry", { stationId });
       try {
-        await retryStationApi(state.analysisId, stationId, text || lastTextRef.current);
+        await retryStationApi(
+          state.analysisId,
+          stationId,
+          text || lastTextRef.current
+        );
       } catch (err) {
         if (err instanceof AuthRequiredError) {
           opts.onAuthRequired?.(err.status);

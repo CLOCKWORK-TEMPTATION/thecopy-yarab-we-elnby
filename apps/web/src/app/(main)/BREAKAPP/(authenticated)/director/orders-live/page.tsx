@@ -11,11 +11,7 @@
  * لحظيّاً، تشغيل الـ batching يدويّاً، وإسناد الطلبات للـ runners
  */
 
-import {
-  api,
-  getCurrentUser,
-  type Order,
-} from "@the-copy/breakapp";
+import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import { AxiosError } from "axios";
 import {
@@ -429,9 +425,7 @@ export default function DirectorOrdersLivePage() {
           <div className="flex items-center gap-2">
             <span
               className={`px-3 py-1 text-xs rounded-full font-cairo ${
-                connected
-                  ? "bg-white/8 text-white"
-                  : "bg-white/6 text-white/55"
+                connected ? "bg-white/8 text-white" : "bg-white/6 text-white/55"
               }`}
             >
               {connected ? "متصل لحظيّاً" : "غير متصل"}
@@ -644,7 +638,9 @@ export default function DirectorOrdersLivePage() {
                           }
                           className="w-full px-4 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed text-sm font-cairo transition"
                         >
-                          {isAssignOpen ? "إغلاق قائمة الإسناد" : "إسناد لـ runner"}
+                          {isAssignOpen
+                            ? "إغلاق قائمة الإسناد"
+                            : "إسناد لـ runner"}
                         </button>
                         {isAssignOpen && (
                           <div className="mt-2 p-3 bg-white/6 rounded-[22px] border border-white/8">

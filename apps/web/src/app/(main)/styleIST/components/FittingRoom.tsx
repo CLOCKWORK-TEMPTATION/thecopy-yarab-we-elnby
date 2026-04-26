@@ -377,10 +377,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
                 </button>
               </div>
               <div className="p-6">
-                <TechPackView
-                  data={techPack}
-                  fabricName={selectedFabric}
-                />
+                <TechPackView data={techPack} fabricName={selectedFabric} />
                 <button className="w-full mt-4 border-2 border-black/14 text-black font-bold py-2 hover:bg-black/14 hover:text-white transition-colors text-xs uppercase tracking-widest rounded-[22px]">
                   Export PDF
                 </button>

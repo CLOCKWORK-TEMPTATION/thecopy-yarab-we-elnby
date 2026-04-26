@@ -68,10 +68,7 @@ function createStore<T extends Record<string, any>>(
   const listeners = new Set<() => void>();
 
   const set: SetState<T> = (partial) => {
-    const nextState =
-      typeof partial === "function"
-        ? (partial)(state)
-        : partial;
+    const nextState = typeof partial === "function" ? partial(state) : partial;
     state = { ...state, ...nextState };
     listeners.forEach((listener) => listener());
   };

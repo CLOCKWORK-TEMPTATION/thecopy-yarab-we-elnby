@@ -11,7 +11,11 @@
  * فيتم في layouts فرعية باستخدام RoleGuard من @the-copy/breakapp.
  */
 
-import { getCurrentUser, isAuthenticated, type CurrentUser } from "@the-copy/breakapp";
+import {
+  getCurrentUser,
+  isAuthenticated,
+  type CurrentUser,
+} from "@the-copy/breakapp";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 

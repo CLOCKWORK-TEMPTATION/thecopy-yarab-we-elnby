@@ -125,9 +125,7 @@ export function buildContentSecurityPolicy({
   ].join("; ");
 }
 
-function collectAllowedConnectOrigins(
-  urls: (string | undefined)[]
-): string[] {
+function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
   return Array.from(
     new Set(
       urls

@@ -207,7 +207,7 @@ export default function AIChatPanel() {
       const aiResponse =
         typeof result === "string"
           ? result
-          : (
+          : ((
               result as {
                 response?: string;
                 content?: string;
@@ -228,7 +228,7 @@ export default function AIChatPanel() {
                 message?: string;
               }
             )?.message ??
-            "تم استلام الرد بنجاح.";
+            "تم استلام الرد بنجاح.");
 
       setMessages((prev) =>
         prev.map((msg) =>

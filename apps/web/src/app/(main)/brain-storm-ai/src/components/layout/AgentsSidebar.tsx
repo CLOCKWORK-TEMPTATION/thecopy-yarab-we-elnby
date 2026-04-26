@@ -27,7 +27,6 @@ import type {
   BrainstormPhase,
 } from "../../types";
 
-
 interface AgentsSidebarProps {
   displayedAgents: readonly BrainstormAgentDefinition[];
   allAgents: readonly BrainstormAgentDefinition[];

@@ -182,7 +182,7 @@ export function InspectorPanel({
             <div className="text-[var(--color-muted)]" dir="rtl">
               {typeof sceneData.linksIn === "number"
                 ? sceneData.linksIn
-                : sceneData.linksIn?.length ?? 0}{" "}
+                : (sceneData.linksIn?.length ?? 0)}{" "}
               مشهد
             </div>
           </div>
@@ -195,7 +195,7 @@ export function InspectorPanel({
             <div className="text-[var(--color-muted)]" dir="rtl">
               {typeof sceneData.linksOut === "number"
                 ? sceneData.linksOut
-                : sceneData.linksOut?.length ?? 0}{" "}
+                : (sceneData.linksOut?.length ?? 0)}{" "}
               مشهد
             </div>
           </div>

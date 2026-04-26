@@ -58,7 +58,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
       prompt += `الشخصيات الرئيسية:\n`;
       characters.slice(0, 5).forEach((char: any, idx: number) => {
         const charName =
-          typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+          typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
         prompt += `${idx + 1}. ${charName}\n`;
       });
       prompt += "\n";
@@ -70,7 +70,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
         const pointText =
           typeof point === "string"
             ? point
-            : point.description ?? `نقطة ${idx + 1}`;
+            : (point.description ?? `نقطة ${idx + 1}`);
         prompt += `${idx + 1}. ${pointText}\n`;
       });
       prompt += "\n";

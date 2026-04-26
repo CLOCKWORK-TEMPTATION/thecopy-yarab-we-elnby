@@ -15,7 +15,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * ويوفر خيار إعادة المحاولة دون إعادة تحميل الصفحة
  */
 
-
 interface ErrorBoundaryProps {
   error: Error & { digest?: string };
   reset: () => void;

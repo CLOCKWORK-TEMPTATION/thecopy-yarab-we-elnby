@@ -11,11 +11,7 @@
  * لاتخاذ قرارات الإسناد بذكاء
  */
 
-import {
-  api,
-  getCurrentUser,
-  type VendorMapData,
-} from "@the-copy/breakapp";
+import { api, getCurrentUser, type VendorMapData } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import { AxiosError } from "axios";
 import dynamic from "next/dynamic";
@@ -281,9 +277,7 @@ export default function DirectorRunnersMapPage() {
           <div className="flex items-center gap-2">
             <span
               className={`px-3 py-1 text-xs rounded-full font-cairo ${
-                connected
-                  ? "bg-white/8 text-white"
-                  : "bg-white/6 text-white/55"
+                connected ? "bg-white/8 text-white" : "bg-white/6 text-white/55"
               }`}
             >
               {connected ? "متصل لحظيّاً" : "غير متصل"}

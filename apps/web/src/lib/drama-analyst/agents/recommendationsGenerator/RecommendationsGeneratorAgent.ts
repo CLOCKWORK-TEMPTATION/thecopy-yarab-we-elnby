@@ -36,23 +36,13 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText =
-      ((contextObj)?.originalText as string) || "";
+    const originalText = (contextObj?.originalText as string) || "";
     const analysisResults =
-      ((contextObj)?.analysisResults as Record<
-        string,
-        string
-      >) || {};
+      (contextObj?.analysisResults as Record<string, string>) || {};
     const previousStations =
-      ((contextObj)?.previousStations as Record<
-        string,
-        string
-      >) || {};
-    const focusAreas =
-      ((contextObj)?.focusAreas as string[]) || [];
-    const priorityLevel =
-      ((contextObj)?.priorityLevel as string) ||
-      "balanced";
+      (contextObj?.previousStations as Record<string, string>) || {};
+    const focusAreas = (contextObj?.focusAreas as string[]) || [];
+    const priorityLevel = (contextObj?.priorityLevel as string) || "balanced";
 
     // Build structured prompt
     let prompt = `${RECOMMENDATIONS_GENERATOR_INSTRUCTIONS}\n\n`;

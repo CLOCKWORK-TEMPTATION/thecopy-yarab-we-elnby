@@ -56,8 +56,6 @@ import { Transition } from "./extensions/transition";
 import { PasteClassifier } from "./extensions/paste-classifier";
 import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
 
-
-
 // الامتدادات الأساسية من Tiptap
 
 /**

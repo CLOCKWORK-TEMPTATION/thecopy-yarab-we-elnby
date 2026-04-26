@@ -1301,8 +1301,7 @@ const buildLocalSuspicionReviewPayload = (params: {
           ? "local-review"
           : "agent-candidate",
     critical: suspicionCase.critical,
-    primarySuggestedType:
-      (suspicionCase.primarySuggestedType) ?? null,
+    primarySuggestedType: suspicionCase.primarySuggestedType ?? null,
     reasonCodes: suspicionCase.signals
       .map((signal) => signal.reasonCode)
       .slice(0, 32),
@@ -1316,8 +1315,7 @@ const buildLocalSuspicionReviewPayload = (params: {
     sourceHints: {
       importSource: suspicionCase.trace.sourceHints.importSource,
       ...(sourceMethod !== undefined && { sourceMethod }),
-      engineSuggestedType:
-        (schemaVote?.suggestedType) ?? null,
+      engineSuggestedType: schemaVote?.suggestedType ?? null,
     },
   };
 };

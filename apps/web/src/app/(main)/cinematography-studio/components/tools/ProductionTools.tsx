@@ -412,7 +412,9 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                   className="mt-3 h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e5b54f] focus-visible:ring-offset-2 focus-visible:ring-offset-[#070707] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {isAssistantLoading ? "جاري البحث عن إجابة..." : "إرسال السؤال"}
+                  {isAssistantLoading
+                    ? "جاري البحث عن إجابة..."
+                    : "إرسال السؤال"}
                 </Button>
 
                 {isAssistantLoading ? (

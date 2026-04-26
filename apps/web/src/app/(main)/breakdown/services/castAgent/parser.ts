@@ -188,7 +188,10 @@ export const extractSceneLocation = (heading: string): SceneLocation => {
   }
 
   // Location extraction
-  const locationMatch = /(?:INT\.|EXT\.|DAKHEL|KHAREG|داخلي|خارجي)\s*(.+?)(?:\s*-\s*[A-Z]+)?$/.exec(heading);
+  const locationMatch =
+    /(?:INT\.|EXT\.|DAKHEL|KHAREG|داخلي|خارجي)\s*(.+?)(?:\s*-\s*[A-Z]+)?$/.exec(
+      heading
+    );
   if (locationMatch?.[1]) {
     location = locationMatch[1].trim();
   }

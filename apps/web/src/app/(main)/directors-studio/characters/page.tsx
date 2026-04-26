@@ -198,7 +198,7 @@ export default function CharactersPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertTriangle className="h-12 w-12 text-destructive" />
-        <p className="text-destructive">{(error).message}</p>
+        <p className="text-destructive">{error.message}</p>
       </div>
     );
   }

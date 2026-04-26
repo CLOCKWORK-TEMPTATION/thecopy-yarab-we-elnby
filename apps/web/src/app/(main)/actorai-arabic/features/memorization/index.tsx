@@ -166,9 +166,7 @@ export function MemorizationView() {
       let incorrect = 0;
       const weakWords: string[] = [];
       correctWords.forEach((word, index) => {
-        if (
-          userWords[index]?.toLowerCase() === word.toLowerCase()
-        ) {
+        if (userWords[index]?.toLowerCase() === word.toLowerCase()) {
           correct++;
         } else {
           incorrect++;

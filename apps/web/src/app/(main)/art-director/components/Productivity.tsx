@@ -24,8 +24,6 @@ import { fetchArtDirectorJson } from "../lib/api-client";
 
 import type { ApiResponse } from "../types";
 
-
-
 interface TimeFormData {
   task: string;
   hours: string;

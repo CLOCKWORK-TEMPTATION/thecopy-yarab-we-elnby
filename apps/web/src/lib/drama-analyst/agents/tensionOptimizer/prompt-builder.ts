@@ -22,7 +22,7 @@ export function buildSceneBreakdownSection(sceneBreakdown: any[]): string {
     const sceneDesc =
       typeof scene === "string"
         ? scene
-        : scene.description ?? `مشهد ${idx + 1}`;
+        : (scene.description ?? `مشهد ${idx + 1}`);
     section += `${idx + 1}. ${sceneDesc}\n`;
   });
   section += "\n";

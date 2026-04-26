@@ -193,10 +193,7 @@ export class ContextRetriever {
       // fallback: استخراج بسيط يعتمد على الأحرف الكبيرة
       const words = content.split(/\s+/);
       return words
-        .filter(
-          (word) =>
-            word.length > 2 && word[0] === word[0]?.toUpperCase()
-        )
+        .filter((word) => word.length > 2 && word[0] === word[0]?.toUpperCase())
         .slice(0, 10); // تحديد العدد لتجنب القوائم الطويلة
     }
   }
@@ -240,10 +237,7 @@ export class ContextRetriever {
     for (const chunk of chunks) {
       const words = chunk.content.split(/\s+/);
       const entities = words
-        .filter(
-          (word) =>
-            word.length > 2 && word[0] === word[0]?.toUpperCase()
-        )
+        .filter((word) => word.length > 2 && word[0] === word[0]?.toUpperCase())
         .slice(0, 10); // تحديد العدد
 
       // إضافة علاقات بين كل زوج من الكيانات في نفس الجزء

@@ -1,4 +1,3 @@
-
 import { AnimatePresence } from "framer-motion";
 import { Plus, Grid3x3, List } from "lucide-react";
 import { useState } from "react";

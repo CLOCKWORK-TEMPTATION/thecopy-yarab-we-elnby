@@ -14,7 +14,6 @@ import React from "react";
 
 import { Budget, AIAnalysis } from "../lib/types";
 
-
 interface BudgetAnalyticsProps {
   analysis: AIAnalysis;
   stats: {

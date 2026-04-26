@@ -21,7 +21,6 @@ import type {
   FinalReviewRequestPayload,
 } from "@editor/types/final-review";
 
-
 // حجم نافذة السياق (±3 أسطر)
 const CONTEXT_WINDOW = 3;
 

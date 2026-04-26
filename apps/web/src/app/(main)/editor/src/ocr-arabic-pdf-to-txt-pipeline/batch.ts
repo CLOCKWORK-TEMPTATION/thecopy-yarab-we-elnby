@@ -16,11 +16,7 @@ import { join, extname, basename, resolve } from "node:path";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { openai } from "@ai-sdk/openai";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import {
-  generateText,
-  stepCountIs,
-  type LanguageModel,
-} from "ai";
+import { generateText, stepCountIs, type LanguageModel } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
 

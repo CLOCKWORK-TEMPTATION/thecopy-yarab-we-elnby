@@ -115,7 +115,7 @@ function extractCharacters(content: string): string[] {
 function extractScenes(content: string): string[] {
   return content
     .split("\n")
-    .filter((line) => line.includes("مشهد") || (/^(INT\.|EXT\.)/.exec(line)));
+    .filter((line) => line.includes("مشهد") || /^(INT\.|EXT\.)/.exec(line));
 }
 
 export async function clearIndex(): Promise<void> {

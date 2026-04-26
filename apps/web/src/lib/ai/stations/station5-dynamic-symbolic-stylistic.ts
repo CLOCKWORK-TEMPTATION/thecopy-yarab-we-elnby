@@ -18,7 +18,6 @@ import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
 import { GeminiService, GeminiModel } from "./gemini-service";
 import { Station4Output } from "./station4-efficiency-metrics";
 
-
 // Define ConflictPhase enum for conflict progression tracking
 enum ConflictPhaseEnum {
   LATENT = "latent",
@@ -69,9 +68,7 @@ function asStringArray(value: unknown): string[] {
 }
 
 function asNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : fallback;
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function scaledTimestamp(value: unknown): Date {
@@ -355,9 +352,7 @@ interface StationMetadata {
  * Dynamic Analysis Engine
  */
 class DynamicAnalysisEngine {
-  constructEventTimeline(
-    network: ConflictNetwork
-  ): Promise<TimelineEvent[]> {
+  constructEventTimeline(network: ConflictNetwork): Promise<TimelineEvent[]> {
     const events: TimelineEvent[] = [];
 
     // Process network snapshots
@@ -585,9 +580,7 @@ class DynamicAnalysisEngine {
 
       const conflicts = network.conflicts ?? new Map();
       for (const [confId, conf] of Array.from(conflicts.entries())) {
-        if (
-          conf.involvedCharacters?.includes(charId)
-        ) {
+        if (conf.involvedCharacters?.includes(charId)) {
           characterConflicts.push(confId);
         }
       }
@@ -827,8 +820,9 @@ class SymbolicAnalysisEngine {
       return {
         keySymbols: asArray<Symbol>(analysis.keySymbols),
         recurringMotifs: asArray<Motif>(analysis.recurring_motifs),
-        centralThemesHintedBySymbols:
-          asStringArray(analysis.central_themes_hinted_by_symbols),
+        centralThemesHintedBySymbols: asStringArray(
+          analysis.central_themes_hinted_by_symbols
+        ),
         symbolicNetworks: asArray<SymbolicAnalysis["symbolicNetworks"][number]>(
           analysis.symbolic_networks
         ),
@@ -942,18 +936,23 @@ class StylisticAnalysisEngine {
               ? pacingImpression.overall_pacing
               : "balanced",
           pacingVariation: asNumber(pacingImpression.pacing_variation, 5),
-          sceneLengthDistribution:
-            asArray<number>(pacingImpression.scene_length_distribution),
+          sceneLengthDistribution: asArray<number>(
+            pacingImpression.scene_length_distribution
+          ),
         },
         descriptiveRichness: {
-          visualDetailLevel:
-            asNumber(descriptiveRichness.visual_detail_level, 5),
+          visualDetailLevel: asNumber(
+            descriptiveRichness.visual_detail_level,
+            5
+          ),
           sensoryEngagement: asNumber(
             descriptiveRichness.sensory_engagement,
             5
           ),
-          atmosphericQuality:
-            asNumber(descriptiveRichness.atmospheric_quality, 5),
+          atmosphericQuality: asNumber(
+            descriptiveRichness.atmospheric_quality,
+            5
+          ),
         },
       };
     } catch (error) {
@@ -1050,12 +1049,12 @@ class TensionAnalysisEngine {
         timestamp: scaledTimestamp(valley.timestamp),
       })) as TensionValley[];
 
-      const addTension = asArray<JsonRecord>(
-        recommendations.add_tension
-      ).map((loc) => ({
+      const addTension = asArray<JsonRecord>(recommendations.add_tension).map(
+        (loc) => ({
           ...loc,
           timestamp: scaledTimestamp(loc.timestamp),
-        })) as Location[];
+        })
+      ) as Location[];
 
       const reduceTension = asArray<JsonRecord>(
         recommendations.reduce_tension
@@ -1071,8 +1070,9 @@ class TensionAnalysisEngine {
         recommendations: {
           addTension,
           reduceTension,
-          redistributeTension:
-            asStringArray(recommendations.redistribute_tension),
+          redistributeTension: asStringArray(
+            recommendations.redistribute_tension
+          ),
         },
       };
     } catch (error) {
@@ -1254,9 +1254,9 @@ class VisualCinematicAnalysisEngine {
       const keyVisualMoments = asArray<JsonRecord>(
         analysis.key_visual_moments
       ).map((moment) => ({
-          ...moment,
-          timestamp: scaledTimestamp(moment.timestamp),
-        })) as VisualMoment[];
+        ...moment,
+        timestamp: scaledTimestamp(moment.timestamp),
+      })) as VisualMoment[];
 
       return {
         visualDensity: asNumber(analysis.visual_density, 5),

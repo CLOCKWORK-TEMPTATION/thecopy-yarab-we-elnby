@@ -4,7 +4,10 @@
  * We never block the UI on a telemetry failure.
  */
 
-export function reportTelemetry(event: string, payload?: Record<string, unknown>): void {
+export function reportTelemetry(
+  event: string,
+  payload?: Record<string, unknown>
+): void {
   if (typeof window === "undefined") return;
   try {
     void fetch("/api/telemetry", {

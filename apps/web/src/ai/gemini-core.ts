@@ -83,10 +83,7 @@ export const geminiCore = {
   },
 
   // Generate shot suggestions via Backend
-  async generateShotSuggestion(
-    sceneDescription: string,
-    shotType = "medium"
-  ) {
+  async generateShotSuggestion(sceneDescription: string, shotType = "medium") {
     const response = await getShotSuggestion(sceneDescription, shotType);
     return response.data;
   },

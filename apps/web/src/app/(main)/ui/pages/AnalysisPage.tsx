@@ -1,4 +1,3 @@
-
 import { ArrowRight, FileText, Network, Users, Brain } from "lucide-react";
 import { useState } from "react";
 

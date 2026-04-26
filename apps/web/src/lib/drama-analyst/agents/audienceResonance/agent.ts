@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const AUDIENCE_RESONANCE_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.AUDIENCE_RESONANCE,

@@ -23,8 +23,6 @@ import type {
 import type { ClassifiedLine } from "./classification-types";
 import type { EditorView } from "@tiptap/pm/view";
 
-
-
 // ─── الأنواع ──────────────────────────────────────────────────────
 
 /** نتيجة عملية تعزيز السياق */
@@ -56,20 +54,15 @@ const contextLogger = logger.createScope("ai-context-layer");
 
 /** عنوان الـ endpoint — يُقرأ من متغيرات البيئة */
 const resolveContextEndpoint = (): string => {
-  const envValue = (
-    process.env.NEXT_PUBLIC_AI_CONTEXT_ENDPOINT
-  )?.trim();
+  const envValue = process.env.NEXT_PUBLIC_AI_CONTEXT_ENDPOINT?.trim();
   if (envValue) return envValue;
   return resolveContextEnhanceEndpoint();
 };
 
 /** هل الطبقة مفعّلة */
 const isContextLayerEnabled = (): boolean => {
-  const rawValue = (
-    process.env.NEXT_PUBLIC_AI_CONTEXT_ENABLED
-  )
-    ?.trim()
-    .toLowerCase();
+  const rawValue =
+    process.env.NEXT_PUBLIC_AI_CONTEXT_ENABLED?.trim().toLowerCase();
   if (!rawValue) return true; // مفعّلة بالـ default
   return !["0", "false", "off", "no"].includes(rawValue);
 };

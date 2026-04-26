@@ -56,7 +56,9 @@ const sectionClass = "border-b border-white/10 pb-2 last:border-b-0 last:pb-0";
 /**
  * مكوّن العرض الخالص. لا يحتوي تحديث حالة، يعرض فقط ما يصله من props.
  */
-function DiagnosticOverlayInner(props: DiagnosticOverlayProps): React.ReactElement | null {
+function DiagnosticOverlayInner(
+  props: DiagnosticOverlayProps
+): React.ReactElement | null {
   if (!props.visible) {
     return null;
   }

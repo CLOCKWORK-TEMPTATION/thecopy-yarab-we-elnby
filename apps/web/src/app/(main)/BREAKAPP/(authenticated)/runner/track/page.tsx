@@ -11,11 +11,7 @@
  * دقيقة للمخرج عن توقيت وصول الطلبات
  */
 
-import {
-  api,
-  getCurrentUser,
-  type DeliveryTask,
-} from "@the-copy/breakapp";
+import { api, getCurrentUser, type DeliveryTask } from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import { AxiosError } from "axios";

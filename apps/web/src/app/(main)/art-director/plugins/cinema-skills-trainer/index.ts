@@ -649,7 +649,12 @@ export class CinemaSkillsTrainer implements Plugin {
     currentScenario: TrainingScenario,
     score: number
   ): string[] {
-    const difficultyOrder: ("beginner" | "intermediate" | "advanced" | "expert")[] = ["beginner", "intermediate", "advanced", "expert"];
+    const difficultyOrder: (
+      | "beginner"
+      | "intermediate"
+      | "advanced"
+      | "expert"
+    )[] = ["beginner", "intermediate", "advanced", "expert"];
     const currentDifficultyIndex = difficultyOrder.indexOf(
       currentScenario.difficulty
     );

@@ -26,7 +26,6 @@ import { AGENT_PRESENTATION } from "./domain/constants";
 
 import type { AgentDef } from "./types";
 
-
 const ICONS: Record<string, React.ReactNode> = {
   locations: <MapPin className="w-5 h-5" />,
   setDressing: <LayoutGrid className="w-5 h-5" />,

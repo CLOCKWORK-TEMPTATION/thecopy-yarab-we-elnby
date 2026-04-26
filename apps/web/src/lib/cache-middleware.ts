@@ -22,10 +22,7 @@ export interface CacheOptions {
 /**
  * Generates a cache key from request
  */
-function generateCacheKey(
-  request: NextRequest,
-  prefix = "api"
-): string {
+function generateCacheKey(request: NextRequest, prefix = "api"): string {
   const url = new URL(request.url);
   const pathname = url.pathname;
   const search = url.search;

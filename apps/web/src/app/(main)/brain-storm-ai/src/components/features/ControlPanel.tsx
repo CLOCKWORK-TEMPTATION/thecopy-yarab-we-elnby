@@ -24,7 +24,6 @@ import {
 
 import type { Session, BrainstormPhase, PhaseDisplayInfo } from "../../types";
 
-
 interface ControlPanelProps {
   phases: PhaseDisplayInfo[];
   activePhase: BrainstormPhase;
@@ -73,9 +72,7 @@ export default function ControlPanel({
                     <Button
                       variant={activePhase === phase.id ? "default" : "outline"}
                       className="p-4 h-auto"
-                      onClick={() =>
-                        setActivePhase(phase.id)
-                      }
+                      onClick={() => setActivePhase(phase.id)}
                     >
                       <div className="flex items-center gap-3 w-full">
                         {phase.icon}

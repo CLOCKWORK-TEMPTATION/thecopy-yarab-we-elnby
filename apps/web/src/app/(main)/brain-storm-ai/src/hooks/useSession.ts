@@ -35,7 +35,6 @@ import type {
   BrainstormPhaseDefinition,
 } from "../types";
 
-
 /** الحد الأقصى لمحاولات إعادة تنفيذ النقاش */
 const MAX_RETRIES = 1;
 

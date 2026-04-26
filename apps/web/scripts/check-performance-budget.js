@@ -355,7 +355,10 @@ function main() {
   const buildDir = path.join(process.cwd(), ".next");
 
   if (!fs.existsSync(buildDir)) {
-    log("❌ Build directory not found. Run `pnpm --filter @the-copy/web build` first.", "red");
+    log(
+      "❌ Build directory not found. Run `pnpm --filter @the-copy/web build` first.",
+      "red"
+    );
     process.exit(1);
   }
 

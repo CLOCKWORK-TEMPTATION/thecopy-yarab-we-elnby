@@ -11,7 +11,6 @@ import { Station4Output } from "./station4-efficiency-metrics";
 import { Station5Output } from "./station5-dynamic-symbolic-stylistic";
 import { Station6Output } from "./station6-diagnostics-treatment";
 
-
 export interface Station7Input {
   conflictNetwork: ConflictNetwork;
   station6Output: Station6Output;

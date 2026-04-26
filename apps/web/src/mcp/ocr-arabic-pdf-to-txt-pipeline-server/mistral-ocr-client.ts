@@ -410,7 +410,7 @@ export class MistralOCRService {
     }
 
     if (typeof raw === "string") {
-      const stripped = (raw).trim();
+      const stripped = raw.trim();
       if (!stripped) {
         return;
       }

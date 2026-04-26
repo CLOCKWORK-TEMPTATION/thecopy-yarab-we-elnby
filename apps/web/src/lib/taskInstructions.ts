@@ -279,7 +279,9 @@ export function getTaskInstructions(
 }
 
 export function getTaskInstruction(id: string): TaskInstruction | undefined {
-  for (const category of Object.keys(taskInstructions) as (keyof TaskInstructions)[]) {
+  for (const category of Object.keys(
+    taskInstructions
+  ) as (keyof TaskInstructions)[]) {
     const instruction = taskInstructions[category].find(
       (inst) => inst.id === id
     );

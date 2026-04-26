@@ -128,9 +128,7 @@ export default function VendorDashboardPage() {
             </p>
           </CardSpotlight>
           <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-            <p className="text-sm text-white/55 font-cairo mb-2">
-              قيد التحضير
-            </p>
+            <p className="text-sm text-white/55 font-cairo mb-2">قيد التحضير</p>
             <p className="text-4xl font-bold text-white font-cairo">
               {loading ? "…" : stats.processing}
             </p>

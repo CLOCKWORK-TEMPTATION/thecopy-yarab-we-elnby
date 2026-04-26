@@ -246,9 +246,8 @@ export const pasteFromClipboard = async (
           ok: true,
           status: "success",
           message: "تم لصق كتل السيناريو من الحافظة.",
-          textLength: blocksToImport
-            .map((block) => block.text ?? "")
-            .join("\n").length,
+          textLength: blocksToImport.map((block) => block.text ?? "").join("\n")
+            .length,
         });
       }
 

@@ -258,9 +258,7 @@ class AnalyticsService {
     // Track navigation timing
     if ("PerformanceNavigationTiming" in window) {
       window.addEventListener("load", () => {
-        const navigation = performance.getEntriesByType(
-          "navigation"
-        )[0]!;
+        const navigation = performance.getEntriesByType("navigation")[0]!;
 
         this.sendEvent("navigation_timing", {
           dom_content_loaded: Math.round(

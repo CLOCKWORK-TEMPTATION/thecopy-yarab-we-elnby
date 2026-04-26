@@ -20,7 +20,7 @@ export function buildCharactersSection(characters: any[]): string {
   let section = `الشخصيات في الشبكة:\n`;
   characters.slice(0, 8).forEach((char: any, idx: number) => {
     const charName =
-      typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+      typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
     const charRole =
       typeof char === "object" && char.role ? ` - ${char.role}` : "";
     section += `${idx + 1}. ${charName}${charRole}\n`;

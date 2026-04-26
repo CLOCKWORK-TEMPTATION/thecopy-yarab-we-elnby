@@ -25,11 +25,11 @@ export default defineConfig({
   },
   reporter: [
     ["list"],
-    ["html", { outputFolder: "./reports/e2e/cinematography-dev", open: "never" }],
     [
-      "json",
-      { outputFile: "./reports/e2e/cinematography-dev-results.json" },
+      "html",
+      { outputFolder: "./reports/e2e/cinematography-dev", open: "never" },
     ],
+    ["json", { outputFile: "./reports/e2e/cinematography-dev-results.json" }],
   ],
   use: {
     baseURL,

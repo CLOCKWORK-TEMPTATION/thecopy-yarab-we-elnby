@@ -75,9 +75,8 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
   const fetchTasks = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
-      const response = await api.get<DeliveryTaskWithLocation[]>(
-        "/runners/me/tasks"
-      );
+      const response =
+        await api.get<DeliveryTaskWithLocation[]>("/runners/me/tasks");
       setTasks(response.data);
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
@@ -128,8 +127,9 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
 
   const activeTask = useMemo<DeliveryTaskWithLocation | null>(
     () =>
-      tasks.find((task: DeliveryTaskWithLocation) => task.id === activeTaskId) ??
-      null,
+      tasks.find(
+        (task: DeliveryTaskWithLocation) => task.id === activeTaskId
+      ) ?? null,
     [tasks, activeTaskId]
   );
 

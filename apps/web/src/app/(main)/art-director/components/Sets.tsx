@@ -17,8 +17,6 @@ import { fetchArtDirectorJson } from "../lib/api-client";
 
 import type { SetPiece, SustainabilityReport, ApiResponse } from "../types";
 
-
-
 interface SetPieceFormData {
   name: string;
   nameAr: string;

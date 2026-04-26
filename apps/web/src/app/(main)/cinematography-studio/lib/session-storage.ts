@@ -44,7 +44,9 @@ const VALID_MOODS: readonly VisualMood[] = [
 ];
 
 function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return (
+    typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+  );
 }
 
 function asString(value: unknown): string | undefined {
@@ -56,7 +58,9 @@ function asBoolean(value: unknown): boolean | undefined {
 }
 
 function asNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 function sanitizeAnalysis(value: unknown): ShotAnalysis | null {
@@ -115,7 +119,10 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
     }
   }
 
-  if (candidate.technicalSettings && typeof candidate.technicalSettings === "object") {
+  if (
+    candidate.technicalSettings &&
+    typeof candidate.technicalSettings === "object"
+  ) {
     const techRaw = candidate.technicalSettings as Record<string, unknown>;
     const focusPeaking = asBoolean(techRaw.focusPeaking);
     const falseColor = asBoolean(techRaw.falseColor);

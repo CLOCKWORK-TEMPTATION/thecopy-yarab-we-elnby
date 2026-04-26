@@ -12,7 +12,6 @@ import { RotateCcwIcon, ChevronLeftIcon } from "./icons";
 import Spinner from "./Spinner";
 import { Compare } from "./ui/compare";
 
-
 interface CanvasProps {
   displayImageUrl: string | null;
   videoUrl?: string | null;

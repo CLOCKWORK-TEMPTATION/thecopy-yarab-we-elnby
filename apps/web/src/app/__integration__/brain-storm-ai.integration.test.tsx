@@ -221,12 +221,8 @@ describe("تكامل brain-storm-ai — العقد الحالي", () => {
       click: vi.fn(),
       style: {},
     } as unknown as HTMLAnchorElement);
-    vi.spyOn(document.body, "appendChild").mockImplementation(
-      (node) => node
-    );
-    vi.spyOn(document.body, "removeChild").mockImplementation(
-      (node) => node
-    );
+    vi.spyOn(document.body, "appendChild").mockImplementation((node) => node);
+    vi.spyOn(document.body, "removeChild").mockImplementation((node) => node);
     globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
     globalThis.URL.revokeObjectURL = vi.fn();
 

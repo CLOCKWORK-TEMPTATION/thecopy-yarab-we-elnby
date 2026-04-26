@@ -7,8 +7,8 @@ import {
   StandardAgentInput,
   StandardAgentOptions,
   StandardAgentOutput,
- executeStandardAgentPattern } from "./standardAgentPattern";
-
+  executeStandardAgentPattern,
+} from "./standardAgentPattern";
 
 /**
  * Base Agent Class - النمط القياسي لجميع الوكلاء

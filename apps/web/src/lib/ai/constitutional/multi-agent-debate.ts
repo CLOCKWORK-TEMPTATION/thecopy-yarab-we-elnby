@@ -528,7 +528,9 @@ export class MultiAgentDebateSystem {
     text: string,
     participant: string
   ): DebateArgument {
-    const argumentMatch = /الحجة:\s*([^\n]+(?:\n(?!الأدلة|قوة)[^\n]+)*)/.exec(text);
+    const argumentMatch = /الحجة:\s*([^\n]+(?:\n(?!الأدلة|قوة)[^\n]+)*)/.exec(
+      text
+    );
     const evidenceMatch = /الأدلة:\s*((?:\n\s*-[^\n]+)+)/.exec(text);
     const strengthMatch = /قوة الحجة:\s*(\d+(?:\.\d+)?)/.exec(text);
 

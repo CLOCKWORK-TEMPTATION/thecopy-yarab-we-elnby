@@ -220,9 +220,7 @@ export default function ScenesPage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertTriangle className="h-16 w-16 text-destructive" />
         <p className="text-destructive text-lg">حدث خطأ أثناء تحميل المشاهد</p>
-        <p className="text-[var(--app-text-muted)] text-sm">
-          {(error).message}
-        </p>
+        <p className="text-[var(--app-text-muted)] text-sm">{error.message}</p>
       </div>
     );
   }

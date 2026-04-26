@@ -25,8 +25,6 @@ import AgentIconComponent from "./AgentIconComponent";
 
 import type { BrainstormAgentDefinition, AgentState } from "../../types";
 
-
-
 interface AgentCardProps {
   agent: BrainstormAgentDefinition;
   allAgents: readonly BrainstormAgentDefinition[];

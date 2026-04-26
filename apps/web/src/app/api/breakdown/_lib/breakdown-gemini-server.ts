@@ -13,7 +13,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * الطراز المستخدم: gemini-2.0-flash (سريع وعالي الجودة)
  */
 
-
 import type {
   BreakdownElement,
   BreakdownReport,

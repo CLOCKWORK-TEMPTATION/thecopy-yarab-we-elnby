@@ -44,9 +44,7 @@ function resolveBackendBaseUrl(): string | null {
     process.env["BACKEND_URL"] ??
     clientEnv.NEXT_PUBLIC_API_URL ??
     clientEnv.NEXT_PUBLIC_BACKEND_URL ??
-    (process.env.NODE_ENV !== "production"
-      ? "http://localhost:3001"
-      : null) ??
+    (process.env.NODE_ENV !== "production" ? "http://localhost:3001" : null) ??
     null
   );
 }
@@ -126,8 +124,7 @@ function normalizePipelineResult(
     success: Boolean(result.success),
     mode: "ai",
     warnings: [],
-    stationOutputs:
-      normalizedOutputs,
+    stationOutputs: normalizedOutputs,
     metadata: {
       ...metadata,
       analysisMode: "ai",

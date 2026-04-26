@@ -256,7 +256,7 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
     score += Math.min(0.2, connectiveCount * 0.04);
 
     const hasStructure =
-      text.includes("أولاً") || text.includes("ثانياً") || (/\d\./.exec(text));
+      text.includes("أولاً") || text.includes("ثانياً") || /\d\./.exec(text);
     if (hasStructure) score += 0.1;
 
     return Math.min(1, score);

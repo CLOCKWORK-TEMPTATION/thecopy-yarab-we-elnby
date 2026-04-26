@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const THEMES_MESSAGES_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.THEMES_MESSAGES_ANALYZER,

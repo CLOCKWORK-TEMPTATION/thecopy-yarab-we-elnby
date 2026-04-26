@@ -2,10 +2,10 @@ import * as Sentry from "@sentry/nextjs";
 
 import { logger } from "@/lib/ai/utils/logger";
 
-
 // مصدر release موحّد (server + edge): override يدوي ثم Vercel/Railway commit SHA.
 function resolveSentryRelease(): string | undefined {
-  const explicit = process.env["SENTRY_RELEASE"] ?? process.env["NEXT_PUBLIC_SENTRY_RELEASE"];
+  const explicit =
+    process.env["SENTRY_RELEASE"] ?? process.env["NEXT_PUBLIC_SENTRY_RELEASE"];
   if (explicit) return explicit;
 
   const sha =

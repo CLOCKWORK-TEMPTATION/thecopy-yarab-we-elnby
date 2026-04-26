@@ -12,9 +12,7 @@ import React, { useState, useMemo } from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
 
-
 import { Budget, ExportOptions } from "../lib/types";
-
 
 interface ExportModalProps {
   isOpen: boolean;

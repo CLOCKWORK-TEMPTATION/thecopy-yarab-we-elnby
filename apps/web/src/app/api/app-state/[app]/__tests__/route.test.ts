@@ -15,9 +15,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const { MockZodError } = vi.hoisted(() => {
   class MockZodError extends Error {
     issues: { code: string; message: string; path: string[] }[];
-    constructor(
-      issues: { code: string; message: string; path: string[] }[]
-    ) {
+    constructor(issues: { code: string; message: string; path: string[] }[]) {
       super("Validation error");
       this.name = "ZodError";
       this.issues = issues;

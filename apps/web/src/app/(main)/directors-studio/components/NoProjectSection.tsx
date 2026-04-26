@@ -23,7 +23,6 @@ import { directorsEditorLogger } from "@/lib/directors-editor/logger";
 
 import type { Project } from "@/types/api";
 
-
 const normalizeProject = (project: Project): Project => ({
   ...project,
   scriptContent: project.scriptContent ?? null,

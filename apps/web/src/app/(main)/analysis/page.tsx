@@ -16,7 +16,6 @@ import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 import SevenStations from "./seven-stations";
 
-
 const METRICS = [
   { label: "محطات التحليل", value: "7", icon: AreaChart },
   { label: "الطابع", value: "Diagnostic", icon: Gauge },

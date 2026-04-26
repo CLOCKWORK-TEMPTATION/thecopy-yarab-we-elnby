@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRef, useState, type CSSProperties } from "react";
 
-
 import { useHeroAnimation } from "@/hooks/use-hero-animation";
 import images from "@/lib/images";
 

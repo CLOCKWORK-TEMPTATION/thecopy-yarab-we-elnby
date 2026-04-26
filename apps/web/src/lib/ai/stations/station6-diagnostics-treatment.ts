@@ -281,7 +281,10 @@ export interface Station6Output {
 type JsonRecord = Record<string, unknown>;
 
 type PreviousStationsOutput = Partial<
-  Record<"station1" | "station2" | "station3" | "station4" | "station5", JsonRecord>
+  Record<
+    "station1" | "station2" | "station3" | "station4" | "station5",
+    JsonRecord
+  >
 >;
 
 function isJsonRecord(value: unknown): value is JsonRecord {
@@ -301,9 +304,7 @@ function asString(value: unknown, fallback = ""): string {
 }
 
 function asNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : fallback;
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function asJsonNumber(value: unknown, fallback: number): number {
@@ -536,9 +537,10 @@ export class Station6Diagnostics {
       abandonedConflicts: asArray<AbandonedConflict>(
         record.abandonedConflicts
       ).slice(0, 8),
-      structuralIssues: asArray<StructuralIssue>(
-        record.structuralIssues
-      ).slice(0, 10),
+      structuralIssues: asArray<StructuralIssue>(record.structuralIssues).slice(
+        0,
+        10
+      ),
       riskAreas: asArray<RiskArea>(record.riskAreas).slice(0, 8),
       opportunities: asArray<Opportunity>(record.opportunities).slice(0, 10),
       summary: asString(record.summary, "تحليل تشخيصي غير متوفر"),
@@ -553,8 +555,10 @@ export class Station6Diagnostics {
   ): DiagnosticsReport {
     const station4 = asJsonRecord(previousStationsOutput.station4);
     const efficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
-    const efficiencyScore =
-      asNumber(efficiencyMetrics.overallEfficiencyScore, 50);
+    const efficiencyScore = asNumber(
+      efficiencyMetrics.overallEfficiencyScore,
+      50
+    );
 
     return {
       overallHealthScore: Math.min(100, efficiencyScore),
@@ -741,19 +745,25 @@ export class Station6Diagnostics {
         record.prioritizedRecommendations
       ).slice(0, 20),
       implementationRoadmap: {
-        phase1: (implementationRoadmap.phase1 as TreatmentPlan["implementationRoadmap"]["phase1"] | undefined) ?? {
+        phase1: (implementationRoadmap.phase1 as
+          | TreatmentPlan["implementationRoadmap"]["phase1"]
+          | undefined) ?? {
           title: "المرحلة الأولى",
           tasks: [],
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase2: (implementationRoadmap.phase2 as TreatmentPlan["implementationRoadmap"]["phase2"] | undefined) ?? {
+        phase2: (implementationRoadmap.phase2 as
+          | TreatmentPlan["implementationRoadmap"]["phase2"]
+          | undefined) ?? {
           title: "المرحلة الثانية",
           tasks: [],
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase3: (implementationRoadmap.phase3 as TreatmentPlan["implementationRoadmap"]["phase3"] | undefined) ?? {
+        phase3: (implementationRoadmap.phase3 as
+          | TreatmentPlan["implementationRoadmap"]["phase3"]
+          | undefined) ?? {
           title: "المرحلة الثالثة",
           tasks: [],
           estimatedTime: "غير محدد",
@@ -1159,9 +1169,7 @@ export class Station6Diagnostics {
     const station3 = asJsonRecord(previousStationsOutput.station3);
     const station4 = asJsonRecord(previousStationsOutput.station4);
     const station5 = asJsonRecord(previousStationsOutput.station5);
-    const station1MajorCharacters = asArray<unknown>(
-      station1.majorCharacters
-    );
+    const station1MajorCharacters = asArray<unknown>(station1.majorCharacters);
     const station2HybridGenre = asJsonRecord(station2.hybridGenre);
     const station2Themes = asJsonRecord(station2.themes);
     const station2PrimaryThemes = asArray<unknown>(station2Themes.primary);

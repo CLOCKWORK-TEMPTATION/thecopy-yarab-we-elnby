@@ -60,31 +60,28 @@ export default function AdminUsersPage() {
     }
   }, []);
 
-  const fetchMembers = useCallback(
-    async (projectId: string): Promise<void> => {
-      if (!projectId) {
-        setMembers([]);
-        return;
-      }
-      setLoadingMembers(true);
-      try {
-        const response = await api.get<ProjectMember[]>("/admin/users", {
-          params: { projectId },
-        });
-        setMembers(response.data);
-      } catch (error: unknown) {
-        const axiosError = error as AxiosError;
-        toast({
-          title: "خطأ في جلب الأعضاء",
-          description: axiosError.message || "تعذّر تحميل قائمة الأعضاء",
-          variant: "destructive",
-        });
-      } finally {
-        setLoadingMembers(false);
-      }
-    },
-    []
-  );
+  const fetchMembers = useCallback(async (projectId: string): Promise<void> => {
+    if (!projectId) {
+      setMembers([]);
+      return;
+    }
+    setLoadingMembers(true);
+    try {
+      const response = await api.get<ProjectMember[]>("/admin/users", {
+        params: { projectId },
+      });
+      setMembers(response.data);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      toast({
+        title: "خطأ في جلب الأعضاء",
+        description: axiosError.message || "تعذّر تحميل قائمة الأعضاء",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMembers(false);
+    }
+  }, []);
 
   useEffect(() => {
     void fetchProjects();

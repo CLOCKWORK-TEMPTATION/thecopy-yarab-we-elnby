@@ -139,18 +139,19 @@ export function buildConfig(argv: string[]): ConfigManager {
     .trim()
     .toLowerCase();
   const tableFormat =
-    tableRaw === "markdown" || tableRaw === "html"
-      ? (tableRaw)
-      : undefined;
+    tableRaw === "markdown" || tableRaw === "html" ? tableRaw : undefined;
   const annotationSchemaPath =
     argOptionalString(args, "mistral-annotation-schema") ??
-    (process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ?? undefined);
+    process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ??
+    undefined;
   const annotationPrompt =
     argOptionalString(args, "mistral-annotation-prompt") ??
-    (process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() ?? undefined);
+    process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() ??
+    undefined;
   const annotationOutputPath =
     argOptionalString(args, "mistral-annotation-output") ??
-    (process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ?? undefined);
+    process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ??
+    undefined;
 
   const mistral: MistralOCRConfig = {
     model: argString(

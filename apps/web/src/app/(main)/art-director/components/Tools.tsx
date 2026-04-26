@@ -488,7 +488,7 @@ export default function Tools() {
   const [error, setError] = useState<string | null>(null);
   const selectedTool = useMemo<ToolId | null>(() => {
     const toolId = state.tools.selectedTool;
-    return toolId && toolId in toolConfigs ? (toolId) : null;
+    return toolId && toolId in toolConfigs ? toolId : null;
   }, [state.tools.selectedTool]);
 
   const formData = useMemo<FormData>(

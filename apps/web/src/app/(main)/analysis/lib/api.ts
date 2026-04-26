@@ -44,7 +44,10 @@ async function ensureCsrfToken(): Promise<string | null> {
   return getCsrfToken();
 }
 
-async function buildHeaders(method: string, contentType?: string): Promise<Headers> {
+async function buildHeaders(
+  method: string,
+  contentType?: string
+): Promise<Headers> {
   const headers = new Headers();
   if (contentType) headers.set("Content-Type", contentType);
   const upper = method.toUpperCase();
@@ -71,7 +74,9 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`);
+    throw new Error(
+      `HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`
+    );
   }
   return (await res.json()) as T;
 }
@@ -88,7 +93,9 @@ async function getJson<T>(url: string): Promise<T> {
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`);
+    throw new Error(
+      `HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`
+    );
   }
   return (await res.json()) as T;
 }
@@ -119,7 +126,11 @@ export async function retryStation(
   stationId: StationId,
   text: string
 ): Promise<unknown> {
-  const data = await postJson<{ success: true; stationId: number; output: unknown }>(
+  const data = await postJson<{
+    success: true;
+    stationId: number;
+    output: unknown;
+  }>(
     `/api/analysis/seven-stations/${encodeURIComponent(analysisId)}/retry/${stationId}`,
     { text }
   );

@@ -41,7 +41,6 @@ import type {
 import type { ContextMemorySnapshot } from "./context-memory-manager";
 import type { LineContextInfo } from "./document-context-graph";
 
-
 /**
  * نتيجة التصنيف الهجين — نوع العنصر مع درجة الثقة وطريقة التصنيف.
  */

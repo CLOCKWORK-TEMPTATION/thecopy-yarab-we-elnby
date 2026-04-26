@@ -16,7 +16,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 4. توليد وعرض Recovery Key
  */
 
-
 import {
   generateSalt,
   deriveKEK,
@@ -26,8 +25,8 @@ import {
   encryptData,
   generateIV,
   arrayBufferToBase64,
- getKeyManager } from "@/lib/crypto";
-
+  getKeyManager,
+} from "@/lib/crypto";
 
 export function ZKSignupForm() {
   const router = useRouter();

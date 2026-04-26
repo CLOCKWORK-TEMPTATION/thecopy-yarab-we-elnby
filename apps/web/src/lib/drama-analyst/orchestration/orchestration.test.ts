@@ -97,9 +97,8 @@ describe("AIAgentOrchestraManager", () => {
     });
 
     it("validate-pipeline: should return default description for unknown task", () => {
-      const description = orchestraManager.getEnhancedDescription(
-        "UNKNOWN_TASK"
-      );
+      const description =
+        orchestraManager.getEnhancedDescription("UNKNOWN_TASK");
 
       expect(description).toContain("وصف غير متوفر");
     });
@@ -115,9 +114,7 @@ describe("AIAgentOrchestraManager", () => {
     });
 
     it("validate-pipeline: should return null for unknown agent capabilities", () => {
-      const capabilities = orchestraManager.getAgentCapabilities(
-        "UNKNOWN"
-      );
+      const capabilities = orchestraManager.getAgentCapabilities("UNKNOWN");
 
       expect(capabilities).toBeNull();
     });
@@ -145,9 +142,8 @@ describe("AIAgentOrchestraManager", () => {
     });
 
     it("validate-pipeline: should handle unknown task types", () => {
-      const collaborators = orchestraManager.getCollaborationSuggestions(
-        "UNKNOWN"
-      );
+      const collaborators =
+        orchestraManager.getCollaborationSuggestions("UNKNOWN");
 
       expect(collaborators).toEqual([]);
     });
@@ -319,9 +315,7 @@ describe("AIAgentOrchestraManager", () => {
     });
 
     it("validate-pipeline: should return empty array for task with no episodes", () => {
-      const episodes = orchestraManager.getRelevantEpisodes(
-        "UNKNOWN"
-      );
+      const episodes = orchestraManager.getRelevantEpisodes("UNKNOWN");
 
       expect(episodes).toEqual([]);
     });

@@ -12,8 +12,6 @@ import { UploadCloudIcon, CheckCircleIcon } from "./icons";
 
 import type { WardrobeItem } from "../types";
 
-
-
 interface WardrobePanelProps {
   onGarmentSelect: (garmentFile: File, garmentInfo: WardrobeItem) => void;
   activeGarmentIds: string[];

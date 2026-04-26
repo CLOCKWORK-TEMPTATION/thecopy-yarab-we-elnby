@@ -8,7 +8,9 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteContext { params: Promise<{ path: string[] }> }
+interface RouteContext {
+  params: Promise<{ path: string[] }>;
+}
 
 function getTargetPath(path: string[]): string {
   return `/api/breakapp/${path.join("/")}`;

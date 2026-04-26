@@ -48,8 +48,8 @@ describe("cinematography fallback timing", () => {
   it("ينقل تحليل اللقطة إلى البديل المحلي بسرعة عند تعطل الخدمة البعيدة", async () => {
     vi.useFakeTimers();
 
-    vi.mocked(postStudioFormData).mockImplementation(
-      () => delayedRemoteFailure(3_000)
+    vi.mocked(postStudioFormData).mockImplementation(() =>
+      delayedRemoteFailure(3_000)
     );
     vi.mocked(createLocalShotAnalysis).mockImplementation(
       () =>
@@ -100,8 +100,8 @@ describe("cinematography fallback timing", () => {
   it("ينقل تحليل ما بعد الإنتاج إلى الملخص المحلي قبل تعليق الواجهة", async () => {
     vi.useFakeTimers();
 
-    vi.mocked(postStudioFormData).mockImplementation(
-      () => delayedRemoteFailure(3_000)
+    vi.mocked(postStudioFormData).mockImplementation(() =>
+      delayedRemoteFailure(3_000)
     );
     vi.mocked(createLocalFootageSummary).mockImplementation(
       () =>

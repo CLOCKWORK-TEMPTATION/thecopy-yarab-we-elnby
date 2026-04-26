@@ -64,8 +64,7 @@ export default function ProfilePage() {
     } catch {
       toast({
         title: "تحذير",
-        description:
-          "تعذّر تأكيد الخادم، لكن تم مسح الجلسة محلياً على كل حال",
+        description: "تعذّر تأكيد الخادم، لكن تم مسح الجلسة محلياً على كل حال",
         variant: "destructive",
       });
     } finally {
@@ -83,9 +82,7 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold text-white mb-2 font-cairo">
               الملف الشخصي
             </h1>
-            <p className="text-white/55 font-cairo">
-              بيانات الجلسة والإعدادات
-            </p>
+            <p className="text-white/55 font-cairo">بيانات الجلسة والإعدادات</p>
           </div>
           <Link
             href="/BREAKAPP/dashboard"
@@ -106,9 +103,7 @@ export default function ProfilePage() {
           ) : (
             <dl className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 border border-white/8 rounded-[22px] bg-white/[0.02]">
-                <dt className="text-xs text-white/45 font-cairo mb-1">
-                  الدور
-                </dt>
+                <dt className="text-xs text-white/45 font-cairo mb-1">الدور</dt>
                 <dd className="text-white font-cairo">
                   {getRoleLabel(user.role)}
                 </dd>
@@ -170,9 +165,7 @@ export default function ProfilePage() {
             disabled={loggingOut}
             className="px-6 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-cairo transition border border-white/12"
           >
-            {loggingOut
-              ? "جارٍ تسجيل الخروج..."
-              : "تسجيل الخروج من كل الأجهزة"}
+            {loggingOut ? "جارٍ تسجيل الخروج..." : "تسجيل الخروج من كل الأجهزة"}
           </button>
         </CardSpotlight>
       </div>

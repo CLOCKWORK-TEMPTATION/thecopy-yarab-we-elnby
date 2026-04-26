@@ -10,7 +10,6 @@ import { generateEmbeddingsBatch } from "../src/rag/embeddings.js";
 import { createCollection, getIndexStats } from "../src/rag/indexer.js";
 import { askQuestion } from "../src/rag/query.js";
 
-
 async function smokeTest() {
   try {
     logger.info("🧪 Starting RAG Smoke Test...");

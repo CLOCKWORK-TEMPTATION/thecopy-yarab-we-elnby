@@ -9,7 +9,6 @@ import {
 
 import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
 
-
 type JsonRecord = Record<string, unknown>;
 
 function isJsonRecord(value: unknown): value is JsonRecord {

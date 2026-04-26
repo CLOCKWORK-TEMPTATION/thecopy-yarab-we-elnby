@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import React from "react";
 
-
 import { useSceneAnalysis } from "../../application/workspace/use-scene-analysis";
 import { useToastQueue } from "../../application/workspace/use-toast-queue";
 import CastBreakdownView from "../cast/cast-breakdown-view";

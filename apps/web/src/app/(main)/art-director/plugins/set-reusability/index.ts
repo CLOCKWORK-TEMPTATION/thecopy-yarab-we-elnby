@@ -196,9 +196,7 @@ export class SetReusabilityOptimizer implements Plugin {
           }
         );
       case "inventory":
-        return this.getInventory(
-          input.data
-        );
+        return this.getInventory(input.data);
       case "sustainability-report":
         return this.generateSustainabilityReport(
           input.data as { productionId: string }
@@ -226,7 +224,7 @@ export class SetReusabilityOptimizer implements Plugin {
       category: data.category,
       dimensions: data.dimensions ?? { width: 0, height: 0, depth: 0 },
       materials: data.materials ?? [],
-      condition: (data.condition!) || "good",
+      condition: data.condition! || "good",
       currentLocation: data.currentLocation ?? "",
       originalProduction: data.originalProduction ?? "",
       photos: data.photos ?? [],
@@ -360,7 +358,7 @@ export class SetReusabilityOptimizer implements Plugin {
     for (const piece of pieces) {
       const transformKey = this.findTransformationKey(data.targetStyle);
       const modifications = transformKey
-        ? this.styleTransformations.get(transformKey) ?? []
+        ? (this.styleTransformations.get(transformKey) ?? [])
         : [];
 
       const totalCost = modifications.reduce(
@@ -425,7 +423,7 @@ export class SetReusabilityOptimizer implements Plugin {
 
     const transformKey = this.findTransformationKey(data.targetStyle);
     const modifications = transformKey
-      ? this.styleTransformations.get(transformKey) ?? []
+      ? (this.styleTransformations.get(transformKey) ?? [])
       : [];
 
     return {

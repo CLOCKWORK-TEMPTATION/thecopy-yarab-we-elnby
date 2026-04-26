@@ -3,12 +3,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "exclude": [
-    "node_modules",
-    ".next",
-    "out",
-    "dist",
-    "build",
-    "coverage"
-  ]
+  "exclude": ["node_modules", ".next", "out", "dist", "build", "coverage"]
 }

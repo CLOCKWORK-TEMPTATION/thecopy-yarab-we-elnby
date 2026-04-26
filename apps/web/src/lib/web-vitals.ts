@@ -6,7 +6,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * Web Vitals reporting
  */
 
-
 export function reportWebVitals(onPerfEntry?: (metric: any) => void) {
   if (onPerfEntry && onPerfEntry instanceof Function) {
     onCLS(onPerfEntry);

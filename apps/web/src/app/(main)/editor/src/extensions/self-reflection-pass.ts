@@ -34,7 +34,6 @@ import type { ClassifiedDraft, ElementType } from "./classification-types";
 import type { ContextMemoryManager } from "./context-memory-manager";
 import type { DocumentContextGraph } from "./document-context-graph";
 
-
 const reflectionLogger = logger.createScope("self-reflection");
 
 // ─── ثوابت ─────────────────────────────────────────────────────────
@@ -205,10 +204,7 @@ export const reflectOnChunk = (
     // ── فحص 2: Action بعد Character مباشرة بدون strong signal ──
     if (draft.type === "action" && i > 0) {
       const prev = classified[i - 1];
-      if (
-        prev?.type === "character" &&
-        !hasVeryStrongActionSignal(line)
-      ) {
+      if (prev?.type === "character" && !hasVeryStrongActionSignal(line)) {
         classified[i] = correctedDraft(draft, "dialogue", 4);
         corrections++;
         continue;

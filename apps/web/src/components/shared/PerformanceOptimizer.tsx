@@ -30,9 +30,7 @@ export function PerformanceOptimizer() {
     // Report Web Vitals on route change
     if (typeof window !== "undefined" && "performance" in window) {
       // Log navigation timing
-      const navigationTiming = performance.getEntriesByType(
-        "navigation"
-      )[0]!;
+      const navigationTiming = performance.getEntriesByType("navigation")[0]!;
 
       if (navigationTiming) {
         const pageLoadTime =

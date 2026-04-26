@@ -92,8 +92,9 @@ const initialContainerState: ContainerState = {
  * المكوّن الحاوي. لا يستقبل props خارجية — يُعرّف بنفسه كل ما يحتاج.
  */
 export function DiagnosticOverlayContainer(): React.ReactElement | null {
-  const [containerState, setContainerState] =
-    React.useState<ContainerState>(initialContainerState);
+  const [containerState, setContainerState] = React.useState<ContainerState>(
+    initialContainerState
+  );
 
   // --- اشتراك في ناقل التشخيص لاستقبال أحداث الكاميرا والمساعد والـ render counts.
   React.useEffect(() => {

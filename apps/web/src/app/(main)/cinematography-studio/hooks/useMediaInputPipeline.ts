@@ -291,7 +291,10 @@ export function useMediaInputPipeline(
       streamRef.current = stream;
       // ربط أولي إن كان عنصر الفيديو متاحًا الآن. إن لم يكن (شائع لأن الـ video
       // لا يُركَّب إلا عند previewType === "camera") سيلتقطه useEffect أدناه فور تركيبه.
-      if (cameraVideoRef.current && cameraVideoRef.current.srcObject !== stream) {
+      if (
+        cameraVideoRef.current &&
+        cameraVideoRef.current.srcObject !== stream
+      ) {
         cameraVideoRef.current.srcObject = stream;
         await cameraVideoRef.current.play().catch(() => undefined);
       }

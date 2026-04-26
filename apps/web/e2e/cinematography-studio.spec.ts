@@ -15,7 +15,8 @@ import { expect, test } from "@playwright/test";
 
 const PAGE_PATH = "/cinematography-studio";
 const SESSION_STORAGE_KEY = "cinematography-studio.session.v1";
-const ASSISTANT_ANSWER = "اقتراح المساعد: استخدم عدسة 50mm بفتحة f/1.8 لعزل الموضوع.";
+const ASSISTANT_ANSWER =
+  "اقتراح المساعد: استخدم عدسة 50mm بفتحة f/1.8 لعزل الموضوع.";
 
 test.describe("cinematography studio — live dev scenario", () => {
   test.describe.configure({ mode: "serial" });
@@ -105,7 +106,9 @@ test.describe("cinematography studio — live dev scenario", () => {
     // 5) المساعد — افتح أداة "محلل اللقطة" (التي تحوي ProductionTools وحقل المساعد).
     // لإغلاق أداة محاكي العدسة المفتوحة حاليًا، نضغط زر العودة/الرئيسية إن وُجد،
     // ثم ننقر على بطاقة محلل اللقطة.
-    const closeToolButton = page.getByRole("button", { name: /العودة|إغلاق|×/ });
+    const closeToolButton = page.getByRole("button", {
+      name: /العودة|إغلاق|×/,
+    });
     if ((await closeToolButton.count()) > 0) {
       await closeToolButton
         .first()

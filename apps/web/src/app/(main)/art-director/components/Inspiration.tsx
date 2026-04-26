@@ -17,8 +17,6 @@ import { fetchArtDirectorJson } from "../lib/api-client";
 
 import type { ColorPaletteInspiration, MoodBoard, ApiResponse } from "../types";
 
-
-
 interface AnalysisApiResponse extends ApiResponse<MoodBoard> {
   data?: MoodBoard;
 }

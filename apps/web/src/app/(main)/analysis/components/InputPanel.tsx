@@ -13,7 +13,13 @@ interface Props {
   isRunning: boolean;
 }
 
-export function InputPanel({ text, onTextChange, onStart, onReset, isRunning }: Props) {
+export function InputPanel({
+  text,
+  onTextChange,
+  onStart,
+  onReset,
+  isRunning,
+}: Props) {
   return (
     <div className="space-y-4">
       <Textarea

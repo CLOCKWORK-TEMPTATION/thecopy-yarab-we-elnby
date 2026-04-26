@@ -200,7 +200,12 @@ export function useCinematographyStudio() {
       view: state.activeView,
       activeTool: state.activeTool,
     });
-  }, [state.currentPhase, state.visualMood, state.activeView, state.activeTool]);
+  }, [
+    state.currentPhase,
+    state.visualMood,
+    state.activeView,
+    state.activeTool,
+  ]);
 
   // ============================================
   // دوال تحديث الحالة (محسنة للأداء)

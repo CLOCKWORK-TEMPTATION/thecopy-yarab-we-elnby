@@ -91,18 +91,9 @@ function findFiles(dir, pattern) {
                 .replace(/\*/g, SINGLE_STAR_PLACEHOLDER) // Preserve * before escaping
                 .replace(/\?/g, QUESTION_PLACEHOLDER) // Preserve ? before escaping
                 .replace(/[.+^${}()|[\]\\-]/g, "\\$&") // Escape all regex special chars
-                .replace(
-                  new RegExp(DOUBLE_STAR_PLACEHOLDER, "g"),
-                  ".*"
-                ) // Convert ** to .*
-                .replace(
-                  new RegExp(SINGLE_STAR_PLACEHOLDER, "g"),
-                  "[^/]*"
-                ) // Convert * to [^/]*
-                .replace(
-                  new RegExp(QUESTION_PLACEHOLDER, "g"),
-                  "."
-                ); // Convert ? to .
+                .replace(new RegExp(DOUBLE_STAR_PLACEHOLDER, "g"), ".*") // Convert ** to .*
+                .replace(new RegExp(SINGLE_STAR_PLACEHOLDER, "g"), "[^/]*") // Convert * to [^/]*
+                .replace(new RegExp(QUESTION_PLACEHOLDER, "g"), "."); // Convert ? to .
 
               const regex = new RegExp(escapedPattern);
               if (regex.test(fullPath)) {

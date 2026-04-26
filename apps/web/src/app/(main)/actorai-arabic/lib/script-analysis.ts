@@ -105,7 +105,7 @@ export function analyzeScriptText(
   ];
 
   const externalObstacles = [
-    scriptText.includes('العائلة')
+    scriptText.includes("العائلة")
       ? "ضغط العائلة أو السلطة الخارجية"
       : "الظروف المحيطة بالمشهد",
     /ليل|شرفة|مسافة|بعيد/.test(scriptText)
@@ -177,7 +177,7 @@ export function buildPartnerResponse(input: {
 
   const dialogueLines = getDialogueLines(input.scriptText);
   const fallback =
-    dialogueLines.find((line) => line.includes('ليلى')) ??
+    dialogueLines.find((line) => line.includes("ليلى")) ??
     "أنا معك، لكنني أحتاج أن أشعر بصدقك في هذه اللحظة.";
 
   const lastAiMessage =

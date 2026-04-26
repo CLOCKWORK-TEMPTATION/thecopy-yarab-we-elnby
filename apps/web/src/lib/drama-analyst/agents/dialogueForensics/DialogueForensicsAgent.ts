@@ -62,7 +62,7 @@ export class DialogueForensicsAgent extends BaseAgent {
       prompt += `الشخصيات في الحوار:\n`;
       characters.slice(0, 6).forEach((char: any, idx: number) => {
         const charName =
-          typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+          typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
         prompt += `${idx + 1}. ${charName}\n`;
       });
       prompt += "\n";

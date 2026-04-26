@@ -26,7 +26,6 @@ import {
 } from "./presentation/shared/view-switcher";
 import { WorkspaceGlowCard } from "./presentation/shared/workspace-glow-card";
 
-
 export default function BreakdownPage() {
   const [activeView, setActiveView] = useState<BreakdownView>("workspace");
   const [isClientReady, setIsClientReady] = useState(false);

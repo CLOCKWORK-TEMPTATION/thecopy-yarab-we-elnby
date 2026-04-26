@@ -349,7 +349,7 @@ class WebVitalsService {
                 delta: entry.duration,
                 id: `component-${Date.now()}`,
                 navigationType: "navigate",
-                rating: entry.duration < 16 ? ("good") : ("poor"), // 16ms = 60fps
+                rating: entry.duration < 16 ? "good" : "poor", // 16ms = 60fps
                 entries: [],
                 customData: {
                   componentName: entry.name,

@@ -71,9 +71,7 @@ export const DottedGlowBackground = ({
     const normalized = variableName.startsWith("--")
       ? variableName
       : `--${variableName}`;
-    const fromEl = getComputedStyle(el)
-      .getPropertyValue(normalized)
-      .trim();
+    const fromEl = getComputedStyle(el).getPropertyValue(normalized).trim();
     if (fromEl) return fromEl;
     const root = document.documentElement;
     const fromRoot = getComputedStyle(root).getPropertyValue(normalized).trim();

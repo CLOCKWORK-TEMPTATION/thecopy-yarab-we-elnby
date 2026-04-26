@@ -17,7 +17,6 @@ import {
   DebateResult,
 } from "./base-entities";
 
-
 // ======== المحطة 1: التحليل النصي الأساسي ========
 
 export interface Station1Input extends StationInput {

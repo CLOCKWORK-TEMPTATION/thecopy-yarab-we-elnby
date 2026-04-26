@@ -53,7 +53,7 @@ export class ThemeProvider {
     const fromStorage = window.localStorage.getItem(this.options.storageKey);
     const initial =
       fromStorage === "light" || fromStorage === "dark"
-        ? (fromStorage)
+        ? fromStorage
         : this.options.enableSystem
           ? resolveSystemTheme()
           : this.options.defaultTheme;

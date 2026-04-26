@@ -27,9 +27,7 @@ export function RelationshipGraph({ stations }: Props) {
 
   if (edges.length === 0) return null;
 
-  const nodes = Array.from(
-    new Set(edges.flatMap((e) => [e.source, e.target]))
-  );
+  const nodes = Array.from(new Set(edges.flatMap((e) => [e.source, e.target])));
   const radius = 130;
   const cx = 180;
   const cy = 180;
@@ -102,8 +100,12 @@ function extractRelationships(stations: StationState[]): Edge[] {
     const a = typeof r.character1 === "string" ? r.character1.trim() : "";
     const b = typeof r.character2 === "string" ? r.character2.trim() : "";
     if (!a || !b) continue;
-    const kind = typeof r.relationshipType === "string" ? r.relationshipType : "—";
-    const weight = typeof r.strength === "number" && Number.isFinite(r.strength) ? r.strength : 0.5;
+    const kind =
+      typeof r.relationshipType === "string" ? r.relationshipType : "—";
+    const weight =
+      typeof r.strength === "number" && Number.isFinite(r.strength)
+        ? r.strength
+        : 0.5;
     edges.push({ source: a, target: b, kind, weight });
   }
   return edges;

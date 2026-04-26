@@ -195,7 +195,10 @@ const splitLegacyTopLineText = (
   const normalized = normalizeBlockText(text).replace(/\s+/g, " ").trim();
   if (!normalized) return [];
 
-  const pairMatch = /^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(?:[-–—:،]\s*|\s+)(.+)$/iu.exec(normalized);
+  const pairMatch =
+    /^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(?:[-–—:،]\s*|\s+)(.+)$/iu.exec(
+      normalized
+    );
   if (pairMatch) {
     const part1 = pairMatch[1];
     const part2 = pairMatch[2];
@@ -303,7 +306,7 @@ export const buildPayloadMarker = (encodedPayload: string): string =>
  * @returns السلسلة المشفّرة أو `null` إذا لم تُوجد علامة
  */
 export const extractEncodedPayloadMarker = (text: string): string | null => {
-  const match = MARKER_RE.exec((text ?? ""));
+  const match = MARKER_RE.exec(text ?? "");
   const encoded = match?.[1];
   return encoded ?? null;
 };

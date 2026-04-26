@@ -3,7 +3,12 @@ export interface ResponsiveConfig {
   cardHeight: number;
   cardPositions: { top: string; left: string; rotation: number }[];
   scale: number;
-  surroundingGroups: { top: string; left: string; width: string; height: string }[][];
+  surroundingGroups: {
+    top: string;
+    left: string;
+    width: string;
+    height: string;
+  }[][];
 }
 
 class HeroConfiguration {

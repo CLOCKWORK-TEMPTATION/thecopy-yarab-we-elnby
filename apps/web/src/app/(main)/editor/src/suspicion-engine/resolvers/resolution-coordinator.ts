@@ -11,8 +11,6 @@ import type {
   RoutingSummary,
 } from "@editor/suspicion-engine/types";
 
-
-
 /**
  * @module resolvers/resolution-coordinator
  * @description

@@ -1,4 +1,8 @@
-import { ZoomIn, ZoomOut, Grid3x3, Maximize2 ,
+import {
+  ZoomIn,
+  ZoomOut,
+  Grid3x3,
+  Maximize2,
   FileEdit,
   BarChart3,
   Code2,
@@ -11,8 +15,6 @@ import { Button } from "@/components/ui/button";
 import { DynamicMotionDiv } from "@/components/ui/dynamic-motion";
 
 import { UniverseNode } from "./UniverseNode";
-
-
 
 type View = "editor" | "analysis" | "development" | "brainstorm" | "assets";
 

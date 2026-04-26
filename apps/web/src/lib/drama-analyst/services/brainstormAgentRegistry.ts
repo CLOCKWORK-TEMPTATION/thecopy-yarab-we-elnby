@@ -815,9 +815,7 @@ export function getCollaborators(
   const agent = getAgentById(agentId);
   if (!agent) return [];
 
-  return REAL_AGENTS.filter((a) =>
-    agent.collaboratesWith.includes(a.taskType)
-  );
+  return REAL_AGENTS.filter((a) => agent.collaboratesWith.includes(a.taskType));
 }
 
 /**
@@ -829,9 +827,7 @@ export function getEnhancers(
   const agent = getAgentById(agentId);
   if (!agent) return [];
 
-  return REAL_AGENTS.filter((a) =>
-    a.enhances.includes(agent.taskType)
-  );
+  return REAL_AGENTS.filter((a) => a.enhances.includes(agent.taskType));
 }
 
 // ============================================

@@ -11,12 +11,12 @@ import { ensureEditorFixtures } from "../fixtures/editor/ensure-editor-fixtures.
 export default async function globalSetup() {
   const result = await ensureMediaFixtures();
   const editorFixtures = await ensureEditorFixtures();
-   
+
   console.log(
     "[playwright global-setup] media fixtures ensured:",
     JSON.stringify(result)
   );
-   
+
   console.log(
     "[playwright global-setup] editor fixtures ensured:",
     JSON.stringify(editorFixtures)

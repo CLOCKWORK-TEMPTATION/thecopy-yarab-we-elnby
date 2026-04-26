@@ -25,7 +25,11 @@ export function ExportBar({ disabled, formats, onExport }: Props) {
             className="gap-2"
           >
             <Download className="h-4 w-4" />
-            {f === "pdf" ? "تصدير PDF" : f === "docx" ? "تصدير DOCX" : "تصدير JSON"}
+            {f === "pdf"
+              ? "تصدير PDF"
+              : f === "docx"
+                ? "تصدير DOCX"
+                : "تصدير JSON"}
           </Button>
         ) : null
       )}
