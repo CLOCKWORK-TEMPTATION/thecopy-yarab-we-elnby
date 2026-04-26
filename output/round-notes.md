@@ -7214,3 +7214,48 @@ inventory-only
 ### ما بقي مفتوحًا
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص، وهي حالة مرصودة من bootstrap وليست نتيجة تعديل هذه الجولة.
+
+## الجولة 115
+
+### التاريخ والوقت
+
+2026-04-26T03:30:00+03:00
+
+### نوع الجولة
+
+تنظيف ديون تقنية في worktree معزول (round-097-debt-cleanup)
+
+### ما الذي تغيّر
+
+- worktree معزول `../the-copy-097-worktree` على فرع `round-097-debt-cleanup` تم بناؤه من main وأنجز 16 commit:
+  - 1 triage مستقل قبل Execute (`4db2bf5`).
+  - 12 commit إصلاحي يغطي 10 بنود فريدة:
+    - **P0 (5/5 = 100%):** A-001 type-check TS2345، A-002 lint OOM (chunked runner)، A-003-{1,2,3} env tests.
+    - **P1 (5/6 ≈ 83%):** A-006 actorai-arabic test-utils، A-007 agent-reports-exporter، A-008 file-input، A-009 ScriptUploadZone، A-011 cinematography fallback، A-012{a,b,c} ProjectTabs/scenes/shots.
+    - **P2 (1/5):** A-010 IntersectionObserver mock.
+  - 2 تحديث triage تدريجي + 1 ملخص ختامي.
+- PULL_REQUEST.md ملحق بالفرع كملخص للمراجعة.
+- لم يُلامَس main من قبل round-097 commits؛ الالتزامات معزولة على الفرع.
+
+### ما الذي تم تشغيله والتحقق منه
+
+- `pnpm install --frozen-lockfile` في worktree الجديد: نجح في 53.4s.
+- `pnpm type-check` (نهاية الجولة): أخضر — 8/8 packages (22.4s).
+- `pnpm build` (نهاية الجولة): أخضر — 5/5 tasks (1m 39s).
+- `pnpm --filter @the-copy/web type-check` (مستقل): أخضر EXIT=0.
+- اختبارات الإصلاحات الفردية عبر `pnpm exec vitest run <file>`: 86 اختبار جديد passing (24 + 12 + 7 + 2 + 3 + 4 + 3 + 31 من عينة actorai-arabic).
+- `pnpm --filter @the-copy/backend test:config`: 16/16 passed.
+- `playwright test --list`: 320 tests / 15 files (إعداد سليم، لم يُشغَّل).
+- ‏`pnpm test` العمومي و web test الكامل: لم يُشغَّلا تفادياً لضغط الذاكرة (4GB حرة من 32GB) — قرار موثَّق.
+
+### ما بقي مفتوحًا
+
+- A-002 lint chunked verify كاملاً مؤجل لجلسة بذاكرة أكثر — البنية مُصلَحة.
+- A-006 sweep لـ 21 ملف actorai-arabic المتبقية — العقبة الـ import-resolution أُزيلت.
+- A-004 (web lint 64 errors)، A-005 (web lint 7881 warnings)، A-013 (~6 ملفات تيستات متفرقة).
+- O-001..O-006، D-001 — كلها مُرحَّلة ضمن ميزانية بلا سقف لـ P3 وتجاوز موثَّق لسقف P2.
+- لا توجد listeners محلية على `5433` و `6379` و `8080` (مرصود من bootstrap لا من هذه الجولة).
+
+### هل استلزم الأمر تحديث session-state
+
+نعم — جدول الأعطال المفتوحة يجب أن يعكس الإغلاقات.

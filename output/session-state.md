@@ -220,4 +220,15 @@ AGENTS.md
 
 ## الأعطال المفتوحة الآن
 
-- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص (D-001)
+- web lint: 64 errors + 7881 warnings (A-004/A-005) — مُرحَّل P2/P3
+- ~21 ملف اختبار actorai-arabic لم يُشغَّل بعد إصلاح `test-utils.tsx` (A-006 sweep)
+- ~6 ملفات اختبار متفرقة فيها فشل واحد أو اثنين (A-013) — مُرحَّل P2
+- لم يُتحقَّق lint backend بعد runner التقسيم end-to-end لضغط الذاكرة (A-002 verify-only)
+- ديون عضوية مُرحَّلة: 18 TODO، 330 console.* في إنتاج، 246 `: any`، 6 `@ts-ignore`، 10 ملفات >1000 سطر، 11 ignored build scripts
+
+## مرجع جولة التنظيف الأخيرة
+
+- الفرع: `round-097-debt-cleanup` (16 commit، يستهدف main، لا دمج تلقائي)
+- ‏`triage-round-097.md` و `PULL_REQUEST.md` ملحقان بالفرع
+- إغلاقات: P0=100% (5/5)، P1=83% (5/6)، P2=20% (1/5) — تفاصيل في PULL_REQUEST.md
