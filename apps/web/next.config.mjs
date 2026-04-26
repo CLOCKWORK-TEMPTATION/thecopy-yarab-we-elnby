@@ -247,8 +247,7 @@ const nextConfig = {
   // Webpack configuration for handling Node.js built-in modules and critical dependency warnings
   // Note: In Next.js 16, Turbopack is default. Webpack config is kept for fallback compatibility.
   webpack: (config, { isServer }) => {
-    // Ensure source maps are generated consistently
-    config.devtool = isServer ? 'source-map' : 'eval-source-map';
+    // حذف config.devtool اليدوي - الاعتماد على إدارة Next.js الداخلية عبر productionBrowserSourceMaps
 
     if (!isServer) {
       // Don't resolve Node.js modules on client side
@@ -271,50 +270,30 @@ const nextConfig = {
       };
     }
 
-    // Suppress critical dependency warnings from OpenTelemetry and Sentry
+    // فحص ignoreWarnings عنصرًا بعنصر حسب المعايير الصريحة
     config.ignoreWarnings = [
-      // Ignore OpenTelemetry instrumentation warnings
+      // OpenTelemetry instrumentation warnings - third-party معروفة، non-actionable
       {
         module: /@opentelemetry\/instrumentation/,
         message:
           /Critical dependency: the request of a dependency is an expression/,
       },
+      // require-in-the-middle - third-party معروفة، non-actionable
       {
         module: /require-in-the-middle/,
         message:
           /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
       },
-      // Ignore Sentry related warnings
-      {
-        module: /@sentry/,
-        message: /Critical dependency/,
-      },
-      // Ignore all OpenTelemetry related warnings
-      {
-        module: /@opentelemetry/,
-      },
-      // Generic critical dependency warnings from known safe modules (scoped)
-      {
-        module: /node_modules\/(import-in-the-middle|require-in-the-middle)/,
-        message: /Critical dependency/,
-      },
-      // Ignore ESLint configuration warnings
+      // ESLint configuration warnings - third-party معروفة، non-actionable
       {
         message: /Unknown options: useEslintrc, extensions/,
       },
     ];
 
-    // Additional webpack optimizations to reduce warnings
+    // إزالة إخفاء التحذيرات المحظور - إصلاح إضعاف الفحص
     config.stats = {
       ...config.stats,
-      warnings: false,
-      warningsFilter: [
-        /Critical dependency/,
-        /Unknown options/,
-        /@opentelemetry/,
-        /@sentry/,
-        /source map/, // Suppress source map warnings
-      ],
+      // إزالة warnings: false و warningsFilter
     };
 
     return config;
@@ -330,11 +309,17 @@ const sentryConfig =
         org: sentryOrg,
         project: sentryProject,
         silent: !process.env["CI"],
-        widenClientFileUpload: true,
+        widenClientFileUpload: true, // إبقاء مع assets whitelist
         hideSourceMaps: process.env["NODE_ENV"] === "production",
         tunnelRoute: "/monitoring",
         sourcemaps: {
           disable: false,
+          assets: [ // whitelist صريح، لا blacklist
+            ".next/static/chunks/**/*.js",
+            ".next/static/chunks/**/*.js.map",
+            ".next/server/**/*.js",
+            ".next/server/**/*.js.map",
+          ],
           ignore: [
             "**/*manifest*.js",
             "**/*reference-manifest*.js",
