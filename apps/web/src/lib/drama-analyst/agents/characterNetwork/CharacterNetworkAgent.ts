@@ -124,6 +124,7 @@ export class CharacterNetworkAgent extends BaseAgent {
       ),
       metadata: {
         ...output.metadata,
+        timestamp: new Date().toISOString(),
         networkAnalysisQuality: {
           overall: qualityScore,
           networkComprehensiveness,

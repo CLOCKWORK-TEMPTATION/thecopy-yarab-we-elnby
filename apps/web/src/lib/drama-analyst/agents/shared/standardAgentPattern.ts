@@ -129,6 +129,9 @@ async function performRAG(
   while (start < context.length) {
     const end = Math.min(start + chunkSize, context.length);
     chunks.push(context.substring(start, end));
+    if (end >= context.length) {
+      break;
+    }
     start = end - overlap;
   }
 
