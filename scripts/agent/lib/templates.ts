@@ -81,6 +81,44 @@ ${ungoverned.map((filePath) => `- \`${filePath}\``).join("\n") || "- لا توج
 `;
 }
 
+function renderCodeMemorySection(facts: RepoFacts): string {
+  const memory = facts.codeMemory;
+  return `## ذاكرة الكود الحية
+
+- الحالة:
+
+\`${memory.exists ? memory.stale ? "stale" : "current" : "not-indexed"}\`
+
+- التخزين المحلي:
+
+\`${memory.storage?.local ?? "غير مبني"}\`
+
+- مزامنة Qdrant:
+
+\`${memory.storage?.qdrant ?? "not-configured"}\`
+
+- الملفات:
+
+\`${memory.totalFiles}\`
+
+- القطع:
+
+\`${memory.totalChunks}\`
+
+- القطع ذات التضمين:
+
+\`${memory.embeddedChunks}\`
+
+- التغطية:
+
+\`${(memory.coverageRate * 100).toFixed(1)}%\`
+
+- الرسالة:
+
+${memory.message}
+`;
+}
+
 export function renderIdeShim(target: IdeTarget): string {
   const heading = target.kind === "cursor-rule" ? "قواعد Cursor" : `مرآة ${target.label}`;
   const body = `# ${heading}
@@ -260,6 +298,8 @@ ${HERO_LAYOUT_GUARDRAILS.map((guardrail) => `- ${guardrail}`).join("\n")}
 
 ${renderKnowledgeSection(facts)}
 
+${renderCodeMemorySection(facts)}
+
 ## مرايا IDE المطلوبة حاليًا
 
 ${facts.requiredIdeTargets
@@ -337,6 +377,8 @@ ${facts.entrypoints.map((entry) => `- \`${entry}\``).join("\n")}
 
 ${renderKnowledgeSection(facts)}
 
+${renderCodeMemorySection(facts)}
+
 ## حالة الملفات المرجعية
 
 - session-state:
@@ -395,6 +437,7 @@ ${status}
 - عدد أنظمة المعرفة والاسترجاع المكتشفة هو ${facts.knowledgeInventory.totalSystems}
 - حالة حوكمة طبقة RAG هي ${facts.knowledgeInventory.governanceStatus}
 - قاعدة الفحوصات الحاكمة مقروءة ومطلوب إثبات قراءتها في brief البداية
+- ذاكرة الكود الحية حالتها ${facts.codeMemory.exists ? facts.codeMemory.stale ? "stale" : "current" : "not-indexed"}
 
 حاجز واجهة حرج:
 - تموضع الكروت السبعة في الهيرو ثابت عبر كل المقاسات وممنوع جعله متجاوبًا تلقائيًا

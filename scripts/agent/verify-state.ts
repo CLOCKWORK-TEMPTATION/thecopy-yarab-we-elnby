@@ -124,6 +124,16 @@ async function main(): Promise<void> {
     issues.push({ level: "error", message: "نظام editor-code-rag غير ممثل داخل الجرد المرجعي." });
   }
 
+  if (facts.codeMemory.exists && facts.codeMemory.stale) {
+    issues.push({ level: "error", message: "ذاكرة الكود الحية موجودة لكنها stale مقارنة ببصمات الكود الحالية." });
+  }
+
+  for (const command of ["pnpm agent:memory:index", "pnpm agent:memory:search", "pnpm agent:memory:status", "pnpm agent:memory:verify"]) {
+    if (!facts.officialCommands.includes(command)) {
+      issues.push({ level: "error", message: `أمر ذاكرة الكود غير ممثل في الأوامر الرسمية: ${command}` });
+    }
+  }
+
   const sessionStateContent = await readTextIfExists(fromRepoRoot(SESSION_STATE_PATH));
   if (!sessionStateContent.includes("طبقة المعرفة والاسترجاع")) {
     issues.push({ level: "error", message: "session-state لا يصف حالة طبقة المعرفة والاسترجاع." });

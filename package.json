@@ -116,6 +116,10 @@
     "agent:verify": "tsx scripts/agent/verify-state.ts",
     "agent:refresh-maps": "tsx scripts/agent/refresh-maps.ts",
     "agent:start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/agent/start-agent.ps1",
+    "agent:memory:index": "tsx scripts/agent/code-memory-index.ts",
+    "agent:memory:search": "tsx scripts/agent/code-memory-search.ts",
+    "agent:memory:status": "tsx scripts/agent/code-memory-status.ts",
+    "agent:memory:verify": "tsx scripts/agent/code-memory-verify.ts",
     "build": "turbo build",
     "dev": "pnpm --filter @the-copy/web dev",
     "dev:watch": "echo 'dev:watch requires a local DOCCCCS install – see README' && exit 1",
@@ -155,7 +159,7 @@
     "infra:reset": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/infra.ps1 reset",
     "doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/doctor.ps1",
     "verify:runtime": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/doctor.ps1",
-    "workspace:embed": "node scripts/generate-workspace-embeddings.js"
+    "workspace:embed": "pnpm agent:memory:index"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -224,12 +228,11 @@
   },
   "homepage": "https://github.com/CLOCKWORK-TEMPTATION/yarab-we-elnby-thecopy#readme",
   "dependencies": {
+    "@google/genai": "^0.8.0",
     "@lancedb/lancedb": "^0.27.2",
     "@qdrant/js-client-rest": "^1.17.0",
     "@vercel/analytics": "^2.0.1",
     "apache-arrow": "18.1.0",
     "express-jwt": "^8.5.1",
     "isomorphic-dompurify": "^3.7.1",
-    "timing-safe-equal": "^1.0.0"
-  }
-}
+    "timi

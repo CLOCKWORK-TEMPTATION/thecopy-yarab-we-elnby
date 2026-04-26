@@ -220,4 +220,22 @@ AGENTS.md
 
 ## الأعطال المفتوحة الآن
 
-- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص (D-001).
+- 5 أخطاء type-check على web موروثة من main (لم تنتجها جولة 097):
+  - `apps/web/src/lib/ai/stations/orchestrator.ts:308-312` — TS2322 × 5 (Station{1..5}Output لا يطابق JsonRecord — Index signature ناقص).
+  - `apps/web/src/lib/ai/stations/station2-conceptual-analysis.ts:731,741,751` — TS2322 × 3 (exactOptionalPropertyTypes: artist/director/author).
+  - `apps/web/src/lib/drama-analyst/services/backendService.ts:94` — TS2322 (unknown → AIResponse).
+  - `apps/web/src/workers/particle-generator.worker.ts:20` و `particle-physics.worker.ts:43` — TS6196 × 2 (types غير مستخدمة).
+- web lint: 64 errors + 7881 warnings (A-004/A-005) — مُرحَّل P2/P3.
+- ~21 ملف اختبار actorai-arabic لم يُشغَّل بعد إصلاح `test-utils.tsx` (A-006 sweep).
+- ~6 ملفات اختبار متفرقة فيها فشل واحد أو اثنين (A-013) — مُرحَّل P2.
+- لم يُتحقَّق lint backend بعد runner التقسيم end-to-end لضغط الذاكرة (A-002 verify-only).
+- ديون عضوية مُرحَّلة: 18 TODO، 330 console.* في إنتاج، 246 `: any`، 6 `@ts-ignore`، 10 ملفات >1000 سطر، 11 ignored build scripts.
+
+## مرجع جولة التنظيف الأخيرة
+
+- الفرع: `round-097-debt-cleanup` (17 commit بعد merge، يستهدف main، لا دمج تلقائي).
+- آخر commit على الفرع: `8dbbf4a` (merge من origin/main، تعارضان حُلَّا بترجيح 097 — `ScriptUploadZone.test.tsx` + `animations.test.ts`).
+- ‏`triage-round-097.md` و `PULL_REQUEST.md` ملحقان بالفرع.
+- إغلاقات الجولة 097: P0=100% (5/5)، P1=83% (5/6)، P2=20% (1/5).
+- استكمال الجولة 116 (حل تعارضات الدمج): اختبارا الحل passed 10/10، الباك اند type-check نظيف EXIT=0.

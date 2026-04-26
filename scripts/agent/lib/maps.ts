@@ -30,6 +30,7 @@ flowchart LR
     Agents --> CodeMap["output/code-map/*"]
     Agents --> MindMap["output/mind-map/*"]
     Agents --> IDE["IDE mirrors"]
+    Agents --> CodeMemory["Agent code memory"]
 ${ragNodes ? `${ragNodes}\n` : ""}    Web --> Backend
     Web --> Packages
     Backend --> Packages
@@ -115,6 +116,13 @@ output/session-state.md
 - الأنواع:
 
 ${facts.knowledgeInventory.systemTypes.map((type) => `- \`${type}\``).join("\n") || "- لا توجد أنظمة معرفة مكتشفة."}
+
+## ذاكرة الكود الحية
+
+- الحالة: \`${facts.codeMemory.exists ? facts.codeMemory.stale ? "stale" : "current" : "not-indexed"}\`
+- الملفات: \`${facts.codeMemory.totalFiles}\`
+- القطع: \`${facts.codeMemory.totalChunks}\`
+- التغطية: \`${(facts.codeMemory.coverageRate * 100).toFixed(1)}%\`
 `;
 }
 
@@ -180,6 +188,7 @@ function renderRuntimeFlowsMarkdown(facts: RepoFacts): string {
 3. قراءة \`output/session-state.md\`
 4. تنفيذ المهمة
 5. \`pnpm agent:verify\`
+6. \`pnpm agent:memory:verify\`
 
 ## مسار IDE
 
@@ -282,6 +291,7 @@ function renderMindMapJson(facts: RepoFacts): string {
         { id: "rounds", label: "output/round-notes.md" },
         { id: "code-map", label: "output/code-map/*" },
         { id: "mind-map", label: "output/mind-map/*" },
+        { id: "code-memory", label: ".agent-code-memory" },
         ...facts.requiredIdeTargets
           .filter((target) => target.required)
           .map((target) => ({ id: target.id, label: target.path })),
@@ -321,6 +331,7 @@ function renderMindMapMermaid(facts: RepoFacts): string {
       agent:bootstrap
       agent:verify
       agent:refresh-maps
+      agent:memory
     IDE Mirrors
 ${ideChildren || "      none[no mirrors required]"}
     Knowledge Layer
@@ -379,6 +390,7 @@ function renderMindMapSummary(facts: RepoFacts): string {
 - عدد مرايا IDE المطلوبة الآن: \`${facts.requiredIdeTargets.filter((target) => target.required).length}\`
 - عدد أنظمة المعرفة والاسترجاع المكتشفة: \`${facts.knowledgeInventory.totalSystems}\`
 - حالة حوكمة طبقة المعرفة والاسترجاع: \`${facts.knowledgeInventory.governanceStatus}\`
+- حالة ذاكرة الكود: \`${facts.codeMemory.exists ? facts.codeMemory.stale ? "stale" : "current" : "not-indexed"}\`
 - المساران الرسميان الوحيدان: \`pnpm agent:start\` أو مسار IDE القائم على إثبات القراءة وقاعدة الفحوصات
 `;
 }
@@ -405,6 +417,7 @@ export function buildMapFiles(facts: RepoFacts): MapFile[] {
             reasons: target.reasons,
           })),
           knowledgeInventory: facts.knowledgeInventory,
+          codeMemory: facts.codeMemory,
           openIssues: facts.openIssues,
         },
         null,
