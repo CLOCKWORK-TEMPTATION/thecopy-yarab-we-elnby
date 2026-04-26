@@ -79,10 +79,10 @@ function buildLoggerOptions(): LoggerOptions {
   const baseLevel = isDevelopment ? 'debug' : isProduction ? 'info' : 'warn';
 
   const options: LoggerOptions = {
-    level: process.env.LOG_LEVEL ?? baseLevel,
+    level: process.env['LOG_LEVEL'] ?? baseLevel,
     base: {
       service: 'the-copy-backend',
-      env: process.env.NODE_ENV ?? 'unknown',
+      env: process.env['NODE_ENV'] ?? 'unknown',
       pid: process.pid,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -103,7 +103,7 @@ function buildLoggerOptions(): LoggerOptions {
   };
 
   // وضع التطوير: pino-pretty عند الطلب فقط (يبقى JSON الافتراضي حتى في dev لمنع كسر CI)
-  if (isDevelopment && process.env.LOG_PRETTY === 'true') {
+  if (isDevelopment && process.env['LOG_PRETTY'] === 'true') {
     options.transport = {
       target: 'pino-pretty',
       options: {

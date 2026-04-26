@@ -2,6 +2,61 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 102 — إغلاق ثغرة تسريب TIPTAP_PRO_TOKEN في turbo dry-run — 2026-04-26
+
+### التاريخ والوقت
+
+2026-04-26 — جلسة قصيرة لإصلاح الثغرة المكتشفة في جولة 100.
+
+### قاعدة الفحوصات الحاكمة
+
+- مقروءة ومثبتة. التعديل الوحيد على `turbo.json` هو حذف عنصر `passThroughEnv` من مهمة `build`. **لا يُضعف أي فحص:** بقية `env` array (15 متغير) و `globalDependencies` و `globalEnv` و `outputs` كما هي. الفحص بالواقع تقوّى لأن مسار التسريب أُغلق.
+
+### الدافع
+
+جولة 100 كشفت أن `pnpm exec turbo run build --dry-run=json` يطبع القيمة الكاملة لـ `TIPTAP_PRO_TOKEN` (64 hex) في حقل `passthrough` ضمن stdout. السبب: `turbo.json` كان يصنّف التوكن كـ `passThroughEnv` لمهمة `build`، و turbo يطبع كل قيم passthrough في dry-run. المستخدم دوّر التوكن في cloud.tiptap.dev، وطلب حلًا جذريًا يمنع التسريب من الحدوث مجددًا.
+
+### التغيير
+
+ملف واحد فقط: [turbo.json](../turbo.json#L14)
+- حُذف السطر `"passThroughEnv": ["TIPTAP_PRO_TOKEN"],` من تعريف مهمة `build`.
+
+### تحليل أمان التغيير
+
+`TIPTAP_PRO_TOKEN` يُستهلك في موضع واحد فقط داخل دورة حياة المستودع: `pnpm install` يقرأه من `process.env` عبر `${TIPTAP_PRO_TOKEN}` في `.npmrc` لجلب `@tiptap-pro/extension-pages`. لا يستهلكه `next build` ولا `tsc` ولا `sentry-cli` ولا أي مهمة turbo. لذا تمريره عبر turbo passthrough كان زائدًا منذ البداية.
+
+تأثير الإصلاح على hash الكاش: turbo يكتشف فروق الاعتماديات بالفعل عبر hash لـ `pnpm-lock.yaml` (المُعرَّف في `globalDependencies`)، فأي تغيير ناتج عن قيمة توكن مختلفة سيظهر هناك. لا فقدان لتغطية الكاش.
+
+تأثير على CI: لا شيء. workflows في `.github/workflows/*` كانت تُصدّر التوكن في خطوة `Install dependencies` فقط (`run: export TIPTAP_PRO_TOKEN=...; pnpm install --frozen-lockfile`)، ولم تكن تُصدّره لخطوة `turbo run build` التالية (لأن `export` في run-block لا يُورَّث). الإصلاح يطابق السلوك الفعلي.
+
+### التحقق التشغيلي
+
+| الفحص | النتيجة |
+|---|---|
+| `pnpm exec turbo run build --dry-run=json \| grep -i tiptap` | ✅ لا يُرجع شيئًا — القيمة لا تظهر |
+| `pnpm exec turbo run build --dry-run=text \| grep "Passed Through"` | ✅ كل قيم `Passed Through Env Vars` فارغة |
+| الرسم البياني للمهام | ✅ سليم — مهام `build` بـ hash جديد، الاعتماديات صحيحة |
+| `env` array لمهمة build | ✅ 15 متغير NEXT_PUBLIC_* + SENTRY_* محفوظة |
+
+### ما تغيّر
+
+- [turbo.json](../turbo.json) — سطر واحد محذوف.
+- [output/environment-unification-matrix.md](environment-unification-matrix.md) — Risk #13 محدّث بحالة "أُغلق" مع تفاصيل الإصلاح.
+
+### ما ثبت
+
+- التسريب أُغلق جذريًا (تحقق سلوكي لا نصي).
+- لا تأثير على hash كاش turbo (pnpm-lock.yaml يغطي فروق الاعتماديات).
+- لا تأثير على CI (workflows لم تكن تعتمد على passthrough أصلاً).
+- لا تأثير على local dev (pnpm install يقرأ التوكن من shell env قبل turbo).
+
+### ما بقي مفتوحًا
+
+- (من جولة 100، لا تغيير) إضافة `.gitattributes`، حذف path aliases الميتة `@the-copy/{shared,ui}` في tsconfig.json، تحديث `output/session-state.md` ليطابق الواقع.
+- مراجعة سجلات GitHub Actions الـ 90 يومًا الماضية للتأكد من عدم وجود نسخ قديمة من dry-run output (إن لم يكن أحد شغّل dry-run في CI، السجلات نظيفة بطبيعتها).
+
+---
+
 ## جولة 101 — حل جذري لتحذيرات Sentry source map (إجبار توليد + شبكة أمان + verify) — 2026-04-26
 
 ### التاريخ والوقت
