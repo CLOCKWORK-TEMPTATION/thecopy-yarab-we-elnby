@@ -24,6 +24,7 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "noEmit": true,
+    "sourceMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",

@@ -6,9 +6,9 @@
 
  *
 
- * ملاحظة: في Next.js 16، `proxy.ts` هو الاسم الموصى به لطبقة الإدخال هذه،
+ * ملاحظة: في Next.js 16، `proxy.ts` هو الاسم الرسمي لطبقة الإدخال هذه،
 
- * بديلًا عن `middleware.ts` التقليدية.
+ * بديلًا عن `middleware.ts` القديم. يعمل Proxy كحدود شبكة أمام التطبيق.
 
  */
 
@@ -268,7 +268,7 @@ function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
 
 /**
 
- * نقطة الدخول الرسمية لطبقة Next.js proxy. تُحسب رؤوس CSP الديناميكية
+ * نقطة الدخول الرسمية لطبقة Next.js Proxy. تُحسب رؤوس CSP الديناميكية
 
  * وتُلصق بكل استجابة قبل تسليمها للمتصفح.
 
@@ -280,7 +280,7 @@ function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
 
  */
 
-export function middleware(_request: NextRequest) {
+export function proxy(_request: NextRequest) {
 
   const response = NextResponse.next();
 
