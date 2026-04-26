@@ -1,4 +1,4 @@
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
+import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from "web-vitals";
 
 import { logger } from "@/lib/ai/utils/logger";
 
@@ -6,7 +6,7 @@ import { logger } from "@/lib/ai/utils/logger";
  * Web Vitals reporting
  */
 
-export function reportWebVitals(onPerfEntry?: (metric: any) => void) {
+export function reportWebVitals(onPerfEntry?: (metric: Metric) => void) {
   if (onPerfEntry && onPerfEntry instanceof Function) {
     onCLS(onPerfEntry);
     onFCP(onPerfEntry);

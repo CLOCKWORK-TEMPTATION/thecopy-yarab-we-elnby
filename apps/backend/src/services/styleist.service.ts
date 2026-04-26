@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { platformGenAIService } from '@/services/platform-genai.service';
 
 interface DesignBrief {
@@ -12,7 +11,7 @@ interface DesignBrief {
 
 interface StyleistActionRequest {
   action: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 interface WeatherInfo {
@@ -20,6 +19,48 @@ interface WeatherInfo {
   condition: string;
   location: string;
   sources?: string[];
+}
+
+interface OpenMeteoPlace {
+  name?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface OpenMeteoGeocodeResponse {
+  results?: OpenMeteoPlace[];
+}
+
+interface OpenMeteoForecastResponse {
+  current?: {
+    temperature_2m?: number;
+    weather_code?: string | number;
+  };
+}
+
+function getOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function getRequiredText(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function toDesignBrief(value: unknown): DesignBrief {
+  const record =
+    value && typeof value === 'object'
+      ? (value as Record<string, unknown>)
+      : {};
+
+  return {
+    projectType: getRequiredText(record["projectType"]),
+    sceneContext: getRequiredText(record["sceneContext"]),
+    characterProfile: getRequiredText(record["characterProfile"]),
+    psychologicalState: getRequiredText(record["psychologicalState"]),
+    filmingLocation: getRequiredText(record["filmingLocation"]),
+    productionConstraints: getRequiredText(record["productionConstraints"]),
+  };
 }
 
 function isDataUrl(input: string): boolean {
@@ -64,10 +105,14 @@ async function loadWeather(location: string): Promise<WeatherInfo> {
     geocodeUrl.searchParams.set('language', 'en');
     geocodeUrl.searchParams.set('format', 'json');
     const geocodeResponse = await fetch(geocodeUrl);
-    const geocodeJson = (await geocodeResponse.json()) as any;
+    const geocodeJson = (await geocodeResponse.json()) as OpenMeteoGeocodeResponse;
     const place = geocodeJson?.results?.[0];
 
-    if (!place) {
+    if (
+      !place ||
+      typeof place.latitude !== 'number' ||
+      typeof place.longitude !== 'number'
+    ) {
       return {
         temp: 0,
         condition: 'Unavailable',
@@ -82,7 +127,7 @@ async function loadWeather(location: string): Promise<WeatherInfo> {
     forecastUrl.searchParams.set('current', 'temperature_2m,weather_code');
     forecastUrl.searchParams.set('temperature_unit', 'fahrenheit');
     const forecastResponse = await fetch(forecastUrl);
-    const forecastJson = (await forecastResponse.json()) as any;
+    const forecastJson = (await forecastResponse.json()) as OpenMeteoForecastResponse;
 
     return {
       temp: Number(forecastJson?.current?.temperature_2m) || 0,
@@ -101,22 +146,34 @@ async function loadWeather(location: string): Promise<WeatherInfo> {
 }
 
 export class StyleistService {
-  async execute(request: StyleistActionRequest): Promise<Record<string, any>> {
+  async execute(request: StyleistActionRequest): Promise<Record<string, unknown>> {
     const data = request.data ?? {};
 
     switch (request.action) {
       case 'generateDesign':
-        return this.generateDesign(data["brief"] as DesignBrief);
+        return this.generateDesign(toDesignBrief(data["brief"]));
       case 'transcribeAudio':
-        return this.transcribeAudio(data["audioBase64"], data["mimeType"]);
+        return this.transcribeAudio(
+          getOptionalString(data["audioBase64"]),
+          getOptionalString(data["mimeType"])
+        );
       case 'analyzeVideo':
-        return this.analyzeVideo(data["videoBase64"], data["mimeType"]);
+        return this.analyzeVideo(
+          getOptionalString(data["videoBase64"]),
+          getOptionalString(data["mimeType"])
+        );
       case 'generateGarment':
-        return this.generateGarment(data["prompt"], data["size"]);
+        return this.generateGarment(
+          getOptionalString(data["prompt"]),
+          getOptionalString(data["size"])
+        );
       case 'generateVirtualFit':
         return this.generateVirtualFit(data);
       case 'editGarment':
-        return this.editGarment(data["imageUrl"], data["editPrompt"]);
+        return this.editGarment(
+          getOptionalString(data["imageUrl"]),
+          getOptionalString(data["editPrompt"])
+        );
       case 'refineScreenplay':
         return this.refineScreenplay(data["lines"]);
       default:
@@ -124,7 +181,7 @@ export class StyleistService {
     }
   }
 
-  private async generateDesign(brief: DesignBrief): Promise<Record<string, any>> {
+  private async generateDesign(brief: DesignBrief): Promise<Record<string, unknown>> {
     const weather = await loadWeather(brief?.filmingLocation || '');
     const prompt = `You are an expert costume stylist for film and television.
 
@@ -156,7 +213,7 @@ Use professional Egyptian Arabic for content values. Reflect the character psych
 Brief:
 ${JSON.stringify({ ...brief, weather }, null, 2)}`;
 
-    const result = await platformGenAIService.generateJson<Record<string, any>>(prompt, {
+    const result = await platformGenAIService.generateJson<Record<string, unknown>>(prompt, {
       temperature: 0.45,
       maxOutputTokens: 8192,
     });
@@ -180,7 +237,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     };
   }
 
-  private async transcribeAudio(audioBase64?: string, mimeType?: string): Promise<Record<string, any>> {
+  private async transcribeAudio(audioBase64?: string, mimeType?: string): Promise<Record<string, unknown>> {
     if (!audioBase64 || !mimeType) {
       throw new Error('Audio payload is required.');
     }
@@ -194,7 +251,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     return { text };
   }
 
-  private async analyzeVideo(videoBase64?: string, mimeType?: string): Promise<Record<string, any>> {
+  private async analyzeVideo(videoBase64?: string, mimeType?: string): Promise<Record<string, unknown>> {
     if (!videoBase64 || !mimeType) {
       throw new Error('Video payload is required.');
     }
@@ -208,7 +265,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     return { analysis };
   }
 
-  private async generateGarment(prompt?: string, size?: string): Promise<Record<string, any>> {
+  private async generateGarment(prompt?: string, size?: string): Promise<Record<string, unknown>> {
     if (!prompt || !prompt.trim()) {
       throw new Error('Garment prompt is required.');
     }
@@ -224,7 +281,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     return { description, imageUrl };
   }
 
-  private async generateVirtualFit(data?: Record<string, any>): Promise<Record<string, any>> {
+  private async generateVirtualFit(data?: Record<string, unknown>): Promise<Record<string, unknown>> {
     const prompt = `You are a wardrobe fitting analyst. Based on this payload, estimate fit compatibility and movement safety.
 
 Return ONLY valid JSON:
@@ -238,13 +295,13 @@ Return ONLY valid JSON:
 Payload:
 ${JSON.stringify(data ?? {}, null, 2)}`;
 
-    return platformGenAIService.generateJson<Record<string, any>>(prompt, {
+    return platformGenAIService.generateJson<Record<string, unknown>>(prompt, {
       temperature: 0.3,
       maxOutputTokens: 2048,
     });
   }
 
-  private async editGarment(imageUrl?: string, editPrompt?: string): Promise<Record<string, any>> {
+  private async editGarment(imageUrl?: string, editPrompt?: string): Promise<Record<string, unknown>> {
     if (!imageUrl || !editPrompt) {
       throw new Error('Source image and edit prompt are required.');
     }
@@ -262,7 +319,7 @@ ${JSON.stringify(data ?? {}, null, 2)}`;
     };
   }
 
-  private async refineScreenplay(lines?: unknown): Promise<Record<string, any>> {
+  private async refineScreenplay(lines?: unknown): Promise<Record<string, unknown>> {
     const prompt = `You are an Arabic screenplay formatter.
 
 Return ONLY valid JSON:
@@ -278,7 +335,7 @@ Return ONLY valid JSON:
 Lines:
 ${JSON.stringify(lines ?? [])}`;
 
-    return platformGenAIService.generateJson<Record<string, any>>(prompt, {
+    return platformGenAIService.generateJson<Record<string, unknown>>(prompt, {
       temperature: 0.2,
       maxOutputTokens: 4096,
     });

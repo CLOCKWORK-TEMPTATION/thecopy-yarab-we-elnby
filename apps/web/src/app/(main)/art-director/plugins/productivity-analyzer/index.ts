@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface TimeEntry {
@@ -86,7 +88,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   private blockers = new Map<string, Blocker>();
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -548,7 +550,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

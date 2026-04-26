@@ -25,6 +25,16 @@ export interface GeminiConfig {
   maxOutputTokens: number;
 }
 
+export interface GeminiOperationResult<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 // Available Gemini models
 export const GEMINI_MODELS: Record<string, GeminiModelInfo> = {
   "gemini-1.5-flash": {
@@ -139,18 +149,16 @@ export class GeminiService {
       await model.generateContent("Hello");
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message ?? "Failed to connect to Gemini API",
+        error: getErrorMessage(error, "Failed to connect to Gemini API"),
       };
     }
   }
 
   // Analyze text
-  async analyzeText(
-    text: string
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+  async analyzeText(text: string): Promise<GeminiOperationResult> {
     try {
       if (!this.genAI) {
         return { success: false, error: "Gemini AI not initialized" };
@@ -179,10 +187,10 @@ ${text}`;
           characterCount: text.length,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message ?? "Failed to analyze text",
+        error: getErrorMessage(error, "Failed to analyze text"),
       };
     }
   }
@@ -192,7 +200,7 @@ ${text}`;
     prompt: string,
     genre: string,
     technique: string
-  ): Promise<{ success: boolean; data?: any; error?: string }> {
+  ): Promise<GeminiOperationResult> {
     try {
       if (!this.genAI) {
         return { success: false, error: "Gemini AI not initialized" };
@@ -225,10 +233,10 @@ ${text}`;
           technique,
         },
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message ?? "Failed to enhance prompt",
+        error: getErrorMessage(error, "Failed to enhance prompt"),
       };
     }
   }
@@ -253,8 +261,10 @@ ${text}`;
       const result = await model.generateContent(prompt);
       const response = await result.response;
       return response.text();
-    } catch (error: any) {
-      throw new Error(`Failed to generate content: ${error.message}`);
+    } catch (error: unknown) {
+      throw new Error(
+        `Failed to generate content: ${getErrorMessage(error, "Unknown error")}`
+      );
     }
   }
 

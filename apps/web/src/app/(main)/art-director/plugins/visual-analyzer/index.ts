@@ -1,6 +1,8 @@
 // CineArchitect AI - AI Visual Consistency Analyzer Plugin
 // محلل الاتساق البصري الذكي
 
+import { logger } from "@/lib/logger";
+
 import {
   Plugin,
   PluginInput,
@@ -46,7 +48,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   category = "ai-analytics" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -308,7 +310,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

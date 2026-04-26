@@ -1,4 +1,5 @@
 import { logger } from "@/lib/ai/utils/logger";
+import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
 
 /**
  * Pipeline Agent Manager
@@ -13,7 +14,6 @@ import type {
   PipelineAgentPool,
   PipelineExecutionCallback,
 } from "./pipeline-agent-types";
-import type { PipelineStep } from "@/orchestration/executor";
 
 export class PipelineAgentManager {
   private workerPool: PipelineAgentPool = {
@@ -163,7 +163,7 @@ export class PipelineAgentManager {
   executePipeline(
     executionId: string,
     steps: PipelineStep[],
-    inputData: Record<string, any>,
+    inputData: PipelineInputData,
     callback?: PipelineExecutionCallback
   ): void {
     if (!this.workerPool.worker) {
@@ -190,7 +190,7 @@ export class PipelineAgentManager {
   executeStep(
     executionId: string,
     step: PipelineStep,
-    inputData: Record<string, any>,
+    inputData: PipelineInputData,
     callback?: PipelineExecutionCallback
   ): void {
     if (!this.workerPool.worker) {

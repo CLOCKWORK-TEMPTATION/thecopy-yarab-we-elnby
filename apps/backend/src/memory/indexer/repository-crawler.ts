@@ -1,13 +1,21 @@
-/* eslint-disable no-console, complexity -- experimental memory module */
+/* eslint-disable complexity -- experimental memory module */
 /**
  * Repository Crawler
  * زاحف الملفات للمستودع
  */
 
-import { glob } from "glob";
+import { execFile } from "child_process";
 import { open } from "fs/promises";
 import path from "path";
+import { promisify } from "util";
+
+import { glob } from "glob";
+
+import { logger } from "@/utils/logger";
+
 import type { FileInfo, CrawlOptions } from "../types";
+
+const execFileAsync = promisify(execFile);
 
 export class RepositoryCrawler {
   private defaultInclude = [
@@ -87,7 +95,7 @@ export class RepositoryCrawler {
               const fileStat = await handle.stat();
 
               if (fileStat.size > maxFileSize) {
-                console.warn(
+                logger.warn(
                   `Skipping large file: ${filePath} (${(fileStat.size / 1024 / 1024).toFixed(2)} MB)`
                 );
                 continue;
@@ -109,11 +117,11 @@ export class RepositoryCrawler {
               await handle.close();
             }
           } catch (error) {
-            console.error(`Error reading file ${filePath}:`, error);
+            logger.error(`Error reading file ${filePath}`, { error });
           }
         }
       } catch (error) {
-        console.error(`Error processing pattern ${pattern}:`, error);
+        logger.error(`Error processing pattern ${pattern}`, { error });
       }
     }
 
@@ -154,7 +162,7 @@ export class RepositoryCrawler {
           await handle.close();
         }
       } catch (error) {
-        console.error(`Error reading specific file ${filePath}:`, error);
+        logger.error(`Error reading specific file ${filePath}`, { error });
       }
     }
 
@@ -164,10 +172,27 @@ export class RepositoryCrawler {
   /**
    * التحقق مما إذا كان الملف يحتاج إلى إعادة فهرسة
    */
-  async shouldReindex(
-    _lastIndexedCommit: string  ): Promise<boolean> {
-    // TODO: استخدام git diff للتحقق من التغييرات
-    return true;
+  async shouldReindex(lastIndexedCommit: string): Promise<boolean> {
+    if (!lastIndexedCommit.trim()) {
+      return true;
+    }
+
+    try {
+      const { stdout } = await execFileAsync(
+        "git",
+        ["diff", "--name-only", `${lastIndexedCommit}..HEAD`],
+        { cwd: process.cwd(), windowsHide: true }
+      );
+
+      const changedFiles = stdout.split(/\r?\n/).filter(Boolean);
+      return changedFiles.some((filePath) => this.isIndexablePath(filePath));
+    } catch (error) {
+      logger.warn(
+        `Unable to inspect git diff from ${lastIndexedCommit}; reindexing defensively`,
+        { error }
+      );
+      return true;
+    }
   }
 
   /**
@@ -288,6 +313,23 @@ export class RepositoryCrawler {
     if (["ts", "tsx", "js", "jsx"].includes(file.extension)) return "code";
     if (["json", "yaml", "yml"].includes(file.extension)) return "config";
     return "other";
+  }
+
+  private isIndexablePath(filePath: string): boolean {
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const extension = path.extname(normalizedPath).slice(1);
+
+    if (!this.languageMap[extension]) {
+      return false;
+    }
+
+    return !this.defaultExclude.some((pattern) => {
+      const token = pattern.replace(/\*\*\//g, "").replace(/\/\*\*/g, "");
+      if (token.startsWith("*.")) {
+        return normalizedPath.endsWith(token.slice(1));
+      }
+      return normalizedPath.includes(token.replace(/\*/g, ""));
+    });
   }
 }
 

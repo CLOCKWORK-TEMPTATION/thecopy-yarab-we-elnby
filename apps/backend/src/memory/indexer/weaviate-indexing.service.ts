@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity, @typescript-eslint/no-explicit-any -- experimental memory indexing module */
+/* eslint-disable max-lines, max-lines-per-function, complexity -- experimental memory indexing module */
 import { createHash } from "crypto";
 
 import { SemanticChunker, type SemanticChunk } from "@the-copy/core-memory";
@@ -110,7 +110,7 @@ export class WeaviateIndexingService {
       (text) => embeddingsService.getEmbedding(text)
     );
 
-    const collection = weaviateStore.getCollection<any>("AdHocChunks");
+    const collection = weaviateStore.getCollection("AdHocChunks");
     await collection.data.deleteMany(
       collection.filter.byProperty("documentHash").equal(documentHash),
       { verbose: false }
@@ -142,7 +142,7 @@ export class WeaviateIndexingService {
       },
     }));
 
-    await weaviateStore.insertMany<any>("AdHocChunks", objects);
+    await weaviateStore.insertMany("AdHocChunks", objects);
 
     return {
       documentHash,
@@ -172,7 +172,7 @@ export class WeaviateIndexingService {
 
     if (args.type === "decision") {
       const collectionName = "Decisions";
-      const collection = weaviateStore.getCollection<any>(collectionName);
+      const collection = weaviateStore.getCollection(collectionName);
       const id = this.buildChunkId(collectionName, contentHash, 0);
 
       await collection.data.deleteMany(
@@ -228,7 +228,7 @@ export class WeaviateIndexingService {
     }
 
     const collectionName = "Documentation";
-    const collection = weaviateStore.getCollection<any>(collectionName);
+    const collection = weaviateStore.getCollection(collectionName);
     const id = this.buildChunkId(collectionName, contentHash, 0);
 
     await collection.data.deleteMany(
@@ -305,7 +305,7 @@ export class WeaviateIndexingService {
       return 0;
     }
 
-    const collection = weaviateStore.getCollection<any>("CodeChunks");
+    const collection = weaviateStore.getCollection("CodeChunks");
     await collection.data.deleteMany(
       collection.filter.byProperty("filePath").equal(file.relativePath),
       { verbose: false }
@@ -348,7 +348,7 @@ export class WeaviateIndexingService {
       };
     });
 
-    await weaviateStore.insertMany<any>("CodeChunks", objects);
+    await weaviateStore.insertMany("CodeChunks", objects);
     return objects.length;
   }
 
@@ -367,7 +367,7 @@ export class WeaviateIndexingService {
     let architecture = 0;
 
     if (this.isDecisionFile(file)) {
-      const collection = weaviateStore.getCollection<any>("Decisions");
+      const collection = weaviateStore.getCollection("Decisions");
       const contentHash = this.hashText(file.content);
 
       await collection.data.deleteMany(
@@ -405,7 +405,7 @@ export class WeaviateIndexingService {
 
       decision = 1;
     } else if (semanticChunks.length > 0) {
-      const collection = weaviateStore.getCollection<any>("Documentation");
+      const collection = weaviateStore.getCollection("Documentation");
 
       await collection.data.deleteMany(
         collection.filter.byProperty("filePath").equal(file.relativePath),
@@ -438,12 +438,12 @@ export class WeaviateIndexingService {
         };
       });
 
-      await weaviateStore.insertMany<any>("Documentation", objects);
+      await weaviateStore.insertMany("Documentation", objects);
       documentation = objects.length;
     }
 
     if (this.isArchitectureDocument(file)) {
-      const collection = weaviateStore.getCollection<any>("Architecture");
+      const collection = weaviateStore.getCollection("Architecture");
       const contentHash = this.hashText(file.content);
 
       await collection.data.deleteMany(

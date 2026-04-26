@@ -22,13 +22,18 @@
  *   - متغيرات البيئة لا تُسجَّل مباشرة من الـ client.
  */
 
-import { buildClientLogger } from './logger.client';
-import type { LogContext, UnifiedLogger } from './logger.types';
+import { buildClientLogger } from "./logger.client";
+import type { LogContext, UnifiedLogger } from "./logger.types";
 
 // إعادة تصدير الأنواع للاستهلاك المباشر
-export type { LogContext, LogFn, LogLevel, UnifiedLogger } from './logger.types';
+export type {
+  LogContext,
+  LogFn,
+  LogLevel,
+  UnifiedLogger,
+} from "./logger.types";
 
-const IS_BROWSER = typeof window !== 'undefined';
+const IS_BROWSER = typeof window !== "undefined";
 
 /**
  * بناء الـ logger المناسب لبيئة التشغيل الحالية.
@@ -41,7 +46,8 @@ function buildLogger(): UnifiedLogger {
   // استيراد ديناميكي على مستوى الـ module (يعمل في server فقط)
   // نسخة pino محمَّلة كسلوك server-only ومعزولة عن المتصفح بـ 'server-only' داخل ملفها.
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- مطلوب لتحميل سيرفر-only متأخر بدون كسر بناء الـ client
-  const serverModule = require('./logger.server') as typeof import('./logger.server');
+  const serverModule =
+    require("./logger.server") as typeof import("./logger.server");
   return serverModule.buildServerLogger();
 }
 
@@ -53,7 +59,7 @@ export const logger: UnifiedLogger = buildLogger();
  */
 export function createModuleLogger(
   moduleName: string,
-  extraContext: LogContext = {},
+  extraContext: LogContext = {}
 ): UnifiedLogger {
   return logger.child({ module: moduleName, ...extraContext });
 }

@@ -3,6 +3,8 @@
 
 import { v4 as uuidv4 } from "uuid";
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface TrainingScenario {
@@ -314,7 +316,7 @@ export class CinemaSkillsTrainer implements Plugin {
   category = "learning" as const;
 
   async initialize(): Promise<void> {
-    console.log(
+    logger.info(
       `[${this.name}] Initialized with ${trainingScenarios.length} training scenarios`
     );
   }
@@ -900,7 +902,7 @@ export class CinemaSkillsTrainer implements Plugin {
 
   async shutdown(): Promise<void> {
     traineeProgress.clear();
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

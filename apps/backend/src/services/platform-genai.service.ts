@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GoogleGenAI } from '@google/genai';
 import { env } from '@/config/env';
 
@@ -20,6 +19,26 @@ interface GeneratedImagePayload {
   data?: string;
 }
 
+type GenerateContentRequest = Parameters<GoogleGenAI["models"]["generateContent"]>[0];
+type GenerateImagesRequest = Parameters<GoogleGenAI["models"]["generateImages"]>[0];
+
+interface TextGenerationResult {
+  text?: string;
+  response?: {
+    text?: string | (() => string);
+  };
+}
+
+interface ImageGenerationResult {
+  generatedImages?: Array<{
+    image?: GeneratedImagePayload;
+  }>;
+}
+
+interface EditableImageModel {
+  editImage(request: Record<string, unknown>): Promise<ImageGenerationResult>;
+}
+
 /** Tri-state: not-configured | configured-failing | ready */
 export type AIProviderTriState = 'not-configured' | 'configured-failing' | 'ready';
 
@@ -36,16 +55,24 @@ const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash';
 const DEFAULT_IMAGE_EDIT_MODEL = 'gemini-2.5-flash-image-preview';
 const DEFAULT_IMAGE_GENERATION_MODEL = 'imagen-3.0-generate-002';
 
-function extractText(result: any): string {
-  if (typeof result?.text === 'string') {
+function isTextGenerationResult(value: unknown): value is TextGenerationResult {
+  return typeof value === 'object' && value !== null;
+}
+
+function extractText(result: unknown): string {
+  if (!isTextGenerationResult(result)) {
+    return '';
+  }
+
+  if (typeof result.text === 'string') {
     return result.text;
   }
 
-  if (typeof result?.response?.text === 'function') {
+  if (typeof result.response?.text === 'function') {
     return result.response.text();
   }
 
-  if (typeof result?.response?.text === 'string') {
+  if (typeof result.response?.text === 'string') {
     return result.response.text;
   }
 
@@ -113,7 +140,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.3,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as any);
+      } as GenerateContentRequest);
 
       const text = extractText(result).trim();
       if (!text) {
@@ -148,7 +175,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.5,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as any);
+      } as GenerateContentRequest);
 
       const text = extractText(result).trim();
       if (!text) {
@@ -188,7 +215,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.4,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as any);
+      } as GenerateContentRequest);
 
       const text = extractText(result).trim();
       if (!text) {
@@ -215,7 +242,7 @@ export class PlatformGenAIService {
           numberOfImages: 1,
           outputMimeType: 'image/png',
         },
-      } as any);
+      } as GenerateImagesRequest);
 
       const image = result?.generatedImages?.[0]?.image as
         | GeneratedImagePayload
@@ -239,7 +266,8 @@ export class PlatformGenAIService {
   ): Promise<string> {
     try {
       const client = this.getClient();
-      const result = await (client.models as any).editImage({
+      const editableModels = client.models as unknown as EditableImageModel;
+      const result = await editableModels.editImage({
         model: options.model ?? DEFAULT_IMAGE_EDIT_MODEL,
         prompt,
         referenceImages: [
@@ -252,7 +280,7 @@ export class PlatformGenAIService {
           numberOfImages: 1,
           outputMimeType: 'image/png',
         },
-      } as any);
+      });
 
       const image = result?.generatedImages?.[0]?.image as
         | GeneratedImagePayload

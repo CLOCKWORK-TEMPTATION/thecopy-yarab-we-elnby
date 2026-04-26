@@ -1,15 +1,30 @@
 import fs from "fs";
 import path from "path";
 
-const ignorePatterns = [
-  /manifest.*\.js$/,
-  /webpack-runtime.*\.js$/,
-  /runtime-.*\.js$/,
-  /polyfills-.*\.js$/,
+const uploadIgnorePatterns = [
+  /(?:^|[\\/])manifest.*\.js$/,
+  /(?:^|[\\/])webpack-runtime.*\.js$/,
+  /(?:^|[\\/])runtime-.*\.js$/,
+  /(?:^|[\\/])polyfills-.*\.js$/,
+  /[\\/]static[\\/]chunks[\\/]main-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]framework(?:\.|-)[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]webpack-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]app[\\/](?:.*[\\/])?loading-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]app[\\/](?:.*[\\/])?route-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]app[\\/]_global-error[\\/]page-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]next[\\/]dist[\\/]client[\\/]components[\\/]builtin[\\/][^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]app[\\/]\(main\)[\\/]arabic-prompt-engineering-studio[\\/]layout-[^\\/]+\.js$/,
+  /[\\/]static[\\/]chunks[\\/]app[\\/]\(main\)[\\/]editor[\\/]app[\\/]layout-[^\\/]+\.js$/,
+  /(?:^|[\\/])\.next[\\/]server[\\/]middleware\.js$/,
 ];
 
-function shouldIgnore(filePath: string): boolean {
-  return ignorePatterns.some((pattern) => pattern.test(filePath));
+function normalizeForMatch(filePath: string): string {
+  return path.normalize(filePath);
+}
+
+function shouldIgnoreUploadCandidate(filePath: string): boolean {
+  const normalized = normalizeForMatch(filePath);
+  return uploadIgnorePatterns.some((pattern) => pattern.test(normalized));
 }
 
 function findJsFiles(dir: string): string[] {
@@ -28,9 +43,7 @@ function findJsFiles(dir: string): string[] {
         entry.name.endsWith(".js") &&
         !entry.name.endsWith(".js.map")
       ) {
-        if (!shouldIgnore(entry.name)) {
-          files.push(fullPath);
-        }
+        files.push(fullPath);
       }
     }
   }
@@ -49,14 +62,34 @@ for (const dir of searchDirs) {
   allJsFiles.push(...findJsFiles(dir));
 }
 
-const missing = allJsFiles.filter((f) => !fs.existsSync(`${f}.map`));
+const uploadedJsFiles = allJsFiles.filter(
+  (file) => !shouldIgnoreUploadCandidate(file)
+);
+const ignoredJsFiles = allJsFiles.filter((file) =>
+  shouldIgnoreUploadCandidate(file)
+);
+const missing = uploadedJsFiles.filter((file) => !fs.existsSync(`${file}.map`));
+const orphanedMaps = uploadedJsFiles
+  .map((file) => `${file}.map`)
+  .filter((mapFile) => fs.existsSync(mapFile) && !fs.existsSync(mapFile.slice(0, -4)));
 
 if (missing.length > 0) {
-  console.error(`❌ ${missing.length} JS files without source maps:`);
+  console.error(
+    `${missing.length} uploadable JS files are missing source maps:`
+  );
   missing.forEach((f) => console.error(`  ${f}`));
   process.exit(1);
 }
 
+if (orphanedMaps.length > 0) {
+  console.error(`${orphanedMaps.length} source maps have no JS counterpart:`);
+  orphanedMaps.forEach((f) => console.error(`  ${f}`));
+  process.exit(1);
+}
+
 console.log(
-  `✅ All ${allJsFiles.length} JS files have corresponding source maps`
+  [
+    `${uploadedJsFiles.length} uploadable JS files have source maps`,
+    `${ignoredJsFiles.length} generated framework/stub JS files are excluded from upload`,
+  ].join("\n")
 );

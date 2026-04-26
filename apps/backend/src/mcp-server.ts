@@ -44,7 +44,7 @@ server.registerResource(
     title: 'Greeting Resource',
     description: 'Dynamic greeting generator'
   },
-  async (uri: any, { name }: { name: string }) => {
+  async (uri: URL, { name }: { name: string }) => {
     logger.info('Greeting resource accessed', { name });
     return {
       contents: [

@@ -163,6 +163,13 @@ export interface Vendor {
 /**
  * بيانات البائع للخريطة
  */
+export type VendorMapMarkerTone = 'default' | 'available' | 'busy' | 'offline';
+
+export interface VendorMapPathPoint {
+  lat: number;
+  lng: number;
+}
+
 export interface VendorMapData {
   /** معرّف البائع */
   id: string;
@@ -174,6 +181,12 @@ export interface VendorMapData {
   lng: number;
   /** المسافة (اختياري) */
   distance?: number;
+  /** حالة العلامة أو لونها التشغيلي */
+  markerTone?: VendorMapMarkerTone;
+  /** نص الحالة داخل النافذة المنبثقة */
+  statusLabel?: string;
+  /** مسار الحركة المعروض كخط على الخريطة */
+  path?: VendorMapPathPoint[];
 }
 
 /**

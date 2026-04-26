@@ -1,10 +1,13 @@
-/* eslint-disable no-console, complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental embeddings module */
+/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental embeddings module */
 /**
  * Gemini Embedding Generator
  * مولد التضمينات باستخدام Gemini Embedding 2
  */
 
 import { GoogleGenAI } from "@google/genai";
+
+import { logger } from "@/utils/logger";
+
 import type { EmbeddingResult, MultimodalInput, TaskType } from "../types";
 
 export class GeminiEmbeddingGenerator {
@@ -53,7 +56,7 @@ export class GeminiEmbeddingGenerator {
       };
     } catch (error) {
       // Fallback to text-only model if multimodal fails
-      console.warn("Gemini Embedding 2 failed, trying fallback model:", error);
+      logger.warn("Gemini Embedding 2 failed, trying fallback model", { error });
       return this.generateWithFallback(content, options);
     }
   }
@@ -89,7 +92,7 @@ export class GeminiEmbeddingGenerator {
         contentHash: this.hashContent(content),
       };
     } catch (error) {
-      console.warn("Gemini Embedding 2 failed, trying fallback model:", error);
+      logger.warn("Gemini Embedding 2 failed, trying fallback model", { error });
       return this.generateWithFallback(content, options);
     }
   }
@@ -166,7 +169,7 @@ export class GeminiEmbeddingGenerator {
     } catch (error) {
       // If multimodal fails and we have text, fallback to text-only
       if (input.text) {
-        console.warn("Multimodal failed, falling back to text-only:", error);
+        logger.warn("Multimodal failed, falling back to text-only", { error });
         return this.generateForDocumentation(input.text, {}, options);
       }
       throw error;
@@ -207,14 +210,14 @@ export class GeminiEmbeddingGenerator {
       );
     } catch (error) {
       // Process one by one if batch fails
-      console.warn("Batch embedding failed, processing individually:", error);
+      logger.warn("Batch embedding failed, processing individually", { error });
       const results: EmbeddingResult[] = [];
       for (const content of contents) {
         try {
           const result = await this.generateForDocumentation(content, {}, options);
           results.push(result);
         } catch (e) {
-          console.error("Failed to embed content:", e);
+          logger.error("Failed to embed content", { error: e });
         }
       }
       return results;

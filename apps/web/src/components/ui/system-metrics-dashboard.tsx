@@ -558,9 +558,13 @@ export default function SystemMetricsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, value }: { name: string; value: number }) =>
-                      `${name}: ${value}`
-                    }
+                    label={({ name, value }) => {
+                      const labelName =
+                        typeof name === "string" ? name : "غير معروف";
+                      const labelValue =
+                        typeof value === "number" ? value : Number(value ?? 0);
+                      return `${labelName}: ${labelValue}`;
+                    }}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

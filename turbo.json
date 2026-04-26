@@ -26,7 +26,8 @@
         "NEXT_PUBLIC_OCR_PROVIDER",
         "SENTRY_ORG",
         "SENTRY_PROJECT",
-        "SENTRY_AUTH_TOKEN"
+        "SENTRY_AUTH_TOKEN",
+        "TIPTAP_PRO_TOKEN"
       ]
     },
     "dev": {

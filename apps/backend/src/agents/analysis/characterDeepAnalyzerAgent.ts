@@ -1,4 +1,5 @@
 import { IntegratedAgent } from '../../services/agents/core/integratedAgent';
+import type { GeminiServiceResponse } from '../../services/agents/core/geminiService';
 import type { AIAgentConfig } from '../../types/types';
 import { TaskType } from '../../types/types';
 import { CHARACTER_DEEP_ANALYZER_AGENT_CONFIG } from './characterDeepAnalyzerConfig';
@@ -13,7 +14,7 @@ export class CharacterDeepAnalyzerAgent extends IntegratedAgent {
     files: ProcessedFile[],
     specialRequirements: string,
     additionalInfo: string
-  ): Promise<any> {
+  ): Promise<GeminiServiceResponse> {
     const result = await this.geminiService.processTextsWithGemini({
       processedFiles: files,
       taskType: TaskType.CHARACTER_DEEP_ANALYZER,

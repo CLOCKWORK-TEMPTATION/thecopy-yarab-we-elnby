@@ -32,8 +32,8 @@ export default function RegisterPage() {
     try {
       await registerUser(email, password);
       router.push("/");
-    } catch (err: any) {
-      setError(err.message ?? "فشل إنشاء الحساب");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "فشل إنشاء الحساب");
     } finally {
       setLoading(false);
     }

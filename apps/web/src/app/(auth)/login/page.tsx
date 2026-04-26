@@ -21,8 +21,8 @@ export default function LoginPage() {
     try {
       await loginUser(email, password);
       router.push("/");
-    } catch (err: any) {
-      setError(err.message ?? "فشل تسجيل الدخول");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "فشل تسجيل الدخول");
     } finally {
       setLoading(false);
     }

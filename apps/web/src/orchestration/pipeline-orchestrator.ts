@@ -3,18 +3,34 @@ import { logger } from "@/lib/ai/utils/logger";
 // Seven Stations Pipeline Orchestrator
 // Coordinates the execution of the Seven Stations AI analysis pipeline
 
-import { pipelineExecutor, type PipelineStep } from "./executor";
+import {
+  pipelineExecutor,
+  type PipelineInputData,
+  type PipelineStep,
+} from "./executor";
 
-import type { AnalysisType } from "@/types/enums";
+import {
+  AnalysisType,
+  type AnalysisType as AnalysisTypeValue,
+} from "@/types/enums";
 
 // Station interface for pipeline execution
 interface Station {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: AnalysisTypeValue;
   capabilities?: string[];
   estimatedDuration?: number;
+}
+
+export interface RunPipelineWithInterfacesOptions {
+  scriptId?: string;
+  skipStations?: string[];
+  priorityStations?: string[];
+  timeout?: number;
+  metadata?: PipelineInputData;
+  onProgress?: (execution: SevenStationsExecution) => void;
 }
 
 // Define the Seven Stations
@@ -23,43 +39,43 @@ const SEVEN_STATIONS: Station[] = [
     id: "station-1",
     name: "Station 1",
     description: "Text Analysis",
-    type: "characters",
+    type: AnalysisType.CHARACTERS,
   },
   {
     id: "station-2",
     name: "Station 2",
     description: "Conceptual Analysis",
-    type: "themes",
+    type: AnalysisType.THEMES,
   },
   {
     id: "station-3",
     name: "Station 3",
     description: "Network Builder",
-    type: "structure",
+    type: AnalysisType.STRUCTURE,
   },
   {
     id: "station-4",
     name: "Station 4",
     description: "Efficiency Optimizer",
-    type: "screenplay",
+    type: AnalysisType.SCREENPLAY,
   },
   {
     id: "station-5",
     name: "Station 5",
     description: "Dynamic Analysis",
-    type: "detailed",
+    type: AnalysisType.DETAILED,
   },
   {
     id: "station-6",
     name: "Station 6",
     description: "Diagnostics and Treatment",
-    type: "full",
+    type: AnalysisType.FULL,
   },
   {
     id: "station-7",
     name: "Station 7",
     description: "Finalization",
-    type: "full",
+    type: AnalysisType.FULL,
   },
 ];
 
@@ -70,7 +86,7 @@ function getAllStations(): Station[] {
 export interface SevenStationsResult {
   stationId: string;
   stationName: string;
-  result: any;
+  result?: string;
   success: boolean;
   duration: number;
 }
@@ -93,11 +109,7 @@ export class SevenStationsOrchestrator {
   async runSevenStationsPipeline(
     scriptId: string,
     scriptContent: string,
-    options: {
-      skipStations?: string[];
-      priorityStations?: string[];
-      timeout?: number;
-    } = {}
+    options: RunPipelineWithInterfacesOptions = {}
   ): Promise<SevenStationsExecution> {
     const executionId = `seven-stations-${scriptId}-${Date.now()}`;
 
@@ -151,7 +163,7 @@ export class SevenStationsOrchestrator {
       const pipelineResult = await pipelineExecutor.executePipeline(
         executionId,
         steps,
-        { scriptContent, scriptId }
+        { scriptContent, scriptId, ...(options.metadata ?? {}) }
       );
 
       // Convert results to Seven Stations format
@@ -160,13 +172,18 @@ export class SevenStationsOrchestrator {
           const station = availableStations.find(
             (s: Station) => s.id === stepId
           )!;
-          return {
+          const stationResult: SevenStationsResult = {
             stationId: stepId,
             stationName: station.name,
-            result: result.data,
             success: result.success,
             duration: result.duration,
           };
+
+          if (result.data !== undefined) {
+            stationResult.result = result.data;
+          }
+
+          return stationResult;
         }
       );
 
@@ -178,6 +195,7 @@ export class SevenStationsOrchestrator {
         execution.endTime = pipelineResult.endTime;
       }
       execution.progress = 100;
+      options.onProgress?.(execution);
     } catch {
       execution.overallSuccess = false;
       execution.endTime = new Date();
@@ -242,31 +260,19 @@ export class SevenStationsOrchestrator {
   }
 }
 
-/**
- * Run pipeline with interfaces
- *
- * PARTIAL IMPLEMENTATION: Basic orchestration exists
- * TODO PRODUCTION: Add comprehensive interface support
- *
- * Missing production features:
- * 1. Interface-based station communication protocol
- * 2. State persistence between stations
- * 3. Rollback/recovery mechanisms
- * 4. Advanced error handling and retry logic
- * 5. Progress tracking and monitoring
- * 6. Resource cleanup on failure
- */
 export async function runPipelineWithInterfaces(
   content: string,
-  options?: any
-): Promise<any> {
-  // Current implementation: basic pipeline execution
-  // Production TODO: Add interface validation, state management, and monitoring
+  options: RunPipelineWithInterfacesOptions = {}
+): Promise<SevenStationsExecution> {
+  if (!content.trim()) {
+    throw new Error("runPipelineWithInterfaces requires non-empty content");
+  }
+
   const orchestrator = new SevenStationsOrchestrator();
   return orchestrator.runSevenStationsPipeline(
-    "default",
+    options.scriptId ?? "default",
     content,
-    options ?? {}
+    options
   );
 }
 

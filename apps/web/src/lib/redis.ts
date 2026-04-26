@@ -1,20 +1,55 @@
-/**
- * Redis caching utilities
- *
- * NOTE: This is a STUB implementation for development.
- * In production, connect to actual Redis instance by:
- * 1. Set REDIS_ENABLED=true in environment
- * 2. Provide REDIS_URL connection string
- * 3. Implement actual Redis client connection below
- *
- * Current behavior: Caching is DISABLED - all calls pass through
- */
+import { logger } from "@/lib/logger";
 
-// Development flag - set to true and implement Redis client for production
 const REDIS_ENABLED = process.env["REDIS_ENABLED"] === "true";
+const REDIS_URL = process.env["REDIS_URL"];
+const DEFAULT_CACHE_TTL_SECONDS = 3600;
+
+interface RedisCacheClient {
+  connect: () => Promise<unknown>;
+  get: (key: string) => Promise<string | null>;
+  set: (
+    key: string,
+    value: string,
+    options?: { EX?: number }
+  ) => Promise<unknown>;
+  del: (keyOrKeys: string | string[]) => Promise<unknown>;
+  keys: (pattern: string) => Promise<string[]>;
+  on: (event: "error", listener: (error: Error) => void) => RedisCacheClient;
+}
+
+let redisClientPromise: Promise<RedisCacheClient | null> | null = null;
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
+}
+
+async function createRedisClient(): Promise<RedisCacheClient | null> {
+  if (!REDIS_ENABLED || typeof window !== "undefined") {
+    return null;
+  }
+
+  if (!REDIS_URL) {
+    throw new Error("REDIS_URL must be set when REDIS_ENABLED=true");
+  }
+
+  const { createClient } = await import("redis");
+  const client = createClient({
+    url: REDIS_URL,
+  }) as unknown as RedisCacheClient;
+  client.on("error", (error) => {
+    logger.error({ error }, "Redis client error");
+  });
+  await client.connect();
+  return client;
+}
+
+async function getRedisClient(): Promise<RedisCacheClient | null> {
+  redisClientPromise ??= createRedisClient();
+  return redisClientPromise;
+}
+
+function parseCachedValue<T>(value: string): T {
+  return JSON.parse(value) as T;
 }
 
 /**
@@ -23,7 +58,7 @@ export interface CacheOptions {
 export function generateGeminiCacheKey(
   prompt: string,
   model: string,
-  options?: Record<string, any>
+  options?: Record<string, unknown>
 ): string {
   const hash = Buffer.from(JSON.stringify({ prompt, model, options })).toString(
     "base64"
@@ -32,93 +67,86 @@ export function generateGeminiCacheKey(
 }
 
 /**
- * Cached Gemini API call
- *
- * DEV STUB: Currently bypasses caching completely
- * TODO PRODUCTION: Implement Redis connection and caching logic
+ * Cached Gemini API call.
  */
 export async function cachedGeminiCall<T>(
   keyOrCallFn: string | (() => Promise<T>),
   maybeCallFn?: () => Promise<T>,
-  _options?: CacheOptions
+  options: CacheOptions = {}
 ): Promise<T> {
   const callFn = typeof keyOrCallFn === "function" ? keyOrCallFn : maybeCallFn;
+  const cacheKey = typeof keyOrCallFn === "string" ? keyOrCallFn : null;
 
   if (!callFn) {
     throw new Error("cachedGeminiCall requires a function to execute");
   }
 
-  if (!REDIS_ENABLED) {
-    // Development mode: no caching
+  if (!cacheKey) {
     return callFn();
   }
 
-  // TODO PRODUCTION: Implement actual Redis caching
-  // 1. Check Redis for existing cache with key
-  // 2. If found, return cached value
-  // 3. If not found, call callFn(), cache result, return value
-  // Example:
-  // const cached = await redisClient.get(key);
-  // if (cached) return JSON.parse(cached);
-  // const result = await callFn();
-  // await redisClient.setex(key, options?.ttl || 3600, JSON.stringify(result));
-  // return result;
+  try {
+    const cached = await getCached<T>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
 
-  return callFn();
+    const result = await callFn();
+    await setCached(cacheKey, result, options);
+    return result;
+  } catch (error) {
+    logger.warn(
+      { error, cacheKey },
+      "Redis cache failed; executing Gemini call directly"
+    );
+    return callFn();
+  }
 }
 
 /**
- * Get cached value
- *
- * DEV STUB: Always returns null
- * TODO PRODUCTION: Implement Redis get operation
+ * Get cached value.
  */
-export async function getCached<T>(_key: string): Promise<T | null> {
-  if (!REDIS_ENABLED) {
+export async function getCached<T>(key: string): Promise<T | null> {
+  const client = await getRedisClient();
+  if (!client) {
     return null;
   }
 
-  // TODO PRODUCTION: Implement actual Redis get
-  // const value = await redisClient.get(key);
-  // return value ? JSON.parse(value) : null;
-
-  return null;
+  const value = await client.get(key);
+  return value === null ? null : parseCachedValue<T>(value);
 }
 
 /**
- * Set cached value
- *
- * DEV STUB: No-op function
- * TODO PRODUCTION: Implement Redis set operation
+ * Set cached value.
  */
 export async function setCached<T>(
-  _key: string,
-  _value: T,
-  _options?: CacheOptions
+  key: string,
+  value: T,
+  options: CacheOptions = {}
 ): Promise<void> {
-  if (!REDIS_ENABLED) {
+  const client = await getRedisClient();
+  if (!client) {
     return;
   }
 
-  // TODO PRODUCTION: Implement actual Redis set
-  // const ttl = options?.ttl || 3600;
-  // await redisClient.setex(key, ttl, JSON.stringify(value));
+  await client.set(key, JSON.stringify(value), {
+    EX: options.ttl ?? DEFAULT_CACHE_TTL_SECONDS,
+  });
 }
 
 /**
- * Invalidate cache
- *
- * DEV STUB: No-op function
- * TODO PRODUCTION: Implement Redis pattern-based deletion
+ * Invalidate cache.
  */
-export async function invalidateCache(_pattern: string): Promise<void> {
-  if (!REDIS_ENABLED) {
+export async function invalidateCache(pattern: string): Promise<void> {
+  const client = await getRedisClient();
+  if (!client) {
     return;
   }
 
-  // TODO PRODUCTION: Implement actual Redis invalidation
-  // const keys = await redisClient.keys(pattern);
-  // if (keys.length > 0) {
-  //   await redisClient.del(...keys);
-  // }
+  const keys = await client.keys(pattern);
+  if (keys.length === 0) {
+    return;
+  }
+
+  await client.del(keys);
 }

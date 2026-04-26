@@ -22,7 +22,7 @@ interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
-  context?: any;
+  context?: unknown;
   source?: string;
 }
 
@@ -32,6 +32,16 @@ interface LoggerConfig {
   enableSentry: boolean;
   enableAnalytics: boolean;
 }
+
+type GtagFunction = (
+  command: string,
+  eventName: string,
+  params?: Record<string, unknown>
+) => void;
+
+type WindowWithGtag = Window & {
+  gtag?: GtagFunction;
+};
 
 // =====================================================
 // Logger Service
@@ -81,7 +91,7 @@ class LoggerService {
    * Sanitize sensitive data from context before logging
    * Prevents information leakage in logs
    */
-  private sanitizeContext(context?: any): any {
+  private sanitizeContext(context?: unknown): unknown {
     if (!context) return null;
 
     // Handle Error objects - only log type and message, not stack traces
@@ -99,7 +109,7 @@ class LoggerService {
 
     // Handle plain objects
     if (typeof context === "object") {
-      const sanitized: any = {};
+      const sanitized: Record<string, unknown> = {};
 
       for (const [key, value] of Object.entries(context)) {
         // Skip sensitive keys
@@ -154,7 +164,7 @@ class LoggerService {
   private formatMessage(
     level: LogLevel,
     message: string,
-    context?: any
+    context?: unknown
   ): string {
     const timestamp = new Date().toISOString();
     const levelName = LogLevel[level];
@@ -198,8 +208,11 @@ class LoggerService {
 
     try {
       // Send to analytics service
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "log", {
+      const analyticsWindow =
+        typeof window !== "undefined" ? (window as WindowWithGtag) : null;
+
+      if (analyticsWindow?.gtag) {
+        analyticsWindow.gtag("event", "log", {
           event_category: "system",
           event_label: LogLevel[entry.level],
           value: 1,
@@ -217,7 +230,7 @@ class LoggerService {
   private log(
     level: LogLevel,
     message: string,
-    context?: any,
+    context?: unknown,
     source?: string
   ): void {
     if (!this.shouldLog(level)) return;
@@ -265,19 +278,19 @@ class LoggerService {
   // Public API
   // =====================================================
 
-  error(message: string, context?: any, source?: string): void {
+  error(message: string, context?: unknown, source?: string): void {
     this.log(LogLevel.ERROR, message, context, source);
   }
 
-  warn(message: string, context?: any, source?: string): void {
+  warn(message: string, context?: unknown, source?: string): void {
     this.log(LogLevel.WARN, message, context, source);
   }
 
-  info(message: string, context?: any, source?: string): void {
+  info(message: string, context?: unknown, source?: string): void {
     this.log(LogLevel.INFO, message, context, source);
   }
 
-  debug(message: string, context?: any, source?: string): void {
+  debug(message: string, context?: unknown, source?: string): void {
     this.log(LogLevel.DEBUG, message, context, source);
   }
 
@@ -316,13 +329,13 @@ const logger = new LoggerService();
 // =====================================================
 
 export const log = {
-  error: (message: string, context?: any, source?: string) =>
+  error: (message: string, context?: unknown, source?: string) =>
     logger.error(message, context, source),
-  warn: (message: string, context?: any, source?: string) =>
+  warn: (message: string, context?: unknown, source?: string) =>
     logger.warn(message, context, source),
-  info: (message: string, context?: any, source?: string) =>
+  info: (message: string, context?: unknown, source?: string) =>
     logger.info(message, context, source),
-  debug: (message: string, context?: any, source?: string) =>
+  debug: (message: string, context?: unknown, source?: string) =>
     logger.debug(message, context, source),
   getLogs: (level?: LogLevel) => logger.getLogs(level),
   clearLogs: () => logger.clearLogs(),

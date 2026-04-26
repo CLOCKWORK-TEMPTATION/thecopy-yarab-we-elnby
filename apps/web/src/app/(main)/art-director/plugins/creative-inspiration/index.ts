@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface MoodBoardItem {
@@ -48,7 +50,7 @@ export class CreativeInspirationAssistant implements Plugin {
   async initialize(): Promise<void> {
     this.initializeStyleDatabase();
     this.initializeColorPalettes();
-    console.log(
+    logger.info(
       `[${this.name}] Initialized with ${this.styleDatabase.size} style categories`
     );
   }
@@ -441,7 +443,7 @@ export class CreativeInspirationAssistant implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

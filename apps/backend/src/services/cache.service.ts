@@ -15,26 +15,11 @@
  * - Sentry performance monitoring integration
  */
 
-import { createClient, RedisClientType } from 'redis';
+import { createClient } from 'redis';
 import crypto from 'crypto';
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
-
-// Safe logger import for testing compatibility
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let logger: any;
-try {
-  logger = require('@/utils/logger').logger;
-} catch {
-  /* eslint-disable no-console, @typescript-eslint/no-explicit-any */
-  logger = {
-    info: (...args: any[]) => console.log('[INFO]', ...args),
-    error: (...args: any[]) => console.error('[ERROR]', ...args),
-    warn: (...args: any[]) => console.warn('[WARN]', ...args),
-    debug: (...args: any[]) => console.debug('[DEBUG]', ...args),
-  };
-  /* eslint-enable no-console, @typescript-eslint/no-explicit-any */
-}
+import { logger } from '@/utils/logger';
 
 // Optional Sentry import (only if SENTRY_DSN is configured)
 let Sentry: typeof import('@sentry/node') | null = null;
@@ -74,9 +59,28 @@ interface RedisHealthStatus {
 }
 
 type RedisOperation<T> = () => Promise<T>;
+type RedisClientInstance = ReturnType<typeof createClient>;
+
+interface RedisRetryOptions {
+  error?: {
+    code?: string;
+  };
+  total_retry_time: number;
+  attempt: number;
+}
+
+type CacheRedisConfig = NonNullable<Parameters<typeof createClient>[0]> & {
+  host?: string;
+  port?: number;
+  password?: string;
+  sentinels?: Array<{ host: string; port: number }>;
+  name?: string;
+  sentinelPassword?: string;
+  retry_strategy?: (options: RedisRetryOptions) => Error | number | undefined;
+};
 
 export class CacheService {
-  private redis: RedisClientType | null = null;
+  private redis: RedisClientInstance | null = null;
   private memoryCache: Map<string, CacheEntry<unknown>> = new Map();
   private readonly MAX_MEMORY_CACHE_SIZE = 100; // Maximum items in L1 cache
   private readonly DEFAULT_TTL = 1800; // 30 minutes in seconds
@@ -116,8 +120,7 @@ export class CacheService {
   // eslint-disable-next-line max-lines-per-function
   private initializeRedis(): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let redisConfig: any;
+      let redisConfig: CacheRedisConfig;
 
       // Sentinel configuration
       if (process.env['REDIS_SENTINEL_ENABLED'] === 'true') {
@@ -125,15 +128,21 @@ export class CacheService {
           .split(',')
           .map(s => {
             const [host, port] = s.trim().split(':');
-            return { host, port: parseInt(port || '26379') };
+            return { host: host || '127.0.0.1', port: parseInt(port || '26379') };
           });
 
         redisConfig = {
           sentinels,
           name: process.env['REDIS_MASTER_NAME'] || 'mymaster',
-          password: process.env['REDIS_PASSWORD'],
-          sentinelPassword: process.env['REDIS_SENTINEL_PASSWORD'],
         };
+
+        if (process.env['REDIS_PASSWORD']) {
+          redisConfig.password = process.env['REDIS_PASSWORD'];
+        }
+
+        if (process.env['REDIS_SENTINEL_PASSWORD']) {
+          redisConfig.sentinelPassword = process.env['REDIS_SENTINEL_PASSWORD'];
+        }
 
         logger.info(`Connecting to Redis via Sentinel: ${sentinels.length} sentinels`);
       } else if (process.env['REDIS_URL']) {
@@ -144,13 +153,15 @@ export class CacheService {
         redisConfig = {
           host: process.env['REDIS_HOST'] || 'localhost',
           port: parseInt(process.env['REDIS_PORT'] || '6379'),
-          password: process.env['REDIS_PASSWORD'],
         };
+
+        if (process.env['REDIS_PASSWORD']) {
+          redisConfig.password = process.env['REDIS_PASSWORD'];
+        }
       }
 
       // Add retry strategy
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      redisConfig.retry_strategy = (options: any) => {
+      redisConfig.retry_strategy = (options: RedisRetryOptions) => {
         if (options.error && options.error.code === 'ECONNREFUSED') {
           logger.error('Redis connection refused');
           return new Error('Redis Server Connection Error');
@@ -167,9 +178,12 @@ export class CacheService {
         return delay;
       };
 
-      this.redis = createClient(redisConfig);
+      const redisClient = createClient(
+        redisConfig as Parameters<typeof createClient>[0]
+      );
+      this.redis = redisClient;
 
-      this.redis.on('error', (error) => {
+      redisClient.on('error', (error) => {
         logger.warn('Redis connection error, falling back to memory cache:', error.message);
         this.updateRedisHealth('error');
         this.metrics.errors++;
@@ -182,18 +196,18 @@ export class CacheService {
         }
       });
 
-      this.redis.on('connect', () => {
+      redisClient.on('connect', () => {
         logger.info('Redis cache connected successfully');
         this.updateRedisHealth('connected');
       });
 
-      this.redis.on('end', () => {
+      redisClient.on('end', () => {
         logger.warn('Redis connection closed');
         this.updateRedisHealth('disconnected');
       });
 
       // Attempt to connect
-      this.redis.connect().catch((error) => {
+      redisClient.connect().catch((error) => {
         logger.warn('Redis initial connection failed, using memory cache only:', error.message);
         this.updateRedisHealth('error');
         this.redis = null;
@@ -307,8 +321,7 @@ export class CacheService {
   /**
    * Generate a cache key from prefix and data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  generateKey(prefix: string, data: any): string {
+  generateKey(prefix: string, data: unknown): string {
     const hash = crypto
       .createHash('sha256')
       .update(JSON.stringify(data))

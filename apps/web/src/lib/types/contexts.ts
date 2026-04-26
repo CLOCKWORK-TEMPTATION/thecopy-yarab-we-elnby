@@ -2,23 +2,23 @@
 
 export interface CharacterContext {
   name: string;
-  profile?: any;
+  profile?: unknown;
   traits?: string[];
   motivations?: string[];
-  relationships?: any[];
+  relationships?: unknown[];
 }
 
 export interface NarrativeContext {
   themes?: string[];
-  conflicts?: any[];
-  plotPoints?: any[];
-  setting?: any;
+  conflicts?: unknown[];
+  plotPoints?: unknown[];
+  setting?: unknown;
 }
 
 export interface AnalysisContext {
   characters?: CharacterContext[];
   narrative?: NarrativeContext;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Station-specific contexts
@@ -27,24 +27,24 @@ export interface Station2Context {
   elevatorPitch?: string;
   hybridGenre?: string;
   themes?: string[];
-  narrativeStructure?: any;
-  conceptualFramework?: any;
+  narrativeStructure?: unknown;
+  conceptualFramework?: unknown;
   fullText?: string;
   narrativeTone?: string;
   majorCharacters?: string[];
-  relationshipSummary?: any;
+  relationshipSummary?: unknown;
 }
 
 export interface Station3Context {
-  conflictNetwork?: any;
-  characterNetwork?: any;
-  relationshipDynamics?: any;
-  networkMetrics?: any;
-  socialStructure?: any;
+  conflictNetwork?: unknown;
+  characterNetwork?: unknown;
+  relationshipDynamics?: unknown;
+  networkMetrics?: unknown;
+  socialStructure?: unknown;
   fullText?: string;
   majorCharacters?: string[];
-  characterProfiles?: Map<string, any>;
-  relationshipData?: any[];
+  characterProfiles?: Map<string, unknown>;
+  relationshipData?: unknown[];
 }
 
 export type Context = AnalysisContext;

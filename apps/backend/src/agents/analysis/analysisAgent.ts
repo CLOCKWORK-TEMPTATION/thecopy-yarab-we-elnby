@@ -1,4 +1,5 @@
 import { IntegratedAgent } from '../../services/agents/core/integratedAgent';
+import type { GeminiServiceResponse } from '../../services/agents/core/geminiService';
 import type { AIAgentConfig, ProcessedFile } from '../../types/types';
 import { TaskType, TaskCategory } from '../../types/types';
 
@@ -54,7 +55,7 @@ export class AnalysisAgent extends IntegratedAgent {
     files: ProcessedFile[],
     specialRequirements: string,
     additionalInfo: string
-  ): Promise<any> {
+  ): Promise<GeminiServiceResponse> {
     const result = await this.geminiService.processTextsWithGemini({
       processedFiles: files,
       taskType: TaskType.ANALYSIS,

@@ -13,6 +13,18 @@
       "sharp",
       "winax"
     ],
+    "ignoredBuiltDependencies": [
+      "@firebase/util",
+      "@sentry-internal/node-cpu-profiler",
+      "@sentry/cli",
+      "@tsparticles/engine",
+      "bcrypt",
+      "core-js",
+      "cypress",
+      "msgpackr-extract",
+      "protobufjs",
+      "unrs-resolver"
+    ],
     "overrides": {
       "esbuild@<0.28.0": ">=0.28.0",
       "tmp@<=0.2.3": ">=0.2.4",

@@ -5,9 +5,10 @@
  * Implements a simple interface to abstract the provider details.
  */
 
-import { logger } from '@/utils/logger';
 import axios from 'axios';
 import nodemailer from 'nodemailer';
+
+import { logger } from '@/lib/logger';
 
 // Configuration interfaces
 interface EmailConfig {

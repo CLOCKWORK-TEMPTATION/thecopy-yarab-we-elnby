@@ -57,7 +57,14 @@ interface RunnerRecord {
   status: RunnerStatus;
 }
 
+interface RunnerPathPoint {
+  lat: number;
+  lng: number;
+  recordedAt: string;
+}
+
 const SESSION_STORAGE_KEY = "breakapp.director.currentSessionId";
+const RUNNER_TRAIL_WINDOW_MS = 30 * 60 * 1000;
 
 const STATUS_LABEL_MAP: Record<RunnerStatus, string> = {
   available: "متاح",
@@ -81,6 +88,7 @@ export default function DirectorRunnersMapPage() {
   const [showOffline, setShowOffline] = useState(false);
   const [loading, setLoading] = useState(false);
   const userIdRef = useRef<string | null>(null);
+  const runnerTrailRef = useRef<Map<string, RunnerPathPoint[]>>(new Map());
 
   const { connected, on, off } = useSocket({ auth: true });
 
@@ -88,6 +96,37 @@ export default function DirectorRunnersMapPage() {
   useEffect(() => {
     const user = getCurrentUser();
     userIdRef.current = user?.userId ?? null;
+  }, []);
+
+  const appendRunnerTrail = useCallback((runner: RunnerRecord): void => {
+    const recordedAtMs = new Date(runner.recordedAt).getTime();
+    const cutoff = Number.isNaN(recordedAtMs)
+      ? Date.now() - RUNNER_TRAIL_WINDOW_MS
+      : recordedAtMs - RUNNER_TRAIL_WINDOW_MS;
+    const existing = runnerTrailRef.current.get(runner.runnerId) ?? [];
+    const next = [
+      ...existing,
+      {
+        lat: runner.lat,
+        lng: runner.lng,
+        recordedAt: runner.recordedAt,
+      },
+    ].filter((point) => new Date(point.recordedAt).getTime() >= cutoff);
+    runnerTrailRef.current.set(runner.runnerId, next);
+  }, []);
+
+  const resetRunnerTrails = useCallback((records: RunnerRecord[]): void => {
+    const next = new Map<string, RunnerPathPoint[]>();
+    for (const runner of records) {
+      next.set(runner.runnerId, [
+        {
+          lat: runner.lat,
+          lng: runner.lng,
+          recordedAt: runner.recordedAt,
+        },
+      ]);
+    }
+    runnerTrailRef.current = next;
   }, []);
 
   // استرجاع آخر sessionId محفوظ محلياً
@@ -110,6 +149,7 @@ export default function DirectorRunnersMapPage() {
       const response = await api.get<RunnerRecord[]>(
         `/breakapp/runners/session/${sessionId}`
       );
+      resetRunnerTrails(response.data);
       setRunners(response.data);
     } catch (error: unknown) {
       const axiosError = error as AxiosError;
@@ -121,7 +161,7 @@ export default function DirectorRunnersMapPage() {
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [resetRunnerTrails, sessionId]);
 
   // مزامنة أوليّة عند اختيار الجلسة
   useEffect(() => {
@@ -163,6 +203,7 @@ export default function DirectorRunnersMapPage() {
             recordedAt: nextRecordedAt,
             ...(evt.name !== undefined ? { name: evt.name } : {}),
           };
+          appendRunnerTrail(created);
           return [...prev, created];
         }
         const existing = prev[idx];
@@ -175,6 +216,7 @@ export default function DirectorRunnersMapPage() {
           recordedAt: nextRecordedAt,
           ...(evt.name !== undefined ? { name: evt.name } : {}),
         };
+        appendRunnerTrail(updated);
         const copy = [...prev];
         copy[idx] = updated;
         return copy;
@@ -185,7 +227,7 @@ export default function DirectorRunnersMapPage() {
     return () => {
       off("runner:location:update", handleLocationUpdate);
     };
-  }, [connected, sessionId, on, off]);
+  }, [appendRunnerTrail, connected, sessionId, on, off]);
 
   /**
    * تثبيت معرّف الجلسة المُدخل
@@ -221,21 +263,24 @@ export default function DirectorRunnersMapPage() {
   );
 
   /**
-   * تمثيل الـ runners كـ markers للخريطة
-   * ملاحظة: MapComponent الحالي يقبل `vendors` من نوع VendorMapData فقط،
-   * فنحوّل الـ runners لهذا الشكل مع دمج الحالة داخل الاسم لإبرازها في الـ popup
-   * TODO: توسيع MapComponent لدعم markers ملوّنة (available=أخضر/busy=أصفر/offline=رمادي)
-   * وطبقة polyline لمسار آخر 30 دقيقة عند توفّر API تاريخ المواقع
+   * تمثيل الـ runners كـ markers للخريطة مع لون الحالة ومسار آخر 30 دقيقة.
    */
   const markers = useMemo<VendorMapData[]>(
     () =>
       visibleRunners.map((r) => {
         const label = r.name ?? r.runnerId;
+        const trail = runnerTrailRef.current.get(r.runnerId) ?? [];
         const data: VendorMapData = {
           id: r.runnerId,
           name: `${label} — ${STATUS_LABEL_MAP[r.status]}`,
           lat: r.lat,
           lng: r.lng,
+          markerTone: r.status,
+          statusLabel: STATUS_LABEL_MAP[r.status],
+          path: trail.map((point) => ({
+            lat: point.lat,
+            lng: point.lng,
+          })),
         };
         return data;
       }),

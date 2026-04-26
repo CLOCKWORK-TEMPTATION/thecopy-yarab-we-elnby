@@ -1,6 +1,8 @@
 // CineArchitect AI - AI Resource & Budget Optimizer
 // محسّن الموارد والميزانية الذكي
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput, Budget } from "../../types";
 
 interface BudgetOptimizationInput {
@@ -70,7 +72,7 @@ export class BudgetOptimizer implements Plugin {
   };
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -354,7 +356,7 @@ export class BudgetOptimizer implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

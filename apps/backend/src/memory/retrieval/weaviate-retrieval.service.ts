@@ -1,10 +1,11 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity, @typescript-eslint/no-explicit-any, no-console -- experimental memory retrieval module */
+/* eslint-disable max-lines, max-lines-per-function, complexity, @typescript-eslint/no-explicit-any -- experimental memory retrieval module */
 import { Filters } from "weaviate-client";
 
 import type { RetrievalHit } from "@the-copy/core-memory";
 
 import { embeddingsService } from "@/services/rag/embeddings.service";
 import { definedProps } from "@/utils/defined-props";
+import { logger } from "@/utils/logger";
 
 import type {
   ContextContentType,
@@ -158,7 +159,7 @@ export class WeaviateRetrievalService {
         this.toRetrievalHit(request.name, object, index)
       );
     } catch (error) {
-      console.error(`Error searching ${request.name}:`, error);
+      logger.error(`Error searching ${request.name}`, { error });
       return [];
     }
   }

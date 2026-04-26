@@ -427,7 +427,8 @@ class CacheService {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    const optionsText = encodeRecord(options);
+    const optionsRecord: Record<string, unknown> = { ...options };
+    const optionsText = encodeRecord(optionsRecord);
     const cacheKey = `${url}?${optionsText}`;
 
     // Check if we're offline

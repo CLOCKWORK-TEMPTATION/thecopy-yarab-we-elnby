@@ -1,6 +1,8 @@
 // CineArchitect AI - Plugin Manager
 // مدير الإضافات
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput, PluginCategory } from "../types";
 
 export class PluginManager {
@@ -13,7 +15,7 @@ export class PluginManager {
     }
 
     this.plugins.set(plugin.id, plugin);
-    console.log(
+    logger.info(
       `[PluginManager] Registered plugin: ${plugin.name} (${plugin.nameAr})`
     );
   }
@@ -26,21 +28,21 @@ export class PluginManager {
 
     await plugin.shutdown();
     this.plugins.delete(pluginId);
-    console.log(`[PluginManager] Unregistered plugin: ${plugin.name}`);
+    logger.info(`[PluginManager] Unregistered plugin: ${plugin.name}`);
   }
 
   async initializeAll(): Promise<void> {
-    console.log("[PluginManager] Initializing all plugins in parallel...");
+    logger.info("[PluginManager] Initializing all plugins in parallel");
 
     const initializationPromises = Array.from(this.plugins.values()).map(
       async (plugin) => {
         try {
           await plugin.initialize();
-          console.log(`[PluginManager] Initialized: ${plugin.name}`);
+          logger.info(`[PluginManager] Initialized: ${plugin.name}`);
         } catch (error) {
-          console.error(
-            `[PluginManager] Failed to initialize ${plugin.name}:`,
-            error
+          logger.error(
+            { error, plugin: plugin.name },
+            "[PluginManager] Failed to initialize plugin"
           );
         }
       }
@@ -49,23 +51,23 @@ export class PluginManager {
     await Promise.all(initializationPromises);
 
     this.initialized = true;
-    console.log(
+    logger.info(
       `[PluginManager] All plugins initialization attempted (${this.plugins.size} total)`
     );
   }
 
   async shutdownAll(): Promise<void> {
-    console.log("[PluginManager] Shutting down all plugins in parallel...");
+    logger.info("[PluginManager] Shutting down all plugins in parallel");
 
     const shutdownPromises = Array.from(this.plugins.values()).map(
       async (plugin) => {
         try {
           await plugin.shutdown();
-          console.log(`[PluginManager] Shut down: ${plugin.name}`);
+          logger.info(`[PluginManager] Shut down: ${plugin.name}`);
         } catch (error) {
-          console.error(
-            `[PluginManager] Failed to shut down ${plugin.name}:`,
-            error
+          logger.error(
+            { error, plugin: plugin.name },
+            "[PluginManager] Failed to shut down plugin"
           );
         }
       }
@@ -74,7 +76,7 @@ export class PluginManager {
     await Promise.all(shutdownPromises);
 
     this.initialized = false;
-    console.log(
+    logger.info(
       `[PluginManager] All plugins shutdown attempted (${this.plugins.size} total)`
     );
   }

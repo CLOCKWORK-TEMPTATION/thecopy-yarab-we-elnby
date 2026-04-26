@@ -29,4 +29,4 @@ export interface UnifiedLogger {
   child: (bindings: LogContext) => UnifiedLogger;
 }
 
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";

@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface SetPiece {
@@ -80,7 +82,7 @@ export class SetReusabilityOptimizer implements Plugin {
 
   async initialize(): Promise<void> {
     this.initializeTransformations();
-    console.log(
+    logger.info(
       `[${this.name}] Initialized with ${this.styleTransformations.size} transformation templates`
     );
   }
@@ -567,7 +569,7 @@ export class SetReusabilityOptimizer implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

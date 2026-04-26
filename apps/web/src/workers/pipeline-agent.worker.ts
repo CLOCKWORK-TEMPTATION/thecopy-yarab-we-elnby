@@ -3,9 +3,12 @@
  * Handles heavy AI pipeline processing off the main thread
  */
 
+import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
+
 import type {
   PipelineAgentMessage,
   PipelineAgentResult,
+  PipelineStepResult,
 } from "./pipeline-agent-types";
 
 function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
@@ -60,7 +63,7 @@ async function executePipeline(
   try {
     sendProgress(executionId, 0, steps.length, "started");
 
-    const results = new Map<string, any>();
+    const results = new Map<string, PipelineStepResult>();
     const executedSteps = new Set<string>();
 
     for (let i = 0; i < steps.length; i++) {
@@ -139,16 +142,16 @@ async function executeStep(
  * Core step execution logic
  */
 async function executeStepLogic(
-  step: any,
-  inputData: Record<string, any>,
-  previousResults: Map<string, any>
-): Promise<any> {
+  step: PipelineStep,
+  inputData: PipelineInputData,
+  previousResults: Map<string, PipelineStepResult>
+): Promise<PipelineStepResult> {
   const startTime = Date.now();
 
   // Simulate API call with timeout
   const timeout = step.timeout ?? 60000;
 
-  const executionPromise = new Promise((resolve) => {
+  const executionPromise = new Promise<PipelineStepResult>((resolve) => {
     // In real implementation, this would call the API endpoint
     // For now, simulate processing
     setTimeout(() => {
@@ -164,7 +167,7 @@ async function executeStepLogic(
     }, 1000); // Simulate 1s processing
   });
 
-  const timeoutPromise = new Promise((_, reject) => {
+  const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(`Step ${step.id} timed out`)), timeout);
   });
 
@@ -205,7 +208,10 @@ function sendProgress(
 /**
  * Send completion
  */
-function sendComplete(executionId: string, results: Map<string, any>) {
+function sendComplete(
+  executionId: string,
+  results: Map<string, PipelineStepResult>
+) {
   const response: PipelineAgentResult = {
     type: "complete",
     executionId,

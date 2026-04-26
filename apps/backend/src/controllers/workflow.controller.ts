@@ -4,12 +4,164 @@
  */
 
 import { Request, Response } from 'express';
-import { multiAgentOrchestrator } from '@/services/agents/orchestrator';
 import { getPresetWorkflow, PRESET_WORKFLOWS, type PresetWorkflowName } from '@/services/agents/core/workflow-presets';
 import { logger } from '@/utils/logger';
 import { StandardAgentInput } from '@/services/agents/core/types';
-import type { WorkflowConfig } from '@/services/agents/core/workflow-types';
+import { workflowExecutor } from '@/services/agents/core/workflow-executor';
+import { WorkflowStatus, type WorkflowConfig, type WorkflowEvent, type WorkflowMetrics } from '@/services/agents/core/workflow-types';
 import { z } from 'zod';
+
+interface WorkflowProgressRecord {
+  workflowId: string;
+  name: string;
+  status: WorkflowStatus;
+  currentStep?: string;
+  totalSteps: number;
+  completedSteps: number;
+  failedSteps: number;
+  progress: number;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  metrics?: WorkflowMetrics;
+  error?: string;
+  estimatedTimeRemaining?: number;
+}
+
+const MAX_WORKFLOW_HISTORY = 100;
+const activeWorkflows = new Map<string, WorkflowProgressRecord>();
+const workflowHistory: WorkflowProgressRecord[] = [];
+
+function calculateProgress(record: WorkflowProgressRecord): number {
+  if (record.totalSteps === 0) {
+    return record.status === WorkflowStatus.COMPLETED ? 100 : 0;
+  }
+
+  return Math.min(
+    100,
+    Math.round(
+      ((record.completedSteps + record.failedSteps) / record.totalSteps) * 100
+    )
+  );
+}
+
+function calculateEstimatedTimeRemaining(record: WorkflowProgressRecord): number | undefined {
+  const finishedSteps = record.completedSteps + record.failedSteps;
+  const remainingSteps = record.totalSteps - finishedSteps;
+  if (finishedSteps <= 0 || remainingSteps <= 0) {
+    return undefined;
+  }
+
+  const elapsed = Date.now() - new Date(record.startedAt).getTime();
+  return Math.round((elapsed / finishedSteps) * remainingSteps);
+}
+
+function startWorkflowProgress(config: WorkflowConfig): WorkflowProgressRecord {
+  const now = new Date().toISOString();
+  const record: WorkflowProgressRecord = {
+    workflowId: config.id,
+    name: config.name,
+    status: WorkflowStatus.RUNNING,
+    totalSteps: config.steps.length,
+    completedSteps: 0,
+    failedSteps: 0,
+    progress: 0,
+    startedAt: now,
+    updatedAt: now,
+  };
+  activeWorkflows.set(config.id, record);
+  return record;
+}
+
+function finalizeWorkflowProgress(
+  workflowId: string,
+  status: WorkflowStatus,
+  metrics?: WorkflowMetrics,
+  error?: string
+): void {
+  const record = activeWorkflows.get(workflowId);
+  if (!record) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  record.status = status;
+  record.updatedAt = now;
+  record.completedAt = now;
+  if (metrics) {
+    record.metrics = metrics;
+  }
+  if (error) {
+    record.error = error;
+  }
+  record.progress = status === WorkflowStatus.COMPLETED ? 100 : calculateProgress(record);
+  workflowHistory.unshift({ ...record });
+  if (workflowHistory.length > MAX_WORKFLOW_HISTORY) {
+    workflowHistory.pop();
+  }
+}
+
+function extractEventError(event: WorkflowEvent): string | undefined {
+  if (!event.data || typeof event.data !== 'object') {
+    return undefined;
+  }
+
+  const data = event.data as Record<string, unknown>;
+  const error = data["error"];
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return undefined;
+}
+
+function updateWorkflowProgressFromEvent(event: WorkflowEvent): void {
+  const record = activeWorkflows.get(event.workflowId);
+  if (!record) {
+    return;
+  }
+
+  record.updatedAt = event.timestamp.toISOString();
+
+  if (event.type === 'step-started') {
+    if (typeof event.stepId === 'string') {
+      record.currentStep = event.stepId;
+    }
+    record.status = WorkflowStatus.RUNNING;
+  } else if (event.type === 'step-completed') {
+    record.completedSteps += 1;
+    if (typeof event.stepId === 'string') {
+      record.currentStep = event.stepId;
+    }
+  } else if (event.type === 'step-failed') {
+    record.failedSteps += 1;
+    if (typeof event.stepId === 'string') {
+      record.currentStep = event.stepId;
+    }
+    const eventError = extractEventError(event);
+    if (eventError) {
+      record.error = eventError;
+    }
+  }
+
+  record.progress = calculateProgress(record);
+  const estimatedTimeRemaining = calculateEstimatedTimeRemaining(record);
+  if (estimatedTimeRemaining === undefined) {
+    delete record.estimatedTimeRemaining;
+  } else {
+    record.estimatedTimeRemaining = estimatedTimeRemaining;
+  }
+}
+
+for (const eventType of [
+  'step-started',
+  'step-completed',
+  'step-failed',
+] as const) {
+  workflowExecutor.on(eventType, updateWorkflowProgressFromEvent);
+}
 
 const workflowInputSchema = z.object({
   input: z.string().optional(),
@@ -60,7 +212,10 @@ export async function executeWorkflow(req: Request, res: Response) {
       options: input.options || {},
     };
 
-    const result = await multiAgentOrchestrator.executeWorkflow(preset as PresetWorkflowName, agentInput);
+    const workflow = getPresetWorkflow(preset as PresetWorkflowName);
+    startWorkflowProgress(workflow);
+    const result = await workflowExecutor.execute(workflow, agentInput);
+    finalizeWorkflowProgress(workflow.id, result.status, result.metrics);
 
     return res.json({
       success: true,
@@ -92,7 +247,7 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
       });
     }
     const { config: rawConfig, input } = validation.data;
-    const config = rawConfig as WorkflowConfig;
+    const config = rawConfig as unknown as WorkflowConfig;
 
     logger.info(`[Workflow API] Executing custom workflow: ${config.name}`);
 
@@ -102,7 +257,9 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
       options: input.options || {},
     };
 
-    const result = await multiAgentOrchestrator.executeCustomWorkflow(config, agentInput);
+    startWorkflowProgress(config);
+    const result = await workflowExecutor.execute(config, agentInput);
+    finalizeWorkflowProgress(config.id, result.status, result.metrics);
 
     return res.json({
       success: true,
@@ -153,26 +310,36 @@ export async function getWorkflowPresets(_req: Request, res: Response) {
 }
 
 /**
- * Get workflow progress (placeholder for future implementation)
+ * Get workflow progress.
  */
 export async function getWorkflowProgress(req: Request, res: Response) {
   try {
-    const { workflowId } = req.params;
+    const workflowParam = req.params["workflowId"];
+    const workflowId = Array.isArray(workflowParam)
+      ? workflowParam[0]
+      : workflowParam;
 
-    // TODO: Implement real-time progress tracking
-    // For now, return mock data
+    if (!workflowId) {
+      return res["status"](400).json({
+        success: false,
+        error: 'يجب توفير معرّف الورك فلو',
+      });
+    }
+
+    const record =
+      activeWorkflows.get(workflowId) ??
+      workflowHistory.find((item) => item.workflowId === workflowId);
+
+    if (!record) {
+      return res["status"](404).json({
+        success: false,
+        error: 'حالة الورك فلو غير موجودة',
+      });
+    }
+
     return res.json({
       success: true,
-      data: {
-        workflowId,
-        status: 'running',
-        currentStep: 'step-3',
-        totalSteps: 7,
-        completedSteps: 3,
-        failedSteps: 0,
-        progress: 43,
-        estimatedTimeRemaining: 120000,
-      },
+      data: record,
     });
   } catch (error) {
     logger.error('[Workflow API] Failed to get progress:', error);
@@ -184,15 +351,13 @@ export async function getWorkflowProgress(req: Request, res: Response) {
 }
 
 /**
- * Get workflow history (placeholder for future implementation)
+ * Get workflow history.
  */
-export async function getWorkflowHistory(res: Response) {
+export async function getWorkflowHistory(_req: Request, res: Response) {
   try {
-    // TODO: Implement workflow history tracking in database
-    // For now, return empty array
     return res.json({
       success: true,
-      data: [],
+      data: workflowHistory,
     });
   } catch (error) {
     logger.error('[Workflow API] Failed to get history:', error);
@@ -274,4 +439,16 @@ export const workflowController = {
    * POST /api/workflow/execute-custom
    */
   executeCustom: executeCustomWorkflow,
+
+  /**
+   * Get workflow progress by id
+   * GET /api/workflow/progress/:workflowId
+   */
+  progress: getWorkflowProgress,
+
+  /**
+   * List recent workflow executions
+   * GET /api/workflow/history
+   */
+  history: getWorkflowHistory,
 };

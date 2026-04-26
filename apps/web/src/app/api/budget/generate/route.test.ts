@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -20,7 +20,7 @@ interface GenerateResponse {
 
 vi.mock("@/lib/server/backend-proxy", () => ({
   buildProxyErrorResponse: vi.fn((error: unknown, fallbackMessage: string) =>
-    Response.json(
+    NextResponse.json(
       {
         success: false,
         error:
@@ -40,7 +40,7 @@ describe("/api/budget/generate", () => {
   });
 
   it("يمرر طلب إنشاء الميزانية إلى خدمة الخلفية", async () => {
-    const proxiedResponse = Response.json({
+    const proxiedResponse = NextResponse.json({
       success: true,
       data: { budget: { grandTotal: 50000 } },
     });

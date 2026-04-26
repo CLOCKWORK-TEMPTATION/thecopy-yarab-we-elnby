@@ -4,6 +4,46 @@ import { AIAgentCapabilities, AIAgentConfig } from "@core/types";
 import { log } from "@services/loggerService";
 
 // =====================================
+
+interface AgentPerformanceMetrics {
+  successRate: number;
+  averageExecutionTime: number;
+  resourceUsage: number | string;
+  userSatisfactionScore: number;
+  adaptationRate: number;
+}
+
+interface PerformanceLogEntry {
+  timestamp: number;
+  executionTime: number;
+  accuracy: number;
+  resourceUsage: number;
+  memoryUsage?: number;
+  cacheHitRate?: number;
+}
+
+interface PerformanceAnalytics {
+  averageExecutionTime: number;
+  averageAccuracy: number;
+  averageResourceUsage: number;
+  trendDirection: "improving" | "stable" | "declining";
+  totalExecutions: number;
+}
+
+interface BenchmarkResult {
+  agent?: string;
+  complexity: number;
+  accuracy: number;
+  speed: number | string;
+  resources: number | string;
+  cached: boolean;
+}
+
+function toKnownTaskType(value: string): TaskType | null {
+  return Object.values(TaskType).includes(value as TaskType)
+    ? (value as TaskType)
+    : null;
+}
 // AI AGENT ORCHESTRATION SYSTEM
 // =====================================
 
@@ -15,10 +55,10 @@ class AIAgentOrchestraManager {
   private static instance: AIAgentOrchestraManager;
   private agents = new Map<TaskType, AIAgentConfig>();
   private collaborationGraph = new Map<TaskType, Set<TaskType>>();
-  private performanceMetrics = new Map<TaskType, any>();
+  private performanceMetrics = new Map<TaskType, AgentPerformanceMetrics>();
 
   // Advanced AI Memory System
-  private episodicMemory = new Map<string, any[]>();
+  private episodicMemory = new Map<TaskType, unknown[]>();
 
   private constructor() {
     this.initializeAgentOrchestra();
@@ -38,7 +78,10 @@ class AIAgentOrchestraManager {
    */
   private initializeAgentOrchestra(): void {
     AGENT_CONFIGS.forEach((config: AIAgentConfig) => {
-      this.agents.set(config.id as any, config);
+      const taskType = toKnownTaskType(config.id);
+      if (taskType) {
+        this.agents.set(taskType, config);
+      }
     });
   }
 
@@ -51,17 +94,20 @@ class AIAgentOrchestraManager {
 
       // Direct collaborations
       agent.collaboratesWith?.forEach((collaboratorId: string) => {
-        collaborators.add(collaboratorId as any);
+        const taskType = toKnownTaskType(collaboratorId);
+        if (taskType) collaborators.add(taskType);
       });
 
       // Dependencies
       agent.dependsOn?.forEach((dependencyId: string) => {
-        collaborators.add(dependencyId as any);
+        const taskType = toKnownTaskType(dependencyId);
+        if (taskType) collaborators.add(taskType);
       });
 
       // Enhanced agents
       agent.enhances?.forEach((enhancedId: string) => {
-        collaborators.add(enhancedId as any);
+        const taskType = toKnownTaskType(enhancedId);
+        if (taskType) collaborators.add(taskType);
       });
 
       this.collaborationGraph.set(agentId, collaborators);
@@ -126,7 +172,10 @@ class AIAgentOrchestraManager {
       const agent = this.agents.get(taskType);
       if (agent) {
         // Process dependencies first
-        agent.dependsOn?.forEach((dep: string) => dfs(dep as any));
+        agent.dependsOn?.forEach((dep: string) => {
+          const dependency = toKnownTaskType(dep);
+          if (dependency) dfs(dependency);
+        });
         result.push(taskType);
       }
     };
@@ -138,7 +187,9 @@ class AIAgentOrchestraManager {
   /**
    * Get performance metrics for monitoring
    */
-  public getPerformanceMetrics(taskType: TaskType): any {
+  public getPerformanceMetrics(
+    taskType: TaskType
+  ): AgentPerformanceMetrics | undefined {
     return this.performanceMetrics.get(taskType);
   }
 
@@ -177,7 +228,7 @@ class AIAgentOrchestraManager {
   /**
    * Memory management for episodic learning
    */
-  public storeEpisode(taskType: TaskType, episode: any): void {
+  public storeEpisode(taskType: TaskType, episode: unknown): void {
     const episodes = this.episodicMemory.get(taskType) ?? [];
     episodes.push(episode);
 
@@ -192,7 +243,7 @@ class AIAgentOrchestraManager {
   /**
    * Retrieve relevant episodes for learning
    */
-  public getRelevantEpisodes(taskType: TaskType, limit = 10): any[] {
+  public getRelevantEpisodes(taskType: TaskType, limit = 10): unknown[] {
     const episodes = this.episodicMemory.get(taskType) ?? [];
     return episodes.slice(-limit);
   }
@@ -224,7 +275,7 @@ export const ENHANCED_TASK_DESCRIPTIONS = Object.freeze(
  */
 export class AIAgentMonitor {
   private static instance: AIAgentMonitor;
-  private performanceLog = new Map<string, any[]>();
+  private performanceLog = new Map<TaskType, PerformanceLogEntry[]>();
 
   private constructor() {}
 
@@ -266,7 +317,7 @@ export class AIAgentMonitor {
   /**
    * Get performance analytics
    */
-  public getAnalytics(taskType: TaskType): any {
+  public getAnalytics(taskType: TaskType): PerformanceAnalytics | null {
     const logs = this.performanceLog.get(taskType) ?? [];
     if (logs.length === 0) return null;
 
@@ -447,11 +498,11 @@ export const AI_AGENT_DEV_UTILS =
           log.info("⚡ AI Agent Performance Benchmark", null, "Orchestration");
 
           const agents = aiAgentOrchestra.getAllAgents();
-          const benchmarkResults: any[] = [];
+          const benchmarkResults: BenchmarkResult[] = [];
 
           agents.forEach((agent) => {
             benchmarkResults.push({
-              agent: agent.name,
+              agent: agent.name ?? agent.id,
               complexity: agent.capabilities?.complexityScore ?? 0,
               accuracy: agent.capabilities?.accuracyLevel ?? 0,
               speed: agent.capabilities?.processingSpeed ?? 0,

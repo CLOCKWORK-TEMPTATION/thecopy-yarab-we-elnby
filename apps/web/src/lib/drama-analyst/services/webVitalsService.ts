@@ -1,12 +1,13 @@
 // Web Vitals Service for Drama Analyst
 // Monitors Core Web Vitals and performance metrics
 
-import { onCLS, onINP, onFCP, onLCP, onTTFB, Metric } from "web-vitals";
+import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
+import type { Metric } from "web-vitals";
 
 import { log } from "./loggerService";
 import { reportError, addBreadcrumb } from "./observability";
 // No-op replacement for missing GA function
-const sendGAEvent = (..._args: any[]) => {};
+const sendGAEvent = (..._args: unknown[]) => {};
 
 interface WebVitalsConfig {
   enableGA4: boolean;
@@ -16,9 +17,40 @@ interface WebVitalsConfig {
   debug: boolean;
 }
 
-interface CustomMetric extends Metric {
-  customData?: Record<string, any>;
+interface CustomMetric {
+  name: string;
+  value: number;
+  delta: number;
+  id: string;
+  navigationType: string;
+  rating: Metric["rating"];
+  entries: PerformanceEntry[];
+  customData?: Record<string, unknown>;
 }
+
+type NavigatorWithConnection = Navigator & {
+  connection?: {
+    effectiveType?: string;
+  };
+};
+
+type PerformanceNavigationTimingWithDomLoading = PerformanceNavigationTiming & {
+  domLoading?: number;
+};
+
+type PerformanceEntryWithDetail = PerformanceEntry & {
+  detail?: unknown;
+};
+
+type GtagFunction = (
+  command: string,
+  eventName: string,
+  params?: Record<string, unknown>
+) => void;
+
+type WindowWithGtag = Window & {
+  gtag?: GtagFunction;
+};
 
 class WebVitalsService {
   private config: WebVitalsConfig;
@@ -121,7 +153,7 @@ class WebVitalsService {
             value: navEntry.loadEventEnd - navEntry.fetchStart,
             delta: navEntry.loadEventEnd - navEntry.fetchStart,
             id: `nav-${Date.now()}`,
-            navigationType: navEntry.type as any,
+            navigationType: navEntry.type,
             rating: "good",
             entries: [],
             customData: {
@@ -134,7 +166,9 @@ class WebVitalsService {
               request: navEntry.responseStart - navEntry.requestStart,
               response: navEntry.responseEnd - navEntry.responseStart,
               domProcessing:
-                navEntry.domComplete - ((navEntry as any).domLoading ?? 0),
+                navEntry.domComplete -
+                ((navEntry as PerformanceNavigationTimingWithDomLoading)
+                  .domLoading ?? 0),
             },
           };
 
@@ -157,7 +191,7 @@ class WebVitalsService {
           if (resourceEntry.duration > 1000) {
             // Resources taking longer than 1 second
             const customMetric: CustomMetric = {
-              name: "SlowResource" as any,
+              name: "SlowResource",
               value: resourceEntry.duration,
               delta: resourceEntry.duration,
               id: `resource-${Date.now()}`,
@@ -191,7 +225,7 @@ class WebVitalsService {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === "longtask") {
           const customMetric: CustomMetric = {
-            name: "LongTask" as any,
+            name: "LongTask",
             value: entry.duration,
             delta: entry.duration,
             id: `longtask-${Date.now()}`,
@@ -245,7 +279,7 @@ class WebVitalsService {
 
       if (name.includes("file-processing")) {
         const customMetric: CustomMetric = {
-          name: "FileProcessingTime" as any,
+          name: "FileProcessingTime",
           value: result.duration,
           delta: result.duration,
           id: `file-processing-${Date.now()}`,
@@ -278,7 +312,7 @@ class WebVitalsService {
         const endTime = performance.now();
 
         const customMetric: CustomMetric = {
-          name: "APICallTime" as any,
+          name: "APICallTime",
           value: endTime - startTime,
           delta: endTime - startTime,
           id: `api-${Date.now()}`,
@@ -299,7 +333,7 @@ class WebVitalsService {
         const endTime = performance.now();
 
         const customMetric: CustomMetric = {
-          name: "APICallError" as any,
+          name: "APICallError",
           value: endTime - startTime,
           delta: endTime - startTime,
           id: `api-error-${Date.now()}`,
@@ -344,7 +378,7 @@ class WebVitalsService {
 
             if (isComponentMeasure) {
               const customMetric: CustomMetric = {
-                name: "ComponentRender" as any,
+                name: "ComponentRender",
                 value: entry.duration,
                 delta: entry.duration,
                 id: `component-${Date.now()}`,
@@ -355,7 +389,7 @@ class WebVitalsService {
                   componentName: entry.name,
                   duration: entry.duration,
                   startTime: entry.startTime,
-                  detail: (entry as any).detail,
+                  detail: (entry as PerformanceEntryWithDetail).detail,
                 },
               };
 
@@ -500,7 +534,8 @@ class WebVitalsService {
         timestamp: Date.now(),
         user_agent: navigator.userAgent,
         connection_type:
-          (navigator as any).connection?.effectiveType ?? "unknown",
+          (navigator as NavigatorWithConnection).connection?.effectiveType ??
+          "unknown",
         // Add custom data
         ...metric.customData,
       });
@@ -525,9 +560,12 @@ class WebVitalsService {
       log.error("❌ Failed to send to GA4", null, "WebVitalsService");
 
       // Fallback to direct gtag if available
-      if (typeof window !== "undefined" && (window as any).gtag) {
+      const analyticsWindow =
+        typeof window !== "undefined" ? (window as WindowWithGtag) : null;
+
+      if (analyticsWindow?.gtag) {
         try {
-          (window as any).gtag("event", name, {
+          analyticsWindow.gtag("event", name, {
             event_category: "Web Vitals",
             event_label: metric.id,
             value: Math.round(metric.value),
@@ -640,10 +678,10 @@ class WebVitalsService {
   private measureCustomMetric(
     name: string,
     value: number,
-    customData?: Record<string, any>
+    customData?: Record<string, unknown>
   ): void {
     const customMetric: CustomMetric = {
-      name: name as any,
+      name,
       value,
       delta: value,
       id: `${name.toLowerCase()}-${Date.now()}`,

@@ -1,4 +1,3 @@
-/* eslint-disable no-console, @typescript-eslint/no-explicit-any -- experimental vector store module */
 /**
  * Weaviate Vector Store Client
  * عميل قاعدة بيانات المتجهات Weaviate
@@ -7,6 +6,13 @@
 import weaviate, { type Properties, WeaviateClient } from "weaviate-client";
 import { env } from "@/config/env";
 import { definedProps } from "@/utils/defined-props";
+import { logger } from "@/utils/logger";
+
+type WeaviateCollectionSchema = unknown;
+
+interface WeaviateCollectionListItem {
+  name?: string;
+}
 
 export type WeaviateState =
   | "disabled"
@@ -189,19 +195,24 @@ export class WeaviateMemoryStore {
   /**
    * Create a collection if it doesn't exist
    */
-  async ensureCollection(name: string, schema: any): Promise<void> {
+  async ensureCollection(
+    name: string,
+    schema: WeaviateCollectionSchema
+  ): Promise<void> {
     const client = await this.connect();
 
     try {
       // Check if collection exists
       const collection = client.collections.get(name);
       await collection.length(); // This will throw if collection doesn't exist
-      console.log(`Collection ${name} already exists`);
+      logger.info(`Collection ${name} already exists`);
     } catch {
       // Collection doesn't exist, create it
-      console.log(`Creating collection ${name}...`);
-      await client.collections.create(schema);
-      console.log(`✅ Collection ${name} created`);
+      logger.info(`Creating collection ${name}`);
+      await client.collections.create(
+        schema as Parameters<WeaviateClient["collections"]["create"]>[0]
+      );
+      logger.info(`Collection ${name} created`);
     }
   }
 
@@ -212,9 +223,9 @@ export class WeaviateMemoryStore {
     const client = await this.connect();
     try {
       await client.collections.delete(name);
-      console.log(`Deleted collection ${name}`);
+      logger.info(`Deleted collection ${name}`);
     } catch (error) {
-      console.warn(`Failed to delete collection ${name}:`, error);
+      logger.warn(`Failed to delete collection ${name}`, { error });
     }
   }
 
@@ -224,7 +235,9 @@ export class WeaviateMemoryStore {
   async listCollections(): Promise<string[]> {
     const client = await this.connect();
     const collections = await client.collections.listAll();
-    return collections.map((c: any) => c.name);
+    return (collections as WeaviateCollectionListItem[])
+      .map((collection) => collection.name)
+      .filter((name): name is string => typeof name === "string");
   }
 
   /**

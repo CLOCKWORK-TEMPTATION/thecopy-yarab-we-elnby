@@ -1,4 +1,4 @@
-/* eslint-disable no-console, complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental memory module */
+/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental memory module */
 /**
  * Git Watcher
  * مراقب تغييرات Git
@@ -6,6 +6,9 @@
 
 import simpleGit, { SimpleGit } from "simple-git";
 import { EventEmitter } from "eventemitter3";
+
+import { logger } from "@/utils/logger";
+
 import type { GitChangeEvent } from "../types";
 
 export class GitWatcher extends EventEmitter {
@@ -29,9 +32,9 @@ export class GitWatcher extends EventEmitter {
       }
 
       this.lastCheckedCommit = await this.getCurrentCommit();
-      console.log(`GitWatcher initialized at commit ${this.lastCheckedCommit?.slice(0, 7)}`);
+      logger.info(`GitWatcher initialized at commit ${this.lastCheckedCommit?.slice(0, 7)}`);
     } catch (error) {
-      console.error("Failed to initialize GitWatcher:", error);
+      logger.error("Failed to initialize GitWatcher", { error });
       throw error;
     }
   }
@@ -52,16 +55,16 @@ export class GitWatcher extends EventEmitter {
   startWatching(intervalMs: number = 5000): void {
     if (this.pollingInterval) return;
 
-    console.log(`Started watching git changes every ${intervalMs}ms`);
+    logger.info(`Started watching git changes every ${intervalMs}ms`);
 
     this.pollingInterval = setInterval(async () => {
       try {
         const changes = await this.checkForChanges();
         if (changes.length > 0) {
-          console.log(`Detected ${changes.length} changes`);
+          logger.info(`Detected ${changes.length} changes`);
         }
       } catch (error) {
-        console.error("Error checking for changes:", error);
+        logger.error("Error checking for changes", { error });
       }
     }, intervalMs);
   }
@@ -70,7 +73,7 @@ export class GitWatcher extends EventEmitter {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log("Stopped watching git changes");
+      logger.info("Stopped watching git changes");
     }
   }
 
@@ -81,7 +84,7 @@ export class GitWatcher extends EventEmitter {
       return [];
     }
 
-    console.log(
+    logger.info(
       `Commit changed: ${this.lastCheckedCommit?.slice(0, 7)} → ${currentCommit.slice(0, 7)}`
     );
 
@@ -132,7 +135,7 @@ export class GitWatcher extends EventEmitter {
         }
       }
     } catch (error) {
-      console.error("Error getting changes:", error);
+      logger.error("Error getting changes", { error });
     }
 
     this.lastCheckedCommit = currentCommit;
@@ -155,7 +158,7 @@ export class GitWatcher extends EventEmitter {
         date: commit.date,
       }));
     } catch (error) {
-      console.error(`Error getting history for ${filePath}:`, error);
+      logger.error(`Error getting history for ${filePath}`, { error });
       return [];
     }
   }
@@ -178,7 +181,7 @@ export class GitWatcher extends EventEmitter {
         untracked: status.not_added,
       };
     } catch (error) {
-      console.error("Error getting working directory changes:", error);
+      logger.error("Error getting working directory changes", { error });
       return { modified: [], added: [], deleted: [], untracked: [] };
     }
   }
@@ -210,7 +213,7 @@ export class GitWatcher extends EventEmitter {
         ...(remote ? { remoteUrl: remote } : {}),
       };
     } catch (error) {
-      console.error("Error getting repo info:", error);
+      logger.error("Error getting repo info", { error });
       throw error;
     }
   }

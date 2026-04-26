@@ -1,6 +1,8 @@
 // CineArchitect AI - AI Risk Analyzer
 // محلل المخاطر الذكي
 
+import { logger } from "@/lib/logger";
+
 import {
   Plugin,
   PluginInput,
@@ -106,7 +108,7 @@ export class RiskAnalyzer implements Plugin {
   category = "safety" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -474,7 +476,7 @@ export class RiskAnalyzer implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

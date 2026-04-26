@@ -8,13 +8,15 @@
  * مستويات التسجيل المدعومة (مرتبة حسب الأولوية تصاعدياً):
  *   trace → debug → info → warn → error → fatal
  *
- * كيفية الاستخدام:
- *   import { logger } from '@/lib/logger';
- *   logger.info({ requestId: 'abc' }, 'request received');
+ * توافق مزدوج للـ API (مهم لمنع انحدار قابلية الرصد أثناء الـ migration):
+ *   - الأسلوب الأصيل لـ pino:
+ *       logger.info({ requestId }, 'received');
+ *   - الأسلوب الموروث من winston (مدعوم عبر مُحوِّل):
+ *       logger.info('received', { requestId });
+ *       logger.error('failed', errorObject);
  *
- *   // logger فرعي بسياق ثابت لمكوّن معيّن
- *   const moduleLogger = logger.child({ module: 'breakapp.routes' });
- *   moduleLogger.warn({ userId: 123 }, 'rate limit hit');
+ *   المُحوِّل يلتقط نمطَي الاستدعاء بأمان فلا يضيع context أو error
+ *   عند الاستيراد من ملفات لم يُحدَّث نمط الاستدعاء فيها بعد.
  *
  * ضمانات الأمان:
  *   - أي حقل يُطابق نمط من الأسرار (TIPTAP_PRO_TOKEN, JWT_SECRET, *_API_KEY, *_TOKEN, password, authorization, cookie, secret)
@@ -79,10 +81,10 @@ function buildLoggerOptions(): LoggerOptions {
   const baseLevel = isDevelopment ? 'debug' : isProduction ? 'info' : 'warn';
 
   const options: LoggerOptions = {
-    level: process.env['LOG_LEVEL'] ?? baseLevel,
+    level: process.env.LOG_LEVEL ?? baseLevel,
     base: {
       service: 'the-copy-backend',
-      env: process.env['NODE_ENV'] ?? 'unknown',
+      env: process.env.NODE_ENV ?? 'unknown',
       pid: process.pid,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -103,7 +105,7 @@ function buildLoggerOptions(): LoggerOptions {
   };
 
   // وضع التطوير: pino-pretty عند الطلب فقط (يبقى JSON الافتراضي حتى في dev لمنع كسر CI)
-  if (isDevelopment && process.env['LOG_PRETTY'] === 'true') {
+  if (isDevelopment && process.env.LOG_PRETTY === 'true') {
     options.transport = {
       target: 'pino-pretty',
       options: {
@@ -119,9 +121,96 @@ function buildLoggerOptions(): LoggerOptions {
 }
 
 // ----------------------------------------------------------------------------
+// مُحوِّل توافق winston→pino على مستوى الاستدعاء
+// ----------------------------------------------------------------------------
+type LevelMethod = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+type CompatibleLogMethod = (
+  arg1: unknown,
+  arg2?: unknown,
+  ...rest: unknown[]
+) => void;
+type CompatibleLogger = Omit<PinoLogger, LevelMethod | 'child'> &
+  Record<LevelMethod, CompatibleLogMethod> & {
+    child(...childArgs: Parameters<PinoLogger['child']>): CompatibleLogger;
+  };
+
+const LEVEL_METHODS: ReadonlySet<LevelMethod> = new Set([
+  'trace',
+  'debug',
+  'info',
+  'warn',
+  'error',
+  'fatal',
+]);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    !(value instanceof Date)
+  );
+}
+
+/**
+ * يلفّ instance من pino لقبول استدعاءات بأسلوب winston:
+ *   logger.info('msg', { ctx })          → pino.info({ ctx }, 'msg')
+ *   logger.error('msg', errorInstance)   → pino.error({ err: errorInstance }, 'msg')
+ *   logger.info({ ctx }, 'msg')          → يمر كما هو (pino-style)
+ *   logger.info('msg')                   → يمر كما هو
+ *
+ * يُلفّ كذلك child() حتى يحصل الـ logger الفرعي على نفس التوافق.
+ */
+type AnyLogFn = (...args: unknown[]) => void;
+
+function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
+  return new Proxy(base, {
+    get(target, prop, receiver) {
+      if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
+        const method = prop as LevelMethod;
+        const original = target[method] as unknown as AnyLogFn;
+        return function adaptedLogMethod(
+          this: unknown,
+          arg1: unknown,
+          arg2?: unknown,
+          ...rest: unknown[]
+        ): void {
+          // Winston-style: (message: string, errorOrContext?: Error | object)
+          if (typeof arg1 === 'string' && arg2 !== undefined) {
+            if (arg2 instanceof Error) {
+              original.call(target, { err: arg2 }, arg1);
+              return;
+            }
+            if (isPlainObject(arg2)) {
+              original.call(target, arg2, arg1);
+              return;
+            }
+          }
+          // Pino-style أو نص بدون ميتا: مرر كما هو
+          original.call(target, arg1, arg2, ...rest);
+        };
+      }
+
+      if (prop === 'child') {
+        return function adaptedChild(
+          this: unknown,
+          ...childArgs: Parameters<PinoLogger['child']>
+        ): CompatibleLogger {
+          const childInstance = target.child(...childArgs) as unknown as PinoLogger;
+          return adaptPinoLogger(childInstance);
+        };
+      }
+
+      return Reflect.get(target, prop, receiver);
+    },
+  }) as CompatibleLogger;
+}
+
+// ----------------------------------------------------------------------------
 // الـ logger المُصدَّر
 // ----------------------------------------------------------------------------
-export const logger: PinoLogger = pino(buildLoggerOptions());
+const basePinoLogger = pino(buildLoggerOptions());
+export const logger: CompatibleLogger = adaptPinoLogger(basePinoLogger);
 
 /**
  * إنشاء logger فرعي بسياق ثابت.
@@ -131,7 +220,10 @@ export const logger: PinoLogger = pino(buildLoggerOptions());
  *   const log = createModuleLogger('breakapp.repository');
  *   log.info({ userId }, 'querying user');
  */
-export function createModuleLogger(moduleName: string, extraContext: Record<string, unknown> = {}): PinoLogger {
+export function createModuleLogger(
+  moduleName: string,
+  extraContext: Record<string, unknown> = {},
+): CompatibleLogger {
   return logger.child({ module: moduleName, ...extraContext });
 }
 
@@ -149,9 +241,4 @@ export interface LogContext {
   [key: string]: unknown;
 }
 
-export type Logger = PinoLogger;
-
-// ----------------------------------------------------------------------------
-// تصدير افتراضي للتوافق مع نمط import الشائع
-// ----------------------------------------------------------------------------
-export default logger;
+export type Logger = CompatibleLogger;

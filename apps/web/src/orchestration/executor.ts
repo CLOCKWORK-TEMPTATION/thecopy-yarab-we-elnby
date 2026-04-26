@@ -6,6 +6,9 @@ import { logger } from "@/lib/ai/utils/logger";
 import { cachedGeminiCall, generateGeminiCacheKey } from "@/lib/redis";
 import { AnalysisType } from "@/types/enums";
 
+export type PipelineInputData = Record<string, unknown>;
+export type PipelineTaskStatus = "queued" | "running" | "completed" | "failed";
+
 export interface PipelineStep {
   id: string;
   name: string;
@@ -20,7 +23,7 @@ export interface PipelineStep {
 export interface PipelineResult {
   stepId: string;
   success: boolean;
-  data?: any;
+  data?: string;
   error?: string;
   duration: number;
   cached: boolean;
@@ -36,6 +39,37 @@ export interface PipelineExecution {
   endTime?: Date;
 }
 
+export interface PipelineTaskRequest {
+  pipelineId?: string;
+  steps: PipelineStep[];
+  inputData: PipelineInputData;
+  priority?: "low" | "normal" | "high";
+}
+
+export interface PipelineTaskSubmission {
+  success: true;
+  taskId: string;
+  pipelineId: string;
+  status: PipelineTaskStatus;
+  queuedAt: string;
+}
+
+interface PipelineTaskState extends PipelineTaskSubmission {
+  request: PipelineTaskRequest;
+  startedAt?: string;
+  completedAt?: string;
+  execution?: PipelineExecution;
+  error?: string;
+}
+
+const submittedTasks = new Map<string, PipelineTaskState>();
+let taskSequence = 0;
+
+function createTaskId(): string {
+  taskSequence += 1;
+  return `task_${Date.now()}_${taskSequence}`;
+}
+
 // Orchestrator class
 export class PipelineOrchestrator {
   private activeExecutions = new Map<string, PipelineExecution>();
@@ -44,7 +78,7 @@ export class PipelineOrchestrator {
   async executePipeline(
     pipelineId: string,
     steps: PipelineStep[],
-    inputData: Record<string, any>
+    inputData: PipelineInputData
   ): Promise<PipelineExecution> {
     const execution: PipelineExecution = {
       id: pipelineId,
@@ -95,7 +129,7 @@ export class PipelineOrchestrator {
   // Execute individual step with caching and error handling
   private async executeStep(
     step: PipelineStep,
-    inputData: Record<string, any>
+    inputData: PipelineInputData
   ): Promise<PipelineResult> {
     const startTime = Date.now();
 
@@ -175,7 +209,7 @@ export class PipelineOrchestrator {
   // Build prompt for step execution
   private buildStepPrompt(
     step: PipelineStep,
-    inputData: Record<string, any>
+    inputData: PipelineInputData
   ): string {
     const basePrompts: Record<AnalysisType, string> = {
       [AnalysisType.CHARACTERS]:
@@ -216,36 +250,72 @@ export class PipelineOrchestrator {
   }
 }
 
-/**
- * Submit a task to the executor
- *
- * DEV STUB: Currently returns mock submission response
- * TODO PRODUCTION: Implement actual task queue integration
- *
- * Production implementation should:
- * 1. Validate taskRequest structure
- * 2. Submit to task queue (Redis Queue, BullMQ, etc.)
- * 3. Return actual task ID from queue
- * 4. Track task state in database
- */
-export async function submitTask(taskRequest: any): Promise<any> {
-  // Development mode: return mock response
-  if (process.env.NODE_ENV !== "production") {
-    logger.warn("[DEV STUB] submitTask: returning mock response");
+async function processSubmittedTask(taskId: string): Promise<void> {
+  const task = submittedTasks.get(taskId);
+  if (!task) {
+    return;
   }
 
-  // TODO PRODUCTION: Implement actual task submission
-  // Example:
-  // const taskId = await taskQueue.add('analysis', taskRequest);
-  // await db.tasks.create({ id: taskId, status: 'queued', data: taskRequest });
-  // return { success: true, taskId, status: 'queued' };
+  task.status = "running";
+  task.startedAt = new Date().toISOString();
+
+  try {
+    const execution = await pipelineExecutor.executePipeline(
+      task.pipelineId,
+      task.request.steps,
+      task.request.inputData
+    );
+    task.execution = execution;
+    task.status = execution.status === "completed" ? "completed" : "failed";
+    task.completedAt = new Date().toISOString();
+  } catch (error) {
+    task.status = "failed";
+    task.completedAt = new Date().toISOString();
+    task.error = error instanceof Error ? error.message : "Unknown task error";
+    logger.error("Pipeline task failed", { error, taskId });
+  }
+}
+
+/**
+ * Submit a task to the executor.
+ */
+export async function submitTask(
+  taskRequest: PipelineTaskRequest
+): Promise<PipelineTaskSubmission> {
+  if (!Array.isArray(taskRequest.steps) || taskRequest.steps.length === 0) {
+    throw new Error("submitTask requires at least one pipeline step");
+  }
+
+  const taskId = createTaskId();
+  const pipelineId = taskRequest.pipelineId ?? `pipeline_${taskId}`;
+  const queuedAt = new Date().toISOString();
+  const task: PipelineTaskState = {
+    success: true,
+    taskId,
+    pipelineId,
+    status: "queued",
+    queuedAt,
+    request: { ...taskRequest, pipelineId },
+  };
+
+  submittedTasks.set(taskId, task);
+  queueMicrotask(() => {
+    void processSubmittedTask(taskId);
+  });
 
   return {
     success: true,
-    taskId: `task_${Date.now()}`,
-    status: "submitted",
-    data: taskRequest,
+    taskId,
+    pipelineId,
+    status: "queued",
+    queuedAt,
   };
+}
+
+export function getSubmittedTask(
+  taskId: string
+): PipelineTaskState | undefined {
+  return submittedTasks.get(taskId);
 }
 
 // Export singleton instance

@@ -39,6 +39,9 @@ declare global {
 			JWT_SECRET?: string;
 			CORS_ORIGIN?: string;
 			FRONTEND_URL?: string;
+
+			LOG_LEVEL?: string;
+			LOG_PRETTY?: "true" | "false";
 		}
 	}
 }

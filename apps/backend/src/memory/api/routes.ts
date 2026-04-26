@@ -1,4 +1,4 @@
-/* eslint-disable no-console, complexity, no-restricted-syntax -- experimental memory API routes */
+/* eslint-disable complexity, no-restricted-syntax -- experimental memory API routes */
 /**
  * Memory System API Routes
  * نقاط نهاية API لنظام الذاكرة
@@ -8,6 +8,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
 import { definedProps } from "@/utils/defined-props";
+import { logger } from "@/utils/logger";
 
 import { mrlOptimizer } from "../embeddings/mrl-optimizer";
 import { weaviateIndexingService } from "../indexer/weaviate-indexing.service";
@@ -115,7 +116,7 @@ router.post("/context", async (req, res): Promise<void> => {
       data: context,
     });
   } catch (error) {
-    console.error("Error building context:", error);
+    logger.error("Error building context", { error });
     res["status"](500).json({
       error: "Failed to build context",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -152,7 +153,7 @@ router.post("/search", async (req, res): Promise<void> => {
       })),
     });
   } catch (error) {
-    console.error("Search error:", error);
+    logger.error("Search error", { error });
     res["status"](500).json({
       error: "Search failed",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -188,7 +189,7 @@ router.post("/index", async (req, res): Promise<void> => {
     }
 
     if (reset) {
-      console.log("Resetting collections...");
+      logger.info("Resetting collections");
       await weaviateStore.deleteCollection("CodeChunks");
       await weaviateStore.deleteCollection("Documentation");
       await weaviateStore.deleteCollection("Decisions");
@@ -219,7 +220,7 @@ router.post("/index", async (req, res): Promise<void> => {
       dimensionality,
     });
   } catch (error) {
-    console.error("Indexing error:", error);
+    logger.error("Indexing error", { error });
     res["status"](500).json({
       error: "Indexing failed",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -259,7 +260,7 @@ router.get("/stats", async (_req, res) => {
       },
     });
   } catch (error) {
-    console.error("Stats error:", error);
+    logger.error("Stats error", { error });
     res["status"](500).json({ error: "Failed to get stats" });
   }
 });
@@ -291,7 +292,7 @@ router.post("/remember", async (req, res): Promise<void> => {
       collection: result.collection,
     });
   } catch (error) {
-    console.error("Remember error:", error);
+    logger.error("Remember error", { error });
     res["status"](500).json({
       error: "Failed to store memory",
       message: error instanceof Error ? error.message : "Unknown error",

@@ -1,4 +1,6 @@
 // CineArchitect AI - Production Readiness Report Prompt Builder
+
+import { logger } from "@/lib/logger";
 // مُنشئ تقرير جاهزية الإنتاج
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
@@ -312,7 +314,7 @@ export class ProductionReadinessReportPromptBuilder implements Plugin {
   category = "documentation" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -341,7 +343,7 @@ export class ProductionReadinessReportPromptBuilder implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

@@ -10,11 +10,46 @@
  * - Web Vitals
  */
 
+import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
-import { redisMetricsRegistry } from './redis-metrics.service';
 import { queueManager } from '@/queues/queue.config';
+
+import { redisMetricsRegistry } from './redis-metrics.service';
 import { resourceMonitor } from './resource-monitor.service';
-import { logger } from '@/utils/logger';
+
+interface PrometheusMetricValue {
+  value?: number;
+  metricName?: string;
+  labels?: Record<string, string | number | undefined>;
+}
+
+interface PrometheusMetricJson {
+  name: string;
+  type?: string;
+  help?: string;
+  values?: PrometheusMetricValue[];
+}
+
+interface PrometheusRegistryLike {
+  getMetricsAsJSON: () => Promise<unknown>;
+}
+
+interface ParsedPrometheusMetric {
+  type?: string;
+  help?: string;
+  values: PrometheusMetricValue[];
+}
+
+type ParsedPrometheusMetrics = Record<string, ParsedPrometheusMetric>;
+
+interface QueueMetricSummary {
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+  total: number;
+}
 
 export interface MetricsSnapshot {
   timestamp: string;
@@ -39,7 +74,7 @@ export interface MetricsSnapshot {
     failedJobs: number;
     throughput: number;
     avgProcessingTime: number;
-    byQueue: Record<string, any>;
+    byQueue: Record<string, QueueMetricSummary>;
   };
   api: {
     totalRequests: number;
@@ -95,25 +130,49 @@ export class MetricsAggregatorService {
   /**
    * Parse Prometheus metrics into structured data
    */
-  private async parsePrometheusMetrics(registry: any): Promise<any> {
-    const metrics = await registry.getMetricsAsJSON();
-    const parsed: Record<string, any> = {};
+  private async parsePrometheusMetrics(
+    registry: PrometheusRegistryLike
+  ): Promise<ParsedPrometheusMetrics> {
+    const metricsPayload = await registry.getMetricsAsJSON();
+    const metrics = Array.isArray(metricsPayload) ? metricsPayload : [];
+    const parsed: ParsedPrometheusMetrics = {};
 
-    for (const metric of metrics) {
-      parsed[metric.name] = {
-        type: metric.type,
-        help: metric.help,
-        values: metric.values || [],
+    for (const metricPayload of metrics) {
+      if (!this.isPrometheusMetricJson(metricPayload)) {
+        continue;
+      }
+
+      const metric: ParsedPrometheusMetric = {
+        values: metricPayload.values ?? [],
       };
+      if (metricPayload.type !== undefined) {
+        metric.type = metricPayload.type;
+      }
+      if (metricPayload.help !== undefined) {
+        metric.help = metricPayload.help;
+      }
+      parsed[metricPayload.name] = metric;
     }
 
     return parsed;
   }
 
+  private isPrometheusMetricJson(
+    value: unknown
+  ): value is PrometheusMetricJson {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof (value as { name?: unknown }).name === 'string'
+    );
+  }
+
   /**
    * Aggregate database metrics
    */
-  private async aggregateDatabaseMetrics(parsed: any): Promise<any> {
+  private async aggregateDatabaseMetrics(
+    parsed: ParsedPrometheusMetrics
+  ): Promise<MetricsSnapshot['database']> {
     const dbMetrics = {
       totalQueries: 0,
       avgQueryDuration: 0,
@@ -125,13 +184,13 @@ export class MetricsAggregatorService {
     const queriesMetric = parsed['the_copy_db_queries_total'];
     if (queriesMetric) {
       for (const value of queriesMetric.values) {
-        dbMetrics.totalQueries += value.value || 0;
+        dbMetrics.totalQueries += value.value ?? 0;
 
-        const table = value.labels?.table || 'unknown';
+        const table = String(value.labels?.["table"] ?? 'unknown');
         if (!dbMetrics.byTable[table]) {
           dbMetrics.byTable[table] = { count: 0, avgDuration: 0 };
         }
-        dbMetrics.byTable[table].count += value.value || 0;
+        dbMetrics.byTable[table].count += value.value ?? 0;
       }
     }
 
@@ -144,10 +203,10 @@ export class MetricsAggregatorService {
 
       for (const value of durationMetric.values) {
         if (value.metricName && value.metricName.includes('sum')) {
-          totalDuration += value.value || 0;
+          totalDuration += value.value ?? 0;
         }
         if (value.metricName && value.metricName.includes('count')) {
-          totalCount += value.value || 0;
+          totalCount += value.value ?? 0;
         }
       }
 
@@ -160,7 +219,7 @@ export class MetricsAggregatorService {
   /**
    * Aggregate Redis metrics
    */
-  private async aggregateRedisMetrics(): Promise<any> {
+  private async aggregateRedisMetrics(): Promise<MetricsSnapshot['redis']> {
     const redisParsed = await this.parsePrometheusMetrics(redisMetricsRegistry);
 
     let hits = 0;
@@ -170,22 +229,22 @@ export class MetricsAggregatorService {
 
     const hitsMetric = redisParsed['the_copy_redis_cache_hits_total'];
     if (hitsMetric) {
-      hits = hitsMetric.values.reduce((sum: number, val: any) => sum + (val.value || 0), 0);
+      hits = hitsMetric.values.reduce((sum, val) => sum + (val.value ?? 0), 0);
     }
 
     const missesMetric = redisParsed['the_copy_redis_cache_misses_total'];
     if (missesMetric) {
-      misses = missesMetric.values.reduce((sum: number, val: any) => sum + (val.value || 0), 0);
+      misses = missesMetric.values.reduce((sum, val) => sum + (val.value ?? 0), 0);
     }
 
     const memoryMetric = redisParsed['the_copy_redis_memory_usage_bytes'];
     if (memoryMetric && memoryMetric.values && memoryMetric.values.length > 0) {
-      memoryUsage = memoryMetric.values[0]?.value || 0;
+      memoryUsage = memoryMetric.values[0]?.value ?? 0;
     }
 
     const clientsMetric = redisParsed['the_copy_redis_connected_clients'];
     if (clientsMetric && clientsMetric.values && clientsMetric.values.length > 0) {
-      connectedClients = clientsMetric.values[0]?.value || 0;
+      connectedClients = clientsMetric.values[0]?.value ?? 0;
     }
 
     const totalOperations = hits + misses;
@@ -204,7 +263,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate queue metrics
    */
-  private async aggregateQueueMetrics(_parsed: any): Promise<any> {
+  private async aggregateQueueMetrics(
+    _parsed: ParsedPrometheusMetrics
+  ): Promise<MetricsSnapshot['queue']> {
     const queueStats = await queueManager.getAllStats();
 
     let totalJobs = 0;
@@ -212,7 +273,7 @@ export class MetricsAggregatorService {
     let completedJobs = 0;
     let failedJobs = 0;
 
-    const byQueue: Record<string, any> = {};
+    const byQueue: Record<string, QueueMetricSummary> = {};
 
     for (const stats of queueStats) {
       totalJobs += stats.total;
@@ -244,7 +305,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate API metrics
    */
-  private async aggregateApiMetrics(parsed: any): Promise<any> {
+  private async aggregateApiMetrics(
+    parsed: ParsedPrometheusMetrics
+  ): Promise<MetricsSnapshot['api']> {
     const apiMetrics = {
       totalRequests: 0,
       avgResponseTime: 0,
@@ -258,20 +321,20 @@ export class MetricsAggregatorService {
       let totalErrors = 0;
 
       for (const value of requestsMetric.values) {
-        apiMetrics.totalRequests += value.value || 0;
+        apiMetrics.totalRequests += value.value ?? 0;
 
-        const route = value.labels?.route || 'unknown';
-        const statusCode = parseInt(value.labels?.status_code || '200');
+        const route = String(value.labels?.["route"] ?? 'unknown');
+        const statusCode = parseInt(String(value.labels?.["status_code"] ?? '200'));
 
         if (!apiMetrics.byEndpoint[route]) {
           apiMetrics.byEndpoint[route] = { count: 0, avgDuration: 0, errors: 0 };
         }
 
-        apiMetrics.byEndpoint[route].count += value.value || 0;
+        apiMetrics.byEndpoint[route].count += value.value ?? 0;
 
         if (statusCode >= 400) {
-          apiMetrics.byEndpoint[route].errors += value.value || 0;
-          totalErrors += value.value || 0;
+          apiMetrics.byEndpoint[route].errors += value.value ?? 0;
+          totalErrors += value.value ?? 0;
         }
       }
 
@@ -286,10 +349,10 @@ export class MetricsAggregatorService {
 
       for (const value of durationMetric.values) {
         if (value.metricName && value.metricName.includes('sum')) {
-          totalDuration += value.value || 0;
+          totalDuration += value.value ?? 0;
         }
         if (value.metricName && value.metricName.includes('count')) {
-          totalCount += value.value || 0;
+          totalCount += value.value ?? 0;
         }
       }
 
@@ -302,7 +365,9 @@ export class MetricsAggregatorService {
   /**
    * Aggregate Gemini API metrics
    */
-  private async aggregateGeminiMetrics(parsed: any): Promise<any> {
+  private async aggregateGeminiMetrics(
+    parsed: ParsedPrometheusMetrics
+  ): Promise<MetricsSnapshot['gemini']> {
     let totalRequests = 0;
     let cacheHits = 0;
     let cacheMisses = 0;
@@ -311,21 +376,21 @@ export class MetricsAggregatorService {
     const requestsMetric = parsed['the_copy_gemini_requests_total'];
     if (requestsMetric) {
       for (const value of requestsMetric.values) {
-        totalRequests += value.value || 0;
+        totalRequests += value.value ?? 0;
         if (value.labels?.["status"] === 'error') {
-          errors += value.value || 0;
+          errors += value.value ?? 0;
         }
       }
     }
 
     const cacheHitsMetric = parsed['the_copy_gemini_cache_hits_total'];
     if (cacheHitsMetric && cacheHitsMetric.values && cacheHitsMetric.values.length > 0) {
-      cacheHits = cacheHitsMetric.values[0]?.value || 0;
+      cacheHits = cacheHitsMetric.values[0]?.value ?? 0;
     }
 
     const cacheMissesMetric = parsed['the_copy_gemini_cache_misses_total'];
     if (cacheMissesMetric && cacheMissesMetric.values && cacheMissesMetric.values.length > 0) {
-      cacheMisses = cacheMissesMetric.values[0]?.value || 0;
+      cacheMisses = cacheMissesMetric.values[0]?.value ?? 0;
     }
 
     const totalCacheOps = cacheHits + cacheMisses;
@@ -377,7 +442,7 @@ export class MetricsAggregatorService {
 
       return snapshot;
     } catch (error) {
-      logger.error('Failed to take metrics snapshot:', error);
+      logger.error({ err: error }, 'Failed to take metrics snapshot');
       throw error;
     }
   }

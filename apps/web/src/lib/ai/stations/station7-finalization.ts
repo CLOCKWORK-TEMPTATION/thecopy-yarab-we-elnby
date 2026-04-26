@@ -3,7 +3,7 @@ import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
 import { logger } from "../utils/logger";
 import { saveText } from "../utils/saveText";
 
-import { GeminiService } from "./gemini-service";
+import { GeminiModel, GeminiService } from "./gemini-service";
 import { Station1Output } from "./station1-text-analysis";
 import { Station2Output } from "./station2-conceptual-analysis";
 import { Station3Output } from "./station3-network-builder";
@@ -45,6 +45,49 @@ export interface ScoreMatrix {
   dynamicSymbolic: number;
   diagnostics: number;
   overall: number;
+}
+
+interface StationScoreLike {
+  confidence?: number;
+  qualityScore?: number;
+  overallScore?: number;
+}
+
+interface Station2AudienceContext {
+  hybridGenre?: {
+    primary?: string;
+  };
+  targetAudience?: {
+    primaryAudience?: string;
+  };
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function toStationScoreLike(value: unknown): StationScoreLike | null {
+  const record = asRecord(value);
+  if (!record) return null;
+
+  const score: StationScoreLike = {};
+  const confidence = record["confidence"];
+  const qualityScore = record["qualityScore"];
+  const overallScore = record["overallScore"];
+
+  if (typeof confidence === "number") {
+    score.confidence = confidence;
+  }
+  if (typeof qualityScore === "number") {
+    score.qualityScore = qualityScore;
+  }
+  if (typeof overallScore === "number") {
+    score.overallScore = overallScore;
+  }
+
+  return score;
 }
 
 export interface Station7Output {
@@ -299,14 +342,19 @@ export class Station7Finalization extends BaseStation<
     };
   }
 
-  private calculateStationScore(station: any): number {
-    if (!station) return 0;
+  private calculateStationScore(station: unknown): number {
+    const stationScore = toStationScoreLike(station);
+    if (!stationScore) return 0;
     const scores = [];
-    if (typeof station.confidence === "number") scores.push(station.confidence);
-    if (typeof station.qualityScore === "number")
-      scores.push(station.qualityScore);
-    if (typeof station.overallScore === "number")
-      scores.push(station.overallScore);
+    if (typeof stationScore.confidence === "number") {
+      scores.push(stationScore.confidence);
+    }
+    if (typeof stationScore.qualityScore === "number") {
+      scores.push(stationScore.qualityScore);
+    }
+    if (typeof stationScore.overallScore === "number") {
+      scores.push(stationScore.overallScore);
+    }
     return scores.length > 0
       ? scores.reduce((a, b) => a + b) / scores.length
       : 50;
@@ -357,7 +405,7 @@ export class Station7Finalization extends BaseStation<
 
     const response = await this.geminiService.generate<string>({
       prompt,
-      model: "gemini-2.5-pro" as any,
+      model: GeminiModel.PRO,
       temperature: 0.3,
       maxTokens: 1024,
       systemInstruction:
@@ -488,9 +536,9 @@ export class Station7Finalization extends BaseStation<
 ...
 `;
 
-    const response = await this.geminiService.generate<any>({
+    const response = await this.geminiService.generate<unknown>({
       prompt,
-      model: "gemini-2.5-pro" as any,
+      model: GeminiModel.PRO,
       temperature: 0.4,
       maxTokens: 2048,
       systemInstruction:
@@ -524,12 +572,13 @@ export class Station7Finalization extends BaseStation<
     s5?: Station5Output,
     _s6?: Station6Output
   ): Promise<AudienceResonance> {
+    const audienceContext = s2 as Station2AudienceContext | undefined;
     const prompt = `
 قم بتحليل مدى صدى العمل الدرامي مع الجمهور وتوقع استجابتهم:
 
 معلومات العمل:
-- النوع: ${(s2 as any)?.hybridGenre?.primary ?? "غير محدد"}
-- الجمهور المستهدف: ${(s2 as any)?.targetAudience?.primaryAudience ?? "غير محدد"}
+- النوع: ${audienceContext?.hybridGenre?.primary ?? "غير محدد"}
+- الجمهور المستهدف: ${audienceContext?.targetAudience?.primaryAudience ?? "غير محدد"}
 - القوة الرمزية: ${s5?.symbolicAnalysis?.depthScore ?? 0}/10
 - التناسق الأسلوبي: ${s5?.stylisticAnalysis?.toneAssessment?.toneConsistency ?? 0}/10
 
@@ -553,9 +602,9 @@ export class Station7Finalization extends BaseStation<
 - عنصر 2
 `;
 
-    const response = await this.geminiService.generate<any>({
+    const response = await this.geminiService.generate<unknown>({
       prompt,
-      model: "gemini-2.5-pro" as any,
+      model: GeminiModel.PRO,
       temperature: 0.5,
       maxTokens: 1024,
       systemInstruction:
@@ -629,9 +678,9 @@ ${allIssues.map((issue, i) => `${i + 1}. ${issue.description} (نوع: ${issue.c
 ---
 `;
 
-    const response = await this.geminiService.generate<any>({
+    const response = await this.geminiService.generate<unknown>({
       prompt,
-      model: "gemini-2.5-pro" as any,
+      model: GeminiModel.PRO,
       temperature: 0.4,
       maxTokens: 4096,
       systemInstruction:
@@ -1042,12 +1091,13 @@ ${finalReport.rewritingSuggestions
 `.trim();
   }
 
-  private extractText(content: any): string {
+  private extractText(content: unknown): string {
     if (typeof content === "string") return content;
-    if (content && typeof content === "object") {
-      if (content.raw) return content.raw;
-      if (content.text) return content.text;
-      if (content.report) return content.report;
+    const record = asRecord(content);
+    if (record) {
+      if (typeof record["raw"] === "string") return record["raw"];
+      if (typeof record["text"] === "string") return record["text"];
+      if (typeof record["report"] === "string") return record["report"];
       return String(content);
     }
     return String(content ?? "");

@@ -77,11 +77,8 @@ const nextConfig = {
   // Force @google/genai to only be loaded server-side
   serverExternalPackages: ["@google/genai", "puppeteer", "sharp"],
 
-  // Source maps must be generated so Sentry's bundler plugin can upload them
-  // (otherwise Sentry shows minified stack traces in production).
-  // الأمان محفوظ عبر `hideSourceMaps: true` داخل `withSentryConfig` أدناه،
-  // والذي يحذف `//# sourceMappingURL=...` من bundles المنتجة بعد الرفع،
-  // فلا تنكشف source maps للمتصفح رغم توليدها أثناء البناء.
+  // Generate browser maps through Next.js only; Sentry controls upload and
+  // deletes uploaded maps when its credentials are available in production.
   productionBrowserSourceMaps: true,
 
   // Ensure correct root when multiple lockfiles exist (silences Next.js warning)
@@ -247,23 +244,7 @@ const nextConfig = {
 
   // Webpack configuration for handling Node.js built-in modules and critical dependency warnings
   // Note: In Next.js 16, Turbopack is default. Webpack config is kept for fallback compatibility.
-  webpack: (config, { isServer, dev, defaultLoaders, webpack }) => {
-    // حذف config.devtool اليدوي - الاعتماد على إدارة Next.js الداخلية عبر productionBrowserSourceMaps
-
-    // شبكة أمان: إجبار توليد source maps لكل JS files (Phase 1.H)
-    if (!dev && webpack) {
-      config.plugins.push(
-        new webpack.SourceMapDevToolPlugin({
-          filename: "[file].map",
-          moduleFilenameTemplate: "webpack://[namespace]/[resource-path]",
-          include: /\.(js|mjs)$/,
-          exclude: /node_modules/,
-          noSources: false,
-          append: false, // دع Next.js يدير الـ pragma لتجنب التكرار
-        })
-      );
-    }
-
+  webpack: (config, { isServer }) => {
     if (!isServer) {
       // Don't resolve Node.js modules on client side
       config.resolve.fallback = {
@@ -312,33 +293,41 @@ const nextConfig = {
 // Sentry configuration
 const sentryOrg = process.env["SENTRY_ORG"];
 const sentryProject = process.env["SENTRY_PROJECT"];
+const sentryAuthToken = process.env["SENTRY_AUTH_TOKEN"];
+const sentryDistDir = path.join(process.cwd(), ".next").replace(/\\/g, "/");
+const sentryDistPath = (...segments) =>
+  path.posix.join(sentryDistDir, ...segments);
+const sentrySourceMapIgnore = [
+  sentryDistPath("static/chunks/main-*"),
+  sentryDistPath("static/chunks/framework-*"),
+  sentryDistPath("static/chunks/framework.*"),
+  sentryDistPath("static/chunks/polyfills-*"),
+  sentryDistPath("static/chunks/webpack-*"),
+  sentryDistPath("static/chunks/app/**/loading-*.js"),
+  sentryDistPath("static/chunks/app/**/route-*.js"),
+  sentryDistPath("static/chunks/app/_global-error/page-*.js"),
+  sentryDistPath("static/chunks/next/dist/client/components/builtin/*.js"),
+  sentryDistPath(
+    "static/chunks/app/(main)/arabic-prompt-engineering-studio/layout-*.js"
+  ),
+  sentryDistPath("static/chunks/app/(main)/editor/app/layout-*.js"),
+  sentryDistPath("server/middleware.js"),
+];
 const sentryConfig =
-  sentryOrg && sentryProject
+  sentryOrg && sentryProject && sentryAuthToken
     ? {
         org: sentryOrg,
         project: sentryProject,
+        authToken: sentryAuthToken,
         silent: !process.env["CI"],
         hideSourceMaps: process.env["NODE_ENV"] === "production",
         tunnelRoute: "/monitoring",
         sourcemaps: {
           disable: false,
-          assets: [
-            // whitelist صريح يغطي كل المسارات الرسمية
-            ".next/static/chunks/**/*.js",
-            ".next/static/chunks/**/*.js.map",
-            ".next/server/**/*.js",
-            ".next/server/**/*.js.map",
-            ".next/standalone/**/*.js",
-            ".next/standalone/**/*.js.map",
-          ],
-          ignore: [
-            "**/*manifest*.js",
-            "**/*reference-manifest*.js",
-            "**/node_modules/**",
-          ],
-          filesToDeleteAfterUpload: true,
+          ignore: sentrySourceMapIgnore,
+          deleteSourcemapsAfterUpload: true,
         },
-        widenClientFileUpload: true, // يحقن debug ids في كل chunks، assets whitelist يتحكم في الرفع
+        widenClientFileUpload: false,
       }
     : null;
 

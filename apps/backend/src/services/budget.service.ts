@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, max-lines */
+/* eslint-disable max-lines */
 import ExcelJS from 'exceljs';
 import { platformGenAIService } from '@/services/platform-genai.service';
 import { logger } from '@/utils/logger';
@@ -182,54 +182,134 @@ function recalculateBudget(budget: BudgetDocument): BudgetDocument {
   return budget;
 }
 
+type BudgetRecord = Record<string, unknown>;
+
+function asRecord(candidate: unknown): BudgetRecord {
+  return candidate && typeof candidate === 'object'
+    ? (candidate as BudgetRecord)
+    : {};
+}
+
+function getStringField(
+  source: BudgetRecord,
+  key: string,
+  fallback: string
+): string {
+  const value = source[key];
+  return typeof value === 'string' ? value : fallback;
+}
+
+function getNumberField(
+  source: BudgetRecord,
+  key: string,
+  fallback: number
+): number {
+  const value = source[key];
+  return typeof value === 'number' ? value : fallback;
+}
+
+function getArrayField(source: BudgetRecord, key: string): unknown[] {
+  const value = source[key];
+  return Array.isArray(value) ? value : [];
+}
+
 /* eslint-disable complexity -- deeply nested sanitization logic */
-function sanitizeBudget(candidate: any, title?: string): BudgetDocument {
+function sanitizeBudget(candidate: unknown, title?: string): BudgetDocument {
   const template = cloneTemplate(title);
-  const sections = Array.isArray(candidate?.sections) ? candidate.sections : template.sections;
+  const source = asRecord(candidate);
+  const sourceMetadata = asRecord(source["metadata"]);
+  const sections = Array.isArray(source["sections"])
+    ? source["sections"]
+    : template.sections;
 
   const budget: BudgetDocument = {
-    currency: typeof candidate?.currency === 'string' ? candidate.currency : 'USD',
+    currency: getStringField(source, 'currency', 'USD'),
     metadata: {
       ...template.metadata,
-      ...(candidate?.metadata ?? {}),
-      title: candidate?.metadata?.["title"] || title || template.metadata?.["title"],
+      title: getStringField(
+        sourceMetadata,
+        'title',
+        title || template.metadata?.["title"] || 'Untitled Project'
+      ),
+      director: getStringField(
+        sourceMetadata,
+        'director',
+        template.metadata?.["director"] || ''
+      ),
+      producer: getStringField(
+        sourceMetadata,
+        'producer',
+        template.metadata?.["producer"] || ''
+      ),
+      productionCompany: getStringField(
+        sourceMetadata,
+        'productionCompany',
+        template.metadata?.["productionCompany"] || ''
+      ),
+      shootingDays: getNumberField(
+        sourceMetadata,
+        'shootingDays',
+        template.metadata?.["shootingDays"] || 0
+      ),
+      locations: normalizeStringList(sourceMetadata["locations"]),
+      genre: getStringField(sourceMetadata, 'genre', template.metadata?.["genre"] || ''),
     },
-    sections: sections.map((section: any, sectionIndex: number) => ({
-      id: typeof section?.id === 'string' ? section.id : template.sections[sectionIndex]?.id ?? `section-${sectionIndex + 1}`,
-      name: typeof section?.name === 'string' ? section.name : template.sections[sectionIndex]?.name ?? `Section ${sectionIndex + 1}`,
-      color: typeof section?.color === 'string' ? section.color : template.sections[sectionIndex]?.color,
-      total: 0,
-      categories: Array.isArray(section?.categories)
-        ? section.categories.map((category: any, categoryIndex: number) => ({
-            code:
-              typeof category?.code === 'string'
-                ? category.code
-                : `${sectionIndex + 1}${categoryIndex + 1}-00`,
-            name:
-              typeof category?.name === 'string'
-                ? category.name
-                : `Category ${sectionIndex + 1}.${categoryIndex + 1}`,
-            total: 0,
-            items: Array.isArray(category?.items)
-              ? category.items.map((item: any, itemIndex: number) => ({
-                  code:
-                    typeof item?.code === 'string'
-                      ? item.code
-                      : `${sectionIndex + 1}${categoryIndex + 1}-${String(itemIndex + 1).padStart(2, '0')}`,
-                  description:
-                    typeof item?.description === 'string'
-                      ? item.description
-                      : `Line item ${itemIndex + 1}`,
-                  amount: Number(item?.amount) || 0,
-                  unit: typeof item?.unit === 'string' ? item.unit : 'flat',
-                  rate: Number(item?.rate) || 0,
+    sections: sections.map((sectionCandidate, sectionIndex) => {
+      const section = asRecord(sectionCandidate);
+      const templateSection = template.sections[sectionIndex];
+      return {
+        id: getStringField(
+          section,
+          'id',
+          templateSection?.id ?? `section-${sectionIndex + 1}`
+        ),
+        name: getStringField(
+          section,
+          'name',
+          templateSection?.name ?? `Section ${sectionIndex + 1}`
+        ),
+        color: getStringField(section, 'color', templateSection?.color ?? '#3B82F6'),
+        total: 0,
+        categories: getArrayField(section, 'categories').map(
+          (categoryCandidate, categoryIndex) => {
+            const category = asRecord(categoryCandidate);
+            return {
+              code: getStringField(
+                category,
+                'code',
+                `${sectionIndex + 1}${categoryIndex + 1}-00`
+              ),
+              name: getStringField(
+                category,
+                'name',
+                `Category ${sectionIndex + 1}.${categoryIndex + 1}`
+              ),
+              total: 0,
+              items: getArrayField(category, 'items').map((itemCandidate, itemIndex) => {
+                const item = asRecord(itemCandidate);
+                return {
+                  code: getStringField(
+                    item,
+                    'code',
+                    `${sectionIndex + 1}${categoryIndex + 1}-${String(itemIndex + 1).padStart(2, '0')}`
+                  ),
+                  description: getStringField(
+                    item,
+                    'description',
+                    `Line item ${itemIndex + 1}`
+                  ),
+                  amount: Number(item["amount"]) || 0,
+                  unit: getStringField(item, 'unit', 'flat'),
+                  rate: Number(item["rate"]) || 0,
                   total: 0,
-                  ...(typeof item?.notes === 'string' ? { notes: item.notes } : {}),
-                }))
-              : [],
-          }))
-        : [],
-    })),
+                  ...(typeof item["notes"] === 'string' ? { notes: item["notes"] } : {}),
+                };
+              }),
+            };
+          }
+        ),
+      };
+    }),
     grandTotal: 0,
   };
 
@@ -489,7 +569,7 @@ export class BudgetService {
       section.categories.forEach((category) => {
         summarySheet.addRow({ code: category.code, description: `  ${category.name}`, total: category.total });
       });
-      summarySheet.addRow({ code: '', description: '', total: '' as any });
+      summarySheet.addRow({ code: '', description: '', total: '' });
     });
     summarySheet.addRow({ code: 'TOTAL', description: 'Grand Total', total: normalizedBudget.grandTotal });
 
@@ -512,7 +592,7 @@ export class BudgetService {
           unit: '',
           rate: '',
           total: category.total,
-        } as any);
+        });
 
         category.items.forEach((item) => {
           worksheet.addRow({
@@ -525,7 +605,14 @@ export class BudgetService {
           });
         });
 
-        worksheet.addRow({ code: '', description: '', amount: '', unit: '', rate: '', total: '' } as any);
+        worksheet.addRow({
+          code: '',
+          description: '',
+          amount: '',
+          unit: '',
+          rate: '',
+          total: '',
+        });
       });
     });
 

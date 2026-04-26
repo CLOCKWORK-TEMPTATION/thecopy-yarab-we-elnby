@@ -1,7 +1,7 @@
 /**
  * Instructions loader service for dynamic loading of agent instructions
  */
-import { logger } from '@/utils/logger';
+import { logger } from '@/lib/logger';
 
 interface InstructionSet {
   systemPrompt: string;

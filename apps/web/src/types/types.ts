@@ -110,13 +110,13 @@ export interface CompletionEnhancementOption {
  * @property {TaskType[]} dependsOn - A list of agents whose output is required before this agent can run.
  * @property {TaskType[]} enhances - A list of agents that this agent can enhance.
  * @property {string} systemPrompt - The base instruction or persona given to the AI model.
- * @property {any[]} fewShotExamples - Examples provided to the model to guide its responses.
+ * @property {unknown[]} fewShotExamples - Examples provided to the model to guide its responses.
  * @property {string} chainOfThoughtTemplate - A template for structured, multi-step reasoning.
  * @property {string} cacheStrategy - The caching mechanism to use for the agent's responses.
  * @property {boolean} parallelizable - Indicates if the agent can be run in parallel with others.
  * @property {boolean} batchProcessing - Indicates if the agent supports processing multiple inputs at once.
  * @property {string[]} validationRules - Rules for validating the agent's output.
- * @property {any} outputSchema - The expected schema of the agent's output.
+ * @property {unknown} outputSchema - The expected schema of the agent's output.
  * @property {number} confidenceThreshold - The minimum confidence level required for the agent to return a result.
  */
 export interface AIAgentConfig {
@@ -144,13 +144,13 @@ export interface AIAgentConfig {
   qualityGates?: string[];
   fallbackBehavior?: string;
   confidenceThreshold?: number;
-  fewShotExamples?: any[];
+  fewShotExamples?: unknown[];
   chainOfThoughtTemplate?: string;
   cacheStrategy?: string;
   parallelizable?: boolean;
   batchProcessing?: boolean;
   validationRules?: string[];
-  outputSchema?: any;
+  outputSchema?: unknown;
 }
 
 /**
@@ -216,7 +216,7 @@ export interface AIWritingAssistantLike {
   generateText(
     prompt: string,
     context: string,
-    options?: any
+    options?: Record<string, unknown>
   ): Promise<{ text?: string }>;
 }
 

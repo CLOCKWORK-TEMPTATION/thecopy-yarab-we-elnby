@@ -2,6 +2,7 @@
 // محاكي الإضاءة الذكي
 
 import { definedProps } from "@/lib/defined-props";
+import { logger } from "@/lib/logger";
 
 import {
   Plugin,
@@ -86,7 +87,7 @@ export class LightingSimulator implements Plugin {
   category = "ai-analytics" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -486,7 +487,7 @@ export class LightingSimulator implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

@@ -4,15 +4,44 @@
  * Handles Redis connection configuration and version validation for BullMQ
  */
 
-import { createClient, RedisClientType } from 'redis';
+import { createClient } from 'redis';
 import { logger } from '@/utils/logger';
 
 const BULLMQ_MIN_REDIS_VERSION = '5.0.0';
 
+type RedisReconnectStrategy = (retries: number) => number | false;
+
+interface RedisSocketConfig {
+  host?: string;
+  port?: number;
+  reconnectStrategy: RedisReconnectStrategy;
+}
+
+interface RedisConnectionConfig {
+  url?: string;
+  password?: string;
+  name?: string;
+  sentinelPassword?: string;
+  sentinels?: Array<{ host: string; port: number }>;
+  socket: RedisSocketConfig;
+}
+
+type RedisClientInstance = ReturnType<typeof createClient>;
+
+function buildReconnectStrategy(label: string): RedisReconnectStrategy {
+  return (retries: number) => {
+    if (retries > 10) {
+      logger.error(`${label} retry attempts exhausted`);
+      return false;
+    }
+    return Math.min(retries * 100, 3000);
+  };
+}
+
 /**
  * Parse Redis URL or use individual configuration with Sentinel support
  */
-export function getRedisConfig() {
+export function getRedisConfig(): RedisConnectionConfig {
   // Sentinel configuration
   if (process.env['REDIS_SENTINEL_ENABLED'] === 'true') {
     logger.info('🔧 Redis Sentinel Mode: ACTIVATED');
@@ -21,32 +50,37 @@ export function getRedisConfig() {
       .split(',')
       .map(s => {
         const [host, port] = s.trim().split(':');
-        return { host, port: parseInt(port || '26379') };
+        return { host: host || '127.0.0.1', port: parseInt(port || '26379') };
       });
 
     logger.info(`🔌 Connecting to ${sentinels.length} Sentinels: ${sentinels.map(s => `${s.host}:${s.port}`).join(', ')}`);
 
-    return {
+    const sentinelConfig: RedisConnectionConfig = {
       sentinels,
       name: process.env['REDIS_MASTER_NAME'] || 'mymaster',
-      password: process.env['REDIS_PASSWORD'],
-      sentinelPassword: process.env['REDIS_SENTINEL_PASSWORD'],
       socket: {
-        reconnectStrategy: (retries: number) => {
-          if (retries > 10) {
-            logger.error('Redis Sentinel retry exhausted');
-            return false;
-          }
-          return Math.min(retries * 100, 3000);
-        },
+        reconnectStrategy: buildReconnectStrategy('Redis Sentinel'),
       },
     };
+
+    if (process.env['REDIS_PASSWORD']) {
+      sentinelConfig.password = process.env['REDIS_PASSWORD'];
+    }
+
+    if (process.env['REDIS_SENTINEL_PASSWORD']) {
+      sentinelConfig.sentinelPassword = process.env['REDIS_SENTINEL_PASSWORD'];
+    }
+
+    return sentinelConfig;
   }
 
   // If REDIS_URL is provided, use it directly
   if (process.env['REDIS_URL']) {
-    const config: any = {
+    const config: RedisConnectionConfig = {
       url: process.env['REDIS_URL'],
+      socket: {
+        reconnectStrategy: buildReconnectStrategy('Redis'),
+      },
     };
     
     // Add password if provided separately
@@ -58,17 +92,11 @@ export function getRedisConfig() {
   }
 
   // Otherwise use individual variables
-  const config: any = {
+  const config: RedisConnectionConfig = {
     socket: {
       host: process.env['REDIS_HOST'] || 'localhost',
       port: parseInt(process.env['REDIS_PORT'] || '6379'),
-      reconnectStrategy: (retries: number) => {
-        if (retries > 10) {
-          logger.error('Redis retry attempts exhausted');
-          return false;
-        }
-        return Math.min(retries * 100, 3000);
-      },
+      reconnectStrategy: buildReconnectStrategy('Redis'),
     },
   };
 
@@ -97,22 +125,23 @@ export async function checkRedisVersion(): Promise<{
   minVersion: string;
   reason?: string;
 }> {
-  let client: RedisClientType | null = null;
+  let client: RedisClientInstance | null = null;
 
   try {
     const config = getRedisConfig();
-    client = createClient(config);
+    const redisClient = createClient(config as Parameters<typeof createClient>[0]);
+    client = redisClient;
 
     // Connect to Redis with timeout
     await Promise.race([
-      client.connect(),
+      redisClient.connect(),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Redis connection timeout')), 10000)
       )
     ]);
 
     // Get server info
-    const info = await client.info('server');
+    const info = await redisClient.info('server');
     const versionMatch = info.match(/redis_version:(\S+)/);
 
     if (!versionMatch) {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { cineAIService } from '@/services/cineai.service';
@@ -18,8 +17,17 @@ const colorGradingSchema = z.object({
   temperature: z.number().optional(),
 });
 
+interface UploadedFile {
+  buffer?: Buffer;
+  mimetype?: string;
+}
+
+interface MultipartRequest extends Request {
+  file?: UploadedFile;
+}
+
 function readMultipartImage(req: Request): { imageBase64?: string; mimeType?: string } {
-  const file = (req as any).file;
+  const file = (req as MultipartRequest).file;
   if (file?.buffer) {
     return {
       imageBase64: Buffer.from(file.buffer).toString('base64'),

@@ -1,11 +1,13 @@
+import { logger } from '@/lib/logger';
 import { PipelineInput, PipelineRunResult, Station1Output, StationOutput } from '@/types';
-import { logger } from '@/utils/logger';
-import { multiAgentOrchestrator, TaskType } from './agents';
-import { agentRegistry } from './agents/registry';
+
+import { multiAgentOrchestrator, TaskType, type OrchestrationOutput } from './agents';
 import {
   analysisStreamRegistry,
   type StationId,
 } from './analysisStream.registry';
+import type { StandardAgentOutput } from './agents/core/types';
+import { agentRegistry } from './agents/registry';
 
 /**
  * Maps the seven user-facing stations to the underlying agent task types.
@@ -93,9 +95,9 @@ export class AnalysisService {
    * This maintains backward compatibility with the frontend
    */
   private convertAgentResultsToStations(
-    orchestrationResult: any,
+    orchestrationResult: OrchestrationOutput,
     _input: PipelineInput
-  ): any {
+  ): PipelineRunResult['stationOutputs'] {
     const results = orchestrationResult.results;
 
     const characterAnalysis = results.get(TaskType.CHARACTER_DEEP_ANALYZER);
@@ -124,24 +126,24 @@ export class AnalysisService {
     };
   }
 
-  private buildStationDetails(agentResult: any, extraDetails?: Record<string, unknown>) {
+  private buildStationDetails(agentResult: StandardAgentOutput | undefined, extraDetails?: Record<string, unknown>) {
     return {
-      fullAnalysis: agentResult?.text || '',
-      confidence: agentResult?.confidence || 0,
+      fullAnalysis: agentResult?.text ?? '',
+      confidence: agentResult?.confidence ?? 0,
       notes: Array.isArray(agentResult?.notes) ? agentResult.notes : [],
-      ...(extraDetails || {}),
+      ...(extraDetails ?? {}),
     };
   }
 
-  private runStation1(characterAnalysis: any): Station1Output {
+  private runStation1(characterAnalysis: StandardAgentOutput | undefined): Station1Output {
     return {
       stationId: 1,
       stationName: 'التحليل العميق للشخصيات',
-      executionTime: characterAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(characterAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
-      majorCharacters: this.extractCharacters(characterAnalysis?.text || ''),
-      relationships: this.extractRelationships(characterAnalysis?.text || ''),
+      majorCharacters: this.extractCharacters(characterAnalysis?.text ?? ''),
+      relationships: this.extractRelationships(characterAnalysis?.text ?? ''),
       narrativeStyleAnalysis: {
         overallTone: 'درامي',
         pacing: 'متوسط',
@@ -151,66 +153,66 @@ export class AnalysisService {
     };
   }
 
-  private runStation2(dialogueAnalysis: any): StationOutput {
+  private runStation2(dialogueAnalysis: StandardAgentOutput | undefined): StationOutput {
     return {
       stationId: 2,
       stationName: 'التحليل المتقدم للحوار',
-      executionTime: dialogueAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(dialogueAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(dialogueAnalysis),
     };
   }
 
-  private runStation3(visualAnalysis: any): StationOutput {
+  private runStation3(visualAnalysis: StandardAgentOutput | undefined): StationOutput {
     return {
       stationId: 3,
       stationName: 'التحليل البصري والسينمائي',
-      executionTime: visualAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(visualAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(visualAnalysis),
     };
   }
 
-  private runStation4(themesAnalysis: any): StationOutput {
+  private runStation4(themesAnalysis: StandardAgentOutput | undefined): StationOutput {
     return {
       stationId: 4,
       stationName: 'تحليل الموضوعات والرسائل',
-      executionTime: themesAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(themesAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(themesAnalysis),
     };
   }
 
-  private runStation5(culturalAnalysis: any): StationOutput {
+  private runStation5(culturalAnalysis: StandardAgentOutput | undefined): StationOutput {
     return {
       stationId: 5,
       stationName: 'التحليل الثقافي والتاريخي',
-      executionTime: culturalAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(culturalAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(culturalAnalysis),
     };
   }
 
-  private runStation6(producibilityAnalysis: any): StationOutput {
+  private runStation6(producibilityAnalysis: StandardAgentOutput | undefined): StationOutput {
     return {
       stationId: 6,
       stationName: 'تحليل قابلية الإنتاج',
-      executionTime: producibilityAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(producibilityAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(producibilityAnalysis),
     };
   }
 
-  private runStation7(audienceAnalysis: any, results: Map<TaskType, any>): StationOutput {
+  private runStation7(audienceAnalysis: StandardAgentOutput | undefined, results: Map<TaskType, StandardAgentOutput>): StationOutput {
     return {
       stationId: 7,
       stationName: 'تحليل الجمهور المستهدف والتقرير النهائي',
-      executionTime: audienceAnalysis?.metadata?.processingTime || 0,
+      executionTime: this.getProcessingTime(audienceAnalysis),
       status: 'completed',
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(audienceAnalysis, {
@@ -274,7 +276,7 @@ export class AnalysisService {
   /**
    * Generate comprehensive final report from all agent results
    */
-  private generateFinalReport(results: Map<TaskType, any>): string {
+  private generateFinalReport(results: Map<TaskType, StandardAgentOutput>): string {
     let report = '# التقرير التحليلي الشامل\n\n';
 
     // Add summaries from each agent
@@ -290,7 +292,7 @@ export class AnalysisService {
 
     for (const agent of agentNames) {
       const result = results.get(agent.type);
-      if (result && result.text) {
+      if (result?.text) {
         report += `${agent["title"]}\n${result.text.substring(0, 500)}...\n\n`;
       }
     }
@@ -472,17 +474,16 @@ export class AnalysisService {
     agentResult: unknown,
     results: Map<TaskType, unknown>
   ): StationOutput | Station1Output {
+    const typedAgentResult = this.asStandardAgentOutput(agentResult);
     switch (stationId) {
-      case 1: return this.runStation1(agentResult);
-      case 2: return this.runStation2(agentResult);
-      case 3: return this.runStation3(agentResult);
-      case 4: return this.runStation4(agentResult);
-      case 5: return this.runStation5(agentResult);
-      case 6: return this.runStation6(agentResult);
+      case 1: return this.runStation1(typedAgentResult);
+      case 2: return this.runStation2(typedAgentResult);
+      case 3: return this.runStation3(typedAgentResult);
+      case 4: return this.runStation4(typedAgentResult);
+      case 5: return this.runStation5(typedAgentResult);
+      case 6: return this.runStation6(typedAgentResult);
       case 7: {
-        // runStation7 expects a Map keyed by TaskType
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return this.runStation7(agentResult, results as Map<TaskType, any>);
+        return this.runStation7(typedAgentResult, this.toStandardAgentResultMap(results));
       }
     }
   }
@@ -493,5 +494,34 @@ export class AnalysisService {
       if (typeof c === 'number' && Number.isFinite(c)) return c;
     }
     return null;
+  }
+
+  private getProcessingTime(agentResult: StandardAgentOutput | undefined): number {
+    const value = agentResult?.metadata?.processingTime;
+    return typeof value === 'number' ? value : 0;
+  }
+
+  private asStandardAgentOutput(value: unknown): StandardAgentOutput | undefined {
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    const candidate = value as Partial<StandardAgentOutput>;
+    return typeof candidate.text === 'string' &&
+      typeof candidate.confidence === 'number' &&
+      Array.isArray(candidate.notes)
+      ? candidate as StandardAgentOutput
+      : undefined;
+  }
+
+  private toStandardAgentResultMap(results: Map<TaskType, unknown>): Map<TaskType, StandardAgentOutput> {
+    const typed = new Map<TaskType, StandardAgentOutput>();
+    for (const [task, value] of results) {
+      const output = this.asStandardAgentOutput(value);
+      if (output) {
+        typed.set(task, output);
+      }
+    }
+    return typed;
   }
 }

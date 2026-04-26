@@ -1,5 +1,11 @@
+type MutableRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is MutableRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function flatten(
-  obj: Record<string, any>,
+  obj: MutableRecord,
   prefix = ""
 ): Record<string, string> {
   const result: Record<string, string> = {};
@@ -7,7 +13,7 @@ export function flatten(
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}.${key}` : key;
 
-    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    if (isRecord(value)) {
       Object.assign(result, flatten(value, newKey));
     } else {
       result[newKey] = String(value);
@@ -17,8 +23,8 @@ export function flatten(
   return result;
 }
 
-export function unflatten(flat: Record<string, string>): Record<string, any> {
-  const result: Record<string, any> = {};
+export function unflatten(flat: Record<string, string>): MutableRecord {
+  const result: MutableRecord = {};
 
   // SECURITY: Dangerous keys that could lead to prototype pollution
   const DANGEROUS_KEYS = ["__proto__", "constructor", "prototype"];
@@ -32,7 +38,7 @@ export function unflatten(flat: Record<string, string>): Record<string, any> {
       continue;
     }
 
-    let current: any = result;
+    let current: MutableRecord = result;
 
     for (let i = 0; i < parts.length - 1; i++) {
       const part = parts[i];
@@ -41,7 +47,11 @@ export function unflatten(flat: Record<string, string>): Record<string, any> {
         if (!Object.prototype.hasOwnProperty.call(current, part)) {
           current[part] = {};
         }
-        current = current[part] ?? Object.create(null);
+        const next = current[part];
+        if (!isRecord(next)) {
+          current[part] = {};
+        }
+        current = current[part] as MutableRecord;
       }
     }
 
@@ -71,7 +81,7 @@ function unescapeValue(value: string): string {
     .replace(/\\\\/g, "\\");
 }
 
-export function encodeRecord(obj: Record<string, any>): string {
+export function encodeRecord(obj: MutableRecord): string {
   const flat = flatten(obj);
   const lines = Object.entries(flat).map(
     ([key, value]) => `${key}=${escapeValue(value)}`

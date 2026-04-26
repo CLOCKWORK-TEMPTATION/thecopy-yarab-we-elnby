@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { logger } from "@/lib/logger";
+
 import { definedProps } from "@/lib/defined-props";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
@@ -83,7 +85,7 @@ export class LocationSetCoordinator implements Plugin {
   private setDesigns = new Map<string, SetDesign>();
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized`);
+    logger.info(`[${this.name}] Initialized`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -457,7 +459,7 @@ export class LocationSetCoordinator implements Plugin {
   }
 
   async shutdown(): Promise<void> {
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

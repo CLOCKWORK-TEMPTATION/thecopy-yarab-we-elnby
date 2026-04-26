@@ -4,6 +4,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import { definedProps } from "@/lib/defined-props";
+import { logger } from "@/lib/logger";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
@@ -214,7 +215,7 @@ export class VirtualProductionEngine implements Plugin {
   category = "xr-immersive" as const;
 
   async initialize(): Promise<void> {
-    console.log(
+    logger.info(
       `[${this.name}] Initialized with LED wall and camera tracking support`
     );
   }
@@ -965,7 +966,7 @@ export class VirtualProductionEngine implements Plugin {
 
   async shutdown(): Promise<void> {
     productions.clear();
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

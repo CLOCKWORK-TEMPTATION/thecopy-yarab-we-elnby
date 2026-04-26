@@ -73,6 +73,7 @@ export default function MapComponent({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const vendorMarkersRef = useRef<L.Marker[]>([]);
+  const vendorPathsRef = useRef<L.Polyline[]>([]);
 
   /**
    * أيقونة الموردين
@@ -84,6 +85,32 @@ export default function MapComponent({
     iconSize: [25, 41],
     iconAnchor: [12, 41],
   }), []);
+
+  const markerToneColors = useMemo(
+    () => ({
+      default: '#3b82f6',
+      available: '#10b981',
+      busy: '#f59e0b',
+      offline: '#94a3b8',
+    }),
+    []
+  );
+
+  const markerIcons = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(markerToneColors).map(([tone, color]) => [
+          tone,
+          L.divIcon({
+            className: '',
+            html: `<span style="display:block;width:18px;height:18px;border-radius:9999px;background:${color};border:3px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.35);"></span>`,
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          }),
+        ])
+      ) as Record<NonNullable<VendorMapData['markerTone']>, L.DivIcon>,
+    [markerToneColors]
+  );
 
   /**
    * معالج النقر على الخريطة
@@ -138,21 +165,39 @@ export default function MapComponent({
     // حذف العلامات القديمة
     vendorMarkersRef.current.forEach((marker) => marker.remove());
     vendorMarkersRef.current = [];
+    vendorPathsRef.current.forEach((line) => line.remove());
+    vendorPathsRef.current = [];
 
     // إضافة علامات جديدة
     vendors.forEach((vendor) => {
       if (!mapRef.current) return;
+      const markerTone = vendor.markerTone ?? 'default';
+      const icon = markerIcons[markerTone] ?? vendorIcon;
+      const statusLine = vendor.statusLabel ? `<br/>الحالة: ${vendor.statusLabel}` : '';
+      const distanceLine = vendor.distance ? `<br/>المسافة: ${Math.round(vendor.distance)} متر` : '';
 
-      const marker = L.marker([vendor.lat, vendor.lng], { icon: vendorIcon })
+      if (vendor.path && vendor.path.length > 1) {
+        const line = L.polyline(
+          vendor.path.map((point) => [point.lat, point.lng]),
+          {
+            color: markerToneColors[markerTone],
+            weight: 3,
+            opacity: 0.65,
+          }
+        ).addTo(mapRef.current);
+        vendorPathsRef.current.push(line);
+      }
+
+      const marker = L.marker([vendor.lat, vendor.lng], { icon })
         .addTo(mapRef.current)
         .bindPopup(
           `<strong>${vendor.name}</strong><br/>` +
-          (vendor.distance ? `المسافة: ${Math.round(vendor.distance)} متر` : '')
+          `${statusLine}${distanceLine}`
         );
 
       vendorMarkersRef.current.push(marker);
     });
-  }, [vendors, vendorIcon]);
+  }, [vendors, vendorIcon, markerIcons, markerToneColors]);
 
   return (
     <div

@@ -17,6 +17,8 @@ import {
 import type {
   Session,
   DebateMessage,
+  BrainstormApiRequest,
+  BrainstormApiResponse,
 } from "../(main)/brain-storm-ai/src/types";
 
 vi.mock("@/lib/app-state-client", () => ({
@@ -135,10 +137,6 @@ vi.mock("../(main)/brain-storm-ai/src/hooks/useKeyboardShortcuts", () => ({
   useKeyboardShortcuts: vi.fn(),
 }));
 
-interface DebateRequest {
-  agentIds: string[];
-}
-
 interface PersistedBrainstormState {
   sessions: {
     session: Session;
@@ -146,13 +144,15 @@ interface PersistedBrainstormState {
   }[];
 }
 
-function createDebateSuccess(agentIds: string[]) {
+function createDebateSuccess(agentIds: string[]): BrainstormApiResponse {
+  const [agentId = "agent-1"] = agentIds;
+
   return {
     success: true,
     result: {
       proposals: [
         {
-          agentId: agentIds[0],
+          agentId,
           proposal: "اقتراح تحليلي شامل للفكرة المقدمة",
           confidence: 0.85,
         },
@@ -164,7 +164,7 @@ function createDebateSuccess(agentIds: string[]) {
   };
 }
 
-function resolveDebateSuccess({ agentIds }: DebateRequest) {
+function resolveDebateSuccess({ agentIds }: BrainstormApiRequest) {
   return Promise.resolve(createDebateSuccess(agentIds));
 }
 
@@ -230,8 +230,13 @@ it("يحفظ الجلسة تلقائياً ويسترجعها من التخزي�
 
   const parsed = JSON.parse(raw!) as PersistedBrainstormState;
   expect(parsed.sessions).toHaveLength(1);
-  expect(parsed.sessions[0].session.brief).toBe("فكرة لمشروع برمجي");
-  expect(parsed.sessions[0].messages).toHaveLength(2);
+  const [savedSession] = parsed.sessions;
+  expect(savedSession).toBeDefined();
+  if (!savedSession) {
+    throw new Error("Expected a saved brainstorm session");
+  }
+  expect(savedSession.session.brief).toBe("فكرة لمشروع برمجي");
+  expect(savedSession.messages).toHaveLength(2);
 });
 
 it("يصدر الجلسة بصيغتي JSON و Markdown عند اكتمالها", () => {

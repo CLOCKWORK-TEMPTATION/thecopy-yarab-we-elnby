@@ -4,6 +4,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import { definedProps } from "@/lib/defined-props";
+import { logger } from "@/lib/logger";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
@@ -104,7 +105,7 @@ export class VirtualSetEditor implements Plugin {
   category = "xr-immersive" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized with real-time AR capabilities`);
+    logger.info(`[${this.name}] Initialized with real-time AR capabilities`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -592,7 +593,7 @@ export class VirtualSetEditor implements Plugin {
 
   async shutdown(): Promise<void> {
     virtualSets.clear();
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 

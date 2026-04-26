@@ -129,6 +129,178 @@ const DEFAULT_SETTINGS: AppSettings = {
   geminiMaxTokens: 8192,
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function numberFromRecord(
+  record: Record<string, unknown>,
+  key: string,
+  fallback: number
+): number {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function clampMetric(value: number): number {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function detectEmotionalTone(text: string): TextAnalysis["emotionalTone"] {
+  const positiveWords = ["أمل", "نجاح", "فرح", "حب", "نور", "انتصار"];
+  const negativeWords = ["خوف", "حزن", "فشل", "ظلام", "موت", "ضياع"];
+  const positiveScore = positiveWords.filter((word) =>
+    text.includes(word)
+  ).length;
+  const negativeScore = negativeWords.filter((word) =>
+    text.includes(word)
+  ).length;
+
+  if (positiveScore > negativeScore) {
+    return "positive";
+  }
+  if (negativeScore > positiveScore) {
+    return "negative";
+  }
+  return "neutral";
+}
+
+function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
+  const trimmedText = text.trim();
+  const words = trimmedText ? trimmedText.split(/\s+/).filter(Boolean) : [];
+  const paragraphs = trimmedText
+    ? trimmedText.split(/\n{2,}/).filter((paragraph) => paragraph.trim())
+    : [];
+  const sentences = trimmedText
+    ? trimmedText.split(/[.!؟?。]+/).filter((sentence) => sentence.trim())
+    : [];
+  const uniqueWords = new Set(words.map((word) => word.toLocaleLowerCase()));
+  const averageWordsPerSentence =
+    sentences.length > 0 ? words.length / sentences.length : words.length;
+  const averageSentencesPerParagraph =
+    paragraphs.length > 0
+      ? sentences.length / paragraphs.length
+      : sentences.length;
+  const vocabularyDiversity =
+    words.length > 0 ? (uniqueWords.size / words.length) * 100 : 0;
+  const sentenceLengths = sentences.map(
+    (sentence) => sentence.trim().split(/\s+/).filter(Boolean).length
+  );
+  const sentenceVariety =
+    sentenceLengths.length > 1
+      ? Math.min(
+          100,
+          Math.max(...sentenceLengths) - Math.min(...sentenceLengths) + 50
+        )
+      : 50;
+  const readabilityScore = clampMetric(100 - averageWordsPerSentence * 2);
+  const fallbackSuggestions = [
+    "راجع تنوع الجمل والإيقاع قبل الاعتماد النهائي.",
+  ];
+
+  if (!isRecord(rawAnalysis)) {
+    return {
+      wordCount: words.length,
+      characterCount: text.length,
+      paragraphCount: paragraphs.length,
+      sentenceCount: sentences.length,
+      averageWordsPerSentence,
+      averageSentencesPerParagraph,
+      readabilityScore,
+      vocabularyDiversity: clampMetric(vocabularyDiversity),
+      sentenceVariety: clampMetric(sentenceVariety),
+      emotionalTone: detectEmotionalTone(text),
+      qualityMetrics: {
+        clarity: readabilityScore,
+        creativity: clampMetric(vocabularyDiversity),
+        coherence: clampMetric((readabilityScore + sentenceVariety) / 2),
+        impact: clampMetric((vocabularyDiversity + sentenceVariety) / 2),
+      },
+      suggestions: fallbackSuggestions,
+    };
+  }
+
+  const qualityMetrics = isRecord(rawAnalysis["qualityMetrics"])
+    ? rawAnalysis["qualityMetrics"]
+    : {};
+  const suggestions = Array.isArray(rawAnalysis["suggestions"])
+    ? rawAnalysis["suggestions"].filter(
+        (suggestion): suggestion is string => typeof suggestion === "string"
+      )
+    : typeof rawAnalysis["analysis"] === "string"
+      ? [rawAnalysis["analysis"]]
+      : fallbackSuggestions;
+
+  return {
+    wordCount: numberFromRecord(rawAnalysis, "wordCount", words.length),
+    characterCount: numberFromRecord(
+      rawAnalysis,
+      "characterCount",
+      text.length
+    ),
+    paragraphCount: numberFromRecord(
+      rawAnalysis,
+      "paragraphCount",
+      paragraphs.length
+    ),
+    sentenceCount: numberFromRecord(
+      rawAnalysis,
+      "sentenceCount",
+      sentences.length
+    ),
+    averageWordsPerSentence: numberFromRecord(
+      rawAnalysis,
+      "averageWordsPerSentence",
+      averageWordsPerSentence
+    ),
+    averageSentencesPerParagraph: numberFromRecord(
+      rawAnalysis,
+      "averageSentencesPerParagraph",
+      averageSentencesPerParagraph
+    ),
+    readabilityScore: numberFromRecord(
+      rawAnalysis,
+      "readabilityScore",
+      readabilityScore
+    ),
+    vocabularyDiversity: numberFromRecord(
+      rawAnalysis,
+      "vocabularyDiversity",
+      clampMetric(vocabularyDiversity)
+    ),
+    sentenceVariety: numberFromRecord(
+      rawAnalysis,
+      "sentenceVariety",
+      clampMetric(sentenceVariety)
+    ),
+    emotionalTone:
+      rawAnalysis["emotionalTone"] === "positive" ||
+      rawAnalysis["emotionalTone"] === "negative" ||
+      rawAnalysis["emotionalTone"] === "neutral"
+        ? rawAnalysis["emotionalTone"]
+        : detectEmotionalTone(text),
+    qualityMetrics: {
+      clarity: numberFromRecord(qualityMetrics, "clarity", readabilityScore),
+      creativity: numberFromRecord(
+        qualityMetrics,
+        "creativity",
+        clampMetric(vocabularyDiversity)
+      ),
+      coherence: numberFromRecord(
+        qualityMetrics,
+        "coherence",
+        clampMetric((readabilityScore + sentenceVariety) / 2)
+      ),
+      impact: numberFromRecord(
+        qualityMetrics,
+        "impact",
+        clampMetric((vocabularyDiversity + sentenceVariety) / 2)
+      ),
+    },
+    suggestions: suggestions.length > 0 ? suggestions : fallbackSuggestions,
+  };
+}
+
 function restoreProject(
   project: PersistedCreativeProject | null | undefined
 ): CreativeProject | null {
@@ -386,7 +558,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
         const response = await geminiService.analyzeText(text);
         if (response.success) {
           showNotification("success", "تم تحليل النص بنجاح 📊");
-          return response.data;
+          return buildTextAnalysis(text, response.data);
         }
         showNotification("error", response.error ?? "فشل في تحليل النص");
         return null;

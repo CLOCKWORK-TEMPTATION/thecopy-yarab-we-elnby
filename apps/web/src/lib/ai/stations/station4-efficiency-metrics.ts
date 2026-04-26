@@ -43,6 +43,15 @@ export interface QualityAssessment {
   overall: number;
 }
 
+interface LiteraryQualityAssessment {
+  overallQuality: number;
+  proseQuality: number;
+  structureQuality: number;
+  characterDevelopmentQuality: number;
+  dialogueQuality: number;
+  thematicDepth: number;
+}
+
 export interface ProducibilityAnalysis {
   technicalFeasibility: number; // 0-10
   budgetEstimate: "low" | "medium" | "high" | "very_high";
@@ -105,6 +114,8 @@ export interface Station4Output {
   };
 }
 
+type RecommendationBuckets = Station4Output["recommendations"];
+
 // Literary Quality Analyzer Agent
 class LiteraryQualityAnalyzer {
   constructor(private geminiService: GeminiService) {}
@@ -112,14 +123,7 @@ class LiteraryQualityAnalyzer {
   async assess(
     text: string,
     previousAnalysis: Station3Output
-  ): Promise<{
-    overallQuality: number; // 0-100
-    proseQuality: number;
-    structureQuality: number;
-    characterDevelopmentQuality: number;
-    dialogueQuality: number;
-    thematicDepth: number;
-  }> {
+  ): Promise<LiteraryQualityAssessment> {
     const prompt = `
     قم بتقييم الجودة الأدبية للنص التالي بناءً على التحليل السابق للشبكة الدرامية.
 
@@ -443,7 +447,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
         );
 
         if (!constitutionalCheck.compliant) {
-          finalRecommendations = JSON.parse(
+          finalRecommendations = this.parseRecommendationBuckets(
             constitutionalCheck.correctedAnalysis
           );
         }
@@ -619,7 +623,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
   }
 
   private calculateCommercialPotential(
-    literaryQuality: any,
+    literaryQuality: LiteraryQualityAssessment,
     producibility: ProducibilityAnalysis
   ): number {
     // Simplified commercial potential calculation
@@ -649,32 +653,32 @@ export class Station4EfficiencyMetrics extends BaseStation<
   }
 
   /**
-   * Check constitutional compliance of analysis
-   *
-   * DEV STUB: Always returns compliant
-   * TODO PRODUCTION: Implement actual constitutional AI validation
-   *
-   * Production implementation should:
-   * 1. Validate analysis against constitutional AI principles
-   * 2. Check for bias, fairness, and ethical considerations
-   * 3. Apply corrections if needed
-   * 4. Calculate improvement score
+   * Check constitutional compliance of analysis.
    */
   private async checkConstitutionalCompliance(
     analysis: string,
-    _originalText: string
+    originalText: string
   ): Promise<{
     compliant: boolean;
     correctedAnalysis: string;
     improvementScore: number;
   }> {
     try {
-      // DEV MODE: Placeholder - always returns compliant
-      // TODO PRODUCTION: Implement constitutional AI check
+      const recommendations = this.parseRecommendationBuckets(analysis);
+      const violations = this.detectConstitutionalViolations(
+        recommendations,
+        originalText
+      );
+
+      const correctedRecommendations =
+        violations.length === 0
+          ? recommendations
+          : this.addConstitutionalCorrection(recommendations, violations);
+
       return {
-        compliant: true,
-        correctedAnalysis: analysis,
-        improvementScore: 1.0,
+        compliant: violations.length === 0,
+        correctedAnalysis: JSON.stringify(correctedRecommendations),
+        improvementScore: violations.length === 0 ? 1 : 0.75,
       };
     } catch (error) {
       console.error("Constitutional check failed:", error);
@@ -687,33 +691,48 @@ export class Station4EfficiencyMetrics extends BaseStation<
   }
 
   /**
-   * Quantify uncertainty in analysis results
-   *
-   * DEV STUB: Returns fixed confidence score
-   * TODO PRODUCTION: Implement statistical uncertainty quantification
-   *
-   * Production implementation should:
-   * 1. Calculate epistemic and aleatoric uncertainties
-   * 2. Measure confidence intervals for metrics
-   * 3. Identify areas with insufficient data
-   * 4. Provide statistical backing for confidence scores
+   * Quantify uncertainty in analysis results.
    */
   private async quantifyUncertainty(
-    _analysis: string,
-    _originalText: string
+    analysis: string,
+    originalText: string
   ): Promise<UncertaintyReport> {
     try {
-      // DEV MODE: Placeholder - returns fixed confidence
-      // TODO PRODUCTION: Implement proper uncertainty quantification
+      const parsed = this.tryParseJsonObject(analysis);
+      const words = originalText.trim().split(/\s+/).filter(Boolean).length;
+      const uncertainties: UncertaintyReport["uncertainties"] = [];
+      let penalty = 0;
+
+      if (words < 300) {
+        penalty += 0.2;
+        uncertainties.push({
+          type: "epistemic",
+          aspect: "sample_size",
+          note: "النص قصير وقد لا يكفي لتقدير جودة البنية والإيقاع بثقة عالية",
+        });
+      }
+
+      if (!this.hasCompleteMetricSet(parsed)) {
+        penalty += 0.15;
+        uncertainties.push({
+          type: "epistemic",
+          aspect: "metric_coverage",
+          note: "بعض المقاييس غير مكتملة أو غير قابلة للتحقق من المخرجات",
+        });
+      }
+
+      if (this.countRecommendationItems(parsed["recommendations"]) < 3) {
+        penalty += 0.1;
+        uncertainties.push({
+          type: "aleatoric",
+          aspect: "recommendation_density",
+          note: "عدد التوصيات قليل مقارنة باتساع التحليل المطلوب",
+        });
+      }
+
       return {
-        overallConfidence: 0.8,
-        uncertainties: [
-          {
-            type: "epistemic",
-            aspect: "metric_calculation",
-            note: "بعض المقاييس قد تحتاج إلى مزيد من البيانات",
-          },
-        ],
+        overallConfidence: Math.max(0.35, Math.min(0.95, 0.9 - penalty)),
+        uncertainties,
       };
     } catch (error) {
       console.error("Uncertainty quantification failed:", error);
@@ -728,6 +747,103 @@ export class Station4EfficiencyMetrics extends BaseStation<
         ],
       };
     }
+  }
+
+  private parseRecommendationBuckets(analysis: string): RecommendationBuckets {
+    const parsed = this.tryParseJsonObject(analysis);
+    return {
+      priorityActions: this.sanitizeRecommendationList(
+        parsed["priorityActions"]
+      ),
+      quickFixes: this.sanitizeRecommendationList(parsed["quickFixes"]),
+      structuralRevisions: this.sanitizeRecommendationList(
+        parsed["structuralRevisions"]
+      ),
+    };
+  }
+
+  private sanitizeRecommendationList(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private detectConstitutionalViolations(
+    recommendations: RecommendationBuckets,
+    originalText: string
+  ): string[] {
+    const combined = [
+      ...recommendations.priorityActions,
+      ...recommendations.quickFixes,
+      ...recommendations.structuralRevisions,
+      originalText,
+    ].join("\n");
+
+    const blockedPatterns = [
+      /استبعد.+(?:دين|عرق|جنس|إعاقة|لهجة)/i,
+      /احذف.+(?:دين|عرق|جنس|إعاقة|لهجة)/i,
+      /(?:دين|عرق|جنس|إعاقة|لهجة).+(?:أدنى|أسوأ|منحط)/i,
+    ];
+
+    return blockedPatterns
+      .filter((pattern) => pattern.test(combined))
+      .map((pattern) => pattern.source);
+  }
+
+  private addConstitutionalCorrection(
+    recommendations: RecommendationBuckets,
+    violations: string[]
+  ): RecommendationBuckets {
+    return {
+      ...recommendations,
+      priorityActions: [
+        "مراجعة التوصيات لتجنب الاستبعاد أو التعميم على أساس هوية محمية",
+        ...recommendations.priorityActions,
+      ],
+      structuralRevisions: [
+        ...recommendations.structuralRevisions,
+        `تصحيح ${violations.length} مؤشرات لغوية قد تنتج تحيزاً أو توصية غير عادلة`,
+      ],
+    };
+  }
+
+  private tryParseJsonObject(value: string): Record<string, unknown> {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return this.isRecord(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  private hasCompleteMetricSet(parsed: Record<string, unknown>): boolean {
+    return [
+      "efficiencyMetrics",
+      "qualityAssessment",
+      "producibilityAnalysis",
+      "rhythmAnalysis",
+    ].every((key) => this.isRecord(parsed[key]));
+  }
+
+  private countRecommendationItems(value: unknown): number {
+    if (!this.isRecord(value)) {
+      return 0;
+    }
+
+    return ["priorityActions", "quickFixes", "structuralRevisions"].reduce(
+      (total, key) =>
+        total + this.sanitizeRecommendationList(value[key]).length,
+      0
+    );
   }
 
   protected extractRequiredData(input: Station4Input): Record<string, unknown> {

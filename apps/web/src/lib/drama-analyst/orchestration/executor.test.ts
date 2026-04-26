@@ -6,7 +6,9 @@ import { AnalysisType } from "@/types/enums";
 
 import {
   PipelineOrchestrator,
+  getSubmittedTask,
   submitTask,
+  type PipelineTaskRequest,
   type PipelineStep,
 } from "./executor";
 
@@ -37,19 +39,22 @@ const makeStep = (id: string, dependencies: string[] = []): PipelineStep => ({
   dependencies,
 });
 
-interface SubmitTaskResult<TData> {
-  success: boolean;
-  taskId: string;
-  status: "submitted";
-  data: TData;
-}
-
 describe("Executor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     const mockedGeminiService = vi.mocked(geminiService);
-    vi.mocked(cachedGeminiCall).mockImplementation(async (_key, factory) =>
-      factory()
+    vi.mocked(cachedGeminiCall).mockImplementation(
+      async (keyOrFactory, maybeFactory) => {
+        if (typeof keyOrFactory === "function") {
+          return keyOrFactory();
+        }
+
+        if (!maybeFactory) {
+          throw new Error("Missing cache factory");
+        }
+
+        return maybeFactory();
+      }
     );
     mockedGeminiService.generateText.mockReset();
   });
@@ -126,18 +131,25 @@ describe("Executor", () => {
   });
 
   it("validate-pipeline: submitTask returns a submitted task envelope", async () => {
-    const taskRequest = {
-      agent: "analysis",
-      files: [{ name: "test.txt", content: "content" }],
+    const mockedGeminiService = vi.mocked(geminiService);
+    mockedGeminiService.generateText.mockResolvedValueOnce("queued result");
+
+    const taskRequest: PipelineTaskRequest = {
+      pipelineId: "pipeline-submit-test",
+      steps: [makeStep("step-1")],
+      inputData: { content: "content" },
+      priority: "normal",
     };
 
-    const result = (await submitTask(taskRequest)) as SubmitTaskResult<
-      typeof taskRequest
-    >;
+    const result = await submitTask(taskRequest);
 
     expect(result.success).toBe(true);
-    expect(result.status).toBe("submitted");
+    expect(result.status).toBe("queued");
     expect(result.taskId).toMatch(/^task_/);
-    expect(result.data).toBe(taskRequest);
+    expect(result.pipelineId).toBe("pipeline-submit-test");
+    expect(result.queuedAt).toEqual(expect.any(String));
+
+    const storedTask = getSubmittedTask(result.taskId);
+    expect(storedTask?.request).toMatchObject(taskRequest);
   });
 });

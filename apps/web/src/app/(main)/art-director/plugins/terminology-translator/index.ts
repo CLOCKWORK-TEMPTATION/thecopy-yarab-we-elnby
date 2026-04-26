@@ -1,6 +1,8 @@
 // CineArchitect AI - Multilingual Cinema Terminology Translator
 // مترجم المصطلحات السينمائية متعدد اللغات
 
+import { logger } from "@/lib/logger";
+
 import {
   Plugin,
   PluginInput,
@@ -216,7 +218,7 @@ export class TerminologyTranslator implements Plugin {
       this.terms.set(term.en.toLowerCase(), term);
       this.termsAr.set(term.ar, term);
     }
-    console.log(`[${this.name}] Initialized with ${CINEMA_TERMS.length} terms`);
+    logger.info(`[${this.name}] Initialized with ${CINEMA_TERMS.length} terms`);
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -401,7 +403,7 @@ export class TerminologyTranslator implements Plugin {
   async shutdown(): Promise<void> {
     this.terms.clear();
     this.termsAr.clear();
-    console.log(`[${this.name}] Shut down`);
+    logger.info(`[${this.name}] Shut down`);
   }
 }
 
