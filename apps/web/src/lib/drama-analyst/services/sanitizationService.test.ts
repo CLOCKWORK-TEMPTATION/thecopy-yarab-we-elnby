@@ -23,14 +23,14 @@ describe("SanitizationService", () => {
     it("validate-pipeline: should remove event handlers", () => {
       const malicious = '<div onclick="alert(1)">Click me</div>';
       const result = sanitization.html(malicious);
-      expect(result).toBe("<div >Click me</div>");
+      expect(result).toBe("<div>Click me</div>");
     });
 
     // يجب إزالة بروتوكول javascript الضار
     it("validate-pipeline: should remove javascript: protocol", () => {
       const malicious = '<a href="javascript:alert(1)">Link</a>';
       const result = sanitization.html(malicious);
-      expect(result).toBe('<a href="alert(1)">Link</a>');
+      expect(result).toBe("<a>Link</a>");
     });
   });
 
