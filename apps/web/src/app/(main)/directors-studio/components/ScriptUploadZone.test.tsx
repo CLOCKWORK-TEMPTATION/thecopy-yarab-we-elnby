@@ -34,7 +34,11 @@ describe("ScriptUploadZone - Deactivation Component", () => {
       screen.getByText("تم إلغاء الاستيراد من هذه الصفحة")
     ).toBeInTheDocument();
     expect(
-      screen.getByText("المالك الوحيد للاستيراد هو المحرر /editor")
+      screen.getByText((_, element) => {
+        return (
+          element?.textContent === "المالك الوحيد للاستيراد هو المحرر /editor"
+        );
+      })
     ).toBeInTheDocument();
   });
 
