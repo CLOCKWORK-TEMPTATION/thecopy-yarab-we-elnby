@@ -1,157 +1,130 @@
 /**
- * شبكة انحدار: directors-studio — إمكانية الوصول لإدخال الملفات
+ * شبكة انحدار: directors-studio — استيراد الملفات معطّل صراحةً
  *
- * يتحقق من:
- * - isSupportedFileType ترفض الأنواع غير المدعومة
- * - الامتدادات والـ MIME المدعومة
- * - FileExtractionError يحمل النوع الصحيح
- * - حد حجم الملف
+ * fileExtractor.ts في directors-studio أُلغيت وظائفه التشغيلية (انظر الملف نفسه:
+ * "معطّل بالكامل" — الاستيراد متاح حصراً من /editor). هذه الاختبارات تصون عقد
+ * الإلغاء النهائي حتى لا تُعاد إعادة تفعيل المسار صدفة دون تحقق صريح:
+ *   - واجهة الأنواع تكشف EXTRACTION_DISABLED + 3 نتائج رفض دلالية أخرى.
+ *   - FileExtractionError يحمل type و details ورسالة موحَّدة تشير إلى /editor.
+ *   - extractTextFromFile / getSupportedFileTypes / validateFile كلها ترمي
+ *     FileExtractionError بالنوع EXTRACTION_DISABLED بصرف النظر عن المدخل.
  *
- * ملاحظة: pdfjs-dist يحتاج DOMMatrix غير المتاح في jsdom
- * لذلك نعمل mock للمكتبة بالكامل ونستورد التصديرات الخاصة بنا مباشرة
+ * النسخة السابقة من الاختبار كانت تتحقق من API قديمة (SUPPORTED_EXTENSIONS،
+ * isSupportedFileType، originalError، UNSUPPORTED_TYPE…) — كلها موارد لم تعد
+ * موجودة في الكود. كان يفشل 12/12 لأن الـ imports نفسها كانت undefined.
  */
-import { describe, it, expect, vi } from "vitest";
 
-// محاكاة pdfjs-dist قبل استيراد fileExtractor
-vi.mock("pdfjs-dist", () => ({
-  GlobalWorkerOptions: { workerSrc: "" },
-  version: "0.0.0",
-  getDocument: vi.fn(),
-}));
-
-// محاكاة mammoth
-vi.mock("mammoth", () => ({
-  default: { extractRawText: vi.fn() },
-  extractRawText: vi.fn(),
-}));
+import { describe, it, expect } from "vitest";
 
 import {
-  isSupportedFileType,
-  SUPPORTED_EXTENSIONS,
-  SUPPORTED_MIME_TYPES,
   FileExtractionError,
   ExtractionErrorType,
+  extractTextFromFile,
+  getSupportedFileTypes,
+  validateFile,
 } from "@/app/(main)/directors-studio/helpers/fileExtractor";
 
-// ------------------------------------------------------------------
-// أدوات مساعدة
-// ------------------------------------------------------------------
-function fakeFile(name: string, type: string, size = 1024): File {
-  const blob = new Blob(["x".repeat(size)], { type });
-  return new File([blob], name, { type });
-}
-
-describe("شبكة انحدار: directors-studio — إدخال الملفات", () => {
-  // ================================================================
-  // 1) الامتدادات المدعومة
-  // ================================================================
-  describe("SUPPORTED_EXTENSIONS", () => {
-    it("تتضمن .txt و .pdf و .docx", () => {
-      expect(SUPPORTED_EXTENSIONS).toContain(".txt");
-      expect(SUPPORTED_EXTENSIONS).toContain(".pdf");
-      expect(SUPPORTED_EXTENSIONS).toContain(".docx");
-    });
-
-    it("لا تتضمن .doc (التنسيق القديم)", () => {
-      expect(SUPPORTED_EXTENSIONS).not.toContain(".doc");
-    });
-  });
-
-  // ================================================================
-  // 2) SUPPORTED_MIME_TYPES
-  // ================================================================
-  describe("SUPPORTED_MIME_TYPES", () => {
-    it("تحتوي text/plain و application/pdf و docx mime", () => {
-      expect(SUPPORTED_MIME_TYPES.TXT).toBe("text/plain");
-      expect(SUPPORTED_MIME_TYPES.PDF).toBe("application/pdf");
-      expect(SUPPORTED_MIME_TYPES.DOCX).toBe(
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      );
-    });
-  });
-
-  // ================================================================
-  // 3) isSupportedFileType
-  // ================================================================
-  describe("isSupportedFileType", () => {
-    it("يقبل ملف .txt", () => {
-      expect(isSupportedFileType(fakeFile("script.txt", "text/plain"))).toBe(
-        true
+describe("شبكة انحدار: directors-studio — استيراد الملفات معطّل", () => {
+  describe("ExtractionErrorType — عقد الـ enum", () => {
+    it("يحتوي EXTRACTION_DISABLED كقيمة معتمدة", () => {
+      expect(ExtractionErrorType.EXTRACTION_DISABLED).toBe(
+        "EXTRACTION_DISABLED"
       );
     });
 
-    it("يقبل ملف .pdf", () => {
-      expect(
-        isSupportedFileType(fakeFile("script.pdf", "application/pdf"))
-      ).toBe(true);
+    it("يحتفظ بنواتج الرفض الدلالية للأنواع غير المدعومة", () => {
+      expect(ExtractionErrorType.UNSUPPORTED_FORMAT).toBe("UNSUPPORTED_FORMAT");
+      expect(ExtractionErrorType.CORRUPTED_FILE).toBe("CORRUPTED_FILE");
+      expect(ExtractionErrorType.INVALID_CONTENT).toBe("INVALID_CONTENT");
     });
 
-    it("يقبل ملف .docx", () => {
-      expect(
-        isSupportedFileType(
-          fakeFile(
-            "script.docx",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          )
-        )
-      ).toBe(true);
-    });
-
-    it("يرفض ملف .exe", () => {
-      expect(
-        isSupportedFileType(fakeFile("malware.exe", "application/x-msdownload"))
-      ).toBe(false);
-    });
-
-    it("يرفض ملف .jpg", () => {
-      expect(isSupportedFileType(fakeFile("photo.jpg", "image/jpeg"))).toBe(
-        false
-      );
-    });
-
-    it("يرفض ملف .doc القديم", () => {
-      expect(
-        isSupportedFileType(fakeFile("old.doc", "application/msword"))
-      ).toBe(false);
+    it("لا يكشف أي وظيفة استخراج كقيمة من الـ enum (مثل OK)", () => {
+      const values = new Set(Object.values(ExtractionErrorType));
+      expect(values.has("OK" as never)).toBe(false);
+      expect(values.has("SUCCESS" as never)).toBe(false);
     });
   });
 
-  // ================================================================
-  // 4) FileExtractionError يحمل البنية الصحيحة
-  // ================================================================
-  describe("FileExtractionError", () => {
-    it("يحمل نوع الخطأ والرسالة", () => {
+  describe("FileExtractionError — عقد الـ class", () => {
+    it("instance من Error مع name = 'FileExtractionError'", () => {
       const err = new FileExtractionError(
-        ExtractionErrorType.UNSUPPORTED_TYPE,
-        "نوع غير مدعوم"
+        ExtractionErrorType.EXTRACTION_DISABLED
       );
       expect(err).toBeInstanceOf(Error);
-      expect(err.type).toBe(ExtractionErrorType.UNSUPPORTED_TYPE);
-      expect(err.message).toBe("نوع غير مدعوم");
       expect(err.name).toBe("FileExtractionError");
     });
 
-    it("يمكنه حمل originalError اختياري", () => {
-      const original = new Error("سبب أصلي");
+    it("يحفظ type المُمرَّر", () => {
       const err = new FileExtractionError(
-        ExtractionErrorType.FILE_READ_ERROR,
-        "فشل القراءة",
-        original
+        ExtractionErrorType.UNSUPPORTED_FORMAT
       );
-      expect(err.originalError).toBe(original);
+      expect(err.type).toBe(ExtractionErrorType.UNSUPPORTED_FORMAT);
     });
 
-    it("ExtractionErrorType يحتوي جميع الأنواع المتوقعة", () => {
-      const expectedTypes = [
-        "UNSUPPORTED_TYPE",
-        "FILE_READ_ERROR",
-        "PDF_PARSE_ERROR",
-        "DOCX_PARSE_ERROR",
-        "EMPTY_CONTENT",
-        "FILE_TOO_LARGE",
-      ];
-      for (const t of expectedTypes) {
-        expect(Object.values(ExtractionErrorType)).toContain(t);
+    it("يحفظ details الاختياري عند تمريره", () => {
+      const err = new FileExtractionError(
+        ExtractionErrorType.CORRUPTED_FILE,
+        "ملف pdf تالف"
+      );
+      expect(err.details).toBe("ملف pdf تالف");
+    });
+
+    it("details يبقى undefined إذا لم يُمَرَّر", () => {
+      const err = new FileExtractionError(ExtractionErrorType.INVALID_CONTENT);
+      expect(err.details).toBeUndefined();
+    });
+
+    it("الرسالة تُحيل المستخدم إلى /editor كمالك وحيد للاستيراد", () => {
+      const err = new FileExtractionError(
+        ExtractionErrorType.EXTRACTION_DISABLED
+      );
+      expect(err.message).toContain("/editor");
+      expect(err.message).toContain("معطّل");
+    });
+  });
+
+  describe("extractTextFromFile — يجب أن يرفض دائماً", () => {
+    it("يرمي FileExtractionError(EXTRACTION_DISABLED) لأي ملف نصي", async () => {
+      const file = new File(["hello"], "x.txt", { type: "text/plain" });
+      await expect(extractTextFromFile(file)).rejects.toBeInstanceOf(
+        FileExtractionError
+      );
+      await expect(extractTextFromFile(file)).rejects.toMatchObject({
+        type: ExtractionErrorType.EXTRACTION_DISABLED,
+      });
+    });
+
+    it("يرمي FileExtractionError(EXTRACTION_DISABLED) لـ pdf أيضاً", async () => {
+      const file = new File(["%PDF"], "x.pdf", { type: "application/pdf" });
+      await expect(extractTextFromFile(file)).rejects.toMatchObject({
+        type: ExtractionErrorType.EXTRACTION_DISABLED,
+      });
+    });
+  });
+
+  describe("getSupportedFileTypes — يرفض الاستفسار لأن الاستيراد معطّل", () => {
+    it("يرمي FileExtractionError(EXTRACTION_DISABLED)", () => {
+      expect(() => getSupportedFileTypes()).toThrow(FileExtractionError);
+      try {
+        getSupportedFileTypes();
+      } catch (e) {
+        expect((e as FileExtractionError).type).toBe(
+          ExtractionErrorType.EXTRACTION_DISABLED
+        );
+      }
+    });
+  });
+
+  describe("validateFile — لا يقبل أي ملف لأن الاستيراد معطّل", () => {
+    it("يرمي FileExtractionError(EXTRACTION_DISABLED) لأي ملف", () => {
+      const file = new File([""], "any.txt", { type: "text/plain" });
+      expect(() => validateFile(file)).toThrow(FileExtractionError);
+      try {
+        validateFile(file);
+      } catch (e) {
+        expect((e as FileExtractionError).type).toBe(
+          ExtractionErrorType.EXTRACTION_DISABLED
+        );
       }
     });
   });

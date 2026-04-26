@@ -15,6 +15,8 @@ describe('Environment Configuration', () => {
     CORS_ORIGIN: 'http://localhost:5000',
     RATE_LIMIT_WINDOW_MS: '900000',
     RATE_LIMIT_MAX_REQUESTS: '100',
+    // مطلوب من apps/backend/.env.example — env-safe يفرضه في production
+    NEXT_PUBLIC_BACKEND_URL: 'http://localhost:3001',
     ...overrides,
   });
 

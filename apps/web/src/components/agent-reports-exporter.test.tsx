@@ -36,8 +36,6 @@ class MockBlob {
 
 // Mock anchor click so no real navigation happens
 const mockAnchorClick = vi.fn();
-const mockAppendChild = vi.fn();
-const mockRemoveChild = vi.fn();
 
 // Mock useToast so the component doesn't fail due to missing toast context
 vi.mock("@/hooks/use-toast", () => ({
@@ -62,8 +60,9 @@ beforeEach(() => {
     return originalCreateElement(tag);
   });
 
-  vi.spyOn(document.body, "appendChild").mockImplementation(mockAppendChild);
-  vi.spyOn(document.body, "removeChild").mockImplementation(mockRemoveChild);
+  // Note: لا نمسّ document.body.appendChild/removeChild — render() من
+  // @testing-library/react يحتاج هذه الواجهات لإلصاق الحاوية، وضغطة `a` المُحاكاة
+  // (mockAnchorClick) تكفي لمنع أي تنقّل فعلي عبر <a>.
 });
 
 afterEach(() => {
