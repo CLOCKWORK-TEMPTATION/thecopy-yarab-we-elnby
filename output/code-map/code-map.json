@@ -778,17 +778,21 @@
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
-    "ungovernedFiles": [],
-    "discoveryWarnings": [],
-    "governanceStatus": "governed"
+    "ungovernedFiles": [
+      "apps/web/scripts/run-vitest-chunks.mjs"
+    ],
+    "discoveryWarnings": [
+      "مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/scripts/run-vitest-chunks.mjs (path signal: chunk)"
+    ],
+    "governanceStatus": "ungoverned"
   },
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-04-26T06:40:51.527Z",
-    "totalFiles": 1982,
-    "totalChunks": 5179,
-    "embeddedChunks": 5179,
+    "generatedAt": "2026-04-26T09:59:58.783Z",
+    "totalFiles": 1983,
+    "totalChunks": 5171,
+    "embeddedChunks": 5171,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,
