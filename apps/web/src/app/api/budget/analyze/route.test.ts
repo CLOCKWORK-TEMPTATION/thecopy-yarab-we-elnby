@@ -19,18 +19,17 @@ interface AnalyzeResponse {
 }
 
 vi.mock("@/lib/server/backend-proxy", () => ({
-  buildProxyErrorResponse: vi.fn(
-    (error: unknown, fallbackMessage: string) =>
-      Response.json(
-        {
-          success: false,
-          error:
-            error instanceof Error && error.message
-              ? error.message
-              : fallbackMessage,
-        },
-        { status: 503 }
-      )
+  buildProxyErrorResponse: vi.fn((error: unknown, fallbackMessage: string) =>
+    Response.json(
+      {
+        success: false,
+        error:
+          error instanceof Error && error.message
+            ? error.message
+            : fallbackMessage,
+      },
+      { status: 503 }
+    )
   ),
   proxyToBackend: vi.fn(),
 }));
@@ -59,10 +58,7 @@ describe("/api/budget/analyze", () => {
     expect(response.status).toBe(200);
     expect(result.success).toBe(true);
     expect(result.data?.analysis.summary).toBe("ok");
-    expect(proxyToBackend).toHaveBeenCalledWith(
-      request,
-      "/api/budget/analyze"
-    );
+    expect(proxyToBackend).toHaveBeenCalledWith(request, "/api/budget/analyze");
   });
 
   it("يعيد استجابة خطأ عند فشل الاتصال بخدمة التحليل", async () => {

@@ -16,17 +16,21 @@ vi.mock("../../services/geminiService", () => ({
 }));
 
 vi.mock("@/lib/ai/gemini-core", () => ({
-  callGeminiText: vi.fn().mockResolvedValue(
-    "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
-  ),
+  callGeminiText: vi
+    .fn()
+    .mockResolvedValue(
+      "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
+    ),
   toText: (response: unknown) =>
     typeof response === "string" ? response : JSON.stringify(response),
 }));
 
 vi.mock("@/ai/gemini-core", () => ({
-  callGeminiText: vi.fn().mockResolvedValue(
-    "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
-  ),
+  callGeminiText: vi
+    .fn()
+    .mockResolvedValue(
+      "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
+    ),
   toText: (response: unknown) =>
     typeof response === "string" ? response : JSON.stringify(response),
 }));
@@ -38,266 +42,262 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("PlatformAdapterAgent", () => {
-  describe("Configuration", () => {
-    it("should initialize with correct configuration", () => {
-      const config = agent.getConfig();
+describe("Configuration", () => {
+  it("should initialize with correct configuration", () => {
+    const config = agent.getConfig();
 
-      expect(config.name).toBe("MediaTransmorph AI");
-      expect(config.taskType).toBe(TaskType.PLATFORM_ADAPTER);
-      expect(config.confidenceFloor).toBe(0.78);
-      expect(config.supportsRAG).toBe(true);
-      expect(config.supportsSelfCritique).toBe(true);
-      expect(config.supportsConstitutional).toBe(true);
-      expect(config.supportsUncertainty).toBe(true);
-      expect(config.supportsHallucination).toBe(true);
-      expect(config.supportsDebate).toBe(true);
-    });
-
-    it("should allow confidence floor to be updated", () => {
-      agent.setConfidenceFloor(0.85);
-      const config = agent.getConfig();
-      expect(config.confidenceFloor).toBe(0.85);
-    });
+    expect(config.name).toBe("MediaTransmorph AI");
+    expect(config.taskType).toBe(TaskType.PLATFORM_ADAPTER);
+    expect(config.confidenceFloor).toBe(0.78);
+    expect(config.supportsRAG).toBe(true);
+    expect(config.supportsSelfCritique).toBe(true);
+    expect(config.supportsConstitutional).toBe(true);
+    expect(config.supportsUncertainty).toBe(true);
+    expect(config.supportsHallucination).toBe(true);
+    expect(config.supportsDebate).toBe(true);
   });
 
-  describe("Success Path", () => {
-    it("should execute platform adaptation task successfully", async () => {
-      const input: StandardAgentInput = {
-        input:
-          "حوّل هذا المحتوى الطويل ليناسب منصة تويتر: قصة درامية معقدة عن صراع بين شخصيتين...",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: false,
-          confidenceThreshold: 0.75,
+  it("should allow confidence floor to be updated", () => {
+    agent.setConfidenceFloor(0.85);
+    const config = agent.getConfig();
+    expect(config.confidenceFloor).toBe(0.85);
+  });
+});
+
+describe("Success Path", () => {
+  it("should execute platform adaptation task successfully", async () => {
+    const input: StandardAgentInput = {
+      input:
+        "حوّل هذا المحتوى الطويل ليناسب منصة تويتر: قصة درامية معقدة عن صراع بين شخصيتين...",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: false,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          targetPlatform: "Twitter",
+          contentType: "drama",
         },
-        context: {
-          previousStations: {
-            targetPlatform: "Twitter",
-            contentType: "drama",
-          },
-        },
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeDefined();
-      expect(typeof result.text).toBe("string");
-      expect(result.confidence).toBeGreaterThanOrEqual(0);
-      expect(result.confidence).toBeLessThanOrEqual(1);
-      expect(result.metadata).toBeDefined();
+    expect(result).toBeDefined();
+    expect(result.text).toBeDefined();
+    expect(typeof result.text).toBe("string");
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.confidence).toBeLessThanOrEqual(1);
+    expect(result.metadata).toBeDefined();
 
-      // Verify no JSON in output
-      expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
-      expect(result.text).not.toMatch(/```json/);
-    });
-
-    it("should include context from previous stations in prompt", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى للمنصة المستهدفة",
-        options: {},
-        context: {
-          previousStations: {
-            analysis: "محتوى درامي يحتوي على حوار عميق",
-            targetPlatform: "Instagram Stories",
-            contentType: "visual narrative",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
-
-    it("should return text-only output without JSON blocks", async () => {
-      const input: StandardAgentInput = {
-        input: "حلل وكيّف المحتوى لمنصة YouTube Shorts",
-        options: {
-          enableRAG: true,
-        },
-        context: {},
-      };
-
-      const result = await agent.executeTask(input);
-
-      // Ensure output is clean text
-      expect(result.text).not.toContain("```json");
-      expect(result.text).not.toContain("```");
-      expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
-    });
+    // Verify no JSON in output
+    expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
+    expect(result.text).not.toMatch(/```json/);
   });
 
-  describe("Platform-Specific Adaptation", () => {
-    it("should adapt content for social media platforms", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف هذا المحتوى لتويتر مع مراعاة حد الأحرف",
-        options: {
-          enableRAG: true,
-          confidenceThreshold: 0.75,
+  it("should include context from previous stations in prompt", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى للمنصة المستهدفة",
+      options: {},
+      context: {
+        previousStations: {
+          analysis: "محتوى درامي يحتوي على حوار عميق",
+          targetPlatform: "Instagram Stories",
+          contentType: "visual narrative",
         },
-        context: {
-          previousStations: {
-            targetPlatform: "Twitter",
-          },
-        },
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeGreaterThanOrEqual(0);
-    });
-
-    it("should adapt content for video platforms", async () => {
-      const input: StandardAgentInput = {
-        input: "حوّل هذا النص إلى سكريبت فيديو قصير لـ TikTok",
-        options: {
-          enableSelfCritique: true,
-          confidenceThreshold: 0.75,
-        },
-        context: {
-          previousStations: {
-            targetPlatform: "TikTok",
-            contentType: "short video",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
-
-    it("should handle platform constraints appropriately", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى مع مراعاة قيود المنصة المستهدفة",
-        options: {
-          enableConstitutional: true,
-          confidenceThreshold: 0.75,
-        },
-        context: {
-          previousStations: {
-            targetPlatform: "LinkedIn",
-            contentType: "professional",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.confidence).toBeDefined();
-    });
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
   });
 
-  describe("Post-Processing", () => {
-    it("should clean JSON blocks from output", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى",
-        options: {},
-        context: {},
-      };
+  it("should return text-only output without JSON blocks", async () => {
+    const input: StandardAgentInput = {
+      input: "حلل وكيّف المحتوى لمنصة YouTube Shorts",
+      options: {
+        enableRAG: true,
+      },
+      context: {},
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      // Verify all JSON is removed
-      expect(result.text).not.toMatch(/```json[\s\S]*?```/);
-      expect(result.text).not.toMatch(/```[\s\S]*?```/);
-      expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
-    });
+    // Ensure output is clean text
+    expect(result.text).not.toContain("```json");
+    expect(result.text).not.toContain("```");
+    expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
+  });
+});
 
-    it("should add appropriate notes based on confidence level", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى للمنصة",
-        options: {
-          confidenceThreshold: 0.75,
+describe("Platform-Specific Adaptation", () => {
+  it("should adapt content for social media platforms", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف هذا المحتوى لتويتر مع مراعاة حد الأحرف",
+      options: {
+        enableRAG: true,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          targetPlatform: "Twitter",
         },
-        context: {},
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result.notes).toBeDefined();
-
-      const expectedNote =
-        result.confidence >= 0.85
-          ? "عالي الجودة"
-          : result.confidence >= 0.7
-            ? "جيد"
-            : "أولي";
-
-      expect(result.notes.some((note) => note.includes(expectedNote))).toBe(
-        true
-      );
-    });
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
   });
 
-  describe("Error Handling", () => {
-    it("should return fallback response on error", async () => {
-      const { callGeminiText } = await import("@/lib/ai/gemini-core");
-      vi.mocked(callGeminiText).mockRejectedValueOnce(new Error("API Error"));
+  it("should adapt content for video platforms", async () => {
+    const input: StandardAgentInput = {
+      input: "حوّل هذا النص إلى سكريبت فيديو قصير لـ TikTok",
+      options: {
+        enableSelfCritique: true,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          targetPlatform: "TikTok",
+          contentType: "short video",
+        },
+      },
+    };
 
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى",
-        options: {},
-        context: {},
-      };
+    const result = await agent.executeTask(input);
 
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeLessThanOrEqual(0.5);
-      expect(result.notes.some((note) => note.includes("خطأ"))).toBe(true);
-    });
-
-    it("should handle missing context gracefully", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى",
-        options: {},
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
   });
 
-  describe("Advanced Options", () => {
-    it("should respect all advanced options", async () => {
-      const input: StandardAgentInput = {
-        input: "كيّف المحتوى بشكل شامل",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: true,
-
-          confidenceThreshold: 0.8,
-          temperature: 0.7,
-          maxTokens: 8192,
+  it("should handle platform constraints appropriately", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى مع مراعاة قيود المنصة المستهدفة",
+      options: {
+        enableConstitutional: true,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          targetPlatform: "LinkedIn",
+          contentType: "professional",
         },
-        context: {},
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeDefined();
-      expect(result.metadata).toBeDefined();
-    });
+    expect(result).toBeDefined();
+    expect(result.confidence).toBeDefined();
+  });
+});
+
+describe("Post-Processing", () => {
+  it("should clean JSON blocks from output", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى",
+      options: {},
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    // Verify all JSON is removed
+    expect(result.text).not.toMatch(/```json[\s\S]*?```/);
+    expect(result.text).not.toMatch(/```[\s\S]*?```/);
+    expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
+  });
+
+  it("should add appropriate notes based on confidence level", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى للمنصة",
+      options: {
+        confidenceThreshold: 0.75,
+      },
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result.notes).toBeDefined();
+
+    const expectedNote =
+      result.confidence >= 0.85
+        ? "عالي الجودة"
+        : result.confidence >= 0.7
+          ? "جيد"
+          : "أولي";
+
+    expect(result.notes.some((note) => note.includes(expectedNote))).toBe(true);
+  });
+});
+
+describe("Error Handling", () => {
+  it("should return fallback response on error", async () => {
+    const { callGeminiText } = await import("@/lib/ai/gemini-core");
+    vi.mocked(callGeminiText).mockRejectedValueOnce(new Error("API Error"));
+
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى",
+      options: {},
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeLessThanOrEqual(0.5);
+    expect(result.notes.some((note) => note.includes("خطأ"))).toBe(true);
+  });
+
+  it("should handle missing context gracefully", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى",
+      options: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+});
+
+describe("Advanced Options", () => {
+  it("should respect all advanced options", async () => {
+    const input: StandardAgentInput = {
+      input: "كيّف المحتوى بشكل شامل",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: true,
+
+        confidenceThreshold: 0.8,
+        temperature: 0.7,
+        maxTokens: 8192,
+      },
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeDefined();
+    expect(result.metadata).toBeDefined();
   });
 });

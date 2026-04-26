@@ -5,7 +5,7 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { it, expect, beforeEach, vi } from "vitest";
 
 import BrainStormContent from "../(main)/brain-storm-ai/src/components/BrainStormContent";
 import { conductDebate } from "../(main)/brain-storm-ai/src/lib/api";
@@ -140,10 +140,10 @@ interface DebateRequest {
 }
 
 interface PersistedBrainstormState {
-  sessions: Array<{
+  sessions: {
     session: Session;
     messages: DebateMessage[];
-  }>;
+  }[];
 }
 
 function createDebateSuccess(agentIds: string[]) {
@@ -172,174 +172,172 @@ vi.mock("../(main)/brain-storm-ai/src/lib/api", () => ({
   conductDebate: vi.fn(resolveDebateSuccess),
 }));
 
-describe("تكامل brain-storm-ai — العقد الحالي", () => {
-  let user: ReturnType<typeof userEvent.setup>;
+let user: ReturnType<typeof userEvent.setup>;
 
-  beforeEach(() => {
-    user = userEvent.setup();
-    localStorage.clear();
-    vi.restoreAllMocks();
-    vi.clearAllMocks();
-    vi.mocked(conductDebate).mockReset();
-    vi.mocked(conductDebate).mockImplementation(resolveDebateSuccess);
+beforeEach(() => {
+  user = userEvent.setup();
+  localStorage.clear();
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+  vi.mocked(conductDebate).mockReset();
+  vi.mocked(conductDebate).mockImplementation(resolveDebateSuccess);
+});
+
+it("ينشئ جلسة جديدة ويعرض التقدم بعد اكتمال المرحلة الأولى", async () => {
+  render(<BrainStormContent />);
+
+  await waitFor(() => {
+    expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
   });
 
-  it("ينشئ جلسة جديدة ويعرض التقدم بعد اكتمال المرحلة الأولى", async () => {
-    render(<BrainStormContent />);
+  await user.type(
+    screen.getByPlaceholderText(/اكتب فكرتك/),
+    "فكرة لتطبيق تعليمي تفاعلي"
+  );
+  await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
-    });
-
-    await user.type(
-      screen.getByPlaceholderText(/اكتب فكرتك/),
-      "فكرة لتطبيق تعليمي تفاعلي"
-    );
-    await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/الجلسة الحالية:/)).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("20.0%")).toBeInTheDocument();
-    });
-
-    expect(screen.getByText(/التقدم/)).toBeInTheDocument();
-    expect(vi.mocked(conductDebate)).toHaveBeenCalledTimes(1);
+  await waitFor(() => {
+    expect(screen.getByText(/الجلسة الحالية:/)).toBeInTheDocument();
   });
 
-  it("يحفظ الجلسة تلقائياً ويسترجعها من التخزين المحلي", async () => {
-    render(<BrainStormContent />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
-    });
-
-    await user.type(
-      screen.getByPlaceholderText(/اكتب فكرتك/),
-      "فكرة لمشروع برمجي"
-    );
-    await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
-
-    await waitFor(() => {
-      expect(localStorage.getItem("brainstorm_sessions")).not.toBeNull();
-    });
-
-    const raw = localStorage.getItem("brainstorm_sessions");
-    expect(raw).toBeTruthy();
-
-    const parsed = JSON.parse(raw!) as PersistedBrainstormState;
-    expect(parsed.sessions).toHaveLength(1);
-    expect(parsed.sessions[0].session.brief).toBe("فكرة لمشروع برمجي");
-    expect(parsed.sessions[0].messages).toHaveLength(2);
+  await waitFor(() => {
+    expect(screen.getByText("20.0%")).toBeInTheDocument();
   });
 
-  it("يصدر الجلسة بصيغتي JSON و Markdown عند اكتمالها", () => {
-    vi.spyOn(document, "createElement").mockReturnValue({
-      href: "",
-      download: "",
-      click: vi.fn(),
-      style: {},
-    } as unknown as HTMLAnchorElement);
-    vi.spyOn(document.body, "appendChild").mockImplementation((node) => node);
-    vi.spyOn(document.body, "removeChild").mockImplementation((node) => node);
-    globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
-    globalThis.URL.revokeObjectURL = vi.fn();
+  expect(screen.getByText(/التقدم/)).toBeInTheDocument();
+  expect(vi.mocked(conductDebate)).toHaveBeenCalledTimes(1);
+});
 
-    const mockSession: Session = {
-      id: "test-session",
-      brief: "فكرة اختبار",
-      phase: 5,
-      status: "completed",
-      startTime: new Date(),
-      activeAgents: ["agent-1"],
-      results: {
-        phase1Debate: { proposals: [], consensus: true },
-        phase5Debate: { finalDecision: "قرار نهائي" },
+it("يحفظ الجلسة تلقائياً ويسترجعها من التخزين المحلي", async () => {
+  render(<BrainStormContent />);
+
+  await waitFor(() => {
+    expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
+  });
+
+  await user.type(
+    screen.getByPlaceholderText(/اكتب فكرتك/),
+    "فكرة لمشروع برمجي"
+  );
+  await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
+
+  await waitFor(() => {
+    expect(localStorage.getItem("brainstorm_sessions")).not.toBeNull();
+  });
+
+  const raw = localStorage.getItem("brainstorm_sessions");
+  expect(raw).toBeTruthy();
+
+  const parsed = JSON.parse(raw!) as PersistedBrainstormState;
+  expect(parsed.sessions).toHaveLength(1);
+  expect(parsed.sessions[0].session.brief).toBe("فكرة لمشروع برمجي");
+  expect(parsed.sessions[0].messages).toHaveLength(2);
+});
+
+it("يصدر الجلسة بصيغتي JSON و Markdown عند اكتمالها", () => {
+  vi.spyOn(document, "createElement").mockReturnValue({
+    href: "",
+    download: "",
+    click: vi.fn(),
+    style: {},
+  } as unknown as HTMLAnchorElement);
+  vi.spyOn(document.body, "appendChild").mockImplementation((node) => node);
+  vi.spyOn(document.body, "removeChild").mockImplementation((node) => node);
+  globalThis.URL.createObjectURL = vi.fn().mockReturnValue("blob:fake");
+  globalThis.URL.revokeObjectURL = vi.fn();
+
+  const mockSession: Session = {
+    id: "test-session",
+    brief: "فكرة اختبار",
+    phase: 5,
+    status: "completed",
+    startTime: new Date(),
+    activeAgents: ["agent-1"],
+    results: {
+      phase1Debate: { proposals: [], consensus: true },
+      phase5Debate: { finalDecision: "قرار نهائي" },
+    },
+  };
+
+  const mockMessages: DebateMessage[] = [
+    {
+      agentId: "agent-1",
+      agentName: "المحلل",
+      message: "اقتراح جيد",
+      timestamp: new Date(),
+      type: "proposal",
+    },
+    {
+      agentId: "judge",
+      agentName: "الحكم",
+      message: "قرار نهائي: الفكرة مقبولة",
+      timestamp: new Date(),
+      type: "decision",
+    },
+  ];
+
+  const jsonResult = exportToJSON(mockSession, mockMessages);
+  expect(jsonResult.ok).toBe(true);
+  expect(jsonResult.filename).toContain("test-session");
+
+  const markdownResult = exportToMarkdown(mockSession, mockMessages);
+  expect(markdownResult.ok).toBe(true);
+  expect(markdownResult.filename).toContain("test-session");
+});
+
+it("يعرض النتيجة النهائية بوضوح عند اكتمال الجلسة", () => {
+  const mockSession: Session = {
+    id: "completed-session",
+    brief: "فكرة مكتملة",
+    phase: 5,
+    status: "completed",
+    startTime: new Date(),
+    activeAgents: ["agent-1"],
+    results: {
+      phase5Debate: {
+        finalDecision: "الفكرة جاهزة للتنفيذ",
+        judgeReasoning: "بناءً على التحليل الشامل",
       },
-    };
+    },
+  };
 
-    const mockMessages: DebateMessage[] = [
-      {
-        agentId: "agent-1",
-        agentName: "المحلل",
-        message: "اقتراح جيد",
-        timestamp: new Date(),
-        type: "proposal",
-      },
-      {
-        agentId: "judge",
-        agentName: "الحكم",
-        message: "قرار نهائي: الفكرة مقبولة",
-        timestamp: new Date(),
-        type: "decision",
-      },
-    ];
+  expect(mockSession.status).toBe("completed");
+  expect(mockSession.results?.phase5Debate).toBeDefined();
+});
 
-    const jsonResult = exportToJSON(mockSession, mockMessages);
-    expect(jsonResult.ok).toBe(true);
-    expect(jsonResult.filename).toContain("test-session");
+it("يتعامل مع أخطاء النقاش بشكل منضبط عبر مسار إعادة المحاولة", async () => {
+  vi.mocked(conductDebate).mockRejectedValue(
+    new Error("فشل في الاتصال بالخادم")
+  );
 
-    const markdownResult = exportToMarkdown(mockSession, mockMessages);
-    expect(markdownResult.ok).toBe(true);
-    expect(markdownResult.filename).toContain("test-session");
+  render(<BrainStormContent />);
+
+  await waitFor(() => {
+    expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
   });
 
-  it("يعرض النتيجة النهائية بوضوح عند اكتمال الجلسة", () => {
-    const mockSession: Session = {
-      id: "completed-session",
-      brief: "فكرة مكتملة",
-      phase: 5,
-      status: "completed",
-      startTime: new Date(),
-      activeAgents: ["agent-1"],
-      results: {
-        phase5Debate: {
-          finalDecision: "الفكرة جاهزة للتنفيذ",
-          judgeReasoning: "بناءً على التحليل الشامل",
-        },
-      },
-    };
+  await user.type(screen.getByPlaceholderText(/اكتب فكرتك/), "فكرة ستفشل");
+  await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
 
-    expect(mockSession.status).toBe("completed");
-    expect(mockSession.results?.phase5Debate).toBeDefined();
+  await waitFor(() => {
+    expect(screen.getByText(/جاري إعادة المحاولة/)).toBeInTheDocument();
+  });
+});
+
+it("يحسب التقدم الأولي بدقة بعد إنجاز أول مرحلة", async () => {
+  render(<BrainStormContent />);
+
+  await waitFor(() => {
+    expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
   });
 
-  it("يتعامل مع أخطاء النقاش بشكل منضبط عبر مسار إعادة المحاولة", async () => {
-    vi.mocked(conductDebate).mockRejectedValue(
-      new Error("فشل في الاتصال بالخادم")
-    );
+  await user.type(
+    screen.getByPlaceholderText(/اكتب فكرتك/),
+    "فكرة لاختبار التقدم"
+  );
+  await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
 
-    render(<BrainStormContent />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
-    });
-
-    await user.type(screen.getByPlaceholderText(/اكتب فكرتك/), "فكرة ستفشل");
-    await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/جاري إعادة المحاولة/)).toBeInTheDocument();
-    });
-  });
-
-  it("يحسب التقدم الأولي بدقة بعد إنجاز أول مرحلة", async () => {
-    render(<BrainStormContent />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/منصة العصف الذهني الذكي/)).toBeInTheDocument();
-    });
-
-    await user.type(
-      screen.getByPlaceholderText(/اكتب فكرتك/),
-      "فكرة لاختبار التقدم"
-    );
-    await user.click(screen.getByRole("button", { name: /بدء جلسة/ }));
-
-    await waitFor(() => {
-      expect(screen.getByText("20.0%")).toBeInTheDocument();
-    });
+  await waitFor(() => {
+    expect(screen.getByText("20.0%")).toBeInTheDocument();
   });
 });

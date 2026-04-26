@@ -28,10 +28,7 @@ vi.mock("@/lib/redis", () => ({
   generateGeminiCacheKey: vi.fn(() => "cache-key"),
 }));
 
-const makeStep = (
-  id: string,
-  dependencies: string[] = []
-): PipelineStep => ({
+const makeStep = (id: string, dependencies: string[] = []): PipelineStep => ({
   id,
   name: id,
   description: `Step ${id}`,
@@ -40,16 +37,26 @@ const makeStep = (
   dependencies,
 });
 
+interface SubmitTaskResult<TData> {
+  success: boolean;
+  taskId: string;
+  status: "submitted";
+  data: TData;
+}
+
 describe("Executor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(cachedGeminiCall).mockImplementation(
-      async (_key, factory) => factory()
+    const mockedGeminiService = vi.mocked(geminiService);
+    vi.mocked(cachedGeminiCall).mockImplementation(async (_key, factory) =>
+      factory()
     );
+    mockedGeminiService.generateText.mockReset();
   });
 
   it("validate-pipeline: executes pipeline steps and stores results", async () => {
-    vi.mocked(geminiService.generateText)
+    const mockedGeminiService = vi.mocked(geminiService);
+    mockedGeminiService.generateText
       .mockResolvedValueOnce("first result")
       .mockResolvedValueOnce("second result");
 
@@ -65,11 +72,12 @@ describe("Executor", () => {
     expect(execution.results.get("step-1")?.success).toBe(true);
     expect(execution.results.get("step-1")?.data).toBe("first result");
     expect(execution.results.get("step-2")?.success).toBe(true);
-    expect(geminiService.generateText).toHaveBeenCalledTimes(2);
+    expect(mockedGeminiService.generateText.mock.calls).toHaveLength(2);
   });
 
   it("validate-pipeline: records step failure without losing execution state", async () => {
-    vi.mocked(geminiService.generateText).mockRejectedValueOnce(
+    const mockedGeminiService = vi.mocked(geminiService);
+    mockedGeminiService.generateText.mockRejectedValueOnce(
       new Error("Model unavailable")
     );
 
@@ -89,7 +97,8 @@ describe("Executor", () => {
   });
 
   it("validate-pipeline: exposes execution status by id", async () => {
-    vi.mocked(geminiService.generateText).mockResolvedValueOnce("result");
+    const mockedGeminiService = vi.mocked(geminiService);
+    mockedGeminiService.generateText.mockResolvedValueOnce("result");
 
     const orchestrator = new PipelineOrchestrator();
     const execution = await orchestrator.executePipeline(
@@ -103,7 +112,8 @@ describe("Executor", () => {
   });
 
   it("validate-pipeline: rejects cancelling an already completed execution", async () => {
-    vi.mocked(geminiService.generateText).mockResolvedValueOnce("result");
+    const mockedGeminiService = vi.mocked(geminiService);
+    mockedGeminiService.generateText.mockResolvedValueOnce("result");
 
     const orchestrator = new PipelineOrchestrator();
     await orchestrator.executePipeline(
@@ -121,7 +131,9 @@ describe("Executor", () => {
       files: [{ name: "test.txt", content: "content" }],
     };
 
-    const result = await submitTask(taskRequest);
+    const result = (await submitTask(taskRequest)) as SubmitTaskResult<
+      typeof taskRequest
+    >;
 
     expect(result.success).toBe(true);
     expect(result.status).toBe("submitted");
