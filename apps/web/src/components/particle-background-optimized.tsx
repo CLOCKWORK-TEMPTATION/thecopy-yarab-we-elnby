@@ -28,12 +28,15 @@ import {
   SAMPLING_BOUNDS,
   PARTICLE_THRESHOLDS,
 } from "@/components/particle-letters.constants";
+import { createModuleLogger } from "@/lib/logger";
 
 import type {
   ParticleVelocity,
   ParticlePosition,
   EffectConfig,
 } from "@/components/particle-effects";
+
+const logger = createModuleLogger("components.particle-background-optimized");
 
 type Effect = "default" | "spark" | "wave" | "vortex";
 
@@ -695,7 +698,7 @@ const generateParticlesInBatches = async (): Promise<{
       lodConfig: particleConfig.config,
     };
   } catch (error) {
-    console.error("❌ خطأ في توليد الجسيمات:", error);
+    logger.error({ err: error }, "particle generation failed");
     throw error;
   }
 };
@@ -969,7 +972,7 @@ export default function OptimizedParticleAnimation() {
         sceneRef.current.isGenerated = true;
       })
       .catch((error) => {
-        console.error("❌ فشل في توليد الجسيمات:", error);
+        logger.error({ err: error }, "particle generation pipeline failed");
       });
 
     // Mouse interaction handlers
@@ -1080,7 +1083,7 @@ export default function OptimizedParticleAnimation() {
                   time
                 );
               } catch (error) {
-                console.warn("خطأ في تأثير الجسيم:", error);
+                logger.warn({ err: error }, "particle effect computation failed");
               }
             }
 
@@ -1112,7 +1115,7 @@ export default function OptimizedParticleAnimation() {
               );
               colorAttribute.setXYZ(j, color.r, color.g, color.b);
             } catch (error) {
-              console.warn("خطأ في حساب لون الجسيم:", error);
+              logger.warn({ err: error }, "particle color calculation failed");
             }
           }
 
@@ -1237,7 +1240,7 @@ export default function OptimizedParticleAnimation() {
 
         // تم تنظيف موارد الجسيمات بنجاح
       } catch (error) {
-        console.error("خطأ في تنظيف موارد الجسيمات:", error);
+        logger.error({ err: error }, "particle resource cleanup failed");
       }
     };
 

@@ -166,7 +166,7 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
     get(target, prop, receiver): unknown {
       if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
-        const original = target[method];
+        const original = target[method] as unknown as FlexibleLogFn;
         return function adaptedLogMethod(
           this: unknown,
           arg1: unknown,

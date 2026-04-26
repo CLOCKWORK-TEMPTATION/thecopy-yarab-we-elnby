@@ -5,6 +5,10 @@
  * for particle systems and animations
  */
 
+import { createModuleLogger } from "@/lib/logger";
+
+const logger = createModuleLogger("components.device-detection");
+
 export interface DeviceCapabilities {
   deviceType: "mobile" | "tablet" | "desktop";
   performanceTier: "low" | "medium" | "high";
@@ -83,7 +87,7 @@ export function getMaxTextureSize(): number {
       return gl.getParameter(gl.MAX_TEXTURE_SIZE);
     }
   } catch (e) {
-    console.warn("Failed to get max texture size:", e);
+    logger.warn({ err: e }, "failed to get max texture size");
   }
 
   return 2048; // Default fallback
@@ -114,7 +118,7 @@ export async function detectLowPowerMode(): Promise<boolean> {
         return true;
       }
     } catch (e) {
-      console.warn("Battery API not supported:", e);
+      logger.warn({ err: e }, "battery API not supported");
     }
   }
 
@@ -301,9 +305,9 @@ export class PerformanceMonitor {
       this.isVisible = !document.hidden;
 
       if (!this.isVisible) {
-        console.log("🔇 Tab hidden - pausing performance monitoring");
+        logger.debug("tab hidden — pausing performance monitoring");
       } else {
-        console.log("🔊 Tab visible - resuming performance monitoring");
+        logger.debug("tab visible — resuming performance monitoring");
         // Reset on visibility change to avoid FPS drops from tab switching
         this.reset();
       }
@@ -435,22 +439,28 @@ export function logDeviceCapabilities(): void {
   const capabilities = getDeviceCapabilities();
   const lodConfig = getParticleLODConfig(capabilities);
 
-  console.log("🖥️ Device Capabilities:", {
-    deviceType: capabilities.deviceType,
-    performanceTier: capabilities.performanceTier,
-    webGL: capabilities.supportsWebGL ? "✅" : "❌",
-    cores: capabilities.hardwareConcurrency,
-    memory: capabilities.memoryGB ? `${capabilities.memoryGB}GB` : "unknown",
-    pixelRatio: capabilities.pixelRatio,
-    lowPowerMode: capabilities.isLowPowerMode ? "🔋" : "⚡",
-  });
+  logger.debug(
+    {
+      deviceType: capabilities.deviceType,
+      performanceTier: capabilities.performanceTier,
+      webGL: capabilities.supportsWebGL,
+      cores: capabilities.hardwareConcurrency,
+      memoryGB: capabilities.memoryGB ?? null,
+      pixelRatio: capabilities.pixelRatio,
+      lowPowerMode: capabilities.isLowPowerMode,
+    },
+    "device capabilities",
+  );
 
-  console.log("✨ Particle LOD Config:", {
-    particles: lodConfig.particleCount,
-    effectRadius: lodConfig.effectRadius,
-    updateRate: `${1000 / lodConfig.updateFrequency}fps`,
-    advancedEffects: lodConfig.enableAdvancedEffects ? "✅" : "❌",
-    shadows: lodConfig.enableShadows ? "✅" : "❌",
-    quality: lodConfig.textureQuality,
-  });
+  logger.debug(
+    {
+      particles: lodConfig.particleCount,
+      effectRadius: lodConfig.effectRadius,
+      updateFps: 1000 / lodConfig.updateFrequency,
+      advancedEffects: lodConfig.enableAdvancedEffects,
+      shadows: lodConfig.enableShadows,
+      quality: lodConfig.textureQuality,
+    },
+    "particle LOD config",
+  );
 }

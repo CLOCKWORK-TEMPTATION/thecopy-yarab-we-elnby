@@ -13,6 +13,9 @@ import {
   getParticleLODConfig,
   PerformanceMonitor,
 } from "@/components/device-detection";
+import { createModuleLogger } from "@/lib/logger";
+
+const logger = createModuleLogger("components.particle-effects");
 
 /**
  * Enhanced requestIdleCallback with fallback
@@ -134,7 +137,7 @@ export function applySparkEffect(
 
     return velocity;
   } catch (error) {
-    console.warn("خطأ في تأثير الشرر:", error);
+    logger.warn({ err: error }, "spark effect failed");
     return velocity;
   }
 }
@@ -172,7 +175,7 @@ export function applyWaveEffect(
 
     return velocity;
   } catch (error) {
-    console.warn("خطأ في تأثير الموجة:", error);
+    logger.warn({ err: error }, "wave effect failed");
     return velocity;
   }
 }
@@ -224,7 +227,7 @@ export function applyVortexEffect(
 
     return velocity;
   } catch (error) {
-    console.warn("خطأ في تأثير الدوامة:", error);
+    logger.warn({ err: error }, "vortex effect failed");
     return velocity;
   }
 }
@@ -256,7 +259,7 @@ export function applyDefaultEffect(
 
     return velocity;
   } catch (error) {
-    console.warn("خطأ في التأثير الافتراضي:", error);
+    logger.warn({ err: error }, "default effect failed");
     return velocity;
   }
 }
@@ -290,7 +293,7 @@ export function calculateWaveColor(
 
     return { r: 1, g: 1, b: 1 };
   } catch (error) {
-    console.warn("خطأ في حساب لون الموجة:", error);
+    logger.warn({ err: error }, "wave color calculation failed");
     return { r: 1, g: 1, b: 1 };
   }
 }
@@ -323,7 +326,7 @@ export function calculateVortexColor(
 
     return { r: 1, g: 1, b: 1 };
   } catch (error) {
-    console.warn("خطأ في حساب لون الدوامة:", error);
+    logger.warn({ err: error }, "vortex color calculation failed");
     return { r: 1, g: 1, b: 1 };
   }
 }

@@ -1,7 +1,7 @@
 {
   "branch": "codex/validate-fix-20260426",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "3c4042128eee1825ccabb46fc12d6de1bdf2c3729bb043d41bf06106f9a149a7",
+    ".agent-code-memory/manifest.json": "786744c5e25c08ab8ff8635ffd65c3820f3e724e56c33f304fbea9129893f398",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
@@ -78,11 +78,11 @@
   },
   "knowledgeHash": "a58640c3970de2dbd1a5ff204bf7e871770f0586a7ddf9e7ef2a8da81e48f0fe",
   "knowledgeStatus": "ungoverned",
-  "lastBootstrapTimestamp": "2026-04-26T15:02:47.742Z",
+  "lastBootstrapTimestamp": "2026-04-26T14:52:10.493Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "62d32a54f5c9acd9c1c25ba7686b78e1c149e52951cca9dca9dd9ef5e4f1e321",
-    "output/code-map/code-map.json": "5b4f59b1ae0e9b161e5a9f04312453295ed79c0032cbf6fb689e1da67a98722c",
-    "output/code-map/CODEMAP.md": "0551e7e4df89387e81d1b8370a056453e89072865e591f26d791cdfd5346ca2c",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "a48a0f10f454194a173169d51dd5f8057c9bab5d71a1eb031e4fb6e79f49ef08",
+    "output/code-map/code-map.json": "8037a67dc6f40611aed19405b6ef406b0a697a323301accb619318c6e3352407",
+    "output/code-map/CODEMAP.md": "0f72fbe1508a1b29c973f9d8cb0a9e7c05e1ce80c4417a907b17244aa710e593",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "b77d21f989a36d35437832bf0fb2ff2937fcd73fff8464f483fab5f00454e77e",
@@ -94,8 +94,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "11b8a846ebc80d25845342dc133ad8a4f602827886b11c1cafa36845daee2fc8",
-    "output/session-state.md": "6b6c3af564b548633b2f9f1a6b7407f2f6d43b73c2a3984d4db33434b86a3d4a"
+    "output/round-notes.md": "4897429ee3db5019db812e8598d1deadfedf55a2bbd12a103dfd7a592ad6fe11",
+    "output/session-state.md": "c5608c844ab576f24306d9a6c23dd3a81835ce4266a7d367f1f5fc438090e5a3"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -105,7 +105,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "ea9fa734b5aa00e1cb97616f301e15e8e7d59876509340d0d64e99d0ec87a646",
+  "repoFactsHash": "e076877b2217cd75f65822f1a4772d4ed178d2fc6f951d34d73c8db53a8a3986",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -175,6 +175,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "ccedc2250a1824095f6c6038b3f8d1e0d4c31392d8a22bff6bf93bb9a7ec6d22",
-  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  "structuralHash": "f2ef25969fed883ff6d6edf159a92acfd87eff099cef425a80b4bca8a40d30d0",
+  "workingTreeHash": "f918cd12d1c2eeed7d754e19fc7ceee54f7b168f2797ff7484e30df8518341bd"
 }
