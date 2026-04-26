@@ -280,7 +280,7 @@ function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
 
  */
 
-export function proxy(_request: NextRequest) {
+export function middleware(_request: NextRequest) {
 
   const response = NextResponse.next();
 
