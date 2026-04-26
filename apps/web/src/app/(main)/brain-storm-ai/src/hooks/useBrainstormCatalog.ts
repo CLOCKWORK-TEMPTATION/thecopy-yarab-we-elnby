@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchBrainstormCatalog } from "../lib/catalog";
+
 import type { BrainstormCatalog } from "../types";
 
 export function useBrainstormCatalog() {

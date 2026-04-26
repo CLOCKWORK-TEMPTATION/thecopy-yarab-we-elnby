@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Briefcase,
   Calculator,
@@ -21,8 +20,12 @@ import {
   Users,
   Volume2,
 } from "lucide-react";
-import type { AgentDef } from "./types";
+import React from "react";
+
 import { AGENT_PRESENTATION } from "./domain/constants";
+
+import type { AgentDef } from "./types";
+
 
 const ICONS: Record<string, React.ReactNode> = {
   locations: <MapPin className="w-5 h-5" />,

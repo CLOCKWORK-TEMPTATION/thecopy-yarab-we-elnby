@@ -1,6 +1,7 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 interface Task {
   id: string;

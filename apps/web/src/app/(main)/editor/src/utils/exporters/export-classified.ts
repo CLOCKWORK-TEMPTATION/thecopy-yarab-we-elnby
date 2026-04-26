@@ -1,5 +1,6 @@
-import type { ScreenplayBlock } from "../file-import/document-model";
 import { sanitizeExportFileBaseName } from "./shared";
+
+import type { ScreenplayBlock } from "../file-import/document-model";
 
 interface ExportAsClassifiedOptions {
   fileNameBase?: string;

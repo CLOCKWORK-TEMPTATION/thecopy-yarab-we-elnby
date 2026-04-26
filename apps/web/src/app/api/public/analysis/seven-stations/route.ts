@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { getBackendBaseUrl } from "@/lib/server/backend-proxy";
 import {
   withNoStoreHeaders,
@@ -28,8 +29,8 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "content-type":
-            request.headers.get("content-type") || "application/json",
-          accept: request.headers.get("accept") || "application/json",
+            request.headers.get("content-type") ?? "application/json",
+          accept: request.headers.get("accept") ?? "application/json",
         },
         body: await request.text(),
         cache: "no-store",
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       statusText: upstreamResponse.statusText,
       headers: withNoStoreHeaders({
         "content-type":
-          upstreamResponse.headers.get("content-type") || "application/json",
+          upstreamResponse.headers.get("content-type") ?? "application/json",
       }),
     });
   } catch (error) {

@@ -40,14 +40,14 @@ interface LoggerConfig {
 class LoggerService {
   private config: LoggerConfig;
   private logs: LogEntry[] = [];
-  private maxLogs: number = 1000;
+  private maxLogs = 1000;
 
   constructor() {
     this.config = {
       level: this.getLogLevelFromEnv(),
-      enableConsole: process.env["NODE_ENV"] !== "production",
-      enableSentry: process.env["NODE_ENV"] === "production",
-      enableAnalytics: process.env["NODE_ENV"] === "production",
+      enableConsole: process.env.NODE_ENV !== "production",
+      enableSentry: process.env.NODE_ENV === "production",
+      enableAnalytics: process.env.NODE_ENV === "production",
     };
   }
 
@@ -64,7 +64,7 @@ class LoggerService {
         case "debug":
           return LogLevel.DEBUG;
         default:
-          return process.env["NODE_ENV"] === "production"
+          return process.env.NODE_ENV === "production"
             ? LogLevel.WARN
             : LogLevel.INFO;
       }

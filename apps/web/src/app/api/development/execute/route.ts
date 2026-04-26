@@ -1,3 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -9,7 +11,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * المسار: POST /api/development/execute
  */
 
-import { NextRequest, NextResponse } from "next/server";
 import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
 export const runtime = "nodejs";
@@ -19,9 +20,9 @@ export const maxDuration = 120;
 /** استرداد مفتاح Gemini من متغيرات البيئة — للتحقق المسبق فقط */
 function getGeminiApiKey(): string {
   return (
-    process.env["GEMINI_API_KEY"] ||
-    process.env["NEXT_PUBLIC_GEMINI_API_KEY"] ||
-    process.env["GOOGLE_GENAI_API_KEY"] ||
+    process.env["GEMINI_API_KEY"] ??
+    process.env["NEXT_PUBLIC_GEMINI_API_KEY"] ??
+    process.env["GOOGLE_GENAI_API_KEY"] ??
     ""
   );
 }
@@ -101,7 +102,7 @@ function buildSystemPrompt(taskId: string): string {
   };
 
   return (
-    prompts[taskId] ||
+    prompts[taskId] ??
     "أنت متخصص في تطوير النصوص الدرامية العربية. حلل النص المُقدَّم وقدم مخرجات مفيدة ومفصلة."
   );
 }

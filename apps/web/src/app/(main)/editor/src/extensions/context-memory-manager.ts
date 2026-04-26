@@ -10,15 +10,17 @@
  * لا يعتمد على React أو Backend — يعمل بالكامل في الذاكرة المحلية.
  * يُستهلك في {@link PasteClassifier} و {@link HybridClassifier}.
  */
-import type { ClassifiedDraft, ElementType } from "./classification-types";
+import { loadFromStorage, saveToStorage } from "../hooks/use-local-storage";
+import { logger } from "../utils/logger";
+
 import {
   parseInlineCharacterDialogue,
   isCandidateCharacterName,
 } from "./character";
-import { normalizeCharacterName, isActionVerbStart } from "./text-utils";
-import { loadFromStorage, saveToStorage } from "../hooks/use-local-storage";
-import { logger } from "../utils/logger";
 import { pipelineRecorder } from "./pipeline-recorder";
+import { normalizeCharacterName, isActionVerbStart } from "./text-utils";
+
+import type { ClassifiedDraft, ElementType } from "./classification-types";
 
 export interface DialogueBlock {
   character: string;
@@ -149,11 +151,11 @@ const detectLocalRepeatedPattern = (
   const detectInOrder = (ordered: readonly string[]): string | null => {
     const pairCounts = new Map<string, number>();
     for (let i = 0; i < ordered.length - 1; i += 1) {
-      const first = (ordered[i] || "").trim();
-      const second = (ordered[i + 1] || "").trim();
+      const first = (ordered[i] ?? "").trim();
+      const second = (ordered[i + 1] ?? "").trim();
       if (!first || !second) continue;
       const key = `${first}-${second}`;
-      pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+      pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1);
     }
 
     let bestPattern: string | null = null;
@@ -169,16 +171,16 @@ const detectLocalRepeatedPattern = (
   };
 
   return (
-    detectInOrder(classifications) ||
+    detectInOrder(classifications) ??
     detectInOrder([...classifications].reverse())
   );
 };
 
 export class ContextMemoryManager {
-  private storage: Map<string, EnhancedContextMemory> = new Map();
+  private storage = new Map<string, EnhancedContextMemory>();
   private runtimeRecords: ClassifiedDraft[] = [];
-  private _confirmedCharacters: Set<string> = new Set();
-  private _characterEvidence: Map<string, CharacterEvidence> = new Map();
+  private _confirmedCharacters = new Set<string>();
+  private _characterEvidence = new Map<string, CharacterEvidence>();
 
   constructor() {
     logger.info("ContextMemoryManager initialized (enhanced).", {
@@ -233,7 +235,7 @@ export class ContextMemoryManager {
 
     const existing = await this.loadContext(sessionId);
     const memory: EnhancedContextMemory =
-      existing || this.createDefaultMemory(sessionId);
+      existing ?? this.createDefaultMemory(sessionId);
 
     memory.lastModified = Date.now();
     memory.data.lastClassifications = classifications
@@ -251,7 +253,7 @@ export class ContextMemoryManager {
       }
 
       memory.data.characterDialogueMap[characterName] =
-        (memory.data.characterDialogueMap[characterName] || 0) + 1;
+        (memory.data.characterDialogueMap[characterName] ?? 0) + 1;
     });
 
     await this.saveContext(sessionId, memory);
@@ -724,7 +726,7 @@ export class ContextMemoryManager {
     }
 
     memory.data.characterDialogueMap[characterName] =
-      (memory.data.characterDialogueMap[characterName] || 0) + 1;
+      (memory.data.characterDialogueMap[characterName] ?? 0) + 1;
 
     // تحديث evidence map — confidence عالية (regex path) تزيد inlinePairCount
     // confidence منخفضة (context/hybrid) تزيد repeatCount فقط (anti-contamination)
@@ -756,7 +758,7 @@ export class ContextMemoryManager {
       }
 
       memory.data.characterDialogueMap[characterName] =
-        (memory.data.characterDialogueMap[characterName] || 0) + 1;
+        (memory.data.characterDialogueMap[characterName] ?? 0) + 1;
     });
   }
 

@@ -103,7 +103,7 @@ function findMatches(content: string, query: string): SearchMatch[] {
 function extractCharacters(content: string): string[] {
   const characters = new Set<string>();
   content.split("\n").forEach((line) => {
-    const match = line.match(/^([^:]+):/);
+    const match = /^([^:]+):/.exec(line);
     const characterName = match?.[1]?.trim();
     if (characterName && characterName.length < 30) {
       characters.add(characterName);
@@ -115,7 +115,7 @@ function extractCharacters(content: string): string[] {
 function extractScenes(content: string): string[] {
   return content
     .split("\n")
-    .filter((line) => line.includes("مشهد") || line.match(/^(INT\.|EXT\.)/));
+    .filter((line) => line.includes("مشهد") || (/^(INT\.|EXT\.)/.exec(line)));
 }
 
 export async function clearIndex(): Promise<void> {

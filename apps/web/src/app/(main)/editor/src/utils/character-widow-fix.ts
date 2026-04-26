@@ -51,7 +51,7 @@ export class CharacterWidowFixer {
       "[data-character-widow-fix]"
     );
     for (const el of previouslyFixed) {
-      const prop = el.getAttribute("data-character-widow-fix") || "margin-top";
+      const prop = el.getAttribute("data-character-widow-fix") ?? "margin-top";
       el.style.removeProperty(prop);
       el.removeAttribute("data-character-widow-fix");
     }

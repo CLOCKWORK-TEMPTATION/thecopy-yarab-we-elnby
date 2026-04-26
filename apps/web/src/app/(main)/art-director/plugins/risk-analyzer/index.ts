@@ -16,11 +16,11 @@ interface RiskAnalysisInput {
     name: string;
     budget: number;
     duration: number; // in days
-    locations: Array<{
+    locations: {
       name: string;
       type: "indoor" | "outdoor" | "studio";
       country?: string;
-    }>;
+    }[];
     crew: {
       size: number;
       departments: string[];

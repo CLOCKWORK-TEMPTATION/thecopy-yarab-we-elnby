@@ -8,14 +8,16 @@
  */
 
 import { memo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import CharacterTracker from "@/app/(main)/directors-studio/components/CharacterTracker";
 import SceneCard from "@/app/(main)/directors-studio/components/SceneCard";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import type {
   CharacterTrackerProps,
   SceneCardProps,
 } from "@/app/(main)/directors-studio/helpers/projectSummary";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface ProjectTabsProps {
   scenes: SceneCardProps[];

@@ -1,3 +1,5 @@
+import { SAMPLE_SCRIPT } from "./constants";
+
 import type {
   AnalysisResult,
   ChatMessage,
@@ -7,7 +9,6 @@ import type {
   SceneRhythmAnalysis,
   TempoLevel,
 } from "../types";
-import { SAMPLE_SCRIPT } from "./constants";
 
 function normalizeText(text: string): string {
   return text
@@ -55,9 +56,9 @@ function mapMethodologyTip(methodologyId: string): string {
 }
 
 function computeIntensity(line: string): number {
-  const punctuationBoost = (line.match(/[!?؟]/g) || []).length * 8;
+  const punctuationBoost = (line.match(/[!?؟]/g) ?? []).length * 8;
   const emotionBoost =
-    (line.match(/حب|أحب|أخاف|خوف|قلب|روح|وعد|صعب|شوق|أمل|حزن/g) || []).length *
+    (line.match(/حب|أحب|أخاف|خوف|قلب|روح|وعد|صعب|شوق|أمل|حزن/g) ?? []).length *
     6;
   const lengthBoost = Math.min(20, getWordCount(line) * 1.5);
   return clamp(25 + punctuationBoost + emotionBoost + lengthBoost, 20, 95);
@@ -104,7 +105,7 @@ export function analyzeScriptText(
   ];
 
   const externalObstacles = [
-    /العائلة/.test(scriptText)
+    scriptText.includes('العائلة')
       ? "ضغط العائلة أو السلطة الخارجية"
       : "الظروف المحيطة بالمشهد",
     /ليل|شرفة|مسافة|بعيد/.test(scriptText)
@@ -176,7 +177,7 @@ export function buildPartnerResponse(input: {
 
   const dialogueLines = getDialogueLines(input.scriptText);
   const fallback =
-    dialogueLines.find((line) => /ليلى/.test(line)) ??
+    dialogueLines.find((line) => line.includes('ليلى')) ??
     "أنا معك، لكنني أحتاج أن أشعر بصدقك في هذه اللحظة.";
 
   const lastAiMessage =

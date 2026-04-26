@@ -5,6 +5,7 @@ export type {
 } from "@editor/suspicion-engine/types";
 
 import { INTERNAL_TO_EXTERNAL_BAND } from "@editor/suspicion-engine/types";
+
 import type {
   InternalResolutionRoute,
   SuspicionBand,

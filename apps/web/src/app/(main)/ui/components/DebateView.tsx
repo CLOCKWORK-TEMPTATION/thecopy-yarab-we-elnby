@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   MessageSquare,
@@ -7,10 +6,11 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface DebateTurn {
   id: string;
@@ -56,8 +56,6 @@ export function DebateView({
   insufficientEvidence = false,
   agentMuted = false,
 }: DebateViewProps) {
-  const [] = useState<string | null>(null);
-
   // Insufficient Evidence State
   if (insufficientEvidence) {
     return (

@@ -1,17 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   BookOpen,
   Search,
@@ -26,6 +14,18 @@ import {
   Heart,
   BookmarkCheck,
 } from "lucide-react";
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -39,6 +39,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /**
  * Arabic Rhyme Finder Component
@@ -398,7 +399,7 @@ export function ArabicRhymeFinder({
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const ending = getWordEnding(searchWord);
-    let foundRhymes = ARABIC_RHYMES[ending] || [];
+    let foundRhymes = ARABIC_RHYMES[ending] ?? [];
 
     // If no exact match, try similar endings
     if (foundRhymes.length === 0) {

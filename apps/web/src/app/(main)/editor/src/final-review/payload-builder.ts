@@ -3,13 +3,15 @@
  * @description بناء حزمة أدلة المراجعة النهائية من SuspicionCase
  */
 
+import { REVIEWABLE_AGENT_TYPES } from "@editor/extensions/paste-classifier-config";
+
+import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   SuspicionCase,
   SuspicionSignal,
   ClassificationTrace,
   SourceHints,
 } from "@editor/suspicion-engine/types";
-import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   FinalReviewSuspiciousLinePayload,
   FinalReviewEvidencePayload,
@@ -18,8 +20,7 @@ import type {
   FinalReviewContextLine,
   FinalReviewRequestPayload,
 } from "@editor/types/final-review";
-import type { LineType } from "@editor/types/screenplay";
-import { REVIEWABLE_AGENT_TYPES } from "@editor/extensions/paste-classifier-config";
+
 
 // حجم نافذة السياق (±3 أسطر)
 const CONTEXT_WINDOW = 3;
@@ -34,7 +35,7 @@ export function buildFinalReviewSuspiciousLinePayload(params: {
   fingerprint: string;
 }): FinalReviewSuspiciousLinePayload | null {
   const { suspicionCase, classified, itemId, fingerprint } = params;
-  const assignedType = suspicionCase.classifiedLine.type as LineType;
+  const assignedType = suspicionCase.classifiedLine.type;
 
   // لا يُراجع إذا لم يكن النوع قابلاً للمراجعة
   if (!REVIEWABLE_AGENT_TYPES.has(assignedType)) {
@@ -69,7 +70,7 @@ export function buildFinalReviewSuspiciousLinePayload(params: {
     suspicionScore: suspicionCase.score,
     routingBand,
     critical: suspicionCase.critical,
-    primarySuggestedType: suspicionCase.primarySuggestedType as LineType | null,
+    primarySuggestedType: suspicionCase.primarySuggestedType,
     distinctSignalFamilies: signalFamilies.size,
     signalCount: suspicionCase.signals.length,
     reasonCodes: suspicionCase.signals.map((s) => s.reasonCode).slice(0, 32),
@@ -128,7 +129,7 @@ function buildTraceSummary(
   return {
     passVotes: trace.passVotes.map((v) => ({
       stage: v.stage,
-      suggestedType: v.suggestedType as LineType,
+      suggestedType: v.suggestedType,
       confidence: v.confidence,
       reasonCode: v.reasonCode,
     })),
@@ -139,7 +140,7 @@ function buildTraceSummary(
       appliedAt: r.appliedAt,
     })),
     finalDecision: {
-      assignedType: trace.finalDecision.assignedType as LineType,
+      assignedType: trace.finalDecision.assignedType,
       confidence: trace.finalDecision.confidence,
       method: trace.finalDecision.method,
     },
@@ -169,7 +170,7 @@ export function buildContextLines(
     if (index < 0 || index >= classified.length) continue;
     const line = classified[index];
     if (line === undefined) continue;
-    const lineType = line.type as LineType;
+    const lineType = line.type;
     if (!REVIEWABLE_AGENT_TYPES.has(lineType)) continue;
     result.push({
       lineIndex: index,

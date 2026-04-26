@@ -1,11 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Search,
   Sparkles,
@@ -24,21 +18,11 @@ import {
   Layers,
   Eye,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -47,11 +31,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /**
  * AI Shot Library Component for Directors Studio
@@ -238,7 +239,6 @@ export function AIShotLibrary({ onAddToScene, className }: AIShotLibraryProps) {
   const [selectedShot, setSelectedShot] = React.useState<ShotReference | null>(
     null
   );
-  const [] = React.useState(false);
 
   // Filters
   const [filters, setFilters] = React.useState({
@@ -335,7 +335,7 @@ export function AIShotLibrary({ onAddToScene, className }: AIShotLibraryProps) {
       intense: "bg-red-600/20 text-red-500",
       atmospheric: "bg-cyan-500/20 text-cyan-400",
     };
-    return colors[mood] || "bg-muted text-muted-foreground";
+    return colors[mood] ?? "bg-muted text-muted-foreground";
   };
 
   return (

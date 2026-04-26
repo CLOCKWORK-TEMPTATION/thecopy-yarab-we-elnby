@@ -1,3 +1,7 @@
+import { randomUUID } from "crypto";
+
+import { GoogleGenAI } from "@google/genai";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -9,8 +13,7 @@ import { logger } from "@/lib/ai/utils/logger";
  * الطراز المستخدم: gemini-2.0-flash (سريع وعالي الجودة)
  */
 
-import { GoogleGenAI } from "@google/genai";
-import { randomUUID } from "crypto";
+
 import type {
   BreakdownElement,
   BreakdownReport,
@@ -57,9 +60,9 @@ const ELEMENT_COLORS: Record<string, string> = {
 /** استرداد مفتاح Gemini API من متغيرات البيئة */
 function getGeminiApiKey(): string {
   return (
-    process.env["GEMINI_API_KEY"] ||
-    process.env["GOOGLE_GENAI_API_KEY"] ||
-    process.env["API_KEY"] ||
+    process.env["GEMINI_API_KEY"] ??
+    process.env["GOOGLE_GENAI_API_KEY"] ??
+    process.env["API_KEY"] ??
     ""
   );
 }
@@ -78,7 +81,7 @@ function parseSceneHeader(
   const normalized = header.toUpperCase();
 
   // استخراج نوع المشهد (داخلي/خارجي)
-  const typeMatch = header.match(/^(INT|EXT|INT\/EXT|I\/E)\b/i);
+  const typeMatch = /^(INT|EXT|INT\/EXT|I\/E)\b/i.exec(header);
   const rawType = typeMatch?.[1]?.toUpperCase() ?? "INT";
   const sceneType: "INT" | "EXT" = rawType.startsWith("EXT") ? "EXT" : "INT";
 
@@ -145,7 +148,7 @@ function parseSceneHeader(
 function buildElements(analysis: Record<string, string[]>): BreakdownElement[] {
   const elements: BreakdownElement[] = [];
 
-  const categories: Array<[string, string, string]> = [
+  const categories: [string, string, string][] = [
     ["cast", "Cast", "الممثلون"],
     ["extras", "Extras", "المجاميع"],
     ["props", "Props", "الإكسسوارات"],
@@ -356,7 +359,7 @@ function extractJsonFromText(text: string): unknown {
     return JSON.parse(trimmed);
   }
 
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const fenced = /```(?:json)?\s*([\s\S]*?)\s*```/i.exec(trimmed);
   if (fenced?.[1]) {
     return JSON.parse(fenced[1]);
   }

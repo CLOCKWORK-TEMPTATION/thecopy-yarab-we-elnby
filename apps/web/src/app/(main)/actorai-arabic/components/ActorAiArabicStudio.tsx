@@ -7,6 +7,10 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,13 +20,9 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -30,8 +30,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+
+import { useWebcamAnalysis } from "../hooks/useWebcamAnalysis";
+import {
+  SAMPLE_SCRIPT,
+  VOCAL_EXERCISES,
+  ACTING_METHODOLOGIES,
+  AR_FEATURES,
+  GESTURE_CONTROLS,
+  SHOT_TYPES,
+} from "../types/constants";
+
 import { VoiceCoach } from "./VoiceCoach";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 // استيراد الأنواع والثوابت من الملفات المنفصلة
 import type {
@@ -52,16 +64,7 @@ import type {
   GestureControl,
 } from "../types";
 
-import {
-  SAMPLE_SCRIPT,
-  VOCAL_EXERCISES,
-  ACTING_METHODOLOGIES,
-  AR_FEATURES,
-  GESTURE_CONTROLS,
-  SHOT_TYPES,
-} from "../types/constants";
 
-import { useWebcamAnalysis } from "../hooks/useWebcamAnalysis";
 
 // ==================== المكون الرئيسي ====================
 
@@ -143,30 +146,6 @@ export const ActorAiArabicStudio: React.FC = () => {
   // حالة تمارين الصوت
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [exerciseTimer, setExerciseTimer] = useState(0);
-
-  // حالة وضع اختبار الحفظ
-  const [] = useState("");
-  const [] = useState<10 | 50 | 90>(10);
-  const [] = useState(false);
-  const [] = useState(false);
-  const [] = useState(false);
-  const [] = useState(0);
-  const [] = useState("");
-  const [] = useState<NodeJS.Timeout | null>(null);
-  const [] = useState(false);
-  const [] = useState<MemorizationStats>({
-    totalAttempts: 0,
-    correctWords: 0,
-    incorrectWords: 0,
-    hesitationCount: 0,
-    weakPoints: [],
-    averageResponseTime: 0,
-  });
-  const [] = useState<number>(0);
-  const [] = useState<number[]>([]);
-  const [] = useState<Map<string, number>>(new Map());
-  const [] = useState(false);
-  const [] = useState("");
 
   // حالة تحليل إيقاع المشهد
   const [rhythmScriptText, setRhythmScriptText] = useState("");
@@ -723,7 +702,7 @@ export const ActorAiArabicStudio: React.FC = () => {
   const startWebcamAnalysis = useCallback(() => {
     const result = webcamEngine.startAnalysis();
     if (!result.success) {
-      showNotification("error", result.error || "يرجى تفعيل الكاميرا أولاً");
+      showNotification("error", result.error ?? "يرجى تفعيل الكاميرا أولاً");
       return;
     }
     showNotification("info", "بدأ التحليل البصري... 👁️");
@@ -776,7 +755,7 @@ export const ActorAiArabicStudio: React.FC = () => {
       center: "للمركز",
       audience: "للجمهور",
     };
-    return directions[direction] || direction;
+    return directions[direction] ?? direction;
   };
 
   // ==================== Auto scroll للدردشة ====================
@@ -3018,7 +2997,7 @@ export const ActorAiArabicStudio: React.FC = () => {
     <div className="max-w-6xl mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-white/85">
-          📊 مرحباً، {user?.name || "ضيف"}!
+          📊 مرحباً، {user?.name ?? "ضيف"}!
         </h2>
         <Badge variant="outline" className="text-lg px-4 py-2">
           عضو منذ أكتوبر 2025

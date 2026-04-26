@@ -24,21 +24,23 @@
  * يُستهلك في {@link PasteClassifier} → `classifyLines()`.
  */
 import { collectActionEvidence } from "./action";
+import { SCENE_NUMBER_EXACT_RE } from "./arabic-patterns";
 import { isStandaloneBasmalaLine } from "./basmala";
+import { hasDirectDialogueCues, getDialogueProbability } from "./dialogue";
+import { pipelineRecorder } from "./pipeline-recorder";
+import { isSceneHeader3Line } from "./scene-header-3";
+import { isCompleteSceneHeaderLine } from "./scene-header-top-line";
+import { normalizeCharacterName, normalizeLine } from "./text-utils";
+import { isTransitionLine } from "./transition";
+
 import type {
   ClassificationContext,
   ClassificationMethod,
   ElementType,
 } from "./classification-types";
 import type { ContextMemorySnapshot } from "./context-memory-manager";
-import { hasDirectDialogueCues, getDialogueProbability } from "./dialogue";
 import type { LineContextInfo } from "./document-context-graph";
-import { SCENE_NUMBER_EXACT_RE } from "./arabic-patterns";
-import { isCompleteSceneHeaderLine } from "./scene-header-top-line";
-import { isSceneHeader3Line } from "./scene-header-3";
-import { isTransitionLine } from "./transition";
-import { normalizeCharacterName, normalizeLine } from "./text-utils";
-import { pipelineRecorder } from "./pipeline-recorder";
+
 
 /**
  * نتيجة التصنيف الهجين — نوع العنصر مع درجة الثقة وطريقة التصنيف.

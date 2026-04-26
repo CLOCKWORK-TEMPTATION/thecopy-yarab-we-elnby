@@ -1,10 +1,11 @@
+import { toText, safeSub } from "../utils/text-utils";
+
 import { BaseStation, StationInput, StationOptions } from "./base-station";
 import { GeminiService, GeminiModel } from "./gemini-service";
 import { Station1Output } from "./station1-text-analysis";
-import { toText, safeSub } from "../utils/text-utils";
 
 export interface Station2Context {
-  majorCharacters: Array<{ name: string; role: string }>;
+  majorCharacters: { name: string; role: string }[];
   relationshipSummary: string;
   narrativeTone: string;
   fullText: string;
@@ -18,18 +19,18 @@ export interface Station2Input extends StationInput {
 }
 
 export interface ThreeDMapResult {
-  horizontalEventsAxis: Array<{
+  horizontalEventsAxis: {
     event: string;
     sceneRef: string;
     timestamp: string;
     narrativeWeight: number;
-  }>;
-  verticalMeaningAxis: Array<{
+  }[];
+  verticalMeaningAxis: {
     eventRef: string;
     symbolicLayer: string;
     thematicConnection: string;
     depth: number;
-  }>;
+  }[];
   temporalDevelopmentAxis: {
     pastInfluence: string;
     presentChoices: string;
@@ -39,59 +40,85 @@ export interface ThreeDMapResult {
   };
 }
 
-export interface GenreMatrixResult {
-  [genreName: string]: {
+export type GenreMatrixResult = Record<string, {
     conflictContribution: string;
     pacingContribution: string;
     visualCompositionContribution: string;
     soundMusicContribution: string;
     charactersContribution: string;
     weight: number;
-  };
-}
+  }>;
 
-export interface DynamicToneResult {
-  [stageName: string]: {
+export type DynamicToneResult = Record<string, {
     visualAtmosphereDescribed: string;
     writtenPacing: string;
     dialogueStructure: string;
     soundIndicationsDescribed: string;
     emotionalIntensity: number;
-  };
-}
+  }>;
 
 export interface ArtisticReferencesResult {
-  visualReferences: Array<{
+  visualReferences: {
     work: string;
     artist?: string;
     reason: string;
     sceneApplication: string;
-  }>;
+  }[];
   musicalMood: string;
-  cinematicInfluences: Array<{
+  cinematicInfluences: {
     film: string;
     director?: string;
     aspect: string;
-  }>;
-  literaryParallels: Array<{
+  }[];
+  literaryParallels: {
     work: string;
     author?: string;
     connection: string;
-  }>;
+  }[];
 }
 
 export interface ThemeAnalysis {
-  primaryThemes: Array<{
+  primaryThemes: {
     theme: string;
     evidence: string[];
     strength: number;
     development: string;
-  }>;
-  secondaryThemes: Array<{
+  }[];
+  secondaryThemes: {
     theme: string;
     occurrences: number;
-  }>;
+  }[];
   thematicConsistency: number;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function asJsonRecord(value: unknown): JsonRecord {
+  return isJsonRecord(value) ? value : {};
+}
+
+function asJsonRecordArray(value: unknown): JsonRecord[] {
+  return Array.isArray(value) ? value.filter(isJsonRecord) : [];
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 export interface Station2Output {
@@ -154,8 +181,8 @@ export class Station2ConceptualAnalysis extends BaseStation {
         this.identifyTargetAudience(context),
       ]);
 
-      const storyStatement = storyStatements[0] || "فشل توليد بيان القصة";
-      const hybridGenre = hybridGenreOptions[0] || "دراما عامة";
+      const storyStatement = storyStatements[0] ?? "فشل توليد بيان القصة";
+      const hybridGenre = hybridGenreOptions[0] ?? "دراما عامة";
 
       const [
         elevatorPitch,
@@ -347,7 +374,7 @@ ${JSON.stringify(
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed: unknown = JSON.parse(toText(result.content));
       return this.validate3DMap(parsed);
     } catch (error) {
       console.error("[Station2] Failed to parse 3D Map:", error);
@@ -355,32 +382,35 @@ ${JSON.stringify(
     }
   }
 
-  private validate3DMap(parsed: any): ThreeDMapResult {
+  private validate3DMap(parsed: unknown): ThreeDMapResult {
+    const data = asJsonRecord(parsed);
+    const temporalDevelopmentAxis = asJsonRecord(data.temporalDevelopmentAxis);
+
     return {
-      horizontalEventsAxis: Array.isArray(parsed.horizontalEventsAxis)
-        ? parsed.horizontalEventsAxis.map((e: any) => ({
-            event: e.event || "",
-            sceneRef: e.sceneRef || "",
-            timestamp: e.timestamp || "",
-            narrativeWeight: e.narrativeWeight || 5,
-          }))
-        : [],
-      verticalMeaningAxis: Array.isArray(parsed.verticalMeaningAxis)
-        ? parsed.verticalMeaningAxis.map((m: any) => ({
-            eventRef: m.eventRef || "",
-            symbolicLayer: m.symbolicLayer || "",
-            thematicConnection: m.thematicConnection || "",
-            depth: m.depth || 5,
-          }))
-        : [],
+      horizontalEventsAxis: asJsonRecordArray(data.horizontalEventsAxis).map(
+        (event) => ({
+          event: asString(event.event),
+          sceneRef: asString(event.sceneRef),
+          timestamp: asString(event.timestamp),
+          narrativeWeight: asNumber(event.narrativeWeight, 5),
+        })
+      ),
+      verticalMeaningAxis: asJsonRecordArray(data.verticalMeaningAxis).map(
+        (meaning) => ({
+          eventRef: asString(meaning.eventRef),
+          symbolicLayer: asString(meaning.symbolicLayer),
+          thematicConnection: asString(meaning.thematicConnection),
+          depth: asNumber(meaning.depth, 5),
+        })
+      ),
       temporalDevelopmentAxis: {
-        pastInfluence: parsed.temporalDevelopmentAxis?.pastInfluence || "",
-        presentChoices: parsed.temporalDevelopmentAxis?.presentChoices || "",
+        pastInfluence: asString(temporalDevelopmentAxis.pastInfluence),
+        presentChoices: asString(temporalDevelopmentAxis.presentChoices),
         futureExpectations:
-          parsed.temporalDevelopmentAxis?.futureExpectations || "",
+          asString(temporalDevelopmentAxis.futureExpectations),
         heroArcConnection:
-          parsed.temporalDevelopmentAxis?.heroArcConnection || "",
-        causality: parsed.temporalDevelopmentAxis?.causality || "",
+          asString(temporalDevelopmentAxis.heroArcConnection),
+        causality: asString(temporalDevelopmentAxis.causality),
       },
     };
   }
@@ -513,7 +543,7 @@ ${JSON.stringify(
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed: unknown = JSON.parse(toText(result.content));
       return this.validateGenreMatrix(parsed);
     } catch (error) {
       console.error("[Station2] Failed to parse genre matrix:", error);
@@ -521,22 +551,24 @@ ${JSON.stringify(
     }
   }
 
-  private validateGenreMatrix(parsed: any): GenreMatrixResult {
+  private validateGenreMatrix(parsed: unknown): GenreMatrixResult {
     const result: GenreMatrixResult = {};
 
-    for (const [genre, contributions] of Object.entries(parsed)) {
-      if (typeof contributions === "object" && contributions !== null) {
+    for (const [genre, contributions] of Object.entries(
+      asJsonRecord(parsed)
+    )) {
+      if (isJsonRecord(contributions)) {
         result[genre] = {
-          conflictContribution:
-            (contributions as any).conflictContribution || "",
-          pacingContribution: (contributions as any).pacingContribution || "",
-          visualCompositionContribution:
-            (contributions as any).visualCompositionContribution || "",
-          soundMusicContribution:
-            (contributions as any).soundMusicContribution || "",
-          charactersContribution:
-            (contributions as any).charactersContribution || "",
-          weight: (contributions as any).weight || 0.5,
+          conflictContribution: asString(contributions.conflictContribution),
+          pacingContribution: asString(contributions.pacingContribution),
+          visualCompositionContribution: asString(
+            contributions.visualCompositionContribution
+          ),
+          soundMusicContribution: asString(
+            contributions.soundMusicContribution
+          ),
+          charactersContribution: asString(contributions.charactersContribution),
+          weight: asNumber(contributions.weight, 0.5),
         };
       }
     }
@@ -589,7 +621,7 @@ JSON صارم بدون أي نص إضافي:
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed: unknown = JSON.parse(toText(result.content));
       return this.validateDynamicTone(parsed);
     } catch (error) {
       console.error("[Station2] Failed to parse dynamic tone:", error);
@@ -597,20 +629,23 @@ JSON صارم بدون أي نص إضافي:
     }
   }
 
-  private validateDynamicTone(parsed: any): DynamicToneResult {
+  private validateDynamicTone(parsed: unknown): DynamicToneResult {
     const result: DynamicToneResult = {};
+    const data = asJsonRecord(parsed);
     const stages = ["setup", "confrontation", "resolution"];
 
     for (const stage of stages) {
-      if (parsed[stage] && typeof parsed[stage] === "object") {
+      const stageData = asJsonRecord(data[stage]);
+      if (Object.keys(stageData).length > 0) {
         result[stage] = {
-          visualAtmosphereDescribed:
-            parsed[stage].visualAtmosphereDescribed || "",
-          writtenPacing: parsed[stage].writtenPacing || "",
-          dialogueStructure: parsed[stage].dialogueStructure || "",
+          visualAtmosphereDescribed: asString(
+            stageData.visualAtmosphereDescribed
+          ),
+          writtenPacing: asString(stageData.writtenPacing),
+          dialogueStructure: asString(stageData.dialogueStructure),
           soundIndicationsDescribed:
-            parsed[stage].soundIndicationsDescribed || "",
-          emotionalIntensity: parsed[stage].emotionalIntensity || 5,
+            asString(stageData.soundIndicationsDescribed),
+          emotionalIntensity: asNumber(stageData.emotionalIntensity, 5),
         };
       }
     }
@@ -681,7 +716,7 @@ JSON صارم:
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed: unknown = JSON.parse(toText(result.content));
       return this.validateArtisticReferences(parsed);
     } catch (error) {
       console.error("[Station2] Failed to parse artistic references:", error);
@@ -689,31 +724,38 @@ JSON صارم:
     }
   }
 
-  private validateArtisticReferences(parsed: any): ArtisticReferencesResult {
+  private validateArtisticReferences(parsed: unknown): ArtisticReferencesResult {
+    const data = asJsonRecord(parsed);
+
     return {
-      visualReferences: Array.isArray(parsed.visualReferences)
-        ? parsed.visualReferences.map((ref: any) => ({
-            work: ref.work || "",
-            artist: ref.artist || undefined,
-            reason: ref.reason || "",
-            sceneApplication: ref.sceneApplication || "",
-          }))
-        : [],
-      musicalMood: parsed.musicalMood || "",
-      cinematicInfluences: Array.isArray(parsed.cinematicInfluences)
-        ? parsed.cinematicInfluences.map((inf: any) => ({
-            film: inf.film || "",
-            director: inf.director || undefined,
-            aspect: inf.aspect || "",
-          }))
-        : [],
-      literaryParallels: Array.isArray(parsed.literaryParallels)
-        ? parsed.literaryParallels.map((par: any) => ({
-            work: par.work || "",
-            author: par.author || undefined,
-            connection: par.connection || "",
-          }))
-        : [],
+      visualReferences: asJsonRecordArray(data.visualReferences).map(
+        (reference) => ({
+          work: asString(reference.work),
+          artist:
+            typeof reference.artist === "string" ? reference.artist : undefined,
+          reason: asString(reference.reason),
+          sceneApplication: asString(reference.sceneApplication),
+        })
+      ),
+      musicalMood: asString(data.musicalMood),
+      cinematicInfluences: asJsonRecordArray(data.cinematicInfluences).map(
+        (influence) => ({
+          film: asString(influence.film),
+          director:
+            typeof influence.director === "string"
+              ? influence.director
+              : undefined,
+          aspect: asString(influence.aspect),
+        })
+      ),
+      literaryParallels: asJsonRecordArray(data.literaryParallels).map(
+        (parallel) => ({
+          work: asString(parallel.work),
+          author:
+            typeof parallel.author === "string" ? parallel.author : undefined,
+          connection: asString(parallel.connection),
+        })
+      ),
     };
   }
 
@@ -782,7 +824,7 @@ JSON صارم:
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed: unknown = JSON.parse(toText(result.content));
       return this.validateThemeAnalysis(parsed);
     } catch (error) {
       console.error("[Station2] Failed to parse theme analysis:", error);
@@ -790,23 +832,21 @@ JSON صارم:
     }
   }
 
-  private validateThemeAnalysis(parsed: any): ThemeAnalysis {
+  private validateThemeAnalysis(parsed: unknown): ThemeAnalysis {
+    const data = asJsonRecord(parsed);
+
     return {
-      primaryThemes: Array.isArray(parsed.primaryThemes)
-        ? parsed.primaryThemes.map((t: any) => ({
-            theme: t.theme || "",
-            evidence: Array.isArray(t.evidence) ? t.evidence : [],
-            strength: t.strength || 5,
-            development: t.development || "",
-          }))
-        : [],
-      secondaryThemes: Array.isArray(parsed.secondaryThemes)
-        ? parsed.secondaryThemes.map((t: any) => ({
-            theme: t.theme || "",
-            occurrences: t.occurrences || 1,
-          }))
-        : [],
-      thematicConsistency: parsed.thematicConsistency || 5,
+      primaryThemes: asJsonRecordArray(data.primaryThemes).map((theme) => ({
+        theme: asString(theme.theme),
+        evidence: asStringArray(theme.evidence),
+        strength: asNumber(theme.strength, 5),
+        development: asString(theme.development),
+      })),
+      secondaryThemes: asJsonRecordArray(data.secondaryThemes).map((theme) => ({
+        theme: asString(theme.theme),
+        occurrences: asNumber(theme.occurrences, 1),
+      })),
+      thematicConsistency: asNumber(data.thematicConsistency, 5),
     };
   }
 
@@ -844,15 +884,11 @@ JSON صارم:
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
       return {
-        primaryAudience: parsed.primaryAudience || "جمهور عام",
-        demographics: Array.isArray(parsed.demographics)
-          ? parsed.demographics
-          : [],
-        psychographics: Array.isArray(parsed.psychographics)
-          ? parsed.psychographics
-          : [],
+        primaryAudience: asString(parsed.primaryAudience, "جمهور عام"),
+        demographics: asStringArray(parsed.demographics),
+        psychographics: asStringArray(parsed.psychographics),
       };
     } catch (error) {
       console.error("[Station2] Failed to parse target audience:", error);
@@ -910,11 +946,11 @@ JSON صارم:
     });
 
     try {
-      const parsed = JSON.parse(toText(result.content));
+      const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
       return {
-        producibility: parsed.producibility || 5,
-        commercialPotential: parsed.commercialPotential || 5,
-        uniqueness: parsed.uniqueness || 5,
+        producibility: asNumber(parsed.producibility, 5),
+        commercialPotential: asNumber(parsed.commercialPotential, 5),
+        uniqueness: asNumber(parsed.uniqueness, 5),
       };
     } catch (error) {
       console.error("[Station2] Failed to parse market analysis:", error);

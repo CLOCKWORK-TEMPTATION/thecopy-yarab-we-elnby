@@ -75,11 +75,11 @@ export interface ThematicElement {
   name: string;
   category: "theme" | "motif" | "symbol";
   description: string;
-  occurrences: Array<{
+  occurrences: {
     location: string;
     context: string;
     intensity: number;
-  }>;
+  }[];
 }
 
 export interface AnalysisMetadata {
@@ -143,11 +143,11 @@ export interface DialogueAnalysis {
 export interface UncertaintyReport {
   overallConfidence: number;
   uncertaintyType: "epistemic" | "aleatoric";
-  sources: Array<{
+  sources: {
     aspect: string;
     reason: string;
     reducible: boolean;
-  }>;
+  }[];
 }
 
 // Thematic and Audience Types
@@ -187,11 +187,11 @@ export interface Recommendation {
 
 export interface DebateResult {
   participants: string[];
-  rounds: Array<{
+  rounds: {
     speaker: string;
     argument: string;
     counterArguments: string[];
-  }>;
+  }[];
   consensus: string;
   disagreements: string[];
   finalRecommendations: Recommendation[];
@@ -200,8 +200,8 @@ export interface DebateResult {
 // Factory functions
 export function createCharacter(data: Partial<Character>): Character {
   const character: Character = {
-    id: data.id || `char_${Date.now()}`,
-    name: data.name || "Unknown Character",
+    id: data.id ?? `char_${Date.now()}`,
+    name: data.name ?? "Unknown Character",
   };
 
   if (data.role !== undefined) character.role = data.role;
@@ -234,8 +234,8 @@ export function createConflict(data: Partial<Conflict>): Conflict {
 
 export function createRelationship(data: Partial<Relationship>): Relationship {
   const relationship: Relationship = {
-    source: data.source || "",
-    target: data.target || "",
+    source: data.source ?? "",
+    target: data.target ?? "",
   };
 
   if (data.id !== undefined) relationship.id = data.id;
@@ -249,11 +249,11 @@ export function createNetworkSnapshot(
   data: Partial<NetworkSnapshot>
 ): NetworkSnapshot {
   return {
-    timestamp: data.timestamp || new Date(),
-    characters: data.characters || [],
-    relationships: data.relationships || [],
-    conflicts: data.conflicts || [],
-    metrics: data.metrics || {
+    timestamp: data.timestamp ?? new Date(),
+    characters: data.characters ?? [],
+    relationships: data.relationships ?? [],
+    conflicts: data.conflicts ?? [],
+    metrics: data.metrics ?? {
       density: 0,
       centrality: {},
       clustering: 0,

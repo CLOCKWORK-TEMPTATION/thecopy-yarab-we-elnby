@@ -3,6 +3,7 @@
  */
 
 import React, { useState, useCallback } from "react";
+
 import type { Project, Scene, Character, Shot } from "@/types/api";
 
 // Simple state management without zustand
@@ -69,7 +70,7 @@ function createStore<T extends Record<string, any>>(
   const set: SetState<T> = (partial) => {
     const nextState =
       typeof partial === "function"
-        ? (partial as (state: T) => T | Partial<T>)(state)
+        ? (partial)(state)
         : partial;
     state = { ...state, ...nextState };
     listeners.forEach((listener) => listener());

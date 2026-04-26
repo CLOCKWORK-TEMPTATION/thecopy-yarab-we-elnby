@@ -219,8 +219,8 @@ ${JSON.stringify(context.analysisReport, null, 2).substring(0, 1000)}
           critiquePrompt
         );
       return {
-        hasViolation: parsed.hasViolation || false,
-        violationDescription: parsed.violationDescription || "",
+        hasViolation: parsed.hasViolation ?? false,
+        violationDescription: parsed.violationDescription ?? "",
       };
     } catch (error) {
       log.error("Error in constitutional critique", error, "ConstitutionalAI");

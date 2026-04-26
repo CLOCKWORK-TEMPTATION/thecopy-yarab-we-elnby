@@ -12,9 +12,9 @@
  *   - npm install winax
  */
 
-import * as path from "path";
 import * as fs from "fs";
 import { fileURLToPath } from "node:url";
+import * as path from "path";
 
 // Type definitions for winax
 interface WordApplication {
@@ -57,7 +57,7 @@ const toErrorMessage = (error: unknown): string =>
 async function convertDocxToDoc(
   inputPath: string,
   outputPath?: string,
-  overwrite: boolean = false
+  overwrite = false
 ): Promise<void> {
   // Resolve absolute paths
   const absInputPath = path.resolve(inputPath);

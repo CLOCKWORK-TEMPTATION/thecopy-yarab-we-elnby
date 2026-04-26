@@ -1,5 +1,12 @@
 import { bench, describe } from "vitest";
+
 import { createDefaultSuspicionEngine } from "../src/suspicion-engine/engine";
+import { resetSignalCounter } from "../src/suspicion-engine/helpers";
+
+import type {
+  ClassifiedDraft,
+  ElementType,
+} from "../src/extensions/classification-types";
 import type {
   SuspicionEngineInput,
   ClassificationTrace,
@@ -7,11 +14,6 @@ import type {
   FinalDecision,
   SourceHints,
 } from "../src/suspicion-engine/types";
-import type {
-  ClassifiedDraft,
-  ElementType,
-} from "../src/extensions/classification-types";
-import { resetSignalCounter } from "../src/suspicion-engine/helpers";
 
 // ─── Fixture Builder ──────────────────────────────────────────────────────────
 
@@ -28,7 +30,7 @@ function buildFixture(lineCount: number): SuspicionEngineInput {
   const traces = new Map<number, ClassificationTrace>();
 
   for (let i = 0; i < lineCount; i++) {
-    const type = types[i % types.length] as ElementType;
+    const type = types[i % types.length]!;
 
     lines.push({
       type,

@@ -6,6 +6,7 @@
  * - session history export: حفظ/تحميل/حذف/مسح الجلسات
  */
 import { describe, it, expect, beforeEach } from "vitest";
+
 import type {
   Session,
   DebateMessage,
@@ -77,7 +78,7 @@ describe("شبكة انحدار: brain-storm-ai — التصدير", () => {
           message: m.message,
           timestamp: m.timestamp.toISOString(),
         })),
-        results: session.results || {},
+        results: session.results ?? {},
         exportedAt: new Date().toISOString(),
         version: "1.0",
       };

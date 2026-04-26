@@ -33,7 +33,7 @@ const testBatchProcessing = () => {
             timeRemaining: () => Math.max(0, 50),
             didTimeout: false,
           }),
-        options?.timeout || 0
+        options?.timeout ?? 0
       );
     }
   };

@@ -191,13 +191,11 @@ const getFormatIdFromElement = (
  */
 const splitLegacyTopLineText = (
   text: string
-): Array<{ formatId: "scene_header_1" | "scene_header_2"; text: string }> => {
+): { formatId: "scene_header_1" | "scene_header_2"; text: string }[] => {
   const normalized = normalizeBlockText(text).replace(/\s+/g, " ").trim();
   if (!normalized) return [];
 
-  const pairMatch = normalized.match(
-    /^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(?:[-–—:،]\s*|\s+)(.+)$/iu
-  );
+  const pairMatch = /^((?:مشهد|scene)\s*[0-9٠-٩]+)\s*(?:[-–—:،]\s*|\s+)(.+)$/iu.exec(normalized);
   if (pairMatch) {
     const part1 = pairMatch[1];
     const part2 = pairMatch[2];
@@ -305,7 +303,7 @@ export const buildPayloadMarker = (encodedPayload: string): string =>
  * @returns السلسلة المشفّرة أو `null` إذا لم تُوجد علامة
  */
 export const extractEncodedPayloadMarker = (text: string): string | null => {
-  const match = (text ?? "").match(MARKER_RE);
+  const match = MARKER_RE.exec((text ?? ""));
   const encoded = match?.[1];
   return encoded ?? null;
 };
@@ -410,7 +408,7 @@ export const extractPayloadFromText = (
  * @returns مصفوفة كتل مُطبَّعة (فارغة إذا كان HTML فارغاً أو DOMParser غير متاح)
  */
 export const htmlToScreenplayBlocks = (html: string): ScreenplayBlock[] => {
-  if (!html || !html.trim()) return [];
+  if (!html?.trim()) return [];
   if (typeof DOMParser === "undefined") return [];
 
   const parser = new DOMParser();
@@ -425,7 +423,7 @@ export const htmlToScreenplayBlocks = (html: string): ScreenplayBlock[] => {
 
   root.childNodes.forEach((node) => {
     if (node.nodeType === Node.TEXT_NODE) {
-      const textLines = normalizeBlockText(node.textContent || "")
+      const textLines = normalizeBlockText(node.textContent ?? "")
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
@@ -535,7 +533,7 @@ export const screenplayBlocksToHtml = (blocks: ScreenplayBlock[]): string => {
     }
 
     if (current.formatId === "scene_header_1") {
-      if (next && next.formatId === "scene_header_2") {
+      if (next?.formatId === "scene_header_2") {
         html.push(renderTopLineBlock(current.text, next.text));
         i += 1;
         continue;

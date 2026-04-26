@@ -8,15 +8,18 @@
  * - تطبيق relabel تلقائياً (Auto-Apply Engine) — المرحلة 8
  */
 
+import { logger } from "../utils/logger";
+
+import { computeFingerprint } from "./fingerprint";
+
+import type { ItemSnapshot } from "./fingerprint";
 import type {
   AgentCommand,
   RelabelCommand,
   FinalReviewResponsePayload,
 } from "../types/final-review";
 import type { LineType } from "../types/screenplay";
-import type { ItemSnapshot } from "./fingerprint";
-import { computeFingerprint } from "./fingerprint";
-import { logger } from "../utils/logger";
+
 
 const engineLogger = logger.createScope("command-engine");
 
@@ -359,7 +362,7 @@ export const validateAndFilterCommands = (
 
       valid.push({
         op: "relabel",
-        itemId: record["itemId"] as string,
+        itemId: record["itemId"],
         newType: newType as LineType,
         confidence: Math.max(0, Math.min(1, confidence)),
         reason,

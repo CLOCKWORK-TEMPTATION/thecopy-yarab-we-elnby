@@ -1,9 +1,9 @@
+import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import type {
   ClassificationTrace,
   SuspicionSignal,
   SuspicionFeature,
 } from "@editor/suspicion-engine/types";
-import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 
 export interface DetectorContext {
   readonly lineIndex: number;

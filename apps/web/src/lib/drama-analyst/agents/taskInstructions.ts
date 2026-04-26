@@ -3,6 +3,7 @@
  */
 
 import { TaskType } from "../enums";
+
 import type { AgentId } from "../types";
 
 export const agentIdToTaskTypeMap: Record<AgentId, TaskType> = {

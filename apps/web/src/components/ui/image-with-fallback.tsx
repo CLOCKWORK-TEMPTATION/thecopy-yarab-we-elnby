@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
 import Image, { ImageProps } from "next/image";
+import React, { useState, useCallback } from "react";
 
 export interface ImageWithFallbackProps extends Omit<ImageProps, "src"> {
   src: string;

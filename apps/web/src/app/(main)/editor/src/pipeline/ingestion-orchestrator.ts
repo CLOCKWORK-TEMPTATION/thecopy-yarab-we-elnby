@@ -2,20 +2,23 @@
  * @fileoverview Ingestion Orchestrator
  */
 
-import type { EditorView } from "@tiptap/pm/view";
 import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
 import DOMPurify from "dompurify";
-import type { ScreenplayBlock } from "../utils/file-import";
+
 import { toLegacyElementType } from "../extensions/classification-types";
+import { classifyLines } from "../extensions/paste-classifier";
+import { logger } from "../utils/logger";
+
+import { telemetry } from "./telemetry";
 import {
   assessTrustLevel,
   type InputTrustLevel,
   type StructuredBlock,
 } from "./trust-policy";
+
 import type { ClassifiedItem } from "./editor-insertion";
-import { telemetry } from "./telemetry";
-import { classifyLines } from "../extensions/paste-classifier";
-import { logger } from "../utils/logger";
+import type { ScreenplayBlock } from "../utils/file-import";
+import type { EditorView } from "@tiptap/pm/view";
 
 const orchestratorLogger = logger.createScope("ingestion-orchestrator");
 
@@ -219,4 +222,4 @@ export const blocksToLegacyItems = (
     text: block.text,
     confidence: 1,
     classificationMethod: "external-engine",
-  })) as ClassifiedItem[];
+  }));

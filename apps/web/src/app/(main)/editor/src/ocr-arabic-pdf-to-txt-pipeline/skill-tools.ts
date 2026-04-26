@@ -14,13 +14,15 @@
  * وتُعيد النتيجة بصيغة JSON.
  */
 
-import { tool } from "ai";
-import { z } from "zod";
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { stat } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { stat } from "node:fs/promises";
+import { promisify } from "node:util";
+
+import { tool } from "ai";
+import { z } from "zod";
+
 
 const execFileAsync = promisify(execFile);
 

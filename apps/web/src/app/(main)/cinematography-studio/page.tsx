@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Aperture } from "lucide-react";
+import dynamic from "next/dynamic";
 
 const CineAIStudio = dynamic(
   () =>

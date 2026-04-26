@@ -1,6 +1,8 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -13,7 +15,7 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
     super(
       "DialogueDeepScan AI",
       TaskType.DIALOGUE_ADVANCED_ANALYZER,
-      DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.75;
@@ -28,9 +30,9 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
     // Extract dialogue context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const dialogueContext = (contextObj as any)?.dialogueContext || "مشهد عام";
+    const dialogueContext = (contextObj as any)?.dialogueContext ?? "مشهد عام";
 
-    let prompt = `## مهمة التحليل المتقدم للحوار
+    const prompt = `## مهمة التحليل المتقدم للحوار
 
 ### سياق الحوار:
 ${dialogueContext}

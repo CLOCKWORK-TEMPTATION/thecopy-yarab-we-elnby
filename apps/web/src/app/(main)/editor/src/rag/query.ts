@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
+
 import {
   qdrantClient,
   RAG_COLLECTION_NAME,
@@ -6,13 +8,12 @@ import {
 } from "./config";
 import { generateEmbedding } from "./embeddings";
 import { SearchResult, RagResponse } from "./types";
-import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 export async function searchCode(
   query: string,
-  limit: number = 5
+  limit = 5
 ): Promise<SearchResult[]> {
   try {
     logger.info({ query, limit }, "Searching code...");
@@ -111,7 +112,7 @@ ${context}
         contents: prompt,
       });
 
-      const answer = response.text || "فشل في توليد الإجابة";
+      const answer = response.text ?? "فشل في توليد الإجابة";
 
       return {
         answer,

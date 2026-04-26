@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState, useEffect } from "react";
+
 import { NotificationProvider } from "@/components/providers/notification-provider";
 
 /**

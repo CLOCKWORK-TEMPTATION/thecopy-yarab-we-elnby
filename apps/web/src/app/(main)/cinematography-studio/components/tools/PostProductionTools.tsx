@@ -1,7 +1,5 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
-import Image from "next/image";
 import {
   Camera,
   CameraOff,
@@ -16,12 +14,17 @@ import {
   Upload,
   Video,
 } from "lucide-react";
+import Image from "next/image";
+import React, { useCallback, useRef } from "react";
+
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
+
 import { usePostProduction } from "../../hooks";
-import type { ExportSettings, PostProductionToolsProps } from "../../types";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
+
+import type { ExportSettings, PostProductionToolsProps } from "../../types";
 
 const PLATFORM_LABELS: Record<ExportSettings["platform"], string> = {
   "cinema-dcp": "Cinema DCP",

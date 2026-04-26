@@ -1,4 +1,5 @@
 import { isElementType } from "@editor/extensions/classification-types";
+
 import type {
   ResolutionOutcome,
   ResolutionStatus,

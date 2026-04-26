@@ -1,11 +1,13 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { DIALOGUE_FORENSICS_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 interface DialogueForensicsContext {
   originalText?: string;
@@ -28,7 +30,7 @@ export class DialogueForensicsAgent extends BaseAgent {
     super(
       "DialogueForensics AI",
       TaskType.DIALOGUE_FORENSICS,
-      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt || ""
+      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.83;
@@ -38,10 +40,10 @@ export class DialogueForensicsAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as DialogueForensicsContext;
 
-    const originalText = ctx?.originalText || "";
-    const characters = ctx?.characters || [];
-    const dialogueSamples = ctx?.dialogueSamples || [];
-    const focusAreas = ctx?.focusAreas || [
+    const originalText = ctx?.originalText ?? "";
+    const characters = ctx?.characters ?? [];
+    const dialogueSamples = ctx?.dialogueSamples ?? [];
+    const focusAreas = ctx?.focusAreas ?? [
       "authenticity",
       "subtext",
       "character-voice",
@@ -60,7 +62,7 @@ export class DialogueForensicsAgent extends BaseAgent {
       prompt += `الشخصيات في الحوار:\n`;
       characters.slice(0, 6).forEach((char: any, idx: number) => {
         const charName =
-          typeof char === "string" ? char : char.name || `شخصية ${idx + 1}`;
+          typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
         prompt += `${idx + 1}. ${charName}\n`;
       });
       prompt += "\n";
@@ -151,7 +153,7 @@ ${
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupDialogueText(output.text);
+    const processedText = this.cleanupDialogueText(output.text);
 
     const authenticity = await this.assessAuthenticity(processedText);
     const characterization = await this.assessCharacterization(processedText);
@@ -189,7 +191,7 @@ ${
         problemsIdentified: this.countProblems(processedText),
         recommendationsProvided: this.countRecommendations(processedText),
         dialogueSamplesAnalyzed: this.countDialogueSamples(processedText),
-      } as any,
+      },
     };
   }
 
@@ -225,7 +227,7 @@ ${
     const negCount = safeCountMultipleTerms(text, negativeTerms);
     score -= Math.min(0.2, negCount * 0.05);
 
-    const hasExamples = (text.match(/["«]/g) || []).length >= 3;
+    const hasExamples = (text.match(/["«]/g) ?? []).length >= 3;
     if (hasExamples) score += 0.15;
 
     return Math.min(1, Math.max(0, score));
@@ -357,7 +359,7 @@ ${
       conflict: "بناء الصراع",
       pacing: "الوتيرة",
     };
-    return areas[area] || area;
+    return areas[area] ?? area;
   }
 
   protected override async getFallbackResponse(

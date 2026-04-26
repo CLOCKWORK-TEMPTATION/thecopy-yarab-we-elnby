@@ -123,8 +123,8 @@ export default function QRLoginPage() {
       } catch (err: unknown) {
         const apiError = err as ApiErrorResponse;
         const errorMsg =
-          apiError?.response?.data?.message ||
-          apiError?.message ||
+          apiError?.response?.data?.message ??
+          apiError?.message ??
           "فشلت عملية المصادقة";
         setError(errorMsg);
         toast({

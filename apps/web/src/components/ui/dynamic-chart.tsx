@@ -17,6 +17,7 @@
  */
 
 import dynamic from "next/dynamic";
+
 import type { ComponentType } from "react";
 
 // Loading component shown while chart is loading

@@ -155,7 +155,7 @@ export default function DashboardPage() {
     );
   }
 
-  const quickLinks = ROLE_QUICK_LINKS[user.role] || [];
+  const quickLinks = ROLE_QUICK_LINKS[user.role] ?? [];
 
   return (
     <div dir="rtl" className="min-h-screen bg-black/8 backdrop-blur-xl">

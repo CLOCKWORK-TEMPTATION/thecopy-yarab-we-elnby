@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import {
   buildProxyErrorResponse,
   proxyToBackend,
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
-    const contentType = request.headers.get("content-type") || "";
+    const contentType = request.headers.get("content-type") ?? "";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();

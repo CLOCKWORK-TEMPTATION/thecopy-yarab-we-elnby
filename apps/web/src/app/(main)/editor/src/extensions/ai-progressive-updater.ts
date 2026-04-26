@@ -16,12 +16,15 @@
  * - {@link ProgressiveUpdateSession} — جلسة تحديث واحدة مرتبطة بعملية لصق/فتح
  */
 
-import type { EditorView } from "@tiptap/pm/view";
 import { Fragment, type Node as PmNode } from "@tiptap/pm/model";
-import type { ElementType } from "./classification-types";
+
+import { logger } from "../utils/logger";
+
 import { isElementType } from "./classification-types";
 import { pipelineRecorder } from "./pipeline-recorder";
-import { logger } from "../utils/logger";
+
+import type { ElementType } from "./classification-types";
+import type { EditorView } from "@tiptap/pm/view";
 
 // ─── الأنواع ──────────────────────────────────────────────────────
 
@@ -496,7 +499,7 @@ export class ProgressiveUpdater {
     options?: ProgressiveUpdateSessionOptions
   ): ProgressiveUpdateSession {
     // إلغاء الجلسة السابقة
-    if (this._currentSession && this._currentSession.status === "running") {
+    if (this._currentSession?.status === "running") {
       this._currentSession.abort();
     }
 
@@ -518,7 +521,7 @@ export class ProgressiveUpdater {
    * إلغاء الجلسة الحالية.
    */
   abortCurrentSession(): void {
-    if (this._currentSession && this._currentSession.status === "running") {
+    if (this._currentSession?.status === "running") {
       this._currentSession.abort();
     }
     this._currentSession = null;

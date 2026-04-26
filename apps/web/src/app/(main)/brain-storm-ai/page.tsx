@@ -8,11 +8,13 @@
  */
 
 import dynamic from "next/dynamic";
-import type { CSSProperties } from "react";
+
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+
+import type { CSSProperties } from "react";
 
 const shellStyle: CSSProperties = {
   ["--page-accent" as string]: "var(--accent-technical, #3b5bdb)",

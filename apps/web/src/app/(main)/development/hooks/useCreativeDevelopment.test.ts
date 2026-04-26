@@ -21,8 +21,9 @@
  *  - `@/lib/app-state-client`— silenced (loadRemoteAppState)
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { DEVELOPMENT_TASKS, getTaskById } from "../utils/task-catalog";
 
 // ---------------------------------------------------------------------------

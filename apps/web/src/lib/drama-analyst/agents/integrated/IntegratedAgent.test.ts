@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { IntegratedAgent } from "./IntegratedAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/types";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { IntegratedAgent } from "./IntegratedAgent";
 
 vi.mock("@/ai/gemini-service", () => ({
   geminiService: {

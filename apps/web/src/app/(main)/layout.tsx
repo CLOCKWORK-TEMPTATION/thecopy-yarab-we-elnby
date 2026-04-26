@@ -1,9 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { Logo } from "@/components/logo";
 import { MainNav } from "@/components/main-nav";
-import { DESKTOP_WEB_APP_FRAME_CLASS } from "@/lib/desktop-shell";
-import { usePathname } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -12,6 +12,7 @@ import {
   SidebarInset,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { DESKTOP_WEB_APP_FRAME_CLASS } from "@/lib/desktop-shell";
 
 export default function MainLayout({
   children,

@@ -59,7 +59,10 @@ export default tseslint.config(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: ["./tsconfig.check.json"],
+        project: [
+          "./tsconfig.check.json",
+          "./tsconfig.eslint-declarations.json",
+        ],
         tsconfigRootDir: import.meta.dirname,
       },
       globals: {

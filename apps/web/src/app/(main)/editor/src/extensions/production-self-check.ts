@@ -1,5 +1,6 @@
-import { classifyText } from "./paste-classifier";
 import { logger } from "../utils/logger";
+
+import { classifyText } from "./paste-classifier";
 
 export type ProductionSelfCheckTrigger =
   | "editor-import"
@@ -19,7 +20,7 @@ export interface ProductionSelfCheckReport {
   uiFunctionsExecuted: number;
   extensionFunctionsExecuted: number;
   durationMs: number;
-  failures: ReadonlyArray<{ name: string; message: string }>;
+  failures: readonly { name: string; message: string }[];
 }
 
 const selfCheckLogger = logger.createScope("production-self-check");
@@ -52,7 +53,7 @@ export const runProductionSelfCheck = async (
 
   const run = (async (): Promise<ProductionSelfCheckReport> => {
     const startedAt = performance.now();
-    const failures: Array<{ name: string; message: string }> = [];
+    const failures: { name: string; message: string }[] = [];
 
     const sampleText =
       (options.sampleText ?? "ثم يدخل أحمد إلى البيت.").trim() ||

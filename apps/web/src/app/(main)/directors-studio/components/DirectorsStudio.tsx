@@ -1,18 +1,5 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { useProjects } from "@/hooks/useProject";
-import type { Project } from "@/types/api";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Clapperboard,
   Camera,
@@ -33,6 +20,21 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import React, { useState, useMemo } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useProjects } from "@/hooks/useProject";
+
+import type { Project } from "@/types/api";
 
 // Dynamically import heavy components
 const SpatialScenePlanner = dynamic(

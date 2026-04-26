@@ -1,5 +1,6 @@
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface MoodBoardItem {
   id: string;
@@ -41,8 +42,8 @@ export class CreativeInspirationAssistant implements Plugin {
     "اقتراح مراجع بصرية ذات صلة بناءً على وصف المشهد وإنشاء لوحات مزاجية تلقائية";
   category = "ai-analytics" as const;
 
-  private styleDatabase: Map<string, string[]> = new Map();
-  private colorPalettes: Map<string, string[]> = new Map();
+  private styleDatabase = new Map<string, string[]>();
+  private colorPalettes = new Map<string, string[]>();
 
   async initialize(): Promise<void> {
     this.initializeStyleDatabase();
@@ -177,13 +178,13 @@ export class CreativeInspirationAssistant implements Plugin {
     const style = this.detectStyle(data.description, data.genre);
     const colorPalette = this.selectColorPalette(detectedMood, detectedEra);
     const styleReferences =
-      this.styleDatabase.get(style) || this.styleDatabase.get("neutral") || [];
+      this.styleDatabase.get(style) ?? this.styleDatabase.get("neutral") ?? [];
 
     const result: InspirationResult = {
       id: uuidv4(),
       sceneDescription: data.description,
-      mood: data.mood || detectedMood,
-      era: data.era || detectedEra,
+      mood: data.mood ?? detectedMood,
+      era: data.era ?? detectedEra,
       colorPalette,
       styleReferences,
       moodBoard: this.generateMoodBoardItems(detectedMood, style, colorPalette),
@@ -273,7 +274,7 @@ export class CreativeInspirationAssistant implements Plugin {
 
   private detectStyle(description: string, genre?: string): string {
     const lowerDesc = description.toLowerCase();
-    const lowerGenre = (genre || "").toLowerCase();
+    const lowerGenre = (genre ?? "").toLowerCase();
 
     if (lowerDesc.includes("noir") || lowerGenre.includes("noir"))
       return "noir";
@@ -300,12 +301,12 @@ export class CreativeInspirationAssistant implements Plugin {
 
   private selectColorPalette(mood: string, era: string): string[] {
     if (mood === "dark" || mood === "horror")
-      return this.colorPalettes.get("dark") || [];
+      return this.colorPalettes.get("dark") ?? [];
     if (mood === "romantic" || mood === "calm")
-      return this.colorPalettes.get("warm") || [];
-    if (era === "futuristic") return this.colorPalettes.get("cool") || [];
-    if (era === "historical") return this.colorPalettes.get("warm") || [];
-    return this.colorPalettes.get("neutral") || [];
+      return this.colorPalettes.get("warm") ?? [];
+    if (era === "futuristic") return this.colorPalettes.get("cool") ?? [];
+    if (era === "historical") return this.colorPalettes.get("warm") ?? [];
+    return this.colorPalettes.get("neutral") ?? [];
   }
 
   private generateMoodBoardItems(
@@ -326,7 +327,7 @@ export class CreativeInspirationAssistant implements Plugin {
       });
     });
 
-    const styleRefs = this.styleDatabase.get(style) || [];
+    const styleRefs = this.styleDatabase.get(style) ?? [];
     styleRefs.slice(0, 2).forEach((ref) => {
       items.push({
         id: uuidv4(),
@@ -397,14 +398,14 @@ export class CreativeInspirationAssistant implements Plugin {
   }): Promise<PluginOutput> {
     const palette = this.selectColorPalette(
       data.mood,
-      data.era || "contemporary"
+      data.era ?? "contemporary"
     );
 
     return {
       success: true,
       data: {
         mood: data.mood,
-        era: data.era || "contemporary",
+        era: data.era ?? "contemporary",
         palette,
         usage: {
           primary: palette[0],

@@ -1,4 +1,5 @@
 import { TaskCategory, TaskType } from "../../enums";
+
 import type { AIAgentConfig } from "../../core/types";
 
 export const PLATFORM_ADAPTER_AGENT_CONFIG: AIAgentConfig = {

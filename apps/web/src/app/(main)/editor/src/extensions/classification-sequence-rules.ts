@@ -67,41 +67,41 @@ export const suggestTypeFromClassificationSequence = (
 ): ElementType | null => {
   if (prevType === "character") {
     return features.isParenthetical
-      ? ("parenthetical" as ElementType)
-      : ("dialogue" as ElementType);
+      ? ("parenthetical")
+      : ("dialogue");
   }
 
   if (prevType === "parenthetical") {
-    return "dialogue" as ElementType;
+    return "dialogue";
   }
 
   if (prevType === "dialogue") {
     if (features.startsWithDash || features.hasActionIndicators) {
-      return "action" as ElementType;
+      return "action";
     }
     if (
       features.endsWithColon ||
       (features.wordCount <= 3 && !features.hasPunctuation)
     ) {
-      return "character" as ElementType;
+      return "character";
     }
-    return "action" as ElementType;
+    return "action";
   }
 
   if (prevType === "transition") {
-    return "scene_header_1" as ElementType;
+    return "scene_header_1";
   }
 
   if (prevType === "scene_header_1") {
-    return "scene_header_2" as ElementType;
+    return "scene_header_2";
   }
 
   if (prevType === "scene_header_2") {
-    return "scene_header_3" as ElementType;
+    return "scene_header_3";
   }
 
   if (prevType === "scene_header_3") {
-    return "action" as ElementType;
+    return "action";
   }
 
   return null;

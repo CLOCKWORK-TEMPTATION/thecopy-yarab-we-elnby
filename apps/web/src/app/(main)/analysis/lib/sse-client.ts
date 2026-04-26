@@ -25,7 +25,7 @@ export function openSse(opts: OpenSseOptions): SseHandle {
   const es = new EventSource(opts.url, { withCredentials: true });
   // Backend uses named events (event: pipeline.started, etc). Listen to them
   // explicitly so the browser's lastEventId tracking remains correct.
-  const eventNames: ReadonlyArray<StreamEvent["type"]> = [
+  const eventNames: readonly StreamEvent["type"][] = [
     "pipeline.started",
     "pipeline.warning",
     "pipeline.completed",

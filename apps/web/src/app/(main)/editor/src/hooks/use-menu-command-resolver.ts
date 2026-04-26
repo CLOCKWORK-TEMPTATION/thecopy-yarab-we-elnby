@@ -1,11 +1,13 @@
 import { useCallback, useRef, type MutableRefObject } from "react";
-import type { EditorArea } from "../components/editor";
-import { isElementType } from "../extensions/classification-types";
+
 import {
   isInsertActionId,
   runInsertMenuAction,
   type MenuToastPayload,
 } from "../controllers";
+import { isElementType } from "../extensions/classification-types";
+
+import type { EditorArea } from "../components/editor";
 
 export const useMenuCommandResolver = (
   areaRef: MutableRefObject<EditorArea | null>,

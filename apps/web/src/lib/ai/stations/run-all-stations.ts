@@ -1,9 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
-import { StationsOrchestrator, type OrchestrationResult } from "./orchestrator";
-import { GeminiService, GeminiModel } from "./gemini-service";
-import { saveText } from "../utils/saveText";
+
 import { logger } from "../utils/logger";
+import { saveText } from "../utils/saveText";
+
+import { GeminiService, GeminiModel } from "./gemini-service";
+import { StationsOrchestrator, type OrchestrationResult } from "./orchestrator";
 import {
   PipelineInputSchema,
   validateAndNormalizePipelineInput,
@@ -297,12 +299,12 @@ ${separator}
 وقت التنفيذ الكلي: ${result.metadata.totalExecutionTime}ms
 المحطات المكتملة: ${result.metadata.stationsCompleted}
 المحطات الفاشلة: ${result.metadata.stationsFailed}
-النتيجة الإجمالية: ${result.metadata.overallScore || "غير متاح"}
-التصنيف الإجمالي: ${result.metadata.overallRating || "غير متاح"}
+النتيجة الإجمالية: ${result.metadata.overallScore ?? "غير متاح"}
+التصنيف الإجمالي: ${result.metadata.overallRating ?? "غير متاح"}
 الحالة: ${result.success ? "نجح" : "فشل"}
 
 سجل التقدم:
-${result.progressLog.map((p) => `- المحطة ${p.stationNumber} (${p.stationName}): ${p.status} - المدة: ${p.duration || 0}ms`).join("\n")}
+${result.progressLog.map((p) => `- المحطة ${p.stationNumber} (${p.stationName}): ${p.status} - المدة: ${p.duration ?? 0}ms`).join("\n")}
 
 ${result.errors.length > 0 ? `\nالأخطاء:\n${result.errors.map((e) => `- المحطة ${e.station}: ${e.error} (${e.timestamp})`).join("\n")}` : ""}
       `.trim();

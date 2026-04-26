@@ -6,6 +6,7 @@
  */
 
 import { UncertaintyMetrics } from "../core/types";
+
 import { log } from "./loggerService";
 import { platformGenAIService } from "./platformGenAIService";
 
@@ -18,7 +19,7 @@ export class UncertaintyService {
    */
   async measureUncertaintyMC(
     prompt: string,
-    iterations: number = 5
+    iterations = 5
   ): Promise<UncertaintyMetrics> {
     const outputs: string[] = [];
 
@@ -77,7 +78,7 @@ export class UncertaintyService {
 
     // Generate outputs from multiple models/configurations
     // Note: Currently using same model multiple times for ensemble
-    for (const {} of models) {
+    for (const _model of models) {
       const output = await platformGenAIService.generateText(prompt);
       outputs.push(output);
     }
@@ -144,7 +145,7 @@ export class UncertaintyService {
     const wordCounts = new Map<string, number>();
 
     allWords.forEach((word) => {
-      wordCounts.set(word, (wordCounts.get(word) || 0) + 1);
+      wordCounts.set(word, (wordCounts.get(word) ?? 0) + 1);
     });
 
     // Words that appear in some but not all outputs might indicate uncertainty

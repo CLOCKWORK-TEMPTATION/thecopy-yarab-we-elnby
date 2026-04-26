@@ -1,8 +1,9 @@
-import type { ScenarioAnalysis } from "../../domain/models";
 import {
   analyzeBreakdownProject,
   bootstrapBreakdownProject,
 } from "../platform-client";
+
+import type { ScenarioAnalysis } from "../../domain/models";
 
 export interface ScenarioAnalysisOptions {
   includeRecommended?: boolean;
@@ -23,5 +24,5 @@ export const analyzeProductionScenarios = async (
   const report = await analyzeBreakdownProject(bootstrap.projectId);
   const firstScene = report.scenes[0];
 
-  return firstScene?.scenarios || { scenarios: [] };
+  return firstScene?.scenarios ?? { scenarios: [] };
 };

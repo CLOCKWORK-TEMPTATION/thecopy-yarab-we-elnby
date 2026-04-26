@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+
 import { clientEnv } from "@/env";
 import {
   buildFallbackSevenStationsResult,
@@ -38,14 +39,14 @@ const EXPECTED_STATION_KEYS = [
 function resolveBackendBaseUrl(): string | null {
   // الأولوية: متغيرات الخادم ثم متغيرات العميل ثم القيمة الافتراضية للتطوير
   return (
-    process.env["NEXT_PUBLIC_API_URL"] ||
-    process.env["NEXT_PUBLIC_BACKEND_URL"] ||
-    process.env["BACKEND_URL"] ||
-    clientEnv.NEXT_PUBLIC_API_URL ||
-    clientEnv.NEXT_PUBLIC_BACKEND_URL ||
-    (process.env["NODE_ENV"] !== "production"
+    process.env["NEXT_PUBLIC_API_URL"] ??
+    process.env["NEXT_PUBLIC_BACKEND_URL"] ??
+    process.env["BACKEND_URL"] ??
+    clientEnv.NEXT_PUBLIC_API_URL ??
+    clientEnv.NEXT_PUBLIC_BACKEND_URL ??
+    (process.env.NODE_ENV !== "production"
       ? "http://localhost:3001"
-      : null) ||
+      : null) ??
     null
   );
 }
@@ -91,14 +92,11 @@ function normalizePipelineResult(
   result: Record<string, unknown>,
   request: PipelineInput
 ): AnalysisPipelinePayload {
-  const rawOutputs = (result.stationOutputs ||
-    result.detailedResults ||
+  const rawOutputs = (result.stationOutputs ??
+    result.detailedResults ??
     {}) as Record<string, Record<string, unknown>>;
 
-  const serialized = serializeAnalysisValue(rawOutputs) as Record<
-    string,
-    Record<string, unknown>
-  >;
+  const serialized = serializeAnalysisValue(rawOutputs);
 
   // تطبيع كل محطة من شكل الخادم إلى الشكل الموحد
   const normalizedOutputs: Record<string, Record<string, unknown>> = {};
@@ -109,11 +107,11 @@ function normalizePipelineResult(
   }
 
   const metadata = serializeAnalysisValue(
-    (result.metadata || result.pipelineMetadata || {}) as Record<
+    (result.metadata ?? result.pipelineMetadata ?? {}) as Record<
       string,
       unknown
     >
-  ) as Record<string, unknown>;
+  );
 
   const hasStations = Object.keys(normalizedOutputs).length > 0;
 
@@ -129,7 +127,7 @@ function normalizePipelineResult(
     mode: "ai",
     warnings: [],
     stationOutputs:
-      normalizedOutputs as AnalysisPipelinePayload["stationOutputs"],
+      normalizedOutputs,
     metadata: {
       ...metadata,
       analysisMode: "ai",

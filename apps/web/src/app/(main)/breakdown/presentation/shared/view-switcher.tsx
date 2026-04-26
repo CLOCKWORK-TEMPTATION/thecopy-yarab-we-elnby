@@ -11,12 +11,12 @@ import { Clapperboard, FileText } from "lucide-react";
 
 export type BreakdownView = "workspace" | "report";
 
-export const VIEW_CONFIG: Array<{
+export const VIEW_CONFIG: {
   id: BreakdownView;
   label: string;
   description: string;
   icon: typeof Clapperboard;
-}> = [
+}[] = [
   {
     id: "workspace",
     label: "مساحة التفكيك",

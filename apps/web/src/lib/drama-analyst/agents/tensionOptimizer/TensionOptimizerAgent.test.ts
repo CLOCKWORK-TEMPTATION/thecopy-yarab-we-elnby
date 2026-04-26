@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { TensionOptimizerAgent } from "./TensionOptimizerAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { TensionOptimizerAgent } from "./TensionOptimizerAgent";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({

@@ -1,8 +1,8 @@
+import type { ElementType } from "@editor/extensions/classification-types";
 import type {
   SuspicionSignal,
   SignalFamilySummary,
 } from "@editor/suspicion-engine/types";
-import type { ElementType } from "@editor/extensions/classification-types";
 
 // ─── aggregateEvidence ────────────────────────────────────────────────────────
 

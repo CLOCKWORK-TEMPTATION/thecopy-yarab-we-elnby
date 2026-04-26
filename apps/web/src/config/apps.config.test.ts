@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import pagesManifest from "./pages.manifest.json";
 import {
   platformApps,
   FEATURED_APP_PATHS,
   getEnabledApps,
 } from "./apps.config";
+import pagesManifest from "./pages.manifest.json";
 
 // ====================================================================
 // مجموعة الاختبارات الأصلية — التغطية الأساسية للسجل

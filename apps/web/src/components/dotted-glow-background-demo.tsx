@@ -1,4 +1,5 @@
 import Image from "next/image";
+
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 export default function DottedGlowBackgroundDemo() {

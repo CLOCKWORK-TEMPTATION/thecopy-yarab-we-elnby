@@ -1,13 +1,14 @@
 // lib/ai/core/base-station.ts
 
+import { checkConstitutionalCompliance } from "../constitutional/principles";
+import { getUncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
 import {
   getGeminiService,
   type GeminiService,
 } from "../stations/gemini-service";
-import { SystemMetadata } from "./models/base-entities";
+
 import { AnalysisContext } from "./contexts";
-import { checkConstitutionalCompliance } from "../constitutional/principles";
-import { getUncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
+import { SystemMetadata } from "./models/base-entities";
 
 // تعريف واجهة للخيارات المشتركة
 export interface SystemOptions {
@@ -63,11 +64,11 @@ export interface SystemOutput {
       quantified: boolean;
       overallConfidence: number;
       uncertaintyType: "epistemic" | "aleatoric";
-      sources: Array<{
+      sources: {
         aspect: string;
         reason: string;
         reducible: boolean;
-      }>;
+      }[];
     };
 
     // معلومات RAG
@@ -194,7 +195,7 @@ export abstract class BaseSystem {
           result = this.replaceTextInResult(
             result,
             text,
-            checkResult.correctedAnalysis || text
+            checkResult.correctedAnalysis ?? text
           );
         }
       }
@@ -380,7 +381,7 @@ export abstract class BaseSystem {
         "primary" in themes
       ) {
         const primaryThemes = (
-          themes as { primary?: Array<{ description?: string }> }
+          themes as { primary?: { description?: string }[] }
         ).primary;
         if (Array.isArray(primaryThemes)) {
           for (const theme of primaryThemes) {

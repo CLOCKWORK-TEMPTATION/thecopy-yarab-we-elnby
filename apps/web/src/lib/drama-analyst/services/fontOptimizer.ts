@@ -35,7 +35,7 @@ export const LEGACY_FONT_CONFIGS = {
  */
 export function generateFontFaceCSS(
   config: FontConfig,
-  fontBasePath: string = "/fonts"
+  fontBasePath = "/fonts"
 ): string {
   const { family, weights, styles } = config;
   const fontFaces: string[] = [];

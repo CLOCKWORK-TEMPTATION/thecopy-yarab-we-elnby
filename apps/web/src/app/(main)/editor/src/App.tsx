@@ -28,6 +28,10 @@
  *   - `lucide-react` — أيقونات الواجهة.
  */
 import React, { useCallback, useEffect, useRef, useState } from "react";
+
+import { DotBackground } from "@/components/ui/dot-background";
+import { getCurrentProject } from "@/lib/projectStore";
+
 import {
   AppDock,
   AppFooter,
@@ -42,7 +46,6 @@ import {
   type ProgressiveSurfaceState,
 } from "./components/editor";
 import { BackgroundGrid } from "./components/ui/BackgroundGrid";
-import { DotBackground } from "@/components/ui/dot-background";
 import {
   brandColors,
   classificationTypeOptions,
@@ -68,14 +71,12 @@ import {
   SIDEBAR_SECTIONS,
   textSizes,
 } from "./constants";
-import type { MenuActionId } from "./constants/menu-definitions";
 import {
   handleMenuAction,
   handleSidebarItemAction,
   runExport,
   type EditorActionsDeps,
 } from "./controllers";
-import type { ElementType } from "./extensions/classification-types";
 import {
   loadFromStorage,
   saveToStorage,
@@ -86,7 +87,6 @@ import {
   useIsMobile as getIsMobile,
   useMenuCommandResolver,
 } from "./hooks";
-import { getCurrentProject } from "@/lib/projectStore";
 import {
   DEFAULT_TYPING_SYSTEM_SETTINGS,
   minutesToMilliseconds,
@@ -94,8 +94,11 @@ import {
   type RunDocumentThroughPasteWorkflowOptions,
   type TypingSystemSettings,
 } from "./types";
-import { logger } from "./utils/logger";
 import { resolveFileImportExtractEndpoint } from "./utils/backend-endpoints";
+import { logger } from "./utils/logger";
+
+import type { MenuActionId } from "./constants/menu-definitions";
+import type { ElementType } from "./extensions/classification-types";
 
 const TYPING_SETTINGS_STORAGE_KEY = "filmlane.typing-system.settings";
 const AUTOSAVE_DRAFT_STORAGE_KEY = "filmlane.autosave.document-text.v1";
@@ -685,10 +688,10 @@ export function App(): React.JSX.Element {
           ? (document.activeElement as HTMLElement | null)
           : null;
       const isEditorFocused = Boolean(
-        targetElement?.closest(".ProseMirror") ||
-          activeElement?.closest(".ProseMirror") ||
-          targetElement?.isContentEditable ||
-          activeElement?.isContentEditable ||
+        targetElement?.closest(".ProseMirror") ??
+          activeElement?.closest(".ProseMirror") ??
+          targetElement?.isContentEditable ??
+          activeElement?.isContentEditable ??
           area.editor.view.hasFocus()
       );
 

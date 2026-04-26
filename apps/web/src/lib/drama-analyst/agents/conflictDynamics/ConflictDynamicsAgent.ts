@@ -1,11 +1,13 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CONFLICT_DYNAMICS_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 interface ConflictDynamicsContext {
   originalText?: string;
@@ -28,7 +30,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     super(
       "ConflictAnalyzer AI",
       TaskType.CONFLICT_DYNAMICS,
-      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt || ""
+      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.82;
@@ -38,10 +40,10 @@ export class ConflictDynamicsAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as ConflictDynamicsContext;
 
-    const originalText = ctx?.originalText || "";
-    const characters = ctx?.characters || [];
-    const plotPoints = ctx?.plotPoints || [];
-    const conflictTypes = ctx?.conflictTypes || ["internal", "interpersonal"];
+    const originalText = ctx?.originalText ?? "";
+    const characters = ctx?.characters ?? [];
+    const plotPoints = ctx?.plotPoints ?? [];
+    const conflictTypes = ctx?.conflictTypes ?? ["internal", "interpersonal"];
     const analyzeEvolution = ctx?.analyzeEvolution ?? true;
     const trackIntensity = ctx?.trackIntensity ?? true;
     const identifyResolution = ctx?.identifyResolution ?? true;
@@ -56,7 +58,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
       prompt += `الشخصيات الرئيسية:\n`;
       characters.slice(0, 5).forEach((char: any, idx: number) => {
         const charName =
-          typeof char === "string" ? char : char.name || `شخصية ${idx + 1}`;
+          typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
         prompt += `${idx + 1}. ${charName}\n`;
       });
       prompt += "\n";
@@ -68,7 +70,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
         const pointText =
           typeof point === "string"
             ? point
-            : point.description || `نقطة ${idx + 1}`;
+            : point.description ?? `نقطة ${idx + 1}`;
         prompt += `${idx + 1}. ${pointText}\n`;
       });
       prompt += "\n";
@@ -135,7 +137,7 @@ ${
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupConflictText(output.text);
+    const processedText = this.cleanupConflictText(output.text);
 
     const conflictIdentification =
       await this.assessConflictIdentification(processedText);
@@ -174,7 +176,7 @@ ${
         conflictsIdentified: this.countConflicts(processedText),
         conflictTypes: this.identifyConflictTypes(processedText),
         intensityLevel: this.assessIntensityLevel(processedText),
-      } as any,
+      },
     };
   }
 
@@ -258,7 +260,7 @@ ${
     const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
     score += Math.min(0.25, evidenceCount * 0.025);
 
-    const hasQuotes = (text.match(/["«]/g) || []).length;
+    const hasQuotes = (text.match(/["«]/g) ?? []).length;
     score += Math.min(0.15, hasQuotes * 0.015);
 
     return Math.min(1, score);
@@ -374,7 +376,7 @@ ${
       "man-vs-technology": "ضد التكنولوجيا",
       "man-vs-supernatural": "ضد الخارق",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   protected override async getFallbackResponse(

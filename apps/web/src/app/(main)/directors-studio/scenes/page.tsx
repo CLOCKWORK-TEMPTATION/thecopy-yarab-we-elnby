@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useCallback, memo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
+import { useState, useCallback, memo } from "react";
+
+import SceneFormDialog from "@/app/(main)/directors-studio/components/SceneFormDialog";
+import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,11 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, AlertTriangle, Layers } from "lucide-react";
-import SceneFormDialog from "@/app/(main)/directors-studio/components/SceneFormDialog";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
-import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+
 import type { Scene } from "@/types/api";
 
 /**
@@ -219,7 +221,7 @@ export default function ScenesPage() {
         <AlertTriangle className="h-16 w-16 text-destructive" />
         <p className="text-destructive text-lg">حدث خطأ أثناء تحميل المشاهد</p>
         <p className="text-[var(--app-text-muted)] text-sm">
-          {(error as Error).message}
+          {(error).message}
         </p>
       </div>
     );

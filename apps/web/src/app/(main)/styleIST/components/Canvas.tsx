@@ -3,12 +3,15 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import React from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { RotateCcwIcon, ChevronLeftIcon } from "./icons";
 import Spinner from "./Spinner";
-import { AnimatePresence, motion } from "framer-motion";
 import { Compare } from "./ui/compare";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 
 interface CanvasProps {
   displayImageUrl: string | null;
@@ -31,8 +34,6 @@ const Canvas: React.FC<CanvasProps> = ({
   isLoading,
   loadingMessage,
 }) => {
-  const [] = useState(false);
-
   // 1. حالة العرض: فيديو (اختبار ضغط)
   if (videoUrl) {
     return (

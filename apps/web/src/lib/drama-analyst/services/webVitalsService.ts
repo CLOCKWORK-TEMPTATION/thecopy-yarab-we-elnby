@@ -2,6 +2,7 @@
 // Monitors Core Web Vitals and performance metrics
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB, Metric } from "web-vitals";
+
 import { log } from "./loggerService";
 import { reportError, addBreadcrumb } from "./observability";
 // No-op replacement for missing GA function
@@ -21,15 +22,15 @@ interface CustomMetric extends Metric {
 
 class WebVitalsService {
   private config: WebVitalsConfig;
-  private metrics: Map<string, CustomMetric> = new Map();
-  private observers: Set<PerformanceObserver> = new Set();
+  private metrics = new Map<string, CustomMetric>();
+  private observers = new Set<PerformanceObserver>();
 
   constructor(config: Partial<WebVitalsConfig> = {}) {
     this.config = {
       enableGA4: true,
       enableSentry: true,
-      enableConsoleLog: process.env["NODE_ENV"] === "development",
-      debug: process.env["NODE_ENV"] === "development",
+      enableConsoleLog: process.env.NODE_ENV === "development",
+      debug: process.env.NODE_ENV === "development",
       ...config,
     };
 
@@ -116,13 +117,13 @@ class WebVitalsService {
           const navEntry = entry as PerformanceNavigationTiming;
 
           const customMetric: CustomMetric = {
-            name: "TTFB" as any,
+            name: "TTFB",
             value: navEntry.loadEventEnd - navEntry.fetchStart,
             delta: navEntry.loadEventEnd - navEntry.fetchStart,
             id: `nav-${Date.now()}`,
             navigationType: navEntry.type as any,
-            rating: "good" as any,
-            entries: [] as any,
+            rating: "good",
+            entries: [],
             customData: {
               domContentLoaded:
                 navEntry.domContentLoadedEventEnd -
@@ -160,9 +161,9 @@ class WebVitalsService {
               value: resourceEntry.duration,
               delta: resourceEntry.duration,
               id: `resource-${Date.now()}`,
-              navigationType: "navigate" as any,
-              rating: "good" as any,
-              entries: [] as any,
+              navigationType: "navigate",
+              rating: "good",
+              entries: [],
               customData: {
                 url: resourceEntry.name,
                 size: resourceEntry.transferSize,
@@ -194,9 +195,9 @@ class WebVitalsService {
             value: entry.duration,
             delta: entry.duration,
             id: `longtask-${Date.now()}`,
-            navigationType: "navigate" as any,
-            rating: "good" as any,
-            entries: [] as any,
+            navigationType: "navigate",
+            rating: "good",
+            entries: [],
             customData: {
               startTime: entry.startTime,
               name: entry.name,
@@ -248,9 +249,9 @@ class WebVitalsService {
           value: result.duration,
           delta: result.duration,
           id: `file-processing-${Date.now()}`,
-          navigationType: "navigate" as any,
-          rating: "good" as any,
-          entries: [] as any,
+          navigationType: "navigate",
+          rating: "good",
+          entries: [],
           customData: {
             fileName: name.split("-").pop(),
             startTime: result.startTime,
@@ -281,13 +282,13 @@ class WebVitalsService {
           value: endTime - startTime,
           delta: endTime - startTime,
           id: `api-${Date.now()}`,
-          navigationType: "navigate" as any,
-          rating: "good" as any,
-          entries: [] as any,
+          navigationType: "navigate",
+          rating: "good",
+          entries: [],
           customData: {
             url,
             status: response.status,
-            method: args[1]?.method || "GET",
+            method: args[1]?.method ?? "GET",
           },
         };
 
@@ -302,9 +303,9 @@ class WebVitalsService {
           value: endTime - startTime,
           delta: endTime - startTime,
           id: `api-error-${Date.now()}`,
-          navigationType: "navigate" as any,
-          rating: "good" as any,
-          entries: [] as any,
+          navigationType: "navigate",
+          rating: "good",
+          entries: [],
           customData: {
             url,
             error: error instanceof Error ? error.message : "Unknown error",
@@ -347,9 +348,9 @@ class WebVitalsService {
                 value: entry.duration,
                 delta: entry.duration,
                 id: `component-${Date.now()}`,
-                navigationType: "navigate" as any,
-                rating: entry.duration < 16 ? ("good" as any) : ("poor" as any), // 16ms = 60fps
-                entries: [] as any,
+                navigationType: "navigate",
+                rating: entry.duration < 16 ? ("good") : ("poor"), // 16ms = 60fps
+                entries: [],
                 customData: {
                   componentName: entry.name,
                   duration: entry.duration,
@@ -499,7 +500,7 @@ class WebVitalsService {
         timestamp: Date.now(),
         user_agent: navigator.userAgent,
         connection_type:
-          (navigator as any).connection?.effectiveType || "unknown",
+          (navigator as any).connection?.effectiveType ?? "unknown",
         // Add custom data
         ...metric.customData,
       });
@@ -646,9 +647,9 @@ class WebVitalsService {
       value,
       delta: value,
       id: `${name.toLowerCase()}-${Date.now()}`,
-      navigationType: "navigate" as any,
-      rating: "good" as any,
-      entries: [] as any,
+      navigationType: "navigate",
+      rating: "good",
+      entries: [],
       ...(customData ? { customData } : {}),
     };
 
@@ -670,7 +671,7 @@ class WebVitalsService {
       AppLoadTime: "ms",
     };
 
-    return units[name] || "ms";
+    return units[name] ?? "ms";
   }
 
   private getResourceType(url: string): string {

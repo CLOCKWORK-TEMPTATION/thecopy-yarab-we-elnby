@@ -1,10 +1,12 @@
-import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 import { describe, it, expect } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ProjectTabs } from "./ProjectTabs";
+
 import { SceneCardProps } from "../helpers/projectSummary";
+
+import { ProjectTabs } from "./ProjectTabs";
 
 const mockScenes: SceneCardProps[] = [
   {

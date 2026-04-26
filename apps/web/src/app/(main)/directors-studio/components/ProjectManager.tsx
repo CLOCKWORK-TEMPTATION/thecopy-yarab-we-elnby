@@ -7,16 +7,11 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
+import { FolderOpen, Trash2, Edit2, Check } from "lucide-react";
 import { useState, useCallback, useMemo, memo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
+import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,15 +22,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   useProjects,
   useUpdateProject,
   useDeleteProject,
 } from "@/hooks/useProject";
-import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
-import { FolderOpen, Trash2, Edit2, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import type { Project } from "@/types/api";
 
 const MESSAGES = {
@@ -226,7 +228,7 @@ export default function ProjectManager() {
     try {
       await deleteProject.mutateAsync(projectToDelete);
 
-      if (currentProject && currentProject.id === projectToDelete) {
+      if (currentProject?.id === projectToDelete) {
         clearProject();
       }
 

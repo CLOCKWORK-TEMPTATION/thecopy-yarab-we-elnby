@@ -3,7 +3,7 @@ export function toText(content: { raw?: unknown } | string): string {
     return content.trim();
   }
   if (content && typeof content === "object" && "raw" in content) {
-    return String(content.raw || "").trim();
+    return String(content.raw ?? "").trim();
   }
   return "";
 }

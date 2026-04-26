@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "files": [
+    "src/app/(main)/editor/next-env.d.ts",
+    "src/app/(main)/editor/src/rag/rag-externals.d.ts",
+    "src/app/(main)/editor/src/types/external-modules.d.ts",
+    "src/app/(main)/editor/src/vite-env.d.ts",
+    "src/app/(main)/ui/tokens/design-tokens.d.ts",
+    "src/components/agent-report-viewer.d.ts",
+    "src/components/agent-reports-exporter.d.ts",
+    "src/components/shared/agent-report-viewer.d.ts",
+    "src/components/shared/agent-reports-exporter.d.ts",
+    "src/env.d.ts",
+    "src/global.d.ts",
+    "src/lib/types/contexts.d.ts",
+    "src/types/env.d.ts",
+    "src/types/global.d.ts"
+  ]
+}

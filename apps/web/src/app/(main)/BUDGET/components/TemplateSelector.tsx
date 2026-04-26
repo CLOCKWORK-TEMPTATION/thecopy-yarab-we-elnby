@@ -1,6 +1,7 @@
-import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import React from "react";
+
 import { BUDGET_TEMPLATES } from "../lib/constants";
 
 interface TemplateSelectorProps {

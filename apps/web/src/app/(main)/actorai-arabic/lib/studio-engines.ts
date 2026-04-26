@@ -1,4 +1,5 @@
 import { AI_PARTNER_RESPONSES, SAMPLE_SCRIPT } from "./constants";
+
 import type {
   AlertSeverity,
   AnalysisResult,
@@ -271,14 +272,14 @@ function cloneRhythmAnalysis(): SceneRhythmAnalysis {
 
 function extractGoalPhrase(text: string): string | null {
   const goalPattern = /(أريد|أحتاج|سأ|لن|يجب|سن|أقسم)\s+([^.!؟\n،]+)/u;
-  const match = text.match(goalPattern);
+  const match = goalPattern.exec(text);
   return match?.[2]?.trim() ?? null;
 }
 
 function extractSpeakerNames(lines: string[]): string[] {
   const speakers = new Set<string>();
   for (const line of lines) {
-    const match = line.match(/^([^:]+):$/u);
+    const match = /^([^:]+):$/u.exec(line);
     if (match?.[1]) {
       speakers.add(match[1].trim());
     }

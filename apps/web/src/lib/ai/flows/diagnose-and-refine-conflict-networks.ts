@@ -10,8 +10,9 @@
  * - DiagnoseAndRefineConflictNetworkOutput - نوع الإخراج لدالة diagnoseAndRefineConflictNetwork.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 // تحديد مخطط الشخصية والعلاقة والصراع. هذه مبسطة
 // نظرًا لعدم تقديم التعريفات الكاملة في الطلب، لكنها ضرورية

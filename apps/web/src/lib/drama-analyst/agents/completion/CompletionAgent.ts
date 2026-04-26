@@ -1,12 +1,14 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { COMPLETION_AGENT_CONFIG } from "./agent";
 import { COMPLETION_MODE_INSTRUCTIONS } from "./instructions";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 /**
  * Completion Agent - وكيل استكمال السرد
@@ -18,7 +20,7 @@ export class CompletionAgent extends BaseAgent {
     super(
       "NarrativeContinuum AI",
       TaskType.COMPLETION,
-      COMPLETION_AGENT_CONFIG.systemPrompt || ""
+      COMPLETION_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -34,10 +36,10 @@ export class CompletionAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj as any)?.originalText || "";
-    const previousCompletions = (contextObj as any)?.previousCompletions || [];
-    const completionScope = (contextObj as any)?.completionScope || "paragraph";
-    const enhancements = (contextObj as any)?.enhancements || [];
+    const originalText = (contextObj as any)?.originalText ?? "";
+    const previousCompletions = (contextObj as any)?.previousCompletions ?? [];
+    const completionScope = (contextObj as any)?.completionScope ?? "paragraph";
+    const enhancements = (contextObj as any)?.enhancements ?? [];
 
     // Build structured prompt
     let prompt = `${COMPLETION_MODE_INSTRUCTIONS}\n\n`;
@@ -161,7 +163,7 @@ export class CompletionAgent extends BaseAgent {
 
     // Check for dialogue (if present, should be formatted)
     const hasDialogue = text.includes('"') || text.includes("«");
-    if (hasDialogue && (text.match(/["«].*?["»]/g) || []).length > 0) {
+    if (hasDialogue && (text.match(/["«].*?["»]/g) ?? []).length > 0) {
       score += 0.1;
     }
 
@@ -250,7 +252,7 @@ export class CompletionAgent extends BaseAgent {
       chapter: "فصل كامل",
       ending: "نهاية القصة",
     };
-    return scopes[scope] || scope;
+    return scopes[scope] ?? scope;
   }
 
   /**
@@ -264,7 +266,7 @@ export class CompletionAgent extends BaseAgent {
       thematic_consistency: "الاتساق الموضوعي",
       emotional_arc: "القوس العاطفي",
     };
-    return enhancements[enhancement] || enhancement;
+    return enhancements[enhancement] ?? enhancement;
   }
 
   /**
@@ -277,7 +279,7 @@ export class CompletionAgent extends BaseAgent {
       typeof input.context === "object" && input.context !== null
         ? input.context
         : {};
-    const scope = (contextObj as any)?.completionScope || "paragraph";
+    const scope = (contextObj as any)?.completionScope ?? "paragraph";
 
     return `تحليل موجز: النص يحتاج إلى استكمال ${this.translateScope(scope)} يتماشى مع السياق والأسلوب المقدم.
 

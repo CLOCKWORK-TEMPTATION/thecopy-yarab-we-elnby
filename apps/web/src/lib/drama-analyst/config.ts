@@ -1,7 +1,7 @@
 // تكوين مسارات المكتبة
 export const DRAMA_ANALYST_CONFIG = {
   // مفتاح API الخاص بـ Gemini
-  GEMINI_API_KEY: process.env["NEXT_PUBLIC_GEMINI_API_KEY"] || "",
+  GEMINI_API_KEY: process.env["NEXT_PUBLIC_GEMINI_API_KEY"] ?? "",
 
   // إعدادات التحليل
   MIN_TEXT_LENGTH: 100,

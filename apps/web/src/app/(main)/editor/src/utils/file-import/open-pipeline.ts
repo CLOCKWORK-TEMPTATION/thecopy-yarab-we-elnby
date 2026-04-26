@@ -9,22 +9,22 @@
  *
  * يتضمن بناء بيانات القياس (telemetry) ورسائل التنبيه بالعربية.
  */
+import type { ScreenplayBlock } from "./document-model";
 import type {
   FileExtractionResult,
   FileImportMode,
 } from "../../types/file-import";
-import type { ScreenplayBlock } from "./document-model";
 
 type SuccessVariant = "default";
 type ErrorVariant = "destructive";
 
-type FileOpenToast = {
+interface FileOpenToast {
   title: string;
   description: string;
   variant?: SuccessVariant | ErrorVariant;
-};
+}
 
-type FileOpenPipelineTelemetry = {
+interface FileOpenPipelineTelemetry {
   openPipeline: "paste-classifier" | "structured-direct";
   method: FileExtractionResult["method"];
   source: "structured-blocks" | "extracted-text";
@@ -32,30 +32,30 @@ type FileOpenPipelineTelemetry = {
   qualityScore?: number;
   warnings: string[];
   preprocessedSteps: string[];
-};
+}
 
-type ImportClassifiedAction = {
+interface ImportClassifiedAction {
   kind: "import-classified-text";
   mode: FileImportMode;
   text: string;
   toast: FileOpenToast;
   telemetry: FileOpenPipelineTelemetry;
-};
+}
 
-type ImportStructuredAction = {
+interface ImportStructuredAction {
   kind: "import-structured-blocks";
   mode: FileImportMode;
   blocks: ScreenplayBlock[];
   toast: FileOpenToast;
   telemetry: FileOpenPipelineTelemetry;
-};
+}
 
-type RejectAction = {
+interface RejectAction {
   kind: "reject";
   mode: FileImportMode;
   toast: FileOpenToast & { variant: ErrorVariant };
   telemetry: FileOpenPipelineTelemetry;
-};
+}
 
 /**
  * الاتحاد المميَّز لإجراءات فتح الملف.

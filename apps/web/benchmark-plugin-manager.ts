@@ -8,9 +8,9 @@ class MockPlugin implements Plugin {
   id: string;
   name: string;
   nameAr: string;
-  version: string = "1.0.0";
-  description: string = "Mock Plugin";
-  descriptionAr: string = "إضافة وهمية";
+  version = "1.0.0";
+  description = "Mock Plugin";
+  descriptionAr = "إضافة وهمية";
   category: PluginCategory = "ai-analytics";
   delay: number;
 

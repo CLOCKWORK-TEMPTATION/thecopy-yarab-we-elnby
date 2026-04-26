@@ -1,6 +1,7 @@
-import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
 
 // يكشف التعارض بين تمريرة المضي للأمام وتمريرة العكس
 export const detectReverseConflict: DetectorFn = (trace, _line, context) => {

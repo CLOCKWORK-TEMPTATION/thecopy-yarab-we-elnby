@@ -1,7 +1,7 @@
 "use client";
+import { motion } from "motion/react";
 import React, { useCallback, useEffect, useState } from "react";
 
-import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 type Direction = "TOP" | "LEFT" | "BOTTOM" | "RIGHT";
@@ -24,7 +24,7 @@ export function HoverBorderGradient({
   clockwise = true,
   ...props
 }: HoverBorderGradientProps) {
-  const Tag = (as || "button") as React.ElementType;
+  const Tag = (as ?? "button");
   const tagProps = props as React.HTMLAttributes<HTMLElement>;
   const [hovered, setHovered] = useState<boolean>(false);
   const [direction, setDirection] = useState<Direction>("TOP");

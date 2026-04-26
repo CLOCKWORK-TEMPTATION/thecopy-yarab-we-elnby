@@ -6,12 +6,13 @@
  * يُستخدم في مسار استيراد DOC بعد نجاح استخراج النص عبر Backend.
  * يُنفّذ FR-005 (إرسال النص دائماً للخدمة المشتركة) و FR-006 (فشل صريح).
  */
+import { resolveTextExtractEndpoint } from "../../backend-endpoints";
+
+import type { SchemaElement } from "../../../types/file-import";
 import type {
   KarankTextExtractResponse,
   ReceptionSourceType,
 } from "../../../types/unified-reception";
-import type { SchemaElement } from "../../../types/file-import";
-import { resolveTextExtractEndpoint } from "../../backend-endpoints";
 
 /**
  * نقطة نهاية `/api/text-extract` المُحلّلة من متغيرات البيئة.

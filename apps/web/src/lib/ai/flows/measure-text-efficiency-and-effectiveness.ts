@@ -7,8 +7,9 @@
  * - MeasureTextEfficiencyAndEffectivenessOutput - نوع الإخراج لدالة measureTextEfficiencyAndEffectiveness.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const MeasureTextEfficiencyAndEffectivenessInputSchema = z
   .string()

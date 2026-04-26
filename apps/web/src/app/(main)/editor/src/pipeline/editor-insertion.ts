@@ -4,10 +4,12 @@
  * @module pipeline/editor-insertion
  */
 
-import type { EditorView } from "@tiptap/pm/view";
 import { Fragment, Slice } from "@tiptap/pm/model";
-import type { ElementType } from "../extensions/classification-types";
+
 import { logger } from "../utils/logger";
+
+import type { ElementType } from "../extensions/classification-types";
+import type { EditorView } from "@tiptap/pm/view";
 
 const insertionLogger = logger.createScope("editor-insertion");
 

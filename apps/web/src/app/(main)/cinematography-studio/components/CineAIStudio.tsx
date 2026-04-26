@@ -7,7 +7,6 @@
 
 "use client";
 
-import React, { useMemo, useCallback } from "react";
 import {
   Aperture,
   Camera,
@@ -24,11 +23,12 @@ import {
   Sparkles,
   Wand2,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import dynamic from "next/dynamic";
+import React, { useMemo, useCallback } from "react";
 import { Toaster } from "react-hot-toast";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -36,6 +36,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { useCinematographyStudio } from "../hooks";
+
 import {
   StudioFooterBar,
   StudioMetricCell,
@@ -44,11 +47,12 @@ import {
   StudioRailButton,
   StudioStatusBar,
 } from "./studio-ui";
-import { useCinematographyStudio } from "../hooks";
-import type { Phase, ToolStatus, VisualMood } from "../types";
+import PostProductionTools from "./tools/PostProductionTools";
 import PreProductionTools from "./tools/PreProductionTools";
 import ProductionTools from "./tools/ProductionTools";
-import PostProductionTools from "./tools/PostProductionTools";
+
+import type { Phase, ToolStatus, VisualMood } from "../types";
+import type { LucideIcon } from "lucide-react";
 
 const LensSimulator = dynamic(() => import("./tools/LensSimulatorTool"), {
   ssr: false,

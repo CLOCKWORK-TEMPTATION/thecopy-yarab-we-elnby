@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { INTEGRATED_AGENT_CONFIG } from "./agent";
 
 interface IntegratedContext {
@@ -25,7 +27,7 @@ export class IntegratedAgent extends BaseAgent {
     super(
       "SynthesisOrchestrator AI",
       TaskType.INTEGRATED,
-      INTEGRATED_AGENT_CONFIG.systemPrompt || ""
+      INTEGRATED_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -40,12 +42,12 @@ export class IntegratedAgent extends BaseAgent {
 
     // Extract relevant context
     const ctx = context as IntegratedContext;
-    const originalText = ctx?.originalText || "";
-    const analysisResults = ctx?.analysisResults || null;
-    const creativeResults = ctx?.creativeResults || null;
-    const targetOutput = ctx?.targetOutput || "synthesis";
-    const synthesisDepth = ctx?.synthesisDepth || "moderate";
-    const integrationStrategy = ctx?.integrationStrategy || "sequential";
+    const originalText = ctx?.originalText ?? "";
+    const analysisResults = ctx?.analysisResults ?? null;
+    const creativeResults = ctx?.creativeResults ?? null;
+    const targetOutput = ctx?.targetOutput ?? "synthesis";
+    const synthesisDepth = ctx?.synthesisDepth ?? "moderate";
+    const integrationStrategy = ctx?.integrationStrategy ?? "sequential";
 
     // Build structured prompt
     let prompt = `مهمة التكامل التركيبي - منسق التحليل والإبداع\n\n`;
@@ -128,7 +130,7 @@ export class IntegratedAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up the synthesis text
-    let processedText = this.cleanupSynthesis(output.text);
+    const processedText = this.cleanupSynthesis(output.text);
 
     // Assess integration quality
     const integrationScore = await this.assessIntegration(processedText);
@@ -163,7 +165,7 @@ export class IntegratedAgent extends BaseAgent {
         overallQuality: qualityScore,
         synthesisType: this.detectSynthesisType(processedText),
         wordCount: processedText.split(/\s+/).length,
-      } as any,
+      },
     };
   }
 
@@ -203,7 +205,7 @@ export class IntegratedAgent extends BaseAgent {
       // Detect section headers
       if (
         this.isSynthesisSectionHeader(line) ||
-        (line.match(/^\d+\./) && nextLine && !nextLine.match(/^\d+\./))
+        ((/^\d+\./.exec(line)) && nextLine && !(/^\d+\./.exec(nextLine)))
       ) {
         if (inSection && formatted.length > 0) {
           formatted.push("");
@@ -280,8 +282,8 @@ export class IntegratedAgent extends BaseAgent {
     if (hasBalanceTerms) score += 0.2;
 
     // Check for both analysis and creative elements
-    const analysisCount = (text.match(/تحليل/g) || []).length;
-    const creativeCount = (text.match(/إبداع/g) || []).length;
+    const analysisCount = (text.match(/تحليل/g) ?? []).length;
+    const creativeCount = (text.match(/إبداع/g) ?? []).length;
 
     if (analysisCount > 0 && creativeCount > 0) {
       // Balance means both are present
@@ -436,7 +438,7 @@ export class IntegratedAgent extends BaseAgent {
       parallel: "متوازي",
       iterative: "تكرارية",
     };
-    return strategies[strategy] || strategy;
+    return strategies[strategy] ?? strategy;
   }
 
   /**
@@ -448,7 +450,7 @@ export class IntegratedAgent extends BaseAgent {
       moderate: "متوسط",
       deep: "عميق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   /**
@@ -460,7 +462,7 @@ export class IntegratedAgent extends BaseAgent {
       creative: "إبداع مدمج",
       synthesis: "تركيب شامل",
     };
-    return targets[target] || target;
+    return targets[target] ?? target;
   }
 
   /**

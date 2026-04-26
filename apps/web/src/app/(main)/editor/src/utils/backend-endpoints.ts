@@ -26,7 +26,7 @@ const toAbsoluteOrRelativeUrl = (value: string): string => {
 };
 
 export const resolveFileImportExtractEndpoint = (): string => {
-  const configured = process.env["NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL"] ?? "";
+  const configured = process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL ?? "";
   const resolved = toAbsoluteOrRelativeUrl(configured);
 
   if (resolved) {
@@ -34,8 +34,8 @@ export const resolveFileImportExtractEndpoint = (): string => {
   }
 
   if (
-    process.env["NODE_ENV"] === "development" ||
-    process.env["NODE_ENV"] === "production"
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV === "production"
   ) {
     return DEV_DEFAULT_FILE_EXTRACT_ENDPOINT;
   }

@@ -10,7 +10,7 @@ import {
 } from "../../types";
 
 interface AnalyzeInput {
-  scenes: Array<{
+  scenes: {
     id: string;
     name: string;
     colorPalette?: {
@@ -22,16 +22,16 @@ interface AnalyzeInput {
       colorTemperature: number;
       intensity: number;
     };
-    costumes?: Array<{
+    costumes?: {
       character: string;
       items: string[];
       colors: string[];
-    }>;
-    props?: Array<{
+    }[];
+    props?: {
       name: string;
       position: string;
-    }>;
-  }>;
+    }[];
+  }[];
   referenceScene?: string;
 }
 
@@ -191,7 +191,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
     scenes: AnalyzeInput["scenes"]
   ): VisualIssue[] {
     const issues: VisualIssue[] = [];
-    const characterCostumes: Map<string, Set<string>> = new Map();
+    const characterCostumes = new Map<string, Set<string>>();
 
     for (const scene of scenes) {
       if (scene.costumes) {

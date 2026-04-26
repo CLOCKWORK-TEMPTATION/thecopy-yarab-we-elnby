@@ -1,12 +1,14 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CREATIVE_AGENT_CONFIG } from "./agent";
 import { CREATIVE_MODE_INSTRUCTIONS } from "./instructions";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 
 /**
  * Creative Development Agent - وكيل التطوير الإبداعي
@@ -18,7 +20,7 @@ export class CreativeAgent extends BaseAgent {
     super(
       "CreativeVision AI",
       TaskType.CREATIVE,
-      CREATIVE_AGENT_CONFIG.systemPrompt || ""
+      CREATIVE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -34,11 +36,11 @@ export class CreativeAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj as any)?.originalText || "";
-    const developmentFocus = (contextObj as any)?.developmentFocus || "general";
-    const creativeConstraints = (contextObj as any)?.constraints || [];
-    const targetAudience = (contextObj as any)?.targetAudience || "عام";
-    const creativeGoals = (contextObj as any)?.goals || [];
+    const originalText = (contextObj as any)?.originalText ?? "";
+    const developmentFocus = (contextObj as any)?.developmentFocus ?? "general";
+    const creativeConstraints = (contextObj as any)?.constraints ?? [];
+    const targetAudience = (contextObj as any)?.targetAudience ?? "عام";
+    const creativeGoals = (contextObj as any)?.goals ?? [];
 
     // Build structured prompt
     let prompt = `${CREATIVE_MODE_INSTRUCTIONS}\n\n`;
@@ -95,7 +97,7 @@ export class CreativeAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean and structure the output
-    let processedText = this.cleanupCreativeText(output.text);
+    const processedText = this.cleanupCreativeText(output.text);
 
     // Assess creative quality
     const creativityScore = await this.assessCreativity(processedText);
@@ -359,7 +361,7 @@ export class CreativeAgent extends BaseAgent {
       style: "تطوير الأسلوب",
       structure: "تطوير البنية",
     };
-    return focuses[focus] || focus;
+    return focuses[focus] ?? focus;
   }
 
   /**
@@ -369,7 +371,7 @@ export class CreativeAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const focus =
-      (typeof input.context === "object" && input.context?.developmentFocus) ||
+      (typeof input.context === "object" && input.context?.developmentFocus) ??
       "general";
 
     return `تحليل إبداعي:

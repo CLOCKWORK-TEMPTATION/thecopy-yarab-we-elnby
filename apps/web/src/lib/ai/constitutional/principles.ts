@@ -2,10 +2,10 @@ import { GeminiService } from "../../ai/stations/gemini-service";
 
 export interface ConstitutionalCheckResult {
   compliant: boolean;
-  violations: Array<{
+  violations: {
     principle: string;
     description: string;
-  }>;
+  }[];
   improvementScore: number;
   correctedAnalysis?: string;
 }

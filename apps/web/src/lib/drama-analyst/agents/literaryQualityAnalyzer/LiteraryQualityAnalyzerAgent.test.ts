@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { TaskType } from "@core/enums";
+
 import { LiteraryQualityAnalyzerAgent } from "./LiteraryQualityAnalyzerAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({

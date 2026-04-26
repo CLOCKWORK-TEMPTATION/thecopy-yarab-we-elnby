@@ -1,11 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Target,
   TrendingUp,
@@ -21,7 +15,14 @@ import {
   Star,
   ArrowUp,
 } from "lucide-react";
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /**
  * SWOT Analysis Component for Breakdown
@@ -425,7 +426,7 @@ export function SWOTAnalysis({
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {(Object.keys(CATEGORIES) as Array<keyof typeof CATEGORIES>).map(
+          {(Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]).map(
             (key) => {
               const config = CATEGORIES[key];
               const items = data[key];

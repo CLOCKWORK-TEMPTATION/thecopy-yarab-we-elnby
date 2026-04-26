@@ -31,7 +31,7 @@ export const requestIdle = (
           timeRemaining: () => Math.max(0, 50), // Simulate 50ms remaining time
           didTimeout: false,
         }),
-      options?.timeout || 0
+      options?.timeout ?? 0
     ) as any;
   }
 };
@@ -54,7 +54,7 @@ export class BatchProcessor {
   private items: any[] = [];
   private batchSize: number;
 
-  constructor(batchSize: number = 500) {
+  constructor(batchSize = 500) {
     this.batchSize = batchSize;
   }
 
@@ -75,10 +75,7 @@ export class BatchProcessor {
         requestIdle(
           () => {
             try {
-              // Process batch
-              for (const {} of batch) {
-                // Process individual item here
-              }
+              void batch;
               resolve();
             } catch (error) {
               reject(error);

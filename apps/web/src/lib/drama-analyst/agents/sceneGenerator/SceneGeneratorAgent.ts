@@ -1,11 +1,39 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
+
+
+type JsonRecord = Record<string, unknown>;
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asJsonRecord(value: unknown): JsonRecord {
+  return isJsonRecord(value) ? value : {};
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function asUnknownArray(value: unknown): unknown[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item: unknown) => item);
+}
 
 /**
  * Scene Generator Agent - وكيل مولد المشاهد
@@ -17,7 +45,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     super(
       "SceneCraft AI",
       TaskType.SCENE_GENERATOR,
-      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt || ""
+      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -31,16 +59,15 @@ export class SceneGeneratorAgent extends BaseAgent {
     const { input: taskInput, context } = input;
 
     // Extract relevant context
-    const contextObj =
-      typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj as any)?.originalText || "";
-    const sceneType = (contextObj as any)?.sceneType || "dramatic";
-    const characters = (contextObj as any)?.characters || [];
-    const setting = (contextObj as any)?.setting || "";
-    const emotionalTone = (contextObj as any)?.emotionalTone || "neutral";
-    const conflictLevel = (contextObj as any)?.conflictLevel || "medium";
-    const sceneObjectives = (contextObj as any)?.objectives || [];
-    const previousScenes = (contextObj as any)?.previousScenes || [];
+    const contextObj = asJsonRecord(context);
+    const originalText = asString(contextObj.originalText);
+    const sceneType = asString(contextObj.sceneType, "dramatic");
+    const characters = asUnknownArray(contextObj.characters);
+    const setting = asString(contextObj.setting);
+    const emotionalTone = asString(contextObj.emotionalTone, "neutral");
+    const conflictLevel = asString(contextObj.conflictLevel, "medium");
+    const sceneObjectives = asStringArray(contextObj.objectives);
+    const previousScenes = asUnknownArray(contextObj.previousScenes);
 
     // Build structured prompt
     let prompt = `مهمة توليد المشهد الدرامي\n\n`;
@@ -59,7 +86,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     // Add characters
     if (characters.length > 0) {
       prompt += `الشخصيات في المشهد:\n`;
-      characters.forEach((character: any, index: number) => {
+      characters.forEach((character, index) => {
         prompt += `${index + 1}. ${this.formatCharacter(character)}\n`;
       });
       prompt += "\n";
@@ -82,7 +109,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     // Add previous scenes context
     if (previousScenes.length > 0) {
       prompt += `ملخص المشاهد السابقة:\n`;
-      previousScenes.slice(-2).forEach((scene: any, index: number) => {
+      previousScenes.slice(-2).forEach((scene, index) => {
         prompt += `[مشهد ${index + 1}]: ${this.summarizeScene(scene)}\n`;
       });
       prompt += "\n";
@@ -109,17 +136,17 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Post-process the scene output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean and format the scene
-    let processedText = this.cleanupSceneText(output.text);
+    const processedText = this.cleanupSceneText(output.text);
 
     // Assess scene quality
-    const dramaticTension = await this.assessDramaticTension(processedText);
-    const dialogueQuality = await this.assessDialogueQuality(processedText);
-    const visualClarity = await this.assessVisualClarity(processedText);
-    const pacing = await this.assessPacing(processedText);
+    const dramaticTension = this.assessDramaticTension(processedText);
+    const dialogueQuality = this.assessDialogueQuality(processedText);
+    const visualClarity = this.assessVisualClarity(processedText);
+    const pacing = this.assessPacing(processedText);
 
     // Calculate composite quality score
     const qualityScore =
@@ -131,7 +158,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     // Adjust confidence based on quality
     const adjustedConfidence = output.confidence * 0.6 + qualityScore * 0.4;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -156,7 +183,7 @@ export class SceneGeneratorAgent extends BaseAgent {
         dialoguePercentage: this.calculateDialoguePercentage(processedText),
         numberOfCharacters: this.countCharacters(processedText),
       },
-    };
+    });
   }
 
   /**
@@ -247,7 +274,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess dramatic tension in the scene
    */
-  private async assessDramaticTension(text: string): Promise<number> {
+  private assessDramaticTension(text: string): number {
     let score = 0.5;
 
     // Check for conflict indicators
@@ -291,7 +318,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess dialogue quality
    */
-  private async assessDialogueQuality(text: string): Promise<number> {
+  private assessDialogueQuality(text: string): number {
     let score = 0.6;
 
     // Check for dialogue presence
@@ -300,7 +327,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     if (!hasDialogue) return 0.3;
 
     // Check for varied dialogue lengths
-    const dialogueMatches = text.match(/"[^"]+"/g) || [];
+    const dialogueMatches = text.match(/"[^"]+"/g) ?? [];
     if (dialogueMatches.length > 0) {
       const lengths = dialogueMatches.map((d) => d.length);
       const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
@@ -323,7 +350,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess visual clarity
    */
-  private async assessVisualClarity(text: string): Promise<number> {
+  private assessVisualClarity(text: string): number {
     let score = 0.5;
 
     // Check for visual descriptors
@@ -378,7 +405,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess pacing
    */
-  private async assessPacing(text: string): Promise<number> {
+  private assessPacing(text: string): number {
     let score = 0.6;
 
     // Check sentence variety
@@ -443,7 +470,7 @@ export class SceneGeneratorAgent extends BaseAgent {
         line.includes("خارجي") ||
         line.includes("المشهد")
     );
-    return heading || null;
+    return heading ?? null;
   }
 
   private extractDescription(text: string): string | null {
@@ -451,7 +478,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     const description = paragraphs.find(
       (p) => p.length > 100 && !p.includes('"') && !p.includes(":")
     );
-    return description || null;
+    return description ?? null;
   }
 
   private extractAction(text: string): string {
@@ -467,7 +494,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   }
 
   private calculateDialoguePercentage(text: string): number {
-    const dialogueMatches = text.match(/"[^"]+"|«[^»]+»/g) || [];
+    const dialogueMatches = text.match(/"[^"]+"|«[^»]+»/g) ?? [];
     const dialogueLength = dialogueMatches.join("").length;
     return Math.round((dialogueLength / text.length) * 100);
   }
@@ -486,20 +513,25 @@ export class SceneGeneratorAgent extends BaseAgent {
     return characterNames.size;
   }
 
-  private summarizeScene(scene: any): string {
+  private summarizeScene(scene: unknown): string {
     if (typeof scene === "string") {
       return scene.substring(0, 200) + "...";
     }
     return "مشهد سابق";
   }
 
-  private formatCharacter(character: any): string {
+  private formatCharacter(character: unknown): string {
     if (typeof character === "string") return character;
 
+    const characterRecord = asJsonRecord(character);
     const parts: string[] = [];
-    if (character.name) parts.push(character.name);
-    if (character.role) parts.push(`(${character.role})`);
-    if (character.motivation) parts.push(`- الدافع: ${character.motivation}`);
+    const name = asString(characterRecord.name);
+    const role = asString(characterRecord.role);
+    const motivation = asString(characterRecord.motivation);
+
+    if (name) parts.push(name);
+    if (role) parts.push(`(${role})`);
+    if (motivation) parts.push(`- الدافع: ${motivation}`);
 
     return parts.join(" ") || "شخصية";
   }
@@ -556,7 +588,7 @@ export class SceneGeneratorAgent extends BaseAgent {
       suspense: "تشويق",
       romantic: "رومانسي",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   private translateEmotionalTone(tone: string): string {
@@ -570,7 +602,7 @@ export class SceneGeneratorAgent extends BaseAgent {
       hopeful: "متفائل",
       melancholic: "حزين عميق",
     };
-    return tones[tone] || tone;
+    return tones[tone] ?? tone;
   }
 
   private translateConflictLevel(level: string): string {
@@ -581,20 +613,21 @@ export class SceneGeneratorAgent extends BaseAgent {
       high: "عالي",
       extreme: "شديد جداً",
     };
-    return levels[level] || level;
+    return levels[level] ?? level;
   }
 
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const sceneType =
-      (typeof input.context === "object" && input.context?.sceneType) ||
-      "dramatic";
+    const sceneType = asString(
+      asJsonRecord(input.context).sceneType,
+      "dramatic"
+    );
 
-    return `وصف المشهد:
+    return Promise.resolve(`وصف المشهد:
 مشهد ${this.translateSceneType(sceneType)} يحتاج إلى تطوير أعمق للشخصيات والصراع.
 
 نموذج مبسط:
@@ -602,7 +635,7 @@ export class SceneGeneratorAgent extends BaseAgent {
 الشخصيات تدخل المشهد. حوار أساسي يعبر عن الموقف.
 تطور في الأحداث يدفع القصة للأمام.
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من التفاصيل عن الشخصيات والسياق للحصول على مشهد أكثر عمقاً وتفصيلاً.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من التفاصيل عن الشخصيات والسياق للحصول على مشهد أكثر عمقاً وتفصيلاً.`);
   }
 }
 

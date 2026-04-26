@@ -24,7 +24,9 @@ import {
   Settings,
   Clapperboard,
 } from "lucide-react";
+
 import { insertMenuDefinitions, type EditorStyleFormatId } from "./insert-menu";
+
 import type {
   AppDockButtonItem,
   AppShellMenuItem,

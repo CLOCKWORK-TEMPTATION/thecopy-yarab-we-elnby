@@ -1,10 +1,11 @@
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
  * Web Vitals reporting
  */
 
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 
 export function reportWebVitals(onPerfEntry?: (metric: any) => void) {
   if (onPerfEntry && onPerfEntry instanceof Function) {
@@ -21,7 +22,7 @@ export function reportWebVitals(onPerfEntry?: (metric: any) => void) {
  */
 export function initializeWebVitals() {
   reportWebVitals((metric) => {
-    if (process.env["NODE_ENV"] === "development") {
+    if (process.env.NODE_ENV === "development") {
       logger.info(`[Web Vitals] ${metric.name}: ${metric.value}`);
     }
     // In production, you could send to analytics service

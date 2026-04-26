@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+
 import type {
   MetricsSnapshot,
   DashboardSummary,
@@ -18,7 +19,7 @@ import type {
   GeminiMetrics,
 } from "@/types/metrics";
 
-const API_BASE_URL = (process.env["NEXT_PUBLIC_API_URL"] || "").replace(
+const API_BASE_URL = (process.env["NEXT_PUBLIC_API_URL"] ?? "").replace(
   /\/$/,
   ""
 );
@@ -41,7 +42,7 @@ async function fetchWithAuth<T>(endpoint: string): Promise<T> {
   const data = await response.json();
 
   if (!data.success) {
-    throw new Error(data.error || "Unknown error occurred");
+    throw new Error(data.error ?? "Unknown error occurred");
   }
 
   return data.data;

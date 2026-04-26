@@ -7,37 +7,6 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import dynamic from "next/dynamic";
-import React, { useMemo, useCallback } from "react";
-import { toText } from "@/ai/gemini-core";
-import {
-  CreativeTaskType,
-  CREATIVE_TASK_LABELS,
-  type AdvancedAISettings,
-  type DevelopmentTaskDefinition,
-} from "./types";
-import { useCreativeDevelopment } from "./hooks";
-import type { UnlockStatus } from "./hooks/useCreativeDevelopment";
-import {
-  getCreativeTaskIcon,
-  getCatalogTaskIcon,
-} from "./utils/task-icon-mapper";
-import { DEVELOPMENT_TASKS, getTasksByCategory } from "./utils/task-catalog";
-import { AgentReportViewer } from "@/components/agent-report-viewer";
-import { AgentReportsExporter } from "@/components/agent-reports-exporter";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Loader2,
   Lightbulb,
@@ -54,7 +23,43 @@ import {
   Users,
   Download,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import React, { useMemo, useCallback } from "react";
+
+import { toText } from "@/ai/gemini-core";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { AgentReportViewer } from "@/components/agent-report-viewer";
+import { AgentReportsExporter } from "@/components/agent-reports-exporter";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+
+import { useCreativeDevelopment } from "./hooks";
+import {
+  CreativeTaskType,
+  CREATIVE_TASK_LABELS,
+  type AdvancedAISettings,
+  type DevelopmentTaskDefinition,
+} from "./types";
+
+import {
+  getCreativeTaskIcon,
+  getCatalogTaskIcon,
+} from "./utils/task-icon-mapper";
+import type { UnlockStatus } from "./hooks/useCreativeDevelopment";
+
+import { DEVELOPMENT_TASKS, getTasksByCategory } from "./utils/task-catalog";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const FileUpload = dynamic(() => import("@/components/file-upload"), {
   loading: () => (

@@ -1,9 +1,10 @@
 // frontend/src/lib/ai/stations/base-station.ts
 
-import { GeminiService } from "./gemini-service";
-import { StationMetadata } from "../core/models/base-entities";
 import { checkConstitutionalCompliance } from "../constitutional/principles";
 import { getUncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
+import { StationMetadata } from "../core/models/base-entities";
+
+import { GeminiService } from "./gemini-service";
 
 // تعريف واجهة للخيارات الجديدة
 export interface StationOptions {
@@ -58,11 +59,11 @@ export interface StationOutput {
       quantified: boolean;
       overallConfidence: number;
       uncertaintyType: "epistemic" | "aleatoric";
-      sources: Array<{
+      sources: {
         aspect: string;
         reason: string;
         reducible: boolean;
-      }>;
+      }[];
     };
 
     // معلومات RAG
@@ -194,7 +195,7 @@ export abstract class BaseStation {
           result = this.replaceTextInResult(
             result,
             text,
-            checkResult.correctedAnalysis || text
+            checkResult.correctedAnalysis ?? text
           );
         }
       }
@@ -388,7 +389,7 @@ export abstract class BaseStation {
         "primary" in themes
       ) {
         const primaryThemes = (
-          themes as { primary?: Array<{ description?: string }> }
+          themes as { primary?: { description?: string }[] }
         ).primary;
         if (Array.isArray(primaryThemes)) {
           for (const theme of primaryThemes) {

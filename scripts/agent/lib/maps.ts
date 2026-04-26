@@ -186,7 +186,7 @@ function renderRuntimeFlowsMarkdown(facts: RepoFacts): string {
 1. قراءة \`AGENTS.md\`
 2. قراءة \`output/session-state.md\`
 3. قراءة ما يلزم من الخرائط
-4. إخراج brief يثبت القراءة
+4. إخراج brief من 3 إلى 7 حقائق يثبت القراءة ويتضمن قاعدة الفحوصات
 5. تنفيذ المهمة
 6. تحديث \`output/round-notes.md\`
 7. تحديث \`output/session-state.md\` عند تغير الحقيقة
@@ -379,7 +379,7 @@ function renderMindMapSummary(facts: RepoFacts): string {
 - عدد مرايا IDE المطلوبة الآن: \`${facts.requiredIdeTargets.filter((target) => target.required).length}\`
 - عدد أنظمة المعرفة والاسترجاع المكتشفة: \`${facts.knowledgeInventory.totalSystems}\`
 - حالة حوكمة طبقة المعرفة والاسترجاع: \`${facts.knowledgeInventory.governanceStatus}\`
-- المساران الرسميان الوحيدان: \`pnpm agent:start\` أو مسار IDE القائم على إثبات القراءة
+- المساران الرسميان الوحيدان: \`pnpm agent:start\` أو مسار IDE القائم على إثبات القراءة وقاعدة الفحوصات
 `;
 }
 

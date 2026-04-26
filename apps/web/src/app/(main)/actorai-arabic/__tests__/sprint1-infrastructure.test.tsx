@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
-import React from "react";
-import { renderWithApp, screen, fireEvent, act } from "../test-utils";
-import { useApp } from "../context/AppContext";
 import { render } from "@testing-library/react";
-import { AppHeader } from "../layout/AppHeader";
+import React from "react";
+import { describe, it, expect, vi } from "vitest";
+
+import { useApp } from "../context/AppContext";
 import { AppFooter } from "../layout/AppFooter";
+import { AppHeader } from "../layout/AppHeader";
 import { NotificationBanner } from "../layout/NotificationBanner";
+import { renderWithApp, screen, fireEvent, act } from "../test-utils";
 
 // ── AppContext ──
 

@@ -1,6 +1,7 @@
+import { createSignal } from "@editor/suspicion-engine/helpers";
+
 import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import type { AlternativePullEvidence } from "@editor/suspicion-engine/types";
-import { createSignal } from "@editor/suspicion-engine/helpers";
 
 /**
  * @module gate-break/action-gate.detector

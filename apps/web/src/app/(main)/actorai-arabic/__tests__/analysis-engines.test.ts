@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+
+import { SAMPLE_SCRIPT } from "../lib/constants";
 import {
   analyzeSceneRhythmText,
   analyzeScriptText,
@@ -10,7 +12,6 @@ import {
   pickSupportedMimeType,
 } from "../lib/self-tape";
 import { summarizeWebcamSamples } from "../lib/webcam-analysis";
-import { SAMPLE_SCRIPT } from "../lib/constants";
 
 describe("محركات التحليل المحلية", () => {
   it("يحلل النص بشكل حتمي ويولد أهدافاً وعقبات ونصائح", () => {

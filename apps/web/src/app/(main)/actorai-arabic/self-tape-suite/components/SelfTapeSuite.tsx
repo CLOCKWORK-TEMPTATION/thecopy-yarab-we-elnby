@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,11 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
+
 import {
   buildExportFileName,
   buildTakeInsights,
@@ -36,10 +42,7 @@ import {
   writeStoredSelfTapeTakes,
   type PersistedSelfTapeTake,
 } from "../../lib/self-tape";
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
+
 
 type ActiveTool =
   | "teleprompter"
@@ -309,11 +312,11 @@ function toPersistedTake(take: Take): PersistedSelfTapeTake {
 }
 
 function createNotesFromInsights(
-  notes: Array<{
+  notes: {
     type: "timing" | "delivery" | "improvement";
     severity: NoteSeverity;
     content: string;
-  }>,
+  }[],
   duration: number
 ): TakeNote[] {
   const safeDuration = Math.max(duration, 1);
@@ -828,7 +831,7 @@ export const SelfTapeSuite: React.FC = () => {
       const blob =
         recordedChunksRef.current.length > 0
           ? new Blob(recordedChunksRef.current, {
-              type: pendingTake.mimeType || primaryChunk?.type || "video/webm",
+              type: pendingTake.mimeType || primaryChunk?.type ?? "video/webm",
             })
           : null;
       const videoUrl =
@@ -856,7 +859,7 @@ export const SelfTapeSuite: React.FC = () => {
         notes: createNotesFromInsights(insights.notes, duration),
         score: insights.score,
         status: "completed",
-        mimeType: blob?.type || pendingTake.mimeType,
+        mimeType: blob?.type ?? pendingTake.mimeType,
         source: "captured",
         ...(videoUrl ? { videoUrl } : {}),
       };
@@ -1088,7 +1091,7 @@ export const SelfTapeSuite: React.FC = () => {
       await delay(80);
 
       const recordedExtension = inferExtensionFromMimeType(
-        take.mimeType || blob.type
+        take.mimeType ?? blob.type
       );
       const selectedExtension = exportSettings.format;
       const finalExtension =

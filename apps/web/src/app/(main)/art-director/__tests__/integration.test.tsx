@@ -1,7 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactElement } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
 
 import Inspiration from "../components/Inspiration";
 import Locations from "../components/Locations";
@@ -24,11 +29,9 @@ vi.mock("../lib/api-client", async (importOriginal) => {
   };
 });
 
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
 import { artDirectorApiPath, fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ReactElement } from "react";
 
 const mockFetchArtDirectorJson = vi.mocked(fetchArtDirectorJson);
 const mockLoadRemoteAppState = vi.mocked(loadRemoteAppState);

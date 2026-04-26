@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useCallback, memo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trash2, Camera, Lightbulb, AlertTriangle } from "lucide-react";
+import { useState, useCallback, memo } from "react";
+
+import ShotPlanningCard from "@/app/(main)/directors-studio/components/ShotPlanningCard";
+import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,11 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trash2, Camera, Lightbulb, AlertTriangle } from "lucide-react";
-import ShotPlanningCard from "@/app/(main)/directors-studio/components/ShotPlanningCard";
 import { VirtualizedGrid } from "@/components/ui/virtualized-grid";
-import { useCurrentProject } from "@/app/(main)/directors-studio/lib/ProjectContext";
+
 import type { Shot, Scene } from "@/types/api";
 
 const ShotCard = memo(function ShotCard({
@@ -241,7 +243,7 @@ export default function ShotsPage() {
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 gap-4">
               <AlertTriangle className="h-12 w-12 text-destructive" />
-              <p className="text-destructive">{(error as Error).message}</p>
+              <p className="text-destructive">{(error).message}</p>
             </div>
           ) : shots && shots.length > 10 ? (
             <VirtualizedGrid

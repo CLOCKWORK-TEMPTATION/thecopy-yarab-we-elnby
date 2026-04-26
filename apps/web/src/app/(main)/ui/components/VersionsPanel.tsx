@@ -1,6 +1,7 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { GitBranch } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface Version {
   id: string;

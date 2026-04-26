@@ -18,7 +18,11 @@
  * - {@link optimizeSequence} — الدالة الرئيسية
  * - {@link extractSequenceFeatures} — استخراج الخصائص (مُصدّر للاختبار)
  */
-import type { ClassifiedDraft, ElementType } from "./classification-types";
+import { logger } from "../utils/logger";
+
+import { PRONOUN_ACTION_RE } from "./arabic-patterns";
+import { CLASSIFICATION_VALID_SEQUENCES } from "./classification-sequence-rules";
+import { pipelineRecorder } from "./pipeline-recorder";
 import {
   normalizeLine,
   normalizeCharacterName,
@@ -29,10 +33,8 @@ import {
   isActionVerbStart,
   hasActionVerbStructure,
 } from "./text-utils";
-import { PRONOUN_ACTION_RE } from "./arabic-patterns";
-import { CLASSIFICATION_VALID_SEQUENCES } from "./classification-sequence-rules";
-import { logger } from "../utils/logger";
-import { pipelineRecorder } from "./pipeline-recorder";
+
+import type { ClassifiedDraft, ElementType } from "./classification-types";
 
 const optimizerLogger = logger.createScope("sequence-optimizer");
 

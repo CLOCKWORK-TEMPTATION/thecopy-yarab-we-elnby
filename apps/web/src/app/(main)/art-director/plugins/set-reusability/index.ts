@@ -1,5 +1,6 @@
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface SetPiece {
   id: string;
@@ -74,8 +75,8 @@ export class SetReusabilityOptimizer implements Plugin {
     "تحليل الديكورات واقتراح طرق لإعادة استخدامها في إنتاجات مختلفة";
   category = "sustainability" as const;
 
-  private inventory: Map<string, SetPiece> = new Map();
-  private styleTransformations: Map<string, Modification[]> = new Map();
+  private inventory = new Map<string, SetPiece>();
+  private styleTransformations = new Map<string, Modification[]>();
 
   async initialize(): Promise<void> {
     this.initializeTransformations();
@@ -173,7 +174,7 @@ export class SetReusabilityOptimizer implements Plugin {
   async execute(input: PluginInput): Promise<PluginOutput> {
     switch (input.type) {
       case "add-piece":
-        return this.addSetPiece(input.data as unknown as Partial<SetPiece>);
+        return this.addSetPiece(input.data);
       case "analyze":
         return this.analyzeReusability(
           input.data as unknown as AnalyzeSetInput
@@ -196,7 +197,7 @@ export class SetReusabilityOptimizer implements Plugin {
         );
       case "inventory":
         return this.getInventory(
-          input.data as { category?: string; minCondition?: string }
+          input.data
         );
       case "sustainability-report":
         return this.generateSustainabilityReport(
@@ -221,18 +222,18 @@ export class SetReusabilityOptimizer implements Plugin {
     const piece: SetPiece = {
       id: uuidv4(),
       name: data.name,
-      nameAr: data.nameAr || data.name,
-      category: data.category as SetPiece["category"],
-      dimensions: data.dimensions || { width: 0, height: 0, depth: 0 },
-      materials: data.materials || [],
-      condition: (data.condition as SetPiece["condition"]) || "good",
-      currentLocation: data.currentLocation || "",
-      originalProduction: data.originalProduction || "",
-      photos: data.photos || [],
-      estimatedValue: data.estimatedValue || 0,
+      nameAr: data.nameAr ?? data.name,
+      category: data.category,
+      dimensions: data.dimensions ?? { width: 0, height: 0, depth: 0 },
+      materials: data.materials ?? [],
+      condition: (data.condition!) || "good",
+      currentLocation: data.currentLocation ?? "",
+      originalProduction: data.originalProduction ?? "",
+      photos: data.photos ?? [],
+      estimatedValue: data.estimatedValue ?? 0,
       reusabilityScore: this.calculateReusabilityScore(data),
-      tags: data.tags || [],
-      modifications: data.modifications || [],
+      tags: data.tags ?? [],
+      modifications: data.modifications ?? [],
       createdAt: new Date(),
       lastUsed: new Date(),
     };
@@ -258,17 +259,17 @@ export class SetReusabilityOptimizer implements Plugin {
       fair: 5,
       poor: -10,
     };
-    score += conditionScores[data.condition || "good"] || 0;
+    score += conditionScores[data.condition ?? "good"] ?? 0;
 
     const neutralMaterials = ["wood", "mdf", "plywood", "fabric"];
     const materialScore =
-      (data.materials || []).filter((m) =>
+      (data.materials ?? []).filter((m) =>
         neutralMaterials.some((nm) => m.toLowerCase().includes(nm))
       ).length * 5;
     score += Math.min(materialScore, 15);
 
     const standardCategories = ["wall", "floor", "backdrop"];
-    if (standardCategories.includes(data.category || "")) {
+    if (standardCategories.includes(data.category ?? "")) {
       score += 10;
     }
 
@@ -359,7 +360,7 @@ export class SetReusabilityOptimizer implements Plugin {
     for (const piece of pieces) {
       const transformKey = this.findTransformationKey(data.targetStyle);
       const modifications = transformKey
-        ? this.styleTransformations.get(transformKey) || []
+        ? this.styleTransformations.get(transformKey) ?? []
         : [];
 
       const totalCost = modifications.reduce(
@@ -424,7 +425,7 @@ export class SetReusabilityOptimizer implements Plugin {
 
     const transformKey = this.findTransformationKey(data.targetStyle);
     const modifications = transformKey
-      ? this.styleTransformations.get(transformKey) || []
+      ? this.styleTransformations.get(transformKey) ?? []
       : [];
 
     return {

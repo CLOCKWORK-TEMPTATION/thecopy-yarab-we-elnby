@@ -11,7 +11,9 @@
  */
 
 import { describe, it, expect } from "vitest";
+
 import { normalizeResult } from "./result-normalizer";
+
 import type { DevelopmentTaskDefinition } from "../types";
 
 // ---------------------------------------------------------------------------

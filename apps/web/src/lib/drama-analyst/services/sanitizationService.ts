@@ -12,6 +12,11 @@
  */
 import DOMPurify from "dompurify";
 
+type UnknownRecord = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is UnknownRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 /**
  * Sanitize HTML content to prevent XSS attacks
  * SECURITY: Uses iterative approach to handle incomplete/nested tags
@@ -60,7 +65,7 @@ export const sanitizeFileName = (fileName: string): string => {
 
   // Remove dangerous characters and paths
   return fileName
-    .replace(/[\/\\:*?"<>|]/g, "_") // Replace dangerous chars with underscore
+    .replace(/[/\\:*?"<>|]/g, "_") // Replace dangerous chars with underscore
     .replace(/\.\./g, "_") // Prevent directory traversal
     .replace(/^\.+/, "") // Remove leading dots
     .trim()
@@ -124,12 +129,12 @@ export const sanitizeObject = <T>(obj: T): T => {
   }
 
   if (typeof obj === "object") {
-    const sanitized = {} as T;
+    const sanitized: UnknownRecord = {};
     for (const [key, value] of Object.entries(obj)) {
       const sanitizedKey = sanitizeText(key);
-      (sanitized as any)[sanitizedKey] = sanitizeObject(value);
+      sanitized[sanitizedKey] = sanitizeObject(value);
     }
-    return sanitized;
+    return sanitized as T;
   }
 
   return obj;
@@ -138,8 +143,8 @@ export const sanitizeObject = <T>(obj: T): T => {
 /**
  * Validate and sanitize user input for AI requests
  */
-export const sanitizeAIRequest = (request: any) => {
-  if (!request || typeof request !== "object") {
+export const sanitizeAIRequest = (request: unknown): UnknownRecord => {
+  if (!isRecord(request)) {
     throw new Error("Invalid request format");
   }
 
@@ -151,17 +156,20 @@ export const sanitizeAIRequest = (request: any) => {
   }
 
   // Sanitize parameters
-  if (sanitized.parameters && typeof sanitized.parameters === "object") {
+  if (isRecord(sanitized.parameters)) {
     sanitized.parameters = sanitizeObject(sanitized.parameters);
   }
 
   // Sanitize files
-  if (sanitized.files && Array.isArray(sanitized.files)) {
-    sanitized.files = sanitized.files.map((file: any) => {
-      if (file && typeof file === "object") {
+  const files = sanitized.files;
+  if (Array.isArray(files)) {
+    sanitized.files = (files as unknown[]).map((file: unknown) => {
+      if (isRecord(file)) {
         return {
           ...file,
-          name: sanitizeFileName(file.name || ""),
+          name: sanitizeFileName(
+            typeof file.name === "string" ? file.name : ""
+          ),
           content:
             typeof file.content === "string"
               ? sanitizeText(file.content)
@@ -178,8 +186,8 @@ export const sanitizeAIRequest = (request: any) => {
 /**
  * Sanitize AI response content
  */
-export const sanitizeAIResponse = (response: any) => {
-  if (!response || typeof response !== "object") {
+export const sanitizeAIResponse = (response: unknown): unknown => {
+  if (!isRecord(response)) {
     return response;
   }
 
@@ -191,7 +199,7 @@ export const sanitizeAIResponse = (response: any) => {
   }
 
   // Sanitize parsed content if it exists
-  if (sanitized.parsed && typeof sanitized.parsed === "object") {
+  if (isRecord(sanitized.parsed)) {
     sanitized.parsed = sanitizeObject(sanitized.parsed);
   }
 
@@ -214,17 +222,17 @@ export const createSafeHTML = (html: string): { __html: string } => {
 /**
  * Validation utilities
  */
-export const isValidTextInput = (input: any): boolean => {
+export const isValidTextInput = (input: unknown): boolean => {
   return typeof input === "string" && input.length > 0 && input.length < 10000;
 };
 
-export const isValidFileName = (fileName: any): boolean => {
+export const isValidFileName = (fileName: unknown): boolean => {
   if (typeof fileName !== "string") return false;
   const sanitized = sanitizeFileName(fileName);
   return sanitized.length > 0 && sanitized !== "unknown.txt";
 };
 
-export const isValidFileSize = (size: any): boolean => {
+export const isValidFileSize = (size: unknown): boolean => {
   return typeof size === "number" && size > 0 && size <= 20 * 1024 * 1024; // 20MB
 };
 

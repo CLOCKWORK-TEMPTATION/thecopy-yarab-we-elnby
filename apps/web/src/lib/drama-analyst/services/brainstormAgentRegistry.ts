@@ -816,7 +816,7 @@ export function getCollaborators(
   if (!agent) return [];
 
   return REAL_AGENTS.filter((a) =>
-    agent.collaboratesWith.includes(a.taskType as TaskType)
+    agent.collaboratesWith.includes(a.taskType)
   );
 }
 
@@ -830,7 +830,7 @@ export function getEnhancers(
   if (!agent) return [];
 
   return REAL_AGENTS.filter((a) =>
-    a.enhances.includes(agent.taskType as TaskType)
+    a.enhances.includes(agent.taskType)
   );
 }
 
@@ -961,7 +961,7 @@ export function getAgentsForPhase(
   if (!phase) return [];
 
   return REAL_AGENTS.filter((agent) =>
-    phase.relevantAgents.includes(agent.taskType as TaskType)
+    phase.relevantAgents.includes(agent.taskType)
   );
 }
 

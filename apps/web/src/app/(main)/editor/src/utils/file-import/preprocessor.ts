@@ -125,7 +125,7 @@ const isSafeStandaloneCue = (value: string): boolean => {
  * @returns مصفوفة بسطر واحد أو أكثر بعد التطبيع
  */
 const normalizeDialogueBulletLine = (line: string): string[] => {
-  const cueOnlyMatch = line.match(/^([^:：]{1,42})\s*[:：]\s*$/u);
+  const cueOnlyMatch = /^([^:：]{1,42})\s*[:：]\s*$/u.exec(line);
   if (cueOnlyMatch) {
     const speaker = cueOnlyMatch[1]?.trim() ?? "";
     if (speaker && isLikelySpeakerName(speaker)) {
@@ -135,7 +135,7 @@ const normalizeDialogueBulletLine = (line: string): string[] => {
     }
   }
 
-  const inlineMatch = line.match(/^([^:：]{1,42})\s*[:：]\s*(.+)$/u);
+  const inlineMatch = /^([^:：]{1,42})\s*[:：]\s*(.+)$/u.exec(line);
   if (!inlineMatch) return [line];
 
   const speaker = inlineMatch[1]?.trim() ?? "";
@@ -208,7 +208,7 @@ const looksLikeBoundaryLine = (line: string): boolean => {
   if (!trimmed) return true;
   if (/^(?:قطع|cut\s+to|انتقال)/iu.test(trimmed)) return true;
   if (/^(?:مشهد|scene)\s*[0-9٠-٩]+/iu.test(trimmed)) return true;
-  const inlineCueMatch = trimmed.match(/^([^:：]{1,30})\s*[:：]\s+\S+/u);
+  const inlineCueMatch = /^([^:：]{1,30})\s*[:：]\s+\S+/u.exec(trimmed);
   if (inlineCueMatch && isLikelySpeakerName(inlineCueMatch[1] ?? ""))
     return true;
   if (looksLikeCharacterCue(trimmed)) return true;

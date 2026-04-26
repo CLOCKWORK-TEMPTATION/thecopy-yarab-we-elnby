@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { VisualCinematicAnalyzerAgent } from "./VisualCinematicAnalyzerAgent";
+
 import { TaskType } from "@core/types";
+
+import { VisualCinematicAnalyzerAgent } from "./VisualCinematicAnalyzerAgent";
 
 describe("VisualCinematicAnalyzerAgent", () => {
   let agent: VisualCinematicAnalyzerAgent;

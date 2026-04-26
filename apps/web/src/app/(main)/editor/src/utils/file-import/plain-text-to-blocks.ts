@@ -3,9 +3,10 @@
  * @description غلاف مبسّط حول {@link buildStructuredBlocksFromText}
  * يعيد مصفوفة الكتل مباشرة بدون بقية بيانات الأنبوب الهيكلي.
  */
-import type { StructurePipelinePolicy } from "../../types/structure-pipeline";
-import type { ScreenplayBlock } from "./document-model";
 import { buildStructuredBlocksFromText } from "./structure-pipeline";
+
+import type { ScreenplayBlock } from "./document-model";
+import type { StructurePipelinePolicy } from "../../types/structure-pipeline";
 
 /**
  * يحوّل نصاً خاماً إلى مصفوفة كتل سيناريو مصنّفة.

@@ -130,7 +130,7 @@ function splitSentences(text: string): string[] {
 }
 
 function tokenizeArabic(text: string): string[] {
-  return (text.match(/[\u0600-\u06FF]{3,}/g) || [])
+  return (text.match(/[\u0600-\u06FF]{3,}/g) ?? [])
     .map((token) => token.trim())
     .filter((token) => !ARABIC_STOP_WORDS.has(token));
 }
@@ -159,7 +159,7 @@ function extractCharacterCandidates(text: string): string[] {
   const tokens = tokenizeArabic(text);
   const frequencies = new Map<string, number>();
   for (const token of tokens) {
-    frequencies.set(token, (frequencies.get(token) || 0) + 1);
+    frequencies.set(token, (frequencies.get(token) ?? 0) + 1);
   }
 
   const frequentTokens = [...frequencies.entries()]
@@ -188,7 +188,7 @@ function detectGenre(text: string): string {
     rule.keywords.some((keyword) => text.includes(keyword))
   );
 
-  return matched?.genre || "دراما معاصرة";
+  return matched?.genre ?? "دراما معاصرة";
 }
 
 function detectTone(text: string): string {
@@ -221,18 +221,18 @@ function summarizeText(text: string, maxSentences: number): string {
 function buildChunks(
   text: string,
   chunkSize: number
-): Array<{
+): {
   id: string;
   content: string;
   startIndex: number;
   endIndex: number;
-}> {
-  const chunks: Array<{
+}[] {
+  const chunks: {
     id: string;
     content: string;
     startIndex: number;
     endIndex: number;
-  }> = [];
+  }[] = [];
 
   if (text.length <= chunkSize) {
     return [
@@ -374,7 +374,7 @@ export function buildFallbackSevenStationsResult(
   const tone = detectTone(normalizedText);
   const chunks = buildChunks(input.fullText, 1800);
 
-  const dialogueMatches = input.fullText.match(/[:«»"“”]+/g) || [];
+  const dialogueMatches = input.fullText.match(/[:«»"“”]+/g) ?? [];
   const dialogueRatio = clamp(
     Math.round((dialogueMatches.length / Math.max(sentences.length, 1)) * 20),
     15,
@@ -484,9 +484,9 @@ export function buildFallbackSevenStationsResult(
           name: "شبكة صراع احتياطية",
           characters,
           relationships: characters.slice(1).map((character, index) => ({
-            source: characters[0] || "البطل",
+            source: characters[0] ?? "البطل",
             target: character,
-            description: `علاقة درامية متوترة تتحرك حول ${themes[index % themes.length] || "الصراع الرئيسي"}.`,
+            description: `علاقة درامية متوترة تتحرك حول ${themes[index % themes.length] ?? "الصراع الرئيسي"}.`,
           })),
           conflicts: themes.map((theme, index) => ({
             id: `conflict-${index + 1}`,

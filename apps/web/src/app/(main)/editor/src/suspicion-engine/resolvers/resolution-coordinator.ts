@@ -1,14 +1,17 @@
-import type { SuspicionResolver } from "@editor/suspicion-engine/resolvers/resolver-interface";
+import { noopResolver } from "@editor/suspicion-engine/resolvers/noop-resolver";
+import { toExternalBand } from "@editor/suspicion-engine/routing/route-types";
+import { assignRoute } from "@editor/suspicion-engine/routing/routing-policy";
+
 import type { ClassifiedDraft } from "@editor/extensions/classification-types";
+import type { RemoteAIResolver } from "@editor/suspicion-engine/resolvers/remote-ai-resolver";
+import type { SuspicionResolver } from "@editor/suspicion-engine/resolvers/resolver-interface";
 import type {
   SuspicionCase,
   ResolutionOutcome,
   RoutingSummary,
 } from "@editor/suspicion-engine/types";
-import { assignRoute } from "@editor/suspicion-engine/routing/routing-policy";
-import { toExternalBand } from "@editor/suspicion-engine/routing/route-types";
-import { noopResolver } from "@editor/suspicion-engine/resolvers/noop-resolver";
-import type { RemoteAIResolver } from "@editor/suspicion-engine/resolvers/remote-ai-resolver";
+
+
 
 /**
  * @module resolvers/resolution-coordinator

@@ -1,12 +1,15 @@
 import { Schema, Type } from "@google/genai";
+
+import { GEMINI_MODELS, TECHNICAL_AGENT_KEYS } from "../../domain/constants";
+import { logError } from "../../domain/errors";
+import { getGeminiClient } from "../gemini/client";
+
+import { AGENT_PERSONAS } from "./configs";
+
 import type {
   SceneBreakdown,
   TechnicalBreakdownKey,
 } from "../../domain/models";
-import { GEMINI_MODELS, TECHNICAL_AGENT_KEYS } from "../../domain/constants";
-import { logError } from "../../domain/errors";
-import { getGeminiClient } from "../gemini/client";
-import { AGENT_PERSONAS } from "./configs";
 
 export type BreakdownAgentResult = Pick<SceneBreakdown, TechnicalBreakdownKey>;
 export type BreakdownAgentKey = TechnicalBreakdownKey;
@@ -54,7 +57,7 @@ export const runConfiguredAgent = async (
       },
     });
 
-    return (response.text ? JSON.parse(response.text).items : []) || [];
+    return (response.text ? JSON.parse(response.text).items : []) ?? [];
   } catch (error) {
     logError(`runConfiguredAgent.${agentKey}`, error);
     return [];

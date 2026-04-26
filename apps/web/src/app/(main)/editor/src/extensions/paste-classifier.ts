@@ -1,38 +1,9 @@
 import { Extension } from "@tiptap/core";
 import { Fragment, Node as PmNode, Schema, Slice } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+
 import type { EditorView } from "@tiptap/pm/view";
-import { isActionLine } from "./action";
-import {
-  DATE_PATTERNS,
-  TIME_PATTERNS,
-  convertHindiToArabic,
-  detectDialect,
-} from "./arabic-patterns";
-import { isStandaloneBasmalaLine } from "./basmala";
-import {
-  ensureCharacterTrailingColon,
-  isCharacterLine,
-  parseImplicitCharacterDialogueWithoutColon,
-  parseInlineCharacterDialogue,
-} from "./character";
-import { resolveNarrativeDecision } from "./classification-decision";
-import type {
-  ClassifiedDraft,
-  ClassificationContext,
-  ElementType,
-} from "./classification-types";
-import { ContextMemoryManager } from "./context-memory-manager";
-import {
-  getDialogueProbability,
-  isDialogueContinuationLine,
-  isDialogueLine,
-} from "./dialogue";
-import {
-  buildDocumentContextGraph,
-  type DocumentContextGraph,
-} from "./document-context-graph";
-import { HybridClassifier } from "./hybrid-classifier";
+
 import { retroactiveCorrectionPass } from "./retroactive-corrector";
 import {
   reverseClassificationPass,
@@ -123,7 +94,37 @@ import {
   buildFinalReviewSuspiciousLinePayload,
   formatFinalReviewPacketText,
 } from "@editor/final-review/payload-builder";
-import type { LineType } from "@editor/types/screenplay";
+import { isActionLine } from "./action";
+import {
+  DATE_PATTERNS,
+  TIME_PATTERNS,
+  convertHindiToArabic,
+  detectDialect,
+} from "./arabic-patterns";
+import { isStandaloneBasmalaLine } from "./basmala";
+import {
+  ensureCharacterTrailingColon,
+  isCharacterLine,
+  parseImplicitCharacterDialogueWithoutColon,
+  parseInlineCharacterDialogue,
+} from "./character";
+import { resolveNarrativeDecision } from "./classification-decision";
+import { ContextMemoryManager } from "./context-memory-manager";
+import {
+  getDialogueProbability,
+  isDialogueContinuationLine,
+  isDialogueLine,
+} from "./dialogue";
+import {
+  buildDocumentContextGraph,
+  type DocumentContextGraph,
+} from "./document-context-graph";
+import { HybridClassifier } from "./hybrid-classifier";
+import type {
+  ClassifiedDraft,
+  ClassificationContext,
+  ElementType,
+} from "./classification-types";
 
 // ── Re-entry guard + text dedup ──────────────────────────────────────────────
 let pipelineRunning = false;
@@ -609,18 +610,18 @@ export const classifyLines = (
 
   // ── diagnostic: تفصيل أنواع الحروف الخاصة في النص الأصلي ──
   const _diagCharBreakdown = {
-    cr: (text.match(/\r/g) || []).length,
-    nbsp: (text.match(/\u00A0/g) || []).length,
-    zwnj: (text.match(/\u200C/g) || []).length,
-    zwj: (text.match(/\u200D/g) || []).length,
-    zwsp: (text.match(/\u200B/g) || []).length,
-    lrm: (text.match(/\u200E/g) || []).length,
-    rlm: (text.match(/\u200F/g) || []).length,
-    bom: (text.match(/\uFEFF/g) || []).length,
-    tab: (text.match(/\t/g) || []).length,
-    softHyphen: (text.match(/\u00AD/g) || []).length,
-    alm: (text.match(/\u061C/g) || []).length,
-    fullwidthColon: (text.match(/\uFF1A/g) || []).length,
+    cr: (text.match(/\r/g) ?? []).length,
+    nbsp: (text.match(/\u00A0/g) ?? []).length,
+    zwnj: (text.match(/\u200C/g) ?? []).length,
+    zwj: (text.match(/\u200D/g) ?? []).length,
+    zwsp: (text.match(/\u200B/g) ?? []).length,
+    lrm: (text.match(/\u200E/g) ?? []).length,
+    rlm: (text.match(/\u200F/g) ?? []).length,
+    bom: (text.match(/\uFEFF/g) ?? []).length,
+    tab: (text.match(/\t/g) ?? []).length,
+    softHyphen: (text.match(/\u00AD/g) ?? []).length,
+    alm: (text.match(/\u061C/g) ?? []).length,
+    fullwidthColon: (text.match(/\uFF1A/g) ?? []).length,
   };
 
   agentReviewLogger.info("diag:normalize-delta", {
@@ -954,7 +955,7 @@ export const classifyLines = (
       schemaSeedAdopted += 1;
       push(
         buildDraftForType(
-          activeSchemaSeedType as ElementType,
+          activeSchemaSeedType!,
           trimmed,
           Math.max(0.9, hybridResult.confidence),
           "external-engine"
@@ -1218,7 +1219,7 @@ const promoteHighSeveritySuspicionCases = (
         signal.score >= FINAL_REVIEW_PROMOTION_THRESHOLD
     );
     if (!hasHighPull) return caseItem;
-    return { ...caseItem, band: "agent-forced" } as SuspicionCase;
+    return { ...caseItem, band: "agent-forced" };
   });
 
 const computeFinalReviewRoutingStats = (
@@ -1264,7 +1265,7 @@ const buildSuspicionReviewContextLines = (
     result.push({
       lineIndex,
       text: line.text,
-      assignedType: line.type as LineType,
+      assignedType: line.type,
       confidence: line.confidence,
       offset,
     });
@@ -1280,7 +1281,7 @@ const buildLocalSuspicionReviewPayload = (params: {
   sourceMethod?: string;
 }): SuspicionReviewLinePayload | null => {
   const { suspicionCase, classified, itemId, sourceMethod } = params;
-  const assignedType = suspicionCase.classifiedLine.type as LineType;
+  const assignedType = suspicionCase.classifiedLine.type;
 
   const schemaVote = suspicionCase.trace.passVotes.find(
     (vote) => vote.stage === "schema-hint"
@@ -1301,7 +1302,7 @@ const buildLocalSuspicionReviewPayload = (params: {
           : "agent-candidate",
     critical: suspicionCase.critical,
     primarySuggestedType:
-      (suspicionCase.primarySuggestedType as LineType | null) ?? null,
+      (suspicionCase.primarySuggestedType) ?? null,
     reasonCodes: suspicionCase.signals
       .map((signal) => signal.reasonCode)
       .slice(0, 32),
@@ -1316,7 +1317,7 @@ const buildLocalSuspicionReviewPayload = (params: {
       importSource: suspicionCase.trace.sourceHints.importSource,
       ...(sourceMethod !== undefined && { sourceMethod }),
       engineSuggestedType:
-        (schemaVote?.suggestedType as LineType | undefined) ?? null,
+        (schemaVote?.suggestedType) ?? null,
     },
   };
 };
@@ -1986,8 +1987,8 @@ export const applyPasteClassifierFlowToView = async (
   pipelineRunning = true;
   try {
     const customReview = options?.agentReview;
-    let classificationProfile = options?.classificationProfile;
-    let sourceFileType = options?.sourceFileType;
+    const classificationProfile = options?.classificationProfile;
+    const sourceFileType = options?.sourceFileType;
     let sourceMethod = options?.sourceMethod;
     const structuredHints = options?.structuredHints;
     let schemaElements = options?.schemaElements;
@@ -2474,7 +2475,7 @@ export const PasteClassifier = Extension.create<PasteClassifierOptions>({
   name: "pasteClassifier",
 
   addOptions() {
-    return {} as PasteClassifierOptions;
+    return {};
   },
 
   addProseMirrorPlugins() {
@@ -2490,7 +2491,7 @@ export const PasteClassifier = Extension.create<PasteClassifierOptions>({
             if (!clipboardData) return false;
 
             const text = clipboardData.getData("text/plain");
-            if (!text || !text.trim()) return false;
+            if (!text?.trim()) return false;
 
             event.preventDefault();
             void applyPasteClassifierFlowToView(view, text, {

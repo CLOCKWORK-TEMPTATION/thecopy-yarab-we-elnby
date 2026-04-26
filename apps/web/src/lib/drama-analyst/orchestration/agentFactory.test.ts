@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { TaskType } from "@core/enums";
 
 // مخزن وكلاء الذكاء الاصطناعي - محاكاة التكوينات الأساسية
@@ -99,7 +100,7 @@ describe("AgentFactory", () => {
     });
 
     it("should return undefined for unknown task type", () => {
-      const config = getAgentConfig("UNKNOWN_TASK" as TaskType);
+      const config = getAgentConfig("UNKNOWN_TASK");
 
       expect(config).toBeUndefined();
     });
@@ -258,7 +259,7 @@ describe("AgentFactory", () => {
     });
 
     it("should handle empty string task type", () => {
-      const config = getAgentConfig("" as TaskType);
+      const config = getAgentConfig("");
 
       expect(config).toBeUndefined();
     });

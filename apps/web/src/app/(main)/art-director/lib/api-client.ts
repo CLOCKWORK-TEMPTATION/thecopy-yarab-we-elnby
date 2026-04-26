@@ -39,7 +39,7 @@ export async function fetchArtDirectorJson<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const method = (init?.method || "GET").toUpperCase();
+  const method = (init?.method ?? "GET").toUpperCase();
   const headers = new Headers(init?.headers);
 
   if (method !== "GET" && method !== "HEAD") {

@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   AlertTriangle,
   CalendarClock,
@@ -7,7 +6,9 @@ import {
   MapPin,
   ShieldAlert,
 } from "lucide-react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -15,15 +16,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import type { BreakdownReportOutput } from "../../domain/schemas";
+import type { ReactNode } from "react";
 
 const PAGE_CONTAINER_CLASS = "container mx-auto max-w-6xl p-6";
 
-type BreakdownStateProps = {
+interface BreakdownStateProps {
   title?: string;
   message: string;
-};
+}
 
 function BreakdownPageContainer({ children }: { children: ReactNode }) {
   return <div className={`${PAGE_CONTAINER_CLASS} space-y-6`}>{children}</div>;

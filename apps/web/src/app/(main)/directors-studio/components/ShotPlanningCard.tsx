@@ -11,10 +11,6 @@
  */
 "use client";
 
-import { useState, useEffect, memo, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Video,
   Move,
@@ -29,6 +25,11 @@ import {
   Eye,
   Film,
 } from "lucide-react";
+import { useState, useEffect, memo, useCallback, useMemo } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -36,8 +37,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetShotSuggestion } from "@/hooks/useAI";
 import { useToast } from "@/hooks/use-toast";
+import { useGetShotSuggestion } from "@/hooks/useAI";
+
 import type { Shot } from "@shared/schema";
 
 /**
@@ -110,16 +112,16 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
   onDelete,
 }: ShotPlanningCardProps) {
   const [shotType, setShotType] = useState(
-    shot?.shotType || DEFAULT_VALUES.shotType
+    shot?.shotType ?? DEFAULT_VALUES.shotType
   );
   const [cameraAngle, setCameraAngle] = useState(
-    shot?.cameraAngle || DEFAULT_VALUES.cameraAngle
+    shot?.cameraAngle ?? DEFAULT_VALUES.cameraAngle
   );
   const [cameraMovement, setCameraMovement] = useState(
-    shot?.cameraMovement || DEFAULT_VALUES.cameraMovement
+    shot?.cameraMovement ?? DEFAULT_VALUES.cameraMovement
   );
   const [lighting, setLighting] = useState(
-    shot?.lighting || DEFAULT_VALUES.lighting
+    shot?.lighting ?? DEFAULT_VALUES.lighting
   );
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
 
@@ -131,10 +133,10 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
    */
   useEffect(() => {
     if (shot) {
-      setShotType(shot.shotType || DEFAULT_VALUES.shotType);
-      setCameraAngle(shot.cameraAngle || DEFAULT_VALUES.cameraAngle);
-      setCameraMovement(shot.cameraMovement || DEFAULT_VALUES.cameraMovement);
-      setLighting(shot.lighting || DEFAULT_VALUES.lighting);
+      setShotType(shot.shotType ?? DEFAULT_VALUES.shotType);
+      setCameraAngle(shot.cameraAngle ?? DEFAULT_VALUES.cameraAngle);
+      setCameraMovement(shot.cameraMovement ?? DEFAULT_VALUES.cameraMovement);
+      setLighting(shot.lighting ?? DEFAULT_VALUES.lighting);
       if (shot.aiSuggestion) {
         try {
           setAiSuggestion(JSON.parse(shot.aiSuggestion));
@@ -213,7 +215,7 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
    * الحصول على معلومات نوع اللقطة
    */
   const shotTypeInfo = useMemo(
-    () => SHOT_TYPE_ICONS[shotType] || { icon: "📷", description: "" },
+    () => SHOT_TYPE_ICONS[shotType] ?? { icon: "📷", description: "" },
     [shotType]
   );
 

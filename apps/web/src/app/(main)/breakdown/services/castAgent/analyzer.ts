@@ -11,6 +11,7 @@ import {
   ARABIC_TITLES,
 } from "./constants";
 import { isSceneHeading, isTransition, normalizeArabic } from "./parser";
+
 import type {
   EmotionType,
   EmotionStats,
@@ -54,7 +55,7 @@ export const analyzeEmotion = (text: string): EmotionStats => {
 
   if (max > 0) {
     stats.dominant =
-      emotionEntries.find(([, v]) => v === max)?.[0] || "neutral";
+      emotionEntries.find(([, v]) => v === max)?.[0] ?? "neutral";
   }
 
   return stats;

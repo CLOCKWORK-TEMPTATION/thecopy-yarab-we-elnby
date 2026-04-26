@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { CodeChunk } from "./types";
+
 import { CHUNK_SIZE, CHUNK_OVERLAP, logger } from "./config";
+import { CodeChunk } from "./types";
 
 const APPROX_CHARS_PER_TOKEN = 4;
 const MAX_CHUNK_CHARS = CHUNK_SIZE * APPROX_CHARS_PER_TOKEN;
@@ -110,7 +111,7 @@ function chunkMarkdownFile(
     if (!section.trim()) continue;
 
     const lines = section.split("\n");
-    const sectionTitle = lines[0]?.trim() || "Untitled Section";
+    const sectionTitle = lines[0]?.trim() ?? "Untitled Section";
 
     if (section.length <= MAX_CHUNK_CHARS) {
       chunks.push({
@@ -212,7 +213,7 @@ function getLanguage(fileType: string): string {
     py: "python",
   };
 
-  return languageMap[fileType] || "text";
+  return languageMap[fileType] ?? "text";
 }
 
 export function getAllCodeFiles(rootDir: string): string[] {

@@ -3,7 +3,6 @@
  * Provides typed interfaces for AI provider interactions
  */
 
-import type { GeminiService as GeminiServiceClass } from "../stations/gemini-service";
 import type {
   CharacterAnalysis,
   DialogueAnalysis,
@@ -11,6 +10,7 @@ import type {
   Conflict,
   Theme,
 } from "./response-types";
+import type { GeminiService as GeminiServiceClass } from "../stations/gemini-service";
 
 /**
  * Typed interface for Gemini Service operations
@@ -103,7 +103,7 @@ export function createGeminiServiceBoundary(
         response.content !== null &&
         "raw" in response.content
       ) {
-        return (response.content as { raw: string }).raw;
+        return (response.content).raw;
       }
 
       return String(response.content);

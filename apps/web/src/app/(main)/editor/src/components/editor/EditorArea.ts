@@ -1,29 +1,44 @@
-import { definedProps } from "@/lib/defined-props";
 import { redo, undo } from "@tiptap/pm/history";
-import type { Node as PmNode } from "@tiptap/pm/model";
+
+import { definedProps } from "@/lib/defined-props";
+
+
 import { createScreenplayEditor, SCREENPLAY_ELEMENTS } from "../../editor";
-import {
-  applyPasteClassifierFlowToView,
-  PASTE_CLASSIFIER_ERROR_EVENT,
-} from "../../extensions/paste-classifier";
 import {
   isElementType,
   type ElementType,
 } from "../../extensions/classification-types";
 import {
+  applyPasteClassifierFlowToView,
+  PASTE_CLASSIFIER_ERROR_EVENT,
+} from "../../extensions/paste-classifier";
+import {
   pipelineRecorder,
   type PipelineEvent,
 } from "../../extensions/pipeline-recorder";
+import { maybeReconstructUnstructured } from "../../pipeline/unstructured";
+import { CharacterWidowFixer } from "../../utils/character-widow-fix";
+import {
+  copyToClipboard,
+  cutToClipboard,
+  pasteFromClipboard,
+} from "../../utils/editor-clipboard";
+import {
+  applyLayoutMetrics,
+  applyEditorTypography,
+} from "../../utils/editor-layout";
+import { EditorPageModel } from "../../utils/editor-page-model";
 import {
   htmlToScreenplayBlocks,
   type ScreenplayBlock,
 } from "../../utils/file-import";
-import { maybeReconstructUnstructured } from "../../pipeline/unstructured";
-import type {
-  ClipboardOrigin,
-  EditorClipboardOperationResult,
-} from "../../types/editor-clipboard";
-import type { RunEditorCommandOptions } from "../../types/editor-engine";
+import { logger } from "../../utils/logger";
+
+import {
+  shouldClearProgressiveStateOnRunEnd,
+  shouldKeepSurfaceEditableAfterFailure,
+} from "./progressive-surface-guards";
+
 import type {
   DocumentStats,
   EditorAreaProps,
@@ -33,22 +48,11 @@ import type {
   ImportClassificationContext,
   ProgressiveSurfaceState,
 } from "./editor-area.types";
-import { logger } from "../../utils/logger";
-import {
-  copyToClipboard,
-  cutToClipboard,
-  pasteFromClipboard,
-} from "../../utils/editor-clipboard";
-import { CharacterWidowFixer } from "../../utils/character-widow-fix";
-import {
-  applyLayoutMetrics,
-  applyEditorTypography,
-} from "../../utils/editor-layout";
-import { EditorPageModel } from "../../utils/editor-page-model";
-import {
-  shouldClearProgressiveStateOnRunEnd,
-  shouldKeepSurfaceEditableAfterFailure,
-} from "./progressive-surface-guards";
+import type {
+  ClipboardOrigin,
+  EditorClipboardOperationResult,
+} from "../../types/editor-clipboard";
+import type { RunEditorCommandOptions } from "../../types/editor-engine";
 import type {
   FailureRecoveryAction,
   ProgressiveElement,
@@ -58,6 +62,7 @@ import type {
   VisibleVersion,
   VisibleVersionStage,
 } from "../../types/unified-reception";
+import type { Node as PmNode } from "@tiptap/pm/model";
 
 const commandNameByFormat: Record<ElementType, string> = {
   action: "setAction",
@@ -180,7 +185,7 @@ export class EditorArea implements EditorHandle {
     if (typeof window !== "undefined") {
       window.addEventListener(
         PASTE_CLASSIFIER_ERROR_EVENT,
-        this.handlePasteClassifierError as EventListener
+        this.handlePasteClassifierError
       );
     }
     this.removePipelineSubscription = pipelineRecorder.subscribe(
@@ -192,7 +197,7 @@ export class EditorArea implements EditorHandle {
     this.emitState();
     this.applySurfaceLock(false);
 
-    if (process.env["NODE_ENV"] === "development") {
+    if (process.env.NODE_ENV === "development") {
       void import("../../extensions/pipeline-diagnostics").then(
         ({ registerPipelineDiagnostics }) => {
           registerPipelineDiagnostics(() => this.getAllText());
@@ -492,8 +497,8 @@ export class EditorArea implements EditorHandle {
     // - مش ملف doc/docx (اللي عنده بنية أصلاً)
     const skipUnstructured =
       context?.classificationProfile === "paste" ||
-      (context?.structuredHints && context.structuredHints.length > 0) ||
-      (context?.schemaElements && context.schemaElements.length > 0) ||
+      (context?.structuredHints && context.structuredHints.length > 0) ??
+      (context?.schemaElements && context.schemaElements.length > 0) ??
       context?.sourceFileType === "doc" ||
       context?.sourceFileType === "docx";
 
@@ -768,7 +773,7 @@ export class EditorArea implements EditorHandle {
     if (typeof window !== "undefined") {
       window.removeEventListener(
         PASTE_CLASSIFIER_ERROR_EVENT,
-        this.handlePasteClassifierError as EventListener
+        this.handlePasteClassifierError
       );
     }
     this.characterWidowFixer.cancel();
@@ -946,7 +951,7 @@ export class EditorArea implements EditorHandle {
         if (!activeRun) return;
 
         const nextState: ProgressiveSurfaceState = {
-          ...(this.progressiveSurfaceState as ProgressiveSurfaceState),
+          ...(this.progressiveSurfaceState!),
           activeRun: {
             ...activeRun,
             status: "failed-after-visible",
@@ -984,7 +989,7 @@ export class EditorArea implements EditorHandle {
             this.progressiveSurfaceState
           );
           this.progressiveSurfaceState = {
-            ...(this.progressiveSurfaceState as ProgressiveSurfaceState),
+            ...(this.progressiveSurfaceState!),
             activeRun: {
               ...activeRun,
               surfaceLocked: !keepEditable,
@@ -1010,7 +1015,7 @@ export class EditorArea implements EditorHandle {
               };
 
         this.progressiveSurfaceState = {
-          ...(this.progressiveSurfaceState as ProgressiveSurfaceState),
+          ...(this.progressiveSurfaceState!),
           activeRun: {
             ...activeRun,
             status: "settled",
@@ -1113,14 +1118,14 @@ export class EditorArea implements EditorHandle {
     return elements;
   }
 
-  private captureTopLevelNodes(): Array<{
+  private captureTopLevelNodes(): {
     pos: number;
     node: PmNode;
-  }> {
-    const nodes: Array<{
+  }[] {
+    const nodes: {
       pos: number;
       node: PmNode;
-    }> = [];
+    }[] = [];
 
     this.editor.state.doc.forEach((_node, offset) => {
       const resolvedNode = this.editor.state.doc.nodeAt(offset);
@@ -1203,7 +1208,7 @@ export class EditorArea implements EditorHandle {
     metadata?: Record<string, unknown>
   ): string | null {
     return typeof metadata?.["approvalToken"] === "string"
-      ? (metadata["approvalToken"] as string)
+      ? (metadata["approvalToken"])
       : null;
   }
 

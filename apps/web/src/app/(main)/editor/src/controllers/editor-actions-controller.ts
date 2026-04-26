@@ -4,8 +4,7 @@
  *   مستخرج من `App.tsx` لتطبيق مبدأ المسؤولية الواحدة.
  */
 import { definedProps } from "@/lib/defined-props";
-import type { EditorArea, FileImportMode } from "../components/editor";
-import type { MenuToastPayload } from "./insert-menu-controller";
+
 import {
   FORMAT_CYCLE_ORDER,
   FORMAT_LABEL_BY_TYPE,
@@ -14,7 +13,8 @@ import {
   ensureDocxFilename,
   formatPdfOcrIssueDescription,
 } from "../constants/format-mappings";
-import type { MenuActionId, ExportFormat } from "../constants/menu-definitions";
+import { pipelineRecorder } from "../extensions/pipeline-recorder";
+import { loadFromStorage, saveToStorage } from "../hooks";
 import {
   ACCEPTED_FILE_EXTENSIONS,
   getFileType,
@@ -30,8 +30,11 @@ import {
   resolveBackendExtractionTimeoutMs,
 } from "../utils/file-import";
 import { logger } from "../utils/logger";
-import { loadFromStorage, saveToStorage } from "../hooks";
-import { pipelineRecorder } from "../extensions/pipeline-recorder";
+
+import type { MenuToastPayload } from "./insert-menu-controller";
+import type { EditorArea, FileImportMode } from "../components/editor";
+import type { MenuActionId, ExportFormat } from "../constants/menu-definitions";
+
 
 interface EditorAutosaveSnapshot {
   html?: string;

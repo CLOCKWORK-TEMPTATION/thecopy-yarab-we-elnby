@@ -6,8 +6,9 @@
  * بدون الحاجة إلى server جاري
  */
 
-import { POST } from "../route";
 import { geminiService } from "@/app/(main)/BUDGET/lib/geminiService";
+
+import { POST } from "../route";
 
 // Mock Gemini service
 jest.mock("@/app/(main)/BUDGET/lib/geminiService", () => ({

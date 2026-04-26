@@ -10,8 +10,9 @@
  * سلوك Enter: الانتقال إلى {@link SceneHeaderTopLine} (رأس مشهد جديد).
  */
 import { Node, mergeAttributes } from "@tiptap/core";
-import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
+
 import { TRANSITION_RE } from "./arabic-patterns";
+import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import { normalizeLine } from "./text-utils";
 
 /**

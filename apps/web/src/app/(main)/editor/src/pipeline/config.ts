@@ -3,9 +3,7 @@ import type { PipelineConfig } from "./types";
 const resolveOcrProvider = (): "mistral" | "azure" | "none" => {
   const nodeProvider =
     typeof process !== "undefined" ? process.env?.["OCR_PROVIDER"] : undefined;
-  const viteProvider = process.env["NEXT_PUBLIC_OCR_PROVIDER"] as
-    | string
-    | undefined;
+  const viteProvider = process.env.NEXT_PUBLIC_OCR_PROVIDER;
   const rawProvider = (nodeProvider ?? viteProvider ?? "mistral")
     .trim()
     .toLowerCase();

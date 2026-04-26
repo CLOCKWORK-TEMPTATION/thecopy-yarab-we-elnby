@@ -1,13 +1,15 @@
-import { createCollection, getIndexStats } from "../src/rag/indexer.js";
+import * as path from "path";
+
 import { chunkFile } from "../src/rag/chunker.js";
-import { generateEmbeddingsBatch } from "../src/rag/embeddings.js";
 import {
   qdrantClient,
   RAG_COLLECTION_NAME,
   logger,
 } from "../src/rag/config.js";
+import { generateEmbeddingsBatch } from "../src/rag/embeddings.js";
+import { createCollection, getIndexStats } from "../src/rag/indexer.js";
 import { askQuestion } from "../src/rag/query.js";
-import * as path from "path";
+
 
 async function smokeTest() {
   try {

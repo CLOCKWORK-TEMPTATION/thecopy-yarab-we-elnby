@@ -1,5 +1,15 @@
 ﻿# CLAUDE.md
 
+## قاعدة منع إضعاف ملفات الفحص والتحقق
+
+This checks rule must be read and explicitly proven before any analysis, edit, or execution.
+
+Do not weaken any check, verification, test, lint, build, security, or operational health file in a way that makes it more permissive, less capable of finding defects, narrower in coverage, or easier to pass.
+
+Any change touching checks or verification files must be followed by a direct run of the affected check and the suitable reference verification path. Do not close the round through file reading or text comparison alone.
+
+Any startup brief requiring 3 to 7 operational facts must include one explicit fact proving the checks rule was read.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Startup Contract
@@ -25,7 +35,7 @@ output/code-map/*
 output/mind-map/*
 ```
 
-4. Output a short brief with 3 to 7 operational facts.
+4. Output a short brief with 3 to 7 operational facts, including one explicit fact proving the checks rule was read.
 5. Only then continue with the subtree-specific guidance below.
 
 At the end of the round:

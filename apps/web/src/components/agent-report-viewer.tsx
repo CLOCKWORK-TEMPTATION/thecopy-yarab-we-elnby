@@ -1,6 +1,11 @@
 "use client";
 
+import { Download, Eye, FileText } from "lucide-react";
 import React, { useState } from "react";
+
+import { toText } from "@/ai/gemini-core";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,11 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Download, Eye, FileText } from "lucide-react";
-import { toText } from "@/ai/gemini-core";
 
 // =====================================================
 // Types
@@ -212,7 +213,7 @@ export function AgentReportViewer({
   return (
     <>
       <div onClick={() => setOpen(true)} className="inline-block">
-        {trigger || defaultTrigger}
+        {trigger ?? defaultTrigger}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

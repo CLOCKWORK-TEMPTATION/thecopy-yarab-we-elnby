@@ -12,8 +12,9 @@ import {
   PIPELINE_FLAGS,
   type ClassifyLinesContext,
 } from "./paste-classifier";
-import type { ClassifiedDraftWithId } from "./paste-classifier-helpers";
 import { registerPipelineRecorderUI } from "./pipeline-recorder";
+
+import type { ClassifiedDraftWithId } from "./paste-classifier-helpers";
 
 // ─── أنواع التقرير ────────────────────────────────────────────────
 
@@ -63,13 +64,13 @@ const snapshotFlags = (): Record<FlagKey, boolean> => ({ ...PIPELINE_FLAGS });
 
 const restoreFlags = (snapshot: Record<FlagKey, boolean>): void => {
   for (const key of ALL_FLAGS) {
-    (PIPELINE_FLAGS as Record<FlagKey, boolean>)[key] = snapshot[key];
+    (PIPELINE_FLAGS)[key] = snapshot[key];
   }
 };
 
 const setAllFlags = (value: boolean): void => {
   for (const key of ALL_FLAGS) {
-    (PIPELINE_FLAGS as Record<FlagKey, boolean>)[key] = value;
+    (PIPELINE_FLAGS)[key] = value;
   }
 };
 
@@ -161,7 +162,7 @@ export const diagnosePipeline = (
     const layers: LayerReport[] = [];
     for (const flag of ALL_FLAGS) {
       setAllFlags(false);
-      (PIPELINE_FLAGS as Record<FlagKey, boolean>)[flag] = true;
+      (PIPELINE_FLAGS)[flag] = true;
 
       const variant = runWithFlags(text, ctx);
       const diffs = diffClassified(baseline, variant);

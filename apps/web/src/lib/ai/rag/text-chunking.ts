@@ -263,8 +263,8 @@ export class TextChunker {
       // استخراج كيانات بسيطة (أسماء شخصيات تبدأ بحرف كبير)
       const words = chunk.content.split(/\s+/);
       for (const word of words) {
-        if (word.length > 2 && word[0] && word[0] === word[0].toUpperCase()) {
-          const count = contextMap.entities.get(word) || 0;
+        if (word.length > 2 && word[0] === word[0]?.toUpperCase()) {
+          const count = contextMap.entities.get(word) ?? 0;
           contextMap.entities.set(word, count + 1);
         }
       }
@@ -284,7 +284,7 @@ export class TextChunker {
   /**
    * تحديد ما إذا كان النص يحتاج إلى تقسيم
    */
-  needsChunking(text: string, maxTokens: number = 30000): boolean {
+  needsChunking(text: string, maxTokens = 30000): boolean {
     return this.estimateTokens(text) > maxTokens;
   }
 }

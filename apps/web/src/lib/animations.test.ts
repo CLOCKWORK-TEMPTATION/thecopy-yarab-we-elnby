@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { createIntersectionObserver } from "./animations";
 
 describe("createIntersectionObserver", () => {
@@ -90,7 +91,7 @@ describe("createIntersectionObserver", () => {
 
     // Trigger the callback manually
     if (observerCallback) {
-      observerCallback(entries, {} as IntersectionObserver);
+      observerCallback(entries, {});
     }
 
     // Verify our custom callback was called for each entry

@@ -25,8 +25,8 @@ class BreakdownE2EConfig {
 
   private constructor() {
     this.baseUrl = (
-      process.env["BREAKDOWN_E2E_BASE_URL"] ||
-      process.env["PLAYWRIGHT_BASE_URL"] ||
+      process.env["BREAKDOWN_E2E_BASE_URL"] ??
+      process.env["PLAYWRIGHT_BASE_URL"] ??
       "http://localhost:5000"
     ).replace(/\/+$/, "");
     this.routePath = "/breakdown";
@@ -263,7 +263,7 @@ async function setupApiMocks(page: Page): Promise<void> {
 const config = BreakdownE2EConfig.fromEnv();
 const logger: Logger = pino({
   name: "breakdown-e2e",
-  level: process.env["BREAKDOWN_E2E_LOG_LEVEL"] || "info",
+  level: process.env["BREAKDOWN_E2E_LOG_LEVEL"] ?? "info",
   base: { scope: "e2e" },
 });
 

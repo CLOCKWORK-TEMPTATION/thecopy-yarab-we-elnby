@@ -1,5 +1,6 @@
 import "server-only";
 import { GoogleGenAI } from "@google/genai";
+
 import { logger } from "../utils/logger";
 
 export enum GeminiModel {
@@ -260,7 +261,7 @@ export class GeminiService {
 
     const result = await Promise.race([requestPromise, timeoutPromise]);
 
-    const text = result.text || "";
+    const text = result.text ?? "";
     const latency = Date.now() - startTime;
 
     const usage = this.estimateTokenUsage(fullPrompt, text);
@@ -298,7 +299,7 @@ export class GeminiService {
         const partial = onPartialFallback(rawData);
         if (partial !== undefined) {
           logger.info("[GeminiService] Using partial fallback for response");
-          return partial as T;
+          return partial;
         }
       }
 
@@ -351,7 +352,7 @@ export class GeminiService {
 
     const response = { ...entry.response };
     response.metadata = { ...response.metadata, cached: true };
-    return response as GeminiResponse<T>;
+    return response;
   }
 
   private saveToCache<T>(cacheKey: string, response: GeminiResponse<T>): void {
@@ -554,8 +555,8 @@ export function getGeminiService(config?: GeminiConfig): GeminiService {
       } catch {
         // Fallback: try to get from process.env directly
         apiKey =
-          process.env["GEMINI_API_KEY_PROD"] ||
-          process.env["GEMINI_API_KEY_STAGING"] ||
+          process.env["GEMINI_API_KEY_PROD"] ??
+          process.env["GEMINI_API_KEY_STAGING"] ??
           "";
       }
 
@@ -566,7 +567,7 @@ export function getGeminiService(config?: GeminiConfig): GeminiService {
       }
 
       // Determine environment and create appropriate service
-      const isProduction = process.env["NODE_ENV"] === "production";
+      const isProduction = process.env.NODE_ENV === "production";
       if (isProduction) {
         geminiServiceSingleton = createProductionGeminiService(apiKey);
       } else {

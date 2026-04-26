@@ -81,7 +81,7 @@ export function createSafeStyleObject(cssString: string): React.CSSProperties {
     }
   }
 
-  return styleObject as React.CSSProperties;
+  return styleObject;
 }
 
 /**

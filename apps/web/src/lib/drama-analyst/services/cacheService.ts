@@ -1,8 +1,9 @@
 // Cache Management Service for Drama Analyst App
 // Handles cache operations, offline functionality, and background sync
 
-import { log } from "./loggerService";
 import { encodeRecord, decodeRecord, unflatten } from "../../utils/kv-utils";
+
+import { log } from "./loggerService";
 
 export interface CacheConfig {
   name: string;
@@ -20,8 +21,8 @@ export interface CacheStats {
 }
 
 class CacheService {
-  private cacheConfigs: Map<string, CacheConfig> = new Map();
-  private isServiceWorkerSupported: boolean = false;
+  private cacheConfigs = new Map<string, CacheConfig>();
+  private isServiceWorkerSupported = false;
   private isOnline: boolean = navigator.onLine;
 
   constructor() {
@@ -349,7 +350,7 @@ class CacheService {
 
   public async cacheResource(
     url: string,
-    cacheName: string = "dynamic"
+    cacheName = "dynamic"
   ): Promise<boolean> {
     try {
       const config = this.cacheConfigs.get(cacheName);
@@ -426,7 +427,7 @@ class CacheService {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    const optionsText = encodeRecord(options as any);
+    const optionsText = encodeRecord(options);
     const cacheKey = `${url}?${optionsText}`;
 
     // Check if we're offline

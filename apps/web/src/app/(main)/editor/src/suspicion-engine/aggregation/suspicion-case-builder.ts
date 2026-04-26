@@ -1,16 +1,17 @@
-import type {
-  SuspicionSignal,
-  SuspicionCase,
-  SuspicionWeightPolicy,
-  ClassificationTrace,
-} from "@editor/suspicion-engine/types";
-import type { ClassifiedDraft } from "@editor/extensions/classification-types";
 import {
   aggregateEvidence,
   derivePrimarySuggestedType,
 } from "@editor/suspicion-engine/aggregation/evidence-aggregator";
 import { calculateSuspicionScore } from "@editor/suspicion-engine/scoring/score-calculator";
 import { assignBand } from "@editor/suspicion-engine/scoring/thresholds";
+
+import type { ClassifiedDraft } from "@editor/extensions/classification-types";
+import type {
+  SuspicionSignal,
+  SuspicionCase,
+  SuspicionWeightPolicy,
+  ClassificationTrace,
+} from "@editor/suspicion-engine/types";
 
 // ─── BuildSuspicionCaseParams ─────────────────────────────────────────────────
 

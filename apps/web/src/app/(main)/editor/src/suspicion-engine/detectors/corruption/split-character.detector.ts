@@ -1,6 +1,7 @@
-import type { RawCorruptionEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { RawCorruptionEvidence } from "@editor/suspicion-engine/types";
 
 /**
  * @module corruption/split-character.detector

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+
 import { chatWithBreakdownAssistant } from "../../infrastructure/platform-client";
 
 export interface Message {

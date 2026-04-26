@@ -1,11 +1,13 @@
+import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CHARACTER_NETWORK_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import {
   buildOriginalTextSection,
   buildCharactersSection,
@@ -38,7 +40,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     super(
       "SocialGraph AI",
       TaskType.CHARACTER_NETWORK,
-      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.82;
@@ -49,10 +51,10 @@ export class CharacterNetworkAgent extends BaseAgent {
     const ctx = context as CharacterNetworkContext;
 
     // Extract context with defaults
-    const originalText = ctx?.originalText || "";
-    const characters = ctx?.characters || [];
-    const focusCharacters = ctx?.focusCharacters || [];
-    const relationshipTypes = ctx?.relationshipTypes || [
+    const originalText = ctx?.originalText ?? "";
+    const characters = ctx?.characters ?? [];
+    const focusCharacters = ctx?.focusCharacters ?? [];
+    const relationshipTypes = ctx?.relationshipTypes ?? [
       "family",
       "romantic",
       "professional",
@@ -93,7 +95,7 @@ export class CharacterNetworkAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
-    let processedText = this.cleanupNetworkText(output.text);
+    const processedText = this.cleanupNetworkText(output.text);
 
     const networkComprehensiveness =
       await this.assessNetworkComprehensiveness(processedText);
@@ -132,7 +134,7 @@ export class CharacterNetworkAgent extends BaseAgent {
         charactersIdentified: this.countCharacters(processedText),
         relationshipsIdentified: this.countRelationships(processedText),
         groupsIdentified: this.countGroups(processedText),
-      } as any,
+      },
     };
   }
 
@@ -263,7 +265,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
     score += Math.min(0.25, evidenceCount * 0.025);
 
-    const hasExamples = (text.match(/["«]/g) || []).length >= 2;
+    const hasExamples = (text.match(/["«]/g) ?? []).length >= 2;
     if (hasExamples) score += 0.15;
 
     return Math.min(1, score);
@@ -331,7 +333,7 @@ export class CharacterNetworkAgent extends BaseAgent {
       rivalry: "تنافسية",
       alliance: "تحالفية",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   protected override async getFallbackResponse(

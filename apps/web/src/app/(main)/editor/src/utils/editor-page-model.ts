@@ -1,5 +1,6 @@
-import type { Editor } from "@tiptap/core";
 import { CONTENT_HEIGHT_PX } from "../constants";
+
+import type { Editor } from "@tiptap/core";
 
 /**
  * @description إدارة نموذج الصفحات ومراقبتها في محرر السيناريو

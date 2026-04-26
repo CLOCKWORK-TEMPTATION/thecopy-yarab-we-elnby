@@ -8,16 +8,16 @@ export interface StationInput {
 export interface StationOutput {
   summary: string;
   confidence: number;
-  uncertainties?: Array<{
+  uncertainties?: {
     type: "epistemic" | "aleatoric";
     aspect: string;
     note: string;
     reducible: boolean;
-  }>;
-  alternates?: Array<{
+  }[];
+  alternates?: {
     hypothesis: string;
     confidence: number;
-  }>;
+  }[];
   meta?: Record<string, unknown>;
 }
 

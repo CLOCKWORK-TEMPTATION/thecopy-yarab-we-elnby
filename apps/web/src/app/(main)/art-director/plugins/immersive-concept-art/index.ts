@@ -1,9 +1,11 @@
 // CineArchitect AI - Immersive Concept Art Studio
 // استوديو الفن المفاهيمي الغامر
 
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface ConceptArtProject {
   id: string;
@@ -170,7 +172,7 @@ interface VRExperience {
   interactions: string[];
 }
 
-const projects: Map<string, ConceptArtProject> = new Map();
+const projects = new Map<string, ConceptArtProject>();
 
 export class ImmersiveConceptArt implements Plugin {
   id = "immersive-concept-art";
@@ -275,8 +277,8 @@ export class ImmersiveConceptArt implements Plugin {
       return { success: false, error: "Project not found" };
     }
 
-    const dimensions = data.dimensions || { width: 1, height: 1, depth: 1 };
-    const baseMesh = data.baseMesh || "cube";
+    const dimensions = data.dimensions ?? { width: 1, height: 1, depth: 1 };
+    const baseMesh = data.baseMesh ?? "cube";
 
     const meshVertices: Record<typeof baseMesh, number> = {
       cube: 8,
@@ -465,7 +467,7 @@ export class ImmersiveConceptArt implements Plugin {
       custom: 40,
     };
 
-    const rigType = data.rigType || "biped";
+    const rigType = data.rigType ?? "biped";
     const rigBoneCount = rigBones[rigType];
 
     const character: Character3D = {
@@ -527,7 +529,7 @@ export class ImmersiveConceptArt implements Plugin {
     }
 
     const colorPalette =
-      data.colorScheme || this.generateColorPalette(data.theme);
+      data.colorScheme ?? this.generateColorPalette(data.theme);
 
     const moodboard: MoodBoard = {
       id: uuidv4(),
@@ -646,7 +648,7 @@ export class ImmersiveConceptArt implements Plugin {
       name: data.name,
       type: data.type,
       scenes: [
-        ...(data.includeEnvironments || project.environments.map((e) => e.id)),
+        ...(data.includeEnvironments ?? project.environments.map((e) => e.id)),
       ],
       duration:
         data.type === "walkthrough"
@@ -706,7 +708,7 @@ export class ImmersiveConceptArt implements Plugin {
       ],
     };
 
-    return interactions[type] || [];
+    return interactions[type] ?? [];
   }
 
   private async sculptModel(data: {
@@ -765,9 +767,9 @@ export class ImmersiveConceptArt implements Plugin {
 
     const newMaterial: Material3D = {
       id: uuidv4(),
-      name: data.material.name || "New Material",
-      type: data.material.type || "pbr",
-      baseColor: data.material.baseColor || "#808080",
+      name: data.material.name ?? "New Material",
+      type: data.material.type ?? "pbr",
+      baseColor: data.material.baseColor ?? "#808080",
       roughness: data.material.roughness ?? 0.5,
       metalness: data.material.metalness ?? 0,
       ...definedProps({
@@ -868,7 +870,7 @@ export class ImmersiveConceptArt implements Plugin {
       blend: ["Blender"],
     };
 
-    return compatibility[format] || [];
+    return compatibility[format] ?? [];
   }
 
   private async listProjects(): Promise<PluginOutput> {

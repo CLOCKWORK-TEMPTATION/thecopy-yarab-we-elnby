@@ -1,9 +1,10 @@
-import type { Editor } from "@tiptap/core";
 import {
   copyToClipboard,
   cutToClipboard,
   pasteFromClipboard,
 } from "./editor-clipboard";
+
+import type { Editor } from "@tiptap/core";
 
 const setClipboard = (clipboard: Partial<Clipboard>): void => {
   Object.defineProperty(navigator, "clipboard", {
@@ -54,7 +55,7 @@ describe("editor clipboard helpers", () => {
 
   it("copies the selected text with a detailed success result", async () => {
     const writeText = vi.fn(async () => undefined);
-    setClipboard({ writeText } as Partial<Clipboard>);
+    setClipboard({ writeText });
 
     const result = await copyToClipboard(createEditor(), true);
 
@@ -67,7 +68,7 @@ describe("editor clipboard helpers", () => {
   it("cuts the selected text only after a successful copy", async () => {
     const writeText = vi.fn(async () => undefined);
     const editor = createEditor();
-    setClipboard({ writeText } as Partial<Clipboard>);
+    setClipboard({ writeText });
 
     const result = await cutToClipboard(editor);
 
@@ -80,7 +81,7 @@ describe("editor clipboard helpers", () => {
     const readText = vi.fn(async () => "نص منسوخ");
     const importText = vi.fn(async () => undefined);
     const importBlocks = vi.fn(async () => undefined);
-    setClipboard({ readText } as Partial<Clipboard>);
+    setClipboard({ readText });
 
     const result = await pasteFromClipboard("menu", importText, importBlocks);
 
@@ -97,7 +98,7 @@ describe("editor clipboard helpers", () => {
       writeText: vi.fn(async () => {
         throw new DOMException("denied", "NotAllowedError");
       }),
-    } as Partial<Clipboard>);
+    });
 
     const result = await copyToClipboard(createEditor(), true);
 

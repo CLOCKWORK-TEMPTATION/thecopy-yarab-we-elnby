@@ -97,11 +97,11 @@ export interface ItemSnapshot {
  * بناء لقطات لمجموعة عناصر — تُستخدم قبل إرسال الحزمة للوكيل.
  */
 export const buildItemSnapshots = async (
-  items: ReadonlyArray<{
+  items: readonly {
     itemId: string;
     type: string;
     rawText: string;
-  }>
+  }[]
 ): Promise<ItemSnapshot[]> => {
   const snapshots: ItemSnapshot[] = [];
   for (const item of items) {

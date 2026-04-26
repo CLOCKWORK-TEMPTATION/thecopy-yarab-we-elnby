@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
 import { WritingEditor } from "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor";
+
 import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
 
 vi.mock("@/components/aceternity/card-spotlight", () => ({

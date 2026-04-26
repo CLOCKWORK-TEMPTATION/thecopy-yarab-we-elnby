@@ -5,6 +5,7 @@
  */
 
 import { io, Socket } from "socket.io-client";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 // Event types matching backend
@@ -56,7 +57,7 @@ type EventCallback<T = unknown> = (data: T) => void;
 
 class WebSocketClient {
   private socket: Socket | null = null;
-  private listeners: Map<string, Set<EventCallback>> = new Map();
+  private listeners = new Map<string, Set<EventCallback>>();
   private maxReconnectAttempts = 5;
 
   /**
@@ -158,7 +159,7 @@ class WebSocketClient {
     this.listeners.get(eventType)!.add(callback as EventCallback);
 
     // Setup socket listener if not already set
-    if (this.socket && this.socket.listeners(eventType).length === 0) {
+    if (this.socket?.listeners(eventType).length === 0) {
       this.socket.on(eventType, (data: unknown) => {
         this.notifyListeners(eventType, data);
       });
@@ -233,7 +234,7 @@ class WebSocketClient {
    * Get connection status
    */
   isConnected(): boolean {
-    return this.socket?.connected || false;
+    return this.socket?.connected ?? false;
   }
 }
 

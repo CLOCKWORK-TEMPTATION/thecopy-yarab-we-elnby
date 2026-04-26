@@ -38,7 +38,7 @@ const activeSnapshots = new Map<string, ImportSnapshot>();
  */
 export function createImportSnapshot(
   importOpId: string,
-  items: Array<{ _itemId?: string; type: string; text: string }>
+  items: { _itemId?: string; type: string; text: string }[]
 ): ImportSnapshot {
   const itemMap = new Map<string, ImportItem>();
 
@@ -217,7 +217,7 @@ export interface ImportSnapshotWithIdMethods extends ImportSnapshot {
  */
 export function createImportSnapshotWithMethods(
   importOpId: string,
-  items: Array<{ _itemId?: string; type: string; text: string }>
+  items: { _itemId?: string; type: string; text: string }[]
 ): ImportSnapshotWithIdMethods {
   const snapshot = createImportSnapshot(importOpId, items);
 

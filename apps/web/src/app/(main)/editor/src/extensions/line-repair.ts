@@ -11,8 +11,8 @@
  *
  * يُستهلك في {@link PasteClassifier} أثناء المعالجة المسبقة للنص الملصوق.
  */
-import type { ElementType } from "./classification-types";
 import { CHARACTER_RE } from "./arabic-patterns";
+import { pipelineRecorder } from "./pipeline-recorder";
 import {
   hasActionVerbStructure,
   isActionVerbStart,
@@ -20,7 +20,8 @@ import {
   normalizeLine,
   stripLeadingBullets,
 } from "./text-utils";
-import { pipelineRecorder } from "./pipeline-recorder";
+
+import type { ElementType } from "./classification-types";
 
 /** نمط regex لمطابقة وسوم HTML */
 const HTML_TAG_RE = /<[^>]+>/g;

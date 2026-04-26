@@ -7,7 +7,6 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
-import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Download,
@@ -16,10 +15,11 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
+import { useEffect, useMemo, useState } from "react";
+
+import { BackgroundBeams } from "@/components/aceternity/background-beams";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { NoiseBackground } from "@/components/aceternity/noise-background";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,13 +28,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BackgroundBeams } from "@/components/aceternity/background-beams";
-import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
 
 interface BudgetLineItem {
   code: string;
@@ -138,7 +139,7 @@ function resolveFilename(response: Response, fallback: string) {
   if (parts.length < 2) {
     return fallback;
   }
-  return parts[1]?.replaceAll('"', "").trim() || fallback;
+  return parts[1]?.replaceAll('"', "").trim() ?? fallback;
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -310,7 +311,7 @@ export default function BudgetPage() {
       }
 
       const nextTitle =
-        title.trim() || payload.data.budget.metadata?.title || title;
+        title.trim() || payload.data.budget.metadata?.title ?? title;
 
       setBudget(payload.data.budget);
       setAnalysis(payload.data.analysis);
@@ -363,7 +364,7 @@ export default function BudgetPage() {
         blob,
         resolveFilename(
           response,
-          `${budget.metadata?.title?.trim() || "budget"}.xlsx`
+          `${budget.metadata?.title?.trim() ?? "budget"}.xlsx`
         )
       );
     } catch (caughtError) {

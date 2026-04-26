@@ -9,7 +9,12 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
-import type { ViewType, User, Script, Recording } from "../types";
+
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
+
 import {
   readPersistedAppState,
   resolveInitialView,
@@ -20,10 +25,8 @@ import {
   writePersistedAppState,
   type PersistedAppState,
 } from "../lib/storage";
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
+
+import type { ViewType, User, Script, Recording } from "../types";
 
 interface AppContextValue {
   currentView: ViewType;

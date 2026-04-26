@@ -41,7 +41,13 @@ export function sanitizeUserInput(input: string): string {
   }
 
   // Remove null bytes and control characters except newlines and tabs
-  let cleaned = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  const lowControlCharactersRange = `${String.fromCharCode(0)}-${String.fromCharCode(8)}`;
+  const highControlCharactersRange = `${String.fromCharCode(14)}-${String.fromCharCode(31)}`;
+  const unsafeControlCharacters = new RegExp(
+    `[${lowControlCharactersRange}${String.fromCharCode(11)}${String.fromCharCode(12)}${highControlCharactersRange}${String.fromCharCode(127)}]`,
+    "g"
+  );
+  let cleaned = input.replace(unsafeControlCharacters, "");
 
   // Limit length to prevent DoS
   if (cleaned.length > 100000) {
@@ -57,10 +63,16 @@ export function sanitizeUserInput(input: string): string {
 export function sanitizeFilename(filename: string): string {
   if (!filename) return "untitled";
 
+  const controlCharactersRange = `${String.fromCharCode(0)}-${String.fromCharCode(31)}`;
+  const unsafeFilenameCharacters = new RegExp(
+    `[<>:"/\\\\|?*${controlCharactersRange}]`,
+    "g"
+  );
+
   // Remove dangerous characters
   return (
     filename
-      .replace(/[<>:"/\\|?*\x00-\x1f]/g, "")
+      .replace(unsafeFilenameCharacters, "")
       .replace(/^\.+/, "")
       .substring(0, 255)
       .trim() || "untitled"

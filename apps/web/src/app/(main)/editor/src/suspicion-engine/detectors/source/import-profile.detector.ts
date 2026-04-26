@@ -1,6 +1,7 @@
-import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { SourceRiskEvidence } from "@editor/suspicion-engine/types";
 
 // حد نسبة العربية لاعتبار السطر قصيراً بأسلوب OCR
 const OCR_SHORT_LINE_THRESHOLD = 15;

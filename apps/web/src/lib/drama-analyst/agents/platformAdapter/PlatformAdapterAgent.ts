@@ -4,6 +4,7 @@ import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { PLATFORM_ADAPTER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -16,7 +17,7 @@ export class PlatformAdapterAgent extends BaseAgent {
     super(
       "MediaTransmorph AI",
       TaskType.PLATFORM_ADAPTER,
-      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt || ""
+      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.78;
@@ -31,9 +32,9 @@ export class PlatformAdapterAgent extends BaseAgent {
     // Extract platform-specific context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const targetPlatform = (contextObj as any)?.targetPlatform || "غير محدد";
-    const sourceContent = (contextObj as any)?.sourceContent || userInput;
-    const constraints = (contextObj as any)?.constraints || {};
+    const targetPlatform = (contextObj as any)?.targetPlatform ?? "غير محدد";
+    const sourceContent = (contextObj as any)?.sourceContent ?? userInput;
+    const constraints = (contextObj as any)?.constraints ?? {};
 
     let prompt = `## مهمة تحويل المحتوى للمنصة
 
@@ -170,7 +171,7 @@ ${sourceContent.substring(0, 2000)}
         ? input.context
         : {};
     const targetPlatform =
-      (contextObj as any)?.targetPlatform || "المنصة المستهدفة";
+      (contextObj as any)?.targetPlatform ?? "المنصة المستهدفة";
 
     return `# تحويل المحتوى - وضع الطوارئ
 

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+
 import {
   buildProxyErrorResponse,
   proxyToBackend,
@@ -7,7 +8,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type RouteContext = { params: Promise<{ path: string[] }> };
+interface RouteContext { params: Promise<{ path: string[] }> }
 
 function getTargetPath(path: string[]): string {
   return `/api/breakapp/${path.join("/")}`;

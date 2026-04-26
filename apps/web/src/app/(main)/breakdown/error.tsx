@@ -1,5 +1,8 @@
 "use client";
 
+import { AlertTriangle, RotateCcw, Home } from "lucide-react";
+import { useEffect } from "react";
+
 import { logger } from "@/lib/ai/utils/logger";
 /**
  * حدود الخطأ على مستوى المسار — breakdown
@@ -12,8 +15,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * ويوفر خيار إعادة المحاولة دون إعادة تحميل الصفحة
  */
 
-import { useEffect } from "react";
-import { AlertTriangle, RotateCcw, Home } from "lucide-react";
 
 interface ErrorBoundaryProps {
   error: Error & { digest?: string };
@@ -23,7 +24,7 @@ interface ErrorBoundaryProps {
 export default function BreakdownError({ error, reset }: ErrorBoundaryProps) {
   useEffect(() => {
     // تسجيل الخطأ — يمكن استبداله بخدمة تسجيل خارجية
-    if (process.env["NODE_ENV"] === "development") {
+    if (process.env.NODE_ENV === "development") {
       logger.error("[breakdown] خطأ غير معالج:", error);
     }
   }, [error]);
@@ -47,7 +48,7 @@ export default function BreakdownError({ error, reset }: ErrorBoundaryProps) {
               </p>
             </div>
 
-            {process.env["NODE_ENV"] === "development" && (
+            {process.env.NODE_ENV === "development" && (
               <details className="w-full max-w-lg text-right">
                 <summary className="cursor-pointer text-sm text-white/55 hover:text-white/68 font-cairo">
                   تفاصيل الخطأ (وضع التطوير)

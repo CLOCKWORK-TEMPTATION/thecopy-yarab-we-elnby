@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
 import React from "react";
-import { renderWithApp, screen } from "../test-utils";
+import { describe, it, expect } from "vitest";
+
 import { LoginForm, RegisterForm } from "../features/auth/index";
-import { HomeView } from "../features/home/index";
 import { DashboardView } from "../features/dashboard/index";
+import { HomeView } from "../features/home/index";
+import { renderWithApp, screen } from "../test-utils";
 
 // ── LoginForm ──
 

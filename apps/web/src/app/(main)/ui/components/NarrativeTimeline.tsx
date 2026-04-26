@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   GitBranch,
@@ -7,8 +6,10 @@ import {
   GripVertical,
   Copy,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 // import { toast } from "sonner"; // Temporarily disabled
 
 interface TimelineScene {
@@ -42,12 +43,11 @@ export function NarrativeTimeline({
 }: NarrativeTimelineProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showBranches, setShowBranches] = useState(mode === "nonlinear");
-  const [] = useState<Set<number>>(new Set());
   const [draggedScene, setDraggedScene] = useState<TimelineScene | null>(null);
 
   const groupedScenes = scenes.reduce(
     (acc, scene) => {
-      const branch = scene.branch || "main";
+      const branch = scene.branch ?? "main";
       if (!acc[branch]) acc[branch] = [];
       acc[branch].push(scene);
       return acc;

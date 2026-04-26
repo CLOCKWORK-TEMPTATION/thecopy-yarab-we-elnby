@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { logError } from "../../domain/errors";
+
 import { loadAnalysisReport } from "../../application/report/report-loader";
+import { logError } from "../../domain/errors";
 import {
   BreakdownLoadingState,
   BreakdownMessageState,
   BreakdownReportView,
 } from "../shared/breakdown-report-view";
+
 import type { AnalysisReportOutput } from "../../domain/schemas";
 
 export default function BreakdownContent() {

@@ -15,12 +15,12 @@
  * يُستهلك في {@link PasteClassifier} → `classifyLines()` داخل الـ forward loop.
  */
 
-import type { ClassifiedDraft, ElementType } from "./classification-types";
+import { logger } from "../utils/logger";
+
 import { collectActionEvidence } from "./action";
-import { hasDirectDialogueCues } from "./dialogue";
-import type { DocumentContextGraph } from "./document-context-graph";
 import { CLASSIFICATION_VALID_SEQUENCES } from "./classification-sequence-rules";
-import type { ContextMemoryManager } from "./context-memory-manager";
+import { hasDirectDialogueCues } from "./dialogue";
+import { pipelineRecorder } from "./pipeline-recorder";
 import {
   normalizeLine,
   normalizeCharacterName,
@@ -29,8 +29,11 @@ import {
   isActionCueLine,
   startsWithBullet,
 } from "./text-utils";
-import { logger } from "../utils/logger";
-import { pipelineRecorder } from "./pipeline-recorder";
+
+import type { ClassifiedDraft, ElementType } from "./classification-types";
+import type { ContextMemoryManager } from "./context-memory-manager";
+import type { DocumentContextGraph } from "./document-context-graph";
+
 
 const reflectionLogger = logger.createScope("self-reflection");
 
@@ -66,7 +69,7 @@ const lookBackForCharacter = (
   const start = Math.max(0, fromIndex - lookback);
   for (let i = fromIndex - 1; i >= start; i--) {
     const item = classified[i];
-    if (item && item.type === "character") return true;
+    if (item?.type === "character") return true;
   }
   return false;
 };
@@ -180,7 +183,7 @@ export const reflectOnChunk = (
 
   for (let i = chunkStart; i < chunkEnd; i++) {
     const draft = classified[i];
-    if (!draft || draft.text === undefined) continue;
+    if (draft?.text === undefined) continue;
     const line = normalizeLine(draft.text);
     if (!line) continue;
 
@@ -203,8 +206,7 @@ export const reflectOnChunk = (
     if (draft.type === "action" && i > 0) {
       const prev = classified[i - 1];
       if (
-        prev &&
-        prev.type === "character" &&
+        prev?.type === "character" &&
         !hasVeryStrongActionSignal(line)
       ) {
         classified[i] = correctedDraft(draft, "dialogue", 4);
@@ -240,8 +242,7 @@ export const reflectOnChunk = (
       const next = classified[i + 1];
       if (
         prev &&
-        next &&
-        prev.type === next.type &&
+        prev.type === next?.type &&
         prev.confidence >= 85 &&
         next.confidence >= 85 &&
         prev.type !== draft.type

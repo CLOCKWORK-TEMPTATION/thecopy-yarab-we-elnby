@@ -1,5 +1,5 @@
 import { XMLBuilder } from "fast-xml-parser";
-import type { ScreenplayBlock } from "../file-import/document-model";
+
 import {
   type BlockExportRequest,
   downloadBlob,
@@ -7,6 +7,8 @@ import {
   resolveBlocksForExport,
   sanitizeExportFileBaseName,
 } from "./shared";
+
+import type { ScreenplayBlock } from "../file-import/document-model";
 
 type FdxParagraphType =
   | "Scene Heading"
@@ -106,7 +108,7 @@ const buildFdxParagraphs = (blocks: ScreenplayBlock[]): FdxParagraph[] => {
     if (block.formatId === "scene_header_1") {
       const next = blocks[i + 1];
       let combinedText = text;
-      if (next && next.formatId === "scene_header_2") {
+      if (next?.formatId === "scene_header_2") {
         const nextText = normalizeText(next.text);
         if (nextText) {
           combinedText = `${text} - ${nextText}`;
@@ -115,7 +117,7 @@ const buildFdxParagraphs = (blocks: ScreenplayBlock[]): FdxParagraph[] => {
       }
       // لو في scene_header_3 بعدهم — نضيفه كفقرة منفصلة
       const afterNext = blocks[i + 1];
-      if (afterNext && afterNext.formatId === "scene_header_3") {
+      if (afterNext?.formatId === "scene_header_3") {
         const h3Text = normalizeText(afterNext.text);
         if (h3Text) {
           combinedText = `${combinedText}\n${h3Text}`;

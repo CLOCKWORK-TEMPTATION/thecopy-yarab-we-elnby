@@ -12,14 +12,14 @@
  * سلوك Enter: الانتقال إلى {@link Action} آخر (استمرار الوصف).
  */
 import { Node, mergeAttributes } from "@tiptap/core";
-import type { ClassificationContext } from "./classification-types";
-import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
+
 import {
   PRONOUN_ACTION_RE,
   SCENE_NUMBER_EXACT_RE,
   THEN_ACTION_RE,
   TRANSITION_RE,
 } from "./arabic-patterns";
+import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import {
   hasActionVerbStructure,
   isActionCueLine,
@@ -29,6 +29,8 @@ import {
   matchesActionStartPattern,
   normalizeLine,
 } from "./text-utils";
+
+import type { ClassificationContext } from "./classification-types";
 
 /**
  * أدلة تصنيف سطر كوصف/حدث — 9 أعلام منطقية مستقلة.

@@ -5,8 +5,8 @@
  */
 
 import fs from "node:fs";
-import path from "node:path";
 import { createRequire } from "node:module";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
@@ -110,7 +110,7 @@ function generateManifest(): void {
 
     // Check if page.tsx exists in this directory
     if (fs.existsSync(pagePath)) {
-      const metadata = PAGE_METADATA[slug] || {
+      const metadata = PAGE_METADATA[slug] ?? {
         title: slug,
         description: `صفحة ${slug}`,
       };

@@ -5,8 +5,10 @@
  */
 
 import React from "react";
-import { TechPackSpec } from "../services/techPackService";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import { TechPackSpec } from "../services/techPackService";
 
 interface TechPackViewProps {
   data: TechPackSpec;

@@ -18,19 +18,22 @@
  * يُستهلك في {@link PasteClassifier} → `classifyLines()` بعد الـ forward pass.
  */
 
-import type { ClassifiedDraft, ElementType } from "./classification-types";
+import { logger } from "../utils/logger";
+
 import { collectActionEvidence } from "./action";
-import { hasDirectDialogueCues } from "./dialogue";
-import type { DocumentContextGraph } from "./document-context-graph";
 import { CLASSIFICATION_VALID_SEQUENCES } from "./classification-sequence-rules";
+import { hasDirectDialogueCues } from "./dialogue";
+import { pipelineRecorder } from "./pipeline-recorder";
 import {
   normalizeLine,
   isActionVerbStart,
   hasActionVerbStructure,
   isActionCueLine,
 } from "./text-utils";
-import { logger } from "../utils/logger";
-import { pipelineRecorder } from "./pipeline-recorder";
+
+import type { ClassifiedDraft, ElementType } from "./classification-types";
+import type { DocumentContextGraph } from "./document-context-graph";
+
 
 const reverseLogger = logger.createScope("reverse-pass");
 
@@ -216,7 +219,7 @@ export const reverseClassificationPass = (
 
     for (let i = range.end; i >= range.start; i--) {
       const draft = classified[i];
-      if (!draft || draft.text === undefined) continue;
+      if (draft?.text === undefined) continue;
       const line = normalizeLine(draft.text);
 
       // أنواع regex عالية الثقة → نسخ مباشرة

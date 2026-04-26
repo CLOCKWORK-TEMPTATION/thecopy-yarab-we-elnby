@@ -11,6 +11,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import ProjectStats from "@/app/(main)/directors-studio/components/ProjectStats";
 import { ProjectTabs } from "@/app/(main)/directors-studio/components/ProjectTabs";
 import {

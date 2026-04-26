@@ -1,6 +1,8 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { CHARACTER_DEEP_ANALYZER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -13,7 +15,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     super(
       "CharacterDeepAnalyzer AI",
       TaskType.CHARACTER_DEEP_ANALYZER,
-      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.75;
@@ -29,7 +31,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
     const characterName =
-      (contextObj as any)?.characterName || "الشخصية المستهدفة";
+      (contextObj as any)?.characterName ?? "الشخصية المستهدفة";
     const previousAnalysis = (contextObj as any)?.previousAnalysis;
 
     let prompt = `## مهمة التحليل العميق للشخصية: ${characterName}

@@ -1,5 +1,6 @@
-import React from "react";
 import { Bot, User } from "lucide-react";
+import React from "react";
+
 import type { Message } from "../../application/workspace/use-breakdown-chat";
 
 interface ChatMessageProps {

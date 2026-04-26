@@ -14,8 +14,8 @@ export interface TextChunk {
 }
 
 export function chunkText(text: string, options?: ChunkOptions): TextChunk[] {
-  const maxSize = options?.maxChunkSize || 1000;
-  const overlap = options?.overlap || 100;
+  const maxSize = options?.maxChunkSize ?? 1000;
+  const overlap = options?.overlap ?? 100;
   const chunks: TextChunk[] = [];
 
   let start = 0;

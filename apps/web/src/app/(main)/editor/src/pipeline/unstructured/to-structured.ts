@@ -1,5 +1,5 @@
-import type { ScreenplayBlock } from "../../utils/file-import/document-model";
 import type { UnstructuredItemType, UnstructuredResult } from "./types";
+import type { ScreenplayBlock } from "../../utils/file-import/document-model";
 
 function assertUnreachable(value: never): never {
   throw new Error(`Unhandled UnstructuredItemType: ${String(value)}`);

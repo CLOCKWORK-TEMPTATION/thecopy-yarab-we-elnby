@@ -8,13 +8,15 @@
  */
 
 import { useState, useCallback } from "react";
+
 import { definedProps } from "@/lib/defined-props";
-import { Scene, SceneBreakdown, ScenarioAnalysis, Version } from "../types";
+
+import { logError } from "../config";
 import {
   reanalyzeBreakdownScene,
   chatWithBreakdownAssistant,
 } from "../infrastructure/platform-client";
-import { logError } from "../config";
+import { Scene, SceneBreakdown, ScenarioAnalysis, Version } from "../types";
 
 /**
  * نتيجة عملية التحليل
@@ -111,7 +113,7 @@ export function useSceneManager(
         prev.map((scene) => {
           if (scene.id !== id) return scene;
 
-          const oldVersions = scene.versions || [];
+          const oldVersions = scene.versions ?? [];
           const newVersions = [...oldVersions];
 
           // حفظ الحالة القديمة كإصدار قبل الكتابة فوقها
@@ -133,8 +135,8 @@ export function useSceneManager(
             isAnalyzed: !!breakdown || !!scene.analysis,
             versions: newVersions,
             ...definedProps({
-              analysis: breakdown || scene.analysis,
-              scenarios: scenarios || scene.scenarios,
+              analysis: breakdown ?? scene.analysis,
+              scenarios: scenarios ?? scene.scenarios,
             }),
           };
         })

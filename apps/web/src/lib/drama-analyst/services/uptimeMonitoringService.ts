@@ -47,10 +47,10 @@ class UptimeMonitoringService {
     this.config = {
       enableGA4: true,
       enableSentry: true,
-      enableConsoleLog: process.env["NODE_ENV"] === "development",
+      enableConsoleLog: process.env.NODE_ENV === "development",
       healthCheckInterval: 30000, // 30 seconds
       performanceCheckInterval: 60000, // 1 minute
-      debug: process.env["NODE_ENV"] === "development",
+      debug: process.env.NODE_ENV === "development",
       ...config,
     };
 

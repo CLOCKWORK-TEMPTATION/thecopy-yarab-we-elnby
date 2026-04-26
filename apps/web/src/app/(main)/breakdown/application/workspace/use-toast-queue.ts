@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback } from "react";
+
 import { DEFAULT_TOAST_DURATION } from "../../domain/constants";
 
 /**
@@ -92,7 +93,7 @@ export function useToastQueue(): UseToastQueueReturn {
   const addToast = useCallback(
     (type: ToastType, message: string, options: ToastOptions = {}): string => {
       const id =
-        options.id ||
+        options.id ??
         `toast-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       const duration = options.duration ?? DEFAULT_TOAST_DURATION;
 

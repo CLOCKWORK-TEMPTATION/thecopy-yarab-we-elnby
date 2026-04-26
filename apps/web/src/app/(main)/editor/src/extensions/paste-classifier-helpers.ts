@@ -3,18 +3,19 @@
  * @description دوال مساعدة لمصنف اللصق — UUID، fetch، text normalization، hint queues
  */
 
-import type {
-  ClassifiedDraft,
-  ClassificationSourceProfile,
-  ElementType,
-} from "./classification-types";
-import { fromLegacyElementType } from "./classification-types";
 import { convertHindiToArabic } from "./arabic-patterns";
+import { fromLegacyElementType } from "./classification-types";
 import { parseBulletLine } from "./line-repair";
 import {
   agentReviewLogger,
   FALLBACK_ITEM_ID_PREFIX,
 } from "./paste-classifier-config";
+
+import type {
+  ClassifiedDraft,
+  ClassificationSourceProfile,
+  ElementType,
+} from "./classification-types";
 
 // ─── UUID Generation ──────────────────────────────────────────────
 
@@ -53,10 +54,10 @@ export const generateItemId = (): string => {
 
 // ─── Fetch Helpers ────────────────────────────────────────────────
 
-type AbortSignalStatic = {
+interface AbortSignalStatic {
   timeout?: (milliseconds: number) => AbortSignal;
   any?: (signals: AbortSignal[]) => AbortSignal;
-};
+}
 
 export const buildFetchSignal = (
   controller: AbortController,

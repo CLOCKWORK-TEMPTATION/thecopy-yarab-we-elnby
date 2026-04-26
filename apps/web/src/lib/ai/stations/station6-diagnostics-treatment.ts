@@ -1,4 +1,3 @@
-import { GeminiService } from "./gemini-service";
 import {
   MultiAgentDebateSystem,
   DebateResult,
@@ -7,6 +6,8 @@ import {
   UncertaintyQuantificationEngine,
   getUncertaintyQuantificationEngine,
 } from "../constitutional/uncertainty-quantification";
+
+import { GeminiService } from "./gemini-service";
 
 // =====================================================
 // INTERFACES
@@ -35,11 +36,11 @@ export interface IsolatedCharacter {
   isolationScore: number; // 0-10
   currentConnections: string[];
   missedOpportunities: string[];
-  integrationSuggestions: Array<{
+  integrationSuggestions: {
     type: "conflict" | "relationship" | "subplot";
     description: string;
     expectedImpact: number;
-  }>;
+  }[];
 }
 
 export interface AbandonedConflict {
@@ -49,12 +50,12 @@ export interface AbandonedConflict {
   introducedAt: string;
   abandonedAt: string;
   setupInvestment: number; // 0-10 مدى الاستثمار في إعداد هذا الصراع
-  resolutionStrategies: Array<{
+  resolutionStrategies: {
     approach: string;
     complexity: "low" | "medium" | "high";
     narrativePayoff: number; // 0-10
     implementation: string;
-  }>;
+  }[];
 }
 
 export interface StructuralIssue {
@@ -105,15 +106,15 @@ export interface PlotDevelopment {
   description: string;
   probability: number; // 0-1
   confidence: number; // 0-1
-  contributingFactors: Array<{
+  contributingFactors: {
     factor: string;
     weight: number; // 0-1
-  }>;
-  potentialIssues: Array<{
+  }[];
+  potentialIssues: {
     issue: string;
     severity: number; // 0-10
     mitigation: string;
-  }>;
+  }[];
   narrativePayoff: number; // 0-10
 }
 
@@ -122,21 +123,21 @@ export interface PlotPath {
   description: string;
   probability: number; // 0-1
   divergencePoint: string;
-  advantages: Array<{
+  advantages: {
     aspect: string;
     benefit: string;
     impact: number; // 0-10
-  }>;
-  disadvantages: Array<{
+  }[];
+  disadvantages: {
     aspect: string;
     drawback: string;
     severity: number; // 0-10
-  }>;
-  keyMoments: Array<{
+  }[];
+  keyMoments: {
     moment: string;
     significance: string;
     timing: string;
-  }>;
+  }[];
   requiredSetup: string[];
   compatibilityScore: number; // 0-10 مدى التوافق مع النص الحالي
 }
@@ -221,19 +222,19 @@ export interface TreatmentPlan {
   totalTimeEstimate: string;
   riskAssessment: {
     overallRisk: "low" | "medium" | "high";
-    specificRisks: Array<{
+    specificRisks: {
       risk: string;
       probability: number;
       impact: number;
       mitigation: string;
-    }>;
+    }[];
   };
-  successMetrics: Array<{
+  successMetrics: {
     metric: string;
     currentValue: number;
     targetValue: number;
     measurementMethod: string;
-  }>;
+  }[];
 }
 
 export interface PlotPredictions {
@@ -241,12 +242,12 @@ export interface PlotPredictions {
   trajectoryConfidence: number; // 0-1
   likelyDevelopments: PlotDevelopment[];
   alternativePaths: PlotPath[];
-  criticalDecisionPoints: Array<{
+  criticalDecisionPoints: {
     point: string;
     importance: number; // 0-10
     options: string[];
     implications: string;
-  }>;
+  }[];
   narrativeMomentum: number; // 0-10
   predictabilityScore: number; // 0-10
 }
@@ -261,11 +262,11 @@ export interface StationMetadata {
 
 export interface UncertaintyReport {
   overallConfidence: number;
-  uncertainties: Array<{
+  uncertainties: {
     type: "epistemic" | "aleatoric";
     aspect: string;
     note: string;
-  }>;
+  }[];
 }
 
 export interface Station6Output {
@@ -275,6 +276,42 @@ export interface Station6Output {
   plotPredictions: PlotPredictions;
   uncertaintyReport: UncertaintyReport;
   metadata: StationMetadata;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+type PreviousStationsOutput = Partial<
+  Record<"station1" | "station2" | "station3" | "station4" | "station5", JsonRecord>
+>;
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function asJsonRecord(value: unknown): JsonRecord {
+  return isJsonRecord(value) ? value : {};
+}
+
+function asArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : fallback;
+}
+
+function asJsonNumber(value: unknown, fallback: number): number {
+  return Math.min(Math.max(asNumber(value, fallback), 0), 100);
+}
+
+function firstJsonObject(text: string): string | null {
+  return /\{[\s\S]*\}/.exec(text)?.[0] ?? null;
 }
 
 // =====================================================
@@ -295,15 +332,9 @@ export class Station6Diagnostics {
    */
   async execute(
     text: string,
-    previousStationsOutput: {
-      station1: any;
-      station2: any;
-      station3: any;
-      station4: any;
-      station5: any;
-    }
+    previousStationsOutput: PreviousStationsOutput
   ): Promise<Station6Output> {
-    console.log("[Station 6] Starting comprehensive diagnostics");
+    console.warn("[Station 6] Starting comprehensive diagnostics");
 
     const startTime = Date.now();
 
@@ -360,7 +391,7 @@ export class Station6Diagnostics {
         executionTime: Date.now() - startTime,
       };
 
-      console.log(
+      console.warn(
         `[Station 6] Analysis completed in ${metadata.executionTime}ms`
       );
 
@@ -389,7 +420,7 @@ export class Station6Diagnostics {
    */
   private async generateComprehensiveDiagnostics(
     text: string,
-    previousStationsOutput: any
+    previousStationsOutput: PreviousStationsOutput
   ): Promise<DiagnosticsReport> {
     const analysisSummary = this.createStructuredAnalysisSummary(
       previousStationsOutput
@@ -450,22 +481,18 @@ export class Station6Diagnostics {
 `;
 
     try {
-      const response = await this.geminiService.generate({
+      const response = await this.geminiService.generate<string>({
         prompt,
         temperature: 0.3,
         maxTokens: 6144,
       });
 
-      const result =
-        typeof response.content === "string"
-          ? response.content
-          : (response.content as any).raw || "";
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
+      const jsonText = firstJsonObject(response.content);
+      if (!jsonText) {
         throw new Error("No valid JSON found in response");
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed: unknown = JSON.parse(jsonText);
 
       // Validate and ensure all required fields exist
       return this.validateAndEnrichDiagnostics(parsed);
@@ -478,43 +505,43 @@ export class Station6Diagnostics {
   /**
    * Validate and enrich diagnostics data
    */
-  private validateAndEnrichDiagnostics(data: any): DiagnosticsReport {
+  private validateAndEnrichDiagnostics(data: unknown): DiagnosticsReport {
+    const record = asJsonRecord(data);
+    const healthBreakdown = asJsonRecord(record.healthBreakdown);
+
     return {
-      overallHealthScore: Math.min(
-        Math.max(data.overallHealthScore || 50, 0),
-        100
-      ),
+      overallHealthScore: asJsonNumber(record.overallHealthScore, 50),
       healthBreakdown: {
-        characterDevelopment: Math.min(
-          Math.max(data.healthBreakdown?.characterDevelopment || 50, 0),
-          100
+        characterDevelopment: asJsonNumber(
+          healthBreakdown.characterDevelopment,
+          50
         ),
-        plotCoherence: Math.min(
-          Math.max(data.healthBreakdown?.plotCoherence || 50, 0),
-          100
+        plotCoherence: asJsonNumber(healthBreakdown.plotCoherence, 50),
+        structuralIntegrity: asJsonNumber(
+          healthBreakdown.structuralIntegrity,
+          50
         ),
-        structuralIntegrity: Math.min(
-          Math.max(data.healthBreakdown?.structuralIntegrity || 50, 0),
-          100
-        ),
-        dialogueQuality: Math.min(
-          Math.max(data.healthBreakdown?.dialogueQuality || 50, 0),
-          100
-        ),
-        thematicDepth: Math.min(
-          Math.max(data.healthBreakdown?.thematicDepth || 50, 0),
-          100
-        ),
+        dialogueQuality: asJsonNumber(healthBreakdown.dialogueQuality, 50),
+        thematicDepth: asJsonNumber(healthBreakdown.thematicDepth, 50),
       },
-      criticalIssues: (data.criticalIssues || []).slice(0, 10),
-      warnings: (data.warnings || []).slice(0, 15),
-      suggestions: (data.suggestions || []).slice(0, 20),
-      isolatedCharacters: (data.isolatedCharacters || []).slice(0, 5),
-      abandonedConflicts: (data.abandonedConflicts || []).slice(0, 8),
-      structuralIssues: (data.structuralIssues || []).slice(0, 10),
-      riskAreas: (data.riskAreas || []).slice(0, 8),
-      opportunities: (data.opportunities || []).slice(0, 10),
-      summary: data.summary || "تحليل تشخيصي غير متوفر",
+      criticalIssues: asArray<DiagnosticIssue>(record.criticalIssues).slice(
+        0,
+        10
+      ),
+      warnings: asArray<DiagnosticIssue>(record.warnings).slice(0, 15),
+      suggestions: asArray<DiagnosticIssue>(record.suggestions).slice(0, 20),
+      isolatedCharacters: asArray<IsolatedCharacter>(
+        record.isolatedCharacters
+      ).slice(0, 5),
+      abandonedConflicts: asArray<AbandonedConflict>(
+        record.abandonedConflicts
+      ).slice(0, 8),
+      structuralIssues: asArray<StructuralIssue>(
+        record.structuralIssues
+      ).slice(0, 10),
+      riskAreas: asArray<RiskArea>(record.riskAreas).slice(0, 8),
+      opportunities: asArray<Opportunity>(record.opportunities).slice(0, 10),
+      summary: asString(record.summary, "تحليل تشخيصي غير متوفر"),
     };
   }
 
@@ -522,11 +549,12 @@ export class Station6Diagnostics {
    * Generate fallback diagnostics if main analysis fails
    */
   private generateFallbackDiagnostics(
-    previousStationsOutput: any
+    previousStationsOutput: PreviousStationsOutput
   ): DiagnosticsReport {
+    const station4 = asJsonRecord(previousStationsOutput.station4);
+    const efficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
     const efficiencyScore =
-      previousStationsOutput.station4?.efficiencyMetrics
-        ?.overallEfficiencyScore || 50;
+      asNumber(efficiencyMetrics.overallEfficiencyScore, 50);
 
     return {
       overallHealthScore: Math.min(100, efficiencyScore),
@@ -559,7 +587,7 @@ export class Station6Diagnostics {
    */
   private async conductValidationDebate(
     text: string,
-    _previousStationsOutput: any,
+    _previousStationsOutput: PreviousStationsOutput,
     diagnosticsReport: DiagnosticsReport
   ): Promise<DebateResult> {
     const debateContext = `
@@ -628,7 +656,7 @@ export class Station6Diagnostics {
   private async generateDetailedTreatmentPlan(
     diagnosticsReport: DiagnosticsReport,
     debateResults: DebateResult,
-    _previousStationsOutput: any
+    _previousStationsOutput: PreviousStationsOutput
   ): Promise<TreatmentPlan> {
     const prompt = `
 بناءً على التقرير التشخيصي ونتائج النقاش، قم بإنشاء خطة علاج شاملة وقابلة للتنفيذ.
@@ -681,22 +709,18 @@ export class Station6Diagnostics {
 `;
 
     try {
-      const response = await this.geminiService.generate({
+      const response = await this.geminiService.generate<string>({
         prompt,
         temperature: 0.3,
         maxTokens: 6144,
       });
 
-      const result =
-        typeof response.content === "string"
-          ? response.content
-          : (response.content as any).raw || "";
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
+      const jsonText = firstJsonObject(response.content);
+      if (!jsonText) {
         throw new Error("No valid JSON found in response");
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed: unknown = JSON.parse(jsonText);
       return this.validateAndEnrichTreatmentPlan(parsed);
     } catch (error) {
       console.error("[Station 6] Treatment plan parsing error:", error);
@@ -707,43 +731,60 @@ export class Station6Diagnostics {
   /**
    * Validate and enrich treatment plan
    */
-  private validateAndEnrichTreatmentPlan(data: any): TreatmentPlan {
+  private validateAndEnrichTreatmentPlan(data: unknown): TreatmentPlan {
+    const record = asJsonRecord(data);
+    const implementationRoadmap = asJsonRecord(record.implementationRoadmap);
+    const riskAssessment = asJsonRecord(record.riskAssessment);
+
     return {
-      prioritizedRecommendations: (data.prioritizedRecommendations || []).slice(
-        0,
-        20
-      ),
+      prioritizedRecommendations: asArray<Recommendation>(
+        record.prioritizedRecommendations
+      ).slice(0, 20),
       implementationRoadmap: {
-        phase1: data.implementationRoadmap?.phase1 || {
+        phase1: (implementationRoadmap.phase1 as TreatmentPlan["implementationRoadmap"]["phase1"] | undefined) ?? {
           title: "المرحلة الأولى",
           tasks: [],
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase2: data.implementationRoadmap?.phase2 || {
+        phase2: (implementationRoadmap.phase2 as TreatmentPlan["implementationRoadmap"]["phase2"] | undefined) ?? {
           title: "المرحلة الثانية",
           tasks: [],
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase3: data.implementationRoadmap?.phase3 || {
+        phase3: (implementationRoadmap.phase3 as TreatmentPlan["implementationRoadmap"]["phase3"] | undefined) ?? {
           title: "المرحلة الثالثة",
           tasks: [],
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
       },
-      estimatedImprovementScore: Math.min(
-        Math.max(data.estimatedImprovementScore || 50, 0),
-        100
+      estimatedImprovementScore: asJsonNumber(
+        record.estimatedImprovementScore,
+        50
       ),
-      implementationComplexity: data.implementationComplexity || "medium",
-      totalTimeEstimate: data.totalTimeEstimate || "غير محدد",
+      implementationComplexity:
+        record.implementationComplexity === "low" ||
+        record.implementationComplexity === "medium" ||
+        record.implementationComplexity === "high"
+          ? record.implementationComplexity
+          : "medium",
+      totalTimeEstimate: asString(record.totalTimeEstimate, "غير محدد"),
       riskAssessment: {
-        overallRisk: data.riskAssessment?.overallRisk || "medium",
-        specificRisks: (data.riskAssessment?.specificRisks || []).slice(0, 10),
+        overallRisk:
+          riskAssessment.overallRisk === "low" ||
+          riskAssessment.overallRisk === "medium" ||
+          riskAssessment.overallRisk === "high"
+            ? riskAssessment.overallRisk
+            : "medium",
+        specificRisks: asArray<
+          TreatmentPlan["riskAssessment"]["specificRisks"][number]
+        >(riskAssessment.specificRisks).slice(0, 10),
       },
-      successMetrics: (data.successMetrics || []).slice(0, 8),
+      successMetrics: asArray<TreatmentPlan["successMetrics"][number]>(
+        record.successMetrics
+      ).slice(0, 8),
     };
   }
 
@@ -858,7 +899,7 @@ export class Station6Diagnostics {
    */
   private async predictPlotTrajectoryWithAlternatives(
     text: string,
-    previousStationsOutput: any,
+    previousStationsOutput: PreviousStationsOutput,
     diagnosticsReport: DiagnosticsReport
   ): Promise<PlotPredictions> {
     const contextSummary = this.createStructuredAnalysisSummary(
@@ -925,22 +966,18 @@ export class Station6Diagnostics {
 `;
 
     try {
-      const response = await this.geminiService.generate({
+      const response = await this.geminiService.generate<string>({
         prompt,
         temperature: 0.4,
         maxTokens: 6144,
       });
 
-      const result =
-        typeof response.content === "string"
-          ? response.content
-          : (response.content as any).raw || "";
-      const jsonMatch = result.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
+      const jsonText = firstJsonObject(response.content);
+      if (!jsonText) {
         throw new Error("No valid JSON found in response");
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed: unknown = JSON.parse(jsonText);
       return this.validateAndEnrichPlotPredictions(parsed);
     } catch (error) {
       console.error("[Station 6] Plot predictions parsing error:", error);
@@ -951,19 +988,31 @@ export class Station6Diagnostics {
   /**
    * Validate and enrich plot predictions
    */
-  private validateAndEnrichPlotPredictions(data: any): PlotPredictions {
+  private validateAndEnrichPlotPredictions(data: unknown): PlotPredictions {
+    const record = asJsonRecord(data);
+
     return {
-      currentTrajectory: (data.currentTrajectory || []).slice(0, 10),
+      currentTrajectory: asArray<PlotPoint>(record.currentTrajectory).slice(
+        0,
+        10
+      ),
       trajectoryConfidence: Math.min(
-        Math.max(data.trajectoryConfidence || 0.5, 0),
+        Math.max(asNumber(record.trajectoryConfidence, 0.5), 0),
         1
       ),
-      likelyDevelopments: (data.likelyDevelopments || []).slice(0, 8),
-      alternativePaths: (data.alternativePaths || []).slice(0, 5),
-      criticalDecisionPoints: (data.criticalDecisionPoints || []).slice(0, 8),
-      narrativeMomentum: Math.min(Math.max(data.narrativeMomentum || 5, 0), 10),
+      likelyDevelopments: asArray<PlotDevelopment>(
+        record.likelyDevelopments
+      ).slice(0, 8),
+      alternativePaths: asArray<PlotPath>(record.alternativePaths).slice(0, 5),
+      criticalDecisionPoints: asArray<
+        PlotPredictions["criticalDecisionPoints"][number]
+      >(record.criticalDecisionPoints).slice(0, 8),
+      narrativeMomentum: Math.min(
+        Math.max(asNumber(record.narrativeMomentum, 5), 0),
+        10
+      ),
       predictabilityScore: Math.min(
-        Math.max(data.predictabilityScore || 5, 0),
+        Math.max(asNumber(record.predictabilityScore, 5), 0),
         10
       ),
     };
@@ -973,7 +1022,7 @@ export class Station6Diagnostics {
    * Generate fallback plot predictions
    */
   private generateFallbackPlotPredictions(
-    _previousStationsOutput: any
+    _previousStationsOutput: PreviousStationsOutput
   ): PlotPredictions {
     return {
       currentTrajectory: [
@@ -1102,26 +1151,48 @@ export class Station6Diagnostics {
   /**
    * Create structured summary of previous analyses
    */
-  private createStructuredAnalysisSummary(previousStationsOutput: any): string {
+  private createStructuredAnalysisSummary(
+    previousStationsOutput: PreviousStationsOutput
+  ): string {
+    const station1 = asJsonRecord(previousStationsOutput.station1);
+    const station2 = asJsonRecord(previousStationsOutput.station2);
+    const station3 = asJsonRecord(previousStationsOutput.station3);
+    const station4 = asJsonRecord(previousStationsOutput.station4);
+    const station5 = asJsonRecord(previousStationsOutput.station5);
+    const station1MajorCharacters = asArray<unknown>(
+      station1.majorCharacters
+    );
+    const station2HybridGenre = asJsonRecord(station2.hybridGenre);
+    const station2Themes = asJsonRecord(station2.themes);
+    const station2PrimaryThemes = asArray<unknown>(station2Themes.primary);
+    const station3NetworkAnalysis = asJsonRecord(station3.networkAnalysis);
+    const station3ConflictAnalysis = asJsonRecord(station3.conflictAnalysis);
+    const station3MainConflict = asJsonRecord(
+      station3ConflictAnalysis.mainConflict
+    );
+    const station4EfficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
+    const station5SymbolicAnalysis = asJsonRecord(station5.symbolicAnalysis);
+    const station5TensionAnalysis = asJsonRecord(station5.tensionAnalysis);
+
     return `
 **محطة 1 - التحليل الأساسي:**
-- الشخصيات الرئيسية: ${previousStationsOutput.station1?.majorCharacters?.length || 0}
-- ملخص القصة: ${previousStationsOutput.station1?.logline || "غير متوفر"}
+- الشخصيات الرئيسية: ${station1MajorCharacters.length}
+- ملخص القصة: ${asString(station1.logline, "غير متوفر")}
 
 **محطة 2 - التحليل المفاهيمي:**
-- النوع: ${previousStationsOutput.station2?.hybridGenre?.primary || "غير محدد"}
-- المواضيع الرئيسية: ${previousStationsOutput.station2?.themes?.primary?.length || 0}
+- النوع: ${asString(station2HybridGenre.primary, "غير محدد")}
+- المواضيع الرئيسية: ${station2PrimaryThemes.length}
 
 **محطة 3 - شبكة الصراعات:**
-- كثافة الشبكة: ${previousStationsOutput.station3?.networkAnalysis?.density || 0}
-- الصراعات الرئيسية: ${previousStationsOutput.station3?.conflictAnalysis?.mainConflict?.description || "غير محدد"}
+- كثافة الشبكة: ${asNumber(station3NetworkAnalysis.density, 0)}
+- الصراعات الرئيسية: ${asString(station3MainConflict.description, "غير محدد")}
 
 **محطة 4 - مقاييس الكفاءة:**
-- درجة الكفاءة الإجمالية: ${previousStationsOutput.station4?.efficiencyMetrics?.overallEfficiencyScore || 0}
+- درجة الكفاءة الإجمالية: ${asNumber(station4EfficiencyMetrics.overallEfficiencyScore, 0)}
 
 **محطة 5 - التحليل الديناميكي والرمزي:**
-- عمق التحليل الرمزي: ${previousStationsOutput.station5?.symbolicAnalysis?.depthScore || 0}
-- توتر السرد: ${previousStationsOutput.station5?.tensionAnalysis?.overallTension || 0}
+- عمق التحليل الرمزي: ${asNumber(station5SymbolicAnalysis.depthScore, 0)}
+- توتر السرد: ${asNumber(station5TensionAnalysis.overallTension, 0)}
 `;
   }
 }

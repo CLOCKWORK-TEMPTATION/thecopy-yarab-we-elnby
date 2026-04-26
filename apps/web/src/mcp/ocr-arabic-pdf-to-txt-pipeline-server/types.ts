@@ -68,9 +68,7 @@ export interface NamedReplacement {
   pattern: RegExp;
 }
 
-export interface ParsedArgs {
-  [key: string]: string | boolean | undefined;
-}
+export type ParsedArgs = Record<string, string | boolean | undefined>;
 
 export interface PreprocessResult {
   text: string;

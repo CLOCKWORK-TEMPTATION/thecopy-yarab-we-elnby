@@ -1,10 +1,11 @@
+import * as path from "path";
+
+import { logger } from "../src/rag/config.js";
 import {
   createCollection,
   indexCodebase,
   getIndexStats,
 } from "../src/rag/indexer.js";
-import { logger } from "../src/rag/config.js";
-import * as path from "path";
 
 async function main() {
   try {

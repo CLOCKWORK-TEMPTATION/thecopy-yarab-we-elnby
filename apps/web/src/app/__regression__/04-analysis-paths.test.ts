@@ -7,6 +7,7 @@
  * - handoff persistence: النتائج يمكن تمريرها للمرحلة التالية
  */
 import { describe, it, expect } from "vitest";
+
 import { platformApps } from "@/config/apps.config";
 
 describe("شبكة انحدار: analysis", () => {

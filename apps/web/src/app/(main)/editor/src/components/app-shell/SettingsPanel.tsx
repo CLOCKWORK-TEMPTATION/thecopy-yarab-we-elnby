@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
+
 import {
   TYPING_MODE_OPTIONS,
   toLiveIdleMinutesLabel,
 } from "../../constants/format-mappings";
+
 import type { TypingSystemSettings } from "../../types";
 
 interface SettingsPanelProps {

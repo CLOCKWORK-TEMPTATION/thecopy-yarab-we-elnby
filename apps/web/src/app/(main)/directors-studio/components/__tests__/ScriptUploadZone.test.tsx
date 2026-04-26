@@ -3,9 +3,10 @@
  * تغطي: رفع الملفات، الاستخراج، رسائل الأخطاء، التدفق الكامل
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import ScriptUploadZone from "../ScriptUploadZone";
 
 // Mocks
@@ -60,7 +61,7 @@ vi.mock("@/app/(main)/directors-studio/helpers/fileExtractor", () => ({
   },
   isSupportedFileType: (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
-    return ["txt", "pdf", "docx"].includes(ext || "");
+    return ["txt", "pdf", "docx"].includes(ext ?? "");
   },
 }));
 
@@ -197,7 +198,7 @@ describe("ScriptUploadZone", () => {
   it("should reset file input after selection", async () => {
     render(<ScriptUploadZone />);
 
-    const fileInput = screen.getByTestId("file-input") as HTMLInputElement;
+    const fileInput = screen.getByTestId("file-input");
     const file = new File(["content"], "script.txt", { type: "text/plain" });
 
     // Simulate file selection

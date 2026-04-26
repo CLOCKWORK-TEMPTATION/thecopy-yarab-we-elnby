@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { PlotPredictorAgent } from "./PlotPredictorAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { PlotPredictorAgent } from "./PlotPredictorAgent";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({

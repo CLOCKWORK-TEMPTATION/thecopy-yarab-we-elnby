@@ -18,7 +18,7 @@ export class SelfCritiqueModule {
     output: string,
     task: string,
     context: any,
-    maxIterations: number = 3
+    maxIterations = 3
   ): Promise<SelfCritiqueResult> {
     log.info("Starting self-critique", { maxIterations }, "SelfCritiqueModule");
 

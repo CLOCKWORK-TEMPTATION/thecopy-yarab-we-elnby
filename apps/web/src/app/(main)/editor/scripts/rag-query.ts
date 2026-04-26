@@ -1,5 +1,5 @@
-import { askQuestion } from "../src/rag/query.js";
 import { logger } from "../src/rag/config.js";
+import { askQuestion } from "../src/rag/query.js";
 
 async function main() {
   const args = process.argv.slice(2);

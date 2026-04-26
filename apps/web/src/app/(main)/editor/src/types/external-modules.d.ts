@@ -1,7 +1,7 @@
 declare module "mammoth" {
   export interface ExtractRawTextResult {
     value: string;
-    messages?: Array<{ message: string }>;
+    messages?: { message: string }[];
   }
 
   export function extractRawText(input: {
@@ -21,7 +21,7 @@ declare module "pdfjs-dist/legacy/build/pdf.mjs" {
     promise: Promise<{
       numPages: number;
       getPage: (pageNumber: number) => Promise<{
-        getTextContent: () => Promise<{ items: Array<{ str?: string }> }>;
+        getTextContent: () => Promise<{ items: { str?: string }[] }>;
       }>;
       destroy?: () => Promise<void>;
     }>;

@@ -29,27 +29,29 @@
  *                    └───────────────────┘
  */
 
-import { ToolLoopAgent, stepCountIs } from "ai";
-import type { ToolSet } from "ai";
-import { createMCPClient } from "@ai-sdk/mcp";
-import type { MCPClient } from "@ai-sdk/mcp";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { openai } from "@ai-sdk/openai";
 import { resolve } from "node:path";
 
+import { createMCPClient } from "@ai-sdk/mcp";
+import { openai } from "@ai-sdk/openai";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ToolLoopAgent, stepCountIs } from "ai";
+
 import { buildAgentConfig, validateEnvironment } from "./config";
-import {
-  readFileTool,
-  writeFileTool,
-  listFilesTool,
-  classifyPdfTool,
-} from "./tools";
 import {
   skillClassifyPdf,
   skillOcrMistral,
   skillWriteOutput,
   skillEnhanceImages,
 } from "./skill-tools";
+import {
+  readFileTool,
+  writeFileTool,
+  listFilesTool,
+  classifyPdfTool,
+} from "./tools";
+
+import type { MCPClient } from "@ai-sdk/mcp";
+import type { ToolSet } from "ai";
 
 // ─── ألوان الطرفية ──────────────────────────────────────────
 

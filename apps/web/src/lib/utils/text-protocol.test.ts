@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { extractSection, extractSectionRegex } from "./text-protocol";
 
 describe("text-protocol", () => {

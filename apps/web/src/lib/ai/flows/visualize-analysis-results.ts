@@ -12,8 +12,9 @@
  * @function visualizeAnalysisResults - ينسق عرض نتائج التحليل.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const VisualizeAnalysisResultsInputSchema = z.object({
   conflictNetwork: z.string().describe("سلسلة JSON لشبكة الصراع المراد عرضها."),

@@ -5,6 +5,7 @@ import {
   shouldKeepSuspicionModelDecisionForFinalReview,
   summarizeSuspicionReviewDispatchBands,
 } from "./suspicion-review-routing";
+
 import type { SuspicionBand } from "@editor/suspicion-engine/types";
 
 describe("suspicion-review-routing", () => {

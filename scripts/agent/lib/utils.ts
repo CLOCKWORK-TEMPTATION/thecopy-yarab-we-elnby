@@ -59,6 +59,38 @@ export async function ensureParentDirectory(filePath: string): Promise<void> {
   await fsp.mkdir(path.dirname(filePath), { recursive: true });
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableWriteError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const code = "code" in error ? String(error.code) : "";
+  return ["EACCES", "EBUSY", "EPERM", "UNKNOWN"].includes(code);
+}
+
+async function writeFileWithRetry(filePath: string, content: string): Promise<void> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      await fsp.writeFile(filePath, content, "utf8");
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableWriteError(error)) {
+        throw error;
+      }
+      await sleep(100 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
+}
+
 export async function writeTextIfChanged(filePath: string, content: string): Promise<boolean> {
   const normalized = normalizeText(content);
   const current = await readTextIfExists(filePath);
@@ -72,7 +104,7 @@ export async function writeTextIfChanged(filePath: string, content: string): Pro
   }
 
   await ensureParentDirectory(filePath);
-  await fsp.writeFile(filePath, normalized, "utf8");
+  await writeFileWithRetry(filePath, normalized);
   return true;
 }
 

@@ -1,6 +1,7 @@
-import type { ScriptSegmentResponse } from "../../domain/models";
 import { bootstrapBreakdownProject } from "../platform-client";
 import { segmentScriptLocally } from "../screenplay/local-segmenter";
+
+import type { ScriptSegmentResponse } from "../../domain/models";
 
 export const segmentScript = async (
   scriptText: string

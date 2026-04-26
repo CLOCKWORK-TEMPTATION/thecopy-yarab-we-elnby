@@ -1,5 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { FileText, Image, Video } from "lucide-react";
+
+import { Card } from "@/components/ui/card";
 
 interface Asset {
   id: string;

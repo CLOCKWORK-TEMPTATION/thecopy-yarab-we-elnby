@@ -1,8 +1,9 @@
+import { normalizeLine } from "../../extensions/text-utils";
+
 import type {
   ClassifiedLine,
   ElementType,
 } from "../../extensions/classification-types";
-import { normalizeLine } from "../../extensions/text-utils";
 
 export type ValidatorSeverity = "low" | "medium" | "high";
 

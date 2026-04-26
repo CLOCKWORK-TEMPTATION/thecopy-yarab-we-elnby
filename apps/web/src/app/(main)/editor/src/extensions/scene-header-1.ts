@@ -12,6 +12,7 @@
  * التنقل بالمفاتيح يُدار من العقدة الأب.
  */
 import { Node, mergeAttributes } from "@tiptap/core";
+
 import { SCENE_NUMBER_EXACT_RE } from "./arabic-patterns";
 import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import { normalizeLine } from "./text-utils";
@@ -24,7 +25,7 @@ import { normalizeLine } from "./text-utils";
  */
 export const extractSceneHeader1Number = (text: string): string | null => {
   const normalized = normalizeLine(text);
-  const match = normalized.match(/^((?:مشهد|scene)\s*[0-9٠-٩]+)$/i);
+  const match = /^((?:مشهد|scene)\s*[0-9٠-٩]+)$/i.exec(normalized);
   const sceneLabel = match?.[1];
   return sceneLabel ? sceneLabel.trim() : null;
 };

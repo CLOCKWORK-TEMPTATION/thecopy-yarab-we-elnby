@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import dynamic from "next/dynamic";
 import {
   AreaChart,
   BookOpenText,
@@ -16,20 +14,22 @@ import {
   AlertCircle,
   Download,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useState, useTransition } from "react";
 
-import { runFullPipeline } from "@/lib/actions/analysis";
-import { useToast } from "@/hooks/use-toast";
-// import { textChunker, type ContextMap } from "@/lib/ai/text-chunking";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { runFullPipeline } from "@/lib/actions/analysis";
+// import { textChunker, type ContextMap } from "@/lib/ai/text-chunking";
 
 // Minimal ContextMap type to avoid missing type errors when chunking is disabled
-type ContextMap = {
-  chunks: Array<{ id: string; content: string }>;
+interface ContextMap {
+  chunks: { id: string; content: string }[];
   totalTokens: number;
-};
+}
 // Dynamically import heavy components
 const FileUpload = dynamic(() => import("@/components/file-upload"), {
   loading: () => (

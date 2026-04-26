@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+
 import { buildProxyErrorResponse, getBackendBaseUrl } from "../backend-proxy";
 
 // ═══ اختبارات buildProxyErrorResponse ═══

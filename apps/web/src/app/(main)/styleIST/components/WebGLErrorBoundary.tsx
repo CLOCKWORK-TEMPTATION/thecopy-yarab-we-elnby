@@ -1,7 +1,8 @@
 "use client";
 
-import { logger } from "@/lib/ai/utils/logger";
 import { Component, ErrorInfo, ReactNode } from "react";
+
+import { logger } from "@/lib/ai/utils/logger";
 
 interface Props {
   children: ReactNode;

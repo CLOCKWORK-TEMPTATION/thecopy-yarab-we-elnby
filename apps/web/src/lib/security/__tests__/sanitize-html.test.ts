@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+
 import {
   stripHtmlTags,
   escapeHtml,
@@ -147,8 +148,8 @@ describe("createSafeStyleObject - Security Tests", () => {
     const result = createSafeStyleObject(dangerous);
 
     // Dangerous properties should be filtered out
-    expect(result.color || "").toBe("red");
-    expect(result.width || "").toBe("100%");
+    expect(result.color ?? "").toBe("red");
+    expect(result.width ?? "").toBe("100%");
     // -moz-binding should be filtered
     expect((result as any)["-moz-binding"]).toBeUndefined();
   });
@@ -158,13 +159,13 @@ describe("createSafeStyleObject - Security Tests", () => {
     const result = createSafeStyleObject(dangerous);
 
     // The dangerous value should be removed
-    expect(result.backgroundImage || "").toBe("");
+    expect(result.backgroundImage ?? "").toBe("");
   });
 
   it("should sanitize CSS values with expression()", () => {
     const dangerous = "width: expression(alert(1));";
     const result = createSafeStyleObject(dangerous);
 
-    expect(result.width || "").toBe("");
+    expect(result.width ?? "").toBe("");
   });
 });

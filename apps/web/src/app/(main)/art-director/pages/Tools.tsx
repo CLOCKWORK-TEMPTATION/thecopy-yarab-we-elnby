@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
 import { Play, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+
 import { toolConfigs, ToolId, ToolInput } from "../core/toolConfigs";
 import "./Tools.css";
 import { artDirectorApiPath } from "../lib/api-client";
@@ -22,7 +23,7 @@ function Tools() {
   useEffect(() => {
     fetch(artDirectorApiPath("/plugins"))
       .then((res) => res.json())
-      .then((data) => setPlugins(data.plugins || []))
+      .then((data) => setPlugins(data.plugins ?? []))
       .catch(console.error);
   }, []);
 
@@ -59,7 +60,7 @@ function Tools() {
       return (
         <select
           className="input"
-          value={formData[input.name] || ""}
+          value={formData[input.name] ?? ""}
           onChange={(e) =>
             setFormData({ ...formData, [input.name]: e.target.value })
           }
@@ -78,7 +79,7 @@ function Tools() {
         <textarea
           className="input"
           placeholder={input.placeholder}
-          value={formData[input.name] || ""}
+          value={formData[input.name] ?? ""}
           onChange={(e) =>
             setFormData({ ...formData, [input.name]: e.target.value })
           }
@@ -90,7 +91,7 @@ function Tools() {
         type={input.type}
         className="input"
         placeholder={input.placeholder}
-        value={formData[input.name] || ""}
+        value={formData[input.name] ?? ""}
         onChange={(e) =>
           setFormData({ ...formData, [input.name]: e.target.value })
         }
@@ -113,16 +114,16 @@ function Tools() {
           <h3>الأدوات المتاحة ({plugins.length})</h3>
           <div className="tools-list">
             {plugins.map((plugin) => {
-              const config = toolConfigs[plugin.id as ToolId];
-              const Icon = config?.icon || Play;
-              const color = config?.color || "#e94560";
+              const config = toolConfigs[plugin.id];
+              const Icon = config?.icon ?? Play;
+              const color = config?.color ?? "#e94560";
 
               return (
                 <button
                   key={plugin.id}
                   className={`tool-item ${selectedTool === plugin.id ? "active" : ""}`}
                   onClick={() => {
-                    setSelectedTool(plugin.id as ToolId);
+                    setSelectedTool(plugin.id);
                     setFormData({});
                     setResult(null);
                   }}
@@ -152,7 +153,7 @@ function Tools() {
                 {(() => {
                   const plugin = plugins.find((p) => p.id === selectedTool);
                   const config = toolConfigs[selectedTool];
-                  const Icon = config?.icon || Play;
+                  const Icon = config?.icon ?? Play;
                   return (
                     <>
                       <Icon size={32} style={{ color: config?.color }} />

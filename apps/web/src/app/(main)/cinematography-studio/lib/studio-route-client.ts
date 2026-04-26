@@ -57,7 +57,7 @@ async function buildError(response: Response): Promise<Error> {
     ) {
       message = "فشل التحقق الأمني للطلب. أعد تسجيل الجلسة ثم حاول مرة أخرى.";
     } else {
-      message = payload.message || payload.error || message;
+      message = payload.message ?? payload.error ?? message;
     }
   } catch {
     // Keep the generic message when the payload is not JSON.

@@ -4,6 +4,7 @@ import {
   AGENT_CONTEXT_PATH,
   FINGERPRINT_PATH,
   IDE_CANDIDATES,
+  MANUAL_CONTRACT_FILES,
   MANUAL_GUIDANCE_FILES,
   SESSION_STATE_PATH,
 } from "./lib/constants";
@@ -19,7 +20,12 @@ import {
   readFingerprint,
 } from "./lib/repo-state";
 import { readTextIfExists, fromRepoRoot } from "./lib/utils";
-import { verifyIdeMirrorContent, verifyManualGuidanceContent, type VerificationIssue } from "./lib/verify";
+import {
+  verifyIdeMirrorContent,
+  verifyLocalContractChecksRuleContent,
+  verifyManualGuidanceContent,
+  type VerificationIssue,
+} from "./lib/verify";
 
 async function main(): Promise<void> {
   const issues: VerificationIssue[] = [];
@@ -78,6 +84,11 @@ async function main(): Promise<void> {
   const myAgentContent = await readTextIfExists(fromRepoRoot(".github/agents/my-agent.md"));
   if (!myAgentContent.includes("AGENTS.md") || !myAgentContent.includes("output/session-state.md")) {
     issues.push({ level: "error", message: ".github/agents/my-agent.md ما زال لا يعمل كمرآة مرجعية." });
+  }
+
+  for (const manualContractFile of MANUAL_CONTRACT_FILES) {
+    const content = await readTextIfExists(fromRepoRoot(manualContractFile));
+    issues.push(...verifyLocalContractChecksRuleContent(manualContractFile, content));
   }
 
   for (const manualGuidanceFile of MANUAL_GUIDANCE_FILES) {

@@ -7,9 +7,10 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useApp } from "../context/AppContext";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import { useApp } from "../context/AppContext";
 
 export function NotificationBanner() {
   const { notification } = useApp();

@@ -1,21 +1,23 @@
-import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
-import {
-  ConflictNetwork,
-  Conflict,
-  NetworkSnapshot,
-} from "../core/models/base-entities";
-import { GeminiService, GeminiModel } from "./gemini-service";
-import { Station4Output } from "./station4-efficiency-metrics";
 import {
   DebateResult,
   getMultiAgentDebateSystem,
   MultiAgentDebateSystem,
 } from "../constitutional/multi-agent-debate";
+import { checkConstitutionalCompliance } from "../constitutional/principles";
 import {
   getUncertaintyQuantificationEngine,
   UncertaintyQuantificationEngine,
 } from "../constitutional/uncertainty-quantification";
-import { checkConstitutionalCompliance } from "../constitutional/principles";
+import {
+  ConflictNetwork,
+  Conflict,
+  NetworkSnapshot,
+} from "../core/models/base-entities";
+import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
+
+import { GeminiService, GeminiModel } from "./gemini-service";
+import { Station4Output } from "./station4-efficiency-metrics";
+
 
 // Define ConflictPhase enum for conflict progression tracking
 enum ConflictPhaseEnum {
@@ -45,6 +47,36 @@ const safeGet = <T>(array: T[], index: number): T | undefined => {
   }
   return array[index];
 };
+
+type JsonRecord = Record<string, unknown>;
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function asJsonRecord(value: unknown): JsonRecord {
+  return isJsonRecord(value) ? value : {};
+}
+
+function asArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : fallback;
+}
+
+function scaledTimestamp(value: unknown): Date {
+  return new Date(asNumber(value, 0) * 100000000);
+}
 
 // Station 5 Interfaces
 export interface Station5Input {
@@ -107,11 +139,11 @@ interface EvolutionAnalysis {
   overallGrowthRate: number;
   complexityProgression: number[];
   densityProgression: number[];
-  criticalTransitionPoints: Array<{
+  criticalTransitionPoints: {
     timestamp: Date;
     description: string;
     impactScore: number;
-  }>;
+  }[];
   stabilityMetrics: {
     structuralStability: number;
     characterStability: number;
@@ -122,31 +154,31 @@ interface EvolutionAnalysis {
 interface CharacterEvolution {
   characterId: string;
   characterName: string;
-  developmentStages: Array<{
+  developmentStages: {
     timestamp: Date;
     stage: string;
     traits: string[];
     relationships: string[];
     conflicts: string[];
-  }>;
+  }[];
   arcType: "positive" | "negative" | "flat" | "complex";
   transformationScore: number;
-  keyMoments: Array<{
+  keyMoments: {
     timestamp: Date;
     event: string;
     impact: string;
-  }>;
+  }[];
 }
 
 interface ConflictProgression {
   conflictId: string;
   conflictName: string;
-  phaseTransitions: Array<{
+  phaseTransitions: {
     timestamp: Date;
     fromPhase: ConflictPhaseEnum | string;
     toPhase: ConflictPhaseEnum | string;
     catalyst: string;
-  }>;
+  }[];
   intensityProgression: number[];
   resolutionProbability: number;
   stagnationRisk: number;
@@ -156,11 +188,11 @@ interface SymbolicAnalysis {
   keySymbols: Symbol[];
   recurringMotifs: Motif[];
   centralThemesHintedBySymbols: string[];
-  symbolicNetworks: Array<{
+  symbolicNetworks: {
     primarySymbol: string;
     relatedSymbols: string[];
     thematicConnection: string;
-  }>;
+  }[];
   depthScore: number;
   consistencyScore: number;
 }
@@ -264,11 +296,11 @@ interface PowerDynamic {
   characters: string[];
   relationshipType: string;
   powerBalance: number; // -1 to 1, negative means first character has less power
-  evolution: Array<{
+  evolution: {
     timestamp: Date;
     balance: number;
     catalyst: string;
-  }>;
+  }[];
 }
 
 interface EmotionalBeat {
@@ -303,11 +335,11 @@ interface VisualMoment {
 
 interface UncertaintyReport {
   overallConfidence: number;
-  uncertainties: Array<{
+  uncertainties: {
     type: "epistemic" | "aleatoric";
     aspect: string;
     note: string;
-  }>;
+  }[];
 }
 
 interface StationMetadata {
@@ -323,15 +355,13 @@ interface StationMetadata {
  * Dynamic Analysis Engine
  */
 class DynamicAnalysisEngine {
-  constructor() {}
-
-  async constructEventTimeline(
+  constructEventTimeline(
     network: ConflictNetwork
   ): Promise<TimelineEvent[]> {
     const events: TimelineEvent[] = [];
 
     // Process network snapshots
-    const snapshots = network.snapshots || [];
+    const snapshots = network.snapshots ?? [];
     for (const snapshot of snapshots) {
       events.push({
         timestamp: snapshot.timestamp,
@@ -344,7 +374,7 @@ class DynamicAnalysisEngine {
     }
 
     // Process conflicts
-    const conflicts = network.conflicts || new Map();
+    const conflicts = network.conflicts ?? new Map();
     for (const conflict of Array.from(conflicts.values())) {
       const legacyTimestamp = (
         conflict as Conflict & {
@@ -369,10 +399,10 @@ class DynamicAnalysisEngine {
           eventType: "conflict_emerged",
           description: `Conflict emerged: ${conflict.name}`,
           involvedEntities: {
-            characters: conflict.involvedCharacters || [],
+            characters: conflict.involvedCharacters ?? [],
             conflicts: [conflict.id],
           },
-          significance: conflict.strength || 5,
+          significance: conflict.strength ?? 5,
           narrativePhase: this.inferNarrativePhase(timestamp, snapshots),
         });
       }
@@ -399,7 +429,7 @@ class DynamicAnalysisEngine {
     // Sort events by timestamp
     events.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
-    return events;
+    return Promise.resolve(events);
   }
 
   private inferNarrativePhase(
@@ -434,19 +464,19 @@ class DynamicAnalysisEngine {
     return "resolution";
   }
 
-  async analyzeNetworkEvolution(
+  analyzeNetworkEvolution(
     network: ConflictNetwork,
     _timeline: TimelineEvent[]
   ): Promise<EvolutionAnalysis> {
     const complexityProgression: number[] = [];
     const densityProgression: number[] = [];
-    const transitionPoints: Array<{
+    const transitionPoints: {
       timestamp: Date;
       description: string;
       impactScore: number;
-    }> = [];
+    }[] = [];
 
-    const snapshots = network.snapshots || [];
+    const snapshots = network.snapshots ?? [];
     for (const snapshot of snapshots) {
       // Use snapshot data
       const numChars = snapshot.characters.length;
@@ -492,13 +522,13 @@ class DynamicAnalysisEngine {
       densityProgression
     );
 
-    return {
+    return Promise.resolve({
       overallGrowthRate,
       complexityProgression,
       densityProgression,
       criticalTransitionPoints: transitionPoints,
       stabilityMetrics,
-    };
+    });
   }
 
   private calculateStabilityMetrics(
@@ -531,7 +561,7 @@ class DynamicAnalysisEngine {
     return squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
   }
 
-  async trackCharacterDevelopment(
+  trackCharacterDevelopment(
     network: ConflictNetwork,
     timeline: TimelineEvent[]
   ): Promise<Map<string, CharacterEvolution>> {
@@ -553,11 +583,10 @@ class DynamicAnalysisEngine {
         }
       }
 
-      const conflicts = network.conflicts || new Map();
+      const conflicts = network.conflicts ?? new Map();
       for (const [confId, conf] of Array.from(conflicts.entries())) {
         if (
-          conf.involvedCharacters &&
-          conf.involvedCharacters.includes(charId)
+          conf.involvedCharacters?.includes(charId)
         ) {
           characterConflicts.push(confId);
         }
@@ -596,7 +625,7 @@ class DynamicAnalysisEngine {
       });
     }
 
-    return evolutionMap;
+    return Promise.resolve(evolutionMap);
   }
 
   private determineArcType(
@@ -650,19 +679,19 @@ class DynamicAnalysisEngine {
     return Math.min(10, totalChange / stages.length);
   }
 
-  async trackConflictProgression(
+  trackConflictProgression(
     network: ConflictNetwork,
     _timeline: TimelineEvent[]
   ): Promise<Map<string, ConflictProgression>> {
     const progressionMap = new Map<string, ConflictProgression>();
 
-    const conflicts = network.conflicts || new Map();
+    const conflicts = network.conflicts ?? new Map();
     for (const [confId, conflict] of Array.from(conflicts.entries())) {
       const phaseTransitions: ConflictProgression["phaseTransitions"] = [];
       const intensityProgression: number[] = [];
 
       // Use current conflict state
-      intensityProgression.push(conflict.strength || 5);
+      intensityProgression.push(conflict.strength ?? 5);
 
       const resolutionProbability = this.calculateResolutionProbability(
         conflict,
@@ -684,7 +713,7 @@ class DynamicAnalysisEngine {
       });
     }
 
-    return progressionMap;
+    return Promise.resolve(progressionMap);
   }
 
   private calculateResolutionProbability(
@@ -793,16 +822,18 @@ class SymbolicAnalysisEngine {
         temperature: 0.7,
       });
 
-      const analysis = JSON.parse(result.content || "{}");
+      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
 
       return {
-        keySymbols: analysis.keySymbols || [],
-        recurringMotifs: analysis.recurring_motifs || [],
+        keySymbols: asArray<Symbol>(analysis.keySymbols),
+        recurringMotifs: asArray<Motif>(analysis.recurring_motifs),
         centralThemesHintedBySymbols:
-          analysis.central_themes_hinted_by_symbols || [],
-        symbolicNetworks: analysis.symbolic_networks || [],
-        depthScore: analysis.depth_score || 5,
-        consistencyScore: analysis.consistency_score || 5,
+          asStringArray(analysis.central_themes_hinted_by_symbols),
+        symbolicNetworks: asArray<SymbolicAnalysis["symbolicNetworks"][number]>(
+          analysis.symbolic_networks
+        ),
+        depthScore: asNumber(analysis.depth_score, 5),
+        consistencyScore: asNumber(analysis.consistency_score, 5),
       };
     } catch (error) {
       console.error("Error in symbolic analysis:", error);
@@ -868,40 +899,61 @@ class StylisticAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = JSON.parse(result.content || "{}");
+      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
+      const toneAssessment = asJsonRecord(analysis.overall_tone_assessment);
+      const languageComplexity = asJsonRecord(analysis.language_complexity);
+      const pacingImpression = asJsonRecord(analysis.pacing_impression);
+      const descriptiveRichness = asJsonRecord(analysis.descriptive_richness);
 
       return {
         toneAssessment: {
           primaryTone:
-            analysis.overall_tone_assessment?.primary_tone || "Unknown",
-          secondaryTones:
-            analysis.overall_tone_assessment?.secondary_tones || [],
-          toneConsistency:
-            analysis.overall_tone_assessment?.tone_consistency || 5,
+            typeof toneAssessment.primary_tone === "string"
+              ? toneAssessment.primary_tone
+              : "Unknown",
+          secondaryTones: asStringArray(toneAssessment.secondary_tones),
+          toneConsistency: asNumber(toneAssessment.tone_consistency, 5),
           explanation:
-            analysis.overall_tone_assessment?.explanation || "Analysis failed",
+            typeof toneAssessment.explanation === "string"
+              ? toneAssessment.explanation
+              : "Analysis failed",
         },
         languageComplexity: {
-          level: analysis.language_complexity?.level || "moderate",
-          readabilityScore:
-            analysis.language_complexity?.readability_score || 5,
-          vocabularyRichness:
-            analysis.language_complexity?.vocabulary_richness || 5,
+          level:
+            languageComplexity.level === "simple" ||
+            languageComplexity.level === "moderate" ||
+            languageComplexity.level === "complex" ||
+            languageComplexity.level === "highly_complex"
+              ? languageComplexity.level
+              : "moderate",
+          readabilityScore: asNumber(languageComplexity.readability_score, 5),
+          vocabularyRichness: asNumber(
+            languageComplexity.vocabulary_richness,
+            5
+          ),
         },
         pacingAnalysis: {
           overallPacing:
-            analysis.pacing_impression?.overall_pacing || "balanced",
-          pacingVariation: analysis.pacing_impression?.pacing_variation || 5,
+            pacingImpression.overall_pacing === "very_slow" ||
+            pacingImpression.overall_pacing === "slow" ||
+            pacingImpression.overall_pacing === "balanced" ||
+            pacingImpression.overall_pacing === "fast" ||
+            pacingImpression.overall_pacing === "very_fast"
+              ? pacingImpression.overall_pacing
+              : "balanced",
+          pacingVariation: asNumber(pacingImpression.pacing_variation, 5),
           sceneLengthDistribution:
-            analysis.pacing_impression?.scene_length_distribution || [],
+            asArray<number>(pacingImpression.scene_length_distribution),
         },
         descriptiveRichness: {
           visualDetailLevel:
-            analysis.descriptive_richness?.visual_detail_level || 5,
-          sensoryEngagement:
-            analysis.descriptive_richness?.sensory_engagement || 5,
+            asNumber(descriptiveRichness.visual_detail_level, 5),
+          sensoryEngagement: asNumber(
+            descriptiveRichness.sensory_engagement,
+            5
+          ),
           atmosphericQuality:
-            analysis.descriptive_richness?.atmospheric_quality || 5,
+            asNumber(descriptiveRichness.atmospheric_quality, 5),
         },
       };
     } catch (error) {
@@ -984,42 +1036,43 @@ class TensionAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = JSON.parse(result.content || "{}");
+      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
+      const recommendations = asJsonRecord(analysis.recommendations);
 
       // Convert timestamp fractions to actual dates if needed
-      const peaks = (analysis.peaks || []).map((peak: any) => ({
+      const peaks = asArray<JsonRecord>(analysis.peaks).map((peak) => ({
         ...peak,
-        timestamp: new Date(peak.timestamp * 100000000), // Convert to a date
-      }));
+        timestamp: scaledTimestamp(peak.timestamp),
+      })) as TensionPeak[];
 
-      const valleys = (analysis.valleys || []).map((valley: any) => ({
+      const valleys = asArray<JsonRecord>(analysis.valleys).map((valley) => ({
         ...valley,
-        timestamp: new Date(valley.timestamp * 100000000), // Convert to a date
-      }));
+        timestamp: scaledTimestamp(valley.timestamp),
+      })) as TensionValley[];
 
-      const addTension = (analysis.recommendations?.add_tension || []).map(
-        (loc: any) => ({
+      const addTension = asArray<JsonRecord>(
+        recommendations.add_tension
+      ).map((loc) => ({
           ...loc,
-          timestamp: new Date(loc.timestamp * 100000000), // Convert to a date
-        })
-      );
+          timestamp: scaledTimestamp(loc.timestamp),
+        })) as Location[];
 
-      const reduceTension = (
-        analysis.recommendations?.reduce_tension || []
-      ).map((loc: any) => ({
+      const reduceTension = asArray<JsonRecord>(
+        recommendations.reduce_tension
+      ).map((loc) => ({
         ...loc,
-        timestamp: new Date(loc.timestamp * 100000000), // Convert to a date
-      }));
+        timestamp: scaledTimestamp(loc.timestamp),
+      })) as Location[];
 
       return {
-        tensionCurve: analysis.tension_curve || [],
+        tensionCurve: asArray<number>(analysis.tension_curve),
         peaks,
         valleys,
         recommendations: {
           addTension,
           reduceTension,
           redistributeTension:
-            analysis.recommendations?.redistribute_tension || [],
+            asStringArray(recommendations.redistribute_tension),
         },
       };
     } catch (error) {
@@ -1054,7 +1107,7 @@ class AdvancedDialogueAnalysisEngine {
 
   async analyzeDialogue(
     fullText: string,
-    _characters: Map<string, any>
+    _characters: Map<string, unknown>
   ): Promise<AdvancedDialogueAnalysis> {
     const prompt = `
     Based on the provided narrative text and character information, analyze the dialogue in depth:
@@ -1094,33 +1147,37 @@ class AdvancedDialogueAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = JSON.parse(result.content || "{}");
+      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
+      const advancedMetrics = asJsonRecord(analysis.advanced_metrics);
 
       // Convert timestamps to actual dates
-      const emotionalBeats = (analysis.emotional_beats || []).map(
-        (beat: any) => ({
+      const emotionalBeats = asArray<JsonRecord>(analysis.emotional_beats).map(
+        (beat) => ({
           ...beat,
-          timestamp: new Date(beat.timestamp * 100000000), // Convert to a date
+          timestamp: scaledTimestamp(beat.timestamp),
         })
-      );
+      ) as EmotionalBeat[];
 
       // Convert character voice consistency to a Map
       const characterVoiceConsistency = new Map<string, number>();
-      if (analysis.advanced_metrics?.character_voice_consistency) {
+      const characterVoiceConsistencyData = asJsonRecord(
+        advancedMetrics.character_voice_consistency
+      );
+      if (Object.keys(characterVoiceConsistencyData).length > 0) {
         for (const [char, consistency] of Object.entries(
-          analysis.advanced_metrics.character_voice_consistency
+          characterVoiceConsistencyData
         )) {
-          characterVoiceConsistency.set(char, consistency as number);
+          characterVoiceConsistency.set(char, asNumber(consistency, 0));
         }
       }
 
       return {
-        subtext: analysis.subtext || [],
-        powerDynamics: analysis.power_dynamics || [],
+        subtext: asArray<SubtextAnalysis>(analysis.subtext),
+        powerDynamics: asArray<PowerDynamic>(analysis.power_dynamics),
         emotionalBeats,
         advancedMetrics: {
-          subtextDepth: analysis.advanced_metrics?.subtext_depth || 5,
-          emotionalRange: analysis.advanced_metrics?.emotional_range || 5,
+          subtextDepth: asNumber(advancedMetrics.subtext_depth, 5),
+          emotionalRange: asNumber(advancedMetrics.emotional_range, 5),
           characterVoiceConsistency,
         },
       };
@@ -1191,23 +1248,23 @@ class VisualCinematicAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = JSON.parse(result.content || "{}");
+      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
 
       // Convert timestamps to actual dates
-      const keyVisualMoments = (analysis.key_visual_moments || []).map(
-        (moment: any) => ({
+      const keyVisualMoments = asArray<JsonRecord>(
+        analysis.key_visual_moments
+      ).map((moment) => ({
           ...moment,
-          timestamp: new Date(moment.timestamp * 100000000), // Convert to a date
-        })
-      );
+          timestamp: scaledTimestamp(moment.timestamp),
+        })) as VisualMoment[];
 
       return {
-        visualDensity: analysis.visual_density || 5,
-        cinematicPotential: analysis.cinematic_potential || 5,
+        visualDensity: asNumber(analysis.visual_density, 5),
+        cinematicPotential: asNumber(analysis.cinematic_potential, 5),
         keyVisualMoments,
-        colorPalette: analysis.color_palette || [],
-        visualMotifs: analysis.visual_motifs || [],
-        cinematographyNotes: analysis.cinematography_notes || [],
+        colorPalette: asStringArray(analysis.color_palette),
+        visualMotifs: asArray<Motif>(analysis.visual_motifs),
+        cinematographyNotes: asStringArray(analysis.cinematography_notes),
       };
     } catch (error) {
       console.error("Error in visual cinematic analysis:", error);
@@ -1261,7 +1318,7 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
 
   protected async process(input: Station5Input): Promise<Station5Output> {
     const startTime = Date.now();
-    const options = input.options || {};
+    const options = input.options ?? {};
     const agentsUsed: string[] = [];
 
     // Dynamic Analysis
@@ -1440,7 +1497,7 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
   protected extractRequiredData(input: Station5Input): Record<string, unknown> {
     return {
       charactersCount: input.conflictNetwork.characters.size,
-      conflictsCount: input.conflictNetwork.conflicts?.size || 0,
+      conflictsCount: input.conflictNetwork.conflicts?.size ?? 0,
       station4Score:
         input.station4Output.efficiencyMetrics.overallEfficiencyScore,
       fullTextLength: input.fullText.length,

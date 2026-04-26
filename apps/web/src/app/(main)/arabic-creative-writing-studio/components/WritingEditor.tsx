@@ -4,17 +4,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   AppSettings,
   CreativeProject,
   CreativePrompt,
   TextAnalysis,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
-import type { FeaturedWeeklyChallenge } from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
-import type {
-  ExportFormat,
-  ExportResult,
-} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -27,6 +23,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+
+import type {
+  ExportFormat,
+  ExportResult,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+import type { FeaturedWeeklyChallenge } from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
 
 export interface WritingEditorProps {
   project: CreativeProject | null;
@@ -309,7 +311,7 @@ export const WritingEditor: React.FC<WritingEditorProps> = ({
       pushOperation(
         "blocked",
         "تحليل النص",
-        analysisBlockedReason || "تحليل النص غير متاح حالياً."
+        analysisBlockedReason ?? "تحليل النص غير متاح حالياً."
       );
       return;
     }
@@ -640,7 +642,7 @@ export const WritingEditor: React.FC<WritingEditorProps> = ({
         <Alert className="mb-6 border-amber-400/30 bg-amber-500/10 text-amber-100">
           <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm leading-6">
-              {analysisBlockedReason ||
+              {analysisBlockedReason ??
                 "تحليل النص غير متاح الآن لأن إعدادات الذكاء لم تكتمل بعد."}
             </span>
             <Button variant="outline" onClick={onOpenSettings}>

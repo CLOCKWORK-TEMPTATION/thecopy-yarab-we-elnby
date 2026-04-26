@@ -1,13 +1,14 @@
-import { logger } from "@/lib/ai/utils/logger";
 
-import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { SceneCard } from "@/app/(main)/ui/components/SceneCard";
-import { NarrativeTimeline } from "@/app/(main)/ui/components/NarrativeTimeline";
-import { InspectorPanel } from "@/app/(main)/ui/components/InspectorPanel";
-import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
-import { Button } from "@/components/ui/button";
 import { Plus, Grid3x3, List } from "lucide-react";
+import { useState } from "react";
+
+import { ExportHub } from "@/app/(main)/ui/components/ExportHub";
+import { InspectorPanel } from "@/app/(main)/ui/components/InspectorPanel";
+import { NarrativeTimeline } from "@/app/(main)/ui/components/NarrativeTimeline";
+import { SceneCard } from "@/app/(main)/ui/components/SceneCard";
+import { Button } from "@/components/ui/button";
+import { logger } from "@/lib/ai/utils/logger";
 
 interface Scene {
   id: string;

@@ -8,15 +8,15 @@
  * - رفض المعرّف غير الصالح بـ 400
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── إنشاء ZodError مشترك عبر vi.hoisted لضمان تطابق instanceof ───
 const { MockZodError } = vi.hoisted(() => {
   class MockZodError extends Error {
-    issues: Array<{ code: string; message: string; path: string[] }>;
+    issues: { code: string; message: string; path: string[] }[];
     constructor(
-      issues: Array<{ code: string; message: string; path: string[] }>
+      issues: { code: string; message: string; path: string[] }[]
     ) {
       super("Validation error");
       this.name = "ZodError";

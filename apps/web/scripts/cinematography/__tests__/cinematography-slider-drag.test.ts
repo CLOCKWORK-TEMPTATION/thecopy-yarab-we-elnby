@@ -19,10 +19,11 @@
  */
 
 import assert from "node:assert/strict";
+
 // @ts-expect-error — jsdom يُحمَّل بنفس الأسلوب المتبع في باقي السويتات
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import * as React from "react";
-import { act, cleanup, fireEvent, render } from "@testing-library/react";
 
 interface SliderConfig {
   readonly label: string;
@@ -33,7 +34,7 @@ interface SliderConfig {
   readonly formatValue?: (value: number) => string;
 }
 
-const REAL_SLIDER_CONFIGS: ReadonlyArray<SliderConfig> = [
+const REAL_SLIDER_CONFIGS: readonly SliderConfig[] = [
   // LensSimulatorTool
   { label: "البعد البؤري", min: 14, max: 200, step: 1, initial: 50 },
   {
@@ -119,7 +120,7 @@ function installDomForSliders(): () => void {
       x: 0,
       y: 0,
       toJSON: () => ({}),
-    } as DOMRect;
+    };
   };
 
   Object.defineProperty(dom.window, "matchMedia", {
@@ -262,7 +263,7 @@ async function loadSliderModule(): Promise<void> {
     "../../../src/app/(main)/cinematography-studio/components/controls/SliderNumberInput"
   );
   SliderNumberInput =
-    moduleRef.SliderNumberInput as unknown as typeof SliderNumberInput;
+    moduleRef.SliderNumberInput;
 }
 
 /**
@@ -306,10 +307,10 @@ async function exerciseSlider(config: SliderConfig): Promise<void> {
   try {
     const slider = utils.container.querySelector(
       '[role="slider"]'
-    ) as HTMLElement | null;
+    );
     const numberInput = utils.container.querySelector(
       'input[type="number"]'
-    ) as HTMLInputElement | null;
+    );
 
     assert.ok(slider, `expected slider for "${config.label}"`);
     assert.ok(numberInput, `expected number input for "${config.label}"`);

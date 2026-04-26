@@ -48,7 +48,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   projectId: externalProjectId,
 }) => {
   const [state, setState] = useState<ProjectState>({
-    projectId: externalProjectId || DEFAULT_PROJECT_ID,
+    projectId: externalProjectId ?? DEFAULT_PROJECT_ID,
     projectName: "The Last Shadow - Season 1",
     currentRole: "Costume Designer",
     activeScene: "INT. HANGAR - NIGHT",

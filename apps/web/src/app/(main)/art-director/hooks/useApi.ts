@@ -9,6 +9,7 @@
 
 import { useState, useCallback } from "react";
 import { z } from "zod";
+
 import type { ApiResponse } from "../types";
 
 /**
@@ -119,7 +120,7 @@ export function useApi<T = unknown>(): UseApiReturn<T> {
 
         if (!response.ok || apiResponse.success === false) {
           throw new Error(
-            apiResponse.error || `فشل الاستدعاء: ${response.status}`
+            apiResponse.error ?? `فشل الاستدعاء: ${response.status}`
           );
         }
 
@@ -207,7 +208,7 @@ export function useApiCall<TInput, TOutput>(
         const apiResponse = rawData as ApiResponse<TOutput>;
 
         if (!response.ok || apiResponse.success === false) {
-          throw new Error(apiResponse.error || "فشل الاستدعاء");
+          throw new Error(apiResponse.error ?? "فشل الاستدعاء");
         }
 
         setData(apiResponse.data ?? null);

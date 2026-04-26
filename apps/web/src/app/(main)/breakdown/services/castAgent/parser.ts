@@ -4,6 +4,7 @@
  */
 
 import { TRANSITIONS, TECHNICAL_EXTENSIONS, ARABIC_TITLES } from "./constants";
+
 import type { ParsedName, SceneLocation } from "./types";
 
 // ============================================
@@ -53,7 +54,7 @@ export const isSceneHeading = (line: string): boolean => {
     /^خارجي/,
     /^ليل/,
     /^نهار/,
-    /^\d+\s*[\-\.]/,
+    /^\d+\s*[-.]/,
   ];
   return patterns.some((pattern) => pattern.test(upperLine));
 };
@@ -90,7 +91,7 @@ export const isComment = (line: string): boolean => {
  */
 export const parseNameHeader = (line: string): ParsedName => {
   let raw = line.trim();
-  const parenMatch = raw.match(/\((.*?)\)/);
+  const parenMatch = /\((.*?)\)/.exec(raw);
   let isVariant = false;
 
   if (parenMatch) {
@@ -105,8 +106,8 @@ export const parseNameHeader = (line: string): ParsedName => {
     }
   }
 
-  raw = raw.replace(/[:\-]$/, "").trim();
-  raw = raw.replace(/^[\.\-\*]+/, "").trim();
+  raw = raw.replace(/[:-]$/, "").trim();
+  raw = raw.replace(/^[.*-]+/, "").trim();
 
   return { name: raw.toUpperCase(), isVariant };
 };
@@ -187,9 +188,7 @@ export const extractSceneLocation = (heading: string): SceneLocation => {
   }
 
   // Location extraction
-  const locationMatch = heading.match(
-    /(?:INT\.|EXT\.|DAKHEL|KHAREG|داخلي|خارجي)\s*(.+?)(?:\s*-\s*[A-Z]+)?$/
-  );
+  const locationMatch = /(?:INT\.|EXT\.|DAKHEL|KHAREG|داخلي|خارجي)\s*(.+?)(?:\s*-\s*[A-Z]+)?$/.exec(heading);
   if (locationMatch?.[1]) {
     location = locationMatch[1].trim();
   }

@@ -1,4 +1,3 @@
-import { logger } from "@/lib/ai/utils/logger";
 
 /**
  * مسار تحليل مشروع البريك دون بالذكاء الاصطناعي
@@ -13,11 +12,13 @@ import { logger } from "@/lib/ai/utils/logger";
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+import { analyzeBreakdownLocally } from "@/app/api/breakdown/_lib/breakdown-gemini-server";
 import {
   getProjectSession,
   deleteProjectSession,
 } from "@/app/api/breakdown/_lib/breakdown-session";
-import { analyzeBreakdownLocally } from "@/app/api/breakdown/_lib/breakdown-gemini-server";
+import { logger } from "@/lib/ai/utils/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,9 +26,9 @@ export const dynamic = "force-dynamic";
 /** مهلة الطلب: 5 دقائق (التحليل قد يستغرق وقتًا) */
 export const maxDuration = 300;
 
-type RouteContext = {
+interface RouteContext {
   params: Promise<{ projectId: string }>;
-};
+}
 
 export async function POST(
   _request: NextRequest,

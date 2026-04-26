@@ -1,5 +1,3 @@
-import React, { useState } from "react";
-import type { ScenarioAnalysis } from "../../domain/models";
 import {
   Calculator,
   Lightbulb,
@@ -10,6 +8,9 @@ import {
   BarChart3,
   AlertTriangle,
 } from "lucide-react";
+import React, { useState } from "react";
+
+import type { ScenarioAnalysis } from "../../domain/models";
 
 interface ScenarioNavigatorProps {
   analysis: ScenarioAnalysis;
@@ -43,7 +44,7 @@ const ScenarioNavigator: React.FC<ScenarioNavigatorProps> = ({
   onClose,
 }) => {
   const [activeScenarioId, setActiveScenarioId] = useState<string>(
-    analysis.scenarios[0]?.id || ""
+    analysis.scenarios[0]?.id ?? ""
   );
 
   const activeScenario = analysis.scenarios.find(

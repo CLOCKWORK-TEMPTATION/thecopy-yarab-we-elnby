@@ -1,6 +1,7 @@
-import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
-import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
+import type { MultiPassConflictEvidence } from "@editor/suspicion-engine/types";
 
 // يكشف التعارض بين تمريرة المضي للأمام وخوارزمية فيتربي
 // تعارض فيتربي أكثر أهمية لأنه مُحسِّن عالمي يأخذ البنية الكاملة بعين الاعتبار
@@ -62,11 +63,11 @@ export const detectViterbiConflict: DetectorFn = (trace, _line, context) => {
     forwardVote.suggestedType !== viterbiVote.suggestedType
   ) {
     (
-      conflictingVotes as Array<{
+      conflictingVotes as {
         stage: string;
         suggestedType: typeof forwardVote.suggestedType;
         confidence: number;
-      }>
+      }[]
     ).push({
       stage: "forward",
       suggestedType: forwardVote.suggestedType,

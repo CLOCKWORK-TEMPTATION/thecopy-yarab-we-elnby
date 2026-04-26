@@ -60,7 +60,7 @@ export function supportsWebGL(): boolean {
   try {
     const canvas = document.createElement("canvas");
     const gl =
-      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      canvas.getContext("webgl") ?? canvas.getContext("experimental-webgl");
     return !!gl;
   } catch {
     return false;
@@ -76,7 +76,7 @@ export function getMaxTextureSize(): number {
   try {
     const canvas = document.createElement("canvas");
     const gl =
-      canvas.getContext("webgl") ||
+      canvas.getContext("webgl") ??
       (canvas.getContext("experimental-webgl") as WebGLRenderingContext | null);
 
     if (gl) {
@@ -340,7 +340,7 @@ export class PerformanceMonitor {
     return 1000 / avgFrameTime;
   }
 
-  shouldReduceQuality(targetFPS: number = 30): boolean {
+  shouldReduceQuality(targetFPS = 30): boolean {
     if (this.qualityAdjustmentCooldown > 0) return false;
 
     const avgFPS = this.getAverageFPS();
@@ -353,7 +353,7 @@ export class PerformanceMonitor {
     return shouldReduce;
   }
 
-  shouldIncreaseQuality(targetFPS: number = 55): boolean {
+  shouldIncreaseQuality(targetFPS = 55): boolean {
     if (this.qualityAdjustmentCooldown > 0) return false;
 
     const avgFPS = this.getAverageFPS();

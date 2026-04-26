@@ -2,8 +2,8 @@
 // Manages execution of AI analysis pipelines with proper error handling and progress tracking
 
 import { geminiService, type GeminiConfig } from "@/ai/gemini-service";
-import { cachedGeminiCall, generateGeminiCacheKey } from "@/lib/redis";
 import { logger } from "@/lib/ai/utils/logger";
+import { cachedGeminiCall, generateGeminiCacheKey } from "@/lib/redis";
 import { AnalysisType } from "@/types/enums";
 
 export interface PipelineStep {
@@ -142,7 +142,7 @@ export class PipelineOrchestrator {
     step: PipelineStep,
     executedSteps: Set<string>
   ): boolean {
-    const dependencies = step.dependencies || [];
+    const dependencies = step.dependencies ?? [];
     return dependencies.every((dep) => executedSteps.has(dep));
   }
 
@@ -151,7 +151,7 @@ export class PipelineOrchestrator {
     step: PipelineStep,
     execution: PipelineExecution
   ): Promise<void> {
-    const dependencies = step.dependencies || [];
+    const dependencies = step.dependencies ?? [];
     const checkInterval = 100; // ms
     const maxWait = 30000; // 30 seconds
     let waited = 0;
@@ -207,7 +207,7 @@ export class PipelineOrchestrator {
   // Cancel execution
   cancelExecution(pipelineId: string): boolean {
     const execution = this.activeExecutions.get(pipelineId);
-    if (execution && execution.status === "running") {
+    if (execution?.status === "running") {
       execution.status = "failed";
       execution.endTime = new Date();
       return true;
@@ -230,7 +230,7 @@ export class PipelineOrchestrator {
  */
 export async function submitTask(taskRequest: any): Promise<any> {
   // Development mode: return mock response
-  if (process.env["NODE_ENV"] !== "production") {
+  if (process.env.NODE_ENV !== "production") {
     logger.warn("[DEV STUB] submitTask: returning mock response");
   }
 

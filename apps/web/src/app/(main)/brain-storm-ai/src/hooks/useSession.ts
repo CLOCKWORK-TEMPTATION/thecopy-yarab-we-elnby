@@ -6,14 +6,25 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef } from "react";
-import { conductDebate } from "../lib/api";
-import { buildAgentStats, getAgentsForPhase } from "../lib/catalog";
-import { getPhaseIcon, getPhaseColor } from "../lib/utils";
+
 import {
   PHASE_TASK_PREFIXES,
   EMPTY_BRIEF_ERROR,
   TOTAL_PHASES,
 } from "../constants";
+import { conductDebate } from "../lib/api";
+import { buildAgentStats, getAgentsForPhase } from "../lib/catalog";
+import {
+  createSessionDiagnostics,
+  createAgentDiagnosticEntry,
+  finalizeAgentDiagnostic,
+} from "../lib/diagnostics";
+import { getPhaseIcon, getPhaseColor } from "../lib/utils";
+
+import type {
+  SessionDiagnostics,
+  AgentDiagnosticEntry,
+} from "../lib/diagnostics";
 import type {
   Session,
   DebateMessage,
@@ -23,15 +34,7 @@ import type {
   PhaseDisplayInfo,
   BrainstormPhaseDefinition,
 } from "../types";
-import type {
-  SessionDiagnostics,
-  AgentDiagnosticEntry,
-} from "../lib/diagnostics";
-import {
-  createSessionDiagnostics,
-  createAgentDiagnosticEntry,
-  finalizeAgentDiagnostic,
-} from "../lib/diagnostics";
+
 
 /** الحد الأقصى لمحاولات إعادة تنفيذ النقاش */
 const MAX_RETRIES = 1;
@@ -125,7 +128,7 @@ export function useSession({
       task?: string
     ) => {
       const agentIds = agents.map((a) => a.id);
-      const debateTask = task || `تحليل الفكرة: ${session.brief}`;
+      const debateTask = task ?? `تحليل الفكرة: ${session.brief}`;
 
       const agentDiags: AgentDiagnosticEntry[] = agents.map((a) =>
         createAgentDiagnosticEntry(a.id)

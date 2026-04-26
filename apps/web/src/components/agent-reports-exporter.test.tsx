@@ -8,10 +8,12 @@
  *  - Empty/missing taskResults does not break export
  */
 
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { AgentReportsExporter } from "./agent-reports-exporter";
+
 import type { AgentTaskResult } from "./agent-reports-exporter";
 
 // ---------------------------------------------------------------------------
@@ -371,8 +373,7 @@ describe("AgentReportsExporter — onExport callback", () => {
     renderExporter({ onExport });
     clickJsonExport();
 
-    expect(onExport).toHaveBeenCalledOnce();
-    expect(onExport).toHaveBeenCalledWith("json");
+    expect(onExport).toHaveBeenCalledExactlyOnceWith("json");
   });
 
   it("calls onExport with 'txt' after successful text export", () => {
@@ -380,7 +381,6 @@ describe("AgentReportsExporter — onExport callback", () => {
     renderExporter({ onExport });
     clickTextExport();
 
-    expect(onExport).toHaveBeenCalledOnce();
-    expect(onExport).toHaveBeenCalledWith("txt");
+    expect(onExport).toHaveBeenCalledExactlyOnceWith("txt");
   });
 });

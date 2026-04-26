@@ -26,6 +26,11 @@ function escapeHtml(value: string): string {
 }
 
 function sanitizeFilename(title: string): string {
+  const controlCharactersRange = `${String.fromCharCode(0)}-${String.fromCharCode(31)}`;
+  const unsafeFilenameCharacters = new RegExp(
+    `[<>:"/\\\\|?*${controlCharactersRange}]`,
+    "g"
+  );
   const trimmedTitle = title.trim();
 
   if (!trimmedTitle) {
@@ -33,7 +38,7 @@ function sanitizeFilename(title: string): string {
   }
 
   return trimmedTitle
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
+    .replace(unsafeFilenameCharacters, "")
     .replace(/\s+/g, "_")
     .slice(0, 80);
 }

@@ -49,7 +49,7 @@ describe("cinematography fallback timing", () => {
     vi.useFakeTimers();
 
     vi.mocked(postStudioFormData).mockImplementation(
-      () => delayedRemoteFailure(3_000) as Promise<unknown>
+      () => delayedRemoteFailure(3_000)
     );
     vi.mocked(createLocalShotAnalysis).mockImplementation(
       () =>
@@ -95,7 +95,7 @@ describe("cinematography fallback timing", () => {
     vi.useFakeTimers();
 
     vi.mocked(postStudioFormData).mockImplementation(
-      () => delayedRemoteFailure(3_000) as Promise<unknown>
+      () => delayedRemoteFailure(3_000)
     );
     vi.mocked(createLocalFootageSummary).mockImplementation(
       () =>

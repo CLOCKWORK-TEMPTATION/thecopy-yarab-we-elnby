@@ -1,19 +1,23 @@
 "use client";
+import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useRef } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { logger } from "@/lib/ai/utils/logger";
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { DesignBrief } from "../types";
-import { ChevronRightIcon, MicIcon, VideoIcon, SparklesIcon } from "./icons";
+
+
 import {
   transcribeAudio,
   analyzeVideoContent,
 } from "../services/geminiService";
+import { DesignBrief } from "../types";
+
+import { ChevronRightIcon, MicIcon, VideoIcon, SparklesIcon } from "./icons";
 
 interface StartScreenProps {
   onComplete: (brief: DesignBrief) => void;

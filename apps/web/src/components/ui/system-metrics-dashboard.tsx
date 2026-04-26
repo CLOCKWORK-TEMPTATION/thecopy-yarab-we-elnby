@@ -11,18 +11,6 @@
  * - Performance alerts
  */
 
-import React, { useState, useMemo } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Progress } from "@/components/ui/progress";
 import {
   BarChart3,
   Database,
@@ -39,11 +27,24 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DynamicPieChart as PieChart,
   DynamicPie as Pie,
 } from "@/components/ui/dynamic-chart";
-import { Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useDashboardSummary,
   useHealthStatus,
@@ -107,13 +108,13 @@ interface DashboardDataType {
 }
 
 interface ReportDataType {
-  alerts?: Array<{
+  alerts?: {
     message: string;
     metric: string;
     value: number;
     threshold: number;
     severity: "critical" | "warning" | "info";
-  }>;
+  }[];
   recommendations?: string[];
 }
 
@@ -582,7 +583,7 @@ export default function SystemMetricsDashboard() {
       </div>
 
       {/* Performance Alerts */}
-      {reportData && reportData.alerts && reportData.alerts.length > 0 && (
+      {reportData?.alerts && reportData.alerts.length > 0 && (
         <Card className="border-yellow-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -640,8 +641,7 @@ export default function SystemMetricsDashboard() {
       )}
 
       {/* Recommendations */}
-      {reportData &&
-        reportData.recommendations &&
+      {reportData?.recommendations &&
         reportData.recommendations.length > 0 && (
           <Card>
             <CardHeader>

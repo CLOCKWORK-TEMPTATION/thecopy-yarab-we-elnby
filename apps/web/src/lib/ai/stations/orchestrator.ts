@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger";
+
 import { GeminiService } from "./gemini-service";
 import {
   Station1TextAnalysis,
@@ -27,7 +29,6 @@ import {
   Station7Finalization,
   type Station7Output,
 } from "./station7-finalization";
-import { logger } from "../utils/logger";
 
 export interface OrchestrationConfig {
   geminiService: GeminiService;
@@ -72,11 +73,11 @@ export interface OrchestrationResult {
     overallRating?: string;
   };
   progressLog: StationProgress[];
-  errors: Array<{
+  errors: {
     station: number;
     error: string;
     timestamp: string;
-  }>;
+  }[];
 }
 
 export class StationsOrchestrator {
@@ -89,7 +90,7 @@ export class StationsOrchestrator {
   private readonly enableDetailedLogging: boolean;
 
   private progressLog: StationProgress[] = [];
-  private errors: Array<{ station: number; error: string; timestamp: string }> =
+  private errors: { station: number; error: string; timestamp: string }[] =
     [];
 
   constructor(config: OrchestrationConfig) {
@@ -104,7 +105,7 @@ export class StationsOrchestrator {
 
   async execute(
     fullText: string,
-    projectName: string = "untitled-project",
+    projectName = "untitled-project",
     options?: {
       startFromStation?: number;
       endAtStation?: number;
@@ -510,7 +511,7 @@ export class StationsOrchestrator {
     return [...this.progressLog];
   }
 
-  getErrors(): Array<{ station: number; error: string; timestamp: string }> {
+  getErrors(): { station: number; error: string; timestamp: string }[] {
     return [...this.errors];
   }
 

@@ -9,11 +9,13 @@
  */
 
 import { useState, useCallback, useEffect } from "react";
-import type { Session, DebateMessage } from "../types";
+
 import {
   loadRemoteAppState,
   persistRemoteAppState,
 } from "@/lib/app-state-client";
+
+import type { Session, DebateMessage } from "../types";
 
 /** مفتاح التخزين */
 const STORAGE_KEY = "brainstorm_sessions";
@@ -36,11 +38,9 @@ interface PersistedSavedSession {
   session: Omit<Session, "startTime"> & {
     startTime: string;
   };
-  messages: Array<
-    Omit<DebateMessage, "timestamp"> & {
+  messages: (Omit<DebateMessage, "timestamp"> & {
       timestamp: string;
-    }
-  >;
+    })[];
   savedAt: string;
 }
 
@@ -290,7 +290,7 @@ export function useSessionPersistence() {
    */
   const loadSession = useCallback((sessionId: string): SavedSession | null => {
     const store = readStore();
-    return store.sessions.find((s) => s.session.id === sessionId) || null;
+    return store.sessions.find((s) => s.session.id === sessionId) ?? null;
   }, []);
 
   /**

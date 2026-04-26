@@ -1,7 +1,8 @@
+import { createSignal } from "@editor/suspicion-engine/helpers";
+
+import type { ElementType } from "@editor/extensions/classification-types";
 import type { DetectorFn } from "@editor/suspicion-engine/detectors/detector-interface";
 import type { ContextContradictionEvidence } from "@editor/suspicion-engine/types";
-import type { ElementType } from "@editor/extensions/classification-types";
-import { createSignal } from "@editor/suspicion-engine/helpers";
 
 /**
  * @module contract/contract-parenthetical-position.detector

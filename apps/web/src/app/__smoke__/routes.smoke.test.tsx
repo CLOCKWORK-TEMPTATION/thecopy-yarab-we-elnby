@@ -255,7 +255,7 @@ describe("الاختبارات الحرجة للصفحات الرئيسية", ()
           const headerElement = document.querySelector("header");
 
           // At least one of these should exist
-          expect(mainElement || headerElement).toBeTruthy();
+          expect(mainElement ?? headerElement).toBeTruthy();
 
           console.log(`✅ الصفحة ${route.name} تحتوي على عناصر HTML صحيحة`);
         } catch (error) {

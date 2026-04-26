@@ -1,6 +1,7 @@
 "use client";
 
 import { Clapperboard, Layers3, Sparkles } from "lucide-react";
+
 import { DottedGlowBackground } from "@/components/ui/dotted-glow-background";
 
 export function WorkspaceGlowCard() {

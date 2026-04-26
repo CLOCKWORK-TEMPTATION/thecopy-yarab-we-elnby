@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect } from "react";
+
 import { SHORTCUT_LIST } from "../../hooks/useKeyboardShortcuts";
 
 interface KeyboardShortcutsHelpProps {

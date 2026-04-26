@@ -1,6 +1,8 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
+
 import { expect, test } from "@playwright/test";
+
 import type { APIRequestContext } from "@playwright/test";
 
 async function ensureArtifactDir(): Promise<string> {

@@ -26,6 +26,7 @@
  */
 
 import dynamic from "next/dynamic";
+
 import type { HTMLMotionProps } from "framer-motion";
 import type { ComponentType, ReactNode } from "react";
 

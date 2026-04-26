@@ -10,6 +10,7 @@
  * سلوك Enter: الانتقال إلى {@link Dialogue} (حوار).
  */
 import { Node, mergeAttributes } from "@tiptap/core";
+
 import { PARENTHETICAL_RE } from "./arabic-patterns";
 import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import { normalizeLine } from "./text-utils";

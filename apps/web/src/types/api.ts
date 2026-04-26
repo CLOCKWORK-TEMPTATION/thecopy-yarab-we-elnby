@@ -139,14 +139,14 @@ export interface ScriptAnalysis {
 }
 
 export interface ShotSuggestionsResponse {
-  suggestions: Array<{
+  suggestions: {
     shotType: string;
     cameraAngle: string;
     cameraMovement: string;
     lighting: string;
     description: string;
     aiSuggestion?: string;
-  }>;
+  }[];
 }
 
 export interface ChatResponse {

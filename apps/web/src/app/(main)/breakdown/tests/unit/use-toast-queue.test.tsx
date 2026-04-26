@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
 import { useToastQueue } from "../../application/workspace/use-toast-queue";
 
 describe("useToastQueue", () => {

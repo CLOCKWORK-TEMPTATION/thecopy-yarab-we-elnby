@@ -56,7 +56,7 @@ export const LOCKED_EDITOR_LINE_HEIGHT = "15pt";
 export const getFormatStyles = (
   formatType: EditorStyleFormatId | string,
   selectedSize: string = LOCKED_EDITOR_FONT_SIZE,
-  selectedFont: string = "AzarMehrMonospaced-San"
+  selectedFont = "AzarMehrMonospaced-San"
 ): CSSProperties => {
   const normalizedSize =
     selectedSize === LOCKED_EDITOR_FONT_SIZE
@@ -287,20 +287,20 @@ export const applyEditorFormatStyleVariables = (
 
   style.setProperty(
     "--fmt-scene_header_top_line-margin-top",
-    cssValue(stylesByFormat["scene_header_top_line"].marginTop, "0")
+    cssValue(stylesByFormat.scene_header_top_line.marginTop, "0")
   );
   style.setProperty(
     "--fmt-scene_header_top_line-padding",
-    cssValue(stylesByFormat["scene_header_top_line"].padding, "0")
+    cssValue(stylesByFormat.scene_header_top_line.padding, "0")
   );
 
   style.setProperty(
     "--fmt-scene_header_3-padding",
-    cssValue(stylesByFormat["scene_header_3"].padding, "0")
+    cssValue(stylesByFormat.scene_header_3.padding, "0")
   );
   style.setProperty(
     "--fmt-scene_header_3-margin-bottom",
-    cssValue(stylesByFormat["scene_header_3"].marginBottom, "0")
+    cssValue(stylesByFormat.scene_header_3.marginBottom, "0")
   );
 
   style.setProperty(

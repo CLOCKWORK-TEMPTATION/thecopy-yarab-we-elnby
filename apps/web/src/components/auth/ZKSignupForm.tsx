@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { logger } from "@/lib/ai/utils/logger";
 
 /**
@@ -13,8 +16,7 @@ import { logger } from "@/lib/ai/utils/logger";
  * 4. توليد وعرض Recovery Key
  */
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import {
   generateSalt,
   deriveKEK,
@@ -24,8 +26,8 @@ import {
   encryptData,
   generateIV,
   arrayBufferToBase64,
-} from "@/lib/crypto";
-import { getKeyManager } from "@/lib/crypto";
+ getKeyManager } from "@/lib/crypto";
+
 
 export function ZKSignupForm() {
   const router = useRouter();
@@ -95,7 +97,7 @@ export function ZKSignupForm() {
       const data = await response.json();
 
       if (!data.success) {
-        setError(data.error || "فشل التسجيل");
+        setError(data.error ?? "فشل التسجيل");
         return;
       }
 

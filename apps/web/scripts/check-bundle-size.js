@@ -81,9 +81,9 @@ function findFiles(dir, pattern) {
           if (pattern.includes("**")) {
             // SECURITY: Complete escaping of all regex special characters
             // Use placeholder for ** before escaping, then replace after
-            const DOUBLE_STAR_PLACEHOLDER = "\x00DOUBLESTAR\x00";
-            const SINGLE_STAR_PLACEHOLDER = "\x00SINGLESTAR\x00";
-            const QUESTION_PLACEHOLDER = "\x00QUESTION\x00";
+            const DOUBLE_STAR_PLACEHOLDER = "__DOUBLESTAR__";
+            const SINGLE_STAR_PLACEHOLDER = "__SINGLESTAR__";
+            const QUESTION_PLACEHOLDER = "__QUESTION__";
 
             try {
               const escapedPattern = pattern
@@ -92,24 +92,15 @@ function findFiles(dir, pattern) {
                 .replace(/\?/g, QUESTION_PLACEHOLDER) // Preserve ? before escaping
                 .replace(/[.+^${}()|[\]\\-]/g, "\\$&") // Escape all regex special chars
                 .replace(
-                  new RegExp(
-                    DOUBLE_STAR_PLACEHOLDER.replace(/\x00/g, "\\x00"),
-                    "g"
-                  ),
+                  new RegExp(DOUBLE_STAR_PLACEHOLDER, "g"),
                   ".*"
                 ) // Convert ** to .*
                 .replace(
-                  new RegExp(
-                    SINGLE_STAR_PLACEHOLDER.replace(/\x00/g, "\\x00"),
-                    "g"
-                  ),
+                  new RegExp(SINGLE_STAR_PLACEHOLDER, "g"),
                   "[^/]*"
                 ) // Convert * to [^/]*
                 .replace(
-                  new RegExp(
-                    QUESTION_PLACEHOLDER.replace(/\x00/g, "\\x00"),
-                    "g"
-                  ),
+                  new RegExp(QUESTION_PLACEHOLDER, "g"),
                   "."
                 ); // Convert ? to .
 

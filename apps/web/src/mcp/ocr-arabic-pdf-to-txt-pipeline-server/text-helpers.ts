@@ -5,14 +5,16 @@
 import { randomInt } from "node:crypto";
 import { access, readFile } from "node:fs/promises";
 import process from "node:process";
+
 import { log } from "./ocr-logger.js";
+
 import type { JsonRecord, NamedReplacement } from "./types.js";
 
 export function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export const CRITICAL_OCR_REPLACEMENTS: ReadonlyArray<NamedReplacement> = [
+export const CRITICAL_OCR_REPLACEMENTS: readonly NamedReplacement[] = [
   { wrong: "مسـاهد", correct: "مشهد", label: "مشهد" },
   { wrong: "مساهد", correct: "مشهد", label: "مشهد" },
   { wrong: "نشـقـة", correct: "شقة", label: "شقة" },
@@ -265,7 +267,7 @@ export function normalizeSceneHeadersRobust(
 
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
-    const match = line.match(SCENE_HEADER_LINE_PATTERN);
+    const match = SCENE_HEADER_LINE_PATTERN.exec(line);
     if (!match) {
       out.push(line);
       continue;

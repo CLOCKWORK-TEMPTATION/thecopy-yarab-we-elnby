@@ -8,13 +8,15 @@
  */
 
 import { MessageSquare, Shield } from "lucide-react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Badge } from "@/components/ui/badge";
 import {
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
@@ -22,8 +24,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import type { DebateMessage } from "../../types";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 
 interface DebatePanelProps {
   messages: DebateMessage[];

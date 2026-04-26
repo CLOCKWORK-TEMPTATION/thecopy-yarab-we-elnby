@@ -1,7 +1,9 @@
-import React from "react";
-import type { AgentDef } from "../../domain/models";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Loader2 } from "lucide-react";
+import React from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { AgentDef } from "../../domain/models";
 
 interface AgentCardProps {
   agent: AgentDef;

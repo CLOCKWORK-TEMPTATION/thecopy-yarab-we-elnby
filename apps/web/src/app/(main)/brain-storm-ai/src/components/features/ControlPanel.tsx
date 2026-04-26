@@ -8,19 +8,22 @@
  */
 
 import { Cpu, Settings, Play, Rocket, RotateCcw } from "lucide-react";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import FileUpload from "@/components/file-upload";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import FileUpload from "@/components/file-upload";
+
 import type { Session, BrainstormPhase, PhaseDisplayInfo } from "../../types";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 
 interface ControlPanelProps {
   phases: PhaseDisplayInfo[];
@@ -71,7 +74,7 @@ export default function ControlPanel({
                       variant={activePhase === phase.id ? "default" : "outline"}
                       className="p-4 h-auto"
                       onClick={() =>
-                        setActivePhase(phase.id as BrainstormPhase)
+                        setActivePhase(phase.id)
                       }
                     >
                       <div className="flex items-center gap-3 w-full">

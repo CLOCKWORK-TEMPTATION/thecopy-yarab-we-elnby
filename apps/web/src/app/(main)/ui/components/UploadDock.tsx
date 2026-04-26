@@ -1,6 +1,7 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
+import React from "react";
+
+import { Button } from "@/components/ui/button";
 
 interface UploadDockProps {
   onUpload?: (file: File) => void;

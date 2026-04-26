@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // Mock environment variables
-if (process.env["NODE_ENV"] !== "test") {
+if (process.env.NODE_ENV !== "test") {
   Object.defineProperty(process.env, "NODE_ENV", {
     value: "test",
     configurable: true,

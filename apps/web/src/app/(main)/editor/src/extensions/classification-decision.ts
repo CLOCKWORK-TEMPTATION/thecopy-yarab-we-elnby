@@ -23,14 +23,15 @@ import {
   isActionLine,
 } from "./action";
 import { isCharacterLine } from "./character";
-import type { ClassificationContext } from "./classification-types";
-import type { ContextMemorySnapshot } from "./context-memory-manager";
 import {
   getDialogueProbability,
   hasDirectDialogueCues,
   isDialogueLine,
 } from "./dialogue";
 import { normalizeCharacterName, normalizeLine } from "./text-utils";
+
+import type { ClassificationContext } from "./classification-types";
+import type { ContextMemorySnapshot } from "./context-memory-manager";
 
 /**
  * الأنواع الثلاثة القابلة للحسم عند غموض السطر.

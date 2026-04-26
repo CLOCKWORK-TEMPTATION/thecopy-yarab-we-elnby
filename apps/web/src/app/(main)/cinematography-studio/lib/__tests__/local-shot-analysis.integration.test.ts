@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, it, vi, beforeAll } from "vitest";
+
 import {
   createLocalFootageSummary,
   createLocalShotAnalysis,

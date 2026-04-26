@@ -11,7 +11,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { logger } from "@/lib/ai/utils/logger";
+
 import { cinematographyInputConfig } from "../lib/cinematography-config";
 import { publishDiagnostics } from "../lib/diagnostics-bus";
 import {
@@ -221,7 +223,7 @@ export function useMediaInputPipeline(
         }));
 
         const canvas =
-          cameraCanvasRef.current || document.createElement("canvas");
+          cameraCanvasRef.current ?? document.createElement("canvas");
         const extractedFrame = await extractFrameFromVideoFile(
           file,
           canvas,

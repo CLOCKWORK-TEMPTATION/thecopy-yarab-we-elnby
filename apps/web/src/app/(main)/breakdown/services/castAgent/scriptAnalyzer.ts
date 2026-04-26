@@ -3,6 +3,13 @@
  * Main analysis engine broken into focused, testable functions
  */
 
+import {
+  analyzeEmotion,
+  analyzeGenderAndConflict,
+  generateCharacterTags,
+  calculateConnections,
+  generateMergeSuggestions,
+} from "./analyzer";
 import { GROUP_KEYWORDS, GENERIC_KEYWORDS, ROLE_COLORS } from "./constants";
 import {
   normalizeArabic,
@@ -15,13 +22,7 @@ import {
   extractSceneLocation,
   scanForMentions,
 } from "./parser";
-import {
-  analyzeEmotion,
-  analyzeGenderAndConflict,
-  generateCharacterTags,
-  calculateConnections,
-  generateMergeSuggestions,
-} from "./analyzer";
+
 import type {
   RoleCategory,
   CharacterProfile,
@@ -91,7 +92,7 @@ function detectActiveCharacters(lines: string[]): Pass1Result {
       }
 
       // Update or create character stats
-      const stats = charMap.get(parsedName) || createEmptyStats(isVariant);
+      const stats = charMap.get(parsedName) ?? createEmptyStats(isVariant);
       stats.dialogueCount++;
       stats.wordCount += countWords(nextLine);
       stats.activeScenes.add(currentSceneNum || 1);
@@ -155,7 +156,7 @@ function scanMentionsAndActions(
     }
     if (isTransition(line) || isComment(line)) continue;
 
-    const isHeader = isLikelyCharacter(line, lines[i + 1] || "");
+    const isHeader = isLikelyCharacter(line, lines[i + 1] ?? "");
 
     if (!isHeader) {
       const foundNames = scanForMentions(line, nameList);
@@ -293,7 +294,7 @@ function buildSingleProfile(
   const { gender, conflict, desc } = analyzeGenderAndConflict(lines, name);
 
   // Emotion analysis from dialogue
-  const dialogueText = dialogueMap.get(name)?.join(" ") || "";
+  const dialogueText = dialogueMap.get(name)?.join(" ") ?? "";
   const emotions = analyzeEmotion(dialogueText);
 
   // Calculate importance and role
@@ -328,8 +329,8 @@ function buildSingleProfile(
     mentionCount: stats.mentionCount,
     scenes: activeSceneArr,
     mentionedScenes: mentionedSceneArr,
-    firstScene: allScenes[0] || 0,
-    lastScene: allScenes[allScenes.length - 1] || 0,
+    firstScene: allScenes[0] ?? 0,
+    lastScene: allScenes[allScenes.length - 1] ?? 0,
     importanceScore,
     aliases: [],
     isTimeVariant: stats.isVariant,
@@ -340,7 +341,7 @@ function buildSingleProfile(
 
   // Generate tags and assign color
   const tags = generateCharacterTags(profileSkeleton);
-  const color = ROLE_COLORS[roleType] || "#64748b";
+  const color = ROLE_COLORS[roleType] ?? "#64748b";
 
   return {
     ...profileSkeleton,

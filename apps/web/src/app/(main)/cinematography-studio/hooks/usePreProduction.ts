@@ -12,9 +12,11 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "react-hot-toast";
-import type { VisualMood, VisualGenerationResult } from "../types";
-import { ScenePromptSchema } from "../types";
+
 import { postStudioJson } from "../lib/studio-route-client";
+import { ScenePromptSchema } from "../types";
+
+import type { VisualMood, VisualGenerationResult } from "../types";
 
 // ============================================
 // واجهات الحالة الداخلية

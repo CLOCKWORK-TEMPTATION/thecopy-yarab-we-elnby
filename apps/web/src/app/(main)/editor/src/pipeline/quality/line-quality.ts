@@ -21,10 +21,10 @@ const SUSPICIOUS_DIALOGUE_PATTERNS: RegExp[] = [
 
 export function scoreLine(text: string): LineQuality {
   const len = Math.max(text.length, 1);
-  const arabicCount = (text.match(ARABIC_RE) || []).length;
-  const digitCount = (text.match(DIGIT_RE) || []).length;
-  const punctCount = (text.match(PUNCT_RE) || []).length;
-  const weirdCount = (text.match(WEIRD_RE) || []).length;
+  const arabicCount = (text.match(ARABIC_RE) ?? []).length;
+  const digitCount = (text.match(DIGIT_RE) ?? []).length;
+  const punctCount = (text.match(PUNCT_RE) ?? []).length;
+  const weirdCount = (text.match(WEIRD_RE) ?? []).length;
 
   const arabicRatio = arabicCount / len;
   const digitRatio = digitCount / len;

@@ -11,6 +11,7 @@
  * التنقل بالمفاتيح يُدار من العقدة الأب.
  */
 import { Node, mergeAttributes } from "@tiptap/core";
+
 import {
   SCENE_LOCATION_RE,
   SCENE_NUMBER_EXACT_RE,

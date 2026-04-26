@@ -34,7 +34,7 @@ function readEnvNumber(
 }
 
 function readCaptureMime(): string {
-  const raw = (process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"] || "").trim();
+  const raw = (process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"] ?? "").trim();
   if (!raw) {
     return DEFAULT_CAPTURE_MIME;
   }

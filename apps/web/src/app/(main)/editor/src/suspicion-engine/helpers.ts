@@ -1,10 +1,9 @@
+import type { ElementType } from "@editor/extensions/classification-types";
 import type {
   SuspicionSignal,
   SignalFamily,
-  SignalType,
   SuspicionSignalEvidence,
 } from "@editor/suspicion-engine/types";
-import type { ElementType } from "@editor/extensions/classification-types";
 
 let signalCounter = 0;
 
@@ -24,7 +23,7 @@ export function createSignal<T extends SuspicionSignalEvidence>(params: {
     signalId: `sig-${Date.now()}-${signalCounter}`,
     lineIndex: params.lineIndex,
     family: params.family,
-    signalType: params.signalType as SignalType,
+    signalType: params.signalType,
     score: params.score,
     reasonCode: params.reasonCode,
     message: params.message,

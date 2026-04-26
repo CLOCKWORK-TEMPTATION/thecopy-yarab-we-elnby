@@ -1,30 +1,31 @@
 // CineArchitect AI - Main Application Entry Point
 // نقطة الدخول الرئيسية للتطبيق
 
-import express from "express";
 import cors from "cors";
-import { pluginManager } from "./core/PluginManager";
+import express from "express";
+
 import { router } from "./api/routes";
+import { pluginManager } from "./core/PluginManager";
 
 // Import plugins
-import { visualAnalyzer } from "./plugins/visual-analyzer";
-import { terminologyTranslator } from "./plugins/terminology-translator";
 import { budgetOptimizer } from "./plugins/budget-optimizer";
-import { lightingSimulator } from "./plugins/lighting-simulator";
-import { riskAnalyzer } from "./plugins/risk-analyzer";
-import { productionReadinessReportPromptBuilder } from "./plugins/production-readiness-report";
-import { creativeInspiration } from "./plugins/creative-inspiration";
-import { locationCoordinator } from "./plugins/location-coordinator";
-import { setReusability } from "./plugins/set-reusability";
-import { productivityAnalyzer } from "./plugins/productivity-analyzer";
-import { documentationGenerator } from "./plugins/documentation-generator";
-import { mrPrevizStudio } from "./plugins/mr-previz-studio";
-import { virtualSetEditor } from "./plugins/virtual-set-editor";
 import { cinemaSkillsTrainer } from "./plugins/cinema-skills-trainer";
+import { creativeInspiration } from "./plugins/creative-inspiration";
+import { documentationGenerator } from "./plugins/documentation-generator";
 import { immersiveConceptArt } from "./plugins/immersive-concept-art";
+import { lightingSimulator } from "./plugins/lighting-simulator";
+import { locationCoordinator } from "./plugins/location-coordinator";
+import { mrPrevizStudio } from "./plugins/mr-previz-studio";
+import { productionReadinessReportPromptBuilder } from "./plugins/production-readiness-report";
+import { productivityAnalyzer } from "./plugins/productivity-analyzer";
+import { riskAnalyzer } from "./plugins/risk-analyzer";
+import { setReusability } from "./plugins/set-reusability";
+import { terminologyTranslator } from "./plugins/terminology-translator";
 import { virtualProductionEngine } from "./plugins/virtual-production-engine";
+import { virtualSetEditor } from "./plugins/virtual-set-editor";
+import { visualAnalyzer } from "./plugins/visual-analyzer";
 
-const PORT = parseInt(process.env["API_PORT"] || "3001", 10);
+const PORT = parseInt(process.env["API_PORT"] ?? "3001", 10);
 const HOST = "0.0.0.0";
 
 async function bootstrap(): Promise<void> {

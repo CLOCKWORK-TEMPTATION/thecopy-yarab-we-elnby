@@ -1,8 +1,9 @@
 "use client";
 
-import { HeroAnimation } from "@/components/HeroAnimation";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+
+import { HeroAnimation } from "@/components/HeroAnimation";
 
 const AppGrid = dynamic(
   () =>

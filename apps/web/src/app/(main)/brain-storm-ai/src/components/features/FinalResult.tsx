@@ -7,8 +7,9 @@
  * يعرض ملخصاً شاملاً للنتائج والتوصيات والقرارات النهائية
  */
 
-import { useMemo } from "react";
 import { CheckCircle, AlertCircle, Lightbulb, Target } from "lucide-react";
+import { useMemo } from "react";
+
 import type { Session, DebateMessage } from "../../types";
 
 interface FinalResultProps {

@@ -4,6 +4,7 @@ import { logger } from "@/lib/ai/utils/logger";
 // Coordinates the execution of the Seven Stations AI analysis pipeline
 
 import { pipelineExecutor, type PipelineStep } from "./executor";
+
 import type { AnalysisType } from "@/types/enums";
 
 // Station interface for pipeline execution
@@ -116,7 +117,7 @@ export class SevenStationsOrchestrator {
       const availableStations = getAllStations();
 
       // Filter stations based on options
-      let stationsToRun = availableStations.filter(
+      const stationsToRun = availableStations.filter(
         (station: Station) => !options.skipStations?.includes(station.id)
       );
 
@@ -142,7 +143,7 @@ export class SevenStationsOrchestrator {
           topP: 0.95,
           maxOutputTokens: 2048,
         },
-        timeout: options.timeout || 60000, // 1 minute default
+        timeout: options.timeout ?? 60000, // 1 minute default
         retries: 2,
       }));
 
@@ -226,7 +227,7 @@ export class SevenStationsOrchestrator {
   }
 
   // Clean up old executions (older than specified hours)
-  cleanupOldExecutions(maxAgeHours: number = 24): number {
+  cleanupOldExecutions(maxAgeHours = 24): number {
     const cutoffTime = Date.now() - maxAgeHours * 60 * 60 * 1000;
     let removed = 0;
 
@@ -265,7 +266,7 @@ export async function runPipelineWithInterfaces(
   return orchestrator.runSevenStationsPipeline(
     "default",
     content,
-    options || {}
+    options ?? {}
   );
 }
 

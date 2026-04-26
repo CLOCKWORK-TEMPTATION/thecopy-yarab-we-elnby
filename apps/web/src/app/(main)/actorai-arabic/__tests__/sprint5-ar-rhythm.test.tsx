@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
 import React from "react";
-import { renderWithApp, screen, fireEvent, waitFor } from "../test-utils";
+import { describe, it, expect } from "vitest";
+
 import { ARTrainingView } from "../features/ar";
 import { SceneRhythmView } from "../features/rhythm";
+import { renderWithApp, screen, fireEvent, waitFor } from "../test-utils";
 
 describe("ARTrainingView", () => {
   it("يعرض عنوان تدريب AR/MR", () => {

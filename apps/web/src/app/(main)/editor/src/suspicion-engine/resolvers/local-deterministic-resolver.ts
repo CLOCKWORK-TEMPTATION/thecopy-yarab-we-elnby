@@ -1,9 +1,10 @@
+import { assignRoute } from "@editor/suspicion-engine/routing/routing-policy";
+
 import type { SuspicionResolver } from "@editor/suspicion-engine/resolvers/resolver-interface";
 import type {
   SuspicionCase,
   ResolutionOutcome,
 } from "@editor/suspicion-engine/types";
-import { assignRoute } from "@editor/suspicion-engine/routing/routing-policy";
 
 /**
  * @module resolvers/local-deterministic-resolver

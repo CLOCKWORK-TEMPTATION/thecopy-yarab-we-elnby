@@ -7,7 +7,6 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { useState, useCallback, useMemo, type ChangeEvent } from "react";
 import {
   Play,
   Loader2,
@@ -16,15 +15,19 @@ import {
   Gauge,
   ListChecks,
 } from "lucide-react";
+import { useState, useCallback, useMemo, type ChangeEvent } from "react";
+
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { toolConfigs, type ToolId, type ToolInput } from "../core/toolConfigs";
-import { usePlugins } from "../hooks/usePlugins";
-import type { PluginInfo, ApiResponse } from "../types";
-import { fetchArtDirectorJson } from "../lib/api-client";
 import {
   useArtDirectorPersistence,
   type ArtDirectorExecutionResult,
 } from "../hooks/useArtDirectorPersistence";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { usePlugins } from "../hooks/usePlugins";
+import { fetchArtDirectorJson } from "../lib/api-client";
+
+import type { PluginInfo, ApiResponse } from "../types";
 
 type FormData = Record<string, string>;
 
@@ -127,7 +130,7 @@ interface ToolItemProps {
 }
 
 function ToolItem({ plugin, isActive, onClick }: ToolItemProps) {
-  const config = toolConfigs[plugin.id as ToolId];
+  const config = toolConfigs[plugin.id];
   const Icon = config?.icon ?? Play;
   const color = config?.color ?? "#e94560";
 
@@ -180,7 +183,7 @@ function ToolsSidebar({
               key={plugin.id}
               plugin={plugin}
               isActive={selectedTool === plugin.id}
-              onClick={() => onToolSelect(plugin.id as ToolId)}
+              onClick={() => onToolSelect(plugin.id)}
             />
           ))}
         </div>
@@ -292,7 +295,7 @@ function VisualConsistencyResult({ data }: { data: VisualAnalysisData }) {
                   <SeverityBadge severity={issue.severity} />
                   <span>{issue.location ?? "موضع غير محدد"}</span>
                 </div>
-                <p>{issue.descriptionAr || issue.description}</p>
+                <p>{issue.descriptionAr ?? issue.description}</p>
                 {issue.suggestion ? <small>{issue.suggestion}</small> : null}
               </article>
             ))}
@@ -485,7 +488,7 @@ export default function Tools() {
   const [error, setError] = useState<string | null>(null);
   const selectedTool = useMemo<ToolId | null>(() => {
     const toolId = state.tools.selectedTool;
-    return toolId && toolId in toolConfigs ? (toolId as ToolId) : null;
+    return toolId && toolId in toolConfigs ? (toolId) : null;
   }, [state.tools.selectedTool]);
 
   const formData = useMemo<FormData>(

@@ -1,6 +1,6 @@
 import { Node, mergeAttributes } from "@tiptap/core";
-import type { ClassificationContext } from "./classification-types";
-import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
+
+import { collectActionEvidence } from "./action";
 import {
   ARABIC_ONLY_WITH_NUMBERS_RE,
   CHARACTER_RE,
@@ -12,9 +12,9 @@ import {
   SHORT_DIALOGUE_WORDS,
   TRANSITION_RE,
 } from "./arabic-patterns";
-import { collectActionEvidence } from "./action";
 import { hasDirectDialogueCues } from "./dialogue";
 import { isParentheticalLine } from "./parenthetical";
+import { buildProgressiveNodeAttributes } from "./shared-node-attrs";
 import {
   hasActionVerbStructure,
   isActionCueLine,
@@ -24,6 +24,8 @@ import {
   normalizeLine,
   stripLeadingBullets,
 } from "./text-utils";
+
+import type { ClassificationContext } from "./classification-types";
 
 export interface ParsedInlineCharacterDialogue {
   characterName: string;
@@ -189,7 +191,7 @@ export const parseImplicitCharacterDialogueWithoutColon = (
     // إلا إذا كان مؤكداً مسبقاً في سجل الشخصيات (confirmedCharacters).
     // السبب: السطر ده جاي من كرنك كحوار صحيح، فصعود الحاجز يمنع
     // تقسيمه الخاطئ إلى «اسم + حوار» بناءً على تطابق هيكلي ضعيف.
-    if (!confirmedCharacters || !confirmedCharacters.has(candidateName)) {
+    if (!confirmedCharacters?.has(candidateName)) {
       continue;
     }
 

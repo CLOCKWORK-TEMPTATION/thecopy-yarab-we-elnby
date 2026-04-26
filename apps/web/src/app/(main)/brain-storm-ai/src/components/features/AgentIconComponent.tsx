@@ -5,7 +5,6 @@
 
 "use client";
 
-import { memo } from "react";
 import {
   Brain,
   Users,
@@ -30,6 +29,8 @@ import {
   Music,
   Search,
 } from "lucide-react";
+import { memo } from "react";
+
 import type { AgentIcon } from "../../types";
 
 interface AgentIconComponentProps {
@@ -65,7 +66,7 @@ const AgentIconComponent = memo(function AgentIconComponent({
     music: <Music className={className} />,
     search: <Search className={className} />,
   };
-  return iconMap[icon] || <Cpu className={className} />;
+  return iconMap[icon] ?? <Cpu className={className} />;
 });
 
 export default AgentIconComponent;

@@ -7,8 +7,9 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { memo, useMemo, type ReactNode } from "react";
 import { Film, Users, Camera, CheckCircle } from "lucide-react";
+import { memo, useMemo, type ReactNode } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface StatCardProps {

@@ -1,5 +1,6 @@
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface ProductionBook {
   id: string;
@@ -48,7 +49,7 @@ interface StyleGuide {
 interface ColorPaletteSection {
   name: string;
   nameAr: string;
-  colors: Array<{ hex: string; name: string; usage: string }>;
+  colors: { hex: string; name: string; usage: string }[];
   mood: string;
 }
 
@@ -123,9 +124,9 @@ export class AutomaticDocumentationGenerator implements Plugin {
     "إنشاء وثائق شاملة للمشروع تلقائياً بما في ذلك كتب الإنتاج وأدلة الأسلوب وسجلات القرارات";
   category = "documentation" as const;
 
-  private productionBooks: Map<string, ProductionBook> = new Map();
-  private styleGuides: Map<string, StyleGuide> = new Map();
-  private decisionLogs: Map<string, DecisionLog> = new Map();
+  private productionBooks = new Map<string, ProductionBook>();
+  private styleGuides = new Map<string, StyleGuide>();
+  private decisionLogs = new Map<string, DecisionLog>();
 
   async initialize(): Promise<void> {
     console.log(`[${this.name}] Initialized`);
@@ -142,7 +143,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
           input.data as unknown as GenerateStyleGuideInput
         );
       case "log-decision":
-        return this.logDecision(input.data as unknown as Partial<DecisionLog>);
+        return this.logDecision(input.data);
       case "get-book":
         return this.getProductionBook(input.data as { bookId: string });
       case "get-style-guide":
@@ -199,7 +200,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     const book: ProductionBook = {
       id: uuidv4(),
       title: data.title,
-      titleAr: data.titleAr || data.title,
+      titleAr: data.titleAr ?? data.title,
       productionId: data.productionId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -272,8 +273,8 @@ export class AutomaticDocumentationGenerator implements Plugin {
     switch (type) {
       case "overview":
         return {
-          en: `# Production Overview\n\nThis document provides a comprehensive overview of the production.\n\n## Project Details\n- Production Name: ${projectData.name || "TBD"}\n- Director: ${projectData.director || "TBD"}\n- Art Director: ${projectData.artDirector || "TBD"}\n- Status: ${projectData.status || "In Development"}`,
-          ar: `# نظرة عامة على الإنتاج\n\nيقدم هذا المستند نظرة شاملة على الإنتاج.\n\n## تفاصيل المشروع\n- اسم الإنتاج: ${projectData.name || "سيُحدد"}\n- المخرج: ${projectData.director || "سيُحدد"}\n- مدير الفن: ${projectData.artDirector || "سيُحدد"}\n- الحالة: ${projectData.status || "قيد التطوير"}`,
+          en: `# Production Overview\n\nThis document provides a comprehensive overview of the production.\n\n## Project Details\n- Production Name: ${projectData.name ?? "TBD"}\n- Director: ${projectData.director ?? "TBD"}\n- Art Director: ${projectData.artDirector ?? "TBD"}\n- Status: ${projectData.status ?? "In Development"}`,
+          ar: `# نظرة عامة على الإنتاج\n\nيقدم هذا المستند نظرة شاملة على الإنتاج.\n\n## تفاصيل المشروع\n- اسم الإنتاج: ${projectData.name ?? "سيُحدد"}\n- المخرج: ${projectData.director ?? "سيُحدد"}\n- مدير الفن: ${projectData.artDirector ?? "سيُحدد"}\n- الحالة: ${projectData.status ?? "قيد التطوير"}`,
         };
       case "scenes":
         return {
@@ -347,8 +348,8 @@ export class AutomaticDocumentationGenerator implements Plugin {
         titleStyle: "Bold, 24pt",
         bodyStyle: "Regular, 12pt",
       },
-      visualReferences: data.visualReferences || [],
-      moodDescriptions: data.moodDescriptions || [],
+      visualReferences: data.visualReferences ?? [],
+      moodDescriptions: data.moodDescriptions ?? [],
       createdAt: new Date(),
     };
 
@@ -376,14 +377,14 @@ export class AutomaticDocumentationGenerator implements Plugin {
       id: uuidv4(),
       productionId: data.productionId,
       decision: data.decision,
-      decisionAr: data.decisionAr || data.decision,
-      rationale: data.rationale || "",
-      rationaleAr: data.rationaleAr || data.rationale || "",
+      decisionAr: data.decisionAr ?? data.decision,
+      rationale: data.rationale ?? "",
+      rationaleAr: data.rationaleAr ?? data.rationale ?? "",
       madeBy: data.madeBy,
       madeAt: new Date(),
-      category: data.category || "creative",
-      status: data.status || "proposed",
-      relatedDecisions: data.relatedDecisions || [],
+      category: data.category ?? "creative",
+      status: data.status ?? "proposed",
+      relatedDecisions: data.relatedDecisions ?? [],
     };
 
     this.decisionLogs.set(decision.id, decision);

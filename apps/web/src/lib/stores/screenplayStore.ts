@@ -28,7 +28,7 @@ const defaultState = {
   cursorPosition: 0,
   selection: null as SelectionRange | null,
   isDirty: false,
-  stats: { totalLines: 0, wordCount: 0 } as ScreenplayStats,
+  stats: { totalLines: 0, wordCount: 0 },
   settings: { autoSaveInterval: 10000 } as ScreenplaySettings,
   isSaving: false,
   isLoading: false,

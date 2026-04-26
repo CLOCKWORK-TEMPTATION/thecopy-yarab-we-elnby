@@ -28,12 +28,12 @@ export interface ExportData {
     status: string;
     startTime: string;
   };
-  messages: Array<{
+  messages: {
     agent: string;
     type: string;
     message: string;
     timestamp: string;
-  }>;
+  }[];
   results: Record<string, unknown>;
   exportedAt: string;
   version: string;
@@ -66,7 +66,7 @@ export function prepareExportData(
           ? m.timestamp.toISOString()
           : String(m.timestamp),
     })),
-    results: session.results || {},
+    results: session.results ?? {},
     exportedAt: new Date().toISOString(),
     version: "1.0",
   };
@@ -142,7 +142,7 @@ export function buildMarkdownContent(data: ExportData): string {
   md += `## مسار النقاش\n\n`;
 
   for (const msg of data.messages) {
-    const typeLabel = typeLabels[msg.type] || msg.type;
+    const typeLabel = typeLabels[msg.type] ?? msg.type;
     md += `### ${msg.agent} — ${typeLabel}\n\n`;
     md += `${msg.message}\n\n`;
     md += `_${msg.timestamp}_\n\n`;

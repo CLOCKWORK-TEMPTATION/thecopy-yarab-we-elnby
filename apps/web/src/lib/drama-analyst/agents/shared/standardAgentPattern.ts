@@ -12,6 +12,7 @@
  */
 
 import { callGeminiText, toText } from "@/lib/ai/gemini-core";
+
 import type { ModelId } from "@/lib/ai/gemini-core";
 
 // =====================================================
@@ -87,7 +88,7 @@ export interface UncertaintyMetrics {
 
 export interface HallucinationCheckResult {
   detected: boolean;
-  claims: Array<{ claim: string; supported: boolean }>;
+  claims: { claim: string; supported: boolean }[];
   correctedText: string;
 }
 
@@ -395,7 +396,7 @@ async function measureUncertainty(
 
   // Identify uncertain aspects (simple heuristic)
   const uncertainPhrases =
-    text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) || [];
+    text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) ?? [];
 
   return {
     score: uncertaintyScore,
@@ -523,7 +524,7 @@ export async function executeStandardAgentPattern(
 
     // Initial generation
     currentText = await callGeminiText(finalPrompt, {
-      temperature: mergedOptions.temperature || 0.3,
+      temperature: mergedOptions.temperature ?? 0.3,
     });
 
     // Step 2: Self-Critique
@@ -532,8 +533,8 @@ export async function executeStandardAgentPattern(
         currentText,
         finalPrompt,
         "gemini-1.5-flash",
-        mergedOptions.temperature || 0.3,
-        mergedOptions.maxIterations || 3
+        mergedOptions.temperature ?? 0.3,
+        mergedOptions.maxIterations ?? 3
       );
       currentText = critiqueResult.finalText;
       metadata.critiqueIterations = critiqueResult.iterations;
@@ -549,7 +550,7 @@ export async function executeStandardAgentPattern(
         currentText,
         taskPrompt,
         "gemini-1.5-flash",
-        mergedOptions.temperature || 0.3
+        mergedOptions.temperature ?? 0.3
       );
       currentText = constitutionalResult.correctedText;
       metadata.constitutionalViolations =
@@ -568,7 +569,7 @@ export async function executeStandardAgentPattern(
         currentText,
         finalPrompt,
         "gemini-1.5-flash",
-        mergedOptions.temperature || 0.3
+        mergedOptions.temperature ?? 0.3
       );
       metadata.uncertaintyScore = uncertaintyMetrics.score;
       confidence = Math.min(confidence, uncertaintyMetrics.confidence);
@@ -600,7 +601,7 @@ export async function executeStandardAgentPattern(
     // Step 6: Debate (Optional - if confidence is low)
     if (
       mergedOptions.enableDebate &&
-      confidence < (mergedOptions.confidenceThreshold || 0.7)
+      confidence < (mergedOptions.confidenceThreshold ?? 0.7)
     ) {
       notes.push("الثقة منخفضة - يُوصى بتفعيل النقاش متعدد الوكلاء");
       // Debate would be handled at orchestration level

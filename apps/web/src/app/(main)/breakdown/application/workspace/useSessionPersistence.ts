@@ -127,7 +127,7 @@ export function useBreakdownSessionPersistence() {
   const loadSession = useCallback(
     (sessionId: string): SavedBreakdownSession | null => {
       const store = readStore();
-      return store.sessions.find((s) => s.id === sessionId) || null;
+      return store.sessions.find((s) => s.id === sessionId) ?? null;
     },
     []
   );

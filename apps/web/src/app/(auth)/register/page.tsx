@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import { registerUser } from "@/lib/api";
 
 const PASSWORD_REQUIREMENTS_MESSAGE =
@@ -32,7 +33,7 @@ export default function RegisterPage() {
       await registerUser(email, password);
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "فشل إنشاء الحساب");
+      setError(err.message ?? "فشل إنشاء الحساب");
     } finally {
       setLoading(false);
     }

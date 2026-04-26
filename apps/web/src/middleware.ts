@@ -126,7 +126,7 @@ export function buildContentSecurityPolicy({
 }
 
 function collectAllowedConnectOrigins(
-  urls: Array<string | undefined>
+  urls: (string | undefined)[]
 ): string[] {
   return Array.from(
     new Set(
@@ -148,8 +148,8 @@ export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Development mode detection
-  const isDevelopment = process.env["NODE_ENV"] === "development";
-  const allowedDevOrigin = process.env["ALLOWED_DEV_ORIGIN"] || "";
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const allowedDevOrigin = process.env["ALLOWED_DEV_ORIGIN"] ?? "";
   const sentryOrigin = getOriginFromUrl(process.env["NEXT_PUBLIC_SENTRY_DSN"]);
   const cdnOrigin = getOriginFromUrl(process.env["NEXT_PUBLIC_CDN_URL"]);
   const connectOrigins = collectAllowedConnectOrigins([
@@ -158,7 +158,7 @@ export function middleware(_request: NextRequest) {
     process.env["BACKEND_URL"],
     process.env["EDITOR_RUNTIME_BASE_URL"],
     process.env["FILE_IMPORT_BACKEND_URL"],
-    process.env["NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL"],
+    process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL,
     process.env["NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL"],
   ]);
   const contentSecurityPolicy = buildContentSecurityPolicy({

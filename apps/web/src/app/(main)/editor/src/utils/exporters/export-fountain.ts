@@ -1,4 +1,3 @@
-import type { ScreenplayBlock } from "../file-import/document-model";
 import {
   type BlockExportRequest,
   downloadBlob,
@@ -6,6 +5,8 @@ import {
   resolveBlocksForExport,
   sanitizeExportFileBaseName,
 } from "./shared";
+
+import type { ScreenplayBlock } from "../file-import/document-model";
 
 /**
  * يبني نص Fountain من كتل السيناريو.
@@ -42,7 +43,7 @@ const buildFountainString = (blocks: ScreenplayBlock[]): string => {
         // دمج scene_header_1 + scene_header_2 المتتاليين
         const next = blocks[i + 1];
         let heading = text;
-        if (next && next.formatId === "scene_header_2") {
+        if (next?.formatId === "scene_header_2") {
           const nextText = normalizeText(next.text);
           if (nextText) {
             heading = `${text} - ${nextText}`;
@@ -51,7 +52,7 @@ const buildFountainString = (blocks: ScreenplayBlock[]): string => {
         }
         // لو في scene_header_3 بعدهم
         const afterNext = blocks[i + 1];
-        if (afterNext && afterNext.formatId === "scene_header_3") {
+        if (afterNext?.formatId === "scene_header_3") {
           const h3Text = normalizeText(afterNext.text);
           if (h3Text) {
             heading = `${heading}\n${h3Text}`;

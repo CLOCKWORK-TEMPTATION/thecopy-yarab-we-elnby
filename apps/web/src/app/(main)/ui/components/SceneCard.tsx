@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowRight, ArrowLeft, Flag } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Scene status type

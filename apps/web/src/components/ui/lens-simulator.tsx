@@ -1,19 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Camera,
   Circle,
@@ -27,6 +13,21 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /**
  * Lens Simulator Component for Cinematography Studio
@@ -136,7 +137,7 @@ const LENS_PRESETS: LensPreset[] = [
 // Calculate field of view based on focal length and sensor size
 const calculateFOV = (
   focalLength: number,
-  sensorWidth: number = 36
+  sensorWidth = 36
 ): number => {
   return 2 * Math.atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
 };
@@ -354,7 +355,7 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Select
-                  value={selectedPreset || ""}
+                  value={selectedPreset ?? ""}
                   onValueChange={applyPreset}
                 >
                   <SelectTrigger className="bg-zinc-950 border-zinc-800 text-zinc-100">

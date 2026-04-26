@@ -62,9 +62,9 @@ async function estimateImageStats(file: File): Promise<LocalImageStats> {
     let samples = 0;
 
     for (let index = 0; index < data.length; index += 4) {
-      const red = data[index] || 0;
-      const green = data[index + 1] || 0;
-      const blue = data[index + 2] || 0;
+      const red = data[index] ?? 0;
+      const green = data[index + 1] ?? 0;
+      const blue = data[index + 2] ?? 0;
       const luma = (red * 0.2126 + green * 0.7152 + blue * 0.0722) / 255;
 
       sum += luma;

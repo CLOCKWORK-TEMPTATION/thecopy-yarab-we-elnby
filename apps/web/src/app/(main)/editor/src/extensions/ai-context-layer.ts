@@ -11,15 +11,19 @@
  * - {@link ContextEnhancementResult} — نتيجة عملية التعزيز
  */
 
-import type { EditorView } from "@tiptap/pm/view";
-import type { ClassifiedLine } from "./classification-types";
+import { resolveContextEnhanceEndpoint } from "../utils/backend-endpoints";
+import { logger } from "../utils/logger";
+
+import { isElementType } from "./classification-types";
+
 import type {
   AICorrectionCommand,
   ProgressiveUpdateSession,
 } from "./ai-progressive-updater";
-import { isElementType } from "./classification-types";
-import { logger } from "../utils/logger";
-import { resolveContextEnhanceEndpoint } from "../utils/backend-endpoints";
+import type { ClassifiedLine } from "./classification-types";
+import type { EditorView } from "@tiptap/pm/view";
+
+
 
 // ─── الأنواع ──────────────────────────────────────────────────────
 
@@ -53,7 +57,7 @@ const contextLogger = logger.createScope("ai-context-layer");
 /** عنوان الـ endpoint — يُقرأ من متغيرات البيئة */
 const resolveContextEndpoint = (): string => {
   const envValue = (
-    process.env["NEXT_PUBLIC_AI_CONTEXT_ENDPOINT"] as string | undefined
+    process.env.NEXT_PUBLIC_AI_CONTEXT_ENDPOINT
   )?.trim();
   if (envValue) return envValue;
   return resolveContextEnhanceEndpoint();
@@ -62,7 +66,7 @@ const resolveContextEndpoint = (): string => {
 /** هل الطبقة مفعّلة */
 const isContextLayerEnabled = (): boolean => {
   const rawValue = (
-    process.env["NEXT_PUBLIC_AI_CONTEXT_ENABLED"] as string | undefined
+    process.env.NEXT_PUBLIC_AI_CONTEXT_ENABLED
   )
     ?.trim()
     .toLowerCase();

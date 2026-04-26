@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Palette,
   Type,
@@ -14,16 +13,18 @@ import {
   Upload,
   Sparkles,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 /**
  * Enhanced Theme Customizer Component

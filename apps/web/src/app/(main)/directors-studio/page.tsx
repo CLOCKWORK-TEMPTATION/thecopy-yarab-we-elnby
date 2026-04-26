@@ -6,8 +6,13 @@
  */
 "use client";
 
-import { useMemo } from "react";
 import dynamic from "next/dynamic";
+import { useMemo } from "react";
+
+import { useProjectScenes, useProjectCharacters } from "@/hooks/useProject";
+
+import { LoadingSection } from "./components/LoadingSection";
+import { PageLayout } from "./components/PageLayout";
 import {
   hasActiveProject,
   prepareCharacterList,
@@ -15,9 +20,6 @@ import {
   type ProjectCharacterInput,
   type SceneCardProps,
 } from "./helpers/projectSummary";
-import { PageLayout } from "./components/PageLayout";
-import { LoadingSection } from "./components/LoadingSection";
-import { useProjectScenes, useProjectCharacters } from "@/hooks/useProject";
 import { useCurrentProject } from "./lib/ProjectContext";
 
 type ValidSceneStatus = "planned" | "in-progress" | "completed";

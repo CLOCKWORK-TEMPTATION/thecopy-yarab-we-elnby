@@ -1,8 +1,12 @@
-import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
+
 import { DESKTOP_WEB_APP_BODY_CLASS } from "@/lib/desktop-shell";
+
+import type { Metadata } from "next";
+
 import "../styles/globals.css";
 import Providers from "./providers";
+
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 

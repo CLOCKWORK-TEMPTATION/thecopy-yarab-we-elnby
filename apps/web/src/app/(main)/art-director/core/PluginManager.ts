@@ -4,8 +4,8 @@
 import { Plugin, PluginInput, PluginOutput, PluginCategory } from "../types";
 
 export class PluginManager {
-  private plugins: Map<string, Plugin> = new Map();
-  private initialized: boolean = false;
+  private plugins = new Map<string, Plugin>();
+  private initialized = false;
 
   async registerPlugin(plugin: Plugin): Promise<void> {
     if (this.plugins.has(plugin.id)) {
@@ -113,13 +113,13 @@ export class PluginManager {
     return this.getAllPlugins().filter((p) => p.category === category);
   }
 
-  getPluginInfo(): Array<{
+  getPluginInfo(): {
     id: string;
     name: string;
     nameAr: string;
     version: string;
     category: PluginCategory;
-  }> {
+  }[] {
     return this.getAllPlugins().map((p) => ({
       id: p.id,
       name: p.name,

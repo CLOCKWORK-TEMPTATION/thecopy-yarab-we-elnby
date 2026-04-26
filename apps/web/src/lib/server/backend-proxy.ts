@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import {
   withNoStoreHeaders,
   withNoStoreResponseInit,
@@ -22,10 +23,10 @@ function normalizeAbsoluteBaseUrl(url?: string | null): string | null {
 }
 
 const CONFIGURED_BACKEND_BASE_URL = normalizeBaseUrl(
-  process.env["NEXT_PUBLIC_API_URL"] ||
-    process.env["NEXT_PUBLIC_BACKEND_URL"] ||
-    process.env["BACKEND_URL"] ||
-    (process.env["NODE_ENV"] !== "production" ? "http://localhost:3001" : null)
+  process.env["NEXT_PUBLIC_API_URL"] ??
+    process.env["NEXT_PUBLIC_BACKEND_URL"] ??
+    process.env["BACKEND_URL"] ??
+    (process.env.NODE_ENV !== "production" ? "http://localhost:3001" : null)
 );
 
 const EDITOR_RUNTIME_ROUTE_SUFFIXES = [
@@ -88,7 +89,7 @@ const CONFIGURED_EDITOR_RUNTIME_BASE_URL = (() => {
   const candidates = [
     process.env["EDITOR_RUNTIME_BASE_URL"],
     process.env["FILE_IMPORT_BACKEND_URL"],
-    process.env["NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL"],
+    process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL,
     process.env["NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL"],
   ];
 

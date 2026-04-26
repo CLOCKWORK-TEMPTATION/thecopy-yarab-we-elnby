@@ -7,8 +7,9 @@
  * عرض إشعارات متعددة وتخصيص مظهرها.
  */
 
-import React from "react";
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
+import React from "react";
+
 import type {
   Toast,
   ToastType,

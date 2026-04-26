@@ -8,9 +8,9 @@
  * عبر مكونات متعددة دون تكرار الكود.
  */
 
-import type { ComponentProps } from "react";
 import type CharacterTracker from "@/app/(main)/directors-studio/components/CharacterTracker";
 import type SceneCard from "@/app/(main)/directors-studio/components/SceneCard";
+import type { ComponentProps } from "react";
 
 /**
  * نوع خصائص بطاقة المشهد المُستخرج من المكوّن
@@ -29,8 +29,7 @@ export type CharacterTrackerProps = ComponentProps<typeof CharacterTracker>;
  * السبب: البيانات من الخادم قد تحتوي على قيم null
  * لذلك نحتاج نوعاً وسيطاً للتحويل
  */
-export type ProjectCharacterInput = ReadonlyArray<
-  Omit<
+export type ProjectCharacterInput = readonly (Omit<
     CharacterTrackerProps["characters"][number],
     "consistencyStatus" | "lastSeen"
   > & {
@@ -38,8 +37,7 @@ export type ProjectCharacterInput = ReadonlyArray<
       | CharacterTrackerProps["characters"][number]["consistencyStatus"]
       | null;
     lastSeen?: string | null;
-  }
->;
+  })[];
 
 /**
  * القيم الافتراضية لحالة اتساق الشخصية
@@ -72,7 +70,7 @@ export function prepareCharacterList(
   return characters.map((character) => ({
     ...character,
     consistencyStatus: (character.consistencyStatus ??
-      DEFAULT_CONSISTENCY_STATUS) as CharacterTrackerProps["characters"][number]["consistencyStatus"],
+      DEFAULT_CONSISTENCY_STATUS),
     lastSeen: character.lastSeen ?? DEFAULT_LAST_SEEN,
   }));
 }

@@ -1,5 +1,7 @@
 import { editDistanceRatio } from "../metrics";
+
 import { simpleLineAlignment } from "./align";
+
 import type { ExtractedLine } from "../types";
 
 export function patchSuspiciousLinesFromOcr(opts: {
@@ -23,7 +25,7 @@ export function patchSuspiciousLinesFromOcr(opts: {
     if (!line) continue;
     if (line.quality.score >= suspiciousThreshold) continue; // لا نلمس السطور الجيدة
 
-    const candidate = (ocrLines[m.ocrIndex] || "").trim();
+    const candidate = (ocrLines[m.ocrIndex] ?? "").trim();
     if (!candidate) continue;
 
     const ratio = editDistanceRatio(line.text, candidate);

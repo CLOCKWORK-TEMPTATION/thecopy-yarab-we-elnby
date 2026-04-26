@@ -53,18 +53,18 @@ export const scrollEditorToFooter = async (
   await page.waitForTimeout(750);
 };
 
-type SurfaceAudit = {
+interface SurfaceAudit {
   pageNumber: number;
   hasContentLeak: boolean;
   pageNumberOffsetLeft: number | null;
   footerWidth: number | null;
-  samples: Array<{
+  samples: {
     x: number;
     y: number;
     topClass: string | null;
     contentType: string | null;
-  }>;
-};
+  }[];
+}
 
 /**
  * @description فحص سطح الفوتر نفسه عبر نقاط عينة مرئية للتأكد من عدم
@@ -126,17 +126,17 @@ export const auditFooterSurface = async (
   }, footerPageNumber);
 };
 
-type GapAudit = {
+interface GapAudit {
   pageNumber: number;
   hasContentLeak: boolean;
   gapDisplay: string | null;
-  samples: Array<{
+  samples: {
     x: number;
     y: number;
     topClass: string | null;
     contentType: string | null;
-  }>;
-};
+  }[];
+}
 
 /**
  * @description فحص الفاصل الأسود بين صفحتين للتأكد من عدم مرور أي عنصر
@@ -190,12 +190,12 @@ export const auditPageGap = async (
   }, footerPageNumber);
 };
 
-type TerminalSummary = {
+interface TerminalSummary {
   terminalFooterPage: number;
   hiddenTrailingCount: number;
   terminalGapDisplay: string | null;
   terminalHeaderDisplay: string | null;
-};
+}
 
 /**
  * @description قراءة حالة قصّ الصفحات الذيلية بعد الاستيراد.

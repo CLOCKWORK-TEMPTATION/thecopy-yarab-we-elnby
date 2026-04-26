@@ -4,25 +4,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useState, useEffect } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import LightingStudio from "./LightingStudio";
-import Dashboard from "./Dashboard";
+
 import { ProjectProvider, useProject } from "../contexts/ProjectContext";
 import {
   evaluateSafety,
   FabricType,
   SceneHazard,
 } from "../services/rulesEngine";
+import { getSceneCostumes, assignSceneCostume } from "../services/styleistApi";
 import {
   generateFullTechPack,
   TechPackSpec,
 } from "../services/techPackService";
-import { ChevronLeftIcon, PlusIcon } from "./icons";
-import WardrobeModal from "./WardrobeSheet";
 import { WardrobeItem } from "../types";
+
 import ContinuityTimeline, { SceneCardData } from "./ContinuityTimeline";
+import Dashboard from "./Dashboard";
+import { ChevronLeftIcon, PlusIcon } from "./icons";
+import LightingStudio from "./LightingStudio";
 import { TechPackView } from "./TechPackView";
-import { getSceneCostumes, assignSceneCostume } from "../services/styleistApi";
+import WardrobeModal from "./WardrobeSheet";
 
 interface FittingRoomProps {
   onBack: () => void;
@@ -38,7 +41,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
   const { projectId, projectName, addNotification } = useProject();
 
   const [textureUrl, setTextureUrl] = useState<string | null>(
-    initialGarmentUrl || null
+    initialGarmentUrl ?? null
   );
   const [selectedFabric, setSelectedFabric] = useState<FabricType>("cotton");
   const [hazards, setHazards] = useState<SceneHazard[]>([]);
@@ -107,8 +110,8 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
               ? {
                   ...scene,
                   costumeId:
-                    match.wardrobeItemId ||
-                    match.costumeDesignId ||
+                    match.wardrobeItemId ??
+                    match.costumeDesignId ??
                     scene.costumeId,
                   isContinuous: match.isContinuous,
                 }
@@ -375,7 +378,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
               </div>
               <div className="p-6">
                 <TechPackView
-                  data={techPack as any}
+                  data={techPack}
                   fabricName={selectedFabric}
                 />
                 <button className="w-full mt-4 border-2 border-black/14 text-black font-bold py-2 hover:bg-black/14 hover:text-white transition-colors text-xs uppercase tracking-widest rounded-[22px]">

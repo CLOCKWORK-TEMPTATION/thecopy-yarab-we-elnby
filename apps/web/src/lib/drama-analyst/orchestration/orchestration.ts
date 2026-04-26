@@ -1,5 +1,5 @@
-import { TaskType } from "@core/enums";
 import { AGENT_CONFIGS } from "@agents/index";
+import { TaskType } from "@core/enums";
 import { AIAgentCapabilities, AIAgentConfig } from "@core/types";
 import { log } from "@services/loggerService";
 
@@ -13,12 +13,12 @@ import { log } from "@services/loggerService";
  */
 class AIAgentOrchestraManager {
   private static instance: AIAgentOrchestraManager;
-  private agents: Map<TaskType, AIAgentConfig> = new Map();
-  private collaborationGraph: Map<TaskType, Set<TaskType>> = new Map();
-  private performanceMetrics: Map<TaskType, any> = new Map();
+  private agents = new Map<TaskType, AIAgentConfig>();
+  private collaborationGraph = new Map<TaskType, Set<TaskType>>();
+  private performanceMetrics = new Map<TaskType, any>();
 
   // Advanced AI Memory System
-  private episodicMemory: Map<string, any[]> = new Map();
+  private episodicMemory = new Map<string, any[]>();
 
   private constructor() {
     this.initializeAgentOrchestra();
@@ -178,7 +178,7 @@ class AIAgentOrchestraManager {
    * Memory management for episodic learning
    */
   public storeEpisode(taskType: TaskType, episode: any): void {
-    const episodes = this.episodicMemory.get(taskType) || [];
+    const episodes = this.episodicMemory.get(taskType) ?? [];
     episodes.push(episode);
 
     // Keep only recent episodes (memory management)
@@ -192,8 +192,8 @@ class AIAgentOrchestraManager {
   /**
    * Retrieve relevant episodes for learning
    */
-  public getRelevantEpisodes(taskType: TaskType, limit: number = 10): any[] {
-    const episodes = this.episodicMemory.get(taskType) || [];
+  public getRelevantEpisodes(taskType: TaskType, limit = 10): any[] {
+    const episodes = this.episodicMemory.get(taskType) ?? [];
     return episodes.slice(-limit);
   }
 }
@@ -224,7 +224,7 @@ export const ENHANCED_TASK_DESCRIPTIONS = Object.freeze(
  */
 export class AIAgentMonitor {
   private static instance: AIAgentMonitor;
-  private performanceLog: Map<string, any[]> = new Map();
+  private performanceLog = new Map<string, any[]>();
 
   private constructor() {}
 
@@ -248,7 +248,7 @@ export class AIAgentMonitor {
       cacheHitRate?: number;
     }
   ): void {
-    const logs = this.performanceLog.get(taskType) || [];
+    const logs = this.performanceLog.get(taskType) ?? [];
 
     logs.push({
       timestamp: Date.now(),
@@ -267,7 +267,7 @@ export class AIAgentMonitor {
    * Get performance analytics
    */
   public getAnalytics(taskType: TaskType): any {
-    const logs = this.performanceLog.get(taskType) || [];
+    const logs = this.performanceLog.get(taskType) ?? [];
     if (logs.length === 0) return null;
 
     const metrics = {
@@ -352,7 +352,7 @@ export const getOptimizationSuggestions = (
 
   const parallelizable = taskTypes.filter((taskType) => {
     const agent = aiAgentOrchestra.getAllAgents().get(taskType);
-    return agent?.parallelizable || false;
+    return agent?.parallelizable ?? false;
   });
 
   const sequential = taskTypes.filter((taskType) => {
@@ -372,7 +372,7 @@ export const getOptimizationSuggestions = (
  */
 export const getCacheStrategy = (taskType: TaskType): string => {
   const agent = aiAgentOrchestra.getAllAgents().get(taskType);
-  return agent?.cacheStrategy || "none";
+  return agent?.cacheStrategy ?? "none";
 };
 
 /**
@@ -380,14 +380,14 @@ export const getCacheStrategy = (taskType: TaskType): string => {
  */
 export const getConfidenceThreshold = (taskType: TaskType): number => {
   const agent = aiAgentOrchestra.getAllAgents().get(taskType);
-  return agent?.confidenceThreshold || 0.8;
+  return agent?.confidenceThreshold ?? 0.8;
 };
 
 /**
  * Development utilities for AI Agent Orchestra
  */
 export const AI_AGENT_DEV_UTILS =
-  process.env["NODE_ENV"] === "development"
+  process.env.NODE_ENV === "development"
     ? {
         /**
          * Validate agent configuration completeness
@@ -415,7 +415,7 @@ export const AI_AGENT_DEV_UTILS =
 
           configuredAgents.forEach((agentId) => {
             const agent = aiAgentOrchestra.getAllAgents().get(agentId);
-            if (agent && agent.capabilities) {
+            if (agent?.capabilities) {
               if (agent.capabilities.ragEnabled) agentStats.withRAG++;
               if (agent.capabilities.metacognitive)
                 agentStats.withMetacognition++;
@@ -470,7 +470,7 @@ export const AI_AGENT_DEV_UTILS =
     : undefined;
 
 // Validate configuration on module load in development
-if (process.env["NODE_ENV"] === "development") {
+if (process.env.NODE_ENV === "development") {
   setTimeout(() => {
     AI_AGENT_DEV_UTILS?.validateAgentConfiguration();
   }, 0);

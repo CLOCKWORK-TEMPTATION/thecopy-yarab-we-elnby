@@ -1,5 +1,7 @@
 // frontend/src/lib/ai/core/models/station-types.ts
 
+import { StationInput } from "../../stations/base-station";
+
 import {
   Character,
   CharacterAnalysis,
@@ -15,7 +17,6 @@ import {
   DebateResult,
 } from "./base-entities";
 
-import { StationInput } from "../../stations/base-station";
 
 // ======== المحطة 1: التحليل النصي الأساسي ========
 
@@ -127,12 +128,12 @@ export interface Station3Output {
   characterArcs: Map<string, CharacterArc>;
 
   // النقاط المحورية
-  pivotPoints: Array<{
+  pivotPoints: {
     timestamp: string;
     description: string;
     impact: number;
     affectedElements: string[];
-  }>;
+  }[];
 
   // البيانات الوصفية
   metadata: StationMetadata;
@@ -186,11 +187,11 @@ export interface Station4Output {
   producibilityAnalysis: {
     technicalFeasibility: number; // 0-10
     budgetEstimate: "low" | "medium" | "high" | "very_high";
-    productionChallenges: Array<{
+    productionChallenges: {
       challenge: string;
       severity: "low" | "medium" | "high";
       solution: string;
-    }>;
+    }[];
     locationRequirements: string[];
     specialEffectsNeeded: boolean;
     castSize: number;
@@ -406,13 +407,13 @@ export interface Station7Output {
     };
 
     // اقتراحات إعادة الكتابة
-    rewritingSuggestions: Array<{
+    rewritingSuggestions: {
       location: string;
       currentVersion: string;
       suggestedRewrite: string;
       reasoning: string;
       impact: number;
-    }>;
+    }[];
   };
 
   // Score Matrix شامل
@@ -444,11 +445,11 @@ export interface NetworkSnapshot {
 export interface CharacterArc {
   characterName: string;
   arcType: "positive" | "negative" | "flat" | "transformational";
-  keyMoments: Array<{
+  keyMoments: {
     scene: string;
     change: string;
     significance: string;
-  }>;
+  }[];
   arcStrength: number; // 0-10
 }
 
@@ -461,12 +462,12 @@ export interface TimelineEvent {
 }
 
 export interface EvolutionAnalysis {
-  networkChanges: Array<{
+  networkChanges: {
     from: number;
     to: number;
     change: string;
     significance: string;
-  }>;
+  }[];
   characterEvolution: Map<string, number>; // تغير الشخصية بمرور الوقت
   conflictEvolution: Map<string, number>; // تغير الصراع بمرور الوقت
 }
@@ -482,11 +483,11 @@ export interface CharacterEvolution {
 export interface ConflictProgression {
   conflictId: string;
   intensity: number[];
-  keyDevelopments: Array<{
+  keyDevelopments: {
     event: string;
     impact: number;
     timestamp: number;
-  }>;
+  }[];
   resolution: {
     resolved: boolean;
     satisfaction: number; // 0-10
@@ -496,11 +497,11 @@ export interface ConflictProgression {
 export interface Symbol {
   name: string;
   description: string;
-  appearances: Array<{
+  appearances: {
     location: string;
     context: string;
     significance: string;
-  }>;
+  }[];
   meaning: string;
   effectiveness: number; // 0-10
 }

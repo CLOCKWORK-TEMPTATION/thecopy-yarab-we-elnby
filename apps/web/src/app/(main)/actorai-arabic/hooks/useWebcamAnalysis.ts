@@ -12,11 +12,14 @@ import {
   useEffect,
   type RefObject,
 } from "react";
+
 import { postToBackend } from "@/lib/backend-api";
+
 import {
   summarizeWebcamSamples,
   type WebcamFrameSample,
 } from "../lib/webcam-analysis";
+
 import type {
   BlinkRateStatus,
   EyeDirection,

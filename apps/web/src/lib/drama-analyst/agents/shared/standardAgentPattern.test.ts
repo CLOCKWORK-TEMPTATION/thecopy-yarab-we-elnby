@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   executeStandardAgentPattern,
   formatAgentOutput,
@@ -19,10 +20,10 @@ vi.mock("@/lib/ai/gemini-core", () => ({
   toText: vi.fn((v: any) => {
     if (typeof v === "string") return v;
     if (v && typeof v === "object" && "raw" in v) return v.raw;
-    return String(v || "");
+    return String(v ?? "");
   }),
   safeSub: vi.fn((s: any, a: number, b?: number) => {
-    const text = String(s || "");
+    const text = String(s ?? "");
     return b !== undefined ? text.substring(a, b) : text.substring(a);
   }),
 }));

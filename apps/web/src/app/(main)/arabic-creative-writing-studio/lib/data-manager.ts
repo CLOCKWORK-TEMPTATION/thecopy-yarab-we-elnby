@@ -1,17 +1,17 @@
-import { logger } from "@/lib/ai/utils/logger";
-
-// dataManager.ts
-// مدير البيانات المحلية لاستوديو الكتابة الإبداعية
-
 import {
   CreativeProject,
   CreativePrompt,
   AppSettings,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
+import { logger } from "@/lib/ai/utils/logger";
+
+// dataManager.ts
+// مدير البيانات المحلية لاستوديو الكتابة الإبداعية
+
 
 export class DataManager {
   private static instance: DataManager;
-  private storage: Map<string, any> = new Map();
+  private storage = new Map<string, any>();
   private readonly STORAGE_KEYS = {
     PROJECTS: "creative_projects",
     SETTINGS: "app_settings",
@@ -62,7 +62,7 @@ export class DataManager {
 
   // استرجاع المشاريع
   getProjects(): CreativeProject[] {
-    return this.storage.get(this.STORAGE_KEYS.PROJECTS) || [];
+    return this.storage.get(this.STORAGE_KEYS.PROJECTS) ?? [];
   }
 
   // حفظ مشروع واحد
@@ -94,7 +94,7 @@ export class DataManager {
   // استرجاع الإعدادات
   getSettings(): AppSettings {
     return (
-      this.storage.get(this.STORAGE_KEYS.SETTINGS) || this.getDefaultSettings()
+      this.storage.get(this.STORAGE_KEYS.SETTINGS) ?? this.getDefaultSettings()
     );
   }
 
@@ -107,7 +107,7 @@ export class DataManager {
 
   // استرجاع المحفزات المخصصة
   getCustomPrompts(): CreativePrompt[] {
-    return this.storage.get(this.STORAGE_KEYS.PROMPTS) || [];
+    return this.storage.get(this.STORAGE_KEYS.PROMPTS) ?? [];
   }
 
   // إضافة إلى التاريخ
@@ -125,7 +125,7 @@ export class DataManager {
 
   // استرجاع التاريخ
   getHistory(): any[] {
-    return this.storage.get(this.STORAGE_KEYS.HISTORY) || [];
+    return this.storage.get(this.STORAGE_KEYS.HISTORY) ?? [];
   }
 
   // تصدير جميع البيانات
@@ -201,10 +201,10 @@ export class DataManager {
 
   // النوع الأكثر استخداماً
   private getMostUsedGenre(projects: CreativeProject[]): string {
-    const genreCounts: { [key: string]: number } = {};
+    const genreCounts: Record<string, number> = {};
 
     projects.forEach((project) => {
-      genreCounts[project.genre] = (genreCounts[project.genre] || 0) + 1;
+      genreCounts[project.genre] = (genreCounts[project.genre] ?? 0) + 1;
     });
 
     const mostUsed = Object.entries(genreCounts).sort(

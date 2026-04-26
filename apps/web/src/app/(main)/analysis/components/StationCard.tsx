@@ -5,8 +5,9 @@ import { Loader2, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-import type { StationId, StationState } from "../lib/types";
 import { QualityBadge } from "./QualityBadge";
+
+import type { StationId, StationState } from "../lib/types";
 
 interface Props {
   station: StationState;

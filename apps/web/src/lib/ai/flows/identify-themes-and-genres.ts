@@ -7,8 +7,9 @@
  * - IdentifyThemesAndGenresOutput - نوع الإخراج لدالة identifyThemesAndGenres.
  */
 
-import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+
+import { ai } from "@/ai/genkit";
 
 const IdentifyThemesAndGenresInputSchema = z.object({
   text: z.string().describe("النص الدرامي المراد تحليله."),

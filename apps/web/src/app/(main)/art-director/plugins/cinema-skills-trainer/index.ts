@@ -1,8 +1,9 @@
 // CineArchitect AI - Virtual Cinema Skills Trainer
 // المدرب الافتراضي للمهارات السينمائية
 
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface TrainingScenario {
   id: string;
@@ -300,7 +301,7 @@ const vrEquipment: VREquipment[] = [
   },
 ];
 
-const traineeProgress: Map<string, TraineeProgress> = new Map();
+const traineeProgress = new Map<string, TraineeProgress>();
 
 export class CinemaSkillsTrainer implements Plugin {
   id = "cinema-skills-trainer";
@@ -321,11 +322,11 @@ export class CinemaSkillsTrainer implements Plugin {
   async execute(input: PluginInput): Promise<PluginOutput> {
     switch (input.type) {
       case "list-scenarios":
-        return this.listScenarios(input.data as any);
+        return this.listScenarios(input.data);
       case "start-scenario":
         return this.startScenario(input.data as any);
       case "get-equipment":
-        return this.getEquipment(input.data as any);
+        return this.getEquipment(input.data);
       case "simulate-equipment":
         return this.simulateEquipment(input.data as any);
       case "evaluate-performance":
@@ -358,7 +359,7 @@ export class CinemaSkillsTrainer implements Plugin {
 
     const categoryCounts: Record<string, number> = {};
     trainingScenarios.forEach((s) => {
-      categoryCounts[s.category] = (categoryCounts[s.category] || 0) + 1;
+      categoryCounts[s.category] = (categoryCounts[s.category] ?? 0) + 1;
     });
 
     return {
@@ -395,7 +396,7 @@ export class CinemaSkillsTrainer implements Plugin {
     if (!progress) {
       progress = {
         traineeId: data.traineeId,
-        name: data.traineeName || "Trainee",
+        name: data.traineeName ?? "Trainee",
         completedScenarios: [],
         skillLevels: {
           "camera-operation": 0,
@@ -520,7 +521,7 @@ export class CinemaSkillsTrainer implements Plugin {
               title: tutorial.title,
               titleAr: tutorial.titleAr,
               nextAction:
-                equipment.tutorials[tutorial.step]?.action || "complete",
+                equipment.tutorials[tutorial.step]?.action ?? "complete",
             }
           : null,
         vrSimulationUrl: `/vr/simulate/${equipment.id}/${data.action}`,
@@ -556,21 +557,21 @@ export class CinemaSkillsTrainer implements Plugin {
 
     const metrics = data.metrics;
     const overallScore = Math.round(
-      (metrics.accuracy || 70) * weights.accuracy +
-        (metrics.timing || 70) * weights.timing +
-        (metrics.technique || 70) * weights.technique +
-        (metrics.creativity || 70) * weights.creativity +
-        (metrics.safety || 100) * weights.safety
+      (metrics.accuracy ?? 70) * weights.accuracy +
+        (metrics.timing ?? 70) * weights.timing +
+        (metrics.technique ?? 70) * weights.technique +
+        (metrics.creativity ?? 70) * weights.creativity +
+        (metrics.safety ?? 100) * weights.safety
     );
 
     const evaluation: PerformanceEvaluation = {
       overallScore,
       categoryScores: {
-        accuracy: metrics.accuracy || 70,
-        timing: metrics.timing || 70,
-        technique: metrics.technique || 70,
-        creativity: metrics.creativity || 70,
-        safety: metrics.safety || 100,
+        accuracy: metrics.accuracy ?? 70,
+        timing: metrics.timing ?? 70,
+        technique: metrics.technique ?? 70,
+        creativity: metrics.creativity ?? 70,
+        safety: metrics.safety ?? 100,
       },
       strengths: [],
       areasForImprovement: [],
@@ -578,16 +579,16 @@ export class CinemaSkillsTrainer implements Plugin {
       nextScenarios: [],
     };
 
-    if ((metrics.technique || 70) >= 80)
+    if ((metrics.technique ?? 70) >= 80)
       evaluation.strengths.push("Strong technical skills");
-    if ((metrics.creativity || 70) >= 80)
+    if ((metrics.creativity ?? 70) >= 80)
       evaluation.strengths.push("Creative problem-solving");
-    if ((metrics.timing || 70) >= 80)
+    if ((metrics.timing ?? 70) >= 80)
       evaluation.strengths.push("Excellent time management");
 
-    if ((metrics.accuracy || 70) < 70)
+    if ((metrics.accuracy ?? 70) < 70)
       evaluation.areasForImprovement.push("Precision and accuracy");
-    if ((metrics.technique || 70) < 70)
+    if ((metrics.technique ?? 70) < 70)
       evaluation.areasForImprovement.push("Technical execution");
 
     evaluation.recommendations = this.generateRecommendations(
@@ -648,9 +649,7 @@ export class CinemaSkillsTrainer implements Plugin {
     currentScenario: TrainingScenario,
     score: number
   ): string[] {
-    const difficultyOrder: Array<
-      "beginner" | "intermediate" | "advanced" | "expert"
-    > = ["beginner", "intermediate", "advanced", "expert"];
+    const difficultyOrder: ("beginner" | "intermediate" | "advanced" | "expert")[] = ["beginner", "intermediate", "advanced", "expert"];
     const currentDifficultyIndex = difficultyOrder.indexOf(
       currentScenario.difficulty
     );
@@ -755,7 +754,7 @@ export class CinemaSkillsTrainer implements Plugin {
       completedAt: new Date(),
       score: data.score,
       timeSpent: data.timeSpent,
-      feedback: data.feedback || [],
+      feedback: data.feedback ?? [],
     };
 
     progress.completedScenarios.push(completed);

@@ -1,12 +1,16 @@
-import React, { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import React, { useMemo, useState } from "react";
+
+
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+
 import {
   EDITOR_SHELL_SIDEBAR_BOTTOM_PX,
   EDITOR_SHELL_SIDEBAR_RIGHT_PX,
   EDITOR_SHELL_SIDEBAR_TOP_PX,
 } from "../../constants/shell-layout";
+
+import type { LucideIcon } from "lucide-react";
 
 export interface AppSidebarSection {
   id: string;

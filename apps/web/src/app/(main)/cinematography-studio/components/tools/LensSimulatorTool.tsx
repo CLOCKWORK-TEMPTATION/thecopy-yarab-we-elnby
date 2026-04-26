@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   Aperture,
   Circle,
@@ -9,7 +8,8 @@ import {
   Sparkles,
   ZoomIn,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
@@ -132,7 +134,7 @@ const LENS_PRESETS: LensPreset[] = [
   },
 ];
 
-function calculateFOV(focalLength: number, sensorWidth: number = 36): number {
+function calculateFOV(focalLength: number, sensorWidth = 36): number {
   return 2 * Math.atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
 }
 

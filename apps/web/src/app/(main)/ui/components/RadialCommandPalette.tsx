@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import { Input } from "@/components/ui/input";
-import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useNotifications } from "@/hooks/use-notifications";
 
 interface Command {

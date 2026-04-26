@@ -1,9 +1,7 @@
 "use client";
 
-import type React from "react";
 
 import { useEffect, useRef } from "react";
-
 import * as THREE from "three";
 
 import {
@@ -24,6 +22,8 @@ import {
   PerformanceMonitor,
   logDeviceCapabilities,
 } from "./device-detection";
+
+import type React from "react";
 
 // Create a single performance monitor instance for the module
 const performanceMonitor = new PerformanceMonitor();
@@ -54,7 +54,7 @@ function getOptimalParticleCount(): number {
   const lodConfig = getParticleLODConfig(capabilities);
 
   // Log device capabilities in development
-  if (process.env["NODE_ENV"] === "development") {
+  if (process.env.NODE_ENV === "development") {
     logDeviceCapabilities();
   }
 
@@ -946,7 +946,7 @@ export default function V0ParticleAnimation() {
   };
 
   const handleMouseMove = (event: React.MouseEvent) => {
-    if (!sceneRef.current || !sceneRef.current.isDragging) return;
+    if (!sceneRef.current?.isDragging) return;
 
     const deltaX = event.clientX - sceneRef.current.previousMouseX;
     const deltaY = event.clientY - sceneRef.current.previousMouseY;

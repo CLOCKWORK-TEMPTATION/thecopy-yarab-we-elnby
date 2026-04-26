@@ -1,4 +1,5 @@
 import { AIRequest, AIResponse, Result } from "../core/types";
+
 import { geminiService } from "./geminiService";
 import { log } from "./loggerService";
 
@@ -14,7 +15,7 @@ interface APIServiceConfig {
 
 class APIService {
   private config: APIServiceConfig;
-  private backendHealthy: boolean = false;
+  private backendHealthy = false;
 
   constructor() {
     this.config = {
@@ -44,7 +45,7 @@ class APIService {
         ok: false,
         error: {
           code: "GEMINI_API_ERROR",
-          message: error.message || "Gemini API call failed",
+          message: error.message ?? "Gemini API call failed",
           cause: error,
         },
       };

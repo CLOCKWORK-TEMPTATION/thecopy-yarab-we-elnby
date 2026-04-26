@@ -1,4 +1,20 @@
 import { useCallback, useMemo, useState } from "react";
+
+import { AGENTS } from "../../constants";
+import { logError } from "../../domain/errors";
+import { validateScriptSegmentResponse } from "../../domain/schemas";
+import {
+  analyzeBreakdownProject,
+  bootstrapBreakdownProject,
+  mapReportSceneToWorkspaceScene,
+} from "../../infrastructure/platform-client";
+import {
+  clearStoredAnalysisReport,
+  writeAnalysisReportToStorage,
+} from "../report/report-storage";
+
+import { useToastQueue } from "./use-toast-queue";
+
 import type {
   BreakdownReport,
   Scene,
@@ -6,19 +22,6 @@ import type {
   ScenarioAnalysis,
   Version,
 } from "../../domain/models";
-import { logError } from "../../domain/errors";
-import { validateScriptSegmentResponse } from "../../domain/schemas";
-import { AGENTS } from "../../constants";
-import {
-  analyzeBreakdownProject,
-  bootstrapBreakdownProject,
-  mapReportSceneToWorkspaceScene,
-} from "../../infrastructure/platform-client";
-import { useToastQueue } from "./use-toast-queue";
-import {
-  clearStoredAnalysisReport,
-  writeAnalysisReportToStorage,
-} from "../report/report-storage";
 
 export interface ScriptError {
   message: string;
@@ -124,7 +127,7 @@ export function useScriptWorkspace() {
             return scene;
           }
 
-          const oldVersions = scene.versions || [];
+          const oldVersions = scene.versions ?? [];
           const newVersions = [...oldVersions];
 
           if (scene.isAnalyzed && (scene.analysis || scene.scenarios)) {
@@ -226,13 +229,13 @@ export function useScriptWorkspace() {
             ? {
                 ...scene,
                 analysis: breakdown,
-                scenarios: scenarios || scene.scenarios,
+                scenarios: scenarios ?? scene.scenarios,
                 headerData:
-                  scenePatch.headerData ||
-                  breakdown.headerData ||
+                  scenePatch.headerData ??
+                  breakdown.headerData ??
                   scene.headerData,
-                header: scenePatch.header || scene.header,
-                content: scenePatch.content || scene.content,
+                header: scenePatch.header ?? scene.header,
+                content: scenePatch.content ?? scene.content,
               }
             : scene
         );
@@ -336,7 +339,7 @@ export function useScriptWorkspace() {
           ? {
               ...scene,
               analysis: restoredAnalysis,
-              scenarios: restoredScene.scenarios || scene.scenarios,
+              scenarios: restoredScene.scenarios ?? scene.scenarios,
               headerData: restoredHeaderData,
               header: restoredScene.header,
               content: restoredScene.content,

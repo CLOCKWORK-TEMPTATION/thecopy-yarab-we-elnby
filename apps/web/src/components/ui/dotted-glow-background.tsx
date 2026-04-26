@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-type DottedGlowBackgroundProps = {
+interface DottedGlowBackgroundProps {
   className?: string;
   /** distance between dot centers in pixels */
   gap?: number;
@@ -33,7 +33,7 @@ type DottedGlowBackgroundProps = {
   speedMax?: number;
   /** global speed multiplier for all dots */
   speedScale?: number;
-};
+}
 /**
  * Canvas-based dotted background that randomly glows and dims.
  * - Uses a stable grid of dots.
@@ -71,7 +71,7 @@ export const DottedGlowBackground = ({
     const normalized = variableName.startsWith("--")
       ? variableName
       : `--${variableName}`;
-    const fromEl = getComputedStyle(el as Element)
+    const fromEl = getComputedStyle(el)
       .getPropertyValue(normalized)
       .trim();
     if (fromEl) return fromEl;
@@ -98,13 +98,13 @@ export const DottedGlowBackground = ({
       if (isDark) {
         const varDot = resolveCssVariable(container, colorDarkVar);
         const varGlow = resolveCssVariable(container, glowColorDarkVar);
-        nextColor = varDot || darkColor || nextColor;
-        nextGlow = varGlow || darkGlowColor || nextGlow;
+        nextColor = varDot ?? darkColor ?? nextColor;
+        nextGlow = varGlow ?? darkGlowColor ?? nextGlow;
       } else {
         const varDot = resolveCssVariable(container, colorLightVar);
         const varGlow = resolveCssVariable(container, glowColorLightVar);
-        nextColor = varDot || nextColor;
-        nextGlow = varGlow || nextGlow;
+        nextColor = varDot ?? nextColor;
+        nextGlow = varGlow ?? nextGlow;
       }
       setResolvedColor(nextColor);
       setResolvedGlowColor(nextGlow);
@@ -205,7 +205,7 @@ export const DottedGlowBackground = ({
           1,
           `rgba(0,0,0,${Math.min(Math.max(backgroundOpacity, 0), 1)})`
         );
-        ctx.fillStyle = grad as unknown as CanvasGradient;
+        ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
       }
       // animate dots

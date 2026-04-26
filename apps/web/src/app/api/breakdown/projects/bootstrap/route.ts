@@ -1,4 +1,3 @@
-import { logger } from "@/lib/ai/utils/logger";
 
 /**
  * مسار إنشاء مشروع البريك دون وتجزئة السيناريو
@@ -11,10 +10,13 @@ import { logger } from "@/lib/ai/utils/logger";
  * يجزِّئ نص السيناريو محليًا ويُخزِّن النتيجة مؤقتًا لخطوة التحليل.
  */
 
-import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+
+import { NextRequest, NextResponse } from "next/server";
+
 import { segmentScriptLocally } from "@/app/(main)/breakdown/infrastructure/screenplay/local-segmenter";
 import { storeProjectSession } from "@/app/api/breakdown/_lib/breakdown-session";
+import { logger } from "@/lib/ai/utils/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

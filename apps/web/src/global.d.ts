@@ -21,17 +21,17 @@ declare module '*.mdx' {
 }
 
 declare module '*.css' {
-  const content: { readonly [className: string]: string };
+  const content: Readonly<Record<string, string>>;
   export default content;
 }
 
 declare module '*.scss' {
-  const content: { readonly [className: string]: string };
+  const content: Readonly<Record<string, string>>;
   export default content;
 }
 
 declare module '*.sass' {
-  const content: { readonly [className: string]: string };
+  const content: Readonly<Record<string, string>>;
   export default content;
 }
 
@@ -58,9 +58,7 @@ interface Window {
 
 // Extend React namespace for custom props
 declare namespace React {
-  interface CSSProperties {
-    [key: `--${string}`]: string | number | undefined;
-  }
+  type CSSProperties = Record<`--${string}`, string | number | undefined>;
 }
 
 declare module "react" {

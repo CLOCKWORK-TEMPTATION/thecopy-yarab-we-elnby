@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { RhythmMappingAgent } from "./RhythmMappingAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { RhythmMappingAgent } from "./RhythmMappingAgent";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({

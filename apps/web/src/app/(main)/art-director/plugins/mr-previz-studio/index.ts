@@ -1,9 +1,11 @@
 // CineArchitect AI - Mixed Reality Pre-visualization Studio
 // استوديو التصور المسبق بالواقع المختلط
 
-import { definedProps } from "@/lib/defined-props";
-import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
+
+import { definedProps } from "@/lib/defined-props";
+
+import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface XRScene {
   id: string;
@@ -60,20 +62,20 @@ interface CameraMovement {
 
 interface XRLighting {
   ambient: { color: string; intensity: number };
-  directional: Array<{
+  directional: {
     id: string;
     color: string;
     intensity: number;
     position: Vector3D;
     target: Vector3D;
-  }>;
-  pointLights: Array<{
+  }[];
+  pointLights: {
     id: string;
     color: string;
     intensity: number;
     position: Vector3D;
     radius: number;
-  }>;
+  }[];
   hdriEnvironment?: string;
 }
 
@@ -91,7 +93,7 @@ interface XRDevice {
   trackingType: "3dof" | "6dof" | "inside-out" | "outside-in";
 }
 
-const scenes: Map<string, XRScene> = new Map();
+const scenes = new Map<string, XRScene>();
 
 const supportedDevices: XRDevice[] = [
   {
@@ -247,11 +249,11 @@ export class MRPrevizStudio implements Plugin {
 
     const newObject: XRObject = {
       id: uuidv4(),
-      name: data.object.name || "New Object",
-      type: data.object.type || "prop",
-      position: data.object.position || { x: 0, y: 0, z: 0 },
-      rotation: data.object.rotation || { x: 0, y: 0, z: 0 },
-      scale: data.object.scale || { x: 1, y: 1, z: 1 },
+      name: data.object.name ?? "New Object",
+      type: data.object.type ?? "prop",
+      position: data.object.position ?? { x: 0, y: 0, z: 0 },
+      rotation: data.object.rotation ?? { x: 0, y: 0, z: 0 },
+      scale: data.object.scale ?? { x: 1, y: 1, z: 1 },
       isInteractive: data.object.isInteractive ?? false,
       ...definedProps({
         model3D: data.object.model3D,
@@ -284,13 +286,13 @@ export class MRPrevizStudio implements Plugin {
 
     const newCamera: VirtualCamera = {
       id: uuidv4(),
-      name: data.camera.name || "Camera",
-      type: data.camera.type || "main",
-      position: data.camera.position || { x: 0, y: 1.7, z: 5 },
-      target: data.camera.target || { x: 0, y: 1, z: 0 },
-      fov: data.camera.fov || 50,
-      lensLength: data.camera.lensLength || 35,
-      aspectRatio: data.camera.aspectRatio || "16:9",
+      name: data.camera.name ?? "Camera",
+      type: data.camera.type ?? "main",
+      position: data.camera.position ?? { x: 0, y: 1.7, z: 5 },
+      target: data.camera.target ?? { x: 0, y: 1, z: 0 },
+      fov: data.camera.fov ?? 50,
+      lensLength: data.camera.lensLength ?? 35,
+      aspectRatio: data.camera.aspectRatio ?? "16:9",
       ...definedProps({
         movement: data.camera.movement,
       }),
@@ -570,7 +572,7 @@ export class MRPrevizStudio implements Plugin {
       return { success: false, error: "Scene not found" };
     }
 
-    const waypoints = data.waypoints || [
+    const waypoints = data.waypoints ?? [
       { x: 0, y: 1.7, z: 5 },
       { x: 3, y: 1.7, z: 3 },
       { x: 0, y: 1.7, z: 0 },
