@@ -56,7 +56,7 @@
   "driftReasons": [
     "لا يوجد drift مؤثر"
   ],
-  "headCommit": "de0621c944cf1f345afb88e4a8874515e88709b8",
+  "headCommit": "3d4e7f767b411b5a266559f044a90cffa5970a98",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
@@ -64,7 +64,7 @@
   "knowledgeStatus": "governed",
   "lastBootstrapTimestamp": "2026-04-25T23:46:45.511Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "0ee5bba0a697719384b9290633da02778eb69fb40b64ddb02cd1f49335e98145",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "37f0f61838f75232d9fef1f364da18059f17086bbce6ff6c5f512f3ca9afc1c3",
     "output/code-map/code-map.json": "1c7d5b10a6faf470f64f4c6bf9dc1a71ec637462756898963d5989c9a4d9d865",
     "output/code-map/CODEMAP.md": "bae0df96720ed2059474ae44617c4fdf3da0f4a2f5a22add89daa631ab3ce642",
     "output/code-map/dependency-graph.md": "8ff0acd40b572f2e18afb272f1aaf177565500dc3a957486c5011e443176d2bf",
@@ -78,8 +78,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "e6281abbf237afdc48446d01921a5ce649bbdbf233ac68bf54f9fb6e48228d41",
     "output/mind-map/rag-topology.mmd": "662e6fcd3faafb3cc6d0dc5a79758a32ffcb93fa4c643dfcf50f4fa128052ddc",
-    "output/round-notes.md": "ce6f47ae21aa6603b420702f415ea4dadd25d6e5a3ab2430743ad3a6822a0778",
-    "output/session-state.md": "9355e8b50687b3bdba28047b9fa1f1d41b70c9acfb57a62981996ed6978eccfc"
+    "output/round-notes.md": "04e18d0f1e084da124ee2fbbdd34b6e4eb7233736b2e1b2dd82dbf1da9b85f55",
+    "output/session-state.md": "798672a01933cfbad2116de6eaab70a93fd786eea74cbb476d00aacb1517055f"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -144,5 +144,5 @@
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
   "structuralHash": "4f97fac37a6d29898e28d4a839f1126c685e5b022f0871936f57d28d59f4fe13",
-  "workingTreeHash": "9a9aa2f82549015989f0f83c2c161ebf94953b368ee2cfc811f8b6a536554e82"
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }
