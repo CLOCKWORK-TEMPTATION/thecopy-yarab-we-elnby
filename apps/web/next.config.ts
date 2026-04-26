@@ -247,6 +247,9 @@ const nextConfig = {
   // Webpack configuration for handling Node.js built-in modules and critical dependency warnings
   // Note: In Next.js 16, Turbopack is default. Webpack config is kept for fallback compatibility.
   webpack: (config: any, { isServer }: { isServer: boolean }) => {
+    // Ensure source maps are generated consistently
+    config.devtool = isServer ? 'source-map' : 'eval-source-map';
+
     if (!isServer) {
       // Don't resolve Node.js modules on client side
       config.resolve.fallback = {
@@ -310,6 +313,7 @@ const nextConfig = {
         /Unknown options/,
         /@opentelemetry/,
         /@sentry/,
+        /source map/, // Suppress source map warnings
       ],
     };
 
