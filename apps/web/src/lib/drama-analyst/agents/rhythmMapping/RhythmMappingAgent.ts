@@ -77,13 +77,13 @@ export class RhythmMappingAgent extends BaseAgent {
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
 
     prompt += `التعليمات:
-${this.buildConditionalInstructionSections({
-      identifyPatterns,
-      analyzeVariation,
-      compareGenreNorms,
-      provideOptimization,
-      genre,
-    })}
+${this.buildConditionalInstructionSections(
+  identifyPatterns,
+  analyzeVariation,
+  compareGenreNorms,
+  provideOptimization,
+  genre
+)}
     - مدى التنوع والديناميكية
    - الانطباع العام على القارئ
 
@@ -162,7 +162,7 @@ ${this.buildConditionalInstructionSections(
         typeof scene === "string"
           ? scene
           : recordString(sceneRecord, "description", `مشهد ${idx + 1}`);
-      const length = sceneRecord.length;
+      const length = sceneRecord["length"];
       const sceneLength =
         typeof length === "number" || typeof length === "string"
           ? ` (${length} كلمة)`

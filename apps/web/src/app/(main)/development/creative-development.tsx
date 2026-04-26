@@ -59,8 +59,6 @@ import {
 
 import type { UnlockStatus } from "./hooks/useCreativeDevelopment";
 
-
-
 const FileUpload = dynamic(() => import("@/components/file-upload"), {
   loading: () => (
     <div className="flex items-center justify-center p-8">

@@ -53,8 +53,8 @@ describe("SceneRhythmView", () => {
     fireEvent.click(screen.getByText("📄 نص تجريبي"));
     const textarea = screen.getByPlaceholderText(
       "الصق نصك هنا..."
-    );
-    expect((textarea.value as string).length).toBeGreaterThan(20);
+    ) as HTMLTextAreaElement;
+    expect(textarea.value.length).toBeGreaterThan(20);
   });
 
   it("لا يبدأ التحليل بدون نص", () => {

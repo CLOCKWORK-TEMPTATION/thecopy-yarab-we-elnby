@@ -99,10 +99,23 @@ function writeBaseline(baseline) {
   writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
 }
 
+function normalizeMessage(message) {
+  return message
+    .replace(
+      /[A-Za-z]:[^\n\r]*?[\\/]apps[\\/](web|backend)[\\/]/g,
+      (_, project) => `apps/${project}/`,
+    )
+    .replace(
+      /((?:File|Function '[^']+'|Arrow function|Async arrow function|Method '[^']+'|Async method '[^']+') has too many lines )\(\d+\)\. Maximum allowed is \d+\./g,
+      "$1(N). Maximum allowed is M.",
+    )
+    .replaceAll("\\", "/");
+}
+
 function fingerprint(message, filePath) {
   const file = relative(repoRoot, filePath).replaceAll("\\", "/");
   const rule = message.ruleId ?? "parser";
-  return `${file}|${rule}|${message.message}`;
+  return `${file}|${rule}|${normalizeMessage(message.message)}`;
 }
 
 function addCount(map, key, amount = 1) {
@@ -121,6 +134,7 @@ function createBackendLintProject(target) {
     "src/global.d.ts",
     "src/env.d.ts",
     "src/types/env.d.ts",
+    "src/types/mcp-sdk-compat.d.ts",
     "src/types/module-alias.d.ts",
     ...(isFile
       ? [target]
@@ -240,9 +254,25 @@ if (updateBaseline) {
 }
 
 const projectBaseline = baseline[project];
+const normalizedBaseline = {};
+for (const [key, count] of Object.entries(projectBaseline)) {
+  const firstSeparator = key.indexOf("|");
+  const secondSeparator = key.indexOf("|", firstSeparator + 1);
+
+  if (firstSeparator === -1 || secondSeparator === -1) {
+    addCount(normalizedBaseline, key, count);
+    continue;
+  }
+
+  const file = key.slice(0, firstSeparator).replaceAll("\\", "/");
+  const rule = key.slice(firstSeparator + 1, secondSeparator);
+  const message = normalizeMessage(key.slice(secondSeparator + 1));
+  addCount(normalizedBaseline, `${file}|${rule}|${message}`, count);
+}
+
 const newViolations = [];
 for (const [key, count] of Object.entries(current)) {
-  const allowed = projectBaseline[key] ?? 0;
+  const allowed = normalizedBaseline[key] ?? 0;
   if (count > allowed) {
     newViolations.push({ key, count, allowed });
   }

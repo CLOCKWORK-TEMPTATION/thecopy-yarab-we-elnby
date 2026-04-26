@@ -15,7 +15,7 @@ export interface LogContext {
 
 export type LogFn = (
   contextOrMessage: LogContext | string,
-  message?: string,
+  messageOrMeta?: unknown,
   ...args: unknown[]
 ) => void;
 

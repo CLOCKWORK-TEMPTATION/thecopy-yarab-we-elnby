@@ -108,7 +108,7 @@ function registerGetAgentConfigTests(): void {
 
       expect(config).toBeDefined();
       expect(config?.id).toBe(TaskType.INTEGRATED);
-      expect(config?.capabilities.multiModal).toBe(true);
+      expect(config?.capabilities?.multiModal).toBe(true);
     });
 
     it("should return undefined for unknown task type", () => {
@@ -134,9 +134,9 @@ function registerGetAgentConfigTests(): void {
       const config = getAgentConfig(TaskType.ANALYSIS);
 
       expect(config?.capabilities).toBeDefined();
-      expect(config?.capabilities.multiModal).toBe(true);
-      expect(config?.capabilities.reasoningChains).toBe(true);
-      expect(config?.capabilities.accuracyLevel).toBe(0.9);
+      expect(config?.capabilities?.multiModal).toBe(true);
+      expect(config?.capabilities?.reasoningChains).toBe(true);
+      expect(config?.capabilities?.accuracyLevel).toBe(0.9);
     });
 
     it("should return config with collaboration info", () => {
@@ -251,10 +251,15 @@ function registerIntegrationTests(): void {
   describe("Integration", () => {
     it("should allow getting config and listing all configs", () => {
       const allConfigs = listAgentConfigs();
-      const firstConfig = getAgentConfig(allConfigs[0].id);
+      const firstListedConfig = allConfigs[0];
+      expect(firstListedConfig).toBeDefined();
+      if (!firstListedConfig) {
+        throw new Error("Expected at least one agent config");
+      }
+      const firstConfig = getAgentConfig(firstListedConfig.id);
 
       expect(firstConfig).toBeDefined();
-      expect(firstConfig?.id).toBe(allConfigs[0].id);
+      expect(firstConfig?.id).toBe(firstListedConfig.id);
     });
 
     it("should maintain consistency between get and list", () => {

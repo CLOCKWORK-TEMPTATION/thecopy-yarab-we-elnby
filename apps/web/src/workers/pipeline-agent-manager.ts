@@ -15,7 +15,6 @@ import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
  * Manages background worker for pipeline execution
  */
 
-
 export class PipelineAgentManager {
   private workerPool: PipelineAgentPool = {
     worker: null,

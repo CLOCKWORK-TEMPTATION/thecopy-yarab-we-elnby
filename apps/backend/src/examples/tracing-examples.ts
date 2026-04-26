@@ -30,7 +30,7 @@ export async function processUserRequest(userId: string): Promise<void> {
     });
 
     // Mark span as successful
-    span.setStatus({ code: SpanStatusCode.ok });
+    span.setStatus({ code: SpanStatusCode.OK });
   } catch (error) {
     // Record the error
     span.setStatus({
@@ -69,7 +69,7 @@ export async function analyzeScript(scriptId: string): Promise<void> {
           'lines.count': 150,
           'scenes.count': 12,
         });
-        parseSpan.setStatus({ code: SpanStatusCode.ok });
+        parseSpan.setStatus({ code: SpanStatusCode.OK });
       } finally {
         parseSpan.end();
       }
@@ -86,7 +86,7 @@ export async function analyzeScript(scriptId: string): Promise<void> {
         aiSpan.addEvent('ai_response_received', {
           'tokens.consumed': 1500,
         });
-        aiSpan.setStatus({ code: SpanStatusCode.ok });
+        aiSpan.setStatus({ code: SpanStatusCode.OK });
       } finally {
         aiSpan.end();
       }
@@ -95,13 +95,13 @@ export async function analyzeScript(scriptId: string): Promise<void> {
       const storeSpan = tracer.startSpan('store_results');
       try {
         await new Promise((resolve) => setTimeout(resolve, 30));
-        storeSpan.setStatus({ code: SpanStatusCode.ok });
+        storeSpan.setStatus({ code: SpanStatusCode.OK });
       } finally {
         storeSpan.end();
       }
     });
 
-    parentSpan.setStatus({ code: SpanStatusCode.ok });
+    parentSpan.setStatus({ code: SpanStatusCode.OK });
   } catch (error) {
     parentSpan.setStatus({
       code: SpanStatusCode.ERROR,
@@ -143,7 +143,7 @@ export async function getUserProjects(userId: string): Promise<any[]> {
       'db.result.count': Array.isArray(projects) ? projects.length : 0,
     });
 
-    span.setStatus({ code: SpanStatusCode.ok });
+    span.setStatus({ code: SpanStatusCode.OK });
     return projects as any[];
   } catch (error) {
     span.setStatus({
@@ -183,7 +183,7 @@ export async function callExternalAI(prompt: string): Promise<string> {
       'http.status_code': 200,
     });
 
-    span.setStatus({ code: SpanStatusCode.ok });
+    span.setStatus({ code: SpanStatusCode.OK });
     return response as string;
   } catch (error) {
     span.setStatus({
@@ -224,7 +224,7 @@ export async function processQueueJob(jobId: string, jobData: any): Promise<void
       'processing.duration_ms': 300,
     });
 
-    span.setStatus({ code: SpanStatusCode.ok });
+    span.setStatus({ code: SpanStatusCode.OK });
   } catch (error) {
     span.setStatus({
       code: SpanStatusCode.ERROR,

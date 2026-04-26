@@ -47,6 +47,14 @@ function createMockRes(): Response & { _headers: Record<string, string> } {
 
 const nextFn: NextFunction = vi.fn();
 
+function restoreNodeEnv(value: typeof process.env.NODE_ENV): void {
+  if (value === undefined) {
+    delete process.env.NODE_ENV;
+    return;
+  }
+  process.env.NODE_ENV = value;
+}
+
 // ═══ اختبارات CSP Middleware ═══
 
 describe('cspMiddleware', () => {
@@ -216,7 +224,7 @@ describe('securityHeadersMiddleware', () => {
       expect.stringContaining('max-age=')
     );
 
-    process.env.NODE_ENV = original;
+    restoreNodeEnv(original);
   });
 
   it('يجب ألّا يضيف HSTS في بيئة التطوير', () => {
@@ -233,7 +241,7 @@ describe('securityHeadersMiddleware', () => {
     );
     expect(hstsCall).toBeUndefined();
 
-    process.env.NODE_ENV = original;
+    restoreNodeEnv(original);
   });
 });
 

@@ -12,7 +12,6 @@
  */
 
 import { api } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -60,10 +59,10 @@ export default function AdminNewProjectPage() {
         });
         router.push("/BREAKAPP/admin/projects");
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل الإنشاء",
-          description: axiosError.message || "تعذّر إنشاء المشروع، حاول مجدداً",
+          description: axiosError.message ?? "تعذّر إنشاء المشروع، حاول مجدداً",
           variant: "destructive",
         });
       } finally {

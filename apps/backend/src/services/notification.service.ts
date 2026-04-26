@@ -130,16 +130,19 @@ export class NotificationService {
       };
 
       if (options) {
-        payload.attachments = [
-          {
-            color: options.color ?? '#36a64f',
-            title: options.title,
-            text: message,
-            fields: options.fields,
-            footer: 'The Copy - Notification Service',
-            ts: Math.floor(Date.now() / 1000),
-          },
-        ];
+        const attachment: SlackAttachment = {
+          color: options.color ?? '#36a64f',
+          text: message,
+          footer: 'The Copy - Notification Service',
+          ts: Math.floor(Date.now() / 1000),
+        };
+        if (options.title !== undefined) {
+          attachment.title = options.title;
+        }
+        if (options.fields !== undefined) {
+          attachment.fields = options.fields;
+        }
+        payload.attachments = [attachment];
       }
 
       await axios.post(this.slackWebhookUrl, payload);

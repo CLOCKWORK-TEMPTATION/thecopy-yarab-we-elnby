@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid";
 import { definedProps } from "@/lib/defined-props";
 import { logger } from "@/lib/logger";
 
-
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
 interface Location {

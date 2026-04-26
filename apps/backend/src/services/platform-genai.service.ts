@@ -20,9 +20,6 @@ interface GeneratedImagePayload {
   data?: string;
 }
 
-type GenerateContentRequest = Parameters<GoogleGenAI["models"]["generateContent"]>[0];
-type GenerateImagesRequest = Parameters<GoogleGenAI["models"]["generateImages"]>[0];
-
 interface TextGenerationResult {
   text?: string;
   response?: {

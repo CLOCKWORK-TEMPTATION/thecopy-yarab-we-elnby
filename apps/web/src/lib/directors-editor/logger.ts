@@ -11,7 +11,7 @@
  * كل سجل يُنشَر بحقل `module: 'directors-editor-flow'` تلقائياً عبر child logger.
  */
 
-import { createModuleLogger } from '@/lib/logger';
+import { createModuleLogger } from "@/lib/logger";
 
 interface DirectorsEditorLogContext {
   event: string;
@@ -19,11 +19,11 @@ interface DirectorsEditorLogContext {
   data?: Record<string, unknown>;
 }
 
-const baseLogger = createModuleLogger('directors-editor-flow');
+const baseLogger = createModuleLogger("directors-editor-flow");
 
 function emit(
-  level: 'info' | 'warn' | 'error',
-  context: DirectorsEditorLogContext,
+  level: "info" | "warn" | "error",
+  context: DirectorsEditorLogContext
 ): void {
   const payload = {
     event: context.event,
@@ -34,12 +34,12 @@ function emit(
 
 export const directorsEditorLogger = {
   info(context: DirectorsEditorLogContext): void {
-    emit('info', context);
+    emit("info", context);
   },
   warn(context: DirectorsEditorLogContext): void {
-    emit('warn', context);
+    emit("warn", context);
   },
   error(context: DirectorsEditorLogContext): void {
-    emit('error', context);
+    emit("error", context);
   },
 };

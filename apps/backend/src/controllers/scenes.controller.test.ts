@@ -1,10 +1,24 @@
-import { Request, Response } from 'express';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 
+interface MockControllerRequest {
+  body: unknown;
+  params: Record<string, string>;
+  user: { id: string } | undefined;
+}
+
+interface MockStatusResponse {
+  json: (body: unknown) => MockControllerResponse;
+}
+
+interface MockControllerResponse {
+  json: (body: unknown) => MockControllerResponse;
+  status: (code: number) => MockStatusResponse;
+}
+
 // Simple mock implementation for the scenes controller
 class MockScenesController {
-  async getScenes(req: any, res: any) {
+  async getScenes(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -31,7 +45,7 @@ class MockScenesController {
     });
   }
 
-  async getScene(req: any, res: any) {
+  async getScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -55,7 +69,7 @@ class MockScenesController {
     });
   }
 
-  async createScene(req: any, res: any) {
+  async createScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -72,6 +86,7 @@ class MockScenesController {
         location: z.string().min(1),
         timeOfDay: z.string().min(1),
         characters: z.array(z.string()).min(1),
+        description: z.string().optional(),
       });
 
       const validatedData = schema.parse(req.body);
@@ -98,7 +113,7 @@ class MockScenesController {
     }
   }
 
-  async updateScene(req: any, res: any) {
+  async updateScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -152,7 +167,7 @@ class MockScenesController {
     }
   }
 
-  async deleteScene(req: any, res: any) {
+  async deleteScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -180,26 +195,24 @@ class MockScenesController {
 const scenesController = new MockScenesController();
 
 describe('ScenesController', () => {
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let mockJson: any;
-  let mockStatus: any;
+  let mockRequest: MockControllerRequest;
+  let mockResponse: MockControllerResponse;
+  let mockJson: MockControllerResponse['json'];
+  let mockStatus: MockControllerResponse['status'];
 
   beforeEach(() => {
-    mockJson = vi.fn();
-    mockStatus = vi.fn(() => ({ json: mockJson }));
-    
+    mockResponse = {
+      json: vi.fn(() => mockResponse),
+      status: vi.fn(() => ({ json: mockResponse.json })),
+    };
+    mockJson = mockResponse.json;
+    mockStatus = mockResponse.status;
+
     mockRequest = {
       params: {},
       body: {},
       user: { id: 'user-123' },
     };
-
-    mockResponse = {
-      status: mockStatus,
-      json: mockJson,
-    };
-
     vi.clearAllMocks();
   });
 
@@ -208,8 +221,8 @@ describe('ScenesController', () => {
       mockRequest.params = { projectId: 'project-1' };
 
       await scenesController.getScenes(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -226,8 +239,8 @@ describe('ScenesController', () => {
       mockRequest.params = { projectId: 'project-1' };
 
       await scenesController.getScenes(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -241,8 +254,8 @@ describe('ScenesController', () => {
       mockRequest.params = {};
 
       await scenesController.getScenes(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -258,8 +271,8 @@ describe('ScenesController', () => {
       mockRequest.params = { id: 'scene-1' };
 
       await scenesController.getScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -273,8 +286,8 @@ describe('ScenesController', () => {
       mockRequest.params = { id: 'scene-1' };
 
       await scenesController.getScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -288,8 +301,8 @@ describe('ScenesController', () => {
       mockRequest.params = {};
 
       await scenesController.getScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -315,8 +328,8 @@ describe('ScenesController', () => {
       mockRequest.body = sceneData;
 
       await scenesController.createScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(201);
@@ -330,7 +343,7 @@ describe('ScenesController', () => {
           timeOfDay: 'DAY',
           characters: ['John'],
           projectId: 'project-1',
-        }),
+        }) as unknown,
       });
     });
 
@@ -339,8 +352,8 @@ describe('ScenesController', () => {
       mockRequest.body = { title: 'New Scene', projectId: 'project-1' };
 
       await scenesController.createScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -359,15 +372,15 @@ describe('ScenesController', () => {
       mockRequest.body = invalidData;
 
       await scenesController.createScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: expect.any(Array) as unknown,
       });
     });
   });
@@ -383,14 +396,14 @@ describe('ScenesController', () => {
       mockRequest.body = updateData;
 
       await scenesController.updateScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
         message: 'تم تحديث المشهد بنجاح',
-        data: expect.objectContaining(updateData),
+        data: expect.objectContaining(updateData) as unknown,
       });
     });
 
@@ -400,8 +413,8 @@ describe('ScenesController', () => {
       mockRequest.body = { title: 'Updated Title' };
 
       await scenesController.updateScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -416,8 +429,8 @@ describe('ScenesController', () => {
       mockRequest.body = { title: 'Updated Title' };
 
       await scenesController.updateScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -434,15 +447,15 @@ describe('ScenesController', () => {
       };
 
       await scenesController.updateScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: expect.any(Array) as unknown,
       });
     });
   });
@@ -452,8 +465,8 @@ describe('ScenesController', () => {
       mockRequest.params = { id: 'scene-1' };
 
       await scenesController.deleteScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -467,8 +480,8 @@ describe('ScenesController', () => {
       mockRequest.params = { id: 'scene-1' };
 
       await scenesController.deleteScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -482,8 +495,8 @@ describe('ScenesController', () => {
       mockRequest.params = {};
 
       await scenesController.deleteScene(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);

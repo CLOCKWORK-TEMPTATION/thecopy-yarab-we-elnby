@@ -30,7 +30,7 @@ export function readRecord(
 ): Record<string, unknown> {
   const value = context[key];
   return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? value
+    ? (value as Record<string, unknown>)
     : {};
 }
 

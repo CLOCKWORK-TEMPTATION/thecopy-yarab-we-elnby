@@ -121,3 +121,23 @@ export const DynamicCartesianGrid = dynamic(
   () => import("recharts").then((mod) => mod.CartesianGrid),
   { ssr: false }
 );
+
+export const DynamicResponsiveContainer = dynamic(
+  () => import("recharts").then((mod) => mod.ResponsiveContainer),
+  { ssr: false }
+);
+
+export const DynamicTooltip = dynamic(
+  () => import("recharts").then((mod) => mod.Tooltip),
+  { ssr: false }
+);
+
+export const DynamicLegend = dynamic(
+  () => import("recharts").then((mod) => mod.Legend),
+  { ssr: false }
+);
+
+export const DynamicCell = dynamic(
+  () => import("recharts").then((mod) => mod.Cell),
+  { ssr: false }
+);

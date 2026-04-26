@@ -72,7 +72,7 @@ class CacheMetricsService {
   /**
    * Take a snapshot of current cache metrics
    */
-  async takeSnapshot(): Promise<CacheMetricsSnapshot> {
+  takeSnapshot(): CacheMetricsSnapshot {
     const stats = cacheService.getStats();
     const geminiStats = getGeminiCacheStats();
 
@@ -128,7 +128,7 @@ class CacheMetricsService {
    * Get latest snapshot
    */
   getLatestSnapshot(): CacheMetricsSnapshot | null {
-    return this.snapshots.length === 0 ? null : this.snapshots[this.snapshots.length - 1] || null;
+    return this.snapshots.length === 0 ? null : this.snapshots[this.snapshots.length - 1] ?? null;
   }
 
   /**
@@ -144,15 +144,15 @@ class CacheMetricsService {
   /**
    * Generate performance report for a time range
    */
-  async generatePerformanceReport(
+  generatePerformanceReport(
     startTime: Date,
     endTime: Date
-  ): Promise<CachePerformanceReport> {
+  ): CachePerformanceReport {
     const snapshots = this.getSnapshotsInRange(startTime, endTime);
 
     if (snapshots.length === 0) {
       // Take a snapshot now if no data in range
-      const snapshot = await this.takeSnapshot();
+      const snapshot = this.takeSnapshot();
       snapshots.push(snapshot);
     }
 
@@ -224,12 +224,12 @@ class CacheMetricsService {
   /**
    * Get cache health status
    */
-  async getHealthStatus(): Promise<{
+  getHealthStatus(): {
     status: 'healthy' | 'degraded' | 'critical';
     issues: string[];
     recommendations: string[];
-  }> {
-    const snapshot = await this.takeSnapshot();
+  } {
+    const snapshot = this.takeSnapshot();
     const issues: string[] = [];
     const recommendations: string[] = [];
 

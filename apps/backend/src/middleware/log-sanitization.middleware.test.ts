@@ -173,10 +173,16 @@ function sanitizeObjectAs<T>(input: T): T {
         ],
       };
       const result = sanitizeObjectAs<typeof input>(input);
-      expect(result.users[0].name).toBe('User 1');
-      expect(result.users[0].email).toBe('[EMAIL_REDACTED]');
-      expect(result.users[1].name).toBe('User 2');
-      expect(result.users[1].email).toBe('[EMAIL_REDACTED]');
+      const [firstUser, secondUser] = result.users;
+      expect(firstUser).toBeDefined();
+      expect(secondUser).toBeDefined();
+      if (!firstUser || !secondUser) {
+        throw new Error('Expected sanitized users');
+      }
+      expect(firstUser.name).toBe('User 1');
+      expect(firstUser.email).toBe('[EMAIL_REDACTED]');
+      expect(secondUser.name).toBe('User 2');
+      expect(secondUser.email).toBe('[EMAIL_REDACTED]');
     });
 
     it('should handle deeply nested objects', () => {
@@ -217,10 +223,15 @@ function sanitizeObjectAs<T>(input: T): T {
         ],
       };
       const result = sanitizeObjectAs<typeof input>(input);
-      expect(result.data[0]).toContain('[EMAIL_REDACTED]');
-      expect(result.data[1]).toBe(123);
-      expect(result.data[2].email).toBe('[EMAIL_REDACTED]');
-      expect(result.data[3]).toBe(null);
+      const [textValue, numericValue, nestedValue, nullValue] = result.data;
+      expect(textValue).toContain('[EMAIL_REDACTED]');
+      expect(numericValue).toBe(123);
+      expect(nestedValue).toBeDefined();
+      if (!nestedValue || typeof nestedValue !== 'object' || !('email' in nestedValue)) {
+        throw new Error('Expected sanitized nested object');
+      }
+      expect(nestedValue.email).toBe('[EMAIL_REDACTED]');
+      expect(nullValue).toBe(null);
     });
   });
 

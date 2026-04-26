@@ -12,6 +12,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { LLMGuardrailsService, llmGuardrails } from '@/services/llm-guardrails.service';
+import type { PIIDetection } from '@/services/llm-guardrails.service';
+
+interface GuardrailsInternals {
+  detectPII(content: string): PIIDetection[];
+  isValidCreditCard(value: string): boolean;
+}
 
 // Mock logger to avoid console output during tests
 vi.mock('@/utils/logger', () => ({
@@ -40,6 +46,9 @@ describe('LLMGuardrailsService', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
+
+  const guardrailsInternals = (): GuardrailsInternals =>
+    guardrails as unknown as GuardrailsInternals;
 
   describe('Input Validation', () => {
     it('should allow valid input', () => {
@@ -305,7 +314,7 @@ describe('LLMGuardrailsService', () => {
   describe('PII Detection Confidence', () => {
     it('should assign high confidence to valid emails', () => {
       const validEmail = 'user.name@example.com';
-      const detections = guardrails.detectPII(`Contact: ${validEmail}`);
+      const detections = guardrailsInternals().detectPII(`Contact: ${validEmail}`);
       
       const emailDetection = detections.find(d => d.type === 'email');
       expect(emailDetection?.confidence).toBeGreaterThan(0.9);
@@ -313,14 +322,14 @@ describe('LLMGuardrailsService', () => {
 
     it('should validate credit card numbers using Luhn algorithm', () => {
       const validCard = '4111-1111-1111-1111'; // Valid Visa test number
-      const result = guardrails.isValidCreditCard(validCard);
+      const result = guardrailsInternals().isValidCreditCard(validCard);
       
       expect(result).toBe(true);
     });
 
     it('should reject invalid credit card numbers', () => {
       const invalidCard = '1234-5678-9012-3456'; // Invalid number
-      const result = guardrails.isValidCreditCard(invalidCard);
+      const result = guardrailsInternals().isValidCreditCard(invalidCard);
       
       expect(result).toBe(false);
     });

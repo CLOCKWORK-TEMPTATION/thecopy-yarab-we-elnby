@@ -12,7 +12,6 @@
  */
 
 import { api, type MenuItem } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -53,10 +52,10 @@ export default function VendorMenuEditorPage() {
       const response = await api.get<MenuItem[]>("/vendor/menu-items");
       setItems(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب القائمة",
-        description: axiosError.message || "تعذّر تحميل عناصر القائمة",
+        description: axiosError.message ?? "تعذّر تحميل عناصر القائمة",
         variant: "destructive",
       });
     } finally {
@@ -159,10 +158,10 @@ export default function VendorMenuEditorPage() {
         resetForm();
         await fetchItems();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: editingId ? "فشل التحديث" : "فشل الإضافة",
-          description: axiosError.message || "حدث خطأ أثناء الحفظ",
+          description: axiosError.message ?? "حدث خطأ أثناء الحفظ",
           variant: "destructive",
         });
       } finally {
@@ -196,10 +195,10 @@ export default function VendorMenuEditorPage() {
         }
         await fetchItems();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل الحذف",
-          description: axiosError.message || "تعذّر حذف العنصر",
+          description: axiosError.message ?? "تعذّر حذف العنصر",
           variant: "destructive",
         });
       }
@@ -215,10 +214,10 @@ export default function VendorMenuEditorPage() {
         });
         await fetchItems();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل التبديل",
-          description: axiosError.message || "تعذّر تحديث حالة التوفّر",
+          description: axiosError.message ?? "تعذّر تحديث حالة التوفّر",
           variant: "destructive",
         });
       }

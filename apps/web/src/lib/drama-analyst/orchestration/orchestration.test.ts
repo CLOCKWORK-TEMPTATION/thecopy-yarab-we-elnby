@@ -63,6 +63,15 @@ vi.mock("@services/loggerService", () => ({
 
 let orchestraManager: typeof aiAgentOrchestraType;
 
+function getRequiredPerformanceMetrics(taskType: TaskType) {
+  const metrics = orchestraManager.getPerformanceMetrics(taskType);
+  expect(metrics).toBeDefined();
+  if (!metrics) {
+    throw new Error(`Expected performance metrics for ${taskType}`);
+  }
+  return metrics;
+}
+
 describe("AIAgentOrchestraManager", () => {
   beforeEach(async () => {
     vi.resetModules();
@@ -211,9 +220,8 @@ function registerExecutionOrderTests(): void {
 function registerPerformanceMetricTests(): void {
   describe("Performance Metrics", () => {
     it("validate-pipeline: should initialize performance metrics for all agents", () => {
-      const metrics = orchestraManager.getPerformanceMetrics(TaskType.ANALYSIS);
+      const metrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
 
-      expect(metrics).toBeDefined();
       expect(metrics.successRate).toBe(0.9);
       expect(metrics.averageExecutionTime).toBe(0);
       expect(metrics.resourceUsage).toBe(0.5);
@@ -221,16 +229,12 @@ function registerPerformanceMetricTests(): void {
     });
 
     it("validate-pipeline: should update performance metrics", () => {
-      const initialMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.ANALYSIS
-      );
+      const initialMetrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
       const initialSuccessRate = initialMetrics.successRate;
 
       orchestraManager.updatePerformance(TaskType.ANALYSIS, 1000, true, 0.95);
 
-      const updatedMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.ANALYSIS
-      );
+      const updatedMetrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
 
       expect(updatedMetrics.averageExecutionTime).toBeGreaterThan(0);
       expect(updatedMetrics.successRate).toBeCloseTo(
@@ -243,23 +247,19 @@ function registerPerformanceMetricTests(): void {
       orchestraManager.updatePerformance(TaskType.ANALYSIS, 1000, true);
       orchestraManager.updatePerformance(TaskType.ANALYSIS, 2000, true);
 
-      const metrics = orchestraManager.getPerformanceMetrics(TaskType.ANALYSIS);
+      const metrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
 
       expect(metrics.averageExecutionTime).toBeGreaterThan(0);
       expect(metrics.averageExecutionTime).toBeLessThan(2000);
     });
 
     it("validate-pipeline: should update success rate on failure", () => {
-      const initialMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.CREATIVE
-      );
+      const initialMetrics = getRequiredPerformanceMetrics(TaskType.CREATIVE);
       const initialSuccessRate = initialMetrics.successRate;
 
       orchestraManager.updatePerformance(TaskType.CREATIVE, 500, false);
 
-      const updatedMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.CREATIVE
-      );
+      const updatedMetrics = getRequiredPerformanceMetrics(TaskType.CREATIVE);
 
       expect(updatedMetrics.successRate).toBeLessThan(initialSuccessRate);
     });
@@ -267,22 +267,18 @@ function registerPerformanceMetricTests(): void {
     it("validate-pipeline: should update user satisfaction score when provided", () => {
       orchestraManager.updatePerformance(TaskType.ANALYSIS, 1000, true, 0.5);
 
-      const metrics = orchestraManager.getPerformanceMetrics(TaskType.ANALYSIS);
+      const metrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
 
       expect(metrics.userSatisfactionScore).toBeLessThan(0.85);
     });
 
     it("validate-pipeline: should not update user satisfaction when not provided", () => {
-      const initialMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.ANALYSIS
-      );
+      const initialMetrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
       const initialScore = initialMetrics.userSatisfactionScore;
 
       orchestraManager.updatePerformance(TaskType.ANALYSIS, 1000, true);
 
-      const updatedMetrics = orchestraManager.getPerformanceMetrics(
-        TaskType.ANALYSIS
-      );
+      const updatedMetrics = getRequiredPerformanceMetrics(TaskType.ANALYSIS);
 
       // Score might change slightly due to other updates, but should be close
       expect(

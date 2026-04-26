@@ -12,7 +12,6 @@
  */
 
 import { api, type Vendor } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -46,10 +45,10 @@ export default function AdminVendorsPage() {
       const response = await api.get<Vendor[]>("/admin/vendors");
       setVendors(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الموردين",
-        description: axiosError.message || "تعذّر تحميل القائمة",
+        description: axiosError.message ?? "تعذّر تحميل القائمة",
         variant: "destructive",
       });
     } finally {
@@ -159,10 +158,10 @@ export default function AdminVendorsPage() {
         resetForm();
         await fetchVendors();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: editingId ? "فشل التحديث" : "فشل الإضافة",
-          description: axiosError.message || "حدث خطأ أثناء الحفظ",
+          description: axiosError.message ?? "حدث خطأ أثناء الحفظ",
           variant: "destructive",
         });
       } finally {
@@ -196,10 +195,10 @@ export default function AdminVendorsPage() {
         }
         await fetchVendors();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل الحذف",
-          description: axiosError.message || "تعذّر حذف المورد",
+          description: axiosError.message ?? "تعذّر حذف المورد",
           variant: "destructive",
         });
       }

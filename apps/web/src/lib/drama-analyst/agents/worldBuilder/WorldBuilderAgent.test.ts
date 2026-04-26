@@ -6,6 +6,21 @@ import { WorldBuilderAgent } from "./WorldBuilderAgent";
 
 import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
+interface WorldQualityMetadata {
+  consistency: number;
+  detail: number;
+  creativity: number;
+  coherence: number;
+}
+
+function getWorldQualityMetadata(value: unknown): WorldQualityMetadata {
+  expect(value).toBeDefined();
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Expected world quality metadata");
+  }
+  return value as WorldQualityMetadata;
+}
+
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({
   geminiService: {
@@ -281,11 +296,7 @@ function registerPostProcessingAndQualityAssessmentTests(): void {
 
       const result = await agent.executeTask(input);
 
-      const quality = result.metadata?.worldQuality;
-      expect(quality).toBeDefined();
-      if (!quality) {
-        throw new Error("Expected world quality metadata");
-      }
+      const quality = getWorldQualityMetadata(result.metadata?.worldQuality);
 
       expect(quality.consistency).toBeGreaterThanOrEqual(0);
       expect(quality.consistency).toBeLessThanOrEqual(1);

@@ -61,7 +61,8 @@ export function safeRegexMatch(text: string, pattern: RegExp): boolean {
 export function safeRegexMatchGroup(text: string, pattern: RegExp, groupIndex = 1): string | null {
   try {
     const match = text.match(pattern);
-    return match?.[groupIndex] ? match[groupIndex] : null;
+    const group = match?.[groupIndex];
+    return typeof group === 'string' && group.length > 0 ? group : null;
   } catch {
     return null;
   }

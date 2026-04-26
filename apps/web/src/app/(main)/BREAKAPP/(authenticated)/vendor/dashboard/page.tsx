@@ -12,7 +12,6 @@
  */
 
 import { api, type Order } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -46,10 +45,10 @@ export default function VendorDashboardPage() {
       const response = await api.get<Order[]>("/vendor/orders");
       setOrders(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الطلبات",
-        description: axiosError.message || "تعذّر تحميل طلبات المورد",
+        description: axiosError.message ?? "تعذّر تحميل طلبات المورد",
         variant: "destructive",
       });
     } finally {
@@ -72,10 +71,10 @@ export default function VendorDashboardPage() {
         });
         await fetchOrders();
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "فشل تحديث الحالة",
-          description: axiosError.message || "حدث خطأ غير متوقع",
+          description: axiosError.message ?? "حدث خطأ غير متوقع",
           variant: "destructive",
         });
       } finally {

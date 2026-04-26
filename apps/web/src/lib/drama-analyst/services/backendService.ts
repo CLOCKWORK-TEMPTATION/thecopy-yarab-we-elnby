@@ -27,6 +27,13 @@ class BackendService {
     };
   }
 
+  private encodePayload(data: unknown): string {
+    if (typeof data === "object" && data !== null && !Array.isArray(data)) {
+      return encodeRecord(data as Record<string, unknown>);
+    }
+    return encodeRecord({ value: data });
+  }
+
   private async makeRequest<T>(endpoint: string, data: unknown): Promise<T> {
     const url = `${this.config.baseUrl}${endpoint}`;
 
@@ -34,7 +41,7 @@ class BackendService {
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
-      const dataText = encodeRecord(data);
+      const dataText = this.encodePayload(data);
       const response = await fetch(url, {
         method: "POST",
         headers: {

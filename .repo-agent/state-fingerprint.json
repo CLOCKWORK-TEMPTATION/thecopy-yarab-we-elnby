@@ -1,5 +1,5 @@
 {
-  "branch": "main",
+  "branch": "codex/validate-fix-20260426",
   "criticalInputHashes": {
     ".agent-code-memory/manifest.json": "786744c5e25c08ab8ff8635ffd65c3820f3e724e56c33f304fbea9129893f398",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",

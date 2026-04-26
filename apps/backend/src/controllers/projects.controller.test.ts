@@ -1,10 +1,24 @@
-import { Request, Response } from 'express';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 
+interface MockControllerRequest {
+  body: unknown;
+  params: Record<string, string>;
+  user: { id: string } | undefined;
+}
+
+interface MockStatusResponse {
+  json: (body: unknown) => MockControllerResponse;
+}
+
+interface MockControllerResponse {
+  json: (body: unknown) => MockControllerResponse;
+  status: (code: number) => MockStatusResponse;
+}
+
 // Simple mock implementation for the projects controller
 class MockProjectsController {
-  async getProjects(req: any, res: any) {
+  async getProjects(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -22,7 +36,7 @@ class MockProjectsController {
     });
   }
 
-  async getProject(req: any, res: any) {
+  async getProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -46,7 +60,7 @@ class MockProjectsController {
     });
   }
 
-  async createProject(req: any, res: any) {
+  async createProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -85,7 +99,7 @@ class MockProjectsController {
     }
   }
 
-  async updateProject(req: any, res: any) {
+  async updateProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -131,7 +145,7 @@ class MockProjectsController {
     }
   }
 
-  async deleteProject(req: any, res: any) {
+  async deleteProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -154,7 +168,7 @@ class MockProjectsController {
     });
   }
 
-  async analyzeScript(req: any, res: any) {
+  async analyzeScript(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -187,34 +201,32 @@ class MockProjectsController {
 const projectsController = new MockProjectsController();
 
 describe('ProjectsController', () => {
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let mockJson: any;
-  let mockStatus: any;
+  let mockRequest: MockControllerRequest;
+  let mockResponse: MockControllerResponse;
+  let mockJson: MockControllerResponse['json'];
+  let mockStatus: MockControllerResponse['status'];
 
   beforeEach(() => {
-    mockJson = vi.fn();
-    mockStatus = vi.fn(() => ({ json: mockJson }));
-    
+    mockResponse = {
+      json: vi.fn(() => mockResponse),
+      status: vi.fn(() => ({ json: mockResponse.json })),
+    };
+    mockJson = mockResponse.json;
+    mockStatus = mockResponse.status;
+
     mockRequest = {
       params: {},
       body: {},
       user: { id: 'user-123' },
     };
-
-    mockResponse = {
-      status: mockStatus,
-      json: mockJson,
-    };
-
     vi.clearAllMocks();
   });
 
   describe('getProjects', () => {
     it('should return projects for authorized user', async () => {
       await projectsController.getProjects(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -230,8 +242,8 @@ describe('ProjectsController', () => {
       mockRequest.user = undefined;
 
       await projectsController.getProjects(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -247,8 +259,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.getProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -262,8 +274,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.getProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -277,8 +289,8 @@ describe('ProjectsController', () => {
       mockRequest.params = {};
 
       await projectsController.getProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -299,15 +311,15 @@ describe('ProjectsController', () => {
       mockRequest.body = projectData;
 
       await projectsController.createProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(201);
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
         message: 'تم إنشاء المشروع بنجاح',
-        data: expect.objectContaining(projectData),
+        data: expect.objectContaining(projectData) as unknown,
       });
     });
 
@@ -319,15 +331,15 @@ describe('ProjectsController', () => {
       mockRequest.body = invalidData;
 
       await projectsController.createProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: expect.any(Array) as unknown,
       });
     });
   });
@@ -343,14 +355,14 @@ describe('ProjectsController', () => {
       mockRequest.body = updateData;
 
       await projectsController.updateProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
         success: true,
         message: 'تم تحديث المشروع بنجاح',
-        data: expect.objectContaining(updateData),
+        data: expect.objectContaining(updateData) as unknown,
       });
     });
 
@@ -360,8 +372,8 @@ describe('ProjectsController', () => {
       mockRequest.body = { title: 'Updated Title' };
 
       await projectsController.updateProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -376,8 +388,8 @@ describe('ProjectsController', () => {
       mockRequest.body = { title: 'Updated Title' };
 
       await projectsController.updateProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -394,15 +406,15 @@ describe('ProjectsController', () => {
       };
 
       await projectsController.updateProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: expect.any(Array) as unknown,
       });
     });
   });
@@ -412,8 +424,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.deleteProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -427,8 +439,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.deleteProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -442,8 +454,8 @@ describe('ProjectsController', () => {
       mockRequest.params = {};
 
       await projectsController.deleteProject(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);
@@ -459,8 +471,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.analyzeScript(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockJson).toHaveBeenCalledWith({
@@ -478,8 +490,8 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
 
       await projectsController.analyzeScript(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(401);
@@ -493,8 +505,8 @@ describe('ProjectsController', () => {
       mockRequest.params = {};
 
       await projectsController.analyzeScript(
-        mockRequest as any,
-        mockResponse as Response
+        mockRequest,
+        mockResponse
       );
 
       expect(mockStatus).toHaveBeenCalledWith(400);

@@ -267,7 +267,7 @@ export async function handleDocumentationExport(
   const format = asString(payload["format"]) || "markdown";
   const normalized = VALID_FORMATS.has(format) ? format : "markdown";
   const store = await readStore();
-  const bookId = asString(payload["bookId"]) || store.lastBookId ?? "";
+  const bookId = (asString(payload["bookId"]) || store.lastBookId) ?? "";
   const book = store.productionBooks.find((item) => item.id === bookId);
 
   if (!book) {

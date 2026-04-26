@@ -32,18 +32,51 @@ function redactClientContext(
   return safe;
 }
 
+function isLogContext(value: unknown): value is LogContext {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !(value instanceof Error) &&
+    !Array.isArray(value)
+  );
+}
+
+function contextFromMeta(value: unknown): LogContext | undefined {
+  if (value instanceof Error) {
+    return { err: value };
+  }
+  if (isLogContext(value)) {
+    return value;
+  }
+  return undefined;
+}
+
 export function buildClientLogger(
   baseBindings: LogContext = {}
 ): UnifiedLogger {
   const writeLine = (
     level: LogLevel,
     contextOrMessage: LogContext | string,
-    message?: string,
+    messageOrMeta?: unknown,
     args: unknown[] = []
   ): void => {
     const isString = typeof contextOrMessage === "string";
-    const ctx = isString ? {} : redactClientContext(contextOrMessage);
-    const msg = isString ? contextOrMessage : (message ?? "");
+    const passthroughArgs = [...args];
+    let ctx = isString ? {} : redactClientContext(contextOrMessage);
+    let msg = isString ? contextOrMessage : "";
+
+    if (isString) {
+      const metaContext = contextFromMeta(messageOrMeta);
+      if (metaContext) {
+        ctx = redactClientContext(metaContext);
+      } else if (messageOrMeta !== undefined) {
+        passthroughArgs.unshift(messageOrMeta);
+      }
+    } else if (typeof messageOrMeta === "string") {
+      msg = messageOrMeta;
+    } else if (messageOrMeta !== undefined) {
+      passthroughArgs.unshift(messageOrMeta);
+    }
 
     const payload = {
       level,
@@ -58,6 +91,8 @@ export function buildClientLogger(
       return;
     }
 
+    const formatted = `[${level.toUpperCase()}] ${msg}`;
+
     // الكتابة في console هنا مقصودة وموثَّقة كسلوك آمن لـ client logger.
     // يتم منع no-console في باقي قاعدة الكود لكنه مسموح في هذا الملف
     // لأنه التطبيق الفعلي للوغر يكون في المتصفح حيث لا توجد بدائل.
@@ -65,26 +100,26 @@ export function buildClientLogger(
     switch (level) {
       case "fatal":
       case "error":
-        console.error(payload, ...args);
+        console.error(formatted, payload, ...passthroughArgs);
         break;
       case "warn":
-        console.warn(payload, ...args);
+        console.warn(formatted, payload, ...passthroughArgs);
         break;
       case "info":
-        console.info(payload, ...args);
+        console.info(formatted, payload, ...passthroughArgs);
         break;
       case "debug":
       case "trace":
       default:
-        console.debug(payload, ...args);
+        console.debug(formatted, payload, ...passthroughArgs);
         break;
     }
     /* eslint-enable no-console */
   };
 
   const makeFn = (level: LogLevel): LogFn => {
-    return (contextOrMessage, message, ...args) => {
-      writeLine(level, contextOrMessage, message, args);
+    return (contextOrMessage, messageOrMeta, ...args) => {
+      writeLine(level, contextOrMessage, messageOrMeta, args);
     };
   };
 

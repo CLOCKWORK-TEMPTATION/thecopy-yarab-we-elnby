@@ -76,6 +76,10 @@ interface NavigatorWithDeviceCapabilities extends Navigator {
   deviceMemory?: number;
 }
 
+interface ScreenWithRefreshRate extends Screen {
+  refreshRate?: number;
+}
+
 class PerformanceDetector {
   private capabilities: DeviceCapabilities | null = null;
   private batteryManager: BatteryManagerLike | null = null;
@@ -133,7 +137,14 @@ class PerformanceDetector {
     );
   }
 
-  private getBatteryInfo() {
+  private getBatteryInfo(): Pick<
+    DeviceCapabilities,
+    | "batteryLevel"
+    | "isCharging"
+    | "chargingTime"
+    | "dischargingTime"
+    | "hasBattery"
+  > {
     if (!this.batteryManager) {
       return {
         batteryLevel: 0.8,
@@ -153,7 +164,10 @@ class PerformanceDetector {
     };
   }
 
-  private getNetworkInfo() {
+  private getNetworkInfo(): Pick<
+    DeviceCapabilities,
+    "effectiveType" | "downlink" | "rtt" | "saveData"
+  > {
     if (!this.connectionInfo) {
       return {
         effectiveType: "4g",
@@ -171,16 +185,26 @@ class PerformanceDetector {
     };
   }
 
-  private getHardwareInfo() {
+  private getHardwareInfo(): Pick<
+    DeviceCapabilities,
+    "cpuCores" | "deviceMemory" | "maxTouchPoints"
+  > {
     const deviceNavigator = navigator as NavigatorWithDeviceCapabilities;
     return {
       cpuCores: deviceNavigator.hardwareConcurrency ?? 4,
       deviceMemory: deviceNavigator.deviceMemory ?? 8,
-      maxTouchPoints: navigator.maxTouchPoints || 0,
+      maxTouchPoints: navigator.maxTouchPoints ?? 0,
     };
   }
 
-  private getRenderingCapabilities() {
+  private getRenderingCapabilities(): Pick<
+    DeviceCapabilities,
+    | "maxFrameRate"
+    | "canUseWebGL"
+    | "canUseWebGL2"
+    | "supportsOffscreenCanvas"
+    | "supportsSharedArrayBuffer"
+  > {
     let canUseWebGL = false;
     let canUseWebGL2 = false;
 
@@ -202,10 +226,8 @@ class PerformanceDetector {
   }
 
   private getDeviceRefreshRate(): number {
-    if ("screen" in window && "refreshRate" in window.screen) {
-      return window.screen.refreshRate ?? 60;
-    }
-    return 60;
+    const screenWithRefreshRate = window.screen as ScreenWithRefreshRate;
+    return screenWithRefreshRate.refreshRate ?? 60;
   }
 
   private calculatePerformanceScore(caps: Partial<DeviceCapabilities>): number {

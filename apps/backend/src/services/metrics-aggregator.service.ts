@@ -321,19 +321,7 @@ export class MetricsAggregatorService {
       for (const value of requestsMetric.values) {
         apiMetrics.totalRequests += value.value ?? 0;
 
-        const route = String(value.labels?.["route"] ?? 'unknown');
-        const statusCode = parseInt(String(value.labels?.["status_code"] ?? '200'));
-
-        if (!apiMetrics.byEndpoint[route]) {
-          apiMetrics.byEndpoint[route] = { count: 0, avgDuration: 0, errors: 0 };
-        }
-
-        apiMetrics.byEndpoint[route].count += value.value ?? 0;
-
-        if (statusCode >= 400) {
-          apiMetrics.byEndpoint[route].errors += value.value ?? 0;
-          totalErrors += value.value ?? 0;
-        }
+        totalErrors += this.recordApiRequest(apiMetrics, value);
       }
 
       apiMetrics.errorRate = apiMetrics.totalRequests > 0 ? totalErrors / apiMetrics.totalRequests : 0;
@@ -358,6 +346,24 @@ export class MetricsAggregatorService {
     }
 
     return apiMetrics;
+  }
+
+  private recordApiRequest(
+    apiMetrics: MetricsSnapshot['api'],
+    value: PrometheusMetricValue
+  ): number {
+    const route = String(value.labels?.["route"] ?? 'unknown');
+    const statusCode = Number.parseInt(String(value.labels?.["status_code"] ?? '200'), 10);
+    const requestCount = value.value ?? 0;
+    apiMetrics.byEndpoint[route] ??= { count: 0, avgDuration: 0, errors: 0 };
+    apiMetrics.byEndpoint[route].count += requestCount;
+
+    if (statusCode < 400) {
+      return 0;
+    }
+
+    apiMetrics.byEndpoint[route].errors += requestCount;
+    return requestCount;
   }
 
   /**
@@ -411,13 +417,14 @@ export class MetricsAggregatorService {
     try {
       const parsed = await this.parsePrometheusMetrics(register);
 
-      const [database, redis, queue, api, resources, gemini] = await Promise.all([
-        this.aggregateDatabaseMetrics(parsed),
+      const database = this.aggregateDatabaseMetrics(parsed);
+      const api = this.aggregateApiMetrics(parsed);
+      const gemini = this.aggregateGeminiMetrics(parsed);
+
+      const [redis, queue, resources] = await Promise.all([
         this.aggregateRedisMetrics(),
         this.aggregateQueueMetrics(parsed),
-        this.aggregateApiMetrics(parsed),
         resourceMonitor.getResourceStatus(),
-        this.aggregateGeminiMetrics(parsed),
       ]);
 
       const snapshot: MetricsSnapshot = {

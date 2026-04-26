@@ -12,7 +12,6 @@
  */
 
 import { api, type Vendor, type VendorMapData } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import dynamic from "next/dynamic";
 import { useState, useCallback, useMemo } from "react";
 
@@ -64,10 +63,10 @@ export default function DirectorDashboard() {
 
         setVendors(response.data);
       } catch (error: unknown) {
-        const axiosError = error as AxiosError;
+        const axiosError = error as { message?: string };
         toast({
           title: "خطأ في جلب الموردين",
-          description: axiosError.message || "حدث خطأ غير متوقع",
+          description: axiosError.message ?? "حدث خطأ غير متوقع",
           variant: "destructive",
         });
       } finally {
@@ -104,10 +103,10 @@ export default function DirectorDashboard() {
         description: "تم إنشاء الجلسة اليومية بنجاح!",
       });
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "فشل إنشاء الجلسة",
-        description: axiosError.message || "حدث خطأ أثناء إنشاء الجلسة",
+        description: axiosError.message ?? "حدث خطأ أثناء إنشاء الجلسة",
         variant: "destructive",
       });
     } finally {

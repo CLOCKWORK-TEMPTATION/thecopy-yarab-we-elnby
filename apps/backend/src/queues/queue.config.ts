@@ -112,19 +112,7 @@ class QueueManager {
         queue.on('waiting', (job: Job) => {
           logger.debug('Job waiting', { queue: name, jobId: String(job.id) });
         });
-
-        queue.on('active', (job: Job) => {
-          logger.debug('Job active', { queue: name, jobId: String(job.id) });
-        });
-
-        queue.on('completed', (job: Job) => {
-          logger.debug('Job completed', { queue: name, jobId: String(job.id) });
-        });
       }
-
-      queue.on('failed', (job: Job, err: Error) => {
-        logger.error('Job failed', { queue: name, jobId: String(job.id), error: err.message });
-      });
 
       this.queues.set(name, queue);
     }

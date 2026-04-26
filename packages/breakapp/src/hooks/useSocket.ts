@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
 /**
  * خطاف اتصال WebSocket - Socket Connection Hook
- * 
+ *
  * @description
  * يوفر واجهة بسيطة للتواصل في الوقت الفعلي مع الخادم
  * عبر WebSocket مع إدارة تلقائية للاتصال وإعادة الاتصال
- * 
+ *
  * السبب: التحديثات الفورية ضرورية لتتبع موقع Runner
  * وإشعارات الطلبات الجديدة دون الحاجة لإعادة التحميل
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { getToken } from '../lib/auth';
-import type { SocketConnectionOptions } from '../lib/types';
+import { useEffect, useRef, useState, useCallback } from "react";
+import type { Socket } from "socket.io-client";
+import { getToken } from "../lib/auth";
+import type { SocketConnectionOptions } from "../lib/types";
 
 /**
  * خيارات اتصال Socket الداخلية
- * 
+ *
  * @description
  * تمثل إعدادات socket.io-client الفعلية المُمررة لمكتبة io()
  * منفصلة عن SocketConnectionOptions لأنها تحتوي على خصائص
@@ -57,31 +57,33 @@ interface UseSocketReturn {
 
 /**
  * خطاف اتصال WebSocket
- * 
+ *
  * @description
  * يدير دورة حياة اتصال Socket.io بالكامل من الإنشاء للتنظيف
- * 
+ *
  * @param options - خيارات الاتصال
  * @returns واجهة التحكم في الاتصال
- * 
+ *
  * @example
  * ```tsx
  * const { connected, emit, on } = useSocket({ auth: true });
- * 
+ *
  * useEffect(() => {
  *   on('message', (data) => console.log(data));
  * }, [on]);
- * 
+ *
  * const sendMessage = () => emit('chat', { text: 'مرحباً' });
  * ```
  */
-export function useSocket(options: SocketConnectionOptions = {}): UseSocketReturn {
-  const { 
-    url = process.env['NEXT_PUBLIC_SOCKET_URL'] || "",
+export function useSocket(
+  options: SocketConnectionOptions = {},
+): UseSocketReturn {
+  const {
+    url = process.env["NEXT_PUBLIC_SOCKET_URL"] || "",
     autoConnect = true,
-    auth = false 
+    auth = false,
   } = options;
-  
+
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export function useSocket(options: SocketConnectionOptions = {}): UseSocketRetur
 
     // إعداد خيارات الاتصال
     const socketOptions: InternalSocketOptions = {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       withCredentials: true,
       reconnection: true,
       reconnectionAttempts: 5,
@@ -111,10 +113,6 @@ export function useSocket(options: SocketConnectionOptions = {}): UseSocketRetur
       }
     }
 
-    // إنشاء اتصال Socket
-    const socket = io(url, socketOptions);
-    socketRef.current = socket;
-
     /**
      * معالج حدث الاتصال الناجح
      */
@@ -125,7 +123,7 @@ export function useSocket(options: SocketConnectionOptions = {}): UseSocketRetur
       if (auth) {
         const token = getToken();
         if (token) {
-          socket.emit('authenticate', { token });
+          socketRef.current?.emit("authenticate", { token });
         }
       }
     };
@@ -152,69 +150,100 @@ export function useSocket(options: SocketConnectionOptions = {}): UseSocketRetur
       setError(err);
     };
 
-    // ربط معالجات الأحداث
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('connect_error', handleConnectError);
-    socket.on('error', handleError);
+    let disposed = false;
+    let socket: Socket | null = null;
+
+    // تحميل مكتبة Socket.io بعد التحميل الأول حتى لا تدخل في حزمة الصفحة.
+    void import("socket.io-client")
+      .then(({ io }) => {
+        if (disposed) return;
+
+        socket = io(url, socketOptions);
+        socketRef.current = socket;
+
+        // ربط معالجات الأحداث
+        socket.on("connect", handleConnect);
+        socket.on("disconnect", handleDisconnect);
+        socket.on("connect_error", handleConnectError);
+        socket.on("error", handleError);
+      })
+      .catch((err: unknown) => {
+        if (disposed) return;
+        setError(err instanceof Error ? err.message : String(err));
+        setConnected(false);
+      });
 
     const handleStorage = (event: StorageEvent) => {
-      if (!auth || event.key !== 'breakapp.access_token' || !event.newValue) {
+      if (!auth || event.key !== "breakapp.access_token" || !event.newValue) {
         return;
       }
 
-      if (socket.connected) {
-        socket.emit('token:refresh', { token: event.newValue });
+      const currentSocket = socketRef.current;
+      if (currentSocket?.connected) {
+        currentSocket.emit("token:refresh", { token: event.newValue });
       }
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorage);
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorage);
     }
 
     // التنظيف عند إلغاء التحميل
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('connect_error', handleConnectError);
-      socket.off('error', handleError);
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('storage', handleStorage);
+      disposed = true;
+      socket?.off("connect", handleConnect);
+      socket?.off("disconnect", handleDisconnect);
+      socket?.off("connect_error", handleConnectError);
+      socket?.off("error", handleError);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("storage", handleStorage);
       }
-      socket.disconnect();
+      socket?.disconnect();
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
     };
   }, [url, autoConnect, auth]);
 
   /**
    * إرسال حدث للخادم
    */
-  const emit = useCallback((event: string, data: unknown) => {
-    if (socketRef.current && connected) {
-      socketRef.current.emit(event, data);
-    }
-  }, [connected]);
+  const emit = useCallback(
+    (event: string, data: unknown) => {
+      if (socketRef.current && connected) {
+        socketRef.current.emit(event, data);
+      }
+    },
+    [connected],
+  );
 
   /**
    * الاشتراك في حدث من الخادم
    */
-  const on = useCallback((event: string, handler: (...args: unknown[]) => void) => {
-    if (socketRef.current) {
-      socketRef.current.on(event, handler);
-    }
-  }, []);
+  const on = useCallback(
+    (event: string, handler: (...args: unknown[]) => void) => {
+      if (socketRef.current) {
+        socketRef.current.on(event, handler);
+      }
+    },
+    [],
+  );
 
   /**
    * إلغاء الاشتراك من حدث
    */
-  const off = useCallback((event: string, handler?: (...args: unknown[]) => void) => {
-    if (socketRef.current) {
-      if (handler) {
-        socketRef.current.off(event, handler);
-      } else {
-        socketRef.current.off(event);
+  const off = useCallback(
+    (event: string, handler?: (...args: unknown[]) => void) => {
+      if (socketRef.current) {
+        if (handler) {
+          socketRef.current.off(event, handler);
+        } else {
+          socketRef.current.off(event);
+        }
       }
-    }
-  }, []);
+    },
+    [],
+  );
 
   /**
    * بدء الاتصال يدوياً

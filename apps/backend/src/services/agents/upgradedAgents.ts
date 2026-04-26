@@ -17,35 +17,29 @@ import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
 import { CompletionAgent } from "./completion/CompletionAgent";
 import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
 import { CreativeAgent } from "./creative/CreativeAgent";
+import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
+import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
+import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
+import { IntegratedAgent } from "./integrated/IntegratedAgent";
+import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
+import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
+import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
+import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
+import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
+import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
+import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
 import { BaseAgent } from "./shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "./shared/standardAgentPattern";
-
-// Import upgraded agents
-import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
 import { StyleFingerprintAgent } from "./styleFingerprint/StyleFingerprintAgent";
 import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
 import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
 import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
-import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
-import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
-import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
 import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
 import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
 import { WorldBuilderAgent } from "./worldBuilder/WorldBuilderAgent";
-import { IntegratedAgent } from "./integrated/IntegratedAgent";
-
-// المجموعة الأولى - الوكلاء السبعة الجديدة
-import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
-import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
-import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
-import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
-
-// الوكلاء الأربعة المتبقية من الترقية السابقة
-import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
-import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
 
 // Agent instances (singleton pattern)
 export const completionAgent = new CompletionAgent();
@@ -172,7 +166,7 @@ export async function executeAgentTask(
  */
 export function getAgentConfig(taskType: TaskType) {
   const agent = UPGRADED_AGENTS.get(taskType);
-  return agent?.getConfig() || null;
+  return agent?.getConfig() ?? null;
 }
 
 /**
@@ -214,16 +208,18 @@ export async function batchExecuteAgentTasks(
     } else {
       const task = tasks[index];
       const taskType = task?.taskType ?? "unknown";
+      const reason = result.reason as unknown;
+      const reasonMessage = reason instanceof Error ? reason.message : "خطأ غير معروف";
       return {
         text: `فشل تنفيذ المهمة ${taskType}`,
         confidence: 0.0,
-        notes: result.reason?.message || "خطأ غير معروف",
+        notes: [reasonMessage],
         metadata: {
           processingTime: 0,
           tokensUsed: 0,
           modelUsed: "none",
           timestamp: new Date().toISOString(),
-          error: true,
+          error: reasonMessage,
         },
       };
     }

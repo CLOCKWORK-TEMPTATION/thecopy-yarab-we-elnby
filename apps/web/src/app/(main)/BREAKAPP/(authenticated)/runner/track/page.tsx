@@ -14,7 +14,6 @@
 import { api, getCurrentUser, type DeliveryTask } from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import { useState, useEffect, useCallback } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -151,10 +150,10 @@ export default function RunnerTrackPage() {
         description: `تم تحميل ${batchedTasks.length} مهمة`,
       });
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب المهام",
-        description: axiosError.message || "تعذّر تحميل المهام",
+        description: axiosError.message ?? "تعذّر تحميل المهام",
         variant: "destructive",
       });
     } finally {

@@ -14,7 +14,6 @@
 
 import { api, type Order, type MenuItem } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
@@ -90,10 +89,10 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
       const response = await api.get<OrderWithDetails>(`/orders/${orderId}`);
       setOrder(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الطلب",
-        description: axiosError.message || "تعذّر تحميل تفاصيل الطلب",
+        description: axiosError.message ?? "تعذّر تحميل تفاصيل الطلب",
         variant: "destructive",
       });
     } finally {
@@ -157,10 +156,10 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
         description: "تم إلغاء الطلب بنجاح",
       });
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "فشل الإلغاء",
-        description: axiosError.message || "تعذّر إلغاء الطلب",
+        description: axiosError.message ?? "تعذّر إلغاء الطلب",
         variant: "destructive",
       });
     } finally {

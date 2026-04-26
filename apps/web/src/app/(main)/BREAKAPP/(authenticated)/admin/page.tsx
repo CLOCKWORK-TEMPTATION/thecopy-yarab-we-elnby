@@ -12,7 +12,6 @@
  */
 
 import { api, type Vendor } from "@the-copy/breakapp";
-import { AxiosError } from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -50,10 +49,10 @@ export default function AdminOverviewPage() {
         vendors: vendorsRes.data.length,
       });
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في تحميل الإحصائيات",
-        description: axiosError.message || "تعذّر جلب البيانات الإدارية",
+        description: axiosError.message ?? "تعذّر جلب البيانات الإدارية",
         variant: "destructive",
       });
     } finally {

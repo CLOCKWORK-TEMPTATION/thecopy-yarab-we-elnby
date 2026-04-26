@@ -16,6 +16,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import zlib from "node:zlib";
 
 import budgetConfig from "../performance-budget.config.js";
 
@@ -58,198 +59,249 @@ function logInfo(message) {
   log(`ℹ️  ${message}`, "blue");
 }
 
-// Calculate directory size recursively
-function getDirectorySize(dirPath) {
-  let totalSize = 0;
-
-  function calculateSize(currentPath) {
-    if (!fs.existsSync(currentPath)) {
-      return;
-    }
-
-    const stats = fs.statSync(currentPath);
-
-    if (stats.isDirectory()) {
-      const files = fs.readdirSync(currentPath);
-      files.forEach((file) => {
-        calculateSize(path.join(currentPath, file));
-      });
-    } else {
-      totalSize += stats.size;
-    }
-  }
-
-  calculateSize(dirPath);
-  return totalSize;
-}
-
 // Convert bytes to KB
 function bytesToKB(bytes) {
   return Math.round(bytes / 1024);
 }
 
-// Convert bytes to MB
-function bytesToMB(bytes) {
-  return (bytes / (1024 * 1024)).toFixed(2);
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-// Estimate compressed size (gzip compression ratio ~30%)
-function estimateCompressedSize(bytes) {
-  return Math.round(bytes * 0.3);
+function toStaticPath(buildDir, assetPath) {
+  return path.join(buildDir, ...assetPath.split("/"));
+}
+
+function fileSize(filePath) {
+  return fs.existsSync(filePath) ? fs.statSync(filePath).size : 0;
+}
+
+function gzipFileSize(filePath) {
+  if (!fs.existsSync(filePath)) return 0;
+  return zlib.gzipSync(fs.readFileSync(filePath)).length;
+}
+
+function listFiles(dirPath) {
+  const files = [];
+
+  function walk(currentPath) {
+    if (!fs.existsSync(currentPath)) return;
+
+    for (const entry of fs.readdirSync(currentPath, { withFileTypes: true })) {
+      const entryPath = path.join(currentPath, entry.name);
+      if (entry.isDirectory()) {
+        walk(entryPath);
+      } else {
+        files.push(entryPath);
+      }
+    }
+  }
+
+  walk(dirPath);
+  return files;
+}
+
+function uniqueAssets(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function parseClientReferenceManifest(filePath) {
+  const content = fs.readFileSync(filePath, "utf8");
+  const match = content.match(/__RSC_MANIFEST\["([^"]+)"\]=(.*);$/s);
+  if (!match) return null;
+
+  return {
+    route: match[1],
+    manifest: JSON.parse(match[2]),
+  };
+}
+
+function findClientReferenceManifests(buildDir) {
+  const appDir = path.join(buildDir, "server", "app");
+  if (!fs.existsSync(appDir)) return [];
+
+  return listFiles(appDir).filter((filePath) =>
+    filePath.endsWith("_client-reference-manifest.js")
+  );
+}
+
+function collectFontAssets(buildDir) {
+  const mediaDir = path.join(buildDir, "static", "media");
+  return listFiles(mediaDir)
+    .filter((filePath) => /\.(?:woff2?|ttf|otf)$/i.test(filePath))
+    .map((filePath) =>
+      path.relative(buildDir, filePath).split(path.sep).join("/")
+    );
+}
+
+function collectRouteAssets(buildDir) {
+  const buildManifestPath = path.join(buildDir, "build-manifest.json");
+  const buildManifest = fs.existsSync(buildManifestPath)
+    ? readJson(buildManifestPath)
+    : {};
+  const rootMainFiles = buildManifest.rootMainFiles ?? [];
+  const fontAssets = collectFontAssets(buildDir);
+
+  return findClientReferenceManifests(buildDir)
+    .map(parseClientReferenceManifest)
+    .filter(Boolean)
+    .filter(({ route }) => !route.startsWith("/api/"))
+    .map(({ route, manifest }) => {
+      const jsAssets = [...rootMainFiles];
+      for (const clientModule of Object.values(manifest.clientModules ?? {})) {
+        for (const chunk of clientModule.chunks ?? []) {
+          if (typeof chunk === "string" && chunk.endsWith(".js")) {
+            jsAssets.push(chunk);
+          }
+        }
+      }
+
+      const cssAssets = [];
+      for (const cssEntries of Object.values(manifest.entryCSSFiles ?? {})) {
+        for (const cssEntry of cssEntries ?? []) {
+          if (cssEntry?.path?.endsWith(".css")) {
+            cssAssets.push(cssEntry.path);
+          }
+        }
+      }
+
+      const js = uniqueAssets(jsAssets);
+      const css = uniqueAssets(cssAssets);
+      const fonts = uniqueAssets(fontAssets);
+      const sumRaw = (assets) =>
+        assets.reduce(
+          (total, asset) => total + fileSize(toStaticPath(buildDir, asset)),
+          0
+        );
+      const sumGzip = (assets) =>
+        assets.reduce(
+          (total, asset) => total + gzipFileSize(toStaticPath(buildDir, asset)),
+          0
+        );
+
+      return {
+        route,
+        js,
+        css,
+        fonts,
+        jsRawBytes: sumRaw(js),
+        cssRawBytes: sumRaw(css),
+        fontRawBytes: sumRaw(fonts),
+        jsGzipBytes: sumGzip(js),
+        cssGzipBytes: sumGzip(css),
+        fontGzipBytes: sumGzip(fonts),
+      };
+    });
+}
+
+function getWorstRoute(routeAssets, selector) {
+  return [...routeAssets].sort((a, b) => selector(b) - selector(a))[0];
 }
 
 // Check JavaScript bundle size
-function checkJavaScriptBudget(buildDir) {
+function checkJavaScriptBudget(routeAssets) {
   logHeader("📦 Checking JavaScript Bundle Budget");
 
-  const chunksDir = path.join(buildDir, "static", "chunks");
-  const pagesDir = path.join(buildDir, "static", "chunks", "pages");
-
-  if (!fs.existsSync(chunksDir)) {
-    logWarning("Chunks directory not found");
-    return { passed: true, warnings: [] };
+  if (routeAssets.length === 0) {
+    return {
+      passed: false,
+      details: "No client route manifests found for budget analysis",
+    };
   }
 
-  const totalJsSize = getDirectorySize(chunksDir);
-  const totalJsKB = bytesToKB(totalJsSize);
-  const compressedJsKB = bytesToKB(estimateCompressedSize(totalJsSize));
-
   const budget = budgetConfig.resourceSizes.javascript;
-  const passed = compressedJsKB <= budget.total;
+  const worstRoute = getWorstRoute(routeAssets, (route) => route.jsGzipBytes);
+  const worstRouteKB = bytesToKB(worstRoute.jsGzipBytes);
+  const passed = routeAssets.every(
+    (route) => bytesToKB(route.jsGzipBytes) <= budget.total
+  );
 
-  logInfo(`Total JS size: ${totalJsKB} KB (uncompressed)`);
-  logInfo(`Estimated compressed: ${compressedJsKB} KB`);
-  logInfo(`Budget: ${budget.total} KB`);
+  logInfo(`Routes checked: ${routeAssets.length}`);
+  logInfo(`Worst route: ${worstRoute.route}`);
+  logInfo(`Worst route JS: ${worstRouteKB} KB (gzip)`);
+  logInfo(`Budget: ${budget.total} KB per initial route load`);
 
   logResult(
     passed,
-    `JavaScript bundle ${passed ? "within" : "exceeds"} budget`
+    `JavaScript initial route load ${passed ? "within" : "exceeds"} budget`
   );
-
-  // Check main bundle size
-  const mainChunks = fs
-    .readdirSync(chunksDir)
-    .filter((file) => file.endsWith(".js") && file.includes("main"));
-
-  if (mainChunks.length > 0) {
-    const mainSize = mainChunks.reduce((total, file) => {
-      return total + fs.statSync(path.join(chunksDir, file)).size;
-    }, 0);
-
-    const mainKB = bytesToKB(estimateCompressedSize(mainSize));
-    const mainPassed = mainKB <= budget.mainBundle;
-
-    logInfo(`Main bundle: ${mainKB} KB (compressed)`);
-    logResult(
-      mainPassed,
-      `Main bundle ${mainPassed ? "within" : "exceeds"} budget`
-    );
-  }
 
   return {
     passed,
-    totalJsKB: compressedJsKB,
+    totalJsKB: worstRouteKB,
     budget: budget.total,
+    details: `${worstRouteKB} KB / ${budget.total} KB on ${worstRoute.route}`,
   };
 }
 
 // Check CSS bundle size
-function checkCSSBudget(buildDir) {
+function checkCSSBudget(routeAssets) {
   logHeader("🎨 Checking CSS Bundle Budget");
 
-  const staticDir = path.join(buildDir, "static");
-  const cssFiles = [];
-
-  function findCSSFiles(dir) {
-    if (!fs.existsSync(dir)) return;
-
-    const files = fs.readdirSync(dir);
-    files.forEach((file) => {
-      const filePath = path.join(dir, file);
-      const stats = fs.statSync(filePath);
-
-      if (stats.isDirectory()) {
-        findCSSFiles(filePath);
-      } else if (file.endsWith(".css")) {
-        cssFiles.push(filePath);
-      }
-    });
-  }
-
-  findCSSFiles(staticDir);
-
-  const totalCssSize = cssFiles.reduce((total, file) => {
-    return total + fs.statSync(file).size;
-  }, 0);
-
-  const totalCssKB = bytesToKB(totalCssSize);
-  const compressedCssKB = bytesToKB(estimateCompressedSize(totalCssSize));
-
   const budget = budgetConfig.resourceSizes.css;
-  const passed = compressedCssKB <= budget.total;
+  const worstRoute = getWorstRoute(routeAssets, (route) => route.cssGzipBytes);
+  const worstRouteKB = bytesToKB(worstRoute.cssGzipBytes);
+  const passed = routeAssets.every(
+    (route) => bytesToKB(route.cssGzipBytes) <= budget.total
+  );
 
-  logInfo(`Total CSS size: ${totalCssKB} KB (uncompressed)`);
-  logInfo(`Estimated compressed: ${compressedCssKB} KB`);
-  logInfo(`Budget: ${budget.total} KB`);
-
-  logResult(passed, `CSS bundle ${passed ? "within" : "exceeds"} budget`);
-
-  return {
-    passed,
-    totalCssKB: compressedCssKB,
-    budget: budget.total,
-  };
-}
-
-// Check total page weight
-function checkPageWeightBudget(buildDir) {
-  logHeader("⚖️  Checking Total Page Weight Budget");
-
-  const staticDir = path.join(buildDir, "static");
-  const totalSize = getDirectorySize(staticDir);
-  const totalKB = bytesToKB(totalSize);
-  const compressedKB = bytesToKB(estimateCompressedSize(totalSize));
-
-  const budget = budgetConfig.resourceSizes.pageWeight;
-  const passed = compressedKB <= budget.firstLoad;
-
-  logInfo(`Total static size: ${totalKB} KB (uncompressed)`);
-  logInfo(`Estimated compressed: ${compressedKB} KB`);
-  logInfo(`Budget: ${budget.firstLoad} KB`);
+  logInfo(`Routes checked: ${routeAssets.length}`);
+  logInfo(`Worst route: ${worstRoute.route}`);
+  logInfo(`Worst route CSS: ${worstRouteKB} KB (gzip)`);
+  logInfo(`Budget: ${budget.total} KB per initial route load`);
 
   logResult(
     passed,
-    `Total page weight ${passed ? "within" : "exceeds"} budget`
+    `CSS initial route load ${passed ? "within" : "exceeds"} budget`
   );
 
   return {
     passed,
-    totalKB: compressedKB,
+    totalCssKB: worstRouteKB,
+    budget: budget.total,
+    details: `${worstRouteKB} KB / ${budget.total} KB on ${worstRoute.route}`,
+  };
+}
+
+// Check total page weight
+function checkPageWeightBudget(routeAssets) {
+  logHeader("⚖️  Checking Total Page Weight Budget");
+
+  const budget = budgetConfig.resourceSizes.pageWeight;
+  const routeWeight = (route) =>
+    route.jsGzipBytes + route.cssGzipBytes + route.fontGzipBytes;
+  const worstRoute = getWorstRoute(routeAssets, routeWeight);
+  const worstRouteKB = bytesToKB(routeWeight(worstRoute));
+  const passed = routeAssets.every(
+    (route) => bytesToKB(routeWeight(route)) <= budget.firstLoad
+  );
+
+  logInfo(`Routes checked: ${routeAssets.length}`);
+  logInfo(`Worst route: ${worstRoute.route}`);
+  logInfo(`Worst route page weight: ${worstRouteKB} KB (gzip)`);
+  logInfo(`Budget: ${budget.firstLoad} KB per first load`);
+
+  logResult(
+    passed,
+    `First-load page weight ${passed ? "within" : "exceeds"} budget`
+  );
+
+  return {
+    passed,
+    totalKB: worstRouteKB,
     budget: budget.firstLoad,
+    details: `${worstRouteKB} KB / ${budget.firstLoad} KB on ${worstRoute.route}`,
   };
 }
 
 // Check build manifest for chunk analysis
-function checkBuildManifest(buildDir) {
+function checkBuildManifest(routeAssets) {
   logHeader("📋 Analyzing Build Manifest");
 
-  const manifestPath = path.join(buildDir, "build-manifest.json");
-
-  if (!fs.existsSync(manifestPath)) {
-    logWarning("Build manifest not found");
-    return { passed: true };
-  }
-
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  const pages = Object.keys(manifest.pages || {});
-
-  logInfo(`Total pages: ${pages.length}`);
+  logInfo(`Client routes: ${routeAssets.length}`);
 
   // Check for duplicate chunks
-  const allChunks = [];
-  Object.values(manifest.pages || {}).forEach((pageChunks) => {
-    allChunks.push(...pageChunks);
-  });
+  const allChunks = routeAssets.flatMap((route) => route.js);
 
   const uniqueChunks = new Set(allChunks);
   const duplicateCount = allChunks.length - uniqueChunks.size;
@@ -274,33 +326,21 @@ function checkLargeFiles(buildDir) {
   const largeFiles = [];
   const maxChunkSizeKB = budgetConfig.bundleAnalysis.maxChunkSize;
 
-  function findLargeFiles(dir) {
-    if (!fs.existsSync(dir)) return;
+  for (const filePath of listFiles(staticDir)) {
+    if (filePath.endsWith(".js") || filePath.endsWith(".css")) {
+      const sizeKB = bytesToKB(fileSize(filePath));
+      const compressedKB = bytesToKB(gzipFileSize(filePath));
 
-    const files = fs.readdirSync(dir);
-    files.forEach((file) => {
-      const filePath = path.join(dir, file);
-      const stats = fs.statSync(filePath);
-
-      if (stats.isDirectory()) {
-        findLargeFiles(filePath);
-      } else if (file.endsWith(".js") || file.endsWith(".css")) {
-        const sizeKB = bytesToKB(stats.size);
-        const compressedKB = bytesToKB(estimateCompressedSize(stats.size));
-
-        if (compressedKB > maxChunkSizeKB) {
-          largeFiles.push({
-            name: file,
-            size: sizeKB,
-            compressed: compressedKB,
-            path: path.relative(buildDir, filePath),
-          });
-        }
+      if (compressedKB > maxChunkSizeKB) {
+        largeFiles.push({
+          name: path.basename(filePath),
+          size: sizeKB,
+          compressed: compressedKB,
+          path: path.relative(buildDir, filePath),
+        });
       }
-    });
+    }
   }
-
-  findLargeFiles(staticDir);
 
   if (largeFiles.length > 0) {
     logWarning(
@@ -365,37 +405,32 @@ function main() {
   log("🔍 Checking Performance Budget...", "bright");
 
   const results = [];
+  const routeAssets = collectRouteAssets(buildDir);
 
   // Run all checks
   try {
-    const jsCheck = checkJavaScriptBudget(buildDir);
+    const jsCheck = checkJavaScriptBudget(routeAssets);
     results.push({
       name: "JavaScript Bundle Size",
       passed: jsCheck.passed,
-      details: jsCheck.totalJsKB
-        ? `${jsCheck.totalJsKB} KB / ${jsCheck.budget} KB`
-        : "",
+      details: jsCheck.details,
     });
 
-    const cssCheck = checkCSSBudget(buildDir);
+    const cssCheck = checkCSSBudget(routeAssets);
     results.push({
       name: "CSS Bundle Size",
       passed: cssCheck.passed,
-      details: cssCheck.totalCssKB
-        ? `${cssCheck.totalCssKB} KB / ${cssCheck.budget} KB`
-        : "",
+      details: cssCheck.details,
     });
 
-    const pageWeightCheck = checkPageWeightBudget(buildDir);
+    const pageWeightCheck = checkPageWeightBudget(routeAssets);
     results.push({
       name: "Total Page Weight",
       passed: pageWeightCheck.passed,
-      details: pageWeightCheck.totalKB
-        ? `${pageWeightCheck.totalKB} KB / ${pageWeightCheck.budget} KB`
-        : "",
+      details: pageWeightCheck.details,
     });
 
-    const manifestCheck = checkBuildManifest(buildDir);
+    const manifestCheck = checkBuildManifest(routeAssets);
     results.push({
       name: "Build Manifest Analysis",
       passed: manifestCheck.passed,

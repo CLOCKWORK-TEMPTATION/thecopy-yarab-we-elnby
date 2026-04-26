@@ -2,49 +2,23 @@ import { Extension } from "@tiptap/core";
 import { Fragment, Node as PmNode, Schema, Slice } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
-import type { EditorView } from "@tiptap/pm/view";
-
-import { progressiveUpdater } from "./ai-progressive-updater";
-import { pipelineRecorder } from "./pipeline-recorder";
-import {
-  isModelReviewSuspicionBand,
-  shouldKeepSuspicionModelDecisionForFinalReview,
-  summarizeSuspicionReviewDispatchBands,
-  type SuspicionReviewDispatchSummary,
-} from "./suspicion-review-routing";
-import {
-  agentReviewLogger,
-  sanitizeOcrArtifactsForClassification,
-  FINAL_REVIEW_ENDPOINT,
-  FINAL_REVIEW_MAX_RATIO,
-  FINAL_REVIEW_PROMOTION_THRESHOLD,
-  DEFAULT_FINAL_REVIEW_SCHEMA_HINTS,
-  REVIEWABLE_AGENT_TYPES,
-  SUSPICION_REVIEW_ENDPOINT,
-  PASTE_CLASSIFIER_ERROR_EVENT,
-} from "./paste-classifier-config";
-import {
-  generateItemId,
-  normalizeRawInputText,
-  toSourceProfile,
-  buildStructuredHintQueues,
-  consumeSourceHintTypeForLine,
-  type ClassifiedDraftWithId,
-} from "./paste-classifier-helpers";
-import { fetchUnifiedTextExtract } from "../utils/file-import";
-import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
-import { createDefaultSuspicionEngine } from "@editor/suspicion-engine/engine";
-import {
-  collectTracesFromMap,
-  applyPreRenderActions,
-  type LineRepairRecord,
-} from "@editor/suspicion-engine/adapters/from-classifier";
 import {
   buildContextLines,
   buildFinalReviewSuspiciousLinePayload,
   formatFinalReviewPacketText,
 } from "@editor/final-review/payload-builder";
+import {
+  collectTracesFromMap,
+  applyPreRenderActions,
+  type LineRepairRecord,
+} from "@editor/suspicion-engine/adapters/from-classifier";
+import { createDefaultSuspicionEngine } from "@editor/suspicion-engine/engine";
+import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
+
+import { fetchUnifiedTextExtract } from "../utils/file-import";
+
 import { isActionLine } from "./action";
+import { progressiveUpdater } from "./ai-progressive-updater";
 import {
   DATE_PATTERNS,
   TIME_PATTERNS,
@@ -76,6 +50,26 @@ import {
   shouldMergeWrappedLines,
 } from "./line-repair";
 import { isParentheticalLine } from "./parenthetical";
+import {
+  agentReviewLogger,
+  sanitizeOcrArtifactsForClassification,
+  FINAL_REVIEW_ENDPOINT,
+  FINAL_REVIEW_MAX_RATIO,
+  FINAL_REVIEW_PROMOTION_THRESHOLD,
+  DEFAULT_FINAL_REVIEW_SCHEMA_HINTS,
+  REVIEWABLE_AGENT_TYPES,
+  SUSPICION_REVIEW_ENDPOINT,
+  PASTE_CLASSIFIER_ERROR_EVENT,
+} from "./paste-classifier-config";
+import {
+  generateItemId,
+  normalizeRawInputText,
+  toSourceProfile,
+  buildStructuredHintQueues,
+  consumeSourceHintTypeForLine,
+  type ClassifiedDraftWithId,
+} from "./paste-classifier-helpers";
+import { pipelineRecorder } from "./pipeline-recorder";
 import { retroactiveCorrectionPass } from "./retroactive-corrector";
 import {
   reverseClassificationPass,
@@ -95,7 +89,14 @@ import {
   optimizeSequence,
   applyViterbiOverrides,
 } from "./structural-sequence-optimizer";
+import {
+  isModelReviewSuspicionBand,
+  shouldKeepSuspicionModelDecisionForFinalReview,
+  summarizeSuspicionReviewDispatchBands,
+  type SuspicionReviewDispatchSummary,
+} from "./suspicion-review-routing";
 import { isTransitionLine } from "./transition";
+
 import type {
   ClassifiedDraft,
   ClassificationContext,
@@ -124,6 +125,7 @@ import type {
   SuspicionReviewResponsePayload,
   SuspicionReviewReviewedLine,
 } from "@editor/types/suspicion-review";
+import type { EditorView } from "@tiptap/pm/view";
 
 export { PASTE_CLASSIFIER_ERROR_EVENT } from "./paste-classifier-config";
 

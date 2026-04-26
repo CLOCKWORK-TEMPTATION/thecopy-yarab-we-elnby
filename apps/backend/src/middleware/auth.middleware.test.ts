@@ -26,6 +26,14 @@ const MOCK_USER = {
   email: 'user@example.com',
   firstName: 'Test',
   lastName: 'User',
+  authVerifierHash: null,
+  kdfSalt: null,
+  accountStatus: 'active',
+  mfaEnabled: false,
+  mfaSecret: null,
+  lastLogin: null,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
 type MockAuthService = Pick<AuthService, 'verifyToken' | 'getUserById'>;

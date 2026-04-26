@@ -13,7 +13,6 @@
 
 import { api, getCurrentUser, type VendorMapData } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import dynamic from "next/dynamic";
 import {
   useCallback,
@@ -152,10 +151,10 @@ export default function DirectorRunnersMapPage() {
       resetRunnerTrails(response.data);
       setRunners(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الـ Runners",
-        description: axiosError.message || "تعذّر تحميل مواقع الـ runners",
+        description: axiosError.message ?? "تعذّر تحميل مواقع الـ runners",
         variant: "destructive",
       });
     } finally {

@@ -80,14 +80,50 @@ function createPinoInstance(): PinoLogger {
 function callPino(
   method: PinoMethod,
   ctx: LogContext | string,
-  msg?: string,
+  messageOrMeta?: unknown,
   args: unknown[] = []
 ): void {
   if (typeof ctx === "string") {
-    method(ctx, undefined, ...args);
+    const meta = contextFromMeta(messageOrMeta);
+    if (meta) {
+      method(meta, ctx, ...args);
+      return;
+    }
+    method(
+      ctx,
+      undefined,
+      ...(messageOrMeta === undefined ? args : [messageOrMeta, ...args])
+    );
   } else {
-    method(ctx, msg ?? "", ...args);
+    if (typeof messageOrMeta === "string") {
+      method(ctx, messageOrMeta, ...args);
+      return;
+    }
+    method(
+      ctx,
+      "",
+      ...(messageOrMeta === undefined ? args : [messageOrMeta, ...args])
+    );
   }
+}
+
+function isLogContext(value: unknown): value is LogContext {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !(value instanceof Error) &&
+    !Array.isArray(value)
+  );
+}
+
+function contextFromMeta(value: unknown): LogContext | undefined {
+  if (value instanceof Error) {
+    return { err: value };
+  }
+  if (isLogContext(value)) {
+    return value;
+  }
+  return undefined;
 }
 
 function adapt(instance: PinoLogger): UnifiedLogger {

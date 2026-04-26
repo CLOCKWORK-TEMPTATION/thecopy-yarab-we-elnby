@@ -6,29 +6,14 @@
  */
 
 
-// ===== Core Agents (4) =====
-
-// ===== Analysis Agents (6) =====
-import { styleFingerprintAgent } from './styleFingerprint/StyleFingerprintAgent';
-import { conflictDynamicsAgent } from './conflictDynamics/ConflictDynamicsAgent';
-
-// ===== Creative Agents (4) =====
 import { adaptiveRewritingAgent } from './adaptiveRewriting/AdaptiveRewritingAgent';
 import { analysisAgent } from './analysis/AnalysisAgent';
-import { sceneGeneratorAgent } from './sceneGenerator/SceneGeneratorAgent';
-import { worldBuilderAgent } from './worldBuilder/WorldBuilderAgent';
-
-// ===== Predictive Agents (4) =====
-import { plotPredictorAgent } from './plotPredictor/PlotPredictorAgent';
-import { tensionOptimizerAgent } from './tensionOptimizer/TensionOptimizerAgent';
 import { audienceResonanceAgent } from './audienceResonance/AudienceResonanceAgent';
-import { platformAdapterAgent } from './platformAdapter/PlatformAdapterAgent';
-
-// ===== Advanced Modules (9) =====
 import { characterDeepAnalyzerAgent } from './characterDeepAnalyzer/CharacterDeepAnalyzerAgent';
 import { characterNetworkAgent } from './characterNetwork/CharacterNetworkAgent';
 import { characterVoiceAgent } from './characterVoice/CharacterVoiceAgent';
 import { completionAgent } from './completion/CompletionAgent';
+import { conflictDynamicsAgent } from './conflictDynamics/ConflictDynamicsAgent';
 import { TaskType } from './core/enums';
 import { creativeAgent } from './creative/CreativeAgent';
 import { culturalHistoricalAnalyzerAgent } from './culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent';
@@ -36,14 +21,20 @@ import { dialogueAdvancedAnalyzerAgent } from './dialogueAdvancedAnalyzer/Dialog
 import { dialogueForensicsAgent } from './dialogueForensics/DialogueForensicsAgent';
 import { integratedAgent } from './integrated/IntegratedAgent';
 import { literaryQualityAnalyzerAgent } from './literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent';
+import { platformAdapterAgent } from './platformAdapter/PlatformAdapterAgent';
+import { plotPredictorAgent } from './plotPredictor/PlotPredictorAgent';
 import { producibilityAnalyzerAgent } from './producibilityAnalyzer/ProducibilityAnalyzerAgent';
 import { recommendationsGeneratorAgent } from './recommendationsGenerator/RecommendationsGeneratorAgent';
 import { rhythmMappingAgent } from './rhythmMapping/RhythmMappingAgent';
+import { sceneGeneratorAgent } from './sceneGenerator/SceneGeneratorAgent';
 import { BaseAgent } from './shared/BaseAgent';
+import { styleFingerprintAgent } from './styleFingerprint/StyleFingerprintAgent';
 import { targetAudienceAnalyzerAgent } from './targetAudienceAnalyzer/TargetAudienceAnalyzerAgent';
+import { tensionOptimizerAgent } from './tensionOptimizer/TensionOptimizerAgent';
 import { thematicMiningAgent } from './thematicMining/ThematicMiningAgent';
 import { themesMessagesAnalyzerAgent } from './themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent';
 import { visualCinematicAnalyzerAgent } from './visualCinematicAnalyzer/VisualCinematicAnalyzerAgent';
+import { worldBuilderAgent } from './worldBuilder/WorldBuilderAgent';
 
 /**
  * Agent Registry Map

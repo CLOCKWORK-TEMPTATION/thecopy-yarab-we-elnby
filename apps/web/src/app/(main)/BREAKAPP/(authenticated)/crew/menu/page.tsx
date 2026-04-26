@@ -20,7 +20,6 @@ import {
   type Vendor,
 } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { AxiosError } from "axios";
 import { useState, useEffect, useCallback } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -53,10 +52,10 @@ export default function CrewMenuPage() {
       const response = await api.get<Vendor[]>("/vendors");
       setVendors(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الموردين",
-        description: axiosError.message || "تعذّر تحميل قائمة الموردين",
+        description: axiosError.message ?? "تعذّر تحميل قائمة الموردين",
         variant: "destructive",
       });
     }
@@ -70,10 +69,10 @@ export default function CrewMenuPage() {
       const response = await api.get<Order[]>("/orders/my-orders");
       setMyOrders(response.data);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب الطلبات",
-        description: axiosError.message || "تعذّر تحميل طلباتك",
+        description: axiosError.message ?? "تعذّر تحميل طلباتك",
         variant: "destructive",
       });
     }
@@ -127,10 +126,10 @@ export default function CrewMenuPage() {
       setMenuItems(response.data);
       setSelectedVendor(vendorId);
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "خطأ في جلب القائمة",
-        description: axiosError.message || "تعذّر تحميل قائمة الطعام",
+        description: axiosError.message ?? "تعذّر تحميل قائمة الطعام",
         variant: "destructive",
       });
     } finally {
@@ -211,10 +210,10 @@ export default function CrewMenuPage() {
       setCart([]);
       fetchMyOrders();
     } catch (error: unknown) {
-      const axiosError = error as AxiosError;
+      const axiosError = error as { message?: string };
       toast({
         title: "فشل تقديم الطلب",
-        description: axiosError.message || "حدث خطأ أثناء تقديم الطلب",
+        description: axiosError.message ?? "حدث خطأ أثناء تقديم الطلب",
         variant: "destructive",
       });
     } finally {

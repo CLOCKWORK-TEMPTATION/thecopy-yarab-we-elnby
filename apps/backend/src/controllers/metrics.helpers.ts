@@ -208,7 +208,7 @@ export function buildApmConfig() {
 /**
  * Generate a cache performance report for the given date range.
  */
-export async function generateCacheReport(startTime: Date, endTime: Date) {
+export function generateCacheReport(startTime: Date, endTime: Date) {
   return cacheMetricsService.generatePerformanceReport(startTime, endTime);
 }
 

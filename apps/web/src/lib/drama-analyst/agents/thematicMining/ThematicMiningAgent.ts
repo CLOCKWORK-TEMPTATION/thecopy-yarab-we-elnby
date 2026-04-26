@@ -73,10 +73,14 @@ export class ThematicMiningAgent extends BaseAgent {
   private getThematicContext(
     context: StandardAgentInput["context"]
   ): ThematicMiningContext {
-    if (typeof context !== "object" || context === null || Array.isArray(context)) {
+    if (
+      typeof context !== "object" ||
+      context === null ||
+      Array.isArray(context)
+    ) {
       return {};
     }
-    return context as ThematicMiningContext;
+    return context;
   }
 
   private buildOpeningPrompt(originalText: string): string {
@@ -150,9 +154,9 @@ ${includeMotifs ? `5. **الموتيفات المتكررة**: الأنماط و
 لا تستخدم JSON أو قوائم برمجية. نص تحليلي أدبي واضح.`;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     const processedText = this.cleanupThematicText(output.text);
 
     const thematicDepth = this.assessThematicDepth(processedText);
