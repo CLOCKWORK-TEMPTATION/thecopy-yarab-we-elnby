@@ -6,6 +6,10 @@
 - `pnpm --filter @the-copy/web editor:rag:index`
 - `pnpm --filter @the-copy/web editor:rag:smoke`
 - `pnpm --filter @the-copy/web editor:rag:stats`
+- `pnpm agent:memory:index`
+- `pnpm agent:memory:search`
+- `pnpm agent:memory:status`
+- `pnpm agent:memory:verify`
 - `pnpm workspace:embed`
 
 ## Entrypoints
@@ -19,10 +23,15 @@
 - `apps/web/src/app/(main)/editor/scripts/rag-stats.ts`
 - `apps/web/src/lib/ai/rag/index.ts`
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
+- `scripts/agent/code-memory-index.ts`
+- `scripts/agent/code-memory-search.ts`
+- `scripts/agent/code-memory-status.ts`
+- `scripts/agent/code-memory-verify.ts`
 - `scripts/generate-workspace-embeddings.js`
 
 ## Critical Files
 
+- `.agent-code-memory/manifest.json`
 - `.embedding-hash-cache.json`
 - `.repo-agent/RAG-OPERATING-CONTRACT.md`
 - `apps/backend/src/memory/api/routes.ts`
@@ -60,6 +69,17 @@
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
 - `packages/core-memory/src/chunking/semanticChunker.ts`
 - `packages/core-memory/src/types.ts`
+- `scripts/agent/code-memory-index.ts`
+- `scripts/agent/code-memory-search.ts`
+- `scripts/agent/code-memory-status.ts`
+- `scripts/agent/code-memory-verify.ts`
+- `scripts/agent/lib/code-memory/commands.ts`
+- `scripts/agent/lib/code-memory/config.ts`
+- `scripts/agent/lib/code-memory/discovery.ts`
+- `scripts/agent/lib/code-memory/embedder.ts`
+- `scripts/agent/lib/code-memory/qdrant.ts`
+- `scripts/agent/lib/code-memory/status.ts`
+- `scripts/agent/lib/code-memory/store.ts`
 - `scripts/generate-workspace-embeddings.js`
 - `WORKSPACE-EMBEDDING-INDEX.json`
 - `WORKSPACE-EMBEDDING-SUMMARY.md`

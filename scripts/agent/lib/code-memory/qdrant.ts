@@ -27,7 +27,7 @@ async function ensurePayloadIndex(client: QdrantClient, collection: string, fiel
   }
 }
 
-export async function syncCodeMemoryToQdrant(chunks: CodeMemoryChunk[]): Promise<{
+export async function syncCodeMemoryToQdrant(chunks: CodeMemoryChunk[], deletedChunkIds: string[] = []): Promise<{
   status: CodeMemoryManifest["storage"]["qdrant"];
   qdrant?: CodeMemoryManifest["qdrant"];
 }> {
@@ -59,7 +59,15 @@ export async function syncCodeMemoryToQdrant(chunks: CodeMemoryChunk[]): Promise
       ensurePayloadIndex(client, config.collection, "type"),
       ensurePayloadIndex(client, config.collection, "fileHash"),
       ensurePayloadIndex(client, config.collection, "chunkHash"),
+      ensurePayloadIndex(client, config.collection, "discoveredAt"),
     ]);
+
+    if (deletedChunkIds.length > 0) {
+      await client.delete(config.collection, {
+        wait: true,
+        points: deletedChunkIds.map(qdrantPointId),
+      });
+    }
 
     await client.upsert(config.collection, {
       wait: true,

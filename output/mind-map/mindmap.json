@@ -30,6 +30,10 @@
       "label": "output/mind-map/*"
     },
     {
+      "id": "code-memory",
+      "label": ".agent-code-memory"
+    },
+    {
       "id": "copilot",
       "label": ".github/copilot-instructions.md"
     },

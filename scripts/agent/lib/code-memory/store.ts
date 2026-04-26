@@ -8,13 +8,15 @@ import {
   CODE_MEMORY_LANCE_DIR,
   CODE_MEMORY_MANIFEST_PATH,
   CODE_MEMORY_TABLE,
+  CODE_MEMORY_TEXT_INDEX_PATH,
   CODE_MEMORY_VERSION,
 } from "./config";
 import { calculateCodeMemoryDiff, createFileHashes } from "./discovery";
 import type { CodeMemoryChunk, CodeMemoryManifest, CodeMemorySearchResult } from "./types";
 import { readJsonIfExists } from "../utils";
 
-type LanceRecord = CodeMemoryChunk & { vector: number[] };
+type LanceRecord = Omit<CodeMemoryChunk, "embedding"> & { vector: unknown };
+type TextIndex = Record<string, string[]>;
 
 export async function readCodeMemoryManifest(): Promise<CodeMemoryManifest | null> {
   return readJsonIfExists<CodeMemoryManifest>(path.join(process.cwd(), CODE_MEMORY_MANIFEST_PATH));
@@ -30,14 +32,79 @@ async function connectLocalDb() {
   return lancedb.connect(path.join(process.cwd(), CODE_MEMORY_LANCE_DIR));
 }
 
+function toNumberArray(value: unknown): number[] {
+  if (Array.isArray(value)) {
+    return value.map(Number).filter(Number.isFinite);
+  }
+
+  if (ArrayBuffer.isView(value)) {
+    return Array.from(value as ArrayLike<number>).map(Number).filter(Number.isFinite);
+  }
+
+  if (value && typeof value === "object") {
+    const maybeValues = (value as { values?: unknown; toArray?: () => unknown }).values;
+    if (maybeValues) {
+      return toNumberArray(maybeValues);
+    }
+
+    const maybeArray = (value as { toArray?: () => unknown }).toArray?.();
+    if (maybeArray) {
+      return toNumberArray(maybeArray);
+    }
+
+    if (Symbol.iterator in value) {
+      return Array.from(value as Iterable<unknown>).map(Number).filter(Number.isFinite);
+    }
+  }
+
+  return [];
+}
+
 function toRecord(chunk: CodeMemoryChunk): LanceRecord {
-  if (!chunk.embedding || chunk.embedding.length === 0) {
+  const vector = toNumberArray(chunk.embedding);
+  if (vector.length === 0) {
     throw new Error(`Cannot index chunk without embedding: ${chunk.path}:${chunk.chunkIndex}`);
   }
+  const { embedding: _embedding, ...record } = chunk;
   return {
-    ...chunk,
-    vector: chunk.embedding,
+    ...record,
+    vector,
   };
+}
+
+function tokenize(input: string): string[] {
+  return input.toLowerCase().split(/[^\p{L}\p{N}_-]+/u).filter((token) => token.length >= 2);
+}
+
+function textIndexCorpus(chunk: CodeMemoryChunk): string {
+  return `${chunk.path} ${chunk.type} ${chunk.summary} ${chunk.content}`;
+}
+
+function buildTextIndex(chunks: CodeMemoryChunk[]): TextIndex {
+  const postings = new Map<string, Set<string>>();
+
+  for (const chunk of chunks) {
+    for (const token of tokenize(textIndexCorpus(chunk))) {
+      const ids = postings.get(token) ?? new Set<string>();
+      ids.add(chunk.id);
+      postings.set(token, ids);
+    }
+  }
+
+  return Object.fromEntries(
+    [...postings.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([token, ids]) => [token, [...ids].sort((left, right) => left.localeCompare(right))]),
+  );
+}
+
+async function writeTextIndex(chunks: CodeMemoryChunk[]): Promise<void> {
+  await fsp.mkdir(path.join(process.cwd(), CODE_MEMORY_DIR), { recursive: true });
+  await fsp.writeFile(path.join(process.cwd(), CODE_MEMORY_TEXT_INDEX_PATH), JSON.stringify(buildTextIndex(chunks), null, 2), "utf8");
+}
+
+async function readTextIndex(): Promise<TextIndex | null> {
+  return readJsonIfExists<TextIndex>(path.join(process.cwd(), CODE_MEMORY_TEXT_INDEX_PATH));
 }
 
 export async function readAllCodeMemoryChunks(): Promise<CodeMemoryChunk[]> {
@@ -47,10 +114,10 @@ export async function readAllCodeMemoryChunks(): Promise<CodeMemoryChunk[]> {
     return [];
   }
   const table = await db.openTable(CODE_MEMORY_TABLE);
-  const rows = await table.query().limit(Number.MAX_SAFE_INTEGER).toArray() as LanceRecord[];
+  const rows = await table.query().limit(1_000_000).toArray() as LanceRecord[];
   return rows.map((row) => ({
     ...row,
-    embedding: row.vector,
+    embedding: toNumberArray(row.vector),
   }));
 }
 
@@ -63,6 +130,7 @@ export async function writeCodeMemoryStore(
   const records = chunks.map(toRecord);
   const db = await connectLocalDb();
   await db.createTable(CODE_MEMORY_TABLE, records, { mode: "overwrite" });
+  await writeTextIndex(chunks);
 
   const manifest: CodeMemoryManifest = {
     version: CODE_MEMORY_VERSION,
@@ -72,7 +140,7 @@ export async function writeCodeMemoryStore(
       qdrant: qdrantStatus,
     },
     model: "gemini-embedding-001",
-    embeddingDimension: records[0]?.vector.length ?? 0,
+    embeddingDimension: toNumberArray(records[0]?.vector).length,
     totalFiles: new Set(chunks.map((chunk) => chunk.path)).size,
     totalChunks: chunks.length,
     embeddedChunks: chunks.filter((chunk) => chunk.embedding && chunk.embedding.length > 0).length,
@@ -84,10 +152,6 @@ export async function writeCodeMemoryStore(
 
   await writeCodeMemoryManifest(manifest);
   return manifest;
-}
-
-function tokenize(input: string): string[] {
-  return input.toLowerCase().split(/[^\p{L}\p{N}_-]+/u).filter((token) => token.length >= 2);
 }
 
 function lexicalScore(queryTokens: string[], chunk: CodeMemoryChunk): number {
@@ -116,18 +180,34 @@ function cosineSimilarity(left: number[] | undefined, right: number[] | undefine
   if (leftMagnitude === 0 || rightMagnitude === 0) {
     return 0;
   }
-  return dot / (Math.sqrt(leftMagnitude) * Math.sqrt(rightMagnitude));
+  const similarity = dot / (Math.sqrt(leftMagnitude) * Math.sqrt(rightMagnitude));
+  return Number.isFinite(similarity) ? similarity : 0;
 }
 
 export async function searchCodeMemory(query: string, queryVector?: number[], limit = 10): Promise<CodeMemorySearchResult[]> {
   const chunks = await readAllCodeMemoryChunks();
   const queryTokens = tokenize(query);
+  const textIndex = await readTextIndex();
+  const candidateIds = new Set<string>();
 
-  return chunks
+  if (!queryVector && textIndex) {
+    for (const token of queryTokens) {
+      for (const chunkId of textIndex[token] ?? []) {
+        candidateIds.add(chunkId);
+      }
+    }
+  }
+
+  const searchableChunks = !queryVector && textIndex && queryTokens.length > 0
+    ? chunks.filter((chunk) => candidateIds.has(chunk.id))
+    : chunks;
+
+  return searchableChunks
     .map((chunk) => {
       const lexical = lexicalScore(queryTokens, chunk);
       const vector = cosineSimilarity(queryVector, chunk.embedding);
-      const score = queryVector ? vector * 0.7 + lexical * 0.3 : lexical;
+      const positiveVector = Number.isFinite(vector) ? Math.max(0, vector) : 0;
+      const score = queryVector ? positiveVector * 0.7 + lexical * 0.3 : lexical;
       return {
         id: chunk.id,
         path: chunk.path,

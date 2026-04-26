@@ -14,6 +14,7 @@ flowchart LR
     Agents --> CodeMap["output/code-map/*"]
     Agents --> MindMap["output/mind-map/*"]
     Agents --> IDE["IDE mirrors"]
+    Agents --> CodeMemory["Agent code memory"]
     Agents --> workspace-embeddings["Workspace Code Embeddings"]
     Agents --> backend-memory["Backend Memory Retrieval"]
     Agents --> backend-enhanced-rag["Backend Enhanced RAG"]

@@ -1,4 +1,4 @@
-import { discoverCodeMemoryChunks } from "./discovery";
+import { calculateCodeMemoryDiff, discoverCodeMemoryChunks } from "./discovery";
 import { embedDocuments, embedQuery, loadLegacyVectors } from "./embedder";
 import { collectCodeMemoryHealth } from "./status";
 import { readAllCodeMemoryChunks, readCodeMemoryManifest, searchCodeMemory, writeCodeMemoryStore } from "./store";
@@ -41,6 +41,7 @@ export async function runCodeMemoryIndex(args: string[]): Promise<void> {
 
   const previousManifest = await readCodeMemoryManifest();
   const chunks = await discoverCodeMemoryChunks({ filter });
+  const diff = calculateCodeMemoryDiff(chunks, previousManifest);
   const existingChunks = await readAllCodeMemoryChunks();
   const previousVectors = reusableVectorsFromStore(chunks, existingChunks);
 
@@ -60,13 +61,14 @@ export async function runCodeMemoryIndex(args: string[]): Promise<void> {
       totalChunks: chunks.length,
       reusableVectors: previousVectors.size,
       missingVectorCount,
+      diff,
     };
     json ? printJson(result) : console.log(`dry-run chunks=${chunks.length} reusable=${previousVectors.size} missing=${missingVectorCount}`);
     return;
   }
 
   const embeddedChunks = await embedDocuments(chunks, { previousVectors });
-  const qdrantResult = syncQdrant ? await syncCodeMemoryToQdrant(embeddedChunks) : { status: "not-configured" as const };
+  const qdrantResult = syncQdrant ? await syncCodeMemoryToQdrant(embeddedChunks, diff.deletedChunks) : { status: "not-configured" as const };
   const manifest = await writeCodeMemoryStore(embeddedChunks, previousManifest, qdrantResult.status, qdrantResult.qdrant);
 
   const result = {

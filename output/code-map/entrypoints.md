@@ -10,6 +10,10 @@
 - `pnpm agent:verify`
 - `pnpm agent:refresh-maps`
 - `pnpm agent:start`
+- `pnpm agent:memory:index`
+- `pnpm agent:memory:search`
+- `pnpm agent:memory:status`
+- `pnpm agent:memory:verify`
 - `pnpm workspace:embed`
 
 ## ملفات الوكلاء
@@ -33,6 +37,10 @@
 - `apps/web/src/app/(main)/editor/scripts/rag-stats.ts`
 - `apps/web/src/lib/ai/rag/index.ts`
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
+- `scripts/agent/code-memory-index.ts`
+- `scripts/agent/code-memory-search.ts`
+- `scripts/agent/code-memory-status.ts`
+- `scripts/agent/code-memory-verify.ts`
 - `scripts/generate-workspace-embeddings.js`
 
 ## التطبيقات

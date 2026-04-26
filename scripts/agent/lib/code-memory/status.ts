@@ -47,7 +47,11 @@ export async function collectCodeMemoryHealth(): Promise<CodeMemoryHealth> {
   const manifestIds = new Set(manifest.chunkIds);
   const missingChunks = [...currentIds].filter((id) => !manifestIds.has(id)).length;
   const deletedChunks = [...manifestIds].filter((id) => !currentIds.has(id)).length;
-  const changedFiles = currentChunks.filter((chunk) => manifest.fileHashes[chunk.path] !== chunk.fileHash).length;
+  const changedFiles = new Set(
+    currentChunks
+      .filter((chunk) => manifest.fileHashes[chunk.path] !== chunk.fileHash)
+      .map((chunk) => chunk.path),
+  ).size;
   const stale = missingChunks > 0 || deletedChunks > 0 || changedFiles > 0;
   const coverageRate = manifest.totalChunks === 0 ? 0 : manifest.embeddedChunks / manifest.totalChunks;
 

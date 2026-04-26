@@ -6,6 +6,7 @@ export const CODE_MEMORY_VERSION = 1;
 export const CODE_MEMORY_DIR = ".agent-code-memory";
 export const CODE_MEMORY_LANCE_DIR = path.join(CODE_MEMORY_DIR, "lancedb");
 export const CODE_MEMORY_MANIFEST_PATH = path.join(CODE_MEMORY_DIR, "manifest.json");
+export const CODE_MEMORY_TEXT_INDEX_PATH = path.join(CODE_MEMORY_DIR, "text-index.json");
 export const CODE_MEMORY_TABLE = "code_memory";
 export const CODE_MEMORY_QDRANT_COLLECTION = "agent_code_memory";
 export const CODE_MEMORY_EMBEDDING_DIMENSION = 1536;

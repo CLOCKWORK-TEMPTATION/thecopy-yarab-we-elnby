@@ -8,11 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-25T23:46:45.511Z |
+| آخر مزامنة مرجعية | 2026-04-26T00:28:44.582Z |
 | الفرع الحالي | `main` |
-| آخر commit | `3d4e7f767b411b5a266559f044a90cffa5970a98` |
-| حالة working tree | نظيفة |
-| مستوى drift | `no-drift` |
+| آخر commit | `66c9d018e793d271b392d2291facc0bd94a7b2cf` |
+| حالة working tree | غير نظيفة — 26 ملف متغير |
+| مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -40,6 +40,10 @@ pnpm agent:bootstrap
 pnpm agent:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:memory:index
+pnpm agent:memory:search
+pnpm agent:memory:status
+pnpm agent:memory:verify
 pnpm workspace:embed
 ```
 
@@ -136,6 +140,7 @@ AGENTS.md
 
 - vector stores:
 
+- `lancedb`
 - `qdrant`
 - `weaviate`
 - `workspace-embedding-index`
@@ -152,10 +157,10 @@ AGENTS.md
   - السياسة: `govern-only`
   - الحالة: `governed`
   - المزودات: `gemini`
-  - المخازن المتجهية: `workspace-embedding-index`
-  - المدخلات: `apps/*`، `package.json`، `packages/*`، `pnpm-workspace.yaml`، `scripts/generate-workspace-embeddings.js`
-  - المخرجات أو artifacts: `.embedding-hash-cache.json`، `WORKSPACE-EMBEDDING-INDEX.json`، `WORKSPACE-EMBEDDING-SUMMARY.md`
-  - الاعتماديات: `Google Gemini embeddings`، `pnpm workspace:embed`
+  - المخازن المتجهية: `lancedb`، `qdrant`، `workspace-embedding-index`
+  - المدخلات: `apps/*`، `package.json`، `packages/*`، `pnpm-workspace.yaml`، `scripts/agent/lib/code-memory/*`، `scripts/generate-workspace-embeddings.js`
+  - المخرجات أو artifacts: `.agent-code-memory/`، `.embedding-hash-cache.json`، `WORKSPACE-EMBEDDING-INDEX.json`، `WORKSPACE-EMBEDDING-SUMMARY.md`
+  - الاعتماديات: `Google Gemini embeddings`، `LanceDB`، `pnpm workspace:embed`، `Qdrant`
 - `Backend Memory Retrieval`
   - id: `backend-memory`
   - النوع: `vector-memory`
@@ -210,32 +215,49 @@ AGENTS.md
 - لا توجد ملفات غير محكومة مكتشفة.
 
 
+## ذاكرة الكود الحية
+
+- الحالة:
+
+`current`
+
+- التخزين المحلي:
+
+`lancedb`
+
+- مزامنة Qdrant:
+
+`not-configured`
+
+- الملفات:
+
+`1971`
+
+- القطع:
+
+`5188`
+
+- القطع ذات التضمين:
+
+`5188`
+
+- التغطية:
+
+`100.0%`
+
+- الرسالة:
+
+Code memory is current.
+
+
 ## مرايا IDE المطلوبة حاليًا
 
 - `.github/copilot-instructions.md` — المسار موجود فعليًا، الأداة ظاهرة في مسار العمل الحالي
 
 ## ما تغيّر منذ آخر بصمة
 
-- لا يوجد drift مؤثر
+- تغيرت الملفات البنيوية الحرجة
 
 ## الأعطال المفتوحة الآن
 
-- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص (D-001).
-- 5 أخطاء type-check على web موروثة من main (لم تنتجها جولة 097):
-  - `apps/web/src/lib/ai/stations/orchestrator.ts:308-312` — TS2322 × 5 (Station{1..5}Output لا يطابق JsonRecord — Index signature ناقص).
-  - `apps/web/src/lib/ai/stations/station2-conceptual-analysis.ts:731,741,751` — TS2322 × 3 (exactOptionalPropertyTypes: artist/director/author).
-  - `apps/web/src/lib/drama-analyst/services/backendService.ts:94` — TS2322 (unknown → AIResponse).
-  - `apps/web/src/workers/particle-generator.worker.ts:20` و `particle-physics.worker.ts:43` — TS6196 × 2 (types غير مستخدمة).
-- web lint: 64 errors + 7881 warnings (A-004/A-005) — مُرحَّل P2/P3.
-- ~21 ملف اختبار actorai-arabic لم يُشغَّل بعد إصلاح `test-utils.tsx` (A-006 sweep).
-- ~6 ملفات اختبار متفرقة فيها فشل واحد أو اثنين (A-013) — مُرحَّل P2.
-- لم يُتحقَّق lint backend بعد runner التقسيم end-to-end لضغط الذاكرة (A-002 verify-only).
-- ديون عضوية مُرحَّلة: 18 TODO، 330 console.* في إنتاج، 246 `: any`، 6 `@ts-ignore`، 10 ملفات >1000 سطر، 11 ignored build scripts.
-
-## مرجع جولة التنظيف الأخيرة
-
-- الفرع: `round-097-debt-cleanup` (17 commit بعد merge، يستهدف main، لا دمج تلقائي).
-- آخر commit على الفرع: `8dbbf4a` (merge من origin/main، تعارضان حُلَّا بترجيح 097 — `ScriptUploadZone.test.tsx` + `animations.test.ts`).
-- ‏`triage-round-097.md` و `PULL_REQUEST.md` ملحقان بالفرع.
-- إغلاقات الجولة 097: P0=100% (5/5)، P1=83% (5/6)، P2=20% (1/5).
-- استكمال الجولة 116 (حل تعارضات الدمج): اختبارا الحل passed 10/10، الباك اند type-check نظيف EXIT=0.
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص

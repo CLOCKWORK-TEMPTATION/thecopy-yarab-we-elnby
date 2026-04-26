@@ -115,6 +115,7 @@ interface DiscoveryCandidate {
 const KNOWLEDGE_DISCOVERY_EXCLUDED_FILE_PATTERNS = [
   "dop_assistant_spec_package/",
   "arab-stylist-studio-spec/",
+  "scripts/lint-chunked.mjs",
 ];
 
 const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
@@ -516,6 +517,10 @@ function normalizeVectorStoreSignal(value: string): string {
     return "qdrant";
   }
 
+  if (normalized.includes("lancedb") || normalized.includes(".agent-code-memory")) {
+    return "lancedb";
+  }
+
   if (normalized.includes("workspace-embedding-index.json")) {
     return "workspace-embedding-index";
   }
@@ -565,6 +570,9 @@ function collectPackageScriptSignals(content: string): string[] {
     const scripts = parsed.scripts ?? {};
     const scriptSignals = Object.entries(scripts)
       .filter(([scriptName, scriptValue]) => {
+        if (scriptName === "lint" || scriptName.startsWith("lint:") || scriptValue.includes("lint-chunked.mjs")) {
+          return false;
+        }
         const matches = collectKeywordMatches(`${scriptName} ${scriptValue}`, KNOWLEDGE_DISCOVERY_KEYWORDS);
         return hasMeaningfulDiscoverySignal(matches);
       })

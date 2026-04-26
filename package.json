@@ -235,4 +235,6 @@
     "apache-arrow": "18.1.0",
     "express-jwt": "^8.5.1",
     "isomorphic-dompurify": "^3.7.1",
-    "timi
+    "timing-safe-equal": "^1.0.0"
+  }
+}

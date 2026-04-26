@@ -7,6 +7,7 @@
 3. قراءة `output/session-state.md`
 4. تنفيذ المهمة
 5. `pnpm agent:verify`
+6. `pnpm agent:memory:verify`
 
 ## مسار IDE
 

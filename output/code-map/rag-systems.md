@@ -16,27 +16,41 @@
 - policy: `govern-only`
 - status: `governed`
 - root: `scripts`
-- description: Workspace-level semantic retrieval and embedding index generation.
+- description: Live agent code memory with LanceDB local storage and optional Qdrant sync.
 - commands:
   - `pnpm workspace:embed`
+  - `pnpm agent:memory:index`
+  - `pnpm agent:memory:search`
+  - `pnpm agent:memory:status`
+  - `pnpm agent:memory:verify`
 - entrypoints:
+  - `scripts/agent/code-memory-index.ts`
+  - `scripts/agent/code-memory-search.ts`
+  - `scripts/agent/code-memory-status.ts`
+  - `scripts/agent/code-memory-verify.ts`
   - `scripts/generate-workspace-embeddings.js`
 - inputs:
   - `apps/*`
   - `package.json`
   - `packages/*`
   - `pnpm-workspace.yaml`
+  - `scripts/agent/lib/code-memory/*`
   - `scripts/generate-workspace-embeddings.js`
 - artifacts:
+  - `.agent-code-memory/`
   - `.embedding-hash-cache.json`
   - `WORKSPACE-EMBEDDING-INDEX.json`
   - `WORKSPACE-EMBEDDING-SUMMARY.md`
 - dependencies:
   - `Google Gemini embeddings`
+  - `LanceDB`
   - `pnpm workspace:embed`
+  - `Qdrant`
 - embeddings providers:
   - `gemini`
 - vector stores:
+  - `lancedb`
+  - `qdrant`
   - `workspace-embedding-index`
 - rerankers:
   - none

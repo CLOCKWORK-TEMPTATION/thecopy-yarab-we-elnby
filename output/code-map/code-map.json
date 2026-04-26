@@ -13,6 +13,10 @@
     "pnpm agent:verify",
     "pnpm agent:refresh-maps",
     "pnpm agent:start",
+    "pnpm agent:memory:index",
+    "pnpm agent:memory:search",
+    "pnpm agent:memory:status",
+    "pnpm agent:memory:verify",
     "pnpm workspace:embed"
   ],
   "ports": {
@@ -64,6 +68,10 @@
     "apps/web/src/lib/ai/rag/index.ts",
     "apps/web/src/lib/drama-analyst/services/ragService.ts",
     "scripts/agent/bootstrap.ts",
+    "scripts/agent/code-memory-index.ts",
+    "scripts/agent/code-memory-search.ts",
+    "scripts/agent/code-memory-status.ts",
+    "scripts/agent/code-memory-verify.ts",
     "scripts/agent/refresh-maps.ts",
     "scripts/agent/start-agent.ps1",
     "scripts/agent/verify-state.ts",
@@ -89,16 +97,36 @@
         "policy": "govern-only",
         "root": "scripts",
         "status": "governed",
-        "description": "Workspace-level semantic retrieval and embedding index generation.",
+        "description": "Live agent code memory with LanceDB local storage and optional Qdrant sync.",
         "commands": [
-          "pnpm workspace:embed"
+          "pnpm workspace:embed",
+          "pnpm agent:memory:index",
+          "pnpm agent:memory:search",
+          "pnpm agent:memory:status",
+          "pnpm agent:memory:verify"
         ],
         "entrypoints": [
+          "scripts/agent/code-memory-index.ts",
+          "scripts/agent/code-memory-search.ts",
+          "scripts/agent/code-memory-status.ts",
+          "scripts/agent/code-memory-verify.ts",
           "scripts/generate-workspace-embeddings.js"
         ],
         "criticalFiles": [
+          ".agent-code-memory/manifest.json",
           ".embedding-hash-cache.json",
           ".repo-agent/RAG-OPERATING-CONTRACT.md",
+          "scripts/agent/code-memory-index.ts",
+          "scripts/agent/code-memory-search.ts",
+          "scripts/agent/code-memory-status.ts",
+          "scripts/agent/code-memory-verify.ts",
+          "scripts/agent/lib/code-memory/commands.ts",
+          "scripts/agent/lib/code-memory/config.ts",
+          "scripts/agent/lib/code-memory/discovery.ts",
+          "scripts/agent/lib/code-memory/embedder.ts",
+          "scripts/agent/lib/code-memory/qdrant.ts",
+          "scripts/agent/lib/code-memory/status.ts",
+          "scripts/agent/lib/code-memory/store.ts",
           "scripts/generate-workspace-embeddings.js",
           "WORKSPACE-EMBEDDING-INDEX.json",
           "WORKSPACE-EMBEDDING-SUMMARY.md"
@@ -108,21 +136,27 @@
           "package.json",
           "packages/*",
           "pnpm-workspace.yaml",
+          "scripts/agent/lib/code-memory/*",
           "scripts/generate-workspace-embeddings.js"
         ],
         "artifacts": [
+          ".agent-code-memory/",
           ".embedding-hash-cache.json",
           "WORKSPACE-EMBEDDING-INDEX.json",
           "WORKSPACE-EMBEDDING-SUMMARY.md"
         ],
         "dependencies": [
           "Google Gemini embeddings",
-          "pnpm workspace:embed"
+          "LanceDB",
+          "pnpm workspace:embed",
+          "Qdrant"
         ],
         "embeddingsProviders": [
           "gemini"
         ],
         "vectorStores": [
+          "lancedb",
+          "qdrant",
           "workspace-embedding-index"
         ],
         "rerankers": [],
@@ -134,23 +168,53 @@
             "exists": true
           },
           {
+            "kind": "entrypoint",
+            "path": "scripts/agent/code-memory-index.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/code-memory-search.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/code-memory-status.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/code-memory-verify.ts",
+            "exists": true
+          },
+          {
             "kind": "chunking",
-            "path": "scripts/generate-workspace-embeddings.js",
+            "path": "scripts/agent/lib/code-memory/discovery.ts",
             "exists": true
           },
           {
             "kind": "embedding-generation",
-            "path": "scripts/generate-workspace-embeddings.js",
+            "path": "scripts/agent/lib/code-memory/embedder.ts",
             "exists": true
           },
           {
             "kind": "indexing",
-            "path": "scripts/generate-workspace-embeddings.js",
+            "path": "scripts/agent/lib/code-memory/store.ts",
+            "exists": true
+          },
+          {
+            "kind": "vector-store",
+            "path": "scripts/agent/lib/code-memory/store.ts",
+            "exists": true
+          },
+          {
+            "kind": "vector-store",
+            "path": "scripts/agent/lib/code-memory/qdrant.ts",
             "exists": true
           },
           {
             "kind": "search",
-            "path": "scripts/generate-workspace-embeddings.js",
+            "path": "scripts/agent/lib/code-memory/commands.ts",
             "exists": true
           },
           {
@@ -588,6 +652,7 @@
       "openrouter"
     ],
     "vectorStores": [
+      "lancedb",
       "qdrant",
       "weaviate",
       "workspace-embedding-index"
@@ -596,6 +661,7 @@
       "selectHits"
     ],
     "criticalFiles": [
+      ".agent-code-memory/manifest.json",
       ".embedding-hash-cache.json",
       ".repo-agent/RAG-OPERATING-CONTRACT.md",
       "apps/backend/src/memory/api/routes.ts",
@@ -633,6 +699,17 @@
       "apps/web/src/lib/drama-analyst/services/ragService.ts",
       "packages/core-memory/src/chunking/semanticChunker.ts",
       "packages/core-memory/src/types.ts",
+      "scripts/agent/code-memory-index.ts",
+      "scripts/agent/code-memory-search.ts",
+      "scripts/agent/code-memory-status.ts",
+      "scripts/agent/code-memory-verify.ts",
+      "scripts/agent/lib/code-memory/commands.ts",
+      "scripts/agent/lib/code-memory/config.ts",
+      "scripts/agent/lib/code-memory/discovery.ts",
+      "scripts/agent/lib/code-memory/embedder.ts",
+      "scripts/agent/lib/code-memory/qdrant.ts",
+      "scripts/agent/lib/code-memory/status.ts",
+      "scripts/agent/lib/code-memory/store.ts",
       "scripts/generate-workspace-embeddings.js",
       "WORKSPACE-EMBEDDING-INDEX.json",
       "WORKSPACE-EMBEDDING-SUMMARY.md"
@@ -647,6 +724,10 @@
       "apps/web/src/app/(main)/editor/scripts/rag-stats.ts",
       "apps/web/src/lib/ai/rag/index.ts",
       "apps/web/src/lib/drama-analyst/services/ragService.ts",
+      "scripts/agent/code-memory-index.ts",
+      "scripts/agent/code-memory-search.ts",
+      "scripts/agent/code-memory-status.ts",
+      "scripts/agent/code-memory-verify.ts",
       "scripts/generate-workspace-embeddings.js"
     ],
     "commands": [
@@ -654,12 +735,34 @@
       "pnpm --filter @the-copy/web editor:rag:index",
       "pnpm --filter @the-copy/web editor:rag:smoke",
       "pnpm --filter @the-copy/web editor:rag:stats",
+      "pnpm agent:memory:index",
+      "pnpm agent:memory:search",
+      "pnpm agent:memory:status",
+      "pnpm agent:memory:verify",
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
     "ungovernedFiles": [],
     "discoveryWarnings": [],
     "governanceStatus": "governed"
+  },
+  "codeMemory": {
+    "exists": true,
+    "stale": false,
+    "generatedAt": "2026-04-26T00:28:40.578Z",
+    "totalFiles": 1971,
+    "totalChunks": 5188,
+    "embeddedChunks": 5188,
+    "coverageRate": 1,
+    "missingChunks": 0,
+    "deletedChunks": 0,
+    "changedFiles": 0,
+    "storage": {
+      "local": "lancedb",
+      "qdrant": "not-configured"
+    },
+    "qdrantCollection": null,
+    "message": "Code memory is current."
   },
   "openIssues": [
     "لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص"

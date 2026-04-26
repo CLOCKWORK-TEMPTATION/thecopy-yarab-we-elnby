@@ -28,6 +28,10 @@ pnpm agent:bootstrap
 pnpm agent:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:memory:index
+pnpm agent:memory:search
+pnpm agent:memory:status
+pnpm agent:memory:verify
 pnpm workspace:embed
 ```
 
@@ -61,6 +65,10 @@ pnpm workspace:embed
 - `apps/web/src/lib/ai/rag/index.ts`
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
 - `scripts/agent/bootstrap.ts`
+- `scripts/agent/code-memory-index.ts`
+- `scripts/agent/code-memory-search.ts`
+- `scripts/agent/code-memory-status.ts`
+- `scripts/agent/code-memory-verify.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -109,3 +117,10 @@ output/session-state.md
 - `drama-retrieval`
 - `lightweight-search`
 - `vector-memory`
+
+## ذاكرة الكود الحية
+
+- الحالة: `current`
+- الملفات: `1971`
+- القطع: `5188`
+- التغطية: `100.0%`

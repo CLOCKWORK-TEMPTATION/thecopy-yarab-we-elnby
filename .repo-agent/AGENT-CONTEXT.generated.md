@@ -4,11 +4,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-25T23:46:45.511Z |
+| آخر مزامنة مرجعية | 2026-04-26T00:28:44.582Z |
 | الفرع الحالي | `main` |
-| آخر commit | `3d4e7f767b411b5a266559f044a90cffa5970a98` |
-| حالة الشجرة | نظيفة |
-| مستوى drift | `no-drift` |
+| آخر commit | `66c9d018e793d271b392d2291facc0bd94a7b2cf` |
+| حالة الشجرة | غير نظيفة — 26 ملف متغير |
+| مستوى drift | `hard-drift` |
 
 ## المرجع الحاكم
 
@@ -35,6 +35,10 @@ pnpm agent:bootstrap
 pnpm agent:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:memory:index
+pnpm agent:memory:search
+pnpm agent:memory:status
+pnpm agent:memory:verify
 pnpm workspace:embed
 ```
 
@@ -73,6 +77,10 @@ backend: 3001
 - `apps/web/src/lib/ai/rag/index.ts`
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
 - `scripts/agent/bootstrap.ts`
+- `scripts/agent/code-memory-index.ts`
+- `scripts/agent/code-memory-search.ts`
+- `scripts/agent/code-memory-status.ts`
+- `scripts/agent/code-memory-verify.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -103,6 +111,7 @@ backend: 3001
 
 - vector stores:
 
+- `lancedb`
 - `qdrant`
 - `weaviate`
 - `workspace-embedding-index`
@@ -119,10 +128,10 @@ backend: 3001
   - السياسة: `govern-only`
   - الحالة: `governed`
   - المزودات: `gemini`
-  - المخازن المتجهية: `workspace-embedding-index`
-  - المدخلات: `apps/*`، `package.json`، `packages/*`، `pnpm-workspace.yaml`، `scripts/generate-workspace-embeddings.js`
-  - المخرجات أو artifacts: `.embedding-hash-cache.json`، `WORKSPACE-EMBEDDING-INDEX.json`، `WORKSPACE-EMBEDDING-SUMMARY.md`
-  - الاعتماديات: `Google Gemini embeddings`، `pnpm workspace:embed`
+  - المخازن المتجهية: `lancedb`، `qdrant`، `workspace-embedding-index`
+  - المدخلات: `apps/*`، `package.json`، `packages/*`، `pnpm-workspace.yaml`، `scripts/agent/lib/code-memory/*`، `scripts/generate-workspace-embeddings.js`
+  - المخرجات أو artifacts: `.agent-code-memory/`، `.embedding-hash-cache.json`، `WORKSPACE-EMBEDDING-INDEX.json`، `WORKSPACE-EMBEDDING-SUMMARY.md`
+  - الاعتماديات: `Google Gemini embeddings`، `LanceDB`، `pnpm workspace:embed`، `Qdrant`
 - `Backend Memory Retrieval`
   - id: `backend-memory`
   - النوع: `vector-memory`
@@ -175,6 +184,41 @@ backend: 3001
 - ملفات معرفة غير محكومة:
 
 - لا توجد ملفات غير محكومة مكتشفة.
+
+
+## ذاكرة الكود الحية
+
+- الحالة:
+
+`current`
+
+- التخزين المحلي:
+
+`lancedb`
+
+- مزامنة Qdrant:
+
+`not-configured`
+
+- الملفات:
+
+`1971`
+
+- القطع:
+
+`5188`
+
+- القطع ذات التضمين:
+
+`5188`
+
+- التغطية:
+
+`100.0%`
+
+- الرسالة:
+
+Code memory is current.
 
 
 ## حالة الملفات المرجعية

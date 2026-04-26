@@ -136,4 +136,30 @@ describe.sequential("collectKnowledgeInventory", () => {
     expect(inventory.discoveryWarnings.some((warning) => warning.includes("README.md"))).toBe(false);
     expect(inventory.discoveryWarnings.some((warning) => warning.includes("rag-system.md"))).toBe(false);
   });
+
+  test("does not treat chunked lint scripts as retrieval systems", async () => {
+    currentTempRepo = await createBaseKnowledgeRepo(true);
+    await writeRepoFile(
+      currentTempRepo,
+      "apps/backend/package.json",
+      JSON.stringify(
+        {
+          name: "@the-copy/backend",
+          scripts: {
+            lint: "node scripts/lint-chunked.mjs --max-warnings=1000",
+            "lint:strict": "node scripts/lint-chunked.mjs --max-warnings=0",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    await writeRepoFile(currentTempRepo, "apps/backend/scripts/lint-chunked.mjs", "console.log('lint chunks');\n");
+
+    process.chdir(currentTempRepo);
+    const inventory = await collectKnowledgeInventory();
+
+    expect(inventory.ungovernedFiles).not.toContain("apps/backend/package.json");
+    expect(inventory.ungovernedFiles).not.toContain("apps/backend/scripts/lint-chunked.mjs");
+  });
 });
