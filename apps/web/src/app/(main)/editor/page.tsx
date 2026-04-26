@@ -28,7 +28,7 @@ let initialized = false;
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
-  const searchParamsKey = searchParams.toString();
+  const searchParamsKey = searchParams?.toString() ?? "";
   const [projectSyncError, setProjectSyncError] = React.useState<string | null>(
     null
   );
