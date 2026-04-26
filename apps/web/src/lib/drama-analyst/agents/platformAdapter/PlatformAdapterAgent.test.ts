@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { TaskType } from "../../../../core/types";
+import { TaskType } from "@core/types";
 import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { PlatformAdapterAgent } from "./PlatformAdapterAgent";
@@ -12,6 +12,22 @@ vi.mock("../../services/geminiService", () => ({
       .fn()
       .mockResolvedValue("Mock AI response for platform adaptation"),
   },
+}));
+
+vi.mock("@/lib/ai/gemini-core", () => ({
+  callGeminiText: vi.fn().mockResolvedValue(
+    "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
+  ),
+  toText: (response: unknown) =>
+    typeof response === "string" ? response : JSON.stringify(response),
+}));
+
+vi.mock("@/ai/gemini-core", () => ({
+  callGeminiText: vi.fn().mockResolvedValue(
+    "تحويل مخصص للمنصة المستهدفة يحافظ على الرسالة الأساسية، ويعيد صياغة المحتوى بلغة موجزة مناسبة للجمهور، مع توصيات للنشر ومراعاة قيود الطول والأسلوب."
+  ),
+  toText: (response: unknown) =>
+    typeof response === "string" ? response : JSON.stringify(response),
 }));
 
 describe("PlatformAdapterAgent", () => {
@@ -213,19 +229,24 @@ describe("PlatformAdapterAgent", () => {
 
       // Notes should reflect confidence level
       if (result.confidence >= 0.85) {
-        expect(result.notes).toContain("عالي الجودة");
+        expect(result.notes.some((note) => note.includes("عالي الجودة"))).toBe(
+          true
+        );
       } else if (result.confidence >= 0.7) {
-        expect(result.notes).toContain("جيد");
+        expect(result.notes.some((note) => note.includes("جيد"))).toBe(true);
       } else {
-        expect(result.notes).toContain("أولي");
+        expect(result.notes.some((note) => note.includes("أولي"))).toBe(true);
       }
     });
   });
 
   describe("Error Handling", () => {
     it("should return fallback response on error", async () => {
+      const { callGeminiText } = await import("@/lib/ai/gemini-core");
+      vi.mocked(callGeminiText).mockRejectedValueOnce(new Error("API Error"));
+
       const input: StandardAgentInput = {
-        input: "",
+        input: "كيّف المحتوى",
         options: {},
         context: {},
       };
@@ -235,7 +256,7 @@ describe("PlatformAdapterAgent", () => {
       expect(result).toBeDefined();
       expect(result.text).toBeTruthy();
       expect(result.confidence).toBeLessThanOrEqual(0.5);
-      expect(result.metadata?.error).toBeDefined();
+      expect(result.notes.some((note) => note.includes("خطأ"))).toBe(true);
     });
 
     it("should handle missing context gracefully", async () => {

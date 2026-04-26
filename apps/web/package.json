@@ -26,7 +26,7 @@
     "format:check": "prettier --check .",
     "type-check": "node ../../scripts/quality/typecheck-contract.mjs --project=web",
     "type-check:strict": "node --max-old-space-size=8192 ../../node_modules/typescript/lib/tsc.js -p tsconfig.check.json --noEmit --pretty false",
-    "test": "vitest run",
+    "test": "node scripts/run-vitest-chunks.mjs",
     "test:config": "vitest run src/config/apps.config.test.ts src/config/pages.manifest.test.ts src/env.test.ts src/middleware.test.ts src/utils/sanitizer.test.ts",
     "test:smoke": "vitest run \"src/app/__smoke__/simple.test.ts\"",
     "test:cinematography:integration": "tsx scripts/cinematography/run-integration-tests.ts",

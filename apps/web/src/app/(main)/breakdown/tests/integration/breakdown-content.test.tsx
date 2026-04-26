@@ -34,12 +34,7 @@ describe("BreakdownContent", () => {
     vi.unstubAllGlobals();
   });
 
-  it.todo(
-    "validate-pipeline: يقرأ تقرير البريك دون من التخزين قبل أي طلب شبكي",
-    () => {}
-  );
-
-  const _skipAsync = async () => {
+  it("validate-pipeline: يقرأ تقرير البريك دون من التخزين قبل أي طلب شبكي", async () => {
     sessionStorage.setItem(
       "breakdownReportSnapshot",
       JSON.stringify(validReport)
@@ -53,14 +48,9 @@ describe("BreakdownContent", () => {
     expect(await screen.findByText("تقرير بريك دون جاهز")).toBeInTheDocument();
     expect(screen.getByText("ملخص تنفيذي جاهز")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
-  };
+  });
 
-  it.todo(
-    "validate-pipeline: يرجع إلى الملف الثابت إذا لم توجد لقطة محفوظة",
-    () => {}
-  );
-
-  const _skipAsync = async () => {
+  it("validate-pipeline: يرجع إلى الملف الثابت إذا لم توجد لقطة محفوظة", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => validReport,
@@ -77,5 +67,5 @@ describe("BreakdownContent", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/analysis_output/final-report.json"
     );
-  };
+  });
 });

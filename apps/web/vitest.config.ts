@@ -90,6 +90,7 @@ export default defineConfig({
         __dirname,
         "src/app/(main)/directors-studio/shared"
       ),
+      "@editor": path.resolve(__dirname, "src/app/(main)/editor/src"),
       "@components": path.resolve(__dirname, "src/components"),
     },
   },

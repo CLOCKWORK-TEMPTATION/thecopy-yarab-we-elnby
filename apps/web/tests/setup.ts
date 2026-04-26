@@ -31,26 +31,6 @@ afterEach(() => {
   }
 });
 
-// محاكاة matchMedia للمكونات التي تستخدم media queries
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-});
-
-Object.defineProperty(window, "scrollTo", {
-  writable: true,
-  value: vi.fn(),
-});
-
 class MockResizeObserver implements ResizeObserver {
   observe = vi.fn();
   unobserve = vi.fn();
@@ -59,12 +39,6 @@ class MockResizeObserver implements ResizeObserver {
 
   constructor(_callback: ResizeObserverCallback) {}
 }
-
-Object.defineProperty(window, "ResizeObserver", {
-  configurable: true,
-  writable: true,
-  value: MockResizeObserver,
-});
 
 Object.defineProperty(globalThis, "ResizeObserver", {
   configurable: true,
@@ -85,14 +59,42 @@ class MockIntersectionObserver implements IntersectionObserver {
   constructor(_callback: IntersectionObserverCallback) {}
 }
 
-Object.defineProperty(window, "IntersectionObserver", {
-  configurable: true,
-  writable: true,
-  value: MockIntersectionObserver,
-});
-
 Object.defineProperty(globalThis, "IntersectionObserver", {
   configurable: true,
   writable: true,
   value: MockIntersectionObserver,
 });
+
+if (typeof window !== "undefined") {
+  // محاكاة matchMedia للمكونات التي تستخدم media queries
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+
+  Object.defineProperty(window, "scrollTo", {
+    writable: true,
+    value: vi.fn(),
+  });
+
+  Object.defineProperty(window, "ResizeObserver", {
+    configurable: true,
+    writable: true,
+    value: MockResizeObserver,
+  });
+
+  Object.defineProperty(window, "IntersectionObserver", {
+    configurable: true,
+    writable: true,
+    value: MockIntersectionObserver,
+  });
+}
