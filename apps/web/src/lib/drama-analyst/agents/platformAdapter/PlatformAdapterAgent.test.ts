@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TaskType } from "@core/types";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { PlatformAdapterAgent } from "./PlatformAdapterAgent";
+
+import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({
@@ -30,14 +31,14 @@ vi.mock("@/ai/gemini-core", () => ({
     typeof response === "string" ? response : JSON.stringify(response),
 }));
 
+let agent: PlatformAdapterAgent;
+
+beforeEach(() => {
+  agent = new PlatformAdapterAgent();
+  vi.clearAllMocks();
+});
+
 describe("PlatformAdapterAgent", () => {
-  let agent: PlatformAdapterAgent;
-
-  beforeEach(() => {
-    agent = new PlatformAdapterAgent();
-    vi.clearAllMocks();
-  });
-
   describe("Configuration", () => {
     it("should initialize with correct configuration", () => {
       const config = agent.getConfig();
@@ -227,16 +228,16 @@ describe("PlatformAdapterAgent", () => {
 
       expect(result.notes).toBeDefined();
 
-      // Notes should reflect confidence level
-      if (result.confidence >= 0.85) {
-        expect(result.notes.some((note) => note.includes("عالي الجودة"))).toBe(
-          true
-        );
-      } else if (result.confidence >= 0.7) {
-        expect(result.notes.some((note) => note.includes("جيد"))).toBe(true);
-      } else {
-        expect(result.notes.some((note) => note.includes("أولي"))).toBe(true);
-      }
+      const expectedNote =
+        result.confidence >= 0.85
+          ? "عالي الجودة"
+          : result.confidence >= 0.7
+            ? "جيد"
+            : "أولي";
+
+      expect(result.notes.some((note) => note.includes(expectedNote))).toBe(
+        true
+      );
     });
   });
 
@@ -263,7 +264,6 @@ describe("PlatformAdapterAgent", () => {
       const input: StandardAgentInput = {
         input: "كيّف المحتوى",
         options: {},
-        context: undefined as any,
       };
 
       const result = await agent.executeTask(input);

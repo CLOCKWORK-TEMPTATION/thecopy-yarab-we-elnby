@@ -8,6 +8,16 @@ import {
 
 import { POST } from "./route";
 
+interface GenerateResponse {
+  success: boolean;
+  data?: {
+    budget: {
+      grandTotal: number;
+    };
+  };
+  error?: string;
+}
+
 vi.mock("@/lib/server/backend-proxy", () => ({
   buildProxyErrorResponse: vi.fn(
     (error: unknown, fallbackMessage: string) =>
@@ -44,11 +54,11 @@ describe("/api/budget/generate", () => {
     });
 
     const response = await POST(request);
-    const result = await response.json();
+    const result = (await response.json()) as GenerateResponse;
 
     expect(response.status).toBe(200);
     expect(result.success).toBe(true);
-    expect(result.data.budget.grandTotal).toBe(50000);
+    expect(result.data?.budget.grandTotal).toBe(50000);
     expect(proxyToBackend).toHaveBeenCalledWith(
       request,
       "/api/budget/generate"
@@ -66,7 +76,7 @@ describe("/api/budget/generate", () => {
     });
 
     const response = await POST(request);
-    const result = await response.json();
+    const result = (await response.json()) as GenerateResponse;
 
     expect(response.status).toBe(503);
     expect(result.success).toBe(false);

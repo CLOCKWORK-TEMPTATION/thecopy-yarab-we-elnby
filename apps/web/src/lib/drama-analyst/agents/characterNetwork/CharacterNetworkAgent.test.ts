@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { TaskType } from "@core/enums";
 
-import type { StandardAgentInput } from "../shared/standardAgentPattern";
-
 import { CHARACTER_NETWORK_AGENT_CONFIG } from "./agent";
 import { CharacterNetworkAgent } from "./CharacterNetworkAgent";
+
+import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 // Mock geminiService
 vi.mock("../../services/geminiService", () => ({
@@ -37,13 +37,12 @@ vi.mock("@/ai/gemini-core", () => ({
     typeof response === "string" ? response : JSON.stringify(response),
 }));
 
-describe("CharacterNetworkAgent", () => {
-  let agent: CharacterNetworkAgent;
+let agent: CharacterNetworkAgent;
 
-  beforeEach(() => {
-    agent = new CharacterNetworkAgent();
-    vi.clearAllMocks();
-  });
+beforeEach(() => {
+  agent = new CharacterNetworkAgent();
+  vi.clearAllMocks();
+});
 
   describe("Configuration", () => {
     it("should initialize with correct configuration", () => {
@@ -206,9 +205,7 @@ describe("CharacterNetworkAgent", () => {
       expect(result).toBeDefined();
       expect(result.confidence).toBeDefined();
 
-      if (result.confidence < 0.95) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence < 0.95 ? result.notes : []).toBeDefined();
     });
 
     it("should handle uncertainty in relationship detection", async () => {
@@ -410,7 +407,6 @@ describe("CharacterNetworkAgent", () => {
     it("should use default options when not provided", async () => {
       const input: StandardAgentInput = {
         input: "حلل الشبكة",
-        options: undefined as any,
         context: {
           originalText: "نص",
         },
@@ -529,4 +525,3 @@ describe("CharacterNetworkAgent", () => {
       expect(result.text).not.toContain("```");
     });
   });
-});
