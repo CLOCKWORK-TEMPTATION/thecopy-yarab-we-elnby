@@ -1,7 +1,7 @@
-const path = require("path");
+import path from "path";
 
-const bundleAnalyzer = require("@next/bundle-analyzer");
-const { withSentryConfig } = require("@sentry/nextjs");
+import bundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const isWindowsHost = process.platform === "win32";
 const enableStandaloneOutput =
@@ -86,7 +86,7 @@ const nextConfig = {
 
   // Ensure correct root when multiple lockfiles exist (silences Next.js warning)
   // يؤشر إلى جذر الـ monorepo لتتبع الملفات من packages/ و apps/ معًا
-  outputFileTracingRoot: path.join(__dirname, "../.."),
+  outputFileTracingRoot: path.join(process.cwd(), "../.."),
 
   // CDN support for static assets
   assetPrefix,
@@ -347,6 +347,6 @@ const sentryConfig =
 
 // Export config with Sentry wrapper if configured
 const configWithAnalyzer = withBundleAnalyzer(nextConfig);
-module.exports = sentryConfig
+export default sentryConfig
   ? withSentryConfig(configWithAnalyzer, sentryConfig)
   : configWithAnalyzer;
