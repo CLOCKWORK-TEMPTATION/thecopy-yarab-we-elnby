@@ -15,26 +15,35 @@ const nextTypeScriptConfig = nextCoreWebVitals.find(
 const nextConfigs = nextCoreWebVitals.filter(
   (config) => config.name !== "next/typescript",
 );
-const toWarning = (config) => ({
-  ...config,
-  rules: Object.fromEntries(
-    Object.entries(config.rules ?? {}).map(([ruleName, ruleConfig]) => {
-      if (ruleConfig === "error" || ruleConfig === 2) {
-        return [ruleName, "warn"];
-      }
 
-      if (Array.isArray(ruleConfig) && ruleConfig[0] === "error") {
-        return [ruleName, ["warn", ...ruleConfig.slice(1)]];
-      }
-
-      if (Array.isArray(ruleConfig) && ruleConfig[0] === 2) {
-        return [ruleName, [1, ...ruleConfig.slice(1)]];
-      }
-
-      return [ruleName, ruleConfig];
-    }),
-  ),
-});
+const mechanicalContractRules = {
+  "@typescript-eslint/no-explicit-any": "error",
+  "@typescript-eslint/no-floating-promises": "error",
+  "@typescript-eslint/no-misused-promises": [
+    "error",
+    { checksVoidReturn: { attributes: false } },
+  ],
+  "@typescript-eslint/no-unsafe-argument": "error",
+  "@typescript-eslint/no-unsafe-assignment": "error",
+  "@typescript-eslint/no-unsafe-call": "error",
+  "@typescript-eslint/no-unsafe-member-access": "error",
+  "@typescript-eslint/no-unsafe-return": "error",
+  "complexity": ["error", { max: 20 }],
+  "import/no-unresolved": "error",
+  "max-depth": ["error", 4],
+  "max-lines": [
+    "error",
+    { max: 500, skipBlankLines: true, skipComments: true },
+  ],
+  "max-lines-per-function": [
+    "error",
+    { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true },
+  ],
+  "max-params": ["error", 5],
+  "no-console": ["error", { allow: ["warn", "error"] }],
+  "react-hooks/exhaustive-deps": "error",
+  "unused-imports/no-unused-imports": "error",
+};
 
 export default tseslint.config(
   {
@@ -51,9 +60,9 @@ export default tseslint.config(
     ],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked.map(toWarning),
-  ...tseslint.configs.stylisticTypeChecked.map(toWarning),
-  ...nextConfigs.map(toWarning),
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
+  ...nextConfigs,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -89,19 +98,15 @@ export default tseslint.config(
       },
     },
     rules: {
-      ...toWarning(nextTypeScriptConfig ?? {}).rules,
-      ...toWarning(jsxA11y.flatConfigs.recommended).rules,
-      ...toWarning(reactHooks.configs.flat.recommended).rules,
-      ...toWarning(importPlugin.configs.recommended).rules,
-      ...toWarning(importPlugin.configs.typescript).rules,
-      "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/no-misused-promises": [
-        "warn",
-        { checksVoidReturn: { attributes: false } },
-      ],
+      ...(nextTypeScriptConfig?.rules ?? {}),
+      ...jsxA11y.flatConfigs.recommended.rules,
+      ...reactHooks.configs.flat.recommended.rules,
+      ...importPlugin.configs.recommended.rules,
+      ...importPlugin.configs.typescript.rules,
+      ...mechanicalContractRules,
       "@typescript-eslint/no-unused-vars": "off",
       "import/order": [
-        "warn",
+        "error",
         {
           alphabetize: { order: "asc", caseInsensitive: true },
           groups: [
@@ -117,11 +122,8 @@ export default tseslint.config(
           "newlines-between": "always",
         },
       ],
-      "no-console": ["warn", { allow: ["warn", "error"] }],
-      "react-hooks/exhaustive-deps": "warn",
-      "unused-imports/no-unused-imports": "warn",
       "unused-imports/no-unused-vars": [
-        "warn",
+        "error",
         {
           args: "after-used",
           argsIgnorePattern: "^_",
@@ -145,7 +147,6 @@ export default tseslint.config(
       ...tseslint.configs.disableTypeChecked.rules,
       "@typescript-eslint/no-require-imports": "off",
       "import/no-commonjs": "off",
-      "no-console": "off",
     },
   },
   {
@@ -157,13 +158,7 @@ export default tseslint.config(
       vitest,
     },
     rules: {
-      ...toWarning(vitest.configs.recommended).rules,
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
+      ...vitest.configs.recommended.rules,
     },
   },
   prettier,

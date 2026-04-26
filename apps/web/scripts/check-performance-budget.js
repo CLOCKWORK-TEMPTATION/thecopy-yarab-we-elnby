@@ -13,13 +13,14 @@
  *   1 - One or more budgets exceeded
  */
 
-const fs = require("fs");
-const path = require("path");
-const { promisify } = require("util");
-const { execSync } = require("child_process");
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Load performance budget configuration
-const budgetConfig = require("../performance-budget.config.js");
+import budgetConfig from "../performance-budget.config.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Colors for terminal output
 const colors = {
@@ -354,7 +355,7 @@ function main() {
   const buildDir = path.join(process.cwd(), ".next");
 
   if (!fs.existsSync(buildDir)) {
-    log("❌ Build directory not found. Run `npm run build` first.", "red");
+    log("❌ Build directory not found. Run `pnpm --filter @the-copy/web build` first.", "red");
     process.exit(1);
   }
 
@@ -419,8 +420,8 @@ function main() {
 }
 
 // Run the script
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();
 }
 
-module.exports = { main };
+export { main };

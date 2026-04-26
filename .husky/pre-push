@@ -6,12 +6,18 @@ echo "🔍 Semgrep — فحص القواعد الصارمة..."
 if command -v semgrep >/dev/null 2>&1; then
   pnpm run security:semgrep
 else
-  echo "⚠️  semgrep غير مثبت محلياً — تخطّي الفحص (CI سيعمل الفحص إلزاميًا)."
-  echo "    للتثبيت:  pip install semgrep  أو  brew install semgrep"
+  echo "❌ semgrep غير مثبت محلياً."
+  echo "يمكن التجاوز فقط في حالة الطوارئ عبر SKIP_SEMGREP=1 git push ..."
+  if [ "${SKIP_SEMGREP:-0}" = "1" ]; then
+    echo "⚠️  SKIP_SEMGREP=1 — تخطّي الفحص المحلي."
+  else
+    exit 1
+  fi
 fi
 
-echo "🧪 Turbo affected — فحص التدقيق والأنواع على النطاق المتأثر..."
-pnpm exec turbo run lint type-check --filter=...[origin/main]
+echo "🧪 Quality gate — فحص التدقيق والأنواع الرسمي..."
+pnpm run lint
+pnpm run type-check
 
 echo "✅ Pre-push verification..."
 pnpm prepush:verify

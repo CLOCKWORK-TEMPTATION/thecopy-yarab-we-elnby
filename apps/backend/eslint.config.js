@@ -6,26 +6,33 @@ const prettier = require("eslint-config-prettier");
 const globals = require("globals");
 const tseslint = require("typescript-eslint");
 
-const toWarning = (config) => ({
-  ...config,
-  rules: Object.fromEntries(
-    Object.entries(config.rules ?? {}).map(([ruleName, ruleConfig]) => {
-      if (ruleConfig === "error" || ruleConfig === 2) {
-        return [ruleName, "warn"];
-      }
-
-      if (Array.isArray(ruleConfig) && ruleConfig[0] === "error") {
-        return [ruleName, ["warn", ...ruleConfig.slice(1)]];
-      }
-
-      if (Array.isArray(ruleConfig) && ruleConfig[0] === 2) {
-        return [ruleName, [1, ...ruleConfig.slice(1)]];
-      }
-
-      return [ruleName, ruleConfig];
-    }),
-  ),
-});
+const mechanicalContractRules = {
+  "@typescript-eslint/no-explicit-any": "error",
+  "@typescript-eslint/no-floating-promises": "error",
+  "@typescript-eslint/no-misused-promises": [
+    "error",
+    { checksVoidReturn: { attributes: false } },
+  ],
+  "@typescript-eslint/no-unsafe-argument": "error",
+  "@typescript-eslint/no-unsafe-assignment": "error",
+  "@typescript-eslint/no-unsafe-call": "error",
+  "@typescript-eslint/no-unsafe-member-access": "error",
+  "@typescript-eslint/no-unsafe-return": "error",
+  "complexity": ["error", { max: 20 }],
+  "import/no-unresolved": "error",
+  "max-depth": ["error", 4],
+  "max-lines": [
+    "error",
+    { max: 500, skipBlankLines: true, skipComments: true },
+  ],
+  "max-lines-per-function": [
+    "error",
+    { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true },
+  ],
+  "max-params": ["error", 5],
+  "no-console": "error",
+  "unused-imports/no-unused-imports": "error",
+};
 
 module.exports = tseslint.config(
   {
@@ -41,8 +48,8 @@ module.exports = tseslint.config(
     ],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked.map(toWarning),
-  ...tseslint.configs.stylisticTypeChecked.map(toWarning),
+  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -71,14 +78,10 @@ module.exports = tseslint.config(
     rules: {
       ...importPlugin.configs.recommended.rules,
       ...importPlugin.configs.typescript.rules,
-      "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/no-misused-promises": [
-        "warn",
-        { checksVoidReturn: { attributes: false } },
-      ],
+      ...mechanicalContractRules,
       "@typescript-eslint/no-unused-vars": "off",
       "import/order": [
-        "warn",
+        "error",
         {
           alphabetize: { order: "asc", caseInsensitive: true },
           groups: [
@@ -94,10 +97,8 @@ module.exports = tseslint.config(
           "newlines-between": "always",
         },
       ],
-      "no-console": "warn",
-      "unused-imports/no-unused-imports": "warn",
       "unused-imports/no-unused-vars": [
-        "warn",
+        "error",
         {
           args: "after-used",
           argsIgnorePattern: "^_",
@@ -120,7 +121,6 @@ module.exports = tseslint.config(
       ...tseslint.configs.disableTypeChecked.rules,
       "@typescript-eslint/no-require-imports": "off",
       "import/no-commonjs": "off",
-      "no-console": "off",
     },
   },
   {
@@ -133,7 +133,7 @@ module.exports = tseslint.config(
     ],
     rules: {
       "no-restricted-syntax": [
-        "warn",
+        "error",
         {
           selector: "ExportDefaultDeclaration",
           message: "Default exports are not allowed. Use named exports instead.",
@@ -151,13 +151,7 @@ module.exports = tseslint.config(
       vitest,
     },
     rules: {
-      ...toWarning(vitest.configs.recommended).rules,
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
+      ...vitest.configs.recommended.rules,
     },
   },
   prettier,

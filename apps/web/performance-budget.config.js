@@ -7,7 +7,7 @@
  * @see https://web.dev/performance-budgets-101/
  */
 
-module.exports = {
+export default {
   // Resource Size Budgets (in KB)
   resourceSizes: {
     // JavaScript budgets
