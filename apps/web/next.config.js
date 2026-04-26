@@ -1,13 +1,13 @@
-import path from "path";
+const path = require("path");
 
-import bundleAnalyzer from "@next/bundle-analyzer";
-import { withSentryConfig } from "@sentry/nextjs";
+const bundleAnalyzer = require("@next/bundle-analyzer");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 const isWindowsHost = process.platform === "win32";
 const enableStandaloneOutput =
   process.env["NEXT_OUTPUT_MODE"] === "standalone" || !isWindowsHost;
 
-const parsePositiveInt = (value: string | undefined): number | undefined => {
+const parsePositiveInt = (value) => {
   if (!value) return undefined;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
@@ -66,7 +66,7 @@ const enableCdn = process.env["NEXT_PUBLIC_ENABLE_CDN"] === "true";
 const assetPrefix = enableCdn && cdnUrl ? cdnUrl : undefined;
 
 const nextConfig = {
-  ...(enableStandaloneOutput ? { output: "standalone" as const } : {}),
+  ...(enableStandaloneOutput ? { output: "standalone" } : {}),
   reactStrictMode: true,
   transpilePackages: ["@the-copy/breakapp", "@the-copy/prompt-engineering"],
   poweredByHeader: false,
@@ -246,7 +246,7 @@ const nextConfig = {
 
   // Webpack configuration for handling Node.js built-in modules and critical dependency warnings
   // Note: In Next.js 16, Turbopack is default. Webpack config is kept for fallback compatibility.
-  webpack: (config: any, { isServer }: { isServer: boolean }) => {
+  webpack: (config, { isServer }) => {
     // Ensure source maps are generated consistently
     config.devtool = isServer ? 'source-map' : 'eval-source-map';
 
@@ -346,9 +346,7 @@ const sentryConfig =
     : null;
 
 // Export config with Sentry wrapper if configured
-const configWithAnalyzer = withBundleAnalyzer(
-  nextConfig as Parameters<typeof withBundleAnalyzer>[0]
-);
-export default sentryConfig
+const configWithAnalyzer = withBundleAnalyzer(nextConfig);
+module.exports = sentryConfig
   ? withSentryConfig(configWithAnalyzer, sentryConfig)
   : configWithAnalyzer;
