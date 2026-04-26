@@ -1,6 +1,8 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { THEMES_MESSAGES_ANALYZER_AGENT_CONFIG } from "./agent";
 
 export class ThemesMessagesAnalyzerAgent extends BaseAgent {

@@ -3,9 +3,10 @@
  * دوال مساعدة لتقييم الأبعاد والنتائج
  */
 
-import type { CritiqueConfiguration, DimensionScore, EnhancedCritiqueResult } from "./critiqueTypes";
-import type { CritiqueDimension } from "./critiqueTypes";
 import { logger } from "@/lib/logger";
+
+import type { CritiqueConfiguration, DimensionScore, EnhancedCritiqueResult , CritiqueDimension } from "./critiqueTypes";
+
 
 /** حساب النتيجة الإجمالية من درجات الأبعاد */
 export function calculateOverallScore(
@@ -42,8 +43,8 @@ export function parseDimensionResponse(
   dimension: CritiqueDimension
 ): DimensionScore {
   try {
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-    if (jsonMatch && jsonMatch[1]) {
+    const jsonMatch = /```json\s*([\s\S]*?)\s*```/.exec(response);
+    if (jsonMatch?.[1]) {
       const parsed = JSON.parse(jsonMatch[1]);
       return {
         dimension: dimension.name,

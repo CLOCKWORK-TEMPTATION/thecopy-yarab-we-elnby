@@ -3,6 +3,9 @@
  */
 
 import process from "node:process";
+
+import { clamp, isTruthy, toNumberFloat, toNumberInt } from "./text-helpers.js";
+
 import type {
   ConfigManager,
   LLMConfig,
@@ -11,7 +14,6 @@ import type {
   ParsedArgs,
   PreOCRConfig,
 } from "./types.js";
-import { clamp, isTruthy, toNumberFloat, toNumberInt } from "./text-helpers.js";
 
 const DEFAULT_LLM_MODEL = "kimi-k2.5";
 const DEFAULT_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
@@ -136,7 +138,7 @@ export function buildConfig(argv: string[]): ConfigManager {
     .toLowerCase();
   const tableFormat =
     tableRaw === "markdown" || tableRaw === "html"
-      ? (tableRaw as "markdown" | "html")
+      ? (tableRaw)
       : undefined;
 
   const mistral: MistralOCRConfig = {

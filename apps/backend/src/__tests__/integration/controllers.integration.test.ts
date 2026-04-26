@@ -1,24 +1,24 @@
-import { beforeAll, describe, expect, it, vi } from "vitest";
 import supertest from "supertest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const { state, collectClauses, toRowKey } = vi.hoisted(() => {
   const state = {
-    users: [] as Array<{
+    users: [] as {
       id: string;
       email: string;
       password: string;
       firstName?: string;
       lastName?: string;
-    }>,
+    }[],
     tokens: new Map<string, string>(),
-    projects: [] as Array<{
+    projects: [] as {
       id: string;
       title: string;
       scriptContent?: string | null;
       userId: string;
       createdAt: Date;
       updatedAt: Date;
-    }>,
+    }[],
     userSeq: 1,
     projectSeq: 1,
   };
@@ -28,7 +28,7 @@ const { state, collectClauses, toRowKey } = vi.hoisted(() => {
 
   const collectClauses = (
     node: unknown,
-    acc: Array<{ column: string; value: unknown }> = []
+    acc: { column: string; value: unknown }[] = []
   ) => {
     if (!node || typeof node !== "object") {
       return acc;

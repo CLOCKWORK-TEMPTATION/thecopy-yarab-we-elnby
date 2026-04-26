@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { TaskType } from "@core/types";
+
 import { PlotPredictorAgent } from "./PlotPredictorAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({

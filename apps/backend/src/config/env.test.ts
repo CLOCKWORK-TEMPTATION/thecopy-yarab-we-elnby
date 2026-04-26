@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import crypto from 'crypto';
+
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 
 describe('Environment Configuration', () => {
   const originalEnv = process.env;
@@ -39,11 +40,11 @@ describe('Environment Configuration', () => {
 
   describe('env validation', () => {
     it('should parse valid environment variables', async () => {
-      process.env['NODE_ENV'] = 'development';
-      process.env['PORT'] = '3001';
+      process.env.NODE_ENV = 'development';
+      process.env.PORT = '3001';
       process.env['DATABASE_URL'] = `postgresql://${process.env['TEST_DB_USER'] || 'user'}:${process.env['TEST_DB_PASS'] || 'pass'}@localhost:5432/test_db`;
-      process.env['JWT_SECRET'] = 'a-very-long-secret-key-for-testing-purposes-32-chars';
-      process.env['CORS_ORIGIN'] = 'http://localhost:5000';
+      process.env.JWT_SECRET = 'a-very-long-secret-key-for-testing-purposes-32-chars';
+      process.env.CORS_ORIGIN = 'http://localhost:5000';
       process.env['RATE_LIMIT_WINDOW_MS'] = '900000';
       process.env['RATE_LIMIT_MAX_REQUESTS'] = '100';
 
@@ -53,7 +54,7 @@ describe('Environment Configuration', () => {
       expect(env.PORT).toBe(3001);
       expect(env.DATABASE_URL).toContain('postgresql://');
       expect(env.DATABASE_URL).toContain('@localhost:5432/test_db');
-      expect(env.JWT_SECRET).toBe(process.env['JWT_SECRET']);
+      expect(env.JWT_SECRET).toBe(process.env.JWT_SECRET);
       expect(env.CORS_ORIGIN).toBe('http://localhost:5000');
       expect(env.RATE_LIMIT_WINDOW_MS).toBe(900000);
       expect(env.RATE_LIMIT_MAX_REQUESTS).toBe(100);
@@ -87,8 +88,8 @@ describe('Environment Configuration', () => {
     });
 
     it('should handle test environment', async () => {
-      process.env['NODE_ENV'] = 'test';
-      delete process.env['JWT_SECRET'];
+      process.env.NODE_ENV = 'test';
+      delete process.env.JWT_SECRET;
 
       const { env } = await import('./env');
 
@@ -96,8 +97,8 @@ describe('Environment Configuration', () => {
     });
 
     it('should transform string PORT to number', async () => {
-      process.env['PORT'] = '8080';
-      delete process.env['JWT_SECRET'];
+      process.env.PORT = '8080';
+      delete process.env.JWT_SECRET;
 
       const { env } = await import('./env');
 
@@ -108,7 +109,7 @@ describe('Environment Configuration', () => {
     it('should transform rate limit values to numbers', async () => {
       process.env['RATE_LIMIT_WINDOW_MS'] = '600000';
       process.env['RATE_LIMIT_MAX_REQUESTS'] = '50';
-      delete process.env['JWT_SECRET'];
+      delete process.env.JWT_SECRET;
 
       const { env } = await import('./env');
 
@@ -121,8 +122,8 @@ describe('Environment Configuration', () => {
 
   describe('isDevelopment helper', () => {
     it('should return true for development environment', async () => {
-      process.env['NODE_ENV'] = 'development';
-      delete process.env['JWT_SECRET'];
+      process.env.NODE_ENV = 'development';
+      delete process.env.JWT_SECRET;
 
       const { isDevelopment } = await import('./env');
 
@@ -138,8 +139,8 @@ describe('Environment Configuration', () => {
     });
 
     it('should return false for test environment', async () => {
-      process.env['NODE_ENV'] = 'test';
-      delete process.env['JWT_SECRET'];
+      process.env.NODE_ENV = 'test';
+      delete process.env.JWT_SECRET;
 
       const { isDevelopment } = await import('./env');
 

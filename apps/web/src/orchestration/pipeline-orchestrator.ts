@@ -4,15 +4,16 @@ import { logger } from "@/lib/ai/utils/logger";
 // Coordinates the execution of the Seven Stations AI analysis pipeline
 
 import {
+  AnalysisType,
+  type AnalysisType as AnalysisTypeValue,
+} from "@/types/enums";
+
+import {
   pipelineExecutor,
   type PipelineInputData,
   type PipelineStep,
 } from "./executor";
 
-import {
-  AnalysisType,
-  type AnalysisType as AnalysisTypeValue,
-} from "@/types/enums";
 
 // Station interface for pipeline execution
 interface Station {
@@ -148,7 +149,7 @@ export class SevenStationsOrchestrator {
         id: station.id,
         name: station.name,
         description: station.description,
-        type: station.type as AnalysisType,
+        type: station.type,
         config: {
           temperature: 0.7,
           topK: 40,

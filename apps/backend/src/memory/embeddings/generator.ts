@@ -1,4 +1,4 @@
-/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental embeddings module */
+/* eslint-disable @typescript-eslint/no-explicit-any -- experimental embeddings module */
 /**
  * Gemini Embedding Generator
  * مولد التضمينات باستخدام Gemini Embedding 2
@@ -17,7 +17,7 @@ export class GeminiEmbeddingGenerator {
 
   constructor() {
     this.client = new GoogleGenAI({
-      apiKey: process.env['GEMINI_API_KEY'] || process.env['GOOGLE_GENAI_API_KEY'] || "",
+      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || "",
     });
   }
 
@@ -268,7 +268,7 @@ ${code}
     metadata: { title?: string; section?: string }
   ): string {
     let prompt = "";
-    if (metadata["title"]) prompt += `Title: ${metadata["title"]}\n`;
+    if (metadata.title) prompt += `Title: ${metadata.title}\n`;
     if (metadata.section) prompt += `Section: ${metadata.section}\n`;
     prompt += `\n${text}`;
     return prompt;

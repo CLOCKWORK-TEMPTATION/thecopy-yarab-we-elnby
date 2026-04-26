@@ -9,9 +9,11 @@
  * - Adaptive caching based on hit rates
  */
 
-import { cacheService } from './cache.service';
-import { logger } from '@/lib/logger';
 import crypto from 'crypto';
+
+import { logger } from '@/lib/logger';
+
+import { cacheService } from './cache.service';
 
 /**
  * Cache TTL configuration by analysis type (in seconds)
@@ -109,8 +111,8 @@ export function generateGeminiCacheKey(
       .digest('hex')
       .substring(0, 16);
 
-    const contextHash = params["context"]
-      ? crypto.createHash('sha256').update(JSON.stringify(params["context"])).digest('hex').substring(0, 8)
+    const contextHash = params.context
+      ? crypto.createHash('sha256').update(JSON.stringify(params.context)).digest('hex').substring(0, 8)
       : '';
 
     return `${keyPrefix}:${messageHash}${contextHash ? `:${contextHash}` : ''}`;
@@ -212,11 +214,11 @@ export async function cachedGeminiCall<T>(
  * Warm cache for frequently accessed entities
  */
 export async function warmGeminiCache(
-  entities: Array<{
+  entities: {
     type: 'scene' | 'character' | 'shot' | 'project';
     id: string;
     analysisType: string;
-  }>,
+  }[],
   processor: (entity: { type: string; id: string; analysisType: string }) => Promise<any>
 ): Promise<void> {
   logger.info(`Warming cache for ${entities.length} entities`);

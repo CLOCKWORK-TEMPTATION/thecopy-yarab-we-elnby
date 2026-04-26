@@ -7,15 +7,19 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { BaseAgent } from '../shared/BaseAgent';
-import { geminiService } from '@/services/gemini.service';
+import { v4 as uuidv4 } from 'uuid';
+
 import { logger } from '@/lib/logger';
+import { geminiService } from '@/services/gemini.service';
+
+import { BaseAgent } from '../shared/BaseAgent';
+
 import {
   DebateRole,
   DebateArgument,
   Refutation,
 } from './types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 /**
  * فئة وكيل المناظرة
@@ -293,7 +297,7 @@ ${arg.position}
       );
 
       if (scoreMatch) {
-        const match = scoreMatch.match(/(\d+\.?\d*)/);
+        const match = /(\d+\.?\d*)/.exec(scoreMatch);
         if (match) {
           const score = Math.min(1, Math.max(0, parseFloat(match[1] ?? '0.5')));
           votes.set(arg.id, score);
@@ -397,7 +401,7 @@ ${arg.position}
     // البحث عن النقاط المرقمة أو القوائم
     const lines = text.split('\n');
     for (const line of lines) {
-      if (line.match(/^[\-\*\•]\s/) || line.match(/^\d+[\.\)]\s/)) {
+      if ((/^[\-\*\•]\s/.exec(line)) || (/^\d+[\.\)]\s/.exec(line))) {
         evidence.push(line.trim());
       }
     }

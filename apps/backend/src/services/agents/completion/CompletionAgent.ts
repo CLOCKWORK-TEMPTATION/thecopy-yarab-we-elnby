@@ -1,15 +1,17 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
-import {
-  StandardAgentInput,
-  StandardAgentOutput,
-} from "../shared/standardAgentPattern";
-import { COMPLETION_AGENT_CONFIG } from "./agent";
-import { COMPLETION_MODE_INSTRUCTIONS } from "./instructions";
 import {
   safeCountMultipleTerms,
   sumCounts,
 } from "../shared/safe-regexp";
+import {
+  StandardAgentInput,
+  StandardAgentOutput,
+} from "../shared/standardAgentPattern";
+
+import { COMPLETION_AGENT_CONFIG } from "./agent";
+import { COMPLETION_MODE_INSTRUCTIONS } from "./instructions";
 
 const DIALOGUE_REGEX = /["«][^"»]*["»]/;
 const DESCRIPTIVE_WORDS = ["وصف", "شعر", "أحس", "رأى", "سمع", "لاحظ"];
@@ -71,7 +73,7 @@ export class CompletionAgent extends BaseAgent {
    */
   private toRecord(context: StandardAgentInput["context"]): Record<string, unknown> {
     return typeof context === "object" && context !== null
-      ? (context as Record<string, unknown>)
+      ? (context)
       : {};
   }
 
@@ -314,10 +316,10 @@ export class CompletionAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const contextObj =
-      typeof input["context"] === "object" && input["context"] !== null
-        ? input["context"]
+      typeof input.context === "object" && input.context !== null
+        ? input.context
         : {};
-    const scope = (contextObj as Record<string, unknown>)?.['completionScope'] as string || "paragraph";
+    const scope = (contextObj)?.['completionScope'] as string || "paragraph";
 
     return `تحليل موجز: النص يحتاج إلى استكمال ${this.translateScope(scope)} يتماشى مع السياق والأسلوب المقدم.
 

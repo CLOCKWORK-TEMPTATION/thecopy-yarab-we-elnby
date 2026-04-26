@@ -5,44 +5,45 @@
  * إخراج نصي فقط - لا JSON
  */
 
+import { logger } from '@/lib/logger';
 import { TaskType } from "@core/types";
+
+import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
+import { AnalysisAgent } from "./analysis/AnalysisAgent";
+import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
+import { CharacterDeepAnalyzerAgent } from "./characterDeepAnalyzer/CharacterDeepAnalyzerAgent";
+import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";
+import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
+import { CompletionAgent } from "./completion/CompletionAgent";
+import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
+import { CreativeAgent } from "./creative/CreativeAgent";
 import { BaseAgent } from "./shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "./shared/standardAgentPattern";
-import { logger } from '@/lib/logger';
 
 // Import upgraded agents
-import { CompletionAgent } from "./completion/CompletionAgent";
-import { CreativeAgent } from "./creative/CreativeAgent";
-import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
 import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
 import { StyleFingerprintAgent } from "./styleFingerprint/StyleFingerprintAgent";
-import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
-import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
-import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
-import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";
-import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
+import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
 import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
+import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
+import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
 import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
 import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
+import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
+import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
 import { WorldBuilderAgent } from "./worldBuilder/WorldBuilderAgent";
-import { AnalysisAgent } from "./analysis/AnalysisAgent";
 import { IntegratedAgent } from "./integrated/IntegratedAgent";
 
 // المجموعة الأولى - الوكلاء السبعة الجديدة
 import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
-import { CharacterDeepAnalyzerAgent } from "./characterDeepAnalyzer/CharacterDeepAnalyzerAgent";
 import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
-import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
 import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
-import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
 import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
 
 // الوكلاء الأربعة المتبقية من الترقية السابقة
-import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
-import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
 import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
 import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
 
@@ -201,14 +202,14 @@ export const AGENTS_TO_UPGRADE: TaskType[] = [
  * Batch execute multiple agent tasks
  */
 export async function batchExecuteAgentTasks(
-  tasks: Array<{ taskType: TaskType; input: StandardAgentInput }>
+  tasks: { taskType: TaskType; input: StandardAgentInput }[]
 ): Promise<StandardAgentOutput[]> {
   const results = await Promise.allSettled(
     tasks.map(({ taskType, input }) => executeAgentTask(taskType, input))
   );
 
   return results.map((result, index) => {
-    if (result["status"] === "fulfilled") {
+    if (result.status === "fulfilled") {
       return result.value;
     } else {
       const task = tasks[index];

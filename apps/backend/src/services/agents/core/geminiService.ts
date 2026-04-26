@@ -1,22 +1,26 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-import type { GenerateContentResponse, Content, SafetySetting } from "@google/generative-ai";
-import type { GeminiError } from '../../../types/ai/geminiTypes';
+
+import { logger } from '@/lib/logger';
+
+import {
+  TASKS_EXPECTING_JSON_RESPONSE,
+} from '../../../config/agentPrompts';
 import {
   hasCandidates,
   extractTextFromCandidates,
   safeRegexMatchGroup,
 } from '../../../types/ai/geminiTypes';
-import type { AgentConfig } from '../../../config/agentConfigs';
-import {
-  TASKS_EXPECTING_JSON_RESPONSE,
-} from '../../../config/agentPrompts';
-import { logger } from '@/lib/logger';
+
 import {
   constructPromptParts,
   attemptToFixJson,
   buildErrorMessage,
 } from './gemini-prompt-helpers';
+
 import type { ProcessTextsParams } from './gemini-prompt-helpers';
+import type { AgentConfig } from '../../../config/agentConfigs';
+import type { GeminiError } from '../../../types/ai/geminiTypes';
+import type { GenerateContentResponse, Content, SafetySetting } from "@google/generative-ai";
 
 /**
  * @interface GeminiTaskResultData
@@ -54,7 +58,7 @@ export class GeminiService {
     this.config = config;
   }
 
-  public async processTextsWithGemini(params: ProcessTextsParams, retries: number = 0): Promise<GeminiServiceResponse> {
+  public async processTextsWithGemini(params: ProcessTextsParams, retries = 0): Promise<GeminiServiceResponse> {
     try {
       return await this.callGeminiApi(params);
     } catch (e: unknown) {
@@ -144,7 +148,7 @@ export class GeminiService {
 
     const error = e as GeminiError & { status?: number; message?: string; toString?: () => string; response?: { error?: { message?: string } } };
 
-    if (retries < MAX_RETRIES && (error["status"] && error["status"] >= 500 || (error.message && error.message.toLowerCase().includes("network error")) ) ) {
+    if (retries < MAX_RETRIES && (error.status && error.status >= 500 || (error.message && error.message.toLowerCase().includes("network error")) ) ) {
       logger.info(`إعادة المحاولة (${retries + 1}/${MAX_RETRIES})...`);
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retries)));
       return this.processTextsWithGemini(params, retries + 1);

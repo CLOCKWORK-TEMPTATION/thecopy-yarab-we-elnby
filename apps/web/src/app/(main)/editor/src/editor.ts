@@ -45,16 +45,16 @@ import {
 } from "./constants";
 import { Action } from "./extensions/action";
 import { Basmala } from "./extensions/basmala";
-import { SceneHeader1 } from "./extensions/scene-header-1";
-import { SceneHeader2 } from "./extensions/scene-header-2";
-import { SceneHeader3 } from "./extensions/scene-header-3";
 import { Character } from "./extensions/character";
 import { Dialogue } from "./extensions/dialogue";
 import { Parenthetical } from "./extensions/parenthetical";
+import { PasteClassifier } from "./extensions/paste-classifier";
+import { SceneHeader1 } from "./extensions/scene-header-1";
+import { SceneHeader2 } from "./extensions/scene-header-2";
+import { SceneHeader3 } from "./extensions/scene-header-3";
+import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
 import { ScreenplayCommands } from "./extensions/screenplay-commands";
 import { Transition } from "./extensions/transition";
-import { PasteClassifier } from "./extensions/paste-classifier";
-import { SceneHeaderTopLine } from "./extensions/scene-header-top-line";
 
 // الامتدادات الأساسية من Tiptap
 

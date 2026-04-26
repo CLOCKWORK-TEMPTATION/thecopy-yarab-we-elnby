@@ -1,18 +1,22 @@
+import { eq } from 'drizzle-orm';
 import { Response } from 'express';
+import { z } from 'zod';
+
 import { db } from '@/db';
 import { shots, scenes } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
-import { z } from 'zod';
-import type { AuthRequest } from '@/middleware/auth.middleware';
 import { getParamAsString } from '@/middleware/auth.middleware';
 import { GeminiService } from '@/services/gemini.service';
+
 import {
   requireAuth,
   requireParam,
   verifyShotOwnership,
   verifySceneOwnership,
 } from './shots.helpers';
+
+import type { AuthRequest } from '@/middleware/auth.middleware';
+
 
 const createShotSchema = z.object({
   sceneId: z.string().min(1, 'معرف المشهد مطلوب'),
@@ -40,7 +44,7 @@ const shotSuggestionSchema = z.object({
 
 function handleZodError(error: unknown, res: Response): boolean {
   if (error instanceof z.ZodError) {
-    res["status"](400).json({
+    res.status(400).json({
       success: false,
       error: 'بيانات غير صالحة',
       details: error.issues,
@@ -60,7 +64,7 @@ export class ShotsController {
 
       const verifyResult = await verifySceneOwnership(sceneId, req.user!.id);
       if (!verifyResult) {
-        res["status"](404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح للوصول له' });
+        res.status(404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح للوصول له' });
         return;
       }
 
@@ -73,7 +77,7 @@ export class ShotsController {
       res.json({ success: true, data: sceneShots });
     } catch (error) {
       logger.error('Get shots error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء جلب اللقطات' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء جلب اللقطات' });
     }
   }
 
@@ -86,7 +90,7 @@ export class ShotsController {
 
       const result = await verifyShotOwnership(id, req.user!.id);
       if (!result) {
-        res["status"](404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح للوصول لها' });
+        res.status(404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح للوصول لها' });
         return;
       }
 
@@ -94,7 +98,7 @@ export class ShotsController {
       res.json({ success: true, data: shot });
     } catch (error) {
       logger.error('Get shot error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء جلب اللقطة' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء جلب اللقطة' });
     }
   }
 
@@ -105,23 +109,23 @@ export class ShotsController {
       const validatedData = createShotSchema.parse(req.body);
       const result = await verifySceneOwnership(validatedData.sceneId, req.user!.id);
       if (!result) {
-        res["status"](404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لإنشاء لقطة فيه' });
+        res.status(404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لإنشاء لقطة فيه' });
         return;
       }
 
       const [newShot] = await db.insert(shots).values(validatedData).returning();
       if (!newShot) {
-        res["status"](500).json({ success: false, error: 'فشل إنشاء اللقطة' });
+        res.status(500).json({ success: false, error: 'فشل إنشاء اللقطة' });
         return;
       }
 
       await db.update(scenes).set({ shotCount: result.shotCount + 1 }).where(eq(scenes.id, validatedData.sceneId));
-      res["status"](201).json({ success: true, message: 'تم إنشاء اللقطة بنجاح', data: newShot });
+      res.status(201).json({ success: true, message: 'تم إنشاء اللقطة بنجاح', data: newShot });
       logger.info('Shot created successfully', { shotId: newShot.id, sceneId: validatedData.sceneId });
     } catch (error) {
       if (handleZodError(error, res)) return;
       logger.error('Create shot error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء إنشاء اللقطة' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء إنشاء اللقطة' });
     }
   }
 
@@ -135,7 +139,7 @@ export class ShotsController {
       const validatedData = updateShotSchema.parse(req.body);
       const result = await verifyShotOwnership(id, req.user!.id);
       if (!result) {
-        res["status"](404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح لتعديلها' });
+        res.status(404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح لتعديلها' });
         return;
       }
 
@@ -145,7 +149,7 @@ export class ShotsController {
     } catch (error) {
       if (handleZodError(error, res)) return;
       logger.error('Update shot error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء تحديث اللقطة' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحديث اللقطة' });
     }
   }
 
@@ -158,7 +162,7 @@ export class ShotsController {
 
       const result = await verifyShotOwnership(id, req.user!.id);
       if (!result) {
-        res["status"](404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح لحذفها' });
+        res.status(404).json({ success: false, error: 'اللقطة غير موجودة أو غير مصرح لحذفها' });
         return;
       }
 
@@ -168,7 +172,7 @@ export class ShotsController {
       logger.info('Shot deleted successfully', { shotId: id });
     } catch (error) {
       logger.error('Delete shot error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء حذف اللقطة' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء حذف اللقطة' });
     }
   }
 
@@ -178,7 +182,7 @@ export class ShotsController {
 
       const validation = shotSuggestionSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({ success: false, error: 'وصف المشهد ونوع اللقطة مطلوبان' });
+        res.status(400).json({ success: false, error: 'وصف المشهد ونوع اللقطة مطلوبان' });
         return;
       }
       const { sceneDescription, shotType } = validation.data;
@@ -189,7 +193,7 @@ export class ShotsController {
       logger.info('Shot suggestion generated successfully', { userId: req.user!.id });
     } catch (error) {
       logger.error('Generate shot suggestion error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء توليد اقتراحات اللقطة' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء توليد اقتراحات اللقطة' });
     }
   }
 }

@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Counter, Histogram, Gauge, Registry, collectDefaultMetrics } from 'prom-client';
+
 import { logger } from '@/lib/logger';
 
 // Create a custom registry
@@ -315,7 +316,7 @@ export async function metricsEndpoint(_req: Request, res: Response) {
     res.end(await register.metrics());
   } catch (error) {
     logger.error('Failed to collect metrics:', error);
-    res["status"](500).end('Failed to collect metrics');
+    res.status(500).end('Failed to collect metrics');
   }
 }
 

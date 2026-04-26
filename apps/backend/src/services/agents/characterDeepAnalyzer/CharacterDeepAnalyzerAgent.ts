@@ -1,8 +1,10 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
 } from "../shared/standardAgentPattern";
+
 import { CHARACTER_DEEP_ANALYZER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -30,7 +32,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     // Extract character context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const typedCtx = contextObj as Record<string, unknown>;
+    const typedCtx = contextObj;
     const characterName = (typedCtx?.['characterName'] as string) || "الشخصية المستهدفة";
     const previousAnalysis = typedCtx?.['previousAnalysis'] as string | undefined;
 

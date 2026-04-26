@@ -6,8 +6,10 @@
  */
 
 import { Counter, Gauge } from 'prom-client';
+
 import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
+
 import { cacheService } from './cache.service';
 
 // ===== Gemini Pricing Constants (Gemini 2.0 Flash) =====
@@ -103,7 +105,7 @@ export class GeminiCostTrackerService {
   private readonly ALERT_KEY_PREFIX = 'gemini:alert:';
 
   // In-memory fallback for when Redis is unavailable
-  private memoryStore: Map<string, UsagePeriod> = new Map();
+  private memoryStore = new Map<string, UsagePeriod>();
 
   // Monthly budget (can be configured via environment)
   private monthlyBudget: number = THRESHOLDS.DEFAULT_MONTHLY_BUDGET;

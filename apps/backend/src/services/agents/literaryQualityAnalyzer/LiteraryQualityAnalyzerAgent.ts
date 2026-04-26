@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { LITERARY_QUALITY_ANALYZER_AGENT_CONFIG } from "./agent";
 import { LITERARY_QUALITY_ANALYZER_INSTRUCTIONS } from "./instructions";
 
@@ -52,7 +54,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   } {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const ctx = contextObj as Record<string, unknown>;
+    const ctx = contextObj;
     return {
       originalText: (ctx["originalText"] as string) || "",
       styleAnalysis: (ctx["styleAnalysis"] as string) || "",

@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+
 import { env } from '@/config/env';
 
 interface JsonGenerationOptions {
@@ -30,9 +31,9 @@ interface TextGenerationResult {
 }
 
 interface ImageGenerationResult {
-  generatedImages?: Array<{
+  generatedImages?: {
     image?: GeneratedImagePayload;
-  }>;
+  }[];
 }
 
 interface EditableImageModel {
@@ -140,7 +141,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.3,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as GenerateContentRequest);
+      });
 
       const text = extractText(result).trim();
       if (!text) {
@@ -175,7 +176,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.5,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as GenerateContentRequest);
+      });
 
       const text = extractText(result).trim();
       if (!text) {
@@ -215,7 +216,7 @@ export class PlatformGenAIService {
           temperature: options.temperature ?? 0.4,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
-      } as GenerateContentRequest);
+      });
 
       const text = extractText(result).trim();
       if (!text) {
@@ -228,7 +229,7 @@ export class PlatformGenAIService {
     }
   }
 
-  // eslint-disable-next-line complexity
+   
   async generateImage(
     prompt: string,
     options: { model?: string } = {}
@@ -242,7 +243,7 @@ export class PlatformGenAIService {
           numberOfImages: 1,
           outputMimeType: 'image/png',
         },
-      } as GenerateImagesRequest);
+      });
 
       const image = result?.generatedImages?.[0]?.image as
         | GeneratedImagePayload
@@ -258,7 +259,7 @@ export class PlatformGenAIService {
       throw normalizeProviderError(error);
     }
   }
-  // eslint-disable-next-line complexity
+   
   async editImage(
     prompt: string,
     sourceImage: InlineMedia,
@@ -282,9 +283,7 @@ export class PlatformGenAIService {
         },
       });
 
-      const image = result?.generatedImages?.[0]?.image as
-        | GeneratedImagePayload
-        | undefined;
+      const image = result?.generatedImages?.[0]?.image;
       const bytes = image?.imageBytes ?? image?.data;
 
       if (!bytes) {
@@ -310,7 +309,7 @@ export class PlatformGenAIService {
 
     const probe = this.runHealthProbe()
       .then((result) => {
-        const ttl = result["status"] === 'healthy' ? 5 * 60 * 1000 : 60 * 1000;
+        const ttl = result.status === 'healthy' ? 5 * 60 * 1000 : 60 * 1000;
         this.healthCache = {
           expiresAt: Date.now() + ttl,
           result,

@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { TaskType } from "@core/enums";
-import { TargetAudienceAnalyzerAgent } from "./TargetAudienceAnalyzerAgent";
+
 import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { TargetAudienceAnalyzerAgent } from "./TargetAudienceAnalyzerAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({
   mockExecuteStandardPattern: vi.fn(),

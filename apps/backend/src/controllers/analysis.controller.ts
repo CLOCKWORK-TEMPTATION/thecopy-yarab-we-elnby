@@ -1,4 +1,8 @@
+import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
 import { Request, Response } from 'express';
+import { jsPDF } from 'jspdf';
+import { z } from 'zod';
+
 import { logger } from '@/lib/logger';
 import { queueAIAnalysis } from '@/queues/jobs/ai-analysis.job';
 import { AnalysisService } from '@/services/analysis.service';
@@ -6,9 +10,7 @@ import {
   analysisStreamRegistry,
   type StationId,
 } from '@/services/analysisStream.registry';
-import { z } from 'zod';
-import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from 'docx';
-import { jsPDF } from 'jspdf';
+
 
 // تم إيقاف استيراد كود من الواجهة الأمامية لتجنب أخطاء rootDir في TypeScript
 
@@ -52,7 +54,7 @@ function parseLastEventId(header: string | string[] | undefined): number | null 
  * DOCX export — Arabic / RTL is fully supported by Word readers when paragraphs
  * are flagged `bidirectional: true`. This is a real RTL export.
  */
-function buildDocx(snap: { projectName: string; finalReport: string | null; stations: Array<{ id: number; name: string; status: string; output: unknown; error: string | null }> }) {
+function buildDocx(snap: { projectName: string; finalReport: string | null; stations: { id: number; name: string; status: string; output: unknown; error: string | null }[] }) {
   const rtlPara = (text: string, heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel]): Paragraph =>
     new Paragraph({
       text,
@@ -88,7 +90,7 @@ function buildDocx(snap: { projectName: string; finalReport: string | null; stat
  * an English-only structural summary with a clear notice on the first page
  * pointing the user to the DOCX export for a faithful Arabic / RTL rendering.
  */
-function buildPdf(snap: { projectName: string; finalReport: string | null; stations: Array<{ id: number; name: string; status: string; output: unknown; error: string | null }> }): Buffer {
+function buildPdf(snap: { projectName: string; finalReport: string | null; stations: { id: number; name: string; status: string; output: unknown; error: string | null }[] }): Buffer {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const margin = 40;
   let y = margin;
@@ -210,7 +212,7 @@ export class AnalysisController {
     try {
       const validation = runSevenStationsBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           error: 'النص مطلوب ولا يمكن أن يكون فارغاً',
           code: 'INVALID_TEXT'
         });
@@ -245,7 +247,7 @@ export class AnalysisController {
     } catch (error) {
       logger.error('فشل في تنفيذ نظام المحطات السبع:', error);
 
-      res["status"](500).json({
+      res.status(500).json({
         error: 'حدث خطأ أثناء تحليل النص',
         message: error instanceof Error ? error.message : 'خطأ غير معروف',
         code: 'ANALYSIS_FAILED'
@@ -265,7 +267,7 @@ export class AnalysisController {
     try {
       const validation = startStreamBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({ error: 'البيانات غير صحيحة', code: 'INVALID_INPUT', details: validation.error.flatten() });
+        res.status(400).json({ error: 'البيانات غير صحيحة', code: 'INVALID_INPUT', details: validation.error.flatten() });
         return;
       }
       const { text, projectId, projectName } = validation.data;
@@ -289,7 +291,7 @@ export class AnalysisController {
       res.json({ success: true, analysisId });
     } catch (error) {
       logger.error('فشل بدء جلسة بث التحليل:', error);
-      res["status"](500).json({ error: 'تعذر بدء التحليل', code: 'START_FAILED' });
+      res.status(500).json({ error: 'تعذر بدء التحليل', code: 'START_FAILED' });
     }
   }
 
@@ -300,11 +302,11 @@ export class AnalysisController {
     const analysisId = String(req.params['analysisId'] || '');
     const session = analysisStreamRegistry.get(analysisId);
     if (!session) {
-      res["status"](404).json({ error: 'الجلسة غير موجودة أو انتهت' });
+      res.status(404).json({ error: 'الجلسة غير موجودة أو انتهت' });
       return;
     }
     if (!sessionBelongsTo(session.snapshot.metadata, getUserId(req))) {
-      res["status"](403).json({ error: 'غير مصرح' });
+      res.status(403).json({ error: 'غير مصرح' });
       return;
     }
 
@@ -346,11 +348,11 @@ export class AnalysisController {
     const analysisId = String(req.params['analysisId'] || '');
     const snap = analysisStreamRegistry.getSnapshot(analysisId);
     if (!snap) {
-      res["status"](404).json({ error: 'الجلسة غير موجودة' });
+      res.status(404).json({ error: 'الجلسة غير موجودة' });
       return;
     }
     if (!sessionBelongsTo(snap.metadata, getUserId(req))) {
-      res["status"](403).json({ error: 'غير مصرح' });
+      res.status(403).json({ error: 'غير مصرح' });
       return;
     }
     res.json({ success: true, snapshot: snap });
@@ -364,21 +366,21 @@ export class AnalysisController {
       const analysisId = String(req.params['analysisId'] || '');
       const stationIdRaw = Number(req.params['stationId']);
       if (!Number.isInteger(stationIdRaw) || stationIdRaw < 1 || stationIdRaw > 7) {
-        res["status"](400).json({ error: 'stationId غير صالح' });
+        res.status(400).json({ error: 'stationId غير صالح' });
         return;
       }
       const validation = retryBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({ error: 'النص مطلوب' });
+        res.status(400).json({ error: 'النص مطلوب' });
         return;
       }
       const session = analysisStreamRegistry.get(analysisId);
       if (!session) {
-        res["status"](404).json({ error: 'الجلسة غير موجودة' });
+        res.status(404).json({ error: 'الجلسة غير موجودة' });
         return;
       }
       if (!sessionBelongsTo(session.snapshot.metadata, getUserId(req))) {
-        res["status"](403).json({ error: 'غير مصرح' });
+        res.status(403).json({ error: 'غير مصرح' });
         return;
       }
 
@@ -391,7 +393,7 @@ export class AnalysisController {
       res.json({ success: true, stationId: stationIdRaw, output });
     } catch (error) {
       logger.error('فشل إعادة تشغيل المحطة:', error);
-      res["status"](500).json({ error: 'تعذر إعادة التشغيل' });
+      res.status(500).json({ error: 'تعذر إعادة التشغيل' });
     }
   }
 
@@ -403,16 +405,16 @@ export class AnalysisController {
       const analysisId = String(req.params['analysisId'] || '');
       const validation = exportBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({ error: 'صيغة التصدير غير صحيحة' });
+        res.status(400).json({ error: 'صيغة التصدير غير صحيحة' });
         return;
       }
       const snap = analysisStreamRegistry.getSnapshot(analysisId);
       if (!snap) {
-        res["status"](404).json({ error: 'الجلسة غير موجودة' });
+        res.status(404).json({ error: 'الجلسة غير موجودة' });
         return;
       }
       if (!sessionBelongsTo(snap.metadata, getUserId(req))) {
-        res["status"](403).json({ error: 'غير مصرح' });
+        res.status(403).json({ error: 'غير مصرح' });
         return;
       }
 
@@ -442,7 +444,7 @@ export class AnalysisController {
       }
     } catch (error) {
       logger.error('فشل تصدير التحليل:', error);
-      res["status"](500).json({ error: 'تعذر تصدير التحليل' });
+      res.status(500).json({ error: 'تعذر تصدير التحليل' });
     }
   }
 
@@ -466,7 +468,7 @@ export class AnalysisController {
       res.json(stationInfo);
     } catch (error) {
       logger.error('فشل في جلب معلومات المحطات:', error);
-      res["status"](500).json({ error: 'فشل في جلب معلومات المحطات' });
+      res.status(500).json({ error: 'فشل في جلب معلومات المحطات' });
     }
   }
 }

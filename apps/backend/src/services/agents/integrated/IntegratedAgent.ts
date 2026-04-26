@@ -1,10 +1,12 @@
-/* eslint-disable max-lines -- cohesive agent module */
+ 
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { INTEGRATED_AGENT_CONFIG } from "./agent";
 import {
   assessIntegration,
@@ -257,7 +259,7 @@ export class IntegratedAgent extends BaseAgent {
   private isLineASectionHeader(line: string, nextLine: string): boolean {
     return (
       this.isSynthesisSectionHeader(line) ||
-      (!!line.match(/^\d+\./) && !!nextLine && !nextLine.match(/^\d+\./))
+      (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
     );
   }
 

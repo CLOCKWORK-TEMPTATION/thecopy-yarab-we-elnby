@@ -5,14 +5,14 @@
  * يبني رسماً بيانياً يوضح الأحداث والعلاقات السببية بينها
  */
 
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 import {
   CausalPlotGraph,
   PlotNode,
   PlotEdge,
   CausalRelation,
 } from "@core/types";
-import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/lib/logger";
 
 interface CausalRelationAssessment {
   hasRelation?: boolean;

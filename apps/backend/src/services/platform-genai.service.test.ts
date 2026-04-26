@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { mockEnv, mockGenerateContent, mockGenerateImages, mockEditImage } = vi.hoisted(() => ({
   mockEnv: {
-    GEMINI_API_KEY: 'valid-gemini-key' as string | undefined,
-    GOOGLE_GENAI_API_KEY: 'expired-google-key' as string | undefined,
+    GEMINI_API_KEY: 'valid-gemini-key',
+    GOOGLE_GENAI_API_KEY: 'expired-google-key',
   },
   mockGenerateContent: vi.fn(),
   mockGenerateImages: vi.fn(),

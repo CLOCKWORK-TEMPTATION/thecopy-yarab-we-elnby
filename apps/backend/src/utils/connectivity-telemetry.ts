@@ -42,12 +42,12 @@ export function trackAnalyticsPersistence(event: 'analytics:persistence:success'
   reason?: string;
 }): void {
   if (event === 'analytics:persistence:success') {
-    analyticsHealth["status"] = 'healthy';
+    analyticsHealth.status = 'healthy';
     analyticsHealth.lastSuccess = new Date().toISOString();
     analyticsHealth.failureCount = 0;
   } else {
     analyticsHealth.failureCount += 1;
-    analyticsHealth["status"] = analyticsHealth.failureCount > 3 ? 'unhealthy' : 'degraded';
+    analyticsHealth.status = analyticsHealth.failureCount > 3 ? 'unhealthy' : 'degraded';
   }
 
   logger.info({

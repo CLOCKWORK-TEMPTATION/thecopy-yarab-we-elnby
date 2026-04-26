@@ -1,10 +1,12 @@
-/* eslint-disable max-lines -- cohesive agent module */
+ 
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { TENSION_OPTIMIZER_AGENT_CONFIG } from "./agent";
 import {
   buildOriginalTextSection,
@@ -45,7 +47,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     this.confidenceFloor = 0.81;
   }
 
-  // eslint-disable-next-line complexity
+   
   private extractTensionContext(context: unknown): TensionOptimizerContext {
     const ctx = context as TensionOptimizerContext;
     return {
@@ -61,7 +63,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     };
   }
 
-  // eslint-disable-next-line complexity
+   
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
     const ctx = this.extractTensionContext(context);
@@ -136,7 +138,7 @@ export class TensionOptimizerAgent extends BaseAgent {
         peaksIdentified: this.countPeaks(processedText),
         techniquesIdentified: this.countTechniques(processedText),
         recommendationsProvided: this.countRecommendations(processedText),
-      } as Record<string, unknown>,
+      },
     };
   }
 

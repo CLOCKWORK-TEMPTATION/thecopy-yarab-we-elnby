@@ -1,11 +1,11 @@
-/* eslint-disable complexity, max-lines-per-function, @typescript-eslint/no-explicit-any -- experimental memory module */
+/* eslint-disable @typescript-eslint/no-explicit-any -- experimental memory module */
 /**
  * Git Watcher
  * مراقب تغييرات Git
  */
 
-import simpleGit, { SimpleGit } from "simple-git";
 import { EventEmitter } from "eventemitter3";
+import simpleGit, { SimpleGit } from "simple-git";
 
 import { logger } from "@/lib/logger";
 
@@ -45,14 +45,14 @@ export class GitWatcher extends EventEmitter {
   }
 
   async getCurrentBranch(): Promise<string> {
-    const status = await this.git["status"]();
+    const status = await this.git.status();
     return status.current || "unknown";
   }
 
   /**
    * بدء مراقبة التغييرات (polling)
    */
-  startWatching(intervalMs: number = 5000): void {
+  startWatching(intervalMs = 5000): void {
     if (this.pollingInterval) return;
 
     logger.info(`Started watching git changes every ${intervalMs}ms`);
@@ -145,7 +145,7 @@ export class GitWatcher extends EventEmitter {
   /**
    * الحصول على تاريخ الملف
    */
-  async getFileHistory(filePath: string, maxCount: number = 10): Promise<any[]> {
+  async getFileHistory(filePath: string, maxCount = 10): Promise<any[]> {
     try {
       const log = await this.git.log({
         file: filePath,
@@ -173,7 +173,7 @@ export class GitWatcher extends EventEmitter {
     untracked: string[];
   }> {
     try {
-      const status = await this.git["status"]();
+      const status = await this.git.status();
       return {
         modified: status.modified,
         added: status.not_added,

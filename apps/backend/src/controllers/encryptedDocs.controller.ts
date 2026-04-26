@@ -3,12 +3,15 @@
  * Zero-Knowledge Document Management
  */
 
-import type { Request, Response } from 'express';
+import { eq, and, desc } from 'drizzle-orm';
+import { z } from 'zod';
+
 import { db } from '../db';
 import { encryptedDocuments } from '../db/zkSchema';
-import { eq, and, desc } from 'drizzle-orm';
 import { logger } from '../utils/logger';
-import { z } from 'zod';
+
+
+import type { Request, Response } from 'express';
 
 function getRouteId(req: Request): string | null {
   const { id } = req.params;
@@ -29,7 +32,7 @@ const encryptedDocumentBodySchema = z.object({
 function requireUserId(req: Request, res: Response): string | null {
   const userId = req.user?.id;
   if (!userId) {
-    res["status"](401).json({ success: false, error: 'غير مصرح. يرجى تسجيل الدخول.' });
+    res.status(401).json({ success: false, error: 'غير مصرح. يرجى تسجيل الدخول.' });
     return null;
   }
   return userId;
@@ -38,7 +41,7 @@ function requireUserId(req: Request, res: Response): string | null {
 function requireRouteId(req: Request, res: Response): string | null {
   const id = getRouteId(req);
   if (!id) {
-    res["status"](400).json({ success: false, error: 'معرف المستند غير صالح' });
+    res.status(400).json({ success: false, error: 'معرف المستند غير صالح' });
     return null;
   }
   return id;
@@ -55,7 +58,7 @@ export async function createEncryptedDocument(req: Request, res: Response): Prom
 
     const validation = encryptedDocumentBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: validation.error.issues[0]?.message ?? 'بيانات المستند غير صالحة' });
+      res.status(400).json({ success: false, error: validation.error.issues[0]?.message ?? 'بيانات المستند غير صالحة' });
       return;
     }
 
@@ -66,17 +69,17 @@ export async function createEncryptedDocument(req: Request, res: Response): Prom
       .returning();
 
     if (!document) {
-      res["status"](500).json({ success: false, error: 'تعذر إنشاء المستند' });
+      res.status(500).json({ success: false, error: 'تعذر إنشاء المستند' });
       return;
     }
 
-    res["status"](201).json({
+    res.status(201).json({
       success: true,
       data: { id: document.id, version: document.version, ciphertextSize: document.ciphertextSize, createdAt: document.createdAt, lastModified: document.lastModified },
     });
   } catch (error) {
     logger.error('Error creating encrypted document:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في إنشاء المستند' });
+    res.status(500).json({ success: false, error: 'خطأ في إنشاء المستند' });
   }
 }
 
@@ -95,7 +98,7 @@ export async function getEncryptedDocument(req: Request, res: Response): Promise
       .where(and(eq(encryptedDocuments.id, id), eq(encryptedDocuments.userId, userId))).limit(1);
 
     if (!document) {
-      res["status"](404).json({ success: false, error: 'المستند غير موجود' });
+      res.status(404).json({ success: false, error: 'المستند غير موجود' });
       return;
     }
 
@@ -110,7 +113,7 @@ export async function getEncryptedDocument(req: Request, res: Response): Promise
     });
   } catch (error) {
     logger.error('Error fetching encrypted document:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في جلب المستند' });
+    res.status(500).json({ success: false, error: 'خطأ في جلب المستند' });
   }
 }
 
@@ -127,7 +130,7 @@ export async function updateEncryptedDocument(req: Request, res: Response): Prom
 
     const validation = encryptedDocumentBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: validation.error.issues[0]?.message ?? 'بيانات المستند غير صالحة' });
+      res.status(400).json({ success: false, error: validation.error.issues[0]?.message ?? 'بيانات المستند غير صالحة' });
       return;
     }
 
@@ -137,7 +140,7 @@ export async function updateEncryptedDocument(req: Request, res: Response): Prom
       .where(and(eq(encryptedDocuments.id, id), eq(encryptedDocuments.userId, userId))).limit(1);
 
     if (!existingDoc) {
-      res["status"](404).json({ success: false, error: 'المستند غير موجود' });
+      res.status(404).json({ success: false, error: 'المستند غير موجود' });
       return;
     }
 
@@ -146,7 +149,7 @@ export async function updateEncryptedDocument(req: Request, res: Response): Prom
       .where(and(eq(encryptedDocuments.id, id), eq(encryptedDocuments.userId, userId))).returning();
 
     if (!updated) {
-      res["status"](500).json({ success: false, error: 'تعذر تحديث المستند' });
+      res.status(500).json({ success: false, error: 'تعذر تحديث المستند' });
       return;
     }
 
@@ -156,7 +159,7 @@ export async function updateEncryptedDocument(req: Request, res: Response): Prom
     });
   } catch (error) {
     logger.error('Error updating encrypted document:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في تحديث المستند' });
+    res.status(500).json({ success: false, error: 'خطأ في تحديث المستند' });
   }
 }
 
@@ -175,14 +178,14 @@ export async function deleteEncryptedDocument(req: Request, res: Response): Prom
       .where(and(eq(encryptedDocuments.id, id), eq(encryptedDocuments.userId, userId))).returning();
 
     if (!deleted) {
-      res["status"](404).json({ success: false, error: 'المستند غير موجود' });
+      res.status(404).json({ success: false, error: 'المستند غير موجود' });
       return;
     }
 
     res.json({ success: true, data: { id: deleted.id } });
   } catch (error) {
     logger.error('Error deleting encrypted document:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في حذف المستند' });
+    res.status(500).json({ success: false, error: 'خطأ في حذف المستند' });
   }
 }
 
@@ -204,6 +207,6 @@ export async function listEncryptedDocuments(req: Request, res: Response): Promi
     res.json({ success: true, data: documents });
   } catch (error) {
     logger.error('Error listing encrypted documents:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في جلب قائمة المستندات' });
+    res.status(500).json({ success: false, error: 'خطأ في جلب قائمة المستندات' });
   }
 }

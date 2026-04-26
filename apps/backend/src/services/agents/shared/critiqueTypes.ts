@@ -103,11 +103,11 @@ export interface EnhancedCritiqueResult {
   /** ملاحظات النقد */
   critiqueNotes: string[];
   /** خطة التحسين */
-  improvementPlan?: Array<{
+  improvementPlan?: {
     priority: "high" | "medium" | "low";
     actions: string[];
     expectedImpact?: string;
-  }> | undefined;
+  }[] | undefined;
 }
 
 /**

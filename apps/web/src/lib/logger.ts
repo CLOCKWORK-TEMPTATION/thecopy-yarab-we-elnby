@@ -23,6 +23,7 @@
  */
 
 import { buildClientLogger } from "./logger.client";
+
 import type { LogContext, UnifiedLogger } from "./logger.types";
 
 // إعادة تصدير الأنواع للاستهلاك المباشر
@@ -45,7 +46,7 @@ function buildLogger(): UnifiedLogger {
   }
   // استيراد ديناميكي على مستوى الـ module (يعمل في server فقط)
   // نسخة pino محمَّلة كسلوك server-only ومعزولة عن المتصفح بـ 'server-only' داخل ملفها.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- مطلوب لتحميل سيرفر-only متأخر بدون كسر بناء الـ client
+   
   const serverModule =
     require("./logger.server") as typeof import("./logger.server");
   return serverModule.buildServerLogger();

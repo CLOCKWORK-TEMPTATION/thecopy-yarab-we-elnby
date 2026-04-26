@@ -21,14 +21,14 @@ describeSmoke('Runtime Health Smoke Tests', () => {
 
   it('GET /health/ready returns 200 when services are healthy', async () => {
     const res = await fetch(`${BACKEND_URL}/health/ready`);
-    expect(res["status"]).toBe(200);
+    expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body["status"]).toBe('ready');
+    expect(body.status).toBe('ready');
   });
 
   it('GET /health/detailed returns service statuses', async () => {
     const res = await fetch(`${BACKEND_URL}/health/detailed`);
-    expect([200, 503]).toContain(res["status"]);
+    expect([200, 503]).toContain(res.status);
     const body = await res.json();
     expect(body.checks).toBeDefined();
     expect(body.checks.database).toBeDefined();
@@ -41,6 +41,6 @@ describeSmoke('Runtime Health Smoke Tests', () => {
       redirect: 'manual',
     });
     // May redirect to login (302), require auth (401), or return the dashboard (200)
-    expect([200, 302, 401]).toContain(res["status"]);
+    expect([200, 302, 401]).toContain(res.status);
   });
 });

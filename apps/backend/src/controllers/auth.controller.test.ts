@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthController } from './auth.controller';
 import { Request, Response } from 'express';
-import { z } from 'zod';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { AuthController } from './auth.controller';
 
 // تعريف نوع المستخدم للاختبار - User type definition for testing
 interface UserPayload {
@@ -106,7 +106,7 @@ describe('AuthController', () => {
         sameSite: 'strict',
       });
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(201);
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         message: 'تم إنشاء الحساب بنجاح',
@@ -125,7 +125,7 @@ describe('AuthController', () => {
 
       await authController.signup(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
@@ -145,7 +145,7 @@ describe('AuthController', () => {
 
       await authController.signup(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'المستخدم موجود بالفعل',
@@ -241,7 +241,7 @@ describe('AuthController', () => {
 
       await authController.login(mockRequest as Request, mockResponse as Response);
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
@@ -262,7 +262,7 @@ describe('AuthController', () => {
       await authController.login(mockRequest as Request, mockResponse as Response);
 
       // Login errors return 401 instead of 400
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
@@ -316,7 +316,7 @@ describe('AuthController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح',

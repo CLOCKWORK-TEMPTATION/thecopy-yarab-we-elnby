@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, beforeEach } from 'vitest';
+
 import { ConstitutionalRulesEngine, Rule } from './constitutionalRules';
 
 describe('ConstitutionalRulesEngine Performance Benchmark', () => {

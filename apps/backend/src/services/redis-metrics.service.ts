@@ -8,8 +8,9 @@
  * - Memory usage
  */
 
-import { RedisClientType } from 'redis';
 import { Counter, Histogram, Gauge, Registry } from 'prom-client';
+import { RedisClientType } from 'redis';
+
 import { logger } from '@/lib/logger';
 
 // Redis metrics registry
@@ -220,7 +221,7 @@ export class RedisMetricsService {
   /**
    * Start periodic metrics collection
    */
-  startMetricsCollection(intervalMs: number = 30000): void {
+  startMetricsCollection(intervalMs = 30000): void {
     if (this.metricsUpdateInterval) {
       logger.warn('Redis metrics collection already started');
       return;

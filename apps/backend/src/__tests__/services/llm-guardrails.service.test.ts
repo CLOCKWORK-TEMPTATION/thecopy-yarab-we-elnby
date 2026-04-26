@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { LLMGuardrailsService, llmGuardrails } from '@/services/llm-guardrails.service';
 
 // Mock logger to avoid console output during tests
@@ -304,7 +305,7 @@ describe('LLMGuardrailsService', () => {
   describe('PII Detection Confidence', () => {
     it('should assign high confidence to valid emails', () => {
       const validEmail = 'user.name@example.com';
-      const detections = guardrails['detectPII'](`Contact: ${validEmail}`);
+      const detections = guardrails.detectPII(`Contact: ${validEmail}`);
       
       const emailDetection = detections.find(d => d.type === 'email');
       expect(emailDetection?.confidence).toBeGreaterThan(0.9);
@@ -312,14 +313,14 @@ describe('LLMGuardrailsService', () => {
 
     it('should validate credit card numbers using Luhn algorithm', () => {
       const validCard = '4111-1111-1111-1111'; // Valid Visa test number
-      const result = guardrails['isValidCreditCard'](validCard);
+      const result = guardrails.isValidCreditCard(validCard);
       
       expect(result).toBe(true);
     });
 
     it('should reject invalid credit card numbers', () => {
       const invalidCard = '1234-5678-9012-3456'; // Invalid number
-      const result = guardrails['isValidCreditCard'](invalidCard);
+      const result = guardrails.isValidCreditCard(invalidCard);
       
       expect(result).toBe(false);
     });

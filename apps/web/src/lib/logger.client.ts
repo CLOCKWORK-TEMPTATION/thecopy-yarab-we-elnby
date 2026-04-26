@@ -13,7 +13,7 @@ import type {
 const SECRET_KEY_PATTERN =
   /^(.*_)?(token|secret|password|passwd|apikey|api_key|auth|authorization|cookie|cookies|jwt|bearertoken)(_.*)?$/i;
 
-const IS_PRODUCTION = process.env["NODE_ENV"] === "production";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 function redactClientContext(
   context: LogContext | undefined

@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -9,14 +8,16 @@ import {
   parseList,
   slugify,
 } from "./handlers-shared";
-import { VisualConsistencyAnalyzer } from "./plugins/visual-analyzer";
-import { TerminologyTranslator } from "./plugins/terminology-translator";
+import { runPlugin } from "./plugin-executor";
 import { BudgetOptimizer } from "./plugins/budget-optimizer";
 import { LightingSimulator } from "./plugins/lighting-simulator";
-import { RiskAnalyzer } from "./plugins/risk-analyzer";
 import { ProductionReadinessReportPromptBuilder } from "./plugins/production-readiness-report";
-import { runPlugin } from "./plugin-executor";
+import { RiskAnalyzer } from "./plugins/risk-analyzer";
+import { TerminologyTranslator } from "./plugins/terminology-translator";
+import { VisualConsistencyAnalyzer } from "./plugins/visual-analyzer";
 import { readStore } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 const COLOR_TEMPERATURE_MAP: Record<string, number> = {
   daylight: 5600,

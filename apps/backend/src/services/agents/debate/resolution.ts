@@ -7,15 +7,16 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { geminiService } from '@/services/gemini.service';
 import { logger } from '@/lib/logger';
-import { DebateArgument, ConsensusResult, Vote } from './types';
+import { geminiService } from '@/services/gemini.service';
+
 import {
   calculateConfidenceAgreement,
   calculatePositionSimilarity,
   calculateEvidenceOverlap,
   extractBulletPoints,
 } from './resolution-helpers';
+import { DebateArgument, ConsensusResult, Vote } from './types';
 
 /**
  * حساب درجة التوافق بين الحجج

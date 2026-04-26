@@ -11,8 +11,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { Counter, Gauge } from 'prom-client';
-import { register } from './metrics.middleware';
+
 import { logger } from '@/lib/logger';
+
+import { register } from './metrics.middleware';
 
 // ===== SLO Configuration =====
 

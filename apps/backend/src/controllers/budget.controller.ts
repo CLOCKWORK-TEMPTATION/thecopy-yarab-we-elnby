@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { budgetService } from '@/services/budget.service';
+
 import { logger } from '@/lib/logger';
+import { budgetService } from '@/services/budget.service';
 
 const generateBudgetSchema = z.object({
   scenario: z.string().min(1, 'Scenario is required'),
@@ -47,7 +48,7 @@ export class BudgetController {
     try {
       const validation = generateBudgetSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid request payload',
           details: validation.error.flatten(),
@@ -57,16 +58,16 @@ export class BudgetController {
 
       const runtimeResult = await budgetService.generateBudgetRuntime(
         validation.data.scenario,
-        validation.data["title"]
+        validation.data.title
       );
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         data: runtimeResult,
       });
     } catch (error) {
       logger.error('Failed to generate budget:', error);
       const message = error instanceof Error ? error.message : 'Failed to generate budget';
-      res["status"](message.includes('API_KEY') || message.includes('not configured') ? 503 : 500).json({
+      res.status(message.includes('API_KEY') || message.includes('not configured') ? 503 : 500).json({
         success: false,
         error: message,
       });
@@ -77,7 +78,7 @@ export class BudgetController {
     try {
       const validation = analyzeBudgetSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid request payload',
           details: validation.error.flatten(),
@@ -88,14 +89,14 @@ export class BudgetController {
       const runtimeResult = await budgetService.analyzeBudgetRuntime(
         validation.data.scenario
       );
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         data: runtimeResult,
       });
     } catch (error) {
       logger.error('Failed to analyze budget scenario:', error);
       const message = error instanceof Error ? error.message : 'Failed to analyze script';
-      res["status"](message.includes('API_KEY') || message.includes('not configured') ? 503 : 500).json({
+      res.status(message.includes('API_KEY') || message.includes('not configured') ? 503 : 500).json({
         success: false,
         error: message,
       });
@@ -106,7 +107,7 @@ export class BudgetController {
     try {
       const validation = exportBudgetSchema.safeParse(req.body);
       if (!validation.success || !budgetService.isValidBudget(validation.data.budget)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'A valid budget document is required.',
         });
@@ -121,13 +122,13 @@ export class BudgetController {
       );
       res.setHeader(
         'Content-Disposition',
-        buildAttachmentHeader(validation.data.budget.metadata?.["title"])
+        buildAttachmentHeader(validation.data.budget.metadata?.title)
       );
-      res["status"](200).send(buffer);
+      res.status(200).send(buffer);
     } catch (error) {
       logger.error('Failed to export budget:', error);
       const message = error instanceof Error ? error.message : 'Failed to export budget';
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: message,
       });

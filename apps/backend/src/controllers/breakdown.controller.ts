@@ -1,8 +1,10 @@
-import type { Request, Response } from 'express';
 import { z } from 'zod';
-import type { AuthRequest } from '@/middleware/auth.middleware';
-import { breakdownService } from '@/services/breakdown/service';
+
 import { logger } from '@/lib/logger';
+import { breakdownService } from '@/services/breakdown/service';
+
+import type { AuthRequest } from '@/middleware/auth.middleware';
+import type { Request, Response } from 'express';
 
 const bootstrapSchema = z.object({
   title: z.string().optional(),
@@ -27,7 +29,7 @@ function getParam(req: Request, key: string): string {
 export class BreakdownController {
   private requireUserId(req: AuthRequest, res: Response): string | null {
     if (!req.user?.id) {
-      res["status"](401).json({
+      res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -58,11 +60,11 @@ export class BreakdownController {
       const body = bootstrapSchema.parse(req.body);
       const result = await breakdownService.createProjectAndParse(
         body.scriptContent,
-        body["title"],
+        body.title,
         userId
       );
 
-      res["status"](201).json({
+      res.status(201).json({
         success: true,
         data: result,
       });
@@ -84,7 +86,7 @@ export class BreakdownController {
         projectId,
         userId,
         body.scriptContent,
-        body["title"]
+        body.title
       );
 
       res.json({
@@ -126,7 +128,7 @@ export class BreakdownController {
       const report = await breakdownService.getProjectReport(projectId, userId);
 
       if (!report) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'لم يتم العثور على تقرير بريك دون للمشروع',
         });
@@ -172,7 +174,7 @@ export class BreakdownController {
       const scene = await breakdownService.getSceneBreakdown(sceneId, userId);
 
       if (!scene) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'تفكيك المشهد غير موجود',
         });
@@ -238,7 +240,7 @@ export class BreakdownController {
       }
 
       const body = chatSchema.parse(req.body);
-      const result = await breakdownService.chat(body.message, body["context"]);
+      const result = await breakdownService.chat(body.message, body.context);
 
       res.json({
         success: true,
@@ -251,7 +253,7 @@ export class BreakdownController {
 
   private handleError(res: Response, error: unknown, context: string): void {
     if (error instanceof z.ZodError) {
-      res["status"](400).json({
+      res.status(400).json({
         success: false,
         error: 'بيانات الطلب غير صالحة',
         details: error.issues,
@@ -263,7 +265,7 @@ export class BreakdownController {
       const message = error.message;
 
       if (message.includes('غير موجود')) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: message,
         });
@@ -275,7 +277,7 @@ export class BreakdownController {
         message.includes('لا يوجد') ||
         message.includes('تعذر')
       ) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: message,
         });
@@ -284,7 +286,7 @@ export class BreakdownController {
     }
 
     logger.error(`BreakdownController.${context}`, error);
-    res["status"](500).json({
+    res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
     });

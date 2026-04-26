@@ -1,12 +1,14 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CHARACTER_NETWORK_AGENT_CONFIG } from "./agent";
 import { NETWORK_FALLBACK_RESPONSE } from "./instructions";
-import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   buildOriginalTextSection,
   buildCharactersSection,

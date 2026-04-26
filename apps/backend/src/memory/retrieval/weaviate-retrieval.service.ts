@@ -1,11 +1,12 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity, @typescript-eslint/no-explicit-any -- experimental memory retrieval module */
+/* eslint-disable complexity, @typescript-eslint/no-explicit-any -- experimental memory retrieval module */
 import { Filters } from "weaviate-client";
 
-import type { RetrievalHit } from "@the-copy/core-memory";
 
+import { logger } from "@/lib/logger";
 import { embeddingsService } from "@/services/rag/embeddings.service";
 import { definedProps } from "@/utils/defined-props";
-import { logger } from "@/lib/logger";
+
+import { weaviateStore } from "../vector-store/client";
 
 import type {
   ContextContentType,
@@ -14,7 +15,7 @@ import type {
   RetrievalFilter,
   UnifiedRetrievalRequest,
 } from "../types";
-import { weaviateStore } from "../vector-store/client";
+import type { RetrievalHit } from "@the-copy/core-memory";
 
 const COLLECTION_TYPE_MAP: Record<string, ContextContentType> = {
   CodeChunks: "code",
@@ -127,7 +128,7 @@ export class WeaviateRetrievalService {
   async quickSearch(
     query: string,
     collection?: string,
-    topK: number = 5
+    topK = 5
   ): Promise<RetrievalHit[]> {
     return this.retrieve({
       query,

@@ -4,10 +4,12 @@
  * Monitors system resources and detects backpressure, rate limits, and bottlenecks
  */
 
+import os from 'os';
+
 import { Gauge, Counter, Histogram } from 'prom-client';
+
 import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
-import os from 'os';
 
 // ===== Resource Monitoring Metrics =====
 
@@ -226,7 +228,7 @@ export class ResourceMonitorService {
   /**
    * Track rate limit hit
    */
-  trackRateLimitHit(endpoint: string, user: string = 'anonymous'): void {
+  trackRateLimitHit(endpoint: string, user = 'anonymous'): void {
     rateLimitHits.inc({ endpoint, user });
     logger.warn('Rate limit hit', { endpoint, user });
   }
@@ -316,7 +318,7 @@ export class ResourceMonitorService {
         backpressureCount = (metric.values || []).reduce((sum: number, val: any) => sum + (val.value || 0), 0);
       }
       if (metric.name === 'the_copy_concurrent_requests') {
-        concurrentReqs = (metric.values && metric.values[0])?.value || 0;
+        concurrentReqs = (metric.values?.[0])?.value || 0;
       }
     }
 
@@ -344,7 +346,7 @@ export class ResourceMonitorService {
   /**
    * Start resource monitoring
    */
-  startMonitoring(intervalMs: number = 5000): void {
+  startMonitoring(intervalMs = 5000): void {
     if (this.monitorInterval) {
       logger.warn('Resource monitoring already started');
       return;

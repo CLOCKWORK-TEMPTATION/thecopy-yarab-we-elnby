@@ -5,8 +5,9 @@
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
-import type { JsonRecord, LLMConfig } from "./types.js";
-import { log } from "./ocr-logger.js";
+
+import { log , APP_NAME } from "./ocr-logger.js";
+import { OCRPreprocessor } from "./ocr-preprocessor.js";
 import {
   CRITICAL_OCR_REPLACEMENTS,
   createTimeoutState,
@@ -22,8 +23,9 @@ import {
   retryDelayMs,
   str,
 } from "./text-helpers.js";
-import { APP_NAME } from "./ocr-logger.js";
-import { OCRPreprocessor } from "./ocr-preprocessor.js";
+
+
+import type { JsonRecord, LLMConfig } from "./types.js";
 
 const DEFAULT_LLM_MODEL = "kimi-k2.5";
 
@@ -142,7 +144,7 @@ export class LLMPostProcessor {
     validated = this.applyCriticalReplacements(validated);
     validated = this.normalizeSceneHeadersForValidation(validated);
 
-    if (validated.match(/^-\s+/m) && !validated.match(/^•\s+/m)) {
+    if ((/^-\s+/m.exec(validated)) && !(/^•\s+/m.exec(validated))) {
       validated = validated.replace(/^-\s+/gm, "• ");
     }
 
@@ -248,7 +250,7 @@ export class LLMPostProcessor {
           }
         }
 
-        if (!response["ok"]) {
+        if (!response.ok) {
           const dataObject =
             data && typeof data === "object" ? (data as JsonRecord) : {};
           const requestId = str(
@@ -258,7 +260,7 @@ export class LLMPostProcessor {
           ).trim();
 
           if (
-            isRetryableHttpStatus(response["status"]) &&
+            isRetryableHttpStatus(response.status) &&
             attempt < LLMPostProcessor.KIMI_HTTP_MAX_RETRIES
           ) {
             attempt += 1;
@@ -266,7 +268,7 @@ export class LLMPostProcessor {
             log(
               "WARN",
               "Kimi Chat returned %s. retry=%s delayMs=%s",
-              response["status"],
+              response.status,
               attempt,
               delay
             );
@@ -276,7 +278,7 @@ export class LLMPostProcessor {
 
           const requestSuffix = requestId ? ` request_id=${requestId}` : "";
           throw new Error(
-            `فشل استدعاء Kimi Chat: ${response["status"]} ${response.statusText}${requestSuffix} - ${raw}`
+            `فشل استدعاء Kimi Chat: ${response.status} ${response.statusText}${requestSuffix} - ${raw}`
           );
         }
 

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- multi-layer cache service */
+ 
 /**
  * Multi-Layer Cache Service
  *
@@ -15,8 +15,10 @@
  * - Sentry performance monitoring integration
  */
 
-import { createClient } from 'redis';
 import crypto from 'crypto';
+
+import { createClient } from 'redis';
+
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
 import { logger } from '@/lib/logger';
@@ -73,7 +75,7 @@ type CacheRedisConfig = NonNullable<Parameters<typeof createClient>[0]> & {
   host?: string;
   port?: number;
   password?: string;
-  sentinels?: Array<{ host: string; port: number }>;
+  sentinels?: { host: string; port: number }[];
   name?: string;
   sentinelPassword?: string;
   retry_strategy?: (options: RedisRetryOptions) => Error | number | undefined;
@@ -81,7 +83,7 @@ type CacheRedisConfig = NonNullable<Parameters<typeof createClient>[0]> & {
 
 export class CacheService {
   private redis: RedisClientInstance | null = null;
-  private memoryCache: Map<string, CacheEntry<unknown>> = new Map();
+  private memoryCache = new Map<string, CacheEntry<unknown>>();
   private readonly MAX_MEMORY_CACHE_SIZE = 100; // Maximum items in L1 cache
   private readonly DEFAULT_TTL = 1800; // 30 minutes in seconds
   private readonly MAX_TTL = 86400; // 24 hours maximum
@@ -117,14 +119,14 @@ export class CacheService {
    * Initialize Redis connection with Sentinel support and retry strategy
    * Supports REDIS_URL, Sentinel, and individual REDIS_HOST/PORT/PASSWORD
    */
-  // eslint-disable-next-line max-lines-per-function
+   
   private initializeRedis(): void {
     try {
       let redisConfig: CacheRedisConfig;
 
       // Sentinel configuration
-      if (process.env['REDIS_SENTINEL_ENABLED'] === 'true') {
-        const sentinels = (process.env['REDIS_SENTINELS'] || '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
+      if (process.env.REDIS_SENTINEL_ENABLED === 'true') {
+        const sentinels = (process.env.REDIS_SENTINELS || '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
           .split(',')
           .map(s => {
             const [host, port] = s.trim().split(':');
@@ -133,36 +135,36 @@ export class CacheService {
 
         redisConfig = {
           sentinels,
-          name: process.env['REDIS_MASTER_NAME'] || 'mymaster',
+          name: process.env.REDIS_MASTER_NAME || 'mymaster',
         };
 
-        if (process.env['REDIS_PASSWORD']) {
-          redisConfig.password = process.env['REDIS_PASSWORD'];
+        if (process.env.REDIS_PASSWORD) {
+          redisConfig.password = process.env.REDIS_PASSWORD;
         }
 
-        if (process.env['REDIS_SENTINEL_PASSWORD']) {
-          redisConfig.sentinelPassword = process.env['REDIS_SENTINEL_PASSWORD'];
+        if (process.env.REDIS_SENTINEL_PASSWORD) {
+          redisConfig.sentinelPassword = process.env.REDIS_SENTINEL_PASSWORD;
         }
 
         logger.info(`Connecting to Redis via Sentinel: ${sentinels.length} sentinels`);
-      } else if (process.env['REDIS_URL']) {
+      } else if (process.env.REDIS_URL) {
         redisConfig = {
-          url: process.env['REDIS_URL'],
+          url: process.env.REDIS_URL,
         };
       } else {
         redisConfig = {
-          host: process.env['REDIS_HOST'] || 'localhost',
-          port: parseInt(process.env['REDIS_PORT'] || '6379'),
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
         };
 
-        if (process.env['REDIS_PASSWORD']) {
-          redisConfig.password = process.env['REDIS_PASSWORD'];
+        if (process.env.REDIS_PASSWORD) {
+          redisConfig.password = process.env.REDIS_PASSWORD;
         }
       }
 
       // Add retry strategy
       redisConfig.retry_strategy = (options: RedisRetryOptions) => {
-        if (options.error && options.error.code === 'ECONNREFUSED') {
+        if (options.error?.code === 'ECONNREFUSED') {
           logger.error('Redis connection refused');
           return new Error('Redis Server Connection Error');
         }
@@ -225,7 +227,7 @@ export class CacheService {
    * Update Redis connection health status
    */
   private updateRedisHealth(status: 'connected' | 'disconnected' | 'error'): void {
-    this.metrics.redisConnectionHealth["status"] = status;
+    this.metrics.redisConnectionHealth.status = status;
     this.metrics.redisConnectionHealth.lastCheck = Date.now();
 
     if (status === 'error' || status === 'disconnected') {

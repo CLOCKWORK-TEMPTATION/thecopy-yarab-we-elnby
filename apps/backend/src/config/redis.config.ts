@@ -5,6 +5,7 @@
  */
 
 import { createClient } from 'redis';
+
 import { logger } from '@/lib/logger';
 
 const BULLMQ_MIN_REDIS_VERSION = '5.0.0';
@@ -22,7 +23,7 @@ interface RedisConnectionConfig {
   password?: string;
   name?: string;
   sentinelPassword?: string;
-  sentinels?: Array<{ host: string; port: number }>;
+  sentinels?: { host: string; port: number }[];
   socket: RedisSocketConfig;
 }
 

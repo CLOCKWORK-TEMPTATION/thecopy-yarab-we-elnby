@@ -192,12 +192,12 @@ export interface SearchRequest {
 export interface SearchResponse {
   success: boolean;
   count: number;
-  results: Array<{
+  results: {
     content: string;
     source: string;
     certainty?: number;
     collection?: string;
-  }>;
+  }[];
 }
 
 export interface IndexRequest {

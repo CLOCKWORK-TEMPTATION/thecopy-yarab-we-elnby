@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
+
+import { logger } from '@/lib/logger';
 import { actorAiService } from '@/services/actorai.service';
 import { definedProps } from '@/utils/defined-props';
-import { logger } from '@/lib/logger';
 
 const MAX_ANALYTICS_PAYLOAD_BYTES = 1024 * 1024;
 
@@ -19,7 +20,7 @@ function ensurePayloadWithinLimit(req: Request, res: Response): boolean {
     return true;
   }
 
-  res["status"](413).json({
+  res.status(413).json({
     success: false,
     error: 'payload_too_large',
     message: 'Payload exceeds 1MB limit',
@@ -32,7 +33,7 @@ function ensureAuthenticated(req: Request, res: Response): boolean {
     return true;
   }
 
-  res["status"](401).json({
+  res.status(401).json({
     success: false,
     error: 'authentication_required',
   });
@@ -46,7 +47,7 @@ function ensureAdminOrOperator(req: Request, res: Response): boolean {
     return true;
   }
 
-  res["status"](403).json({
+  res.status(403).json({
     success: false,
     error: 'forbidden',
   });
@@ -61,10 +62,10 @@ export class ActorAiController {
 
     try {
       const result = await actorAiService.saveVoiceAnalytics(req.body, req.userId);
-      res["status"](201).json(result);
+      res.status(201).json(result);
     } catch (error) {
       logger.error('Failed to save voice analytics:', error);
-      res["status"](503).json({
+      res.status(503).json({
         success: false,
         error: 'analytics_storage_unavailable',
         message: 'Unable to persist analytics data. Please retry.',
@@ -79,10 +80,10 @@ export class ActorAiController {
 
     try {
       const result = await actorAiService.saveWebcamAnalysis(req.body, req.userId);
-      res["status"](201).json(result);
+      res.status(201).json(result);
     } catch (error) {
       logger.error('Failed to save webcam analysis:', error);
-      res["status"](503).json({
+      res.status(503).json({
         success: false,
         error: 'analytics_storage_unavailable',
         message: 'Unable to persist analytics data. Please retry.',
@@ -97,10 +98,10 @@ export class ActorAiController {
 
     try {
       const result = await actorAiService.saveMemorizationStats(req.body, req.userId);
-      res["status"](201).json(result);
+      res.status(201).json(result);
     } catch (error) {
       logger.error('Failed to save memorization stats:', error);
-      res["status"](503).json({
+      res.status(503).json({
         success: false,
         error: 'analytics_storage_unavailable',
         message: 'Unable to persist analytics data. Please retry.',
@@ -116,7 +117,7 @@ export class ActorAiController {
     try {
       const id = typeof req.params["id"] === 'string' ? req.params["id"] : undefined;
       if (!id) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'invalid_id',
         });
@@ -125,17 +126,17 @@ export class ActorAiController {
 
       const record = await actorAiService.getAnalyticsById(id);
       if (!record) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'not_found',
         });
         return;
       }
 
-      res["status"](200).json(record);
+      res.status(200).json(record);
     } catch (error) {
       logger.error('Failed to retrieve analytics record:', error);
-      res["status"](500).json({ success: false, error: 'internal_error' });
+      res.status(500).json({ success: false, error: 'internal_error' });
     }
   }
 
@@ -154,10 +155,10 @@ export class ActorAiController {
       const result = await actorAiService.listAnalytics(
         definedProps({ category, limit, offset })
       );
-      res["status"](200).json(result);
+      res.status(200).json(result);
     } catch (error) {
       logger.error('Failed to list analytics records:', error);
-      res["status"](500).json({ success: false, error: 'internal_error' });
+      res.status(500).json({ success: false, error: 'internal_error' });
     }
   }
 }

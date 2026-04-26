@@ -7,8 +7,10 @@
  * - Validates that the cookie token matches the header token
  */
 
-import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
+
+import { Request, Response, NextFunction } from 'express';
+
 import { logger } from '@/lib/logger';
 
 const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
@@ -102,7 +104,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
       path, method, ip: req.ip,
       hasCookie: !!cookieToken, hasHeader: !!headerToken,
     });
-    res["status"](403).json({
+    res.status(403).json({
       success: false, error: 'CSRF token missing', code: 'CSRF_TOKEN_MISSING',
     });
     return;
@@ -112,7 +114,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     logger.warn('CSRF validation failed: Token mismatch', {
       path, method, ip: req.ip, userAgent: req.headers['user-agent'],
     });
-    res["status"](403).json({
+    res.status(403).json({
       success: false, error: 'CSRF token invalid', code: 'CSRF_TOKEN_INVALID',
     });
     return;
@@ -151,7 +153,7 @@ export function issueCsrfCookie(res: Response): string {
   const token = generateCsrfToken();
   res.cookie(CSRF_COOKIE_NAME, token, {
     httpOnly: false,
-    secure: process.env['NODE_ENV'] === 'production',
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 24 * 60 * 60 * 1000,
   });

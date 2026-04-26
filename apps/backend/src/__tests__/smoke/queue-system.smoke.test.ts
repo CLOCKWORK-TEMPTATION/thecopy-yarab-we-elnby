@@ -4,10 +4,11 @@
  * Quick smoke tests to verify queue system is operational
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { queueManager, QueueName } from '@/queues/queue.config';
+import { describe, it, expect, afterAll } from 'vitest';
+
 import { queueAIAnalysis } from '@/queues/jobs/ai-analysis.job';
 import { queueDocumentProcessing } from '@/queues/jobs/document-processing.job';
+import { queueManager, QueueName } from '@/queues/queue.config';
 
 describe('Queue System Smoke Tests', () => {
   afterAll(async () => {

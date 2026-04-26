@@ -5,9 +5,11 @@
 
 import { definedProps } from "@/utils/defined-props";
 
-import type { BuiltContext, ContextQuery, ContextResult } from "../types";
 import { contextAssemblyService } from "../context/context-assembly.service";
+
 import { weaviateRetrievalService } from "./weaviate-retrieval.service";
+
+import type { BuiltContext, ContextQuery, ContextResult } from "../types";
 
 export class ContextBuilder {
   async buildContext(query: ContextQuery): Promise<BuiltContext> {
@@ -21,7 +23,7 @@ export class ContextBuilder {
   async quickSearch(
     query: string,
     collection?: string,
-    topK: number = 5
+    topK = 5
   ): Promise<ContextResult[]> {
     const hits = await weaviateRetrievalService.quickSearch(query, collection, topK);
     return hits.map((hit) => ({

@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthService } from './auth.service';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { AuthService } from './auth.service';
 
 const TEST_PASSWORD = 'StrongPass123!';
 

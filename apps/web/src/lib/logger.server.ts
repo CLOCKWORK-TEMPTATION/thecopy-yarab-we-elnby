@@ -39,8 +39,8 @@ const SERVER_REDACT_PATHS: readonly string[] = [
   "headers.cookie",
 ];
 
-const IS_DEVELOPMENT = process.env["NODE_ENV"] === "development";
-const IS_PRODUCTION = process.env["NODE_ENV"] === "production";
+const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 // نوع مساعد لتوحيد توقيع pino القابل لاستقبال string أو object
 type PinoMethod = (
@@ -56,7 +56,7 @@ function createPinoInstance(): PinoLogger {
     level: process.env["LOG_LEVEL"] ?? baseLevel,
     base: {
       service: "the-copy-web",
-      env: process.env["NODE_ENV"] ?? "unknown",
+      env: process.env.NODE_ENV ?? "unknown",
       pid: process.pid,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
@@ -97,12 +97,12 @@ function adapt(instance: PinoLogger): UnifiedLogger {
       callPino(method, ctx, msg, args);
 
   return {
-    trace: wrap(instance.trace.bind(instance) as PinoMethod),
-    debug: wrap(instance.debug.bind(instance) as PinoMethod),
-    info: wrap(instance.info.bind(instance) as PinoMethod),
-    warn: wrap(instance.warn.bind(instance) as PinoMethod),
-    error: wrap(instance.error.bind(instance) as PinoMethod),
-    fatal: wrap(instance.fatal.bind(instance) as PinoMethod),
+    trace: wrap(instance.trace.bind(instance)),
+    debug: wrap(instance.debug.bind(instance)),
+    info: wrap(instance.info.bind(instance)),
+    warn: wrap(instance.warn.bind(instance)),
+    error: wrap(instance.error.bind(instance)),
+    fatal: wrap(instance.fatal.bind(instance)),
     child: (bindings) => adapt(instance.child(bindings)),
   };
 }

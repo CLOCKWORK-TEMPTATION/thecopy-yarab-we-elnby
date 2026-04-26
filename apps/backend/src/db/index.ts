@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import { logger } from '@/utils/logger';
+
+import { logger } from '@/lib/logger';
 
 const { Pool } = pg;
 
@@ -47,7 +48,7 @@ export async function closeDatabase(): Promise<void> {
       await pool.end();
       logger.info('Database connection pool closed');
     } catch (error) {
-      logger.error('Error closing database pool:', error);
+      logger.error({ err: error }, 'Error closing database pool');
     }
   }
 }

@@ -1,8 +1,10 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
 } from "../shared/standardAgentPattern";
+
 import { DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -30,7 +32,7 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
     // Extract dialogue context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const dialogueContext = (contextObj as Record<string, unknown>)?.['dialogueContext'] as string || "مشهد عام";
+    const dialogueContext = (contextObj)?.['dialogueContext'] as string || "مشهد عام";
 
     const prompt = `## مهمة التحليل المتقدم للحوار
 

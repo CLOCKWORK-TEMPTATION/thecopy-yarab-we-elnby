@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { DIALOGUE_FORENSICS_AGENT_CONFIG } from "./agent";
 import {
   assessAuthenticity,

@@ -1,10 +1,11 @@
-import moduleAlias from 'module-alias';
 import path from 'node:path';
 
-export type RuntimeAliasRegistration = {
+import moduleAlias from 'module-alias';
+
+export interface RuntimeAliasRegistration {
   shouldRegister: boolean;
   baseDir: string | null;
-};
+}
 
 export function resolveRuntimeAliasRegistration(currentDir = __dirname): RuntimeAliasRegistration {
   const normalizedDir = path.resolve(currentDir);

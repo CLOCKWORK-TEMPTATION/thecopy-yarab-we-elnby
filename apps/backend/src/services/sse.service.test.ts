@@ -4,10 +4,13 @@
  * Comprehensive tests for Server-Sent Events service functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Response } from 'express';
-import { sseService } from './sse.service';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { RealtimeEventType } from '@/types/realtime.types';
+
+import { sseService } from './sse.service';
+
 
 // Mock Response object
 const createMockResponse = (): Partial<Response> => ({

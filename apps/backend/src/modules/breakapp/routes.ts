@@ -16,9 +16,9 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { z } from 'zod';
 
 import { env } from '@/config/env';
+import { logger } from '@/lib/logger';
 import { websocketService } from '@/services/websocket.service';
 import { signJwt, verifyJwt } from '@/utils/jwt-secret-manager';
-import { logger } from '@/lib/logger';
 
 import { breakappGateway } from './gateway';
 import * as repo from './repository';

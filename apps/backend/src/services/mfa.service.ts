@@ -1,8 +1,9 @@
+import { eq } from 'drizzle-orm';
 import { authenticator } from 'otplib';
 import * as QRCode from 'qrcode';
+
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 
 // Configure authenticator options
 authenticator.options = {
@@ -165,7 +166,7 @@ export class MFAService {
   async validateToken(userId: string, token: string): Promise<boolean> {
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
-    if (!user || !user.mfaSecret || !user.mfaEnabled) {
+    if (!user?.mfaSecret || !user.mfaEnabled) {
       return false;
     }
 

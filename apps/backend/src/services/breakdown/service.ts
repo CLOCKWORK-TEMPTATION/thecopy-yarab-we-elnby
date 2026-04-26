@@ -1,5 +1,6 @@
-/* eslint-disable max-lines -- breakdown service module */
+ 
 import { and, desc, eq } from 'drizzle-orm';
+
 import { db } from '@/db';
 import {
   breakdownExports,
@@ -11,8 +12,9 @@ import {
   scenes,
   shootingSchedules,
 } from '@/db/schema';
-import { geminiService } from '@/services/gemini.service';
 import { logger } from '@/lib/logger';
+import { geminiService } from '@/services/gemini.service';
+
 import { parseScreenplay } from './parser';
 import {
   aiBreakdownSchema,
@@ -25,6 +27,14 @@ import {
   requireValue,
   uniqueStrings,
 } from './service-helpers';
+import {
+  buildElementsByCategory,
+  buildSummaryText,
+  estimateShootingDays,
+  generateId,
+  generateShootingSchedule,
+} from './utils';
+
 import type {
   BreakdownChatResponse,
   BreakdownReport,
@@ -36,13 +46,6 @@ import type {
   SceneHeader,
   ShootingScheduleDay,
 } from './types';
-import {
-  buildElementsByCategory,
-  buildSummaryText,
-  estimateShootingDays,
-  generateId,
-  generateShootingSchedule,
-} from './utils';
 
 function asBreakdownReport(value: unknown): BreakdownReport {
   return value as BreakdownReport;
@@ -107,7 +110,7 @@ export class BreakdownService {
 
     return {
       projectId: project.id,
-      title: project["title"],
+      title: project.title,
       parsed,
     };
   }
@@ -140,7 +143,7 @@ export class BreakdownService {
         .where(eq(projects.id, projectId));
     }
 
-    const parsed = parseScreenplay(nextScript, projectTitle ?? project["title"]);
+    const parsed = parseScreenplay(nextScript, projectTitle ?? project.title);
     await this.syncScenes(projectId, parsed.scenes);
     return parsed;
   }
@@ -163,11 +166,11 @@ export class BreakdownService {
         projectId,
         userId,
         project.scriptContent,
-        project["title"]
+        project.title
       );
       const syncedScenes = await this.getScenesByProject(projectId);
       const analyzedScenes = await this.analyzeParsedScenes(parsed.scenes, syncedScenes);
-      const report = await this.persistReport(projectId, project["title"], analyzedScenes, jobId);
+      const report = await this.persistReport(projectId, project.title, analyzedScenes, jobId);
       await this.completeJob(jobId, 'completed');
       return report;
     } catch (error) {
@@ -224,7 +227,7 @@ export class BreakdownService {
     const nextScenes = currentReport.scenes.map((s) =>
       s.sceneId === sceneId ? analyzed : s
     );
-    const nextReport = await this.persistReport(project.id, project["title"], nextScenes, jobId);
+    const nextReport = await this.persistReport(project.id, project.title, nextScenes, jobId);
     return requireValue(
       nextReport.scenes.find((s) => s.sceneId === sceneId) ?? nextReport.scenes[0],
       'تعذر العثور على المشهد المحدّث ضمن التقرير'
@@ -237,7 +240,7 @@ export class BreakdownService {
     project: typeof projects.$inferSelect,
     currentReport: BreakdownReport | null
   ): ParsedScene {
-    const parsed = parseScreenplay(project.scriptContent || '', project["title"]);
+    const parsed = parseScreenplay(project.scriptContent || '', project.title);
     const matched = parsed.scenes.find(
       (s) => s.headerData.sceneNumber === sceneRecord.sceneNumber
     ) ?? null;
@@ -342,7 +345,7 @@ export class BreakdownService {
     }
 
     const report = asBreakdownReport(row.reportData);
-    const reportTitle = report["title"] ?? 'breakdown_report';
+    const reportTitle = report.title ?? 'breakdown_report';
     const reportIdentifier = report.id ?? reportId;
     const fileName = `${reportTitle.replace(/[^\w\u0600-\u06FF]+/g, '_')}_${reportIdentifier}.${format}`;
     const content =
@@ -513,7 +516,7 @@ export class BreakdownService {
         characters: existing?.characters ?? [],
         description: parsedScene.content.slice(0, 4000),
         shotCount: existing?.shotCount ?? 0,
-        status: existing?.["status"] ?? 'planned',
+        status: existing?.status ?? 'planned',
       };
 
       if (existing) {
@@ -612,7 +615,7 @@ export class BreakdownService {
         totalScenes: reportBase.sceneCount,
         totalPages: Math.max(1, Math.round(reportBase.totalPages * 8)),
         totalEstimatedShootDays: reportBase.totalEstimatedShootDays,
-        reportData: {} as BreakdownReport,
+        reportData: {},
         createdAt: new Date(), updatedAt: new Date(),
       })
       .returning();

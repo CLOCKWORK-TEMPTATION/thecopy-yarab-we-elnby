@@ -5,6 +5,12 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
+import { logger } from '@/lib/logger';
+
+import { StandardAgentOutput } from '../shared/standardAgentPattern';
+
+import { AgentDebator } from './agentDebator';
 import {
   DebateSession,
   DebateRound,
@@ -15,9 +21,7 @@ import {
   DebateMetrics,
   DebateRole,
 } from './types';
-import { StandardAgentOutput } from '../shared/standardAgentPattern';
-import { AgentDebator } from './agentDebator';
-import { logger } from '@/lib/logger';
+
 
 /**
  * Default debate configuration
@@ -67,7 +71,7 @@ export class DebateRoundClass implements DebateRound {
    * Complete the round
    */
   complete(): void {
-    this["status"] = 'completed';
+    this.status = 'completed';
     this.endTime = new Date();
   }
 
@@ -75,7 +79,7 @@ export class DebateRoundClass implements DebateRound {
    * Abort the round
    */
   abort(): void {
-    this["status"] = 'aborted';
+    this.status = 'aborted';
     this.endTime = new Date();
   }
 
@@ -116,7 +120,7 @@ export class DebateSessionClass implements DebateSession {
   endTime?: Date;
   finalResult?: StandardAgentOutput;
 
-  private debators: Map<string, AgentDebator> = new Map();
+  private debators = new Map<string, AgentDebator>();
 
   constructor(
     topic: string,
@@ -144,7 +148,7 @@ export class DebateSessionClass implements DebateSession {
    */
   async start(): Promise<void> {
     logger.info(`[DebateSession] Starting debate on: ${this.topic}`);
-    this["status"] = 'in_progress';
+    this.status = 'in_progress';
 
     // Validate participants
     if (this.participants.length < (this.config.minParticipants || 2)) {
@@ -242,7 +246,7 @@ export class DebateSessionClass implements DebateSession {
     const allArguments: DebateArgument[] = [];
 
     for (const round of this.rounds) {
-      if (round["status"] === 'completed') {
+      if (round.status === 'completed') {
         allArguments.push(...round.arguments);
       }
     }
@@ -275,7 +279,7 @@ export class DebateSessionClass implements DebateSession {
    * Complete the debate session
    */
   complete(): void {
-    this["status"] = 'completed';
+    this.status = 'completed';
     this.endTime = new Date();
     logger.info(`[DebateSession] Debate completed: ${this.id}`);
   }
@@ -284,7 +288,7 @@ export class DebateSessionClass implements DebateSession {
    * Fail the debate session
    */
   fail(reason?: string): void {
-    this["status"] = 'failed';
+    this.status = 'failed';
     this.endTime = new Date();
     logger.error(`[DebateSession] Debate failed: ${reason || 'Unknown error'}`);
   }

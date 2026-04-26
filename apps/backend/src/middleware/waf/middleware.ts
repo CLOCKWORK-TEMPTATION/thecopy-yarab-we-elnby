@@ -3,13 +3,14 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { getWafConfig } from "./state";
+
 import { getClientIP, isPathWhitelisted, sendBlockResponse } from "./checks";
 import {
   executeCheckPipeline,
   WAF_CHECK_PIPELINE,
   type RequestContext,
 } from "./handlers";
+import { getWafConfig } from "./state";
 
 /**
  * Main WAF middleware

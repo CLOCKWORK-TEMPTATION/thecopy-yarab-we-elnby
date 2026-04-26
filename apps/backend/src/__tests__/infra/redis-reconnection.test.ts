@@ -38,8 +38,8 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن يُرجع config مع URL عند وجود REDIS_URL', async () => {
-    process.env['REDIS_URL'] = 'redis://localhost:6379';
-    process.env['REDIS_SENTINEL_ENABLED'] = 'false';
+    process.env.REDIS_URL = 'redis://localhost:6379';
+    process.env.REDIS_SENTINEL_ENABLED = 'false';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -48,9 +48,9 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن يضيف كلمة المرور عند وجود REDIS_PASSWORD مع URL', async () => {
-    process.env['REDIS_URL'] = 'redis://localhost:6379';
-    process.env['REDIS_PASSWORD'] = 'secret123';
-    process.env['REDIS_SENTINEL_ENABLED'] = 'false';
+    process.env.REDIS_URL = 'redis://localhost:6379';
+    process.env.REDIS_PASSWORD = 'secret123';
+    process.env.REDIS_SENTINEL_ENABLED = 'false';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -59,9 +59,9 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن يفعّل وضع Sentinel عند REDIS_SENTINEL_ENABLED=true', async () => {
-    process.env['REDIS_SENTINEL_ENABLED'] = 'true';
-    process.env['REDIS_SENTINELS'] = '10.0.0.1:26379,10.0.0.2:26380';
-    process.env['REDIS_MASTER_NAME'] = 'mymaster';
+    process.env.REDIS_SENTINEL_ENABLED = 'true';
+    process.env.REDIS_SENTINELS = '10.0.0.1:26379,10.0.0.2:26380';
+    process.env.REDIS_MASTER_NAME = 'mymaster';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -72,7 +72,7 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن تتضمن استراتيجية إعادة الاتصال في وضع Sentinel', async () => {
-    process.env['REDIS_SENTINEL_ENABLED'] = 'true';
+    process.env.REDIS_SENTINEL_ENABLED = 'true';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -82,7 +82,7 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن تُرجع reconnectStrategy تأخيراً متزايداً', async () => {
-    process.env['REDIS_SENTINEL_ENABLED'] = 'true';
+    process.env.REDIS_SENTINEL_ENABLED = 'true';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -100,7 +100,7 @@ describe('getRedisConfig', () => {
   });
 
   it('يجب أن تتوقف reconnectStrategy بعد 10 محاولات', async () => {
-    process.env['REDIS_SENTINEL_ENABLED'] = 'true';
+    process.env.REDIS_SENTINEL_ENABLED = 'true';
 
     const { getRedisConfig } = await import('@/config/redis.config');
     const config = getRedisConfig();
@@ -128,8 +128,8 @@ describe('isRedisEnabled', () => {
 
   it('يجب أن تُرجع false عند عدم وجود REDIS_URL أو REDIS_HOST', async () => {
     delete process.env['REDIS_ENABLED'];
-    delete process.env['REDIS_URL'];
-    delete process.env['REDIS_HOST'];
+    delete process.env.REDIS_URL;
+    delete process.env.REDIS_HOST;
 
     const { isRedisEnabled } = await import('@/config/redis-gate');
     expect(isRedisEnabled()).toBe(false);
@@ -137,7 +137,7 @@ describe('isRedisEnabled', () => {
 
   it('يجب أن تُرجع true عند وجود REDIS_URL مع عدم تعطيل Redis', async () => {
     process.env['REDIS_ENABLED'] = 'true';
-    process.env['REDIS_URL'] = 'redis://localhost:6379';
+    process.env.REDIS_URL = 'redis://localhost:6379';
 
     const { isRedisEnabled } = await import('@/config/redis-gate');
     expect(isRedisEnabled()).toBe(true);
@@ -145,7 +145,7 @@ describe('isRedisEnabled', () => {
 
   it('يجب أن تُرجع false عند REDIS_ENABLED=false حتى مع وجود URL', async () => {
     process.env['REDIS_ENABLED'] = 'false';
-    process.env['REDIS_URL'] = 'redis://localhost:6379';
+    process.env.REDIS_URL = 'redis://localhost:6379';
 
     const { isRedisEnabled } = await import('@/config/redis-gate');
     expect(isRedisEnabled()).toBe(false);

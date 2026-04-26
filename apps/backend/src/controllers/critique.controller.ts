@@ -6,12 +6,14 @@
  */
 
 import { Request, Response } from 'express';
-import { logger } from '@/lib/logger';
-import { enhancedSelfCritiqueModule } from '@/services/agents/shared/enhancedSelfCritique';
-import { getCritiqueConfiguration, getAllCritiqueConfigurations } from '@/services/agents/shared/critiqueConfigurations';
-import { TaskType } from '@core/types';
-import type { EnhancedCritiqueResult, CritiqueRequest, CritiqueContext, CritiqueConfiguration } from '@/services/agents/shared/critiqueTypes';
 import { z } from 'zod';
+
+import { logger } from '@/lib/logger';
+import { getCritiqueConfiguration, getAllCritiqueConfigurations } from '@/services/agents/shared/critiqueConfigurations';
+import { enhancedSelfCritiqueModule } from '@/services/agents/shared/enhancedSelfCritique';
+import { TaskType } from '@core/types';
+
+import type { EnhancedCritiqueResult, CritiqueRequest, CritiqueContext, CritiqueConfiguration } from '@/services/agents/shared/critiqueTypes';
 
 const critiqueSummaryBodySchema = z.object({
   output: z.string().min(1),
@@ -42,7 +44,7 @@ export class CritiqueController {
       });
     } catch (error) {
       logger.error('[CritiqueController] Error getting all configurations:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'Failed to retrieve critique configurations',
         code: 'CONFIGS_RETRIEVAL_ERROR'
@@ -59,7 +61,7 @@ export class CritiqueController {
       const { taskType } = req.params;
       
       if (!taskType || !Object.values(TaskType).includes(taskType as TaskType)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid task type',
           code: 'INVALID_TASK_TYPE'
@@ -70,7 +72,7 @@ export class CritiqueController {
       const configuration = getCritiqueConfiguration(taskType as TaskType);
       
       if (!configuration) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: `No critique configuration found for task type: ${taskType}`,
           code: 'CONFIG_NOT_FOUND'
@@ -85,7 +87,7 @@ export class CritiqueController {
       });
     } catch (error) {
       logger.error('[CritiqueController] Error getting config', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'Failed to retrieve critique configuration',
         code: 'CONFIG_RETRIEVAL_ERROR'
@@ -102,7 +104,7 @@ export class CritiqueController {
       const { taskType } = req.params;
       
       if (!taskType || !Object.values(TaskType).includes(taskType as TaskType)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid task type',
           code: 'INVALID_TASK_TYPE'
@@ -113,7 +115,7 @@ export class CritiqueController {
       const configuration = getCritiqueConfiguration(taskType as TaskType);
       
       if (!configuration) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: `No critique configuration found for task type: ${taskType}`,
           code: 'CONFIG_NOT_FOUND'
@@ -135,7 +137,7 @@ export class CritiqueController {
       });
     } catch (error) {
       logger.error('[CritiqueController] Error getting dimension details', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'Failed to retrieve dimension details',
         code: 'DIMENSIONS_RETRIEVAL_ERROR'
@@ -151,7 +153,7 @@ export class CritiqueController {
     try {
       const validation = critiqueSummaryBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({ success: false, error: 'Invalid critique request body', code: 'INVALID_CRITIQUE_BODY' });
+        res.status(400).json({ success: false, error: 'Invalid critique request body', code: 'INVALID_CRITIQUE_BODY' });
         return;
       }
       const { output, task, context, customConfig } = validation.data;
@@ -185,11 +187,11 @@ export class CritiqueController {
       logger.error('[CritiqueController] Error applying critique:', error);
 
       if (error instanceof Error && error.message.includes('No critique configuration found')) {
-        res["status"](404).json({ success: false, error: error.message, code: 'CONFIG_NOT_FOUND' });
+        res.status(404).json({ success: false, error: error.message, code: 'CONFIG_NOT_FOUND' });
         return;
       }
 
-      res["status"](500).json({ success: false, error: 'Failed to apply critique', code: 'CRITIQUE_APPLICATION_ERROR' });
+      res.status(500).json({ success: false, error: 'Failed to apply critique', code: 'CRITIQUE_APPLICATION_ERROR' });
     }
   }
 }

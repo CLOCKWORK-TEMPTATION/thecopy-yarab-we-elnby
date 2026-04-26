@@ -1,13 +1,14 @@
+import { buildFallbackAnalysis } from "./budget-fallback-analysis";
+import {
+  buildScenarioInsights,
+  type ScenarioInsights,
+} from "./budget-fallback-insights";
+
 import type {
   BudgetDocument,
   BudgetRuntimeMeta,
   BudgetRuntimeResult,
 } from "./budget-types";
-import {
-  buildScenarioInsights,
-  type ScenarioInsights,
-} from "./budget-fallback-insights";
-import { buildFallbackAnalysis } from "./budget-fallback-analysis";
 
 interface BudgetEstimateFactors {
   shootingWeeks: number;

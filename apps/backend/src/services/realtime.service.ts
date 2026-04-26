@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- unified realtime service */
+ 
 /**
  * Unified Real-time Service
  *
@@ -6,8 +6,6 @@
  * Provides a single interface to broadcast events to both channels
  */
 
-import { websocketService } from './websocket.service';
-import { sseService } from './sse.service';
 import { logger } from '@/lib/logger';
 import {
   RealtimeEvent,
@@ -24,6 +22,9 @@ import {
   createRoomName,
   WebSocketRoom,
 } from '@/types/realtime.types';
+
+import { sseService } from './sse.service';
+import { websocketService } from './websocket.service';
 
 /**
  * Broadcast target options
@@ -255,7 +256,7 @@ class RealtimeService {
       payload
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('info', `Job started: ${payload["jobId"]}`);
+    this.logEvent('info', `Job started: ${payload.jobId}`);
   }
 
   /**
@@ -270,7 +271,7 @@ class RealtimeService {
       payload
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('debug', `Job progress: ${payload["jobId"]} - ${payload.progress}%`);
+    this.logEvent('debug', `Job progress: ${payload.jobId} - ${payload.progress}%`);
   }
 
   /**
@@ -285,7 +286,7 @@ class RealtimeService {
       payload
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('info', `Job completed: ${payload["jobId"]} in ${payload.duration}ms`);
+    this.logEvent('info', `Job completed: ${payload.jobId} in ${payload.duration}ms`);
   }
 
   /**
@@ -300,7 +301,7 @@ class RealtimeService {
       payload
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('error', `Job failed: ${payload["jobId"]} - ${payload.error}`);
+    this.logEvent('error', `Job failed: ${payload.jobId} - ${payload.error}`);
   }
 
   // ============================================================================

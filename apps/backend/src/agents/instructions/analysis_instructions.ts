@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const ANALYSIS_INSTRUCTIONS = `
 **العملية:** طبق "المحطات السبع للتحليل الدرامي". قم بتضمين قياسات كمية، توصيات ذكية، ووصف لتصورات بيانية ممكنة.

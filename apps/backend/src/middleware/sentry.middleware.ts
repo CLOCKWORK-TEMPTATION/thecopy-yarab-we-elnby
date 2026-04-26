@@ -12,7 +12,7 @@ let sentryModule: SentryModule | null = null;
 let cachedErrorHandler: ErrorRequestHandler | null = null;
 
 function isSentryEnabled(): boolean {
-  return Boolean(process.env['SENTRY_DSN']?.trim());
+  return Boolean(process.env.SENTRY_DSN?.trim());
 }
 
 function getSentryModule(): SentryModule {

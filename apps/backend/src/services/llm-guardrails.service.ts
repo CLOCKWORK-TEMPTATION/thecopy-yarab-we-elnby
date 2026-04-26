@@ -1,5 +1,6 @@
-import { logger } from '../utils/logger';
 import { captureException as captureSentryException } from '@/config/sentry';
+
+import { logger } from '../utils/logger';
 
 // ============================================
 // INTERFACES AND TYPES
@@ -34,7 +35,7 @@ export interface GuardrailMetrics {
   blockedRequests: number;
   violationsByType: Record<string, number>;
   violationsBySeverity: Record<string, number>;
-  topPatterns: Array<{ pattern: string; count: number }>;
+  topPatterns: { pattern: string; count: number }[];
   recentViolations: GuardrailViolation[];
 }
 
@@ -156,7 +157,7 @@ const REPEATED_SUSPICIOUS_TOKENS = new Set([
 // ============================================
 
 type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
-type CheckContext = { userId?: string; requestType?: string };
+interface CheckContext { userId?: string; requestType?: string }
 
 // ============================================
 // MAIN SERVICE CLASS

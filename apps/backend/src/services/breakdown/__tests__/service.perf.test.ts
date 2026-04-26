@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { db } from '@/db';
-import { scenes } from '@/db/schema';
+import { describe, it, vi, beforeEach } from 'vitest';
+
+
 import { breakdownService } from '../service';
 
 vi.mock('@/db', () => ({

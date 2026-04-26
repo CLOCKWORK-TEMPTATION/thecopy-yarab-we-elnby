@@ -1,9 +1,11 @@
-/* eslint-disable max-lines */
+ 
 import ExcelJS from 'exceljs';
-import { platformGenAIService } from '@/services/platform-genai.service';
+
 import { logger } from '@/lib/logger';
-import { getBudgetRuntimeConfig } from '@/services/budget/budget-runtime.config';
 import { buildFallbackBudgetRuntime } from '@/services/budget/budget-fallback.service';
+import { getBudgetRuntimeConfig } from '@/services/budget/budget-runtime.config';
+import { platformGenAIService } from '@/services/platform-genai.service';
+
 import type {
   BudgetAnalysis,
   BudgetAnalysisRuntimeResult,
@@ -213,7 +215,7 @@ function getArrayField(source: BudgetRecord, key: string): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-/* eslint-disable complexity -- deeply nested sanitization logic */
+ 
 function sanitizeBudget(candidate: unknown, title?: string): BudgetDocument {
   const template = cloneTemplate(title);
   const source = asRecord(candidate);
@@ -229,30 +231,30 @@ function sanitizeBudget(candidate: unknown, title?: string): BudgetDocument {
       title: getStringField(
         sourceMetadata,
         'title',
-        title || template.metadata?.["title"] || 'Untitled Project'
+        title || template.metadata?.title || 'Untitled Project'
       ),
       director: getStringField(
         sourceMetadata,
         'director',
-        template.metadata?.["director"] || ''
+        template.metadata?.director || ''
       ),
       producer: getStringField(
         sourceMetadata,
         'producer',
-        template.metadata?.["producer"] || ''
+        template.metadata?.producer || ''
       ),
       productionCompany: getStringField(
         sourceMetadata,
         'productionCompany',
-        template.metadata?.["productionCompany"] || ''
+        template.metadata?.productionCompany || ''
       ),
       shootingDays: getNumberField(
         sourceMetadata,
         'shootingDays',
-        template.metadata?.["shootingDays"] || 0
+        template.metadata?.shootingDays || 0
       ),
       locations: normalizeStringList(sourceMetadata["locations"]),
-      genre: getStringField(sourceMetadata, 'genre', template.metadata?.["genre"] || ''),
+      genre: getStringField(sourceMetadata, 'genre', template.metadata?.genre || ''),
     },
     sections: sections.map((sectionCandidate, sectionIndex) => {
       const section = asRecord(sectionCandidate);
@@ -315,7 +317,7 @@ function sanitizeBudget(candidate: unknown, title?: string): BudgetDocument {
 
   return recalculateBudget(budget);
 }
-/* eslint-enable complexity */
+ 
 
 function buildBudgetPrompt(scenario: string, template: BudgetDocument): string {
   return `You are a senior film line producer. Analyze the screenplay and return ONLY valid JSON that matches the provided budget structure.
@@ -547,11 +549,11 @@ export class BudgetService {
     );
   }
 
-  // eslint-disable-next-line max-lines-per-function
+   
   async exportBudget(budget: BudgetDocument): Promise<Buffer> {
     const normalizedBudget = sanitizeBudget(
       budget,
-      budget.metadata?.["title"] || 'Production Budget'
+      budget.metadata?.title || 'Production Budget'
     );
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'The Copy Backend';

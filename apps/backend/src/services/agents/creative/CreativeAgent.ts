@@ -1,12 +1,14 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CREATIVE_AGENT_CONFIG } from "./agent";
 import { CREATIVE_MODE_INSTRUCTIONS } from "./instructions";
-import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
 /**
  * Creative Development Agent - وكيل التطوير الإبداعي
@@ -65,7 +67,7 @@ export class CreativeAgent extends BaseAgent {
    */
   private toRecord(context: StandardAgentInput["context"]): Record<string, unknown> {
     return typeof context === "object" && context !== null
-      ? (context as Record<string, unknown>)
+      ? (context)
       : {};
   }
 
@@ -402,7 +404,7 @@ export class CreativeAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const focus =
-      (typeof input["context"] === "object" && input["context"]["developmentFocus"]) ||
+      (typeof input.context === "object" && input.context["developmentFocus"]) ||
       "general";
 
     return `تحليل إبداعي:

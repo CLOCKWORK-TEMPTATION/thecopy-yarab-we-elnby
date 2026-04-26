@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const CONFLICT_DYNAMICS_INSTRUCTIONS = `
 **العملية:** طبق "نموذج تحليل الصراعات المتعددة الطبقات".

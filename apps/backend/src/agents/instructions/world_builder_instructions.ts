@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const WORLD_BUILDER_INSTRUCTIONS = `
 **العملية:** طبق "نموذج بناء العالم الدرامي المتقدم".

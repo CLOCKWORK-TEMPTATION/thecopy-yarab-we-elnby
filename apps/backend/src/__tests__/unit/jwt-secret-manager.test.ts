@@ -9,8 +9,8 @@
  * - دعم قائمة أسرار سابقة مفصولة بفواصل
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // لا نُدخل env قبل إعداد متغيرات البيئة في كل حالة اختبار
 const ACTIVE_SECRET = 'active-secret-at-least-32-characters-long-for-tests';

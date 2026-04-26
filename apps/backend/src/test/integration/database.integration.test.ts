@@ -8,7 +8,7 @@
  * 4. Error scenarios
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 
 // Mock database module
 vi.mock('@/db', () => ({
@@ -119,8 +119,8 @@ describe('Database Integration Tests', () => {
       const result = await mockDb.query('SELECT * FROM projects');
 
       expect(result.rows).toHaveLength(2);
-      expect(result.rows[0]["title"]).toBe('Project 1');
-      expect(result.rows[1]["title"]).toBe('Project 2');
+      expect(result.rows[0].title).toBe('Project 1');
+      expect(result.rows[1].title).toBe('Project 2');
     });
 
     it('should handle empty result set', async () => {
@@ -170,7 +170,7 @@ describe('Database Integration Tests', () => {
         ['Updated Title', 'published', 1]
       );
 
-      expect(result.rows[0]["title"]).toBe('Updated Title');
+      expect(result.rows[0].title).toBe('Updated Title');
       expect(result.rowCount).toBe(1);
     });
 

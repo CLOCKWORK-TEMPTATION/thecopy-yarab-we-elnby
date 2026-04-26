@@ -3,8 +3,9 @@
  * Extracted from resolution.ts to reduce file size
  */
 
-import { geminiService } from '@/services/gemini.service';
 import { logger } from '@/lib/logger';
+import { geminiService } from '@/services/gemini.service';
+
 import { DebateArgument } from './types';
 
 /**
@@ -56,7 +57,7 @@ ${arg.position.substring(0, 300)}
       maxTokens: 50,
     });
 
-    const match = response.match(/(\d+\.?\d*)/);
+    const match = /(\d+\.?\d*)/.exec(response);
     if (match?.[1]) {
       return Math.min(1, Math.max(0, parseFloat(match[1])));
     }
@@ -148,7 +149,7 @@ export function extractBulletPoints(text: string): string[] {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.match(/^[\-\*\•]\s/) || trimmed.match(/^\d+[\.\)]\s/)) {
+    if ((/^[\-\*\•]\s/.exec(trimmed)) || (/^\d+[\.\)]\s/.exec(trimmed))) {
       const point = trimmed
         .replace(/^[\-\*\•]\s/, '')
         .replace(/^\d+[\.\)]\s/, '')

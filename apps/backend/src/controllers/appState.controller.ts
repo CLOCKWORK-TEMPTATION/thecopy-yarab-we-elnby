@@ -12,13 +12,14 @@
  */
 
 import { Request, Response } from 'express';
+import { z } from 'zod';
+
 import { logger } from '@/lib/logger';
 import {
   clearAppState,
   readAppState,
   saveAppState,
 } from '@/services/app-state.service';
-import { z } from 'zod';
 
 /** معرّفات التطبيقات المسموح بها */
 const VALID_APP_IDS = new Set([
@@ -65,7 +66,7 @@ export class AppStateController {
       const appId = getAppIdParam(req);
 
       if (!appId || !isValidAppId(appId)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
           code: 'INVALID_APP_ID',
@@ -94,7 +95,7 @@ export class AppStateController {
       logger.debug('تم استرجاع حالة التطبيق', { appId });
     } catch (error) {
       logger.error('فشل في استرجاع حالة التطبيق:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'فشل في استرجاع حالة التطبيق',
         code: 'STATE_FETCH_FAILED',
@@ -111,7 +112,7 @@ export class AppStateController {
       const appId = getAppIdParam(req);
 
       if (!appId || !isValidAppId(appId)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
           code: 'INVALID_APP_ID',
@@ -121,7 +122,7 @@ export class AppStateController {
 
       const validation = appStateBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'البيانات مطلوبة ويجب أن تكون كائناً',
           code: 'INVALID_DATA',
@@ -141,7 +142,7 @@ export class AppStateController {
       logger.debug('تم حفظ حالة التطبيق', { appId, updatedAt: newState.updatedAt });
     } catch (error) {
       logger.error('فشل في حفظ حالة التطبيق:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'فشل في حفظ حالة التطبيق',
         code: 'STATE_SAVE_FAILED',
@@ -158,7 +159,7 @@ export class AppStateController {
       const appId = getAppIdParam(req);
 
       if (!appId || !isValidAppId(appId)) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
           code: 'INVALID_APP_ID',
@@ -177,7 +178,7 @@ export class AppStateController {
       logger.debug('تم مسح حالة التطبيق', { appId });
     } catch (error) {
       logger.error('فشل في مسح حالة التطبيق:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'فشل في مسح حالة التطبيق',
         code: 'STATE_CLEAR_FAILED',

@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { RECOMMENDATIONS_GENERATOR_AGENT_CONFIG } from "./agent";
 import { RECOMMENDATIONS_GENERATOR_INSTRUCTIONS } from "./instructions";
 
@@ -33,7 +35,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
 
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const typedCtx = contextObj as Record<string, unknown>;
+    const typedCtx = contextObj;
     const originalText = (typedCtx["originalText"] as string) || "";
     const analysisResults = (typedCtx["analysisResults"] as Record<string, string>) || {};
     const previousStations = (typedCtx["previousStations"] as Record<string, string>) || {};

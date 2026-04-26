@@ -116,7 +116,7 @@ export function extractEvidence(text: string): string[] {
   const lines = text.split('\n');
 
   for (const line of lines) {
-    if (line.match(/^[\-\*\•]\s/) || line.match(/^\d+[\.\)]\s/)) {
+    if ((/^[\-\*\•]\s/.exec(line)) || (/^\d+[\.\)]\s/.exec(line))) {
       evidence.push(line.trim());
     }
   }

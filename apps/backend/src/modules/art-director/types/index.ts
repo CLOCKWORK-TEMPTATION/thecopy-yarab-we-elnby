@@ -361,7 +361,7 @@ export type {
  * @param dataSchema - مخطط Zod للبيانات المتوقعة
  * @returns مخطط Zod للاستجابة الكاملة
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+ 
 export const ApiResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
   z.discriminatedUnion("success", [
     // حالة النجاح: success = true مع data اختياري

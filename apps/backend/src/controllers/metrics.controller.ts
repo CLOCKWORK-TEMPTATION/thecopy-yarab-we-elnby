@@ -6,10 +6,12 @@
  */
 
 import { Request, Response } from 'express';
+
+import { logger } from '@/lib/logger';
+import { cacheMetricsService } from '@/services/cache-metrics.service';
 import { metricsAggregator } from '@/services/metrics-aggregator.service';
 import { resourceMonitor } from '@/services/resource-monitor.service';
-import { cacheMetricsService } from '@/services/cache-metrics.service';
-import { logger } from '@/lib/logger';
+
 import {
   getSnapshotData,
   parseDateRange,
@@ -32,7 +34,7 @@ export class MetricsController {
       res.json({ success: true, data: snapshot });
     } catch (error) {
       logger.error('Failed to get metrics snapshot:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على لقطة المقاييس' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على لقطة المقاييس' });
     }
   }
 
@@ -43,7 +45,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get latest metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على آخر المقاييس' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على آخر المقاييس' });
     }
   }
 
@@ -54,7 +56,7 @@ export class MetricsController {
 
       if ('error' in parsed) {
         const msg = parsed.error === 'missing' ? 'يجب توفير start و end' : 'تنسيق التاريخ غير صالح';
-        res["status"](400).json({ success: false, error: msg });
+        res.status(400).json({ success: false, error: msg });
         return;
       }
 
@@ -62,7 +64,7 @@ export class MetricsController {
       res.json({ success: true, data: snapshots, count: snapshots.length });
     } catch (error) {
       logger.error('Failed to get metrics range:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على نطاق المقاييس' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على نطاق المقاييس' });
     }
   }
 
@@ -73,7 +75,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get database metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس قاعدة البيانات' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس قاعدة البيانات' });
     }
   }
 
@@ -84,7 +86,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get Redis metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس Redis' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس Redis' });
     }
   }
 
@@ -95,7 +97,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get queue metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس الطوابير' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس الطوابير' });
     }
   }
 
@@ -106,7 +108,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get API metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس API' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس API' });
     }
   }
 
@@ -117,7 +119,7 @@ export class MetricsController {
       res.json({ success: true, data: resources });
     } catch (error) {
       logger.error('Failed to get resource metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس الموارد' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس الموارد' });
     }
   }
 
@@ -128,7 +130,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get Gemini metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على مقاييس Gemini' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على مقاييس Gemini' });
     }
   }
 
@@ -139,7 +141,7 @@ export class MetricsController {
       const range = 'error' in parsed ? defaultDateRange() : parsed;
 
       if ('error' in parsed && parsed.error === 'invalid') {
-        res["status"](400).json({ success: false, error: 'تنسيق التاريخ غير صالح' });
+        res.status(400).json({ success: false, error: 'تنسيق التاريخ غير صالح' });
         return;
       }
 
@@ -147,7 +149,7 @@ export class MetricsController {
       res.json({ success: true, data: report });
     } catch (error) {
       logger.error('Failed to generate performance report:', error);
-      res["status"](500).json({ success: false, error: 'فشل في إنشاء تقرير الأداء' });
+      res.status(500).json({ success: false, error: 'فشل في إنشاء تقرير الأداء' });
     }
   }
 
@@ -158,7 +160,7 @@ export class MetricsController {
       res.json({ success: true, data });
     } catch (error) {
       logger.error('Failed to get health status:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على حالة النظام' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على حالة النظام' });
     }
   }
 
@@ -169,7 +171,7 @@ export class MetricsController {
       res.json({ success: true, data: summary });
     } catch (error) {
       logger.error('Failed to get dashboard summary:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على ملخص لوحة التحكم' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على ملخص لوحة التحكم' });
     }
   }
 
@@ -180,7 +182,7 @@ export class MetricsController {
       res.json({ success: true, data: snapshot });
     } catch (error) {
       logger.error('Failed to get cache snapshot:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على لقطة مقاييس الكاش' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على لقطة مقاييس الكاش' });
     }
   }
 
@@ -191,7 +193,7 @@ export class MetricsController {
       res.json({ success: true, data: stats });
     } catch (error) {
       logger.error('Failed to get real-time cache stats:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على إحصائيات الكاش الفورية' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على إحصائيات الكاش الفورية' });
     }
   }
 
@@ -202,7 +204,7 @@ export class MetricsController {
       res.json({ success: true, data: health });
     } catch (error) {
       logger.error('Failed to get cache health:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على حالة الكاش الصحية' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على حالة الكاش الصحية' });
     }
   }
 
@@ -213,7 +215,7 @@ export class MetricsController {
       const range = 'error' in parsed ? defaultDateRange() : parsed;
 
       if ('error' in parsed && parsed.error === 'invalid') {
-        res["status"](400).json({ success: false, error: 'تنسيق التاريخ غير صالح' });
+        res.status(400).json({ success: false, error: 'تنسيق التاريخ غير صالح' });
         return;
       }
 
@@ -221,7 +223,7 @@ export class MetricsController {
       res.json({ success: true, data: report });
     } catch (error) {
       logger.error('Failed to generate cache report:', error);
-      res["status"](500).json({ success: false, error: 'فشل في إنشاء تقرير أداء الكاش' });
+      res.status(500).json({ success: false, error: 'فشل في إنشاء تقرير أداء الكاش' });
     }
   }
 
@@ -232,7 +234,7 @@ export class MetricsController {
       res.json({ success: true, data: dashboard });
     } catch (error) {
       logger.error('Failed to get APM dashboard:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على لوحة مراقبة الأداء' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على لوحة مراقبة الأداء' });
     }
   }
 
@@ -242,7 +244,7 @@ export class MetricsController {
       res.json({ success: true, data: buildApmConfig() });
     } catch (error) {
       logger.error('Failed to get APM config:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على إعدادات APM' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على إعدادات APM' });
     }
   }
 
@@ -253,7 +255,7 @@ export class MetricsController {
       res.json({ success: true, message: 'تم إعادة تعيين مقاييس الأداء' });
     } catch (error) {
       logger.error('Failed to reset APM metrics:', error);
-      res["status"](500).json({ success: false, error: 'فشل في إعادة تعيين مقاييس الأداء' });
+      res.status(500).json({ success: false, error: 'فشل في إعادة تعيين مقاييس الأداء' });
     }
   }
 
@@ -264,7 +266,7 @@ export class MetricsController {
       res.json({ success: true, data: alerts });
     } catch (error) {
       logger.error('Failed to get APM alerts:', error);
-      res["status"](500).json({ success: false, error: 'فشل في الحصول على تنبيهات الأداء' });
+      res.status(500).json({ success: false, error: 'فشل في الحصول على تنبيهات الأداء' });
     }
   }
 }

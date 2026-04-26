@@ -5,12 +5,14 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { queueManager, QueueName } from '@/queues/queue.config';
+
 import {
   queueDocumentProcessing,
   registerDocumentProcessingWorker,
   DocumentProcessingJobData,
 } from './document-processing.job';
-import { queueManager, QueueName } from '@/queues/queue.config';
 
 vi.mock('redis', () => ({
   createClient: () => ({

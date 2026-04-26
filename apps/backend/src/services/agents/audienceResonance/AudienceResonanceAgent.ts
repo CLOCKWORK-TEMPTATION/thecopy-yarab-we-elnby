@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { AUDIENCE_RESONANCE_AGENT_CONFIG } from "./agent";
 import { RESONANCE_ANALYSIS_INSTRUCTIONS } from "./instructions";
 
@@ -32,11 +34,11 @@ interface AudienceResonanceContext {
   };
   contentType?: string;
   platform?: string;
-  previousResponses?: Array<{
+  previousResponses?: {
     audienceSegment: string;
     response: string;
     resonanceScore: number;
-  }>;
+  }[];
 }
 
 /** Audience Resonance Agent - وكيل مصفوفة التعاطف الجماهيري */
@@ -280,7 +282,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   protected override async getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const ctx = input["context"] as AudienceResonanceContext;
+    const ctx = input.context as AudienceResonanceContext;
     const audienceInfo = ctx?.targetAudience ? "محدد" : "عام";
 
     return `تحليل الصدى الجماهيري (${audienceInfo}):

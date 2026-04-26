@@ -134,8 +134,7 @@ function needsNewScheduleGroup(
   item: ShootingScheduleItem
 ): boolean {
   return (
-    !currentGroup ||
-    currentGroup.location !== item.location ||
+    currentGroup?.location !== item.location ||
     currentGroup.timeOfDay !== item.timeOfDay ||
     currentGroup.estimatedHours + item.estimatedHours > 12
   );

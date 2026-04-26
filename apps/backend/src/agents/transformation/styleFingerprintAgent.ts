@@ -1,4 +1,5 @@
 import { TaskCategory } from '../../types/types';
+
 import type { AIAgentConfig } from '../../types/types';
 
 export const styleFingerprintAgent: AIAgentConfig = {

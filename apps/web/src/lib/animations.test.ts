@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { createIntersectionObserver } from "./animations";
 
 /**
@@ -13,10 +14,10 @@ describe("createIntersectionObserver", () => {
   const originalIntersectionObserver = window.IntersectionObserver;
 
   // spy مشترك لتتبّع المُنشِئ ووسائطه
-  let constructorCalls: Array<{
+  let constructorCalls: {
     callback: IntersectionObserverCallback;
     options: IntersectionObserverInit | undefined;
-  }> = [];
+  }[] = [];
   let lastObserver: {
     observe: ReturnType<typeof vi.fn>;
     unobserve: ReturnType<typeof vi.fn>;
@@ -30,7 +31,7 @@ describe("createIntersectionObserver", () => {
     public takeRecords = vi.fn(() => []);
     public root: Element | null = null;
     public rootMargin = "";
-    public thresholds: ReadonlyArray<number> = [];
+    public thresholds: readonly number[] = [];
     public callback: IntersectionObserverCallback;
 
     constructor(

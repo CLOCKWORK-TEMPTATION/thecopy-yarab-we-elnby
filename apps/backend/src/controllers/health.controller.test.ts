@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
@@ -92,7 +93,7 @@ function createMockResponse(): Response & {
     status: ReturnType<typeof vi.fn>;
   };
 
-  response["status"].mockImplementation(() => response);
+  response.status.mockImplementation(() => response);
   return response;
 }
 
@@ -106,10 +107,10 @@ describe("HealthController", () => {
     vi.clearAllMocks();
 
     originalRedisEnabled = process.env['REDIS_ENABLED'];
-    originalRedisHost = process.env['REDIS_HOST'];
+    originalRedisHost = process.env.REDIS_HOST;
 
     process.env['REDIS_ENABLED'] = "false";
-    delete process.env['REDIS_HOST'];
+    delete process.env.REDIS_HOST;
 
     mockDbExecute.mockResolvedValue(undefined);
     mockCreateClient.mockReturnValue(mockRedisClient);
@@ -153,9 +154,9 @@ describe("HealthController", () => {
     }
 
     if (originalRedisHost === undefined) {
-      delete process.env['REDIS_HOST'];
+      delete process.env.REDIS_HOST;
     } else {
-      process.env['REDIS_HOST'] = originalRedisHost;
+      process.env.REDIS_HOST = originalRedisHost;
     }
   });
 
@@ -175,7 +176,7 @@ describe("HealthController", () => {
 
     await controller.getReadiness({} as Request, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(503);
+    expect(res.status).toHaveBeenCalledWith(503);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "not_ready",
@@ -201,7 +202,7 @@ describe("HealthController", () => {
 
     await controller.getDetailedHealth({} as Request, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(503);
+    expect(res.status).toHaveBeenCalledWith(503);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "unhealthy",
@@ -241,7 +242,7 @@ describe("HealthController", () => {
 
     await controller.getHealth({} as Request, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "degraded",
@@ -276,7 +277,7 @@ describe("HealthController", () => {
 
     await controller.getReadiness({} as Request, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(503);
+    expect(res.status).toHaveBeenCalledWith(503);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "not_ready",

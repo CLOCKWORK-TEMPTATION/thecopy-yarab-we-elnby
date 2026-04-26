@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -10,9 +9,11 @@ import {
   extractNestedRecord,
   parseList,
 } from "./handlers-shared";
-import { LocationSetCoordinator } from "./plugins/location-coordinator";
 import { runPlugin } from "./plugin-executor";
+import { LocationSetCoordinator } from "./plugins/location-coordinator";
 import { readStore, updateStore, type StoredLocation } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 export async function handleLocationSearch(
   payload: Record<string, unknown>

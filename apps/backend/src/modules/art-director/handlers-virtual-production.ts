@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -11,13 +10,15 @@ import {
   uniqueById,
   extractNestedRecord,
 } from "./handlers-shared";
-import { MRPrevizStudio } from "./plugins/mr-previz-studio";
-import { VirtualSetEditor } from "./plugins/virtual-set-editor";
+import { runPlugin } from "./plugin-executor";
 import { CinemaSkillsTrainer } from "./plugins/cinema-skills-trainer";
 import { ImmersiveConceptArt } from "./plugins/immersive-concept-art";
+import { MRPrevizStudio } from "./plugins/mr-previz-studio";
 import { VirtualProductionEngine } from "./plugins/virtual-production-engine";
-import { runPlugin } from "./plugin-executor";
+import { VirtualSetEditor } from "./plugins/virtual-set-editor";
 import { updateStore, type RawEntity } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function filterEntitiesWithId(
   items: RawEntity[]

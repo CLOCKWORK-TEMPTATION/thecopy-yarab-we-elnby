@@ -5,22 +5,23 @@
  * Enhanced with workflow system support
  */
 
+import { logger } from '@/lib/logger';
+
 import { TaskType } from './core/enums';
 import { StandardAgentInput, StandardAgentOutput } from './core/types';
-import { agentRegistry } from './registry';
-import { logger } from '@/lib/logger';
+import { workflowExecutor } from './core/workflow-executor';
+import { getPresetWorkflow, PresetWorkflowName } from './core/workflow-presets';
+import { WorkflowConfig, WorkflowStatus } from './core/workflow-types';
 import { startDebate } from './debate';
 import { DebateConfig } from './debate/types';
-import { BaseAgent } from './shared/BaseAgent';
-import { workflowExecutor } from './core/workflow-executor';
-import { WorkflowConfig, WorkflowStatus } from './core/workflow-types';
-import { getPresetWorkflow, PresetWorkflowName } from './core/workflow-presets';
 import {
   executeAgentsInParallel,
   executeAgentsSequentially,
   getDebateAgents,
   getRecommendedAgentTypes,
 } from './orchestrator-helpers';
+import { agentRegistry } from './registry';
+import { BaseAgent } from './shared/BaseAgent';
 
 export interface OrchestrationInput {
   fullText: string;
@@ -152,7 +153,7 @@ export class MultiAgentOrchestrator {
     taskTypes?: TaskType[],
     context?: string,
     config?: Partial<DebateConfig>,
-    confidenceThreshold: number = 0.6
+    confidenceThreshold = 0.6
   ): Promise<StandardAgentOutput> {
     logger.info(`Starting multi-agent debate on: ${topic}`);
 
@@ -187,7 +188,7 @@ export class MultiAgentOrchestrator {
    */
   async executeWithDebate(
     input: OrchestrationInput,
-    enableDebate: boolean = true,
+    enableDebate = true,
     debateConfig?: Partial<DebateConfig>
   ): Promise<OrchestrationOutput> {
     const result = await this.executeAgents(input);

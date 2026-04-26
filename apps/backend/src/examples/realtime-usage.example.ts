@@ -5,8 +5,8 @@
  * to broadcast real-time updates to clients.
  */
 
-import { websocketService } from '@/services/websocket.service';
 import { sseService } from '@/services/sse.service';
+import { websocketService } from '@/services/websocket.service';
 import {
   RealtimeEventType,
   createRealtimeEvent,

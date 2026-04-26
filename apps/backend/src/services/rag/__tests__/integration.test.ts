@@ -2,8 +2,8 @@
  * RAG Integration Tests
  */
 
-import { describe, expect, it, vi } from "vitest";
 import { SemanticChunker } from "@the-copy/core-memory";
+import { describe, expect, it, vi } from "vitest";
 
 const { mockIndexAdHocDocument, mockRetrieve } = vi.hoisted(() => ({
   mockIndexAdHocDocument: vi.fn(),

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import express, { Express } from 'express';
 import request from 'supertest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('../config/env', () => ({
@@ -93,7 +93,7 @@ describe('Middleware Setup', () => {
       const response = await request(app).get('/test');
       
       // Request without Origin header should succeed
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toEqual({ success: true });
     });
 
@@ -103,7 +103,7 @@ describe('Middleware Setup', () => {
         .set('Origin', 'https://malicious-site.com');
 
       // Request from disallowed origin should fail
-      expect(response["status"]).not.toBe(200);
+      expect(response.status).not.toBe(200);
     });
   });
 
@@ -115,7 +115,7 @@ describe('Middleware Setup', () => {
 
       // If compression is working, content-encoding should be set
       // or the response should be successful
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -165,7 +165,7 @@ describe('Middleware Setup', () => {
         .set('Content-Type', 'application/json');
 
       // Supertest may handle large payloads differently in test environment
-      expect([413, 500]).toContain(response["status"]);
+      expect([413, 500]).toContain(response.status);
     });
   });
 
@@ -173,7 +173,7 @@ describe('Middleware Setup', () => {
     it('should allow requests under the limit', async () => {
       for (let i = 0; i < 5; i++) {
         const response = await request(app).get('/api/test');
-        expect([200, 404]).toContain(response["status"]);
+        expect([200, 404]).toContain(response.status);
       }
     });
 
@@ -183,7 +183,7 @@ describe('Middleware Setup', () => {
         Array(15).fill(null).map(() => request(app).get('/api/test'))
       );
 
-      const rateLimited = responses.some(r => r["status"] === 429);
+      const rateLimited = responses.some(r => r.status === 429);
       // At least some requests should be rate limited
       expect(rateLimited).toBe(true);
     });
@@ -191,7 +191,7 @@ describe('Middleware Setup', () => {
     it('should not rate limit non-API routes', async () => {
       for (let i = 0; i < 15; i++) {
         const response = await request(app).get('/test');
-        expect(response["status"]).toBe(200);
+        expect(response.status).toBe(200);
       }
     });
   });
@@ -212,7 +212,7 @@ describe('Middleware Setup', () => {
     it('should handle errors gracefully', async () => {
       // Add explicit error handler for test
       app.use((error: Error, req: any, res: any, next: any) => {
-        res["status"](500).json({
+        res.status(500).json({
           success: false,
           error: 'حدث خطأ داخلي في الخادم',
         });
@@ -220,7 +220,7 @@ describe('Middleware Setup', () => {
 
       const response = await request(app).get('/error');
 
-      expect(response["status"]).toBe(500);
+      expect(response.status).toBe(500);
       expect(response.body).toMatchObject({
         success: false,
       });
@@ -234,7 +234,7 @@ describe('Middleware Setup', () => {
       // Add explicit error handler that logs
       app.use((error: Error, req: any, res: any, next: any) => {
         logger.error('Unhandled error:', error);
-        res["status"](500).json({ success: false });
+        res.status(500).json({ success: false });
       });
       
       await request(app).get('/error');

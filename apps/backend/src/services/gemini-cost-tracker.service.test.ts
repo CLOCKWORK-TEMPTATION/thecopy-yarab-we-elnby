@@ -44,9 +44,10 @@ vi.mock('./notification.service', () => ({
   },
 }));
 
-import { GeminiCostTrackerService, geminiCostTracker } from './gemini-cost-tracker.service';
-import { cacheService } from './cache.service';
 import { logger } from '@/lib/logger';
+
+import { cacheService } from './cache.service';
+import { GeminiCostTrackerService, geminiCostTracker } from './gemini-cost-tracker.service';
 
 describe('GeminiCostTrackerService', () => {
   let service: GeminiCostTrackerService;

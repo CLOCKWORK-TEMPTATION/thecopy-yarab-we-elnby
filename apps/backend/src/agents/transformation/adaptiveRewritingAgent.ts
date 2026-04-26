@@ -1,5 +1,6 @@
-import type { AIAgentConfig } from '../../types/types';
 import { TaskCategory } from '../../types/types';
+
+import type { AIAgentConfig } from '../../types/types';
 
 export const ADAPTIVE_REWRITING_AGENT_CONFIG: AIAgentConfig = {
     id: 'adaptive-rewriting',

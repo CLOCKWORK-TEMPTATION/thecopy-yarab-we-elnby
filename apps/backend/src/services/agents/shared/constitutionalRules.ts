@@ -48,9 +48,9 @@ export interface RuleException {
  * Manages and applies constitutional rules with advanced features
  */
 export class ConstitutionalRulesEngine {
-  private rules: Map<string, Rule> = new Map();
+  private rules = new Map<string, Rule>();
   private exceptions: RuleException[] = [];
-  private violationHistory: Map<string, number> = new Map();
+  private violationHistory = new Map<string, number>();
 
   /**
    * Register a new rule
@@ -212,7 +212,7 @@ export class ConstitutionalRulesEngine {
   /**
    * Get violation statistics
    */
-  getViolationStats(): Array<{ ruleId: string; count: number }> {
+  getViolationStats(): { ruleId: string; count: number }[] {
     return Array.from(this.violationHistory.entries())
       .map(([ruleId, count]) => ({ ruleId, count }))
       .sort((a, b) => b.count - a.count);
@@ -221,7 +221,7 @@ export class ConstitutionalRulesEngine {
   /**
    * Get most violated rules
    */
-  getMostViolatedRules(limit: number = 5): Rule[] {
+  getMostViolatedRules(limit = 5): Rule[] {
     const stats = this.getViolationStats().slice(0, limit);
     return stats
       .map(stat => this.rules.get(stat.ruleId))
@@ -238,7 +238,7 @@ export class ConstitutionalRulesEngine {
   /**
    * Export rules configuration
    */
-  exportConfig(): { rules: Array<{ id: string; name: string; enabled: boolean; parameters: RuleParameter[] }>; exceptions: RuleException[] } {
+  exportConfig(): { rules: { id: string; name: string; enabled: boolean; parameters: RuleParameter[] }[]; exceptions: RuleException[] } {
     return {
       rules: Array.from(this.rules.values()).map(rule => ({
         id: rule.id,
@@ -253,7 +253,7 @@ export class ConstitutionalRulesEngine {
   /**
    * Import rules configuration
    */
-  importConfig(config: { rules?: Array<{ id: string; enabled: boolean; parameters?: RuleParameter[] }>; exceptions?: RuleException[] }): void {
+  importConfig(config: { rules?: { id: string; enabled: boolean; parameters?: RuleParameter[] }[]; exceptions?: RuleException[] }): void {
     if (config.rules) {
       config.rules.forEach((ruleConfig) => {
         const rule = this.rules.get(ruleConfig.id);

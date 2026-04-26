@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const THEMATIC_MINING_INSTRUCTIONS = `
 **العملية:** طبق "نموذج التنقيب عن الموضوعات المتقدم".

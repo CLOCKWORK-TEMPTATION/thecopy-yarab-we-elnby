@@ -1,15 +1,17 @@
+import { eq, and, inArray } from 'drizzle-orm';
 import { Response } from 'express';
+import { z } from 'zod';
+
 import { db } from '@/db';
 import { scenes, projects } from '@/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
-import { z } from 'zod';
-import type { AuthRequest } from '@/middleware/auth.middleware';
 import { getParamAsString } from '@/middleware/auth.middleware';
+
+import type { AuthRequest } from '@/middleware/auth.middleware';
 
 function requireAuth(req: AuthRequest, res: Response): boolean {
   if (!req.user) {
-    res["status"](401).json({ success: false, error: 'غير مصرح' });
+    res.status(401).json({ success: false, error: 'غير مصرح' });
     return false;
   }
   return true;
@@ -17,7 +19,7 @@ function requireAuth(req: AuthRequest, res: Response): boolean {
 
 function handleZodError(error: unknown, res: Response): boolean {
   if (error instanceof z.ZodError) {
-    res["status"](400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
+    res.status(400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
     return true;
   }
   return false;
@@ -70,7 +72,7 @@ export class ScenesController {
   async getScenes(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -80,7 +82,7 @@ export class ScenesController {
       const projectId = getParamAsString(req.params["projectId"]);
 
       if (!projectId) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معرف المشروع مطلوب',
         });
@@ -93,7 +95,7 @@ export class ScenesController {
         .where(and(eq(projects.id, projectId), eq(projects.userId, req.user.id)));
 
       if (!project) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'المشروع غير موجود',
         });
@@ -112,7 +114,7 @@ export class ScenesController {
       });
     } catch (error) {
       logger.error('Get scenes error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء جلب المشاهد',
       });
@@ -128,7 +130,7 @@ export class ScenesController {
   async getScene(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -138,7 +140,7 @@ export class ScenesController {
       const id = getParamAsString(req.params["id"]);
 
       if (!id) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معرف المشهد مطلوب',
         });
@@ -155,7 +157,7 @@ export class ScenesController {
         .limit(1);
 
       if (!result) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'المشهد غير موجود أو غير مصرح للوصول له',
         });
@@ -168,7 +170,7 @@ export class ScenesController {
       });
     } catch (error) {
       logger.error('Get scene error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء جلب المشهد',
       });
@@ -188,22 +190,22 @@ export class ScenesController {
       const validatedData = createSceneSchema.parse(req.body);
       const project = await verifyProjectOwnership(validatedData.projectId, req.user!.id);
       if (!project) {
-        res["status"](404).json({ success: false, error: 'المشروع غير موجود' });
+        res.status(404).json({ success: false, error: 'المشروع غير موجود' });
         return;
       }
 
       const [newScene] = await db.insert(scenes).values(validatedData).returning();
       if (!newScene) {
-        res["status"](500).json({ success: false, error: 'فشل إنشاء المشهد' });
+        res.status(500).json({ success: false, error: 'فشل إنشاء المشهد' });
         return;
       }
 
-      res["status"](201).json({ success: true, message: 'تم إنشاء المشهد بنجاح', data: newScene });
+      res.status(201).json({ success: true, message: 'تم إنشاء المشهد بنجاح', data: newScene });
       logger.info('Scene created successfully', { sceneId: newScene.id, projectId: validatedData.projectId });
     } catch (error) {
       if (handleZodError(error, res)) return;
       logger.error('Create scene error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء إنشاء المشهد' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء إنشاء المشهد' });
     }
   }
 
@@ -219,7 +221,7 @@ export class ScenesController {
 
       const id = getParamAsString(req.params["id"]);
       if (!id) {
-        res["status"](400).json({ success: false, error: 'معرف المشهد مطلوب' });
+        res.status(400).json({ success: false, error: 'معرف المشهد مطلوب' });
         return;
       }
 
@@ -235,7 +237,7 @@ export class ScenesController {
         .returning();
 
       if (!updatedScene) {
-        res["status"](404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لتعديله' });
+        res.status(404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لتعديله' });
         return;
       }
 
@@ -244,7 +246,7 @@ export class ScenesController {
     } catch (error) {
       if (handleZodError(error, res)) return;
       logger.error('Update scene error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء تحديث المشهد' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحديث المشهد' });
     }
   }
 
@@ -257,7 +259,7 @@ export class ScenesController {
   async deleteScene(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -267,7 +269,7 @@ export class ScenesController {
       const id = getParamAsString(req.params["id"]);
 
       if (!id) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معرف المشهد مطلوب',
         });
@@ -284,7 +286,7 @@ export class ScenesController {
         .limit(1);
 
       if (!result) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'المشهد غير موجود أو غير مصرح لحذفه',
         });
@@ -301,7 +303,7 @@ export class ScenesController {
       logger.info('Scene deleted successfully', { sceneId: id });
     } catch (error) {
       logger.error('Delete scene error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء حذف المشهد',
       });

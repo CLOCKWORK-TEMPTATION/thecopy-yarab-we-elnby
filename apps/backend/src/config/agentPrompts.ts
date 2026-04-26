@@ -19,7 +19,7 @@ export const TASKS_EXPECTING_JSON_RESPONSE = [
   'scene_analysis',
 ];
 
-export const COMPLETION_ENHANCEMENT_OPTIONS: Array<{id: string; label: string}> = [
+export const COMPLETION_ENHANCEMENT_OPTIONS: {id: string; label: string}[] = [
   { id: 'creative', label: 'إبداعي' },
   { id: 'balanced', label: 'متوازن' },
   { id: 'precise', label: 'دقيق' },

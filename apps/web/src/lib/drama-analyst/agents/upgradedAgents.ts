@@ -10,33 +10,30 @@ import { TaskType } from "@core/types";
 import { log } from "../services/loggerService";
 
 // Import upgraded agents
-import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";
 import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
-import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
-import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
-import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
-import { WorldBuilderAgent } from "./worldBuilder/WorldBuilderAgent";
 import { AnalysisAgent } from "./analysis/AnalysisAgent";
-import { IntegratedAgent } from "./integrated/IntegratedAgent";
 
 // المجموعة الأولى - الوكلاء السبعة الجديدة
-import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
-import { CharacterDeepAnalyzerAgent } from "./characterDeepAnalyzer/CharacterDeepAnalyzerAgent";
-import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
-import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
 import { CulturalHistoricalAnalyzerAgent } from "./culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent";
 import { VisualCinematicAnalyzerAgent } from "./visualCinematicAnalyzer/VisualCinematicAnalyzerAgent";
 import { ProducibilityAnalyzerAgent } from "./producibilityAnalyzer/ProducibilityAnalyzerAgent";
 
 // الوكلاء الأربعة المتبقية من الترقية السابقة
 import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
+import { CharacterDeepAnalyzerAgent } from "./characterDeepAnalyzer/CharacterDeepAnalyzerAgent";
+import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";
 import { CharacterVoiceAgent } from "./characterVoice/CharacterVoiceAgent";
 import { CompletionAgent } from "./completion/CompletionAgent";
 import { ConflictDynamicsAgent } from "./conflictDynamics/ConflictDynamicsAgent";
 import { CreativeAgent } from "./creative/CreativeAgent";
+import { DialogueAdvancedAnalyzerAgent } from "./dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent";
 import { DialogueForensicsAgent } from "./dialogueForensics/DialogueForensicsAgent";
+import { IntegratedAgent } from "./integrated/IntegratedAgent";
 import { LiteraryQualityAnalyzerAgent } from "./literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent";
+import { PlatformAdapterAgent } from "./platformAdapter/PlatformAdapterAgent";
+import { PlotPredictorAgent } from "./plotPredictor/PlotPredictorAgent";
 import { RecommendationsGeneratorAgent } from "./recommendationsGenerator/RecommendationsGeneratorAgent";
+import { RhythmMappingAgent } from "./rhythmMapping/RhythmMappingAgent";
 import { SceneGeneratorAgent } from "./sceneGenerator/SceneGeneratorAgent";
 import { BaseAgent } from "./shared/BaseAgent";
 import {
@@ -45,7 +42,10 @@ import {
 } from "./shared/standardAgentPattern";
 import { StyleFingerprintAgent } from "./styleFingerprint/StyleFingerprintAgent";
 import { TargetAudienceAnalyzerAgent } from "./targetAudienceAnalyzer/TargetAudienceAnalyzerAgent";
+import { TensionOptimizerAgent } from "./tensionOptimizer/TensionOptimizerAgent";
 import { ThematicMiningAgent } from "./thematicMining/ThematicMiningAgent";
+import { ThemesMessagesAnalyzerAgent } from "./themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent";
+import { WorldBuilderAgent } from "./worldBuilder/WorldBuilderAgent";
 
 // Agent instances (singleton pattern)
 export const completionAgent = new CompletionAgent();

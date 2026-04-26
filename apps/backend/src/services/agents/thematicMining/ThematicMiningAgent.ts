@@ -1,12 +1,14 @@
-/* eslint-disable max-lines -- cohesive agent module */
+ 
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { THEMATIC_MINING_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
 interface ThematicMiningContext {
   originalText?: string;
@@ -36,7 +38,7 @@ export class ThematicMiningAgent extends BaseAgent {
     this.confidenceFloor = 0.8;
   }
 
-  // eslint-disable-next-line complexity
+   
   private extractThematicContext(context: unknown): ThematicMiningContext {
     const ctx = context as ThematicMiningContext;
     return {
@@ -148,7 +150,7 @@ ${ctx.includeMotifs ? `5. **الموتيفات المتكررة**: الأنما�
         themesIdentified: this.countThemes(processedText),
         symbolsIdentified: this.countSymbols(processedText),
         evidenceExamplesCount: this.countEvidenceExamples(processedText),
-      } as Record<string, unknown>,
+      },
     };
   }
 
@@ -266,7 +268,7 @@ ${ctx.includeMotifs ? `5. **الموتيفات المتكررة**: الأنما�
     score += Math.min(0.2, sumCounts(connectiveCount) * 0.04);
 
     const hasStructure =
-      text.includes("أولاً") || text.includes("ثانياً") || text.match(/\d\./);
+      text.includes("أولاً") || text.includes("ثانياً") || (/\d\./.exec(text));
     if (hasStructure) score += 0.1;
 
     return Math.min(1, score);

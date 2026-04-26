@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { budgetService, type BudgetDocument } from './budget.service';
 
 describe('budgetService', () => {

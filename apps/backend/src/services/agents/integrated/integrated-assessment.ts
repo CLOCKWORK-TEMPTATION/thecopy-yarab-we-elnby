@@ -113,11 +113,11 @@ function isSynthesisSectionHeader(line: string): boolean {
 function isLineASectionHeader(line: string, nextLine: string): boolean {
   return (
     isSynthesisSectionHeader(line) ||
-    (!!line.match(/^\d+\./) && !!nextLine && !nextLine.match(/^\d+\./))
+    (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
   );
 }
 
-// eslint-disable-next-line complexity
+ 
 function formatSynthesisSections(text: string): string {
   const lines = text.split("\n");
   const formatted: string[] = [];

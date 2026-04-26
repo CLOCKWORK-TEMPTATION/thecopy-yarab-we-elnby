@@ -4,7 +4,9 @@
  */
 
 import { Request } from "express";
+
 import { logger } from "@/lib/logger";
+
 import type { WAFRule } from "./waf-types";
 
 // Maximum length of content to check against patterns to prevent ReDoS
@@ -60,7 +62,7 @@ export function extractValue(
 export function safeRegexTestSync(
   pattern: RegExp,
   text: string,
-  maxLength: number = 10000
+  maxLength = 10000
 ): boolean {
   const input = prepareValueForInspection(text, maxLength);
 

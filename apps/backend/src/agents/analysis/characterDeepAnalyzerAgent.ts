@@ -1,9 +1,10 @@
 import { IntegratedAgent } from '../../services/agents/core/integratedAgent';
-import type { GeminiServiceResponse } from '../../services/agents/core/geminiService';
-import type { AIAgentConfig } from '../../types/types';
 import { TaskType } from '../../types/types';
+
 import { CHARACTER_DEEP_ANALYZER_AGENT_CONFIG } from './characterDeepAnalyzerConfig';
+
 import type { ProcessedFile } from '../../services/agents/core/fileReaderService';
+import type { GeminiServiceResponse } from '../../services/agents/core/geminiService';
 
 export class CharacterDeepAnalyzerAgent extends IntegratedAgent {
   constructor(apiKey: string) {

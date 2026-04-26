@@ -1,5 +1,6 @@
 // File: backend/src/services/cache.service.test.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { CacheService } from './cache.service';
 
 // Mock Redis client
@@ -56,9 +57,9 @@ describe('CacheService', () => {
 
   beforeEach(() => {
     // Reset environment
-    process.env['REDIS_URL'] = undefined;
-    process.env['REDIS_HOST'] = 'localhost';
-    process.env['REDIS_PORT'] = '6379';
+    process.env.REDIS_URL = undefined;
+    process.env.REDIS_HOST = 'localhost';
+    process.env.REDIS_PORT = '6379';
 
     // Create a proper mock Redis instance
     mockRedis = {
@@ -198,7 +199,7 @@ describe('CacheService', () => {
       const value = { data: 'test-value-fallback' };
 
       // Set Redis status to disconnected and not open
-      mockRedis["status"] = 'disconnected';
+      mockRedis.status = 'disconnected';
       mockRedis.isOpen = false;
 
       // Set should still work (L1 only)
@@ -376,7 +377,7 @@ describe('CacheService', () => {
       const stats = cacheService.getStats();
 
       expect(stats.metrics.redisConnectionHealth).toBeDefined();
-      expect(stats.metrics.redisConnectionHealth["status"]).toBeDefined();
+      expect(stats.metrics.redisConnectionHealth.status).toBeDefined();
       expect(stats.metrics.redisConnectionHealth.lastCheck).toBeDefined();
       expect(stats.metrics.redisConnectionHealth.consecutiveFailures).toBeDefined();
     });

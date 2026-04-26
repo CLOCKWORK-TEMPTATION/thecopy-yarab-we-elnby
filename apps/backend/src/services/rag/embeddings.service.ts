@@ -1,10 +1,12 @@
 import { createHash } from "crypto";
 
-import type { EmbeddingProvider } from "@the-copy/core-memory";
 
 import { logger } from "@/lib/logger";
+
 import { embeddingGenerator } from "../../memory/embeddings/generator";
 import { cacheService } from "../cache.service";
+
+import type { EmbeddingProvider } from "@the-copy/core-memory";
 
 const CACHE_TTL = 60 * 60 * 24 * 7;
 

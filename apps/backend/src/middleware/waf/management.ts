@@ -6,14 +6,9 @@
  */
 
 import { logger } from "@/lib/logger";
-import type {
-  WAFConfig,
-  WAFRule,
-  WAFEvent,
-  WAFEventType,
-  WAFRuleInput,
-} from "./config";
+
 import { defaultWAFConfig } from "./config";
+import { escapeRegex, isRegexSafe, createSafePattern } from "./regex-safety";
 import {
   getWafConfig,
   setWafConfig,
@@ -22,7 +17,14 @@ import {
   wafEvents,
   alertCallbacks,
 } from "./state";
-import { escapeRegex, isRegexSafe, createSafePattern } from "./regex-safety";
+
+import type {
+  WAFConfig,
+  WAFRule,
+  WAFEvent,
+  WAFEventType,
+  WAFRuleInput,
+} from "./config";
 
 // Re-export for barrel
 export { createSafePattern };
@@ -159,7 +161,7 @@ export function removeCustomRule(ruleId: string): void {
 // Events and Stats
 // ============================================================================
 
-export function getWAFEvents(limit: number = 100): WAFEvent[] {
+export function getWAFEvents(limit = 100): WAFEvent[] {
   return wafEvents.slice(-limit);
 }
 
@@ -199,7 +201,7 @@ export function getWAFStats(): {
     totalEvents: wafEvents.length,
     blockedRequests,
     monitoredRequests,
-    eventsByType: eventsByType as Record<WAFEventType, number>,
+    eventsByType: eventsByType,
     eventsBySeverity,
     topBlockedIPs,
   };

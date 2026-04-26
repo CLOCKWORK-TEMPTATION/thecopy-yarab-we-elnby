@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
-import { authService } from '@/services/auth.service';
-import { logger } from '@/lib/logger';
 import { z } from 'zod';
-import type { AuthRequest } from '@/middleware/auth.middleware';
+
+import { logger } from '@/lib/logger';
 import { issueCsrfCookie } from '@/middleware/csrf.middleware';
+import { authService } from '@/services/auth.service';
+
+import type { AuthRequest } from '@/middleware/auth.middleware';
+
 
 const signupSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
@@ -37,20 +40,20 @@ export class AuthController {
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         sameSite: 'strict',
       });
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 15 * 60 * 1000, // 15 minutes
         sameSite: 'strict',
       });
       issueCsrfCookie(res);
 
-      res["status"](201).json({
+      res.status(201).json({
         success: true,
         message: 'تم إنشاء الحساب بنجاح',
         data: { user, token: accessToken },
@@ -59,7 +62,7 @@ export class AuthController {
       logger.info('User signed up successfully', { userId: user.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
@@ -68,7 +71,7 @@ export class AuthController {
       }
 
       logger.error('Signup error:', error);
-      res["status"](400).json({
+      res.status(400).json({
         success: false,
         error: error instanceof Error ? error.message : 'حدث خطأ أثناء إنشاء الحساب',
       });
@@ -86,14 +89,14 @@ export class AuthController {
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         sameSite: 'strict',
       });
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 15 * 60 * 1000, // 15 minutes
         sameSite: 'strict',
       });
@@ -108,7 +111,7 @@ export class AuthController {
       logger.info('User logged in successfully', { userId: user.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
@@ -117,7 +120,7 @@ export class AuthController {
       }
 
       logger.error('Login error:', error);
-      res["status"](401).json({
+      res.status(401).json({
         success: false,
         error: error instanceof Error ? error.message : 'حدث خطأ أثناء تسجيل الدخول',
       });
@@ -138,7 +141,7 @@ export class AuthController {
     try {
       const refreshToken = req.cookies["refreshToken"];
       if (!refreshToken) {
-        res["status"](401).json({ success: false, error: 'رمز التحديث مطلوب' });
+        res.status(401).json({ success: false, error: 'رمز التحديث مطلوب' });
         return;
       }
 
@@ -146,14 +149,14 @@ export class AuthController {
 
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         sameSite: 'strict',
       });
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 15 * 60 * 1000, // 15 minutes
         sameSite: 'strict',
       });
@@ -162,14 +165,14 @@ export class AuthController {
       res.json({ success: true, data: { token: accessToken } });
     } catch (error) {
       logger.error('Refresh token error:', error);
-      res["status"](401).json({ success: false, error: 'رمز التحديث غير صالح' });
+      res.status(401).json({ success: false, error: 'رمز التحديث غير صالح' });
     }
   }
 
   async getCurrentUser(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -184,7 +187,7 @@ export class AuthController {
       });
     } catch (error) {
       logger.error('Get current user error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ',
       });

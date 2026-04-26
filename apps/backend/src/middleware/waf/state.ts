@@ -4,8 +4,9 @@
  * Centralizes all mutable state used across WAF modules.
  */
 
-import type { WAFConfig, WAFEvent } from "./config";
 import { defaultWAFConfig } from "./config";
+
+import type { WAFConfig, WAFEvent } from "./config";
 
 // ============================================================================
 // State stores

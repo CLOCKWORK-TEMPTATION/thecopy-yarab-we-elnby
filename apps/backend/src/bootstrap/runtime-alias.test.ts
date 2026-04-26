@@ -1,5 +1,7 @@
 import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
+
 import { resolveRuntimeAliasRegistration } from './runtime-alias';
 
 describe('runtime alias bootstrap', () => {

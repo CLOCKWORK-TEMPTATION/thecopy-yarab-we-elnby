@@ -19,9 +19,9 @@
  * ```
  */
 
-import { SelfCritiqueResult } from "@core/types";
-import { geminiService } from "@/services/gemini.service";
 import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
+import { SelfCritiqueResult } from "@core/types";
 
 /**
  * فئة وحدة النقد الذاتي
@@ -51,7 +51,7 @@ export class SelfCritiqueModule {
     output: string,
     task: string,
     context: Record<string, unknown>,
-    maxIterations: number = 3
+    maxIterations = 3
   ): Promise<SelfCritiqueResult> {
     logger.info("بدء عملية النقد الذاتي", {
       maxIterations,

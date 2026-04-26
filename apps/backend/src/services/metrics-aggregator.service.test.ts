@@ -34,12 +34,14 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
-import { MetricsAggregatorService, metricsAggregator } from './metrics-aggregator.service';
-import { register } from '@/middleware/metrics.middleware';
-import { redisMetricsRegistry } from './redis-metrics.service';
-import { queueManager } from '@/queues/queue.config';
-import { resourceMonitor } from './resource-monitor.service';
 import { logger } from '@/lib/logger';
+import { register } from '@/middleware/metrics.middleware';
+import { queueManager } from '@/queues/queue.config';
+
+import { MetricsAggregatorService, metricsAggregator } from './metrics-aggregator.service';
+import { redisMetricsRegistry } from './redis-metrics.service';
+import { resourceMonitor } from './resource-monitor.service';
+
 
 describe('MetricsAggregatorService', () => {
   let service: MetricsAggregatorService;
@@ -182,12 +184,12 @@ describe('MetricsAggregatorService', () => {
     it('should aggregate queue metrics correctly', async () => {
       const snapshot = await service.takeSnapshot();
 
-      expect(snapshot["queue"].totalJobs).toBe(172); // 120 + 52
-      expect(snapshot["queue"].activeJobs).toBe(6); // 5 + 1
-      expect(snapshot["queue"].completedJobs).toBe(150); // 100 + 50
-      expect(snapshot["queue"].failedJobs).toBe(4); // 3 + 1
-      expect(snapshot["queue"].byQueue).toHaveProperty('analysis');
-      expect(snapshot["queue"].byQueue).toHaveProperty('notifications');
+      expect(snapshot.queue.totalJobs).toBe(172); // 120 + 52
+      expect(snapshot.queue.activeJobs).toBe(6); // 5 + 1
+      expect(snapshot.queue.completedJobs).toBe(150); // 100 + 50
+      expect(snapshot.queue.failedJobs).toBe(4); // 3 + 1
+      expect(snapshot.queue.byQueue).toHaveProperty('analysis');
+      expect(snapshot.queue.byQueue).toHaveProperty('notifications');
     });
 
     it('should aggregate API metrics correctly', async () => {

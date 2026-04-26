@@ -5,9 +5,10 @@
  * Works with both Redis and memory cache layers
  */
 
+import { logger } from '@/lib/logger';
+
 import { cacheService } from './cache.service';
 import { getGeminiCacheStats } from './gemini-cache.strategy';
-import { logger } from '@/lib/logger';
 
 export interface CacheMetricsSnapshot {
   timestamp: Date;
@@ -172,7 +173,7 @@ class CacheMetricsService {
 
     // Calculate Redis uptime percentage
     const redisConnectedSnapshots = snapshots.filter(
-      (s) => s.redis["status"] === 'ready' || s.redis["status"] === 'connected'
+      (s) => s.redis.status === 'ready' || s.redis.status === 'connected'
     );
     const redisUptime =
       snapshots.length > 0
@@ -246,7 +247,7 @@ class CacheMetricsService {
     }
 
     // Check Redis connection
-    if (snapshot.redis["status"] !== 'ready' && snapshot.redis["status"] !== 'connected') {
+    if (snapshot.redis.status !== 'ready' && snapshot.redis.status !== 'connected') {
       if (status !== 'critical') {
         status = 'degraded';
       }

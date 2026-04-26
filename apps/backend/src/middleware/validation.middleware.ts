@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodSchema } from 'zod';
+
 import { logger } from '@/lib/logger';
 
 /**
@@ -20,7 +21,7 @@ export function validateBody<T extends ZodSchema>(schema: T) {
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.warn('Validation error:', { errors: error.issues, path: req.path });
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues.map((err) => ({
@@ -47,7 +48,7 @@ export function validateQuery<T extends ZodSchema>(schema: T) {
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.warn('Query validation error:', { errors: error.issues, path: req.path });
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معاملات استعلام غير صالحة',
           details: error.issues.map((err) => ({
@@ -74,7 +75,7 @@ export function validateParams<T extends ZodSchema>(schema: T) {
     } catch (error) {
       if (error instanceof z.ZodError) {
         logger.warn('Params validation error:', { errors: error.issues, path: req.path });
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معاملات المسار غير صالحة',
           details: error.issues.map((err) => ({
@@ -195,7 +196,7 @@ export function detectAttacks(req: Request, res: Response, next: NextFunction) {
         input: allInputs.substring(0, 200),
       });
 
-      res["status"](400).json({
+      res.status(400).json({
         success: false,
         error: 'طلب غير صالح',
       });

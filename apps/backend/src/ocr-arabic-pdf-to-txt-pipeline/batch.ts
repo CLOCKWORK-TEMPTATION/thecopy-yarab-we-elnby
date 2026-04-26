@@ -10,12 +10,13 @@
  *   npx tsx src/batch.ts /path/to/pdf/folder --output /path/to/output --format txt
  */
 
-import { generateText, stepCountIs } from "ai";
-import { createMCPClient } from "@ai-sdk/mcp";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { openai } from "@ai-sdk/openai";
 import { readdir, mkdir } from "node:fs/promises";
 import { join, extname, basename, resolve } from "node:path";
+
+import { createMCPClient } from "@ai-sdk/mcp";
+import { openai } from "@ai-sdk/openai";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { generateText, stepCountIs } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
 
@@ -126,13 +127,13 @@ async function main(): Promise<void> {
   }
 
   // معالجة كل ملف
-  const results: Array<{
+  const results: {
     file: string;
     success: boolean;
     output?: string;
     error?: string;
     timeMs: number;
-  }> = [];
+  }[] = [];
 
   for (let i = 0; i < pdfFiles.length; i++) {
     const pdfFile = pdfFiles[i]!;
@@ -147,7 +148,7 @@ async function main(): Promise<void> {
     try {
       await generateText({
         model: openai(config.agentModel),
-        tools: mcpTools as Record<string, unknown>,
+        tools: mcpTools,
         stopWhen: stepCountIs(5),
         messages: [
           {

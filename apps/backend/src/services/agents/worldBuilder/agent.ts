@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from "@core/types";
-import { AIAgentConfig } from "@core/types";
+import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
+
 
 export const WORLD_BUILDER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.WORLD_BUILDER,

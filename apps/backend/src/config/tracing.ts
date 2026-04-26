@@ -13,8 +13,8 @@ const TRACING_ENABLED = process.env['TRACING_ENABLED'] === 'true';
 const OTEL_EXPORTER_OTLP_ENDPOINT =
   process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] || 'http://localhost:4318/v1/traces';
 const SERVICE_NAME = process.env['SERVICE_NAME'] || 'thecopy-backend';
-const SERVICE_VERSION = process.env['npm_package_version'] || '1.0.0';
-const ENVIRONMENT = process.env['NODE_ENV'] || 'development';
+const SERVICE_VERSION = process.env.npm_package_version || '1.0.0';
+const ENVIRONMENT = process.env.NODE_ENV || 'development';
 const OTEL_LOG_LEVEL = process.env['OTEL_LOG_LEVEL'] || 'info';
 
 function loadOtelModules() {

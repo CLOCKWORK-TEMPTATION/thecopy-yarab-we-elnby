@@ -7,11 +7,13 @@
  * - Disk space availability
  */
 
-import { pool } from '@/db';
-import { checkRedisHealth } from './redis-health';
-import { logger } from './logger';
 import { execSync } from 'child_process';
 import * as os from 'os';
+
+import { pool } from '@/db';
+
+import { logger } from './logger';
+import { checkRedisHealth } from './redis-health';
 
 export interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -81,8 +83,8 @@ export async function checkRedisConnectivity(): Promise<HealthCheckResult> {
       status: isHealthy ? 'healthy' : 'unhealthy',
       message: isHealthy ? 'Redis connection successful' : 'Redis connection failed',
       metadata: {
-        host: process.env['REDIS_HOST'] || 'localhost',
-        port: parseInt(process.env['REDIS_PORT'] || '6379'),
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     };
   } catch (error) {
@@ -201,9 +203,9 @@ export async function performReadinessCheck(): Promise<ReadinessCheckResult> {
 
   // Determine overall readiness status
   const isReady =
-    database["status"] === 'healthy' &&
-    (redis["status"] === 'healthy' || redis["status"] === 'degraded') &&
-    diskSpace["status"] !== 'unhealthy';
+    database.status === 'healthy' &&
+    (redis.status === 'healthy' || redis.status === 'degraded') &&
+    diskSpace.status !== 'unhealthy';
 
   return {
     status: isReady ? 'ready' : 'not_ready',

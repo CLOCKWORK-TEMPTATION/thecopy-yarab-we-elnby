@@ -8,9 +8,9 @@
  * - إرجاع 429 مع رسالة عربية عند تجاوز الحد
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock env وحد الطلبات المنخفض لسهولة الاختبار
 vi.mock('@/config/env', () => ({

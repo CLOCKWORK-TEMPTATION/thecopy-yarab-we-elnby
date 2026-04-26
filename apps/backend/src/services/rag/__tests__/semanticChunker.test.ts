@@ -2,8 +2,8 @@
  * Semantic Chunker Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
 import { SemanticChunker } from '@the-copy/core-memory';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('SemanticChunker', () => {
   let chunker: SemanticChunker;
@@ -104,7 +104,7 @@ describe('SemanticChunker', () => {
       const vec1 = [1, 0, 0];
       const vec2 = [1, 0, 0];
 
-      const similarity = chunker['cosineSimilarity'](vec1, vec2);
+      const similarity = chunker.cosineSimilarity(vec1, vec2);
       expect(similarity).toBe(1);
     });
 
@@ -112,7 +112,7 @@ describe('SemanticChunker', () => {
       const vec1 = [1, 0, 0];
       const vec2 = [0, 1, 0];
 
-      const similarity = chunker['cosineSimilarity'](vec1, vec2);
+      const similarity = chunker.cosineSimilarity(vec1, vec2);
       expect(similarity).toBe(0);
     });
 
@@ -120,7 +120,7 @@ describe('SemanticChunker', () => {
       const vec1 = [1, 0];
       const vec2 = [1, 0, 0];
 
-      const similarity = chunker['cosineSimilarity'](vec1, vec2);
+      const similarity = chunker.cosineSimilarity(vec1, vec2);
       expect(similarity).toBe(0);
     });
 
@@ -128,7 +128,7 @@ describe('SemanticChunker', () => {
       const vec1 = [0, 0, 0];
       const vec2 = [1, 2, 3];
 
-      const similarity = chunker['cosineSimilarity'](vec1, vec2);
+      const similarity = chunker.cosineSimilarity(vec1, vec2);
       expect(similarity).toBe(0);
     });
   });

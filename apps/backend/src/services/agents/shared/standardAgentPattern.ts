@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- core agent execution pattern module */
+ 
 /**
  * Standard Agent Execution Pattern
  *
@@ -8,6 +8,7 @@
 
 import { geminiService } from "@/services/gemini.service";
 import { enhancedRAGService } from "@/services/rag/enhancedRAG.service";
+
 import {
   performConstitutionalCheck,
   measureUncertainty,
@@ -124,7 +125,7 @@ const DEFAULT_OPTIONS: StandardAgentOptions = {
 async function performRAG(
   input: string,
   context?: string,
-  useSemanticRAG: boolean = true
+  useSemanticRAG = true
 ): Promise<RAGContext> {
   if (!context || context.length < 100 || !useSemanticRAG) {
     return { chunks: [], relevanceScores: [] };
@@ -187,7 +188,7 @@ export async function executeStandardAgentPattern(
   const startedAt = Date.now();
   const merged = { ...DEFAULT_OPTIONS, ...options };
   const originalText =
-    typeof context?.["originalText"] === "string" ? context["originalText"] as string : undefined;
+    typeof context?.["originalText"] === "string" ? context["originalText"] : undefined;
 
   const state: PipelineState = {
     currentText: "",

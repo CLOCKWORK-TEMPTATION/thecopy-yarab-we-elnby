@@ -2,18 +2,19 @@ import { logger } from '@/lib/logger';
 import { PipelineInput, PipelineRunResult, Station1Output, StationOutput } from '@/types';
 
 import { multiAgentOrchestrator, TaskType, type OrchestrationOutput } from './agents';
-import type { StandardAgentOutput } from './agents/core/types';
 import { agentRegistry } from './agents/registry';
 import {
   analysisStreamRegistry,
   type StationId,
 } from './analysisStream.registry';
 
+import type { StandardAgentOutput } from './agents/core/types';
+
 /**
  * Maps the seven user-facing stations to the underlying agent task types.
  * Order matters — events are emitted in this order during streaming.
  */
-const STATION_TASKS: Array<{ stationId: StationId; task: TaskType }> = [
+const STATION_TASKS: { stationId: StationId; task: TaskType }[] = [
   { stationId: 1, task: TaskType.CHARACTER_DEEP_ANALYZER },
   { stationId: 2, task: TaskType.DIALOGUE_ADVANCED_ANALYZER },
   { stationId: 3, task: TaskType.VISUAL_CINEMATIC_ANALYZER },
@@ -56,7 +57,7 @@ export class AnalysisService {
         context: {
           projectName: input.projectName,
           language: input.language,
-          ...input["context"],
+          ...input.context,
         },
         options: {
           parallel: true, // Run agents in parallel for efficiency
@@ -241,12 +242,12 @@ export class AnalysisService {
     return [...new Set(characters)].slice(0, 10);
   }
 
-  private extractRelationships(text: string): Array<{
+  private extractRelationships(text: string): {
     character1: string;
     character2: string;
     relationshipType: string;
     strength: number;
-  }> {
+  }[] {
     if (!text.trim()) {
       return [];
     }
@@ -293,7 +294,7 @@ export class AnalysisService {
     for (const agent of agentNames) {
       const result = results.get(agent.type);
       if (result?.text) {
-        report += `${agent["title"]}\n${result.text.substring(0, 500)}...\n\n`;
+        report += `${agent.title}\n${result.text.substring(0, 500)}...\n\n`;
       }
     }
 
@@ -490,7 +491,7 @@ export class AnalysisService {
 
   private extractConfidence(agentResult: unknown): number | null {
     if (agentResult && typeof agentResult === 'object' && 'confidence' in agentResult) {
-      const c = (agentResult as { confidence: unknown }).confidence;
+      const c = (agentResult).confidence;
       if (typeof c === 'number' && Number.isFinite(c)) return c;
     }
     return null;

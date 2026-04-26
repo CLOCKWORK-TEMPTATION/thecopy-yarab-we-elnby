@@ -380,7 +380,7 @@ export class Queue<
       initialState
     );
 
-    this.store.jobs.set(id, job as Job);
+    this.store.jobs.set(id, job);
     emitQueueEvent(this.store, 'waiting', job);
 
     if (!this.store.paused) {

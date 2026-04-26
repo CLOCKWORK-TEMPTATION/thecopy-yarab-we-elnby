@@ -30,7 +30,7 @@ function median(values: number[]): number {
   return (previousValue + middleValue) / 2;
 }
 
-function roundMetric(value: number, decimals: number = 6): number {
+function roundMetric(value: number, decimals = 6): number {
   return Number(value.toFixed(decimals));
 }
 

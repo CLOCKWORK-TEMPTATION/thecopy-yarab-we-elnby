@@ -1,12 +1,14 @@
-/* eslint-disable max-lines -- cohesive agent module */
+ 
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { RHYTHM_MAPPING_AGENT_CONFIG } from "./agent";
-import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
 interface RhythmSceneItem {
   description?: string;
@@ -73,7 +75,7 @@ export class RhythmMappingAgent extends BaseAgent {
     return section + "\n";
   }
 
-  // eslint-disable-next-line complexity
+   
   private buildAnalysisInfo(ctx: RhythmMappingContext | undefined, genre: string, focusAspects: string[]): string {
     let section = `معلومات التحليل:\n`;
     section += `- النوع الأدبي: ${genre}\n`;
@@ -85,7 +87,7 @@ export class RhythmMappingAgent extends BaseAgent {
     return section;
   }
 
-  // eslint-disable-next-line max-lines-per-function, complexity
+   
   private buildRhythmInstructions(ctx: RhythmMappingContext | undefined, genre: string): string {
     const identifyPatterns = ctx?.identifyPatterns ?? true;
     const analyzeVariation = ctx?.analyzeVariation ?? true;
@@ -214,7 +216,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
         patternsIdentified: this.countPatterns(processedText),
         beatsIdentified: this.countBeats(processedText),
         optimizationSuggestions: this.countOptimizations(processedText),
-      } as Record<string, unknown>,
+      },
     };
   }
 

@@ -9,9 +9,9 @@
  * 5. CORS Policy Validation
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
-import request from 'supertest';
 import express from 'express';
+import request from 'supertest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 // Constants for test data
 const TEST_EMAIL = 'test@example.com';
@@ -66,10 +66,9 @@ vi.mock('@/queues', () => ({
   shutdownQueues: vi.fn(),
 }));
 
-import { setupMiddleware } from '@/middleware';
 import { authController } from '@/controllers/auth.controller';
+import { setupMiddleware } from '@/middleware';
 import { authMiddleware } from '@/middleware/auth.middleware';
-import { authService } from '@/services/auth.service';
 
 // Create test app
 const createTestApp = () => {
@@ -147,7 +146,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           });
 
         // Should either reject with validation error, not find user, or rate limit
-        expect([400, 401, 429]).toContain(response["status"]);
+        expect([400, 401, 429]).toContain(response.status);
         expect(response.body.success).toBe(false);
       }
     });
@@ -162,7 +161,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           });
 
         // Should not cause server error - should handle gracefully
-        expect(response["status"]).toBeLessThan(500);
+        expect(response.status).toBeLessThan(500);
         expect(response.body.success).toBe(false);
       }
     });
@@ -177,7 +176,7 @@ describe('🔒 Comprehensive Security Tests', () => {
         });
 
       // Should reject (401) or rate limit (429)
-      expect([401, 429]).toContain(response["status"]);
+      expect([401, 429]).toContain(response.status);
       expect(response.body.success).toBe(false);
     });
 
@@ -195,7 +194,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           });
 
         // Should handle special characters without errors (or rate limit)
-        expect([201, 400, 429]).toContain(response["status"]);
+        expect([201, 400, 429]).toContain(response.status);
       }
     });
   });
@@ -250,10 +249,10 @@ describe('🔒 Comprehensive Security Tests', () => {
           });
 
         // Should not execute scripts or cause errors (or rate limit)
-        expect([201, 400, 429]).toContain(response["status"]);
+        expect([201, 400, 429]).toContain(response.status);
 
         // If successful, check that the payload is properly escaped in response
-        if (response["status"] === 201) {
+        if (response.status === 201) {
           const userData = response.body.data?.user?.firstName || '';
           // Should not contain executable script tags
           expect(userData).not.toMatch(/<script[^>]*>/gi);
@@ -313,7 +312,7 @@ describe('🔒 Comprehensive Security Tests', () => {
 
       // Last request should be rate limited (429)
       const lastResponse = responses[responses.length - 1];
-      expect(lastResponse["status"]).toBe(429);
+      expect(lastResponse.status).toBe(429);
     });
 
     it('should include rate limit headers in responses', async () => {
@@ -356,7 +355,7 @@ describe('🔒 Comprehensive Security Tests', () => {
             password: `wrongpass${i}`
           });
 
-        if (response["status"] === 429) {
+        if (response.status === 429) {
           results.blocked++;
         } else {
           results.allowed++;
@@ -388,7 +387,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           .get('/api/protected')
           .set('Authorization', `Bearer ${token}`);
 
-        expect(response["status"]).toBe(401);
+        expect(response.status).toBe(401);
         expect(response.body.success).toBe(false);
       }
     });
@@ -398,7 +397,7 @@ describe('🔒 Comprehensive Security Tests', () => {
         .get('/api/protected')
         .set('Authorization', `Bearer ${MOCK_EXPIRED_TOKEN}`);
 
-      expect(response["status"]).toBe(401);
+      expect(response.status).toBe(401);
     });
 
     it('should validate JWT signature', async () => {
@@ -406,7 +405,7 @@ describe('🔒 Comprehensive Security Tests', () => {
         .get('/api/protected')
         .set('Authorization', `Bearer ${MOCK_TAMPERED_TOKEN}`);
 
-      expect(response["status"]).toBe(401);
+      expect(response.status).toBe(401);
     });
 
     it('should reject tokens with manipulated payload', async () => {
@@ -415,7 +414,7 @@ describe('🔒 Comprehensive Security Tests', () => {
         .get('/api/protected')
         .set('Authorization', MOCK_MANIPULATED_TOKEN);
 
-      expect(response["status"]).toBe(401);
+      expect(response.status).toBe(401);
     });
 
     it('should use httpOnly cookies for session tokens', async () => {
@@ -459,7 +458,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           .set('Authorization', `Bearer ${UUID_WITH_PREFIX}${uuid}`);
 
         // Should be rejected (401 due to invalid token)
-        expect(response["status"]).toBe(401);
+        expect(response.status).toBe(401);
       }
     });
 
@@ -473,7 +472,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           lastName: 'Test'
         });
 
-      if (signupResponse["status"] === 201) {
+      if (signupResponse.status === 201) {
         const token = signupResponse.body.data?.token;
         if (token) {
           // Decode JWT (without verification, just to check payload)
@@ -510,12 +509,12 @@ describe('🔒 Comprehensive Security Tests', () => {
 
         // Should not include CORS headers for unauthorized origins
         // or should return error
-        expect(response["status"]).not.toBe(200);
+        expect(response.status).not.toBe(200);
       }
     });
 
     it('should allow requests from authorized origins', async () => {
-      const authorizedOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:5000';
+      const authorizedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5000';
 
       const response = await request(app)
         .options('/api/auth/login')
@@ -528,7 +527,7 @@ describe('🔒 Comprehensive Security Tests', () => {
     it('should include proper CORS headers', async () => {
       const response = await request(app)
         .get('/api/health')
-        .set('Origin', process.env['CORS_ORIGIN'] || 'http://localhost:5000');
+        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000');
 
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
@@ -536,7 +535,7 @@ describe('🔒 Comprehensive Security Tests', () => {
     it('should restrict CORS methods to safe list', async () => {
       const response = await request(app)
         .options('/api/auth/login')
-        .set('Origin', process.env['CORS_ORIGIN'] || 'http://localhost:5000')
+        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000')
         .set('Access-Control-Request-Method', 'POST');
 
       const allowedMethods = response.headers['access-control-allow-methods'];
@@ -556,12 +555,12 @@ describe('🔒 Comprehensive Security Tests', () => {
     it('should validate preflight requests properly', async () => {
       const response = await request(app)
         .options('/api/protected')
-        .set('Origin', process.env['CORS_ORIGIN'] || 'http://localhost:5000')
+        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000')
         .set('Access-Control-Request-Method', 'GET')
         .set('Access-Control-Request-Headers', 'Authorization');
 
       // Preflight should be handled correctly
-      expect([200, 204]).toContain(response["status"]);
+      expect([200, 204]).toContain(response.status);
     });
   });
 
@@ -601,7 +600,7 @@ describe('🔒 Comprehensive Security Tests', () => {
         .set('Content-Type', 'application/json')
         .send('{"email": invalid json}');
 
-      expect(response["status"]).toBeLessThan(500);
+      expect(response.status).toBeLessThan(500);
     });
 
     it('should sanitize error messages to prevent information disclosure', async () => {
@@ -631,7 +630,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           .get(`/api/${attempt}`);
 
         // Should return 404, not expose file system (or rate limit)
-        expect([404, 400, 429]).toContain(response["status"]);
+        expect([404, 400, 429]).toContain(response.status);
       }
     });
   });

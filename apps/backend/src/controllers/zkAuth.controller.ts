@@ -1,12 +1,16 @@
-import type { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+
+import { logger } from '@/lib/logger';
+import { issueCsrfCookie } from '@/middleware/csrf.middleware';
+import { signJwt } from '@/utils/jwt-secret-manager';
+
 import { db } from '../db';
 import { users, recoveryArtifacts } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import { signJwt } from '@/utils/jwt-secret-manager';
-import { issueCsrfCookie } from '@/middleware/csrf.middleware';
-import { logger } from '@/lib/logger';
-import { z } from 'zod';
+
+
+import type { Request, Response } from 'express';
 
 const SALT_ROUNDS = 10;
 const TOKEN_EXPIRY = '7d';
@@ -41,7 +45,7 @@ const recoveryArtifactBodySchema = z.union([
 function setAuthCookie(res: Response, token: string): void {
   res.cookie('accessToken', token, {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
+    secure: process.env.NODE_ENV === 'production',
     maxAge: COOKIE_MAX_AGE,
     sameSite: 'strict',
   });
@@ -70,7 +74,7 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
   try {
     const validation = zkSignupBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: 'البيانات المطلوبة: email, authVerifier, kdfSalt' });
+      res.status(400).json({ success: false, error: 'البيانات المطلوبة: email, authVerifier, kdfSalt' });
       return;
     }
 
@@ -78,7 +82,7 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
 
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      res["status"](409).json({ success: false, error: 'البريد الإلكتروني مستخدم بالفعل' });
+      res.status(409).json({ success: false, error: 'البريد الإلكتروني مستخدم بالفعل' });
       return;
     }
 
@@ -89,7 +93,7 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
       .returning();
 
     if (!newUser) {
-      res["status"](500).json({ success: false, error: 'تعذر إنشاء المستخدم' });
+      res.status(500).json({ success: false, error: 'تعذر إنشاء المستخدم' });
       return;
     }
 
@@ -98,13 +102,13 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
     setAuthCookie(res, token);
     issueCsrfCookie(res);
 
-    res["status"](201).json({
+    res.status(201).json({
       success: true,
       data: { userId: newUser.id, email: newUser.email, token, kdfSalt: newUser.kdfSalt },
     });
   } catch (error) {
     logger.error('Error in ZK signup:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في التسجيل' });
+    res.status(500).json({ success: false, error: 'خطأ في التسجيل' });
   }
 }
 
@@ -112,7 +116,7 @@ export async function zkLoginInit(req: Request, res: Response): Promise<void> {
   try {
     const validation = zkLoginInitBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: 'البريد الإلكتروني مطلوب' });
+      res.status(400).json({ success: false, error: 'البريد الإلكتروني مطلوب' });
       return;
     }
     const { email } = validation.data;
@@ -123,20 +127,20 @@ export async function zkLoginInit(req: Request, res: Response): Promise<void> {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (!user || !user.kdfSalt) {
-      res["status"](404).json({ success: false, error: 'المستخدم غير موجود أو لا يستخدم Zero-Knowledge' });
+    if (!user?.kdfSalt) {
+      res.status(404).json({ success: false, error: 'المستخدم غير موجود أو لا يستخدم Zero-Knowledge' });
       return;
     }
 
     if (user.accountStatus !== 'active') {
-      res["status"](403).json({ success: false, error: 'الحساب غير نشط' });
+      res.status(403).json({ success: false, error: 'الحساب غير نشط' });
       return;
     }
 
     res.json({ success: true, data: { kdfSalt: user.kdfSalt } });
   } catch (error) {
     logger.error('Error in ZK login init:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في بدء تسجيل الدخول' });
+    res.status(500).json({ success: false, error: 'خطأ في بدء تسجيل الدخول' });
   }
 }
 
@@ -144,21 +148,21 @@ export async function zkLoginVerify(req: Request, res: Response): Promise<void> 
   try {
     const validation = zkLoginVerifyBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: 'البيانات المطلوبة: email, authVerifier' });
+      res.status(400).json({ success: false, error: 'البيانات المطلوبة: email, authVerifier' });
       return;
     }
 
     const { email, authVerifier } = validation.data;
 
     const user = await findUserByEmail(email);
-    if (!user || !user.authVerifierHash) {
-      res["status"](401).json({ success: false, error: 'بيانات اعتماد غير صحيحة' });
+    if (!user?.authVerifierHash) {
+      res.status(401).json({ success: false, error: 'بيانات اعتماد غير صحيحة' });
       return;
     }
 
     const isValid = await bcrypt.compare(authVerifier, user.authVerifierHash);
     if (!isValid) {
-      res["status"](401).json({ success: false, error: 'بيانات اعتماد غير صحيحة' });
+      res.status(401).json({ success: false, error: 'بيانات اعتماد غير صحيحة' });
       return;
     }
 
@@ -173,7 +177,7 @@ export async function zkLoginVerify(req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     logger.error('Error in ZK login verify:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في تسجيل الدخول' });
+    res.status(500).json({ success: false, error: 'خطأ في تسجيل الدخول' });
   }
 }
 
@@ -185,7 +189,7 @@ async function handleGetRecovery(userId: string, res: Response): Promise<void> {
     .limit(1);
 
   if (!artifact) {
-    res["status"](404).json({ success: false, error: 'لا توجد مادة استرداد' });
+    res.status(404).json({ success: false, error: 'لا توجد مادة استرداد' });
     return;
   }
 
@@ -217,13 +221,13 @@ export async function manageRecoveryArtifact(req: Request, res: Response): Promi
   try {
     const userId = req.user?.id;
     if (!userId) {
-      res["status"](401).json({ success: false, error: 'غير مصرح. يرجى تسجيل الدخول.' });
+      res.status(401).json({ success: false, error: 'غير مصرح. يرجى تسجيل الدخول.' });
       return;
     }
 
     const validation = recoveryArtifactBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ success: false, error: 'الإجراء غير صالح أو البيانات المطلوبة غير مكتملة' });
+      res.status(400).json({ success: false, error: 'الإجراء غير صالح أو البيانات المطلوبة غير مكتملة' });
       return;
     }
 
@@ -237,6 +241,6 @@ export async function manageRecoveryArtifact(req: Request, res: Response): Promi
     }
   } catch (error) {
     logger.error('Error managing recovery artifact:', error);
-    res["status"](500).json({ success: false, error: 'خطأ في إدارة مادة الاسترداد' });
+    res.status(500).json({ success: false, error: 'خطأ في إدارة مادة الاسترداد' });
   }
 }

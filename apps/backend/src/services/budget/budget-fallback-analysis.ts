@@ -1,5 +1,6 @@
-import type { BudgetAnalysis } from "./budget-types";
 import { buildScenarioInsights } from "./budget-fallback-insights";
+
+import type { BudgetAnalysis } from "./budget-types";
 
 function buildAnalysisCollections(insights: ReturnType<typeof buildScenarioInsights>): Pick<
   BudgetAnalysis,

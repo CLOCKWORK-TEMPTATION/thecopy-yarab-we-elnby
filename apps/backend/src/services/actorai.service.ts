@@ -6,8 +6,8 @@ import { count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { actoraiAnalytics } from "@/db/schema";
-import { trackAnalyticsPersistence } from "@/utils/connectivity-telemetry";
 import { logger } from "@/lib/logger";
+import { trackAnalyticsPersistence } from "@/utils/connectivity-telemetry";
 
 type AnalyticsCategory = "voice" | "webcam" | "memorization";
 
@@ -116,7 +116,7 @@ function toRecordKind(category: AnalyticsCategory): ActorAiRecordKind {
 }
 
 export class ActorAiService {
-  // eslint-disable-next-line max-lines-per-function, complexity
+   
   private async saveAnalytics(
     category: AnalyticsCategory,
     data: unknown,
@@ -177,7 +177,7 @@ export class ActorAiService {
 
       const fallbackRecord = await persistRecord(toRecordKind(category), {
         userId: userId ?? null,
-        ...(sanitizePayload(data) as Record<string, unknown>),
+        ...(sanitizePayload(data)),
       });
 
       logger.info("Persisted actor AI analytics data", {

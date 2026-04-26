@@ -13,6 +13,7 @@
  */
 
 import jwt, { type Secret, type SignOptions, type VerifyOptions } from 'jsonwebtoken';
+
 import { env } from '@/config/env';
 
 /**

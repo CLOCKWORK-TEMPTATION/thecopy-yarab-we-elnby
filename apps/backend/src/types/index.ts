@@ -44,12 +44,12 @@ export interface StationOutput {
 
 export interface Station1Output extends StationOutput {
   majorCharacters: string[];
-  relationships: Array<{
+  relationships: {
     character1: string;
     character2: string;
     relationshipType: string;
     strength: number;
-  }>;
+  }[];
   narrativeStyleAnalysis: {
     overallTone: string;
     pacing: string;

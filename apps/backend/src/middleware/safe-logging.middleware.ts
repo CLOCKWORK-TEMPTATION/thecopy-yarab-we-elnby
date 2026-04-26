@@ -8,8 +8,9 @@
  * 3. فقط metadata للأخطاء (بدون stack traces تحتوي محتوى)
  */
 
-import type { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * Sensitive fields to sanitize
@@ -165,7 +166,7 @@ export function sanitizeErrorMiddleware(
   logger.error('Error occurred', errorInfo);
 
   // لا نرسل stack trace للعميل
-  res["status"](res.statusCode || 500).json({
+  res.status(res.statusCode || 500).json({
     success: false,
     error: error.message || 'حدث خطأ في الخادم',
   });
@@ -180,7 +181,7 @@ export function bodySanitizationMiddleware(
   _res: Response,
   next: NextFunction
 ) {
-  if (process.env['NODE_ENV'] === 'development' && req.body) {
+  if (process.env.NODE_ENV === 'development' && req.body) {
     // في development، نسمح بـ logging محدود
     if (!isSensitivePath(req.path)) {
       const sanitizedBody = sanitizeObject(req.body);
@@ -202,7 +203,7 @@ export function bodySanitizationMiddleware(
  * منع console.log في الإنتاج
  */
 export function preventConsoleLogsInProduction() {
-  if (process.env['NODE_ENV'] === 'production') {
+  if (process.env.NODE_ENV === 'production') {
     // Override console methods
     const noop = () => {};
 

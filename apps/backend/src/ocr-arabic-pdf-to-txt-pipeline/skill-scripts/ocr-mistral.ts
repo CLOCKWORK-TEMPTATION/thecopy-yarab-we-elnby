@@ -26,7 +26,7 @@ interface OcrPageResult {
   /** النص المستخرج بصيغة Markdown */
   markdown: string;
   /** الصور المكتشفة في الصفحة */
-  images: Array<{
+  images: {
     id: string;
     bbox: {
       top_left_x: number;
@@ -34,7 +34,7 @@ interface OcrPageResult {
       bottom_right_x: number;
       bottom_right_y: number;
     };
-  }>;
+  }[];
 }
 
 interface OcrResult {
@@ -111,7 +111,7 @@ function parseArgs(): {
   // تحليل نطاق الصفحات
   let pages: number[] | null = null;
   if (pagesStr && pagesStr !== "all") {
-    const match = pagesStr.match(/^(\d+)-(\d+)$/);
+    const match = /^(\d+)-(\d+)$/.exec(pagesStr);
     if (match) {
       const start = parseInt(match[1], 10);
       const end = parseInt(match[2], 10);
@@ -323,7 +323,7 @@ async function runOcr(): Promise<void> {
 
     const result = buildNormalizedResult(
       input,
-      response as unknown as MistralOcrResponseRaw,
+      response,
       docSizeBytes,
       elapsed
     );

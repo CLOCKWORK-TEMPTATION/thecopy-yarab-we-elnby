@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import os from 'os';
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock prom-client with proper class constructors
 vi.mock('prom-client', () => {
@@ -47,9 +48,10 @@ vi.mock('os', () => ({
   },
 }));
 
-import { ResourceMonitorService, resourceMonitor } from './resource-monitor.service';
 import { logger } from '@/lib/logger';
 import { register } from '@/middleware/metrics.middleware';
+
+import { ResourceMonitorService, resourceMonitor } from './resource-monitor.service';
 
 describe('ResourceMonitorService', () => {
   let service: ResourceMonitorService;
@@ -240,7 +242,7 @@ describe('ResourceMonitorService', () => {
 
       const status = await service.getResourceStatus();
 
-      expect(status.memory["status"]).toBe('ok');
+      expect(status.memory.status).toBe('ok');
     });
 
     it('should return warning status for high memory usage', async () => {
@@ -249,7 +251,7 @@ describe('ResourceMonitorService', () => {
 
       const status = await service.getResourceStatus();
 
-      expect(status.memory["status"]).toBe('warning');
+      expect(status.memory.status).toBe('warning');
     });
 
     it('should return critical status for critical memory usage', async () => {
@@ -258,7 +260,7 @@ describe('ResourceMonitorService', () => {
 
       const status = await service.getResourceStatus();
 
-      expect(status.memory["status"]).toBe('critical');
+      expect(status.memory.status).toBe('critical');
     });
 
     it('should handle empty metrics', async () => {

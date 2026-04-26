@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -13,9 +12,11 @@ import {
   uniqueById,
   extractNestedRecord,
 } from "./handlers-shared";
-import { SetReusabilityOptimizer } from "./plugins/set-reusability";
 import { runPlugin } from "./plugin-executor";
+import { SetReusabilityOptimizer } from "./plugins/set-reusability";
 import { readStore, updateStore, type StoredSetPiece } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 export async function handleSetReusabilityAnalyze(
   payload: Record<string, unknown>

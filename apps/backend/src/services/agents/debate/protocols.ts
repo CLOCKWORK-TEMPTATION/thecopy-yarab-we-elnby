@@ -7,19 +7,12 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { BaseAgent } from '../shared/BaseAgent';
 import { logger } from '@/lib/logger';
-import {
-  DebateConfig,
-  DebateParticipant,
-  DebateArgument,
-  DebateRole,
-  ConsensusResult,
-  Vote,
-} from './types';
-import { DebateModerator } from './debateModerator';
+
+import { BaseAgent } from '../shared/BaseAgent';
 import { StandardAgentOutput } from '../shared/standardAgentPattern';
-import { selectDebatingAgents } from './selection';
+
+import { DebateModerator } from './debateModerator';
 import {
   buildArgumentPrompt,
   buildRefutationPrompt,
@@ -32,6 +25,15 @@ import {
   calculateAgreementScore,
   parseVotesFromResponse,
 } from './protocols-helpers';
+import { selectDebatingAgents } from './selection';
+import {
+  DebateConfig,
+  DebateParticipant,
+  DebateArgument,
+  DebateRole,
+  ConsensusResult,
+  Vote,
+} from './types';
 
 /**
  * بدء جلسة مناظرة

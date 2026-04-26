@@ -1,7 +1,9 @@
 import { Response } from 'express';
-import { GeminiService } from '@/services/gemini.service';
-import { logger } from '@/lib/logger';
 import { z } from 'zod';
+
+import { logger } from '@/lib/logger';
+import { GeminiService } from '@/services/gemini.service';
+
 import type { AuthRequest } from '@/middleware/auth.middleware';
 
 const chatSchema = z.object({
@@ -22,7 +24,7 @@ export class AIController {
   async chat(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -32,7 +34,7 @@ export class AIController {
       // Validate request body
       const validation = chatSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صحيحة',
           details: validation.error.issues,
@@ -60,7 +62,7 @@ export class AIController {
       });
     } catch (error) {
       logger.error('AI chat error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء التواصل مع الذكاء الاصطناعي',
       });
@@ -74,7 +76,7 @@ export class AIController {
   async getShotSuggestion(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -84,7 +86,7 @@ export class AIController {
       // Validate request body
       const validation = shotSuggestionSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صحيحة',
           details: validation.error.issues,
@@ -109,7 +111,7 @@ export class AIController {
       });
     } catch (error) {
       logger.error('Shot suggestion error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء توليد اقتراحات اللقطة',
       });

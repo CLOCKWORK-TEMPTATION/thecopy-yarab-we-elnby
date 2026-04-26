@@ -3,13 +3,13 @@
  * Handles heavy AI pipeline processing off the main thread
  */
 
-import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
-
 import type {
   PipelineAgentMessage,
   PipelineAgentResult,
   PipelineStepResult,
 } from "./pipeline-agent-types";
+import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
+
 
 function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
   return event.origin === "" || event.origin === self.location.origin;

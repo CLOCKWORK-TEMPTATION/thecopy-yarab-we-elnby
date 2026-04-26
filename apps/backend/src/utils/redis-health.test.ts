@@ -45,10 +45,10 @@ describe('Redis Health Utility', () => {
     warnMock.mockReset();
     vi.resetModules();
 
-    process.env['REDIS_HOST'] = 'cache.internal';
-    process.env['REDIS_PORT'] = '6381';
-    process.env['REDIS_PASSWORD'] = 'super-secret';
-    delete process.env['REDIS_URL'];
+    process.env.REDIS_HOST = 'cache.internal';
+    process.env.REDIS_PORT = '6381';
+    process.env.REDIS_PASSWORD = 'super-secret';
+    delete process.env.REDIS_URL;
 
     getRedisConfigMock.mockReset();
     getRedisConfigMock.mockReturnValue({
@@ -57,9 +57,9 @@ describe('Redis Health Utility', () => {
   });
 
   afterEach(() => {
-    delete process.env['REDIS_HOST'];
-    delete process.env['REDIS_PORT'];
-    delete process.env['REDIS_PASSWORD'];
+    delete process.env.REDIS_HOST;
+    delete process.env.REDIS_PORT;
+    delete process.env.REDIS_PASSWORD;
   });
 
   it('should create a Redis client and verify connectivity when ping succeeds', async () => {
@@ -145,12 +145,12 @@ describe('Redis Health Utility', () => {
 
     const disconnected = await getRedisStatus();
 
-    expect(disconnected["status"]).toBe('disconnected');
+    expect(disconnected.status).toBe('disconnected');
     expect(warnMock).toHaveBeenCalledWith('[Redis] Health check failed:', failure);
   });
 
   it('should use REDIS_URL metadata when present', async () => {
-    process.env['REDIS_URL'] = 'redis://default:secret@redis.railway.internal:16379';
+    process.env.REDIS_URL = 'redis://default:secret@redis.railway.internal:16379';
     connectMock.mockResolvedValue(undefined);
     pingMock.mockResolvedValueOnce('PONG');
 

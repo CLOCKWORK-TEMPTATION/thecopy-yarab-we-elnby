@@ -75,8 +75,8 @@ async function resolveImageSource(input: string): Promise<{ data: string; mimeTy
   }
 
   const response = await fetch(input);
-  if (!response["ok"]) {
-    throw new Error(`Failed to fetch source image: ${response["status"]}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch source image: ${response.status}`);
   }
 
   const mimeType = response.headers.get('content-type') || 'image/png';
@@ -87,7 +87,7 @@ async function resolveImageSource(input: string): Promise<{ data: string; mimeTy
   };
 }
 
-// eslint-disable-next-line complexity
+ 
 async function loadWeather(location: string): Promise<WeatherInfo> {
   if (!location.trim()) {
     return {
@@ -266,7 +266,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
   }
 
   private async generateGarment(prompt?: string, size?: string): Promise<Record<string, unknown>> {
-    if (!prompt || !prompt.trim()) {
+    if (!prompt?.trim()) {
       throw new Error('Garment prompt is required.');
     }
 

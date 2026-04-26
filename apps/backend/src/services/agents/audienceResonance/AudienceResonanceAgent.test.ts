@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { TaskType } from "@core/types";
+
 import { AudienceResonanceAgent } from "./AudienceResonanceAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({

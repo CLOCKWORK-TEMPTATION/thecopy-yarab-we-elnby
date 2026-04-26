@@ -1,11 +1,14 @@
 import { statfs } from "node:fs/promises";
+
 import { sql } from "drizzle-orm";
 import { createClient } from "redis";
 
-import { getRedisConfig } from "../config/redis.config.js";
-import { isRedisEnabled } from "../config/redis-gate.js";
-import { db } from "../db/index.js";
 import { logger } from "@/lib/logger";
+
+import { isRedisEnabled } from "../config/redis-gate.js";
+import { getRedisConfig } from "../config/redis.config.js";
+import { db } from "../db/index.js";
+
 
 export interface HealthCheck {
   status: "healthy" | "degraded" | "unhealthy";
@@ -181,8 +184,8 @@ export async function checkEnvironment(): Promise<HealthCheck> {
   try {
     const requiredEnvVars = ["NODE_ENV", "DATABASE_URL", "JWT_SECRET"];
     const hasGeminiProvider =
-      Boolean(process.env['GEMINI_API_KEY']?.trim()) ||
-      Boolean(process.env['GOOGLE_GENAI_API_KEY']?.trim());
+      Boolean(process.env.GEMINI_API_KEY?.trim()) ||
+      Boolean(process.env.GOOGLE_GENAI_API_KEY?.trim());
 
     const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
     if (!hasGeminiProvider) {

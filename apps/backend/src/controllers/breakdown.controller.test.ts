@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { Request, Response } from 'express';
 
 const { mockBreakdownService } = vi.hoisted(() => ({
@@ -34,7 +35,7 @@ function createMockResponse(): Response & {
     status: ReturnType<typeof vi.fn>;
   };
 
-  response["status"].mockImplementation(() => response);
+  response.status.mockImplementation(() => response);
   return response;
 }
 
@@ -68,7 +69,7 @@ describe('BreakdownController', () => {
 
     await breakdownController.bootstrapProject(req, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
@@ -87,7 +88,7 @@ describe('BreakdownController', () => {
 
     await breakdownController.getProjectReport(req, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       error: 'لم يتم العثور على تقرير بريك دون للمشروع',
@@ -106,7 +107,7 @@ describe('BreakdownController', () => {
 
     await breakdownController.analyzeProject(req, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       error: 'المشروع غير موجود',
@@ -121,7 +122,7 @@ describe('BreakdownController', () => {
 
     await breakdownController.analyzeProject(req, res);
 
-    expect(res["status"]).toHaveBeenCalledWith(401);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       error: 'غير مصرح',

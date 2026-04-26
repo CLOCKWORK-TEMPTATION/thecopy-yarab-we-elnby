@@ -1,50 +1,30 @@
-import winston from 'winston';
-import { isDevelopment } from '@/config/env';
-import { sanitizeLogFormat } from '@/middleware/log-sanitization.middleware';
+/**
+ * @deprecated استخدم `@/lib/logger` مباشرة في الكود الجديد.
+ *
+ * هذا الملف shim للتوافق العكسي:
+ * كان يحتوي تطبيقاً قائماً على winston، وحُوِّل ليعيد تصدير الـ pino logger
+ * الموحَّد من `@/lib/logger` بدون كسر الاستدعاءات الموجودة.
+ *
+ * المُحوِّل في `@/lib/logger` يلتقط نمطَي الاستدعاء:
+ *   - winston-style: logger.info('msg', { ctx })
+ *   - pino-style:    logger.info({ ctx }, 'msg')
+ *
+ * لذلك أي ملف ما زال يستورد من هذا المسار يستمر في العمل بسلوك مكافئ
+ * (مع تحسينات pino في الأداء، الـ structured output، والـ redaction).
+ *
+ * مسار الترقية الموصى به: استبدل
+ *   `import { logger } from '../utils/logger';`
+ * بـ:
+ *   `import { logger } from '@/lib/logger';`
+ */
 
-const logFormat = winston.format.combine(
-  winston.format.timestamp(),
-  winston.format.errors({ stack: true }),
-  // Add PII sanitization BEFORE json formatting
-  winston.format((info) => sanitizeLogFormat.transform(info) as winston.Logform.TransformableInfo)(),
-  winston.format.json(),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    return JSON.stringify({
-      timestamp,
-      level,
-      message,
-      ...meta,
-    });
-  })
-);
+export {
+  logger,
+  createModuleLogger,
+  type Logger,
+  type LogContext,
+} from '@/lib/logger';
 
-export const logger = winston.createLogger({
-  level: isDevelopment ? 'debug' : 'info',
-  format: logFormat,
-  defaultMeta: { service: 'the-copy-backend' },
-  transports: [
-    new winston.transports.Console({
-      format: isDevelopment
-        ? winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
-        : logFormat,
-    }),
-  ],
-});
-
-if (!isDevelopment) {
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    })
-  );
-  
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    })
-  );
-}
+// تصدير افتراضي للتوافق مع نمط `import logger from '...'`
+import { logger as unifiedLogger } from '@/lib/logger';
+export default unifiedLogger;

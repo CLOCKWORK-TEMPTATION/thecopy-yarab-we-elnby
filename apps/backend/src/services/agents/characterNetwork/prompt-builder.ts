@@ -15,7 +15,7 @@ export function buildOriginalTextSection(originalText: string): string {
 /**
  * Build characters list section
  */
-export function buildCharactersSection(characters: Array<string | { name?: string; role?: string }>): string {
+export function buildCharactersSection(characters: (string | { name?: string; role?: string })[]): string {
   if (characters.length === 0) return "";
 
   let section = `الشخصيات في الشبكة:\n`;

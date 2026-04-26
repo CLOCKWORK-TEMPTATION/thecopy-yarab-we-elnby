@@ -1,4 +1,5 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
@@ -45,7 +46,7 @@ ${userInput}
     // إضافة السياق من المحطات السابقة
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const previousStations = (contextObj as Record<string, unknown>)["previousStations"] as Record<string, string> | undefined;
+    const previousStations = (contextObj)["previousStations"] as Record<string, string> | undefined;
     if (previousStations) {
       prompt += `## السياق من المحطات السابقة:\n`;
 

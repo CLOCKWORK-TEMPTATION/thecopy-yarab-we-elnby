@@ -58,10 +58,10 @@ export function safeRegexMatch(text: string, pattern: RegExp): boolean {
   }
 }
 
-export function safeRegexMatchGroup(text: string, pattern: RegExp, groupIndex: number = 1): string | null {
+export function safeRegexMatchGroup(text: string, pattern: RegExp, groupIndex = 1): string | null {
   try {
     const match = text.match(pattern);
-    return match && match[groupIndex] ? match[groupIndex] : null;
+    return match?.[groupIndex] ? match[groupIndex] : null;
   } catch {
     return null;
   }
@@ -83,7 +83,7 @@ export function isNetworkError(error: unknown): boolean {
 export function isApiError(error: unknown): boolean {
   if (error && typeof error === 'object') {
     const err = error as { status?: number; statusCode?: number };
-    return !!(err["status"] || err.statusCode);
+    return !!(err.status || err.statusCode);
   }
   return false;
 }

@@ -1,15 +1,17 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
 import compression from "compression";
+import cors from "cors";
+import express from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import helmet from "helmet";
+
 import { env } from "@/config/env";
 import { logger } from "@/lib/logger";
+
+import { sanitizeRequestLogs } from "./log-sanitization.middleware";
 import {
   logSecurityEvent,
   SecurityEventType,
 } from "./security-logger.middleware";
-import { sanitizeRequestLogs } from "./log-sanitization.middleware";
 import { sloMetricsMiddleware } from "./slo-metrics.middleware";
 
 /**
@@ -125,7 +127,7 @@ function setupSecurity(app: express.Application): void {
 }
 
 function setupBodyParsing(app: express.Application): void {
-  app.use(compression() as unknown as express.RequestHandler);
+  app.use(compression());
 
   const jsonParser = express.json({ limit: "10mb" });
   const urlEncodedParser = express.urlencoded({ extended: true, limit: "10mb" });
@@ -219,7 +221,7 @@ export function createPerUserLimiter(options: {
       success: false,
       error: options.errorMessage,
     },
-  }) as unknown as express.RequestHandler;
+  });
 }
 
 /**
@@ -342,7 +344,7 @@ export const errorHandler = (
   }
 
   // Never expose internal error details to client in production
-  res["status"](statusCode).json({
+  res.status(statusCode).json({
     success: false,
     error: getPublicErrorMessage(statusCode),
     ...(errorCode && { code: errorCode }),

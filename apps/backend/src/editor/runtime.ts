@@ -1,14 +1,16 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity -- editor runtime module */
-import type { Application, RequestHandler } from 'express';
+ 
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
 import rateLimit from 'express-rate-limit';
 
 import { definedProps } from '@/utils/defined-props';
 
+import type { Application, RequestHandler } from 'express';
+
 type DynamicImport = <T>(modulePath: string) => Promise<T>;
 type RuntimeHandler = RequestHandler;
-type ModelAvailability = {
+interface ModelAvailability {
   available: boolean;
   checkedAt: string;
   error?: string;
@@ -16,9 +18,9 @@ type ModelAvailability = {
   provider: string;
   statusCode?: number;
   supportsGenerateContent?: boolean;
-};
+}
 
-type LoadedEditorRuntime = {
+interface LoadedEditorRuntime {
   handleExtract: RuntimeHandler;
   handleTextExtract: RuntimeHandler;
   handleSuspicionReview: RuntimeHandler;
@@ -40,7 +42,7 @@ type LoadedEditorRuntime = {
   defaultAntiwordHome: string;
   docxConverterScriptPath: string;
   docxConverterScriptExists: boolean;
-};
+}
 
 const dynamicImport = new Function(
   'modulePath',
@@ -67,7 +69,7 @@ function buildRateLimiter(limit: number): RequestHandler {
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     handler: (_req, res, _next, options) => {
-      res["status"](options.statusCode).json({
+      res.status(options.statusCode).json({
         success: false,
         error: options.message,
       });
@@ -85,8 +87,8 @@ function toTrimmedString(value: unknown): string {
 
 function getGoogleGenAiApiKey(): string {
   return (
-    toTrimmedString(process.env['GEMINI_API_KEY']) ||
-    toTrimmedString(process.env['GOOGLE_GENAI_API_KEY'])
+    toTrimmedString(process.env.GEMINI_API_KEY) ||
+    toTrimmedString(process.env.GOOGLE_GENAI_API_KEY)
   );
 }
 
@@ -142,19 +144,19 @@ async function checkGoogleModelAvailability(
     const supportedGenerationMethods = Array.isArray(payload?.supportedGenerationMethods)
       ? payload.supportedGenerationMethods
       : [];
-    const errorMessage = response["ok"]
+    const errorMessage = response.ok
       ? supportedGenerationMethods.includes('generateContent')
         ? undefined
         : 'Model does not advertise generateContent support.'
-      : payload?.error?.message || `Google model lookup failed with HTTP ${response["status"]}.`;
+      : payload?.error?.message || `Google model lookup failed with HTTP ${response.status}.`;
     const result: ModelAvailability = {
-      available: response["ok"] && supportedGenerationMethods.includes('generateContent'),
+      available: response.ok && supportedGenerationMethods.includes('generateContent'),
       checkedAt: new Date().toISOString(),
       model,
       provider: 'google-genai',
       ...definedProps({
         error: errorMessage,
-        statusCode: response["status"],
+        statusCode: response.status,
         supportsGenerateContent: supportedGenerationMethods.includes('generateContent'),
       }),
     };
@@ -305,12 +307,12 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
     ocrReady &&
     aiContextReady &&
     runtime.docxConverterScriptExists === true;
-  const intakeLimitations: Array<{
+  const intakeLimitations: {
     sourceType: 'doc' | 'docx' | 'pdf';
     code: string;
     blocking: boolean;
     message: string;
-  }> = [];
+  }[] = [];
 
   if (!antiwordReady) {
     intakeLimitations.push({
@@ -407,6 +409,6 @@ export async function registerEditorRuntimeRoutes(app: Application): Promise<voi
   app.post('/api/export/pdfa', createLazyRuntimeHandler(runtime => runtime.handleExportPdfA));
   app.get('/api/editor-runtime/health', async (_req, res) => {
     const payload = await getEditorIntegrationHealth();
-    res["status"](payload["ok"] ? 200 : 503).json(payload);
+    res.status(payload["ok"] ? 200 : 503).json(payload);
   });
 }

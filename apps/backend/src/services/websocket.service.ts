@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- WebSocket service module */
+ 
 /**
  * WebSocket Service
  *
@@ -6,13 +6,13 @@
  */
 
 import { Server as HTTPServer } from 'http';
+
 import { Server as SocketIOServer, Socket } from 'socket.io';
-import type { ServerOptions } from 'socket.io';
-import { getWebSocketConfig, WEBSOCKET_CONFIG } from '@/config/websocket.config';
+
 import { env } from '@/config/env';
+import { getWebSocketConfig, WEBSOCKET_CONFIG } from '@/config/websocket.config';
 import { logger } from '@/lib/logger';
-import { authService } from './auth.service';
-import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
+import { breakappService } from '@/modules/breakapp/service';
 import {
   RealtimeEvent,
   RealtimeEventType,
@@ -24,7 +24,12 @@ import {
   JobCompletedPayload,
   JobFailedPayload,
 } from '@/types/realtime.types';
-import { breakappService } from '@/modules/breakapp/service';
+import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
+
+import { authService } from './auth.service';
+
+
+import type { ServerOptions } from 'socket.io';
 
 /**
  * Extended Socket interface with custom properties
@@ -40,8 +45,8 @@ interface AuthenticatedSocket extends Socket {
  */
 class WebSocketService {
   private io: SocketIOServer | null = null;
-  private connections: Map<string, AuthenticatedSocket> = new Map();
-  private sessionTimers: Map<string, NodeJS.Timeout> = new Map();
+  private connections = new Map<string, AuthenticatedSocket>();
+  private sessionTimers = new Map<string, NodeJS.Timeout>();
 
   private setAuthExpiry(
     socket: AuthenticatedSocket,
@@ -83,7 +88,7 @@ class WebSocketService {
         let token = null;
 
         // 1. Try checking handshake auth
-        if (socket.handshake.auth && socket.handshake.auth["token"]) {
+        if (socket.handshake.auth?.["token"]) {
           token = socket.handshake.auth["token"];
         }
 
@@ -252,14 +257,14 @@ class WebSocketService {
     socket.on(
       'order:status',
       async (data: { orderId?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled' }) => {
-        if (!data?.orderId || !data["status"]) {
+        if (!data?.orderId || !data.status) {
           return;
         }
 
-        await breakappService.updateOrderStatus(data.orderId, data["status"]);
+        await breakappService.updateOrderStatus(data.orderId, data.status);
         this.emitCustom('order:status:update', {
           orderId: data.orderId,
-          status: data["status"],
+          status: data.status,
           timestamp: new Date().toISOString(),
         });
       }
@@ -268,20 +273,20 @@ class WebSocketService {
     socket.on(
       'batch:status',
       async (data: { batchId?: string; vendorId?: string; status?: 'pending' | 'in-progress' | 'completed' }) => {
-        if (!data?.batchId || !data?.vendorId || !data["status"]) {
+        if (!data?.batchId || !data?.vendorId || !data.status) {
           return;
         }
 
         logger.info('[WebSocket] Batch status update received', {
           batchId: data.batchId,
           vendorId: data.vendorId,
-          status: data["status"],
+          status: data.status,
         });
 
         this.emitCustom('batch:status:update', {
           batchId: data.batchId,
           vendorId: data.vendorId,
-          status: data["status"],
+          status: data.status,
           timestamp: new Date().toISOString(),
         });
       }
@@ -301,7 +306,7 @@ class WebSocketService {
    * JWT tokens are verified through authService. The development-only fallback
    * is restricted to loopback connections and is not reachable in production.
    */
-  // eslint-disable-next-line max-lines-per-function, complexity
+   
   private handleAuthentication(
     socket: AuthenticatedSocket,
     data: { token?: string; userId?: string }

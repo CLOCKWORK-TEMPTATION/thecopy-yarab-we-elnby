@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG } from "./agent";
 import { TARGET_AUDIENCE_ANALYZER_INSTRUCTIONS } from "./instructions";
 
@@ -33,7 +35,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
 
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const typedCtx = contextObj as Record<string, unknown>;
+    const typedCtx = contextObj;
     const originalText = (typedCtx["originalText"] as string) || "";
     const genre = (typedCtx["genre"] as string) || "";
     const themes = (typedCtx["themes"] as string[]) || [];
@@ -284,10 +286,10 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const contextObj =
-      typeof input["context"] === "object" && input["context"] !== null
-        ? input["context"]
+      typeof input.context === "object" && input.context !== null
+        ? input.context
         : {};
-    const genre = (contextObj as Record<string, unknown>)["genre"] as string || "غير محدد";
+    const genre = (contextObj)["genre"] as string || "غير محدد";
 
     return `تحليل الجمهور المستهدف:
 

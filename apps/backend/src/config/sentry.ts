@@ -167,8 +167,9 @@ export function captureMessage(
     return;
   }
 
-  // eslint-disable-next-line no-console
-  loggyr.lefU
+  // التراجع للـ logger الموحَّد عند غياب Sentry أو خارج بيئة الإنتاج
+  logger.info({ ...(context ?? {}), level }, message);
+}
 
 export function trackMetric(name: string, value: number, unit: string = 'ms') {
   if (isSentryEnabled()) {

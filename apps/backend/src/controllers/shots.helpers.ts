@@ -1,12 +1,14 @@
+import { eq, and } from 'drizzle-orm';
 import { Response } from 'express';
+
 import { db } from '@/db';
 import { shots, scenes, projects } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+
 import type { AuthRequest } from '@/middleware/auth.middleware';
 
 export function requireAuth(req: AuthRequest, res: Response): boolean {
   if (!req.user) {
-    res["status"](401).json({
+    res.status(401).json({
       success: false,
       error: 'غير مصرح',
     });
@@ -17,7 +19,7 @@ export function requireAuth(req: AuthRequest, res: Response): boolean {
 
 export function requireParam(res: Response, value: string | undefined, errorMsg: string): value is string {
   if (!value) {
-    res["status"](400).json({
+    res.status(400).json({
       success: false,
       error: errorMsg,
     });

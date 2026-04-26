@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Request, Response } from 'express';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 
 // Simple mock implementation for the scenes controller
 class MockScenesController {
   async getScenes(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -15,7 +15,7 @@ class MockScenesController {
     const { projectId } = req.params;
 
     if (!projectId) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشروع مطلوب',
       });
@@ -33,7 +33,7 @@ class MockScenesController {
 
   async getScene(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -42,7 +42,7 @@ class MockScenesController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشهد مطلوب',
       });
@@ -57,7 +57,7 @@ class MockScenesController {
 
   async createScene(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -77,21 +77,21 @@ class MockScenesController {
       const validatedData = schema.parse(req.body);
 
       // Mock successful creation
-      return res["status"](201).json({
+      return res.status(201).json({
         success: true,
         message: 'تم إنشاء المشهد بنجاح',
         data: { id: 'new-scene', ...validatedData, description: validatedData.description || null },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res["status"](400).json({
+        return res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
         });
       }
 
-      return res["status"](500).json({
+      return res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء إنشاء المشهد',
       });
@@ -100,7 +100,7 @@ class MockScenesController {
 
   async updateScene(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -109,7 +109,7 @@ class MockScenesController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشهد مطلوب',
       });
@@ -138,14 +138,14 @@ class MockScenesController {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res["status"](400).json({
+        return res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
         });
       }
 
-      return res["status"](500).json({
+      return res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء تحديث المشهد',
       });
@@ -154,7 +154,7 @@ class MockScenesController {
 
   async deleteScene(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -163,7 +163,7 @@ class MockScenesController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشهد مطلوب',
       });

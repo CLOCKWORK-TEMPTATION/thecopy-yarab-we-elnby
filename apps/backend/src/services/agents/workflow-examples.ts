@@ -3,11 +3,13 @@
  * Demonstrates how to use the enhanced workflow system
  */
 
-import { multiAgentOrchestrator } from './orchestrator';
+import { logger } from '@/lib/logger';
+
 import { createWorkflow } from './core';
 import { TaskType } from './core/enums';
 import { StandardAgentInput } from './core/types';
-import { logger } from '@/lib/logger';
+import { multiAgentOrchestrator } from './orchestrator';
+
 
 /**
  * Example 1: Using Preset Workflows
@@ -24,7 +26,7 @@ async function examplePresetWorkflow() {
   // Execute standard 7-agent workflow
   const result = await multiAgentOrchestrator.executeWorkflow('standard', input);
   
-  logger.info('Workflow Status:', result["status"]);
+  logger.info('Workflow Status:', result.status);
   logger.info('Success Rate:', result.metrics.successRate);
   logger.info('Total Time:', result.metrics.totalExecutionTime, 'ms');
 }
@@ -82,7 +84,7 @@ async function exampleCustomWorkflow() {
 
   const result = await multiAgentOrchestrator.executeCustomWorkflow(customWorkflow, input);
   
-  logger.info('Custom workflow completed:', result["status"]);
+  logger.info('Custom workflow completed:', result.status);
 }
 
 /**
@@ -103,7 +105,7 @@ async function exampleCharacterAnalysis() {
   // Access specific agent results
   for (const [stepId, agentResult] of result.results) {
     logger.info(`Step ${stepId}:`, {
-      status: agentResult["status"],
+      status: agentResult.status,
       confidence: agentResult.output?.confidence,
       duration: agentResult.duration,
     });

@@ -4,6 +4,7 @@
  */
 
 import { env } from "@/config/env";
+
 import type { WAFConfig, WAFEvent } from "./waf-types";
 
 export const defaultWAFConfig: WAFConfig = {
@@ -55,7 +56,7 @@ export const wafEvents: WAFEvent[] = [];
 export const MAX_WAF_EVENTS = 10000;
 
 export const wafState = {
-  config: { ...defaultWAFConfig } as WAFConfig,
+  config: { ...defaultWAFConfig },
 };
 
 export type AlertCallback = (event: WAFEvent) => void;

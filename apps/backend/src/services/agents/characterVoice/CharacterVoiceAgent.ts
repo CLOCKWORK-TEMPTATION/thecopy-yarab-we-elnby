@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { CHARACTER_VOICE_AGENT_CONFIG } from "./agent";
 
 interface CharacterProfile {
@@ -294,7 +296,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     return notes;
   }
 
-  private static readonly PROFILE_FIELDS: Array<[keyof CharacterProfile, string]> = [
+  private static readonly PROFILE_FIELDS: [keyof CharacterProfile, string][] = [
     ["name", "الاسم"], ["age", "العمر"], ["personality", "الشخصية"],
     ["background", "الخلفية"], ["goals", "الأهداف"], ["fears", "المخاوف"],
     ["speechPattern", "نمط الكلام"],
@@ -316,9 +318,9 @@ export class CharacterVoiceAgent extends BaseAgent {
   protected override async getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const ctx = input["context"] as CharacterVoiceContext;
-    const profile = ctx?.['characterProfile'];
-    const character = (typeof profile === "object" && profile !== null ? (profile as CharacterProfile).name : undefined) || "الشخصية";
+    const ctx = input.context as CharacterVoiceContext;
+    const profile = ctx?.characterProfile;
+    const character = (typeof profile === "object" && profile !== null ? (profile).name : undefined) || "الشخصية";
 
     return `تحليل صوت ${character}:
 الشخصية لديها نمط كلام مميز يعكس خلفيتها وشخصيتها.

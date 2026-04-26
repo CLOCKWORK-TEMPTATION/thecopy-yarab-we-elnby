@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { authMiddleware, type AuthRequest } from './auth.middleware';
 import { Response, NextFunction } from 'express';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { authMiddleware, type AuthRequest } from './auth.middleware';
 
 // Mock auth service
 vi.mock('../services/auth.service', () => ({
@@ -70,7 +71,7 @@ describe('authMiddleware', () => {
       expect(mockRequest.userId).toBe(MOCK_USER_ID);
       expect(mockRequest.user).toEqual(MOCK_USER);
       expect(mockNext).toHaveBeenCalled();
-      expect(mockResponse["status"]).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should return 401 if Authorization header is missing Bearer prefix', async () => {
@@ -89,7 +90,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح - يرجى تسجيل الدخول',
@@ -153,7 +154,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح - يرجى تسجيل الدخول',
@@ -176,7 +177,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'رمز التحقق غير صالح',
@@ -198,7 +199,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'المستخدم غير موجود',
@@ -222,7 +223,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'رمز التحقق غير صالح',
@@ -246,7 +247,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockNext).not.toHaveBeenCalled();
     });
 
@@ -265,7 +266,7 @@ describe('authMiddleware', () => {
         mockNext
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockNext).not.toHaveBeenCalled();
     });
   });

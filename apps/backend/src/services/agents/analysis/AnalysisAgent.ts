@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { ANALYSIS_AGENT_CONFIG } from "./agent";
 import { METHODOLOGY_INSTRUCTIONS, ANALYSIS_FALLBACK_RESPONSE } from "./instructions";
 
@@ -43,7 +45,7 @@ export class AnalysisAgent extends BaseAgent {
   }
 
 
-  // eslint-disable-next-line complexity
+   
   private buildContextSection(ctx: AnalysisContext | undefined): string {
     let section = "";
     const originalText = ctx?.originalText || "";
@@ -159,7 +161,7 @@ export class AnalysisAgent extends BaseAgent {
   private isSectionStartLine(line: string, nextLine: string): boolean {
     return (
       this.isAnalysisSectionHeader(line) ||
-      (!!line.match(/^\d+\./) && !!nextLine && !nextLine.match(/^\d+\./))
+      (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
     );
   }
 
@@ -181,7 +183,7 @@ export class AnalysisAgent extends BaseAgent {
     const structuralTerms = ["بنية", "هيكل", "حبكة", "إيقاع", "مشهد", "اقتصاد", "ثغرة", "انتظام"];
     if (structuralTerms.some((term) => text.includes(term))) score += 0.2;
     if (text.includes("قوة") || text.includes("ضعف")) score += 0.1;
-    if (text.match(/\d+\./)) score += 0.1;
+    if (/\d+\./.exec(text)) score += 0.1;
     return Math.min(1, score);
   }
 
@@ -261,7 +263,7 @@ export class AnalysisAgent extends BaseAgent {
     return depths[depth] || depth;
   }
 
-  // eslint-disable-next-line complexity
+   
   private summarizeAnalysis(analysis: unknown): string {
     if (typeof analysis === "string") {
       return analysis.length > 500 ? analysis.substring(0, 500) + "..." : analysis;

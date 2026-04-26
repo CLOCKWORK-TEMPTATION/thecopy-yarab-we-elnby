@@ -4,7 +4,7 @@
  */
 
 import { logger } from "@/lib/logger";
-import type { WAFConfig, WAFRule, WAFEvent, WAFEventType } from "./waf-types";
+
 import { escapeRegex, isRegexSafe } from "./waf-helpers";
 import {
   wafState,
@@ -14,14 +14,16 @@ import {
   rateLimitStore,
   alertCallbacks,
 } from "./waf-state";
+
 import type { AlertCallback } from "./waf-state";
+import type { WAFConfig, WAFRule, WAFEvent, WAFEventType } from "./waf-types";
 
 interface CustomRuleInput {
   id: string;
   name: string;
   description: string;
   pattern: RegExp | string;
-  locations: Array<"body" | "query" | "path" | "headers">;
+  locations: ("body" | "query" | "path" | "headers")[];
   action: "block" | "allow" | "log";
   severity: "low" | "medium" | "high" | "critical";
   enabled: boolean;
@@ -132,7 +134,7 @@ export function removeCustomRule(ruleId: string): void {
   logger.info("Custom WAF rule removed", { ruleId });
 }
 
-export function getWAFEvents(limit: number = 100): WAFEvent[] {
+export function getWAFEvents(limit = 100): WAFEvent[] {
   return wafEvents.slice(-limit);
 }
 
@@ -172,7 +174,7 @@ export function getWAFStats(): {
     totalEvents: wafEvents.length,
     blockedRequests,
     monitoredRequests,
-    eventsByType: eventsByType as Record<WAFEventType, number>,
+    eventsByType: eventsByType,
     eventsBySeverity,
     topBlockedIPs,
   };

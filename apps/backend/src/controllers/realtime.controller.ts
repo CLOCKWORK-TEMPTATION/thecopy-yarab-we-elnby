@@ -6,9 +6,10 @@
 
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+
+import { logger } from '@/lib/logger';
 import { sseService } from '@/services/sse.service';
 import { websocketService } from '@/services/websocket.service';
-import { logger } from '@/lib/logger';
 import { RealtimeEventType } from '@/types/realtime.types';
 
 export class RealtimeController {
@@ -46,7 +47,7 @@ export class RealtimeController {
       });
     } catch {
       logger.error('[Realtime] Failed to get stats');
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'فشل في الحصول على إحصائيات الاتصالات الحية',
       });
@@ -128,7 +129,7 @@ export class RealtimeController {
       });
     } catch {
       logger.error('[Realtime] Failed to send test event');
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'فشل في إرسال الحدث التجريبي',
       });

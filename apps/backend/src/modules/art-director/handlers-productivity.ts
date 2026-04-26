@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -10,8 +9,8 @@ import {
   uniqueById,
   extractNestedRecord,
 } from "./handlers-shared";
-import { PerformanceProductivityAnalyzer } from "./plugins/productivity-analyzer";
 import { runPlugin } from "./plugin-executor";
+import { PerformanceProductivityAnalyzer } from "./plugins/productivity-analyzer";
 import {
   readStore,
   updateStore,
@@ -19,6 +18,8 @@ import {
   type StoredTimeEntry,
   type StoredDelay,
 } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 const PIE_COLORS = { completed: "#4ade80", inProgress: "#fbbf24", delayed: "#ef4444" };
 const CHART_COLORS = ["#e94560", "#4ade80", "#fbbf24", "#60a5fa", "#a78bfa"];
@@ -42,7 +43,7 @@ function buildChartData(hoursByDepartment: Record<string, number>) {
 
 function buildPieData(store: ArtDirectorStore) {
   const completed = store.timeEntries.filter(
-    (entry) => entry["status"] === "completed"
+    (entry) => entry.status === "completed"
   ).length;
   const delayed = store.delays.length;
   const inProgress = Math.max(store.timeEntries.length - completed, 0);
@@ -81,7 +82,7 @@ export async function handleProductivityAnalyze(
   const totalHours = entries.reduce((sum, e) => sum + e.actualHours, 0);
   const delayHours = store.delays.reduce((sum, d) => sum + d.hoursLost, 0);
   const completedCount = entries.filter(
-    (e) => e["status"] === "completed"
+    (e) => e.status === "completed"
   ).length;
 
   return success({

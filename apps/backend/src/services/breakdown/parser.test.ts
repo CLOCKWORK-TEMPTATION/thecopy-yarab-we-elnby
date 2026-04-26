@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { parseScreenplay } from './parser';
 
 describe('parseScreenplay', () => {

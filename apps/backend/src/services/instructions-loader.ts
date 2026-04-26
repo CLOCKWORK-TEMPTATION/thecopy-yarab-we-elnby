@@ -7,7 +7,7 @@ interface InstructionSet {
   systemPrompt: string;
   instructions: string[];
   outputFormat?: Record<string, string>;
-  examples?: Array<{ input: string; output: string }>;
+  examples?: { input: string; output: string }[];
   [key: string]: any;
 }
 
@@ -51,7 +51,7 @@ class InstructionsLoader {
     try {
       const response = await fetch(`/instructions/${agentId}.json`);
       
-      if (!response["ok"]) {
+      if (!response.ok) {
         throw new Error(`Failed to load instructions for ${agentId}: ${response.statusText}`);
       }
 

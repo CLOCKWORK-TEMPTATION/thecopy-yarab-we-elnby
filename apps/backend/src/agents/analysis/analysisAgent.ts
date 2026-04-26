@@ -1,7 +1,8 @@
 import { IntegratedAgent } from '../../services/agents/core/integratedAgent';
+import { TaskType, TaskCategory } from '../../types/types';
+
 import type { GeminiServiceResponse } from '../../services/agents/core/geminiService';
 import type { AIAgentConfig, ProcessedFile } from '../../types/types';
-import { TaskType, TaskCategory } from '../../types/types';
 
 const ANALYSIS_AGENT_CONFIG: AIAgentConfig = {
   id: 'analysis',

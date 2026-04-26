@@ -1,5 +1,6 @@
-import type { ParsedScene, ParsedScreenplay, SceneHeader, SceneType, TimeOfDay } from './types';
 import { estimateScenePageCount, validateSceneHeader } from './utils';
+
+import type { ParsedScene, ParsedScreenplay, SceneHeader, SceneType, TimeOfDay } from './types';
 
 const ENGLISH_SCENE_HEADING_PATTERN =
   /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s+/i;
@@ -114,12 +115,12 @@ function inferTimeOfDay(header: string): TimeOfDay {
 }
 
 function inferStoryDay(header: string): number {
-  const arabicMatch = header.match(/يوم\s+(\d+)/i);
+  const arabicMatch = /يوم\s+(\d+)/i.exec(header);
   if (arabicMatch) {
     return Number(arabicMatch[1]);
   }
 
-  const englishMatch = header.match(/day\s+(\d+)/i);
+  const englishMatch = /day\s+(\d+)/i.exec(header);
   if (englishMatch) {
     return Number(englishMatch[1]);
   }
@@ -128,12 +129,12 @@ function inferStoryDay(header: string): number {
 }
 
 function inferSceneNumber(header: string, fallback: number): number {
-  const arabicMatch = header.match(/(?:^|\s)(?:مشهد|م)\s*(\d+)/i);
+  const arabicMatch = /(?:^|\s)(?:مشهد|م)\s*(\d+)/i.exec(header);
   if (arabicMatch) {
     return Number(arabicMatch[1]);
   }
 
-  const englishMatch = header.match(/(?:scene)\s*(\d+)/i);
+  const englishMatch = /(?:scene)\s*(\d+)/i.exec(header);
   if (englishMatch) {
     return Number(englishMatch[1]);
   }
@@ -144,16 +145,12 @@ function inferSceneNumber(header: string, fallback: number): number {
 function inferLocation(header: string): string {
   const normalizedHeader = normalizeLine(header);
 
-  const englishMatch = normalizedHeader.match(
-    /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s*([^-|]+)/i
-  );
+  const englishMatch = /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s*([^-|]+)/i.exec(normalizedHeader);
   if (englishMatch?.[1]) {
     return englishMatch[1].trim();
   }
 
-  const arabicMatch = normalizedHeader.match(
-    /^(?:مشهد(?:\s+(?:داخلي|خارجي))?\.?\s*)?(.+?)(?:\s*[-–—]\s*(?:ليل|نهار|فجر|مغرب|day|night|dawn|dusk|morning|evening).*)?$/i
-  );
+  const arabicMatch = /^(?:مشهد(?:\s+(?:داخلي|خارجي))?\.?\s*)?(.+?)(?:\s*[-–—]\s*(?:ليل|نهار|فجر|مغرب|day|night|dawn|dusk|morning|evening).*)?$/i.exec(normalizedHeader);
   if (arabicMatch?.[1]) {
     const candidate = arabicMatch[1]
       .replace(/^(?:داخلي|خارجي)\.?\s*/i, '')

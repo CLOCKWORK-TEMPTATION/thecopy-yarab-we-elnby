@@ -3,8 +3,9 @@
  * Extracted from debateModerator.ts to reduce file size and function complexity
  */
 
-import { geminiService } from '@/services/gemini.service';
 import { logger } from '@/lib/logger';
+import { geminiService } from '@/services/gemini.service';
+
 import { DebateArgument } from './types';
 
 /**
@@ -73,7 +74,7 @@ function parseAnalysisResponse(
       continue;
     }
 
-    if (trimmed.match(/^[\-\*\•]\s/) || trimmed.match(/^\d+[\.\)]\s/)) {
+    if ((/^[\-\*\•]\s/.exec(trimmed)) || (/^\d+[\.\)]\s/.exec(trimmed))) {
       const point = trimmed.replace(/^[\-\*\•]\s/, '').replace(/^\d+[\.\)]\s/, '');
 
       if (currentSection === 'consensus') {
@@ -135,7 +136,7 @@ ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 200)}
       maxTokens: 100,
     });
 
-    const match = response.match(/(\d+\.?\d*)/);
+    const match = /(\d+\.?\d*)/.exec(response);
     if (match?.[1]) {
       positionAgreement = Math.min(1, Math.max(0, parseFloat(match[1])));
     }

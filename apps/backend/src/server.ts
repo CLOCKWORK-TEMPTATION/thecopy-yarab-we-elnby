@@ -4,22 +4,14 @@ import './bootstrap/runtime-alias';
 import { initTracing } from '@/config/tracing';
 initTracing();
 
-import express, { Application } from 'express';
 import { createServer } from 'http';
-import type { Server } from 'http';
 import { createServer as createNetServer } from 'net';
-import { z } from 'zod';
+
 import cookieParser from 'cookie-parser';
+import express, { Application } from 'express';
+import { z } from 'zod';
+
 import { env } from '@/config/env';
-import { initializeSentry } from '@/config/sentry';
-import { setupMiddleware, errorHandler, perUserAiLimiter } from '@/middleware';
-import { sentryErrorHandler, trackError, trackPerformance } from '@/middleware/sentry.middleware';
-import { logAuthAttempts, logRateLimitViolations } from '@/middleware/security-logger.middleware';
-import { wafMiddleware, getWAFStats, getWAFEvents, blockIP, unblockIP, getBlockedIPs, updateWAFConfig, getWAFConfig } from '@/middleware/waf.middleware';
-import { metricsMiddleware, metricsEndpoint } from '@/middleware/metrics.middleware';
-import { csrfProtection } from '@/middleware/csrf.middleware';
-import { cspMiddleware, securityHeadersMiddleware } from '@/middleware/csp.middleware';
-import { AnalysisController } from '@/controllers/analysis.controller';
 import { HealthController } from '@/controllers/health.controller';
 import { authController } from '@/controllers/auth.controller';
 import { projectsController } from '@/controllers/projects.controller';
@@ -37,9 +29,9 @@ import { closeDatabase, initializeDatabase, databaseAvailable } from '@/db';
 import { initializeWorkers, shutdownQueues } from '@/queues';
 import { setupBullBoard, getAuthenticatedBullBoardRouter } from '@/middleware/bull-board.middleware';
 import { isRedisEnabled } from '@/config/redis-gate';
+import { initializeSentry } from '@/config/sentry';
+import { AnalysisController } from '@/controllers/analysis.controller';
 import { checkRedisHealth } from '@/utils/redis-health';
-import { queueController } from '@/controllers/queue.controller';
-import { metricsController } from '@/controllers/metrics.controller';
 import { critiqueController } from '@/controllers/critique.controller';
 import { appStateController } from '@/controllers/appState.controller';
 import { budgetController } from '@/controllers/budget.controller';
@@ -352,6 +344,17 @@ app.post('/api/projects/:id/analyze', authMiddleware, perUserAiLimiter, csrfProt
 
 // Zero-Knowledge Encrypted Documents endpoints (protected)
 import { createEncryptedDocument, getEncryptedDocument, updateEncryptedDocument, deleteEncryptedDocument, listEncryptedDocuments } from '@/controllers/encryptedDocs.controller';
+import { metricsController } from '@/controllers/metrics.controller';
+import { queueController } from '@/controllers/queue.controller';
+import { setupMiddleware, errorHandler, perUserAiLimiter } from '@/middleware';
+import { cspMiddleware, securityHeadersMiddleware } from '@/middleware/csp.middleware';
+import { csrfProtection } from '@/middleware/csrf.middleware';
+import { metricsMiddleware, metricsEndpoint } from '@/middleware/metrics.middleware';
+import { logAuthAttempts, logRateLimitViolations } from '@/middleware/security-logger.middleware';
+import { sentryErrorHandler, trackError, trackPerformance } from '@/middleware/sentry.middleware';
+import { wafMiddleware, getWAFStats, getWAFEvents, blockIP, unblockIP, getBlockedIPs, updateWAFConfig, getWAFConfig } from '@/middleware/waf.middleware';
+
+import type { Server } from 'http';
 app.post('/api/docs', authMiddleware, csrfProtection, createEncryptedDocument);
 app.get('/api/docs/:id', authMiddleware, getEncryptedDocument);
 app.put('/api/docs/:id', authMiddleware, csrfProtection, updateEncryptedDocument);
@@ -639,7 +642,7 @@ app.use(
 
 // Start server with automatic port fallback if the selected port is in use
 let runningServer: Server | null = null;
-const startPort = Number(process.env['PORT']) || env.PORT;
+const startPort = Number(process.env.PORT) || env.PORT;
 const DEVELOPMENT_PRIMARY_PORT_WAIT_MS =
   env.NODE_ENV === 'development' ? 10_000 : 0;
 const PORT_PROBE_INTERVAL_MS = 250;

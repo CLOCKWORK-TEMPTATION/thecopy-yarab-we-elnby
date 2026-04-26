@@ -31,7 +31,7 @@ describe("art-director routes", () => {
   it("يعيد قائمة الأدوات عبر المسار الرسمي للباك إند", async () => {
     const response = await request(createTestApp()).get("/api/art-director/plugins");
 
-    expect(response["status"]).toBe(200);
+    expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.count).toBeGreaterThan(0);
     expect(Array.isArray(response.body.plugins)).toBe(true);
@@ -50,14 +50,14 @@ describe("art-director routes", () => {
         features: ["Parking", "Rigging"],
       });
 
-    expect(addResponse["status"]).toBe(200);
+    expect(addResponse.status).toBe(200);
     expect(addResponse.body.success).toBe(true);
 
     const searchResponse = await request(app)
       .post("/api/art-director/locations/search")
       .send({ query: "النيل" });
 
-    expect(searchResponse["status"]).toBe(200);
+    expect(searchResponse.status).toBe(200);
     expect(searchResponse.body.success).toBe(true);
     expect(searchResponse.body.data.locations).toEqual(
       expect.arrayContaining([

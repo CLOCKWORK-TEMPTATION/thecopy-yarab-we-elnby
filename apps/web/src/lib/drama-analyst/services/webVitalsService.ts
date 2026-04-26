@@ -2,10 +2,12 @@
 // Monitors Core Web Vitals and performance metrics
 
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from "web-vitals";
-import type { Metric } from "web-vitals";
+
 
 import { log } from "./loggerService";
 import { reportError, addBreadcrumb } from "./observability";
+
+import type { Metric } from "web-vitals";
 // No-op replacement for missing GA function
 const sendGAEvent = (..._args: unknown[]) => {};
 

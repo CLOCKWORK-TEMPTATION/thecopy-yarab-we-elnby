@@ -6,7 +6,14 @@
  */
 
 import { Request, Response } from "express";
-import type { WAFConfig, WAFRule, WAFEvent, WAFEventType } from "./config";
+
+import {
+  isIPBlacklisted,
+  isUserAgentBlacklisted,
+  logWAFEvent,
+  checkRule,
+  checkRateLimit,
+} from "./checks";
 import {
   SQL_INJECTION_PATTERNS,
   XSS_PATTERNS,
@@ -16,13 +23,8 @@ import {
   BOT_DETECTION_PATTERNS,
 } from "./rules";
 import { getWafConfig } from "./state";
-import {
-  isIPBlacklisted,
-  isUserAgentBlacklisted,
-  logWAFEvent,
-  checkRule,
-  checkRateLimit,
-} from "./checks";
+
+import type { WAFConfig, WAFRule, WAFEvent, WAFEventType } from "./config";
 
 // ============================================================================
 // Types

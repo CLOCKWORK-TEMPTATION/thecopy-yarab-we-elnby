@@ -4,9 +4,10 @@
  * Tests for BullMQ queue setup and configuration
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { queueManager, QueueName } from './queue.config';
 import { Queue } from 'bullmq';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+
+import { queueManager, QueueName } from './queue.config';
 
 describe('Queue Configuration', () => {
   afterEach(async () => {
@@ -225,19 +226,19 @@ describe('Queue Configuration', () => {
 
   describe('Redis Connection', () => {
     it('should use REDIS_URL if provided', () => {
-      const originalEnv = process.env['REDIS_URL'];
+      const originalEnv = process.env.REDIS_URL;
 
-      process.env['REDIS_URL'] = 'redis://:password@localhost:6379';
+      process.env.REDIS_URL = 'redis://:password@localhost:6379';
 
       // This would require re-importing the module
       // For now, we just verify the URL is set
-      expect(process.env['REDIS_URL']).toBe('redis://:password@localhost:6379');
+      expect(process.env.REDIS_URL).toBe('redis://:password@localhost:6379');
 
       // Restore original
       if (originalEnv) {
-        process.env['REDIS_URL'] = originalEnv;
+        process.env.REDIS_URL = originalEnv;
       } else {
-        delete process.env['REDIS_URL'];
+        delete process.env.REDIS_URL;
       }
     });
 

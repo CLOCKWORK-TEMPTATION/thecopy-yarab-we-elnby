@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 
 import { logger } from "@/lib/logger";
+
 import {
   performHealthChecks,
   performReadinessChecks,
   performDetailedHealthChecks,
 } from "./health-checks.helpers.js";
+
 import type { LivenessStatus } from "./health-checks.helpers.js";
 
 export class HealthController {
@@ -20,7 +22,7 @@ export class HealthController {
       res.status(503).json({
         status: "unhealthy",
         timestamp: new Date().toISOString(),
-        version: process.env['npm_package_version'] || "1.0.0",
+        version: process.env.npm_package_version || "1.0.0",
         uptime: Date.now() - this.startTime,
         error: "Health check failed",
       });

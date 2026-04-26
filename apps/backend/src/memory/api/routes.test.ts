@@ -70,12 +70,12 @@ function createResponseMock() {
 describe('memoryHealthHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env['GOOGLE_GENAI_API_KEY'];
-    delete process.env['GEMINI_API_KEY'];
+    delete process.env.GOOGLE_GENAI_API_KEY;
+    delete process.env.GEMINI_API_KEY;
   });
 
   it('يعتبر اعتماد مزود الذكاء الاصطناعي مضبوطًا عند وجود المفتاح البديل فقط', async () => {
-    process.env['GEMINI_API_KEY'] = 'fallback-key';
+    process.env.GEMINI_API_KEY = 'fallback-key';
 
     mockGetStatus
       .mockReturnValueOnce({
@@ -96,7 +96,7 @@ describe('memoryHealthHandler', () => {
 
     await memoryHealthHandler({} as never, response as never);
 
-    expect(response["status"]).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'healthy',
@@ -123,7 +123,7 @@ describe('memoryHealthHandler', () => {
     await memoryHealthHandler({} as never, response as never);
 
     expect(mockHealthCheck).not.toHaveBeenCalled();
-    expect(response["status"]).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'disabled',
@@ -154,7 +154,7 @@ describe('memoryHealthHandler', () => {
 
     await memoryHealthHandler({} as never, response as never);
 
-    expect(response["status"]).toHaveBeenCalledWith(503);
+    expect(response.status).toHaveBeenCalledWith(503);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'unhealthy',

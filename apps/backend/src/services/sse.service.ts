@@ -5,6 +5,7 @@
  */
 
 import { Response } from 'express';
+
 import { logger } from '@/lib/logger';
 import {
   RealtimeEvent,
@@ -28,14 +29,14 @@ interface SSEClient {
  * SSE Service Manager
  */
 class SSEService {
-  private clients: Map<string, SSEClient> = new Map();
-  private clientsByUserId: Map<string, Set<string>> = new Map();
-  private clientsByRoom: Map<string, Set<string>> = new Map();
+  private clients = new Map<string, SSEClient>();
+  private clientsByUserId = new Map<string, Set<string>>();
+  private clientsByRoom = new Map<string, Set<string>>();
 
   /**
    * Initialize SSE connection for a client
    */
-  // eslint-disable-next-line max-lines-per-function
+   
   initializeConnection(
     clientId: string,
     response: Response,

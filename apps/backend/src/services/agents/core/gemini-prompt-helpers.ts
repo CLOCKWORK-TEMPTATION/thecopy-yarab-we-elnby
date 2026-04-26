@@ -1,11 +1,6 @@
 /**
  * Helper functions for constructing Gemini API prompts
  */
-import type { Part } from "@google/generative-ai";
-import {
-  safeRegexMatchGroup,
-} from '../../../types/ai/geminiTypes';
-import { TaskCategory, TaskType } from '../../../types/types';
 import {
   PROMPT_PERSONA_BASE,
   TASK_SPECIFIC_INSTRUCTIONS,
@@ -14,8 +9,14 @@ import {
   TASK_CATEGORY_MAP,
   ENHANCED_TASK_DESCRIPTIONS as TASK_DESCRIPTIONS_FOR_PROMPT
 } from '../../../config/agentPrompts';
+import {
+  safeRegexMatchGroup,
+} from '../../../types/ai/geminiTypes';
+import { TaskCategory, TaskType } from '../../../types/types';
+
 import type { ProcessedFile } from './fileReaderService';
 import type { GeminiError } from '../../../types/ai/geminiTypes';
+import type { Part } from "@google/generative-ai";
 
 /**
  * @interface ProcessTextsParams
@@ -67,7 +68,7 @@ function sliceBetween(input: string, openChar: string, closeChar: string): strin
 }
 
 function resolveAdvancedModuleRole(taskType: TaskType, taskLabel: string): string {
-  const fullTaskDesc = (TASK_DESCRIPTIONS_FOR_PROMPT as Record<string, string>)[taskType];
+  const fullTaskDesc = (TASK_DESCRIPTIONS_FOR_PROMPT)[taskType];
   let moduleNameOnly = taskLabel;
   if (fullTaskDesc) {
     const colonIndex = fullTaskDesc.indexOf(':');
@@ -121,7 +122,7 @@ function resolveTaskSpecificRole(taskType: TaskType, taskLabel: string): string 
  * @description Adds file content parts to the prompt parts array
  */
 function addFileParts(parts: Part[], processedFiles: ProcessedFile[]): void {
-  // eslint-disable-next-line complexity
+   
   processedFiles.forEach((file, index) => {
     parts.push({ text: `\n\n--- الملف المقدم ${index + 1}: ${file.name} (نوع MIME: ${file.mimeType}) ---` });
 
@@ -203,7 +204,7 @@ export const constructPromptParts = (params: ProcessTextsParams): Part[] => {
   const { processedFiles, taskType, previousContextText } = params;
   const parts: Part[] = [];
 
-  const taskDescription = (TASK_DESCRIPTIONS_FOR_PROMPT as Record<string, string>)[taskType] || "مهمة عامة";
+  const taskDescription = (TASK_DESCRIPTIONS_FOR_PROMPT)[taskType] || "مهمة عامة";
   const taskLabel = taskDescription.split(':')[0]?.trim() || taskDescription;
   const taskSpecificRole = resolveTaskSpecificRole(taskType, taskLabel);
 
@@ -229,7 +230,7 @@ export const constructPromptParts = (params: ProcessTextsParams): Part[] => {
   addUserRequirements(parts, params);
 
   const jsonReminderTasks = TASKS_EXPECTING_JSON_RESPONSE.map(t => {
-    const desc = (TASK_DESCRIPTIONS_FOR_PROMPT as Record<string, string>)[t];
+    const desc = (TASK_DESCRIPTIONS_FOR_PROMPT)[t];
     return desc?.split(':')[0]?.trim() || t;
   }).join(', ');
   parts.push({ text: `\n\n**تذكير بتعليمات الإخراج الصارمة**: اللغة العربية الفصحى. إذا كانت المهمة تتطلب إخراج JSON (مثل مهام: ${jsonReminderTasks}), يجب أن يكون ردك الأساسي هو كائن JSON صالح يتبع الواجهة المحددة للمهمة، وقد يكون محاطًا بـ \`\`\`json ... \`\`\`.` });
@@ -245,19 +246,19 @@ export const constructPromptParts = (params: ProcessTextsParams): Part[] => {
 export function buildErrorMessage(error: GeminiError & { status?: number; message?: string; toString?: () => string; response?: { error?: { message?: string } } }): string {
   let errorMessage = error.message || "حدث خطأ غير معروف مع Gemini API.";
 
-  if (error.toString && error.toString().toLowerCase().includes("api_key")) {
+  if (error.toString?.().toLowerCase().includes("api_key")) {
     errorMessage = "مفتاح Gemini API مفقود أو غير صالح. يرجى التأكد من تكوين متغير البيئة API_KEY بشكل صحيح.";
   } else if (error.message && error.message.toLowerCase().includes("request entity size is larger than limit")) {
     errorMessage = "حجم الملفات المرسلة أو حجم السياق الكلي يتجاوز الحد المسموح به من Gemini API. يرجى محاولة تقليل حجم الملفات أو عددها، أو تقصير نطاق الاستكمال إذا كنت تستخدم الاستكمال التكراري.";
   } else if (error.message && (error.message.toLowerCase().includes("unsupported mime type") || error.message.toLowerCase().includes("invalid_argument"))) {
     errorMessage = "واجهت Gemini API مشكلة في معالجة أحد أنواع الملفات المرفوعة أو محتواها. يرجى التحقق من أن الملفات هي من الأنواع المدعومة (نصوص، صور، PDF، DOCX بعد المعالجة) وأنها غير تالفة.";
-  } else if (error["status"] && (error["status"] === 400 || error["status"].toString() === 'INVALID_ARGUMENT')) {
+  } else if (error.status && (error.status === 400 || error.status.toString() === 'INVALID_ARGUMENT')) {
     errorMessage = `خطأ في الطلب إلى Gemini API (قد يكون بسبب محتوى غير متوقع أو تنسيق خاطئ): ${error.message || 'وسيطات غير صالحة.'}`;
-  } else if (error["status"] && error["status"] >= 500) {
-    errorMessage = `واجه خادم Gemini API مشكلة (خطأ ${error["status"]}). يرجى المحاولة مرة أخرى لاحقًا. ${error.message || ''}`;
+  } else if (error.status && error.status >= 500) {
+    errorMessage = `واجه خادم Gemini API مشكلة (خطأ ${error.status}). يرجى المحاولة مرة أخرى لاحقًا. ${error.message || ''}`;
   }
 
-  if (error.response && error.response.error && error.response.error.message) {
+  if (error.response?.error?.message) {
     errorMessage = `خطأ من Gemini API: ${error.response.error.message}`;
   } else if (error.message && error.message.includes("content") && error.message.includes("blocked")) {
     errorMessage = `تم حظر المحتوى بواسطة Gemini API بسبب سياسات الأمان. ${error.message}`;

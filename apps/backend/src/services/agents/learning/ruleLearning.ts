@@ -27,8 +27,8 @@ export interface RuleAdjustmentSuggestion {
  * Tracks violations and suggests rule adjustments
  */
 export class RuleLearningSystem {
-  private performanceMetrics: Map<string, RulePerformanceMetrics> = new Map();
-  private violationPatterns: Map<string, ViolationPattern[]> = new Map();
+  private performanceMetrics = new Map<string, RulePerformanceMetrics>();
+  private violationPatterns = new Map<string, ViolationPattern[]>();
 
   /**
    * Track a rule violation
@@ -198,7 +198,7 @@ export class RuleLearningSystem {
     }
 
     // Check if patterns occur in same context
-    const contexts = patterns.map(p => p["context"]);
+    const contexts = patterns.map(p => p.context);
     const uniqueContexts = new Set(contexts);
 
     return uniqueContexts.size <= 2; // Consistent if in 1-2 contexts
@@ -245,7 +245,7 @@ export class RuleLearningSystem {
   /**
    * Get most violated rules
    */
-  getMostViolatedRules(limit: number = 10): RulePerformanceMetrics[] {
+  getMostViolatedRules(limit = 10): RulePerformanceMetrics[] {
     return Array.from(this.performanceMetrics.values())
       .sort((a, b) => b.violationCount - a.violationCount)
       .slice(0, limit);
@@ -254,7 +254,7 @@ export class RuleLearningSystem {
   /**
    * Get rules with high false positive rate
    */
-  getProblematicRules(threshold: number = 0.3): RulePerformanceMetrics[] {
+  getProblematicRules(threshold = 0.3): RulePerformanceMetrics[] {
     return Array.from(this.performanceMetrics.values())
       .filter(m => {
         const rate = m.violationCount > 0

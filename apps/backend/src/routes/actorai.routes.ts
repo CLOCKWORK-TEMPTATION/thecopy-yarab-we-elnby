@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { analyzeVoice, analyzeWebcam } from '../controllers/actorai.controller';
 
 const router = Router();

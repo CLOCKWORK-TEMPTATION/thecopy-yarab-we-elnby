@@ -1,4 +1,4 @@
-/* eslint-disable max-lines -- schema definitions module */
+ 
 /**
  * Weaviate Schema Definitions
  * تعريفات مخططات Weaviate

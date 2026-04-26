@@ -168,7 +168,7 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
     get(target, prop, receiver) {
       if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
-        const original = target[method] as unknown as AnyLogFn;
+        const original = target[method];
         return function adaptedLogMethod(
           this: unknown,
           arg1: unknown,
@@ -203,7 +203,7 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
 
       return Reflect.get(target, prop, receiver);
     },
-  }) as CompatibleLogger;
+  });
 }
 
 // ----------------------------------------------------------------------------

@@ -3,12 +3,15 @@
  * Encrypt Existing Data Migration
  */
 
+import * as crypto from 'crypto';
+import * as readline from 'readline';
+
+import { logger } from '@/lib/logger';
+
 import { db } from '../db';
 import { projects } from '../db/schema';
 import { encryptedDocuments } from '../db/zkSchema';
-import * as crypto from 'crypto';
-import * as readline from 'readline';
-import { logger } from '@/lib/logger';
+
 
 const MIGRATION_VERSION = 1;
 const ALGORITHM = 'aes-256-gcm';
@@ -101,7 +104,7 @@ async function migrateProject(
       dekCipher.update(dek, undefined, 'base64') + dekCipher.final('base64');
     await db.insert(encryptedDocuments).values({
       id: project.id,
-      userId: project.userId!,
+      userId: project.userId,
       ciphertext,
       iv,
       authTag,

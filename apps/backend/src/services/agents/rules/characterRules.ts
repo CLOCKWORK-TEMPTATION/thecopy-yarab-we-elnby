@@ -42,7 +42,7 @@ export const characterRules: Rule[] = [
         description: 'الحد الأقصى لعدد المصطلحات المعاصرة المسموح بها',
       },
     ],
-    // eslint-disable-next-line complexity
+     
     check: (text: string, context?: unknown, params?: Record<string, unknown>) => {
       // Check if context suggests historical setting
       const ctx = context as Record<string, string> | undefined;

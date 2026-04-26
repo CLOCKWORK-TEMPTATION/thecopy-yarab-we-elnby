@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const CHARACTER_NETWORK_INSTRUCTIONS = `
 **العملية:** طبق "نموذج تحليل الشبكة الدرامية المتقدمة".

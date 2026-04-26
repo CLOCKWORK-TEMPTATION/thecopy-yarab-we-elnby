@@ -4,9 +4,10 @@
  */
 
 import weaviate, { type Properties, WeaviateClient } from "weaviate-client";
+
 import { env } from "@/config/env";
-import { definedProps } from "@/utils/defined-props";
 import { logger } from "@/lib/logger";
+import { definedProps } from "@/utils/defined-props";
 
 type WeaviateCollectionSchema = unknown;
 
@@ -65,7 +66,7 @@ export class WeaviateMemoryStore {
     };
     const nextStatusRecord = nextStatus as unknown as Record<string, unknown>;
 
-    for (const key of Object.keys(patch) as Array<keyof WeaviateRuntimeStatus>) {
+    for (const key of Object.keys(patch) as (keyof WeaviateRuntimeStatus)[]) {
       const value = patch[key];
       if (value === undefined) {
         delete nextStatusRecord[key];
@@ -251,20 +252,20 @@ export class WeaviateMemoryStore {
 
   async insertMany<T extends Properties | undefined = Properties>(
     name: string,
-    objects: Array<Record<string, unknown>>
+    objects: Record<string, unknown>[]
   ) {
     if (objects.length === 0) {
       return { hasErrors: false, errors: {} };
     }
 
     const collection = this.getCollection<T>(name);
-    return collection.data.insertMany(objects as never[]);
+    return collection.data.insertMany(objects);
   }
 
   async deleteMany(
     name: string,
     filter: unknown,
-    verbose: boolean = false
+    verbose = false
   ) {
     const collection = this.getCollection(name);
     return collection.data.deleteMany(filter as never, { verbose });

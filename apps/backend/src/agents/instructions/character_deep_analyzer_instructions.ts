@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const CHARACTER_DEEP_ANALYZER_INSTRUCTIONS = `
 **العملية:** طبق "نموذج التحليل النفسي العميق للشخصيات".

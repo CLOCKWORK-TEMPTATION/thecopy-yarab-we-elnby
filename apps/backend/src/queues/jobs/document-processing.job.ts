@@ -9,8 +9,9 @@
  */
 
 import { Job } from 'bullmq';
-import { queueManager, QueueName } from '@/queues/queue.config';
+
 import { logger } from '@/lib/logger';
+import { queueManager, QueueName } from '@/queues/queue.config';
 
 /**
  * واجهة بيانات مهمة معالجة المستند
@@ -126,7 +127,7 @@ interface DialogueInfo {
  * @param job - كائن المهمة من BullMQ
  * @returns وعد بنتيجة المعالجة
  */
-// eslint-disable-next-line max-lines-per-function, complexity
+ 
 async function processDocument(
   job: Job<DocumentProcessingJobData>
 ): Promise<DocumentProcessingResult> {

@@ -69,7 +69,7 @@ export class WorkflowBuilder {
   addDependentStep(
     agentId: string,
     taskType: TaskType,
-    dependsOn: Array<{ agentId: string; taskType: TaskType; minConfidence?: number }>,
+    dependsOn: { agentId: string; taskType: TaskType; minConfidence?: number }[],
     options?: {
       parallel?: boolean;
       timeout?: number;
@@ -96,7 +96,7 @@ export class WorkflowBuilder {
    * Add parallel steps
    */
   addParallelSteps(
-    steps: Array<{ agentId: string; taskType: TaskType }>
+    steps: { agentId: string; taskType: TaskType }[]
   ): this {
     steps.forEach((step) => {
       this.addStep(step.agentId, step.taskType, { parallel: true });

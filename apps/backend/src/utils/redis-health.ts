@@ -3,14 +3,17 @@
  */
 
 import { createClient } from 'redis';
-import type { RedisClientType } from 'redis';
+
 import { getRedisConfig } from '@/config/redis.config';
+
 import { logger } from './logger';
+
+import type { RedisClientType } from 'redis';
 
 let redisClient: RedisClientType | null = null;
 
 function getRedisEndpointMetadata(): { host: string; port: number } {
-  const redisUrl = process.env['REDIS_URL']?.trim();
+  const redisUrl = process.env.REDIS_URL?.trim();
 
   if (redisUrl) {
     try {
@@ -25,8 +28,8 @@ function getRedisEndpointMetadata(): { host: string; port: number } {
   }
 
   return {
-    host: process.env['REDIS_HOST'] || 'localhost',
-    port: Number.parseInt(process.env['REDIS_PORT'] || '6379', 10),
+    host: process.env.REDIS_HOST || 'localhost',
+    port: Number.parseInt(process.env.REDIS_PORT || '6379', 10),
   };
 }
 
@@ -37,8 +40,8 @@ async function disconnectHealthClient(client: RedisClientType | null): Promise<v
 
   try {
     const isOpen =
-      typeof (client as RedisClientType & { isOpen?: boolean }).isOpen === 'boolean'
-        ? (client as RedisClientType & { isOpen: boolean }).isOpen
+      typeof (client).isOpen === 'boolean'
+        ? (client).isOpen
         : true;
 
     if (!isOpen) {
@@ -113,8 +116,8 @@ export async function closeRedisConnection() {
 
   try {
     const isOpen =
-      typeof (clientToDispose as RedisClientType & { isOpen?: boolean }).isOpen === 'boolean'
-        ? (clientToDispose as RedisClientType & { isOpen: boolean }).isOpen
+      typeof (clientToDispose).isOpen === 'boolean'
+        ? (clientToDispose).isOpen
         : true;
 
     if (!isOpen) {

@@ -1,4 +1,3 @@
-import type { AIAgentConfig } from '../../types/types';
 
 export const DIALOGUE_FORENSICS_INSTRUCTIONS = `
 **العملية:** طبق "نموذج التحليل القضائي للحوار".

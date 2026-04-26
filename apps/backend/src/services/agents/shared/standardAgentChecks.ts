@@ -35,7 +35,7 @@ export interface UncertaintyMetrics {
 
 export interface HallucinationCheckResult {
   detected: boolean;
-  claims: Array<{ claim: string; supported: boolean }>;
+  claims: { claim: string; supported: boolean }[];
   correctedText: string;
 }
 
@@ -188,7 +188,7 @@ ${claim}
 /** Correct text by removing unsupported claims */
 async function correctUnsupportedClaims(
   text: string,
-  unsupported: Array<{ claim: string }>
+  unsupported: { claim: string }[]
 ): Promise<string> {
   const correctionPrompt = `قم بتصحيح النص التالي بإزالة أو تصحيح الادعاءات غير المدعومة:
 

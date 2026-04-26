@@ -9,9 +9,9 @@
  * 5. Error handling and validation
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
-import request from 'supertest';
 import express, { Express } from 'express';
+import request from 'supertest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 // Mock dependencies
 vi.mock('@/utils/logger', () => ({
@@ -68,29 +68,29 @@ describe('Backend API Integration Tests', () => {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res["status"](400).json({ error: 'Missing credentials' });
+        return res.status(400).json({ error: 'Missing credentials' });
       }
 
       if (email === 'test@example.com' && password === 'test123') {
-        return res["status"](200).json({
+        return res.status(200).json({
           token: 'mock-jwt-token',
           user: { id: '1', email },
           expiresIn: 3600,
         });
       }
 
-      res["status"](401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials' });
     });
 
     app.get('/api/v1/projects/:id', (req, res) => {
       const { id } = req.params;
 
       if (!id) {
-        return res["status"](400).json({ error: 'Project ID is required' });
+        return res.status(400).json({ error: 'Project ID is required' });
       }
 
       if (id === '1') {
-        return res["status"](200).json({
+        return res.status(200).json({
           id: '1',
           title: 'Test Project',
           description: 'A test drama project',
@@ -99,25 +99,25 @@ describe('Backend API Integration Tests', () => {
         });
       }
 
-      res["status"](404).json({ error: 'Project not found' });
+      res.status(404).json({ error: 'Project not found' });
     });
 
     app.post('/api/v1/projects', (req, res) => {
       const { title, description, genre } = req.body;
 
       if (!title || title.length < 3) {
-        return res["status"](400).json({
+        return res.status(400).json({
           error: 'Title is required and must be at least 3 characters',
         });
       }
 
       if (description && description.length > 5000) {
-        return res["status"](400).json({
+        return res.status(400).json({
           error: 'Description cannot exceed 5000 characters',
         });
       }
 
-      res["status"](201).json({
+      res.status(201).json({
         id: 'new-project-id',
         title,
         description: description || '',
@@ -132,11 +132,11 @@ describe('Backend API Integration Tests', () => {
       const { title, status } = req.body;
 
       if (!id) {
-        return res["status"](400).json({ error: 'Project ID is required' });
+        return res.status(400).json({ error: 'Project ID is required' });
       }
 
       if (id === '1') {
-        return res["status"](200).json({
+        return res.status(200).json({
           id: '1',
           title: title || 'Test Project',
           status: status || 'draft',
@@ -144,26 +144,26 @@ describe('Backend API Integration Tests', () => {
         });
       }
 
-      res["status"](404).json({ error: 'Project not found' });
+      res.status(404).json({ error: 'Project not found' });
     });
 
     app.delete('/api/v1/projects/:id', (req, res) => {
       const { id } = req.params;
 
       if (!id) {
-        return res["status"](400).json({ error: 'Project ID is required' });
+        return res.status(400).json({ error: 'Project ID is required' });
       }
 
       if (id === '1') {
-        return res["status"](200).json({ message: 'Project deleted successfully' });
+        return res.status(200).json({ message: 'Project deleted successfully' });
       }
 
-      res["status"](404).json({ error: 'Project not found' });
+      res.status(404).json({ error: 'Project not found' });
     });
 
     // Error handling middleware
     app.use((err: any, req: any, res: any, next: any) => {
-      res["status"](err["status"] || 500).json({
+      res.status(err.status || 500).json({
         error: err.message || 'Internal server error',
       });
     });
@@ -173,7 +173,7 @@ describe('Backend API Integration Tests', () => {
     it('should return healthy status', async () => {
       const response = await request(app).get('/health');
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'healthy');
       expect(response.body).toHaveProperty('timestamp');
       expect(response.body).toHaveProperty('uptime');
@@ -182,7 +182,7 @@ describe('Backend API Integration Tests', () => {
     it('should return API status', async () => {
       const response = await request(app).get('/api/v1/status');
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'ok');
       expect(response.body).toHaveProperty('version');
       expect(response.body).toHaveProperty('environment', 'test');
@@ -198,7 +198,7 @@ describe('Backend API Integration Tests', () => {
           password: 'test123',
         });
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('user');
       expect(response.body).toHaveProperty('expiresIn');
@@ -213,7 +213,7 @@ describe('Backend API Integration Tests', () => {
           password: 'wrongpassword',
         });
 
-      expect(response["status"]).toBe(401);
+      expect(response.status).toBe(401);
       expect(response.body).toHaveProperty('error');
     });
 
@@ -222,7 +222,7 @@ describe('Backend API Integration Tests', () => {
         .post('/api/v1/auth/login')
         .send({});
 
-      expect(response["status"]).toBe(400);
+      expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
     });
   });
@@ -231,7 +231,7 @@ describe('Backend API Integration Tests', () => {
     it('should retrieve project by ID', async () => {
       const response = await request(app).get('/api/v1/projects/1');
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', '1');
       expect(response.body).toHaveProperty('title');
       expect(response.body).toHaveProperty('status');
@@ -241,14 +241,14 @@ describe('Backend API Integration Tests', () => {
     it('should return 404 for non-existent project', async () => {
       const response = await request(app).get('/api/v1/projects/999');
 
-      expect(response["status"]).toBe(404);
+      expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
     });
 
     it('should handle missing project ID', async () => {
       const response = await request(app).get('/api/v1/projects/');
 
-      expect(response["status"]).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });
 
@@ -262,7 +262,7 @@ describe('Backend API Integration Tests', () => {
           genre: 'tragedy',
         });
 
-      expect(response["status"]).toBe(201);
+      expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('title', 'New Drama Project');
       expect(response.body).toHaveProperty('status', 'draft');
@@ -276,7 +276,7 @@ describe('Backend API Integration Tests', () => {
           description: 'Test',
         });
 
-      expect(response["status"]).toBe(400);
+      expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
     });
 
@@ -288,7 +288,7 @@ describe('Backend API Integration Tests', () => {
           description: 'Test',
         });
 
-      expect(response["status"]).toBe(400);
+      expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
     });
 
@@ -300,7 +300,7 @@ describe('Backend API Integration Tests', () => {
           description: 'a'.repeat(5001),
         });
 
-      expect(response["status"]).toBe(400);
+      expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
     });
   });
@@ -314,7 +314,7 @@ describe('Backend API Integration Tests', () => {
           status: 'published',
         });
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', '1');
       expect(response.body).toHaveProperty('title', 'Updated Title');
       expect(response.body).toHaveProperty('status', 'published');
@@ -325,7 +325,7 @@ describe('Backend API Integration Tests', () => {
         .put('/api/v1/projects/999')
         .send({ title: 'Updated' });
 
-      expect(response["status"]).toBe(404);
+      expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
     });
 
@@ -334,7 +334,7 @@ describe('Backend API Integration Tests', () => {
         .put('/api/v1/projects/')
         .send({ title: 'Updated' });
 
-      expect(response["status"]).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });
 
@@ -342,21 +342,21 @@ describe('Backend API Integration Tests', () => {
     it('should delete project successfully', async () => {
       const response = await request(app).delete('/api/v1/projects/1');
 
-      expect(response["status"]).toBe(200);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('message');
     });
 
     it('should return 404 for non-existent project', async () => {
       const response = await request(app).delete('/api/v1/projects/999');
 
-      expect(response["status"]).toBe(404);
+      expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
     });
 
     it('should handle missing project ID', async () => {
       const response = await request(app).delete('/api/v1/projects/');
 
-      expect(response["status"]).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });
 
@@ -367,7 +367,7 @@ describe('Backend API Integration Tests', () => {
         .set('Content-Type', 'application/json')
         .send('{ invalid json }');
 
-      expect(response["status"]).toBeGreaterThanOrEqual(400);
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
 
     it('should handle empty body for POST request', async () => {
@@ -375,7 +375,7 @@ describe('Backend API Integration Tests', () => {
         .post('/api/v1/projects')
         .send({});
 
-      expect(response["status"]).toBe(400);
+      expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
     });
 
@@ -388,7 +388,7 @@ describe('Backend API Integration Tests', () => {
         });
 
       // Should either accept with sanitization or reject
-      expect([201, 400, 413]).toContain(response["status"]);
+      expect([201, 400, 413]).toContain(response.status);
     });
   });
 
@@ -403,7 +403,7 @@ describe('Backend API Integration Tests', () => {
     it('should include proper error structure in error responses', async () => {
       const response = await request(app).get('/api/v1/projects/999');
 
-      expect(response["status"]).toBe(404);
+      expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
       expect(typeof response.body.error).toBe('string');
     });
@@ -418,7 +418,7 @@ describe('Backend API Integration Tests', () => {
       const responses = await Promise.all(requests);
 
       responses.forEach((response) => {
-        expect(response["status"]).toBe(200);
+        expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('status', 'ok');
       });
     });
@@ -443,12 +443,12 @@ describe('Backend API Integration Tests', () => {
       const getResponses = responses.slice(3);
 
       postResponses.forEach((response) => {
-        expect(response["status"]).toBe(201);
+        expect(response.status).toBe(201);
         expect(response.body).toHaveProperty('id');
       });
 
       getResponses.forEach((response) => {
-        expect(response["status"]).toBe(200);
+        expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('id');
       });
     });

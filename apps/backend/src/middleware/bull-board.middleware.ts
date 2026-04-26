@@ -5,11 +5,13 @@
  * Access: http://localhost:3000/admin/queues (requires authentication)
  */
 
-import express, { Router } from 'express';
 import { ExpressAdapter } from '@bull-board/express';
-import { authMiddleware } from '@/middleware/auth.middleware';
-import { logger } from '@/lib/logger';
+import express, { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
+
+import { logger } from '@/lib/logger';
+import { authMiddleware } from '@/middleware/auth.middleware';
+
 
 // Create Express adapter for Bull Board
 const serverAdapter = new ExpressAdapter();

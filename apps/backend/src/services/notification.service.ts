@@ -27,7 +27,7 @@ interface EmailConfig {
 export class NotificationService {
     private emailTransporter: nodemailer.Transporter | null = null;
     private slackWebhookUrl: string | null = null;
-    private emailFrom: string = 'noreply@the-copy.com';
+    private emailFrom = 'noreply@the-copy.com';
 
     constructor() {
         this.initializeEmail();
@@ -38,17 +38,17 @@ export class NotificationService {
      * Initialize Email Transporter
      */
     private initializeEmail() {
-        if (process.env['SMTP_HOST'] && process.env['SMTP_USER'] && process.env['SMTP_PASS']) {
+        if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
             try {
                 const config: EmailConfig = {
-                    host: process.env['SMTP_HOST'],
-                    port: parseInt(process.env['SMTP_PORT'] || '587'),
-                    secure: process.env['SMTP_SECURE'] === 'true',
+                    host: process.env.SMTP_HOST,
+                    port: parseInt(process.env.SMTP_PORT || '587'),
+                    secure: process.env.SMTP_SECURE === 'true',
                     auth: {
-                        user: process.env['SMTP_USER'],
-                        pass: process.env['SMTP_PASS'],
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS,
                     },
-                    from: process.env['SMTP_FROM'] || 'noreply@the-copy.com',
+                    from: process.env.SMTP_FROM || 'noreply@the-copy.com',
                 };
 
                 this.emailTransporter = nodemailer.createTransport(config);
@@ -66,8 +66,8 @@ export class NotificationService {
      * Initialize Slack Webhook
      */
     private initializeSlack() {
-        if (process.env['SLACK_WEBHOOK_URL']) {
-            this.slackWebhookUrl = process.env['SLACK_WEBHOOK_URL'];
+        if (process.env.SLACK_WEBHOOK_URL) {
+            this.slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
             logger.info('💬 Notification Service: Slack initialized');
         } else {
             logger.warn('⚠️ Notification Service: SLACK_WEBHOOK_URL missing, slack notifications disabled');
@@ -110,7 +110,7 @@ export class NotificationService {
                 payload.attachments = [
                     {
                         color: options.color || '#36a64f', // Default green
-                        title: options["title"],
+                        title: options.title,
                         text: message,
                         fields: options.fields,
                         footer: 'The Copy - Notification Service',
@@ -147,7 +147,7 @@ export class NotificationService {
 
         // 2. Send via Email (Only for Critical/Warning or if configured)
         if (level !== 'INFO') {
-            const emailRecipients = process.env['ALERT_EMAIL_RECIPIENTS'] || 'admin@the-copy.com';
+            const emailRecipients = process.env.ALERT_EMAIL_RECIPIENTS || 'admin@the-copy.com';
             const htmlBody = `
         <h2>[${level}] ${title}</h2>
         <p><strong>Time:</strong> ${timestamp}</p>

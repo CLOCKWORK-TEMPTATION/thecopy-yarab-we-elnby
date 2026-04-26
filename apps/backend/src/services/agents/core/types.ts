@@ -160,7 +160,7 @@ export interface UncertaintyMetrics {
 
 export interface HallucinationCheckResult {
   detected: boolean;
-  claims: Array<{ claim: string; supported: boolean }>;
+  claims: { claim: string; supported: boolean }[];
   correctedText: string;
 }
 

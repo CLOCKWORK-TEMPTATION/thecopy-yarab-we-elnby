@@ -1,9 +1,11 @@
 import { TaskType } from "@core/enums";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { PLATFORM_ADAPTER_AGENT_CONFIG } from "./agent";
 
 /**
@@ -31,7 +33,7 @@ export class PlatformAdapterAgent extends BaseAgent {
     // Extract platform-specific context
     const contextObj =
       typeof context === "object" && context !== null
-        ? (context as Record<string, unknown>)
+        ? (context)
         : {};
     const targetPlatform = (contextObj["targetPlatform"] as string) || "غير محدد";
     const sourceContent = (contextObj["sourceContent"] as string) || userInput;
@@ -161,10 +163,10 @@ ${userInput}
     input: StandardAgentInput
   ): Promise<string> {
     const contextObj =
-      typeof input["context"] === "object" && input["context"] !== null
-        ? input["context"]
+      typeof input.context === "object" && input.context !== null
+        ? input.context
         : {};
-    const targetPlatform = (contextObj as Record<string, unknown>)["targetPlatform"] as string || "المنصة المستهدفة";
+    const targetPlatform = (contextObj)["targetPlatform"] as string || "المنصة المستهدفة";
 
     return `# تحويل المحتوى - وضع الطوارئ
 

@@ -2,14 +2,16 @@
  * @description محرك تطبيع Markdown للنصوص العربية المستخرجة من OCR
  */
 
-import type { NormalizationOptions } from "./types.js";
-import { ensureTrailingNewline } from "./text-helpers.js";
 import {
   toArabicDigitRegex,
   toWesternDigitRegex,
   westernToArabicDigitMap,
   arabicToWesternDigitMap,
 } from "@/utils/digit-normalizer";
+
+import { ensureTrailingNewline } from "./text-helpers.js";
+
+import type { NormalizationOptions } from "./types.js";
 
 
 export class MarkdownNormalizer {

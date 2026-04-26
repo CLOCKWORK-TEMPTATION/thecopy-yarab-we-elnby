@@ -49,12 +49,12 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TooltipProvider } from "@/components/ui/tooltip";
-
 import {
   loadRemoteAppState,
   persistRemoteAppState,
 } from "@/lib/app-state-client";
 import { cn } from "@/lib/utils";
+
 import type {
   PromptAnalysis,
   PromptTemplate,

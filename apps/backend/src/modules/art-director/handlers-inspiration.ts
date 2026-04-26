@@ -1,4 +1,3 @@
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import {
   success,
   failure,
@@ -6,8 +5,10 @@ import {
   asRecord,
   buildMoodThemeLabel,
 } from "./handlers-shared";
-import { CreativeInspirationAssistant } from "./plugins/creative-inspiration";
 import { runPlugin } from "./plugin-executor";
+import { CreativeInspirationAssistant } from "./plugins/creative-inspiration";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function extractStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];

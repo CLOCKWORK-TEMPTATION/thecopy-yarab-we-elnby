@@ -112,13 +112,13 @@ export interface PerformanceReport {
     systemHealth: 'healthy' | 'degraded' | 'critical';
   };
   recommendations: string[];
-  alerts: Array<{
+  alerts: {
     severity: 'info' | 'warning' | 'critical';
     message: string;
     metric: string;
     value: number;
     threshold: number;
-  }>;
+  }[];
 }
 
 export class MetricsAggregatorService {
@@ -202,10 +202,10 @@ export class MetricsAggregatorService {
       let totalCount = 0;
 
       for (const value of durationMetric.values) {
-        if (value.metricName && value.metricName.includes('sum')) {
+        if (value.metricName?.includes('sum')) {
           totalDuration += value.value ?? 0;
         }
-        if (value.metricName && value.metricName.includes('count')) {
+        if (value.metricName?.includes('count')) {
           totalCount += value.value ?? 0;
         }
       }
@@ -238,12 +238,12 @@ export class MetricsAggregatorService {
     }
 
     const memoryMetric = redisParsed['the_copy_redis_memory_usage_bytes'];
-    if (memoryMetric && memoryMetric.values && memoryMetric.values.length > 0) {
+    if (memoryMetric?.values && memoryMetric.values.length > 0) {
       memoryUsage = memoryMetric.values[0]?.value ?? 0;
     }
 
     const clientsMetric = redisParsed['the_copy_redis_connected_clients'];
-    if (clientsMetric && clientsMetric.values && clientsMetric.values.length > 0) {
+    if (clientsMetric?.values && clientsMetric.values.length > 0) {
       connectedClients = clientsMetric.values[0]?.value ?? 0;
     }
 
@@ -348,10 +348,10 @@ export class MetricsAggregatorService {
       let totalCount = 0;
 
       for (const value of durationMetric.values) {
-        if (value.metricName && value.metricName.includes('sum')) {
+        if (value.metricName?.includes('sum')) {
           totalDuration += value.value ?? 0;
         }
-        if (value.metricName && value.metricName.includes('count')) {
+        if (value.metricName?.includes('count')) {
           totalCount += value.value ?? 0;
         }
       }
@@ -384,12 +384,12 @@ export class MetricsAggregatorService {
     }
 
     const cacheHitsMetric = parsed['the_copy_gemini_cache_hits_total'];
-    if (cacheHitsMetric && cacheHitsMetric.values && cacheHitsMetric.values.length > 0) {
+    if (cacheHitsMetric?.values && cacheHitsMetric.values.length > 0) {
       cacheHits = cacheHitsMetric.values[0]?.value ?? 0;
     }
 
     const cacheMissesMetric = parsed['the_copy_gemini_cache_misses_total'];
-    if (cacheMissesMetric && cacheMissesMetric.values && cacheMissesMetric.values.length > 0) {
+    if (cacheMissesMetric?.values && cacheMissesMetric.values.length > 0) {
       cacheMisses = cacheMissesMetric.values[0]?.value ?? 0;
     }
 
@@ -488,19 +488,19 @@ export class MetricsAggregatorService {
     const avgResponseTime = latest.api.avgResponseTime;
     const errorRate = latest.api.errorRate;
     const cacheHitRatio = latest.redis.hitRatio;
-    const queueThroughput = latest["queue"].throughput;
+    const queueThroughput = latest.queue.throughput;
 
     // Determine system health
     let systemHealth: 'healthy' | 'degraded' | 'critical' = 'healthy';
     if (
-      latest.resources.cpu["status"] === 'critical' ||
-      latest.resources.memory["status"] === 'critical' ||
+      latest.resources.cpu.status === 'critical' ||
+      latest.resources.memory.status === 'critical' ||
       errorRate > 0.1
     ) {
       systemHealth = 'critical';
     } else if (
-      latest.resources.cpu["status"] === 'warning' ||
-      latest.resources.memory["status"] === 'warning' ||
+      latest.resources.cpu.status === 'warning' ||
+      latest.resources.memory.status === 'warning' ||
       errorRate > 0.05
     ) {
       systemHealth = 'degraded';
@@ -554,14 +554,14 @@ export class MetricsAggregatorService {
       });
     }
 
-    if (latest["queue"].failedJobs > latest["queue"].completedJobs * 0.1) {
+    if (latest.queue.failedJobs > latest.queue.completedJobs * 0.1) {
       recommendations.push('High queue failure rate. Review failed job logs and implement better error handling');
       alerts.push({
         severity: 'warning',
         message: 'High queue failure rate',
         metric: 'queue.failedJobs',
-        value: latest["queue"].failedJobs,
-        threshold: latest["queue"].completedJobs * 0.1,
+        value: latest.queue.failedJobs,
+        threshold: latest.queue.completedJobs * 0.1,
       });
     }
 

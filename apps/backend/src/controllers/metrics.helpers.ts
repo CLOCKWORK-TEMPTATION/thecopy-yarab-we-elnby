@@ -6,14 +6,14 @@
  * snapshot helpers, date range parsing, and APM alert building.
  */
 
-import { metricsAggregator } from '@/services/metrics-aggregator.service';
-import { resourceMonitor } from '@/services/resource-monitor.service';
-import { cacheMetricsService } from '@/services/cache-metrics.service';
 import {
   getPerformanceDashboard,
   resetPerformanceMetrics,
   APM_CONFIG,
 } from '@/config/sentry';
+import { cacheMetricsService } from '@/services/cache-metrics.service';
+import { metricsAggregator } from '@/services/metrics-aggregator.service';
+import { resourceMonitor } from '@/services/resource-monitor.service';
 
 // Re-export APM items so the controller can import from one place
 export { getPerformanceDashboard, resetPerformanceMetrics, APM_CONFIG };
@@ -27,15 +27,15 @@ export function determineHealthStatus(
   snapshot: { api: { errorRate: number } } | null
 ): 'healthy' | 'degraded' | 'critical' {
   if (
-    resources.cpu["status"] === 'critical' ||
-    resources.memory["status"] === 'critical'
+    resources.cpu.status === 'critical' ||
+    resources.memory.status === 'critical'
   ) {
     return 'critical';
   }
 
   const resourceDegraded =
-    resources.cpu["status"] === 'warning' ||
-    resources.memory["status"] === 'warning';
+    resources.cpu.status === 'warning' ||
+    resources.memory.status === 'warning';
 
   if (snapshot && snapshot.api.errorRate > 0.1) {
     return 'critical';
@@ -61,7 +61,7 @@ export async function buildDashboardSummary() {
       totalRequests: snapshot.api.totalRequests,
       avgResponseTime: snapshot.api.avgResponseTime,
       errorRate: snapshot.api.errorRate,
-      activeJobs: snapshot["queue"].activeJobs,
+      activeJobs: snapshot.queue.activeJobs,
       cacheHitRatio: snapshot.redis.hitRatio,
     },
     database: {
@@ -76,10 +76,10 @@ export async function buildDashboardSummary() {
       memoryUsage: snapshot.redis.memoryUsage,
     },
     queue: {
-      total: snapshot["queue"].totalJobs,
-      active: snapshot["queue"].activeJobs,
-      completed: snapshot["queue"].completedJobs,
-      failed: snapshot["queue"].failedJobs,
+      total: snapshot.queue.totalJobs,
+      active: snapshot.queue.activeJobs,
+      completed: snapshot.queue.completedJobs,
+      failed: snapshot.queue.failedJobs,
     },
     resources: {
       cpu: resources.cpu,
@@ -161,7 +161,7 @@ export async function buildHealthData() {
       errorRate: snapshot.api.errorRate,
       avgResponseTime: snapshot.api.avgResponseTime,
       cacheHitRatio: snapshot.redis.hitRatio,
-      activeJobs: snapshot["queue"].activeJobs,
+      activeJobs: snapshot.queue.activeJobs,
     } : null,
   };
 }

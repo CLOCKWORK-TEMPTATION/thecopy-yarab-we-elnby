@@ -1,8 +1,9 @@
 import { logger } from '@/lib/logger';
+
 import { APM_CONFIG } from './sentry';
 
 function isSentryEnabled(): boolean {
-  return Boolean(process.env['SENTRY_DSN']?.trim());
+  return Boolean(process.env.SENTRY_DSN?.trim());
 }
 
 function getSentryMetrics() {
@@ -44,7 +45,7 @@ function percentile(arr: number[], p: number): number {
   return sorted[Math.max(0, index)] || 0;
 }
 
-export function recordRequest(duration: number, isError: boolean = false) {
+export function recordRequest(duration: number, isError = false) {
   metrics.requests.total++;
   if (isError) metrics.requests.errors++;
 
@@ -66,7 +67,7 @@ export function recordRequest(duration: number, isError: boolean = false) {
 export function recordOperation(
   operation: string,
   duration: number,
-  isError: boolean = false
+  isError = false
 ) {
   if (!metrics.operations[operation]) {
     metrics.operations[operation] = {

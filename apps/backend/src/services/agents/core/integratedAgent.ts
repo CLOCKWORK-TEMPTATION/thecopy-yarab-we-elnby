@@ -1,6 +1,8 @@
-import { GeminiService } from './geminiService';
-import type { AgentConfig } from '../../../config/agentConfigs';
 import { agentsConfig } from '../../../config/agentConfigs';
+
+import { GeminiService } from './geminiService';
+
+import type { AgentConfig } from '../../../config/agentConfigs';
 import type { AIAgentConfig } from '../../../types/types';
 
 /**

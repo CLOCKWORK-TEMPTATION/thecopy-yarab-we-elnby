@@ -3,14 +3,15 @@
  * Applies constitutional rules with context, priority handling, and exceptions
  */
 
+import { logger } from '@/lib/logger';
+import { geminiService } from '@/services/gemini.service';
+
 import {
   ConstitutionalRulesEngine,
   Rule,
   RuleViolation,
   RuleSeverity,
 } from './constitutionalRules';
-import { geminiService } from '@/services/gemini.service';
-import { logger } from '@/lib/logger';
 
 export interface RuleApplicationResult {
   violations: RuleViolation[];
@@ -202,10 +203,10 @@ export class RuleExceptionHandler {
   static shouldExempt(
     ruleId: string,
     context: unknown,
-    exemptionRules: Array<{
+    exemptionRules: {
       ruleId: string;
       condition: (ctx: unknown) => boolean;
-    }>
+    }[]
   ): boolean {
     return exemptionRules.some(
       exemption =>

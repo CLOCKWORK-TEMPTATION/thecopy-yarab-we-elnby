@@ -4,6 +4,7 @@
  */
 
 import { constitutionalRulesEngine } from '../shared/constitutionalRules';
+
 import { characterRules } from './characterRules';
 import { dialogueRules } from './dialogueRules';
 import { plotRules } from './plotRules';

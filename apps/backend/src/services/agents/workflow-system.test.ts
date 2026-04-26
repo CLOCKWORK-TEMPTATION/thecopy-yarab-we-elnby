@@ -2,12 +2,13 @@
  * Workflow System Tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+
+import { TaskType } from './core/enums';
 import { createWorkflow } from './core/workflow-builder';
 import { WorkflowExecutor } from './core/workflow-executor';
-import { TaskType } from './core/enums';
-import { AgentStatus, WorkflowStatus } from './core/workflow-types';
 import { getPresetWorkflow } from './core/workflow-presets';
+import { AgentStatus } from './core/workflow-types';
 
 describe('Workflow Builder', () => {
   it('should create a basic workflow', () => {

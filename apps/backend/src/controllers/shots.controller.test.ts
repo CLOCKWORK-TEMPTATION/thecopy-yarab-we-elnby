@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { Request, Response } from 'express';
 
 const {
@@ -81,6 +82,7 @@ vi.mock('@/utils/logger', () => ({
 }));
 
 import { db } from '@/db';
+
 import { shotsController } from './shots.controller';
 
 describe('ShotsController', () => {

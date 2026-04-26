@@ -39,6 +39,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useCreativeDevelopment } from "./hooks";
@@ -48,18 +51,15 @@ import {
   type AdvancedAISettings,
   type DevelopmentTaskDefinition,
 } from "./types";
-
+import { DEVELOPMENT_TASKS, getTasksByCategory } from "./utils/task-catalog";
 import {
   getCreativeTaskIcon,
   getCatalogTaskIcon,
 } from "./utils/task-icon-mapper";
+
 import type { UnlockStatus } from "./hooks/useCreativeDevelopment";
 
-import { DEVELOPMENT_TASKS, getTasksByCategory } from "./utils/task-catalog";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const FileUpload = dynamic(() => import("@/components/file-upload"), {
   loading: () => (

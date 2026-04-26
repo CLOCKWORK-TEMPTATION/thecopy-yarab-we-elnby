@@ -5,27 +5,17 @@
  * جميع الـ 27 وكيل مُسجّلة هنا
  */
 
-import { TaskType } from './core/enums';
-import { BaseAgent } from './shared/BaseAgent';
 
 // ===== Core Agents (4) =====
-import { analysisAgent } from './analysis/AnalysisAgent';
-import { creativeAgent } from './creative/CreativeAgent';
-import { integratedAgent } from './integrated/IntegratedAgent';
-import { completionAgent } from './completion/CompletionAgent';
 
 // ===== Analysis Agents (6) =====
-import { rhythmMappingAgent } from './rhythmMapping/RhythmMappingAgent';
-import { characterNetworkAgent } from './characterNetwork/CharacterNetworkAgent';
-import { dialogueForensicsAgent } from './dialogueForensics/DialogueForensicsAgent';
-import { thematicMiningAgent } from './thematicMining/ThematicMiningAgent';
 import { styleFingerprintAgent } from './styleFingerprint/StyleFingerprintAgent';
 import { conflictDynamicsAgent } from './conflictDynamics/ConflictDynamicsAgent';
 
 // ===== Creative Agents (4) =====
 import { adaptiveRewritingAgent } from './adaptiveRewriting/AdaptiveRewritingAgent';
+import { analysisAgent } from './analysis/AnalysisAgent';
 import { sceneGeneratorAgent } from './sceneGenerator/SceneGeneratorAgent';
-import { characterVoiceAgent } from './characterVoice/CharacterVoiceAgent';
 import { worldBuilderAgent } from './worldBuilder/WorldBuilderAgent';
 
 // ===== Predictive Agents (4) =====
@@ -36,14 +26,24 @@ import { platformAdapterAgent } from './platformAdapter/PlatformAdapterAgent';
 
 // ===== Advanced Modules (9) =====
 import { characterDeepAnalyzerAgent } from './characterDeepAnalyzer/CharacterDeepAnalyzerAgent';
-import { dialogueAdvancedAnalyzerAgent } from './dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent';
-import { visualCinematicAnalyzerAgent } from './visualCinematicAnalyzer/VisualCinematicAnalyzerAgent';
-import { themesMessagesAnalyzerAgent } from './themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent';
+import { characterNetworkAgent } from './characterNetwork/CharacterNetworkAgent';
+import { characterVoiceAgent } from './characterVoice/CharacterVoiceAgent';
+import { completionAgent } from './completion/CompletionAgent';
+import { TaskType } from './core/enums';
+import { creativeAgent } from './creative/CreativeAgent';
 import { culturalHistoricalAnalyzerAgent } from './culturalHistoricalAnalyzer/CulturalHistoricalAnalyzerAgent';
-import { producibilityAnalyzerAgent } from './producibilityAnalyzer/ProducibilityAnalyzerAgent';
-import { targetAudienceAnalyzerAgent } from './targetAudienceAnalyzer/TargetAudienceAnalyzerAgent';
+import { dialogueAdvancedAnalyzerAgent } from './dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent';
+import { dialogueForensicsAgent } from './dialogueForensics/DialogueForensicsAgent';
+import { integratedAgent } from './integrated/IntegratedAgent';
 import { literaryQualityAnalyzerAgent } from './literaryQualityAnalyzer/LiteraryQualityAnalyzerAgent';
+import { producibilityAnalyzerAgent } from './producibilityAnalyzer/ProducibilityAnalyzerAgent';
 import { recommendationsGeneratorAgent } from './recommendationsGenerator/RecommendationsGeneratorAgent';
+import { rhythmMappingAgent } from './rhythmMapping/RhythmMappingAgent';
+import { BaseAgent } from './shared/BaseAgent';
+import { targetAudienceAnalyzerAgent } from './targetAudienceAnalyzer/TargetAudienceAnalyzerAgent';
+import { thematicMiningAgent } from './thematicMining/ThematicMiningAgent';
+import { themesMessagesAnalyzerAgent } from './themesMessagesAnalyzer/ThemesMessagesAnalyzerAgent';
+import { visualCinematicAnalyzerAgent } from './visualCinematicAnalyzer/VisualCinematicAnalyzerAgent';
 
 /**
  * Agent Registry Map
@@ -51,7 +51,7 @@ import { recommendationsGeneratorAgent } from './recommendationsGenerator/Recomm
  */
 export class AgentRegistry {
   private static instance: AgentRegistry;
-  private agents: Map<TaskType, BaseAgent> = new Map();
+  private agents = new Map<TaskType, BaseAgent>();
 
   private constructor() {
     this.registerAgents();

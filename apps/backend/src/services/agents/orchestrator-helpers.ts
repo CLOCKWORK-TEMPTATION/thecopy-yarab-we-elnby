@@ -3,10 +3,11 @@
  * Extracted from orchestrator.ts to reduce file size
  */
 
+import { logger } from '@/lib/logger';
+
 import { TaskType } from './core/enums';
 import { StandardAgentInput, StandardAgentOutput } from './core/types';
 import { agentRegistry } from './registry';
-import { logger } from '@/lib/logger';
 import { BaseAgent } from './shared/BaseAgent';
 
 /**

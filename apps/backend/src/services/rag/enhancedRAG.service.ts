@@ -2,14 +2,15 @@
  * Enhanced RAG Service - Unified Retrieval-Augmented Generation
  */
 
-import type { SemanticChunk } from "@the-copy/core-memory";
 
 import { definedProps } from "@/utils/defined-props";
 
 import { contextAssemblyService } from "../../memory/context/context-assembly.service";
 import { weaviateIndexingService } from "../../memory/indexer/weaviate-indexing.service";
 import { weaviateRetrievalService } from "../../memory/retrieval/weaviate-retrieval.service";
+
 import type { ContextProfile } from "../../memory/types";
+import type { SemanticChunk } from "@the-copy/core-memory";
 
 export interface EnhancedRAGOptions {
   maxChunks?: number;
@@ -94,7 +95,7 @@ export class EnhancedRAGService {
   }
 
   private selectAndMapChunks(
-    retrievedHits: Array<{ relevanceScore: number; text: string; startIndex?: number; endIndex?: number; coherenceScore?: number; sentences?: string[]; rank: number; collection?: string; source?: string; documentHash?: string; metadata?: Record<string, unknown> }>,
+    retrievedHits: { relevanceScore: number; text: string; startIndex?: number; endIndex?: number; coherenceScore?: number; sentences?: string[]; rank: number; collection?: string; source?: string; documentHash?: string; metadata?: Record<string, unknown> }[],
     profile: ContextProfile,
     topK: number
   ): RetrievedChunk[] {
@@ -181,7 +182,7 @@ export class EnhancedRAGService {
 
   private calculateMetrics(
     totalChunks: number,
-    retrievedChunks: Array<{ relevanceScore: number }>,
+    retrievedChunks: { relevanceScore: number }[],
     processingTimeMs: number
   ): RAGMetrics {
     const numRetrieved = retrievedChunks.length;

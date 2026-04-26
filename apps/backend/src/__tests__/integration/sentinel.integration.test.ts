@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createClient } from 'redis';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 describe('Redis Sentinel Integration', () => {
   let client: any;
 
   beforeAll(async () => {
-    if (process.env['REDIS_SENTINEL_ENABLED'] !== 'true') {
+    if (process.env.REDIS_SENTINEL_ENABLED !== 'true') {
       return;
     }
 
-    const sentinels = (process.env['REDIS_SENTINELS'] || '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
+    const sentinels = (process.env.REDIS_SENTINELS || '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
       .split(',')
       .map(s => {
         const [host, port] = s.trim().split(':');
@@ -18,8 +18,8 @@ describe('Redis Sentinel Integration', () => {
 
     client = createClient({
       sentinels,
-      name: process.env['REDIS_MASTER_NAME'] || 'mymaster',
-      password: process.env['REDIS_PASSWORD'],
+      name: process.env.REDIS_MASTER_NAME || 'mymaster',
+      password: process.env.REDIS_PASSWORD,
     });
 
     await client.connect();
@@ -32,7 +32,7 @@ describe('Redis Sentinel Integration', () => {
   });
 
   it('should connect to Redis via Sentinel', async () => {
-    if (process.env['REDIS_SENTINEL_ENABLED'] !== 'true') {
+    if (process.env.REDIS_SENTINEL_ENABLED !== 'true') {
       return;
     }
 
@@ -41,7 +41,7 @@ describe('Redis Sentinel Integration', () => {
   });
 
   it('should set and get values', async () => {
-    if (process.env['REDIS_SENTINEL_ENABLED'] !== 'true') {
+    if (process.env.REDIS_SENTINEL_ENABLED !== 'true') {
       return;
     }
 
@@ -52,7 +52,7 @@ describe('Redis Sentinel Integration', () => {
   });
 
   it('should handle failover gracefully', async () => {
-    if (process.env['REDIS_SENTINEL_ENABLED'] !== 'true') {
+    if (process.env.REDIS_SENTINEL_ENABLED !== 'true') {
       return;
     }
 

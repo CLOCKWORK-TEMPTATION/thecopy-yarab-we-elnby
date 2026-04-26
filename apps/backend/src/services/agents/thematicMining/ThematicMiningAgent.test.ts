@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ThematicMiningAgent } from "./ThematicMiningAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { ThematicMiningAgent } from "./ThematicMiningAgent";
 
 vi.mock("../../services/geminiService", () => ({
   geminiService: {

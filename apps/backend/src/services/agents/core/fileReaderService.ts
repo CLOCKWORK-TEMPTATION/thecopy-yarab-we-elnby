@@ -114,7 +114,7 @@ async function processFallbackFile(file: FileInput): Promise<ProcessedFile> {
  * @returns {Promise<ProcessedFile[]>} Array of processed files
  */
 export const processFilesForGemini = async (
-  files: Array<FileInput>
+  files: FileInput[]
 ): Promise<ProcessedFile[]> => {
   return Promise.all(
     files.map(async (file): Promise<ProcessedFile> => {

@@ -41,7 +41,7 @@ export interface WAFRule {
   // SECURITY: Pattern must be a pre-compiled RegExp object, never a string
   // This prevents regex injection attacks
   pattern: RegExp;
-  locations: Array<"body" | "query" | "path" | "headers">;
+  locations: ("body" | "query" | "path" | "headers")[];
   action: "block" | "allow" | "log";
   severity: "low" | "medium" | "high" | "critical";
   enabled: boolean;

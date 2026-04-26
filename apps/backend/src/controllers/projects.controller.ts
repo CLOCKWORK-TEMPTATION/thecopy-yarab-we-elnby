@@ -1,12 +1,16 @@
+import { eq, desc, and } from 'drizzle-orm';
 import { Response } from 'express';
+import { z } from 'zod';
+
 import { db } from '@/db';
 import { projects } from '@/db/schema';
-import { AnalysisService } from '@/services/analysis.service';
-import { eq, desc, and } from 'drizzle-orm';
 import { logger } from '@/lib/logger';
-import { z } from 'zod';
-import type { AuthRequest } from '@/middleware/auth.middleware';
 import { getParamAsString } from '@/middleware/auth.middleware';
+import { AnalysisService } from '@/services/analysis.service';
+
+
+import type { AuthRequest } from '@/middleware/auth.middleware';
+
 
 const createProjectSchema = z.object({
   title: z.string().min(1, 'العنوان مطلوب'),
@@ -34,7 +38,7 @@ export class ProjectsController {
   async getProjects(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -53,7 +57,7 @@ export class ProjectsController {
       });
     } catch (error) {
       logger.error('Get projects error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء جلب المشاريع',
       });
@@ -69,7 +73,7 @@ export class ProjectsController {
   async getProject(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -79,7 +83,7 @@ export class ProjectsController {
       const id = getParamAsString(req.params["id"]);
 
       if (!id) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معرف المشروع مطلوب',
         });
@@ -92,7 +96,7 @@ export class ProjectsController {
         .where(and(eq(projects.id, id), eq(projects.userId, req.user.id)));
 
       if (!project) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'المشروع غير موجود',
         });
@@ -105,7 +109,7 @@ export class ProjectsController {
       });
     } catch (error) {
       logger.error('Get project error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء جلب المشروع',
       });
@@ -121,7 +125,7 @@ export class ProjectsController {
   async createProject(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -133,21 +137,21 @@ export class ProjectsController {
       const [newProject] = await db
         .insert(projects)
         .values({
-          title: validatedData["title"],
+          title: validatedData.title,
           scriptContent: validatedData.scriptContent,
           userId: req.user.id,
         })
         .returning();
 
       if (!newProject) {
-        res["status"](500).json({
+        res.status(500).json({
           success: false,
           error: 'فشل إنشاء المشروع',
         });
         return;
       }
 
-      res["status"](201).json({
+      res.status(201).json({
         success: true,
         message: 'تم إنشاء المشروع بنجاح',
         data: newProject,
@@ -156,7 +160,7 @@ export class ProjectsController {
       logger.info('Project created successfully', { projectId: newProject.id, userId: req.user.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
@@ -165,7 +169,7 @@ export class ProjectsController {
       }
 
       logger.error('Create project error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء إنشاء المشروع',
       });
@@ -200,7 +204,7 @@ export class ProjectsController {
   async updateProject(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({ success: false, error: 'غير مصرح' });
+        res.status(401).json({ success: false, error: 'غير مصرح' });
         return;
       }
 
@@ -208,7 +212,7 @@ export class ProjectsController {
       const validatedData = updateProjectSchema.parse(req.body);
 
       if (!id) {
-        res["status"](400).json({ success: false, error: 'معرف المشروع مطلوب' });
+        res.status(400).json({ success: false, error: 'معرف المشروع مطلوب' });
         return;
       }
 
@@ -218,7 +222,7 @@ export class ProjectsController {
         .where(and(eq(projects.id, id), eq(projects.userId, req.user.id)));
 
       if (!existingProject) {
-        res["status"](404).json({ success: false, error: 'المشروع غير موجود' });
+        res.status(404).json({ success: false, error: 'المشروع غير موجود' });
         return;
       }
 
@@ -228,12 +232,12 @@ export class ProjectsController {
       logger.info('Project updated successfully', { projectId: id });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res["status"](400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
+        res.status(400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
         return;
       }
 
       logger.error('Update project error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء تحديث المشروع' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحديث المشروع' });
     }
   }
 
@@ -246,7 +250,7 @@ export class ProjectsController {
   async deleteProject(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({
+        res.status(401).json({
           success: false,
           error: 'غير مصرح',
         });
@@ -256,7 +260,7 @@ export class ProjectsController {
       const id = getParamAsString(req.params["id"]);
 
       if (!id) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'معرف المشروع مطلوب',
         });
@@ -269,7 +273,7 @@ export class ProjectsController {
         .where(and(eq(projects.id, id), eq(projects.userId, req.user.id)));
 
       if (!existingProject) {
-        res["status"](404).json({
+        res.status(404).json({
           success: false,
           error: 'المشروع غير موجود',
         });
@@ -286,7 +290,7 @@ export class ProjectsController {
       logger.info('Project deleted successfully', { projectId: id });
     } catch (error) {
       logger.error('Delete project error:', error);
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء حذف المشروع',
       });
@@ -305,7 +309,7 @@ export class ProjectsController {
   private async runScriptAnalysis(project: { title: string; scriptContent: string }) {
     const analysisService = new AnalysisService();
     return analysisService.runFullPipeline({
-      projectName: project["title"],
+      projectName: project.title,
       fullText: project.scriptContent,
       language: 'ar',
       context: {},
@@ -322,14 +326,14 @@ export class ProjectsController {
   async analyzeScript(req: AuthRequest, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res["status"](401).json({ success: false, error: 'غير مصرح' });
+        res.status(401).json({ success: false, error: 'غير مصرح' });
         return;
       }
 
       const id = getParamAsString(req.params["id"]);
 
       if (!id) {
-        res["status"](400).json({ success: false, error: 'معرف المشروع مطلوب' });
+        res.status(400).json({ success: false, error: 'معرف المشروع مطلوب' });
         return;
       }
 
@@ -339,12 +343,12 @@ export class ProjectsController {
         .where(and(eq(projects.id, id), eq(projects.userId, req.user.id)));
 
       if (!project) {
-        res["status"](404).json({ success: false, error: 'المشروع غير موجود' });
+        res.status(404).json({ success: false, error: 'المشروع غير موجود' });
         return;
       }
 
       if (!project.scriptContent) {
-        res["status"](400).json({ success: false, error: 'لا يوجد نص سيناريو للتحليل' });
+        res.status(400).json({ success: false, error: 'لا يوجد نص سيناريو للتحليل' });
         return;
       }
 
@@ -358,7 +362,7 @@ export class ProjectsController {
       logger.info('Script analysis requested', { projectId: id });
     } catch (error) {
       logger.error('Analyze script error:', error);
-      res["status"](500).json({ success: false, error: 'حدث خطأ أثناء تحليل السيناريو' });
+      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحليل السيناريو' });
     }
   }
 }

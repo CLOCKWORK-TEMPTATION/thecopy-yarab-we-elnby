@@ -1,10 +1,4 @@
 import { logger } from "@/lib/ai/utils/logger";
-import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
-
-/**
- * Pipeline Agent Manager
- * Manages background worker for pipeline execution
- */
 
 import type {
   ExecutePipelineMessage,
@@ -14,6 +8,13 @@ import type {
   PipelineAgentPool,
   PipelineExecutionCallback,
 } from "./pipeline-agent-types";
+import type { PipelineInputData, PipelineStep } from "@/orchestration/executor";
+
+/**
+ * Pipeline Agent Manager
+ * Manages background worker for pipeline execution
+ */
+
 
 export class PipelineAgentManager {
   private workerPool: PipelineAgentPool = {

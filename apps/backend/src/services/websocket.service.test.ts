@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createServer, Server as HTTPServer } from 'http';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   mockSocketServerCtor,
@@ -107,8 +108,9 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-import { websocketService } from './websocket.service';
 import { RealtimeEventType } from '@/types/realtime.types';
+
+import { websocketService } from './websocket.service';
 
 describe('WebSocketService', () => {
   let httpServer: HTTPServer;

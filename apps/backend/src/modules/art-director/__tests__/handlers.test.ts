@@ -1,10 +1,12 @@
 import { rm } from "node:fs/promises";
 import path from "node:path";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
-import type { ArtDirectorHandlerResponse } from "../handlers";
 import { handleArtDirectorRequest } from "../handlers";
 import { resetStoreForTests } from "../store";
+
+import type { ArtDirectorHandlerResponse } from "../handlers";
 
 const storePath = path.join(
   process.cwd(),
@@ -44,7 +46,7 @@ describe("art-director handlers", () => {
       },
     });
 
-    expect(addResult["status"]).toBe(200);
+    expect(addResult.status).toBe(200);
     expect(addResult.body.success).toBe(true);
 
     const searchResult = await request({
@@ -53,7 +55,7 @@ describe("art-director handlers", () => {
       body: { query: "البارون" },
     });
 
-    expect(searchResult["status"]).toBe(200);
+    expect(searchResult.status).toBe(200);
     expect(searchResult.body.success).toBe(true);
     expect(searchResult.body.data).toMatchObject({
       count: 1,
@@ -77,7 +79,7 @@ describe("art-director handlers", () => {
       },
     });
 
-    expect(result["status"]).toBe(400);
+    expect(result.status).toBe(400);
     expect(result.body).toMatchObject({
       success: false,
       error: "عدد الساعات يجب أن يكون أكبر من صفر",
@@ -95,7 +97,7 @@ describe("art-director handlers", () => {
       },
     });
 
-    expect(result["status"]).toBe(200);
+    expect(result.status).toBe(200);
     expect(result.body.success).toBe(true);
     expect(result.body.data).toMatchObject({
       consistent: false,
@@ -120,7 +122,7 @@ describe("art-director handlers", () => {
       },
     });
 
-    expect(generateResult["status"]).toBe(200);
+    expect(generateResult.status).toBe(200);
     expect(generateResult.body.success).toBe(true);
 
     const exportResult = await request({
@@ -131,7 +133,7 @@ describe("art-director handlers", () => {
       },
     });
 
-    expect(exportResult["status"]).toBe(200);
+    expect(exportResult.status).toBe(200);
     expect(exportResult.body.success).toBe(true);
     expect(exportResult.body.data).toMatchObject({
       format: "markdown",
@@ -150,7 +152,7 @@ describe("art-director handlers", () => {
       path: ["unknown", "route"],
     });
 
-    expect(result["status"]).toBe(404);
+    expect(result.status).toBe(404);
     expect(result.body).toMatchObject({
       success: false,
       error: "المسار غير مدعوم: unknown/route",

@@ -11,12 +11,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Request, Response, NextFunction } from 'express';
+
 import {
   cspMiddleware,
   securityHeadersMiddleware,
   cspViolationReporter,
 } from '@/middleware/csp.middleware';
+
+import type { Request, Response, NextFunction } from 'express';
 
 // ─── مساعدات بناء كائنات الطلب والاستجابة الوهمية ───
 
@@ -201,8 +203,8 @@ describe('securityHeadersMiddleware', () => {
   });
 
   it('يجب أن يضيف HSTS في بيئة الإنتاج', () => {
-    const original = process.env['NODE_ENV'];
-    process.env['NODE_ENV'] = 'production';
+    const original = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
 
     const req = createMockReq();
     const res = createMockRes();
@@ -214,12 +216,12 @@ describe('securityHeadersMiddleware', () => {
       expect.stringContaining('max-age=')
     );
 
-    process.env['NODE_ENV'] = original;
+    process.env.NODE_ENV = original;
   });
 
   it('يجب ألّا يضيف HSTS في بيئة التطوير', () => {
-    const original = process.env['NODE_ENV'];
-    process.env['NODE_ENV'] = 'test';
+    const original = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'test';
 
     const req = createMockReq();
     const res = createMockRes();
@@ -231,7 +233,7 @@ describe('securityHeadersMiddleware', () => {
     );
     expect(hstsCall).toBeUndefined();
 
-    process.env['NODE_ENV'] = original;
+    process.env.NODE_ENV = original;
   });
 });
 

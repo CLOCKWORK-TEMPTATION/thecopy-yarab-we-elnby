@@ -1,7 +1,8 @@
-import type { Request, Response } from "express";
 import { Router } from "express";
 
 import { handleArtDirectorRequest } from "./handlers";
+
+import type { Request, Response } from "express";
 
 function getRouteSegments(pathname: string): string[] {
   return pathname
@@ -14,7 +15,7 @@ async function respond(req: Request, res: Response): Promise<void> {
   const method = req.method.toUpperCase();
 
   if (method !== "GET" && method !== "POST") {
-    res["status"](405).json({
+    res.status(405).json({
       success: false,
       error: `الطريقة غير مدعومة: ${req.method}`,
     });
@@ -43,9 +44,9 @@ async function respond(req: Request, res: Response): Promise<void> {
       searchParams: new URLSearchParams(searchEntries),
     });
 
-    res["status"](result["status"]).json(result.body);
+    res.status(result.status).json(result.body);
   } catch (error) {
-    res["status"](500).json({
+    res.status(500).json({
       success: false,
       error:
         error instanceof Error

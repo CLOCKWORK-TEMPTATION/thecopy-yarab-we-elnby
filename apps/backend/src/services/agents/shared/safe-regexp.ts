@@ -76,7 +76,7 @@ export function safeMatch(text: string, pattern: string | RegExp): boolean {
 export function safeExtractMatches(
   text: string,
   pattern: string | RegExp,
-  maxMatches: number = 100
+  maxMatches = 100
 ): string[] {
   if (!text) return [];
   

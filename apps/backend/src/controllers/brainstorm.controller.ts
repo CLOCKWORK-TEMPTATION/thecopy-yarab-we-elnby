@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 
-import { brainstormService } from "@/services/brainstorm.service";
 import { logger } from "@/lib/logger";
 import {
   getBrainstormAgentById,
@@ -9,6 +8,7 @@ import {
   getBrainstormPhases,
   getBrainstormStats,
 } from "@/modules/brainstorm/catalog";
+import { brainstormService } from "@/services/brainstorm.service";
 
 const brainstormCatalogResponseSchema = z.object({
   agents: z.array(
@@ -62,7 +62,7 @@ const brainstormRequestSchema = z.object({
 type BrainstormRequestPayload = z.infer<typeof brainstormRequestSchema>;
 
 function buildDebateContext(payload: BrainstormRequestPayload): Record<string, unknown> {
-  const context = payload["context"] ?? {};
+  const context = payload.context ?? {};
 
   return {
     ...context,
@@ -86,7 +86,7 @@ async function executeDebate(
 ): Promise<{
   result: Awaited<ReturnType<typeof brainstormService.conductDebate>>;
   meta: {
-    selectedAgents: Array<{ id: string; nameAr: string }>;
+    selectedAgents: { id: string; nameAr: string }[];
   };
 }> {
   const result = await brainstormService.conductDebate(
@@ -120,20 +120,20 @@ export class BrainstormController {
         logger.error("Brainstorm catalog payload validation failed", {
           issues: parsed.error.issues,
         });
-        res["status"](500).json({
+        res.status(500).json({
           success: false,
           error: "فشل في تجهيز كتالوج Brain Storm AI",
         });
         return;
       }
 
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         data: parsed.data,
       });
     } catch (error) {
       logger.error("Failed to build brainstorm catalog", { error });
-      res["status"](500).json({
+      res.status(500).json({
         success: false,
         error: "فشل في تحميل كتالوج Brain Storm AI",
       });
@@ -144,7 +144,7 @@ export class BrainstormController {
     try {
       const parsed = brainstormRequestSchema.safeParse(req.body);
       if (!parsed.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: "حمولة الطلب غير صالحة",
           details: parsed.error.flatten(),
@@ -153,7 +153,7 @@ export class BrainstormController {
       }
 
       const response = await executeDebate(parsed.data);
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         result: response.result,
         meta: response.meta,
@@ -163,7 +163,7 @@ export class BrainstormController {
       const message =
         error instanceof Error ? error.message : "Failed to conduct debate";
       res
-        ["status"](
+        .status(
           message.includes("API_KEY") || message.includes("not configured") ? 503 : 500
         )
         .json({

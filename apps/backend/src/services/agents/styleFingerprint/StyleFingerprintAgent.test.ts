@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { StyleFingerprintAgent } from "./StyleFingerprintAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { StyleFingerprintAgent } from "./StyleFingerprintAgent";
 
 vi.mock("../../services/geminiService", () => ({
   geminiService: {

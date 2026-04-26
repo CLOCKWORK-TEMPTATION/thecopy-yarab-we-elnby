@@ -3,6 +3,9 @@
  * وحدة النقد الذاتي المحسّن بمعايير متخصصة
  */
 
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
+
 import {
   CritiqueConfiguration,
   CritiqueRequest,
@@ -11,9 +14,6 @@ import {
   CritiqueContext,
   getCritiqueConfiguration
 } from "./critiqueConfigurations";
-import type { CritiqueDimension } from "./critiqueTypes";
-import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/lib/logger";
 import {
   calculateOverallScore,
   determineLevel,
@@ -22,6 +22,9 @@ import {
   generateImprovementPlan,
   buildDimensionEvaluationPrompt,
 } from "./enhancedCritiqueHelpers";
+
+import type { CritiqueDimension } from "./critiqueTypes";
+
 
 export class EnhancedSelfCritiqueModule {
   /** تطبيق النقد الذاتي المحسّن */
@@ -61,7 +64,7 @@ export class EnhancedSelfCritiqueModule {
 
   private resolveConfig(request: CritiqueRequest): CritiqueConfiguration {
     const { customConfig, context } = request;
-    if (customConfig && customConfig.agentType && customConfig.dimensions && customConfig.thresholds) {
+    if (customConfig?.agentType && customConfig.dimensions && customConfig.thresholds) {
       return customConfig as CritiqueConfiguration;
     }
     const retrieved = getCritiqueConfiguration(context.taskType);

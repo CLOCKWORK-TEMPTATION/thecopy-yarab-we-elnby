@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-lines-per-function, complexity -- experimental memory indexing module */
+/* eslint-disable complexity -- experimental memory indexing module */
 import { createHash } from "crypto";
 
 import { SemanticChunker, type SemanticChunk } from "@the-copy/core-memory";
@@ -7,14 +7,6 @@ import { embeddingsService } from "@/services/rag/embeddings.service";
 import { definedProps } from "@/utils/defined-props";
 
 import { embeddingGenerator } from "../embeddings/generator";
-import type {
-  AdHocChunkData,
-  CodeChunkData,
-  DecisionData,
-  DocumentationData,
-  FileInfo,
-  IndexingStats,
-} from "../types";
 import { weaviateStore } from "../vector-store/client";
 import {
   AdHocChunksSchema,
@@ -23,7 +15,17 @@ import {
   DecisionsSchema,
   DocumentationSchema,
 } from "../vector-store/schema";
+
 import { repositoryCrawler } from "./repository-crawler";
+
+import type {
+  AdHocChunkData,
+  CodeChunkData,
+  DecisionData,
+  DocumentationData,
+  FileInfo,
+  IndexingStats,
+} from "../types";
 
 type ManualMemoryType = "decision" | "documentation";
 
@@ -89,7 +91,7 @@ export class WeaviateIndexingService {
 
   async indexAdHocDocument(
     document: string,
-    source: string = "request-document",
+    source = "request-document",
     options: {
       maxChunkSize?: number;
       coherenceThreshold?: number;
@@ -526,7 +528,7 @@ export class WeaviateIndexingService {
   }
 
   private extractTitle(content: string): string {
-    const heading = content.match(/^#\s+(.+)$/m);
+    const heading = /^#\s+(.+)$/m.exec(content);
     return heading?.[1]?.trim() || "Untitled";
   }
 

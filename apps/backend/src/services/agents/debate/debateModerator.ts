@@ -8,6 +8,16 @@
  */
 
 import { logger } from '@/lib/logger';
+
+import { StandardAgentOutput } from '../shared/standardAgentPattern';
+
+import {
+  analyzeDebateArguments,
+  calculateArgumentAgreementScore,
+  generateConsensusSynthesis,
+  synthesizeWithoutConsensus,
+} from './debateModerator-helpers';
+import { DebateSessionClass } from './debateSession';
 import {
   DebateSession,
   DebateConfig,
@@ -15,14 +25,6 @@ import {
   ConsensusResult,
   Vote,
 } from './types';
-import { DebateSessionClass } from './debateSession';
-import { StandardAgentOutput } from '../shared/standardAgentPattern';
-import {
-  analyzeDebateArguments,
-  calculateArgumentAgreementScore,
-  generateConsensusSynthesis,
-  synthesizeWithoutConsensus,
-} from './debateModerator-helpers';
 
 /**
  * فئة منسق المناظرة
@@ -31,7 +33,7 @@ export class DebateModerator {
   /** جلسة المناظرة */
   private session: DebateSessionClass;
   /** خريطة الأصوات */
-  private votes: Map<string, Vote[]> = new Map();
+  private votes = new Map<string, Vote[]>();
 
   constructor(
     topic: string,
@@ -169,7 +171,7 @@ export class DebateModerator {
     let confidence = 0;
     const notes: string[] = [];
 
-    if (consensus && consensus.achieved) {
+    if (consensus?.achieved) {
       finalText = consensus.finalSynthesis;
       confidence = consensus.confidence;
       notes.push(`تم التوصل إلى توافق بنسبة ${(consensus.agreementScore * 100).toFixed(1)}%`);

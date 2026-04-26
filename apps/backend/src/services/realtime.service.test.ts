@@ -5,10 +5,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { realtimeService, BroadcastTarget } from './realtime.service';
-import { websocketService } from './websocket.service';
-import { sseService } from './sse.service';
+
 import { RealtimeEventType } from '@/types/realtime.types';
+
+import { realtimeService, BroadcastTarget } from './realtime.service';
+import { sseService } from './sse.service';
+import { websocketService } from './websocket.service';
 
 // Mock the underlying services
 vi.mock('./websocket.service');
@@ -472,8 +474,8 @@ describe('RealtimeService', () => {
       const health = realtimeService.getHealth();
 
       expect(health.overall).toBe('healthy');
-      expect(health.websocket["status"]).toBe('operational');
-      expect(health.sse["status"]).toBe('operational');
+      expect(health.websocket.status).toBe('operational');
+      expect(health.sse.status).toBe('operational');
     });
 
     it('should return degraded status when WebSocket not initialized', () => {
@@ -488,8 +490,8 @@ describe('RealtimeService', () => {
       const health = realtimeService.getHealth();
 
       expect(health.overall).toBe('degraded');
-      expect(health.websocket["status"]).toBe('not_initialized');
-      expect(health.sse["status"]).toBe('operational');
+      expect(health.websocket.status).toBe('not_initialized');
+      expect(health.sse.status).toBe('operational');
     });
   });
 

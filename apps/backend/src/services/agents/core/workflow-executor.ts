@@ -3,7 +3,11 @@
  */
 
 import { logger } from '@/lib/logger';
+
+import { agentRegistry } from '../registry';
+
 import { StandardAgentInput, StandardAgentOutput } from './types';
+import { calculateWorkflowMetrics, buildExecutionPlan } from './workflow-metrics-helpers';
 import {
   WorkflowConfig,
   WorkflowContext,
@@ -16,11 +20,9 @@ import {
   WorkflowMetrics,
   WorkflowEvent,
 } from './workflow-types';
-import { agentRegistry } from '../registry';
-import { calculateWorkflowMetrics, buildExecutionPlan } from './workflow-metrics-helpers';
 
 export class WorkflowExecutor {
-  private listeners: Map<string, Array<(event: WorkflowEvent) => void>> = new Map();
+  private listeners = new Map<string, ((event: WorkflowEvent) => void)[]>();
 
   private createContext(config: WorkflowConfig, input: StandardAgentInput): WorkflowContext {
     return {
@@ -161,7 +163,7 @@ export class WorkflowExecutor {
   /**
    * Run a step with retry logic
    */
-  // eslint-disable-next-line complexity
+   
   private async runStepWithRetries(
     step: WorkflowStep, config: WorkflowConfig, context: WorkflowContext
   ): Promise<{ output: StandardAgentOutput; retryCount: number }> {
@@ -239,7 +241,7 @@ export class WorkflowExecutor {
         (r) => r.agentId === dep.agentId && r.taskType === dep.taskType
       );
 
-      if (!depResult || depResult["status"] !== AgentStatus.COMPLETED) {
+      if (depResult?.status !== AgentStatus.COMPLETED) {
         return !dep.required;
       }
 

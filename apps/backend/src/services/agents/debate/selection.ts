@@ -7,10 +7,13 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { BaseAgent } from '../shared/BaseAgent';
 import { logger } from '@/lib/logger';
-import { DebateConfig, DebateParticipant, DebateRole } from './types';
+
 import { TaskType } from '../core/enums';
+import { BaseAgent } from '../shared/BaseAgent';
+
+import { DebateConfig, DebateParticipant, DebateRole } from './types';
+
 
 /**
  * اختيار الوكلاء المشاركين في المناظرة
@@ -300,7 +303,7 @@ export function selectMostConfidentAgents(
  * إنشاء مشاركين بأدوار مخصصة
  */
 export function createParticipantsWithRoles(
-  agentRolePairs: Array<{ agent: BaseAgent; role: DebateRole }>
+  agentRolePairs: { agent: BaseAgent; role: DebateRole }[]
 ): DebateParticipant[] {
   return agentRolePairs.map(pair => ({
     agent: pair.agent,

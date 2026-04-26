@@ -33,16 +33,16 @@ export interface MemoryConfig {
 }
 
 export const defaultConfig: MemoryConfig = {
-  geminiApiKey: process.env['GEMINI_API_KEY'] || process.env['GOOGLE_GENAI_API_KEY'] || "",
+  geminiApiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || "",
   defaultEmbeddingModel: "gemini-embedding-2-preview",
   defaultDimensionality: 1536,
 
-  weaviateUrl: process.env['WEAVIATE_URL'] || "http://localhost:8080",
+  weaviateUrl: process.env.WEAVIATE_URL || "http://localhost:8080",
   ...definedProps({
-    weaviateApiKey: process.env['WEAVIATE_API_KEY'],
+    weaviateApiKey: process.env.WEAVIATE_API_KEY,
   }),
 
-  repoPath: process.env['REPO_PATH'] || ".",
+  repoPath: process.env.REPO_PATH || ".",
   maxFileSize: 5 * 1024 * 1024,
   maxFilesPerCrawl: 10000,
   includePatterns: [

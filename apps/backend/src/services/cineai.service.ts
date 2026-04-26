@@ -46,7 +46,7 @@ function parseShotValidationPayload(text: string): Record<string, any> {
 }
 
 export class CineAIService {
-  // eslint-disable-next-line max-lines-per-function
+   
   async validateShot(input: ValidateShotInput): Promise<Record<string, any>> {
     const withImage = Boolean(input.imageBase64 && input.mimeType);
 
@@ -70,8 +70,8 @@ export class CineAIService {
   "improvements": ["string"]
 }`,
         {
-          data: input.imageBase64 as string,
-          mimeType: input.mimeType as string,
+          data: input.imageBase64!,
+          mimeType: input.mimeType!,
         },
         { temperature: 0.25, maxOutputTokens: 4096 }
       );
@@ -107,7 +107,7 @@ ${JSON.stringify(input ?? {}, null, 2)}`;
   }
 
   async generateColorPalette(input: ColorGradingInput): Promise<Record<string, any>> {
-    if (!input.sceneType || !input.sceneType.trim()) {
+    if (!input.sceneType?.trim()) {
       throw new Error('Scene type is required.');
     }
 

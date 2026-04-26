@@ -30,13 +30,13 @@ function resolveExamplePath(): string | null {
   return null;
 }
 
-export type EnvSafeCheckResult = {
+export interface EnvSafeCheckResult {
   ok: boolean;
   missing: string[];
   examplePath: string | null;
   skipped: boolean;
   reason?: string;
-};
+}
 
 export function runEnvSafeCheck(): EnvSafeCheckResult {
   if (safeCheckRan) {
@@ -44,7 +44,7 @@ export function runEnvSafeCheck(): EnvSafeCheckResult {
   }
   safeCheckRan = true;
 
-  if (process.env['NODE_ENV'] === 'test' || process.env['SKIP_DOTENV_SAFE'] === 'true') {
+  if (process.env.NODE_ENV === 'test' || process.env['SKIP_DOTENV_SAFE'] === 'true') {
     return { ok: true, missing: [], examplePath: null, skipped: true, reason: 'skipped-by-env' };
   }
 
@@ -61,7 +61,7 @@ export function runEnvSafeCheck(): EnvSafeCheckResult {
     return { ok: true, missing: [], examplePath, skipped: false };
   } catch (error) {
     const missing = extractMissingKeys(error);
-    const isProd = process.env['NODE_ENV'] === 'production';
+    const isProd = process.env.NODE_ENV === 'production';
 
     if (isProd) {
       throw new Error(

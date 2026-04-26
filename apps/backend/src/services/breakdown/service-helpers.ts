@@ -1,5 +1,14 @@
-/* eslint-disable max-lines -- breakdown service helpers module */
+ 
 import { z } from 'zod';
+
+import {
+  buildSceneStats,
+  clampMetric,
+  ELEMENT_COLORS,
+  formatSceneHeader,
+  generateId,
+} from './utils';
+
 import type {
   BreakdownElement,
   BreakdownReportScene,
@@ -9,13 +18,6 @@ import type {
   ParsedScene,
   ScenarioAnalysis,
 } from './types';
-import {
-  buildSceneStats,
-  clampMetric,
-  ELEMENT_COLORS,
-  formatSceneHeader,
-  generateId,
-} from './utils';
 
 const DEFAULT_BREAKDOWN_ELEMENT_COLOR = '#64748B';
 
@@ -34,7 +36,7 @@ export function extractJsonObject(text: string): unknown {
     return JSON.parse(trimmed);
   }
 
-  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const fencedMatch = /```(?:json)?\s*([\s\S]*?)\s*```/i.exec(trimmed);
   if (fencedMatch?.[1]) {
     return JSON.parse(fencedMatch[1]);
   }
@@ -164,7 +166,7 @@ function keywordMatches(content: string, keywords: string[]): string[] {
 
 export function inferExtrasGroups(extras: string[]): ExtrasGroup[] {
   return extras.map((description) => {
-    const countMatch = description.match(/(\d+)/);
+    const countMatch = /(\d+)/.exec(description);
     return {
       description,
       count: countMatch ? Number(countMatch[1]) : 3,
@@ -392,7 +394,7 @@ function normalizeCastMembers(
   }));
 }
 
-// eslint-disable-next-line max-lines-per-function
+ 
 export function normalizeAiAnalysis(
   parsedScene: ParsedScene,
   aiData: z.infer<typeof aiBreakdownSchema>

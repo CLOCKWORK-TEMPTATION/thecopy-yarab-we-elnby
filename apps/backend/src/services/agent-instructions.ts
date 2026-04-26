@@ -3,8 +3,9 @@
  * يوفر واجهة موحدة لتحميل واستخدام تعليمات الوكلاء من ملفات JSON
  */
 
-import { instructionsLoader, type InstructionSet } from './instructions-loader';
 import { logger } from '@/lib/logger';
+
+import { instructionsLoader, type InstructionSet } from './instructions-loader';
 
 export class AgentInstructionsService {
   private static instance: AgentInstructionsService;

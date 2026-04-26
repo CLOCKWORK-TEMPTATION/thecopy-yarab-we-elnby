@@ -115,8 +115,8 @@ function inferLocations(scenario: string): string[] {
   }
 
   const heuristicHits = [
-    /desert/iu.test(scenario) || /صحراء/u.test(scenario) ? "Desert Exterior" : "",
-    /warehouse/iu.test(scenario) || /مخزن/u.test(scenario) ? "Warehouse Interior" : "",
+    /desert/iu.test(scenario) || scenario.includes('صحراء') ? "Desert Exterior" : "",
+    /warehouse/iu.test(scenario) || scenario.includes('مخزن') ? "Warehouse Interior" : "",
     /street|highway|strip/iu.test(scenario) || /شارع|طريق/u.test(scenario)
       ? "Street Location"
       : "",
@@ -165,7 +165,7 @@ function inferCastCount(scenario: string): number {
 }
 
 function inferExplicitShootingDays(scenario: string): number | null {
-  const match = scenario.match(/(\d+)\s*(?:day|days|يوم|أيام)/iu);
+  const match = /(\d+)\s*(?:day|days|يوم|أيام)/iu.exec(scenario);
   if (!match) {
     return null;
   }

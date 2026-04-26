@@ -4,33 +4,6 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 import type { EditorView } from "@tiptap/pm/view";
 
-import { retroactiveCorrectionPass } from "./retroactive-corrector";
-import {
-  reverseClassificationPass,
-  mergeForwardReverse,
-} from "./reverse-classification-pass";
-import {
-  shouldReflect,
-  reflectOnChunk,
-  SELF_REFLECTION_CHUNK_SIZE,
-} from "./self-reflection-pass";
-import type { SequenceOptimizationResult } from "./structural-sequence-optimizer";
-import {
-  optimizeSequence,
-  applyViterbiOverrides,
-} from "./structural-sequence-optimizer";
-import {
-  mergeBrokenCharacterName,
-  parseBulletLine,
-  shouldMergeWrappedLines,
-} from "./line-repair";
-import { isParentheticalLine } from "./parenthetical";
-import { isSceneHeader3Line } from "./scene-header-3";
-import {
-  isCompleteSceneHeaderLine,
-  splitSceneHeaderLine,
-} from "./scene-header-top-line";
-import { isTransitionLine } from "./transition";
 import { progressiveUpdater } from "./ai-progressive-updater";
 import { pipelineRecorder } from "./pipeline-recorder";
 import {
@@ -120,11 +93,39 @@ import {
   type DocumentContextGraph,
 } from "./document-context-graph";
 import { HybridClassifier } from "./hybrid-classifier";
+import {
+  mergeBrokenCharacterName,
+  parseBulletLine,
+  shouldMergeWrappedLines,
+} from "./line-repair";
+import { isParentheticalLine } from "./parenthetical";
+import { retroactiveCorrectionPass } from "./retroactive-corrector";
+import {
+  reverseClassificationPass,
+  mergeForwardReverse,
+} from "./reverse-classification-pass";
+import { isSceneHeader3Line } from "./scene-header-3";
+import {
+  isCompleteSceneHeaderLine,
+  splitSceneHeaderLine,
+} from "./scene-header-top-line";
+import {
+  shouldReflect,
+  reflectOnChunk,
+  SELF_REFLECTION_CHUNK_SIZE,
+} from "./self-reflection-pass";
+import {
+  optimizeSequence,
+  applyViterbiOverrides,
+} from "./structural-sequence-optimizer";
+import { isTransitionLine } from "./transition";
+
 import type {
   ClassifiedDraft,
   ClassificationContext,
   ElementType,
 } from "./classification-types";
+import type { SequenceOptimizationResult } from "./structural-sequence-optimizer";
 
 // ── Re-entry guard + text dedup ──────────────────────────────────────────────
 let pipelineRunning = false;

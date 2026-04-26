@@ -1,4 +1,4 @@
-/* eslint-disable complexity -- experimental memory module */
+ 
 /**
  * Repository Crawler
  * زاحف الملفات للمستودع

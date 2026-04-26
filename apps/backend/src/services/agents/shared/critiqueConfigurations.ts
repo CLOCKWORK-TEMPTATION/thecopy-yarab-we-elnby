@@ -4,17 +4,19 @@
  */
 
 import { TaskType } from "@core/types";
-import type { CritiqueConfiguration } from "./critiqueTypes";
+
+import {
+  CHARACTER_NETWORK_DIMENSIONS,
+  CONFLICT_DYNAMICS_DIMENSIONS,
+} from "./critiqueAgentDimensions";
 import {
   COMMON_DIMENSIONS,
   CHARACTER_ANALYSIS_DIMENSIONS,
   DIALOGUE_ANALYSIS_DIMENSIONS,
   PLOT_ANALYSIS_DIMENSIONS,
 } from "./critiqueDimensions";
-import {
-  CHARACTER_NETWORK_DIMENSIONS,
-  CONFLICT_DYNAMICS_DIMENSIONS,
-} from "./critiqueAgentDimensions";
+
+import type { CritiqueConfiguration } from "./critiqueTypes";
 
 // Re-export types for convenience
 export type {
@@ -29,8 +31,8 @@ export {
 } from "./critiqueDimensions";
 
 /** تكوينات النقد لكل نوع وكيل */
-export const CRITIQUE_CONFIGURATIONS: Map<TaskType, CritiqueConfiguration> =
-  new Map([
+export const CRITIQUE_CONFIGURATIONS =
+  new Map<TaskType, CritiqueConfiguration>([
     [TaskType.CHARACTER_DEEP_ANALYZER, {
       agentType: TaskType.CHARACTER_DEEP_ANALYZER, agentName: "محلل الشخصية العميق",
       category: "advanced", dimensions: CHARACTER_ANALYSIS_DIMENSIONS,

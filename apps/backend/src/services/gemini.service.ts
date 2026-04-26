@@ -1,8 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+
 import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
-import { cacheService } from './cache.service';
 import { trackGeminiRequest, trackGeminiCache } from '@/middleware/metrics.middleware';
+
+import { cacheService } from './cache.service';
 import {
   generateGeminiCacheKey,
   getGeminiCacheTTL,
@@ -86,7 +88,7 @@ export class GeminiService {
   /**
    * Apply guardrails to input and output with comprehensive validation
    */
-  // eslint-disable-next-line complexity
+   
   private applyGuardrails(
     input: string,
     output: string,
@@ -144,7 +146,7 @@ export class GeminiService {
    * Execute a Gemini API request with caching, guardrails, metrics tracking, and error handling.
    * This is the core method that consolidates common logic from all public API methods.
    */
-  // eslint-disable-next-line max-lines-per-function
+   
   private async executeGeminiRequest(config: GeminiRequestConfig): Promise<string> {
     const { requestType, prompt, originalInput, cacheKeyParams, cacheCategory, useAdaptiveTTL, errorMessage } = config;
     const startTime = Date.now();
@@ -182,8 +184,8 @@ export class GeminiService {
             ),
           ]);
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return (apiResult as any).response.text();
+           
+          return (apiResult).response.text();
         },
         {
           staleWhileRevalidate: true,
@@ -263,8 +265,8 @@ export class GeminiService {
   async generateText(prompt: string, _options?: { temperature?: number; maxTokens?: number }): Promise<string> {
     try {
       const result = await this.model.generateContent(prompt);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (result as any).response.text();
+       
+      return (result).response.text();
     } catch (error) {
       logger.error('Error in generateText:', error);
       throw error;
@@ -274,7 +276,7 @@ export class GeminiService {
   async generateJson<T>(prompt: string, options?: { temperature?: number; maxTokens?: number }): Promise<T> {
     const text = await this.generateText(prompt, options);
     const trimmed = text.trim();
-    const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
     const payload = fenced?.[1]?.trim() ?? trimmed;
     return JSON.parse(payload) as T;
   }

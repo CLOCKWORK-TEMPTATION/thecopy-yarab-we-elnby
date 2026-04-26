@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { charactersController } from './characters.controller';
 import { Request, Response } from 'express';
-import { z } from 'zod';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { charactersController } from './characters.controller';
 
 // Mock dependencies
 vi.mock('@/db', () => ({
@@ -114,7 +114,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(401);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح',
@@ -129,7 +129,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'معرف المشروع مطلوب',
@@ -150,7 +150,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(404);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'المشروع غير موجود',
@@ -167,7 +167,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(500);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'حدث خطأ أثناء جلب الشخصيات',
@@ -215,7 +215,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(404);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'الشخصية غير موجودة',
@@ -241,7 +241,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(403);
+      expect(mockResponse.status).toHaveBeenCalledWith(403);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح للوصول لهذه الشخصية',
@@ -276,7 +276,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(201);
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         message: 'تم إنشاء الشخصية بنجاح',
@@ -297,7 +297,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
@@ -318,7 +318,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(404);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'المشروع غير موجود',
@@ -344,7 +344,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(500);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'فشل إنشاء الشخصية',
@@ -409,7 +409,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(404);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'الشخصية غير موجودة',
@@ -435,7 +435,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(400);
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
@@ -488,7 +488,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(404);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'الشخصية غير موجودة',
@@ -514,7 +514,7 @@ describe('CharactersController', () => {
         mockResponse as Response
       );
 
-      expect(mockResponse["status"]).toHaveBeenCalledWith(403);
+      expect(mockResponse.status).toHaveBeenCalledWith(403);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'غير مصرح لحذف هذه الشخصية',

@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { llmGuardrails, LLMGuardrailsService } from './llm-guardrails.service';
+
 import { captureException } from '@/config/sentry';
+
+import { llmGuardrails, LLMGuardrailsService } from './llm-guardrails.service';
 
 // Mock Sentry wrapper
 vi.mock('@/config/sentry', () => ({

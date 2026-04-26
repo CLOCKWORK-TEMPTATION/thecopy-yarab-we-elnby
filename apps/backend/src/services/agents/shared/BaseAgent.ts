@@ -1,12 +1,13 @@
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 import { TaskType } from "@core/types";
+
 import {
   StandardAgentInput,
   StandardAgentOptions,
   StandardAgentOutput,
-} from "./standardAgentPattern";
-import { executeStandardAgentPattern } from "./standardAgentPattern";
-import { geminiService } from "@/services/gemini.service";
-import { logger } from "@/lib/logger";
+ executeStandardAgentPattern } from "./standardAgentPattern";
+
 
 /**
  * واجهة إعدادات الوكيل
@@ -63,7 +64,7 @@ export abstract class BaseAgent {
   /** تعليمات النظام - System prompt */
   protected systemPrompt: string;
   /** الحد الأدنى للثقة - Minimum confidence threshold */
-  protected confidenceFloor: number = 0.7;
+  protected confidenceFloor = 0.7;
 
   /**
    * منشئ الفئة الأساسية للوكيل
@@ -108,7 +109,7 @@ export abstract class BaseAgent {
     const options = this.mergeOptions(input.options);
 
     const result = await executeStandardAgentPattern(basePrompt, options, {
-      ...(typeof input["context"] === "object" ? input["context"] : {}),
+      ...(typeof input.context === "object" ? input.context : {}),
       taskType: this.taskType,
       agentName: this.name,
       systemPrompt: this.systemPrompt,
@@ -187,8 +188,8 @@ export abstract class BaseAgent {
       metadata: {
         ...(output.metadata ?? {}),
         timestamp:
-          typeof output.metadata?.["timestamp"] === "string"
-            ? output.metadata["timestamp"]
+          typeof output.metadata?.timestamp === "string"
+            ? output.metadata.timestamp
             : new Date().toISOString(),
       },
     };

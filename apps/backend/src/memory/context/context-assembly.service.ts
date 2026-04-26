@@ -1,4 +1,3 @@
-import type { RetrievalHit } from "@the-copy/core-memory";
 
 import { definedProps } from "@/utils/defined-props";
 
@@ -8,6 +7,7 @@ import type {
   ContextQuery,
   ContextResult,
 } from "../types";
+import type { RetrievalHit } from "@the-copy/core-memory";
 
 interface ProfileConfig {
   heading: string;
@@ -144,7 +144,7 @@ export class ContextAssemblyService {
 
   buildAugmentedPrompt(
     basePrompt: string,
-    hits: Array<Partial<RetrievalHit> & { text: string }>,
+    hits: (Partial<RetrievalHit> & { text: string })[],
     profile: ContextProfile = "analysis"
   ): string {
     if (hits.length === 0) {

@@ -1,4 +1,4 @@
-/* eslint-disable complexity, no-restricted-syntax -- experimental memory API routes */
+/* eslint-disable no-restricted-syntax -- experimental memory API routes */
 /**
  * Memory System API Routes
  * نقاط نهاية API لنظام الذاكرة
@@ -7,13 +7,12 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 
-import { definedProps } from "@/utils/defined-props";
 import { logger } from "@/lib/logger";
+import { definedProps } from "@/utils/defined-props";
 
 import { mrlOptimizer } from "../embeddings/mrl-optimizer";
 import { weaviateIndexingService } from "../indexer/weaviate-indexing.service";
 import { contextBuilder } from "../retrieval/context-builder";
-import type { ContextQuery } from "../types";
 import { weaviateStore } from "../vector-store/client";
 import {
   AdHocChunksSchema,
@@ -22,6 +21,8 @@ import {
   DecisionsSchema,
   DocumentationSchema,
 } from "../vector-store/schema";
+
+import type { ContextQuery } from "../types";
 
 const router = Router();
 
@@ -68,7 +69,7 @@ export const memoryHealthHandler = async (
             ? "unhealthy"
             : "degraded";
 
-    res["status"](status === "unhealthy" ? 503 : 200).json({
+    res.status(status === "unhealthy" ? 503 : 200).json({
       status,
       weaviate:
         !statusAfter.enabled
@@ -79,13 +80,13 @@ export const memoryHealthHandler = async (
       required: statusAfter.required,
       details: statusAfter,
       gemini:
-        process.env['GOOGLE_GENAI_API_KEY'] || process.env['GEMINI_API_KEY']
+        process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY
           ? "configured"
           : "missing",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    res["status"](500).json({
+    res.status(500).json({
       status: "error",
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -103,7 +104,7 @@ router.post("/context", async (req, res): Promise<void> => {
     const query: ContextQuery = req.body;
 
     if (!query.query || !query.agentId) {
-      res["status"](400).json({
+      res.status(400).json({
         error: "Missing required fields: query, agentId",
       });
       return;
@@ -117,7 +118,7 @@ router.post("/context", async (req, res): Promise<void> => {
     });
   } catch (error) {
     logger.error("Error building context", { error });
-    res["status"](500).json({
+    res.status(500).json({
       error: "Failed to build context",
       message: error instanceof Error ? error.message : "Unknown error",
     });
@@ -132,7 +133,7 @@ router.post("/search", async (req, res): Promise<void> => {
   try {
     const validation = memorySearchBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ error: "Query is required" });
+      res.status(400).json({ error: "Query is required" });
       return;
     }
     const { query, collection, topK = 10 } = validation.data;
@@ -154,7 +155,7 @@ router.post("/search", async (req, res): Promise<void> => {
     });
   } catch (error) {
     logger.error("Search error", { error });
-    res["status"](500).json({
+    res.status(500).json({
       error: "Search failed",
       message: error instanceof Error ? error.message : "Unknown error",
     });
@@ -169,7 +170,7 @@ router.post("/index", async (req, res): Promise<void> => {
   try {
     const validation = memoryIndexBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({
+      res.status(400).json({
         error: "Invalid indexing request",
       });
       return;
@@ -182,7 +183,7 @@ router.post("/index", async (req, res): Promise<void> => {
     } = validation.data;
 
     if (![768, 1536, 3072].includes(dimensionality)) {
-      res["status"](400).json({
+      res.status(400).json({
         error: "Invalid dimensionality. Must be 768, 1536, or 3072",
       });
       return;
@@ -221,7 +222,7 @@ router.post("/index", async (req, res): Promise<void> => {
     });
   } catch (error) {
     logger.error("Indexing error", { error });
-    res["status"](500).json({
+    res.status(500).json({
       error: "Indexing failed",
       message: error instanceof Error ? error.message : "Unknown error",
     });
@@ -256,12 +257,12 @@ router.get("/stats", async (_req, res) => {
       collections: stats,
       totalDocuments: Object.values(stats).reduce((a, b) => a + b, 0),
       storage: {
-        weaviate: process.env['WEAVIATE_URL'] || "http://localhost:8080",
+        weaviate: process.env.WEAVIATE_URL || "http://localhost:8080",
       },
     });
   } catch (error) {
     logger.error("Stats error", { error });
-    res["status"](500).json({ error: "Failed to get stats" });
+    res.status(500).json({ error: "Failed to get stats" });
   }
 });
 
@@ -273,7 +274,7 @@ router.post("/remember", async (req, res): Promise<void> => {
   try {
     const validation = memoryRememberBodySchema.safeParse(req.body);
     if (!validation.success) {
-      res["status"](400).json({ error: "Type and content are required" });
+      res.status(400).json({ error: "Type and content are required" });
       return;
     }
     const { type, content, metadata = {}, tags = [] } = validation.data;
@@ -293,7 +294,7 @@ router.post("/remember", async (req, res): Promise<void> => {
     });
   } catch (error) {
     logger.error("Remember error", { error });
-    res["status"](500).json({
+    res.status(500).json({
       error: "Failed to store memory",
       message: error instanceof Error ? error.message : "Unknown error",
     });

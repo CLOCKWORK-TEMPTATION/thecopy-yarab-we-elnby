@@ -1,15 +1,17 @@
-/* eslint-disable max-lines -- cohesive agent module */
+ 
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
-import {
-  StandardAgentInput,
-  StandardAgentOutput,
-} from "../shared/standardAgentPattern";
-import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
 import {
   safeCountMultipleTerms,
   sumCounts,
 } from "../shared/safe-regexp";
+import {
+  StandardAgentInput,
+  StandardAgentOutput,
+} from "../shared/standardAgentPattern";
+
+import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
 
 const ARABIC_CHAR_REGEX = /^[أ-ي\s]+:/; // NOSONAR
 const LATIN_CHAR_REGEX = /^[A-Z\s]+:/; // NOSONAR
@@ -44,14 +46,14 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Build prompt for scene generation
    */
-  // eslint-disable-next-line complexity
+   
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
 
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null
-        ? (context as Record<string, unknown>)
+        ? (context)
         : {};
     const sceneType = (contextObj["sceneType"] as string) || "dramatic";
     const emotionalTone = (contextObj["emotionalTone"] as string) || "neutral";
@@ -607,7 +609,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const sceneType =
-      (typeof input["context"] === "object" && input["context"]["sceneType"]) ||
+      (typeof input.context === "object" && input.context["sceneType"]) ||
       "dramatic";
 
     return `وصف المشهد:

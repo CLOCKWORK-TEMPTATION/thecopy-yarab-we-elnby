@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { authenticator } from 'otplib';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock dependencies
 vi.mock('otplib', () => ({
@@ -30,8 +30,10 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((field, value) => ({ field, value })),
 }));
 
-import { MFAService, mfaService } from './mfa.service';
 import { db } from '@/db';
+
+import { MFAService, mfaService } from './mfa.service';
+
 import * as QRCode from 'qrcode';
 
 describe('MFAService', () => {

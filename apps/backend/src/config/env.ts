@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { z } from 'zod';
+
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 import { runEnvSafeCheck } from './env-safe';
 
@@ -75,7 +76,7 @@ function applyEnvFile(path: string): void {
 }
 
 function ensureEnvLoaded(): void {
-  if (envLoaded || process.env['NODE_ENV'] === 'test' || process.env['SKIP_DOTENV_AUTOLOAD'] === 'true') {
+  if (envLoaded || process.env.NODE_ENV === 'test' || process.env['SKIP_DOTENV_AUTOLOAD'] === 'true') {
     envLoaded = true;
     return;
   }
@@ -170,7 +171,7 @@ if (parsedEnv.WEAVIATE_REQUIRED && !parsedEnv.MEMORY_SYSTEM_ENABLED) {
 
 // Security validation: In production, JWT_SECRET must be strong
 if (parsedEnv.NODE_ENV === 'production') {
-  if (!process.env['JWT_SECRET']) {
+  if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is required in production');
   }
   if (parsedEnv.JWT_SECRET.length < 32) {

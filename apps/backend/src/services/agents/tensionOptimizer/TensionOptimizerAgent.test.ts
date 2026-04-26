@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { TaskType } from "@core/types";
+
 import { TensionOptimizerAgent } from "./TensionOptimizerAgent";
 
 const { mockExecuteStandardPattern } = vi.hoisted(() => ({

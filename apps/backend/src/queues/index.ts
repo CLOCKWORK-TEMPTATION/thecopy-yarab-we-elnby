@@ -8,13 +8,14 @@
  * يدعم معالجة المهام في الخلفية باستخدام BullMQ و Redis.
  */
 
-import { registerAIAnalysisWorker } from './jobs/ai-analysis.job';
-import { registerDocumentProcessingWorker } from './jobs/document-processing.job';
-import { registerCacheWarmingWorker } from './jobs/cache-warming.job';
-import { queueManager } from './queue.config';
-import { checkRedisVersion } from '@/config/redis.config';
 import { isRedisEnabled } from '@/config/redis-gate';
+import { checkRedisVersion } from '@/config/redis.config';
 import { logger } from '@/lib/logger';
+
+import { registerAIAnalysisWorker } from './jobs/ai-analysis.job';
+import { registerCacheWarmingWorker } from './jobs/cache-warming.job';
+import { registerDocumentProcessingWorker } from './jobs/document-processing.job';
+import { queueManager } from './queue.config';
 
 /** حالة تفعيل نظام قوائم الانتظار */
 let queueSystemEnabled = false;

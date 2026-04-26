@@ -3,9 +3,11 @@
  * حماية من XSS والهجمات الأخرى
  */
 
-import type { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
+
 import { logger } from '@/lib/logger';
+
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * CSP Configuration
@@ -131,7 +133,7 @@ export function securityHeadersMiddleware(
   );
 
   // HSTS (HTTP Strict Transport Security)
-  if (process.env['NODE_ENV'] === 'production') {
+  if (process.env.NODE_ENV === 'production') {
     res.setHeader(
       'Strict-Transport-Security',
       'max-age=31536000; includeSubDomains; preload'
@@ -145,7 +147,7 @@ export function securityHeadersMiddleware(
  * CSP Violation Reporter
  */
 export function cspViolationReporter(req: Request, res: Response) {
-  if (req.body && req.body['csp-report']) {
+  if (req.body?.['csp-report']) {
     const report = req.body['csp-report'];
 
     logger.warn('CSP Violation:', {
@@ -158,5 +160,5 @@ export function cspViolationReporter(req: Request, res: Response) {
     // في الإنتاج: يمكن إرسال التقارير إلى خدمة monitoring
   }
 
-  res["status"](204).end();
+  res.status(204).end();
 }

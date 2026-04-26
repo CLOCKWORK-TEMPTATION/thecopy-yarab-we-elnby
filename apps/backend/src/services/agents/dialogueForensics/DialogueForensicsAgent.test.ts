@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { DialogueForensicsAgent } from "./DialogueForensicsAgent";
-import { StandardAgentInput } from "../shared/standardAgentPattern";
+
 import { TaskType } from "@core/enums";
+
+import { StandardAgentInput } from "../shared/standardAgentPattern";
+
+import { DialogueForensicsAgent } from "./DialogueForensicsAgent";
 
 vi.mock("../../services/geminiService", () => ({
   geminiService: {

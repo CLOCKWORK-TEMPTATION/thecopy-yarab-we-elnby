@@ -7,20 +7,25 @@ import { detectOrphanDialogue } from "@editor/suspicion-engine/detectors/context
 import { detectSequenceViolation } from "@editor/suspicion-engine/detectors/context/sequence-violation.detector";
 
 // ── Gate-break detectors ──
+import { detectContractBasmalaUniqueness } from "@editor/suspicion-engine/detectors/contract/contract-basmala-uniqueness.detector";
+import { detectContractCharacterShape } from "@editor/suspicion-engine/detectors/contract/contract-character-shape.detector";
+import { detectContractParentheticalPosition } from "@editor/suspicion-engine/detectors/contract/contract-parenthetical-position.detector";
+import { detectContractSceneHeaderSequence } from "@editor/suspicion-engine/detectors/contract/contract-scene-header-sequence.detector";
+import { detectContractTransitionIsolation } from "@editor/suspicion-engine/detectors/contract/contract-transition-isolation.detector";
 import { detectOcrArtifact } from "@editor/suspicion-engine/detectors/corruption/ocr-artifact.detector";
 import { detectSplitCharacter } from "@editor/suspicion-engine/detectors/corruption/split-character.detector";
+import { detectWrappedDialogue } from "@editor/suspicion-engine/detectors/corruption/wrapped-dialogue.detector";
+import { detectConfidenceAmbiguity } from "@editor/suspicion-engine/detectors/cross-pass/confidence-ambiguity.detector";
+import { detectMultiOverride } from "@editor/suspicion-engine/detectors/cross-pass/multi-override.detector";
+import { detectReverseConflict } from "@editor/suspicion-engine/detectors/cross-pass/reverse-conflict.detector";
+import { detectViterbiConflict } from "@editor/suspicion-engine/detectors/cross-pass/viterbi-conflict.detector";
 import { detectActionGateBreak } from "@editor/suspicion-engine/detectors/gate-break/action-gate.detector";
 import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
 import { detectCharacterGateBreak } from "@editor/suspicion-engine/detectors/gate-break/character-gate.detector";
 
 // ── Corruption detectors ──
-import { detectWrappedDialogue } from "@editor/suspicion-engine/detectors/corruption/wrapped-dialogue.detector";
 
 // ── Cross-pass detectors ──
-import { detectReverseConflict } from "@editor/suspicion-engine/detectors/cross-pass/reverse-conflict.detector";
-import { detectViterbiConflict } from "@editor/suspicion-engine/detectors/cross-pass/viterbi-conflict.detector";
-import { detectMultiOverride } from "@editor/suspicion-engine/detectors/cross-pass/multi-override.detector";
-import { detectConfidenceAmbiguity } from "@editor/suspicion-engine/detectors/cross-pass/confidence-ambiguity.detector";
 
 // ── Source detectors ──
 import { detectImportProfile } from "@editor/suspicion-engine/detectors/source/import-profile.detector";
@@ -29,11 +34,6 @@ import { detectSchemaSeedConflict } from "@editor/suspicion-engine/detectors/sou
 import { detectSourceHintMismatch } from "@editor/suspicion-engine/detectors/source/source-hint-mismatch.detector";
 
 // ── Contract detectors (مبنية على عقد arabic-screenplay-classifier) ──
-import { detectContractCharacterShape } from "@editor/suspicion-engine/detectors/contract/contract-character-shape.detector";
-import { detectContractParentheticalPosition } from "@editor/suspicion-engine/detectors/contract/contract-parenthetical-position.detector";
-import { detectContractBasmalaUniqueness } from "@editor/suspicion-engine/detectors/contract/contract-basmala-uniqueness.detector";
-import { detectContractSceneHeaderSequence } from "@editor/suspicion-engine/detectors/contract/contract-scene-header-sequence.detector";
-import { detectContractTransitionIsolation } from "@editor/suspicion-engine/detectors/contract/contract-transition-isolation.detector";
 import { assembleSuspicionFeatures } from "@editor/suspicion-engine/features/feature-assembler";
 import { localDeterministicResolver } from "@editor/suspicion-engine/resolvers/local-deterministic-resolver";
 import { localRepairResolver } from "@editor/suspicion-engine/resolvers/local-repair-resolver";

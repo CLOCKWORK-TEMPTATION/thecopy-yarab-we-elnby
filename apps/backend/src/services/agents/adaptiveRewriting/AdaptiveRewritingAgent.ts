@@ -1,12 +1,14 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { ADAPTIVE_REWRITING_AGENT_CONFIG } from "./agent";
 // نفترض وجود هذه الأداة المساعدة أو يمكن استبدالها بـ RegExp عادي مع الحذر
-import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
 /**
  * واجهة السياق الخاصة بإعادة الكتابة
@@ -59,7 +61,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return prompt;
   }
 
-  // eslint-disable-next-line complexity
+   
   private extractRewritingOptions(ctx: AdaptiveRewritingContext | undefined) {
     return {
       originalText: ctx?.originalText || "",

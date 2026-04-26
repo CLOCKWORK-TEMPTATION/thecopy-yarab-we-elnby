@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
 
-import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 import { success, failure, asString, asNumber, asRecord, isRecord, slugify, buildProductionId, uniqueById, extractNestedRecord, summarizeBook, summarizeStyleGuide } from "./handlers-shared";
-import { AutomaticDocumentationGenerator } from "./plugins/documentation-generator";
 import { runPlugin } from "./plugin-executor";
+import { AutomaticDocumentationGenerator } from "./plugins/documentation-generator";
 import {
   readStore,
   updateStore,
@@ -11,6 +10,8 @@ import {
   type StoredStyleGuide,
   type StoredDecision,
 } from "./store";
+
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function filterRecordArray(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : [];
@@ -257,7 +258,7 @@ const VALID_FORMATS = new Set(["json", "markdown", "md"]);
 function renderBookMarkdown(book: StoredProductionBook): string {
   const sorted = book.sections.sort((a, b) => a.order - b.order);
   const body = sorted.flatMap((s) => [`## ${s.titleAr}`, "", s.contentAr || s.content, ""]);
-  return [`# ${book.titleAr}`, "", `الاسم الإنجليزي: ${book["title"]}`, `تاريخ الإنشاء: ${book.createdAt}`, "", ...body].join("\n");
+  return [`# ${book.titleAr}`, "", `الاسم الإنجليزي: ${book.title}`, `تاريخ الإنشاء: ${book.createdAt}`, "", ...body].join("\n");
 }
 
 export async function handleDocumentationExport(
@@ -279,7 +280,7 @@ export async function handleDocumentationExport(
   return success({
     data: {
       content,
-      filename: `${slugify(book["title"] || book.titleAr)}.${isJson ? "json" : "md"}`,
+      filename: `${slugify(book.title || book.titleAr)}.${isJson ? "json" : "md"}`,
       mimeType: isJson ? "application/json;charset=utf-8" : "text/markdown;charset=utf-8",
       format: normalized,
     },

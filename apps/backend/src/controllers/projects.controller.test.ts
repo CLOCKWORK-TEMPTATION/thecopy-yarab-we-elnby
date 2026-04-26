@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Request, Response } from 'express';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 
 // Simple mock implementation for the projects controller
 class MockProjectsController {
   async getProjects(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -24,7 +24,7 @@ class MockProjectsController {
 
   async getProject(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -33,7 +33,7 @@ class MockProjectsController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشروع مطلوب',
       });
@@ -48,7 +48,7 @@ class MockProjectsController {
 
   async createProject(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -64,21 +64,21 @@ class MockProjectsController {
       const validatedData = schema.parse(req.body);
 
       // Mock successful creation
-      return res["status"](201).json({
+      return res.status(201).json({
         success: true,
         message: 'تم إنشاء المشروع بنجاح',
         data: { id: 'new-project', ...validatedData, userId: 'user-123' },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res["status"](400).json({
+        return res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
         });
       }
 
-      return res["status"](500).json({
+      return res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء إنشاء المشروع',
       });
@@ -87,7 +87,7 @@ class MockProjectsController {
 
   async updateProject(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -96,7 +96,7 @@ class MockProjectsController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشروع مطلوب',
       });
@@ -117,14 +117,14 @@ class MockProjectsController {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res["status"](400).json({
+        return res.status(400).json({
           success: false,
           error: 'بيانات غير صالحة',
           details: error.issues,
         });
       }
 
-      return res["status"](500).json({
+      return res.status(500).json({
         success: false,
         error: 'حدث خطأ أثناء تحديث المشروع',
       });
@@ -133,7 +133,7 @@ class MockProjectsController {
 
   async deleteProject(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -142,7 +142,7 @@ class MockProjectsController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشروع مطلوب',
       });
@@ -156,7 +156,7 @@ class MockProjectsController {
 
   async analyzeScript(req: any, res: any) {
     if (!req.user) {
-      return res["status"](401).json({
+      return res.status(401).json({
         success: false,
         error: 'غير مصرح',
       });
@@ -165,7 +165,7 @@ class MockProjectsController {
     const { id } = req.params;
 
     if (!id) {
-      return res["status"](400).json({
+      return res.status(400).json({
         success: false,
         error: 'معرف المشروع مطلوب',
       });

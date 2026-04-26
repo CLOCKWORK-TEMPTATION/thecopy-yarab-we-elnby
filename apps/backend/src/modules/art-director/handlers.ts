@@ -1,4 +1,47 @@
-import type { PluginInfo } from "./types";
+import {
+  handleDocumentationState,
+  handleDocumentationGenerate,
+  handleDocumentationStyleGuide,
+  handleDocumentationDecision,
+  handleDocumentationExport,
+} from "./handlers-documentation";
+import { handleInspirationAnalyze, handleInspirationPalette } from "./handlers-inspiration";
+import { handleLocationSearch, handleLocationAdd } from "./handlers-location";
+import {
+  handleProductivitySummary,
+  handleProductivityAnalyze,
+  handleProductivityLogTime,
+  handleProductivityDelay,
+  handleProductivityRecommendations,
+} from "./handlers-productivity";
+import {
+  handleSetReusabilityAnalyze,
+  handleSetPieceAdd,
+  handleSetInventory,
+  handleSustainabilityReport,
+} from "./handlers-set-piece";
+import {
+  type ArtDirectorHandlerResponse,
+  success,
+  failure,
+  asRecord,
+  asString,
+} from "./handlers-shared";
+import {
+  handlePrevizCreateScene,
+  handleVirtualSetCreate,
+  handleTrainingScenarios,
+  handleConceptArtCreate,
+  handleVirtualProductionCreate,
+} from "./handlers-virtual-production";
+import {
+  handleVisualConsistency,
+  handleTerminologyTranslation,
+  handleBudgetOptimization,
+  handleLightingSimulation,
+  handleRiskAnalysis,
+  handleProductionReadinessPrompt,
+} from "./handlers-visual";
 import { BudgetOptimizer } from "./plugins/budget-optimizer";
 import { CinemaSkillsTrainer } from "./plugins/cinema-skills-trainer";
 import { CreativeInspirationAssistant } from "./plugins/creative-inspiration";
@@ -16,62 +59,18 @@ import { VirtualProductionEngine } from "./plugins/virtual-production-engine";
 import { VirtualSetEditor } from "./plugins/virtual-set-editor";
 import { VisualConsistencyAnalyzer } from "./plugins/visual-analyzer";
 import { readStore, type ArtDirectorStore } from "./store";
-import {
-  type ArtDirectorHandlerResponse,
-  success,
-  failure,
-  asRecord,
-  asString,
-} from "./handlers-shared";
-import {
-  handleVisualConsistency,
-  handleTerminologyTranslation,
-  handleBudgetOptimization,
-  handleLightingSimulation,
-  handleRiskAnalysis,
-  handleProductionReadinessPrompt,
-} from "./handlers-visual";
-import { handleInspirationAnalyze, handleInspirationPalette } from "./handlers-inspiration";
-import { handleLocationSearch, handleLocationAdd } from "./handlers-location";
-import {
-  handleSetReusabilityAnalyze,
-  handleSetPieceAdd,
-  handleSetInventory,
-  handleSustainabilityReport,
-} from "./handlers-set-piece";
-import {
-  handleProductivitySummary,
-  handleProductivityAnalyze,
-  handleProductivityLogTime,
-  handleProductivityDelay,
-  handleProductivityRecommendations,
-} from "./handlers-productivity";
-import {
-  handleDocumentationState,
-  handleDocumentationGenerate,
-  handleDocumentationStyleGuide,
-  handleDocumentationDecision,
-  handleDocumentationExport,
-} from "./handlers-documentation";
-import {
-  handlePrevizCreateScene,
-  handleVirtualSetCreate,
-  handleTrainingScenarios,
-  handleConceptArtCreate,
-  handleVirtualProductionCreate,
-} from "./handlers-virtual-production";
+
+import type { PluginInfo } from "./types";
 
 export type { ArtDirectorHandlerResponse };
 
-type PluginMetadataFactory = {
-  new (): {
+type PluginMetadataFactory = new () => {
     id: string;
     name: string;
     nameAr: string;
     version: string;
     category: string;
   };
-};
 
 const PLUGIN_METADATA_FACTORIES: PluginMetadataFactory[] = [
   VisualConsistencyAnalyzer,
@@ -127,7 +126,7 @@ function computeDashboardSummary(
     locationsCount: store.locations.length,
     setsCount: store.setPieces.length,
     completedTasks: store.timeEntries.filter(
-      (e) => e["status"] === "completed"
+      (e) => e.status === "completed"
     ).length,
     pluginsCount: getPluginCatalog().length,
     lastUpdated: store.updatedAt,

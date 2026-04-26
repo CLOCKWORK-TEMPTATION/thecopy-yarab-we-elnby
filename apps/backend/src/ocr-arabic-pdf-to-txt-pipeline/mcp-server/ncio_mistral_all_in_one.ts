@@ -11,10 +11,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import {
-  StructuralRepair,
-  waitForRepairStability,
-} from "./structural-repair.js";
+
 
 // Re-export decomposed modules for backward compatibility
 export type {
@@ -37,19 +34,24 @@ export { OCRPreprocessor } from "./ocr-preprocessor.js";
 export { LLMPostProcessor, QualityChecker } from "./llm-post-processor.js";
 export { MistralOCRService } from "./mistral-ocr-client.js";
 
-import type { ConfigManager } from "./types.js";
+import { buildConfig } from "./config-builder.js";
+import { LLMPostProcessor, QualityChecker } from "./llm-post-processor.js";
+import { MarkdownNormalizer } from "./markdown-normalizer.js";
+import { MistralOCRService } from "./mistral-ocr-client.js";
 import { log } from "./ocr-logger.js";
+import { OCRPreprocessor } from "./ocr-preprocessor.js";
+import {
+  StructuralRepair,
+  waitForRepairStability,
+} from "./structural-repair.js";
 import {
   ensureTrailingNewline,
   fileExists,
   isTruthy,
   loadEnvFile,
 } from "./text-helpers.js";
-import { buildConfig } from "./config-builder.js";
-import { MarkdownNormalizer } from "./markdown-normalizer.js";
-import { OCRPreprocessor } from "./ocr-preprocessor.js";
-import { LLMPostProcessor, QualityChecker } from "./llm-post-processor.js";
-import { MistralOCRService } from "./mistral-ocr-client.js";
+
+import type { ConfigManager } from "./types.js";
 
 // ============================================================================
 // Converter

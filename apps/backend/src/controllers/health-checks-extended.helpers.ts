@@ -1,10 +1,9 @@
 import { getEditorIntegrationHealth } from "@/editor/runtime";
+import { logger } from "@/lib/logger";
 import { weaviateStore } from "@/memory";
 import { platformGenAIService } from "@/services/platform-genai.service";
-import { logger } from "@/lib/logger";
 import { getAnalyticsHealth } from "@/utils/connectivity-telemetry";
 
-import type { HealthCheck, HealthStatus, ReadinessStatus, DetailedHealthStatus } from "./health-checks.helpers.js";
 import {
   checkDatabase,
   checkRedis,
@@ -13,9 +12,11 @@ import {
   checkEnvironment,
 } from "./health-checks.helpers.js";
 
+import type { HealthCheck, HealthStatus, ReadinessStatus, DetailedHealthStatus } from "./health-checks.helpers.js";
+
 export async function checkExternalServices(): Promise<HealthCheck> {
   try {
-    const sentryConfigured = Boolean(process.env['SENTRY_DSN']?.trim());
+    const sentryConfigured = Boolean(process.env.SENTRY_DSN?.trim());
     const aiProviderHealth = await platformGenAIService.probeHealth();
 
     if (aiProviderHealth.status !== "healthy") {
@@ -178,7 +179,7 @@ export async function performHealthChecks(startTime: number): Promise<HealthStat
   return {
     status: aggregateHealthStatus(checks),
     timestamp: new Date().toISOString(),
-    version: process.env['npm_package_version'] || "1.0.0",
+    version: process.env.npm_package_version || "1.0.0",
     uptime: Date.now() - startTime,
     checks,
   };
@@ -219,9 +220,9 @@ export async function performDetailedHealthChecks(
   return {
     status: aggregateHealthStatus(checks),
     timestamp: new Date().toISOString(),
-    version: process.env['npm_package_version'] || "1.0.0",
+    version: process.env.npm_package_version || "1.0.0",
     uptime: Date.now() - startTime,
-    environment: process.env['NODE_ENV'] || "development",
+    environment: process.env.NODE_ENV || "development",
     checks,
   };
 }

@@ -81,11 +81,13 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-import { GeminiService } from './gemini.service';
+import { trackGeminiCache, trackGeminiRequest } from '@/middleware/metrics.middleware';
+
 import { cachedGeminiCall } from './gemini-cache.strategy';
 import { geminiCostTracker } from './gemini-cost-tracker.service';
+import { GeminiService } from './gemini.service';
 import { llmGuardrails } from './llm-guardrails.service';
-import { trackGeminiCache, trackGeminiRequest } from '@/middleware/metrics.middleware';
+
 
 const allowedGuardrailResult = {
   isAllowed: true,

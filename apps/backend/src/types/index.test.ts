@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
+
 import {
   PipelineInputSchema,
   type PipelineInput,
@@ -68,7 +69,7 @@ describe('Type Definitions', () => {
 
         if (result.success) {
           expect(result.data.language).toBe('ar');
-          expect(result.data["context"]).toEqual({});
+          expect(result.data.context).toEqual({});
           expect(result.data.flags).toEqual({
             runStations: true,
             fastMode: false,
@@ -195,8 +196,8 @@ describe('Type Definitions', () => {
         expect(result.success).toBe(true);
 
         if (result.success) {
-          expect(result.data["context"]["title"]).toBe('Drama Title');
-          expect(result.data["context"].sceneHints).toHaveLength(2);
+          expect(result.data.context.title).toBe('Drama Title');
+          expect(result.data.context.sceneHints).toHaveLength(2);
         }
       });
 
@@ -318,7 +319,7 @@ describe('Type Definitions', () => {
         };
 
         expect(output.stationId).toBe(1);
-        expect(output["status"]).toBe('completed');
+        expect(output.status).toBe('completed');
       });
 
       it('should accept failed status', () => {
@@ -330,7 +331,7 @@ describe('Type Definitions', () => {
           timestamp: new Date().toISOString(),
         };
 
-        expect(output["status"]).toBe('failed');
+        expect(output.status).toBe('failed');
       });
     });
 
@@ -398,7 +399,7 @@ describe('Type Definitions', () => {
         };
 
         expect(result.pipelineMetadata.stationsCompleted).toBe(7);
-        expect(result.stationOutputs.station1["status"]).toBe('completed');
+        expect(result.stationOutputs.station1.status).toBe('completed');
       });
     });
 

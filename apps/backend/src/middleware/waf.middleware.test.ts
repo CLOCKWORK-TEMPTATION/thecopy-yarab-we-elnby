@@ -4,8 +4,9 @@
  * Comprehensive test suite for Web Application Firewall functionality
  */
 
+import { Request, Response } from "express";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { Request, Response, NextFunction } from "express";
+
 import {
   wafMiddleware,
   updateWAFConfig,
@@ -94,7 +95,7 @@ describe("WAF Middleware", () => {
       wafMiddleware(req, res, next);
 
       expect(next).toHaveBeenCalled();
-      expect(res["status"]).not.toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
     });
 
     it("should skip WAF when disabled", () => {
@@ -170,7 +171,7 @@ describe("WAF Middleware", () => {
 
         wafMiddleware(req, res, next);
 
-        expect(res["status"]).toHaveBeenCalledWith(403);
+        expect(res.status).toHaveBeenCalledWith(403);
         expect(next).not.toHaveBeenCalled();
       }
     );
@@ -186,7 +187,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
     });
   });
 
@@ -214,7 +215,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
       expect(next).not.toHaveBeenCalled();
     });
   });
@@ -244,7 +245,7 @@ describe("WAF Middleware", () => {
 
         wafMiddleware(req, res, next);
 
-        expect(res["status"]).toHaveBeenCalledWith(403);
+        expect(res.status).toHaveBeenCalledWith(403);
       }
     );
   });
@@ -274,7 +275,7 @@ describe("WAF Middleware", () => {
 
         wafMiddleware(req, res, next);
 
-        expect(res["status"]).toHaveBeenCalledWith(403);
+        expect(res.status).toHaveBeenCalledWith(403);
       }
     );
   });
@@ -300,7 +301,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
     });
   });
 
@@ -318,7 +319,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -376,7 +377,7 @@ describe("WAF Middleware", () => {
       const req = createMockRequest({ ip: "192.168.1.50" });
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(429);
+      expect(res.status).toHaveBeenCalledWith(429);
     });
 
     it("should clear rate limit for specific IP", () => {
@@ -435,7 +436,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
     });
 
     it("should remove custom rules", () => {
@@ -480,7 +481,7 @@ describe("WAF Middleware", () => {
       wafMiddleware(req, res, next);
 
       expect(next).toHaveBeenCalled();
-      expect(res["status"]).not.toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 
@@ -618,7 +619,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
     });
 
     it("should handle X-Forwarded-For header for IP detection", () => {
@@ -636,7 +637,7 @@ describe("WAF Middleware", () => {
 
       wafMiddleware(req, res, next);
 
-      expect(res["status"]).toHaveBeenCalledWith(403);
+      expect(res.status).toHaveBeenCalledWith(403);
     });
   });
 

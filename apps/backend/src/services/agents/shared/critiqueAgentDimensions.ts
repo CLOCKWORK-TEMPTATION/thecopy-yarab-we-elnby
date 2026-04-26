@@ -3,8 +3,9 @@
  * أبعاد النقد المتخصصة للشخصيات والحوار والحبكة
  */
 
-import type { CritiqueDimension } from "./critiqueTypes";
 import { COMMON_DIMENSIONS } from "./critiqueCommonDimensions";
+
+import type { CritiqueDimension } from "./critiqueTypes";
 
 /** معايير خاصة بتحليل الشخصية */
 export const CHARACTER_ANALYSIS_DIMENSIONS: CritiqueDimension[] = [

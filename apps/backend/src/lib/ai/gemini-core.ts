@@ -16,6 +16,6 @@ export function toText(value: unknown): string {
   return String(value);
 }
 
-export function safeSub(text: string, start: number = 0, end?: number): string {
+export function safeSub(text: string, start = 0, end?: number): string {
   return text.slice(start, end);
 }

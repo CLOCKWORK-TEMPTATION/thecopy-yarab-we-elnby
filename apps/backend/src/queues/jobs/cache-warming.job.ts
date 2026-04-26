@@ -6,17 +6,18 @@
  */
 
 import { Job } from 'bullmq';
+
+import { logger } from '@/lib/logger';
 import { queueManager, QueueName } from '@/queues/queue.config';
 import { warmGeminiCache } from '@/services/gemini-cache.strategy';
-import { logger } from '@/lib/logger';
 
 // Job data types
 export interface CacheWarmingJobData {
-  entities: Array<{
+  entities: {
     type: 'scene' | 'character' | 'shot' | 'project';
     id: string;
     analysisType: string;
-  }>;
+  }[];
   priority?: number;
 }
 

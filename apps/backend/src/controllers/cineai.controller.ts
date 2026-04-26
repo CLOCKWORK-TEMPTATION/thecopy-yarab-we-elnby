@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+
+import { logger } from '@/lib/logger';
 import { cineAIService } from '@/services/cineai.service';
 import { definedProps } from '@/utils/defined-props';
-import { logger } from '@/lib/logger';
 
 const validateShotSchema = z.object({
   imageBase64: z.string().optional(),
@@ -49,7 +50,7 @@ export class CineAIController {
 
       const validation = validateShotSchema.safeParse(payload);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid request payload',
           details: validation.error.flatten(),
@@ -65,7 +66,7 @@ export class CineAIController {
           mood: validation.data.mood,
         })
       );
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         validation: result,
         analyzedAt: new Date().toISOString(),
@@ -74,7 +75,7 @@ export class CineAIController {
     } catch (error) {
       logger.error('Failed to validate shot:', error);
       const message = error instanceof Error ? error.message : 'Failed to validate shot';
-      res["status"](message.includes('not configured') ? 503 : 502).json({
+      res.status(message.includes('not configured') ? 503 : 502).json({
         success: false,
         error: message,
       });
@@ -85,7 +86,7 @@ export class CineAIController {
     try {
       const validation = colorGradingSchema.safeParse(req.body);
       if (!validation.success) {
-        res["status"](400).json({
+        res.status(400).json({
           success: false,
           error: 'Invalid request payload',
           details: validation.error.flatten(),
@@ -100,7 +101,7 @@ export class CineAIController {
           mood: validation.data.mood,
         })
       );
-      res["status"](200).json({
+      res.status(200).json({
         success: true,
         ...result,
         sceneType: validation.data.sceneType,
@@ -113,7 +114,7 @@ export class CineAIController {
       logger.error('Failed to generate color grading palette:', error);
       const message =
         error instanceof Error ? error.message : 'Failed to generate color palette';
-      res["status"](message.includes('required') ? 400 : message.includes('not configured') ? 503 : 502).json({
+      res.status(message.includes('required') ? 400 : message.includes('not configured') ? 503 : 502).json({
         success: false,
         error: message,
       });

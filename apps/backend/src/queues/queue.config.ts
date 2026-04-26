@@ -5,6 +5,7 @@
  */
 
 import { Queue, Worker, QueueOptions, WorkerOptions, ConnectionOptions, Job } from 'bullmq';
+
 import { logger } from '@/lib/logger';
 
 const isProduction = process.env['NODE_ENV'] === 'production';
@@ -88,8 +89,8 @@ const defaultWorkerOptions: Omit<WorkerOptions, 'connection'> = {
  * Queue manager singleton
  */
 class QueueManager {
-  public queues: Map<QueueName, Queue> = new Map();
-  public workers: Map<QueueName, Worker> = new Map();
+  public queues = new Map<QueueName, Queue>();
+  public workers = new Map<QueueName, Worker>();
 
   /**
    * Get or create a queue

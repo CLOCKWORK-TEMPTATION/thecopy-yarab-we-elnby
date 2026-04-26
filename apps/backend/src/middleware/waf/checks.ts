@@ -6,8 +6,9 @@
  */
 
 import { Request, Response } from "express";
+
 import { logger } from "@/lib/logger";
-import type { WAFRule, WAFEvent } from "./config";
+
 import {
   getWafConfig,
   rateLimitStore,
@@ -15,6 +16,8 @@ import {
   wafEvents,
   MAX_WAF_EVENTS,
 } from "./state";
+
+import type { WAFRule, WAFEvent } from "./config";
 
 // ============================================================================
 // IP / Path / User-Agent Helpers
@@ -280,10 +283,10 @@ export function checkRateLimit(
  */
 export function sendBlockResponse(
   res: Response,
-  statusCode: number = 403,
-  message: string = "طلب محظور بواسطة جدار الحماية"
+  statusCode = 403,
+  message = "طلب محظور بواسطة جدار الحماية"
 ): void {
-  res["status"](statusCode).json({
+  res.status(statusCode).json({
     success: false,
     error: message,
     code: "WAF_BLOCKED",

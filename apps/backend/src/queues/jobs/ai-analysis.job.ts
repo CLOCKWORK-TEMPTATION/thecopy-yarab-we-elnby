@@ -9,8 +9,9 @@
  */
 
 import { Job } from 'bullmq';
-import { queueManager, QueueName } from '@/queues/queue.config';
+
 import { logger } from '@/lib/logger';
+import { queueManager, QueueName } from '@/queues/queue.config';
 
 /**
  * واجهة بيانات مهمة تحليل الذكاء الاصطناعي

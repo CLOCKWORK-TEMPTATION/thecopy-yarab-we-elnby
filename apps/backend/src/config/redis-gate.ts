@@ -7,7 +7,7 @@ export function isRedisEnabled(): boolean {
   // Explicit false disables Redis entirely
   if (flag === 'false') return false;
   // Must have connection info
-  return Boolean(process.env['REDIS_URL']?.trim()) || Boolean(process.env['REDIS_HOST']?.trim());
+  return Boolean(process.env.REDIS_URL?.trim()) || Boolean(process.env.REDIS_HOST?.trim());
 }
 
 export function getRedisRequirementReason(): string {

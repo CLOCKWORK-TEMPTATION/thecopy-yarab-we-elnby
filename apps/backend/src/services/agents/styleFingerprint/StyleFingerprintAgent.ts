@@ -1,9 +1,11 @@
 import { TaskType } from "@core/types";
+
 import { BaseAgent } from "../shared/BaseAgent";
 import {
   StandardAgentInput,
   StandardAgentOutput,
 } from "../shared/standardAgentPattern";
+
 import { STYLE_FINGERPRINT_AGENT_CONFIG } from "./agent";
 
 interface StyleFingerprintContext {
@@ -153,7 +155,7 @@ export class StyleFingerprintAgent extends BaseAgent {
         },
         dimensionsAnalyzed: this.countDimensions(processedText),
         examplesProvided: this.countExamples(processedText),
-      } as Record<string, unknown>,
+      },
     };
   }
 

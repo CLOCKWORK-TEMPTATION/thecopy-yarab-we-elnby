@@ -13,8 +13,9 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@/lib/logger';
+
 import { captureMessage } from '@/config/sentry';
+import { logger } from '@/lib/logger';
 import { cacheService } from '@/services/cache.service';
 
 // Security event types
@@ -279,20 +280,20 @@ export function logRateLimitViolations(req: Request, res: Response, next: NextFu
 /**
  * Get suspicious IPs report (from fallback - Redis data is distributed)
  */
-export function getSuspiciousIPsReport(): Array<{
+export function getSuspiciousIPsReport(): {
   ip: string;
   totalViolations: number;
   firstSeen: string;
   lastSeen: string;
   recentEvents: SecurityEventType[];
-}> {
-  const report: Array<{
+}[] {
+  const report: {
     ip: string;
     totalViolations: number;
     firstSeen: string;
     lastSeen: string;
     recentEvents: SecurityEventType[];
-  }> = [];
+  }[] = [];
 
   for (const [ip, data] of suspiciousIPsFallback.entries()) {
     report.push({

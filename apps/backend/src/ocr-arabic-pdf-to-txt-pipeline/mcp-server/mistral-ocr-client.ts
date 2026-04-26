@@ -6,7 +6,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
-import type { JsonRecord, MistralOCRConfig } from "./types.js";
+
 import { log, APP_NAME } from "./ocr-logger.js";
 import {
   createTimeoutState,
@@ -19,6 +19,8 @@ import {
   retryDelayMs,
   str,
 } from "./text-helpers.js";
+
+import type { JsonRecord, MistralOCRConfig } from "./types.js";
 
 const DEFAULT_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
 const MISTRAL_BASE_URL = "https://api.mistral.ai/v1";
@@ -290,13 +292,13 @@ export class MistralOCRService {
     if (responseObj && typeof responseObj === "object") {
       const body = field(responseObj, "body", null);
       if (body && typeof body === "object") {
-        return body as JsonRecord;
+        return body;
       }
     }
 
     const body = field(row, "body", null);
     if (body && typeof body === "object") {
-      return body as JsonRecord;
+      return body;
     }
 
     if (Array.isArray(field(row, "pages", null))) {
@@ -408,7 +410,7 @@ export class MistralOCRService {
     }
 
     if (typeof raw === "string") {
-      const stripped = (raw as string).trim();
+      const stripped = (raw).trim();
       if (!stripped) {
         return;
       }
@@ -424,11 +426,11 @@ export class MistralOCRService {
   }
 
   private async getSignedUrl(fileId: string): Promise<string> {
-    const attempts: Array<{
+    const attempts: {
       method: "GET" | "POST";
       endpoint: string;
       body?: unknown;
-    }> = [
+    }[] = [
       {
         method: "GET",
         endpoint: `/files/${encodeURIComponent(fileId)}/url?expiry=24`,
@@ -482,7 +484,7 @@ export class MistralOCRService {
     for (const endpoint of endpoints) {
       try {
         const response = await this.requestRaw("GET", endpoint);
-        if (!response["ok"]) {
+        if (!response.ok) {
           continue;
         }
         return await response.text();
@@ -516,7 +518,7 @@ export class MistralOCRService {
           }
         }
 
-        if (!response["ok"]) {
+        if (!response.ok) {
           const requestId =
             data && typeof data === "object"
               ? str(
@@ -525,7 +527,7 @@ export class MistralOCRService {
               : "";
 
           if (
-            isRetryableHttpStatus(response["status"]) &&
+            isRetryableHttpStatus(response.status) &&
             attempt < MISTRAL_HTTP_MAX_RETRIES
           ) {
             attempt += 1;
@@ -533,7 +535,7 @@ export class MistralOCRService {
             log(
               "WARN",
               "Mistral API returned %s for %s %s. retry=%s delayMs=%s",
-              response["status"],
+              response.status,
               method,
               endpoint,
               attempt,
@@ -545,7 +547,7 @@ export class MistralOCRService {
 
           const requestSuffix = requestId ? ` request_id=${requestId}` : "";
           throw new Error(
-            `Mistral API error ${response["status"]} ${response.statusText}${requestSuffix}: ${raw}`
+            `Mistral API error ${response.status} ${response.statusText}${requestSuffix}: ${raw}`
           );
         }
 
