@@ -90,8 +90,7 @@ export class StationsOrchestrator {
   private readonly enableDetailedLogging: boolean;
 
   private progressLog: StationProgress[] = [];
-  private errors: { station: number; error: string; timestamp: string }[] =
-    [];
+  private errors: { station: number; error: string; timestamp: string }[] = [];
 
   constructor(config: OrchestrationConfig) {
     this.geminiService = config.geminiService;
@@ -305,11 +304,26 @@ export class StationsOrchestrator {
             }
             const station6 = new Station6Diagnostics(this.geminiService);
             const result = await station6.execute(fullText, {
-              station1: stationOutputs.station1,
-              station2: stationOutputs.station2,
-              station3: stationOutputs.station3,
-              station4: stationOutputs.station4,
-              station5: stationOutputs.station5,
+              station1: stationOutputs.station1 as unknown as Record<
+                string,
+                unknown
+              >,
+              station2: stationOutputs.station2 as unknown as Record<
+                string,
+                unknown
+              >,
+              station3: stationOutputs.station3 as unknown as Record<
+                string,
+                unknown
+              >,
+              station4: stationOutputs.station4 as unknown as Record<
+                string,
+                unknown
+              >,
+              station5: stationOutputs.station5 as unknown as Record<
+                string,
+                unknown
+              >,
             });
             return result;
           }

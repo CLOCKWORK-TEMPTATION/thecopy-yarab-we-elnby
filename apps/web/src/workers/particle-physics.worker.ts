@@ -48,6 +48,12 @@ interface UpdateParticlesResult {
   error?: string;
 }
 
+interface UpdatedParticlesPayload {
+  positions: Float32Array;
+  velocities: Float32Array;
+  colors: Float32Array;
+}
+
 // ====== Physics Functions ======
 
 function applySparkEffect(
@@ -301,7 +307,9 @@ function calculateParticleColor(
 
 // ====== Main Update Function ======
 
-function updateParticles(message: UpdateParticlesMessage) {
+function updateParticles(
+  message: UpdateParticlesMessage
+): UpdatedParticlesPayload {
   const {
     positions,
     velocities,
@@ -416,25 +424,24 @@ self.addEventListener(
     if (type === "update") {
       try {
         const result = updateParticles(event.data);
+        const updatedMessage: UpdateParticlesResult = {
+          type: "updated",
+          ...result,
+        };
 
-        self.postMessage(
-          {
-            type: "updated",
-            ...result,
-          },
-          {
-            transfer: [
-              result.positions.buffer,
-              result.velocities.buffer,
-              result.colors.buffer,
-            ],
-          }
-        );
+        self.postMessage(updatedMessage, {
+          transfer: [
+            result.positions.buffer,
+            result.velocities.buffer,
+            result.colors.buffer,
+          ],
+        });
       } catch (error) {
-        self.postMessage({
+        const errorMessage: UpdateParticlesResult = {
           type: "error",
           error: error instanceof Error ? error.message : "Unknown error",
-        });
+        };
+        self.postMessage(errorMessage);
       }
     }
   }

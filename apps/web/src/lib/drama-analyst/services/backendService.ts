@@ -90,7 +90,9 @@ class BackendService {
         log.info("✅ Backend API call successful", null, "BackendService");
 
         // Sanitize response before returning
-        const sanitizedResponse = sanitization.aiResponse(response);
+        const sanitizedResponse = sanitization.aiResponse(
+          response
+        ) as AIResponse;
         return { ok: true, value: sanitizedResponse };
       } catch (error: any) {
         lastError = error;

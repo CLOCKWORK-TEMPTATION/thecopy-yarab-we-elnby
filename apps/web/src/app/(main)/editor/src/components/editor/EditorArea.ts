@@ -2,7 +2,6 @@ import { redo, undo } from "@tiptap/pm/history";
 
 import { definedProps } from "@/lib/defined-props";
 
-
 import { createScreenplayEditor, SCREENPLAY_ELEMENTS } from "../../editor";
 import {
   isElementType,
@@ -497,8 +496,10 @@ export class EditorArea implements EditorHandle {
     // - مش ملف doc/docx (اللي عنده بنية أصلاً)
     const skipUnstructured =
       context?.classificationProfile === "paste" ||
-      (context?.structuredHints && context.structuredHints.length > 0) ??
-      (context?.schemaElements && context.schemaElements.length > 0) ??
+      ((context?.structuredHints && context.structuredHints.length > 0) ??
+        false) ||
+      ((context?.schemaElements && context.schemaElements.length > 0) ??
+        false) ||
       context?.sourceFileType === "doc" ||
       context?.sourceFileType === "docx";
 
@@ -598,14 +599,14 @@ export class EditorArea implements EditorHandle {
 
   copySelectionToClipboard =
     async (): Promise<EditorClipboardOperationResult> => {
-    const selectionOnly = this.hasSelection();
-    return copyToClipboard(this.editor, selectionOnly);
-  };
+      const selectionOnly = this.hasSelection();
+      return copyToClipboard(this.editor, selectionOnly);
+    };
 
   cutSelectionToClipboard =
     async (): Promise<EditorClipboardOperationResult> => {
-    return cutToClipboard(this.editor);
-  };
+      return cutToClipboard(this.editor);
+    };
 
   pasteFromClipboard = async (
     origin: ClipboardOrigin
@@ -767,9 +768,13 @@ export class EditorArea implements EditorHandle {
     this.editor.off("update", this.handleEditorUpdate);
     this.editor.off("selectionUpdate", this.handleSelectionUpdate);
     this.editor.off("transaction", this.handleSelectionUpdate);
-    this.body.removeEventListener("keydown", this.handleEditorClipboardShortcut, {
-      capture: true,
-    });
+    this.body.removeEventListener(
+      "keydown",
+      this.handleEditorClipboardShortcut,
+      {
+        capture: true,
+      }
+    );
     if (typeof window !== "undefined") {
       window.removeEventListener(
         PASTE_CLASSIFIER_ERROR_EVENT,
@@ -951,7 +956,7 @@ export class EditorArea implements EditorHandle {
         if (!activeRun) return;
 
         const nextState: ProgressiveSurfaceState = {
-          ...(this.progressiveSurfaceState!),
+          ...this.progressiveSurfaceState!,
           activeRun: {
             ...activeRun,
             status: "failed-after-visible",
@@ -976,7 +981,9 @@ export class EditorArea implements EditorHandle {
         const activeRun = this.progressiveSurfaceState?.activeRun;
         const visibleVersion = this.progressiveSurfaceState?.visibleVersion;
         if (!activeRun || !visibleVersion) {
-          if (shouldClearProgressiveStateOnRunEnd(this.progressiveSurfaceState)) {
+          if (
+            shouldClearProgressiveStateOnRunEnd(this.progressiveSurfaceState)
+          ) {
             this.progressiveSurfaceState = null;
             this.applySurfaceLock(false);
             this.emitProgressiveState();
@@ -989,7 +996,7 @@ export class EditorArea implements EditorHandle {
             this.progressiveSurfaceState
           );
           this.progressiveSurfaceState = {
-            ...(this.progressiveSurfaceState!),
+            ...this.progressiveSurfaceState!,
             activeRun: {
               ...activeRun,
               surfaceLocked: !keepEditable,
@@ -1015,7 +1022,7 @@ export class EditorArea implements EditorHandle {
               };
 
         this.progressiveSurfaceState = {
-          ...(this.progressiveSurfaceState!),
+          ...this.progressiveSurfaceState!,
           activeRun: {
             ...activeRun,
             status: "settled",
@@ -1208,7 +1215,7 @@ export class EditorArea implements EditorHandle {
     metadata?: Record<string, unknown>
   ): string | null {
     return typeof metadata?.["approvalToken"] === "string"
-      ? (metadata["approvalToken"])
+      ? metadata["approvalToken"]
       : null;
   }
 

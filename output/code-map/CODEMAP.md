@@ -22,16 +22,20 @@ packages/*
 ```text
 pnpm dev
 pnpm start
-pnpm doctor
+pnpm run doctor
 pnpm verify:runtime
 pnpm agent:bootstrap
 pnpm agent:verify
+pnpm agent:guard:start
+pnpm agent:guard:step
+pnpm agent:guard:verify
 pnpm agent:refresh-maps
 pnpm agent:start
 pnpm agent:memory:index
 pnpm agent:memory:search
 pnpm agent:memory:status
 pnpm agent:memory:verify
+pnpm agent:memory:watch
 pnpm workspace:embed
 ```
 
@@ -52,6 +56,7 @@ pnpm workspace:embed
 - `.repo-agent/HANDOFF-PROTOCOL.md`
 - `.repo-agent/RAG-OPERATING-CONTRACT.md`
 - `.repo-agent/STARTUP-PROTOCOL.md`
+- `.repo-agent/TOOL-GUARD-CONTRACT.json`
 - `AGENTS.md`
 - `apps/backend/package.json`
 - `apps/backend/src/memory/api/routes.ts`
@@ -69,6 +74,8 @@ pnpm workspace:embed
 - `scripts/agent/code-memory-search.ts`
 - `scripts/agent/code-memory-status.ts`
 - `scripts/agent/code-memory-verify.ts`
+- `scripts/agent/code-memory-watch.ts`
+- `scripts/agent/guard.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -121,6 +128,6 @@ output/session-state.md
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `1971`
-- القطع: `5188`
+- الملفات: `1975`
+- القطع: `5196`
 - التغطية: `100.0%`

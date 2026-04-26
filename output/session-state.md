@@ -8,10 +8,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-26T00:28:44.582Z |
+| آخر مزامنة مرجعية | 2026-04-26T01:23:02.794Z |
 | الفرع الحالي | `main` |
-| آخر commit | `66c9d018e793d271b392d2291facc0bd94a7b2cf` |
-| حالة working tree | غير نظيفة — 26 ملف متغير |
+| آخر commit | `694d2a2ece5f59a990010e84a4bba30fd17e8680` |
+| حالة working tree | غير نظيفة — 45 ملف متغير |
 | مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
@@ -34,16 +34,20 @@ packages/*
 ```text
 pnpm dev
 pnpm start
-pnpm doctor
+pnpm run doctor
 pnpm verify:runtime
 pnpm agent:bootstrap
 pnpm agent:verify
+pnpm agent:guard:start
+pnpm agent:guard:step
+pnpm agent:guard:verify
 pnpm agent:refresh-maps
 pnpm agent:start
 pnpm agent:memory:index
 pnpm agent:memory:search
 pnpm agent:memory:status
 pnpm agent:memory:verify
+pnpm agent:memory:watch
 pnpm workspace:embed
 ```
 
@@ -231,15 +235,15 @@ AGENTS.md
 
 - الملفات:
 
-`1971`
+`1975`
 
 - القطع:
 
-`5188`
+`5196`
 
 - القطع ذات التضمين:
 
-`5188`
+`5196`
 
 - التغطية:
 

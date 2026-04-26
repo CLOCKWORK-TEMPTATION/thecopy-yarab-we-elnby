@@ -20,7 +20,6 @@
 
 import assert from "node:assert/strict";
 
-// @ts-expect-error — jsdom يُحمَّل بنفس الأسلوب المتبع في باقي السويتات
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import * as React from "react";
@@ -77,9 +76,8 @@ function installDomForSliders(): () => void {
   const previousWindow = (globalThis as { window?: Window }).window;
   const previousDocument = (globalThis as { document?: Document }).document;
   const previousNavigator = (globalThis as { navigator?: Navigator }).navigator;
-  const previousResizeObserver = (
-    globalThis as { ResizeObserver?: unknown }
-  ).ResizeObserver;
+  const previousResizeObserver = (globalThis as { ResizeObserver?: unknown })
+    .ResizeObserver;
 
   Object.defineProperty(globalThis, "window", {
     configurable: true,
@@ -259,11 +257,9 @@ let SliderNumberInput: React.ComponentType<{
  * يستورد المكوّن بعد تثبيت DOM فقط (لأنه يعتمد على بيئة المتصفح).
  */
 async function loadSliderModule(): Promise<void> {
-  const moduleRef = await import(
-    "../../../src/app/(main)/cinematography-studio/components/controls/SliderNumberInput"
-  );
-  SliderNumberInput =
-    moduleRef.SliderNumberInput;
+  const moduleRef =
+    await import("../../../src/app/(main)/cinematography-studio/components/controls/SliderNumberInput");
+  SliderNumberInput = moduleRef.SliderNumberInput;
 }
 
 /**
@@ -305,10 +301,9 @@ async function exerciseSlider(config: SliderConfig): Promise<void> {
   const utils = render(React.createElement(harness.Harness));
 
   try {
-    const slider = utils.container.querySelector(
-      '[role="slider"]'
-    );
-    const numberInput = utils.container.querySelector(
+    const slider =
+      utils.container.querySelector<HTMLElement>('[role="slider"]');
+    const numberInput = utils.container.querySelector<HTMLInputElement>(
       'input[type="number"]'
     );
 

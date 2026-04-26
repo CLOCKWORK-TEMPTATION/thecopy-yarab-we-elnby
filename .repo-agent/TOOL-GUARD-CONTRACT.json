@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "requiredPackageManager": "pnpm",
+  "autoIndexCodeMemory": true,
+  "autoIndexArgs": ["--from-legacy"],
+  "optionalQdrantSync": true,
+  "requiredLifecycleHooks": {
+    "predev": "pnpm agent:guard:step",
+    "predev:all": "pnpm agent:guard:step",
+    "predev:web": "pnpm agent:guard:step",
+    "predev:backend": "pnpm agent:guard:step",
+    "prestart": "pnpm agent:guard:step",
+    "prestart:fresh": "pnpm agent:guard:step",
+    "predoctor": "pnpm agent:guard:step",
+    "preverify:runtime": "pnpm agent:guard:step",
+    "prebuild": "pnpm agent:guard:step",
+    "pretest": "pnpm agent:guard:step",
+    "prelint": "pnpm agent:guard:step",
+    "pretype-check": "pnpm agent:guard:step",
+    "preprepush:verify": "pnpm agent:guard:step",
+    "prevalidate": "pnpm agent:guard:verify",
+    "prevalidate:strict": "pnpm agent:guard:verify",
+    "preci": "pnpm agent:guard:verify",
+    "preagent:start": "pnpm agent:guard:start",
+    "preagent:verify": "pnpm agent:guard:verify",
+    "preagent:refresh-maps": "pnpm agent:guard:step",
+    "preagent:memory:search": "pnpm agent:guard:step",
+    "preagent:memory:status": "pnpm agent:guard:step",
+    "preagent:memory:verify": "pnpm agent:guard:step",
+    "preworkspace:embed": "pnpm agent:guard:step"
+  },
+  "requiredGuardEntrypoints": [
+    "scripts/agent/guard.ts",
+    "scripts/agent/code-memory-watch.ts",
+    "scripts/agent/start-agent.ps1",
+    "scripts/agent/lib/agent-guard.ts"
+  ],
+  "requiredGuardCommands": [
+    "pnpm agent:guard:start",
+    "pnpm agent:guard:step",
+    "pnpm agent:guard:verify",
+    "pnpm agent:memory:watch"
+  ]
+}

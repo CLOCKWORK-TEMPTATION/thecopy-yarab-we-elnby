@@ -311,7 +311,7 @@ export default function BudgetPage() {
       }
 
       const nextTitle =
-        title.trim() || payload.data.budget.metadata?.title ?? title;
+        title.trim() || (payload.data.budget.metadata?.title ?? title);
 
       setBudget(payload.data.budget);
       setAnalysis(payload.data.analysis);

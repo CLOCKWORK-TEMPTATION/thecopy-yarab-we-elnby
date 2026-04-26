@@ -207,7 +207,8 @@ function getStationFullText(id: number, data: unknown): string {
 const StationCard = memo(
   ({ station, status, results, isActive }: StationCardProps) => {
     const { id, name, description, Icon } = station;
-    const hasResults = status === "completed" && results[id];
+    const result = results[id];
+    const hasResults = status === "completed" && result != null;
     const [showModal, setShowModal] = useState(false);
 
     // Memoize status icons to prevent recreation on every render
@@ -223,11 +224,11 @@ const StationCard = memo(
 
     // Memoize export handler
     const handleExport = useCallback(() => {
-      const data = results[id];
+      const data = result;
       if (!data) return;
       const fullText = getStationFullText(id, data);
       exportStationToFile(id, fullText, name);
-    }, [results, id, name]);
+    }, [result, id, name]);
 
     // Memoize view handler
     const handleView = useCallback(() => {
@@ -236,10 +237,10 @@ const StationCard = memo(
 
     // Memoize full text calculation
     const fullText = useMemo(() => {
-      const data = results[id];
+      const data = result;
       if (!data) return "";
       return getStationFullText(id, data);
-    }, [results, id]);
+    }, [result, id]);
 
     const renderSummary = useCallback(() => {
       if (!hasResults) return null;

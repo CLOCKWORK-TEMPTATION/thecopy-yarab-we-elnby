@@ -385,9 +385,7 @@ export class NetworkDiagnostics {
   private getCharacterConflicts(characterId: string): Conflict[] {
     return this.getConflictEntries()
       .map(([, conflict]) => conflict)
-      .filter((conflict) =>
-        conflict.involvedCharacters?.includes(characterId)
-    );
+      .filter((conflict) => conflict.involvedCharacters?.includes(characterId));
   }
 
   private findConnectedComponents(): string[][] {
@@ -511,6 +509,10 @@ export class NetworkDiagnostics {
       for (let j = i + 1; j < allRelationships.length; j++) {
         const rel1 = allRelationships[i];
         const rel2 = allRelationships[j];
+
+        if (!rel1 || !rel2) {
+          continue;
+        }
 
         if (this.areRelationshipsSimilar(rel1, rel2)) {
           duplicates.push([

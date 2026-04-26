@@ -40,22 +40,28 @@ export interface ThreeDMapResult {
   };
 }
 
-export type GenreMatrixResult = Record<string, {
+export type GenreMatrixResult = Record<
+  string,
+  {
     conflictContribution: string;
     pacingContribution: string;
     visualCompositionContribution: string;
     soundMusicContribution: string;
     charactersContribution: string;
     weight: number;
-  }>;
+  }
+>;
 
-export type DynamicToneResult = Record<string, {
+export type DynamicToneResult = Record<
+  string,
+  {
     visualAtmosphereDescribed: string;
     writtenPacing: string;
     dialogueStructure: string;
     soundIndicationsDescribed: string;
     emotionalIntensity: number;
-  }>;
+  }
+>;
 
 export interface ArtisticReferencesResult {
   visualReferences: {
@@ -110,9 +116,7 @@ function asString(value: unknown, fallback = ""): string {
 }
 
 function asNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : fallback;
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function asStringArray(value: unknown): string[] {
@@ -406,10 +410,10 @@ ${JSON.stringify(
       temporalDevelopmentAxis: {
         pastInfluence: asString(temporalDevelopmentAxis.pastInfluence),
         presentChoices: asString(temporalDevelopmentAxis.presentChoices),
-        futureExpectations:
-          asString(temporalDevelopmentAxis.futureExpectations),
-        heroArcConnection:
-          asString(temporalDevelopmentAxis.heroArcConnection),
+        futureExpectations: asString(
+          temporalDevelopmentAxis.futureExpectations
+        ),
+        heroArcConnection: asString(temporalDevelopmentAxis.heroArcConnection),
         causality: asString(temporalDevelopmentAxis.causality),
       },
     };
@@ -554,9 +558,7 @@ ${JSON.stringify(
   private validateGenreMatrix(parsed: unknown): GenreMatrixResult {
     const result: GenreMatrixResult = {};
 
-    for (const [genre, contributions] of Object.entries(
-      asJsonRecord(parsed)
-    )) {
+    for (const [genre, contributions] of Object.entries(asJsonRecord(parsed))) {
       if (isJsonRecord(contributions)) {
         result[genre] = {
           conflictContribution: asString(contributions.conflictContribution),
@@ -567,7 +569,9 @@ ${JSON.stringify(
           soundMusicContribution: asString(
             contributions.soundMusicContribution
           ),
-          charactersContribution: asString(contributions.charactersContribution),
+          charactersContribution: asString(
+            contributions.charactersContribution
+          ),
           weight: asNumber(contributions.weight, 0.5),
         };
       }
@@ -643,8 +647,9 @@ JSON صارم بدون أي نص إضافي:
           ),
           writtenPacing: asString(stageData.writtenPacing),
           dialogueStructure: asString(stageData.dialogueStructure),
-          soundIndicationsDescribed:
-            asString(stageData.soundIndicationsDescribed),
+          soundIndicationsDescribed: asString(
+            stageData.soundIndicationsDescribed
+          ),
           emotionalIntensity: asNumber(stageData.emotionalIntensity, 5),
         };
       }
@@ -724,37 +729,48 @@ JSON صارم:
     }
   }
 
-  private validateArtisticReferences(parsed: unknown): ArtisticReferencesResult {
+  private validateArtisticReferences(
+    parsed: unknown
+  ): ArtisticReferencesResult {
     const data = asJsonRecord(parsed);
 
     return {
       visualReferences: asJsonRecordArray(data.visualReferences).map(
-        (reference) => ({
-          work: asString(reference.work),
-          artist:
-            typeof reference.artist === "string" ? reference.artist : undefined,
-          reason: asString(reference.reason),
-          sceneApplication: asString(reference.sceneApplication),
-        })
+        (reference) => {
+          const artist =
+            typeof reference.artist === "string" ? reference.artist : undefined;
+          return {
+            work: asString(reference.work),
+            ...(artist !== undefined ? { artist } : {}),
+            reason: asString(reference.reason),
+            sceneApplication: asString(reference.sceneApplication),
+          };
+        }
       ),
       musicalMood: asString(data.musicalMood),
       cinematicInfluences: asJsonRecordArray(data.cinematicInfluences).map(
-        (influence) => ({
-          film: asString(influence.film),
-          director:
+        (influence) => {
+          const director =
             typeof influence.director === "string"
               ? influence.director
-              : undefined,
-          aspect: asString(influence.aspect),
-        })
+              : undefined;
+          return {
+            film: asString(influence.film),
+            ...(director !== undefined ? { director } : {}),
+            aspect: asString(influence.aspect),
+          };
+        }
       ),
       literaryParallels: asJsonRecordArray(data.literaryParallels).map(
-        (parallel) => ({
-          work: asString(parallel.work),
-          author:
-            typeof parallel.author === "string" ? parallel.author : undefined,
-          connection: asString(parallel.connection),
-        })
+        (parallel) => {
+          const author =
+            typeof parallel.author === "string" ? parallel.author : undefined;
+          return {
+            work: asString(parallel.work),
+            ...(author !== undefined ? { author } : {}),
+            connection: asString(parallel.connection),
+          };
+        }
       ),
     };
   }
@@ -884,7 +900,9 @@ JSON صارم:
     });
 
     try {
-      const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
+      const parsed = asJsonRecord(
+        JSON.parse(toText(result.content)) as unknown
+      );
       return {
         primaryAudience: asString(parsed.primaryAudience, "جمهور عام"),
         demographics: asStringArray(parsed.demographics),
@@ -946,7 +964,9 @@ JSON صارم:
     });
 
     try {
-      const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
+      const parsed = asJsonRecord(
+        JSON.parse(toText(result.content)) as unknown
+      );
       return {
         producibility: asNumber(parsed.producibility, 5),
         commercialPotential: asNumber(parsed.commercialPotential, 5),

@@ -1,9 +1,10 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "9294e35e03fba2a97d40f8e3157d190484ba4c17642536ac7791957e426265b5",
+    ".agent-code-memory/manifest.json": "46ab02a73f85a4b639da696045a239300e63513f77ba8ebb236dcd6460f40c61",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
+    ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "bf518b7be135a0d61922c9fd269fc24537e413f75b9391d5392d7b45e71ab64f",
     "apps/backend/src/memory/api/routes.ts": "ef4b1ea5329c77c6062ea3786234a3a3c8f6c0c1d311cd0bbcff41ad6ceba6b7",
     "apps/backend/src/memory/context/context-assembly.service.ts": "fec5d48a65b0e5ee7a6b6422b2e86bcc6e5c6d4593b888837f171ad25ff87324",
@@ -20,7 +21,7 @@
     "apps/backend/src/memory/vector-store/schema.ts": "b836d6b674af6f4505f87124742129cb1a379542753b2c8912e070b84a8d83a9",
     "apps/backend/src/services/rag/embeddings.service.ts": "fc2ad50359af491fc37bc716c79623e8567d0d71d48f7b41bab247707f01a6ee",
     "apps/backend/src/services/rag/enhancedRAG.service.ts": "f9a5c4861ad996b97b7666825cb030515d13e2999cfb409afeb4470e5e215719",
-    "apps/web/package.json": "3cb76d77e7a44431162f9985d327ff96fae7f523251ca7a5022701d794ff0004",
+    "apps/web/package.json": "237c58693d5181c4090e77c33d6c608ec02660e3b4d2d7513eae9d45e55c9b4e",
     "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "43c52c94d4f0ed552aefa96777e0b0cc2fe9ead9184f046b17107307c00bdfea",
     "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "9791d83c52264f6d1e45b2797d129acca75dcacc4df3be9dfd2549a4cc1007c3",
     "apps/web/src/app/(main)/editor/scripts/rag-smoke-test.ts": "bb7a24699e1cad182fee8ada729d225c48095555ab1025e06216ca6b52413f0d",
@@ -39,7 +40,7 @@
     "apps/web/src/lib/ai/stations/gemini-service.ts": "1329e1e29c63ceef1c66601a137158c86534bd0e224514c5604fb5e51b012ac6",
     "apps/web/src/lib/ai/text-chunking.ts": "a7329180c17aaaf876f39e5341e71bf73f88e0b3c07f8898007a2894bcb71278",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "eaf0c0c0e3b3af1ec2c2ad1ee89ebc344dd87a145e602799273cda97ddaa0f01",
-    "package.json": "1a805a752e95b13f6e4e55fa8ad8a044588431937463ea610ed8f77939b30670",
+    "package.json": "c0509ff8a2bf74abaea0ab5f158a88eceec649c23e016c8e1839b2f9c127e624",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
@@ -51,6 +52,9 @@
     "scripts/agent/code-memory-search.ts": "26ea0e285eb70d7004be197df10588b87ee782e54719af6ae411495866ed1e14",
     "scripts/agent/code-memory-status.ts": "7a9f629db598e1f3f684f55eef16267964f8b7a511192b01e593d161e8863a45",
     "scripts/agent/code-memory-verify.ts": "aa0d867259330f8ab85754291548bd3ea77a2f9aad305715c003deae98fadd27",
+    "scripts/agent/code-memory-watch.ts": "abe1c2c3e91bfd308ff86b288507126041aad2944f39e2b71f31d911c6e93e08",
+    "scripts/agent/guard.ts": "407f837f357ef919e73314436ebd7c8ad373d5ac9ec60c354ba74d648431094f",
+    "scripts/agent/lib/agent-guard.ts": "d42346836d91a7b91d638b58172a1708a1e9d1cd638f0cfc71480921d6b594b6",
     "scripts/agent/lib/code-memory/commands.ts": "2e0397ec6c5a42350426533cf0e5975fdcc19050a815d3985e712589ad7b4146",
     "scripts/agent/lib/code-memory/config.ts": "1b96038e1472ca6a1100cf8651cccd6295498100c516487da07bd035ce9f98ee",
     "scripts/agent/lib/code-memory/discovery.ts": "51daf331ee76e5df24b2365954638793fabab8f2c0885935b9683caa0eb83033",
@@ -58,7 +62,7 @@
     "scripts/agent/lib/code-memory/qdrant.ts": "8bb98db886fb0f4ef6f4520b93ff256e42a074e73b882b8235b728204457c0a1",
     "scripts/agent/lib/code-memory/status.ts": "9f3e5bacd86d5c106980bed15c6513add03db18b09cd87043a7326842a14e1aa",
     "scripts/agent/lib/code-memory/store.ts": "4fe1963e66b2a3a9a3cd107589a1f792a01fbcba9bf0bfceca672b863b5c72cf",
-    "scripts/doctor.ps1": "2aed0e66ac184b07f431bd8cfe9833225413627862e77551ae175c04da585a0b",
+    "scripts/doctor.ps1": "f9e9e23f2867c90f78ecbea972f1777f36bff88b11e4b1fbe9dd1e9210d5a180",
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "45fbdd0f1c4dd6eb9ed5988341375977147b9fc515fddcb561baf7739fb4bb8f",
     "WORKSPACE-EMBEDDING-INDEX.json": "72fa17a6a78afa4722342d0a6c273526767344106cf19eb92f6b1107ec76aef7",
@@ -68,30 +72,30 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "66c9d018e793d271b392d2291facc0bd94a7b2cf",
+  "headCommit": "694d2a2ece5f59a990010e84a4bba30fd17e8680",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
-  "knowledgeHash": "d6b5afb28a80a394937746ff532f67d92a60f556a63e894258b47f0761514e60",
+  "knowledgeHash": "3fad6170aad0db16a2a575be9bb36225d2e6aad5af492233d3dd6f3d3c7d9573",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-26T00:28:44.582Z",
+  "lastBootstrapTimestamp": "2026-04-26T01:23:02.794Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "4184be948c63bcefbbc9a1d88ca623b1a72952269c0fec2d5e983557cde79642",
-    "output/code-map/code-map.json": "8b7cfda808f1123a006b7b7c80de04601a869e7a22f827f07f293d04bf21831e",
-    "output/code-map/CODEMAP.md": "22b53dd82cf818cd9912aee78b5ebf23550dbe969f8dd24e3065795728239c53",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "2ab858a4aafd78c08b88399fff16c10bf2453aa08c3754cb57aac3268999d32e",
+    "output/code-map/code-map.json": "2d5d1429562b28a5022617235e77f52fb2da5588570b5d967ee78cd6105380d7",
+    "output/code-map/CODEMAP.md": "257b8f5bfecedac557d784238df061c178e3abc5aff69f0b84864e72e4e7d8e7",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
-    "output/code-map/entrypoints.md": "d4a805e720c39ca7cd802331b440982ad439d8273fc6e4e9bc4a72ab09552203",
+    "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
-    "output/code-map/rag-entrypoints.md": "b96c3b19c1693147a1f23fbaad8ad4aaa2a21fdfd0c641cb8c649dd2d742b050",
-    "output/code-map/rag-systems.md": "2aeb14d9ae051bda4b8bfb26786eb61343d15e0acf71cc4be29b36a141960003",
+    "output/code-map/rag-entrypoints.md": "a9f7ac6caf82f61967eb6b46c626b8431098af9165a63070a051209fe5eecf1b",
+    "output/code-map/rag-systems.md": "949cc7cacf4fd3f9d208ee271c779ad6a974d452570b17d772e23185391867aa",
     "output/code-map/runtime-flows.md": "6de542bf4efe54f3e0b973cf196a05147416c7bbe156b7f6f57bf316941b4070",
     "output/mind-map/mindmap-summary.md": "ced9ea0f4dd34c925fc5661018caa73c580e3d62ca3b7f9865c0a73f5def2107",
     "output/mind-map/mindmap.json": "29998bc641b102a1ef6c797945a49d9731982290a607a34d61bdef952e69d604",
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "8aafd9bb8dfa0cd6f2d3a29672a2d0cdcd10285f455e911606f9c27ff10ae1f1",
-    "output/session-state.md": "11a89d9075e4f22e714fe45bc17143f1785add2b8188da95e103b82638077dad"
+    "output/round-notes.md": "0f8ee463b079dc64382fd4751e597f36555a2523ad5bafe4788629aaa9d1ddc9",
+    "output/session-state.md": "36aa6b307280ee1b2d7546b50b4ebb2b7d130d769220a7de700b1adbb22a96c7"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -101,12 +105,13 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "df9cf70a27a4379a1fb82e53983b2dd4dd173c1afa79e2b60e60807955e0ebe2",
+  "repoFactsHash": "bfc6c300e2d2babe9c69e1e6b2a5f736b786745a2efb3c441df9238d03fd1697",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
     ".embedding-hash-cache.json",
     ".repo-agent/RAG-OPERATING-CONTRACT.md",
+    ".repo-agent/TOOL-GUARD-CONTRACT.json",
     "apps/backend/package.json",
     "apps/backend/src/memory/api/routes.ts",
     "apps/backend/src/memory/context/context-assembly.service.ts",
@@ -154,6 +159,9 @@
     "scripts/agent/code-memory-search.ts",
     "scripts/agent/code-memory-status.ts",
     "scripts/agent/code-memory-verify.ts",
+    "scripts/agent/code-memory-watch.ts",
+    "scripts/agent/guard.ts",
+    "scripts/agent/lib/agent-guard.ts",
     "scripts/agent/lib/code-memory/commands.ts",
     "scripts/agent/lib/code-memory/config.ts",
     "scripts/agent/lib/code-memory/discovery.ts",
@@ -167,6 +175,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "daa2a1fcffe8ab0c493c6ba7e5e65499c1864ead7018dd875646e3aa143a31f9",
-  "workingTreeHash": "a5df00500e44a94e10f3e249f19d6802cca470577a16e2fb852939596d9db844"
+  "structuralHash": "7580335fb78d026d6fe2087f645af6400a66464366ce682caf357f6efb043f84",
+  "workingTreeHash": "c6c1c92fbbb0cd0fd90e061a5d3641cbe3aabc5c8fe08889b224156c5f16d2fe"
 }

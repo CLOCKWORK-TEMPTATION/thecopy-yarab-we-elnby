@@ -11,7 +11,6 @@
 
 import assert from "node:assert/strict";
 
-// @ts-expect-error — jsdom محمّل بنفس آلية باقي السويتات
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import * as React from "react";
@@ -119,23 +118,20 @@ function installDom(): () => void {
 
 async function loadBus(): Promise<BusModule> {
   // import dinamic لإجبار تقييم process.env عند الاستدعاء.
-  const moduleRef = (await import(
-    "../../../src/app/(main)/cinematography-studio/lib/diagnostics-bus"
-  )) as unknown as BusModule;
+  const moduleRef =
+    (await import("../../../src/app/(main)/cinematography-studio/lib/diagnostics-bus")) as unknown as BusModule;
   return moduleRef;
 }
 
 async function loadOverlay(): Promise<OverlayModule> {
-  const moduleRef = (await import(
-    "../../../src/app/(main)/cinematography-studio/components/diagnostics/DiagnosticOverlay"
-  )) as unknown as OverlayModule;
+  const moduleRef =
+    (await import("../../../src/app/(main)/cinematography-studio/components/diagnostics/DiagnosticOverlay")) as unknown as OverlayModule;
   return moduleRef;
 }
 
 async function loadContainer(): Promise<ContainerModule> {
-  const moduleRef = (await import(
-    "../../../src/app/(main)/cinematography-studio/components/diagnostics/DiagnosticOverlayContainer"
-  )) as unknown as ContainerModule;
+  const moduleRef =
+    (await import("../../../src/app/(main)/cinematography-studio/components/diagnostics/DiagnosticOverlayContainer")) as unknown as ContainerModule;
   return moduleRef;
 }
 
@@ -223,7 +219,9 @@ async function exerciseOverlayPresentation(
     })
   );
   assert.equal(
-    hiddenUtils.container.querySelector('[data-testid="cine-diagnostic-overlay"]'),
+    hiddenUtils.container.querySelector(
+      '[data-testid="cine-diagnostic-overlay"]'
+    ),
     null,
     "overlay must not render when visible=false"
   );
@@ -275,7 +273,9 @@ async function exerciseContainerHotkey(
     JSON.stringify({ phase: "production", savedAt: new Date().toISOString() })
   );
 
-  const utils = render(React.createElement(container.DiagnosticOverlayContainer));
+  const utils = render(
+    React.createElement(container.DiagnosticOverlayContainer)
+  );
 
   // قبل أي ضغط: غير ظاهر.
   assert.equal(

@@ -29,6 +29,15 @@ interface ParticleGenerationResult {
   error?: string;
 }
 
+interface GeneratedParticlesPayload {
+  positions: Float32Array;
+  colors: Float32Array;
+  count: number;
+  originalPositions: Float32Array;
+  phases: Float32Array;
+  velocities: Float32Array;
+}
+
 // Utility function
 const clamp = (value: number, min: number, max: number) => {
   return Math.max(min, Math.min(max, value));
@@ -501,7 +510,9 @@ const dist_all = (px: number, py: number): number => {
 
 // ====== Particle Generation Logic ======
 
-function generateParticles(config: GenerateParticlesMessage["config"]) {
+function generateParticles(
+  config: GenerateParticlesMessage["config"]
+): GeneratedParticlesPayload {
   const { numParticles, thickness, minX, maxX, minY, maxY, maxAttempts } =
     config;
 
@@ -536,11 +547,12 @@ function generateParticles(config: GenerateParticlesMessage["config"]) {
       const progress = (generatedCount / numParticles) * 100;
       if (progress - lastProgressReport >= 10) {
         lastProgressReport = progress;
-        self.postMessage({
+        const progressMessage: ParticleGenerationResult = {
           type: "progress",
           progress,
           count: generatedCount,
-        });
+        };
+        self.postMessage(progressMessage);
       }
     }
   }
@@ -599,27 +611,26 @@ self.addEventListener(
     if (type === "generate") {
       try {
         const result = generateParticles(config);
+        const completeMessage: ParticleGenerationResult = {
+          type: "complete",
+          ...result,
+        };
 
-        self.postMessage(
-          {
-            type: "complete",
-            ...result,
-          },
-          {
-            transfer: [
-              result.positions.buffer,
-              result.colors.buffer,
-              result.originalPositions.buffer,
-              result.phases.buffer,
-              result.velocities.buffer,
-            ],
-          }
-        );
+        self.postMessage(completeMessage, {
+          transfer: [
+            result.positions.buffer,
+            result.colors.buffer,
+            result.originalPositions.buffer,
+            result.phases.buffer,
+            result.velocities.buffer,
+          ],
+        });
       } catch (error) {
-        self.postMessage({
+        const errorMessage: ParticleGenerationResult = {
           type: "error",
           error: error instanceof Error ? error.message : "Unknown error",
-        });
+        };
+        self.postMessage(errorMessage);
       }
     }
   }

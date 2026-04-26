@@ -4,16 +4,20 @@
 
 - `pnpm dev`
 - `pnpm start`
-- `pnpm doctor`
+- `pnpm run doctor`
 - `pnpm verify:runtime`
 - `pnpm agent:bootstrap`
 - `pnpm agent:verify`
+- `pnpm agent:guard:start`
+- `pnpm agent:guard:step`
+- `pnpm agent:guard:verify`
 - `pnpm agent:refresh-maps`
 - `pnpm agent:start`
 - `pnpm agent:memory:index`
 - `pnpm agent:memory:search`
 - `pnpm agent:memory:status`
 - `pnpm agent:memory:verify`
+- `pnpm agent:memory:watch`
 - `pnpm workspace:embed`
 
 ## ملفات الوكلاء
@@ -41,6 +45,8 @@
 - `scripts/agent/code-memory-search.ts`
 - `scripts/agent/code-memory-status.ts`
 - `scripts/agent/code-memory-verify.ts`
+- `scripts/agent/code-memory-watch.ts`
+- `scripts/agent/guard.ts`
 - `scripts/generate-workspace-embeddings.js`
 
 ## التطبيقات

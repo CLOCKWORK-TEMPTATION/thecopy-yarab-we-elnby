@@ -23,7 +23,7 @@ const getWindowValue = (key: string): string | undefined => {
 };
 
 export const getAPIKey = (): string => {
-  return getGeminiApiKeyFromEnv() || getWindowValue("GEMINI_API_KEY") ?? "";
+  return getGeminiApiKeyFromEnv() || (getWindowValue("GEMINI_API_KEY") ?? "");
 };
 
 export const isValidAPIKey = (key: string): boolean => {

@@ -64,13 +64,13 @@ function Invoke-WarnCheck([string]$Name, [scriptblock]$Test) {
     }
 }
 
-# ── Banner ────────────────────────────────────────────────────────────────────
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+# Banner
+Write-Host "=======================================" -ForegroundColor Cyan
 Write-Host "  The Copy - Doctor / Preflight Check" -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "=======================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ── Load .env ─────────────────────────────────────────────────────────────────
+# Load .env
 $EnvFile = Join-Path (Join-Path $PSScriptRoot "..") ".env"
 if (Test-Path $EnvFile) {
     Get-Content $EnvFile | ForEach-Object {
@@ -91,8 +91,8 @@ function Get-Env([string]$Name) {
     return $val
 }
 
-# ── Environment ───────────────────────────────────────────────────────────────
-Write-Host "▸ Environment" -ForegroundColor White
+# Environment
+Write-Host "> Environment" -ForegroundColor White
 
 Invoke-Check "NODE_ENV is set"                         { (Get-Env 'NODE_ENV') -ne '' }
 Invoke-Check "DATABASE_URL is set"                     { (Get-Env 'DATABASE_URL') -ne '' }
@@ -103,8 +103,8 @@ Invoke-Check "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY"  {
 
 Write-Host ""
 
-# ── Services ──────────────────────────────────────────────────────────────────
-Write-Host "▸ Services" -ForegroundColor White
+# Services
+Write-Host "> Services" -ForegroundColor White
 
 # PostgreSQL
 $dbUrl    = Get-Env 'DATABASE_URL'
@@ -161,8 +161,8 @@ if ($weaviateReq) {
 
 Write-Host ""
 
-# ── Ports ─────────────────────────────────────────────────────────────────────
-Write-Host "▸ Ports" -ForegroundColor White
+# Ports
+Write-Host "> Ports" -ForegroundColor White
 
 Invoke-Check "Port 3001 (backend) is free" {
     -not (Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue)
@@ -173,8 +173,8 @@ Invoke-Check "Port 5000 (frontend) is free" {
 
 Write-Host ""
 
-# ── Static Assets ─────────────────────────────────────────────────────────────
-Write-Host "▸ Static Assets" -ForegroundColor White
+# Static Assets
+Write-Host "> Static Assets" -ForegroundColor White
 
 $repoRoot = Join-Path $PSScriptRoot ".."
 $assetBase = Join-Path (Join-Path (Join-Path (Join-Path (Join-Path $repoRoot "apps") "web") "public") "assets") "v-shape"
@@ -194,8 +194,8 @@ $assetBase = Join-Path (Join-Path (Join-Path (Join-Path (Join-Path $repoRoot "ap
 
 Write-Host ""
 
-# ── Sentry ────────────────────────────────────────────────────────────────────
-Write-Host "▸ Sentry" -ForegroundColor White
+# Sentry
+Write-Host "> Sentry" -ForegroundColor White
 
 $nodeEnv = Get-Env 'NODE_ENV'
 if ($nodeEnv -eq 'production') {
@@ -207,17 +207,17 @@ if ($nodeEnv -eq 'production') {
 
 Write-Host ""
 
-# ── Summary ───────────────────────────────────────────────────────────────────
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+# Summary
+Write-Host "=======================================" -ForegroundColor Cyan
 Write-Host "  Results: $($Script:PASS) passed, $($Script:FAIL) failed, $($Script:WARN) warnings" -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "=======================================" -ForegroundColor Cyan
 
 if ($Script:FAIL -gt 0) {
     Write-Host ""
-    Write-Host "  [FAIL] Preflight FAILED — fix the issues above before starting." -ForegroundColor Red
+    Write-Host "  [FAIL] Preflight FAILED - fix the issues above before starting." -ForegroundColor Red
     exit 1
 } else {
     Write-Host ""
-    Write-Host "  [OK] All checks passed — ready to start." -ForegroundColor Green
+    Write-Host "  [OK] All checks passed - ready to start." -ForegroundColor Green
     exit 0
 }

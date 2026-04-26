@@ -16,8 +16,6 @@ import { fetchArtDirectorJson } from "../lib/api-client";
 
 import type { ProductionBook, StyleGuide, ApiResponse } from "../types";
 
-
-
 interface BookFormData {
   projectName: string;
   projectNameAr: string;
@@ -487,7 +485,7 @@ export default function Documentation() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectName:
-              productionBook?.title ?? bookForm.projectName || "مشروع جديد",
+              productionBook?.title ?? (bookForm.projectName || "مشروع جديد"),
           }),
         }
       );
@@ -522,9 +520,9 @@ export default function Documentation() {
             ...decisionForm,
             projectName:
               productionBook?.title ??
-              bookForm.projectName ||
-              bookForm.projectNameAr ||
-              "art-director-default",
+              (bookForm.projectName ||
+                bookForm.projectNameAr ||
+                "art-director-default"),
           }),
         }
       );

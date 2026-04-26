@@ -14,9 +14,13 @@ import {
   RAG_CONTRACT_PATH,
   ROUND_NOTES_PATH,
   SESSION_STATE_PATH,
+  TOOL_GUARD_CONTRACT_PATH,
   type DriftLevel,
 } from "./constants";
-import { collectKnowledgeInventory, type KnowledgeInventory } from "./knowledge-systems";
+import {
+  collectKnowledgeInventory,
+  type KnowledgeInventory,
+} from "./knowledge-systems";
 import { collectCodeMemoryHealth } from "./code-memory/status";
 import type { CodeMemoryHealth } from "./code-memory/types";
 import {
@@ -157,7 +161,11 @@ function hasLegacyViteEditorVars(content: string): boolean {
   );
 }
 
-function probeTcpPort(host: string, port: number, timeoutMs: number): Promise<boolean> {
+function probeTcpPort(
+  host: string,
+  port: number,
+  timeoutMs: number,
+): Promise<boolean> {
   return new Promise((resolve) => {
     const socket = new Socket();
     let settled = false;
@@ -185,7 +193,10 @@ function probeTcpPort(host: string, port: number, timeoutMs: number): Promise<bo
   });
 }
 
-async function probeHttpReady(url: string, timeoutMs: number): Promise<boolean> {
+async function probeHttpReady(
+  url: string,
+  timeoutMs: number,
+): Promise<boolean> {
   try {
     const response = await fetch(url, {
       method: "GET",
@@ -213,11 +224,15 @@ async function collectCurrentOpenIssues(
   }
 
   if (hasLegacyEditorRelativeUrls(rootEnvExampleText)) {
-    issues.push("ملف البيئة النموذجي ما زال يضع عناوين editor runtime نسبية بدل العناوين الرسمية الكاملة");
+    issues.push(
+      "ملف البيئة النموذجي ما زال يضع عناوين editor runtime نسبية بدل العناوين الرسمية الكاملة",
+    );
   }
 
   if (hasLegacyViteEditorVars(rootEnvExampleText)) {
-    issues.push("ملف البيئة النموذجي ما زال يحمل متغيرات Vite قديمة لمسار المحرر");
+    issues.push(
+      "ملف البيئة النموذجي ما زال يحمل متغيرات Vite قديمة لمسار المحرر",
+    );
   }
 
   const [postgresReady, redisReady, weaviateReady] = await Promise.all([
@@ -238,14 +253,18 @@ async function collectCurrentOpenIssues(
   }
 
   if (unavailableInfraPorts.length > 0) {
-    issues.push(`لا توجد listeners محلية على \`${unavailableInfraPorts.join("` و `")}\` وقت الفحص`);
+    issues.push(
+      `لا توجد listeners محلية على \`${unavailableInfraPorts.join("` و `")}\` وقت الفحص`,
+    );
   }
 
   return issues;
 }
 
 function uniqueSorted(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+  return [...new Set(values.filter(Boolean))].sort((left, right) =>
+    left.localeCompare(right),
+  );
 }
 
 async function readPackageName(repoRelativePath: string): Promise<string> {
@@ -262,7 +281,9 @@ async function readPackageName(repoRelativePath: string): Promise<string> {
   }
 }
 
-async function collectWorkspaceApps(basePath: "apps" | "packages"): Promise<WorkspaceApp[]> {
+async function collectWorkspaceApps(
+  basePath: "apps" | "packages",
+): Promise<WorkspaceApp[]> {
   const directory = fromRepoRoot(basePath);
   try {
     const entries = await fsp.readdir(directory, { withFileTypes: true });
@@ -270,7 +291,9 @@ async function collectWorkspaceApps(basePath: "apps" | "packages"): Promise<Work
       entries
         .filter((entry) => entry.isDirectory())
         .map(async (entry) => {
-          const repoRelative = toPosixPath(path.join(basePath, entry.name, "package.json"));
+          const repoRelative = toPosixPath(
+            path.join(basePath, entry.name, "package.json"),
+          );
           if (!fileExists(repoRelative)) {
             return null;
           }
@@ -289,7 +312,9 @@ async function collectWorkspaceApps(basePath: "apps" | "packages"): Promise<Work
   }
 }
 
-export async function computeInputHashes(filePaths: string[] = INPUT_FACT_FILES): Promise<Record<string, string>> {
+export async function computeInputHashes(
+  filePaths: string[] = INPUT_FACT_FILES,
+): Promise<Record<string, string>> {
   const hashes: Record<string, string> = {};
   for (const repoRelativePath of uniqueSorted(filePaths)) {
     const hash = await sha256FileIfExists(fromRepoRoot(repoRelativePath));
@@ -321,7 +346,9 @@ export async function computeOutputHashes(): Promise<Record<string, string>> {
   return hashes;
 }
 
-export async function computeIdeHashes(ideTargets: IdeTarget[]): Promise<Record<string, string>> {
+export async function computeIdeHashes(
+  ideTargets: IdeTarget[],
+): Promise<Record<string, string>> {
   const hashes: Record<string, string> = {};
   for (const ideTarget of ideTargets.filter((entry) => entry.required)) {
     const hash = await sha256FileIfExists(fromRepoRoot(ideTarget.path));
@@ -332,7 +359,9 @@ export async function computeIdeHashes(ideTargets: IdeTarget[]): Promise<Record<
   return hashes;
 }
 
-export function createKnowledgeHash(knowledgeInventory: KnowledgeInventory): string {
+export function createKnowledgeHash(
+  knowledgeInventory: KnowledgeInventory,
+): string {
   return sha256(
     stableStringify({
       governanceStatus: knowledgeInventory.governanceStatus,
@@ -377,18 +406,38 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     packageManager?: string;
     scripts?: Record<string, string>;
   };
-  const workspaceText = await readTextIfExists(fromRepoRoot("pnpm-workspace.yaml"));
-  const webPackageText = await readTextIfExists(fromRepoRoot("apps/web/package.json"));
-  const webPackage = JSON.parse(webPackageText) as { scripts?: Record<string, string> };
-  const backendPackageText = await readTextIfExists(fromRepoRoot("apps/backend/package.json"));
-  const backendPackage = JSON.parse(backendPackageText) as { scripts?: Record<string, string> };
-  const rootEnvExampleText = await readTextIfExists(fromRepoRoot(".env.example"));
-  const databaseGuideText = await readTextIfExists(fromRepoRoot("docs/DATABASE.md"));
+  const workspaceText = await readTextIfExists(
+    fromRepoRoot("pnpm-workspace.yaml"),
+  );
+  const webPackageText = await readTextIfExists(
+    fromRepoRoot("apps/web/package.json"),
+  );
+  const webPackage = JSON.parse(webPackageText) as {
+    scripts?: Record<string, string>;
+  };
+  const backendPackageText = await readTextIfExists(
+    fromRepoRoot("apps/backend/package.json"),
+  );
+  const backendPackage = JSON.parse(backendPackageText) as {
+    scripts?: Record<string, string>;
+  };
+  const rootEnvExampleText = await readTextIfExists(
+    fromRepoRoot(".env.example"),
+  );
+  const databaseGuideText = await readTextIfExists(
+    fromRepoRoot("docs/DATABASE.md"),
+  );
   const doctorText = await readTextIfExists(fromRepoRoot("scripts/doctor.ps1"));
-  const specifyText = await readTextIfExists(fromRepoRoot(".specify/scripts/powershell/update-agent-context.ps1"));
+  const specifyText = await readTextIfExists(
+    fromRepoRoot(".specify/scripts/powershell/update-agent-context.ps1"),
+  );
   const knowledgeInventory = await collectKnowledgeInventory();
   const codeMemory = await collectCodeMemoryHealth();
-  const openIssues = await collectCurrentOpenIssues(rootEnvExampleText, backendPackage, databaseGuideText);
+  const openIssues = await collectCurrentOpenIssues(
+    rootEnvExampleText,
+    backendPackage,
+    databaseGuideText,
+  );
 
   const gitChangedFiles = runGitCommand(["status", "--short"])
     .split(/\r?\n/)
@@ -430,18 +479,24 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "verify:runtime",
     "agent:bootstrap",
     "agent:verify",
+    "agent:guard:start",
+    "agent:guard:step",
+    "agent:guard:verify",
     "agent:refresh-maps",
     "agent:start",
     "agent:memory:index",
     "agent:memory:search",
     "agent:memory:status",
     "agent:memory:verify",
+    "agent:memory:watch",
     "workspace:embed",
   ];
 
   const officialCommands = desiredOfficialCommands
     .filter((commandName) => Boolean(rootPackage.scripts?.[commandName]))
-    .map((commandName) => `pnpm ${commandName}`);
+    .map((commandName) =>
+      commandName === "doctor" ? "pnpm run doctor" : `pnpm ${commandName}`,
+    );
 
   return {
     git: {
@@ -454,7 +509,9 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     workspacePatterns: parseWorkspacePatterns(workspaceText),
     rootScripts: Object.keys(rootPackage.scripts ?? {}).sort(),
     officialCommands,
-    webPort: extractPortFromScript(webPackage.scripts?.["dev:next-only"] ?? webPackage.scripts?.dev),
+    webPort: extractPortFromScript(
+      webPackage.scripts?.["dev:next-only"] ?? webPackage.scripts?.dev,
+    ),
     backendPort: extractBackendPortFromDoctor(doctorText),
     apps: await collectWorkspaceApps("apps"),
     packages: await collectWorkspaceApps("packages"),
@@ -463,10 +520,13 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
       ".repo-agent/STARTUP-PROTOCOL.md",
       ".repo-agent/HANDOFF-PROTOCOL.md",
       RAG_CONTRACT_PATH,
+      TOOL_GUARD_CONTRACT_PATH,
       "scripts/agent/bootstrap.ts",
+      "scripts/agent/guard.ts",
       "scripts/agent/verify-state.ts",
       "scripts/agent/refresh-maps.ts",
       "scripts/agent/start-agent.ps1",
+      "scripts/agent/code-memory-watch.ts",
       "scripts/agent/code-memory-index.ts",
       "scripts/agent/code-memory-search.ts",
       "scripts/agent/code-memory-status.ts",
@@ -544,12 +604,18 @@ export function createFactsHash(facts: RepoFacts): string {
   );
 }
 
-export function createStructuralHash(structuralFiles: string[], criticalInputHashes: Record<string, string>): string {
+export function createStructuralHash(
+  structuralFiles: string[],
+  criticalInputHashes: Record<string, string>,
+): string {
   return sha256(
     stableStringify({
       structuralFiles,
       hashes: Object.fromEntries(
-        structuralFiles.map((filePath) => [filePath, criticalInputHashes[filePath] ?? "missing"]),
+        structuralFiles.map((filePath) => [
+          filePath,
+          criticalInputHashes[filePath] ?? "missing",
+        ]),
       ),
     }),
   );
@@ -568,6 +634,7 @@ export function collectStructuralFiles(facts: RepoFacts): string[] {
     "apps/backend/package.json",
     "scripts/doctor.ps1",
     RAG_CONTRACT_PATH,
+    TOOL_GUARD_CONTRACT_PATH,
     ...packageFiles,
     ...facts.knowledgeInventory.criticalFiles,
   ]);
@@ -608,7 +675,9 @@ export function determineDrift(
     };
   }
 
-  const missingIdeMirror = requiredIdeTargets.some((target) => target.required && !target.exists);
+  const missingIdeMirror = requiredIdeTargets.some(
+    (target) => target.required && !target.exists,
+  );
   if (missingIdeMirror) {
     return {
       level: "soft-drift",

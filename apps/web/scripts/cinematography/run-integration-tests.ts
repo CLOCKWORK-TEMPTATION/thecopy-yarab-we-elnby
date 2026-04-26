@@ -7,8 +7,6 @@ import {
 } from "node:http";
 import { resolve } from "node:path";
 
-// @ts-ignore — لا يوجد @types/jsdom مثبت، jsdom لها types بداخلها من الإصدار 28+
- 
 import { renderHook, act, cleanup } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { NextRequest } from "next/server";
@@ -74,7 +72,7 @@ async function runSuite(
     return result;
   } catch (error) {
     const message =
-      error instanceof Error ? error.stack ?? error.message : String(error);
+      error instanceof Error ? (error.stack ?? error.message) : String(error);
     const result: SuiteResult = {
       name,
       status: "failed",
@@ -524,9 +522,7 @@ async function runSessionStorageSuite(): Promise<void> {
   const restoreDom = installDomEnvironment();
   try {
     const { SESSION_STORAGE_KEY, clearSession, patchSession, readSession } =
-      await import(
-        "../../src/app/(main)/cinematography-studio/lib/session-storage"
-      );
+      await import("../../src/app/(main)/cinematography-studio/lib/session-storage");
 
     // البداية: لا توجد جلسة محفوظة
     clearSession();
@@ -596,7 +592,9 @@ async function runCameraBindingSuite(): Promise<void> {
   // يثبت أن البث يُربط بعنصر الفيديو حتى لو ركّب الـ video بعد منح الإذن.
   const restoreDom = installDomEnvironment();
   try {
-    interface FakeTrack { stop: () => void }
+    interface FakeTrack {
+      stop: () => void;
+    }
     const stoppedTracks: FakeTrack[] = [];
     const fakeStream = {
       getTracks: () => [{ stop: () => stoppedTracks.push({ stop: () => {} }) }],
@@ -610,9 +608,8 @@ async function runCameraBindingSuite(): Promise<void> {
       },
     });
 
-    const { useMediaInputPipeline } = await import(
-      "../../src/app/(main)/cinematography-studio/hooks/useMediaInputPipeline"
-    );
+    const { useMediaInputPipeline } =
+      await import("../../src/app/(main)/cinematography-studio/hooks/useMediaInputPipeline");
 
     const { result, unmount } = renderHook(() =>
       useMediaInputPipeline("image")
@@ -664,10 +661,7 @@ suiteResults.push(
   await runSuite("cinematography-slider-drag", async () => {
     await runSliderDragSuite();
   }),
-  await runSuite(
-    "cinematography-diagnostic-overlay",
-    runDiagnosticOverlaySuite
-  )
+  await runSuite("cinematography-diagnostic-overlay", runDiagnosticOverlaySuite)
 );
 
 writeFileSync(

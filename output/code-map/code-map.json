@@ -7,16 +7,20 @@
   "officialCommands": [
     "pnpm dev",
     "pnpm start",
-    "pnpm doctor",
+    "pnpm run doctor",
     "pnpm verify:runtime",
     "pnpm agent:bootstrap",
     "pnpm agent:verify",
+    "pnpm agent:guard:start",
+    "pnpm agent:guard:step",
+    "pnpm agent:guard:verify",
     "pnpm agent:refresh-maps",
     "pnpm agent:start",
     "pnpm agent:memory:index",
     "pnpm agent:memory:search",
     "pnpm agent:memory:status",
     "pnpm agent:memory:verify",
+    "pnpm agent:memory:watch",
     "pnpm workspace:embed"
   ],
   "ports": {
@@ -55,6 +59,7 @@
     ".repo-agent/HANDOFF-PROTOCOL.md",
     ".repo-agent/RAG-OPERATING-CONTRACT.md",
     ".repo-agent/STARTUP-PROTOCOL.md",
+    ".repo-agent/TOOL-GUARD-CONTRACT.json",
     "AGENTS.md",
     "apps/backend/package.json",
     "apps/backend/src/memory/api/routes.ts",
@@ -72,6 +77,8 @@
     "scripts/agent/code-memory-search.ts",
     "scripts/agent/code-memory-status.ts",
     "scripts/agent/code-memory-verify.ts",
+    "scripts/agent/code-memory-watch.ts",
+    "scripts/agent/guard.ts",
     "scripts/agent/refresh-maps.ts",
     "scripts/agent/start-agent.ps1",
     "scripts/agent/verify-state.ts",
@@ -103,13 +110,17 @@
           "pnpm agent:memory:index",
           "pnpm agent:memory:search",
           "pnpm agent:memory:status",
-          "pnpm agent:memory:verify"
+          "pnpm agent:memory:verify",
+          "pnpm agent:memory:watch",
+          "pnpm agent:guard:step"
         ],
         "entrypoints": [
           "scripts/agent/code-memory-index.ts",
           "scripts/agent/code-memory-search.ts",
           "scripts/agent/code-memory-status.ts",
           "scripts/agent/code-memory-verify.ts",
+          "scripts/agent/code-memory-watch.ts",
+          "scripts/agent/guard.ts",
           "scripts/generate-workspace-embeddings.js"
         ],
         "criticalFiles": [
@@ -120,6 +131,9 @@
           "scripts/agent/code-memory-search.ts",
           "scripts/agent/code-memory-status.ts",
           "scripts/agent/code-memory-verify.ts",
+          "scripts/agent/code-memory-watch.ts",
+          "scripts/agent/guard.ts",
+          "scripts/agent/lib/agent-guard.ts",
           "scripts/agent/lib/code-memory/commands.ts",
           "scripts/agent/lib/code-memory/config.ts",
           "scripts/agent/lib/code-memory/discovery.ts",
@@ -169,6 +183,11 @@
           },
           {
             "kind": "entrypoint",
+            "path": "scripts/agent/guard.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
             "path": "scripts/agent/code-memory-index.ts",
             "exists": true
           },
@@ -185,6 +204,11 @@
           {
             "kind": "entrypoint",
             "path": "scripts/agent/code-memory-verify.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/code-memory-watch.ts",
             "exists": true
           },
           {
@@ -215,6 +239,11 @@
           {
             "kind": "search",
             "path": "scripts/agent/lib/code-memory/commands.ts",
+            "exists": true
+          },
+          {
+            "kind": "governance",
+            "path": "scripts/agent/lib/agent-guard.ts",
             "exists": true
           },
           {
@@ -703,6 +732,9 @@
       "scripts/agent/code-memory-search.ts",
       "scripts/agent/code-memory-status.ts",
       "scripts/agent/code-memory-verify.ts",
+      "scripts/agent/code-memory-watch.ts",
+      "scripts/agent/guard.ts",
+      "scripts/agent/lib/agent-guard.ts",
       "scripts/agent/lib/code-memory/commands.ts",
       "scripts/agent/lib/code-memory/config.ts",
       "scripts/agent/lib/code-memory/discovery.ts",
@@ -728,6 +760,8 @@
       "scripts/agent/code-memory-search.ts",
       "scripts/agent/code-memory-status.ts",
       "scripts/agent/code-memory-verify.ts",
+      "scripts/agent/code-memory-watch.ts",
+      "scripts/agent/guard.ts",
       "scripts/generate-workspace-embeddings.js"
     ],
     "commands": [
@@ -735,10 +769,12 @@
       "pnpm --filter @the-copy/web editor:rag:index",
       "pnpm --filter @the-copy/web editor:rag:smoke",
       "pnpm --filter @the-copy/web editor:rag:stats",
+      "pnpm agent:guard:step",
       "pnpm agent:memory:index",
       "pnpm agent:memory:search",
       "pnpm agent:memory:status",
       "pnpm agent:memory:verify",
+      "pnpm agent:memory:watch",
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
@@ -749,10 +785,10 @@
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-04-26T00:28:40.578Z",
-    "totalFiles": 1971,
-    "totalChunks": 5188,
-    "embeddedChunks": 5188,
+    "generatedAt": "2026-04-26T01:22:55.160Z",
+    "totalFiles": 1975,
+    "totalChunks": 5196,
+    "embeddedChunks": 5196,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,

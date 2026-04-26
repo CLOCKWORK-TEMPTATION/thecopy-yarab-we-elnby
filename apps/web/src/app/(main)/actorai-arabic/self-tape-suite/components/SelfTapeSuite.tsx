@@ -43,7 +43,6 @@ import {
   type PersistedSelfTapeTake,
 } from "../../lib/self-tape";
 
-
 type ActiveTool =
   | "teleprompter"
   | "recorder"
@@ -831,7 +830,8 @@ export const SelfTapeSuite: React.FC = () => {
       const blob =
         recordedChunksRef.current.length > 0
           ? new Blob(recordedChunksRef.current, {
-              type: pendingTake.mimeType || primaryChunk?.type ?? "video/webm",
+              type:
+                pendingTake.mimeType || (primaryChunk?.type ?? "video/webm"),
             })
           : null;
       const videoUrl =

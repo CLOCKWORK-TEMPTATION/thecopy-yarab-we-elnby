@@ -8,13 +8,16 @@ import { cn } from "@/lib/utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
-export type ChartConfig = Record<string, {
+export type ChartConfig = Record<
+  string,
+  {
     label?: React.ReactNode;
     icon?: React.ComponentType;
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )>;
+  )
+>;
 
 interface ChartPayloadItem {
   color?: string;
@@ -180,7 +183,7 @@ const ChartTooltipContent = React.forwardRef<
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === "string"
-        ? config[label]?.label ?? label
+        ? (config[label]?.label ?? label)
         : itemConfig?.label;
 
     if (labelFormatter) {
@@ -226,6 +229,7 @@ const ChartTooltipContent = React.forwardRef<
           const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`;
           const itemConfig = getPayloadConfigFromPayload(config, item, key);
           const indicatorColor = color ?? item.payload?.fill ?? item.color;
+          const formattedValue = formatChartValue(item.value);
 
           return (
             <div
@@ -275,9 +279,9 @@ const ChartTooltipContent = React.forwardRef<
                         {itemConfig?.label ?? item.name}
                       </span>
                     </div>
-                    {item.value && (
+                    {formattedValue !== null && (
                       <span className="font-mono font-medium tabular-nums text-foreground">
-                        {formatChartValue(item.value)}
+                        {formattedValue}
                       </span>
                     )}
                   </div>
@@ -320,13 +324,13 @@ const ChartLegendContent = React.forwardRef<
         className
       )}
     >
-      {payload.map((item) => {
+      {payload.map((item, index) => {
         const key = `${nameKey ?? item.dataKey ?? "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
         return (
           <div
-            key={item.value}
+            key={`${key}-${index}`}
             className={cn(
               "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground"
             )}
@@ -391,14 +395,10 @@ function getPayloadConfigFromPayload(
     key in payloadPayload &&
     typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
   ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ];
+    configLabelKey = payloadPayload[key as keyof typeof payloadPayload];
   }
 
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key];
+  return configLabelKey in config ? config[configLabelKey] : config[key];
 }
 
 export {

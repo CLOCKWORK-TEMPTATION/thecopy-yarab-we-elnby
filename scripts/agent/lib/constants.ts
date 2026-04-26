@@ -15,6 +15,7 @@ export const SESSION_STATE_PATH = "output/session-state.md";
 export const ROUND_NOTES_PATH = "output/round-notes.md";
 export const PROJECT_RULES_PATH = "output/project-rules.md";
 export const RAG_CONTRACT_PATH = ".repo-agent/RAG-OPERATING-CONTRACT.md";
+export const TOOL_GUARD_CONTRACT_PATH = ".repo-agent/TOOL-GUARD-CONTRACT.json";
 
 export const CODE_MAP_FILES = [
   "output/code-map/code-map.json",
@@ -61,6 +62,11 @@ export const INPUT_FACT_FILES = [
   "apps/web/src/app/(main)/editor/scripts/rag-index.ts",
   "apps/web/src/app/(main)/editor/src/rag/config.ts",
   "scripts/doctor.ps1",
+  ".repo-agent/TOOL-GUARD-CONTRACT.json",
+  "scripts/agent/guard.ts",
+  "scripts/agent/code-memory-watch.ts",
+  "scripts/agent/start-agent.ps1",
+  "scripts/agent/lib/agent-guard.ts",
   "scripts/generate-workspace-embeddings.js",
   "scripts/agent/code-memory-index.ts",
   "scripts/agent/code-memory-search.ts",
@@ -89,16 +95,61 @@ export const INPUT_FACT_FILES = [
 ];
 
 export const IDE_CANDIDATES: IdeCandidate[] = [
-  { id: "windsurf", label: "Windsurf", path: ".windsurf/rules/specify-rules.md", kind: "markdown" },
-  { id: "cursor", label: "Cursor", path: ".cursor/rules/specify-rules.mdc", kind: "cursor-rule" },
-  { id: "copilot", label: "GitHub Copilot", path: ".github/copilot-instructions.md", kind: "markdown" },
+  {
+    id: "windsurf",
+    label: "Windsurf",
+    path: ".windsurf/rules/specify-rules.md",
+    kind: "markdown",
+  },
+  {
+    id: "cursor",
+    label: "Cursor",
+    path: ".cursor/rules/specify-rules.mdc",
+    kind: "cursor-rule",
+  },
+  {
+    id: "copilot",
+    label: "GitHub Copilot",
+    path: ".github/copilot-instructions.md",
+    kind: "markdown",
+  },
   { id: "junie", label: "Junie", path: ".junie/AGENTS.md", kind: "markdown" },
-  { id: "kilocode", label: "Kilo Code", path: ".kilocode/rules/specify-rules.md", kind: "markdown" },
-  { id: "augment", label: "Augment", path: ".augment/rules/specify-rules.md", kind: "markdown" },
-  { id: "roo", label: "Roo", path: ".roo/rules/specify-rules.md", kind: "markdown" },
-  { id: "vibe", label: "Vibe", path: ".vibe/agents/specify-agents.md", kind: "markdown" },
-  { id: "trae", label: "Trae", path: ".trae/rules/AGENTS.md", kind: "markdown" },
-  { id: "agent", label: "Agent", path: ".agent/rules/specify-rules.md", kind: "markdown" },
+  {
+    id: "kilocode",
+    label: "Kilo Code",
+    path: ".kilocode/rules/specify-rules.md",
+    kind: "markdown",
+  },
+  {
+    id: "augment",
+    label: "Augment",
+    path: ".augment/rules/specify-rules.md",
+    kind: "markdown",
+  },
+  {
+    id: "roo",
+    label: "Roo",
+    path: ".roo/rules/specify-rules.md",
+    kind: "markdown",
+  },
+  {
+    id: "vibe",
+    label: "Vibe",
+    path: ".vibe/agents/specify-agents.md",
+    kind: "markdown",
+  },
+  {
+    id: "trae",
+    label: "Trae",
+    path: ".trae/rules/AGENTS.md",
+    kind: "markdown",
+  },
+  {
+    id: "agent",
+    label: "Agent",
+    path: ".agent/rules/specify-rules.md",
+    kind: "markdown",
+  },
 ];
 
 export const IDE_PROHIBITED_PATTERNS = [
@@ -109,6 +160,7 @@ export const IDE_PROHIBITED_PATTERNS = [
   "pnpm dev",
   "pnpm start",
   "pnpm doctor",
+  "pnpm run doctor",
   "pnpm verify:runtime",
   "workspace:embed",
   "Docker",
@@ -122,11 +174,7 @@ export const IDE_PROHIBITED_PATTERNS = [
 
 export const ROUND_NOTE_DEDUPE_MINUTES = 5;
 
-export const KNOWLEDGE_DISCOVERY_ROOTS = [
-  "scripts",
-  "apps",
-  "packages",
-];
+export const KNOWLEDGE_DISCOVERY_ROOTS = ["scripts", "apps", "packages"];
 
 export const KNOWLEDGE_DISCOVERY_EXTENSIONS = [
   ".ts",
@@ -193,5 +241,7 @@ export const KNOWLEDGE_LOCAL_DOC_REQUIRED_REFERENCES = [
   ".repo-agent/RAG-OPERATING-CONTRACT.md",
 ];
 
-export const KNOWLEDGE_LOCAL_DOC_DISCLAIMER = "هذا الملف توثيق تنفيذي محلي وليس مصدر حقيقة تشغيلية.";
-export const KNOWLEDGE_LOCAL_DOC_REFERENCE_INTRO = "الحقيقة المرجعية لطبقة المعرفة موجودة فقط في:";
+export const KNOWLEDGE_LOCAL_DOC_DISCLAIMER =
+  "هذا الملف توثيق تنفيذي محلي وليس مصدر حقيقة تشغيلية.";
+export const KNOWLEDGE_LOCAL_DOC_REFERENCE_INTRO =
+  "الحقيقة المرجعية لطبقة المعرفة موجودة فقط في:";

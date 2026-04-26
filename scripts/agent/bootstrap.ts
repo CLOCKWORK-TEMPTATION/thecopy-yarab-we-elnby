@@ -1,6 +1,12 @@
 import fs from "node:fs";
 
-import { AGENT_CONTEXT_PATH, FINGERPRINT_PATH, ROUND_NOTES_PATH, SESSION_STATE_PATH } from "./lib/constants";
+import {
+  AGENT_CONTEXT_PATH,
+  FINGERPRINT_PATH,
+  ROUND_NOTES_PATH,
+  SESSION_STATE_PATH,
+} from "./lib/constants";
+import { runAgentGuard } from "./lib/agent-guard";
 import { buildMapFiles } from "./lib/maps";
 import {
   collectRepoFacts,
@@ -25,16 +31,28 @@ import {
   renderStartupBrief,
   shouldAppendSessionStart,
 } from "./lib/templates";
-import { formatTimestamp, fromRepoRoot, readTextIfExists, sha256, stableStringify, toRepoRelative, writeTextIfChanged } from "./lib/utils";
+import {
+  formatTimestamp,
+  fromRepoRoot,
+  readTextIfExists,
+  sha256,
+  stableStringify,
+  toRepoRelative,
+  writeTextIfChanged,
+} from "./lib/utils";
 
 async function main(): Promise<void> {
+  await runAgentGuard("start");
+
   const now = new Date();
   const bootstrapTimestamp = formatTimestamp(now);
   const previousFingerprint = await readFingerprint();
   const missingContracts = await verifyManualContractsExist();
 
   if (missingContracts.length > 0) {
-    throw new Error(`ملفات العقود اليدوية المفقودة: ${missingContracts.join(", ")}`);
+    throw new Error(
+      `ملفات العقود اليدوية المفقودة: ${missingContracts.join(", ")}`,
+    );
   }
 
   const facts = await collectRepoFacts();
@@ -57,7 +75,9 @@ async function main(): Promise<void> {
       ? bootstrapTimestamp
       : previousFingerprint.lastBootstrapTimestamp;
 
-  for (const ideTarget of facts.requiredIdeTargets.filter((target) => target.required)) {
+  for (const ideTarget of facts.requiredIdeTargets.filter(
+    (target) => target.required,
+  )) {
     const idePath = fromRepoRoot(ideTarget.path);
     const changed = await writeTextIfChanged(idePath, renderIdeShim(ideTarget));
     if (changed) {
@@ -67,19 +87,31 @@ async function main(): Promise<void> {
 
   const shouldRefreshMaps =
     drift.level === "hard-drift" ||
-    buildMapFiles(facts).some((mapFile) => !fs.existsSync(fromRepoRoot(mapFile.path)));
+    buildMapFiles(facts).some(
+      (mapFile) => !fs.existsSync(fromRepoRoot(mapFile.path)),
+    );
 
   if (shouldRefreshMaps || drift.level !== "no-drift") {
     for (const mapFile of buildMapFiles(facts)) {
-      const changed = await writeTextIfChanged(fromRepoRoot(mapFile.path), mapFile.content);
+      const changed = await writeTextIfChanged(
+        fromRepoRoot(mapFile.path),
+        mapFile.content,
+      );
       if (changed) {
         updatedPaths.push(mapFile.path);
       }
     }
   }
 
-  const sessionStateContent = renderSessionState(facts, drift, referenceTimestamp);
-  const sessionStateChanged = await writeTextIfChanged(fromRepoRoot(SESSION_STATE_PATH), sessionStateContent);
+  const sessionStateContent = renderSessionState(
+    facts,
+    drift,
+    referenceTimestamp,
+  );
+  const sessionStateChanged = await writeTextIfChanged(
+    fromRepoRoot(SESSION_STATE_PATH),
+    sessionStateContent,
+  );
   if (sessionStateChanged) {
     updatedPaths.push(SESSION_STATE_PATH);
   }
@@ -90,7 +122,10 @@ async function main(): Promise<void> {
     referenceTimestamp,
     facts.openIssues,
   );
-  const generatedContextChanged = await writeTextIfChanged(fromRepoRoot(AGENT_CONTEXT_PATH), generatedContextContent);
+  const generatedContextChanged = await writeTextIfChanged(
+    fromRepoRoot(AGENT_CONTEXT_PATH),
+    generatedContextContent,
+  );
   if (generatedContextChanged) {
     updatedPaths.push(AGENT_CONTEXT_PATH);
   }
@@ -99,8 +134,17 @@ async function main(): Promise<void> {
   const currentRoundNotes = await readTextIfExists(roundNotesPath);
   if (shouldAppendSessionStart(previousFingerprint, facts, drift)) {
     const nextRoundNumber = await getNextRoundNumber(roundNotesPath);
-    const roundNote = renderRoundNote(nextRoundNumber, facts, drift, updatedPaths, referenceTimestamp);
-    const roundNotesChanged = await writeTextIfChanged(roundNotesPath, appendRoundNote(currentRoundNotes, roundNote));
+    const roundNote = renderRoundNote(
+      nextRoundNumber,
+      facts,
+      drift,
+      updatedPaths,
+      referenceTimestamp,
+    );
+    const roundNotesChanged = await writeTextIfChanged(
+      roundNotesPath,
+      appendRoundNote(currentRoundNotes, roundNote),
+    );
     if (roundNotesChanged) {
       updatedPaths.push(ROUND_NOTES_PATH);
     }

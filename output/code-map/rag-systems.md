@@ -23,11 +23,15 @@
   - `pnpm agent:memory:search`
   - `pnpm agent:memory:status`
   - `pnpm agent:memory:verify`
+  - `pnpm agent:memory:watch`
+  - `pnpm agent:guard:step`
 - entrypoints:
   - `scripts/agent/code-memory-index.ts`
   - `scripts/agent/code-memory-search.ts`
   - `scripts/agent/code-memory-status.ts`
   - `scripts/agent/code-memory-verify.ts`
+  - `scripts/agent/code-memory-watch.ts`
+  - `scripts/agent/guard.ts`
   - `scripts/generate-workspace-embeddings.js`
 - inputs:
   - `apps/*`

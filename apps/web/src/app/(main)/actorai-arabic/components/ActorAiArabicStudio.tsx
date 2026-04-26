@@ -56,15 +56,12 @@ import type {
   SceneRhythmAnalysis,
   WebcamAnalysisResult,
   WebcamSession,
-  MemorizationStats,
   TeleprompterSettings,
   BlockingMark,
   CameraEyeSettings,
   HolographicPartner,
   GestureControl,
 } from "../types";
-
-
 
 // ==================== المكون الرئيسي ====================
 
