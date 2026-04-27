@@ -475,9 +475,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override getFallbackResponse(
-    input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(input: StandardAgentInput): string {
     const ctx = input.context as CharacterVoiceContext;
     const profile = ctx?.characterProfile;
     const character =

@@ -1005,11 +1005,11 @@ class NetworkAnalyzer {
     network: ConflictNetwork,
     _context: Station3Context
   ): {
-      timestamp: string;
-      description: string;
-      impact: number;
-      affectedElements: string[];
-    }[] {
+    timestamp: string;
+    description: string;
+    impact: number;
+    affectedElements: string[];
+  }[] {
     const pivotPoints: {
       timestamp: string;
       description: string;

@@ -61,7 +61,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   useEffect(() => {
     if (!externalProjectId) return;
     // تحديث الـ projectId لو اتغير من بره
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
   }, [externalProjectId]);
 
   const setRole = (role: Role) =>

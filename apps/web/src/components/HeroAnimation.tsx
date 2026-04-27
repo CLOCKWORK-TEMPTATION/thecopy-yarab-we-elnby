@@ -79,42 +79,44 @@ export const HeroAnimation = ({
             {/* V-Shape Container */}
             <div className="v-shape-container absolute top-0 left-0 w-full h-full m-0 p-0">
               <div className="v-shape-cards-layer absolute inset-0">
-                {responsiveValues.cardPositions.map((_pos: HeroCardPosition, i: number) => {
-                  const centerIndex = Math.floor(
-                    responsiveValues.cardPositions.length / 2
-                  );
-                  const distanceFromCenter = Math.abs(i - centerIndex);
-                  const zIndex = 10010 - distanceFromCenter;
+                {responsiveValues.cardPositions.map(
+                  (_pos: HeroCardPosition, i: number) => {
+                    const centerIndex = Math.floor(
+                      responsiveValues.cardPositions.length / 2
+                    );
+                    const distanceFromCenter = Math.abs(i - centerIndex);
+                    const zIndex = 10010 - distanceFromCenter;
 
-                  return (
-                    <Link
-                      href="/ui"
-                      key={`v-card-${i}`}
-                      className="phase-3-img hero-vcard absolute origin-center pointer-events-auto cursor-pointer"
-                      style={{
-                        width: `${responsiveValues.cardWidth}px`,
-                        height: `${responsiveValues.cardHeight}px`,
-                        zIndex,
-                      }}
-                    >
-                      <div className="card-elite w-full h-full overflow-hidden relative">
-                        {(() => {
-                          const imageSrc = getImage(i);
-                          const imageStyle = HERO_CARD_IMAGE_STYLES[imageSrc];
-                          return (
-                            <ImageWithFallback
-                              src={imageSrc}
-                              alt={`Scene ${i}`}
-                              className="w-full h-full object-cover"
-                              style={imageStyle}
-                            />
-                          );
-                        })()}
-                        <div className="hero-card-sheen absolute inset-0 pointer-events-none" />
-                      </div>
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        href="/ui"
+                        key={`v-card-${i}`}
+                        className="phase-3-img hero-vcard absolute origin-center pointer-events-auto cursor-pointer"
+                        style={{
+                          width: `${responsiveValues.cardWidth}px`,
+                          height: `${responsiveValues.cardHeight}px`,
+                          zIndex,
+                        }}
+                      >
+                        <div className="card-elite w-full h-full overflow-hidden relative">
+                          {(() => {
+                            const imageSrc = getImage(i);
+                            const imageStyle = HERO_CARD_IMAGE_STYLES[imageSrc];
+                            return (
+                              <ImageWithFallback
+                                src={imageSrc}
+                                alt={`Scene ${i}`}
+                                className="w-full h-full object-cover"
+                                style={imageStyle}
+                              />
+                            );
+                          })()}
+                          <div className="hero-card-sheen absolute inset-0 pointer-events-none" />
+                        </div>
+                      </Link>
+                    );
+                  }
+                )}
               </div>
 
               <div className="main-content-wrapper relative flex flex-col items-center justify-center text-center w-full h-full">

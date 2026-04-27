@@ -24,7 +24,7 @@ export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
     realAgents.forEach((agent) => {
       initialStates.set(agent.id, { id: agent.id, status: "idle" });
     });
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
   }, [realAgents]);
 
   /** تحديث حالة وكيل محدد */

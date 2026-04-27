@@ -72,9 +72,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
     }
   }
 
-  private analyzeVisualConsistency(
-    data: AnalyzeInput
-  ): PluginOutput {
+  private analyzeVisualConsistency(data: AnalyzeInput): PluginOutput {
     const issues: VisualIssue[] = [];
     const suggestions: string[] = [];
 

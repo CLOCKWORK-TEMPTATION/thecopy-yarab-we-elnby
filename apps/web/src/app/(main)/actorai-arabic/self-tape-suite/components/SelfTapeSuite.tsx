@@ -707,15 +707,18 @@ export const SelfTapeSuite: React.FC = () => {
     });
   }, []);
 
-  const revokeTakeResources = useCallback((takeId: string) => {
-    const sessionUrl = sessionUrlRegistryRef.current.get(takeId);
-    if (sessionUrl) {
-      URL.revokeObjectURL(sessionUrl);
-      sessionUrlRegistryRef.current.delete(takeId);
-    }
-    blobRegistryRef.current.delete(takeId);
-    markTakeNotExportable(takeId);
-  }, [markTakeNotExportable]);
+  const revokeTakeResources = useCallback(
+    (takeId: string) => {
+      const sessionUrl = sessionUrlRegistryRef.current.get(takeId);
+      if (sessionUrl) {
+        URL.revokeObjectURL(sessionUrl);
+        sessionUrlRegistryRef.current.delete(takeId);
+      }
+      blobRegistryRef.current.delete(takeId);
+      markTakeNotExportable(takeId);
+    },
+    [markTakeNotExportable]
+  );
 
   const stopTeleprompter = useCallback(() => {
     clearCountdownInterval();

@@ -143,7 +143,7 @@ export default function SceneFormDialog({
    */
   useEffect(() => {
     if (scene) {
-      setTimeout(() => { ; }, 0);
+      setTimeout(() => {}, 0);
     } else {
       setFormData(getDefaultFormData(maxSceneNumber));
     }

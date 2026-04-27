@@ -136,8 +136,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     const processedText = this.cleanupText(output.text);
 
     // Assess recommendations quality
-    const qualityMetrics =
-      this.assessRecommendationsQuality(processedText);
+    const qualityMetrics = this.assessRecommendationsQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =
@@ -376,9 +375,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Generate fallback response specific to recommendations
    */
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `التوصيات والتحسينات المقترحة:
 
 بناءً على التحليل الأولي للنص المقدم، إليك بعض التوصيات العامة:

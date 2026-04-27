@@ -127,7 +127,7 @@ export default function CharacterFormDialog({
    * إعادة تعيين النموذج عند تغيير الشخصية أو فتح الحوار
    */
   useEffect(() => {
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
   }, [character, open]);
 
   /**

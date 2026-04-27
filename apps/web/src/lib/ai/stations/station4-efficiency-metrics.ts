@@ -160,9 +160,7 @@ function parseJsonRecord(text: string): Record<string, unknown> | null {
 }
 
 function finiteNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : fallback;
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function finiteNumberArray(value: unknown): number[] {
@@ -312,9 +310,7 @@ function parseRecommendations(text: string): RecommendationBuckets {
   return {
     priorityActions: stringArrayFromUnknown(parsed["priorityActions"]),
     quickFixes: stringArrayFromUnknown(parsed["quickFixes"]),
-    structuralRevisions: stringArrayFromUnknown(
-      parsed["structuralRevisions"]
-    ),
+    structuralRevisions: stringArrayFromUnknown(parsed["structuralRevisions"]),
   };
 }
 

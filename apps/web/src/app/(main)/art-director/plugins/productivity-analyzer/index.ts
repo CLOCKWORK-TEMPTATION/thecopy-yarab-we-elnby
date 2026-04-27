@@ -267,9 +267,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private resolveBlocker(data: {
-    blockerId: string;
-  }): PluginOutput {
+  private resolveBlocker(data: { blockerId: string }): PluginOutput {
     const blocker = this.blockers.get(data.blockerId);
 
     if (!blocker) {
@@ -295,9 +293,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private analyzePerformance(
-    data: AnalyzePerformanceInput
-  ): PluginOutput {
+  private analyzePerformance(data: AnalyzePerformanceInput): PluginOutput {
     let entries = Array.from(this.timeEntries.values());
 
     if (data.department) {
@@ -368,9 +364,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private getDepartmentReport(data: {
-    department: string;
-  }): PluginOutput {
+  private getDepartmentReport(data: { department: string }): PluginOutput {
     const entries = Array.from(this.timeEntries.values()).filter(
       (e) => e.department === data.department
     );
@@ -471,9 +465,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private getRecommendations(data: {
-    productionId: string;
-  }): PluginOutput {
+  private getRecommendations(data: { productionId: string }): PluginOutput {
     const entries = Array.from(this.timeEntries.values());
     const delays = Array.from(this.delays.values());
     const blockers = Array.from(this.blockers.values());

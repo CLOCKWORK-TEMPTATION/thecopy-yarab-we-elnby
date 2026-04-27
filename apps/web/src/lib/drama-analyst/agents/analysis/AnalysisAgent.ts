@@ -141,10 +141,8 @@ export class AnalysisAgent extends BaseAgent {
 
     // Assess analysis quality
     const structuralScore = this.assessStructuralAnalysis(processedText);
-    const dialecticalScore =
-      this.assessDialecticalAnalysis(processedText);
-    const recommendationsScore =
-      this.assessRecommendations(processedText);
+    const dialecticalScore = this.assessDialecticalAnalysis(processedText);
+    const recommendationsScore = this.assessRecommendations(processedText);
     const depthScore = this.assessAnalyticalDepth(processedText);
 
     // Calculate adjusted confidence
@@ -463,9 +461,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Summarize previous analysis
    */
-  private summarizeAnalysis(
-    analysis: PreviousAnalysisShape | string
-  ): string {
+  private summarizeAnalysis(analysis: PreviousAnalysisShape | string): string {
     if (typeof analysis === "string") {
       return analysis.length > 500
         ? analysis.substring(0, 500) + "..."
@@ -502,9 +498,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `تحليل نقدي معماري:
 تم إجراء تحليل أولي للنص المقدم باستخدام المنهجية الجدلية والتحليل الشعاعي.
 

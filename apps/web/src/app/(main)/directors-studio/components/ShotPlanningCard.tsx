@@ -133,7 +133,7 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
    */
   useEffect(() => {
     if (shot) {
-      setTimeout(() => { ; }, 0);
+      setTimeout(() => {}, 0);
       setCameraAngle(shot.cameraAngle ?? DEFAULT_VALUES.cameraAngle);
       setCameraMovement(shot.cameraMovement ?? DEFAULT_VALUES.cameraMovement);
       setLighting(shot.lighting ?? DEFAULT_VALUES.lighting);

@@ -122,9 +122,7 @@ export class DataManager {
   // استرجاع الإعدادات
   getSettings(): AppSettings {
     const value = this.storage.get(this.STORAGE_KEYS.SETTINGS);
-    return value && !Array.isArray(value)
-      ? (value)
-      : this.getDefaultSettings();
+    return value && !Array.isArray(value) ? value : this.getDefaultSettings();
   }
 
   // حفظ محفز مخصص

@@ -310,10 +310,7 @@ export class GeminiService {
     return { raw: responseText } as T;
   }
 
-  private handleError<T>(
-    error: unknown,
-    request: GeminiRequest<T>
-  ): never {
+  private handleError<T>(error: unknown, request: GeminiRequest<T>): never {
     const message = error instanceof Error ? error.message : "Unknown error";
     logger.error(
       `[GeminiService] Failed to generate content with model ${request.model}`,
@@ -550,7 +547,9 @@ export function getGeminiService(config?: GeminiConfig): GeminiService {
       let apiKey: string;
       try {
         // Dynamic import to avoid issues if env.ts is not available
-        const envModule = require("../../../env") as { getApiKey: () => string };
+        const envModule = require("../../../env") as {
+          getApiKey: () => string;
+        };
         apiKey = envModule.getApiKey();
       } catch {
         // Fallback: try to get from process.env directly

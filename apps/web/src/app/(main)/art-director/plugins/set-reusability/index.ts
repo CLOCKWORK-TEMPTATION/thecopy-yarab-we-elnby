@@ -276,9 +276,7 @@ export class SetReusabilityOptimizer implements Plugin {
     return Math.min(100, Math.max(0, score));
   }
 
-  private analyzeReusability(
-    data: AnalyzeSetInput
-  ): PluginOutput {
+  private analyzeReusability(data: AnalyzeSetInput): PluginOutput {
     const analysis = {
       name: data.name,
       category: data.category,
@@ -338,9 +336,7 @@ export class SetReusabilityOptimizer implements Plugin {
     return allStyles.filter((s) => s !== currentStyle);
   }
 
-  private findReusablePieces(
-    data: FindReusableInput
-  ): PluginOutput {
+  private findReusablePieces(data: FindReusableInput): PluginOutput {
     let pieces = Array.from(this.inventory.values());
 
     if (data.requiredCategory) {

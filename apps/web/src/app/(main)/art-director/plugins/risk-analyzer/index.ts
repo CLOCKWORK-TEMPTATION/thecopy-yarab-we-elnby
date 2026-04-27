@@ -120,9 +120,7 @@ export class RiskAnalyzer implements Plugin {
           input.data as unknown as { riskType: string; context: unknown }
         );
       case "mitigate":
-        return this.generateMitigation(
-          input.data as unknown as { risk: Risk }
-        );
+        return this.generateMitigation(input.data as unknown as { risk: Risk });
       default:
         return {
           success: false,
@@ -463,9 +461,7 @@ export class RiskAnalyzer implements Plugin {
     };
   }
 
-  private generateMitigation(data: {
-    risk: Risk;
-  }): PluginOutput {
+  private generateMitigation(data: { risk: Risk }): PluginOutput {
     const mitigation = this.generateMitigationForRisk(data.risk);
     const contingency =
       data.risk.score > 0.4 ? this.generateContingencyForRisk(data.risk) : null;

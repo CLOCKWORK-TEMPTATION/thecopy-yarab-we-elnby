@@ -701,9 +701,7 @@ export class CinemaSkillsTrainer implements Plugin {
       .map((s) => s.id);
   }
 
-  private getProgress(data: {
-    traineeId: string;
-  }): PluginOutput {
+  private getProgress(data: { traineeId: string }): PluginOutput {
     const progress = traineeProgress.get(data.traineeId);
     if (!progress) {
       return {
@@ -828,9 +826,7 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private getRecommendations(data: {
-    traineeId: string;
-  }): PluginOutput {
+  private getRecommendations(data: { traineeId: string }): PluginOutput {
     const progress = traineeProgress.get(data.traineeId);
 
     const recommendations: { scenarioId: string; reason: string }[] = [];

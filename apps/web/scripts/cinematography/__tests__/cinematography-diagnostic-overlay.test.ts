@@ -187,9 +187,7 @@ function exerciseBusEnvFlag(bus: BusModule): void {
  * - يُرَكَّب مع `role="status"` و `aria-live="polite"` عند `visible=true`.
  * - يعرض الحقول الستة المطلوبة في العقد.
  */
-function exerciseOverlayPresentation(
-  overlay: OverlayModule
-): void {
+function exerciseOverlayPresentation(overlay: OverlayModule): void {
   const baseProps = {
     camera: {
       permission: "granted",

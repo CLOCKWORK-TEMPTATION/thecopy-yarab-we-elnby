@@ -372,9 +372,7 @@ export class CreativeInspirationAssistant implements Plugin {
     ];
   }
 
-  private generateMoodBoard(
-    data: AnalyzeSceneInput
-  ): PluginOutput {
+  private generateMoodBoard(data: AnalyzeSceneInput): PluginOutput {
     const analysisResult = this.analyzeScene(data);
     if (!analysisResult.success) return analysisResult;
 
@@ -420,9 +418,7 @@ export class CreativeInspirationAssistant implements Plugin {
     };
   }
 
-  private getStyleReferences(data: {
-    style: string;
-  }): PluginOutput {
+  private getStyleReferences(data: { style: string }): PluginOutput {
     const references = this.styleDatabase.get(data.style.toLowerCase());
 
     if (!references) {

@@ -144,8 +144,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
 
     // حساب مقاييس الجودة المتعددة
     const goalAchievement = this.assessGoalAchievement(processedText);
-    const qualityImprovement =
-      this.assessQualityImprovement(processedText);
+    const qualityImprovement = this.assessQualityImprovement(processedText);
     const coherence = this.assessCoherence(processedText);
     const creativity = this.assessCreativity(processedText);
 
@@ -371,9 +370,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return mapping[focus] ?? focus;
   }
 
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `عذراً، واجه الوكيل صعوبة في إتمام عملية إعادة الكتابة بشكل كامل.
     
 التحليل الأولي:

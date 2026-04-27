@@ -37,7 +37,9 @@ export class CompletionAgent extends BaseAgent {
     const contextObj: Record<string, unknown> =
       typeof context === "object" && context !== null ? context : {};
     const originalText =
-      typeof contextObj.originalText === "string" ? contextObj.originalText : "";
+      typeof contextObj.originalText === "string"
+        ? contextObj.originalText
+        : "";
     const previousCompletions = Array.isArray(contextObj.previousCompletions)
       ? (contextObj.previousCompletions as string[])
       : [];
@@ -119,8 +121,7 @@ export class CompletionAgent extends BaseAgent {
       metadata: {
         ...output.metadata,
         completionQuality: qualityScore,
-        characterConsistency:
-          this.checkCharacterConsistency(processedText),
+        characterConsistency: this.checkCharacterConsistency(processedText),
         narrativeFlow: this.checkNarrativeFlow(processedText),
       },
     };
@@ -280,12 +281,10 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Generate fallback response specific to completion
    */
-  protected override getFallbackResponse(
-    input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(input: StandardAgentInput): string {
     const contextObj: { completionScope?: string } =
       typeof input.context === "object" && input.context !== null
-        ? (input.context)
+        ? input.context
         : {};
     const scope = contextObj.completionScope ?? "paragraph";
 

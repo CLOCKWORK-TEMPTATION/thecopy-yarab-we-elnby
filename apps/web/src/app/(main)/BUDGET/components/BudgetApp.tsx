@@ -298,7 +298,8 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
         analysis?: unknown;
       };
       if (analyzeResponse.ok) {
-        const analysisResult = analyzeData.data?.analysis ?? analyzeData.analysis;
+        const analysisResult =
+          analyzeData.data?.analysis ?? analyzeData.analysis;
         if (analysisResult) {
           setAiAnalysis(analysisResult as AIAnalysis);
         }
@@ -457,7 +458,7 @@ stunt work, visual effects, and a large cast.`);
     if (!isAutoSave) {
       toast.success("Budget saved successfully!");
     }
-  };
+  }
 
   // Load saved data on mount
   useEffect(() => {

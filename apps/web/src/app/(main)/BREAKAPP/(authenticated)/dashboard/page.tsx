@@ -11,10 +11,7 @@
  * مع توجيه سريع للأقسام المناسبة حسب دور المستخدم
  */
 
-import {
-  removeToken,
-  type CurrentUser,
-} from "@the-copy/breakapp";
+import { removeToken, type CurrentUser } from "@the-copy/breakapp";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
@@ -131,7 +128,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // المصادقة تحت مسؤولية (authenticated)/layout.tsx — هنا فقط نستخرج المستخدم
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
   }, []);
 
   /**

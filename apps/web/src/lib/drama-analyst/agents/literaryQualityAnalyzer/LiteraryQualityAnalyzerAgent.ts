@@ -330,9 +330,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to literary quality analysis
    */
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `التقييم الأدبي الأولي:
 
 بناءً على النص المقدم، يمكن تقديم ملاحظات أولية حول الجودة الأدبية:

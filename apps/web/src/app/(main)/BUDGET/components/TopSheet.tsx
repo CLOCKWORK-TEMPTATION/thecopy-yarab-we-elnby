@@ -30,7 +30,7 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
   useEffect(() => {
     const currentNum = parseFloat(localVal);
     if (Math.abs(currentNum - value * 100) > 0.001) {
-      setTimeout(() => { ; }, 0);
+      setTimeout(() => {}, 0);
     }
   }, [value]);
 

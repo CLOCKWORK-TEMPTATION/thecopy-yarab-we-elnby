@@ -84,9 +84,7 @@ const fallbackVerdict: DebateVerdict = {
 };
 
 function numberFromUnknown(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : fallback;
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
 function parseDebateVerdict(content: string): DebateVerdict {
@@ -552,9 +550,7 @@ export class MultiAgentDebateSystem {
   /**
    * تحديد المواضيع الخلافية
    */
-  private identifyControversialTopics(
-    rounds: DebateRound[]
-  ): string[] {
+  private identifyControversialTopics(rounds: DebateRound[]): string[] {
     const topics: string[] = [];
 
     for (const round of rounds) {

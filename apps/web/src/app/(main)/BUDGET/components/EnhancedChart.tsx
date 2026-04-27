@@ -46,7 +46,12 @@ interface CustomTooltipProps {
   theme?: "light" | "dark";
 }
 
-const CustomTooltip = ({ active, payload, label, theme }: CustomTooltipProps) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+  theme,
+}: CustomTooltipProps) => {
   if (active && payload?.length) {
     return (
       <div

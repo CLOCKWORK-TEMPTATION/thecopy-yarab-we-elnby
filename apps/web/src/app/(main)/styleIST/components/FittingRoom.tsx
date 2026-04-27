@@ -124,7 +124,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
 
   useEffect(() => {
     const report = evaluateSafety(selectedFabric, hazards);
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
     const tp = generateFullTechPack(
       selectedFabric,
       "coat",

@@ -110,11 +110,7 @@ export class ContextRetriever {
     const relevanceScores = new Map<string, number>();
 
     for (const chunk of chunks) {
-      const score = this.calculateRelevanceScore(
-        query,
-        chunk,
-        contextMap
-      );
+      const score = this.calculateRelevanceScore(query, chunk, contextMap);
       relevanceScores.set(chunk.id, score);
     }
 
@@ -228,9 +224,7 @@ export class ContextRetriever {
   /**
    * استخراج العلاقات بين الكيانات
    */
-  private extractRelationships(
-    chunks: TextChunk[]
-  ): Map<string, string[]> {
+  private extractRelationships(chunks: TextChunk[]): Map<string, string[]> {
     const relationships = new Map<string, string[]>();
 
     // للتبسيط، نستخرج العلاقات بناءً على ظهور الكيانات معاً في نفس الجزء

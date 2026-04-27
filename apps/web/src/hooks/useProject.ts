@@ -169,13 +169,7 @@ export function useCreateScene() {
 
 export function useUpdateScene() {
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateSceneRequest;
-    }) => {
+    mutationFn: ({ id, data }: { id: string; data: UpdateSceneRequest }) => {
       return api.updateScene(id, data);
     },
     onSuccess: async () => {
@@ -230,13 +224,7 @@ export function useCreateShot() {
 
 export function useUpdateShot() {
   return useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateShotRequest;
-    }) => {
+    mutationFn: ({ id, data }: { id: string; data: UpdateShotRequest }) => {
       return api.updateShot(id, data);
     },
     onSuccess: async () => {

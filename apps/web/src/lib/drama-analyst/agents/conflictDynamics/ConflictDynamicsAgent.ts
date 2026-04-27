@@ -399,9 +399,7 @@ ${
     return types[type] ?? type;
   }
 
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `نظرة عامة:
 النص يحتوي على عدة مستويات من الصراعات التي تحرك الأحداث وتطور الشخصيات.
 

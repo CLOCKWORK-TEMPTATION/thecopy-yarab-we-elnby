@@ -184,7 +184,7 @@ export function useSessionPersistence() {
     let cancelled = false;
     const localStore = readStore();
 
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
 
     void loadRemoteAppState<BrainstormPersistenceSnapshot>("brain-storm-ai")
       .then((snapshot) => {

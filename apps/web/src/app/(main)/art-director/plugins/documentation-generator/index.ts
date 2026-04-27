@@ -175,9 +175,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     }
   }
 
-  private generateProductionBook(
-    data: GenerateBookInput
-  ): PluginOutput {
+  private generateProductionBook(data: GenerateBookInput): PluginOutput {
     if (!data.productionId || !data.title || !data.includeSections) {
       return {
         success: false,
@@ -329,9 +327,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     }
   }
 
-  private generateStyleGuide(
-    data: GenerateStyleGuideInput
-  ): PluginOutput {
+  private generateStyleGuide(data: GenerateStyleGuideInput): PluginOutput {
     if (!data.productionId || !data.title) {
       return {
         success: false,
@@ -402,9 +398,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private getProductionBook(data: {
-    bookId: string;
-  }): PluginOutput {
+  private getProductionBook(data: { bookId: string }): PluginOutput {
     const book = this.productionBooks.get(data.bookId);
 
     if (!book) {
@@ -420,9 +414,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private getStyleGuide(data: {
-    guideId: string;
-  }): PluginOutput {
+  private getStyleGuide(data: { guideId: string }): PluginOutput {
     const guide = this.styleGuides.get(data.guideId);
 
     if (!guide) {
@@ -461,10 +453,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private exportBook(data: {
-    bookId: string;
-    format: string;
-  }): PluginOutput {
+  private exportBook(data: { bookId: string; format: string }): PluginOutput {
     const book = this.productionBooks.get(data.bookId);
 
     if (!book) {

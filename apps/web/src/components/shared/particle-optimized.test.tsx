@@ -59,7 +59,6 @@ describe("Particle Background Optimization", () => {
     });
 
     it("should implement requestIdleCallback optimization", () => {
-
       const filePath = path.join(
         __dirname,
         "particle-background-optimized.tsx"

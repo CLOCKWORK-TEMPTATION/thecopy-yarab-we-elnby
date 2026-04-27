@@ -1,7 +1,12 @@
 import { Play, Loader2 } from "lucide-react";
 import { useState, useEffect, type CSSProperties } from "react";
 
-import { toolConfigs, ToolId, ToolInput, ToolInputOption } from "../core/toolConfigs";
+import {
+  toolConfigs,
+  ToolId,
+  ToolInput,
+  ToolInputOption,
+} from "../core/toolConfigs";
 import "./Tools.css";
 import { artDirectorApiPath } from "../lib/api-client";
 

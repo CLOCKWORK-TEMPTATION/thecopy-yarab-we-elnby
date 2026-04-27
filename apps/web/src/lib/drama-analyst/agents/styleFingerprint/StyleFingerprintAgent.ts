@@ -326,9 +326,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return areas[area] ?? area;
   }
 
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `التحليل المعجمي:
 النص يظهر تنوعاً معجمياً يعكس مستوى لغوي متوسط إلى مرتفع.
 

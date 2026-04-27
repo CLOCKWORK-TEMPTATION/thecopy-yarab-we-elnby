@@ -225,9 +225,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  private getReviewSummary(data: {
-    projectId: string;
-  }): PluginOutput {
+  private getReviewSummary(data: { projectId: string }): PluginOutput {
     const reviews = Array.from(this.reviews.values()).filter(
       (r) => r.projectId === data.projectId
     );

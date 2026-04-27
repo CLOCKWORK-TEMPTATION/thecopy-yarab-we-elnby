@@ -337,9 +337,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return types[type] ?? type;
   }
 
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `نظرة عامة على الشبكة:
 النص يحتوي على عدة شخصيات مترابطة بعلاقات متنوعة تشكل شبكة اجتماعية معقدة.
 

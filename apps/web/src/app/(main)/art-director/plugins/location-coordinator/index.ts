@@ -168,9 +168,7 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private searchLocations(
-    criteria: SearchCriteria
-  ): PluginOutput {
+  private searchLocations(criteria: SearchCriteria): PluginOutput {
     let results = Array.from(this.locations.values());
 
     if (criteria.type) {
@@ -342,9 +340,7 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private getSetDesigns(data: {
-    locationId?: string;
-  }): PluginOutput {
+  private getSetDesigns(data: { locationId?: string }): PluginOutput {
     let sets = Array.from(this.setDesigns.values());
 
     if (data.locationId) {

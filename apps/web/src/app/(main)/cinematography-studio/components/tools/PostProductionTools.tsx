@@ -387,9 +387,7 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
               </InlineBanner>
             ) : null}
             {mediaError ? (
-              <InlineBanner tone="danger">
-                {mediaError}
-              </InlineBanner>
+              <InlineBanner tone="danger">{mediaError}</InlineBanner>
             ) : null}
             {footageError ? (
               <InlineBanner tone="danger">{footageError}</InlineBanner>

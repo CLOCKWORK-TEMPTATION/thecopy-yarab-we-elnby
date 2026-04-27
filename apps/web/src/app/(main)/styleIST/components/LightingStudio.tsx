@@ -78,7 +78,7 @@ const LightingStudio: React.FC<LightingStudioProps> = (props) => {
   useEffect(() => {
     switch (activeLook) {
       case "NOIR":
-        setTimeout(() => { ; }, 0);
+        setTimeout(() => {}, 0);
         setSpotColor("#ffffff");
         setSpotIntensity(2.5); // Hard light
         setAmbientIntensity(0.2); // Deep shadows

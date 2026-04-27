@@ -484,9 +484,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override getFallbackResponse(
-    input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(input: StandardAgentInput): string {
     const ctx = input.context as AudienceResonanceContext;
     const audienceInfo = ctx?.targetAudience ? "محدد" : "عام";
 

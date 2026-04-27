@@ -40,7 +40,7 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
     setChecking(false);
   }, [router]);
 

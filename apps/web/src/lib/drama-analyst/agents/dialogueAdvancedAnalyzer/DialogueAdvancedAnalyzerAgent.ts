@@ -29,9 +29,7 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
 
     // Extract dialogue context
     const contextObj: Record<string, unknown> =
-      typeof context === "object" && context !== null
-        ? (context)
-        : {};
+      typeof context === "object" && context !== null ? context : {};
     const rawDialogueContext = contextObj.dialogueContext;
     const dialogueContext =
       typeof rawDialogueContext === "string" ? rawDialogueContext : "مشهد عام";
@@ -77,9 +75,7 @@ ${userInput}
   /**
    * استجابة احتياطية
    */
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `# تحليل حوار (احتياطي)
 
 تحليل أولي للحوار:

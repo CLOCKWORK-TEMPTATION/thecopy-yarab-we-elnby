@@ -29,9 +29,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
 
     // Extract character context
     const contextObj: { characterName?: string; previousAnalysis?: string } =
-      typeof context === "object" && context !== null
-        ? (context)
-        : {};
+      typeof context === "object" && context !== null ? context : {};
     const characterName = contextObj.characterName ?? "الشخصية المستهدفة";
     const previousAnalysis = contextObj.previousAnalysis;
 
@@ -84,9 +82,7 @@ ${previousAnalysis.substring(0, 1000)}
   /**
    * استجابة احتياطية
    */
-  protected override getFallbackResponse(
-    _input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(_input: StandardAgentInput): string {
     return `# تحليل شخصية (احتياطي)
 
 نواجه صعوبة في إجراء التحليل العميق الكامل حالياً. إليك ملاحظات أولية:

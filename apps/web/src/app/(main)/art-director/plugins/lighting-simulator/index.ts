@@ -119,9 +119,7 @@ export class LightingSimulator implements Plugin {
     }
   }
 
-  private simulateLighting(
-    data: LightingSimulationInput
-  ): PluginOutput {
+  private simulateLighting(data: LightingSimulationInput): PluginOutput {
     const { scene, style = "naturalistic" } = data;
 
     const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] ?? 5600;

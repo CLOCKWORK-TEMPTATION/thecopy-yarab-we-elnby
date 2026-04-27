@@ -12,12 +12,12 @@ const SAFE_RULES = [
   "unused-imports/no-unused-imports",
   "@typescript-eslint/consistent-generic-constructors",
   "@typescript-eslint/consistent-type-definitions",
-  "@typescript-eslint/prefer-for-of"
+  "@typescript-eslint/prefer-for-of",
 ];
 
 async function main() {
   console.log("Starting ESLint auto-fix for safe rules...");
-  
+
   const eslint = new ESLint({
     fix: true,
   });

@@ -82,9 +82,7 @@ export class BudgetOptimizer implements Plugin {
           input.data as unknown as BudgetOptimizationInput
         );
       case "analyze":
-        return this.analyzeBudget(
-          input.data as unknown as { budget: Budget }
-        );
+        return this.analyzeBudget(input.data as unknown as { budget: Budget });
       case "compare":
         return this.compareBudgets(
           input.data as unknown as {
@@ -110,9 +108,7 @@ export class BudgetOptimizer implements Plugin {
     }
   }
 
-  private optimizeBudget(
-    data: BudgetOptimizationInput
-  ): PluginOutput {
+  private optimizeBudget(data: BudgetOptimizationInput): PluginOutput {
     const { totalBudget, currency, categories, constraints } = data;
 
     if (!categories || categories.length === 0) {

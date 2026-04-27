@@ -91,7 +91,7 @@ export function usePlugins(): UsePluginsReturn {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => { ; }, 0);
+    setTimeout(() => {}, 0);
   }, [fetchPlugins]);
 
   return {

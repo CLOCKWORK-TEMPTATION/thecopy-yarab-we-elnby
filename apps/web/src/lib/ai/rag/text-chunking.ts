@@ -43,10 +43,7 @@ export class TextChunker {
   /**
    * تقسيم النص إلى أجزاء
    */
-  chunkText(
-    text: string,
-    options: ChunkingOptions
-  ): ChunkingResult {
+  chunkText(text: string, options: ChunkingOptions): ChunkingResult {
     switch (options.strategy) {
       case "sliding_window":
         return this.slidingWindowChunking(text, options);

@@ -153,7 +153,8 @@ export async function loadEncryptedDocument(
       credentials: "include",
     });
 
-    const data = (await response.json()) as ApiResponse<EncryptedDocumentPayload>;
+    const data =
+      (await response.json()) as ApiResponse<EncryptedDocumentPayload>;
 
     if (!data.success || !data.data) {
       return {

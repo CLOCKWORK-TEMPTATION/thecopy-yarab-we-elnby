@@ -76,8 +76,9 @@ const baseInsertSceneSchema = createInsertSchema(scenes, {
   description: (schema) => schema.optional(),
 });
 
-export const insertSceneSchema =
-  baseInsertSceneSchema as unknown as z.ZodType<typeof scenes.$inferInsert>;
+export const insertSceneSchema = baseInsertSceneSchema as unknown as z.ZodType<
+  typeof scenes.$inferInsert
+>;
 
 export type InsertScene = typeof scenes.$inferInsert;
 export type Scene = typeof scenes.$inferSelect;
@@ -135,8 +136,9 @@ const baseInsertShotSchema = createInsertSchema(shots, {
   aiSuggestion: (schema) => schema.optional(),
 });
 
-export const insertShotSchema =
-  baseInsertShotSchema as unknown as z.ZodType<typeof shots.$inferInsert>;
+export const insertShotSchema = baseInsertShotSchema as unknown as z.ZodType<
+  typeof shots.$inferInsert
+>;
 
 export type InsertShot = typeof shots.$inferInsert;
 export type Shot = typeof shots.$inferSelect;

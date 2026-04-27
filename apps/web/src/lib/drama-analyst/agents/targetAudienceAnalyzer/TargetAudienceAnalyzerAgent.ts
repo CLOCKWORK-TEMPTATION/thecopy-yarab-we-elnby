@@ -293,9 +293,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to audience analysis
    */
-  protected override getFallbackResponse(
-    input: StandardAgentInput
-  ): string {
+  protected override getFallbackResponse(input: StandardAgentInput): string {
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context

@@ -133,9 +133,7 @@ async function main(): Promise<void> {
       }
     }
 
-    logger.error(
-      `تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`
-    );
+    logger.error(`تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`);
     logger.info(
       JSON.stringify({
         success: true,

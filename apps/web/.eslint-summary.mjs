@@ -10,7 +10,8 @@ for (const f of arr) {
   for (const m of f.messages || []) {
     if (m.fatal) fatal++;
     if (m.ruleId === "@typescript-eslint/no-unsafe-assignment") {
-      const rel = f.filePath.replaceAll("\\", "/").split("apps/web/")[1] || f.filePath;
+      const rel =
+        f.filePath.replaceAll("\\", "/").split("apps/web/")[1] || f.filePath;
       fileViolations[rel] = (fileViolations[rel] || 0) + 1;
     }
   }
@@ -18,4 +19,9 @@ for (const f of arr) {
 const total = Object.values(fileViolations).reduce((a, b) => a + b, 0);
 console.log("files with messages:", withMsgs);
 console.log("fatal messages:", fatal);
-console.log("no-unsafe-assignment total:", total, "files:", Object.keys(fileViolations).length);
+console.log(
+  "no-unsafe-assignment total:",
+  total,
+  "files:",
+  Object.keys(fileViolations).length
+);

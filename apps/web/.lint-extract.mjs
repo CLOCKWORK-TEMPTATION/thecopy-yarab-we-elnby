@@ -7,6 +7,8 @@ for (const f of arr) {
   const path = f.filePath.replaceAll("\\", "/").replace(/.*?apps\/web\//, "");
   console.log(`-- ${path}`);
   for (const m of ms) {
-    console.log(`  ${m.line}:${m.column}  ${m.message.replace(/\n/g, " ").slice(0, 140)}`);
+    console.log(
+      `  ${m.line}:${m.column}  ${m.message.replace(/\n/g, " ").slice(0, 140)}`
+    );
   }
 }
