@@ -201,7 +201,8 @@
     "infra:reset": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/infra.ps1 reset",
     "doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/doctor.ps1",
     "verify:runtime": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/doctor.ps1",
-    "workspace:embed": "pnpm agent:memory:index"
+    "workspace:embed": "pnpm agent:memory:index",
+    "check:line-budget": "node scripts/check-file-line-budget.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

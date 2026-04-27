@@ -1,57 +1,22 @@
-import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-
-import { renderHook, act, cleanup } from "@testing-library/react";
-import { JSDOM } from "jsdom";
-import { NextRequest } from "next/server";
-
-import { createCinematographyInputConfig } from "../../src/app/(main)/cinematography-studio/lib/cinematography-config";
-import {
-  createLocalFootageSummary,
-  createLocalShotAnalysis,
-} from "../../src/app/(main)/cinematography-studio/lib/local-shot-analysis";
 import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
 
+import { runSuite, SuiteResult } from "./utils/test-helpers";
+import { runConfigSuite } from "./suites/config-suite";
+import { runLocalFallbackSuite } from "./suites/fallback-suite";
+import { runRouteSuite } from "./suites/route-suite";
+import { runMediaHookSuite } from "./suites/media-hook-suite";
+import { runSessionStorageSuite } from "./suites/session-storage-suite";
+import { runCameraBindingSuite } from "./suites/camera-binding-suite";
 import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
 import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
 
-interface SuiteResult {
-  name: string;
-  status: "passed" | "failed";
-  durationMs: number;
-  details?: string;
-}
-
-interface FixtureServerState {
-  receivedBodies: Record<string, unknown>[];
-}
-
-interface StartedFixtureServer {
-  baseUrl: string;
-  close: () => Promise<void>;
-  state: FixtureServerState;
-}
-
-const outputDirectory = resolve(
-  process.cwd(),
-  "../../output/cinematography-integration"
-);
+const outputDirectory = resolve(process.cwd(), "../../output/cinematography-integration");
 const reportPath = resolve(outputDirectory, "integration-results.json");
-const fixtureImagePath = resolve(
-  process.cwd(),
-  "tests/fixtures/media/sample-shot.png"
-);
 
 mkdirSync(outputDirectory, { recursive: true });
 
-// تأكد من وجود ملفات وسائط الاختبار قبل أي suite — حتى لا يفشل المسار بـ ENOENT
-// عند تشغيل المُكامل دون global setup الخاص بـ Playwright.
 await ensureMediaFixtures();
 
 async function runSuite(
@@ -652,7 +617,7 @@ async function runCameraBindingSuite(): Promise<void> {
 const suiteResults: SuiteResult[] = [];
 
 suiteResults.push(
-  await runSuite("cinematography-config", runConfigSuite),
+  await runSuite("cinematography-config", async () => runConfigSuite()),
   await runSuite("cinematography-local-fallback", runLocalFallbackSuite),
   await runSuite("cinematography-validate-shot-route", runRouteSuite),
   await runSuite("cinematography-media-hook", runMediaHookSuite),
@@ -680,9 +645,7 @@ const failedSuites = suiteResults.filter((suite) => suite.status === "failed");
 
 if (failedSuites.length > 0) {
   process.stderr.write(
-    `Integration suites failed: ${failedSuites
-      .map((suite) => suite.name)
-      .join(", ")}\n`
+    `Integration suites failed: ${failedSuites.map((suite) => suite.name).join(", ")}\n`
   );
   process.exit(1);
 } else {
