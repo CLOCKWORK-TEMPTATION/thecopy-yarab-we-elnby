@@ -1,0 +1,379 @@
+import {
+  FORMAT_CYCLE_ORDER,
+  FORMAT_LABEL_BY_TYPE,
+  LIBRARY_ACTION_BY_ITEM,
+  PROJECT_TEMPLATE_BY_NAME,
+} from "../../constants/format-mappings";
+import { loadFromStorage, saveToStorage } from "../../hooks";
+import {
+  AUTOSAVE_DRAFT_STORAGE_KEY,
+  type EditorAutosaveSnapshot,
+} from "../../types/app";
+import { logger } from "../../utils/logger";
+
+import { openFile } from "./file-actions";
+import { runExport } from "./export-actions";
+
+import type { FileImportMode } from "../../components/editor";
+import type { MenuActionId } from "../../constants/menu-definitions";
+import type { EditorEngineAdapter } from "../../types";
+import type { EditorActionsDeps } from "./types";
+
+const buildLockedSurfaceMessage = () =>
+  "انتظر حتى تستقر النسخة الحالية أو نفذ استردادًا صريحًا بعد الفشل قبل بدء تشغيل جديد.";
+
+const handleClipboardAction = async (
+  actionId: "copy" | "cut" | "paste",
+  engine: EditorEngineAdapter,
+  deps: EditorActionsDeps
+): Promise<void> => {
+  if (actionId === "paste") {
+    try {
+      const result = await engine.pasteFromClipboard("menu");
+      if (result.ok) {
+        deps.toast({
+          title: "تم اللصق",
+          description: result.message,
+        });
+        return;
+      }
+      if (!document.execCommand("paste")) {
+        deps.toast({
+          title: "تعذر اللصق",
+          description: result.message,
+          variant: "destructive",
+        });
+        deps.recordDiagnostic("تعذر اللصق", result.message);
+      }
+    } catch {
+      if (!document.execCommand("paste")) {
+        const message = "فشل الوصول إلى الحافظة من هذا السياق.";
+        deps.toast({
+          title: "تعذر اللصق",
+          description: message,
+          variant: "destructive",
+        });
+        deps.recordDiagnostic("تعذر اللصق", message);
+      }
+    }
+    return;
+  }
+
+  const result =
+    actionId === "copy"
+      ? await engine.copySelectionToClipboard()
+      : await engine.cutSelectionToClipboard();
+  const fallbackCommand = actionId === "copy" ? "copy" : "cut";
+  const failureTitle = actionId === "copy" ? "تعذر النسخ" : "تعذر القص";
+  const successTitle = actionId === "copy" ? "تم النسخ" : "تم القص";
+
+  if (!result.ok && !document.execCommand(fallbackCommand)) {
+    deps.toast({
+      title: failureTitle,
+      description: result.message,
+      variant: "destructive",
+    });
+    deps.recordDiagnostic(failureTitle, result.message);
+    return;
+  }
+
+  if (result.ok) {
+    deps.toast({
+      title: successTitle,
+      description: result.message,
+    });
+  }
+};
+
+const saveLocalDraft = (
+  engine: EditorEngineAdapter,
+  deps: EditorActionsDeps
+): void => {
+  const snapshot: EditorAutosaveSnapshot = {
+    html: engine.getAllHtml(),
+    text: engine.getAllText(),
+    updatedAt: new Date().toISOString(),
+    version: 2,
+  };
+
+  saveToStorage<EditorAutosaveSnapshot>(AUTOSAVE_DRAFT_STORAGE_KEY, snapshot);
+  deps.toast({
+    title: "تم الحفظ محلياً",
+    description:
+      "تم حفظ المسودة الحالية في متصفحك. لتصدير الملف اختر «تصدير» من القائمة.",
+  });
+};
+
+const showDraftInfo = (deps: EditorActionsDeps): void => {
+  const snapshot = loadFromStorage<EditorAutosaveSnapshot | null>(
+    AUTOSAVE_DRAFT_STORAGE_KEY,
+    null
+  );
+  if (!snapshot?.updatedAt) {
+    deps.toast({
+      title: "معلومات المسودة",
+      description: "لا توجد مسودة محفوظة تلقائيًا حتى الآن.",
+    });
+    return;
+  }
+
+  const updatedAtLabel = new Date(snapshot.updatedAt).toLocaleString("ar-EG");
+  deps.toast({
+    title: "معلومات المسودة",
+    description: `آخر حفظ تلقائي: ${updatedAtLabel}`,
+  });
+};
+
+const applyProjectTemplate = (
+  sectionId: string,
+  itemLabel: string,
+  deps: EditorActionsDeps
+): void => {
+  const area = deps.getArea();
+  if (!area) return;
+
+  if (deps.isProgressiveSurfaceLocked()) {
+    deps.toast({
+      title: "السطح مقفل",
+      description:
+        "أوقف عملية المعالجة الحالية أو انتظر انتهاءها ثم أعد اختيار المشروع.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  const template =
+    PROJECT_TEMPLATE_BY_NAME[
+      itemLabel as keyof typeof PROJECT_TEMPLATE_BY_NAME
+    ];
+  if (!template) {
+    logger.warn("Project template is missing for sidebar project item", {
+      scope: "sidebar-actions",
+      data: {
+        sectionId,
+        itemLabel,
+        availableTemplates: Object.keys(PROJECT_TEMPLATE_BY_NAME),
+      },
+    });
+    deps.toast({
+      title: "لا يوجد قالب مشروع مطابق",
+      description:
+        "اختر مشروعًا مدعومًا من القائمة أو أنشئ مشروعًا من استوديو المخرج قبل المتابعة.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  const html = `
+      <div data-type="scene_header_top_line"><div data-type="scene_header_1">${template.sceneHeader1}</div><div data-type="scene_header_2">${template.sceneHeader2}</div></div>
+      <div data-type="scene_header_3">${template.sceneHeader3}</div>
+      <div data-type="action">${template.action}</div>
+    `.trim();
+
+  area.clear();
+  area.editor.chain().focus().setContent(html, { emitUpdate: true }).run();
+  area.editor.commands.focus("end");
+  deps.toast({
+    title: "تم تحميل المشروع",
+    description: `تم فتح قالب "${itemLabel}" داخل المحرر.`,
+  });
+};
+
+export const handleMenuAction = async (
+  actionId: MenuActionId,
+  deps: EditorActionsDeps
+): Promise<void> => {
+  const area = deps.getArea();
+  if (!area) return;
+  const engine = area as unknown as EditorEngineAdapter;
+
+  if (deps.resolveMenuCommand(actionId)) return;
+
+  if (
+    deps.isProgressiveSurfaceLocked() &&
+    (actionId === "new-file" ||
+      actionId === "open-file" ||
+      actionId === "insert-file" ||
+      actionId === "paste" ||
+      actionId === "tool-auto-check" ||
+      actionId === "tool-reclassify" ||
+      actionId === "restore-draft")
+  ) {
+    deps.toast({
+      title: "التشغيل الحالي لم يستقر بعد",
+      description: buildLockedSurfaceMessage(),
+      variant: "destructive",
+    });
+    return;
+  }
+
+  switch (actionId) {
+    case "new-file":
+      area.clear();
+      deps.toast({ title: "مستند جديد", description: "تم إنشاء مستند فارغ." });
+      break;
+    case "open-file":
+      await openFile("replace", deps);
+      break;
+    case "insert-file":
+      await openFile("insert", deps);
+      break;
+    case "save-file":
+      saveLocalDraft(engine, deps);
+      break;
+    case "print-file":
+      window.print();
+      break;
+    case "export-html":
+      await runExport("html", deps, "screenplay-export");
+      break;
+    case "export-pdf":
+      await runExport("pdf", deps, "screenplay-export");
+      break;
+    case "export-pdfa":
+      await runExport("pdfa", deps, "screenplay-export");
+      break;
+    case "export-fdx":
+      await runExport("fdx", deps, "screenplay-export");
+      break;
+    case "export-fountain":
+      await runExport("fountain", deps, "screenplay-export");
+      break;
+    case "export-classified":
+      await runExport("classified", deps, "النص_المصنف");
+      break;
+    case "undo":
+    case "redo":
+      engine.runCommand({ command: actionId });
+      break;
+    case "bold":
+    case "italic":
+    case "underline":
+    case "align-right":
+    case "align-center":
+    case "align-left":
+      area.runCommand(actionId);
+      break;
+    case "quick-cycle-format": {
+      const current = area.getCurrentFormat();
+      const currentIndex = current ? FORMAT_CYCLE_ORDER.indexOf(current) : -1;
+      const nextFormat =
+        currentIndex >= 0
+          ? FORMAT_CYCLE_ORDER[(currentIndex + 1) % FORMAT_CYCLE_ORDER.length]
+          : FORMAT_CYCLE_ORDER[0];
+
+      if (!nextFormat) break;
+
+      area.setFormat(nextFormat);
+      deps.toast({
+        title: "تبديل التنسيق",
+        description: `تم التحويل إلى: ${FORMAT_LABEL_BY_TYPE[nextFormat]}`,
+      });
+      break;
+    }
+    case "show-draft-info":
+      showDraftInfo(deps);
+      break;
+    case "copy":
+    case "cut":
+    case "paste":
+      await handleClipboardAction(actionId, engine, deps);
+      break;
+    case "select-all":
+      engine.runCommand({ command: "select-all" });
+      break;
+    case "about":
+      deps.toast({
+        title: "أفان تيتر",
+        description: "واجهة Aceternity + محرك تصنيف Tiptap مفعلين معًا.",
+      });
+      break;
+    case "help-shortcuts":
+      deps.toast({
+        title: "اختصارات سريعة",
+        description:
+          "Ctrl+S حفظ، Ctrl+O فتح، Ctrl+N مستند جديد، Ctrl+Z تراجع، Ctrl+Y إعادة، Ctrl+B/I/U تنسيق.",
+      });
+      break;
+    case "restore-draft":
+      await deps.restoreAutosaveDraft();
+      break;
+    case "tool-auto-check":
+      await deps.runDocumentThroughPasteWorkflow({
+        source: "manual-deferred",
+        reviewProfile: "interactive",
+        policyProfile: "strict-structure",
+      });
+      await deps.runForcedProductionSelfCheck("manual-auto-check");
+      break;
+    case "tool-reclassify":
+      await deps.runDocumentThroughPasteWorkflow({
+        source: "manual-deferred",
+        reviewProfile: "interactive",
+        policyProfile: "interactive-legacy",
+      });
+      await deps.runForcedProductionSelfCheck("manual-reclassify");
+      break;
+    default:
+      break;
+  }
+};
+
+export const handleSidebarItemAction = async (
+  sectionId: string,
+  itemLabel: string,
+  deps: EditorActionsDeps
+): Promise<void> => {
+  if (sectionId === "docs") {
+    const mode: FileImportMode = itemLabel.endsWith(".txt")
+      ? "insert"
+      : "replace";
+    deps.toast({
+      title: "اختر الملف",
+      description: `سيتم ${mode === "replace" ? "فتح" : "إدراج"} "${itemLabel}" بعد اختياره من جهازك.`,
+    });
+    await openFile(mode, deps);
+    return;
+  }
+
+  if (sectionId === "projects") {
+    applyProjectTemplate(sectionId, itemLabel, deps);
+    return;
+  }
+
+  if (sectionId === "library") {
+    const actionId =
+      LIBRARY_ACTION_BY_ITEM[itemLabel as keyof typeof LIBRARY_ACTION_BY_ITEM];
+    if (actionId) {
+      await handleMenuAction(actionId, deps);
+      return;
+    }
+
+    logger.warn("Library item has no mapped action", {
+      scope: "sidebar-actions",
+      data: {
+        sectionId,
+        itemLabel,
+        availableActions: Object.keys(LIBRARY_ACTION_BY_ITEM),
+      },
+    });
+    deps.toast({
+      title: "عنصر مكتبة غير مدعوم",
+      description:
+        "هذا العنصر لا يملك إجراءً فعليًا بعد. اختر عنصرًا آخر من عناصر المكتبة المدعومة.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  logger.warn("Unhandled sidebar action fallback reached", {
+    scope: "sidebar-actions",
+    data: { sectionId, itemLabel },
+  });
+  deps.toast({
+    title: "إجراء غير مدعوم",
+    description:
+      "العنصر الذي اخترته لا يملك مسار تنفيذ في هذا الإصدار. جرّب عنصرًا آخر أو ارجع إلى استوديو المخرج.",
+    variant: "destructive",
+  });
+};
