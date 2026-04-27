@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Claude Code cloud environment setup for: the-copy-monorepo
+# Repo type: pnpm + turborepo monorepo (apps/web Next.js, apps/backend, packages/*)
+# Required toolchain (from package.json "engines"):
+#   - Node.js 24.x
+#   - pnpm 10.32.1
+# This script runs once before Claude Code launches in the cloud sandbox.
+
+set -euo pipefail
+
+echo "==> [1/6] Activating Node.js 24"
+# Pick whichever Node version manager the sandbox ships with.
+if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  # shellcheck disable=SC1091
+  . "$NVM_DIR/nvm.sh"
+  nvm install 24 --no-progress
+  nvm alias default 24
+  nvm use 24
+elif command -v fnm >/dev/null 2>&1; then
+  fnm install 24
+  fnm use 24
+  fnm default 24
+elif command -v volta >/dev/null 2>&1; then
+  volta install node@24
+else
+  echo "ERROR: no supported Node version manager found (nvm/fnm/volta)."
+  echo "       Cannot guarantee Node 24 — refusing to continue."
+  node -v || true
+  exit 1
+fi
+
+echo "==> [2/6] Pinning pnpm@10.32.1 via corepack"
+# package.json declares "packageManager": "pnpm@10.32.1" — must match exactly.
+corepack enable
+corepack prepare pnpm@10.32.1 --activate
+
+echo "==> [3/6] Checking private registry token (Tiptap Pro)"
+# apps/web depends on @tiptap-pro/* which requires TIPTAP_PRO_TOKEN.
+# NOTE: Claude Code's "Environment variables" panel is plaintext and not for secrets.
+# If you need this token for install, inject it through a trusted secret store, or
+# accept that @tiptap-pro/* will fail to resolve in this sandbox.
+if [ -z "${TIPTAP_PRO_TOKEN:-}" ]; then
+  echo "WARNING: TIPTAP_PRO_TOKEN is not set — install will fail on @tiptap-pro/*."
+fi
+export TIPTAP_PRO_TOKEN="${TIPTAP_PRO_TOKEN:-}"
+
+echo "==> [4/6] Configuring pnpm and disabling host-only postinstalls"
+# Suppress hooks/binaries that don't apply inside a headless Linux sandbox.
+export CI=1
+export HUSKY=0
+export PUPPETEER_SKIP_DOWNLOAD=1
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+export SHARP_IGNORE_GLOBAL_LIBVIPS=1
+
+echo "==> [5/6] Installing dependencies (pnpm install --frozen-lockfile)"
+# --frozen-lockfile honours pnpm-lock.yaml exactly; never relax this.
+# --prefer-offline reuses the sandbox cache between sessions.
+pnpm install --frozen-lockfile --prefer-offline
+
+echo "==> [6/6] Verifying toolchain"
+node -v
+pnpm -v
+pnpm -r --depth -1 list --json > /dev/null && echo "workspace graph: ok"
+
+echo "==> Setup complete."

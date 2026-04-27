@@ -1,7 +1,5 @@
 // Knowledge Systems - Barrel Export
-// Re-exports all public APIs from the modular structure
-// @deprecated This file is kept for backward compatibility.
-// Prefer importing from './knowledge-systems/' directly.
+// Main entry point - re-exports all public APIs
 
 export type {
   KnowledgeSystemCategory,
@@ -12,12 +10,12 @@ export type {
   KnowledgeInventory,
   KnowledgeSystemDefinition,
   DiscoveryCandidate,
-} from "./knowledge-systems/types";
+} from "./types";
 
 export {
   KNOWLEDGE_DISCOVERY_EXCLUDED_FILE_PATTERNS,
   KNOWLEDGE_SYSTEM_DEFINITIONS,
-} from "./knowledge-systems/definitions";
+} from "./definitions";
 
 export {
   uniqueSorted,
@@ -34,7 +32,6 @@ export {
   collectKnowledgeDiscoveryCandidates,
   isGovernedLocalKnowledgeDoc,
   collectInvalidLocalKnowledgeDocs,
-} from "./knowledge-systems/utils";
+} from "./utils";
 
-export { collectKnowledgeInventory } from "./knowledge-systems/inventory";
-
+export { collectKnowledgeInventory } from "./inventory";
