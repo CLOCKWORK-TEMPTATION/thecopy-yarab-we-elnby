@@ -8,7 +8,6 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   ReactNode,
 } from "react";
@@ -57,12 +56,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
       "تنبيه: تغيير في إضاءة موقع التصوير",
     ],
   });
-
-  useEffect(() => {
-    if (!externalProjectId) return;
-    // تحديث الـ projectId لو اتغير من بره
-    setTimeout(() => {}, 0);
-  }, [externalProjectId]);
+  const projectId = externalProjectId ?? state.projectId;
 
   const setRole = (role: Role) =>
     setState((prev) => ({ ...prev, currentRole: role }));
@@ -79,7 +73,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
   return (
     <ProjectContext.Provider
-      value={{ ...state, setRole, addNotification, updateScene }}
+      value={{ ...state, projectId, setRole, addNotification, updateScene }}
     >
       {children}
     </ProjectContext.Provider>

@@ -6,7 +6,7 @@ import type {
   NavigatorWithConnection,
   WebVitalsConfig,
   WindowWithGtag,
-} from "./webVitalsService";
+} from "./webVitalsTypes";
 
 // No-op replacement for missing GA function
 const sendGAEvent = (..._args: unknown[]) => undefined;

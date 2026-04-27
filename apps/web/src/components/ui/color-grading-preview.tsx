@@ -72,6 +72,11 @@ interface ColorGradingPreviewProps {
   onGradeChange?: (grade: ColorGrade) => void;
 }
 
+function seededAmplitude(index: number, seed: number, amplitude: number): number {
+  const value = Math.sin((index + 1) * seed) * 10000;
+  return (value - Math.floor(value)) * amplitude;
+}
+
 // Famous film LUT presets
 const LUT_PRESETS: LUTPreset[] = [
   {
@@ -411,7 +416,7 @@ export function ColorGradingPreview({
                       d={`M 0 40 ${Array.from(
                         { length: 20 },
                         (_, i) =>
-                          `L ${i * 5} ${40 - Math.random() * 20 - grade.highlights * 0.1}`
+                          `L ${i * 5} ${40 - seededAmplitude(i, 12.9898, 20) - grade.highlights * 0.1}`
                       ).join(" ")} L 100 40 Z`}
                       fill="rgba(255,0,0,0.3)"
                     />
@@ -420,7 +425,7 @@ export function ColorGradingPreview({
                       d={`M 0 40 ${Array.from(
                         { length: 20 },
                         (_, i) =>
-                          `L ${i * 5} ${40 - Math.random() * 25 - grade.shadows * 0.1}`
+                          `L ${i * 5} ${40 - seededAmplitude(i, 78.233, 25) - grade.shadows * 0.1}`
                       ).join(" ")} L 100 40 Z`}
                       fill="rgba(0,255,0,0.3)"
                     />
@@ -428,7 +433,8 @@ export function ColorGradingPreview({
                     <path
                       d={`M 0 40 ${Array.from(
                         { length: 20 },
-                        (_, i) => `L ${i * 5} ${40 - Math.random() * 22}`
+                        (_, i) =>
+                          `L ${i * 5} ${40 - seededAmplitude(i, 37.719, 22)}`
                       ).join(" ")} L 100 40 Z`}
                       fill="rgba(0,0,255,0.3)"
                     />

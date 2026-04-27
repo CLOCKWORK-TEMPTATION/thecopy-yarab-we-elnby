@@ -8,7 +8,7 @@
  */
 
 import { Clapperboard, FileText, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -26,9 +26,17 @@ import {
 } from "./presentation/shared/view-switcher";
 import { WorkspaceGlowCard } from "./presentation/shared/workspace-glow-card";
 
+function subscribeClientReady(_onStoreChange: () => void): () => void {
+  return () => undefined;
+}
+
 export default function BreakdownPage() {
   const [activeView, setActiveView] = useState<BreakdownView>("workspace");
-  const [isClientReady, setIsClientReady] = useState(false);
+  const isClientReady = useSyncExternalStore(
+    subscribeClientReady,
+    () => true,
+    () => false
+  );
 
   const activeViewConfig = useMemo(() => {
     const fallbackViewConfig = VIEW_CONFIG[0];
@@ -37,10 +45,6 @@ export default function BreakdownPage() {
     }
     return VIEW_CONFIG.find((v) => v.id === activeView) ?? fallbackViewConfig;
   }, [activeView]);
-
-  useEffect(() => {
-    setTimeout(() => {}, 0);
-  }, []);
 
   if (!activeViewConfig) {
     return null;

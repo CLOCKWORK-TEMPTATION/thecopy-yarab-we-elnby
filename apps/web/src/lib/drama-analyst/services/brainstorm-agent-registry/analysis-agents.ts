@@ -1,0 +1,151 @@
+import { TaskType } from "../../enums";
+
+import type { BrainstormAgentDefinition } from "./types";
+
+/**
+ * وكلاء التحليل (Analysis)
+ */
+export const ANALYSIS_AGENTS: readonly BrainstormAgentDefinition[] =
+  Object.freeze([
+    {
+      id: TaskType.RHYTHM_MAPPING,
+      name: "TemporalDynamics AI",
+      nameAr: "محلل الإيقاع",
+      role: "رسم الإيقاع الزمني",
+      description:
+        "وكيل ديناميكيات الإيقاع الزمني: محلل متطور يستخدم تقنيات معالجة الإشارات الرقمية",
+      category: "analysis",
+      icon: "music",
+      taskType: TaskType.RHYTHM_MAPPING,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: false,
+        hasMemory: false,
+        usesSelfReflection: false,
+        supportsRAG: false,
+      },
+      collaboratesWith: [TaskType.TENSION_OPTIMIZER],
+      enhances: [TaskType.ANALYSIS],
+      complexityScore: 0.75,
+      phaseRelevance: [3],
+    },
+    {
+      id: TaskType.CHARACTER_NETWORK,
+      name: "SocialGraph AI",
+      nameAr: "محلل الشبكات",
+      role: "شبكات الشخصيات الاجتماعية",
+      description:
+        "وكيل شبكات الشخصيات الاجتماعية: محلل متقدم يطبق نظرية الرسوم البيانية",
+      category: "analysis",
+      icon: "users",
+      taskType: TaskType.CHARACTER_NETWORK,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: false,
+        hasMemory: true,
+        usesSelfReflection: false,
+        supportsRAG: false,
+      },
+      collaboratesWith: [TaskType.CHARACTER_DEEP_ANALYZER],
+      enhances: [TaskType.CHARACTER_DEEP_ANALYZER],
+      complexityScore: 0.8,
+      phaseRelevance: [3],
+    },
+    {
+      id: TaskType.DIALOGUE_FORENSICS,
+      name: "Voiceprint AI",
+      nameAr: "محلل البصمة الصوتية",
+      role: "التحليل الجنائي للحوار",
+      description:
+        "وكيل البصمة الصوتية للحوار: محلل لغوي متطور يستخدم تقنيات NLP المتقدمة",
+      category: "analysis",
+      icon: "message-square",
+      taskType: TaskType.DIALOGUE_FORENSICS,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: false,
+        hasMemory: true,
+        usesSelfReflection: true,
+        supportsRAG: true,
+      },
+      collaboratesWith: [
+        TaskType.CHARACTER_VOICE,
+        TaskType.DIALOGUE_ADVANCED_ANALYZER,
+      ],
+      enhances: [TaskType.CHARACTER_VOICE],
+      complexityScore: 0.82,
+      phaseRelevance: [3],
+    },
+    {
+      id: TaskType.THEMATIC_MINING,
+      name: "ConceptMiner AI",
+      nameAr: "منقّب المفاهيم",
+      role: "التنقيب المفاهيمي العميق",
+      description:
+        "وكيل التنقيب المفاهيمي العميق: محرك ذكي يستخدم تقنيات التعلم غير المراقب",
+      category: "analysis",
+      icon: "search",
+      taskType: TaskType.THEMATIC_MINING,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: false,
+        hasMemory: true,
+        usesSelfReflection: true,
+        supportsRAG: true,
+      },
+      collaboratesWith: [TaskType.THEMES_MESSAGES_ANALYZER],
+      enhances: [TaskType.THEMES_MESSAGES_ANALYZER],
+      complexityScore: 0.88,
+      phaseRelevance: [3],
+    },
+    {
+      id: TaskType.STYLE_FINGERPRINT,
+      name: "AuthorDNA AI",
+      nameAr: "محلل البصمة الأدبية",
+      role: "البصمة الأدبية للمؤلف",
+      description:
+        "وكيل الحمض النووي الأدبي: نظام تحليل أسلوبي متطور يستخدم تقنيات Stylometry",
+      category: "analysis",
+      icon: "fingerprint",
+      taskType: TaskType.STYLE_FINGERPRINT,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: false,
+        hasMemory: true,
+        usesSelfReflection: true,
+        supportsRAG: true,
+      },
+      collaboratesWith: [TaskType.CREATIVE, TaskType.CHARACTER_VOICE],
+      enhances: [TaskType.CREATIVE, TaskType.CHARACTER_VOICE],
+      complexityScore: 0.9,
+      phaseRelevance: [1, 3],
+    },
+    {
+      id: TaskType.CONFLICT_DYNAMICS,
+      name: "TensionField AI",
+      nameAr: "محلل حقول التوتر",
+      role: "ديناميكيات الصراع",
+      description:
+        "وكيل حقول التوتر الدرامي: محلل ديناميكي متطور يطبق نظريات ميكانيكا الموائع",
+      category: "analysis",
+      icon: "zap",
+      taskType: TaskType.CONFLICT_DYNAMICS,
+      capabilities: {
+        canAnalyze: true,
+        canGenerate: false,
+        canPredict: true,
+        hasMemory: true,
+        usesSelfReflection: false,
+        supportsRAG: false,
+      },
+      collaboratesWith: [TaskType.TENSION_OPTIMIZER],
+      enhances: [TaskType.TENSION_OPTIMIZER],
+      complexityScore: 0.85,
+      phaseRelevance: [3],
+    },
+  ]);

@@ -200,7 +200,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
     );
   } finally {
     if (tempDirPath) {
-      await rm(tempDirPath, { recursive: true, force: true }).catch(() => {});
+      await rm(tempDirPath, { recursive: true, force: true }).catch(() => { /* empty */ });
     }
   }
 };

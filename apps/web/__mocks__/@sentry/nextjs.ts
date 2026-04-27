@@ -1,8 +1,8 @@
 // محاكاة يدوية لـ @sentry/nextjs في بيئة الاختبار
-export const captureMessage = () => {};
-export const captureException = () => {};
-export const init = () => {};
-export const setUser = () => {};
-export const setTag = () => {};
-export const setExtra = () => {};
+export const captureMessage = () => { /* empty */ };
+export const captureException = () => { /* empty */ };
+export const init = () => { /* empty */ };
+export const setUser = () => { /* empty */ };
+export const setTag = () => { /* empty */ };
+export const setExtra = () => { /* empty */ };
 export const withScope = (cb: (scope: unknown) => void) => cb({});

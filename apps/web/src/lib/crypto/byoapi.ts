@@ -60,7 +60,8 @@ async function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to open API config database"));
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
@@ -109,7 +110,8 @@ export async function saveAPIConfig(config: APIProviderConfig): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const request = store.put(encryptedConfig);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to save API config"));
   });
 }
 
@@ -135,8 +137,10 @@ export async function getAPIConfig(
   const encryptedConfig = await new Promise<EncryptedAPIConfig | undefined>(
     (resolve, reject) => {
       const request = store.get(id);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () =>
+        resolve(request.result as EncryptedAPIConfig | undefined);
+      request.onerror = () =>
+        reject(request.error ?? new Error("Failed to read API config"));
     }
   );
 
@@ -173,7 +177,8 @@ export async function deleteAPIConfig(id: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const request = store.delete(id);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to delete API config"));
   });
 }
 
@@ -190,7 +195,8 @@ export async function listAPIConfigs(): Promise<
   const configs = await new Promise<EncryptedAPIConfig[]>((resolve, reject) => {
     const request = store.getAll();
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to list API configs"));
   });
 
   return configs.map((config) =>
@@ -255,6 +261,7 @@ export async function clearAllAPIConfigs(): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const request = store.clear();
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to clear API configs"));
   });
 }

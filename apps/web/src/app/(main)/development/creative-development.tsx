@@ -793,7 +793,7 @@ const DramaAnalystApp: React.FC = () => {
             <AgentReportsExporter
               reports={taskResults}
               originalText={textInput}
-              onExport={() => {}}
+              onExport={() => { /* empty */ }}
             />
           </CardContent>
         </Card>

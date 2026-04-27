@@ -34,6 +34,7 @@ const withVersionedPath = (baseUrl, pathAfterV1) => {
 };
 
 export const resolveMistralOcrRuntime = (_env = process.env) => {
+  void _env;
   return {
     baseUrl: CANONICAL_MISTRAL_BASE_URL,
     ocrEndpoint: CANONICAL_MISTRAL_OCR_ENDPOINT,
@@ -42,6 +43,7 @@ export const resolveMistralOcrRuntime = (_env = process.env) => {
 };
 
 export const resolveMistralChatRuntime = (_env = process.env) => {
+  void _env;
   return {
     baseUrl: CANONICAL_MISTRAL_BASE_URL,
     chatCompletionsEndpoint: CANONICAL_MISTRAL_CHAT_COMPLETIONS_ENDPOINT,
@@ -50,6 +52,7 @@ export const resolveMistralChatRuntime = (_env = process.env) => {
 };
 
 export const resolveMistralConversationsRuntime = (_env = process.env) => {
+  void _env;
   return {
     baseUrl: CANONICAL_MISTRAL_BASE_URL,
     conversationsEndpoint: CANONICAL_MISTRAL_CONVERSATIONS_ENDPOINT,
@@ -58,6 +61,7 @@ export const resolveMistralConversationsRuntime = (_env = process.env) => {
 };
 
 export const resolveMistralAgentsRuntime = (_env = process.env) => {
+  void _env;
   return {
     baseUrl: CANONICAL_MISTRAL_BASE_URL,
     agentsEndpoint: CANONICAL_MISTRAL_AGENTS_ENDPOINT,

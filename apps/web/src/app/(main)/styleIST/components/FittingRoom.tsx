@@ -3,7 +3,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
@@ -14,10 +14,7 @@ import {
   SceneHazard,
 } from "../services/rulesEngine";
 import { getSceneCostumes, assignSceneCostume } from "../services/styleistApi";
-import {
-  generateFullTechPack,
-  TechPackSpec,
-} from "../services/techPackService";
+import { generateFullTechPack } from "../services/techPackService";
 import { WardrobeItem } from "../types";
 
 import ContinuityTimeline, { SceneCardData } from "./ContinuityTimeline";
@@ -45,13 +42,19 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
   );
   const [selectedFabric, setSelectedFabric] = useState<FabricType>("cotton");
   const [hazards, setHazards] = useState<SceneHazard[]>([]);
-  const [safetyReport, setSafetyReport] = useState<unknown>(null);
   const [activeTab, setActiveTab] = useState<"3d" | "data">("3d");
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
 
   const [projectYear, setProjectYear] = useState<number>(2024);
-  const [techPack, setTechPack] = useState<TechPackSpec | null>(null);
   const [showTechPackModal, setShowTechPackModal] = useState(false);
+  const safetyReport = useMemo(
+    () => evaluateSafety(selectedFabric, hazards),
+    [hazards, selectedFabric]
+  );
+  const techPack = useMemo(
+    () => generateFullTechPack(selectedFabric, "coat", projectYear, "black"),
+    [projectYear, selectedFabric]
+  );
 
   const [activeSceneId, setActiveSceneId] = useState("SC-4");
   const [scenes, setScenes] = useState<SceneCardData[]>([
@@ -119,23 +122,14 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
           })
         );
       })
-      .catch(() => {});
+      .catch(() => { /* empty */ });
   }, [projectId]);
 
   useEffect(() => {
-    const report = evaluateSafety(selectedFabric, hazards);
-    setTimeout(() => {}, 0);
-    const tp = generateFullTechPack(
-      selectedFabric,
-      "coat",
-      projectYear,
-      "black"
-    );
-    setTechPack(tp);
-    if (report.status === "critical")
-      addNotification(`تنبيه سلامة: ${report.issues[0]}`);
-    if (tp.historicalWarning) addNotification(tp.historicalWarning);
-  }, [selectedFabric, hazards, projectYear, addNotification]);
+    if (safetyReport.status === "critical")
+      addNotification(`تنبيه سلامة: ${safetyReport.issues[0]}`);
+    if (techPack.historicalWarning) addNotification(techPack.historicalWarning);
+  }, [safetyReport, techPack, addNotification]);
 
   const toggleHazard = (h: SceneHazard) =>
     setHazards((prev) =>
@@ -157,7 +151,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
       projectId,
       sceneId: activeSceneId,
       wardrobeItemId: item.id,
-    }).catch(() => {});
+    }).catch(() => { /* empty */ });
   };
 
   const handleFixContinuity = (

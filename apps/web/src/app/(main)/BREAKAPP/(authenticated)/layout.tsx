@@ -14,10 +14,9 @@
 import {
   getCurrentUser,
   isAuthenticated,
-  type CurrentUser,
 } from "@the-copy/breakapp";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function AuthenticatedLayout({
   children,
@@ -25,26 +24,15 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [checking, setChecking] = useState(true);
+  const user = getCurrentUser();
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated() || !getCurrentUser()) {
       router.replace("/BREAKAPP/login/qr");
-      return;
     }
-
-    const userData = getCurrentUser();
-    if (!userData) {
-      router.replace("/BREAKAPP/login/qr");
-      return;
-    }
-
-    setTimeout(() => {}, 0);
-    setChecking(false);
   }, [router]);
 
-  if (checking || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black/8 backdrop-blur-xl">
         <div className="text-center">

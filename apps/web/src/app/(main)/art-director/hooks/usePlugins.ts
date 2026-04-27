@@ -91,7 +91,15 @@ export function usePlugins(): UsePluginsReturn {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {}, 0);
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        void fetchPlugins();
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [fetchPlugins]);
 
   return {

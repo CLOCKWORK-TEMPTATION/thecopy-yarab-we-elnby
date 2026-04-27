@@ -13,7 +13,7 @@ export class KeyManager {
   private static instance: KeyManager;
   private kek: CryptoKey | null = null;
 
-  private constructor() {}
+  private constructor() { /* empty */ }
 
   /**
    * الحصول على المثيل الوحيد (Singleton)

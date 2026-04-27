@@ -264,7 +264,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
       result.current.setTextInput("أ".repeat(101));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     expect(result.current.isAnalysisComplete).toBe(true);
   });
@@ -276,7 +276,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
       result.current.setTextInput("أ".repeat(100));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     // 100 chars is NOT > MIN_TEXT_LENGTH(100) — still locked
     expect(result.current.isAnalysisComplete).toBe(false);
@@ -289,7 +289,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
       result.current.setAnalysisReport("أ".repeat(101));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     expect(result.current.isAnalysisComplete).toBe(true);
   });
@@ -302,7 +302,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
       result.current.setAnalysisReport("أ".repeat(50));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     expect(result.current.isAnalysisComplete).toBe(false);
   });
@@ -315,7 +315,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
       result.current.setTextInput("أ".repeat(150));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     expect(result.current.isAnalysisComplete).toBe(true);
   });
@@ -495,7 +495,7 @@ describe("T051: unlockStatus.progress after gate fix", () => {
       result.current.setAnalysisReport("أ".repeat(20));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     // Progress should be based on max(80, 20) = 80
     expect(result.current.unlockStatus.progress).toBe(80);
@@ -509,7 +509,7 @@ describe("T051: unlockStatus.progress after gate fix", () => {
       result.current.setAnalysisReport("أ".repeat(70));
     });
 
-    await act(async () => {});
+    await act(async () => { /* empty */ });
 
     expect(result.current.unlockStatus.progress).toBe(70);
   });

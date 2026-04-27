@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import { Budget, SecurityRisk } from "../lib/types";
 
@@ -26,13 +26,11 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
   theme,
 }) => {
   const [localVal, setLocalVal] = useState<string>((value * 100).toString());
-
-  useEffect(() => {
-    const currentNum = parseFloat(localVal);
-    if (Math.abs(currentNum - value * 100) > 0.001) {
-      setTimeout(() => {}, 0);
-    }
-  }, [value]);
+  const currentNum = parseFloat(localVal);
+  const nextValue = (value * 100).toString();
+  if (localVal !== "" && Math.abs(currentNum - value * 100) > 0.001) {
+    setLocalVal(nextValue);
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVal = e.target.value;

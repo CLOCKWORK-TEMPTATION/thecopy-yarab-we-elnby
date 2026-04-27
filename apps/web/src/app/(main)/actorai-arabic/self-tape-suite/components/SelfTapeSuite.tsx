@@ -394,7 +394,7 @@ export const SelfTapeSuite: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isFinalizingTake, setIsFinalizingTake] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [comparisonView, setComparisonView] = useState<ComparisonView>({
+  const [comparisonViewState, setComparisonView] = useState<ComparisonView>({
     leftTakeId: null,
     rightTakeId: null,
     syncPlayback: true,
@@ -411,7 +411,7 @@ export const SelfTapeSuite: React.FC = () => {
   });
   const [exportingTakeId, setExportingTakeId] = useState<string | null>(null);
   const [exportProgress, setExportProgress] = useState(0);
-  const [notesTakeId, setNotesTakeId] = useState<string | null>(null);
+  const [notesTakeIdState, setNotesTakeId] = useState<string | null>(null);
   const [manualNoteDrafts, setManualNoteDrafts] = useState<
     Record<string, string>
   >({});
@@ -445,6 +445,37 @@ export const SelfTapeSuite: React.FC = () => {
     () => takes.filter((take) => take.status !== "recording"),
     [takes]
   );
+  const notesTakeId = useMemo(() => {
+    if (availableTakes.length === 0) {
+      return null;
+    }
+    if (
+      notesTakeIdState &&
+      availableTakes.some((take) => take.id === notesTakeIdState)
+    ) {
+      return notesTakeIdState;
+    }
+    return availableTakes[0]?.id ?? null;
+  }, [availableTakes, notesTakeIdState]);
+  const comparisonView = useMemo<ComparisonView>(() => {
+    const takeIds = new Set(availableTakes.map((take) => take.id));
+    const nextLeft =
+      comparisonViewState.leftTakeId &&
+      takeIds.has(comparisonViewState.leftTakeId)
+        ? comparisonViewState.leftTakeId
+        : (availableTakes[0]?.id ?? null);
+    const nextRight =
+      comparisonViewState.rightTakeId &&
+      takeIds.has(comparisonViewState.rightTakeId)
+        ? comparisonViewState.rightTakeId
+        : (availableTakes.find((take) => take.id !== nextLeft)?.id ?? null);
+
+    return {
+      ...comparisonViewState,
+      leftTakeId: nextLeft,
+      rightTakeId: nextRight,
+    };
+  }, [availableTakes, comparisonViewState]);
   const totalDuration = useMemo(
     () => availableTakes.reduce((sum, take) => sum + take.duration, 0),
     [availableTakes]
@@ -521,7 +552,7 @@ export const SelfTapeSuite: React.FC = () => {
           setNotesTakeId(snapshot.notesTakeId);
         }
       })
-      .catch(() => {})
+      .catch(() => { /* empty */ })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -558,7 +589,7 @@ export const SelfTapeSuite: React.FC = () => {
           comparisonView,
           notesTakeId,
         }
-      ).catch(() => {});
+      ).catch(() => { /* empty */ });
     }, 400);
 
     return () => {
@@ -583,48 +614,6 @@ export const SelfTapeSuite: React.FC = () => {
     const timeoutId = setTimeout(() => setNotification(null), 4500);
     return () => clearTimeout(timeoutId);
   }, [notification]);
-
-  useEffect(() => {
-    if (availableTakes.length === 0) {
-      setNotesTakeId(null);
-      return;
-    }
-
-    setNotesTakeId((current) => {
-      if (current && availableTakes.some((take) => take.id === current)) {
-        return current;
-      }
-      return availableTakes[0]?.id ?? null;
-    });
-  }, [availableTakes]);
-
-  useEffect(() => {
-    const takeIds = new Set(availableTakes.map((take) => take.id));
-
-    setComparisonView((current) => {
-      const nextLeft =
-        current.leftTakeId && takeIds.has(current.leftTakeId)
-          ? current.leftTakeId
-          : (availableTakes[0]?.id ?? null);
-      const nextRight =
-        current.rightTakeId && takeIds.has(current.rightTakeId)
-          ? current.rightTakeId
-          : (availableTakes.find((take) => take.id !== nextLeft)?.id ?? null);
-
-      if (
-        nextLeft === current.leftTakeId &&
-        nextRight === current.rightTakeId
-      ) {
-        return current;
-      }
-
-      return {
-        ...current,
-        leftTakeId: nextLeft,
-        rightTakeId: nextRight,
-      };
-    });
-  }, [availableTakes]);
 
   useEffect(() => {
     if (!teleprompterRunning || !teleprompterSettings.autoScroll) {
@@ -819,8 +808,17 @@ export const SelfTapeSuite: React.FC = () => {
 
   useEffect(() => {
     if (activeTool === "recorder" && cameraState === "idle") {
-      void requestCameraAccess();
+      let cancelled = false;
+      void Promise.resolve().then(() => {
+        if (!cancelled) {
+          void requestCameraAccess();
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
     }
+    return undefined;
   }, [activeTool, cameraState, requestCameraAccess]);
 
   useEffect(() => {

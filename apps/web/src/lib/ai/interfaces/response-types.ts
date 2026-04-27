@@ -277,12 +277,15 @@ export type ContextMap = z.infer<typeof ContextMapSchema>;
 /**
  * Validates and parses a response using a Zod schema
  */
-export function validateResponse<T extends z.ZodType>(
-  schema: T,
+export function validateResponse<TOutput>(
+  schema: z.ZodType<TOutput>,
   data: unknown
-): z.infer<T> {
-  const parsed: unknown = schema.parse(data);
-  return parsed as z.infer<T>;
+): TOutput {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    throw result.error;
+  }
+  return result.data;
 }
 
 /**

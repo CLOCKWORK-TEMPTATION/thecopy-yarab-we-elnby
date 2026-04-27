@@ -11,10 +11,14 @@
  * مع توجيه سريع للأقسام المناسبة حسب دور المستخدم
  */
 
-import { removeToken, type CurrentUser } from "@the-copy/breakapp";
+import {
+  getCurrentUser,
+  removeToken,
+  type CurrentUser,
+} from "@the-copy/breakapp";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { toast } from "@/hooks/use-toast";
@@ -124,12 +128,7 @@ const ROLE_QUICK_LINKS: Record<
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-
-  useEffect(() => {
-    // المصادقة تحت مسؤولية (authenticated)/layout.tsx — هنا فقط نستخرج المستخدم
-    setTimeout(() => {}, 0);
-  }, []);
+  const user: CurrentUser | null = getCurrentUser();
 
   /**
    * تسجيل الخروج

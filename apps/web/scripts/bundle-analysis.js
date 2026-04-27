@@ -38,7 +38,7 @@ function analyzeBundle() {
           try {
             const childPath = safeResolve(staticDir, currentRelative, file);
             calculateSize(childPath);
-          } catch (error) {
+          } catch {
             console.warn(`Skipping invalid path: ${file}`);
           }
         });

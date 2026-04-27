@@ -9,16 +9,11 @@
  * - حماية حسب الدور عبر requireRole()
  */
 
-import { createHash } from 'node:crypto';
-
-import { Router, type Request, type Response, type NextFunction } from 'express';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { Router } from 'express';
 import { z } from 'zod';
 
-import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
 import { websocketService } from '@/services/websocket.service';
-import { signJwt, verifyJwt } from '@/utils/jwt-secret-manager';
 
 import { registerAdminRoutes } from './admin-routes';
 import { breakappGateway } from './gateway';
@@ -27,77 +22,18 @@ import { breakappService } from './service';
 
 import type { BreakappRole, BreakappTokenPayload, OrderStatus } from './service.types';
 
+import { requireAuth, requireRole, type AuthenticatedRequest } from './middlewares';
+import { publicAuthLimiter, protectedLimiter, runnerLocationLimiter, adminWriteLimiter } from './limiters';
+import {
+  orderStatusSchema,
+  runnerLocationSchema,
+  createMenuItemSchema,
+  updateMenuItemSchema,
+} from './schemas';
+import { handleScanQr, handleVerifyToken, handleRefreshToken, handleLogout } from './auth-handlers';
+import { handleCreateSession, handleGetOrders, handleCreateOrder, handleGetOrder } from './handlers';
+
 const router = Router();
-
-const REFRESH_COOKIE_NAME = 'breakapp_refresh';
-const ACCESS_TOKEN_TTL_SECONDS = 8 * 60 * 60; // 8 ساعات
-const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 يوماً
-
-// ---------- Helpers ----------
-
-function readCookie(request: Request, name: string): string | null {
-  const rawCookies: unknown = request.cookies;
-  if (!rawCookies || typeof rawCookies !== 'object') {
-    return null;
-  }
-  const value = (rawCookies as Record<string, unknown>)[name];
-  return typeof value === 'string' && value ? value : null;
-}
-
-function getBearerToken(request: Request): string | null {
-  const authorizationHeader = request.headers.authorization;
-  if (authorizationHeader?.startsWith('Bearer ')) {
-    return authorizationHeader.slice('Bearer '.length).trim();
-  }
-  return readCookie(request, 'accessToken');
-}
-
-function verifyBreakappToken(request: Request): BreakappTokenPayload {
-  const token = getBearerToken(request);
-  if (!token) {
-    throw new Error('مطلوب رمز مصادقة');
-  }
-  return verifyJwt<BreakappTokenPayload>(token);
-}
-
-interface AuthenticatedRequest extends Request {
-  breakappAuth?: BreakappTokenPayload;
-}
-
-function requireAuth(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void {
-  try {
-    const payload = verifyBreakappToken(req);
-    req.breakappAuth = payload;
-    next();
-  } catch (error) {
-    res.status(401).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'غير مصرح',
-    });
-  }
-}
-
-function requireRole(...allowed: BreakappRole[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    const auth = req.breakappAuth;
-    if (!auth) {
-      res.status(401).json({ success: false, error: 'غير مصرح' });
-      return;
-    }
-    if (!allowed.includes(auth.role)) {
-      res.status(403).json({
-        success: false,
-        error: 'صلاحيات غير كافية',
-      });
-      return;
-    }
-    next();
-  };
-}
 
 function handleValidationError(res: Response, error: z.ZodError): void {
   res.status(400).json({
@@ -110,152 +46,13 @@ function handleValidationError(res: Response, error: z.ZodError): void {
   });
 }
 
-function signAccessToken(params: {
-  userId: string;
-  projectId: string;
-  role: BreakappRole;
-}): string {
-  const issuedAt = Math.floor(Date.now() / 1000);
-  const payload: BreakappTokenPayload = {
-    sub: params.userId,
-    projectId: params.projectId,
-    role: params.role,
-    iat: issuedAt,
-    exp: issuedAt + ACCESS_TOKEN_TTL_SECONDS,
-  };
-  return signJwt(payload);
-}
 
-async function issueRefreshCookie(
-  res: Response,
-  params: { userId: string; projectId: string }
-): Promise<void> {
-  const token = breakappService.generateRefreshToken();
-  const tokenHash = breakappService.hashRefreshToken(token);
-  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
-  await repo.insertRefreshToken({
-    userId: params.userId,
-    projectId: params.projectId,
-    tokenHash,
-    expiresAt,
-  });
 
-  res.cookie(REFRESH_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/api/breakapp/auth',
-    maxAge: REFRESH_TOKEN_TTL_MS,
-  });
-}
 
-function clearRefreshCookie(res: Response): void {
-  res.clearCookie(REFRESH_COOKIE_NAME, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/api/breakapp/auth',
-  });
-}
 
-// ---------- Rate limiters ----------
 
-const publicAuthLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`,
-  message: { success: false, error: 'تم تجاوز حد محاولات المصادقة' },
-});
 
-const protectedLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 120,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const token = getBearerToken(req);
-    if (token) {
-      const tokenHash = createHash('sha256').update(token).digest('hex');
-      return `token:${tokenHash}`;
-    }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
-  },
-  message: { success: false, error: 'تم تجاوز حد طلبات الخدمة' },
-});
-
-const runnerLocationLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 240, // runners قد يبثّون الموقع مرتين في الثانية
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const token = getBearerToken(req);
-    if (token) {
-      return `token:${createHash('sha256').update(token).digest('hex')}`;
-    }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
-  },
-  message: { success: false, error: 'تم تجاوز حد تحديثات الموقع' },
-});
-
-// Admin write endpoints — أصرم (10 طلبات / 5 دقائق)
-const adminWriteLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => {
-    const token = getBearerToken(req);
-    if (token) {
-      return `token:${createHash('sha256').update(token).digest('hex')}`;
-    }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
-  },
-  message: { success: false, error: 'تم تجاوز حد عمليات الإدارة' },
-});
-
-// ---------- Zod schemas ----------
-
-const scanQrSchema = z.object({ qr_token: z.string().min(1) });
-const createSessionBodySchema = z.object({
-  projectId: z.string().uuid().optional(),
-  lat: z.number(),
-  lng: z.number(),
-});
-const orderItemSchema = z.object({
-  menuItemId: z.string().uuid(),
-  quantity: z.number().int().positive(),
-});
-const createOrderSchema = z.object({
-  sessionId: z.string().uuid(),
-  items: z.array(orderItemSchema).min(1),
-});
-const orderStatusSchema = z.object({
-  status: z.enum(['pending', 'processing', 'completed', 'cancelled']),
-});
-const runnerLocationSchema = z.object({
-  runnerId: z.string().min(1),
-  sessionId: z.string().uuid().optional(),
-  lat: z.number().finite(),
-  lng: z.number().finite(),
-  accuracy: z.number().finite().nonnegative().optional(),
-});
-const createMenuItemSchema = z.object({
-  vendorId: z.string().uuid().optional(),
-  name: z.string().min(1),
-  description: z.string().max(500).optional(),
-  price: z.number().int().nonnegative().optional(),
-  available: z.boolean().optional().default(true),
-});
-const updateMenuItemSchema = z.object({
-  name: z.string().min(1).optional(),
-  description: z.string().max(500).nullable().optional(),
-  price: z.number().int().nonnegative().nullable().optional(),
-  available: z.boolean().optional(),
-});
 
 // ---------- Health ----------
 
@@ -266,148 +63,13 @@ router.get('/health', async (_req, res) => {
 
 // ---------- Auth ----------
 
-router.post('/auth/scan-qr', publicAuthLimiter, async (req, res) => {
-  try {
-    const body = scanQrSchema.safeParse(req.body);
-    if (!body.success) {
-      handleValidationError(res, body.error);
-      return;
-    }
+router.post('/auth/scan-qr', publicAuthLimiter, handleScanQr);
 
-    const parsed = breakappService.parseQrToken(body.data.qr_token);
-    const accessToken = signAccessToken({
-      userId: parsed.userId,
-      projectId: parsed.projectId,
-      role: parsed.role,
-    });
+router.post('/auth/verify', publicAuthLimiter, handleVerifyToken);
 
-    try {
-      await repo.addProjectMember({
-        projectId: parsed.projectId,
-        userId: parsed.userId,
-        role: parsed.role,
-      });
-    } catch (error) {
-      // إذا فشل الإدخال (مثلاً المشروع غير موجود) نستمر لكن لا نصدر refresh cookie.
-      logger.warn('[breakapp] Failed to persist project member on scan-qr', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
+router.post('/auth/refresh', publicAuthLimiter, handleRefreshToken);
 
-    try {
-      await issueRefreshCookie(res, {
-        userId: parsed.userId,
-        projectId: parsed.projectId,
-      });
-    } catch (error) {
-      logger.warn('[breakapp] Failed to issue refresh cookie', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-
-    res.json({
-      access_token: accessToken,
-      user: {
-        id: parsed.userId,
-        projectId: parsed.projectId,
-        role: parsed.role,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'فشل تسجيل الدخول',
-    });
-  }
-});
-
-router.post('/auth/verify', publicAuthLimiter, (req, res) => {
-  try {
-    const body: Record<string, unknown> =
-      req.body && typeof req.body === 'object'
-        ? (req.body as Record<string, unknown>)
-        : {};
-    const rawToken = body['token'];
-    const bodyToken = typeof rawToken === 'string' ? rawToken : '';
-    const token = bodyToken !== '' ? bodyToken : (getBearerToken(req) ?? '');
-
-    const payload = verifyJwt<BreakappTokenPayload>(token);
-    res.json({
-      valid: true,
-      payload: {
-        userId: payload.sub,
-        projectId: payload.projectId,
-        role: payload.role,
-      },
-    });
-  } catch {
-    res.json({ valid: false, payload: null });
-  }
-});
-
-router.post('/auth/refresh', publicAuthLimiter, async (req, res) => {
-  try {
-    const cookieValue = readCookie(req, REFRESH_COOKIE_NAME);
-    if (!cookieValue) {
-      res.status(401).json({ success: false, error: 'رمز التحديث مفقود' });
-      return;
-    }
-
-    const hash = breakappService.hashRefreshToken(cookieValue);
-    const stored = await repo.findRefreshToken(hash);
-    if (!stored) {
-      res.status(401).json({ success: false, error: 'رمز التحديث غير صالح' });
-      return;
-    }
-    if (stored.revokedAt) {
-      res.status(401).json({ success: false, error: 'رمز التحديث مُبطَل' });
-      return;
-    }
-    if (stored.expiresAt.getTime() <= Date.now()) {
-      res.status(401).json({ success: false, error: 'رمز التحديث منتهي' });
-      return;
-    }
-
-    const role = await repo.getUserRoleInProject(
-      stored.projectId,
-      stored.userId
-    );
-    if (!role) {
-      res.status(401).json({ success: false, error: 'العضوية غير موجودة' });
-      return;
-    }
-
-    const accessToken = signAccessToken({
-      userId: stored.userId,
-      projectId: stored.projectId,
-      role,
-    });
-    res.json({ access_token: accessToken });
-  } catch (error) {
-    logger.warn('[breakapp] refresh failed', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    res.status(401).json({ success: false, error: 'تعذر تجديد الجلسة' });
-  }
-});
-
-router.post('/auth/logout', publicAuthLimiter, async (req, res) => {
-  try {
-    const cookieValue = readCookie(req, REFRESH_COOKIE_NAME);
-    if (cookieValue) {
-      const hash = breakappService.hashRefreshToken(cookieValue);
-      await repo.revokeRefreshToken(hash);
-    }
-    clearRefreshCookie(res);
-    res.json({ success: true });
-  } catch (error) {
-    logger.warn('[breakapp] logout failed', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    clearRefreshCookie(res);
-    res.json({ success: true });
-  }
-});
+router.post('/auth/logout', publicAuthLimiter, handleLogout);
 
 router.get('/auth/me', protectedLimiter, requireAuth, (req: AuthenticatedRequest, res) => {
   const auth = req.breakappAuth;
@@ -478,123 +140,17 @@ router.get('/vendors/:id/menu', protectedLimiter, requireAuth, async (req, res) 
 
 // ---------- Sessions ----------
 
-router.post('/geo/session', protectedLimiter, requireAuth, requireRole('director', 'admin'), async (req: AuthenticatedRequest, res) => {
-  try {
-    const body = createSessionBodySchema.safeParse(req.body);
-    if (!body.success) {
-      handleValidationError(res, body.error);
-      return;
-    }
-
-    const auth = req.breakappAuth;
-    if (!auth) {
-      res.status(401).json({ success: false, error: 'غير مصرح' });
-      return;
-    }
-
-    const projectId = body.data.projectId ?? auth.projectId;
-    const session = await breakappService.createSession({
-      projectId,
-      lat: body.data.lat,
-      lng: body.data.lng,
-      createdBy: auth.sub,
-    });
-
-    breakappGateway.emitSessionStarted(session.id, projectId);
-
-    res.json({ id: session.id });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'تعذر إنشاء الجلسة',
-    });
-  }
-});
+router.post('/geo/session', protectedLimiter, requireAuth, requireRole('director', 'admin'), handleCreateSession);
 
 // ---------- Orders ----------
 
-router.get('/orders/my-orders', protectedLimiter, requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const auth = req.breakappAuth;
-    if (!auth) {
-      res.status(401).json({ success: false, error: 'غير مصرح' });
-      return;
-    }
-    const orders = await breakappService.listOrdersForUser(auth.sub);
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'فشل الجلب',
-    });
+router.get('/orders/my-orders', protectedLimiter, requireAuth, handleGetOrders);
   }
 });
 
-router.post('/orders', protectedLimiter, requireAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const auth = req.breakappAuth;
-    if (!auth) {
-      res.status(401).json({ success: false, error: 'غير مصرح' });
-      return;
-    }
+router.post('/orders', protectedLimiter, requireAuth, handleCreateOrder);
 
-    const body = createOrderSchema.safeParse(req.body);
-    if (!body.success) {
-      handleValidationError(res, body.error);
-      return;
-    }
-
-    const order = await breakappService.createOrder({
-      sessionId: body.data.sessionId,
-      userId: auth.sub,
-      items: body.data.items,
-    });
-
-    const vendor = await repo.getVendorById(order.vendorId);
-    const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
-    websocketService.emitCustom('task:new', {
-      id: order.id,
-      vendorId: order.vendorId,
-      vendorName: vendor?.name ?? order.vendorId,
-      items: totalItems,
-      status: 'pending',
-    });
-    breakappGateway.emitTaskNew({
-      id: order.id,
-      vendorId: order.vendorId,
-      vendorName: vendor?.name ?? order.vendorId,
-      items: totalItems,
-      sessionId: order.sessionId,
-    });
-
-    res.status(201).json(order);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'تعذر إنشاء الطلب';
-    res.status(message === 'مطلوب رمز مصادقة' ? 401 : 400).json({
-      success: false,
-      error: message,
-    });
-  }
-});
-
-router.get('/orders/:id', protectedLimiter, requireAuth, async (req, res) => {
-  try {
-    const orderId = req.params['id'];
-    if (typeof orderId !== 'string' || !orderId) {
-      res.status(400).json({ success: false, error: 'معرف الطلب مطلوب' });
-      return;
-    }
-    const order = await breakappService.getOrder(orderId);
-    if (!order) {
-      res.status(404).json({ success: false, error: 'الطلب غير موجود' });
-      return;
-    }
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'فشل جلب الطلب',
-    });
+router.get('/orders/:id', protectedLimiter, requireAuth, handleGetOrder);
   }
 });
 

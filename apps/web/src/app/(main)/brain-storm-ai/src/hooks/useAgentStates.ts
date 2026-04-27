@@ -5,27 +5,28 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import type { AgentState, BrainstormAgentDefinition } from "../types";
+
+function createInitialAgentStates(
+  agents: readonly BrainstormAgentDefinition[]
+): Map<string, AgentState> {
+  const initialStates = new Map<string, AgentState>();
+  agents.forEach((agent) => {
+    initialStates.set(agent.id, { id: agent.id, status: "idle" });
+  });
+  return initialStates;
+}
 
 export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
   const realAgents = useMemo(() => agents, [agents]);
 
   const [agentStates, setAgentStates] = useState<Map<string, AgentState>>(
-    new Map()
+    () => createInitialAgentStates(realAgents)
   );
 
   const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set());
-
-  /** تهيئة حالات الوكلاء */
-  useEffect(() => {
-    const initialStates = new Map<string, AgentState>();
-    realAgents.forEach((agent) => {
-      initialStates.set(agent.id, { id: agent.id, status: "idle" });
-    });
-    setTimeout(() => {}, 0);
-  }, [realAgents]);
 
   /** تحديث حالة وكيل محدد */
   const updateAgentState = useCallback(

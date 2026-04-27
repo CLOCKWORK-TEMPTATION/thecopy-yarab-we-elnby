@@ -305,7 +305,7 @@ export class DevicePerformanceDetector {
     onTierChange: (newTier: PerformanceTier) => void
   ): Promise<() => void> {
     if (typeof navigator === "undefined") {
-      return () => {};
+      return () => { /* empty */ };
     }
 
     const nav = navigator as Navigator & {
@@ -317,7 +317,7 @@ export class DevicePerformanceDetector {
       }>;
     };
     if (!nav.getBattery) {
-      return () => {};
+      return () => { /* empty */ };
     }
 
     try {
@@ -351,7 +351,7 @@ export class DevicePerformanceDetector {
         battery.removeEventListener("chargingchange", handleBatteryChange);
       };
     } catch {
-      return () => {};
+      return () => { /* empty */ };
     }
   }
 }

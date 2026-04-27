@@ -105,7 +105,7 @@ function generateManifest(): void {
     let pagePath: string;
     try {
       pagePath = safeResolve(MAIN_PAGES_DIR, path.join(slug, "page.tsx"));
-    } catch (error) {
+    } catch {
       logger.warn(`Skipping invalid path for slug: ${slug}`);
       continue;
     }

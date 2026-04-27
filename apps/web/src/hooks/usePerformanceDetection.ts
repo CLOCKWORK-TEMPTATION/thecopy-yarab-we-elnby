@@ -1,12 +1,120 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 
 import {
   performanceDetector,
   type DeviceCapabilities,
   type ParticleConfig,
 } from "@/lib/performance-detection";
+
+function subscribePerformance(onStoreChange: () => void): () => void {
+  return performanceDetector.subscribe(() => {
+    onStoreChange();
+  });
+}
+
+function getCapabilitiesSnapshot(): DeviceCapabilities {
+  return performanceDetector.getCapabilities();
+}
+
+function getServerCapabilitiesSnapshot(): DeviceCapabilities | null {
+  return null;
+}
+
+function getParticleConfigSnapshot(
+  capabilities: DeviceCapabilities | null
+): ParticleConfig | null {
+  return capabilities ? performanceDetector.getParticleConfig() : null;
+}
+
+function getDetectorFlags(capabilities: DeviceCapabilities | null) {
+  if (!capabilities) {
+    return {
+      shouldDisable: false,
+      shouldReduceQuality: false,
+      targetFrameRate: 60,
+    };
+  }
+
+  return {
+    shouldDisable: performanceDetector.shouldDisableParticles(),
+    shouldReduceQuality: performanceDetector.shouldReduceQuality(),
+    targetFrameRate: performanceDetector.getTargetFrameRate(),
+  };
+}
+
+function getCapabilityDetails(capabilities: DeviceCapabilities | null) {
+  if (!capabilities) {
+    return {
+      performanceScore: 0,
+      isMobile: false,
+      isTablet: false,
+      isDesktop: false,
+      batteryLevel: 1,
+      isCharging: false,
+      hasBattery: false,
+      isBatteryLow: false,
+      cpuCores: 4,
+      deviceMemory: 8,
+      maxTouchPoints: 0,
+      effectiveNetworkType: "4g" as const,
+      networkDownlink: 10,
+      networkRTT: 50,
+      saveDataMode: false,
+      canUseWebGL: false,
+      canUseWebGL2: false,
+      maxFrameRate: 60,
+    };
+  }
+
+  return {
+    performanceScore: capabilities.performanceScore,
+    isMobile: capabilities.deviceType === "mobile",
+    isTablet: capabilities.deviceType === "tablet",
+    isDesktop: capabilities.deviceType === "desktop",
+    batteryLevel: capabilities.batteryLevel,
+    isCharging: capabilities.isCharging,
+    hasBattery: capabilities.hasBattery,
+    isBatteryLow: capabilities.batteryLevel < 0.2 && !capabilities.isCharging,
+    cpuCores: capabilities.cpuCores,
+    deviceMemory: capabilities.deviceMemory,
+    maxTouchPoints: capabilities.maxTouchPoints,
+    effectiveNetworkType: capabilities.effectiveType,
+    networkDownlink: capabilities.downlink,
+    networkRTT: capabilities.rtt,
+    saveDataMode: capabilities.saveData,
+    canUseWebGL: capabilities.canUseWebGL,
+    canUseWebGL2: capabilities.canUseWebGL2,
+    maxFrameRate: capabilities.maxFrameRate,
+  };
+}
+
+function getPerformanceLabelFor(
+  capabilities: DeviceCapabilities | null
+): string {
+  if (!capabilities) return "Unknown";
+
+  const score = capabilities.performanceScore;
+  if (score >= 9) return "Excellent";
+  if (score >= 7) return "Good";
+  if (score >= 5) return "Average";
+  if (score >= 3) return "Low";
+  return "Very Low";
+}
+
+function getBatteryLabelFor(capabilities: DeviceCapabilities | null): string {
+  if (!capabilities?.hasBattery) return "N/A";
+
+  const level = Math.round(capabilities.batteryLevel * 100);
+  const status = capabilities.isCharging ? "(charging)" : "(discharging)";
+  return `${level}% ${status}`;
+}
+
+function getNetworkLabelFor(capabilities: DeviceCapabilities | null): string {
+  if (!capabilities) return "Unknown";
+  return capabilities.effectiveType.toUpperCase();
+}
 
 /**
  * Hook for detecting and monitoring device performance capabilities
@@ -33,67 +141,39 @@ import {
  * ```
  */
 export function usePerformanceDetection() {
-  const [capabilities, setCapabilities] = useState<DeviceCapabilities | null>(
-    null
+  const capabilities = useSyncExternalStore<DeviceCapabilities | null>(
+    subscribePerformance,
+    getCapabilitiesSnapshot,
+    getServerCapabilitiesSnapshot
   );
-  const [particleConfig, setParticleConfig] = useState<ParticleConfig | null>(
-    null
+  const particleConfig = useMemo<ParticleConfig | null>(
+    () => getParticleConfigSnapshot(capabilities),
+    [capabilities]
   );
-  const [shouldDisable, setShouldDisable] = useState(false);
-  const [shouldReduceQuality, setShouldReduceQuality] = useState(false);
-  const [targetFrameRate, setTargetFrameRate] = useState(60);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
-
-  // Initialize detection
-  useEffect(() => {
-    // Get initial capabilities
-    const initialCaps = performanceDetector.getCapabilities();
-    setTimeout(() => {}, 0);
-    setParticleConfig(performanceDetector.getParticleConfig());
-    setShouldDisable(performanceDetector.shouldDisableParticles());
-    setShouldReduceQuality(performanceDetector.shouldReduceQuality());
-    setTargetFrameRate(performanceDetector.getTargetFrameRate());
-
-    // Subscribe to capability changes
-    const unsubscribe = performanceDetector.subscribe((newCaps) => {
-      setCapabilities(newCaps);
-      setParticleConfig(performanceDetector.getParticleConfig());
-      setShouldDisable(performanceDetector.shouldDisableParticles());
-      setShouldReduceQuality(performanceDetector.shouldReduceQuality());
-      setTargetFrameRate(performanceDetector.getTargetFrameRate());
-    });
-
-    unsubscribeRef.current = unsubscribe;
-
-    // Cleanup
-    return () => {
-      unsubscribeRef.current?.();
-    };
-  }, []);
+  const detectorFlags = useMemo(
+    () => getDetectorFlags(capabilities),
+    [capabilities]
+  );
+  const capabilityDetails = useMemo(
+    () => getCapabilityDetails(capabilities),
+    [capabilities]
+  );
 
   const getPerformanceLabel = useCallback((): string => {
-    if (!capabilities) return "Unknown";
-
-    const score = capabilities.performanceScore;
-    if (score >= 9) return "Excellent";
-    if (score >= 7) return "Good";
-    if (score >= 5) return "Average";
-    if (score >= 3) return "Low";
-    return "Very Low";
+    return getPerformanceLabelFor(capabilities);
   }, [capabilities]);
 
   const getBatteryLabel = useCallback((): string => {
-    if (!capabilities?.hasBattery) return "N/A";
-
-    const level = Math.round(capabilities.batteryLevel * 100);
-    const status = capabilities.isCharging ? "(charging)" : "(discharging)";
-    return `${level}% ${status}`;
+    return getBatteryLabelFor(capabilities);
   }, [capabilities]);
 
   const getNetworkLabel = useCallback((): string => {
-    if (!capabilities) return "Unknown";
-    return capabilities.effectiveType.toUpperCase();
+    return getNetworkLabelFor(capabilities);
   }, [capabilities]);
+
+  const forceRefresh = useCallback(() => {
+    performanceDetector.updateCapabilities();
+  }, []);
 
   return {
     // Raw data
@@ -101,38 +181,10 @@ export function usePerformanceDetection() {
     particleConfig,
 
     // Derived state
-    shouldDisable,
-    shouldReduceQuality,
-    targetFrameRate,
+    ...detectorFlags,
 
-    // Device info
-    performanceScore: capabilities?.performanceScore ?? 0,
-    isMobile: capabilities?.deviceType === "mobile",
-    isTablet: capabilities?.deviceType === "tablet",
-    isDesktop: capabilities?.deviceType === "desktop",
-
-    // Battery info
-    batteryLevel: capabilities?.batteryLevel ?? 1,
-    isCharging: capabilities?.isCharging ?? false,
-    hasBattery: capabilities?.hasBattery ?? false,
-    isBatteryLow:
-      (capabilities?.batteryLevel ?? 1) < 0.2 && !capabilities?.isCharging,
-
-    // Hardware info
-    cpuCores: capabilities?.cpuCores ?? 4,
-    deviceMemory: capabilities?.deviceMemory ?? 8,
-    maxTouchPoints: capabilities?.maxTouchPoints ?? 0,
-
-    // Network info
-    effectiveNetworkType: capabilities?.effectiveType ?? "4g",
-    networkDownlink: capabilities?.downlink ?? 10,
-    networkRTT: capabilities?.rtt ?? 50,
-    saveDataMode: capabilities?.saveData ?? false,
-
-    // Rendering capabilities
-    canUseWebGL: capabilities?.canUseWebGL ?? false,
-    canUseWebGL2: capabilities?.canUseWebGL2 ?? false,
-    maxFrameRate: capabilities?.maxFrameRate ?? 60,
+    // Capability details
+    ...capabilityDetails,
 
     // Label generators for UI display
     getPerformanceLabel,
@@ -140,14 +192,7 @@ export function usePerformanceDetection() {
     getNetworkLabel,
 
     // Utility methods
-    forceRefresh: () => {
-      const updated = performanceDetector.updateCapabilities();
-      setCapabilities(updated);
-      setParticleConfig(performanceDetector.getParticleConfig());
-      setShouldDisable(performanceDetector.shouldDisableParticles());
-      setShouldReduceQuality(performanceDetector.shouldReduceQuality());
-      setTargetFrameRate(performanceDetector.getTargetFrameRate());
-    },
+    forceRefresh,
   };
 }
 
@@ -168,21 +213,17 @@ export function usePerformanceMetric<K extends keyof DeviceCapabilities>(
   metric: K,
   callback?: (value: DeviceCapabilities[K]) => void
 ) {
-  const [value, setValue] = useState<DeviceCapabilities[K] | null>(null);
+  const value = useSyncExternalStore<DeviceCapabilities[K] | null>(
+    subscribePerformance,
+    () => performanceDetector.getCapabilities()[metric],
+    () => null
+  );
 
   useEffect(() => {
-    const unsubscribe = performanceDetector.subscribe((caps) => {
-      const newValue = caps[metric];
-      setValue(newValue);
-      callback?.(newValue);
-    });
-
-    // Set initial value
-    const initialCaps = performanceDetector.getCapabilities();
-    setTimeout(() => {}, 0);
-
-    return () => unsubscribe();
-  }, [metric, callback]);
+    if (value !== null) {
+      callback?.(value);
+    }
+  }, [callback, value]);
 
   return value;
 }
