@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/global.d.ts",
+    "src/env.d.ts",
+    "src/types/env.d.ts",
+    "src/types/mcp-sdk-compat.d.ts",
+    "src/types/module-alias.d.ts",
+    "src/memory/**/*.ts",
+    "src/memory/**/*.tsx",
+    "src/memory/**/*.js",
+    "src/memory/**/*.mjs",
+    "src/memory/**/*.cjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

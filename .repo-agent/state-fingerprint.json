@@ -1,7 +1,7 @@
 {
-  "branch": "codex/validate-fix-20260426",
+  "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "786744c5e25c08ab8ff8635ffd65c3820f3e724e56c33f304fbea9129893f398",
+    ".agent-code-memory/manifest.json": "c1dddc4159176f2cb36905b0230527c914c3ef9425cf809eff75c72bf760bccb",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
@@ -34,12 +34,12 @@
     "apps/web/src/app/(main)/editor/src/rag/rag-system.md": "b9df904f344b41c63753c2530782f20c1df7fb54a0a4b9d35e6afc78d6fcbeb3",
     "apps/web/src/app/(main)/editor/src/rag/README.md": "a48abfe553f5adbd187e928182bc0116ace9b80cbc3c36f71c835d1f3405b3d7",
     "apps/web/src/app/(main)/editor/src/rag/types.ts": "51d176ddd3f1f05bf678e416f39c29e8e6e51abc89af181d9affee91259f7414",
-    "apps/web/src/lib/ai/rag/context-retriever.ts": "39641d07c1823b29332e03151c5fa4c40009a7992f028695a6fb24b752732cd1",
+    "apps/web/src/lib/ai/rag/context-retriever.ts": "46d0e88e9f4dbd98f5c3400fa26ba183c36aeecde3e64cd410cac318e2ddd075",
     "apps/web/src/lib/ai/rag/index.ts": "92e16b2f69d4e5cef289b981cbf3f963ec3e3820858357de972a77cb6762f46a",
-    "apps/web/src/lib/ai/rag/text-chunking.ts": "03e2c488865c7cce89faae30de5b908cc88995fcc89a1bd5b86e60135dfa2e68",
-    "apps/web/src/lib/ai/stations/gemini-service.ts": "1329e1e29c63ceef1c66601a137158c86534bd0e224514c5604fb5e51b012ac6",
+    "apps/web/src/lib/ai/rag/text-chunking.ts": "17893925045089274d49c96265702b15f3fbcdfeaa1ef2bc41af3e09aef65aee",
+    "apps/web/src/lib/ai/stations/gemini-service.ts": "b30f921506eabb0424064c4028ecca3932f73822085a031d5ba99a5e9c7bb334",
     "apps/web/src/lib/ai/text-chunking.ts": "a7329180c17aaaf876f39e5341e71bf73f88e0b3c07f8898007a2894bcb71278",
-    "apps/web/src/lib/drama-analyst/services/ragService.ts": "eaf0c0c0e3b3af1ec2c2ad1ee89ebc344dd87a145e602799273cda97ddaa0f01",
+    "apps/web/src/lib/drama-analyst/services/ragService.ts": "15eb4b0cc503f2c4a0cce3fda97a50b27bbf1504fc1315e247699888db8e5e6c",
     "package.json": "d688b494638df30a3f207dd4e4f0f97d7904c520d5a0fa308a603460d0625905",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
@@ -72,30 +72,30 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "233aaccf62b2c7a2a186e9da882ca01917a9ccd7",
+  "headCommit": "16bc223326d88a10401c0561bc856accc1cca65c",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "a58640c3970de2dbd1a5ff204bf7e871770f0586a7ddf9e7ef2a8da81e48f0fe",
   "knowledgeStatus": "ungoverned",
-  "lastBootstrapTimestamp": "2026-04-26T14:52:10.493Z",
+  "lastBootstrapTimestamp": "2026-04-27T02:40:05.209Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "a48a0f10f454194a173169d51dd5f8057c9bab5d71a1eb031e4fb6e79f49ef08",
-    "output/code-map/code-map.json": "8037a67dc6f40611aed19405b6ef406b0a697a323301accb619318c6e3352407",
-    "output/code-map/CODEMAP.md": "0f72fbe1508a1b29c973f9d8cb0a9e7c05e1ce80c4417a907b17244aa710e593",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "7e7ceb7850764c917296a3cce3826007ce16de3c7af4f8ab816c65e40e5567ae",
+    "output/code-map/code-map.json": "9a222a8b33c8729e44f3fb3294950ae23f6cbbed00ad52fad389227b7503db1e",
+    "output/code-map/CODEMAP.md": "c94f77ae5cf4134b2366b1f5e35050f8bc9b1e6ec52ac52960d6e3d6e828e6b4",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "b77d21f989a36d35437832bf0fb2ff2937fcd73fff8464f483fab5f00454e77e",
     "output/code-map/rag-entrypoints.md": "a9f7ac6caf82f61967eb6b46c626b8431098af9165a63070a051209fe5eecf1b",
     "output/code-map/rag-systems.md": "54049de34464de13c355b0504707023b31fe2482489bc098559d49300084204a",
     "output/code-map/runtime-flows.md": "6de542bf4efe54f3e0b973cf196a05147416c7bbe156b7f6f57bf316941b4070",
-    "output/mind-map/mindmap-summary.md": "f9f0e5f2b355d86f68ddbeb9e5287124adfc38854c964d2e265ff47da7eec73e",
+    "output/mind-map/mindmap-summary.md": "86037dd1d3c503cfe1ca02bd23c4b3835deadbb2eb984b312757d11d55872d57",
     "output/mind-map/mindmap.json": "29998bc641b102a1ef6c797945a49d9731982290a607a34d61bdef952e69d604",
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "4897429ee3db5019db812e8598d1deadfedf55a2bbd12a103dfd7a592ad6fe11",
-    "output/session-state.md": "c5608c844ab576f24306d9a6c23dd3a81835ce4266a7d367f1f5fc438090e5a3"
+    "output/round-notes.md": "43d2ea2ef46551963514a65043f2e572823881e57ec27c0fe00ce140b409edc7",
+    "output/session-state.md": "d7e97e137fbf653677bbceb2a9cfc69218fbd31016e670bd77d2b6755c792f06"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -105,7 +105,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "e076877b2217cd75f65822f1a4772d4ed178d2fc6f951d34d73c8db53a8a3986",
+  "repoFactsHash": "35988e80cce3eaa886a3ee89e243cef8d76b906110f20869c115d6266d24e4fa",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -175,6 +175,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "f2ef25969fed883ff6d6edf159a92acfd87eff099cef425a80b4bca8a40d30d0",
-  "workingTreeHash": "f918cd12d1c2eeed7d754e19fc7ceee54f7b168f2797ff7484e30df8518341bd"
+  "structuralHash": "b8bfa05f53a7b59795cabe5926966b75db0c5ab43a40ebc9a25e18a09c8fc097",
+  "workingTreeHash": "41ac8ec45a6a8eadd5a58c4a72233f2802d1028c072656c03ef4f45071ad953a"
 }

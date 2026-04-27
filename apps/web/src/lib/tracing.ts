@@ -25,7 +25,10 @@ import {
   BatchSpanProcessor,
   type SpanExporter,
 } from "@opentelemetry/sdk-trace-base";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import {
+  WebTracerProvider,
+  type WebTracerConfig,
+} from "@opentelemetry/sdk-trace-web";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -97,10 +100,11 @@ export function initBrowserTracing(): void {
     );
 
     // Create tracer provider with batch span processor
-    const provider = new WebTracerProvider({
+    const providerConfig: WebTracerConfig = {
       resource,
       spanProcessors: [spanProcessor],
-    } as any);
+    };
+    const provider = new WebTracerProvider(providerConfig);
 
     // Register the provider
     provider.register();
