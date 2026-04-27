@@ -16,6 +16,7 @@
  * - {@link registerPipelineRecorderUI} — ربط بالـ window
  */
 
+import { logger } from "@/lib/logger";
 import { definedProps } from "@/lib/defined-props";
 
 type PipelineRecorderDebugWindow = Window & {
@@ -474,15 +475,15 @@ export const pipelineRecorder = new PipelineRecorder();
 // ─── Console UI ───────────────────────────────────────────────────
 
 const printRunReport = (report: PipelineRunReport): void => {
-  console.warn(
+  logger.warn(
     "%c╔══════════════════════════════════════════════════════╗",
     "color: #00ccff; font-weight: bold"
   );
-  console.warn(
+  logger.warn(
     "%c║      📡 Pipeline Run Report                          ║",
     "color: #00ccff; font-weight: bold"
   );
-  console.warn(
+  logger.warn(
     "%c╚══════════════════════════════════════════════════════╝",
     "color: #00ccff; font-weight: bold"
   );
@@ -499,20 +500,20 @@ const printRunReport = (report: PipelineRunReport): void => {
       : 0;
   const aiMs = report.totalDurationMs - frontendMs;
 
-  console.warn(
+  logger.warn(
     `\n📋 Source: ${report.source} | ${report.input.lineCount} lines | ${report.input.textLength} chars`
   );
-  console.warn(
+  logger.warn(
     `⏱️ Total: ${(report.totalDurationMs / 1000).toFixed(1)}s (frontend: ${frontendMs}ms, AI: ${(aiMs / 1000).toFixed(1)}s)`
   );
-  console.warn(`🆔 Run ID: ${report.runId}`);
+  logger.warn(`🆔 Run ID: ${report.runId}`);
 
   // ── جدول المراحل ──
-  console.warn(
+  logger.warn(
     "\n%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     "color: #888"
   );
-  console.warn(
+  logger.warn(
     "%c📊 Stage-by-Stage Progression:",
     "color: #ffcc00; font-weight: bold"
   );
@@ -542,7 +543,7 @@ const printRunReport = (report: PipelineRunReport): void => {
   console.table(stageTable);
 
   // ── Type Distribution النهائي ──
-  console.warn(
+  logger.warn(
     "\n%c📦 Final Type Distribution:",
     "color: #00ff88; font-weight: bold"
   );
@@ -553,7 +554,7 @@ const printRunReport = (report: PipelineRunReport): void => {
   for (const diff of report.diffs) {
     if (diff.changes.length === 0) continue;
 
-    console.warn(
+    logger.warn(
       `\n%c🔄 ${diff.fromStage} → ${diff.toStage}: ${diff.changes.length} changes (${diff.latencyMs}ms)`,
       "color: #ff6b6b; font-weight: bold"
     );
@@ -573,7 +574,7 @@ const printRunReport = (report: PipelineRunReport): void => {
       }))
     );
     if (diff.changes.length > 15) {
-      console.warn(`   ... و ${diff.changes.length - 15} تغيير تاني`);
+      logger.warn(`   ... و ${diff.changes.length - 15} تغيير تاني`);
     }
   }
 
@@ -582,11 +583,11 @@ const printRunReport = (report: PipelineRunReport): void => {
   const skipped = report.aiCorrections.filter((c) => !c.applied);
 
   if (report.aiCorrections.length > 0) {
-    console.warn(
+    logger.warn(
       "\n%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
       "color: #888"
     );
-    console.warn(
+    logger.warn(
       `%c🤖 AI Corrections: ${applied.length} applied, ${skipped.length} skipped`,
       "color: #ff00ff; font-weight: bold"
     );
@@ -607,7 +608,7 @@ const printRunReport = (report: PipelineRunReport): void => {
     );
 
     if (applied.length > 0) {
-      console.warn(
+      logger.warn(
         "\n%c✅ Applied AI Corrections:",
         "color: #00ff88; font-weight: bold"
       );
@@ -625,15 +626,15 @@ const printRunReport = (report: PipelineRunReport): void => {
     }
   }
 
-  console.warn("\n%c─── Full report object: ───", "color: #888");
-  console.warn(report);
+  logger.warn("\n%c─── Full report object: ───", "color: #888");
+  logger.warn(report);
 };
 
 const printLineJourney = (
   report: PipelineRunReport,
   lineIndex: number
 ): void => {
-  console.warn(
+  logger.warn(
     `%c📍 Line Journey: #${lineIndex}`,
     "color: #00ccff; font-weight: bold; font-size: 14px"
   );
@@ -641,7 +642,7 @@ const printLineJourney = (
   // بحث عن النص من أول snapshot
   const firstSnap = report.snapshots[0];
   const lineText = firstSnap?.lines[lineIndex]?.text ?? "???";
-  console.warn(`   "${lineText}"\n`);
+  logger.warn(`   "${lineText}"\n`);
 
   // رحلة عبر الـ snapshots
   const journey: {
@@ -682,7 +683,7 @@ const printLineJourney = (
     (c) => c.lineIndex === lineIndex
   );
   if (aiForLine.length > 0) {
-    console.warn(
+    logger.warn(
       `\n%c🤖 AI corrections for this line:`,
       "color: #ff00ff; font-weight: bold"
     );
@@ -704,7 +705,7 @@ const printLineJourney = (
   const lastAIApplied = aiForLine.filter((c) => c.applied).pop();
 
   const finalType = lastAIApplied?.correctedType ?? finalLine?.type ?? "???";
-  console.warn(
+  logger.warn(
     `\n   Final type: %c${finalType}`,
     "color: #00ff88; font-weight: bold; font-size: 14px"
   );
@@ -730,7 +731,7 @@ export const registerPipelineRecorderUI = (): void => {
   win.__showPipelineRun = (): void => {
     const report = pipelineRecorder.lastRun;
     if (!report) {
-      console.warn("⚠️ مفيش pipeline run مسجّل — الصق نص أو افتح ملف الأول");
+      logger.warn("⚠️ مفيش pipeline run مسجّل — الصق نص أو افتح ملف الأول");
       return;
     }
     printRunReport(report);
@@ -739,11 +740,11 @@ export const registerPipelineRecorderUI = (): void => {
   win.__showLineJourney = (lineIndex: number): void => {
     const report = pipelineRecorder.lastRun;
     if (!report) {
-      console.warn("⚠️ مفيش pipeline run مسجّل — الصق نص أو افتح ملف الأول");
+      logger.warn("⚠️ مفيش pipeline run مسجّل — الصق نص أو افتح ملف الأول");
       return;
     }
     if (typeof lineIndex !== "number" || lineIndex < 0) {
-      console.warn("⚠️ ادخل رقم السطر: __showLineJourney(15)");
+      logger.warn("⚠️ ادخل رقم السطر: __showLineJourney(15)");
       return;
     }
     printLineJourney(report, lineIndex);
@@ -752,7 +753,7 @@ export const registerPipelineRecorderUI = (): void => {
   win.__pipelineRecorderUiRegistered = true;
 
   if (shouldLogReady) {
-    console.warn(
+    logger.warn(
       "%c📡 Pipeline recorder ready! After paste/import, run: __showPipelineRun() or __showLineJourney(lineIndex)",
       "color: #00ccff; font-weight: bold; font-size: 13px"
     );

@@ -1,5 +1,6 @@
+import { logger } from "@/lib/logger";
 // اختبار سريع للتحقق من صحة الكود المحسن
-console.log("🧪 بدء اختبار كود الجسيمات المحسن...");
+logger.info("🧪 بدء اختبار كود الجسيمات المحسن...");
 
 // اختبار 1: التحقق من دوال SDF الأساسية
 const testSDF = () => {
@@ -15,7 +16,7 @@ const testSDF = () => {
   const result = sdCircle(1, 1, 0, 0, 2);
   const expected = Math.hypot(1, 1) - 2; // ≈ -0.586
 
-  console.log("✅ اختبار SDF:", Math.abs(result - expected) < 0.001);
+  logger.info("✅ اختبار SDF:", Math.abs(result - expected) < 0.001);
 };
 
 // اختبار 2: التحقق من دوال إدارة الدفعات
@@ -38,7 +39,7 @@ const testBatchProcessing = () => {
     }
   };
 
-  console.log("✅ اختبار requestIdle:", typeof requestIdle === "function");
+  logger.info("✅ اختبار requestIdle:", typeof requestIdle === "function");
 };
 
 // اختبار 3: التحقق من معالجة الأخطاء
@@ -48,13 +49,13 @@ const testErrorHandling = () => {
       if (!data) throw new Error("بيانات فارغة");
       return data.map((x: number) => x * 2);
     } catch (error) {
-      console.warn("خطأ تم التعامل معه:", (error as Error).message);
+      logger.warn("خطأ تم التعامل معه:", (error as Error).message);
       return [];
     }
   };
 
   const result = testFunction(null);
-  console.log(
+  logger.info(
     "✅ اختبار معالجة الأخطاء:",
     Array.isArray(result) && result.length === 0
   );
@@ -65,9 +66,9 @@ try {
   testSDF();
   testBatchProcessing();
   testErrorHandling();
-  console.log("🎉 جميع الاختبارات نجحت!");
+  logger.info("🎉 جميع الاختبارات نجحت!");
 } catch (error) {
-  console.error("❌ فشل في أحد الاختبارات:", error);
+  logger.error("❌ فشل في أحد الاختبارات:", error);
 }
 
 export { testSDF, testBatchProcessing, testErrorHandling };

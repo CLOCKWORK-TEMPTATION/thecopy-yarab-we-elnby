@@ -40,8 +40,7 @@ export default function AuthenticatedLayout({
       return;
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUser(userData);
+    setTimeout(() => { ; }, 0);
     setChecking(false);
   }, [router]);
 

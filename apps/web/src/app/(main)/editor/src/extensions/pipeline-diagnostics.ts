@@ -7,6 +7,7 @@
  *     window.__diagnosePipeline()          // يستخدم النص الموجود في المحرر
  *     window.__diagnosePipeline(myText)    // يستخدم نص مخصص
  */
+import { logger } from "@/lib/logger";
 import {
   classifyLines,
   PIPELINE_FLAGS,
@@ -223,24 +224,24 @@ export const diagnosePipeline = (
 // ─── عرض التقرير في الـ console ────────────────────────────────────
 
 const printReport = (report: DiagnosticReport): void => {
-  console.warn(
+  logger.warn(
     "%c╔══════════════════════════════════════════════════════╗",
     "color: #00ff88; font-weight: bold"
   );
-  console.warn(
+  logger.warn(
     "%c║      🔬 Pipeline Layer Diagnostics Report           ║",
     "color: #00ff88; font-weight: bold"
   );
-  console.warn(
+  logger.warn(
     "%c╚══════════════════════════════════════════════════════╝",
     "color: #00ff88; font-weight: bold"
   );
 
-  console.warn(`\n📊 Baseline: ${report.inputLines} lines`);
+  logger.warn(`\n📊 Baseline: ${report.inputLines} lines`);
 
   console.table(report.baselineTypeDist);
 
-  console.warn(
+  logger.warn(
     "\n%c🏆 Layer Impact Ranking (من الأكثر تأثير للأقل):",
     "color: #ffcc00; font-weight: bold"
   );
@@ -256,17 +257,17 @@ const printReport = (report: DiagnosticReport): void => {
   // تفاصيل كل طبقة
   for (const layer of report.layers) {
     if (layer.changedLines === 0) {
-      console.warn(`\n✅ ${layer.flag}: لا تغيير`);
+      logger.warn(`\n✅ ${layer.flag}: لا تغيير`);
       continue;
     }
 
-    console.warn(
+    logger.warn(
       `\n%c⚠️ ${layer.flag}: ${layer.changedLines} lines changed (${layer.changeRate})`,
       "color: #ff6b6b; font-weight: bold"
     );
 
     if (Object.keys(layer.typeDistDelta).length > 0) {
-      console.warn("   Type distribution delta:");
+      logger.warn("   Type distribution delta:");
 
       console.table(layer.typeDistDelta);
     }
@@ -287,12 +288,12 @@ const printReport = (report: DiagnosticReport): void => {
       }))
     );
     if (layer.diffs.length > 10) {
-      console.warn(`   ... و ${layer.diffs.length - 10} تغيير تاني`);
+      logger.warn(`   ... و ${layer.diffs.length - 10} تغيير تاني`);
     }
   }
 
   // ALL ON
-  console.warn(
+  logger.warn(
     `\n%c🔥 ALL LAYERS ON: ${report.allOnReport.changedLines} lines changed (${report.allOnReport.changeRate})`,
     "color: #ff00ff; font-weight: bold"
   );
@@ -307,8 +308,8 @@ const printReport = (report: DiagnosticReport): void => {
     );
   }
 
-  console.warn("\n%c─── Full report object: ───", "color: #888");
-  console.warn(report);
+  logger.warn("\n%c─── Full report object: ───", "color: #888");
+  logger.warn(report);
 };
 
 // ─── ربط بالـ window للاستخدام من الـ console ──────────────────────
@@ -340,15 +341,15 @@ export const registerPipelineDiagnostics = (
   ): DiagnosticReport => {
     const text = customText ?? getEditorText();
     if (!text.trim()) {
-      console.warn("⚠️ مفيش نص — افتح ملف الأول أو مرّر نص كـ argument");
+      logger.warn("⚠️ مفيش نص — افتح ملف الأول أو مرّر نص كـ argument");
       return {} as DiagnosticReport;
     }
 
-    console.warn(`🔬 Running diagnostics on ${text.length} chars...`);
+    logger.warn(`🔬 Running diagnostics on ${text.length} chars...`);
     const t0 = performance.now();
     const report = diagnosePipeline(text, ctx);
     const elapsed = (performance.now() - t0).toFixed(0);
-    console.warn(`⏱️ Done in ${elapsed}ms\n`);
+    logger.warn(`⏱️ Done in ${elapsed}ms\n`);
 
     printReport(report);
     win["__lastDiagReport"] = report;
@@ -359,7 +360,7 @@ export const registerPipelineDiagnostics = (
   registerPipelineRecorderUI();
 
   if (isPipelineConsoleDebugEnabled()) {
-    console.warn(
+    logger.warn(
       "%c🔬 Pipeline diagnostics ready! Run: __diagnosePipeline()",
       "color: #00ff88; font-weight: bold; font-size: 13px"
     );

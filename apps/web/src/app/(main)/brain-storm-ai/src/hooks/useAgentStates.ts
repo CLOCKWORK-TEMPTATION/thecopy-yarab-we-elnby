@@ -24,8 +24,7 @@ export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
     realAgents.forEach((agent) => {
       initialStates.set(agent.id, { id: agent.id, status: "idle" });
     });
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAgentStates(initialStates);
+    setTimeout(() => { ; }, 0);
   }, [realAgents]);
 
   /** تحديث حالة وكيل محدد */

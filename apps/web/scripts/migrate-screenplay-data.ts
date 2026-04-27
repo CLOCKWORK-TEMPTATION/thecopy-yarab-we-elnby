@@ -6,6 +6,7 @@
  * @module scripts/migrate-screenplay-data
  */
 
+import { logger } from "@/lib/logger";
 import { ScreenplayClassifier } from "@/lib/screenplay/classifier";
 
 /**
@@ -148,15 +149,15 @@ export function migrateLocalStorage(): number {
 
           migratedCount++;
         } catch (error) {
-          console.error(`Failed to migrate key: ${key}`, error);
+          logger.error(`Failed to migrate key: ${key}`, error);
         }
       }
     }
 
-    console.log(`✅ ترحيل localStorage: ${migratedCount} سيناريو مهاجر`);
+    logger.info(`✅ ترحيل localStorage: ${migratedCount} سيناريو مهاجر`);
     return migratedCount;
   } catch (error) {
-    console.error("Failed to migrate localStorage:", error);
+    logger.error("Failed to migrate localStorage:", error);
     return 0;
   }
 }
@@ -179,7 +180,7 @@ export function exportLocalStorage(): Record<string, OldScreenplayFormat> {
           try {
             exportedData[key] = JSON.parse(rawData) as OldScreenplayFormat;
           } catch (error) {
-            console.error(`Failed to parse key: ${key}`, error);
+            logger.error(`Failed to parse key: ${key}`, error);
           }
         }
       }
@@ -187,7 +188,7 @@ export function exportLocalStorage(): Record<string, OldScreenplayFormat> {
 
     return exportedData;
   } catch (error) {
-    console.error("Failed to export localStorage:", error);
+    logger.error("Failed to export localStorage:", error);
     return {};
   }
 }
@@ -208,10 +209,10 @@ export function importToLocalStorage(
       importedCount++;
     }
 
-    console.log(`✅ استيراد إلى localStorage: ${importedCount} سيناريو`);
+    logger.info(`✅ استيراد إلى localStorage: ${importedCount} سيناريو`);
     return importedCount;
   } catch (error) {
-    console.error("Failed to import to localStorage:", error);
+    logger.error("Failed to import to localStorage:", error);
     return 0;
   }
 }
@@ -237,22 +238,22 @@ export function validateMigratedData(): boolean {
 
         // التحقق من وجود formattedLines
         if (!data.formattedLines || !Array.isArray(data.formattedLines)) {
-          console.warn(`❌ Invalid data in key: ${key}`);
+          logger.warn(`❌ Invalid data in key: ${key}`);
           return false;
         }
 
         // التحقق من وجود metadata
         if (data.metadata?.version !== "2.0") {
-          console.warn(`❌ Invalid metadata in key: ${key}`);
+          logger.warn(`❌ Invalid metadata in key: ${key}`);
           return false;
         }
       }
     }
 
-    console.log("✅ جميع البيانات سليمة");
+    logger.info("✅ جميع البيانات سليمة");
     return true;
   } catch (error) {
-    console.error("Failed to validate data:", error);
+    logger.error("Failed to validate data:", error);
     return false;
   }
 }
@@ -270,10 +271,10 @@ export function rollbackMigration(
       localStorage.setItem(key, JSON.stringify(value));
     }
 
-    console.log("✅ تم إلغاء الترحيل بنجاح");
+    logger.info("✅ تم إلغاء الترحيل بنجاح");
     return true;
   } catch (error) {
-    console.error("Failed to rollback migration:", error);
+    logger.error("Failed to rollback migration:", error);
     return false;
   }
 }
@@ -289,20 +290,20 @@ export function executeFullMigration(): {
 } {
   try {
     // 1. إنشاء نسخة احتياطية
-    console.log("📦 إنشاء نسخة احتياطية...");
+    logger.info("📦 إنشاء نسخة احتياطية...");
     const backup = exportLocalStorage();
 
     // 2. تنفيذ الترحيل
-    console.log("🔄 تنفيذ الترحيل...");
+    logger.info("🔄 تنفيذ الترحيل...");
     const migratedCount = migrateLocalStorage();
 
     // 3. التحقق من البيانات
-    console.log("✅ التحقق من البيانات...");
+    logger.info("✅ التحقق من البيانات...");
     const isValid = validateMigratedData();
 
     if (!isValid) {
       // إلغاء الترحيل إذا كانت البيانات غير سليمة
-      console.error("❌ البيانات غير سليمة، جاري الإلغاء...");
+      logger.error("❌ البيانات غير سليمة، جاري الإلغاء...");
       rollbackMigration(backup);
       return {
         success: false,
@@ -311,7 +312,7 @@ export function executeFullMigration(): {
       };
     }
 
-    console.log(`🎉 تم ترحيل ${migratedCount} سيناريو بنجاح!`);
+    logger.info(`🎉 تم ترحيل ${migratedCount} سيناريو بنجاح!`);
 
     return {
       success: true,
@@ -319,7 +320,7 @@ export function executeFullMigration(): {
       backup,
     };
   } catch (error) {
-    console.error("❌ فشل الترحيل:", error);
+    logger.error("❌ فشل الترحيل:", error);
     return {
       success: false,
       migratedCount: 0,
@@ -336,15 +337,15 @@ export function executeFullMigration(): {
 export function manualMigrateSingle(
   oldData: OldScreenplayFormat
 ): NewScreenplayFormat {
-  console.log(`🔄 ترحيل السيناريو: ${oldData.title}`);
+  logger.info(`🔄 ترحيل السيناريو: ${oldData.title}`);
 
   const newData = migrateScreenplayData(oldData);
 
-  console.log(`✅ تم ترحيل السيناريو بنجاح`);
-  console.log(`   - الكلمات: ${newData.metadata.wordCount}`);
-  console.log(`   - الحروف: ${newData.metadata.characterCount}`);
-  console.log(`   - المشاهد: ${newData.metadata.sceneCount}`);
-  console.log(`   - السطور: ${newData.formattedLines.length}`);
+  logger.info(`✅ تم ترحيل السيناريو بنجاح`);
+  logger.info(`   - الكلمات: ${newData.metadata.wordCount}`);
+  logger.info(`   - الحروف: ${newData.metadata.characterCount}`);
+  logger.info(`   - المشاهد: ${newData.metadata.sceneCount}`);
+  logger.info(`   - السطور: ${newData.formattedLines.length}`);
 
   return newData;
 }
@@ -358,24 +359,24 @@ export function printMigrationReport(result: {
   migratedCount: number;
   backup: Record<string, OldScreenplayFormat>;
 }): void {
-  console.log("\n=================================");
-  console.log("📊 تقرير الترحيل");
-  console.log("=================================\n");
+  logger.info("\n=================================");
+  logger.info("📊 تقرير الترحيل");
+  logger.info("=================================\n");
 
-  console.log(`الحالة: ${result.success ? "✅ نجح" : "❌ فشل"}`);
-  console.log(`عدد السيناريوهات المهاجرة: ${result.migratedCount}`);
-  console.log(
+  logger.info(`الحالة: ${result.success ? "✅ نجح" : "❌ فشل"}`);
+  logger.info(`عدد السيناريوهات المهاجرة: ${result.migratedCount}`);
+  logger.info(
     `عدد السيناريوهات في النسخة الاحتياطية: ${Object.keys(result.backup).length}`
   );
 
   if (!result.success) {
-    console.log(
+    logger.info(
       "\n⚠️  فشل الترحيل. البيانات الاحتياطية محفوظة في result.backup"
     );
-    console.log("للاستعادة، استخدم: rollbackMigration(result.backup)");
+    logger.info("للاستعادة، استخدم: rollbackMigration(result.backup)");
   }
 
-  console.log("\n=================================\n");
+  logger.info("\n=================================\n");
 }
 
 // تصدير للاستخدام في browser

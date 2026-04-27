@@ -1,5 +1,7 @@
 import { describe, it, beforeEach } from 'vitest';
 
+import { logger } from "@/lib/logger";
+
 import { ConstitutionalRulesEngine, Rule } from './constitutionalRules';
 
 describe('ConstitutionalRulesEngine Performance Benchmark', () => {
@@ -47,9 +49,9 @@ describe('ConstitutionalRulesEngine Performance Benchmark', () => {
       totalTime += (Date.now() - start);
     }
 
-    console.log(`\n=== Baseline CheckRules Execution ===`);
-    console.log(`Average time over ${iterations} iterations: ${totalTime / iterations}ms`);
-    console.log(`Expected theoretical minimum (parallel): ~60ms`);
-    console.log(`Expected theoretical sequential: ~550ms`);
+    logger.info(`\n=== Baseline CheckRules Execution ===`);
+    logger.info(`Average time over ${iterations} iterations: ${totalTime / iterations}ms`);
+    logger.info(`Expected theoretical minimum (parallel): ~60ms`);
+    logger.info(`Expected theoretical sequential: ~550ms`);
   });
 });

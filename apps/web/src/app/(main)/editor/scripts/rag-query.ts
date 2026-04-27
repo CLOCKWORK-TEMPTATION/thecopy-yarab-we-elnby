@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { logger } from "../src/rag/config.js";
 import { askQuestion } from "../src/rag/query.js";
 
@@ -18,22 +19,22 @@ async function main() {
 
     const response = await askQuestion(question);
 
-    console.log("\n" + "=".repeat(80));
-    console.log("📝 Answer:");
-    console.log("=".repeat(80));
-    console.log(response.answer);
-    console.log("\n" + "=".repeat(80));
-    console.log("📚 Sources:");
-    console.log("=".repeat(80));
+    logger.info("\n" + "=".repeat(80));
+    logger.info("📝 Answer:");
+    logger.info("=".repeat(80));
+    logger.info(response.answer);
+    logger.info("\n" + "=".repeat(80));
+    logger.info("📚 Sources:");
+    logger.info("=".repeat(80));
 
     response.sources.forEach((source, idx) => {
-      console.log(
+      logger.info(
         `\n[${idx + 1}] ${source.filePath} (score: ${source.score.toFixed(3)})`
       );
-      console.log(`    ${source.snippet}`);
+      logger.info(`    ${source.snippet}`);
     });
 
-    console.log("\n" + "=".repeat(80));
+    logger.info("\n" + "=".repeat(80));
 
     process.exit(0);
   } catch (error) {

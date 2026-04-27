@@ -9,6 +9,7 @@
 
 "use client";
 
+import { logger } from "@/lib/logger";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -35,7 +36,7 @@ export function PerformanceOptimizer() {
       if (navigationTiming) {
         const pageLoadTime =
           navigationTiming.loadEventEnd - navigationTiming.fetchStart;
-        console.log(`[Performance] Page load time: ${pageLoadTime}ms`);
+        logger.info(`[Performance] Page load time: ${pageLoadTime}ms`);
 
         // Report to analytics if needed
         if (window.gtag) {

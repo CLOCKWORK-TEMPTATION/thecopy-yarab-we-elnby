@@ -5,6 +5,7 @@
  * to broadcast real-time updates to clients.
  */
 
+import { logger } from "@/lib/logger";
 import { sseService } from '@/services/sse.service';
 import { websocketService } from '@/services/websocket.service';
 import {
@@ -200,7 +201,7 @@ const socket = io('http://localhost:3000', {
 
 // Authenticate after connection
 socket.on('connected', (data) => {
-  console.log('Connected:', data);
+  logger.info('Connected:', data);
 
   // Authenticate with userId
   socket.emit('authenticate', {
@@ -211,7 +212,7 @@ socket.on('connected', (data) => {
 
 // Listen for authentication success
 socket.on('authenticated', (data) => {
-  console.log('Authenticated:', data);
+  logger.info('Authenticated:', data);
 
   // Subscribe to rooms
   socket.emit('subscribe', { room: 'project:abc123' });
@@ -220,27 +221,27 @@ socket.on('authenticated', (data) => {
 
 // Listen for job progress
 socket.on('job:progress', (data) => {
-  console.log('Job progress:', data);
+  logger.info('Job progress:', data);
   // Update UI with progress
   updateProgressBar(data.progress);
 });
 
 // Listen for job completed
 socket.on('job:completed', (data) => {
-  console.log('Job completed:', data);
+  logger.info('Job completed:', data);
   // Show success message
   showSuccessNotification(data.result);
 });
 
 // Listen for errors
 socket.on('system:error', (data) => {
-  console.error('System error:', data);
+  logger.error('System error:', data);
   showErrorNotification(data.message);
 });
 
 // Handle disconnection
 socket.on('disconnected', () => {
-  console.log('Disconnected from server');
+  logger.info('Disconnected from server');
 });
 
 // ============================================
@@ -252,20 +253,20 @@ const eventSource = new EventSource('http://localhost:3000/api/realtime/events',
 
 // Listen for connection
 eventSource.addEventListener('connected', (event) => {
-  console.log('SSE Connected:', JSON.parse(event.data));
+  logger.info('SSE Connected:', JSON.parse(event.data));
 });
 
 // Listen for job progress
 eventSource.addEventListener('job:progress', (event) => {
   const data = JSON.parse(event.data);
-  console.log('Job progress:', data);
+  logger.info('Job progress:', data);
   updateProgressBar(data.progress);
 });
 
 // Listen for analysis progress
 eventSource.addEventListener('analysis:progress', (event) => {
   const data = JSON.parse(event.data);
-  console.log('Analysis progress:', data);
+  logger.info('Analysis progress:', data);
 
   // Stream logs to UI
   data.logs?.forEach(log => appendLog(log));
@@ -273,7 +274,7 @@ eventSource.addEventListener('analysis:progress', (event) => {
 
 // Handle errors
 eventSource.onerror = (error) => {
-  console.error('SSE Error:', error);
+  logger.error('SSE Error:', error);
   // Reconnect logic
 };
 
@@ -310,7 +311,7 @@ analysisEventSource.addEventListener('analysis:progress', (event) => {
  * Use these functions to test the real-time communication
  */
 export function testRealtimeSystem(): void {
-  console.log('Testing real-time system...');
+  logger.info('Testing real-time system...');
 
   // Test 1: Broadcast a test event
   const testEvent = createRealtimeEvent<SystemEventPayload>(RealtimeEventType.SYSTEM_INFO, {
@@ -355,7 +356,7 @@ export function testRealtimeSystem(): void {
     const wsStats = websocketService.getStats();
     const sseStats = sseService.getStats();
 
-    console.log('WebSocket Stats:', wsStats);
-    console.log('SSE Stats:', sseStats);
+    logger.info('WebSocket Stats:', wsStats);
+    logger.info('SSE Stats:', sseStats);
   }, 15000);
 }

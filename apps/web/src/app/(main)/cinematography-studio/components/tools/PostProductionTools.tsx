@@ -143,6 +143,10 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
   const previewType = mediaInput.state.previewType;
   const previewUrl = mediaInput.state.previewUrl;
   const mode = mediaInput.state.mode;
+  const canAnalyze = mediaInput.canAnalyze;
+  const isPreparingMedia = mediaInput.state.isPreparing;
+  const mediaError = mediaInput.state.error;
+  const cameraPermission = mediaInput.state.cameraPermission;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_320px]">
@@ -217,7 +221,6 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                 </div>
               ))}
             </div>
-          // eslint-disable-next-line react-hooks/refs
           ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -238,7 +241,7 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
             <Button
               type="button"
               onClick={handleAnalyzeCurrentInput}
-              disabled={!mediaInput.canAnalyze || isUploadingFootage}
+              disabled={!canAnalyze || isUploadingFootage}
               className="h-11 border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
             >
               <Upload className="mr-2 h-4 w-4" />
@@ -295,25 +298,20 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
             <div className="relative aspect-[16/9] overflow-hidden rounded-[10px] border border-[#343434] bg-[#050505]">
               {previewType === "camera" ? (
                 <video
-                  // eslint-disable-next-line react-hooks/refs
                   ref={mediaInput.cameraVideoRef}
                   autoPlay
                   muted
                   playsInline
                   className="h-full w-full object-cover"
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : previewType === "video" && previewUrl ? (
                 <video
-                  // eslint-disable-next-line react-hooks/refs
                   src={previewUrl}
                   controls
                   className="h-full w-full object-cover"
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : previewType === "image" && previewUrl ? (
                 <Image
-                  // eslint-disable-next-line react-hooks/refs
                   src={previewUrl}
                   alt="الإطار المرجعي"
                   unoptimized
@@ -341,24 +339,20 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              // eslint-disable-next-line react-hooks/refs
               {mode === "image" ? (
                 <SecondaryButton
                   label="اختيار صورة"
                   onClick={handleSelectImage}
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : null}
               {mode === "video" ? (
                 <SecondaryButton
                   label="اختيار فيديو"
                   onClick={handleSelectVideo}
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : null}
               {mode === "camera" ? (
-                // eslint-disable-next-line react-hooks/refs
-                mediaInput.state.cameraPermission === "granted" ? (
+                cameraPermission === "granted" ? (
                   <>
                     <SecondaryButton
                       label="التقاط وتحليل"
@@ -367,7 +361,6 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                     <SecondaryButton
                       label="إيقاف الكاميرا"
                       icon={CameraOff}
-                      // eslint-disable-next-line react-hooks/refs
                       onClick={mediaInput.stopCamera}
                     />
                   </>
@@ -377,36 +370,29 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                     onClick={handleEnableCamera}
                   />
                 )
-              // eslint-disable-next-line react-hooks/refs
               ) : null}
 
-              // eslint-disable-next-line react-hooks/refs
-              {mediaInput.canAnalyze ? (
+              {canAnalyze ? (
                 <SecondaryButton
                   label="إعادة التحليل"
                   icon={RefreshCcw}
                   onClick={handleAnalyzeCurrentInput}
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : null}
             </div>
 
-            {mediaInput.state.isPreparing ? (
+            {isPreparingMedia ? (
               <InlineBanner>
                 جاري تجهيز إطار مرجعي من الفيديو للتحليل.
               </InlineBanner>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
-            {mediaInput.state.error ? (
+            {mediaError ? (
               <InlineBanner tone="danger">
-                // eslint-disable-next-line react-hooks/refs
-                {mediaInput.state.error}
+                {mediaError}
               </InlineBanner>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
             {footageError ? (
               <InlineBanner tone="danger">{footageError}</InlineBanner>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -464,7 +450,6 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                   </ul>
                 </div>
               </div>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
           </div>
         </StudioPanel>
@@ -541,7 +526,6 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                   />
                 </div>
               </div>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
           </div>
         </StudioPanel>

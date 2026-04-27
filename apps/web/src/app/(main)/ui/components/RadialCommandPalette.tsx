@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -54,21 +54,13 @@ export function RadialCommandPalette({
   const [search, setSearch] = useState("");
   const isMobile = useIsMobile();
   const debouncedSearch = useDebounce(search, 180);
-  const [filteredCommands, setFilteredCommands] = useState(commands);
-
-  // Filter commands with debounced search
-  useEffect(() => {
-    if (debouncedSearch) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFilteredCommands(
-        commands.filter((cmd) =>
-          cmd.label.toLowerCase().includes(debouncedSearch.toLowerCase())
-        )
-      );
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFilteredCommands(commands);
+  const filteredCommands = useMemo(() => {
+    if (!debouncedSearch) {
+      return commands;
     }
+    return commands.filter((cmd) =>
+      cmd.label.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
   }, [debouncedSearch, commands]);
 
   useEffect(() => {

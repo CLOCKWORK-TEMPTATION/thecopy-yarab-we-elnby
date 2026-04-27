@@ -99,7 +99,7 @@ function findFiles(dir, pattern) {
               if (regex.test(fullPath)) {
                 results.push(fullPath);
               }
-            } catch (e) {
+            } catch {
               // Skip invalid patterns
               console.warn(`Invalid glob pattern: ${pattern}`);
             }

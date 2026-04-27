@@ -1,6 +1,5 @@
 const { spawn } = require("child_process");
 const net = require("net");
-const path = require("path");
 
 const START_PORT = Number(process.env.PORT) || 5000;
 const HOST = "0.0.0.0";

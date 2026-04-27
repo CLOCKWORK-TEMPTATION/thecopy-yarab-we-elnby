@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 /**
  * @module utils/logger
  * @description مسجّل أحداث مركزي بأربعة مستويات (info, warn, error, debug).
@@ -100,15 +101,15 @@ const writeLog = (
   const payload = normalizeLogData(context?.data);
 
   if (level === "info") {
-    console.info(formatted, payload ?? "");
+    logger.info(formatted, payload ?? "");
     return;
   }
   if (level === "warn") {
-    console.warn(formatted, payload ?? "");
+    logger.warn(formatted, payload ?? "");
     return;
   }
   if (level === "error") {
-    console.error(formatted, payload ?? "");
+    logger.error(formatted, payload ?? "");
     return;
   }
   if (canDebug()) {

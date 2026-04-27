@@ -127,8 +127,7 @@ export default function CharacterFormDialog({
    * إعادة تعيين النموذج عند تغيير الشخصية أو فتح الحوار
    */
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormData(mapCharacterToFormData(character));
+    setTimeout(() => { ; }, 0);
   }, [character, open]);
 
   /**

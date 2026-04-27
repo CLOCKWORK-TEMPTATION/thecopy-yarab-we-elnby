@@ -1,0 +1,53 @@
+[eslint-contract] web: 1402 errors, 36 warnings, 440 files with messages.
+[eslint-contract] web: new lint violations detected.
+  1 new: apps/web/src/components/shared/LauncherCenterCard.tsx|react-hooks/set-state-in-effect|Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+apps/web/src/components/shared/LauncherCenterCard.tsx:61:5
+  59 |   useEffect(() => {
+  60 |     // eslint-disable-next-line react-hooks/set-state-in-effect
+> 61 |     setMounted(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  62 |   }, []);
+  63 |
+  64 |   const router = useRouter();
+  20 new: apps/web/src/components/shared/LauncherCenterCard.tsx|react/no-unescaped-entities|`"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  5 new: apps/web/src/components/shared/LauncherCenterCard.tsx|react/no-unescaped-entities|`}` can be escaped with `&#125;`.
+  14 new: apps/web/src/components/shared/LauncherCenterCard.tsx|react/no-unescaped-entities|`>` can be escaped with `&gt;`.
+  1 new: apps/web/src/hooks/usePerformanceDetection.ts|react-hooks/set-state-in-effect|Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+apps/web/src/hooks/usePerformanceDetection.ts:52:5
+  50 |     const initialCaps = performanceDetector.getCapabilities();
+  51 |     // eslint-disable-next-line react-hooks/set-state-in-effect
+> 52 |     setCapabilities(initialCaps);
+     |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |     setParticleConfig(performanceDetector.getParticleConfig());
+  54 |     setShouldDisable(performanceDetector.shouldDisableParticles());
+  55 |     setShouldReduceQuality(performanceDetector.shouldReduceQuality());
+  1 new: apps/web/src/hooks/usePerformanceDetection.ts|react-hooks/set-state-in-effect|Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+apps/web/src/hooks/usePerformanceDetection.ts:184:5
+  182 |     const initialCaps = performanceDetector.getCapabilities();
+  183 |     // eslint-disable-next-line react-hooks/set-state-in-effect
+> 184 |     setValue(initialCaps[metric]);
+      |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  185 |
+  186 |     return () => unsubscribe();
+  187 |   }, [metric, callback]);

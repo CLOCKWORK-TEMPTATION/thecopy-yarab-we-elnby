@@ -1,5 +1,6 @@
 // frontend/src/lib/ai/constitutional/multi-agent-debate.ts
 
+import { logger } from "@/lib/logger";
 import { stripHtmlTags } from "@/lib/security/sanitize-html";
 
 import { GeminiService } from "../../ai/stations/gemini-service";
@@ -88,7 +89,7 @@ export class MultiAgentDebateSystem {
     context: DebateContext,
     maxRounds = 3
   ): Promise<DebateResult> {
-    console.log(
+    logger.info(
       `[Multi-Agent Debate] Starting debate with max ${maxRounds} rounds`
     );
 
@@ -115,7 +116,7 @@ export class MultiAgentDebateSystem {
 
     // Conduct debate rounds
     for (let i = 0; i < maxRounds; i++) {
-      console.log(`[Multi-Agent Debate] Round ${i + 1}/${maxRounds}`);
+      logger.info(`[Multi-Agent Debate] Round ${i + 1}/${maxRounds}`);
 
       const round = await this.conductDebateRound(
         i + 1,
@@ -130,7 +131,7 @@ export class MultiAgentDebateSystem {
       // Check for convergence
       const convergence = this.checkConvergence(rounds);
       if (convergence > 0.8 && i >= 1) {
-        console.log(`[Multi-Agent Debate] Converged after ${i + 1} rounds`);
+        logger.info(`[Multi-Agent Debate] Converged after ${i + 1} rounds`);
         break;
       }
     }
@@ -145,7 +146,7 @@ export class MultiAgentDebateSystem {
       controversialTopics: this.identifyControversialTopics(rounds),
     };
 
-    console.log(`[Multi-Agent Debate] Complete after ${rounds.length} rounds`);
+    logger.info(`[Multi-Agent Debate] Complete after ${rounds.length} rounds`);
 
     return {
       participants,
@@ -254,7 +255,7 @@ export class MultiAgentDebateSystem {
 
       return this.parseDebateArgument(result.content, "المدعي الناقد");
     } catch (error) {
-      console.error("Failed to generate prosecutor argument:", error);
+      logger.error("Failed to generate prosecutor argument:", error);
       // Return a default argument in case of failure
       return {
         participant: "المدعي الناقد",
@@ -320,7 +321,7 @@ export class MultiAgentDebateSystem {
 
       return this.parseDebateArgument(result.content, "المدافع البناء");
     } catch (error) {
-      console.error("Failed to generate defender argument:", error);
+      logger.error("Failed to generate defender argument:", error);
       // Return a default argument in case of failure
       return {
         participant: "المدافع البناء",
@@ -363,7 +364,7 @@ export class MultiAgentDebateSystem {
       });
       return result.content;
     } catch (error) {
-      console.error("Failed to generate judge comments:", error);
+      logger.error("Failed to generate judge comments:", error);
       return "تعذر إنشاء تعليقات القاضي بسبب خطأ في الخدمة.";
     }
   }
@@ -429,7 +430,7 @@ export class MultiAgentDebateSystem {
       // Try to parse the JSON result
       return JSON.parse(result.content);
     } catch (error) {
-      console.error("Failed to generate verdict:", error);
+      logger.error("Failed to generate verdict:", error);
       // Return a default verdict in case of failure
       return {
         consensusAreas: [],

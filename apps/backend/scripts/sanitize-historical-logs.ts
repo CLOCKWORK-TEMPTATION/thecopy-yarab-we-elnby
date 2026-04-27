@@ -17,6 +17,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { logger } from "@/lib/logger";
+
 import { sanitizeHistoricalLogs } from '../src/middleware/log-sanitization.middleware';
 
 // Configuration
@@ -41,10 +43,10 @@ interface SanitizationResult {
  * Main function to sanitize all log files
  */
 async function sanitizeAllLogs(): Promise<void> {
-  console.log('🔒 Starting Historical Log Sanitization...\n');
+  logger.info('🔒 Starting Historical Log Sanitization...\n');
 
   if (DRY_RUN) {
-    console.log('⚠️  DRY RUN MODE - No files will be modified\n');
+    logger.info('⚠️  DRY RUN MODE - No files will be modified\n');
   }
 
   const results: SanitizationResult[] = [];
@@ -53,11 +55,11 @@ async function sanitizeAllLogs(): Promise<void> {
     const absolutePath = path.resolve(process.cwd(), logDir);
 
     if (!fs.existsSync(absolutePath)) {
-      console.log(`⏭️  Skipping ${logDir} - directory does not exist`);
+      logger.info(`⏭️  Skipping ${logDir} - directory does not exist`);
       continue;
     }
 
-    console.log(`📂 Processing directory: ${absolutePath}`);
+    logger.info(`📂 Processing directory: ${absolutePath}`);
     const dirResults = await processDirectory(absolutePath);
     results.push(...dirResults);
   }
@@ -90,7 +92,7 @@ async function processDirectory(dirPath: string): Promise<SanitizationResult[]> 
       }
     }
   } catch (error) {
-    console.error(`❌ Error processing directory ${dirPath}:`, error);
+    logger.error(`❌ Error processing directory ${dirPath}:`, error);
   }
 
   return results;
@@ -109,7 +111,7 @@ function isLogFile(filename: string): boolean {
  */
 async function sanitizeLogFile(filePath: string): Promise<SanitizationResult | null> {
   try {
-    console.log(`  📄 Processing: ${path.basename(filePath)}`);
+    logger.info(`  📄 Processing: ${path.basename(filePath)}`);
 
     // Read original content
     const originalContent = fs.readFileSync(filePath, 'utf-8');
@@ -123,22 +125,22 @@ async function sanitizeLogFile(filePath: string): Promise<SanitizationResult | n
     const modified = originalContent !== sanitizedContent;
 
     if (modified) {
-      console.log(`    ✅ PII found and sanitized`);
+      logger.info(`    ✅ PII found and sanitized`);
 
       if (!DRY_RUN) {
         // Create backup
         const backupPath = filePath + BACKUP_SUFFIX;
         fs.copyFileSync(filePath, backupPath);
-        console.log(`    💾 Backup created: ${path.basename(backupPath)}`);
+        logger.info(`    💾 Backup created: ${path.basename(backupPath)}`);
 
         // Write sanitized content
         fs.writeFileSync(filePath, sanitizedContent, 'utf-8');
-        console.log(`    📝 Sanitized file written`);
+        logger.info(`    📝 Sanitized file written`);
       } else {
-        console.log(`    ⚠️  [DRY RUN] Would sanitize this file`);
+        logger.info(`    ⚠️  [DRY RUN] Would sanitize this file`);
       }
     } else {
-      console.log(`    ℹ️  No PII detected`);
+      logger.info(`    ℹ️  No PII detected`);
     }
 
     return {
@@ -148,7 +150,7 @@ async function sanitizeLogFile(filePath: string): Promise<SanitizationResult | n
       modified,
     };
   } catch (error) {
-    console.error(`    ❌ Error processing ${filePath}:`, error);
+    logger.error(`    ❌ Error processing ${filePath}:`, error);
     return null;
   }
 }
@@ -157,33 +159,33 @@ async function sanitizeLogFile(filePath: string): Promise<SanitizationResult | n
  * Print summary of sanitization results
  */
 function printSummary(results: SanitizationResult[]): void {
-  console.log('\n' + '='.repeat(60));
-  console.log('📊 SANITIZATION SUMMARY');
-  console.log('='.repeat(60));
+  logger.info('\n' + '='.repeat(60));
+  logger.info('📊 SANITIZATION SUMMARY');
+  logger.info('='.repeat(60));
 
   const totalFiles = results.length;
   const modifiedFiles = results.filter((r) => r.modified).length;
   const totalOriginalSize = results.reduce((sum, r) => sum + r.originalSize, 0);
   const totalSanitizedSize = results.reduce((sum, r) => sum + r.sanitizedSize, 0);
 
-  console.log(`\n📁 Total files processed: ${totalFiles}`);
-  console.log(`✅ Files with PII sanitized: ${modifiedFiles}`);
-  console.log(`ℹ️  Files without PII: ${totalFiles - modifiedFiles}`);
-  console.log(`\n💾 Total original size: ${formatBytes(totalOriginalSize)}`);
-  console.log(`📝 Total sanitized size: ${formatBytes(totalSanitizedSize)}`);
+  logger.info(`\n📁 Total files processed: ${totalFiles}`);
+  logger.info(`✅ Files with PII sanitized: ${modifiedFiles}`);
+  logger.info(`ℹ️  Files without PII: ${totalFiles - modifiedFiles}`);
+  logger.info(`\n💾 Total original size: ${formatBytes(totalOriginalSize)}`);
+  logger.info(`📝 Total sanitized size: ${formatBytes(totalSanitizedSize)}`);
 
   if (modifiedFiles > 0 && !DRY_RUN) {
-    console.log('\n✅ All sensitive data has been redacted from historical logs.');
-    console.log(`💾 Backups created with suffix: ${BACKUP_SUFFIX}`);
-    console.log('\n⚠️  IMPORTANT: Review the sanitized logs and delete backups when satisfied:');
-    console.log(`   find . -name "*${BACKUP_SUFFIX}" -delete`);
+    logger.info('\n✅ All sensitive data has been redacted from historical logs.');
+    logger.info(`💾 Backups created with suffix: ${BACKUP_SUFFIX}`);
+    logger.info('\n⚠️  IMPORTANT: Review the sanitized logs and delete backups when satisfied:');
+    logger.info(`   find . -name "*${BACKUP_SUFFIX}" -delete`);
   } else if (DRY_RUN && modifiedFiles > 0) {
-    console.log('\n⚠️  DRY RUN completed. Run without DRY_RUN=true to apply changes.');
+    logger.info('\n⚠️  DRY RUN completed. Run without DRY_RUN=true to apply changes.');
   } else {
-    console.log('\n✅ No PII detected in any log files. All logs are clean!');
+    logger.info('\n✅ No PII detected in any log files. All logs are clean!');
   }
 
-  console.log('\n' + '='.repeat(60) + '\n');
+  logger.info('\n' + '='.repeat(60) + '\n');
 }
 
 /**
@@ -205,11 +207,11 @@ function formatBytes(bytes: number): string {
 if (require.main === module) {
   sanitizeAllLogs()
     .then(() => {
-      console.log('✅ Sanitization complete!');
+      logger.info('✅ Sanitization complete!');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('❌ Fatal error:', error);
+      logger.error('❌ Fatal error:', error);
       process.exit(1);
     });
 }

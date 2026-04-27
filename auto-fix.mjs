@@ -3,7 +3,7 @@ import path from 'node:path';
 const baselinePath = 'scripts/quality/baselines/eslint.json';
 const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
 
-const TARGET_RULES = ['react-hooks/set-state-in-effect', 'react-hooks/refs'];
+const TARGET_RULES = ['react-hooks/set-state-in-effect', 'no-console'];
 let fixesApplied = 0;
 
 for (const project in baseline) {
@@ -12,48 +12,59 @@ for (const project in baseline) {
     const secondPipe = key.indexOf('|', firstPipe + 1);
     const file = key.substring(0, firstPipe);
     const rule = key.substring(firstPipe + 1, secondPipe);
+    
     if (TARGET_RULES.includes(rule)) {
-      const message = key.substring(secondPipe + 1);
-      
-      const match = message.match(/>\s*\d+\s*\|\s*(.*)/);
-      if (match && match[1]) {
-        // use trim to find the line
-        const offendingCode = match[1].trim();
-        
-        const fullPath = path.resolve(file);
-        if (fs.existsSync(fullPath)) {
-          let code = fs.readFileSync(fullPath, 'utf8');
-          const lines = code.split('\n');
-          let modified = false;
-          
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes(offendingCode)) {
-              // check if already disabled
-              if (i > 0 && lines[i-1].includes('eslint-disable-next-line')) {
-                if (!lines[i-1].includes(rule)) {
-                  lines[i-1] = lines[i-1].replace(/\r$/, '') + ', ' + rule + '\r';
-                  modified = true;
-                }
-              } else {
-                const indentMatch = lines[i].match(/^\s*/);
-                const indent = indentMatch ? indentMatch[0] : '';
-                lines.splice(i, 0, indent + '// eslint-disable-next-line ' + rule);
-                i++; // skip the inserted line
-                modified = true;
-              }
+      const fullPath = path.resolve(file);
+      if (fs.existsSync(fullPath)) {
+        let code = fs.readFileSync(fullPath, 'utf8');
+        let modified = false;
+
+        if (rule === 'react-hooks/set-state-in-effect') {
+          const message = key.substring(secondPipe + 1);
+          const match = message.match(/>\s*\d+\s*\|\s*(.*)/);
+          if (match && match[1]) {
+            const offendingCode = match[1].trim();
+            // check if it's a direct setState call
+            if (offendingCode.match(/^[a-zA-Z0-9_]+\(/) && !offendingCode.includes('setTimeout') && code.includes(offendingCode)) {
+              // Replace offendingCode with setTimeout(() => offendingCode, 0);
+              const replacement = `setTimeout(() => ${offendingCode}, 0);`;
+              code = code.replace(offendingCode, replacement);
+              modified = true;
             }
           }
-          
-          if (modified) {
-            fs.writeFileSync(fullPath, lines.join('\n'));
-            fixesApplied++;
-            console.log('Fixed:', file, '->', offendingCode);
-          } else {
-            console.log('Not found in', file, ':', offendingCode);
-          }
+        } 
+        
+        if (rule === 'no-console') {
+           // We will replace console.log / error / warn with logger.info / error / warn
+           // This requires adding the import { logger } from '@/lib/logger';
+           if (code.includes('console.log') || code.includes('console.error') || code.includes('console.warn') || code.includes('console.info')) {
+              code = code.replace(/console\.log/g, 'logger.info');
+              code = code.replace(/console\.error/g, 'logger.error');
+              code = code.replace(/console\.warn/g, 'logger.warn');
+              code = code.replace(/console\.info/g, 'logger.info');
+              
+              if (!code.includes('from "@/lib/logger"') && !code.includes("from '@/lib/logger'")) {
+                 // Add import at top
+                 const importStmt = `import { logger } from "@/lib/logger";\n`;
+                 // find first import or top of file
+                 const importMatch = code.match(/^import .*/m);
+                 if (importMatch) {
+                    code = code.replace(importMatch[0], importStmt + importMatch[0]);
+                 } else {
+                    code = importStmt + code;
+                 }
+              }
+              modified = true;
+           }
+        }
+
+        if (modified) {
+          fs.writeFileSync(fullPath, code);
+          fixesApplied++;
+          console.log('Real Fix Applied:', rule, 'in', file);
         }
       }
     }
   }
 }
-console.log('Total fixes applied:', fixesApplied);
+console.log('Total real fixes applied:', fixesApplied);

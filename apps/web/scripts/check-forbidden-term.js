@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require("fs");
-const path = require("path");
 // SECURITY FIX: Import safe path utilities to prevent path traversal
 const { safeResolve } = require("./safe-path");
 

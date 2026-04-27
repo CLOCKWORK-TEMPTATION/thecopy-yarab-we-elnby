@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { PluginManager } from "./src/app/(main)/art-director/core/PluginManager";
 import {
   Plugin,
@@ -44,35 +45,35 @@ async function runBenchmark() {
     pm.registerPlugin(new MockPlugin(`p${i}`, `Plugin ${i}`, delay));
   }
 
-  console.log(
+  logger.info(
     `--- Benchmarking with ${pluginCount} plugins, each having ${delay}ms delay ---`
   );
 
   // Measure initializeAll
-  console.log("Measuring initializeAll...");
+  logger.info("Measuring initializeAll...");
   const startInit = Date.now();
   await pm.initializeAll();
   const endInit = Date.now();
   const initDuration = endInit - startInit;
-  console.log(`initializeAll took ${initDuration}ms`);
+  logger.info(`initializeAll took ${initDuration}ms`);
 
   // Measure shutdownAll
-  console.log("Measuring shutdownAll...");
+  logger.info("Measuring shutdownAll...");
   const startShutdown = Date.now();
   await pm.shutdownAll();
   const endShutdown = Date.now();
   const shutdownDuration = endShutdown - startShutdown;
-  console.log(`shutdownAll took ${shutdownDuration}ms`);
+  logger.info(`shutdownAll took ${shutdownDuration}ms`);
 
-  console.log("--- Results ---");
-  console.log(`Total time: ${initDuration + shutdownDuration}ms`);
+  logger.info("--- Results ---");
+  logger.info(`Total time: ${initDuration + shutdownDuration}ms`);
 
   // Theoretical parallel time should be around delay (+ overhead)
   // Theoretical sequential time should be around delay * pluginCount
   const expectedSequential = delay * pluginCount;
-  console.log(
+  logger.info(
     `Expected sequential time: ~${expectedSequential}ms per operation`
   );
 }
 
-runBenchmark().catch(console.error);
+runBenchmark().catch(logger.error);

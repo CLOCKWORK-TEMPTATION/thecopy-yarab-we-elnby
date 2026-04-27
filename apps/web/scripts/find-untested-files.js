@@ -90,7 +90,7 @@ function hasTestFile(sourceFile) {
     try {
       const testPath = safeResolve(srcDir, dirRelative, pattern);
       possibleTestPatterns.push(testPath);
-    } catch (error) {
+    } catch {
       continue;
     }
   }
@@ -99,7 +99,7 @@ function hasTestFile(sourceFile) {
     try {
       const testPath = safeResolve(srcDir, dirRelative, "__tests__", pattern);
       possibleTestPatterns.push(testPath);
-    } catch (error) {
+    } catch {
       continue;
     }
   }

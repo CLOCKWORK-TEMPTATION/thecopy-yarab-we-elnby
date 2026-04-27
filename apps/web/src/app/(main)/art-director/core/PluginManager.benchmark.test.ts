@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { describe, it, expect } from "vitest";
 
 import { PluginManager } from "../core/PluginManager";
@@ -47,7 +48,7 @@ describe("PluginManager Performance", () => {
     await pm.shutdownAll();
     const duration = Date.now() - start;
 
-    console.log(`Parallel shutdown with 5 plugins took ${duration}ms`);
+    logger.info(`Parallel shutdown with 5 plugins took ${duration}ms`);
     // Parallel should be faster than sequential (pluginCount * delay)
     // It should be around delay + overhead
     expect(duration).toBeLessThan(pluginCount * delay);
@@ -67,7 +68,7 @@ describe("PluginManager Performance", () => {
     await pm.initializeAll();
     const duration = Date.now() - start;
 
-    console.log(`Parallel initialization with 5 plugins took ${duration}ms`);
+    logger.info(`Parallel initialization with 5 plugins took ${duration}ms`);
     // Parallel should be faster than sequential (pluginCount * delay)
     expect(duration).toBeLessThan(pluginCount * delay);
     expect(duration).toBeGreaterThanOrEqual(delay);

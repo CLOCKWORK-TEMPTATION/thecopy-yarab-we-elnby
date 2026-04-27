@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/logger";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
@@ -867,7 +868,7 @@ export default function V0ParticleAnimation() {
 
     generateParticlesInBatches()
       .then((finalCount) => {
-        console.log("[v0] Generated particles:", finalCount);
+        logger.info("[v0] Generated particles:", finalCount);
         if (!sceneRef.current) return;
 
         sceneRef.current.particleCount = finalCount;
@@ -906,10 +907,10 @@ export default function V0ParticleAnimation() {
         sceneRef.current.geometry = geometry;
         sceneRef.current.points = points;
 
-        console.log("[v0] Particles added to scene");
+        logger.info("[v0] Particles added to scene");
       })
       .catch((error) => {
-        console.error("Failed to generate particles:", error);
+        logger.error("Failed to generate particles:", error);
       });
 
     const cleanup = () => {
@@ -938,7 +939,7 @@ export default function V0ParticleAnimation() {
           sceneRef.current = null;
         }
       } catch (error) {
-        console.error("Cleanup error:", error);
+        logger.error("Cleanup error:", error);
       }
     };
 

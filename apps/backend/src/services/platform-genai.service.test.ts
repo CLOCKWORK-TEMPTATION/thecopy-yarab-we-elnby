@@ -63,8 +63,8 @@ describe('PlatformGenAIService', () => {
   });
 
   it('returns shared details when no AI credentials are configured', async () => {
-    mockEnv.GEMINI_API_KEY = undefined;
-    mockEnv.GOOGLE_GENAI_API_KEY = undefined;
+    mockEnv.GEMINI_API_KEY = undefined as any;
+    mockEnv.GOOGLE_GENAI_API_KEY = undefined as any;
 
     const service = new PlatformGenAIService();
 

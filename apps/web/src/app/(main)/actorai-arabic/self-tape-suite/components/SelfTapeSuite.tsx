@@ -120,6 +120,7 @@ const RECORDING_MIME_CANDIDATES = [
   "video/webm;codecs=vp8,opus",
   "video/webm",
 ];
+const EMPTY_CAPTIONS_TRACK = "data:text/vtt;charset=utf-8,WEBVTT%0A";
 
 const NOTE_TYPE_LABELS: Record<NoteType, string> = {
   emotion: "💫 عاطفة",
@@ -417,6 +418,9 @@ export const SelfTapeSuite: React.FC = () => {
   const [manualNoteTypes, setManualNoteTypes] = useState<
     Record<string, NoteType>
   >({});
+  const [exportableTakeIds, setExportableTakeIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const previewVideoRef = useRef<HTMLVideoElement | null>(null);
   const recordingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
@@ -451,10 +455,9 @@ export const SelfTapeSuite: React.FC = () => {
   );
   const bestExportableTake = useMemo(() => {
     return [...availableTakes]
-      // eslint-disable-next-line react-hooks/refs
-      .filter((take) => blobRegistryRef.current.has(take.id))
+      .filter((take) => exportableTakeIds.has(take.id))
       .sort((left, right) => (right.score ?? 0) - (left.score ?? 0))[0];
-  }, [availableTakes]);
+  }, [availableTakes, exportableTakeIds]);
   const promptLines = useMemo(
     () =>
       scriptText
@@ -682,6 +685,28 @@ export const SelfTapeSuite: React.FC = () => {
     });
   }, []);
 
+  const markTakeExportable = useCallback((takeId: string) => {
+    setExportableTakeIds((previous) => {
+      if (previous.has(takeId)) {
+        return previous;
+      }
+      const next = new Set(previous);
+      next.add(takeId);
+      return next;
+    });
+  }, []);
+
+  const markTakeNotExportable = useCallback((takeId: string) => {
+    setExportableTakeIds((previous) => {
+      if (!previous.has(takeId)) {
+        return previous;
+      }
+      const next = new Set(previous);
+      next.delete(takeId);
+      return next;
+    });
+  }, []);
+
   const revokeTakeResources = useCallback((takeId: string) => {
     const sessionUrl = sessionUrlRegistryRef.current.get(takeId);
     if (sessionUrl) {
@@ -689,7 +714,8 @@ export const SelfTapeSuite: React.FC = () => {
       sessionUrlRegistryRef.current.delete(takeId);
     }
     blobRegistryRef.current.delete(takeId);
-  }, []);
+    markTakeNotExportable(takeId);
+  }, [markTakeNotExportable]);
 
   const stopTeleprompter = useCallback(() => {
     clearCountdownInterval();
@@ -843,6 +869,7 @@ export const SelfTapeSuite: React.FC = () => {
       if (blob && videoUrl) {
         blobRegistryRef.current.set(pendingTake.id, blob);
         sessionUrlRegistryRef.current.set(pendingTake.id, videoUrl);
+        markTakeExportable(pendingTake.id);
       }
 
       const insights = buildTakeInsights({
@@ -894,7 +921,7 @@ export const SelfTapeSuite: React.FC = () => {
         "انتهى التسجيل لكن المتصفح لم يسلم ملف فيديو قابلاً للتصدير."
       );
     },
-    [scriptText, showNotification, takes]
+    [markTakeExportable, scriptText, showNotification, takes]
   );
 
   const startRecording = useCallback(async () => {
@@ -1502,7 +1529,14 @@ export const SelfTapeSuite: React.FC = () => {
                         muted
                         playsInline
                         className="h-full w-full object-cover"
-                      />
+                      >
+                        <track
+                          kind="captions"
+                          src={EMPTY_CAPTIONS_TRACK}
+                          srcLang="ar"
+                          label="لا توجد ترجمة"
+                        />
+                      </video>
                     ) : (
                       <div className="flex h-full items-center justify-center text-center">
                         <div>
@@ -1628,7 +1662,6 @@ export const SelfTapeSuite: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  // eslint-disable-next-line react-hooks/refs
                   <div className="max-h-[560px] space-y-3 overflow-y-auto">
                     {availableTakes.map((take) => (
                       <div
@@ -1673,7 +1706,14 @@ export const SelfTapeSuite: React.FC = () => {
                             controls
                             muted
                             className="mb-3 aspect-video w-full rounded-[22px] bg-black object-cover"
-                          />
+                          >
+                            <track
+                              kind="captions"
+                              src={EMPTY_CAPTIONS_TRACK}
+                              srcLang="ar"
+                              label="لا توجد ترجمة"
+                            />
+                          </video>
                         ) : (
                           <div className="mb-3 flex aspect-video items-center justify-center rounded-[22px] border border-dashed border-purple-500/20 bg-black/40 text-center text-sm text-white/55">
                             <div>
@@ -1711,7 +1751,7 @@ export const SelfTapeSuite: React.FC = () => {
                             onClick={() => {
                               void exportTake(take.id);
                             }}
-                            disabled={!blobRegistryRef.current.has(take.id)}
+                            disabled={!exportableTakeIds.has(take.id)}
                           >
                             📤 تصدير
                           </Button>
@@ -1846,7 +1886,6 @@ export const SelfTapeSuite: React.FC = () => {
                       </CardDescription>
                     )}
                   </CardHeader>
-                  // eslint-disable-next-line react-hooks/refs
                   <CardContent className="space-y-4">
                     {take?.videoUrl ? (
                       <video
@@ -1854,7 +1893,14 @@ export const SelfTapeSuite: React.FC = () => {
                         controls
                         muted={!comparisonView.syncPlayback}
                         className="aspect-video w-full rounded-[22px] bg-black object-cover"
-                      />
+                      >
+                        <track
+                          kind="captions"
+                          src={EMPTY_CAPTIONS_TRACK}
+                          srcLang="ar"
+                          label="لا توجد ترجمة"
+                        />
+                      </video>
                     ) : (
                       <div className="flex aspect-video items-center justify-center rounded-[22px] border border-dashed border-purple-500/20 bg-black/40 text-center text-white/55">
                         <div>
@@ -2321,10 +2367,9 @@ export const SelfTapeSuite: React.FC = () => {
                     للتنزيل.
                   </CardDescription>
                 </CardHeader>
-                // eslint-disable-next-line react-hooks/refs
                 <CardContent className="space-y-4">
                   {availableTakes.map((take) => {
-                    const canDownload = blobRegistryRef.current.has(take.id);
+                    const canDownload = exportableTakeIds.has(take.id);
                     return (
                       <div
                         key={take.id}

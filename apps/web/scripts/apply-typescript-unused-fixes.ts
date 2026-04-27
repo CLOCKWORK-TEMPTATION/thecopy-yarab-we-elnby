@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import path from "node:path";
 
 import ts from "typescript";
@@ -186,19 +187,19 @@ function main(): void {
       );
 
     if (diagnostics.length === 0) {
-      console.log(`No unused diagnostics left after pass ${pass - 1}.`);
+      logger.info(`No unused diagnostics left after pass ${pass - 1}.`);
       break;
     }
 
     const edits = collectUnusedIdentifierEdits(service, diagnostics);
     if (edits.length === 0) {
-      console.log(`No code fixes available on pass ${pass}.`);
+      logger.info(`No code fixes available on pass ${pass}.`);
       break;
     }
 
     const changedFiles = applyEdits(edits);
     totalChangedFiles += changedFiles;
-    console.log(
+    logger.info(
       `Pass ${pass}: applied unused-identifier fixes in ${changedFiles} files.`
     );
 
@@ -207,12 +208,12 @@ function main(): void {
     }
   }
 
-  console.log(`Finished. Files changed: ${totalChangedFiles}.`);
+  logger.info(`Finished. Files changed: ${totalChangedFiles}.`);
 }
 
 try {
   main();
 } catch (error) {
-  console.error("Failed to apply TypeScript unused fixes.", error);
+  logger.error("Failed to apply TypeScript unused fixes.", error);
   process.exit(1);
 }

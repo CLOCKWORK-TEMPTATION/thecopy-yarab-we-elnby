@@ -305,7 +305,6 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadSummary();
   }, [loadSummary]);
 

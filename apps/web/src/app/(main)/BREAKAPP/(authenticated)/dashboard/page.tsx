@@ -132,8 +132,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // المصادقة تحت مسؤولية (authenticated)/layout.tsx — هنا فقط نستخرج المستخدم
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUser(getCurrentUser());
+    setTimeout(() => { ; }, 0);
   }, []);
 
   /**

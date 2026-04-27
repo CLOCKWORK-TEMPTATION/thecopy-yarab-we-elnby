@@ -9,6 +9,7 @@
  * المدخل: ملف JSON ناتج من ocr-mistral.ts أو أي مصدر يتبع نفس الهيكل
  */
 
+import { logger } from "@/lib/logger";
 import { readFileSync, writeFileSync } from "node:fs";
 
 // ─── أنواع البيانات ───────────────────────────────────────────
@@ -58,7 +59,7 @@ function parseArgs(): { input: string; format: OutputFormat; output: string } {
   }
 
   if (!input || !output) {
-    console.error(
+    logger.error(
       "الاستخدام: npx tsx write-output.ts --input <json> --format <txt|txt-raw|md> --output <ملف>"
     );
     process.exit(1);
@@ -158,12 +159,12 @@ function main(): void {
     data = JSON.parse(raw) as OcrResult;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error(`فشل قراءة ملف الإدخال: ${msg}`);
+    logger.error(`فشل قراءة ملف الإدخال: ${msg}`);
     process.exit(1);
   }
 
   if (!data.pages || data.pages.length === 0) {
-    console.error("الملف لا يحتوي صفحات — تحقق من نتائج OCR");
+    logger.error("الملف لا يحتوي صفحات — تحقق من نتائج OCR");
     process.exit(1);
   }
 
@@ -180,13 +181,13 @@ function main(): void {
 
   const sizeKb = Math.round(Buffer.byteLength(content, "utf-8") / 1024);
 
-  console.error(`تم الكتابة: ${output}`);
-  console.error(`الصيغة: ${format.toUpperCase()}`);
-  console.error(`الصفحات: ${data.pages.length}`);
-  console.error(`الحجم: ${sizeKb} KB`);
+  logger.error(`تم الكتابة: ${output}`);
+  logger.error(`الصيغة: ${format.toUpperCase()}`);
+  logger.error(`الصفحات: ${data.pages.length}`);
+  logger.error(`الحجم: ${sizeKb} KB`);
 
   // ملخص على stdout
-  console.log(
+  logger.info(
     JSON.stringify({
       success: true,
       format,

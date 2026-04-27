@@ -1,6 +1,7 @@
 // CineArchitect AI - Main Application Entry Point
 // نقطة الدخول الرئيسية للتطبيق
 
+import { logger } from "@/lib/logger";
 import cors from "cors";
 import express from "express";
 
@@ -29,26 +30,26 @@ const PORT = parseInt(process.env["API_PORT"] ?? "3001", 10);
 const HOST = "0.0.0.0";
 
 async function bootstrap(): Promise<void> {
-  console.log("");
-  console.log(
+  logger.info("");
+  logger.info(
     "╔═══════════════════════════════════════════════════════════════╗"
   );
-  console.log(
+  logger.info(
     "║                     CineArchitect AI                          ║"
   );
-  console.log(
+  logger.info(
     "║              Art Director Tools Suite v1.0.0                  ║"
   );
-  console.log(
+  logger.info(
     "║         مجموعة أدوات الارت ديركتور - النسخة 1.0.0             ║"
   );
-  console.log(
+  logger.info(
     "╚═══════════════════════════════════════════════════════════════╝"
   );
-  console.log("");
+  logger.info("");
 
   // Register all plugins
-  console.log("[CineArchitect] Registering plugins...");
+  logger.info("[CineArchitect] Registering plugins...");
 
   pluginManager.registerPlugin(visualAnalyzer);
   pluginManager.registerPlugin(terminologyTranslator);
@@ -113,7 +114,7 @@ async function bootstrap(): Promise<void> {
 
   // Error handling
   app.use((err: Error, _req: express.Request, res: express.Response) => {
-    console.error("[CineArchitect] Error:", err.message);
+    logger.error("[CineArchitect] Error:", err.message);
     res.status(500).json({
       success: false,
       error: "Internal server error",
@@ -122,52 +123,52 @@ async function bootstrap(): Promise<void> {
 
   // Start server
   app.listen(PORT, HOST, () => {
-    console.log("");
-    console.log(`[CineArchitect] Server running on http://${HOST}:${PORT}`);
-    console.log("");
-    console.log("Available Plugins / الإضافات المتاحة:");
-    console.log("─────────────────────────────────────");
+    logger.info("");
+    logger.info(`[CineArchitect] Server running on http://${HOST}:${PORT}`);
+    logger.info("");
+    logger.info("Available Plugins / الإضافات المتاحة:");
+    logger.info("─────────────────────────────────────");
 
     const plugins = pluginManager.getPluginInfo();
     plugins.forEach((plugin, index) => {
-      console.log(`  ${index + 1}. ${plugin.name}`);
-      console.log(`     ${plugin.nameAr}`);
-      console.log(
+      logger.info(`  ${index + 1}. ${plugin.name}`);
+      logger.info(`     ${plugin.nameAr}`);
+      logger.info(
         `     Category: ${plugin.category} | Version: ${plugin.version}`
       );
-      console.log("");
+      logger.info("");
     });
 
-    console.log("API Endpoints:");
-    console.log("─────────────────────────────────────");
-    console.log("  GET  /api/health              - Health check");
-    console.log("  GET  /api/plugins             - List all plugins");
-    console.log("  POST /api/plugins/:id/execute - Execute plugin");
-    console.log("  POST /api/analyze/visual-consistency");
-    console.log("  POST /api/translate/cinema-terms");
-    console.log("  POST /api/optimize/budget");
-    console.log("  POST /api/simulate/lighting");
-    console.log("  POST /api/analyze/risks");
-    console.log("  POST /api/analyze/production-readiness");
-    console.log("  POST /api/inspiration/analyze");
-    console.log("  POST /api/locations/search");
-    console.log("  POST /api/sets/reusability");
-    console.log("  POST /api/analyze/productivity");
-    console.log("  POST /api/documentation/generate");
-    console.log("");
+    logger.info("API Endpoints:");
+    logger.info("─────────────────────────────────────");
+    logger.info("  GET  /api/health              - Health check");
+    logger.info("  GET  /api/plugins             - List all plugins");
+    logger.info("  POST /api/plugins/:id/execute - Execute plugin");
+    logger.info("  POST /api/analyze/visual-consistency");
+    logger.info("  POST /api/translate/cinema-terms");
+    logger.info("  POST /api/optimize/budget");
+    logger.info("  POST /api/simulate/lighting");
+    logger.info("  POST /api/analyze/risks");
+    logger.info("  POST /api/analyze/production-readiness");
+    logger.info("  POST /api/inspiration/analyze");
+    logger.info("  POST /api/locations/search");
+    logger.info("  POST /api/sets/reusability");
+    logger.info("  POST /api/analyze/productivity");
+    logger.info("  POST /api/documentation/generate");
+    logger.info("");
   });
 
   // Graceful shutdown
   process.on("SIGINT", async () => {
-    console.log("\n[CineArchitect] Shutting down...");
+    logger.info("\n[CineArchitect] Shutting down...");
     await pluginManager.shutdownAll();
-    console.log("[CineArchitect] Goodbye! مع السلامة");
+    logger.info("[CineArchitect] Goodbye! مع السلامة");
     process.exit(0);
   });
 }
 
 // Run the application
 bootstrap().catch((error) => {
-  console.error("[CineArchitect] Failed to start:", error);
+  logger.error("[CineArchitect] Failed to start:", error);
   process.exit(1);
 });

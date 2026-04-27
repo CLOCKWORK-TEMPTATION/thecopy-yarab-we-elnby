@@ -119,10 +119,12 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
   const previewType = mediaInput.state.previewType;
   const previewUrl = mediaInput.state.previewUrl;
   const mediaError = mediaInput.state.error;
+  const canAnalyze = mediaInput.canAnalyze;
+  const isPreparingMedia = mediaInput.state.isPreparing;
+  const cameraPermission = mediaInput.state.cameraPermission;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-      // eslint-disable-next-line react-hooks/refs
       <div className="space-y-4">
         <StudioPanel
           title="Shot Analyzer"
@@ -133,7 +135,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
             </Badge>
           }
         >
-          // eslint-disable-next-line react-hooks/refs
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <ModeButton
@@ -184,25 +185,20 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
 
               {previewType === "camera" ? (
                 <video
-                  // eslint-disable-next-line react-hooks/refs
                   ref={mediaInput.cameraVideoRef}
                   autoPlay
                   muted
                   playsInline
                   className="h-full w-full object-cover"
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : previewType === "video" && previewUrl ? (
                 <video
-                  // eslint-disable-next-line react-hooks/refs
                   src={previewUrl}
                   controls
                   className="h-full w-full object-cover"
                 />
-              // eslint-disable-next-line react-hooks/refs
               ) : previewType === "image" && previewUrl ? (
                 <Image
-                  // eslint-disable-next-line react-hooks/refs
                   src={previewUrl}
                   alt="معاينة اللقطة"
                   unoptimized
@@ -272,27 +268,22 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                 <p className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]">
                   Input Controls
                 </p>
-                // eslint-disable-next-line react-hooks/refs
                 <div className="mt-3 flex flex-wrap gap-2">
                   {mode === "image" ? (
                     <ActionButton
                       label="اختيار صورة"
                       onClick={handleSelectImage}
                     />
-                  // eslint-disable-next-line react-hooks/refs
                   ) : null}
                   {mode === "video" ? (
                     <ActionButton
                       label="اختيار فيديو"
                       onClick={handleSelectVideo}
                     />
-                  // eslint-disable-next-line react-hooks/refs
                   ) : null}
 
-                  // eslint-disable-next-line react-hooks/refs
                   {mode === "camera" ? (
-                    // eslint-disable-next-line react-hooks/refs
-                    mediaInput.state.cameraPermission === "granted" ? (
+                    cameraPermission === "granted" ? (
                       <>
                         <ActionButton
                           label="التقاط وتحليل"
@@ -301,7 +292,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                         <ActionButton
                           label="إيقاف الكاميرا"
                           icon={CameraOff}
-                          // eslint-disable-next-line react-hooks/refs
                           onClick={mediaInput.stopCamera}
                           variant="ghost"
                         />
@@ -312,7 +302,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                         onClick={handleEnableCamera}
                       />
                     )
-                  // eslint-disable-next-line react-hooks/refs
                   ) : null}
 
                   <ActionButton
@@ -322,18 +311,16 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                         : "تحليل الإدخال المحدد"
                     }
                     onClick={handleAnalyzeSelectedInput}
-                    // eslint-disable-next-line react-hooks/refs
-                    disabled={!mediaInput.canAnalyze || isAnalyzing}
+                    disabled={!canAnalyze || isAnalyzing}
                   />
 
-                  {mediaInput.canAnalyze && !isAnalyzing ? (
+                  {canAnalyze && !isAnalyzing ? (
                     <ActionButton
                       label="إعادة التحليل"
                       icon={RefreshCcw}
                       onClick={handleAnalyzeSelectedInput}
                       variant="ghost"
                     />
-                  // eslint-disable-next-line react-hooks/refs
                   ) : null}
                 </div>
               </div>
@@ -356,16 +343,13 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
             )
           }
         >
-          // eslint-disable-next-line react-hooks/refs
           <div className="space-y-4">
-            {mediaInput.state.isPreparing ? (
+            {isPreparingMedia ? (
               <Banner tone="warning">
                 جاري تجهيز إطار مرجعي من الفيديو قبل التحليل.
               </Banner>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
 
-            // eslint-disable-next-line react-hooks/refs
             {mediaError ? <Banner tone="danger">{mediaError}</Banner> : null}
 
             {analysisSource === "local-fallback" ? (
@@ -373,7 +357,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                 تم استخدام التحليل المحلي البديل لأن خدمة التحليل البعيد لم
                 تستجب بصورة صالحة.
               </Banner>
-            // eslint-disable-next-line react-hooks/refs
             ) : null}
 
             {error ? <Banner tone="danger">{error}</Banner> : null}
@@ -444,7 +427,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                   >
                     جاري البحث عن إجابة من المساعد...
                   </div>
-                // eslint-disable-next-line react-hooks/refs
                 ) : null}
 
                 {assistantError && !isAssistantLoading ? (
@@ -463,7 +445,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                       إخفاء
                     </button>
                   </div>
-                // eslint-disable-next-line react-hooks/refs
                 ) : null}
 
                 {assistantAnswer && !isAssistantLoading ? (
@@ -475,7 +456,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[#7f7b71]">
                         {assistantLastQuestion}
                       </p>
-                    // eslint-disable-next-line react-hooks/refs
                     ) : null}
                     <p className="mt-2 whitespace-pre-line text-sm text-[#f2e4bc]">
                       {assistantAnswer}
@@ -488,7 +468,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                       إخفاء
                     </button>
                   </div>
-                // eslint-disable-next-line react-hooks/refs
                 ) : null}
               </div>
             </div>
@@ -496,7 +475,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
         </StudioPanel>
       </div>
 
-      // eslint-disable-next-line react-hooks/refs
       <div className="space-y-4">
         <StudioPanel title="Scopes" subtitle="مراقبة فنية مباشرة">
           <div className="space-y-3">
@@ -507,7 +485,6 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
         </StudioPanel>
 
         <StudioPanel title="Camera Controls" subtitle="إعدادات التشغيل السريع">
-          // eslint-disable-next-line react-hooks/refs
           <div className="space-y-4">
             <ToggleRow
               label="Focus Peaking"
@@ -655,7 +632,6 @@ function ScopePanel({
               points="0,78 10,42 20,63 30,25 40,70 50,44 60,65 70,30 80,74 90,38 100,68 110,35 120,76 130,46 140,58 150,28 160,70 170,48 180,64 190,34 200,76"
             />
           </svg>
-        // eslint-disable-next-line react-hooks/refs
         ) : null}
 
         {variant === "vector" ? (
@@ -666,7 +642,6 @@ function ScopePanel({
               <div className="absolute left-[58%] top-[32%] h-4 w-4 rounded-full bg-[#e5b54f]/40 blur-[4px]" />
             </div>
           </div>
-        // eslint-disable-next-line react-hooks/refs
         ) : null}
 
         {variant === "histogram" ? (
@@ -677,7 +652,6 @@ function ScopePanel({
               fillOpacity="0.85"
             />
           </svg>
-        // eslint-disable-next-line react-hooks/refs
         ) : null}
       </div>
     </div>

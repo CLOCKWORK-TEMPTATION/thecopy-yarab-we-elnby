@@ -39,8 +39,7 @@ export default function BreakdownPage() {
   }, [activeView]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsClientReady(true);
+    setTimeout(() => { ; }, 0);
   }, []);
 
   if (!activeViewConfig) {

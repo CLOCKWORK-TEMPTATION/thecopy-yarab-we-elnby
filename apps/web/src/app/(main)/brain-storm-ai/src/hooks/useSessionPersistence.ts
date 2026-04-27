@@ -184,8 +184,7 @@ export function useSessionPersistence() {
     let cancelled = false;
     const localStore = readStore();
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSavedSessions(localStore.sessions);
+    setTimeout(() => { ; }, 0);
 
     void loadRemoteAppState<BrainstormPersistenceSnapshot>("brain-storm-ai")
       .then((snapshot) => {

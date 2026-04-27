@@ -20,9 +20,6 @@ import zlib from "node:zlib";
 
 import budgetConfig from "../performance-budget.config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Colors for terminal output
 const colors = {
   reset: "\x1b[0m",

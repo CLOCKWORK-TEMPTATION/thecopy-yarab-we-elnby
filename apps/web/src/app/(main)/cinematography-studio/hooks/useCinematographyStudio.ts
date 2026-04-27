@@ -153,7 +153,6 @@ export function useCinematographyStudio() {
   const [state, dispatch] = useReducer(studioReducer, initialState);
   const hydratedFromStorage = useRef(false);
   const studioRenderCount = useRef(0);
-  // eslint-disable-next-line react-hooks/refs
   studioRenderCount.current += 1;
 
   // نشر عدّاد إعادة التركيب لطبقة التشخيص.

@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 
+import { logger } from "@/lib/logger";
+
 import { sceneGeneratorAgent } from "./SceneGeneratorAgent";
 
 const sampleText = `
@@ -18,7 +20,7 @@ describe("SceneGeneratorAgent Performance", () => {
       (sceneGeneratorAgent as any).countCharacters(sampleText);
     }
     const end = performance.now();
-    console.log(`Time taken for ${iterations} iterations (countCharacters): ${(end - start).toFixed(2)} ms`);
+    logger.info(`Time taken for ${iterations} iterations (countCharacters): ${(end - start).toFixed(2)} ms`);
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -29,7 +31,7 @@ describe("SceneGeneratorAgent Performance", () => {
       await (sceneGeneratorAgent as any).assessDialogueQuality(sampleText);
     }
     const end = performance.now();
-    console.log(`Time taken for ${iterations} iterations (assessDialogueQuality): ${(end - start).toFixed(2)} ms`);
+    logger.info(`Time taken for ${iterations} iterations (assessDialogueQuality): ${(end - start).toFixed(2)} ms`);
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -40,7 +42,7 @@ describe("SceneGeneratorAgent Performance", () => {
       await (sceneGeneratorAgent as any).assessPacing(sampleText);
     }
     const end = performance.now();
-    console.log(`Time taken for ${iterations} iterations (assessPacing): ${(end - start).toFixed(2)} ms`);
+    logger.info(`Time taken for ${iterations} iterations (assessPacing): ${(end - start).toFixed(2)} ms`);
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -51,7 +53,7 @@ describe("SceneGeneratorAgent Performance", () => {
       (sceneGeneratorAgent as any).calculateDialoguePercentage(sampleText);
     }
     const end = performance.now();
-    console.log(`Time taken for ${iterations} iterations (calculateDialoguePercentage): ${(end - start).toFixed(2)} ms`);
+    logger.info(`Time taken for ${iterations} iterations (calculateDialoguePercentage): ${(end - start).toFixed(2)} ms`);
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 });

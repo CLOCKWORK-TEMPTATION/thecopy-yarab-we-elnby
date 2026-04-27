@@ -3,6 +3,7 @@
  * يختبر التدفق الكامل من منظور المستخدم النهائي
  */
 
+import { logger } from "@/lib/logger";
 import { test, expect } from "@playwright/test";
 
 test.describe("E2E: brain-storm-ai — تدفق تشغيلي كامل", () => {
@@ -54,7 +55,7 @@ test.describe("E2E: brain-storm-ai — تدفق تشغيلي كامل", () => {
         .textContent();
       if (progressText) {
         const currentProgress = parseFloat(progressText.replace("%", ""));
-        console.log(`التقدم الحالي: ${currentProgress}%`);
+        logger.info(`التقدم الحالي: ${currentProgress}%`);
 
         // التأكد من أن التقدم يتزايد أو يظل كما هو (ليس يتناقص)
         expect(currentProgress).toBeGreaterThanOrEqual(previousProgress);

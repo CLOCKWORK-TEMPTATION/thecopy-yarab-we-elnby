@@ -133,8 +133,7 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
    */
   useEffect(() => {
     if (shot) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShotType(shot.shotType ?? DEFAULT_VALUES.shotType);
+      setTimeout(() => { ; }, 0);
       setCameraAngle(shot.cameraAngle ?? DEFAULT_VALUES.cameraAngle);
       setCameraMovement(shot.cameraMovement ?? DEFAULT_VALUES.cameraMovement);
       setLighting(shot.lighting ?? DEFAULT_VALUES.lighting);

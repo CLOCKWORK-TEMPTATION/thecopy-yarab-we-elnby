@@ -13,6 +13,7 @@
  * المخرج: ملف JSON يحتوي نتائج OCR لكل صفحة
  */
 
+import { logger } from "@/lib/logger";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 
@@ -112,7 +113,7 @@ function parseArgs(): {
   }
 
   if (!input || !output) {
-    console.error(
+    logger.error(
       "الاستخدام: npx tsx ocr-mistral.ts --input <pdf> --output <json> [--pages 0-9|all]"
     );
     process.exit(1);
@@ -286,7 +287,7 @@ async function runOcr(): Promise<void> {
   try {
     apiKey = requireApiKey(process.env["MISTRAL_API_KEY"]);
   } catch (error) {
-    console.error(error instanceof Error ? error.message : String(error));
+    logger.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 
@@ -295,16 +296,16 @@ async function runOcr(): Promise<void> {
   const client = new Mistral({ apiKey });
 
   // قراءة PDF وتحويله لـ base64
-  console.error(`قراءة الملف: ${input}`);
+  logger.error(`قراءة الملف: ${input}`);
   const pdfBuffer = readFileSync(input);
   const base64Pdf = pdfBuffer.toString("base64");
   const docSizeBytes = pdfBuffer.byteLength;
 
-  console.error(`حجم الملف: ${(docSizeBytes / 1024 / 1024).toFixed(2)} MB`);
+  logger.error(`حجم الملف: ${(docSizeBytes / 1024 / 1024).toFixed(2)} MB`);
 
   // فحص حد الحجم
   if (docSizeBytes > 50 * 1024 * 1024) {
-    console.error("تحذير: الملف أكبر من 50MB — قد يرفضه Mistral API");
+    logger.error("تحذير: الملف أكبر من 50MB — قد يرفضه Mistral API");
   }
 
   // بناء طلب OCR
@@ -320,9 +321,9 @@ async function runOcr(): Promise<void> {
 
   if (pages !== null) {
     ocrParams.pages = pages;
-    console.error(`معالجة صفحات محددة: ${pages.join(", ")}`);
+    logger.error(`معالجة صفحات محددة: ${pages.join(", ")}`);
   } else {
-    console.error("معالجة كل الصفحات...");
+    logger.error("معالجة كل الصفحات...");
   }
 
   // تنفيذ OCR
@@ -345,13 +346,13 @@ async function runOcr(): Promise<void> {
 
     // كتابة النتيجة
     writeFileSync(output, JSON.stringify(result, null, 2), "utf-8");
-    console.error(
+    logger.error(
       `تمت المعالجة: ${result.total_pages} صفحة في ${elapsed.toFixed(1)} ثانية`
     );
-    console.error(`المخرج: ${output}`);
+    logger.error(`المخرج: ${output}`);
 
     // إخراج ملخص على stdout
-    console.log(
+    logger.info(
       JSON.stringify({
         success: true,
         pages_processed: result.total_pages,
@@ -362,21 +363,21 @@ async function runOcr(): Promise<void> {
     );
   } catch (error: unknown) {
     const elapsed = (Date.now() - startTime) / 1000;
-    console.error(`فشل OCR بعد ${elapsed.toFixed(1)} ثانية`);
+    logger.error(`فشل OCR بعد ${elapsed.toFixed(1)} ثانية`);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`الخطأ: ${errorMessage}`);
+    logger.error(`الخطأ: ${errorMessage}`);
 
     // محاولة تحديد نوع الخطأ
     const statusCode = getStatusCode(error);
     if (statusCode === 401) {
-      console.error("→ مفتاح API غير صالح");
+      logger.error("→ مفتاح API غير صالح");
     } else if (statusCode === 413) {
-      console.error("→ الملف أكبر من الحد المسموح");
+      logger.error("→ الملف أكبر من الحد المسموح");
     } else if (statusCode === 429) {
-      console.error("→ تجاوز حد الطلبات — انتظر ثم أعد المحاولة");
+      logger.error("→ تجاوز حد الطلبات — انتظر ثم أعد المحاولة");
     }
 
-    console.log(
+    logger.info(
       JSON.stringify({
         success: false,
         error: errorMessage,

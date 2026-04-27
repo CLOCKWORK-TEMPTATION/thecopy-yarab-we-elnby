@@ -8,6 +8,7 @@
  * المخرج: JSON على stdout يتضمن نوع الملف والتوصية
  */
 
+import { logger } from "@/lib/logger";
 import { execFileSync } from "node:child_process";
 import { statSync } from "node:fs";
 import { basename } from "node:path";
@@ -190,9 +191,9 @@ function classifyPdf(pdfPath: string): ClassificationResult {
 const pdfPath = process.argv[2];
 
 if (!pdfPath) {
-  console.error("الاستخدام: npx tsx classify-pdf.ts <مسار_ملف_PDF>");
+  logger.error("الاستخدام: npx tsx classify-pdf.ts <مسار_ملف_PDF>");
   process.exit(1);
 }
 
 const result = classifyPdf(pdfPath);
-console.log(JSON.stringify(result, null, 2));
+logger.info(JSON.stringify(result, null, 2));

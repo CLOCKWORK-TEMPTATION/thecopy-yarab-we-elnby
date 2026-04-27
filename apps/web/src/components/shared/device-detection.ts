@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 /**
  * Device Detection and Performance Optimization
  *
@@ -83,7 +84,7 @@ export function getMaxTextureSize(): number {
       return gl.getParameter(gl.MAX_TEXTURE_SIZE);
     }
   } catch (e) {
-    console.warn("Failed to get max texture size:", e);
+    logger.warn("Failed to get max texture size:", e);
   }
 
   return 2048; // Default fallback
@@ -114,7 +115,7 @@ export async function detectLowPowerMode(): Promise<boolean> {
         return true;
       }
     } catch (e) {
-      console.warn("Battery API not supported:", e);
+      logger.warn("Battery API not supported:", e);
     }
   }
 
@@ -301,9 +302,9 @@ export class PerformanceMonitor {
       this.isVisible = !document.hidden;
 
       if (!this.isVisible) {
-        console.log("🔇 Tab hidden - pausing performance monitoring");
+        logger.info("🔇 Tab hidden - pausing performance monitoring");
       } else {
-        console.log("🔊 Tab visible - resuming performance monitoring");
+        logger.info("🔊 Tab visible - resuming performance monitoring");
         // Reset on visibility change to avoid FPS drops from tab switching
         this.reset();
       }
@@ -435,7 +436,7 @@ export function logDeviceCapabilities(): void {
   const capabilities = getDeviceCapabilities();
   const lodConfig = getParticleLODConfig(capabilities);
 
-  console.log("🖥️ Device Capabilities:", {
+  logger.info("🖥️ Device Capabilities:", {
     deviceType: capabilities.deviceType,
     performanceTier: capabilities.performanceTier,
     webGL: capabilities.supportsWebGL ? "✅" : "❌",
@@ -445,7 +446,7 @@ export function logDeviceCapabilities(): void {
     lowPowerMode: capabilities.isLowPowerMode ? "🔋" : "⚡",
   });
 
-  console.log("✨ Particle LOD Config:", {
+  logger.info("✨ Particle LOD Config:", {
     particles: lodConfig.particleCount,
     effectRadius: lodConfig.effectRadius,
     updateRate: `${1000 / lodConfig.updateFrequency}fps`,

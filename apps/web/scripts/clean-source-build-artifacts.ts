@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { Dirent, existsSync } from "node:fs";
 import { readdir, rm } from "node:fs/promises";
 import path from "node:path";
@@ -174,13 +175,13 @@ export async function main(
   }
 
   if (removedPaths.length === 0) {
-    console.log("No .next build artifacts found.");
+    logger.info("No .next build artifacts found.");
     return;
   }
 
-  console.log("Removed build artifacts:");
+  logger.info("Removed build artifacts:");
   for (const removedPath of removedPaths) {
-    console.log(`- ${removedPath}`);
+    logger.info(`- ${removedPath}`);
   }
 }
 
@@ -191,7 +192,7 @@ const isDirectExecution =
 if (isDirectExecution) {
   main().catch((error) => {
     if (isBusyDirectoryError(error) || isMissingDirectoryError(error)) {
-      console.warn(
+      logger.warn(
         "[warn] Failed to clean nested build artifacts (non-fatal):",
         error.message || error
       );
@@ -199,7 +200,7 @@ if (isDirectExecution) {
       return;
     }
 
-    console.error("[error] Failed to clean build artifacts:", error);
+    logger.error("[error] Failed to clean build artifacts:", error);
     process.exitCode = 1;
   });
 }

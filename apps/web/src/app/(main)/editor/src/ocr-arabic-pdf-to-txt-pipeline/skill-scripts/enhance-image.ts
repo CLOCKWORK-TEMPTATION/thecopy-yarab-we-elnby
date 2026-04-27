@@ -14,6 +14,7 @@
  *   5. إزالة الضوضاء (denoise)
  */
 
+import { logger } from "@/lib/logger";
 import { readdirSync, mkdirSync, statSync, existsSync } from "node:fs";
 import { join, basename, extname } from "node:path";
 
@@ -38,7 +39,7 @@ function parseArgs(): { input: string; output: string } {
   }
 
   if (!input || !output) {
-    console.error(
+    logger.error(
       "الاستخدام: npx tsx enhance-image.ts --input <مجلد_أو_صورة> --output <مجلد_أو_صورة>"
     );
     process.exit(1);
@@ -88,10 +89,10 @@ async function main(): Promise<void> {
 
   if (inputStat.isFile()) {
     // معالجة صورة واحدة
-    console.error(`تحسين: ${basename(input)}`);
+    logger.error(`تحسين: ${basename(input)}`);
     await enhanceImage(input, output);
-    console.error(`تم: ${output}`);
-    console.log(JSON.stringify({ success: true, files_processed: 1 }));
+    logger.error(`تم: ${output}`);
+    logger.info(JSON.stringify({ success: true, files_processed: 1 }));
     return;
   }
 
@@ -107,11 +108,11 @@ async function main(): Promise<void> {
     });
 
     if (imageFiles.length === 0) {
-      console.error("لا توجد صور في المجلد المحدد");
+      logger.error("لا توجد صور في المجلد المحدد");
       process.exit(1);
     }
 
-    console.error(`معالجة ${imageFiles.length} صورة...`);
+    logger.error(`معالجة ${imageFiles.length} صورة...`);
     let processed = 0;
 
     for (const file of imageFiles) {
@@ -123,18 +124,18 @@ async function main(): Promise<void> {
         processed++;
 
         if (processed % 10 === 0) {
-          console.error(`  تقدم: ${processed}/${imageFiles.length}`);
+          logger.error(`  تقدم: ${processed}/${imageFiles.length}`);
         }
       } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.error(`  فشل تحسين ${file}: ${msg}`);
+        logger.error(`  فشل تحسين ${file}: ${msg}`);
       }
     }
 
-    console.error(
+    logger.error(
       `تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`
     );
-    console.log(
+    logger.info(
       JSON.stringify({
         success: true,
         files_processed: processed,
@@ -145,7 +146,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.error("المدخل ليس ملفاً ولا مجلداً صالحاً");
+  logger.error("المدخل ليس ملفاً ولا مجلداً صالحاً");
   process.exit(1);
 }
 

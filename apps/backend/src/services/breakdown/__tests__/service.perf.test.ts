@@ -1,5 +1,7 @@
 import { describe, it, vi, beforeEach } from 'vitest';
 
+import { logger } from "@/lib/logger";
+
 
 import { breakdownService } from '../service';
 
@@ -42,6 +44,6 @@ describe('syncScenes performance', () => {
     await (breakdownService as any).syncScenes('project-id', parsedScenes);
     const endTime = performance.now();
 
-    console.log(`syncScenes took ${endTime - startTime}ms`);
+    logger.info(`syncScenes took ${endTime - startTime}ms`);
   });
 });

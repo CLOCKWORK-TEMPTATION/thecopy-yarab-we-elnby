@@ -4,6 +4,7 @@
  * Scans main app pages to build a manifest file
  */
 
+import { logger } from "@/lib/logger";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
@@ -85,10 +86,10 @@ const PAGE_METADATA: Record<string, { title: string; description: string }> = {
 };
 
 function generateManifest(): void {
-  console.log("🔍 Scanning pages in:", MAIN_PAGES_DIR);
+  logger.info("🔍 Scanning pages in:", MAIN_PAGES_DIR);
 
   if (!fs.existsSync(MAIN_PAGES_DIR)) {
-    console.error("❌ Main pages directory not found:", MAIN_PAGES_DIR);
+    logger.error("❌ Main pages directory not found:", MAIN_PAGES_DIR);
     process.exit(1);
   }
 
@@ -104,7 +105,7 @@ function generateManifest(): void {
     try {
       pagePath = safeResolve(MAIN_PAGES_DIR, path.join(slug, "page.tsx"));
     } catch (error) {
-      console.warn(`Skipping invalid path for slug: ${slug}`);
+      logger.warn(`Skipping invalid path for slug: ${slug}`);
       continue;
     }
 
@@ -121,9 +122,9 @@ function generateManifest(): void {
         title: metadata.title,
       });
 
-      console.log(`✅ Found page: ${slug} → ${metadata.title}`);
+      logger.info(`✅ Found page: ${slug} → ${metadata.title}`);
     } else {
-      console.log(`⏭️  Skipping ${slug} (no page.tsx)`);
+      logger.info(`⏭️  Skipping ${slug} (no page.tsx)`);
     }
   }
 
@@ -142,13 +143,13 @@ function generateManifest(): void {
     `${JSON.stringify({ pages, metadata: PAGE_METADATA }, null, 2)}\n`
   );
 
-  console.log(`\n✨ Generated manifest with ${pages.length} pages`);
-  console.log(`📝 Output: ${OUTPUT_FILE}`);
+  logger.info(`\n✨ Generated manifest with ${pages.length} pages`);
+  logger.info(`📝 Output: ${OUTPUT_FILE}`);
 }
 
 try {
   generateManifest();
 } catch (error) {
-  console.error("❌ Error generating manifest:", error);
+  logger.error("❌ Error generating manifest:", error);
   process.exit(1);
 }
