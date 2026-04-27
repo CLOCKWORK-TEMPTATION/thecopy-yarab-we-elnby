@@ -105,7 +105,8 @@ describe("GET /api/app-state/:app", () => {
     );
 
     const response = await GET(req, createCtx("../../etc"));
-    const body = await response.json();
+    const json: unknown = await response.json();
+    const body = json as { success?: boolean };
 
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);

@@ -54,66 +54,6 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/(main)/BUDGET/components/BudgetApp.tsx": [
-    {
-      "line": 221,
-      "column": 17,
-      "endLine": 221,
-      "endColumn": 51,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 225,
-      "column": 17,
-      "endLine": 225,
-      "endColumn": 68,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 238,
-      "column": 17,
-      "endLine": 238,
-      "endColumn": 59,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 240,
-      "column": 19,
-      "endLine": 241,
-      "endColumn": 65,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 261,
-      "column": 50,
-      "endLine": 261,
-      "endColumn": 58,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 377,
-      "column": 7,
-      "endLine": 377,
-      "endColumn": 49,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 425,
-      "column": 7,
-      "endLine": 425,
-      "endColumn": 49,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/BUDGET/components/EnhancedChart.tsx": [
-    {
-      "line": 122,
-      "column": 37,
-      "endLine": 122,
-      "endColumn": 55,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/app/(main)/actorai-arabic/components/ActorAiArabicStudio.tsx": [
     {
       "line": 2392,
@@ -150,52 +90,6 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/(main)/art-director/pages/Documentation.tsx": [
-    {
-      "line": 54,
-      "column": 13,
-      "endLine": 54,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 78,
-      "column": 13,
-      "endLine": 78,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 99,
-      "column": 13,
-      "endLine": 99,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 125,
-      "column": 13,
-      "endLine": 125,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/pages/Inspiration.tsx": [
-    {
-      "line": 42,
-      "column": 13,
-      "endLine": 42,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 62,
-      "column": 13,
-      "endLine": 62,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/app/(main)/art-director/pages/Locations.tsx": [
     {
       "line": 35,
@@ -210,84 +104,6 @@
       "endLine": 57,
       "endColumn": 41,
       "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/pages/Sets.tsx": [
-    {
-      "line": 44,
-      "column": 13,
-      "endLine": 44,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 69,
-      "column": 13,
-      "endLine": 69,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 89,
-      "column": 13,
-      "endLine": 89,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/pages/Tools.tsx": [
-    {
-      "line": 20,
-      "column": 10,
-      "endLine": 20,
-      "endColumn": 16,
-      "message": "Unsafe array destructuring of a tuple element with an `any` value."
-    },
-    {
-      "line": 50,
-      "column": 13,
-      "endLine": 50,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 70,
-      "column": 26,
-      "endLine": 70,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 70,
-      "column": 44,
-      "endLine": 70,
-      "endColumn": 53,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 130,
-      "column": 26,
-      "endLine": 130,
-      "endColumn": 58,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/plugins/cinema-skills-trainer/index.ts": [
-    {
-      "line": 883,
-      "column": 7,
-      "endLine": 883,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/plugins/visual-analyzer/index.ts": [
-    {
-      "line": 308,
-      "column": 7,
-      "endLine": 308,
-      "endColumn": 41,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `{ id: string; name: string; colorPalette?: { primary: string[]; secondary: string[]; }; lighting?: { type: string; colorTemperature: number; intensity: number; }; costumes?: { character: string; items: string[]; colors: string[]; }[]; props?: { ...; }[]; }[]`."
     }
   ],
   "apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts": [
@@ -395,57 +211,6 @@
       "endLine": 270,
       "endColumn": 6,
       "message": "Unsafe assignment of type `any[]` to a variable of type `Extensions`."
-    }
-  ],
-  "apps/web/src/app/(main)/editor/src/extensions/ai-context-layer.ts": [
-    {
-      "line": 204,
-      "column": 17,
-      "endLine": 204,
-      "endColumn": 55,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 213,
-      "column": 15,
-      "endLine": 213,
-      "endColumn": 46,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 214,
-      "column": 15,
-      "endLine": 214,
-      "endColumn": 54,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 215,
-      "column": 15,
-      "endLine": 215,
-      "endColumn": 55,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 216,
-      "column": 15,
-      "endLine": 216,
-      "endColumn": 46,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 229,
-      "column": 17,
-      "endLine": 229,
-      "endColumn": 54,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 232,
-      "column": 13,
-      "endLine": 232,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
     }
   ],
   "apps/web/src/app/(main)/editor/src/extensions/context-memory-manager.ts": [
@@ -679,45 +444,10 @@
   ],
   "apps/web/src/app/api/workflow/execute-custom/__tests__/route.test.ts": [
     {
-      "line": 61,
-      "column": 11,
-      "endLine": 61,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 71,
-      "column": 11,
-      "endLine": 71,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 82,
-      "column": 11,
-      "endLine": 82,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 93,
-      "column": 11,
-      "endLine": 93,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 110,
+      "line": 122,
       "column": 9,
-      "endLine": 110,
+      "endLine": 122,
       "endColumn": 33,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 119,
-      "column": 11,
-      "endLine": 119,
-      "endColumn": 39,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -739,22 +469,6 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/components/auth/ZKLoginForm.tsx": [
-    {
-      "line": 49,
-      "column": 13,
-      "endLine": 49,
-      "endColumn": 49,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 74,
-      "column": 13,
-      "endLine": 74,
-      "endColumn": 53,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/components/auth/ZKSignupForm.tsx": [
     {
       "line": 96,
@@ -764,274 +478,7 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/components/particle-optimized.test.tsx": [
-    {
-      "line": 24,
-      "column": 13,
-      "endLine": 24,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 25,
-      "column": 13,
-      "endLine": 25,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 27,
-      "column": 13,
-      "endLine": 30,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 31,
-      "column": 13,
-      "endLine": 31,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 34,
-      "column": 13,
-      "endLine": 34,
-      "endColumn": 66,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 47,
-      "column": 13,
-      "endLine": 47,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 48,
-      "column": 13,
-      "endLine": 48,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 50,
-      "column": 13,
-      "endLine": 53,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 54,
-      "column": 13,
-      "endLine": 54,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 63,
-      "column": 13,
-      "endLine": 63,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 64,
-      "column": 13,
-      "endLine": 64,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 66,
-      "column": 13,
-      "endLine": 69,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 70,
-      "column": 13,
-      "endLine": 70,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/shared/particle-background-optimized.tsx": [
-    {
-      "line": 695,
-      "column": 7,
-      "endLine": 695,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 1232,
-      "column": 11,
-      "endLine": 1232,
-      "endColumn": 59,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 1233,
-      "column": 11,
-      "endLine": 1233,
-      "endColumn": 52,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 1234,
-      "column": 11,
-      "endLine": 1234,
-      "endColumn": 48,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/shared/particle-background.tsx": [
-    {
-      "line": 71,
-      "column": 9,
-      "endLine": 71,
-      "endColumn": 63,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 683,
-      "column": 7,
-      "endLine": 683,
-      "endColumn": 26,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 684,
-      "column": 7,
-      "endLine": 684,
-      "endColumn": 28,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 922,
-      "column": 11,
-      "endLine": 922,
-      "endColumn": 59,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 923,
-      "column": 11,
-      "endLine": 923,
-      "endColumn": 52,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 924,
-      "column": 11,
-      "endLine": 924,
-      "endColumn": 48,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/shared/particle-optimized.test.tsx": [
-    {
-      "line": 24,
-      "column": 13,
-      "endLine": 24,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 25,
-      "column": 13,
-      "endLine": 25,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 27,
-      "column": 13,
-      "endLine": 30,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 31,
-      "column": 13,
-      "endLine": 31,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 34,
-      "column": 13,
-      "endLine": 34,
-      "endColumn": 66,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 47,
-      "column": 13,
-      "endLine": 47,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 48,
-      "column": 13,
-      "endLine": 48,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 50,
-      "column": 13,
-      "endLine": 53,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 54,
-      "column": 13,
-      "endLine": 54,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 63,
-      "column": 13,
-      "endLine": 63,
-      "endColumn": 31,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 64,
-      "column": 13,
-      "endLine": 64,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 66,
-      "column": 13,
-      "endLine": 69,
-      "endColumn": 8,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 70,
-      "column": 13,
-      "endLine": 70,
-      "endColumn": 60,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/components/shared/stations-pipeline.tsx": [
-    {
-      "line": 253,
-      "column": 13,
-      "endLine": 253,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
     {
       "line": 372,
       "column": 21,
@@ -1103,27 +550,6 @@
   ],
   "apps/web/src/lib/ai/stations/gemini-service.ts": [
     {
-      "line": 244,
-      "column": 7,
-      "endLine": 244,
-      "endColumn": 43,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 245,
-      "column": 7,
-      "endLine": 245,
-      "endColumn": 45,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 259,
-      "column": 7,
-      "endLine": 259,
-      "endColumn": 26,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
       "line": 553,
       "column": 15,
       "endLine": 553,
@@ -1135,73 +561,6 @@
       "column": 9,
       "endLine": 554,
       "endColumn": 29,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/ai/stations/station5-dynamic-symbolic-stylistic.ts": [
-    {
-      "line": 380,
-      "column": 13,
-      "endLine": 380,
-      "endColumn": 67,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 393,
-      "column": 11,
-      "endLine": 393,
-      "endColumn": 20,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 397,
-      "column": 13,
-      "endLine": 397,
-      "endColumn": 58,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 398,
-      "column": 13,
-      "endLine": 398,
-      "endColumn": 37,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `string[]`."
-    },
-    {
-      "line": 400,
-      "column": 11,
-      "endLine": 400,
-      "endColumn": 47,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 700,
-      "column": 9,
-      "endLine": 700,
-      "endColumn": 27,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 701,
-      "column": 9,
-      "endLine": 701,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/animations.ts": [
-    {
-      "line": 41,
-      "column": 11,
-      "endLine": 41,
-      "endColumn": 69,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 43,
-      "column": 7,
-      "endLine": 46,
-      "endColumn": 9,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -1239,89 +598,12 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/lib/drama-analyst/agents/conflictDynamics/ConflictDynamicsAgent.ts": [
-    {
-      "line": 60,
-      "column": 15,
-      "endLine": 61,
-      "endColumn": 78,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 70,
-      "column": 15,
-      "endLine": 73,
-      "endColumn": 55,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/dialogueAdvancedAnalyzer/DialogueAdvancedAnalyzerAgent.ts": [
-    {
-      "line": 33,
-      "column": 11,
-      "endLine": 33,
-      "endColumn": 79,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/lib/drama-analyst/agents/index.ts": [
     {
       "line": 134,
       "column": 9,
       "endLine": 134,
       "endColumn": 63,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/plotPredictor/PlotPredictorAgent.test.ts": [
-    {
-      "line": 272,
-      "column": 9,
-      "endLine": 272,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 312,
-      "column": 9,
-      "endLine": 312,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/rhythmMapping/RhythmMappingAgent.test.ts": [
-    {
-      "line": 376,
-      "column": 9,
-      "endLine": 376,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/tensionOptimizer/TensionOptimizerAgent.test.ts": [
-    {
-      "line": 414,
-      "column": 9,
-      "endLine": 414,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/orchestration/multiAgentDebate.ts": [
-    {
-      "line": 163,
-      "column": 9,
-      "endLine": 165,
-      "endColumn": 15,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `string[]`."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/services/geminiService.ts": [
-    {
-      "line": 114,
-      "column": 9,
-      "endLine": 114,
-      "endColumn": 26,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -1332,22 +614,6 @@
       "endLine": 161,
       "endColumn": 69,
       "message": "Unsafe assignment of type `any[]` to a variable of type `string[]`."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/types.test.ts": [
-    {
-      "line": 78,
-      "column": 9,
-      "endLine": 78,
-      "endColumn": 26,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 81,
-      "column": 9,
-      "endLine": 81,
-      "endColumn": 32,
-      "message": "Unsafe assignment of an `any` value."
     }
   ],
   "apps/web/src/lib/server/__tests__/backend-proxy.test.ts": [

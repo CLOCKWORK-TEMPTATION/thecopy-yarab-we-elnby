@@ -105,14 +105,14 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Post-process the audience analysis output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess analysis quality
-    const qualityMetrics = await this.assessAnalysisQuality(processedText);
+    const qualityMetrics = this.assessAnalysisQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =

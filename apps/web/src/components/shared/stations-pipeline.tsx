@@ -96,8 +96,8 @@ const stations = [
 const StationsPipeline = () => {
   const [text, setText] = useState("");
   const [results, setResults] = useState<Record<number, unknown>>({});
-  const [statuses, setStatuses] = useState(
-    Array(stations.length).fill("pending")
+  const [statuses, setStatuses] = useState<string[]>(
+    Array<string>(stations.length).fill("pending")
   );
   const [activeStation, setActiveStation] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -114,7 +114,7 @@ const StationsPipeline = () => {
   const handleReset = () => {
     setText("");
     setResults({});
-    setStatuses(Array(stations.length).fill("pending"));
+    setStatuses(Array<string>(stations.length).fill("pending"));
     setActiveStation(null);
     setErrorMessage(null);
   };
@@ -129,7 +129,7 @@ const StationsPipeline = () => {
       return;
     }
 
-    setStatuses(Array(stations.length).fill("pending"));
+    setStatuses(Array<string>(stations.length).fill("pending"));
     setResults({});
     setErrorMessage(null);
 

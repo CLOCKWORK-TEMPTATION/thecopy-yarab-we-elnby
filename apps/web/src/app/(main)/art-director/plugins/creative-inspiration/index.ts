@@ -145,7 +145,7 @@ export class CreativeInspirationAssistant implements Plugin {
     ]);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "analyze":
         return this.analyzeScene(input.data as unknown as AnalyzeSceneInput);
@@ -372,10 +372,10 @@ export class CreativeInspirationAssistant implements Plugin {
     ];
   }
 
-  private async generateMoodBoard(
+  private generateMoodBoard(
     data: AnalyzeSceneInput
-  ): Promise<PluginOutput> {
-    const analysisResult = await this.analyzeScene(data);
+  ): PluginOutput {
+    const analysisResult = this.analyzeScene(data);
     if (!analysisResult.success) return analysisResult;
 
     const analysis = analysisResult.data as unknown as InspirationResult;

@@ -108,15 +108,15 @@ export class StyleFingerprintAgent extends BaseAgent {
     return prompt;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     const processedText = this.cleanupStyleText(output.text);
 
-    const analyticalDepth = await this.assessAnalyticalDepth(processedText);
-    const specificity = await this.assessSpecificity(processedText);
-    const comprehensiveness = await this.assessComprehensiveness(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
+    const analyticalDepth = this.assessAnalyticalDepth(processedText);
+    const specificity = this.assessSpecificity(processedText);
+    const comprehensiveness = this.assessComprehensiveness(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
 
     const qualityScore =
       analyticalDepth * 0.3 +

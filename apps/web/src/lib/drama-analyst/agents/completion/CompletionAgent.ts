@@ -96,9 +96,9 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Post-process the completion output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Ensure the output is properly formatted
     let processedText = output.text;
 
@@ -106,7 +106,7 @@ export class CompletionAgent extends BaseAgent {
     processedText = this.cleanupText(processedText);
 
     // Validate completion quality
-    const qualityScore = await this.assessCompletionQuality(processedText);
+    const qualityScore = this.assessCompletionQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence = output.confidence * 0.7 + qualityScore * 0.3;
@@ -120,8 +120,8 @@ export class CompletionAgent extends BaseAgent {
         ...output.metadata,
         completionQuality: qualityScore,
         characterConsistency:
-          await this.checkCharacterConsistency(processedText),
-        narrativeFlow: await this.checkNarrativeFlow(processedText),
+          this.checkCharacterConsistency(processedText),
+        narrativeFlow: this.checkNarrativeFlow(processedText),
       },
     };
   }

@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // ---------------------------------------------------------------------------
 vi.mock("next/server", () => ({
   NextResponse: {
-    json: vi.fn((data, init) => ({
+    json: vi.fn((data: unknown, init?: { status?: number }) => ({
       json: () => data,
       status: init?.status ?? 200,
     })),
@@ -185,7 +185,7 @@ describe("POST /api/workflow/execute-custom", () => {
   // Test: HEAD returns service metadata
   it("validate-pipeline: HEAD returns service metadata", async () => {
     const { HEAD } = await import("./route");
-    const response = await HEAD();
+    const response = HEAD();
 
     expect(response.status).toBe(200);
   });

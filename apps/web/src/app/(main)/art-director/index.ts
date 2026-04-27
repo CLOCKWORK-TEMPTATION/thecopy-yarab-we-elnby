@@ -50,22 +50,22 @@ async function bootstrap(): Promise<void> {
   // Register all plugins
   console.log("[CineArchitect] Registering plugins...");
 
-  await pluginManager.registerPlugin(visualAnalyzer);
-  await pluginManager.registerPlugin(terminologyTranslator);
-  await pluginManager.registerPlugin(budgetOptimizer);
-  await pluginManager.registerPlugin(lightingSimulator);
-  await pluginManager.registerPlugin(riskAnalyzer);
-  await pluginManager.registerPlugin(productionReadinessReportPromptBuilder);
-  await pluginManager.registerPlugin(creativeInspiration);
-  await pluginManager.registerPlugin(locationCoordinator);
-  await pluginManager.registerPlugin(setReusability);
-  await pluginManager.registerPlugin(productivityAnalyzer);
-  await pluginManager.registerPlugin(documentationGenerator);
-  await pluginManager.registerPlugin(mrPrevizStudio);
-  await pluginManager.registerPlugin(virtualSetEditor);
-  await pluginManager.registerPlugin(cinemaSkillsTrainer);
-  await pluginManager.registerPlugin(immersiveConceptArt);
-  await pluginManager.registerPlugin(virtualProductionEngine);
+  pluginManager.registerPlugin(visualAnalyzer);
+  pluginManager.registerPlugin(terminologyTranslator);
+  pluginManager.registerPlugin(budgetOptimizer);
+  pluginManager.registerPlugin(lightingSimulator);
+  pluginManager.registerPlugin(riskAnalyzer);
+  pluginManager.registerPlugin(productionReadinessReportPromptBuilder);
+  pluginManager.registerPlugin(creativeInspiration);
+  pluginManager.registerPlugin(locationCoordinator);
+  pluginManager.registerPlugin(setReusability);
+  pluginManager.registerPlugin(productivityAnalyzer);
+  pluginManager.registerPlugin(documentationGenerator);
+  pluginManager.registerPlugin(mrPrevizStudio);
+  pluginManager.registerPlugin(virtualSetEditor);
+  pluginManager.registerPlugin(cinemaSkillsTrainer);
+  pluginManager.registerPlugin(immersiveConceptArt);
+  pluginManager.registerPlugin(virtualProductionEngine);
 
   // Initialize all plugins
   await pluginManager.initializeAll();

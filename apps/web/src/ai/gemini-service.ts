@@ -176,7 +176,7 @@ export class GeminiService {
 ${text}`;
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
+      const response = result.response;
       const analysisText = response.text();
 
       return {
@@ -221,7 +221,7 @@ ${text}`;
 5. إمكانيات للتطوير`;
 
       const result = await model.generateContent(enhancementPrompt);
-      const response = await result.response;
+      const response = result.response;
       const enhancedText = response.text();
 
       return {
@@ -259,7 +259,7 @@ ${text}`;
       const model = this.getModel(modelName, "chat");
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
+      const response = result.response;
       return response.text();
     } catch (error: unknown) {
       throw new Error(

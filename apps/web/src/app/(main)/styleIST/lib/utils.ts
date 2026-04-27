@@ -24,8 +24,10 @@ export function getFriendlyErrorMessage(
 
   if (rawMessage.includes("Unsupported MIME type")) {
     try {
-      const errorJson = JSON.parse(rawMessage);
-      const nestedMessage = errorJson?.error?.message;
+      const errorJson = JSON.parse(rawMessage) as {
+        error?: { message?: string };
+      };
+      const nestedMessage = errorJson.error?.message;
       if (nestedMessage?.includes("Unsupported MIME type")) {
         const mimeType = nestedMessage.split(": ")[1] ?? "unsupported";
         return `File type '${mimeType}' is not supported. Please use a format like PNG, JPEG, or WEBP.`;

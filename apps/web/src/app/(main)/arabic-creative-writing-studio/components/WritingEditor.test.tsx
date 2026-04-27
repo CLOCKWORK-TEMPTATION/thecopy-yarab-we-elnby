@@ -80,7 +80,7 @@ function buildProps(overrides: Record<string, unknown> = {}) {
     onProjectChange: vi.fn(),
     onSave: vi.fn(),
     onAnalyze: vi.fn().mockResolvedValue(analysisResult),
-    onExport: vi.fn((project, format) => ({
+    onExport: vi.fn((project: { title: string }, format: string) => ({
       success: true,
       format,
       filename: `${project.title}.${format}`,

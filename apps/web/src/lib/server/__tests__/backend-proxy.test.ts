@@ -37,7 +37,8 @@ describe("buildProxyErrorResponse", () => {
       "fallback"
     );
 
-    const body = await response.json();
+    const json: unknown = await response.json();
+    const body = json as { success?: boolean; error?: string };
 
     expect(body).toHaveProperty("success", false);
     expect(body).toHaveProperty("error");

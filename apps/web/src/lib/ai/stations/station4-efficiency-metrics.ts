@@ -389,7 +389,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
 
     try {
       // 1. Calculate efficiency metrics
-      const efficiencyMetrics = await this.calculateEfficiencyMetrics(
+      const efficiencyMetrics = this.calculateEfficiencyMetrics(
         input.station3Output.conflictNetwork
       );
       agentsUsed.push("EfficiencyMetrics");
@@ -441,7 +441,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
       // 7. Apply Constitutional AI if enabled
       let finalRecommendations = recommendations;
       if (options.enableConstitutionalAI) {
-        const constitutionalCheck = await this.checkConstitutionalCompliance(
+        const constitutionalCheck = this.checkConstitutionalCompliance(
           JSON.stringify(recommendations),
           input.originalText
         );
@@ -461,7 +461,7 @@ export class Station4EfficiencyMetrics extends BaseStation<
       };
 
       if (options.enableUncertaintyQuantification) {
-        uncertaintyReport = await this.quantifyUncertainty(
+        uncertaintyReport = this.quantifyUncertainty(
           JSON.stringify({
             efficiencyMetrics,
             qualityAssessment,

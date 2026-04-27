@@ -22,12 +22,12 @@ export class RAGService {
    * استرجاع السياق ذي الصلة
    * Retrieve relevant context for a query
    */
-  async retrieveContext(
+  retrieveContext(
     query: string,
     originalText: string,
     analysisReport: unknown,
     topK = 5
-  ): Promise<RAGContext> {
+  ): RAGContext {
     log.debug("Retrieving context for query", null, "RAGService");
 
     // Chunk the texts
@@ -43,7 +43,7 @@ export class RAGService {
     );
 
     // Calculate relevance scores
-    const scoredChunks = await this.scoreChunks(query, allChunks);
+    const scoredChunks = this.scoreChunks(query, allChunks);
 
     // Sort and select top K
     scoredChunks.sort((a, b) => b.relevanceScore - a.relevanceScore);
@@ -123,17 +123,14 @@ export class RAGService {
    * حساب نقاط الصلة للأجزاء
    * Score chunks for relevance to query
    */
-  private async scoreChunks(
+  private scoreChunks(
     query: string,
     chunks: RetrievedChunk[]
-  ): Promise<RetrievedChunk[]> {
-    // Simple keyword-based scoring (can be enhanced with embeddings)
-    const scoringPromises = chunks.map((chunk) => {
+  ): RetrievedChunk[] {
+    return chunks.map((chunk) => {
       const score = this.scoreChunkSimple(query, chunk.content);
       return { ...chunk, relevanceScore: score };
     });
-
-    return await Promise.all(scoringPromises);
   }
 
   /**

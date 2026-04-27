@@ -50,7 +50,7 @@ describe("GET /api/projects", () => {
 
     const req = new NextRequest("http://localhost:3000/api/projects");
     const response = await GET(req);
-    const body = await response.json();
+    const body: unknown = await response.json();
 
     expect(body).toEqual(backendData);
   });
@@ -60,7 +60,8 @@ describe("GET /api/projects", () => {
 
     const req = new NextRequest("http://localhost:3000/api/projects");
     const response = await GET(req);
-    const body = await response.json();
+    const json: unknown = await response.json();
+    const body = json as { success?: boolean };
 
     expect(response.status).toBe(500);
     expect(body.success).toBe(false);
@@ -97,7 +98,8 @@ describe("POST /api/projects", () => {
       body: JSON.stringify({ name: "test" }),
     });
     const response = await POST(req);
-    const body = await response.json();
+    const json: unknown = await response.json();
+    const body = json as { success?: boolean };
 
     expect(response.status).toBe(500);
     expect(body.success).toBe(false);

@@ -1456,7 +1456,7 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
         visualCinematicAnalysis,
       });
 
-      const constitutionalCheck = await checkConstitutionalCompliance(
+      const constitutionalCheck = checkConstitutionalCompliance(
         analysisText,
         input.fullText,
         this.geminiService

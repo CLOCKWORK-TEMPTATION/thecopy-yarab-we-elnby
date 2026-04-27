@@ -150,8 +150,9 @@ test.describe("cinematography studio — live dev scenario", () => {
     }, SESSION_STORAGE_KEY);
     expect(sessionAfter).not.toBeNull();
     // الحالة تبقى مخزنة بنفس المفتاح بعد إعادة التحميل.
-    const beforeParsed = JSON.parse(sessionBefore!);
-    const afterParsed = JSON.parse(sessionAfter!);
+    type SessionShape = { lastAssistant?: { answer?: string } };
+    const beforeParsed = JSON.parse(sessionBefore!) as SessionShape;
+    const afterParsed = JSON.parse(sessionAfter!) as SessionShape;
     // تأكيد بقاء الحقول الجوهرية (المرحلة، المزاج، آخر إجابة)
     if (beforeParsed.lastAssistant?.answer) {
       expect(afterParsed.lastAssistant?.answer).toBe(

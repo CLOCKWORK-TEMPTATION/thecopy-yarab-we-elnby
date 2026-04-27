@@ -257,7 +257,7 @@ const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
       <CardContent>
         <div className="space-y-3">
           <div className="flex gap-1">
-            {[...Array(20)].map((_, i) => (
+            {Array.from({ length: 20 }, (_, i) => (
               <div
                 key={i}
                 className={`flex-1 h-8 rounded transition-all duration-75 ${

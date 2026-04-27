@@ -2389,7 +2389,7 @@ export const ActorAiArabicStudio: React.FC = () => {
 
                       {/* خطوط التثليث */}
                       <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-                        {[...Array(9)].map((_, i) => (
+                        {Array.from({ length: 9 }, (_, i) => (
                           <div
                             key={i}
                             className="border border-yellow-500/20"

@@ -128,7 +128,7 @@ export class MultiAgentDebateSystem {
       rounds.push(round);
 
       // Check for convergence
-      const convergence = await this.checkConvergence(rounds);
+      const convergence = this.checkConvergence(rounds);
       if (convergence > 0.8 && i >= 1) {
         console.log(`[Multi-Agent Debate] Converged after ${i + 1} rounds`);
         break;
@@ -141,8 +141,8 @@ export class MultiAgentDebateSystem {
     // Calculate debate dynamics
     const debateDynamics = {
       rounds: rounds.length,
-      convergenceScore: await this.checkConvergence(rounds),
-      controversialTopics: await this.identifyControversialTopics(rounds),
+      convergenceScore: this.checkConvergence(rounds),
+      controversialTopics: this.identifyControversialTopics(rounds),
     };
 
     console.log(`[Multi-Agent Debate] Complete after ${rounds.length} rounds`);

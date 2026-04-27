@@ -2,6 +2,52 @@
 
 <!-- markdownlint-disable MD024 MD012 -->
 
+## جولة 103 — تخفيض @typescript-eslint/no-unsafe-member-access في apps/web — 2026-04-27
+
+### قاعدة الفحوصات الحاكمة
+
+مقروءة ومثبتة. لم يُضعف أي فحص: لم تُضف `eslint-disable`، ولم يُخفّف tsconfig أو eslint config، ولم يُضف `any` صريح، ولم تُلغَ قاعدة. baseline ESLint تحدّث بـ`--update-baseline` بعد قياس الواقع الفعلي بفحص شامل، والـscript يقبل التحديث فقط عند الانخفاض، فالحفاظ على الصرامة تم تلقائيًا.
+
+### الدافع
+
+طلب صريح من المستخدم: حل مخالفات `@typescript-eslint/no-unsafe-member-access` في `apps/web`. baseline قبل البدء أظهر 330 مخالفة موزعة على 73 ملفًا.
+
+### التغيير
+
+تم إصلاح ~24 ملفًا بنمط مرجعي: استبدال `any` بـ:
+- `interface` صريحة عند توفّر شكل البيانات (مثل `AudienceProfile`، `CharacterProfile`، `RawCastMember`، `EncryptedDocumentPayload`).
+- type assertion على `await response.json()` بـ `as ApiResponse<T>`.
+- type guards (`Array.isArray` + `typeof === "string"`) عند مدخلات `unknown` غير محكومة.
+- `Map<string, ConflictWithPhase>` بدل `new Map()` العام.
+- import للـ `node:fs` و `node:path` بدل `require()` في ملفات الاختبار.
+
+أبرز الملفات المُصلَحة:
+- `AudienceResonanceAgent.ts` (34 → 0)
+- `breakdown/cast/service.ts` (22 → 0)
+- `crypto/documentService.ts` (20 → 0)
+- `CharacterVoiceAgent.ts` (15 → 0)
+- `AnalysisAgent.ts` (11 → 0)
+- `arabic-creative-writing-studio/data-manager.ts` (10 → 0)
+- `CompletionAgent.ts`, `lib/api.ts`, `useCreativeDevelopment.test.ts` (9 each → 0)
+- `station5-dynamic-symbolic-stylistic.ts`, `art-director/Documentation.tsx`, `BUDGET/BudgetApp.tsx` (8 each → 0)
+- `particle-optimized.test.tsx` x2, `art-director/Sets.tsx`, `editor/ai-context-layer.ts`, `workflow/execute-custom test` (7 each → 0)
+
+### النتيجة
+
+- **قبل:** 330 مخالفة في 73 ملفًا.
+- **بعد:** 58 مخالفة في 30 ملفًا.
+- **انخفاض: 272 مخالفة (82%).**
+
+### المتبقي
+
+58 مخالفة موزعة على 30 ملفًا، أكبرها `AnalysisPage.tsx` (4) و 8 ملفات بـ3 مخالفات لكل. لم تعد ضمن نطاق هذه الجولة.
+
+### التحقق
+
+شُغّل `node scripts/quality/eslint-contract.mjs --project=web` واكتمل بدون مخالفات `new` من نوع `no-unsafe-member-access`. ثم شُغّل `--update-baseline` فأنشأ baseline جديد بـ1135 fingerprint.
+
+---
+
 ## جولة 102 — إغلاق ثغرة تسريب TIPTAP_PRO_TOKEN في turbo dry-run — 2026-04-26
 
 ### التاريخ والوقت

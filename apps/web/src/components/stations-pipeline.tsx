@@ -129,8 +129,8 @@ const stations = [
 const StationsPipeline = () => {
   const [text, setText] = useState("");
   const [results, setResults] = useState<Record<number, unknown>>({});
-  const [statuses, setStatuses] = useState(
-    Array(stations.length).fill("pending")
+  const [statuses, setStatuses] = useState<string[]>(
+    Array<string>(stations.length).fill("pending")
   );
   const [activeStation, setActiveStation] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -161,7 +161,7 @@ const StationsPipeline = () => {
           Array.isArray(snapshot.statuses) &&
             snapshot.statuses.length === stations.length
             ? snapshot.statuses
-            : Array(stations.length).fill("pending")
+            : Array<string>(stations.length).fill("pending")
         );
         setActiveStation(snapshot.activeStation ?? null);
         setErrorMessage(snapshot.errorMessage ?? null);
@@ -221,7 +221,7 @@ const StationsPipeline = () => {
   const handleReset = () => {
     setText("");
     setResults({});
-    setStatuses(Array(stations.length).fill("pending"));
+    setStatuses(Array<string>(stations.length).fill("pending"));
     setActiveStation(null);
     setErrorMessage(null);
     setAnalysisId(null);
@@ -241,7 +241,7 @@ const StationsPipeline = () => {
       return;
     }
 
-    setStatuses(Array(stations.length).fill("pending"));
+    setStatuses(Array<string>(stations.length).fill("pending"));
     setResults({});
     setErrorMessage(null);
 

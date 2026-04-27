@@ -115,11 +115,11 @@ function mountHook() {
  * - analysisReport غير فارغ
  * - completionScope غير فارغ (مطلوب لمهمة "completion" فقط)
  */
-async function prepareForExecution(
+function prepareForExecution(
   result: ReturnType<typeof mountHook>["result"],
   overrides?: { text?: string; report?: string; scope?: string }
 ) {
-  await act(() => {
+  act(() => {
     result.current.setTextInput(overrides?.text ?? "أ".repeat(200));
     result.current.setAnalysisReport(
       overrides?.report ?? "تقرير تحليل الأداء الدرامي — حد أدنى مطلوب"
@@ -142,7 +142,7 @@ describe("T040-T042: Primary path — /api/development/execute → catalogResult
     mockFetch.mockResolvedValueOnce(primaryOk());
 
     const { result } = mountHook();
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -159,7 +159,7 @@ describe("T040-T042: Primary path — /api/development/execute → catalogResult
     mockFetch.mockResolvedValueOnce(primaryOk(expectedText));
 
     const { result } = mountHook();
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -354,7 +354,7 @@ describe("T046-T047: handleCatalogTaskSelect", () => {
 
     const { result } = mountHook();
 
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     // Run a task to populate catalogResult
     await act(async () => {
@@ -384,7 +384,7 @@ describe("T048: isLoading transitions", () => {
     mockFetch.mockResolvedValueOnce(primaryOk());
 
     const { result } = mountHook();
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -402,7 +402,7 @@ describe("T048: isLoading transitions", () => {
     });
 
     const { result } = mountHook();
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -434,7 +434,7 @@ describe("T049: Empty result handling", () => {
 
     const { result } = mountHook();
 
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -458,7 +458,7 @@ describe("T050: clearAnalysisData resets catalog state", () => {
 
     const { result } = mountHook();
 
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -554,7 +554,7 @@ describe("T054: Fallback path when primary route fails", () => {
 
     const { result } = mountHook();
 
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");
@@ -578,7 +578,7 @@ describe("T055: taskResults populated after executeTask", () => {
 
     const { result } = mountHook();
 
-    await prepareForExecution(result);
+    prepareForExecution(result);
 
     await act(async () => {
       await result.current.executeTask("completion");

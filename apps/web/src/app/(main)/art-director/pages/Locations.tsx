@@ -32,7 +32,10 @@ function Locations() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery || undefined }),
       });
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: { locations?: Location[] };
+      };
       if (data.success && data.data?.locations) {
         setLocations(data.data.locations);
       }
@@ -54,7 +57,7 @@ function Locations() {
             .filter(Boolean),
         }),
       });
-      const data = await response.json();
+      const data = (await response.json()) as { success?: boolean };
       if (data.success) {
         setShowAddForm(false);
         setFormData({

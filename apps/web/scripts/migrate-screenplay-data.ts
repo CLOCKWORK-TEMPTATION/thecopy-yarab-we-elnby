@@ -138,7 +138,7 @@ export function migrateLocalStorage(): number {
         if (!rawData) continue;
 
         try {
-          const oldData: OldScreenplayFormat = JSON.parse(rawData);
+          const oldData = JSON.parse(rawData) as OldScreenplayFormat;
 
           // ترحيل البيانات
           const newData = migrateScreenplayData(oldData);
@@ -177,7 +177,7 @@ export function exportLocalStorage(): Record<string, OldScreenplayFormat> {
 
         if (rawData) {
           try {
-            exportedData[key] = JSON.parse(rawData);
+            exportedData[key] = JSON.parse(rawData) as OldScreenplayFormat;
           } catch (error) {
             console.error(`Failed to parse key: ${key}`, error);
           }
@@ -230,7 +230,10 @@ export function validateMigratedData(): boolean {
 
         if (!rawData) continue;
 
-        const data = JSON.parse(rawData);
+        const data = JSON.parse(rawData) as {
+          formattedLines?: unknown;
+          metadata?: { version?: string };
+        };
 
         // التحقق من وجود formattedLines
         if (!data.formattedLines || !Array.isArray(data.formattedLines)) {
@@ -330,12 +333,12 @@ export function executeFullMigration(): {
  * @param oldData - البيانات القديمة
  * @returns البيانات الجديدة
  */
-export async function manualMigrateSingle(
+export function manualMigrateSingle(
   oldData: OldScreenplayFormat
-): Promise<NewScreenplayFormat> {
+): NewScreenplayFormat {
   console.log(`🔄 ترحيل السيناريو: ${oldData.title}`);
 
-  const newData = await migrateScreenplayData(oldData);
+  const newData = migrateScreenplayData(oldData);
 
   console.log(`✅ تم ترحيل السيناريو بنجاح`);
   console.log(`   - الكلمات: ${newData.metadata.wordCount}`);

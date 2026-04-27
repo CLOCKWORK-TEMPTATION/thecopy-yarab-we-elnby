@@ -93,7 +93,8 @@ export function ZKSignupForm() {
         }),
       });
 
-      const data = await response.json();
+      const json: unknown = await response.json();
+      const data = json as { success?: boolean; error?: string };
 
       if (!data.success) {
         setError(data.error ?? "فشل التسجيل");

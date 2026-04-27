@@ -123,8 +123,9 @@ export default function CharactersPage() {
       if (!currentProjectId) return [];
       const res = await fetch(`/api/projects/${currentProjectId}/characters`);
       if (!res.ok) throw new Error(`فشل تحميل الشخصيات: ${res.status}`);
-      const data = await res.json();
-      return data.data as Character[];
+      const json: unknown = await res.json();
+      const data = json as { data?: Character[] };
+      return data.data ?? [];
     },
     enabled: !!currentProjectId,
   });

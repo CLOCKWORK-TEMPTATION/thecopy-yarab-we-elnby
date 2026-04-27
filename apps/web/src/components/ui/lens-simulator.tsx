@@ -277,7 +277,7 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                   {/* Bokeh circles */}
                   {showBokeh && aperture < 4 && (
                     <>
-                      {[...Array(5)].map((_, i) => (
+                      {Array.from({ length: 5 }, (_, i) => (
                         <div
                           key={i}
                           className="absolute rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/10 blur-sm"

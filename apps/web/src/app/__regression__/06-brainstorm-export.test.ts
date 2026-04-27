@@ -208,7 +208,7 @@ describe("شبكة انحدار: brain-storm-ai — التصدير", () => {
       const raw = localStorage.getItem("brainstorm_sessions");
       expect(raw).not.toBeNull();
 
-      const parsed = JSON.parse(raw!);
+      const parsed = JSON.parse(raw!) as typeof data;
       expect(parsed.sessions).toHaveLength(1);
       expect(parsed.version).toBe(1);
     });

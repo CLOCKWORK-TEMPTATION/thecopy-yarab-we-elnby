@@ -133,19 +133,19 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Post-process the analysis output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up the analysis text
     const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
-    const structuralScore = await this.assessStructuralAnalysis(processedText);
+    const structuralScore = this.assessStructuralAnalysis(processedText);
     const dialecticalScore =
-      await this.assessDialecticalAnalysis(processedText);
+      this.assessDialecticalAnalysis(processedText);
     const recommendationsScore =
-      await this.assessRecommendations(processedText);
-    const depthScore = await this.assessAnalyticalDepth(processedText);
+      this.assessRecommendations(processedText);
+    const depthScore = this.assessAnalyticalDepth(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =

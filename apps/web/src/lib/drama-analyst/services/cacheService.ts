@@ -220,7 +220,7 @@ class CacheService {
   private async syncPendingActions(): Promise<void> {
     try {
       // Get pending actions from IndexedDB or localStorage
-      const pendingActions = await this.getPendingActions();
+      const pendingActions = this.getPendingActions();
 
       if (pendingActions.length > 0) {
         log.info(
@@ -231,8 +231,8 @@ class CacheService {
 
         for (const action of pendingActions) {
           try {
-            await this.executeAction(action);
-            await this.removePendingAction(action.id);
+            this.executeAction(action);
+            this.removePendingAction(action.id);
           } catch (error) {
             log.error(
               `❌ Failed to sync action ${action.id}`,
@@ -290,7 +290,7 @@ class CacheService {
           size: await this.calculateCacheSize(cache),
           entries: keys.length,
           lastUpdated: new Date(),
-          hitRate: await this.getCacheHitRate(config.name),
+          hitRate: this.getCacheHitRate(config.name),
         });
       } catch (error) {
         log.error(
@@ -415,9 +415,9 @@ class CacheService {
     }
   }
 
-  private async removePendingAction(actionId: string): Promise<void> {
+  private removePendingAction(actionId: string): void {
     try {
-      const actions = await this.getPendingActions();
+      const actions = this.getPendingActions();
       const filteredActions = actions.filter(
         (action) => action.id !== actionId
       );

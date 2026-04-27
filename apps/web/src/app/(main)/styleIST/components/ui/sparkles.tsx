@@ -162,7 +162,7 @@ export const SparklesCore = (props: ParticlesProps) => {
                 close: true,
                 fill: true,
                 options: {},
-                type: {} as any,
+                type: {} as unknown as string,
               },
               groups: {},
               move: {

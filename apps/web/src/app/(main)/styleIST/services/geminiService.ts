@@ -118,11 +118,12 @@ async function callGeminiAPI(
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const errorJson: unknown = await response.json();
+    const error = errorJson as { error?: string };
     throw new Error(error.error ?? "API request failed");
   }
 
-  return response.json();
+  return response.json() as Promise<Record<string, unknown>>;
 }
 
 /**

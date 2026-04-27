@@ -74,7 +74,7 @@ export function ThemeCustomizer() {
   React.useEffect(() => {
     const saved = localStorage.getItem("theme-config");
     if (saved) {
-      const parsed = JSON.parse(saved);
+      const parsed = JSON.parse(saved) as ThemeConfig;
       setConfig(parsed);
       applyTheme(parsed);
     }

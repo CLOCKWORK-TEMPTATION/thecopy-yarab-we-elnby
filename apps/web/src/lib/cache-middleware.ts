@@ -72,7 +72,7 @@ export function withCache<T = unknown>(
 
       // Only cache successful responses
       if (response.status >= 200 && response.status < 300) {
-        const data = await response.json();
+        const data = (await response.json()) as T;
         await setCached(cacheKey, data, { ttl });
         return NextResponse.json(data, {
           headers: {

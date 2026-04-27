@@ -1126,25 +1126,25 @@ export class Station3NetworkBuilder extends BaseStation {
     network.createSnapshot("Initial network state after AI inference");
 
     // تحليل الشبكة
-    const networkAnalysis = await this.networkAnalyzer.analyzeNetwork(
+    const networkAnalysis = this.networkAnalyzer.analyzeNetwork(
       network,
       context
     );
 
     // تحليل الصراعات
-    const conflictAnalysis = await this.networkAnalyzer.analyzeConflicts(
+    const conflictAnalysis = this.networkAnalyzer.analyzeConflicts(
       network,
       context
     );
 
     // توليد أقواس الشخصيات
-    const characterArcs = await this.networkAnalyzer.generateCharacterArcs(
+    const characterArcs = this.networkAnalyzer.generateCharacterArcs(
       network,
       context
     );
 
     // تحديد نقاط التحول
-    const pivotPoints = await this.networkAnalyzer.identifyPivotPoints(
+    const pivotPoints = this.networkAnalyzer.identifyPivotPoints(
       network,
       context
     );

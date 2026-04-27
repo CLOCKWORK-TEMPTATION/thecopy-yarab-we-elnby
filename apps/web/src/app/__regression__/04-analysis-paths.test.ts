@@ -82,7 +82,7 @@ describe("شبكة انحدار: analysis", () => {
       };
 
       const serialized = JSON.stringify(analysisPayload);
-      const deserialized = JSON.parse(serialized);
+      const deserialized = JSON.parse(serialized) as typeof analysisPayload;
 
       expect(deserialized.stations).toHaveLength(3);
       expect(deserialized.overallScore).toBe(81.5);

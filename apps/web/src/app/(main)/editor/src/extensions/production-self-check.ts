@@ -88,7 +88,7 @@ export const runProductionSelfCheck = async (
   inFlightSelfCheck = run;
 
   try {
-    return await run;
+    return run;
   } finally {
     inFlightSelfCheck = null;
   }

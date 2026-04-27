@@ -113,14 +113,14 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Post-process the literary quality output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess evaluation quality
-    const qualityMetrics = await this.assessEvaluationQuality(processedText);
+    const qualityMetrics = this.assessEvaluationQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =

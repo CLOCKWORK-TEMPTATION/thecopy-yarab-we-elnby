@@ -25,13 +25,13 @@ describe("fileExtractor (gutted implementation)", () => {
       await expect(extractTextFromFile(file)).rejects.toThrow(/معطّل/);
     });
 
-    it("should throw with correct error type", async () => {
+    it("should throw with correct error type", () => {
       const file = new File(["content"], "script.pdf", {
         type: "application/pdf",
       });
 
       try {
-        await extractTextFromFile(file);
+        extractTextFromFile(file);
         expect.fail("Should have thrown");
       } catch (error) {
         expect(error).toBeInstanceOf(FileExtractionError);

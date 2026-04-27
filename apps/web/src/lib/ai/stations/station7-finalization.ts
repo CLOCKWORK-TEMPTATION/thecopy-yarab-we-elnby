@@ -198,14 +198,16 @@ export class Station7Finalization extends BaseStation<
           station6,
           scoreMatrix
         ),
-        this.generateOverallAssessment(
-          scoreMatrix,
-          station1,
-          station2,
-          station3,
-          station4,
-          station5,
-          station6
+        Promise.resolve(
+          this.generateOverallAssessment(
+            scoreMatrix,
+            station1,
+            station2,
+            station3,
+            station4,
+            station5,
+            station6
+          )
         ),
         this.generateSWOTAnalysis(
           station1,
@@ -224,13 +226,15 @@ export class Station7Finalization extends BaseStation<
           station6
         ),
         this.generateRewritingSuggestions(station6, station4, station5),
-        this.calculateFinalConfidence(
-          station1,
-          station2,
-          station3,
-          station4,
-          station5,
-          station6
+        Promise.resolve(
+          this.calculateFinalConfidence(
+            station1,
+            station2,
+            station3,
+            station4,
+            station5,
+            station6
+          )
         ),
       ]);
 

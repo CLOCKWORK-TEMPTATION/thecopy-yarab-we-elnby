@@ -14,15 +14,18 @@ export function buildOriginalTextSection(originalText: string): string {
 /**
  * Build characters list section
  */
-export function buildCharactersSection(characters: any[]): string {
+export function buildCharactersSection(characters: unknown[]): string {
   if (characters.length === 0) return "";
 
   let section = `الشخصيات في الشبكة:\n`;
-  characters.slice(0, 8).forEach((char: any, idx: number) => {
+  characters.slice(0, 8).forEach((char: unknown, idx: number) => {
+    const charObj = (typeof char === "object" && char !== null
+      ? (char as { name?: string; role?: string })
+      : {}) as { name?: string; role?: string };
     const charName =
-      typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
+      typeof char === "string" ? char : (charObj.name ?? `شخصية ${idx + 1}`);
     const charRole =
-      typeof char === "object" && char.role ? ` - ${char.role}` : "";
+      typeof char === "object" && charObj.role ? ` - ${charObj.role}` : "";
     section += `${idx + 1}. ${charName}${charRole}\n`;
   });
   section += "\n";

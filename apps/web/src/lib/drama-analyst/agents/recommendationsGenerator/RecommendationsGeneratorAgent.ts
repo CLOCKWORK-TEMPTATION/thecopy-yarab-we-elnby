@@ -129,15 +129,15 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Post-process the recommendations output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess recommendations quality
     const qualityMetrics =
-      await this.assessRecommendationsQuality(processedText);
+      this.assessRecommendationsQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =

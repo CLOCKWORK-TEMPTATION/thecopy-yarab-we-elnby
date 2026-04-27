@@ -367,8 +367,9 @@ export function useCreativeDevelopment() {
     const sevenStationsData = localStorage.getItem("sevenStationsAnalysis");
     if (sevenStationsData) {
       try {
-        const analysisData: SevenStationsAnalysis =
-          JSON.parse(sevenStationsData);
+        const analysisData = JSON.parse(
+          sevenStationsData
+        ) as SevenStationsAnalysis;
         if (analysisData.finalReport && analysisData.originalText) {
           dispatch({ type: "LOAD_SEVEN_STATIONS", payload: analysisData });
 
@@ -391,7 +392,9 @@ export function useCreativeDevelopment() {
 
     if (storedAnalysis && storedId) {
       try {
-        const analysisData = JSON.parse(storedAnalysis);
+        const analysisData = JSON.parse(storedAnalysis) as {
+          stationOutputs?: { station7?: unknown };
+        };
         if (analysisData.stationOutputs?.station7) {
           dispatch({
             type: "LOAD_SESSION_ANALYSIS",

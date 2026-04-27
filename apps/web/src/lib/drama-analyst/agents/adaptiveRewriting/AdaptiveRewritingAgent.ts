@@ -136,18 +136,18 @@ export class AdaptiveRewritingAgent extends BaseAgent {
   /**
    * معالجة المخرجات وتقييم الجودة (Self-Critique)
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // تنظيف النص من أي بقايا كود أو علامات غير مرغوبة
     const processedText = this.cleanupRewrittenText(output.text);
 
     // حساب مقاييس الجودة المتعددة
-    const goalAchievement = await this.assessGoalAchievement(processedText);
+    const goalAchievement = this.assessGoalAchievement(processedText);
     const qualityImprovement =
-      await this.assessQualityImprovement(processedText);
-    const coherence = await this.assessCoherence(processedText);
-    const creativity = await this.assessCreativity(processedText);
+      this.assessQualityImprovement(processedText);
+    const coherence = this.assessCoherence(processedText);
+    const creativity = this.assessCreativity(processedText);
 
     // حساب درجة الجودة الكلية (Weighted Score)
     const qualityScore =

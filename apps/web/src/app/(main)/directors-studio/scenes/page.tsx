@@ -151,8 +151,9 @@ export default function ScenesPage() {
       if (!currentProjectId) return [];
       const res = await fetch(`/api/projects/${currentProjectId}/scenes`);
       if (!res.ok) throw new Error(`فشل تحميل المشاهد: ${res.status}`);
-      const data = await res.json();
-      return data.data as Scene[];
+      const json: unknown = await res.json();
+      const data = json as { data?: Scene[] };
+      return data.data ?? [];
     },
     enabled: !!currentProjectId,
   });

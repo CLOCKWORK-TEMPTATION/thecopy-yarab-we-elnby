@@ -190,7 +190,7 @@ async function handleRawTextPath(
   const insertionOpts: import("./editor-insertion").InsertionOptions = {};
   if (options.from !== undefined) insertionOpts.from = options.from;
   if (options.to !== undefined) insertionOpts.to = options.to;
-  await editorInsertion.insertClassifiedItems(
+  editorInsertion.insertClassifiedItems(
     view,
     classified as ClassifiedItem[],
     insertionOpts

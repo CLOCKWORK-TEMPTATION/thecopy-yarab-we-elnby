@@ -176,7 +176,7 @@ export function readSession(): PersistedStudioSession | null {
     if (!raw) {
       return null;
     }
-    const parsed = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
     return sanitizeSession(parsed);
   } catch {
     return null;

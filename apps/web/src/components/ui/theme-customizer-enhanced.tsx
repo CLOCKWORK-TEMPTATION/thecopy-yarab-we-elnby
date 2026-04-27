@@ -216,9 +216,9 @@ export function ThemeCustomizerEnhanced({
       try {
         const result = e.target?.result;
         if (typeof result === "string") {
-          const imported = JSON.parse(result);
-          setTheme(imported);
-          onThemeChange?.(imported);
+          const imported: unknown = JSON.parse(result);
+          setTheme(imported as Parameters<typeof setTheme>[0]);
+          onThemeChange?.(imported as Parameters<typeof setTheme>[0]);
         }
       } catch (error) {
         void error;

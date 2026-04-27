@@ -131,7 +131,10 @@ export const loadAgentConfig = async (
     throw new Error(`Unknown task type: ${taskType}`);
   }
 
-  const module = await import(/* @vite-ignore */ mapping.path);
+  const module = (await import(/* @vite-ignore */ mapping.path)) as Record<
+    string,
+    AIAgentConfig
+  >;
   return module[mapping.configName];
 };
 // Static imports removed to eliminate Vite dynamic import warnings

@@ -193,7 +193,9 @@ export class ContextMemoryManager {
       logger.info(`Loading context for session: ${sessionId}`, {
         scope: "MemoryManager",
       });
-      return JSON.parse(JSON.stringify(this.storage.get(sessionId)!));
+      return JSON.parse(
+        JSON.stringify(this.storage.get(sessionId)!)
+      ) as EnhancedContextMemory;
     }
 
     const loaded = this.loadFromLocalStorage(sessionId);
@@ -220,20 +222,23 @@ export class ContextMemoryManager {
     });
 
     const enhanced = this.ensureEnhanced(memory);
-    this.storage.set(sessionId, JSON.parse(JSON.stringify(enhanced)));
+    this.storage.set(
+      sessionId,
+      JSON.parse(JSON.stringify(enhanced)) as EnhancedContextMemory
+    );
     this.saveToLocalStorage(sessionId);
   }
 
-  async updateMemory(
+  updateMemory(
     sessionId: string,
     classifications: ClassificationRecord[]
-  ): Promise<void> {
+  ): void {
     logger.info(
       `Updating memory for session ${sessionId} with ${classifications.length} records.`,
       { scope: "MemoryManager" }
     );
 
-    const existing = await this.loadContext(sessionId);
+    const existing = this.loadContext(sessionId);
     const memory: EnhancedContextMemory =
       existing ?? this.createDefaultMemory(sessionId);
 
@@ -256,7 +261,7 @@ export class ContextMemoryManager {
         (memory.data.characterDialogueMap[characterName] ?? 0) + 1;
     });
 
-    await this.saveContext(sessionId, memory);
+    this.saveContext(sessionId, memory);
   }
 
   saveToLocalStorage(sessionId: string): void {

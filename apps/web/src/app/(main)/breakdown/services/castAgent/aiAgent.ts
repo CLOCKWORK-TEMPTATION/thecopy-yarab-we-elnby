@@ -198,10 +198,15 @@ export const runCastAgent = async (
       },
     });
 
-    const result = response.text ? JSON.parse(response.text) : { members: [] };
+    type CastMember = { id?: string; [k: string]: unknown };
+    const result = (
+      response.text
+        ? (JSON.parse(response.text) as { members?: CastMember[] })
+        : { members: [] }
+    ) as { members?: CastMember[] };
 
     // Post-process to ensure IDs exist
-    return (result.members ?? []).map((m: any, index: number) => ({
+    return (result.members ?? []).map((m: CastMember, index: number) => ({
       ...m,
       id: m.id ?? `char-${Date.now()}-${index}`,
     }));

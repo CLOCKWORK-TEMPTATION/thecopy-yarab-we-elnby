@@ -158,7 +158,9 @@ ${JSON.stringify(analysisReport, null, 2).substring(0, 1000)}
       return {
         claim,
         isSupported: parsed.isSupported ?? false,
-        sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+        sources: Array.isArray(parsed.sources)
+          ? (parsed.sources as string[])
+          : [],
         confidence:
           typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
       };

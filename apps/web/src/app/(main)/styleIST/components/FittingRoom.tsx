@@ -45,7 +45,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
   );
   const [selectedFabric, setSelectedFabric] = useState<FabricType>("cotton");
   const [hazards, setHazards] = useState<SceneHazard[]>([]);
-  const [safetyReport, setSafetyReport] = useState<any>(null);
+  const [safetyReport, setSafetyReport] = useState<unknown>(null);
   const [activeTab, setActiveTab] = useState<"3d" | "data">("3d");
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
 

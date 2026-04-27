@@ -625,12 +625,12 @@ export function App(): React.JSX.Element {
     typingSystemSettings,
   ]);
 
-  const approveCurrentVersion = useCallback(async (): Promise<void> => {
+  const approveCurrentVersion = useCallback((): void => {
     const area = editorAreaRef.current;
     if (!area) return;
 
     try {
-      await area.approveCurrentVersion();
+      area.approveCurrentVersion();
       toast({
         title: "تم اعتماد النسخة",
         description: "تم وسم كل العناصر الظاهرة في النسخة المعتمدة.",

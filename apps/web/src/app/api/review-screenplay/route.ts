@@ -5,7 +5,8 @@ import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAI
 
 export async function POST(request: NextRequest) {
   try {
-    const { text } = await request.json();
+    const rawBody: unknown = await request.json();
+    const { text } = rawBody as { text?: string };
 
     if (!text || text.length < 50) {
       return NextResponse.json(

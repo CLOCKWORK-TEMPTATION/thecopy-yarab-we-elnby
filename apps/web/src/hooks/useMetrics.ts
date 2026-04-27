@@ -39,13 +39,14 @@ async function fetchWithAuth<T>(endpoint: string): Promise<T> {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const json: unknown = await response.json();
+  const data = json as { success?: boolean; error?: string; data?: T };
 
   if (!data.success) {
     throw new Error(data.error ?? "Unknown error occurred");
   }
 
-  return data.data;
+  return data.data as T;
 }
 
 /**

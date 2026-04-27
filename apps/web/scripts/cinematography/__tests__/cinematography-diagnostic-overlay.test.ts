@@ -262,10 +262,10 @@ function exerciseOverlayPresentation(
 /**
  * يثبت أن الحاوية تستجيب لاختصار Ctrl+Shift+D وتُبدّل ظهور المكوّن.
  */
-async function exerciseContainerHotkey(
+function exerciseContainerHotkey(
   container: ContainerModule,
   bus: BusModule
-): Promise<void> {
+): void {
   bus.resetDiagnostics();
   // ضمان وجود قيمة في الـ localStorage حتى تُحسب الجلسة بحجم > 0.
   window.localStorage.setItem(
@@ -284,7 +284,7 @@ async function exerciseContainerHotkey(
   );
 
   // الضغط على Ctrl+Shift+D يُظهر.
-  await act(() => {
+  act(() => {
     fireEvent.keyDown(window, {
       key: "D",
       ctrlKey: true,
@@ -298,7 +298,7 @@ async function exerciseContainerHotkey(
   assert.ok(visibleNow, "overlay must appear after Ctrl+Shift+D");
 
   // الضغط مرة أخرى يُخفي.
-  await act(() => {
+  act(() => {
     fireEvent.keyDown(window, {
       key: "d",
       ctrlKey: true,
@@ -321,15 +321,15 @@ export async function runDiagnosticOverlaySuite(): Promise<void> {
   const restoreDom = installDom();
   try {
     const bus = await loadBus();
-    await exerciseBusEnvFlag(bus);
+    exerciseBusEnvFlag(bus);
 
     const overlay = await loadOverlay();
-    await exerciseOverlayPresentation(overlay);
+    exerciseOverlayPresentation(overlay);
 
     // الحاوية تتطلب العلم مفعّلًا لتلتقط الأحداث.
     process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS = "1";
     const container = await loadContainer();
-    await exerciseContainerHotkey(container, bus);
+    exerciseContainerHotkey(container, bus);
   } finally {
     delete process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
     restoreDom();

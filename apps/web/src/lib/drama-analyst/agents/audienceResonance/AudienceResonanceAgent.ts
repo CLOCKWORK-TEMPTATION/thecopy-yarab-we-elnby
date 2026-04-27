@@ -148,16 +148,16 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Post-process the audience resonance output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up the analysis text
     const processedText = this.cleanupAnalysis(output.text);
 
     // Assess analysis quality
-    const comprehensiveness = await this.assessComprehensiveness(processedText);
-    const insightDepth = await this.assessInsightDepth(processedText);
-    const actionability = await this.assessActionability(processedText);
+    const comprehensiveness = this.assessComprehensiveness(processedText);
+    const insightDepth = this.assessInsightDepth(processedText);
+    const actionability = this.assessActionability(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =

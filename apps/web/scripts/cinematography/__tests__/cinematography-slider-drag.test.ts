@@ -410,7 +410,7 @@ export async function runSliderDragSuite(): Promise<number> {
   try {
     await loadSliderModule();
     for (const config of REAL_SLIDER_CONFIGS) {
-      await exerciseSlider(config);
+      exerciseSlider(config);
     }
     return REAL_SLIDER_CONFIGS.length;
   } finally {

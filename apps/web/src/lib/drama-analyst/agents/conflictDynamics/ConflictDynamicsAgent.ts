@@ -136,16 +136,16 @@ ${
     return prompt;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     const processedText = this.cleanupConflictText(output.text);
 
     const conflictIdentification =
-      await this.assessConflictIdentification(processedText);
-    const analysisDepth = await this.assessAnalysisDepth(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
-    const insightfulness = await this.assessInsightfulness(processedText);
+      this.assessConflictIdentification(processedText);
+    const analysisDepth = this.assessAnalysisDepth(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
+    const insightfulness = this.assessInsightfulness(processedText);
 
     const qualityScore =
       conflictIdentification * 0.3 +

@@ -19,6 +19,55 @@ import {
 import { COLOR_PALETTE } from "../lib/constants";
 import { Budget } from "../lib/types";
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const formatShort = (value: number) => {
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value}`;
+};
+
+interface TooltipEntry {
+  name?: string | number;
+  value?: number;
+  color?: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string | number;
+  theme?: "light" | "dark";
+}
+
+const CustomTooltip = ({ active, payload, label, theme }: CustomTooltipProps) => {
+  if (active && payload?.length) {
+    return (
+      <div
+        className={`p-3 rounded-[22px] shadow-lg border ${
+          theme === "dark"
+            ? "bg-black/18 border-white/8 text-white"
+            : "bg-white/[0.04] border-white/8"
+        }`}
+      >
+        <p className="font-semibold">{label}</p>
+        {payload.map((entry: TooltipEntry, index: number) => (
+          <p key={index} style={{ color: entry.color }}>
+            {entry.name}: {formatCurrency(entry.value ?? 0)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 interface EnhancedChartProps {
   budget: Budget;
   theme: "light" | "dark";
@@ -92,54 +141,6 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
 
     return { sectionData, allCategories, historicalData };
   }, [budget]);
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-
-  const formatShort = (value: number) => {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
-    return `$${value}`;
-  };
-
-  interface TooltipEntry {
-    name?: string | number;
-    value?: number;
-    color?: string;
-  }
-
-  interface CustomTooltipProps {
-    active?: boolean;
-    payload?: TooltipEntry[];
-    label?: string | number;
-  }
-
-  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-    if (active && payload?.length) {
-      return (
-        <div
-          className={`p-3 rounded-[22px] shadow-lg border ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8 text-white"
-              : "bg-white/[0.04] border-white/8"
-          }`}
-        >
-          <p className="font-semibold">{label}</p>
-          {payload.map((entry: TooltipEntry, index: number) => (
-            <p key={index} style={{ color: entry.color }}>
-              {entry.name}: {formatCurrency(entry.value ?? 0)}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -217,7 +218,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip theme={theme} />} />
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
@@ -256,7 +257,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
                 tick={{ fontSize: 10 }}
                 stroke={theme === "dark" ? "#9CA3AF" : "#6B7280"}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip theme={theme} />} />
               <Bar dataKey="value" fill="#3B82F6" />
             </BarChart>
           </ResponsiveContainer>
@@ -293,7 +294,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
               tickFormatter={formatShort}
               stroke={theme === "dark" ? "#9CA3AF" : "#6B7280"}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip theme={theme} />} />
             <Legend />
             <Area
               type="monotone"

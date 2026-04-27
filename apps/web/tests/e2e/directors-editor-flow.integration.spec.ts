@@ -53,7 +53,9 @@ test.describe("directors-editor real integration", () => {
 
     const storedProject = await page.evaluate(() => {
       const raw = sessionStorage.getItem("currentProject");
-      return raw ? JSON.parse(raw) : null;
+      return raw
+        ? (JSON.parse(raw) as { id?: string; title?: string })
+        : null;
     });
 
     expect(storedProject?.id).toBe(projectId);

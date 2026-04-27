@@ -88,7 +88,7 @@ export class ContextRetriever {
     }
 
     // استخراج العلاقات بين الكيانات
-    contextMap.relationships = await this.extractRelationships(chunks);
+    contextMap.relationships = this.extractRelationships(chunks);
 
     return contextMap;
   }
@@ -96,12 +96,12 @@ export class ContextRetriever {
   /**
    * استرجاع الأجزاء ذات الصلة بناءً على استعلام
    */
-  async retrieveRelevantChunks(
+  retrieveRelevantChunks(
     query: string,
     chunks: TextChunk[],
     contextMap: ContextMap,
     options: RetrievalOptions = {}
-  ): Promise<RetrievalResult> {
+  ): RetrievalResult {
     const startTime = Date.now();
     const maxChunks = options.maxChunks ?? 5;
     const minRelevanceScore = options.minRelevanceScore ?? 0.3;
@@ -110,7 +110,7 @@ export class ContextRetriever {
     const relevanceScores = new Map<string, number>();
 
     for (const chunk of chunks) {
-      const score = await this.calculateRelevanceScore(
+      const score = this.calculateRelevanceScore(
         query,
         chunk,
         contextMap

@@ -92,16 +92,16 @@ export class CharacterNetworkAgent extends BaseAgent {
     return prompt;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     const processedText = this.cleanupNetworkText(output.text);
 
     const networkComprehensiveness =
-      await this.assessNetworkComprehensiveness(processedText);
-    const relationshipDepth = await this.assessRelationshipDepth(processedText);
-    const structuralInsight = await this.assessStructuralInsight(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
+      this.assessNetworkComprehensiveness(processedText);
+    const relationshipDepth = this.assessRelationshipDepth(processedText);
+    const structuralInsight = this.assessStructuralInsight(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
 
     const qualityScore =
       networkComprehensiveness * 0.3 +

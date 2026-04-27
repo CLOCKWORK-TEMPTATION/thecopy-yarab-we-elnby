@@ -178,7 +178,7 @@ export default function WorkerParticleAnimation() {
     // Initialize workers and generate particles
     const initializeAndGenerate = async () => {
       try {
-        await workerManager.initializeWorkers();
+        workerManager.initializeWorkers();
 
         // Determine device capabilities and particle count using LOD system
         const particleConfig = getOptimalParticleConfig();

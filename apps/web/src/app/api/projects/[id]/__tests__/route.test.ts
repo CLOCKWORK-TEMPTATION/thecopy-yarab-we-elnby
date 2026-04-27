@@ -58,7 +58,8 @@ describe("GET /api/projects/:id", () => {
 
     const req = new NextRequest("http://localhost:3000/api/projects/abc-123");
     const response = await GET(req, createCtx("abc-123"));
-    const body = await response.json();
+    const json: unknown = await response.json();
+    const body = json as { success?: boolean };
 
     expect(response.status).toBe(500);
     expect(body.success).toBe(false);

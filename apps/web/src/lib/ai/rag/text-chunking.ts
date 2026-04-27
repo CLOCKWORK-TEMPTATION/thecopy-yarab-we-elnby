@@ -43,10 +43,10 @@ export class TextChunker {
   /**
    * تقسيم النص إلى أجزاء
    */
-  async chunkText(
+  chunkText(
     text: string,
     options: ChunkingOptions
-  ): Promise<ChunkingResult> {
+  ): ChunkingResult {
     switch (options.strategy) {
       case "sliding_window":
         return this.slidingWindowChunking(text, options);
@@ -62,10 +62,10 @@ export class TextChunker {
   /**
    * تقسيم النص باستخدام نافذة منزلقة
    */
-  private async slidingWindowChunking(
+  private slidingWindowChunking(
     text: string,
     options: ChunkingOptions
-  ): Promise<ChunkingResult> {
+  ): ChunkingResult {
     const chunks: TextChunk[] = [];
     const chunkSize = options.chunkSize * 4; // تحويل من توكن إلى أحرف (تقديري)
     const overlap = options.overlap * 4;
@@ -100,8 +100,8 @@ export class TextChunker {
     }
 
     // إنشاء ملخص وسياق
-    const summary = await this.generateSummary(chunks);
-    const contextMap = await this.buildContextMap(chunks);
+    const summary = this.generateSummary(chunks);
+    const contextMap = this.buildContextMap(chunks);
 
     return {
       chunks,
@@ -121,10 +121,10 @@ export class TextChunker {
   /**
    * تقسيم النص باستخدام تحليل دلالي
    */
-  private async semanticChunking(
+  private semanticChunking(
     text: string,
     options: ChunkingOptions
-  ): Promise<ChunkingResult> {
+  ): ChunkingResult {
     // للتبسيط، نستخدم تقسيماً يعتمد على الفقرات والمشاهد
     const paragraphs = text.split(/\n\s*\n/);
     const chunks: TextChunk[] = [];
@@ -171,8 +171,8 @@ export class TextChunker {
     }
 
     // إنشاء ملخص وسياق
-    const summary = await this.generateSummary(chunks);
-    const contextMap = await this.buildContextMap(chunks);
+    const summary = this.generateSummary(chunks);
+    const contextMap = this.buildContextMap(chunks);
 
     return {
       chunks,
@@ -192,10 +192,10 @@ export class TextChunker {
   /**
    * تقسيم النص بأحجام ثابتة
    */
-  private async fixedSizeChunking(
+  private fixedSizeChunking(
     text: string,
     options: ChunkingOptions
-  ): Promise<ChunkingResult> {
+  ): ChunkingResult {
     const chunks: TextChunk[] = [];
     const chunkSize = options.chunkSize * 4; // تحويل من توكن إلى أحرف (تقديري)
 
@@ -212,8 +212,8 @@ export class TextChunker {
     }
 
     // إنشاء ملخص وسياق
-    const summary = await this.generateSummary(chunks);
-    const contextMap = await this.buildContextMap(chunks);
+    const summary = this.generateSummary(chunks);
+    const contextMap = this.buildContextMap(chunks);
 
     return {
       chunks,

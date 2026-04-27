@@ -24,7 +24,14 @@ export function AnalysisPage({ onAnalysisFinalized }: AnalysisPageProps) {
     "idle" | "running" | "review" | "finalized"
   >("idle");
   const [uploadComplete, setUploadComplete] = useState(false);
-  const [stationResults, setStationResults] = useState<Record<number, any>>({});
+  interface StationResult {
+    station: number;
+    data: string;
+    confidence: number;
+  }
+  const [stationResults, setStationResults] = useState<
+    Record<number, StationResult>
+  >({});
 
   const stations = [
     { id: 1, title: "استخلاص البنية", state: "idle" as const },

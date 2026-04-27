@@ -113,7 +113,7 @@ export abstract class BaseSystem {
       }
 
       // 4. إنشاء البيانات الوصفية النهائية
-      const metadata = await this.createMetadata(startTime, options, input);
+      const metadata = this.createMetadata(startTime, options, input);
 
       return {
         result,
@@ -163,10 +163,10 @@ export abstract class BaseSystem {
   /**
    * تطبيق فحص التوافق مع المبادئ الدستورية
    */
-  private async applyConstitutionalCheck(
+  private applyConstitutionalCheck(
     result: StationResult,
     originalText: string
-  ): Promise<StationResult> {
+  ): StationResult {
     try {
       // استخراج النصوص التي تحتاج إلى فحص
       const textsToCheck = this.extractTextsForConstitutionalCheck(result);
@@ -176,7 +176,7 @@ export abstract class BaseSystem {
       let overallImprovementScore = 1.0;
 
       for (const text of textsToCheck) {
-        const checkResult = await checkConstitutionalCompliance(
+        const checkResult = checkConstitutionalCompliance(
           text,
           originalText,
           this.geminiService

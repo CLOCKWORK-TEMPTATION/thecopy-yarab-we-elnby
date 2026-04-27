@@ -46,9 +46,14 @@ export function ZKLoginForm() {
         body: JSON.stringify({ email }),
       });
 
-      const initData = await initResponse.json();
+      const initJson: unknown = await initResponse.json();
+      const initData = initJson as {
+        success?: boolean;
+        error?: string;
+        data?: { kdfSalt: string };
+      };
 
-      if (!initData.success) {
+      if (!initData.success || !initData.data) {
         setError(initData.error ?? "فشل في بدء تسجيل الدخول");
         return;
       }
@@ -71,7 +76,8 @@ export function ZKLoginForm() {
         }),
       });
 
-      const verifyData = await verifyResponse.json();
+      const verifyJson: unknown = await verifyResponse.json();
+      const verifyData = verifyJson as { success?: boolean; error?: string };
 
       if (!verifyData.success) {
         setError(verifyData.error ?? "بيانات اعتماد غير صحيحة");

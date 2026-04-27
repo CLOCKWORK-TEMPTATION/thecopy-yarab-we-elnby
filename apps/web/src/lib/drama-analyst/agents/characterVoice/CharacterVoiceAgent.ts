@@ -124,16 +124,16 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Post-process the character voice output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
-  ): Promise<StandardAgentOutput> {
+  ): StandardAgentOutput {
     // Clean up the dialogue text
     const processedText = this.cleanupDialogue(output.text);
 
     // Assess voice consistency
-    const consistencyScore = await this.assessVoiceConsistency(processedText);
-    const naturalityScore = await this.assessNaturality(processedText);
-    const emotionalDepth = await this.assessEmotionalDepth(processedText);
+    const consistencyScore = this.assessVoiceConsistency(processedText);
+    const naturalityScore = this.assessNaturality(processedText);
+    const emotionalDepth = this.assessEmotionalDepth(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =

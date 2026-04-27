@@ -371,7 +371,7 @@ stunt work, visual effects, and a large cast.`);
     toast.success("Example script loaded!");
   };
 
-  const saveBudget = (isAutoSave = false) => {
+  function saveBudget(isAutoSave = false) {
     if (!budgetName.trim()) {
       if (!isAutoSave) {
         setError("Please enter a budget name before saving");

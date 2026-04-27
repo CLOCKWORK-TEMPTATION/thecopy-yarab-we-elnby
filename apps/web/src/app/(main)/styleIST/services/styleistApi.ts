@@ -24,7 +24,8 @@ async function fetchStyleist<T>(
     throw new Error("غير مصرح - يرجى تسجيل الدخول");
   }
 
-  const data = await response.json();
+  const json: unknown = await response.json();
+  const data = json as { success?: boolean; error?: string; data?: T };
 
   if (!response.ok || !data.success) {
     throw new Error(data.error ?? "فشل في العملية");

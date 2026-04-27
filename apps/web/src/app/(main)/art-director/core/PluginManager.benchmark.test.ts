@@ -40,7 +40,7 @@ describe("PluginManager Performance", () => {
     const delay = 100;
 
     for (let i = 0; i < pluginCount; i++) {
-      await pm.registerPlugin(new MockPlugin(`p${i}`, `Plugin ${i}`, delay));
+      pm.registerPlugin(new MockPlugin(`p${i}`, `Plugin ${i}`, delay));
     }
 
     const start = Date.now();
@@ -60,7 +60,7 @@ describe("PluginManager Performance", () => {
     const delay = 100;
 
     for (let i = 0; i < pluginCount; i++) {
-      await pm.registerPlugin(new MockPlugin(`p${i}`, `Plugin ${i}`, delay));
+      pm.registerPlugin(new MockPlugin(`p${i}`, `Plugin ${i}`, delay));
     }
 
     const start = Date.now();
