@@ -1,36 +1,36 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "df105f7d3b00b277d152e59da5df3367e61438f68b4f2f815406ece3401bc3d5",
+    ".agent-code-memory/manifest.json": "48f44b692241357e8aaf723b91439b9fff7a6ec4c09129840e531c29a0781354",
     ".embedding-hash-cache.json": "035334bb5ec1243a7b0b2686719dba1d8183790590489770fea12369950d94be",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "0274d5cb701f7732030014fec5f83edac7b51f53f941c96ea77da746e59642b5",
-    "apps/backend/src/memory/api/routes.ts": "fe570865dead5ceb9a2859f5126e8e58c9aefdc766fd56134bddfa41d28fbb1c",
-    "apps/backend/src/memory/context/context-assembly.service.ts": "0bbc5c1f3501cf93c3680251cb257be32af5db98f15061ee881f4e14e74d2a65",
-    "apps/backend/src/memory/embeddings/generator.ts": "b9f0d0bb8cbf704f812c66360a6761b8e1be2d363dc01ab18360c0a514b24fbf",
+    "apps/backend/src/memory/api/routes.ts": "d5e2a9974786fd2fccc87a9a49dd74568e500d1eae45bc401a5e2231a9d74781",
+    "apps/backend/src/memory/context/context-assembly.service.ts": "e33462d8186bb9d6a007d02c7b8fb7f59442990a1e86ef2cf92c905bf94b06fb",
+    "apps/backend/src/memory/embeddings/generator.ts": "db6376ead8d64d7fc7d58c01bad15b513d0741b037af5ba299c6e2cbc7d0b29d",
     "apps/backend/src/memory/embeddings/mrl-optimizer.ts": "c4c4b90cbd6dadaf6752fdb23d79979c4281a4cdb55b2c18b28adfb353c48fd3",
     "apps/backend/src/memory/index.ts": "ac5d646d2639c1d6c25150f907e421570f3b3f1237e10c3b12414d7b5aaae191",
-    "apps/backend/src/memory/indexer/git-watcher.ts": "1e3ff3949a93b3f25f09c7a16fddf6443e6067d099bd06cf23ac52d9c0be9993",
-    "apps/backend/src/memory/indexer/repository-crawler.ts": "682372b84392c21abc06467cca3372247bc62c9212ce10f03615dc9fbb804a1d",
-    "apps/backend/src/memory/indexer/weaviate-indexing.service.ts": "13a394514c530a64a9d1ec02866085e01faf44c5f266b194bcfadd9354a154e6",
+    "apps/backend/src/memory/indexer/git-watcher.ts": "d687e2d061e3273219f0f1392428af9984fde91ee67738bb9cfea341075515c5",
+    "apps/backend/src/memory/indexer/repository-crawler.ts": "e47ac1b24c64844139e8a84b2470147bba7ce9d27dc1d8f06387af6b83b2b82c",
+    "apps/backend/src/memory/indexer/weaviate-indexing.service.ts": "c7d8701da23bbbf5597b9d2a5eacb96659491cd08cfad196781ecd953c0f200f",
     "apps/backend/src/memory/retrieval/context-builder.ts": "d627339a84e6c511ca2252cd53622367d1f777173d2c8d15908bcc5d495a9dca",
-    "apps/backend/src/memory/retrieval/weaviate-retrieval.service.ts": "b6cf489ca2e179d3290b626dd36fc3a8bd5969bc5429d5fff1cd0123abff0704",
+    "apps/backend/src/memory/retrieval/weaviate-retrieval.service.ts": "917a362ec10e36bbb7d42d62561a5158cb12638a3b01aaa0c197055cb43f35cd",
     "apps/backend/src/memory/types.ts": "96f9fe921582c9994e4975d1bc9dcbdcf883917debdbeb4ac321a14a5a673e84",
-    "apps/backend/src/memory/vector-store/client.ts": "c4c041e8057cf0ec769881903ed790aeeecfe88ebfdc4237377f7e88bc1a9bf5",
+    "apps/backend/src/memory/vector-store/client.ts": "2fc2f72732a63ccfb6abf3b945e801284971363ce240ce0aa3f2d06481fded25",
     "apps/backend/src/memory/vector-store/schema.ts": "746b15d4663cd23bddcdd917f050eebe11d2126a9e33478229fbbdc3704cc9d4",
     "apps/backend/src/services/rag/embeddings.service.ts": "1f54c058600cf3d032ba3099bad0984645196444e42cac537469d84417861bf9",
     "apps/backend/src/services/rag/enhancedRAG.service.ts": "617875c00300b7f086abcaae96c2d283ba4f318e8cc5ac3bffe7eda6d249edf5",
     "apps/web/package.json": "33f65688dfccf90b156918e7f89ee25142ae979690a79798c7709306b5b96960",
-    "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "43c52c94d4f0ed552aefa96777e0b0cc2fe9ead9184f046b17107307c00bdfea",
-    "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "9fcc14c6d3e7f50905c2735afd73f855b5bc3dec4be530e85ff28b1c94fda7d1",
-    "apps/web/src/app/(main)/editor/scripts/rag-smoke-test.ts": "6d7f4fd2616897f38a0e0bc9548b250a236a04f542a9dcf4c10f39dd6d60d107",
-    "apps/web/src/app/(main)/editor/scripts/rag-stats.ts": "1af99220968fba68b8d901aee216d7983474228e93f7538addd88a98823dde5e",
+    "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "1f7e1d0bdadd45903d48823a3618d5ca12f928473a4ff60a139319b37877be9c",
+    "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "66bccc7856bd869f81440052ef69ec15729da2dfce997bf9ffe16703700955f3",
+    "apps/web/src/app/(main)/editor/scripts/rag-smoke-test.ts": "93de51c32da203f00b8a9cbb46ee1dcd4f10ac422bf727336d8d4ea0733ded29",
+    "apps/web/src/app/(main)/editor/scripts/rag-stats.ts": "308a44d749c9b066ad83d2b9d33b62545dd1e1e44898c43249253a3b0b5473c1",
     "apps/web/src/app/(main)/editor/src/rag/chunker.ts": "d4efd92b6eb002ad14424a1b6adcfefb7180728a002ac294d691d414d178f3bc",
     "apps/web/src/app/(main)/editor/src/rag/config.ts": "ce307baca79eca252a81a8cabdbc40543c24a1ad7fdda130273afbaca39e0eb5",
     "apps/web/src/app/(main)/editor/src/rag/embeddings.ts": "0a6077189f822abab3c28d075e470b7e07c78aaee73e874d1052eb05da33f26e",
     "apps/web/src/app/(main)/editor/src/rag/indexer.ts": "4e7ff745ab14e769dd7a1b6da4a4cc560c52ea38dc4875245879188b42f05a66",
-    "apps/web/src/app/(main)/editor/src/rag/query.ts": "a78016d4fc459d8fc1e062c0c27ad45dbff33a829b87322e0742377526efc5f5",
+    "apps/web/src/app/(main)/editor/src/rag/query.ts": "c7440803ac23b00e577dbaf69f6f0da023fd515bcbff027cdc758896dc8cdb56",
     "apps/web/src/app/(main)/editor/src/rag/rag-system.md": "b9df904f344b41c63753c2530782f20c1df7fb54a0a4b9d35e6afc78d6fcbeb3",
     "apps/web/src/app/(main)/editor/src/rag/README.md": "a48abfe553f5adbd187e928182bc0116ace9b80cbc3c36f71c835d1f3405b3d7",
     "apps/web/src/app/(main)/editor/src/rag/types.ts": "51d176ddd3f1f05bf678e416f39c29e8e6e51abc89af181d9affee91259f7414",
@@ -38,7 +38,7 @@
     "apps/web/src/lib/ai/rag/index.ts": "92e16b2f69d4e5cef289b981cbf3f963ec3e3820858357de972a77cb6762f46a",
     "apps/web/src/lib/ai/rag/text-chunking.ts": "fdd5fe800be3f0755118a0808de71245d0a87952d0932f3e43045348302a8c3e",
     "apps/web/src/lib/ai/stations/gemini-service.ts": "bbc210359d3f1cb91069a1619826040c15545a427529c9019a3b63e89c0ea6e0",
-    "apps/web/src/lib/ai/text-chunking.ts": "a7329180c17aaaf876f39e5341e71bf73f88e0b3c07f8898007a2894bcb71278",
+    "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
     "package.json": "d688b494638df30a3f207dd4e4f0f97d7904c520d5a0fa308a603460d0625905",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
@@ -72,17 +72,17 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "96342bf5a41624d9e43f593b17288ccb50324f4d",
+  "headCommit": "02b240e614eca08b0c904f7e45212532e7e5140b",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "3fad6170aad0db16a2a575be9bb36225d2e6aad5af492233d3dd6f3d3c7d9573",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-27T05:15:27.406Z",
+  "lastBootstrapTimestamp": "2026-04-27T08:57:41.137Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "e59410cc390e7859778d404fd7d0aa9377a3abf4db4c15f58343739b7ddb67d2",
-    "output/code-map/code-map.json": "a221fad01c623a0857db172bac9e18ce3209b3711acad7010a9d4371f40b9830",
-    "output/code-map/CODEMAP.md": "1ccecc2a716420b9196c12617cfde285ee08cb841b3141ee16cd462429c2b358",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "56864bfba30d9a253551fff8c5763a3f6d153e187405d4be3276b560a9ecf5c4",
+    "output/code-map/code-map.json": "07ff4cc512eb7726ab3b536b21c844e01852228a0a778b94690378c196692326",
+    "output/code-map/CODEMAP.md": "2f6d3839e2d302328a6ea53e64138d314db0f2514edadb0dd1373421cf67f2bd",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -94,8 +94,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "f3d625ad1e9814ced12e2c599274ce4516c4cb6bc39991c48827d8276c29670c",
-    "output/session-state.md": "f7239969e2523edac2037f789563a0748c1464d2398cc73093128c3724a25c77"
+    "output/round-notes.md": "0ec5c86cc7e1a28e95ec6f046817538880f60da7a4001b8b2d64182bff85304c",
+    "output/session-state.md": "350fd32c95b4e7b6bca991a3e1792f5e51fa491d5b17a40012516509fb9cc7d0"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -105,7 +105,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "2c7f9f0fc8a63d90edf61c85e1dae318b00361da7d8428f4efe65288231ebf2a",
+  "repoFactsHash": "b6c4cedf47e9047cb07669f241c4e5a18a00838f607db9f44c122def38e394a8",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -175,6 +175,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "2d2f5122dfbf63d84039472bfadc37069312f27ccbebf5f81da758997ac79018",
-  "workingTreeHash": "919b28c392ec25ea10048476eae5e36554b84896769fa9c6d1c1c65ba7e65a09"
+  "structuralHash": "af31bef31c60e8f0bee5f725039f0ef6a464d1b0e4b0369eafea2b8b30121f69",
+  "workingTreeHash": "903983366f6f2a54d884b61bf7e59c0c715da75ad9dd76459e16404f9eb36a39"
 }

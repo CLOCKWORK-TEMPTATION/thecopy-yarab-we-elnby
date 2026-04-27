@@ -126,7 +126,7 @@ export function extractValue(req: Request, location: string): string {
     case "path":
       return req.path + (req.originalUrl || "");
     case "cookies":
-      return JSON.stringify(req.cookies || {});
+      return JSON.stringify(req.cookies ?? {});
     default:
       return "";
   }

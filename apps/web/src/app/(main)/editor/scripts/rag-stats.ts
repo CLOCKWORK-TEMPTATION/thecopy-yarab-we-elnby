@@ -1,4 +1,3 @@
-import { logger } from "@/lib/logger";
 import { logger } from "../src/rag/config.js";
 import { getIndexStats } from "../src/rag/indexer.js";
 
@@ -20,4 +19,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error: unknown) => {
+  logger.error({ error }, "❌ Unexpected stats failure");
+  process.exit(1);
+});

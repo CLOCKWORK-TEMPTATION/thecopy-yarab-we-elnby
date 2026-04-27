@@ -1,8 +1,9 @@
+import { z } from 'zod';
+
 import { platformGenAIService } from '@/services/platform-genai.service';
 
 // عقد المدخلات والمخرجات الصارم لخدمة CineAI.
 // تم استبدال `Record<string, any>` بـ schemas محكمة عبر zod مع type-guards.
-import { z } from 'zod';
 
 interface ValidateShotInput {
   imageBase64?: string;

@@ -27,7 +27,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     super(
       "AuthorDNA AI",
       TaskType.STYLE_FINGERPRINT,
-      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt || ""
+      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.85;
@@ -53,7 +53,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     prompt += this.buildStyleTextSection(ctx.originalText);
     prompt += this.buildAuthorSamplesSection(ctx.authorSamples);
     prompt += `مستوى العمق: ${this.translateDepth(ctx.analysisDepth)}\n`;
-    prompt += `مجالات التركيز: ${ctx.focusAreas.map(this.translateFocusArea).join("، ")}\n\n`;
+    prompt += `مجالات التركيز: ${ctx.focusAreas.map((area) => this.translateFocusArea(area)).join("، ")}\n\n`;
     prompt += this.buildCompareSection(ctx.compareWithText);
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += this.getStyleInstructionsTemplate();
@@ -115,15 +115,15 @@ export class StyleFingerprintAgent extends BaseAgent {
     return text ? `نص للمقارنة:\n${text.substring(0, 1000)}...\n\n` : "";
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupStyleText(output.text);
 
-    const analyticalDepth = await this.assessAnalyticalDepth(processedText);
-    const specificity = await this.assessSpecificity(processedText);
-    const comprehensiveness = await this.assessComprehensiveness(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
+    const analyticalDepth = this.assessAnalyticalDepth(processedText);
+    const specificity = this.assessSpecificity(processedText);
+    const comprehensiveness = this.assessComprehensiveness(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
 
     const qualityScore =
       analyticalDepth * 0.3 +
@@ -133,7 +133,7 @@ export class StyleFingerprintAgent extends BaseAgent {
 
     const adjustedConfidence = output.confidence * 0.5 + qualityScore * 0.5;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -156,7 +156,7 @@ export class StyleFingerprintAgent extends BaseAgent {
         dimensionsAnalyzed: this.countDimensions(processedText),
         examplesProvided: this.countExamples(processedText),
       },
-    };
+    });
   }
 
   private cleanupStyleText(text: string): string {
@@ -173,7 +173,7 @@ export class StyleFingerprintAgent extends BaseAgent {
   }
 
 
-  private async assessAnalyticalDepth(text: string): Promise<number> {
+  private assessAnalyticalDepth(text: string): number {
     let score = 0.5;
 
     const analyticalTerms = [
@@ -218,23 +218,23 @@ export class StyleFingerprintAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessSpecificity(text: string): Promise<number> {
+  private assessSpecificity(text: string): number {
     let score = 0.6;
 
-    const hasQuotes = (text.match(/["«]/g) || []).length;
+    const hasQuotes = (text.match(/["«]/g) ?? []).length;
     score += Math.min(0.2, hasQuotes * 0.02);
 
     const hasExamples = text.includes("مثال") || text.includes("مثل");
     if (hasExamples) score += 0.1;
 
-    const hasNumbers = (text.match(/\d+%|\d+\.\d+|نسبة|معدل|متوسط/g) || [])
+    const hasNumbers = (text.match(/\d+%|\d+\.\d+|نسبة|معدل|متوسط/g) ?? [])
       .length;
     score += Math.min(0.1, hasNumbers * 0.02);
 
     return Math.min(1, score);
   }
 
-  private async assessComprehensiveness(text: string): Promise<number> {
+  private assessComprehensiveness(text: string): number {
     let score = 0.5;
 
     const dimensions = ["معجم", "نحو", "بلاغ", "أسلوب", "إيقاع", "نبرة"];
@@ -249,7 +249,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceWords = [
@@ -268,7 +268,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     }, 0);
     score += Math.min(0.25, evidenceCount * 0.05);
 
-    const hasDirectQuotes = (text.match(/["«][^"»]{10,}["»]/g) || []).length;
+    const hasDirectQuotes = (text.match(/["«][^"»]{10,}["»]/g) ?? []).length;
     if (hasDirectQuotes >= 3) score += 0.15;
 
     return Math.min(1, score);
@@ -327,7 +327,7 @@ export class StyleFingerprintAgent extends BaseAgent {
       detailed: "مفصل",
       comprehensive: "شامل ومعمق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   private translateFocusArea(area: string): string {
@@ -338,13 +338,13 @@ export class StyleFingerprintAgent extends BaseAgent {
       thematic: "موضوعي",
       stylistic: "أسلوبي",
     };
-    return areas[area] || area;
+    return areas[area] ?? area;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `التحليل المعجمي:
+    return Promise.resolve(`التحليل المعجمي:
 النص يظهر تنوعاً معجمياً يعكس مستوى لغوي متوسط إلى مرتفع.
 
 التحليل النحوي:
@@ -356,7 +356,7 @@ export class StyleFingerprintAgent extends BaseAgent {
 البصمة الأسلوبية:
 الأسلوب يتميز بـ[خصائص عامة تحتاج تفصيل أكثر].
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير نص أطول للحصول على تحليل أسلوبي أكثر دقة وشمولاً.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير نص أطول للحصول على تحليل أسلوبي أكثر دقة وشمولاً.`);
   }
 }
 

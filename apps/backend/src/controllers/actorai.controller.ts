@@ -41,7 +41,7 @@ function ensureAuthenticated(req: Request, res: Response): boolean {
 }
 
 function ensureAdminOrOperator(req: Request, res: Response): boolean {
-  const role = req.user?.accountStatus || '';
+  const role = req.user?.accountStatus ?? '';
   const normalizedRole = String(role).toLowerCase();
   if (normalizedRole === 'admin' || normalizedRole === 'operator') {
     return true;

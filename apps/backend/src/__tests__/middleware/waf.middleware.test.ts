@@ -12,7 +12,18 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { wafMiddleware, resetWAFConfig, updateWAFConfig, getWAFConfig } from '@/middleware/waf.middleware';
+
 import type { Request, Response, NextFunction } from 'express';
+
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Response & {
+  status: MockFn;
+  json: MockFn;
+  setHeader: MockFn;
+  end: MockFn;
+};
+type MockNext = NextFunction & MockFn;
 
 // Mock الوحدات التي تعتمد على zod (غير متاح في بعض بيئات الاختبار)
 vi.mock('@/config/env', () => ({
@@ -23,8 +34,6 @@ vi.mock('@/config/env', () => ({
     REDIS_ENABLED: false,
   },
 }));
-
-import { wafMiddleware, resetWAFConfig, updateWAFConfig, getWAFConfig } from '@/middleware/waf.middleware';
 
 // ─── مساعدات بناء كائنات الطلب والاستجابة الوهمية ───
 
@@ -39,34 +48,37 @@ function createMockReq(overrides: Partial<Request> = {}): Request {
       'user-agent': 'Mozilla/5.0 (Test Browser)',
     },
     get: vi.fn((header: string) => {
-      const headers = (overrides.headers || {}) as Record<string, string>;
-      return headers[header.toLowerCase()] || '';
+      const headers = (overrides.headers ?? {}) as Record<string, string>;
+      return headers[header.toLowerCase()] ?? '';
     }),
     ...overrides,
   } as unknown as Request;
 }
 
-function createMockRes(): Response {
+function createMockRes(): MockResponse {
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
     setHeader: vi.fn().mockReturnThis(),
     end: vi.fn().mockReturnThis(),
-  } as unknown as Response;
+  } as MockResponse;
   return res;
+}
+
+function hasNumericStatusCall(res: MockResponse): boolean {
+  return res.status.mock.calls.some((call) => typeof call[0] === 'number');
 }
 
 // ═══ اختبارات WAF Middleware ═══
 
-describe('wafMiddleware', () => {
-  let next: NextFunction;
+let next: MockNext;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    next = vi.fn();
-    // إعادة تعيين إعدادات WAF لكل اختبار
-    resetWAFConfig();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  next = vi.fn() as MockNext;
+  // إعادة تعيين إعدادات WAF لكل اختبار
+  resetWAFConfig();
+});
 
   // ─── الطلبات النظيفة ───
 
@@ -132,15 +144,12 @@ describe('wafMiddleware', () => {
 
         // WAF إما يحجب (status يُستدعى) أو يسجّل الحدث
         // نتحقق أنه لم يمرر الطلب بشكل طبيعي أو أنه سجّل التهديد
-        const blocked = (res.status as ReturnType<typeof vi.fn>).mock.calls.length > 0;
-        const passed = (next as ReturnType<typeof vi.fn>).mock.calls.length > 0;
+        const blocked = res.status.mock.calls.length > 0;
+        const passed = next.mock.calls.length > 0;
 
         // واحد من الاثنين يجب أن يحدث
         expect(blocked || passed).toBe(true);
-
-        if (blocked) {
-          expect(res.status).toHaveBeenCalledWith(expect.any(Number));
-        }
+        expect(!blocked || hasNumericStatusCall(res)).toBe(true);
       });
     }
   });
@@ -166,14 +175,11 @@ describe('wafMiddleware', () => {
 
         wafMiddleware(req, res, next);
 
-        const blocked = (res.status as ReturnType<typeof vi.fn>).mock.calls.length > 0;
-        const passed = (next as ReturnType<typeof vi.fn>).mock.calls.length > 0;
+        const blocked = res.status.mock.calls.length > 0;
+        const passed = next.mock.calls.length > 0;
 
         expect(blocked || passed).toBe(true);
-
-        if (blocked) {
-          expect(res.status).toHaveBeenCalledWith(expect.any(Number));
-        }
+        expect(!blocked || hasNumericStatusCall(res)).toBe(true);
       });
     }
   });
@@ -198,8 +204,8 @@ describe('wafMiddleware', () => {
 
         wafMiddleware(req, res, next);
 
-        const blocked = (res.status as ReturnType<typeof vi.fn>).mock.calls.length > 0;
-        const passed = (next as ReturnType<typeof vi.fn>).mock.calls.length > 0;
+        const blocked = res.status.mock.calls.length > 0;
+        const passed = next.mock.calls.length > 0;
 
         expect(blocked || passed).toBe(true);
       });
@@ -229,4 +235,3 @@ describe('wafMiddleware', () => {
       resetWAFConfig();
     });
   });
-});

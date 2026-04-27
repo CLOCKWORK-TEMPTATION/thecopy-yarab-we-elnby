@@ -157,11 +157,12 @@ export default function ShotsPage() {
     mutationFn: async (shotId: string) => {
       const res = await fetch(`/api/shots/${shotId}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`فشل حذف اللقطة: ${res.status}`);
-      return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shots"] });
-      queryClient.invalidateQueries({ queryKey: ["scenes"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["shots"] }),
+        queryClient.invalidateQueries({ queryKey: ["scenes"] }),
+      ]);
       setDeleteConfirmId(null);
     },
   });

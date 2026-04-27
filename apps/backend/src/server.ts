@@ -892,7 +892,7 @@ async function registerRuntimeRoutesForBootstrap(
 ): Promise<void> {
   try {
     await withBootstrapTimeout(
-      registerEditorRuntimeRoutes(app),
+      Promise.resolve(registerEditorRuntimeRoutes(app)),
       'Editor runtime route registration'
     );
     logger.info('Editor runtime routes mounted through apps/backend');

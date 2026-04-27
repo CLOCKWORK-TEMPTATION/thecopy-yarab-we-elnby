@@ -2,6 +2,7 @@
 // Routes all Gemini calls through Backend API for security and caching
 
 import { analyzeScript, getShotSuggestion, chatWithAI } from "@/lib/api";
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
 
 /**
  * Model identifier type
@@ -34,9 +35,10 @@ export function toText(response: unknown): string {
     "text" in response.response &&
     typeof response.response.text === "function"
   ) {
-    return response.response.text();
+    const text = (response.response.text as () => unknown)();
+    return typeof text === "string" ? text : stringifyUnknown(text);
   }
-  return JSON.stringify(response);
+  return stringifyUnknown(response);
 }
 
 /**

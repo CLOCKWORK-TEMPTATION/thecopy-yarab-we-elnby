@@ -85,12 +85,8 @@ class WebSocketService {
 
     this.io.use((socket: AuthenticatedSocket, next) => {
       try {
-        let token = null;
-
         // 1. Try checking handshake auth
-        if (socket.handshake.auth?.["token"]) {
-          token = socket.handshake.auth["token"];
-        }
+        let token = readStringField(socket.handshake.auth, 'token');
 
         // 2. Try checking cookies (manual parse to avoid extra dependency)
         if (!token && socket.handshake.headers.cookie) {
@@ -272,7 +268,7 @@ class WebSocketService {
 
     socket.on(
       'batch:status',
-      async (data: { batchId?: string; vendorId?: string; status?: 'pending' | 'in-progress' | 'completed' }) => {
+      (data: { batchId?: string; vendorId?: string; status?: 'pending' | 'in-progress' | 'completed' }) => {
         if (!data?.batchId || !data?.vendorId || !data.status) {
           return;
         }
@@ -319,7 +315,7 @@ class WebSocketService {
         this.setAuthExpiry(socket, verified.exp);
 
         const userRoom = createRoomName(WebSocketRoom.USER, verified.userId);
-        socket.join(userRoom);
+        void socket.join(userRoom);
 
         trackWebSocketAuth('ws:auth:event_success', {
           socketId: socket.id,
@@ -704,3 +700,12 @@ class WebSocketService {
 
 // Export singleton instance
 export const websocketService = new WebSocketService();
+
+function readStringField(source: unknown, key: string): string | null {
+  if (typeof source !== 'object' || source === null) {
+    return null;
+  }
+
+  const value = (source as Record<string, unknown>)[key];
+  return typeof value === 'string' ? value : null;
+}

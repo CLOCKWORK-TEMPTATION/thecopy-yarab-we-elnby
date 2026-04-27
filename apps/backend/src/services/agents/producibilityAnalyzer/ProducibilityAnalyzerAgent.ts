@@ -10,7 +10,7 @@ export class ProducibilityAnalyzerAgent extends BaseAgent {
     super(
       "ProducibilityAnalyzer AI",
       TaskType.PRODUCIBILITY_ANALYZER,
-      PRODUCIBILITY_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      PRODUCIBILITY_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
     this.confidenceFloor = 0.75;
   }

@@ -18,8 +18,8 @@ vi.mock("@/ai/gemini-service", () => ({
 // Mock gemini-core
 vi.mock("@/lib/ai/gemini-core", () => ({
   callGeminiText: vi.fn().mockResolvedValue("Mock Gemini text response"),
-  toText: vi.fn((text) => text),
-  safeSub: vi.fn((text) => text),
+  toText: vi.fn((text: string) => text),
+  safeSub: vi.fn((text: string) => text),
 }));
 
 describe("AudienceResonanceAgent", () => {

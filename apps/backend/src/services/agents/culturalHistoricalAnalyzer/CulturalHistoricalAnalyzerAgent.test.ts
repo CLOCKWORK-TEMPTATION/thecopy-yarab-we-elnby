@@ -8,8 +8,20 @@ const { mockExecuteStandardPattern } = vi.hoisted(() => ({
   mockExecuteStandardPattern: vi.fn(),
 }));
 
+const { mockGenerateText } = vi.hoisted(() => ({
+  mockGenerateText: vi.fn(() =>
+    Promise.resolve("استجابة احتياطية مختصرة لا تعتمد على اتصال خارجي.")
+  ),
+}));
+
 vi.mock("../shared/standardAgentPattern", () => ({
   executeStandardAgentPattern: mockExecuteStandardPattern,
+}));
+
+vi.mock("@/services/gemini.service", () => ({
+  geminiService: {
+    generateText: mockGenerateText,
+  },
 }));
 
 describe("CulturalHistoricalAnalyzerAgent", () => {

@@ -1,6 +1,23 @@
 import { readdir, unlink, writeFile } from "fs/promises";
 import { join } from "path";
 
+const formatUnknown = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  if (typeof error === "number" || typeof error === "boolean") {
+    return error.toString();
+  }
+  try {
+    return JSON.stringify(error) ?? "";
+  } catch {
+    return "";
+  }
+};
+
 // فئة مخصصة لتسجيل الأحداث بشكل احترافي لتجنب استخدام console.log الممنوع هندسياً
 class Logger {
   static info(message: string): void {
@@ -11,7 +28,7 @@ class Logger {
 
   static error(message: string, error?: unknown): void {
     process.stderr.write(
-      `[خطأ] ${new Date().toISOString()} - ${message} - ${error ? String(error) : ""}\n`
+      `[خطأ] ${new Date().toISOString()} - ${message} - ${error ? formatUnknown(error) : ""}\n`
     );
   }
 }
@@ -128,7 +145,10 @@ class WorkspaceCleaner {
 }
 
 // نقطة الإطلاق للتنفيذ الفوري
-(async () => {
+(async (): Promise<void> => {
   const cleaner = new WorkspaceCleaner();
   await cleaner.execute();
-})();
+})().catch((error: unknown) => {
+  Logger.error("فشل غير متوقع أثناء تشغيل سكريبت التنظيف", error);
+  process.exitCode = 1;
+});

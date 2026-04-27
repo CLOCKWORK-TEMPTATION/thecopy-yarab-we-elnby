@@ -355,7 +355,19 @@ export function serializeAnalysisValue<T>(value: T): T {
       return serializable;
     }
 
-    return String(current);
+    if (typeof current === "string") {
+      return current;
+    }
+    if (typeof current === "number" || typeof current === "boolean") {
+      return current.toString();
+    }
+    if (typeof current === "bigint") {
+      return current.toString();
+    }
+    if (typeof current === "symbol") {
+      return current.description ?? "";
+    }
+    return "";
   }
 
   return inner(value) as T;

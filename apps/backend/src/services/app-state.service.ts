@@ -12,7 +12,7 @@ const writeQueues = new Map<string, Promise<void>>();
 
 function resolveStoreRoot(): string {
   return (
-    process.env['APP_STATE_STORE_DIR'] ||
+    process.env['APP_STATE_STORE_DIR'] ??
     path.join(process.cwd(), ".data", "app-state")
   );
 }

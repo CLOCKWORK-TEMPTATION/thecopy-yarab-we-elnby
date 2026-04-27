@@ -84,9 +84,7 @@ vi.mock('@/utils/logger', () => ({
 import { trackGeminiCache, trackGeminiRequest } from '@/middleware/metrics.middleware';
 
 import { cachedGeminiCall } from './gemini-cache.strategy';
-import { geminiCostTracker } from './gemini-cost-tracker.service';
 import { GeminiService } from './gemini.service';
-import { llmGuardrails } from './llm-guardrails.service';
 
 
 const allowedGuardrailResult = {
@@ -103,8 +101,8 @@ describe('GeminiService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(llmGuardrails.checkInput).mockReturnValue(allowedGuardrailResult);
-    vi.mocked(llmGuardrails.checkOutput).mockReturnValue(allowedGuardrailResult);
+    mockCheckInput.mockReturnValue(allowedGuardrailResult);
+    mockCheckOutput.mockReturnValue(allowedGuardrailResult);
 
     vi.mocked(cachedGeminiCall).mockImplementation(
       async (_key, _ttl, producer) => producer()
@@ -133,7 +131,7 @@ describe('GeminiService', () => {
     expect(result).toBe('نتيجة افتراضية');
     expect(trackGeminiRequest).toHaveBeenCalledWith('character', expect.any(Number), true);
     expect(trackGeminiCache).toHaveBeenCalledWith(true);
-    expect(llmGuardrails.checkInput).toHaveBeenCalledWith(
+    expect(mockCheckInput).toHaveBeenCalledWith(
       expect.stringContaining('حلل الشخصيات'),
       expect.objectContaining({ requestType: 'analyze-characters' })
     );
@@ -158,7 +156,7 @@ describe('GeminiService', () => {
   });
 
   it('يعيد رسالة الرفض الأمنية كما هي عند حظر الإدخال', async () => {
-    vi.mocked(llmGuardrails.checkInput).mockReturnValue({
+    mockCheckInput.mockReturnValue({
       isAllowed: false,
       violations: ['محتوى محظور'],
       riskLevel: 'high',
@@ -183,7 +181,7 @@ describe('GeminiService', () => {
   });
 
   it('يعيد المخرجات المنقحة عند توفرها من الحواجز', async () => {
-    vi.mocked(llmGuardrails.checkOutput).mockReturnValue({
+    mockCheckOutput.mockReturnValue({
       isAllowed: true,
       violations: [],
       riskLevel: 'low',
@@ -199,7 +197,7 @@ describe('GeminiService', () => {
   it('يتتبع استهلاك التوكنات عند توفر بيانات الاستخدام', async () => {
     await geminiService.analyzeText('نص', 'characters');
 
-    expect(geminiCostTracker.trackUsage).toHaveBeenCalledWith(10, 20, 'character');
+    expect(mockTrackUsage).toHaveBeenCalledWith(10, 20, 'character');
   });
 
   it('يبني موجه مراجعة السيناريو الصحيح', async () => {

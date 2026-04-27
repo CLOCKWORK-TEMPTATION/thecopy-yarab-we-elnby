@@ -38,20 +38,28 @@ export const SparklesCore = (props: ParticlesProps) => {
   useEffect(() => {
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
-    }).then(() => {
-      setInit(true);
-    });
+    })
+      .then(() => {
+        setInit(true);
+      })
+      .catch(() => {
+        setInit(false);
+      });
   }, []);
   const controls = useAnimation();
 
-  const particlesLoaded = (container?: Container) => {
+  const particlesLoaded = async (container?: Container): Promise<void> => {
     if (container) {
-      controls.start({
-        opacity: 1,
-        transition: {
-          duration: 1,
-        },
-      });
+      try {
+        await controls.start({
+          opacity: 1,
+          transition: {
+            duration: 1,
+          },
+        });
+      } catch {
+        // التحريك تجميلي ولا يجب أن يعطل عرض الجسيمات.
+      }
     }
   };
 

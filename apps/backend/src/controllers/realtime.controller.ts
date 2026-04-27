@@ -17,7 +17,7 @@ export class RealtimeController {
    * Initialize SSE connection
    * GET /api/realtime/events
    */
-  async connectSSE(req: Request, res: Response): Promise<void> {
+  connectSSE(req: Request, res: Response): void {
     const clientId = uuidv4();
     const userId = (req.user as Record<string, unknown>)?.userId as string | undefined;
     const lastEventId = req.headers['last-event-id'] as string | undefined;
@@ -32,7 +32,7 @@ export class RealtimeController {
    * Get real-time service statistics
    * GET /api/realtime/stats
    */
-  async getStats(req: Request, res: Response): Promise<void> {
+  getStats(req: Request, res: Response): void {
     try {
       const wsStats = websocketService.getStats();
       const sseStats = sseService.getStats();
@@ -58,7 +58,7 @@ export class RealtimeController {
    * Health check for real-time services
    * GET /api/realtime/health
    */
-  async healthCheck(req: Request, res: Response): Promise<void> {
+  healthCheck(req: Request, res: Response): void {
     const wsIO = websocketService.getIO();
     const sseStats = sseService.getStats();
 
@@ -117,7 +117,7 @@ export class RealtimeController {
     }
   }
 
-  async sendTestEvent(req: Request, res: Response): Promise<void> {
+  sendTestEvent(req: Request, res: Response): void {
     try {
       const testEvent = this.buildTestEvent(req.body as Record<string, unknown>);
       this.broadcastTestEvent(testEvent, (req.body as Record<string, unknown>).target as string | undefined);
@@ -140,7 +140,7 @@ export class RealtimeController {
    * Stream analysis logs via SSE
    * GET /api/realtime/analysis/:analysisId/stream
    */
-  async streamAnalysisLogs(req: Request, res: Response): Promise<void> {
+  streamAnalysisLogs(req: Request, res: Response): void {
     const analysisId = typeof req.params.analysisId === 'string' ? req.params.analysisId : '';
     const clientId = uuidv4();
     const userId = (req.user as { userId?: string })?.userId;
@@ -171,7 +171,7 @@ export class RealtimeController {
    * Stream job progress via SSE
    * GET /api/realtime/jobs/:jobId/stream
    */
-  async streamJobProgress(req: Request, res: Response): Promise<void> {
+  streamJobProgress(req: Request, res: Response): void {
     const jobId = typeof req.params["jobId"] === 'string' ? req.params["jobId"] : '';
     const clientId = uuidv4();
     const userId = (req.user as { userId?: string })?.userId;

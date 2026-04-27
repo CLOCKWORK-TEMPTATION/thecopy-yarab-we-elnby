@@ -28,14 +28,17 @@ export class QueueController {
     if (!job) return null;
 
     const state = await job.getState();
+    const result: unknown = state === 'completed' ? job.returnvalue : null;
+    const data: unknown = job.data;
+
     return {
       id: job.id,
       name: job.name,
       state,
       progress: job.progress,
-      result: state === 'completed' ? job.returnvalue : null,
+      result,
       error: state === 'failed' ? job.failedReason : null,
-      data: job.data,
+      data,
       timestamp: job.timestamp,
       processedOn: job.processedOn,
       finishedOn: job.finishedOn,

@@ -32,18 +32,32 @@ export function buildSceneBreakdownSection(sceneBreakdown: unknown[]): string {
 /**
  * Build tension information section
  */
-export function buildTensionInfoSection(
-  currentLevel: string,
-  targetLevel: string,
-  tensionType: string,
-  pacePreference: string,
-  identifyPeaks: boolean,
-  analyzeRelease: boolean,
-  provideRecommendations: boolean,
-  translateLevel: (level: string) => string,
-  translateTensionType: (type: string) => string,
-  translatePace: (pace: string) => string
-): string {
+export interface TensionInfoSectionInput {
+  currentLevel: string;
+  targetLevel: string;
+  tensionType: string;
+  pacePreference: string;
+  identifyPeaks: boolean;
+  analyzeRelease: boolean;
+  provideRecommendations: boolean;
+  translateLevel: (level: string) => string;
+  translateTensionType: (type: string) => string;
+  translatePace: (pace: string) => string;
+}
+
+export function buildTensionInfoSection(input: TensionInfoSectionInput): string {
+  const {
+    currentLevel,
+    targetLevel,
+    tensionType,
+    pacePreference,
+    identifyPeaks,
+    analyzeRelease,
+    provideRecommendations,
+    translateLevel,
+    translateTensionType,
+    translatePace,
+  } = input;
   let section = `معلومات التوتر:\n`;
   section += `- المستوى الحالي: ${translateLevel(currentLevel)}\n`;
   section += `- المستوى المستهدف: ${translateLevel(targetLevel)}\n`;

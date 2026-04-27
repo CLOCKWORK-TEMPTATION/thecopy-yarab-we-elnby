@@ -201,7 +201,10 @@ const isMainModule = (): boolean => {
 
 // Run if called directly
 if (isMainModule()) {
-  main();
+  main().catch((error: unknown) => {
+    writeError(`\n❌ Unexpected conversion failure: ${toErrorMessage(error)}`);
+    process.exit(1);
+  });
 }
 
 export { convertDocxToDoc };

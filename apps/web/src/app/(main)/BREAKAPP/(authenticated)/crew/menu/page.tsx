@@ -79,8 +79,13 @@ export default function CrewMenuPage() {
   }, []);
 
   useEffect(() => {
-    fetchVendors();
-    fetchMyOrders();
+    Promise.all([fetchVendors(), fetchMyOrders()]).catch(() => {
+      toast({
+        title: "خطأ في التحديث",
+        description: "تعذّر تحميل بيانات القائمة والطلبات",
+        variant: "destructive",
+      });
+    });
   }, [fetchVendors, fetchMyOrders]);
 
   /**
@@ -208,7 +213,7 @@ export default function CrewMenuPage() {
         description: "تم تقديم الطلب بنجاح!",
       });
       setCart([]);
-      fetchMyOrders();
+      await fetchMyOrders();
     } catch (error: unknown) {
       const axiosError = error as { message?: string };
       toast({

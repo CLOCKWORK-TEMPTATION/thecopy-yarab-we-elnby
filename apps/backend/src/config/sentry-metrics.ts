@@ -1,6 +1,10 @@
+import { createRequire } from 'node:module';
+
 import { logger } from '@/lib/logger';
 
 import { APM_CONFIG } from './sentry';
+
+const loadRuntimeModule = createRequire(__filename);
 
 function isSentryEnabled(): boolean {
   return Boolean(process.env.SENTRY_DSN?.trim());
@@ -8,7 +12,7 @@ function isSentryEnabled(): boolean {
 
 function getSentryMetrics() {
   if (!isSentryEnabled()) return null;
-  const Sentry = require('@sentry/node') as typeof import('@sentry/node');
+  const Sentry = loadRuntimeModule('@sentry/node') as typeof import('@sentry/node');
   return Sentry.metrics;
 }
 
@@ -42,7 +46,7 @@ function percentile(arr: number[], p: number): number {
   if (arr.length === 0) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
   const index = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, index)] || 0;
+  return sorted[Math.max(0, index)] ?? 0;
 }
 
 export function recordRequest(duration: number, isError = false) {
@@ -69,14 +73,12 @@ export function recordOperation(
   duration: number,
   isError = false
 ) {
-  if (!metrics.operations[operation]) {
-    metrics.operations[operation] = {
+  metrics.operations[operation] ??= {
       count: 0,
       errors: 0,
       totalDuration: 0,
       latencies: [],
     };
-  }
 
   const op = metrics.operations[operation];
   op.count++;

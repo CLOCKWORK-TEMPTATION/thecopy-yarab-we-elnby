@@ -12,7 +12,6 @@
  */
 
 import {
-  getCurrentUser,
   removeToken,
   type CurrentUser,
 } from "@the-copy/breakapp";

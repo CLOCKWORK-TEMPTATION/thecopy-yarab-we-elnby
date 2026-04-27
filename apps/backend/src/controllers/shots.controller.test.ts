@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { db } from '@/db';
+
+import { shotsController } from './shots.controller';
+
 import type { Request, Response } from 'express';
 
 const {
@@ -34,7 +38,7 @@ vi.mock('@/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((column, value) => ({ column, value })),
+  eq: vi.fn((column: unknown, value: unknown) => ({ column, value })),
 }));
 
 vi.mock('@/middleware/auth.middleware', () => ({
@@ -44,7 +48,7 @@ vi.mock('@/middleware/auth.middleware', () => ({
 }));
 
 vi.mock('./shots.helpers', () => ({
-  requireAuth: vi.fn((req, res) => {
+  requireAuth: vi.fn((req: { user?: unknown }, res: HelperResponse) => {
     if (!req.user) {
       res.status(401).json({
         success: false,
@@ -54,7 +58,7 @@ vi.mock('./shots.helpers', () => ({
     }
     return true;
   }),
-  requireParam: vi.fn((res, value, errorMsg) => {
+  requireParam: vi.fn((res: HelperResponse, value: unknown, errorMsg: string) => {
     if (!value) {
       res.status(400).json({
         success: false,
@@ -81,19 +85,43 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-import { db } from '@/db';
+type MockFn = ReturnType<typeof vi.fn>;
+interface HelperResponse {
+  status(code: number): { json(body: unknown): unknown };
+  json(body: unknown): unknown;
+}
+interface MockResponseLike {
+  status: MockFn;
+  json: MockFn;
+}
+interface MockDb {
+  select: MockFn;
+  insert: MockFn;
+  update: MockFn;
+  delete: MockFn;
+}
+type MockRequest = Partial<Request> & { user?: { id: string } };
 
-import { shotsController } from './shots.controller';
+let mockRequest: MockRequest;
+let mockResponse: MockResponseLike;
+let mockDb: MockDb;
 
-describe('ShotsController', () => {
-  let mockRequest: Partial<Request> & { user?: { id: string } };
-  let mockResponse: Partial<Response>;
-  let mockDb: typeof db;
+function asRequest(): Request {
+  return mockRequest as unknown as Request;
+}
+
+function asResponse(): Response {
+  return mockResponse as unknown as Response;
+}
+
+function anyArrayMatcher(): unknown {
+  return expect.any(Array);
+}
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockDb = db;
+    mockDb = db as unknown as MockDb;
     mockRequest = {
       params: {},
       body: {},
@@ -125,11 +153,11 @@ describe('ShotsController', () => {
       const orderBy = vi.fn().mockResolvedValue(mockShots);
       const where = vi.fn().mockReturnValue({ orderBy });
       const from = vi.fn().mockReturnValue({ where });
-      vi.mocked(mockDb.select).mockReturnValueOnce({ from } as never);
+      mockDb.select.mockReturnValueOnce({ from });
 
       mockRequest.params = { sceneId: 'scene-1' };
 
-      await shotsController.getShots(mockRequest as never, mockResponse as Response);
+      await shotsController.getShots(asRequest(), asResponse());
 
       expect(mockVerifySceneOwnership).toHaveBeenCalledWith('scene-1', 'user-123');
       expect(orderBy).toHaveBeenCalledTimes(1);
@@ -143,7 +171,7 @@ describe('ShotsController', () => {
       mockRequest.user = undefined;
       mockRequest.params = { sceneId: 'scene-1' };
 
-      await shotsController.getShots(mockRequest as never, mockResponse as Response);
+      await shotsController.getShots(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(401);
     });
@@ -152,7 +180,7 @@ describe('ShotsController', () => {
       mockVerifySceneOwnership.mockResolvedValueOnce(null);
       mockRequest.params = { sceneId: 'scene-404' };
 
-      await shotsController.getShots(mockRequest as never, mockResponse as Response);
+      await shotsController.getShots(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -168,11 +196,11 @@ describe('ShotsController', () => {
       const limit = vi.fn().mockResolvedValue([mockShot]);
       const where = vi.fn().mockReturnValue({ limit });
       const from = vi.fn().mockReturnValue({ where });
-      vi.mocked(mockDb.select).mockReturnValueOnce({ from } as never);
+      mockDb.select.mockReturnValueOnce({ from });
 
       mockRequest.params = { id: 'shot-1' };
 
-      await shotsController.getShot(mockRequest as never, mockResponse as Response);
+      await shotsController.getShot(asRequest(), asResponse());
 
       expect(mockVerifyShotOwnership).toHaveBeenCalledWith('shot-1', 'user-123');
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -185,7 +213,7 @@ describe('ShotsController', () => {
       mockVerifyShotOwnership.mockResolvedValueOnce(null);
       mockRequest.params = { id: 'shot-404' };
 
-      await shotsController.getShot(mockRequest as never, mockResponse as Response);
+      await shotsController.getShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -211,11 +239,11 @@ describe('ShotsController', () => {
       const updateWhere = vi.fn().mockResolvedValue(undefined);
       const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
 
-      vi.mocked(mockDb.insert).mockReturnValueOnce({ values: insertValues } as never);
-      vi.mocked(mockDb.update).mockReturnValueOnce({ set: updateSet } as never);
+      mockDb.insert.mockReturnValueOnce({ values: insertValues });
+      mockDb.update.mockReturnValueOnce({ set: updateSet });
       mockRequest.body = shotData;
 
-      await shotsController.createShot(mockRequest as never, mockResponse as Response);
+      await shotsController.createShot(asRequest(), asResponse());
 
       expect(mockVerifySceneOwnership).toHaveBeenCalledWith('scene-1', 'user-123');
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -232,13 +260,13 @@ describe('ShotsController', () => {
         shotNumber: 0,
       };
 
-      await shotsController.createShot(mockRequest as never, mockResponse as Response);
+      await shotsController.createShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
 
@@ -254,10 +282,10 @@ describe('ShotsController', () => {
       const insertReturning = vi.fn().mockResolvedValue([]);
       const insertValues = vi.fn().mockReturnValue({ returning: insertReturning });
 
-      vi.mocked(mockDb.insert).mockReturnValueOnce({ values: insertValues } as never);
+      mockDb.insert.mockReturnValueOnce({ values: insertValues });
       mockRequest.body = shotData;
 
-      await shotsController.createShot(mockRequest as never, mockResponse as Response);
+      await shotsController.createShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -282,14 +310,14 @@ describe('ShotsController', () => {
       const updateWhere = vi.fn().mockReturnValue({ returning: updateReturning });
       const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
 
-      vi.mocked(mockDb.update).mockReturnValueOnce({ set: updateSet } as never);
+      mockDb.update.mockReturnValueOnce({ set: updateSet });
       mockRequest.params = { id: 'shot-1' };
       mockRequest.body = {
         shotType: 'close-up',
         cameraAngle: 'eye-level',
       };
 
-      await shotsController.updateShot(mockRequest as never, mockResponse as Response);
+      await shotsController.updateShot(asRequest(), asResponse());
 
       expect(mockVerifyShotOwnership).toHaveBeenCalledWith('shot-1', 'user-123');
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -305,13 +333,13 @@ describe('ShotsController', () => {
         shotType: '',
       };
 
-      await shotsController.updateShot(mockRequest as never, mockResponse as Response);
+      await shotsController.updateShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
 
@@ -320,7 +348,7 @@ describe('ShotsController', () => {
       mockRequest.params = { id: 'shot-404' };
       mockRequest.body = { shotType: 'medium' };
 
-      await shotsController.updateShot(mockRequest as never, mockResponse as Response);
+      await shotsController.updateShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -336,11 +364,11 @@ describe('ShotsController', () => {
       const updateWhere = vi.fn().mockResolvedValue(undefined);
       const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
 
-      vi.mocked(mockDb.delete).mockReturnValueOnce({ where: deleteWhere } as never);
-      vi.mocked(mockDb.update).mockReturnValueOnce({ set: updateSet } as never);
+      mockDb.delete.mockReturnValueOnce({ where: deleteWhere });
+      mockDb.update.mockReturnValueOnce({ set: updateSet });
       mockRequest.params = { id: 'shot-1' };
 
-      await shotsController.deleteShot(mockRequest as never, mockResponse as Response);
+      await shotsController.deleteShot(asRequest(), asResponse());
 
       expect(mockVerifyShotOwnership).toHaveBeenCalledWith('shot-1', 'user-123');
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -353,7 +381,7 @@ describe('ShotsController', () => {
       mockVerifyShotOwnership.mockResolvedValueOnce(null);
       mockRequest.params = { id: 'shot-404' };
 
-      await shotsController.deleteShot(mockRequest as never, mockResponse as Response);
+      await shotsController.deleteShot(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -371,8 +399,8 @@ describe('ShotsController', () => {
       };
 
       await shotsController.generateShotSuggestion(
-        mockRequest as never,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockGetShotSuggestion).toHaveBeenCalledWith(
@@ -396,8 +424,8 @@ describe('ShotsController', () => {
       };
 
       await shotsController.generateShotSuggestion(
-        mockRequest as never,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -407,4 +435,3 @@ describe('ShotsController', () => {
       });
     });
   });
-});

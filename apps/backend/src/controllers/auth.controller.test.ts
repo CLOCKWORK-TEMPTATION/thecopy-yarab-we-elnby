@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 
 import { AuthController } from './auth.controller';
 
@@ -9,6 +9,18 @@ interface UserPayload {
   email: string;
   firstName?: string;
   lastName?: string;
+}
+
+interface AuthResult {
+  accessToken: string;
+  refreshToken: string;
+  user: UserPayload;
+}
+
+interface AuthServiceMock {
+  signup: Mock<(email: string, password: string, firstName?: string, lastName?: string) => Promise<AuthResult>>;
+  login: Mock<(email: string, password: string) => Promise<AuthResult>>;
+  revokeRefreshToken: Mock<(refreshToken: string) => Promise<void>>;
 }
 
 // Test Constants
@@ -33,34 +45,52 @@ vi.mock('../utils/logger', () => ({
   },
 }));
 
-describe('AuthController', () => {
-  let authController: AuthController;
-  // تعريف mockRequest مع دعم خاصية user
-  // Define mockRequest with support for user property
-  let mockRequest: Partial<Request> & { user?: UserPayload };
-  let mockResponse: Partial<Response>;
-  let authService: any;
+type MockFn = ReturnType<typeof vi.fn>;
+type MockRequest = Partial<Request> & { user?: UserPayload };
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+  cookie: MockFn;
+  clearCookie: MockFn;
+};
 
-  beforeEach(async () => {
-    authController = new AuthController();
+let authController: AuthController;
+let mockRequest: MockRequest;
+let mockResponse: MockResponse;
+let authService: AuthServiceMock;
 
-    mockRequest = {
-      body: {},
-      cookies: {},
-    };
+function asRequest(): Request {
+  return mockRequest as unknown as Request;
+}
 
-    mockResponse = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
-      cookie: vi.fn().mockReturnThis(),
-      clearCookie: vi.fn().mockReturnThis(),
-    };
+function asResponse(): Response {
+  return mockResponse as unknown as Response;
+}
 
-    const authServiceModule = await import('../services/auth.service');
-    authService = authServiceModule.authService;
+function anyArrayMatcher(): unknown {
+  return expect.any(Array);
+}
 
-    vi.clearAllMocks();
-  });
+beforeEach(async () => {
+  authController = new AuthController();
+
+  mockRequest = {
+    body: {},
+    cookies: {},
+  };
+
+  mockResponse = {
+    status: vi.fn().mockReturnThis(),
+    json: vi.fn().mockReturnThis(),
+    cookie: vi.fn().mockReturnThis(),
+    clearCookie: vi.fn().mockReturnThis(),
+  };
+
+  const authServiceModule = await import('../services/auth.service');
+  authService = authServiceModule.authService as unknown as AuthServiceMock;
+
+  vi.clearAllMocks();
+});
 
   describe('signup', () => {
     it('should successfully create a new user', async () => {
@@ -89,7 +119,7 @@ describe('AuthController', () => {
         user: mockUser,
       });
 
-      await authController.signup(mockRequest as Request, mockResponse as Response);
+      await authController.signup(asRequest(), asResponse());
 
       expect(authService.signup).toHaveBeenCalledWith(
         signupData.email,
@@ -123,13 +153,13 @@ describe('AuthController', () => {
         password: INVALID_PASSWORD_TOO_SHORT,
       };
 
-      await authController.signup(mockRequest as Request, mockResponse as Response);
+      await authController.signup(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
 
@@ -143,7 +173,7 @@ describe('AuthController', () => {
         new Error('المستخدم موجود بالفعل')
       );
 
-      await authController.signup(mockRequest as Request, mockResponse as Response);
+      await authController.signup(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -174,7 +204,7 @@ describe('AuthController', () => {
         user: mockUser,
       });
 
-      await authController.signup(mockRequest as Request, mockResponse as Response);
+      await authController.signup(asRequest(), asResponse());
 
       expect(authService.signup).toHaveBeenCalledWith(
         signupData.email,
@@ -208,7 +238,7 @@ describe('AuthController', () => {
         user: mockUser,
       });
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      await authController.login(asRequest(), asResponse());
 
       expect(authService.login).toHaveBeenCalledWith(
         loginData.email,
@@ -239,13 +269,13 @@ describe('AuthController', () => {
         password: INVALID_PASSWORD_EMPTY,
       };
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      await authController.login(asRequest(), asResponse());
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
 
@@ -259,7 +289,7 @@ describe('AuthController', () => {
         new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
       );
 
-      await authController.login(mockRequest as Request, mockResponse as Response);
+      await authController.login(asRequest(), asResponse());
 
       // Login errors return 401 instead of 400
       expect(mockResponse.status).toHaveBeenCalledWith(401);
@@ -274,7 +304,7 @@ describe('AuthController', () => {
     it('should successfully logout user', async () => {
       mockRequest.cookies = { refreshToken: 'refresh-token' };
 
-      await authController.logout(mockRequest as Request, mockResponse as Response);
+      await authController.logout(asRequest(), asResponse());
 
       expect(authService.revokeRefreshToken).toHaveBeenCalledWith('refresh-token');
       expect(mockResponse.clearCookie).toHaveBeenCalledWith('refreshToken');
@@ -287,7 +317,7 @@ describe('AuthController', () => {
   });
 
   describe('getCurrentUser', () => {
-    it('should return current user', async () => {
+    it('should return current user', () => {
       const mockUser = {
         id: 'user-123',
         email: 'test@example.com',
@@ -297,9 +327,9 @@ describe('AuthController', () => {
 
       mockRequest.user = mockUser;
 
-      await authController.getCurrentUser(
-        mockRequest as any,
-        mockResponse as Response
+      authController.getCurrentUser(
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -308,12 +338,12 @@ describe('AuthController', () => {
       });
     });
 
-    it('should return 401 if user not authenticated', async () => {
+    it('should return 401 if user not authenticated', () => {
       mockRequest.user = undefined;
 
-      await authController.getCurrentUser(
-        mockRequest as any,
-        mockResponse as Response
+      authController.getCurrentUser(
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(401);
@@ -323,4 +353,3 @@ describe('AuthController', () => {
       });
     });
   });
-});

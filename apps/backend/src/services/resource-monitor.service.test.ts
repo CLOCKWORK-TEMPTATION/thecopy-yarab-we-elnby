@@ -1,6 +1,10 @@
-import os from 'os';
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+const { mockTotalmem, mockFreemem, mockGetMetricsAsJSON } = vi.hoisted(() => ({
+  mockTotalmem: vi.fn().mockReturnValue(16 * 1024 * 1024 * 1024),
+  mockFreemem: vi.fn().mockReturnValue(8 * 1024 * 1024 * 1024),
+  mockGetMetricsAsJSON: vi.fn().mockResolvedValue([]),
+}));
 
 // Mock prom-client with proper class constructors
 vi.mock('prom-client', () => {
@@ -26,7 +30,7 @@ vi.mock('prom-client', () => {
 // Mock metrics middleware
 vi.mock('@/middleware/metrics.middleware', () => ({
   register: {
-    getMetricsAsJSON: vi.fn().mockResolvedValue([]),
+    getMetricsAsJSON: mockGetMetricsAsJSON,
   },
 }));
 
@@ -43,18 +47,16 @@ vi.mock('@/lib/logger', () => ({
 // Mock os module
 vi.mock('os', () => ({
   default: {
-    totalmem: vi.fn().mockReturnValue(16 * 1024 * 1024 * 1024), // 16GB
-    freemem: vi.fn().mockReturnValue(8 * 1024 * 1024 * 1024), // 8GB free
+    totalmem: mockTotalmem,
+    freemem: mockFreemem,
   },
 }));
 
 import { logger } from '@/lib/logger';
-import { register } from '@/middleware/metrics.middleware';
 
 import { ResourceMonitorService, resourceMonitor } from './resource-monitor.service';
 
-describe('ResourceMonitorService', () => {
-  let service: ResourceMonitorService;
+let service: ResourceMonitorService;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -208,7 +210,7 @@ describe('ResourceMonitorService', () => {
 
   describe('getResourceStatus', () => {
     it('should return current resource status', async () => {
-      vi.mocked(register.getMetricsAsJSON).mockResolvedValue([
+      mockGetMetricsAsJSON.mockResolvedValue([
         {
           name: 'the_copy_backpressure_events_total',
           values: [{ value: 5 }],
@@ -237,8 +239,8 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should return ok status for normal memory usage', async () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(12 * 1024 * 1024 * 1024); // 25% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(12 * 1024 * 1024 * 1024); // 25% used
 
       const status = await service.getResourceStatus();
 
@@ -246,8 +248,8 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should return warning status for high memory usage', async () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
 
       const status = await service.getResourceStatus();
 
@@ -255,8 +257,8 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should return critical status for critical memory usage', async () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(0.5 * 1024 * 1024 * 1024); // 96.9% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(0.5 * 1024 * 1024 * 1024); // 96.9% used
 
       const status = await service.getResourceStatus();
 
@@ -264,7 +266,7 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should handle empty metrics', async () => {
-      vi.mocked(register.getMetricsAsJSON).mockResolvedValue([]);
+      mockGetMetricsAsJSON.mockResolvedValue([]);
 
       const status = await service.getResourceStatus();
 
@@ -275,8 +277,8 @@ describe('ResourceMonitorService', () => {
 
   describe('isUnderPressure', () => {
     it('should return false when resources are ok', () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(12 * 1024 * 1024 * 1024); // 25% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(12 * 1024 * 1024 * 1024); // 25% used
 
       const result = service.isUnderPressure();
 
@@ -284,8 +286,8 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should return true when memory is high', () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
 
       const result = service.isUnderPressure();
 
@@ -328,13 +330,14 @@ describe('ResourceMonitorService', () => {
 
       // The event loop lag detection depends on actual timing behavior
       // In real scenarios, this would trigger warnings/errors
+      expect(logger.info).toHaveBeenCalled();
     });
   });
 
   describe('threshold breaches', () => {
     it('should detect high memory usage', () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(2 * 1024 * 1024 * 1024); // 87.5% used
 
       service.startMonitoring(1000);
 
@@ -346,8 +349,8 @@ describe('ResourceMonitorService', () => {
     });
 
     it('should detect critical memory usage', () => {
-      vi.mocked(os.totalmem).mockReturnValue(16 * 1024 * 1024 * 1024);
-      vi.mocked(os.freemem).mockReturnValue(0.5 * 1024 * 1024 * 1024); // 96.9% used
+      mockTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+      mockFreemem.mockReturnValue(0.5 * 1024 * 1024 * 1024); // 96.9% used
 
       service.startMonitoring(1000);
 
@@ -364,4 +367,3 @@ describe('ResourceMonitorService', () => {
       expect(resourceMonitor).toBeInstanceOf(ResourceMonitorService);
     });
   });
-});

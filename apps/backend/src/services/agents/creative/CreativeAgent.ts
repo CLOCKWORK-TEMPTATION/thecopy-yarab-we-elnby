@@ -20,7 +20,7 @@ export class CreativeAgent extends BaseAgent {
     super(
       "CreativeVision AI",
       TaskType.CREATIVE,
-      CREATIVE_AGENT_CONFIG.systemPrompt || ""
+      CREATIVE_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -126,15 +126,15 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Post-process the creative output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean and structure the output
     const processedText = this.cleanupCreativeText(output.text);
 
     // Assess creative quality
-    const creativityScore = await this.assessCreativity(processedText);
-    const practicalityScore = await this.assessPracticality(processedText);
+    const creativityScore = this.assessCreativity(processedText);
+    const practicalityScore = this.assessPracticality(processedText);
 
     // Balance confidence between creativity and practicality
     const adjustedConfidence =
@@ -149,7 +149,7 @@ export class CreativeAgent extends BaseAgent {
       practicalityScore
     );
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -162,7 +162,7 @@ export class CreativeAgent extends BaseAgent {
         implementationDifficulty:
           this.calculateImplementationDifficulty(practicalityScore),
       },
-    };
+    });
   }
 
   /**
@@ -252,7 +252,7 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Assess creativity score
    */
-  private async assessCreativity(text: string): Promise<number> {
+  private assessCreativity(text: string): number {
     let score = 0.5; // Base score
 
     // Check for innovative keywords
@@ -295,7 +295,7 @@ export class CreativeAgent extends BaseAgent {
   /**
    * Assess practicality score
    */
-  private async assessPracticality(text: string): Promise<number> {
+  private assessPracticality(text: string): number {
     let score = 0.6; // Base score for practicality
 
     // Check for actionable language
@@ -394,20 +394,20 @@ export class CreativeAgent extends BaseAgent {
       style: "تطوير الأسلوب",
       structure: "تطوير البنية",
     };
-    return focuses[focus] || focus;
+    return focuses[focus] ?? focus;
   }
 
   /**
    * Generate fallback response for creative tasks
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
     const focus =
-      (typeof input.context === "object" && input.context["developmentFocus"]) ||
+      (typeof input.context === "object" && input.context["developmentFocus"]) ??
       "general";
 
-    return `تحليل إبداعي:
+    return Promise.resolve(`تحليل إبداعي:
 لتطوير ${this.translateFocus(focus as string)} في النص المقدم، يمكن التركيز على تعزيز العناصر الأساسية وإضافة عمق أكبر.
 
 مقترحات التطوير:
@@ -416,7 +416,7 @@ export class CreativeAgent extends BaseAgent {
 - إضافة طبقات من المعنى والرمزية
 - تحسين البنية السردية
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة للحصول على تحليل أعمق ومقترحات أكثر تفصيلاً.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة للحصول على تحليل أعمق ومقترحات أكثر تفصيلاً.`);
   }
 }
 

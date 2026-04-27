@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TaskType } from '@core/enums';
 
-import type { StandardAgentInput } from './shared/standardAgentPattern';
-
 const { mockExecuteStandardAgentPattern } = vi.hoisted(() => ({
   mockExecuteStandardAgentPattern: vi.fn(),
 }));
@@ -33,6 +31,8 @@ import {
   isAgentUpgraded,
 } from './upgradedAgents';
 
+import type { StandardAgentInput } from './shared/standardAgentPattern';
+
 const basePatternOutput = {
   text: `تحليل أولي:
 يمكن تطوير الفكرة مع إضافة مثال تطبيقي واضح.
@@ -47,8 +47,7 @@ const basePatternOutput = {
   },
 };
 
-describe('Upgraded Agents', () => {
-  const testInput: StandardAgentInput = {
+const testInput: StandardAgentInput = {
     input: 'نص تجريبي للمعالجة',
     options: {
       enableRAG: true,
@@ -62,7 +61,7 @@ describe('Upgraded Agents', () => {
       originalText: 'النص الأصلي',
       analysisReport: { summary: 'تقرير التحليل' },
     },
-  };
+};
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -262,4 +261,3 @@ describe('Upgraded Agents', () => {
       expect(result.metadata?.dialogueType).toBeDefined();
     });
   });
-});

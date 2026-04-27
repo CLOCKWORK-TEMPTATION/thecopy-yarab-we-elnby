@@ -43,7 +43,7 @@ export class IntegratedAgent extends BaseAgent {
     super(
       "SynthesisOrchestrator AI",
       TaskType.INTEGRATED,
-      INTEGRATED_AGENT_CONFIG.systemPrompt || ""
+      INTEGRATED_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -80,9 +80,9 @@ export class IntegratedAgent extends BaseAgent {
    */
   private buildIntegratedTextSection(ctx: IntegratedContext | undefined): string {
     let section = "";
-    const originalText = ctx?.originalText || "";
-    const analysisResults = ctx?.analysisResults || null;
-    const creativeResults = ctx?.creativeResults || null;
+    const originalText = ctx?.originalText ?? "";
+    const analysisResults = ctx?.analysisResults ?? null;
+    const creativeResults = ctx?.creativeResults ?? null;
 
     if (originalText) {
       section += `النص الأصلي:\n${this.truncateText(originalText, 1500)}\n\n`;
@@ -100,9 +100,9 @@ export class IntegratedAgent extends BaseAgent {
    * Build integration parameters section
    */
   private buildIntegratedParametersSection(ctx: IntegratedContext | undefined): string {
-    const targetOutput = ctx?.targetOutput || "synthesis";
-    const synthesisDepth = ctx?.synthesisDepth || "moderate";
-    const integrationStrategy = ctx?.integrationStrategy || "sequential";
+    const targetOutput = ctx?.targetOutput ?? "synthesis";
+    const synthesisDepth = ctx?.synthesisDepth ?? "moderate";
+    const integrationStrategy = ctx?.integrationStrategy ?? "sequential";
 
     let section = `استراتيجية التكامل: ${this.translateStrategy(integrationStrategy)}\n`;
     section += `عمق التركيب: ${this.translateDepth(synthesisDepth)}\n`;
@@ -162,17 +162,17 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Post-process the integrated output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up the synthesis text
     const processedText = this.cleanupSynthesis(output.text);
 
     // Assess integration quality
-    const integrationScore = await assessIntegration(processedText);
-    const balanceScore = await assessBalance(processedText);
-    const coherenceScore = await assessCoherence(processedText);
-    const qualityScore = await assessOverallQuality(processedText);
+    const integrationScore = assessIntegration(processedText);
+    const balanceScore = assessBalance(processedText);
+    const coherenceScore = assessCoherence(processedText);
+    const qualityScore = assessOverallQuality(processedText);
 
     // Calculate adjusted confidence
     const adjustedConfidence =
@@ -182,7 +182,7 @@ export class IntegratedAgent extends BaseAgent {
       coherenceScore * 0.15 +
       qualityScore * 0.05;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: Math.min(1, adjustedConfidence),
@@ -202,7 +202,7 @@ export class IntegratedAgent extends BaseAgent {
         synthesisType: detectSynthesisType(processedText),
         wordCount: processedText.split(/\s+/).length,
       },
-    };
+    });
   }
 
   /**
@@ -363,7 +363,7 @@ export class IntegratedAgent extends BaseAgent {
       parallel: "متوازي",
       iterative: "تكرارية",
     };
-    return strategies[strategy] || strategy;
+    return strategies[strategy] ?? strategy;
   }
 
   /**
@@ -375,7 +375,7 @@ export class IntegratedAgent extends BaseAgent {
       moderate: "متوسط",
       deep: "عميق",
     };
-    return depths[depth] || depth;
+    return depths[depth] ?? depth;
   }
 
   /**
@@ -387,7 +387,7 @@ export class IntegratedAgent extends BaseAgent {
       creative: "إبداع مدمج",
       synthesis: "تركيب شامل",
     };
-    return targets[target] || target;
+    return targets[target] ?? target;
   }
 
   /**
@@ -439,10 +439,10 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `تكامل تركيبى - منسق التحليل والإبداع:
+    return Promise.resolve(`تكامل تركيبى - منسق التحليل والإبداع:
 تم إجراء تكامل أولي بين نتائج التحليل والإبداع.
 
 التركيب الأولي:
@@ -455,7 +455,7 @@ export class IntegratedAgent extends BaseAgent {
 2. (عالية) تحسين التوازن بين الجوانب المختلفة
 3. (متوسطة) تعزيز التماسك الشامل
 
-ملاحظة: حدث خطأ مؤقت في معالجة التكامل. يُرجى المحاولة مرة أخرى أو تفعيل الخيارات المتقدمة للحصول على تكامل أكثر عمقاً ودقة.`;
+ملاحظة: حدث خطأ مؤقت في معالجة التكامل. يُرجى المحاولة مرة أخرى أو تفعيل الخيارات المتقدمة للحصول على تكامل أكثر عمقاً ودقة.`);
   }
 }
 

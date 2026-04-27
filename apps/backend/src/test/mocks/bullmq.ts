@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 
-export interface ConnectionOptions extends Record<string, unknown> {}
+export type ConnectionOptions = Record<string, unknown>;
 
 export interface JobsOptions {
   attempts?: number;
@@ -47,6 +47,15 @@ interface QueueStore {
   draining: boolean;
   defaultJobOptions: JobsOptions;
   timers: Set<NodeJS.Timeout>;
+}
+
+interface JobInit<DataType, NameType extends string> {
+  store: QueueStore;
+  id: string;
+  name: NameType;
+  data: DataType;
+  opts: JobsOptions;
+  state: JobState;
 }
 
 const stores = new Map<string, QueueStore>();
@@ -167,7 +176,7 @@ function scheduleStoreDrain(store: QueueStore): void {
   });
 }
 
-async function drainStore(store: QueueStore): Promise<void> {
+function drainStore(store: QueueStore): void {
   if (store.draining || store.paused) {
     return;
   }
@@ -269,20 +278,13 @@ export class Job<
   private readonly store: QueueStore;
   private state: JobState;
 
-  constructor(
-    store: QueueStore,
-    id: string,
-    name: NameType,
-    data: DataType,
-    opts: JobsOptions,
-    state: JobState
-  ) {
-    this.store = store;
-    this.id = id;
-    this.name = name;
-    this.data = data;
-    this.opts = opts;
-    this.state = state;
+  constructor(init: JobInit<DataType, NameType>) {
+    this.store = init.store;
+    this.id = init.id;
+    this.name = init.name;
+    this.data = init.data;
+    this.opts = init.opts;
+    this.state = init.state;
     this.timestamp = Date.now();
   }
 
@@ -294,15 +296,16 @@ export class Job<
     this.state = state;
   }
 
-  async updateProgress(progress: number): Promise<void> {
+  updateProgress(progress: number): Promise<void> {
     this.progress = progress;
+    return Promise.resolve();
   }
 
-  async getState(): Promise<JobState> {
-    return this.state;
+  getState(): Promise<JobState> {
+    return Promise.resolve(this.state);
   }
 
-  async moveToCompleted(
+  moveToCompleted(
     returnvalue: ReturnType,
     _token: string,
     _fetchNext: boolean
@@ -311,9 +314,10 @@ export class Job<
     this.failedReason = undefined;
     this.finishedOn = Date.now();
     this.state = 'completed';
+    return Promise.resolve();
   }
 
-  async moveToFailed(
+  moveToFailed(
     error: Error,
     _token: string,
     _fetchNext: boolean
@@ -322,17 +326,19 @@ export class Job<
     this.failedReason = error.message;
     this.finishedOn = Date.now();
     this.state = 'failed';
+    return Promise.resolve();
   }
 
-  async retry(): Promise<void> {
+  retry(): Promise<void> {
     if (this.state !== 'failed') {
-      return;
+      return Promise.resolve();
     }
 
     this.failedReason = undefined;
     this.finishedOn = undefined;
     this.state = this.store.paused ? 'paused' : 'waiting';
     scheduleStoreDrain(this.store);
+    return Promise.resolve();
   }
 }
 
@@ -361,7 +367,7 @@ export class Queue<
     }
   }
 
-  async add(
+  add(
     name: NameType,
     data: DataType,
     opts: JobsOptions = {}
@@ -371,14 +377,14 @@ export class Queue<
     const id = String(++this.store.nextId);
     const mergedOptions = mergeJobOptions(this.store.defaultJobOptions, opts);
     const initialState: JobState = this.store.paused ? 'paused' : 'waiting';
-    const job = new Job<DataType, ReturnType, NameType>(
-      this.store,
+    const job = new Job<DataType, ReturnType, NameType>({
+      store: this.store,
       id,
       name,
       data,
-      mergedOptions,
-      initialState
-    );
+      opts: mergedOptions,
+      state: initialState,
+    });
 
     this.store.jobs.set(id, job);
     emitQueueEvent(this.store, 'waiting', job);
@@ -387,37 +393,37 @@ export class Queue<
       scheduleStoreDrain(this.store);
     }
 
-    return job;
+    return Promise.resolve(job);
   }
 
-  async getJob(id: string | number): Promise<Job<DataType, ReturnType, NameType> | undefined> {
+  getJob(id: string | number): Promise<Job<DataType, ReturnType, NameType> | undefined> {
     this.ensureOpen();
-    return this.store.jobs.get(String(id)) as Job<DataType, ReturnType, NameType> | undefined;
+    return Promise.resolve(this.store.jobs.get(String(id)) as Job<DataType, ReturnType, NameType> | undefined);
   }
 
-  async getWaitingCount(): Promise<number> {
+  getWaitingCount(): Promise<number> {
     this.ensureOpen();
-    return getJobStateCount(this.store, ['waiting', 'paused']);
+    return Promise.resolve(getJobStateCount(this.store, ['waiting', 'paused']));
   }
 
-  async getActiveCount(): Promise<number> {
+  getActiveCount(): Promise<number> {
     this.ensureOpen();
-    return getJobStateCount(this.store, ['active']);
+    return Promise.resolve(getJobStateCount(this.store, ['active']));
   }
 
-  async getCompletedCount(): Promise<number> {
+  getCompletedCount(): Promise<number> {
     this.ensureOpen();
-    return getJobStateCount(this.store, ['completed']);
+    return Promise.resolve(getJobStateCount(this.store, ['completed']));
   }
 
-  async getFailedCount(): Promise<number> {
+  getFailedCount(): Promise<number> {
     this.ensureOpen();
-    return getJobStateCount(this.store, ['failed']);
+    return Promise.resolve(getJobStateCount(this.store, ['failed']));
   }
 
-  async getDelayedCount(): Promise<number> {
+  getDelayedCount(): Promise<number> {
     this.ensureOpen();
-    return getJobStateCount(this.store, ['delayed']);
+    return Promise.resolve(getJobStateCount(this.store, ['delayed']));
   }
 
   async getJobCounts(): Promise<Record<string, number>> {
@@ -431,7 +437,7 @@ export class Queue<
     };
   }
 
-  async pause(): Promise<void> {
+  pause(): Promise<void> {
     this.ensureOpen();
     this.store.paused = true;
 
@@ -440,9 +446,10 @@ export class Queue<
         job.__setState('paused');
       }
     }
+    return Promise.resolve();
   }
 
-  async resume(): Promise<void> {
+  resume(): Promise<void> {
     this.ensureOpen();
     this.store.paused = false;
 
@@ -453,14 +460,15 @@ export class Queue<
     }
 
     scheduleStoreDrain(this.store);
+    return Promise.resolve();
   }
 
-  async isPaused(): Promise<boolean> {
+  isPaused(): Promise<boolean> {
     this.ensureOpen();
-    return this.store.paused;
+    return Promise.resolve(this.store.paused);
   }
 
-  async clean(
+  clean(
     grace: number,
     _limit: number,
     state: 'completed' | 'failed'
@@ -478,9 +486,10 @@ export class Queue<
         this.store.jobs.delete(id);
       }
     }
+    return Promise.resolve();
   }
 
-  async obliterate(_opts?: { force?: boolean }): Promise<void> {
+  obliterate(_opts?: { force?: boolean }): Promise<void> {
     this.ensureOpen();
 
     for (const timer of this.store.timers) {
@@ -488,16 +497,18 @@ export class Queue<
     }
     this.store.timers.clear();
     this.store.jobs.clear();
+    return Promise.resolve();
   }
 
-  async close(): Promise<void> {
+  close(): Promise<void> {
     if (this.closed) {
-      return;
+      return Promise.resolve();
     }
 
     this.closed = true;
     this.store.queueInstances.delete(this);
     maybeCleanupStore(this.store);
+    return Promise.resolve();
   }
 }
 
@@ -537,14 +548,15 @@ export class Worker<
     }
   }
 
-  async close(): Promise<void> {
+  close(): Promise<void> {
     if (this.closed) {
-      return;
+      return Promise.resolve();
     }
 
     this.closed = true;
     this.store.workers.delete(this as unknown as Worker);
     maybeCleanupStore(this.store);
+    return Promise.resolve();
   }
 }
 

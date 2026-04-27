@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { breakdownController } from './breakdown.controller';
+
 import type { Request, Response } from 'express';
 
 const { mockBreakdownService } = vi.hoisted(() => ({
@@ -20,8 +22,6 @@ vi.mock('@/services/breakdown/service', () => ({
   breakdownService: mockBreakdownService,
 }));
 
-import { breakdownController } from './breakdown.controller';
-
 function createMockResponse(): Response & {
   json: ReturnType<typeof vi.fn>;
   status: ReturnType<typeof vi.fn>;
@@ -39,20 +39,24 @@ function createMockResponse(): Response & {
   return response;
 }
 
+function objectContainingMatcher(value: Record<string, unknown>): unknown {
+  return expect.objectContaining(value);
+}
+
 describe('BreakdownController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('يعيد الحالة الصحية للخدمة', async () => {
+  it('يعيد الحالة الصحية للخدمة', () => {
     const res = createMockResponse();
 
-    await breakdownController.health({} as Request, res);
+    breakdownController.health({} as Request, res);
 
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        data: expect.objectContaining({
+        data: objectContainingMatcher({
           service: 'breakdown',
           status: 'ok',
         }),

@@ -22,6 +22,16 @@ import type { Request, Response, NextFunction } from 'express';
 
 // ─── مساعدات بناء كائنات الطلب والاستجابة الوهمية ───
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Response & {
+  _headers: Record<string, string>;
+  locals: Record<string, unknown>;
+  setHeader: MockFn;
+  status: MockFn;
+  json: MockFn;
+  end: MockFn;
+};
+
 function createMockReq(overrides: Partial<Request> = {}): Request {
   return {
     body: {},
@@ -29,11 +39,11 @@ function createMockReq(overrides: Partial<Request> = {}): Request {
   } as unknown as Request;
 }
 
-function createMockRes(): Response & { _headers: Record<string, string> } {
+function createMockRes(): MockResponse {
   const headers: Record<string, string> = {};
   const res = {
     _headers: headers,
-    locals: {} as Record<string, unknown>,
+    locals: {},
     setHeader: vi.fn((name: string, value: string) => {
       headers[name.toLowerCase()] = value;
       return res;
@@ -41,7 +51,7 @@ function createMockRes(): Response & { _headers: Record<string, string> } {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
     end: vi.fn().mockReturnThis(),
-  } as unknown as Response & { _headers: Record<string, string> };
+  } as MockResponse;
   return res;
 }
 
@@ -236,7 +246,7 @@ describe('securityHeadersMiddleware', () => {
 
     securityHeadersMiddleware(req, res, nextFn);
 
-    const hstsCall = (res.setHeader as ReturnType<typeof vi.fn>).mock.calls.find(
+    const hstsCall = res.setHeader.mock.calls.find(
       (c: unknown[]) => c[0] === 'Strict-Transport-Security'
     );
     expect(hstsCall).toBeUndefined();

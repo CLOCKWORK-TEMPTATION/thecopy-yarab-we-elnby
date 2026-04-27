@@ -1,4 +1,4 @@
-/* eslint-disable complexity, @typescript-eslint/no-explicit-any -- experimental memory retrieval module */
+/* eslint-disable complexity -- experimental memory retrieval module */
 import { Filters } from "weaviate-client";
 
 
@@ -94,6 +94,33 @@ const DEFAULT_COLLECTION_PROPERTIES: Record<string, string[]> = {
   ],
 };
 
+interface WeaviateQueryObject {
+  properties?: Record<string, unknown>;
+  metadata?: {
+    certainty?: number;
+  };
+  uuid?: string;
+}
+
+interface WeaviateCollectionForRetrieval {
+  query: {
+    nearVector(
+      queryEmbedding: number[],
+      options: {
+        limit: number;
+        filters: unknown;
+        returnMetadata: string[];
+        returnProperties: string[];
+      }
+    ): Promise<{ objects: WeaviateQueryObject[] }>;
+  };
+  filter: {
+    byProperty(property: never): {
+      equal(value: never): unknown;
+    };
+  };
+}
+
 export class WeaviateRetrievalService {
   private defaultTopK = 15;
 
@@ -147,7 +174,9 @@ export class WeaviateRetrievalService {
     request: RetrievalCollectionRequest
   ): Promise<RetrievalHit[]> {
     try {
-      const collection = weaviateStore.getCollection<any>(request.name);
+      const collection = weaviateStore.getCollection(
+        request.name
+      ) as unknown as WeaviateCollectionForRetrieval;
       const response = await collection.query.nearVector(queryEmbedding, {
         limit: request.limit ?? this.defaultTopK,
         filters: this.buildFilters(collection, request.filters),
@@ -156,7 +185,7 @@ export class WeaviateRetrievalService {
           DEFAULT_COLLECTION_PROPERTIES[request.name] ?? ["content"],
       });
 
-      return response.objects.map((object: any, index: number) =>
+      return response.objects.map((object, index) =>
         this.toRetrievalHit(request.name, object, index)
       );
     } catch (error) {
@@ -165,18 +194,22 @@ export class WeaviateRetrievalService {
     }
   }
 
-  private buildFilters(collection: any, filters?: RetrievalFilter[]) {
+  private buildFilters(
+    collection: WeaviateCollectionForRetrieval,
+    filters?: RetrievalFilter[]
+  ): unknown {
     if (!filters || filters.length === 0) {
       return undefined;
     }
 
-    const values = filters.map((filter) =>
+    const values: unknown[] = filters.map((filter) =>
       collection.filter
         .byProperty(filter.property as never)
         .equal(filter.value as never)
     );
 
-    return values.length === 1 ? values[0] : Filters.and(...values);
+    const combinedFilter: unknown = Filters.and(...(values as never[]));
+    return values.length === 1 ? values[0] : combinedFilter;
   }
 
   private rankResults(
@@ -270,10 +303,10 @@ export class WeaviateRetrievalService {
 
   private toRetrievalHit(
     collectionName: string,
-    object: any,
+    object: WeaviateQueryObject,
     index: number
   ): RetrievalHit {
-    const properties = (object.properties ?? {}) as Record<string, unknown>;
+    const properties = object.properties ?? {};
     const content =
       typeof properties["content"] === "string"
         ? properties["content"]
@@ -297,7 +330,7 @@ export class WeaviateRetrievalService {
       chunkIndex:
         typeof properties["chunkIndex"] === "number" ? properties["chunkIndex"] : index,
       metadata: properties,
-      relevanceScore: object.metadata?.certainty || 0,
+      relevanceScore: object.metadata?.certainty ?? 0,
       rank: index + 1,
       ...definedProps({
         id: object.uuid,

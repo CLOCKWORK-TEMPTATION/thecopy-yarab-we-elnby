@@ -41,138 +41,185 @@ vi.mock('@/config/env', () => ({
   },
 }));
 
-describe('Backend API Integration Tests', () => {
-  let app: Express;
+let app: Express;
 
-  beforeAll(() => {
-    // Setup Express app for testing
-    app = express();
-    
-    // Middleware
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
-    // Test routes
-    app.get('/health', (req, res) => {
-      res.json({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
+function requestBody(req: Request): Record<string, unknown> {
+  return isRecord(req.body) ? req.body : {};
+}
+
+function stringField(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function responseBody(response: { body: unknown }): Record<string, unknown> {
+  return isRecord(response.body) ? response.body : {};
+}
+
+function recordField(
+  record: Record<string, unknown>,
+  key: string
+): Record<string, unknown> {
+  const value = record[key];
+  return isRecord(value) ? value : {};
+}
+
+function configureStatusRoutes(targetApp: Express): void {
+  targetApp.get('/health', (_req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
+  targetApp.get('/api/v1/status', (_req, res) => {
+    res.json({
+      status: 'ok',
+      version: '1.0.0',
+      environment: 'test',
+    });
+  });
+}
+
+function configureAuthRoutes(targetApp: Express): void {
+  targetApp.post('/api/v1/auth/login', (req, res) => {
+    const body = requestBody(req);
+    const email = stringField(body, 'email');
+    const password = stringField(body, 'password');
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Missing credentials' });
+    }
+
+    if (email === 'test@example.com' && password === 'test123') {
+      return res.status(200).json({
+        token: 'mock-jwt-token',
+        user: { id: '1', email },
+        expiresIn: 3600,
       });
-    });
+    }
 
-    app.get('/api/v1/status', (req, res) => {
-      res.json({
-        status: 'ok',
-        version: '1.0.0',
-        environment: 'test',
-      });
-    });
+    res.status(401).json({ error: 'Invalid credentials' });
+  });
+}
 
-    app.post('/api/v1/auth/login', (req, res) => {
-      const { email, password } = req.body;
+function configureProjectReadRoutes(targetApp: Express): void {
+  targetApp.get('/api/v1/projects/:id', (req, res) => {
+    const { id } = req.params;
 
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Missing credentials' });
-      }
+    if (!id) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
 
-      if (email === 'test@example.com' && password === 'test123') {
-        return res.status(200).json({
-          token: 'mock-jwt-token',
-          user: { id: '1', email },
-          expiresIn: 3600,
-        });
-      }
-
-      res.status(401).json({ error: 'Invalid credentials' });
-    });
-
-    app.get('/api/v1/projects/:id', (req, res) => {
-      const { id } = req.params;
-
-      if (!id) {
-        return res.status(400).json({ error: 'Project ID is required' });
-      }
-
-      if (id === '1') {
-        return res.status(200).json({
-          id: '1',
-          title: 'Test Project',
-          description: 'A test drama project',
-          status: 'draft',
-          createdAt: '2024-01-01T00:00:00Z',
-        });
-      }
-
-      res.status(404).json({ error: 'Project not found' });
-    });
-
-    app.post('/api/v1/projects', (req, res) => {
-      const { title, description, genre } = req.body;
-
-      if (!title || title.length < 3) {
-        return res.status(400).json({
-          error: 'Title is required and must be at least 3 characters',
-        });
-      }
-
-      if (description && description.length > 5000) {
-        return res.status(400).json({
-          error: 'Description cannot exceed 5000 characters',
-        });
-      }
-
-      res.status(201).json({
-        id: 'new-project-id',
-        title,
-        description: description || '',
-        genre: genre || 'drama',
+    if (id === '1') {
+      return res.status(200).json({
+        id: '1',
+        title: 'Test Project',
+        description: 'A test drama project',
         status: 'draft',
-        createdAt: new Date().toISOString(),
+        createdAt: '2024-01-01T00:00:00Z',
       });
+    }
+
+    res.status(404).json({ error: 'Project not found' });
+  });
+}
+
+function configureProjectWriteRoutes(targetApp: Express): void {
+  targetApp.post('/api/v1/projects', (req, res) => {
+    const body = requestBody(req);
+    const title = stringField(body, 'title');
+    const description = stringField(body, 'description');
+    const genre = stringField(body, 'genre');
+
+    if (!title || title.length < 3) {
+      return res.status(400).json({
+        error: 'Title is required and must be at least 3 characters',
+      });
+    }
+
+    if (description && description.length > 5000) {
+      return res.status(400).json({
+        error: 'Description cannot exceed 5000 characters',
+      });
+    }
+
+    res.status(201).json({
+      id: 'new-project-id',
+      title,
+      description: description ?? '',
+      genre: genre ?? 'drama',
+      status: 'draft',
+      createdAt: new Date().toISOString(),
     });
+  });
 
-    app.put('/api/v1/projects/:id', (req, res) => {
-      const { id } = req.params;
-      const { title, status } = req.body;
+  targetApp.put('/api/v1/projects/:id', (req, res) => {
+    const { id } = req.params;
+    const body = requestBody(req);
+    const title = stringField(body, 'title');
+    const status = stringField(body, 'status');
 
-      if (!id) {
-        return res.status(400).json({ error: 'Project ID is required' });
-      }
+    if (!id) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
 
-      if (id === '1') {
-        return res.status(200).json({
-          id: '1',
-          title: title || 'Test Project',
-          status: status || 'draft',
-          updatedAt: new Date().toISOString(),
-        });
-      }
+    if (id === '1') {
+      return res.status(200).json({
+        id: '1',
+        title: title ?? 'Test Project',
+        status: status ?? 'draft',
+        updatedAt: new Date().toISOString(),
+      });
+    }
 
-      res.status(404).json({ error: 'Project not found' });
-    });
+    res.status(404).json({ error: 'Project not found' });
+  });
+}
 
-    app.delete('/api/v1/projects/:id', (req, res) => {
-      const { id } = req.params;
+function configureProjectDeleteRoutes(targetApp: Express): void {
+  targetApp.delete('/api/v1/projects/:id', (req, res) => {
+    const { id } = req.params;
 
-      if (!id) {
-        return res.status(400).json({ error: 'Project ID is required' });
-      }
+    if (!id) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
 
-      if (id === '1') {
-        return res.status(200).json({ message: 'Project deleted successfully' });
-      }
+    if (id === '1') {
+      return res.status(200).json({ message: 'Project deleted successfully' });
+    }
 
-      res.status(404).json({ error: 'Project not found' });
-    });
+    res.status(404).json({ error: 'Project not found' });
+  });
+}
 
-    // Error handling middleware
-    app.use((err: Error & { status?: number }, _req: Request, res: Response, _next: NextFunction) => {
+function configureErrorHandler(targetApp: Express): void {
+  targetApp.use(
+    (err: Error & { status?: number }, _req: Request, res: Response, _next: NextFunction) => {
       res.status(err.status ?? 500).json({
         error: err.message.length > 0 ? err.message : 'Internal server error',
       });
-    });
-  });
+    }
+  );
+}
+
+beforeAll(() => {
+  app = express();
+
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  configureStatusRoutes(app);
+  configureAuthRoutes(app);
+  configureProjectReadRoutes(app);
+  configureProjectWriteRoutes(app);
+  configureProjectDeleteRoutes(app);
+  configureErrorHandler(app);
+});
 
   describe('Health Checks', () => {
     it('should return healthy status', async () => {
@@ -207,7 +254,8 @@ describe('Backend API Integration Tests', () => {
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('user');
       expect(response.body).toHaveProperty('expiresIn');
-      expect(response.body.user.email).toBe('test@example.com');
+      const user = recordField(responseBody(response), 'user');
+      expect(user['email']).toBe('test@example.com');
     });
 
     it('should reject invalid credentials', async () => {
@@ -410,7 +458,7 @@ describe('Backend API Integration Tests', () => {
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
-      expect(typeof response.body.error).toBe('string');
+      expect(typeof responseBody(response)['error']).toBe('string');
     });
   });
 
@@ -458,4 +506,3 @@ describe('Backend API Integration Tests', () => {
       });
     });
   });
-});

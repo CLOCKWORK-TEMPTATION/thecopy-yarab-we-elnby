@@ -36,7 +36,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     super(
       "SceneCraft AI",
       TaskType.SCENE_GENERATOR,
-      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt || ""
+      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -127,17 +127,17 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Post-process the scene output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean and format the scene
     const processedText = this.cleanupSceneText(output.text);
 
     // Assess scene quality
-    const dramaticTension = await this.assessDramaticTension(processedText);
-    const dialogueQuality = await this.assessDialogueQuality(processedText);
-    const visualClarity = await this.assessVisualClarity(processedText);
-    const pacing = await this.assessPacing(processedText);
+    const dramaticTension = this.assessDramaticTension(processedText);
+    const dialogueQuality = this.assessDialogueQuality(processedText);
+    const visualClarity = this.assessVisualClarity(processedText);
+    const pacing = this.assessPacing(processedText);
 
     // Calculate composite quality score
     const qualityScore =
@@ -149,7 +149,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     // Adjust confidence based on quality
     const adjustedConfidence = output.confidence * 0.6 + qualityScore * 0.4;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -174,7 +174,7 @@ export class SceneGeneratorAgent extends BaseAgent {
         dialoguePercentage: this.calculateDialoguePercentage(processedText),
         numberOfCharacters: this.countCharacters(processedText),
       },
-    };
+    });
   }
 
   /**
@@ -265,7 +265,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess dramatic tension in the scene
    */
-  private async assessDramaticTension(text: string): Promise<number> {
+  private assessDramaticTension(text: string): number {
     let score = 0.5;
 
     // Check for conflict indicators
@@ -309,7 +309,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess dialogue quality
    */
-  private async assessDialogueQuality(text: string): Promise<number> {
+  private assessDialogueQuality(text: string): number {
     let score = 0.6;
 
     // Check for dialogue presence
@@ -318,7 +318,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     if (!hasDialogue) return 0.3;
 
     // Check for varied dialogue lengths
-    const dialogueMatches = text.match(DIALOGUE_EXTRACT_REGEX) || [];
+    const dialogueMatches = text.match(DIALOGUE_EXTRACT_REGEX) ?? [];
     if (dialogueMatches.length > 0) {
       const lengths = dialogueMatches.map((d) => d.length);
       const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
@@ -341,7 +341,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess visual clarity
    */
-  private async assessVisualClarity(text: string): Promise<number> {
+  private assessVisualClarity(text: string): number {
     let score = 0.5;
 
     // Check for visual descriptors
@@ -396,7 +396,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   /**
    * Assess pacing
    */
-  private async assessPacing(text: string): Promise<number> {
+  private assessPacing(text: string): number {
     let score = 0.6;
 
     // Check sentence variety
@@ -461,7 +461,7 @@ export class SceneGeneratorAgent extends BaseAgent {
         line.includes("خارجي") ||
         line.includes("المشهد")
     );
-    return heading || null;
+    return heading ?? null;
   }
 
   private extractDescription(text: string): string | null {
@@ -469,7 +469,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     const description = paragraphs.find(
       (p) => p.length > 100 && !p.includes('"') && !p.includes(":")
     );
-    return description || null;
+    return description ?? null;
   }
 
   private extractAction(text: string): string {
@@ -485,7 +485,7 @@ export class SceneGeneratorAgent extends BaseAgent {
   }
 
   private calculateDialoguePercentage(text: string): number {
-    const dialogueMatches = text.match(ALL_DIALOGUE_EXTRACT_REGEX) || [];
+    const dialogueMatches = text.match(ALL_DIALOGUE_EXTRACT_REGEX) ?? [];
     const dialogueLength = dialogueMatches.join("").length;
     return Math.round((dialogueLength / text.length) * 100);
   }
@@ -574,7 +574,7 @@ export class SceneGeneratorAgent extends BaseAgent {
       suspense: "تشويق",
       romantic: "رومانسي",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   private translateEmotionalTone(tone: string): string {
@@ -588,7 +588,7 @@ export class SceneGeneratorAgent extends BaseAgent {
       hopeful: "متفائل",
       melancholic: "حزين عميق",
     };
-    return tones[tone] || tone;
+    return tones[tone] ?? tone;
   }
 
   private translateConflictLevel(level: string): string {
@@ -599,20 +599,20 @@ export class SceneGeneratorAgent extends BaseAgent {
       high: "عالي",
       extreme: "شديد جداً",
     };
-    return levels[level] || level;
+    return levels[level] ?? level;
   }
 
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
     const sceneType =
-      (typeof input.context === "object" && input.context["sceneType"]) ||
+      (typeof input.context === "object" && input.context["sceneType"]) ??
       "dramatic";
 
-    return `وصف المشهد:
+    return Promise.resolve(`وصف المشهد:
 مشهد ${this.translateSceneType(sceneType as string)} يحتاج إلى تطوير أعمق للشخصيات والصراع.
 
 نموذج مبسط:
@@ -620,7 +620,7 @@ export class SceneGeneratorAgent extends BaseAgent {
 الشخصيات تدخل المشهد. حوار أساسي يعبر عن الموقف.
 تطور في الأحداث يدفع القصة للأمام.
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من التفاصيل عن الشخصيات والسياق للحصول على مشهد أكثر عمقاً وتفصيلاً.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من التفاصيل عن الشخصيات والسياق للحصول على مشهد أكثر عمقاً وتفصيلاً.`);
   }
 }
 

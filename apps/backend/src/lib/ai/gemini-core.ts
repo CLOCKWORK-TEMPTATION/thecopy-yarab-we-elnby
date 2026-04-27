@@ -13,7 +13,15 @@ export function toText(value: unknown): string {
     return "";
   }
 
-  return String(value);
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return String(value);
+  }
+
+  try {
+    return JSON.stringify(value) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export function safeSub(text: string, start = 0, end?: number): string {

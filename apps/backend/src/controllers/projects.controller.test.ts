@@ -18,7 +18,7 @@ interface MockControllerResponse {
 
 // Simple mock implementation for the projects controller
 class MockProjectsController {
-  async getProjects(req: MockControllerRequest, res: MockControllerResponse) {
+  getProjects(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -36,7 +36,7 @@ class MockProjectsController {
     });
   }
 
-  async getProject(req: MockControllerRequest, res: MockControllerResponse) {
+  getProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -60,7 +60,7 @@ class MockProjectsController {
     });
   }
 
-  async createProject(req: MockControllerRequest, res: MockControllerResponse) {
+  createProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -99,7 +99,7 @@ class MockProjectsController {
     }
   }
 
-  async updateProject(req: MockControllerRequest, res: MockControllerResponse) {
+  updateProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -145,7 +145,7 @@ class MockProjectsController {
     }
   }
 
-  async deleteProject(req: MockControllerRequest, res: MockControllerResponse) {
+  deleteProject(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -168,7 +168,7 @@ class MockProjectsController {
     });
   }
 
-  async analyzeScript(req: MockControllerRequest, res: MockControllerResponse) {
+  analyzeScript(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -200,31 +200,30 @@ class MockProjectsController {
 // Create a singleton instance
 const projectsController = new MockProjectsController();
 
-describe('ProjectsController', () => {
-  let mockRequest: MockControllerRequest;
-  let mockResponse: MockControllerResponse;
-  let mockJson: MockControllerResponse['json'];
-  let mockStatus: MockControllerResponse['status'];
+let mockRequest: MockControllerRequest;
+let mockResponse: MockControllerResponse;
+let mockJson: MockControllerResponse['json'];
+let mockStatus: MockControllerResponse['status'];
 
-  beforeEach(() => {
-    mockResponse = {
-      json: vi.fn(() => mockResponse),
-      status: vi.fn(() => ({ json: mockResponse.json })),
-    };
-    mockJson = mockResponse.json;
-    mockStatus = mockResponse.status;
+beforeEach(() => {
+  mockResponse = {
+    json: vi.fn(() => mockResponse),
+    status: vi.fn(() => ({ json: mockResponse.json })),
+  };
+  mockJson = mockResponse.json;
+  mockStatus = mockResponse.status;
 
-    mockRequest = {
-      params: {},
-      body: {},
-      user: { id: 'user-123' },
-    };
-    vi.clearAllMocks();
-  });
+  mockRequest = {
+    params: {},
+    body: {},
+    user: { id: 'user-123' },
+  };
+  vi.clearAllMocks();
+});
 
   describe('getProjects', () => {
-    it('should return projects for authorized user', async () => {
-      await projectsController.getProjects(
+    it('should return projects for authorized user', () => {
+      projectsController.getProjects(
         mockRequest,
         mockResponse
       );
@@ -238,10 +237,10 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
 
-      await projectsController.getProjects(
+      projectsController.getProjects(
         mockRequest,
         mockResponse
       );
@@ -255,10 +254,10 @@ describe('ProjectsController', () => {
   });
 
   describe('getProject', () => {
-    it('should return project for authorized user', async () => {
+    it('should return project for authorized user', () => {
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.getProject(
+      projectsController.getProject(
         mockRequest,
         mockResponse
       );
@@ -269,11 +268,11 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.getProject(
+      projectsController.getProject(
         mockRequest,
         mockResponse
       );
@@ -285,10 +284,10 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 400 when project ID is missing', async () => {
+    it('should return 400 when project ID is missing', () => {
       mockRequest.params = {};
 
-      await projectsController.getProject(
+      projectsController.getProject(
         mockRequest,
         mockResponse
       );
@@ -302,7 +301,7 @@ describe('ProjectsController', () => {
   });
 
   describe('createProject', () => {
-    it('should create project with valid data', async () => {
+    it('should create project with valid data', () => {
       const projectData = {
         title: 'New Project',
         scriptContent: 'Script content here',
@@ -310,7 +309,7 @@ describe('ProjectsController', () => {
 
       mockRequest.body = projectData;
 
-      await projectsController.createProject(
+      projectsController.createProject(
         mockRequest,
         mockResponse
       );
@@ -323,14 +322,14 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should validate project data', async () => {
+    it('should validate project data', () => {
       const invalidData = {
         title: '', // Empty title
       };
 
       mockRequest.body = invalidData;
 
-      await projectsController.createProject(
+      projectsController.createProject(
         mockRequest,
         mockResponse
       );
@@ -345,7 +344,7 @@ describe('ProjectsController', () => {
   });
 
   describe('updateProject', () => {
-    it('should update project with valid data', async () => {
+    it('should update project with valid data', () => {
       const updateData = {
         title: 'Updated Project Title',
         scriptContent: 'Updated script content',
@@ -354,7 +353,7 @@ describe('ProjectsController', () => {
       mockRequest.params = { id: 'project-1' };
       mockRequest.body = updateData;
 
-      await projectsController.updateProject(
+      projectsController.updateProject(
         mockRequest,
         mockResponse
       );
@@ -366,12 +365,12 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'project-1' };
       mockRequest.body = { title: 'Updated Title' };
 
-      await projectsController.updateProject(
+      projectsController.updateProject(
         mockRequest,
         mockResponse
       );
@@ -383,11 +382,11 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 400 when project ID is missing', async () => {
+    it('should return 400 when project ID is missing', () => {
       mockRequest.params = {};
       mockRequest.body = { title: 'Updated Title' };
 
-      await projectsController.updateProject(
+      projectsController.updateProject(
         mockRequest,
         mockResponse
       );
@@ -399,13 +398,13 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should validate update data', async () => {
+    it('should validate update data', () => {
       mockRequest.params = { id: 'project-1' };
       mockRequest.body = {
         title: '', // Invalid: empty title
       };
 
-      await projectsController.updateProject(
+      projectsController.updateProject(
         mockRequest,
         mockResponse
       );
@@ -420,10 +419,10 @@ describe('ProjectsController', () => {
   });
 
   describe('deleteProject', () => {
-    it('should delete project successfully', async () => {
+    it('should delete project successfully', () => {
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.deleteProject(
+      projectsController.deleteProject(
         mockRequest,
         mockResponse
       );
@@ -434,11 +433,11 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.deleteProject(
+      projectsController.deleteProject(
         mockRequest,
         mockResponse
       );
@@ -450,10 +449,10 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 400 when project ID is missing', async () => {
+    it('should return 400 when project ID is missing', () => {
       mockRequest.params = {};
 
-      await projectsController.deleteProject(
+      projectsController.deleteProject(
         mockRequest,
         mockResponse
       );
@@ -467,10 +466,10 @@ describe('ProjectsController', () => {
   });
 
   describe('analyzeScript', () => {
-    it('should analyze script successfully', async () => {
+    it('should analyze script successfully', () => {
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.analyzeScript(
+      projectsController.analyzeScript(
         mockRequest,
         mockResponse
       );
@@ -485,11 +484,11 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'project-1' };
 
-      await projectsController.analyzeScript(
+      projectsController.analyzeScript(
         mockRequest,
         mockResponse
       );
@@ -501,10 +500,10 @@ describe('ProjectsController', () => {
       });
     });
 
-    it('should return 400 when project ID is missing', async () => {
+    it('should return 400 when project ID is missing', () => {
       mockRequest.params = {};
 
-      await projectsController.analyzeScript(
+      projectsController.analyzeScript(
         mockRequest,
         mockResponse
       );
@@ -516,4 +515,3 @@ describe('ProjectsController', () => {
       });
     });
   });
-});

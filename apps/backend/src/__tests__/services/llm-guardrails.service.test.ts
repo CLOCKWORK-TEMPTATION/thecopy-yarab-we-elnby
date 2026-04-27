@@ -35,21 +35,20 @@ vi.mock('@/config/sentry', () => ({
   captureException: vi.fn(),
 }));
 
-describe('LLMGuardrailsService', () => {
-  let guardrails: LLMGuardrailsService;
+let guardrails: LLMGuardrailsService;
 
-  beforeEach(() => {
-    // Reset guardrails instance before each test
-    guardrails = new LLMGuardrailsService();
-    guardrails.resetMetrics();
-  });
+beforeEach(() => {
+  // Reset guardrails instance before each test
+  guardrails = new LLMGuardrailsService();
+  guardrails.resetMetrics();
+});
 
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
+afterEach(() => {
+  vi.clearAllMocks();
+});
 
-  const guardrailsInternals = (): GuardrailsInternals =>
-    guardrails as unknown as GuardrailsInternals;
+const guardrailsInternals = (): GuardrailsInternals =>
+  guardrails as unknown as GuardrailsInternals;
 
   describe('Input Validation', () => {
     it('should allow valid input', () => {
@@ -103,8 +102,8 @@ describe('LLMGuardrailsService', () => {
 
     it('should track metrics correctly', () => {
       const validInput = 'Normal input for analysis';
-      const result1 = guardrails.checkInput(validInput);
-      const result2 = guardrails.checkInput(validInput);
+      guardrails.checkInput(validInput);
+      guardrails.checkInput(validInput);
 
       const metrics = guardrails.getMetrics();
       expect(metrics.totalRequests).toBe(2);
@@ -154,13 +153,11 @@ describe('LLMGuardrailsService', () => {
       const outputWithCard = 'رقم بطاقتي 4111111111111111';
       const result = guardrails.checkOutput(outputWithCard);
 
-      // Credit card detection may vary based on format
-      if (result.violations.some(v => v.type === 'pii')) {
-        expect(result.sanitizedContent).toContain('[CREDIT_CARD_REDACTED]');
-      } else {
-        // If no PII detected with this format, that's also acceptable
-        expect(result.isAllowed).toBe(true);
-      }
+      const piiDetected = result.violations.some(v => v.type === 'pii');
+      const redacted =
+        result.sanitizedContent?.includes('[CREDIT_CARD_REDACTED]') ?? false;
+
+      expect(redacted || (!piiDetected && result.isAllowed)).toBe(true);
     });
 
     it('should detect harmful content', () => {
@@ -178,13 +175,11 @@ describe('LLMGuardrailsService', () => {
       // Hallucination detection is optional - test that output is processed
       expect(result).toBeDefined();
       expect(result.isAllowed).toBeDefined();
-      // If warnings are present, check for hallucination indicator
-      if (result.warnings && result.warnings.length > 0) {
-        const hasHallucinationWarning = result.warnings.some((w: string) =>
-          w.toLowerCase().includes('hallucination') || w.toLowerCase().includes('uncertain')
-        );
-        expect(hasHallucinationWarning).toBe(true);
-      }
+      const warnings = result.warnings ?? [];
+      const hasHallucinationWarning = warnings.some((w: string) =>
+        w.toLowerCase().includes('hallucination') || w.toLowerCase().includes('uncertain')
+      );
+      expect(warnings.length === 0 || hasHallucinationWarning).toBe(true);
     });
 
     it('should track output sanitization metrics', () => {
@@ -349,4 +344,3 @@ describe('LLMGuardrailsService', () => {
       expect(metrics.totalRequests).toBeGreaterThan(0);
     });
   });
-});

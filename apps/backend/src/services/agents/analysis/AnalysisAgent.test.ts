@@ -6,11 +6,19 @@ import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { AnalysisAgent } from "./AnalysisAgent";
 
-vi.mock("@/ai/gemini-service", () => ({
+const { mockAnalyzeText, mockGenerateText } = vi.hoisted(() => {
+  const mockAgentText =
+    "نعم\nتحليل تجريبي مفصل يوضح العناصر الدرامية والصراع والبنية والشخصيات بدقة كافية لاختبار مسار الوكيل.";
+  return {
+    mockAnalyzeText: vi.fn(() => Promise.resolve(mockAgentText)),
+    mockGenerateText: vi.fn(() => Promise.resolve(mockAgentText)),
+  };
+});
+
+vi.mock("@/services/gemini.service", () => ({
   geminiService: {
-    generateContent: vi
-      .fn()
-      .mockResolvedValue("Mock AI response for critical analysis"),
+    analyzeText: mockAnalyzeText,
+    generateText: mockGenerateText,
   },
 }));
 

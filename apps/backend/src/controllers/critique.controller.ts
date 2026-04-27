@@ -32,7 +32,7 @@ export class CritiqueController {
    * Get all critique configurations
    * الحصول على جميع تكوينات النقد
    */
-  async getAllCritiqueConfigs(_req: Request, res: Response): Promise<void> {
+  getAllCritiqueConfigs(_req: Request, res: Response): void {
     try {
       const configurations = getAllCritiqueConfigurations();
       
@@ -56,9 +56,9 @@ export class CritiqueController {
    * Get critique configuration for specific task type
    * الحصول على تكوين النقد لنوع المهمة المحدد
    */
-  async getCritiqueConfig(req: Request, res: Response): Promise<void> {
+  getCritiqueConfig(req: Request, res: Response): void {
     try {
-      const { taskType } = req.params;
+      const taskType = getRouteParam(req, 'taskType');
       
       if (!taskType || !Object.values(TaskType).includes(taskType as TaskType)) {
         res.status(400).json({
@@ -99,9 +99,9 @@ export class CritiqueController {
    * Get dimension details for specific task type
    * الحصول على تفاصيل الأبعاد لنوع المهمة المحدد
    */
-  async getDimensionDetails(req: Request, res: Response): Promise<void> {
+  getDimensionDetails(req: Request, res: Response): void {
     try {
-      const { taskType } = req.params;
+      const taskType = getRouteParam(req, 'taskType');
       
       if (!taskType || !Object.values(TaskType).includes(taskType as TaskType)) {
         res.status(400).json({
@@ -198,3 +198,8 @@ export class CritiqueController {
 
 // Export singleton instance
 export const critiqueController = new CritiqueController();
+
+function getRouteParam(req: Request, name: string): string | undefined {
+  const value = req.params[name];
+  return typeof value === 'string' ? value : undefined;
+}

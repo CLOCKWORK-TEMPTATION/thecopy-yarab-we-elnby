@@ -8,7 +8,22 @@ import { TaskType } from './core/enums';
 import { createWorkflow } from './core/workflow-builder';
 import { WorkflowExecutor } from './core/workflow-executor';
 import { getPresetWorkflow } from './core/workflow-presets';
-import { AgentStatus } from './core/workflow-types';
+import {
+  AgentStatus,
+  WorkflowConfig,
+  WorkflowContext,
+  WorkflowExecutionPlan,
+  WorkflowMetrics,
+} from './core/workflow-types';
+
+interface WorkflowExecutorInternals {
+  buildExecutionPlan(config: WorkflowConfig): WorkflowExecutionPlan;
+  calculateMetrics(context: WorkflowContext): WorkflowMetrics;
+}
+
+function executorInternals(executor: WorkflowExecutor): WorkflowExecutorInternals {
+  return executor as unknown as WorkflowExecutorInternals;
+}
 
 describe('Workflow Builder', () => {
   it('should create a basic workflow', () => {
@@ -95,7 +110,7 @@ describe('Workflow Executor', () => {
       )
       .build();
 
-    const plan = (executor as any).buildExecutionPlan(workflow);
+    const plan = executorInternals(executor).buildExecutionPlan(workflow);
 
     expect(plan.stages).toBeDefined();
     expect(plan.stages.length).toBeGreaterThan(0);
@@ -116,11 +131,11 @@ describe('Workflow Executor', () => {
     ];
 
     expect(() => {
-      (executor as any).buildExecutionPlan(workflow);
+      executorInternals(executor).buildExecutionPlan(workflow);
     }).toThrow('Circular dependency');
   });
 
-  it('should emit workflow events', async () => {
+  it('should emit workflow events', () => {
     const events: string[] = [];
 
     executor.on('step-started', (event) => {
@@ -137,7 +152,9 @@ describe('Workflow Executor', () => {
   });
 
   it('should calculate metrics correctly', () => {
-    const context: any = {
+    const context: WorkflowContext = {
+      workflowId: 'workflow-test',
+      input: { input: 'test' },
       results: new Map([
         [
           'step1',
@@ -171,9 +188,10 @@ describe('Workflow Executor', () => {
         completedSteps: 2,
         failedSteps: 0,
       },
+      sharedData: new Map(),
     };
 
-    const metrics = (executor as any).calculateMetrics(context);
+    const metrics = executorInternals(executor).calculateMetrics(context);
 
     expect(metrics.totalExecutionTime).toBe(20000);
     expect(metrics.successRate).toBe(1);

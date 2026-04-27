@@ -276,9 +276,15 @@ export function ColorGradingPreview({
   // Copy grade settings
   const copySettings = () => {
     const settings = JSON.stringify(grade, null, 2);
-    navigator.clipboard.writeText(settings);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard
+      .writeText(settings)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        setCopied(false);
+      });
   };
 
   // Notify parent of changes

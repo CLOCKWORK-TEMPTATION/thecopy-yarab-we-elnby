@@ -1,4 +1,3 @@
-import { logger } from "@/lib/logger";
 import { logger } from "../src/rag/config.js";
 import { askQuestion } from "../src/rag/query.js";
 
@@ -43,4 +42,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error: unknown) => {
+  logger.error({ error }, "❌ Unexpected query failure");
+  process.exit(1);
+});

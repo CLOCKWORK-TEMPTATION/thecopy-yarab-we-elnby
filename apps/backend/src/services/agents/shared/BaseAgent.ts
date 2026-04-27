@@ -215,11 +215,11 @@ export abstract class BaseAgent {
    * @param output - نتيجة المعالجة الأولية
    * @returns النتيجة بعد المعالجة اللاحقة
    */
-  protected async postProcess(
+  protected postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // افتراضي: لا توجد معالجة لاحقة
-    return output;
+    return Promise.resolve(output);
   }
 
   /**

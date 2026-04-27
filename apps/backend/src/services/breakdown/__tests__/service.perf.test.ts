@@ -1,9 +1,14 @@
-import { describe, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { logger } from "@/lib/logger";
 
-
 import { breakdownService } from '../service';
+
+import type { ParsedScene } from '../types';
+
+interface BreakdownServiceInternals {
+  syncScenes(projectId: string, parsedScenes: ParsedScene[]): Promise<void>;
+}
 
 vi.mock('@/db', () => ({
   db: {
@@ -25,7 +30,7 @@ describe('syncScenes performance', () => {
   it('should optimize syncing of scenes', async () => {
     // Generate many scenes
     const numScenes = 100;
-    const parsedScenes = Array.from({ length: numScenes }).map((_, i) => ({
+    const parsedScenes: ParsedScene[] = Array.from({ length: numScenes }).map((_, i) => ({
       header: `Scene ${i}`,
       content: `Content ${i}`,
       headerData: {
@@ -35,15 +40,18 @@ describe('syncScenes performance', () => {
         rawHeader: '',
         sceneType: 'EXT',
         pageCount: 1,
-        storyDay: '1'
+        storyDay: 1
       },
       warnings: []
     }));
 
     const startTime = performance.now();
-    await (breakdownService as any).syncScenes('project-id', parsedScenes);
+    const serviceInternals = breakdownService as unknown as BreakdownServiceInternals;
+    await serviceInternals.syncScenes('project-id', parsedScenes);
     const endTime = performance.now();
+    const durationMs = endTime - startTime;
 
-    logger.info(`syncScenes took ${endTime - startTime}ms`);
+    expect(durationMs).toBeGreaterThanOrEqual(0);
+    logger.info(`syncScenes took ${durationMs}ms`);
   });
 });

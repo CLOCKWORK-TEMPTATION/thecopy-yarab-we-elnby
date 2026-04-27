@@ -32,11 +32,17 @@ function readMultipartImage(req: Request): { imageBase64?: string; mimeType?: st
   if (file?.buffer) {
     return {
       imageBase64: Buffer.from(file.buffer).toString('base64'),
-      mimeType: file.mimetype || 'image/png',
+      mimeType: file.mimetype ?? 'image/png',
     };
   }
 
   return {};
+}
+
+function readBodyRecord(req: Request): Record<string, unknown> {
+  return typeof req.body === 'object' && req.body !== null
+    ? (req.body as Record<string, unknown>)
+    : {};
 }
 
 export class CineAIController {
@@ -44,7 +50,7 @@ export class CineAIController {
     try {
       const multipart = readMultipartImage(req);
       const payload = {
-        ...req.body,
+        ...readBodyRecord(req),
         ...multipart,
       };
 
@@ -105,8 +111,8 @@ export class CineAIController {
         success: true,
         ...result,
         sceneType: validation.data.sceneType,
-        mood: validation.data.mood || 'neutral',
-        temperature: validation.data.temperature || 5500,
+        mood: validation.data.mood ?? 'neutral',
+        temperature: validation.data.temperature ?? 5500,
         generatedAt: new Date().toISOString(),
         source: 'backend',
       });

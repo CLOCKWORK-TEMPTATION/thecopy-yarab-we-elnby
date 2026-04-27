@@ -82,7 +82,7 @@ export class WeaviateIndexingService {
       stats.chunksIndexed += fileStats.chunksIndexed;
 
       for (const [collection, count] of Object.entries(fileStats.collections)) {
-        stats.collections[collection] = (stats.collections[collection] || 0) + count;
+        stats.collections[collection] = (stats.collections[collection] ?? 0) + count;
       }
     }
 
@@ -529,7 +529,7 @@ export class WeaviateIndexingService {
 
   private extractTitle(content: string): string {
     const heading = /^#\s+(.+)$/m.exec(content);
-    return heading?.[1]?.trim() || "Untitled";
+    return heading?.[1]?.trim() ?? "Untitled";
   }
 
   private isDecisionFile(file: FileInfo): boolean {

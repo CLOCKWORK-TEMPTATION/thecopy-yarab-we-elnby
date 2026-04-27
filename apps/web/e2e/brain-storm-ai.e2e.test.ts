@@ -3,8 +3,9 @@
  * يختبر التدفق الكامل من منظور المستخدم النهائي
  */
 
-import { logger } from "@/lib/logger";
 import { test, expect } from "@playwright/test";
+
+import { logger } from "@/lib/logger";
 
 test.describe("E2E: brain-storm-ai — تدفق تشغيلي كامل", () => {
   test.setTimeout(60000); // 60 ثانية للاختبارات الطويلة

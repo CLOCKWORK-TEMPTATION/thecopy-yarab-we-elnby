@@ -99,7 +99,7 @@ vi.mock("@/memory", async () => {
 
 vi.mock("@/services/auth.service", () => ({
   authService: {
-    signup: vi.fn(async (email: string, password: string, firstName?: string, lastName?: string) => {
+    signup: vi.fn((email: string, password: string, firstName?: string, lastName?: string) => {
       const existingUser = state.users.find((user) => user.email === email);
       if (existingUser) {
         throw new Error("المستخدم موجود بالفعل");
@@ -131,7 +131,7 @@ vi.mock("@/services/auth.service", () => ({
       };
     }),
 
-    login: vi.fn(async (email: string, password: string) => {
+    login: vi.fn((email: string, password: string) => {
       const user = state.users.find(
         (candidate) => candidate.email === email && candidate.password === password
       );
@@ -156,7 +156,7 @@ vi.mock("@/services/auth.service", () => ({
       };
     }),
 
-    getUserById: vi.fn(async (userId: string) => {
+    getUserById: vi.fn((userId: string) => {
       const user = state.users.find((candidate) => candidate.id === userId);
 
       return user
@@ -182,8 +182,8 @@ vi.mock("@/services/auth.service", () => ({
       return { userId, sub: userId };
     }),
 
-    revokeRefreshToken: vi.fn(async () => undefined),
-    refreshAccessToken: vi.fn(async () => ({
+    revokeRefreshToken: vi.fn(() => undefined),
+    refreshAccessToken: vi.fn(() => ({
       accessToken: "token-refreshed",
       refreshToken: "refresh-refreshed",
     })),
@@ -218,19 +218,19 @@ vi.mock("@/db", async () => {
           if (table !== schema.projects) {
             return {
               where: () => [],
-              orderBy: async () => [],
+              orderBy: () => [],
               then: (resolve: (value: unknown[]) => unknown) => resolve([]),
             };
           }
 
           const asQuery = (rows: typeof state.projects) => ({
             where: (condition: unknown) => asQuery(filterProjects(condition)),
-            orderBy: async () =>
+            orderBy: () =>
               [...rows].sort(
                 (left, right) =>
                   right.updatedAt.getTime() - left.updatedAt.getTime()
               ),
-            limit: async (limit: number) => rows.slice(0, limit),
+            limit: (limit: number) => rows.slice(0, limit),
             then: (
               resolve: (value: typeof rows) => unknown,
               reject?: (reason: unknown) => unknown
@@ -245,7 +245,7 @@ vi.mock("@/db", async () => {
         values: (values: Record<string, unknown>) => {
           if (table !== schema.projects) {
             return {
-              returning: async () => [],
+              returning: () => [],
             };
           }
 
@@ -265,7 +265,7 @@ vi.mock("@/db", async () => {
           state.projects.push(project);
 
           return {
-            returning: async () => [project],
+            returning: () => [project],
           };
         },
       })),
@@ -273,13 +273,13 @@ vi.mock("@/db", async () => {
       update: vi.fn(() => ({
         set: () => ({
           where: () => ({
-            returning: async () => [],
+            returning: () => [],
           }),
         }),
       })),
 
       delete: vi.fn(() => ({
-        where: async () => ({ rowCount: 0 }),
+        where: () => ({ rowCount: 0 }),
       })),
     },
   };
@@ -297,6 +297,28 @@ function extractCookieValue(
     ?.find((cookie) => cookie.startsWith(`${cookieName}=`))
     ?.split(";")[0]
     ?.split("=")[1];
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? value as Record<string, unknown> : {};
+}
+
+function responseBody(response: { body: unknown }): Record<string, unknown> {
+  return asRecord(response.body);
+}
+
+function nestedRecord(source: Record<string, unknown>, field: string): Record<string, unknown> {
+  return asRecord(source[field]);
+}
+
+function stringField(source: Record<string, unknown>, field: string): string | undefined {
+  const value = source[field];
+  return typeof value === "string" ? value : undefined;
+}
+
+function arrayField(source: Record<string, unknown>, field: string): unknown[] {
+  const value = source[field];
+  return Array.isArray(value) ? value : [];
 }
 
 describe("Controllers Integration Tests", () => {
@@ -321,13 +343,16 @@ describe("Controllers Integration Tests", () => {
       .send(testUser)
       .expect(201);
 
-    token = signupResponse.body.data.token;
-    authCookies = signupResponse.headers["set-cookie"] || [];
+    const signupBody = responseBody(signupResponse);
+    const signupData = nestedRecord(signupBody, "data");
+    token = stringField(signupData, "token") ?? "";
+    authCookies = signupResponse.headers["set-cookie"] ?? [];
     csrfToken =
-      extractCookieValue(authCookies, "XSRF-TOKEN") || "";
+      extractCookieValue(authCookies, "XSRF-TOKEN") ?? "";
 
-    expect(token).toBeDefined();
-    expect(csrfToken).toBeTruthy();
+    if (!token || !csrfToken) {
+      throw new Error("Authentication setup failed");
+    }
   });
 
   describe("Auth Controller", () => {
@@ -337,8 +362,10 @@ describe("Controllers Integration Tests", () => {
         .send(testUser)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.token).toBeDefined();
+      const body = responseBody(response);
+      const data = nestedRecord(body, "data");
+      expect(body["success"]).toBe(true);
+      expect(data["token"]).toBeDefined();
     });
 
     it("should get current user", async () => {
@@ -347,9 +374,12 @@ describe("Controllers Integration Tests", () => {
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.user.email).toBe(testUser.email);
+      const body = responseBody(response);
+      const data = nestedRecord(body, "data");
+      const user = nestedRecord(data, "user");
+      expect(body["success"]).toBe(true);
+      expect(user).toBeDefined();
+      expect(user["email"]).toBe(testUser.email);
     });
   });
 
@@ -366,9 +396,11 @@ describe("Controllers Integration Tests", () => {
         })
         .expect(201);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.title).toBe("Test Project");
-      expect(response.body.data.id).toBeDefined();
+      const body = responseBody(response);
+      const data = nestedRecord(body, "data");
+      expect(body["success"]).toBe(true);
+      expect(data["title"]).toBe("Test Project");
+      expect(data["id"]).toBeDefined();
     });
 
     it("should get all projects", async () => {
@@ -388,9 +420,11 @@ describe("Controllers Integration Tests", () => {
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.success).toBe(true);
-      expect(Array.isArray(response.body.data)).toBe(true);
-      expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+      const body = responseBody(response);
+      const data = arrayField(body, "data");
+      expect(body["success"]).toBe(true);
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -401,8 +435,9 @@ describe("Controllers Integration Tests", () => {
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.stations).toBeDefined();
-      expect(response.body.totalStations).toBe(7);
+      const body = responseBody(response);
+      expect(body["stations"]).toBeDefined();
+      expect(body["totalStations"]).toBe(7);
     });
   });
 });

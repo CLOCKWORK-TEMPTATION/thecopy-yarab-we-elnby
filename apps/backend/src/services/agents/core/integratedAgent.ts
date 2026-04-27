@@ -40,7 +40,7 @@ export class IntegratedAgent {
    */
   constructor(agentConfig: AIAgentConfig, apiKey: string) {
     this.agentConfig = agentConfig;
-    this.config = agentsConfig[agentConfig.id || 'default'] || agentsConfig.default;
+    this.config = agentsConfig[agentConfig.id ?? 'default'] ?? agentsConfig.default;
     this.geminiService = new GeminiService(apiKey, this.config);
   }
 
@@ -55,7 +55,7 @@ export class IntegratedAgent {
    * @returns نتيجة التنفيذ (تختلف حسب الوكيل)
    * @throws خطأ إذا لم يتم تنفيذ الطريقة في الفئة الفرعية
    */
-  public async execute(..._args: unknown[]): Promise<unknown> {
-    throw new Error("يجب تنفيذ طريقة 'execute()' في الفئة الفرعية.");
+  public execute(..._args: unknown[]): Promise<unknown> {
+    return Promise.reject(new Error("يجب تنفيذ طريقة 'execute()' في الفئة الفرعية."));
   }
 }

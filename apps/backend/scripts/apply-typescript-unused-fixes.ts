@@ -15,7 +15,9 @@ interface FileEdit {
 }
 
 function loadTsConfig(configPath: string) {
-  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+  const configFile = ts.readConfigFile(configPath, (fileName) =>
+    ts.sys.readFile(fileName),
+  );
   if (configFile.error) {
     throw new Error(
       ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n"),
@@ -45,11 +47,12 @@ function createLanguageService(
     getCurrentDirectory: () => currentDirectory,
     getCompilationSettings: () => parsed.options,
     getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
-    fileExists: ts.sys.fileExists,
-    readFile: ts.sys.readFile,
-    readDirectory: ts.sys.readDirectory,
-    directoryExists: ts.sys.directoryExists,
-    getDirectories: ts.sys.getDirectories,
+    fileExists: (fileName) => ts.sys.fileExists(fileName),
+    readFile: (fileName) => ts.sys.readFile(fileName),
+    readDirectory: (rootDir, extensions, excludes, includes, depth) =>
+      ts.sys.readDirectory(rootDir, extensions, excludes, includes, depth),
+    directoryExists: (directoryName) => ts.sys.directoryExists?.(directoryName) ?? false,
+    getDirectories: (pathName) => ts.sys.getDirectories(pathName),
   };
 
   return ts.createLanguageService(serviceHost, ts.createDocumentRegistry());
@@ -164,7 +167,7 @@ function applyEdits(edits: FileEdit[]): number {
   return filesChanged;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const configArg = process.argv[2] ?? "tsconfig.json";
   const configPath = path.resolve(process.cwd(), configArg);
   const parsed = loadTsConfig(configPath);
@@ -213,7 +216,9 @@ async function main(): Promise<void> {
   logger.info(`Finished. Files changed: ${totalChangedFiles}.`);
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   logger.error("Failed to apply TypeScript unused fixes.", error);
   process.exit(1);
-});
+}

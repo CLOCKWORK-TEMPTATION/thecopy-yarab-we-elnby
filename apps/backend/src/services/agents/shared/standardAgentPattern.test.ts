@@ -45,7 +45,6 @@ import {
   type StandardAgentOutput,
 } from './standardAgentPattern';
 
-describe('Standard Agent Pattern', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -82,7 +81,6 @@ describe('Standard Agent Pattern', () => {
     });
   });
 
-  describe('executeStandardAgentPattern', () => {
     it('ينفذ النمط القياسي بنجاح عند تعطيل المراحل الاختيارية', async () => {
       const result = await executeStandardAgentPattern(
         'قم بتحليل النص التالي',
@@ -239,7 +237,6 @@ describe('Standard Agent Pattern', () => {
       expect(result.text).toContain('API Error');
       expect(result.notes.some((note) => note.includes('خطأ'))).toBe(true);
     });
-  });
 
   describe('formatAgentOutput', () => {
     it('ينسق الناتج النصي مع الملاحظات والبيانات الإضافية', () => {
@@ -316,4 +313,3 @@ describe('Standard Agent Pattern', () => {
       expect(result.metadata?.critiqueIterations).toBe(1);
     });
   });
-});

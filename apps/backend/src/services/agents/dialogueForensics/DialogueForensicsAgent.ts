@@ -46,7 +46,7 @@ export class DialogueForensicsAgent extends BaseAgent {
     super(
       "DialogueForensics AI",
       TaskType.DIALOGUE_FORENSICS,
-      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt || ""
+      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.83;
@@ -73,10 +73,10 @@ export class DialogueForensicsAgent extends BaseAgent {
    */
   private buildDialogueContextSection(ctx: DialogueForensicsContext | undefined): string {
     let section = "";
-    const originalText = ctx?.originalText || "";
-    const characters = ctx?.characters || [];
-    const dialogueSamples = ctx?.dialogueSamples || [];
-    const focusAreas = ctx?.focusAreas || ["authenticity", "subtext", "character-voice"];
+    const originalText = ctx?.originalText ?? "";
+    const characters = ctx?.characters ?? [];
+    const dialogueSamples = ctx?.dialogueSamples ?? [];
+    const focusAreas = ctx?.focusAreas ?? ["authenticity", "subtext", "character-voice"];
 
     if (originalText) {
       section += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
@@ -96,7 +96,7 @@ export class DialogueForensicsAgent extends BaseAgent {
     let result = `الشخصيات في الحوار:\n`;
     characters.slice(0, 6).forEach((char, idx) => {
       const charName =
-        typeof char === "string" ? char : char.name || `شخصية ${idx + 1}`;
+        typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
       result += `${idx + 1}. ${charName}\n`;
     });
     return result + "\n";
@@ -210,15 +210,15 @@ export class DialogueForensicsAgent extends BaseAgent {
 لا تستخدم JSON أو جداول معقدة - نص تحليلي واضح فقط.`;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     const processedText = cleanupDialogueText(output.text);
 
-    const authenticity = await assessAuthenticity(processedText);
-    const characterization = await assessCharacterization(processedText);
-    const functionality = await assessFunctionality(processedText);
-    const technicalQuality = await assessTechnicalQuality(processedText);
+    const authenticity = assessAuthenticity(processedText);
+    const characterization = assessCharacterization(processedText);
+    const functionality = assessFunctionality(processedText);
+    const technicalQuality = assessTechnicalQuality(processedText);
 
     const qualityScore =
       authenticity * 0.3 +
@@ -228,13 +228,12 @@ export class DialogueForensicsAgent extends BaseAgent {
 
     const adjustedConfidence = output.confidence * 0.5 + qualityScore * 0.5;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
       notes: generateDialogueNotes(
         output.notes,
-        output.confidence,
         authenticity,
         characterization,
         functionality,
@@ -253,13 +252,13 @@ export class DialogueForensicsAgent extends BaseAgent {
         recommendationsProvided: countRecommendations(processedText),
         dialogueSamplesAnalyzed: countDialogueSamples(processedText),
       },
-    };
+    });
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `نظرة عامة:
+    return Promise.resolve(`نظرة عامة:
 الحوار في النص يحتاج إلى تقييم شامل للأصالة والوظيفة الدرامية.
 
 الأصالة والطبيعية:
@@ -283,7 +282,7 @@ export class DialogueForensicsAgent extends BaseAgent {
 
 التقييم: 6.5/10 - حوار وظيفي يحتاج صقل وتعميق
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من نماذج الحوار للحصول على تحليل تشريحي أكثر تفصيلاً ودقة مع أمثلة محددة وتوصيات قابلة للتطبيق.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من نماذج الحوار للحصول على تحليل تشريحي أكثر تفصيلاً ودقة مع أمثلة محددة وتوصيات قابلة للتطبيق.`);
   }
 }
 

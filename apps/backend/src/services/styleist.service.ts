@@ -70,7 +70,7 @@ function isDataUrl(input: string): boolean {
 async function resolveImageSource(input: string): Promise<{ data: string; mimeType: string }> {
   if (isDataUrl(input)) {
     const [metadata, payload] = input.split(',', 2);
-    const mimeType = metadata?.match(/^data:(.*?);base64$/)?.[1] || 'image/png';
+    const mimeType = metadata?.match(/^data:(.*?);base64$/)?.[1] ?? 'image/png';
     return { data: payload ?? '', mimeType };
   }
 
@@ -79,7 +79,7 @@ async function resolveImageSource(input: string): Promise<{ data: string; mimeTy
     throw new Error(`Failed to fetch source image: ${response.status}`);
   }
 
-  const mimeType = response.headers.get('content-type') || 'image/png';
+  const mimeType = response.headers.get('content-type') ?? 'image/png';
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
     data: buffer.toString('base64'),
@@ -226,11 +226,11 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     const conceptArtUrl = await platformGenAIService.generateImage(imagePrompt);
 
     return {
-      lookTitle: result["lookTitle"] || 'تصميم مخصص',
-      dramaticDescription: result["dramaticDescription"] || '',
-      breakdown: result["breakdown"] || {},
+      lookTitle: result["lookTitle"] ?? 'تصميم مخصص',
+      dramaticDescription: result["dramaticDescription"] ?? '',
+      breakdown: result["breakdown"] ?? {},
       rationale: Array.isArray(result["rationale"]) ? result["rationale"] : [],
-      productionNotes: result["productionNotes"] || {},
+      productionNotes: result["productionNotes"] ?? {},
       imagePrompt,
       conceptArtUrl,
       realWeather: weather,
@@ -271,7 +271,7 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     }
 
     const description = await platformGenAIService.generateText(
-      `Describe in Egyptian Arabic a production-ready garment based on this prompt: ${prompt}. Mention fabric, silhouette, and styling notes. Requested size tier: ${size || '2K'}.`,
+      `Describe in Egyptian Arabic a production-ready garment based on this prompt: ${prompt}. Mention fabric, silhouette, and styling notes. Requested size tier: ${size ?? '2K'}.`,
       { temperature: 0.5, maxOutputTokens: 2048 }
     );
     const imageUrl = await platformGenAIService.generateImage(

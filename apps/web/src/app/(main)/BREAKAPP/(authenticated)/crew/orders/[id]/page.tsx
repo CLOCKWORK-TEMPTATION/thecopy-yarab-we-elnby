@@ -101,7 +101,13 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
   }, [orderId]);
 
   useEffect(() => {
-    fetchOrder();
+    fetchOrder().catch(() => {
+      toast({
+        title: "خطأ في جلب الطلب",
+        description: "تعذّر تحميل تفاصيل الطلب",
+        variant: "destructive",
+      });
+    });
   }, [fetchOrder]);
 
   /**

@@ -85,7 +85,7 @@ async function processDirectory(dirPath: string): Promise<SanitizationResult[]> 
         const subResults = await processDirectory(fullPath);
         results.push(...subResults);
       } else if (entry.isFile() && isLogFile(entry.name)) {
-        const result = await sanitizeLogFile(fullPath);
+        const result = sanitizeLogFile(fullPath);
         if (result) {
           results.push(result);
         }
@@ -109,7 +109,7 @@ function isLogFile(filename: string): boolean {
 /**
  * Sanitize a single log file
  */
-async function sanitizeLogFile(filePath: string): Promise<SanitizationResult | null> {
+function sanitizeLogFile(filePath: string): SanitizationResult | null {
   try {
     logger.info(`  📄 Processing: ${path.basename(filePath)}`);
 

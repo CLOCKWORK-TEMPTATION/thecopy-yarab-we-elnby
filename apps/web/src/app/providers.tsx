@@ -46,9 +46,13 @@ function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (process.env["NEXT_PUBLIC_TRACING_ENABLED"] !== "true") return;
     const id = setTimeout(() => {
-      import("@/lib/tracing").then(({ initBrowserTracing }) => {
-        initBrowserTracing();
-      });
+      import("@/lib/tracing")
+        .then(({ initBrowserTracing }) => {
+          initBrowserTracing();
+        })
+        .catch(() => {
+          // لا نعطل التطبيق إذا فشل تحميل التتبع الاختياري.
+        });
     }, 3000);
     return () => clearTimeout(id);
   }, []);

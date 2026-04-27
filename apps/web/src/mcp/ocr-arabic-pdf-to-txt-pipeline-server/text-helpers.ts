@@ -208,7 +208,20 @@ export function str(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
   }
-  return String(value);
+  if (typeof value === "number" || typeof value === "boolean") {
+    return value.toString();
+  }
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+  if (typeof value === "symbol") {
+    return value.description ?? "";
+  }
+  try {
+    return JSON.stringify(value) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 export function toNumberInt(raw: string | undefined, fallback: number): number {

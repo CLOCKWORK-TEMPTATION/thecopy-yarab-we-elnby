@@ -9,8 +9,9 @@
  * المدخل: ملف JSON ناتج من ocr-mistral.ts أو أي مصدر يتبع نفس الهيكل
  */
 
-import { logger } from "@/lib/logger";
 import { readFileSync, writeFileSync } from "node:fs";
+
+import { logger } from "@/lib/logger";
 
 // ─── أنواع البيانات ───────────────────────────────────────────
 

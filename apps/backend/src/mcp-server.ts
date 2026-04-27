@@ -1,10 +1,66 @@
 import './bootstrap/runtime-alias';
-import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { createRequire } from 'node:module';
+
 import express from 'express';
 import helmet from 'helmet';
 
 import { logger } from '@/lib/logger';
+
+import type { Request, Response } from 'express';
+
+interface ToolResult {
+  content: { type: 'text'; text: string }[];
+  structuredContent?: Record<string, unknown>;
+}
+
+interface ResourceResult {
+  contents: { uri: string; text: string }[];
+}
+
+type ResourceTemplateInstance = object;
+
+interface StreamableHTTPTransportInstance {
+  close(): Promise<void> | void;
+  handleRequest(req: Request, res: Response, body: unknown): Promise<void>;
+}
+
+interface McpServerInstance {
+  registerTool(
+    name: string,
+    config: Record<string, unknown>,
+    handler: (args: { a: number; b: number }) => ToolResult
+  ): void;
+  registerResource(
+    name: string,
+    template: ResourceTemplateInstance,
+    config: Record<string, unknown>,
+    handler: (uri: URL, args: { name: string }) => ResourceResult
+  ): void;
+  connect(transport: StreamableHTTPTransportInstance): Promise<void>;
+}
+
+interface McpServerModule {
+  McpServer: new (config: { name: string; version: string }) => McpServerInstance;
+  ResourceTemplate: new (
+    template: string,
+    options: { list: undefined }
+  ) => ResourceTemplateInstance;
+}
+
+interface StreamableHttpModule {
+  StreamableHTTPServerTransport: new (options: {
+    sessionIdGenerator: undefined;
+    enableJsonResponse: boolean;
+  }) => StreamableHTTPTransportInstance;
+}
+
+const loadRuntimeModule = createRequire(__filename);
+const { McpServer, ResourceTemplate } = loadRuntimeModule(
+  '@modelcontextprotocol/sdk/server/mcp.js'
+) as McpServerModule;
+const { StreamableHTTPServerTransport } = loadRuntimeModule(
+  '@modelcontextprotocol/sdk/server/streamableHttp.js'
+) as StreamableHttpModule;
 
 // Create an MCP server
 const server = new McpServer({
@@ -27,7 +83,7 @@ server.registerTool(
       required: ['a', 'b']
     }
   },
-  async ({ a, b }: { a: number; b: number }) => {
+  ({ a, b }: { a: number; b: number }) => {
     const output = { result: a + b };
     logger.info('Addition tool called', { a, b, result: output.result });
     return {
@@ -45,7 +101,7 @@ server.registerResource(
     title: 'Greeting Resource',
     description: 'Dynamic greeting generator'
   },
-  async (uri: URL, { name }: { name: string }) => {
+  (uri: URL, { name }: { name: string }) => {
     logger.info('Greeting resource accessed', { name });
     return {
       contents: [
@@ -71,14 +127,14 @@ app.post('/mcp', async (req, res) => {
   });
 
   res.on('close', () => {
-    transport.close();
+    void transport.close();
   });
 
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
 });
 
-const port = parseInt(process.env['MCP_PORT'] || '3000');
+const port = parseInt(process.env['MCP_PORT'] ?? '3000');
 
 app.listen(port, () => {
   logger.info(`Demo MCP Server running on http://localhost:${port}/mcp`);

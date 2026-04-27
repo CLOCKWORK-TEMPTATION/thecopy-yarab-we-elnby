@@ -29,7 +29,9 @@ let lastBlobOptions: BlobPropertyBag = {};
 
 class MockBlob {
   constructor(parts: BlobPart[], options?: BlobPropertyBag) {
-    lastBlobContent = parts.join("");
+    lastBlobContent = parts
+      .map((part) => (typeof part === "string" ? part : ""))
+      .join("");
     lastBlobOptions = options ?? {};
   }
 }

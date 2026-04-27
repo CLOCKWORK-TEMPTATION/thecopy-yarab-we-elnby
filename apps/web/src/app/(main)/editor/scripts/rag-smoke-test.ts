@@ -1,4 +1,3 @@
-import { logger } from "@/lib/logger";
 import * as path from "path";
 
 import { chunkFile } from "../src/rag/chunker.js";
@@ -84,4 +83,7 @@ async function smokeTest() {
   }
 }
 
-smokeTest();
+smokeTest().catch((error: unknown) => {
+  logger.error({ error }, "❌ Unexpected smoke test failure");
+  process.exit(1);
+});

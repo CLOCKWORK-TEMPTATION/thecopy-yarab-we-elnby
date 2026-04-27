@@ -97,7 +97,7 @@ export class AgentDebator {
           enableRAG: true,
           enableSelfCritique: true,
         },
-        context: context || '',
+        context: context ?? '',
       });
 
       // تحليل وهيكلة الحجة
@@ -109,7 +109,7 @@ export class AgentDebator {
         reasoning: this.extractReasoning(result.text),
         evidence: this.extractEvidence(result.text),
         confidence: result.confidence,
-        referencesTo: previousArguments?.map(arg => arg.id) || [],
+        referencesTo: previousArguments?.map(arg => arg.id) ?? [],
         timestamp: new Date(),
       };
 
@@ -161,7 +161,7 @@ export class AgentDebator {
       const result = await this.agent.executeTask({
         input: prompt,
         options: { temperature: 0.7, enableRAG: true, enableSelfCritique: true },
-        context: context || '',
+        context: context ?? '',
       });
 
       return {
@@ -369,10 +369,10 @@ ${arg.position}
   private extractReasoning(text: string): string {
     // البحث عن أنماط التبرير بالعربية
     const patterns = [
-      /لأن[^\.]+\./g,
-      /بسبب[^\.]+\./g,
-      /نظراً[^\.]+\./g,
-      /حيث أن[^\.]+\./g,
+      /لأن[^.]+\./g,
+      /بسبب[^.]+\./g,
+      /نظراً[^.]+\./g,
+      /حيث أن[^.]+\./g,
     ];
 
     let reasoning = '';
@@ -401,14 +401,14 @@ ${arg.position}
     // البحث عن النقاط المرقمة أو القوائم
     const lines = text.split('\n');
     for (const line of lines) {
-      if ((/^[\-\*\•]\s/.exec(line)) || (/^\d+[\.\)]\s/.exec(line))) {
+      if ((/^[-*•]\s/.exec(line)) || (/^\d+[.)]\s/.exec(line))) {
         evidence.push(line.trim());
       }
     }
 
     // إذا لم يتم العثور على أدلة منظمة، استخراج الجمل مع المؤشرات الرئيسية
     if (evidence.length === 0) {
-      const sentences = text.match(/[^\.!؟]+[\.!؟]/g) || [];
+      const sentences = text.match(/[^.!؟]+[.!؟]/g) ?? [];
       const keyPhrases = ['مثل', 'على سبيل المثال', 'الدليل', 'يظهر', 'يوضح', 'تشير'];
 
       for (const sentence of sentences) {

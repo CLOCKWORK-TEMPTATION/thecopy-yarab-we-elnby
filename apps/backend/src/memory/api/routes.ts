@@ -39,6 +39,19 @@ const memoryIndexBodySchema = z.object({
   dimensionality: z.union([z.literal(768), z.literal(1536), z.literal(3072)]).optional(),
 }).passthrough();
 
+const contextQueryBodySchema = z.object({
+  query: z.string().min(1),
+  agentId: z.string().min(1),
+  conversationId: z.string().optional(),
+  filePath: z.string().optional(),
+  contentType: z
+    .array(z.enum(["code", "documentation", "decision", "architecture", "ad-hoc"]))
+    .optional(),
+  profile: z.enum(["analysis", "completion", "summarization", "code"]).optional(),
+  topK: z.number().int().positive().optional(),
+  recencyBias: z.number().optional(),
+}).passthrough();
+
 const memoryRememberBodySchema = z.object({
   type: z.enum(["decision", "documentation"]),
   content: z.string().min(1),
@@ -101,15 +114,28 @@ router.get("/health", memoryHealthHandler);
  */
 router.post("/context", async (req, res): Promise<void> => {
   try {
-    const query: ContextQuery = req.body;
+    const parsed = contextQueryBodySchema.safeParse(req.body);
 
-    if (!query.query || !query.agentId) {
+    if (!parsed.success) {
       res.status(400).json({
         error: "Missing required fields: query, agentId",
       });
       return;
     }
 
+    const queryData = parsed.data;
+    const query: ContextQuery = {
+      query: queryData.query,
+      agentId: queryData.agentId,
+      ...definedProps({
+        conversationId: queryData.conversationId,
+        filePath: queryData.filePath,
+        contentType: queryData.contentType,
+        profile: queryData.profile,
+        topK: queryData.topK,
+        recencyBias: queryData.recencyBias,
+      }),
+    };
     const context = await contextBuilder.buildContext(query);
 
     res.json({
@@ -257,7 +283,7 @@ router.get("/stats", async (_req, res) => {
       collections: stats,
       totalDocuments: Object.values(stats).reduce((a, b) => a + b, 0),
       storage: {
-        weaviate: process.env.WEAVIATE_URL || "http://localhost:8080",
+        weaviate: process.env.WEAVIATE_URL ?? "http://localhost:8080",
       },
     });
   } catch (error) {

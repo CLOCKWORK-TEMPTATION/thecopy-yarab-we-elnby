@@ -15,12 +15,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Shared mock references
 // ---------------------------------------------------------------------------
 
-const mockPostStudioFormData = vi.fn();
+const mockPostStudioFormData =
+  vi.fn<(...args: unknown[]) => Promise<unknown>>();
 const mockPostStudioJson = vi
-  .fn()
+  .fn<(...args: unknown[]) => Promise<unknown>>()
   .mockResolvedValue({ success: true, data: {} });
-const mockCreateLocalShotAnalysis = vi.fn();
-const mockCreateLocalFootageSummary = vi.fn();
+const mockCreateLocalShotAnalysis =
+  vi.fn<(...args: unknown[]) => Promise<unknown>>();
+const mockCreateLocalFootageSummary =
+  vi.fn<(...args: unknown[]) => Promise<unknown>>();
 
 vi.mock("react-hot-toast", () => ({
   toast: {

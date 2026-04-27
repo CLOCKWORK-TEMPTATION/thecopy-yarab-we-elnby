@@ -270,10 +270,17 @@ export default function AIChatPanel() {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && canSend) {
-        handleSend();
+        handleSend().catch((error: unknown) => {
+          toast({
+            title: "حدث خطأ",
+            description:
+              error instanceof Error ? error.message : ERROR_MESSAGES.chatError,
+            variant: "destructive",
+          });
+        });
       }
     },
-    [canSend, handleSend]
+    [canSend, handleSend, toast]
   );
 
   /**

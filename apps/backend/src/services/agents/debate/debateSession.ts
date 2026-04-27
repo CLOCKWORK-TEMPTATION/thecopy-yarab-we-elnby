@@ -87,7 +87,7 @@ export class DebateRoundClass implements DebateRound {
    * Get round duration in ms
    */
   getDuration(): number {
-    const end = this.endTime || new Date();
+    const end = this.endTime ?? new Date();
     return end.getTime() - this.startTime.getTime();
   }
 
@@ -146,22 +146,24 @@ export class DebateSessionClass implements DebateSession {
   /**
    * Start the debate session
    */
-  async start(): Promise<void> {
+  start(): Promise<void> {
     logger.info(`[DebateSession] Starting debate on: ${this.topic}`);
     this.status = 'in_progress';
 
     // Validate participants
-    if (this.participants.length < (this.config.minParticipants || 2)) {
+    if (this.participants.length < (this.config.minParticipants ?? 2)) {
       throw new Error(
         `عدد المشاركين (${this.participants.length}) أقل من الحد الأدنى (${this.config.minParticipants})`
       );
     }
 
-    if (this.participants.length > (this.config.maxParticipants || 5)) {
+    if (this.participants.length > (this.config.maxParticipants ?? 5)) {
       throw new Error(
         `عدد المشاركين (${this.participants.length}) أكبر من الحد الأقصى (${this.config.maxParticipants})`
       );
     }
+
+    return Promise.resolve();
   }
 
   /**
@@ -176,7 +178,7 @@ export class DebateSessionClass implements DebateSession {
     const round = new DebateRoundClass(roundNumber);
     this.rounds.push(round);
 
-    const timeout = this.config.timeoutPerRound || 60000;
+    const timeout = this.config.timeoutPerRound ?? 60000;
     const roundPromise = this.runRound(round, context);
 
     try {
@@ -290,7 +292,7 @@ export class DebateSessionClass implements DebateSession {
   fail(reason?: string): void {
     this.status = 'failed';
     this.endTime = new Date();
-    logger.error(`[DebateSession] Debate failed: ${reason || 'Unknown error'}`);
+    logger.error(`[DebateSession] Debate failed: ${reason ?? 'Unknown error'}`);
   }
 
   /**
@@ -299,7 +301,7 @@ export class DebateSessionClass implements DebateSession {
   getMetrics(): DebateMetrics {
     const allArguments = this.getAllArguments();
     const lastRound = this.rounds[this.rounds.length - 1];
-    const consensusAchieved = lastRound?.consensus?.achieved || false;
+    const consensusAchieved = lastRound?.consensus?.achieved ?? false;
 
     let totalConfidence = 0;
     allArguments.forEach(arg => {
@@ -326,7 +328,7 @@ export class DebateSessionClass implements DebateSession {
       totalRounds: this.rounds.length,
       participantCount: this.participants.length,
       consensusAchieved,
-      finalAgreementScore: lastRound?.consensus?.agreementScore || 0,
+      finalAgreementScore: lastRound?.consensus?.agreementScore ?? 0,
       averageConfidence,
       totalArguments: allArguments.length,
       processingTime,
@@ -359,7 +361,7 @@ export class DebateSessionClass implements DebateSession {
     score += Math.min(1, argumentRatio) * 0.2;
 
     // Efficiency - fewer rounds = better (10%)
-    const maxRounds = this.config.maxRounds || 3;
+    const maxRounds = this.config.maxRounds ?? 3;
     const efficiency = 1 - (totalRounds / maxRounds);
     score += efficiency * 0.1;
 

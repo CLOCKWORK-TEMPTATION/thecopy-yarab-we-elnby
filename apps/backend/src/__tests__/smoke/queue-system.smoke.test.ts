@@ -10,10 +10,46 @@ import { queueAIAnalysis } from '@/queues/jobs/ai-analysis.job';
 import { queueDocumentProcessing } from '@/queues/jobs/document-processing.job';
 import { queueManager, QueueName } from '@/queues/queue.config';
 
-describe('Queue System Smoke Tests', () => {
-  afterAll(async () => {
-    await queueManager.close();
+function expectOperationalError(error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  expect(message).toBeDefined();
+}
+
+function getStringField(value: unknown, field: string): string | undefined {
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const fieldValue = (value as Record<string, unknown>)[field];
+  return typeof fieldValue === 'string' ? fieldValue : undefined;
+}
+
+function assertDefaultJobOptions(job: { opts: { attempts?: unknown; backoff?: unknown } } | undefined | null): void {
+  if (!job) {
+    return;
+  }
+
+  expect(job.opts.attempts).toBe(3);
+  expect(job.opts.backoff).toEqual({
+    type: 'exponential',
+    delay: 2000,
   });
+}
+
+function assertFirstQueueStats(allStats: unknown[]): void {
+  const firstStats = allStats[0];
+  if (!firstStats) {
+    return;
+  }
+
+  expect(firstStats).toHaveProperty('name');
+  expect(firstStats).toHaveProperty('waiting');
+  expect(firstStats).toHaveProperty('total');
+}
+
+afterAll(async () => {
+  await queueManager.close();
+});
 
   describe('Queue Connectivity', () => {
     it('should connect to Redis successfully', async () => {
@@ -25,9 +61,9 @@ describe('Queue System Smoke Tests', () => {
         const stats = await queueManager.getQueueStats(QueueName.AI_ANALYSIS);
         expect(stats).toBeDefined();
         expect(stats.name).toBe(QueueName.AI_ANALYSIS);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Redis might not be available in test environment
-        expect(error.message).toBeDefined();
+        expectOperationalError(error);
       }
     });
 
@@ -59,10 +95,10 @@ describe('Queue System Smoke Tests', () => {
         const job = await queue.getJob(jobId);
 
         expect(job).toBeDefined();
-        expect(job?.data.entityId).toBe('smoke-test-scene');
-      } catch (error: any) {
+        expect(getStringField(job?.data as unknown, 'entityId')).toBe('smoke-test-scene');
+      } catch (error: unknown) {
         // Queue might not be available
-        expect(error.message).toBeDefined();
+        expectOperationalError(error);
       }
     });
 
@@ -82,9 +118,9 @@ describe('Queue System Smoke Tests', () => {
         const job = await queue.getJob(jobId);
 
         expect(job).toBeDefined();
-        expect(job?.data.documentId).toBe('smoke-test-doc');
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+        expect(getStringField(job?.data as unknown, 'documentId')).toBe('smoke-test-doc');
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
   });
@@ -105,8 +141,8 @@ describe('Queue System Smoke Tests', () => {
         expect(typeof stats.waiting).toBe('number');
         expect(typeof stats.active).toBe('number');
         expect(typeof stats.total).toBe('number');
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
 
@@ -116,13 +152,9 @@ describe('Queue System Smoke Tests', () => {
 
         expect(Array.isArray(allStats)).toBe(true);
 
-        if (allStats.length > 0) {
-          expect(allStats[0]).toHaveProperty('name');
-          expect(allStats[0]).toHaveProperty('waiting');
-          expect(allStats[0]).toHaveProperty('total');
-        }
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+        assertFirstQueueStats(allStats);
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
   });
@@ -141,8 +173,8 @@ describe('Queue System Smoke Tests', () => {
         await queueManager.resumeQueue(QueueName.AI_ANALYSIS);
         isPaused = await queue.isPaused();
         expect(isPaused).toBe(false);
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
 
@@ -154,8 +186,8 @@ describe('Queue System Smoke Tests', () => {
         const completedCount = await queue.getCompletedCount();
 
         expect(typeof completedCount).toBe('number');
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
   });
@@ -178,8 +210,8 @@ describe('Queue System Smoke Tests', () => {
         // Try to get non-existent job
         const job = await queue.getJob('non-existent-id');
         expect(job).toBeUndefined();
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
   });
@@ -197,16 +229,10 @@ describe('Queue System Smoke Tests', () => {
         const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
         const job = await queue.getJob(jobId);
 
-        if (job) {
-          expect(job.opts.attempts).toBe(3);
-          expect(job.opts.backoff).toEqual({
-            type: 'exponential',
-            delay: 2000,
-          });
-        }
-      } catch (error: any) {
-        expect(error.message).toBeDefined();
+        expect(job).toBeDefined();
+        assertDefaultJobOptions(job as { opts: { attempts?: unknown; backoff?: unknown } });
+      } catch (error: unknown) {
+        expectOperationalError(error);
       }
     });
   });
-});

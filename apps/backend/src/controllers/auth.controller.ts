@@ -26,6 +26,16 @@ const loginSchema = z.object({
   password: z.string().min(1, 'كلمة المرور مطلوبة'),
 });
 
+function getCookie(req: Request, name: string): string | undefined {
+  const cookies = (req as unknown as { cookies?: Record<string, unknown> }).cookies;
+  if (!cookies || typeof cookies !== 'object') {
+    return undefined;
+  }
+
+  const value = cookies[name];
+  return typeof value === 'string' ? value : undefined;
+}
+
 export class AuthController {
   async signup(req: Request, res: Response): Promise<void> {
     try {
@@ -128,7 +138,7 @@ export class AuthController {
   }
 
   async logout(req: AuthRequest, res: Response): Promise<void> {
-    const refreshToken = req.cookies?.["refreshToken"];
+    const refreshToken = getCookie(req, 'refreshToken');
     if (refreshToken) {
       await authService.revokeRefreshToken(refreshToken);
     }
@@ -139,7 +149,7 @@ export class AuthController {
 
   async refresh(req: Request, res: Response): Promise<void> {
     try {
-      const refreshToken = req.cookies["refreshToken"];
+      const refreshToken = getCookie(req, 'refreshToken');
       if (!refreshToken) {
         res.status(401).json({ success: false, error: 'رمز التحديث مطلوب' });
         return;
@@ -169,7 +179,7 @@ export class AuthController {
     }
   }
 
-  async getCurrentUser(req: AuthRequest, res: Response): Promise<void> {
+  getCurrentUser(req: AuthRequest, res: Response): void {
     try {
       if (!req.user) {
         res.status(401).json({

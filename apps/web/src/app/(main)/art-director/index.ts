@@ -1,9 +1,10 @@
 // CineArchitect AI - Main Application Entry Point
 // نقطة الدخول الرئيسية للتطبيق
 
-import { logger } from "@/lib/logger";
 import cors from "cors";
 import express from "express";
+
+import { logger } from "@/lib/logger";
 
 import { router } from "./api/routes";
 import { pluginManager } from "./core/PluginManager";

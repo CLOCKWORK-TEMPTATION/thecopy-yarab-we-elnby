@@ -59,7 +59,7 @@ const envSchema = z.object({
                         data.GOOGLE_GENAI_API_KEY !== 'your_google_genai_api_key_here';
     const hasGeminiKey = data.GEMINI_API_KEY && 
                         data.GEMINI_API_KEY !== 'your_gemini_api_key_here';
-    return hasGoogleKey || hasGeminiKey;
+    return hasGoogleKey ?? hasGeminiKey;
   },
   {
     message: 'Either GOOGLE_GENAI_API_KEY or GEMINI_API_KEY must be provided with valid values',

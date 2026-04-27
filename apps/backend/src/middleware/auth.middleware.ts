@@ -32,7 +32,12 @@ export function getParamAsString(paramValue: string | string[] | undefined): str
 function resolveToken(req: Request): string {
   const authHeader = String(req.headers.authorization ?? '');
   const [headerType, headerTokenValue] = authHeader.split(' ');
-  const cookieToken = String(req.cookies?.["accessToken"] ?? '');
+  const cookies = (req as unknown as { cookies?: unknown }).cookies;
+  const cookieValue =
+    cookies && typeof cookies === 'object'
+      ? (cookies as Record<string, unknown>)['accessToken']
+      : undefined;
+  const cookieToken = typeof cookieValue === 'string' ? cookieValue : '';
 
   const headerTokensMap: Record<string, string | undefined> = {
     'Bearer': headerTokenValue

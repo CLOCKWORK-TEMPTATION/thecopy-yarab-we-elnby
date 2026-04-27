@@ -162,10 +162,9 @@ export default function ScenesPage() {
     mutationFn: async (sceneId: string) => {
       const res = await fetch(`/api/scenes/${sceneId}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`فشل حذف المشهد: ${res.status}`);
-      return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scenes"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["scenes"] });
       setDeleteConfirmId(null);
     },
   });

@@ -29,4 +29,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error: unknown) => {
+  logger.error({ error }, "❌ Unexpected indexing failure");
+  process.exit(1);
+});

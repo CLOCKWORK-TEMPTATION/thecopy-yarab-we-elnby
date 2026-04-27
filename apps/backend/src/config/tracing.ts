@@ -7,6 +7,8 @@
  * tracing was disabled.
  */
 
+import { createRequire } from 'node:module';
+
 import { logger } from '@/lib/logger';
 
 import type { NodeSDK } from '@opentelemetry/sdk-node';
@@ -18,19 +20,20 @@ const SERVICE_NAME = process.env['SERVICE_NAME'] ?? 'thecopy-backend';
 const SERVICE_VERSION = process.env.npm_package_version ?? '1.0.0';
 const ENVIRONMENT = process.env.NODE_ENV ?? 'development';
 const OTEL_LOG_LEVEL = process.env['OTEL_LOG_LEVEL'] ?? 'info';
+const loadRuntimeModule = createRequire(__filename);
 
 function loadOtelModules() {
-  const { NodeSDK } = require('@opentelemetry/sdk-node') as typeof import('@opentelemetry/sdk-node');
+  const { NodeSDK } = loadRuntimeModule('@opentelemetry/sdk-node') as typeof import('@opentelemetry/sdk-node');
   const { defaultResource, resourceFromAttributes } =
-    require('@opentelemetry/resources') as typeof import('@opentelemetry/resources');
+    loadRuntimeModule('@opentelemetry/resources') as typeof import('@opentelemetry/resources');
   const { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } =
-    require('@opentelemetry/semantic-conventions') as typeof import('@opentelemetry/semantic-conventions');
+    loadRuntimeModule('@opentelemetry/semantic-conventions') as typeof import('@opentelemetry/semantic-conventions');
   const { OTLPTraceExporter } =
-    require('@opentelemetry/exporter-trace-otlp-http') as typeof import('@opentelemetry/exporter-trace-otlp-http');
+    loadRuntimeModule('@opentelemetry/exporter-trace-otlp-http') as typeof import('@opentelemetry/exporter-trace-otlp-http');
   const { getNodeAutoInstrumentations } =
-    require('@opentelemetry/auto-instrumentations-node') as typeof import('@opentelemetry/auto-instrumentations-node');
+    loadRuntimeModule('@opentelemetry/auto-instrumentations-node') as typeof import('@opentelemetry/auto-instrumentations-node');
   const { diag, DiagConsoleLogger, DiagLogLevel } =
-    require('@opentelemetry/api') as typeof import('@opentelemetry/api');
+    loadRuntimeModule('@opentelemetry/api') as typeof import('@opentelemetry/api');
 
   return {
     NodeSDK, defaultResource, resourceFromAttributes,

@@ -136,10 +136,9 @@ export default function CharactersPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(`فشل حذف الشخصية: ${res.status}`);
-      return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["characters"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["characters"] });
       setDeleteConfirmId(null);
       toast({ title: "تم الحذف", description: "تم حذف الشخصية بنجاح" });
     },

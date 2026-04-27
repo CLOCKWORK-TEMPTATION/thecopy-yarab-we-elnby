@@ -6,6 +6,10 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { createModuleLogger } from "@/lib/logger";
+import { isUnknownRecord } from "@/lib/utils/unknown-values";
+
+const logger = createModuleLogger("components.shared.file-upload");
 
 interface FileUploadProps {
   onFileContent: (content: string, filename: string) => void;
@@ -22,6 +26,16 @@ interface UploadedFile {
   status: "uploading" | "success" | "error";
   progress: number;
 }
+
+interface PdfTextItem {
+  str: string;
+}
+
+const isPdfTextItem = (item: unknown): item is PdfTextItem =>
+  typeof item === "object" &&
+  item !== null &&
+  "str" in item &&
+  typeof (item as { str?: unknown }).str === "string";
 
 export default function FileUpload({
   onFileContent,
@@ -63,8 +77,11 @@ export default function FileUpload({
             for (let i = 1; i <= pdf.numPages; i++) {
               const page = await pdf.getPage(i);
               const textContent = await page.getTextContent();
-              const pageText = textContent.items
-                .filter((item): item is { str: string } => "str" in item)
+              const textItems: unknown[] = Array.isArray(textContent.items)
+                ? textContent.items
+                : [];
+              const pageText = textItems
+                .filter(isPdfTextItem)
                 .map((item) => item.str)
                 .join(" ");
               fullText += pageText + "\n";
@@ -77,8 +94,17 @@ export default function FileUpload({
           ) {
             // Handle DOCX files using mammoth
             const mammoth = await import("mammoth");
-            const result = await mammoth.extractRawText({ arrayBuffer });
-            resolve(result.value);
+            const result: unknown = await mammoth.extractRawText({
+              arrayBuffer,
+            });
+            if (
+              isUnknownRecord(result) &&
+              typeof result["value"] === "string"
+            ) {
+              resolve(result["value"]);
+              return;
+            }
+            reject(new Error("فشل في استخراج نص الملف"));
           } else {
             reject(new Error("نوع الملف غير مدعوم"));
           }
@@ -140,7 +166,10 @@ export default function FileUpload({
             f.name === file.name ? { ...f, status: "error", progress: 0 } : f
           )
         );
-        console.error("خطأ في معالجة الملف:", error);
+        logger.error(
+          { err: error, fileName: file.name },
+          "خطأ في معالجة الملف"
+        );
       }
     },
     [onFileContent]
@@ -171,7 +200,12 @@ export default function FileUpload({
           return;
         }
 
-        processFile(file);
+        processFile(file).catch((error: unknown) => {
+          logger.error(
+            { err: error, fileName: file.name },
+            "خطأ غير متوقع في معالجة الملف"
+          );
+        });
       });
     },
     [maxSize, processFile]

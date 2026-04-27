@@ -6,20 +6,22 @@ const {
   mockDeleteMany,
   mockInsert,
   mockGetCollection,
+  mockCrawl,
 } = vi.hoisted(() => ({
   mockEnsureCollection: vi.fn(),
   mockInsertMany: vi.fn(),
   mockDeleteMany: vi.fn(),
   mockInsert: vi.fn(),
   mockGetCollection: vi.fn(),
+  mockCrawl: vi.fn(),
 }));
 
 vi.mock("@/services/rag/embeddings.service", () => ({
   embeddingsService: {
-    getEmbedding: vi.fn(async (text: string) =>
+    getEmbedding: vi.fn((text: string) =>
       Array.from({ length: 4 }, (_, index) => text.length + index)
     ),
-    getEmbeddingsBatch: vi.fn(async (texts: string[]) =>
+    getEmbeddingsBatch: vi.fn((texts: string[]) =>
       texts.map((text) => Array.from({ length: 4 }, (_, index) => text.length + index))
     ),
   },
@@ -27,7 +29,7 @@ vi.mock("@/services/rag/embeddings.service", () => ({
 
 vi.mock("../embeddings/generator", () => ({
   embeddingGenerator: {
-    generateForDocumentation: vi.fn(async (text: string) => ({
+    generateForDocumentation: vi.fn((text: string) => ({
       embedding: Array.from({ length: 4 }, (_, index) => text.length + index),
       dimensionality: 1536,
       contentHash: `hash-${text.length}`,
@@ -37,7 +39,7 @@ vi.mock("../embeddings/generator", () => ({
 
 vi.mock("./repository-crawler", () => ({
   repositoryCrawler: {
-    crawl: vi.fn(),
+    crawl: mockCrawl,
     crawlSpecific: vi.fn(),
     extractImports: vi.fn(() => ["fs"]),
     extractExports: vi.fn(() => ["handler"]),
@@ -54,8 +56,11 @@ vi.mock("../vector-store/client", () => ({
   },
 }));
 
-import { repositoryCrawler } from "./repository-crawler";
 import { weaviateIndexingService } from "./weaviate-indexing.service";
+
+function objectContainingMatcher(value: Record<string, unknown>): unknown {
+  return expect.objectContaining(value);
+}
 
 describe("WeaviateIndexingService", () => {
   beforeEach(() => {
@@ -89,7 +94,7 @@ describe("WeaviateIndexingService", () => {
       "AdHocChunks",
       expect.arrayContaining([
         expect.objectContaining({
-          properties: expect.objectContaining({
+          properties: objectContainingMatcher({
             documentHash: result.documentHash,
           }),
         }),
@@ -98,7 +103,7 @@ describe("WeaviateIndexingService", () => {
   });
 
   it("should index repository files into specialized collections", async () => {
-    vi.mocked(repositoryCrawler.crawl).mockResolvedValue([
+    mockCrawl.mockResolvedValue([
       {
         path: "E:\\repo\\src\\file.ts",
         relativePath: "src/file.ts",

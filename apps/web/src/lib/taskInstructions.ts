@@ -291,7 +291,9 @@ export function getTaskInstruction(id: string): TaskInstruction | undefined {
 }
 
 export function getAllTaskInstructions(): TaskInstruction[] {
-  return Object.values(taskInstructions).flat();
+  return (Object.keys(taskInstructions) as (keyof TaskInstructions)[]).flatMap(
+    (category) => taskInstructions[category]
+  );
 }
 
 // Default export

@@ -22,7 +22,7 @@ export class HealthController {
       res.status(503).json({
         status: "unhealthy",
         timestamp: new Date().toISOString(),
-        version: process.env.npm_package_version || "1.0.0",
+        version: process.env.npm_package_version ?? "1.0.0",
         uptime: Date.now() - this.startTime,
         error: "Health check failed",
       });
@@ -43,7 +43,7 @@ export class HealthController {
     }
   }
 
-  async getLiveness(_req: Request, res: Response): Promise<void> {
+  getLiveness(_req: Request, res: Response): void {
     try {
       const livenessStatus: LivenessStatus = {
         status: "alive",
@@ -62,7 +62,7 @@ export class HealthController {
     }
   }
 
-  async getStartup(_req: Request, res: Response): Promise<void> {
+  getStartup(_req: Request, res: Response): void {
     try {
       const uptime = Date.now() - this.startTime;
       const isStarted = uptime > 30000;

@@ -1,9 +1,9 @@
 "use client";
 
-import { logger } from "@/lib/logger";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+import { logger } from "@/lib/logger";
 import {
   BASELINE,
   STROKE_WIDTH,

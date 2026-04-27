@@ -8,7 +8,7 @@ import type { AuthRequest } from '@/middleware/auth.middleware';
 
 const chatSchema = z.object({
   message: z.string().min(1, 'الرسالة مطلوبة'),
-  context: z.any().optional(),
+  context: z.unknown().optional(),
 });
 
 const shotSuggestionSchema = z.object({

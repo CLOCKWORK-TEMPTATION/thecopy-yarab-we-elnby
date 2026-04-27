@@ -67,7 +67,7 @@ function Locations() {
           address: "",
           features: "",
         });
-        handleSearch();
+        await handleSearch();
       }
     } catch (error) {
       console.error("Error:", error);
@@ -103,7 +103,13 @@ function Locations() {
             placeholder="ابحث عن موقع..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleSearch().catch((error: unknown) => {
+                  console.error("Error:", error);
+                });
+              }
+            }}
           />
           <button className="btn" onClick={handleSearch}>
             <Search size={18} />

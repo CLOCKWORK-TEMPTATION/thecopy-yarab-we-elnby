@@ -66,8 +66,8 @@ export class DebateModerator {
    * تنفيذ جولات المناظرة
    */
   private async executeDebateRounds(context?: string): Promise<void> {
-    const maxRounds = this.session.config.maxRounds || 3;
-    const consensusThreshold = this.session.config.consensusThreshold || 0.75;
+    const maxRounds = this.session.config.maxRounds ?? 3;
+    const consensusThreshold = this.session.config.consensusThreshold ?? 0.75;
     let currentRound = 1;
 
     while (currentRound <= maxRounds) {
@@ -129,7 +129,7 @@ export class DebateModerator {
     try {
       const analysis = await analyzeDebateArguments(allArguments, this.session.topic);
       const agreementScore = await calculateArgumentAgreementScore(allArguments);
-      const consensusThreshold = this.session.config.consensusThreshold || 0.75;
+      const consensusThreshold = this.session.config.consensusThreshold ?? 0.75;
       const achieved = agreementScore >= consensusThreshold;
       const participatingAgents = Array.from(new Set(allArguments.map(arg => arg.agentName)));
 
@@ -206,14 +206,14 @@ export class DebateModerator {
 
   /** تسجيل صوت */
   recordVote(vote: Vote): void {
-    const existingVotes = this.votes.get(vote.argumentId) || [];
+    const existingVotes = this.votes.get(vote.argumentId) ?? [];
     existingVotes.push(vote);
     this.votes.set(vote.argumentId, existingVotes);
   }
 
   /** الحصول على الأصوات لحجة محددة */
   getVotesForArgument(argumentId: string): Vote[] {
-    return this.votes.get(argumentId) || [];
+    return this.votes.get(argumentId) ?? [];
   }
 
   /** الحصول على جميع الأصوات */

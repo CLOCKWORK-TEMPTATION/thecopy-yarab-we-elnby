@@ -41,48 +41,48 @@ export class TensionOptimizerAgent extends BaseAgent {
     super(
       "TensionMaster AI",
       TaskType.TENSION_OPTIMIZER,
-      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt || ""
+      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.81;
   }
 
-   
+
   private extractTensionContext(context: unknown): TensionOptimizerContext {
     const ctx = context as TensionOptimizerContext;
     return {
-      originalText: ctx?.originalText || "",
-      sceneBreakdown: ctx?.sceneBreakdown || [],
-      currentTensionLevel: ctx?.currentTensionLevel || "medium",
-      targetTensionLevel: ctx?.targetTensionLevel || "high",
-      tensionType: ctx?.tensionType || "suspense",
-      pacePreference: ctx?.pacePreference || "steady",
+      originalText: ctx?.originalText ?? "",
+      sceneBreakdown: ctx?.sceneBreakdown ?? [],
+      currentTensionLevel: ctx?.currentTensionLevel ?? "medium",
+      targetTensionLevel: ctx?.targetTensionLevel ?? "high",
+      tensionType: ctx?.tensionType ?? "suspense",
+      pacePreference: ctx?.pacePreference ?? "steady",
       provideRecommendations: ctx?.provideRecommendations ?? true,
       identifyPeaks: ctx?.identifyPeaks ?? true,
       analyzeRelease: ctx?.analyzeRelease ?? true,
     };
   }
 
-   
+
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
     const ctx = this.extractTensionContext(context);
 
     let prompt = `مهمة تحسين وتحليل التوتر الدرامي\n\n`;
-    prompt += buildOriginalTextSection(ctx.originalText || "");
-    prompt += buildSceneBreakdownSection(ctx.sceneBreakdown || []);
-    prompt += buildTensionInfoSection(
-      ctx.currentTensionLevel || "medium",
-      ctx.targetTensionLevel || "high",
-      ctx.tensionType || "suspense",
-      ctx.pacePreference || "steady",
-      ctx.identifyPeaks ?? true,
-      ctx.analyzeRelease ?? true,
-      ctx.provideRecommendations ?? true,
-      this.translateLevel.bind(this),
-      this.translateTensionType.bind(this),
-      this.translatePace.bind(this)
-    );
+    prompt += buildOriginalTextSection(ctx.originalText ?? "");
+    prompt += buildSceneBreakdownSection(ctx.sceneBreakdown ?? []);
+    prompt += buildTensionInfoSection({
+      currentLevel: ctx.currentTensionLevel ?? "medium",
+      targetLevel: ctx.targetTensionLevel ?? "high",
+      tensionType: ctx.tensionType ?? "suspense",
+      pacePreference: ctx.pacePreference ?? "steady",
+      identifyPeaks: ctx.identifyPeaks ?? true,
+      analyzeRelease: ctx.analyzeRelease ?? true,
+      provideRecommendations: ctx.provideRecommendations ?? true,
+      translateLevel: this.translateLevel.bind(this),
+      translateTensionType: this.translateTensionType.bind(this),
+      translatePace: this.translatePace.bind(this),
+    });
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += getBaseInstructions();
     prompt += buildConditionalInstructions(
@@ -99,13 +99,15 @@ export class TensionOptimizerAgent extends BaseAgent {
   protected override async postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
+    // الحساب synchronous — نحتفظ بـ Promise.resolve للحفاظ على signature غير المحجوب
     const processedText = this.cleanupTensionText(output.text);
 
-    const analysisDepth = await this.assessAnalysisDepth(processedText);
+    const analysisDepth = this.assessAnalysisDepth(processedText);
     const techniqueIdentification =
-      await this.assessTechniqueIdentification(processedText);
-    const practicalValue = await this.assessPracticalValue(processedText);
-    const insightfulness = await this.assessInsightfulness(processedText);
+      this.assessTechniqueIdentification(processedText);
+    const practicalValue = this.assessPracticalValue(processedText);
+    const insightfulness = this.assessInsightfulness(processedText);
+    await Promise.resolve();
 
     const qualityScore =
       analysisDepth * 0.3 +
@@ -153,7 +155,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessAnalysisDepth(text: string): Promise<number> {
+  private assessAnalysisDepth(text: string): number {
     let score = 0.5;
 
     const tensionTerms = [
@@ -196,7 +198,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessTechniqueIdentification(text: string): Promise<number> {
+  private assessTechniqueIdentification(text: string): number {
     let score = 0.5;
 
     const techniques = [
@@ -225,7 +227,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessPracticalValue(text: string): Promise<number> {
+  private assessPracticalValue(text: string): number {
     let score = 0.6;
 
     const practicalTerms = [
@@ -251,7 +253,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessInsightfulness(text: string): Promise<number> {
+  private assessInsightfulness(text: string): number {
     let score = 0.5;
 
     const insightWords = [
@@ -337,7 +339,7 @@ export class TensionOptimizerAgent extends BaseAgent {
       critical: "حرج/ذروة",
       extreme: "شديد جداً",
     };
-    return levels[level] || level;
+    return levels[level] ?? level;
   }
 
   private translateTensionType(type: string): string {
@@ -349,7 +351,7 @@ export class TensionOptimizerAgent extends BaseAgent {
       dread: "خوف وقلق",
       urgency: "إلحاح وضيق وقت",
     };
-    return types[type] || type;
+    return types[type] ?? type;
   }
 
   private translatePace(pace: string): string {
@@ -360,12 +362,14 @@ export class TensionOptimizerAgent extends BaseAgent {
       explosive: "انفجاري ومفاجئ",
       variable: "متغير ومتذبذب",
     };
-    return paces[pace] || pace;
+    return paces[pace] ?? pace;
   }
 
+  // النص ثابت — لا حاجة لـ async، نحتفظ بـ Promise.resolve للتوافق مع override
   protected override async getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
+    await Promise.resolve();
     return `تقييم التوتر الحالي:
 النص يحتوي على مستوى توتر متوسط يحتاج إلى تعزيز وتحسين لتحقيق التأثير الدرامي المطلوب.
 

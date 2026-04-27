@@ -63,10 +63,10 @@ const CROWD_KEYWORDS = [
 ];
 
 const LOCATION_HEADING_PATTERN =
-  /(?:^|\n)\s*(?:scene\s*\d+[:\-]?\s*)?(?:int\.?|ext\.?|داخل(?:ي)?|خارجي)\s*\.?\s*([^\n\-]+?)(?:\s*-\s*[^\n]+)?$/gim;
+  /(?:^|\n)\s*(?:scene\s*\d+[:-]?\s*)?(?:int\.?|ext\.?|داخل(?:ي)?|خارجي)\s*\.?\s*([^\n-]+?)(?:\s*-\s*[^\n]+)?$/gim;
 
 const TITLE_SANITIZER_PATTERN =
-  /^(?:scene\s*\d+[:\-]?\s*|int\.?\s*|ext\.?\s*|مشهد\s*\d+[:\-]?\s*|داخلي\s*|خارجي\s*)/i;
+  /^(?:scene\s*\d+[:-]?\s*|int\.?\s*|ext\.?\s*|مشهد\s*\d+[:-]?\s*|داخلي\s*|خارجي\s*)/i;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -191,9 +191,7 @@ export function buildScenarioInsights(
   const locationCount = Math.max(1, locations.length || Math.ceil(sceneCount / 2));
   const castCount = inferCastCount(scenario);
   const explicitDays = inferExplicitShootingDays(scenario);
-  const shootingDays = explicitDays
-    ? explicitDays
-    : clamp(
+  const shootingDays = explicitDays ?? clamp(
         sceneCount +
           locationCount +
           actionLevel * 2 +

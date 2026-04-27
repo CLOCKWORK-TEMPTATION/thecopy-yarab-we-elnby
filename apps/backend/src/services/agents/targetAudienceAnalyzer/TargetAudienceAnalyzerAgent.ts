@@ -20,7 +20,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     super(
       "AudienceCompass AI",
       TaskType.TARGET_AUDIENCE_ANALYZER,
-      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -94,14 +94,14 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Post-process the audience analysis output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess analysis quality
-    const qualityMetrics = await this.assessAnalysisQuality(processedText);
+    const qualityMetrics = this.assessAnalysisQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =
@@ -110,7 +110,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
       qualityMetrics.psychographicDepth * 0.15 +
       qualityMetrics.marketInsights * 0.1;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: Math.min(1, adjustedConfidence),
@@ -122,7 +122,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
         psychographicDepth: qualityMetrics.psychographicDepth,
         marketInsights: qualityMetrics.marketInsights,
       },
-    };
+    });
   }
 
   /**
@@ -157,12 +157,12 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Assess the quality of audience analysis
    */
-  private async assessAnalysisQuality(text: string): Promise<{
+  private assessAnalysisQuality(text: string): {
     demographicCoverage: number;
     psychographicDepth: number;
     marketInsights: number;
     overallScore: number;
-  }> {
+  } {
     // Demographic indicators
     const demographicTerms = [
       "الفئة العمرية",
@@ -282,7 +282,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to audience analysis
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
     const contextObj =
@@ -291,7 +291,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
         : {};
     const genre = (contextObj)["genre"] as string || "غير محدد";
 
-    return `تحليل الجمهور المستهدف:
+    return Promise.resolve(`تحليل الجمهور المستهدف:
 
 بناءً على النص المقدم من نوع "${genre}"، يمكن تحديد الملامح الأولية للجمهور المستهدف:
 
@@ -308,7 +308,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
 **توصية:**
 لتحليل أكثر دقة، يُنصح بتفعيل الخيارات المتقدمة وتوفير سياق إضافي حول العمل.
 
-ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`;
+ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`);
   }
 }
 

@@ -46,19 +46,19 @@ export const characterRules: Rule[] = [
     check: (text: string, context?: unknown, params?: Record<string, unknown>) => {
       // Check if context suggests historical setting
       const ctx = context as Record<string, string> | undefined;
-      const isHistorical = ctx?.setting?.includes('تاريخي') ||
+      const isHistorical = ctx?.setting?.includes('تاريخي') ??
                           ctx?.period?.includes('قديم');
 
       if (!isHistorical) {
         return true; // Rule doesn't apply
       }
 
-      const modernTerms = (params?.modernPsychTerms || []) as string[];
-      const threshold = (params?.threshold || 2) as number;
+      const modernTerms = (params?.modernPsychTerms ?? []) as string[];
+      const threshold = (params?.threshold ?? 2) as number;
 
       return countTermOccurrences(text, modernTerms) <= threshold;
     },
-    suggest: async (_text: string, _context?: unknown) => {
+    suggest: (_text: string, _context?: unknown) => {
       return 'استخدم مصطلحات ومفاهيم مناسبة للفترة التاريخية للشخصية';
     },
   },
@@ -88,7 +88,7 @@ export const characterRules: Rule[] = [
 
       return !contradictions.some(pattern => pattern.test(text));
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'تأكد من تسلسل منطقي واضح لتطور الشخصية عبر الزمن';
     },
   },
@@ -132,10 +132,10 @@ export const characterRules: Rule[] = [
         }
       });
 
-      const maxUnsupported = (params?.maxUnsupportedClaims || 1) as number;
+      const maxUnsupported = (params?.maxUnsupportedClaims ?? 1) as number;
       return count <= maxUnsupported;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'أضف إشارات أو اقتباسات من النص لدعم تحليلاتك عن الشخصية';
     },
   },
@@ -163,13 +163,13 @@ export const characterRules: Rule[] = [
       },
     ],
     check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
-      const stereotypes = (params?.stereotypicalPhrases || []) as string[];
+      const stereotypes = (params?.stereotypicalPhrases ?? []) as string[];
 
       return !stereotypes.some((phrase: string) => {
         return text.toLowerCase().includes(phrase.toLowerCase());
       });
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'ركز على الخصائص الفردية للشخصية بدلاً من التعميمات';
     },
   },
@@ -197,7 +197,7 @@ export const characterRules: Rule[] = [
       },
     ],
     check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
-      const minLength = (params?.minLength || 200) as number;
+      const minLength = (params?.minLength ?? 200) as number;
 
       // Check minimum length
       if (text.length < minLength) {
@@ -216,7 +216,7 @@ export const characterRules: Rule[] = [
 
       return hasDepth || !params?.requireLayers;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'قدم تحليلاً متعدد الأبعاد يستكشف الدوافع الظاهرة والخفية للشخصية';
     },
   },

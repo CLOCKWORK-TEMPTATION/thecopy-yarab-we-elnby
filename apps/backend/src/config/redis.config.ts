@@ -189,8 +189,3 @@ export async function checkRedisVersion(): Promise<{
   }
 }
 
-export default {
-  getRedisConfig,
-  checkRedisVersion,
-  BULLMQ_MIN_REDIS_VERSION,
-};

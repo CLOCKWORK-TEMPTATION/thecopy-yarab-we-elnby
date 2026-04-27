@@ -29,7 +29,7 @@ export async function executeAgentsInParallel(
     try {
       const agentInput: StandardAgentInput = {
         input: fullText,
-        context: context || {},
+        context: context ?? {},
         options: {
           enableRAG: true,
           enableSelfCritique: true,
@@ -74,7 +74,7 @@ export async function executeAgentsSequentially(
       const agentInput: StandardAgentInput = {
         input: fullText,
         context: {
-          ...(context || {}),
+          ...(context ?? {}),
           previousResults: Object.fromEntries(results),
         },
         options: {

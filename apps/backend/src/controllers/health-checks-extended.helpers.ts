@@ -169,7 +169,7 @@ export async function performHealthChecks(startTime: number): Promise<HealthStat
   const checks = {
     database: await checkDatabase(),
     redis: await checkRedis(),
-    memory: await checkMemory(),
+    memory: checkMemory(),
     external_services: await checkExternalServices(),
     weaviate: await checkWeaviate(),
     editor: await checkEditorIntegration(),
@@ -179,7 +179,7 @@ export async function performHealthChecks(startTime: number): Promise<HealthStat
   return {
     status: aggregateHealthStatus(checks),
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || "1.0.0",
+    version: process.env.npm_package_version ?? "1.0.0",
     uptime: Date.now() - startTime,
     checks,
   };
@@ -208,10 +208,10 @@ export async function performDetailedHealthChecks(
   const checks = {
     database: await checkDatabase(),
     redis: await checkRedis(),
-    memory: await checkMemory(),
+    memory: checkMemory(),
     disk: await checkDisk(),
     external_services: await checkExternalServices(),
-    environment: await checkEnvironment(),
+    environment: checkEnvironment(),
     weaviate: await checkWeaviate(),
     editor: await checkEditorIntegration(),
     analytics: checkAnalyticsPersistence(),
@@ -220,9 +220,9 @@ export async function performDetailedHealthChecks(
   return {
     status: aggregateHealthStatus(checks),
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || "1.0.0",
+    version: process.env.npm_package_version ?? "1.0.0",
     uptime: Date.now() - startTime,
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV ?? "development",
     checks,
   };
 }

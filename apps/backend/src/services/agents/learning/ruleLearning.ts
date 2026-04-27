@@ -92,7 +92,7 @@ export class RuleLearningSystem {
     patterns.push({
       timestamp: new Date(),
       severity: violation.severity,
-      context: (context as Record<string, string> | undefined)?.agentName || 'unknown',
+      context: (context as Record<string, string> | undefined)?.agentName ?? 'unknown',
       message: violation.message,
     });
 
@@ -153,7 +153,7 @@ export class RuleLearningSystem {
     rule: Rule, metrics: RulePerformanceMetrics, suggestions: RuleAdjustmentSuggestion[]
   ): void {
     if (metrics.violationCount > 50) {
-      const patterns = this.violationPatterns.get(rule.id) || [];
+      const patterns = this.violationPatterns.get(rule.id) ?? [];
       const recentPatterns = patterns.slice(-20);
       if (this.analyzePatternConsistency(recentPatterns)) {
         suggestions.push({

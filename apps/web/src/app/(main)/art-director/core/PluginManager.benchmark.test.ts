@@ -1,5 +1,6 @@
-import { logger } from "@/lib/logger";
 import { describe, it, expect } from "vitest";
+
+import { logger } from "@/lib/logger";
 
 import { PluginManager } from "../core/PluginManager";
 import { Plugin, PluginCategory, PluginOutput } from "../types";

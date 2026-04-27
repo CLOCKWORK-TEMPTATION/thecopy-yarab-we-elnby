@@ -1,9 +1,11 @@
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
+
 export function toText(content: { raw?: unknown } | string): string {
   if (typeof content === "string") {
     return content.trim();
   }
   if (content && typeof content === "object" && "raw" in content) {
-    return String(content.raw ?? "").trim();
+    return stringifyUnknown(content.raw).trim();
   }
   return "";
 }

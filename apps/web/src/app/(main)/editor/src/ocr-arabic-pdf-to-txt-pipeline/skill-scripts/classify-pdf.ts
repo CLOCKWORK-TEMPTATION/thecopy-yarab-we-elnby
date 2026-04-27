@@ -8,10 +8,11 @@
  * المخرج: JSON على stdout يتضمن نوع الملف والتوصية
  */
 
-import { logger } from "@/lib/logger";
 import { execFileSync } from "node:child_process";
 import { statSync } from "node:fs";
 import { basename } from "node:path";
+
+import { logger } from "@/lib/logger";
 
 // ─── أنواع البيانات ───────────────────────────────────────────
 

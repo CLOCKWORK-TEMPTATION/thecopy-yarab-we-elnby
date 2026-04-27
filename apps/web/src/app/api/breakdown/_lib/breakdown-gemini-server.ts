@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { GoogleGenAI } from "@google/genai";
 
 import { logger } from "@/lib/ai/utils/logger";
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
 
 /**
  * تحليل السيناريو بالذكاء الاصطناعي — جانب الخادم
@@ -228,16 +229,17 @@ function normalizeSceneBreakdown(
     if (!Array.isArray(val)) return [];
     return val
       .filter((v) => v && typeof v === "object" && "name" in v)
-      .map((v) => ({
-        name: String((v as Record<string, unknown>)["name"] ?? ""),
-        role: String((v as Record<string, unknown>)["role"] ?? "Bit Part"),
-        age: String((v as Record<string, unknown>)["age"] ?? "Unknown"),
-        gender: String((v as Record<string, unknown>)["gender"] ?? "Unknown"),
-        description: String(
-          (v as Record<string, unknown>)["description"] ?? ""
-        ),
-        motivation: String((v as Record<string, unknown>)["motivation"] ?? ""),
-      }))
+      .map((v) => {
+        const record = v as Record<string, unknown>;
+        return {
+          name: stringifyUnknown(record["name"]),
+          role: stringifyUnknown(record["role"], "Bit Part"),
+          age: stringifyUnknown(record["age"], "Unknown"),
+          gender: stringifyUnknown(record["gender"], "Unknown"),
+          description: stringifyUnknown(record["description"]),
+          motivation: stringifyUnknown(record["motivation"]),
+        };
+      })
       .filter((m) => m.name);
   };
 
@@ -246,8 +248,8 @@ function normalizeSceneBreakdown(
     return val
       .filter((v) => v && typeof v === "object")
       .map((v) => ({
-        description: String(
-          (v as Record<string, unknown>)["description"] ?? ""
+        description: stringifyUnknown(
+          (v as Record<string, unknown>)["description"]
         ),
         count: Number((v as Record<string, unknown>)["count"] ?? 0),
       }))
@@ -303,7 +305,7 @@ function normalizeSceneBreakdown(
     elements: buildElements(analysisRecord),
     stats: buildStats(analysisRecord),
     warnings: toStrArray(raw["warnings"]),
-    summary: String(raw["summary"] ?? ""),
+    summary: stringifyUnknown(raw["summary"]),
     source: "ai",
   };
 }
@@ -321,9 +323,9 @@ function normalizeScenarioAnalysis(raw: unknown): ScenarioAnalysis {
       const metrics = (sr["metrics"] as Record<string, unknown>) ?? {};
       const insights = (sr["agentInsights"] as Record<string, unknown>) ?? {};
       return {
-        id: String(sr["id"] ?? `scenario-${index + 1}`),
-        name: String(sr["name"] ?? `بديل ${index + 1}`),
-        description: String(sr["description"] ?? ""),
+        id: stringifyUnknown(sr["id"], `scenario-${index + 1}`),
+        name: stringifyUnknown(sr["name"], `بديل ${index + 1}`),
+        description: stringifyUnknown(sr["description"]),
         metrics: {
           budget: Math.min(100, Math.max(0, Number(metrics["budget"] ?? 50))),
           schedule: Math.min(
@@ -337,11 +339,11 @@ function normalizeScenarioAnalysis(raw: unknown): ScenarioAnalysis {
           ),
         },
         agentInsights: {
-          logistics: String(insights["logistics"] ?? ""),
-          budget: String(insights["budget"] ?? ""),
-          schedule: String(insights["schedule"] ?? ""),
-          creative: String(insights["creative"] ?? ""),
-          risk: String(insights["risk"] ?? ""),
+          logistics: stringifyUnknown(insights["logistics"]),
+          budget: stringifyUnknown(insights["budget"]),
+          schedule: stringifyUnknown(insights["schedule"]),
+          creative: stringifyUnknown(insights["creative"]),
+          risk: stringifyUnknown(insights["risk"]),
         },
         recommended: index === 0,
       };

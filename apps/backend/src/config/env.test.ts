@@ -2,8 +2,7 @@ import crypto from 'crypto';
 
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 
-describe('Environment Configuration', () => {
-  const originalEnv = process.env;
+const originalEnv = process.env;
   const createBaseEnv = () => ({
     NODE_ENV: 'test',
     DATABASE_URL: 'postgresql://test:test@localhost:5432/test_db',
@@ -42,7 +41,7 @@ describe('Environment Configuration', () => {
     it('should parse valid environment variables', async () => {
       process.env.NODE_ENV = 'development';
       process.env.PORT = '3001';
-      process.env['DATABASE_URL'] = `postgresql://${process.env['TEST_DB_USER'] || 'user'}:${process.env['TEST_DB_PASS'] || 'pass'}@localhost:5432/test_db`;
+      process.env['DATABASE_URL'] = `postgresql://${process.env['TEST_DB_USER'] ?? 'user'}:${process.env['TEST_DB_PASS'] ?? 'pass'}@localhost:5432/test_db`;
       process.env.JWT_SECRET = 'a-very-long-secret-key-for-testing-purposes-32-chars';
       process.env.CORS_ORIGIN = 'http://localhost:5000';
       process.env['RATE_LIMIT_WINDOW_MS'] = '900000';
@@ -236,4 +235,3 @@ describe('Environment Configuration', () => {
       );
     });
   });
-});

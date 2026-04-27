@@ -4,11 +4,12 @@
  * Scans main app pages to build a manifest file
  */
 
-import { logger } from "@/lib/logger";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { logger } from "@/lib/logger";
 
 const require = createRequire(import.meta.url);
 const { safeResolve } = require("./safe-path.cjs") as {

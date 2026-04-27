@@ -238,19 +238,19 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     switch (exportOptions.format) {
       case "csv":
         exportToCSV();
         break;
       case "excel":
-        exportToExcel();
+        await exportToExcel();
         break;
       case "json":
         exportToJSON();
         break;
       case "pdf":
-        exportToPDF();
+        await exportToPDF();
         break;
     }
     onClose();

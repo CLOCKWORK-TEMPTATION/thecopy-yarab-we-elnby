@@ -6,11 +6,19 @@ import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { StyleFingerprintAgent } from "./StyleFingerprintAgent";
 
-vi.mock("../../services/geminiService", () => ({
+const { mockAnalyzeText, mockGenerateText } = vi.hoisted(() => {
+  const mockAgentText =
+    "نعم\nتحليل تجريبي مفصل يصف البصمة الأسلوبية ومؤشرات الإيقاع واللغة والبناء التعبيري.";
+  return {
+    mockAnalyzeText: vi.fn(() => Promise.resolve(mockAgentText)),
+    mockGenerateText: vi.fn(() => Promise.resolve(mockAgentText)),
+  };
+});
+
+vi.mock("@/services/gemini.service", () => ({
   geminiService: {
-    generateContent: vi
-      .fn()
-      .mockResolvedValue("Mock AI response for style fingerprint analysis"),
+    analyzeText: mockAnalyzeText,
+    generateText: mockGenerateText,
   },
 }));
 

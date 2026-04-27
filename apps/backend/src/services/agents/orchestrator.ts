@@ -11,7 +11,12 @@ import { TaskType } from './core/enums';
 import { StandardAgentInput, StandardAgentOutput } from './core/types';
 import { workflowExecutor } from './core/workflow-executor';
 import { getPresetWorkflow, PresetWorkflowName } from './core/workflow-presets';
-import { WorkflowConfig, WorkflowStatus } from './core/workflow-types';
+import {
+  AgentExecutionResult,
+  WorkflowConfig,
+  WorkflowMetrics,
+  WorkflowStatus,
+} from './core/workflow-types';
 import { startDebate } from './debate';
 import { DebateConfig } from './debate/types';
 import {
@@ -53,7 +58,9 @@ export interface OrchestrationOutput {
 export class MultiAgentOrchestrator {
   private static instance: MultiAgentOrchestrator;
 
-  private constructor() {}
+  private constructor() {
+    // Singleton lifecycle is controlled through getInstance().
+  }
 
   public static getInstance(): MultiAgentOrchestrator {
     if (!MultiAgentOrchestrator.instance) {
@@ -124,7 +131,7 @@ export class MultiAgentOrchestrator {
 
     const agentInput: StandardAgentInput = {
       input,
-      context: context || {},
+      context: context ?? {},
       options: {
         enableRAG: true,
         enableSelfCritique: true,
@@ -226,7 +233,11 @@ export class MultiAgentOrchestrator {
   async executeWorkflow(
     workflowName: PresetWorkflowName,
     input: StandardAgentInput
-  ): Promise<{ status: WorkflowStatus; results: Map<string, unknown>; metrics: unknown }> {
+  ): Promise<{
+    status: WorkflowStatus;
+    results: Map<string, AgentExecutionResult>;
+    metrics: WorkflowMetrics;
+  }> {
     logger.info(`[Orchestrator] Executing preset workflow: ${workflowName}`);
     const workflow = getPresetWorkflow(workflowName);
     return await workflowExecutor.execute(workflow, input);
@@ -238,7 +249,11 @@ export class MultiAgentOrchestrator {
   async executeCustomWorkflow(
     config: WorkflowConfig,
     input: StandardAgentInput
-  ): Promise<{ status: WorkflowStatus; results: Map<string, unknown>; metrics: unknown }> {
+  ): Promise<{
+    status: WorkflowStatus;
+    results: Map<string, AgentExecutionResult>;
+    metrics: WorkflowMetrics;
+  }> {
     logger.info(`[Orchestrator] Executing custom workflow: ${config.name}`);
     return await workflowExecutor.execute(config, input);
   }

@@ -46,7 +46,8 @@ describe('createPerUserLimiter', () => {
     });
 
     app.use((req, _res, next) => {
-      (req as express.Request & { userId?: string }).userId = String(req.query['uid'] || '');
+      const uid = req.query['uid'];
+      (req as express.Request & { userId?: string }).userId = typeof uid === 'string' ? uid : '';
       next();
     });
     app.use(limiter);
@@ -102,6 +103,12 @@ describe('createPerUserLimiter', () => {
     await request(app).get('/').expect(200);
     const blocked = await request(app).get('/');
     expect(blocked.status).toBe(429);
-    expect(blocked.body.error).toBe('تم تجاوز حدّك الخاص');
+    expect(readErrorMessage(blocked.body)).toBe('تم تجاوز حدّك الخاص');
   });
 });
+
+function readErrorMessage(body: unknown): unknown {
+  return typeof body === 'object' && body !== null
+    ? (body as Record<string, unknown>)['error']
+    : undefined;
+}

@@ -41,12 +41,12 @@ export class GitWatcher extends EventEmitter {
 
   async getCurrentCommit(): Promise<string> {
     const log = await this.git.log({ maxCount: 1 });
-    return log.latest?.hash || "";
+    return log.latest?.hash ?? "";
   }
 
   async getCurrentBranch(): Promise<string> {
     const status = await this.git.status();
-    return status.current || "unknown";
+    return status.current ?? "unknown";
   }
 
   /**
@@ -57,16 +57,20 @@ export class GitWatcher extends EventEmitter {
 
     logger.info(`Started watching git changes every ${intervalMs}ms`);
 
-    this.pollingInterval = setInterval(async () => {
-      try {
-        const changes = await this.checkForChanges();
-        if (changes.length > 0) {
-          logger.info(`Detected ${changes.length} changes`);
-        }
-      } catch (error) {
-        logger.error("Error checking for changes", { error });
-      }
+    this.pollingInterval = setInterval(() => {
+      void this.checkForChangesSafely();
     }, intervalMs);
+  }
+
+  private async checkForChangesSafely(): Promise<void> {
+    try {
+      const changes = await this.checkForChanges();
+      if (changes.length > 0) {
+        logger.info(`Detected ${changes.length} changes`);
+      }
+    } catch (error) {
+      logger.error("Error checking for changes", { error });
+    }
   }
 
   stopWatching(): void {

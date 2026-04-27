@@ -9,7 +9,15 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { authMiddleware } from '@/middleware/auth.middleware';
+
 import type { Request, Response, NextFunction } from 'express';
+
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+};
 
 // ─── Mock لـ authService (vi.hoisted لتجنب مشكلة الترتيب) ───
 const { mockVerifyToken, mockGetUserById } = vi.hoisted(() => ({
@@ -24,8 +32,6 @@ vi.mock('@/services/auth.service', () => ({
   },
 }));
 
-import { authMiddleware } from '@/middleware/auth.middleware';
-
 // ─── مساعدات بناء كائنات الطلب والاستجابة الوهمية ───
 
 function createMockReq(overrides: Partial<Request> & {
@@ -39,22 +45,29 @@ function createMockReq(overrides: Partial<Request> & {
   } as unknown as Request;
 }
 
-function createMockRes(): Response {
+function createMockRes(): MockResponse {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-  } as unknown as Response;
+  };
+}
+
+function asResponse(response: MockResponse): Response {
+  return response as unknown as Response;
+}
+
+function stringContainingMatcher(value: string): unknown {
+  return expect.stringContaining(value);
 }
 
 // ═══ اختبارات Auth Middleware ═══
 
-describe('authMiddleware', () => {
-  let next: NextFunction;
+let next: NextFunction;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    next = vi.fn();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  next = vi.fn();
+});
 
   // ─── المصادقة الناجحة ───
 
@@ -70,7 +83,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(mockVerifyToken).toHaveBeenCalledWith('valid-token-123');
       expect(mockGetUserById).toHaveBeenCalledWith('user-1');
@@ -91,7 +104,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(mockVerifyToken).toHaveBeenCalledWith('cookie-token-456');
       expect(next).toHaveBeenCalled();
@@ -109,7 +122,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(mockVerifyToken).toHaveBeenCalledWith('header-token');
     });
@@ -126,7 +139,7 @@ describe('authMiddleware', () => {
       const req = createMockReq({ headers: {}, cookies: {} });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
@@ -145,13 +158,13 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: expect.stringContaining('غير صالح'),
+          error: stringContainingMatcher('غير صالح'),
         })
       );
     });
@@ -165,12 +178,12 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.stringContaining('غير موجود'),
+          error: stringContainingMatcher('غير موجود'),
         })
       );
       expect(next).not.toHaveBeenCalled();
@@ -184,11 +197,11 @@ describe('authMiddleware', () => {
       const req = createMockReq({ headers: {}, cookies: {} });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.stringContaining('تسجيل الدخول'),
+          error: stringContainingMatcher('تسجيل الدخول'),
         })
       );
     });
@@ -204,7 +217,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.status).toHaveBeenCalledWith(401);
     });
@@ -222,11 +235,11 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       // يجب استدعاء status مرة واحدة فقط (لا استجابة مزدوجة)
-      expect((res.status as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
-      expect((res.json as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
+      expect(res.status.mock.calls).toHaveLength(1);
+      expect(res.json.mock.calls).toHaveLength(1);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -238,10 +251,10 @@ describe('authMiddleware', () => {
       const req = createMockReq({ headers: {}, cookies: {} });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
-      expect((res.status as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
-      expect((res.json as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
+      expect(res.status.mock.calls).toHaveLength(1);
+      expect(res.json.mock.calls).toHaveLength(1);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -255,10 +268,10 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
-      expect((res.status as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
-      expect((res.json as unknown as { mock: { calls: unknown[] } }).mock.calls).toHaveLength(1);
+      expect(res.status.mock.calls).toHaveLength(1);
+      expect(res.json.mock.calls).toHaveLength(1);
       expect(next).not.toHaveBeenCalled();
     });
 
@@ -272,7 +285,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(mockGetUserById).not.toHaveBeenCalled();
     });
@@ -291,7 +304,7 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(next).not.toHaveBeenCalled();
@@ -308,10 +321,9 @@ describe('authMiddleware', () => {
       });
       const res = createMockRes();
 
-      await authMiddleware(req, res, next);
+      await authMiddleware(req, asResponse(res), next);
 
       expect(mockVerifyToken).toHaveBeenCalledWith('fallback-cookie-token');
       expect(next).toHaveBeenCalled();
     });
   });
-});

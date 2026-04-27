@@ -1,3 +1,9 @@
+import {
+  isUnknownRecord,
+  stringArrayFromUnknown,
+  stringifyUnknown,
+} from "@/lib/utils/unknown-values";
+
 import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
 import { toText } from "../gemini-core";
 
@@ -116,6 +122,202 @@ export interface Station4Output {
 
 type RecommendationBuckets = Station4Output["recommendations"];
 
+const defaultLiteraryQuality: LiteraryQualityAssessment = {
+  overallQuality: 50,
+  proseQuality: 50,
+  structureQuality: 50,
+  characterDevelopmentQuality: 50,
+  dialogueQuality: 50,
+  thematicDepth: 50,
+};
+
+const defaultProducibility: ProducibilityAnalysis = {
+  technicalFeasibility: 5,
+  budgetEstimate: "medium",
+  productionChallenges: [],
+  locationRequirements: [],
+  specialEffectsNeeded: false,
+  castSize: 5,
+};
+
+const defaultRhythm: RhythmAnalysis = {
+  overallPace: "medium",
+  paceVariation: 5,
+  sceneLengths: [],
+  actBreakdown: [],
+  recommendations: [],
+};
+
+const defaultRecommendations: RecommendationBuckets = {
+  priorityActions: ["فشل توليد التوصيات"],
+  quickFixes: [],
+  structuralRevisions: [],
+};
+
+function parseJsonRecord(text: string): Record<string, unknown> | null {
+  const parsed: unknown = JSON.parse(text || "{}");
+  return isUnknownRecord(parsed) ? parsed : null;
+}
+
+function finiteNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : fallback;
+}
+
+function finiteNumberArray(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is number => typeof item === "number" && Number.isFinite(item)
+  );
+}
+
+function parseLiteraryQuality(text: string): LiteraryQualityAssessment {
+  const parsed = parseJsonRecord(text);
+  if (!parsed) {
+    return defaultLiteraryQuality;
+  }
+
+  return {
+    overallQuality: finiteNumber(parsed["overallQuality"], 50),
+    proseQuality: finiteNumber(parsed["proseQuality"], 50),
+    structureQuality: finiteNumber(parsed["structureQuality"], 50),
+    characterDevelopmentQuality: finiteNumber(
+      parsed["characterDevelopmentQuality"],
+      50
+    ),
+    dialogueQuality: finiteNumber(parsed["dialogueQuality"], 50),
+    thematicDepth: finiteNumber(parsed["thematicDepth"], 50),
+  };
+}
+
+function parseBudgetEstimate(
+  value: unknown
+): ProducibilityAnalysis["budgetEstimate"] {
+  return value === "low" ||
+    value === "medium" ||
+    value === "high" ||
+    value === "very_high"
+    ? value
+    : "medium";
+}
+
+function parseSeverity(
+  value: unknown
+): ProducibilityAnalysis["productionChallenges"][number]["severity"] {
+  return value === "low" || value === "medium" || value === "high"
+    ? value
+    : "medium";
+}
+
+function parseProductionChallenges(
+  value: unknown
+): ProducibilityAnalysis["productionChallenges"] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((challenge) => {
+    if (!isUnknownRecord(challenge)) {
+      return [];
+    }
+
+    return [
+      {
+        type: stringifyUnknown(challenge["type"], "unknown"),
+        description: stringifyUnknown(challenge["description"]),
+        severity: parseSeverity(challenge["severity"]),
+      },
+    ];
+  });
+}
+
+function parseProducibility(text: string): ProducibilityAnalysis {
+  const parsed = parseJsonRecord(text);
+  if (!parsed) {
+    return defaultProducibility;
+  }
+
+  return {
+    technicalFeasibility: finiteNumber(parsed["technicalFeasibility"], 5),
+    budgetEstimate: parseBudgetEstimate(parsed["budgetEstimate"]),
+    productionChallenges: parseProductionChallenges(
+      parsed["productionChallenges"]
+    ),
+    locationRequirements: stringArrayFromUnknown(
+      parsed["locationRequirements"]
+    ),
+    specialEffectsNeeded:
+      typeof parsed["specialEffectsNeeded"] === "boolean"
+        ? parsed["specialEffectsNeeded"]
+        : false,
+    castSize: finiteNumber(parsed["castSize"], 5),
+  };
+}
+
+function parsePace(value: unknown): RhythmAnalysis["overallPace"] {
+  return value === "very_slow" ||
+    value === "slow" ||
+    value === "medium" ||
+    value === "fast" ||
+    value === "very_fast"
+    ? value
+    : "medium";
+}
+
+function parseActBreakdown(value: unknown): RhythmAnalysis["actBreakdown"] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((act) => {
+    if (!isUnknownRecord(act)) {
+      return [];
+    }
+
+    return [
+      {
+        act: finiteNumber(act["act"], 0),
+        averagePace: stringifyUnknown(act["averagePace"], "medium"),
+        tensionProgression: finiteNumberArray(act["tensionProgression"]),
+      },
+    ];
+  });
+}
+
+function parseRhythm(text: string): RhythmAnalysis {
+  const parsed = parseJsonRecord(text);
+  if (!parsed) {
+    return defaultRhythm;
+  }
+
+  return {
+    overallPace: parsePace(parsed["overallPace"]),
+    paceVariation: finiteNumber(parsed["paceVariation"], 5),
+    sceneLengths: finiteNumberArray(parsed["sceneLengths"]),
+    actBreakdown: parseActBreakdown(parsed["actBreakdown"]),
+    recommendations: stringArrayFromUnknown(parsed["recommendations"]),
+  };
+}
+
+function parseRecommendations(text: string): RecommendationBuckets {
+  const parsed = parseJsonRecord(text);
+  if (!parsed) {
+    return defaultRecommendations;
+  }
+
+  return {
+    priorityActions: stringArrayFromUnknown(parsed["priorityActions"]),
+    quickFixes: stringArrayFromUnknown(parsed["quickFixes"]),
+    structuralRevisions: stringArrayFromUnknown(
+      parsed["structuralRevisions"]
+    ),
+  };
+}
+
 // Literary Quality Analyzer Agent
 class LiteraryQualityAnalyzer {
   constructor(private geminiService: GeminiService) {}
@@ -158,17 +360,10 @@ class LiteraryQualityAnalyzer {
     });
 
     try {
-      return JSON.parse(toText(result.content) || "{}");
+      return parseLiteraryQuality(toText(result.content));
     } catch (e) {
       console.error("Failed to parse literary quality assessment:", e);
-      return {
-        overallQuality: 50,
-        proseQuality: 50,
-        structureQuality: 50,
-        characterDevelopmentQuality: 50,
-        dialogueQuality: 50,
-        thematicDepth: 50,
-      };
+      return defaultLiteraryQuality;
     }
   }
 }
@@ -222,17 +417,10 @@ class ProducibilityAnalyzer {
     });
 
     try {
-      return JSON.parse(toText(result.content) || "{}");
+      return parseProducibility(toText(result.content));
     } catch (e) {
       console.error("Failed to parse producibility analysis:", e);
-      return {
-        technicalFeasibility: 5,
-        budgetEstimate: "medium",
-        productionChallenges: [],
-        locationRequirements: [],
-        specialEffectsNeeded: false,
-        castSize: 5,
-      };
+      return defaultProducibility;
     }
   }
 }
@@ -278,16 +466,10 @@ class RhythmMappingAgent {
     });
 
     try {
-      return JSON.parse(toText(result.content) || "{}");
+      return parseRhythm(toText(result.content));
     } catch (e) {
       console.error("Failed to parse rhythm analysis:", e);
-      return {
-        overallPace: "medium",
-        paceVariation: 5,
-        sceneLengths: [],
-        actBreakdown: [],
-        recommendations: [],
-      };
+      return defaultRhythm;
     }
   }
 }
@@ -341,14 +523,10 @@ class RecommendationsGenerator {
     });
 
     try {
-      return JSON.parse(toText(result.content) || "{}");
+      return parseRecommendations(toText(result.content));
     } catch (e) {
       console.error("Failed to parse recommendations:", e);
-      return {
-        priorityActions: ["فشل توليد التوصيات"],
-        quickFixes: [],
-        structuralRevisions: [],
-      };
+      return defaultRecommendations;
     }
   }
 }

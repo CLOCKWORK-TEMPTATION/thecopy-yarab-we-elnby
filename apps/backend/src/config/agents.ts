@@ -81,5 +81,5 @@ export const agentsConfig: AgentsConfig = {
  * Get configuration for a specific agent
  */
 export function getAgentConfig(agentId: string): AgentConfig {
-  return agentsConfig[agentId] || agentsConfig.default;
+  return agentsConfig[agentId] ?? agentsConfig.default;
 }

@@ -1,5 +1,10 @@
 import { Schema, Type } from "@google/genai";
 
+import {
+  isUnknownRecord,
+  stringArrayFromUnknown,
+} from "@/lib/utils/unknown-values";
+
 import { GEMINI_MODELS, TECHNICAL_AGENT_KEYS } from "../../domain/constants";
 import { logError } from "../../domain/errors";
 import { getGeminiClient } from "../gemini/client";
@@ -39,6 +44,19 @@ Return JSON: { "items": string[] }
   `;
 }
 
+function parseAgentItems(responseText: string | undefined): string[] {
+  if (!responseText) {
+    return [];
+  }
+
+  const parsed: unknown = JSON.parse(responseText);
+  if (!isUnknownRecord(parsed)) {
+    return [];
+  }
+
+  return stringArrayFromUnknown(parsed["items"]);
+}
+
 export const runConfiguredAgent = async (
   agentKey: BreakdownAgentKey,
   sceneContent: string,
@@ -57,7 +75,7 @@ export const runConfiguredAgent = async (
       },
     });
 
-    return (response.text ? JSON.parse(response.text).items : []) ?? [];
+    return parseAgentItems(response.text);
   } catch (error) {
     logError(`runConfiguredAgent.${agentKey}`, error);
     return [];

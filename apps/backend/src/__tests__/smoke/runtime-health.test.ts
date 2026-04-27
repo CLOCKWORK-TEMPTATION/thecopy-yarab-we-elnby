@@ -29,7 +29,7 @@ interface DetailedHealthBody {
 }
 
 describeSmoke('Runtime Health Smoke Tests', () => {
-  const BACKEND_URL = process.env['BACKEND_URL'] || 'http://localhost:3001';
+  const BACKEND_URL = process.env['BACKEND_URL'] ?? 'http://localhost:3001';
 
   it('GET /health/ready returns 200 when services are healthy', async () => {
     const res: globalThis.Response = await fetch(`${BACKEND_URL}/health/ready`);

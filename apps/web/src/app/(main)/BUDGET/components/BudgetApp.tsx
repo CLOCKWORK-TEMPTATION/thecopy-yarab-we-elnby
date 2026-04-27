@@ -27,9 +27,11 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
 import { logger } from "@/lib/ai/utils/logger";
+import { isUnknownRecord, stringifyUnknown } from "@/lib/utils/unknown-values";
 
 import { INITIAL_BUDGET_TEMPLATE, BUDGET_TEMPLATES } from "../lib/constants";
 import {
+  BudgetSchema,
   Budget,
   LineItem,
   SecurityRisk,
@@ -79,6 +81,68 @@ const recalculateBudget = (budget: Budget): Budget => {
   return { ...budget, sections: newSections, grandTotal };
 };
 
+const parseSavedBudgets = (saved: string): SavedBudget[] => {
+  const parsed: unknown = JSON.parse(saved);
+  return Array.isArray(parsed) ? parsed.filter(isSavedBudget) : [];
+};
+
+const parsePreferences = (saved: string): Partial<UserPreferences> => {
+  const parsed: unknown = JSON.parse(saved);
+  if (!isUnknownRecord(parsed)) {
+    return {};
+  }
+
+  const preferences: Partial<UserPreferences> = {};
+  if (
+    parsed["language"] === "en" ||
+    parsed["language"] === "ar" ||
+    parsed["language"] === "es" ||
+    parsed["language"] === "fr"
+  ) {
+    preferences.language = parsed["language"];
+  }
+  if (
+    parsed["theme"] === "light" ||
+    parsed["theme"] === "dark" ||
+    parsed["theme"] === "auto"
+  ) {
+    preferences.theme = parsed["theme"];
+  }
+  if (typeof parsed["currency"] === "string") {
+    preferences.currency = parsed["currency"];
+  }
+  if (typeof parsed["dateFormat"] === "string") {
+    preferences.dateFormat = parsed["dateFormat"];
+  }
+  if (typeof parsed["notifications"] === "boolean") {
+    preferences.notifications = parsed["notifications"];
+  }
+  if (typeof parsed["autoSave"] === "boolean") {
+    preferences.autoSave = parsed["autoSave"];
+  }
+
+  return preferences;
+};
+
+const isSavedBudget = (value: unknown): value is SavedBudget => {
+  if (!isUnknownRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value["id"] === "string" &&
+    typeof value["name"] === "string" &&
+    BudgetSchema.safeParse(value["budget"]).success &&
+    typeof value["script"] === "string" &&
+    typeof value["date"] === "string" &&
+    (value["thumbnail"] === undefined ||
+      typeof value["thumbnail"] === "string") &&
+    (value["tags"] === undefined ||
+      (Array.isArray(value["tags"]) &&
+        value["tags"].every((tag) => typeof tag === "string")))
+  );
+};
+
 interface BudgetAppProps {
   initialBudget?: Budget;
   initialScript?: string;
@@ -115,7 +179,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
   });
 
   // Risk and security fund state
-  const [risk, setRisk] = useState<SecurityRisk>({
+  const [riskConfig, setRisk] = useState<SecurityRisk>({
     bondFee: { percent: 0.02, total: 0 },
     contingency: { percent: 0.1, total: 0 },
     credits: { percent: 0.25, total: 0 },
@@ -124,55 +188,48 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
   // AI Analysis state
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
 
-  // Load saved data on mount
-  useEffect(() => {
-    loadSavedData();
-    loadPreferences();
-  }, []);
-
   // Sync props if they change and are non-empty (e.g. after generation)
   useEffect(() => {
-    if (initialBudget) {
-      setBudget(recalculateBudget(initialBudget));
-      setBudgetName(initialBudget.metadata?.title ?? "");
-      setStatus("complete");
-    }
-    if (initialScript) {
-      setScriptText(initialScript);
-    }
+    const timeout = setTimeout(() => {
+      if (initialBudget) {
+        setBudget(recalculateBudget(initialBudget));
+        setBudgetName(initialBudget.metadata?.title ?? "");
+        setStatus("complete");
+      }
+      if (initialScript) {
+        setScriptText(initialScript);
+      }
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [initialBudget, initialScript]);
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (preferences.autoSave && budgetName && budget.grandTotal > 0) {
-      const timeout = setTimeout(() => {
-        saveBudget(true);
-      }, 5000);
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-    return undefined;
-  }, [budget, budgetName, preferences.autoSave]);
-
   // Calculate risk totals
-  useEffect(() => {
+  const risk = useMemo<SecurityRisk>(() => {
     const baseTotal = budget.grandTotal;
-    setRisk((prev) => ({
-      bondFee: { ...prev.bondFee, total: baseTotal * prev.bondFee.percent },
-      contingency: {
-        ...prev.contingency,
-        total: baseTotal * prev.contingency.percent,
+    return {
+      bondFee: {
+        ...riskConfig.bondFee,
+        total: baseTotal * riskConfig.bondFee.percent,
       },
-      credits: { ...prev.credits, total: -(baseTotal * prev.credits.percent) },
-    }));
-  }, [budget.grandTotal]);
+      contingency: {
+        ...riskConfig.contingency,
+        total: baseTotal * riskConfig.contingency.percent,
+      },
+      credits: {
+        ...riskConfig.credits,
+        total: -(baseTotal * riskConfig.credits.percent),
+      },
+    };
+  }, [budget.grandTotal, riskConfig]);
 
   const loadSavedData = () => {
     try {
       const saved = localStorage.getItem("filmbudgetai-saved-v3");
       if (saved) {
-        setSavedBudgets(JSON.parse(saved));
+        setSavedBudgets(parseSavedBudgets(saved));
       }
     } catch (e) {
       logger.error("Failed to load saved budgets:", e);
@@ -183,7 +240,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
     try {
       const saved = localStorage.getItem("filmbudgetai-preferences");
       if (saved) {
-        setPreferences((prev) => ({ ...prev, ...JSON.parse(saved) }));
+        setPreferences((prev) => ({ ...prev, ...parsePreferences(saved) }));
       }
     } catch (e) {
       logger.error("Failed to load preferences:", e);
@@ -207,71 +264,67 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
     setStatus("analyzing");
     setError(null);
 
-    try {
-      // Show progress
-      toast.promise(
-        (async () => {
-          // توليد الميزانية عبر API route آمن
-          setStatus("analyzing");
-          const genResponse = await fetch("/api/budget/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ scenario: scriptText, title: budgetName }),
-          });
-          const genData = (await genResponse.json()) as {
-            error?: string;
-            data?: { budget?: unknown };
-            budget?: unknown;
-          };
-          if (!genResponse.ok) {
-            throw new Error(genData.error ?? "فشل في توليد الميزانية");
-          }
-          const aiResponse = genData.data?.budget ?? genData.budget;
+    const generationPromise = (async () => {
+      // توليد الميزانية عبر API route آمن
+      setStatus("analyzing");
+      const genResponse = await fetch("/api/budget/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario: scriptText, title: budgetName }),
+      });
+      const genData = (await genResponse.json()) as {
+        error?: string;
+        data?: { budget?: unknown };
+        budget?: unknown;
+      };
+      if (!genResponse.ok) {
+        throw new Error(genData.error ?? "فشل في توليد الميزانية");
+      }
+      const aiResponse = (genData.data?.budget ?? genData.budget) as Budget;
 
-          setStatus("calculating");
-          const cleanBudget = recalculateBudget(aiResponse);
+      setStatus("calculating");
+      const cleanBudget = recalculateBudget(aiResponse);
 
-          setBudget(cleanBudget);
+      setBudget(cleanBudget);
 
-          // تحليل السيناريو عبر API route آمن
-          const analyzeResponse = await fetch("/api/budget/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ scenario: scriptText }),
-          });
-          const analyzeData = (await analyzeResponse.json()) as {
-            data?: { analysis?: unknown };
-            analysis?: unknown;
-          };
-          if (analyzeResponse.ok) {
-            const analysisResult =
-              analyzeData.data?.analysis ?? analyzeData.analysis;
-            if (analysisResult) {
-              setAiAnalysis(analysisResult);
-            }
-          }
-
-          // Auto-generate budget name
-          const firstLine = (scriptText.split("\n")[0] ?? "").substring(0, 50);
-          setBudgetName(firstLine || "Untitled Project");
-
-          setStatus("complete");
-          return "Budget generated successfully!";
-        })(),
-        {
-          loading: "Analyzing script...",
-          success: (msg) => msg,
-          error: (err: unknown) =>
-            `Error: ${err instanceof Error ? err.message : String(err)}`,
+      // تحليل السيناريو عبر API route آمن
+      const analyzeResponse = await fetch("/api/budget/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario: scriptText }),
+      });
+      const analyzeData = (await analyzeResponse.json()) as {
+        data?: { analysis?: unknown };
+        analysis?: unknown;
+      };
+      if (analyzeResponse.ok) {
+        const analysisResult = analyzeData.data?.analysis ?? analyzeData.analysis;
+        if (analysisResult) {
+          setAiAnalysis(analysisResult as AIAnalysis);
         }
-      );
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      logger.error("Budget generation failed", { error: e });
-      setError(message ?? "Failed to generate budget. Please try again.");
-      setStatus("error");
-      toast.error(message ?? "Failed to generate budget");
-    }
+      }
+
+      // Auto-generate budget name
+      const firstLine = (scriptText.split("\n")[0] ?? "").substring(0, 50);
+      setBudgetName(firstLine || "Untitled Project");
+
+      setStatus("complete");
+      return "Budget generated successfully!";
+    })();
+
+    toast
+      .promise(generationPromise, {
+        loading: "Analyzing script...",
+        success: (msg) => msg,
+        error: (err: unknown) => `Error: ${stringifyUnknown(err)}`,
+      })
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : stringifyUnknown(e);
+        logger.error("Budget generation failed", { error: e });
+        setError(message || "Failed to generate budget. Please try again.");
+        setStatus("error");
+        toast.error(message || "Failed to generate budget");
+      });
   };
 
   const handleRiskUpdate = (
@@ -405,6 +458,31 @@ stunt work, visual effects, and a large cast.`);
       toast.success("Budget saved successfully!");
     }
   };
+
+  // Load saved data on mount
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      loadSavedData();
+      loadPreferences();
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (preferences.autoSave && budgetName && budget.grandTotal > 0) {
+      const timeout = setTimeout(() => {
+        saveBudget(true);
+      }, 5000);
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+    return undefined;
+  }, [budget, budgetName, preferences.autoSave]);
 
   const loadSavedBudget = (saved: SavedBudget) => {
     setBudget(saved.budget);

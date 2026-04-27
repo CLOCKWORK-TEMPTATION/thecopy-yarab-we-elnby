@@ -74,8 +74,8 @@ function parseAnalysisResponse(
       continue;
     }
 
-    if ((/^[\-\*\•]\s/.exec(trimmed)) || (/^\d+[\.\)]\s/.exec(trimmed))) {
-      const point = trimmed.replace(/^[\-\*\•]\s/, '').replace(/^\d+[\.\)]\s/, '');
+    if ((/^[-*•]\s/.exec(trimmed)) || (/^\d+[.)]\s/.exec(trimmed))) {
+      const point = trimmed.replace(/^[-*•]\s/, '').replace(/^\d+[.)]\s/, '');
 
       if (currentSection === 'consensus') {
         consensusPoints.push(point);

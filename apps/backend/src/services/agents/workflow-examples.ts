@@ -10,6 +10,20 @@ import { TaskType } from './core/enums';
 import { StandardAgentInput } from './core/types';
 import { multiAgentOrchestrator } from './orchestrator';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function recordField(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = record[key];
+  return isRecord(value) ? value : {};
+}
+
+function eventConfidence(data: unknown): number | undefined {
+  if (!isRecord(data)) return undefined;
+  const output = recordField(data, 'output');
+  return typeof output['confidence'] === 'number' ? output['confidence'] : undefined;
+}
 
 /**
  * Example 1: Using Preset Workflows
@@ -166,7 +180,7 @@ async function exampleWithMonitoring() {
 
   workflowExecutor.on('step-completed', (event) => {
     logger.info(`[${event.timestamp.toISOString()}] Step completed: ${event.stepId}`);
-    logger.info('Confidence:', event.data?.output?.confidence);
+    logger.info('Confidence:', eventConfidence(event.data));
   });
 
   workflowExecutor.on('step-failed', (event) => {

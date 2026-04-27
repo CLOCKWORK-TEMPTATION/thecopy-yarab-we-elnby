@@ -20,7 +20,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     super(
       "WisdomSynthesizer AI",
       TaskType.RECOMMENDATIONS_GENERATOR,
-      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt || ""
+      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor
@@ -117,14 +117,14 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Post-process the recommendations output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess recommendations quality
-    const qualityMetrics = await this.assessRecommendationsQuality(processedText);
+    const qualityMetrics = this.assessRecommendationsQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =
@@ -133,7 +133,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
       qualityMetrics.specificity * 0.15 +
       qualityMetrics.comprehensiveness * 0.15;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: Math.min(1, adjustedConfidence),
@@ -146,7 +146,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
         comprehensiveness: qualityMetrics.comprehensiveness,
         recommendationsCount: this.countRecommendations(processedText),
       },
-    };
+    });
   }
 
   /**
@@ -195,13 +195,13 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Assess the quality of recommendations
    */
-  private async assessRecommendationsQuality(text: string): Promise<{
+  private assessRecommendationsQuality(text: string): {
     actionability: number;
     specificity: number;
     comprehensiveness: number;
     creativeSolutions: number;
     overallScore: number;
-  }> {
+  } {
     const actionability = this.calculateCoverage(text, RecommendationsGeneratorAgent.ACTION_TERMS);
     const specificity = this.calculateCoverage(text, RecommendationsGeneratorAgent.SPECIFIC_TERMS);
     const comprehensiveness = this.calculateCoverage(text, RecommendationsGeneratorAgent.COMPREHENSIVE_TERMS);
@@ -232,10 +232,10 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
    */
   private countRecommendations(text: string): number {
     // Count numbered items, bullet points, and recommendation keywords
-    const numberedItems = (text.match(/^\d+\./gm) || []).length;
-    const bulletItems = (text.match(/^[-•]/gm) || []).length;
+    const numberedItems = (text.match(/^\d+\./gm) ?? []).length;
+    const bulletItems = (text.match(/^[-•]/gm) ?? []).length;
     const recommendationKeywords = (
-      text.match(/اقتراح|توصية|تحسين|تعديل/gi) || []
+      text.match(/اقتراح|توصية|تحسين|تعديل/gi) ?? []
     ).length;
 
     return Math.max(numberedItems, bulletItems, recommendationKeywords);
@@ -252,7 +252,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
       balanced: "متوازنة - تغطية شاملة لجميع الجوانب",
       critical: "حرجة - معالجة المشاكل الأساسية فقط",
     };
-    return priorities[priority] || priority;
+    return priorities[priority] ?? priority;
   }
 
   /**
@@ -303,10 +303,10 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Generate fallback response specific to recommendations
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `التوصيات والتحسينات المقترحة:
+    return Promise.resolve(`التوصيات والتحسينات المقترحة:
 
 بناءً على التحليل الأولي للنص المقدم، إليك بعض التوصيات العامة:
 
@@ -333,7 +333,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
 **توصية:**
 للحصول على توصيات أكثر تفصيلاً ودقة، يُنصح بتوفير نتائج التحليلات السابقة من المحطات الأخرى.
 
-ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`;
+ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`);
   }
 }
 

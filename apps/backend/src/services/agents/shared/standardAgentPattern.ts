@@ -37,7 +37,14 @@ async function callGeminiText(
 function toText(value: unknown): string {
   if (typeof value === "string") return value;
   if (value === null || value === undefined) return "";
-  return String(value);
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value) ?? "";
+  } catch {
+    return "";
+  }
 }
 
 // =====================================================
@@ -176,6 +183,15 @@ interface PipelineState {
   };
 }
 
+interface PipelineRunContext {
+  taskPrompt: string;
+  merged: StandardAgentOptions;
+  options: StandardAgentOptions;
+  originalText: string | undefined;
+  state: PipelineState;
+  startedAt: number;
+}
+
 // =====================================================
 // Standard Agent Execution
 // =====================================================
@@ -201,7 +217,14 @@ export async function executeStandardAgentPattern(
   };
 
   try {
-    return await runPipeline(taskPrompt, merged, options, originalText, state, startedAt);
+    return await runPipeline({
+      taskPrompt,
+      merged,
+      options,
+      originalText,
+      state,
+      startedAt,
+    });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "خطأ غير معروف";
     return {
@@ -218,17 +241,11 @@ export async function executeStandardAgentPattern(
   }
 }
 
-async function runPipeline(
-  taskPrompt: string,
-  merged: StandardAgentOptions,
-  options: StandardAgentOptions,
-  originalText: string | undefined,
-  state: PipelineState,
-  startedAt: number
-): Promise<StandardAgentOutput> {
+async function runPipeline(context: PipelineRunContext): Promise<StandardAgentOutput> {
+  const { taskPrompt, merged, options, originalText, state, startedAt } = context;
   // Step 1: RAG
   const finalPrompt = await applyRAGStep(taskPrompt, merged, originalText, state);
-  state.currentText = await callGeminiText(finalPrompt, { temperature: merged.temperature || 0.3 });
+  state.currentText = await callGeminiText(finalPrompt, { temperature: merged.temperature ?? 0.3 });
 
   // Step 2-5: Quality checks
   if (options.enableSelfCritique) await applySelfCritiqueStep(finalPrompt, merged, state);
@@ -236,7 +253,7 @@ async function runPipeline(
   if (options.enableUncertainty) await applyUncertaintyStep(finalPrompt, merged, state);
   if (options.enableHallucination) await applyHallucinationStep(taskPrompt, state);
 
-  if (merged.enableDebate && state.confidence < (merged.confidenceThreshold || 0.7)) {
+  if (merged.enableDebate && state.confidence < (merged.confidenceThreshold ?? 0.7)) {
     state.notes.push("الثقة منخفضة - يُوصى بتفعيل النقاش متعدد الوكلاء");
   }
 
@@ -280,7 +297,7 @@ async function applySelfCritiqueStep(
   finalPrompt: string, merged: StandardAgentOptions, state: PipelineState
 ): Promise<void> {
   const result = await performSelfCritique(
-    state.currentText, merged.temperature || 0.3, merged.maxIterations || 3
+    state.currentText, merged.temperature ?? 0.3, merged.maxIterations ?? 3
   );
   state.currentText = result.finalText;
   state.metadata.critiqueIterations = result.iterations;
@@ -295,7 +312,7 @@ async function applyConstitutionalStep(
   taskPrompt: string, merged: StandardAgentOptions, state: PipelineState
 ): Promise<void> {
   const result = await performConstitutionalCheck(
-    state.currentText, taskPrompt, "gemini-1.5-flash", merged.temperature || 0.3
+    state.currentText, taskPrompt, "gemini-1.5-flash", merged.temperature ?? 0.3
   );
   state.currentText = result.correctedText;
   state.metadata.constitutionalViolations = result.violations.length;
@@ -309,7 +326,7 @@ async function applyUncertaintyStep(
   finalPrompt: string, merged: StandardAgentOptions, state: PipelineState
 ): Promise<void> {
   const metrics = await measureUncertainty(
-    state.currentText, finalPrompt, "gemini-1.5-flash", merged.temperature || 0.3
+    state.currentText, finalPrompt, "gemini-1.5-flash", merged.temperature ?? 0.3
   );
   state.metadata.uncertaintyScore = metrics.score;
   state.confidence = Math.min(state.confidence, metrics.confidence);

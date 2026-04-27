@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+import { logger as appLogger } from "@/lib/logger";
 /**
  * Production-Safe Logging Service
  * Replaces console statements with proper logging levels
@@ -256,16 +256,16 @@ class LoggerService {
 
       switch (level) {
         case LogLevel.ERROR:
-          logger.error(formatted);
+          appLogger.error(formatted);
           break;
         case LogLevel.WARN:
-          logger.warn(formatted);
+          appLogger.warn(formatted);
           break;
         case LogLevel.INFO:
-          logger.info(formatted);
+          appLogger.info(formatted);
           break;
         case LogLevel.DEBUG:
-          console.debug(formatted);
+          appLogger.debug(formatted);
           break;
       }
     }

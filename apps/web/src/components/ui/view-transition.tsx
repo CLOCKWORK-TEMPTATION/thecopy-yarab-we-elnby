@@ -41,11 +41,14 @@ export function ViewTransition({ children, className }: ViewTransitionProps) {
 
       const doc = document as ViewTransitionDocument;
       if (doc.startViewTransition) {
-        doc
-          .startViewTransition(() => {
-            setDisplayChildren(children);
+        const transition = doc.startViewTransition(() => {
+          setDisplayChildren(children);
+        });
+        transition.finished
+          .finally(() => {
+            setIsTransitioning(false);
           })
-          .finished.finally(() => {
+          .catch(() => {
             setIsTransitioning(false);
           });
       }
@@ -86,7 +89,10 @@ export function useViewTransition() {
   return React.useCallback((callback: () => void) => {
     const doc = document as ViewTransitionDocument;
     if ("startViewTransition" in document && doc.startViewTransition) {
-      doc.startViewTransition(callback);
+      const transition = doc.startViewTransition(callback);
+      transition.finished.catch(() => {
+        // الانتقال البصري اختياري ولا يجب أن يعطل التحديث الأصلي.
+      });
     } else {
       callback();
     }

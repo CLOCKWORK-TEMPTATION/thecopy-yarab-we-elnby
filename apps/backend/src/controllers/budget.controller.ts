@@ -26,7 +26,7 @@ function sanitizeAttachmentFilename(value: string | undefined): string {
     .replace(/^_+|_+$/g, '')
     .slice(0, 50);
 
-  return sanitized || 'budget';
+  return sanitized ?? 'budget';
 }
 
 function encodeAttachmentFilename(value: string): string {
@@ -38,7 +38,7 @@ function encodeAttachmentFilename(value: string): string {
 
 function buildAttachmentHeader(title: string | undefined): string {
   const fallbackFilename = `${sanitizeAttachmentFilename(title)}.xlsx`;
-  const encodedFilename = `${encodeAttachmentFilename(title || 'budget')}.xlsx`;
+  const encodedFilename = `${encodeAttachmentFilename(title ?? 'budget')}.xlsx`;
 
   return `attachment; filename="${fallbackFilename}"; filename*=UTF-8''${encodedFilename}`;
 }

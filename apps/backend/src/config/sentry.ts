@@ -1,8 +1,11 @@
 /** Sentry Configuration — lazy-loads packages only when DSN is configured. */
+import { createRequire } from 'node:module';
+
 import { logger } from '@/lib/logger';
 
 type SentryModule = typeof import('@sentry/node');
 export type SeverityLevel = import('@sentry/node').SeverityLevel;
+const loadRuntimeModule = createRequire(__filename);
 let sentryModule: SentryModule | null = null;
 
 function isSentryEnabled(): boolean {
@@ -10,13 +13,13 @@ function isSentryEnabled(): boolean {
 }
 
 function getSentryModule(): SentryModule {
-  sentryModule ??= require('@sentry/node') as SentryModule;
+  sentryModule ??= loadRuntimeModule('@sentry/node') as SentryModule;
   return sentryModule;
 }
 
 export const APM_CONFIG = {
-  tracesSampleRate: parseFloat(process.env['SENTRY_TRACES_SAMPLE_RATE'] || '0.1'),
-  profilesSampleRate: parseFloat(process.env['SENTRY_PROFILES_SAMPLE_RATE'] || '0.1'),
+  tracesSampleRate: parseFloat(process.env['SENTRY_TRACES_SAMPLE_RATE'] ?? '0.1'),
+  profilesSampleRate: parseFloat(process.env['SENTRY_PROFILES_SAMPLE_RATE'] ?? '0.1'),
   thresholds: { apiResponse: 2000, geminiCall: 30000, dbQuery: 1000, redisOperation: 100 },
   errorRateThreshold: 5,
 };
@@ -39,19 +42,19 @@ function buildTracePropagationTargets(): (string | RegExp)[] {
 function buildSentryInitConfig(dsn: string, isProduction: boolean) {
   const profilingIntegration =
     isProduction
-      ? (require('@sentry/profiling-node') as typeof import('@sentry/profiling-node')).nodeProfilingIntegration
+      ? (loadRuntimeModule('@sentry/profiling-node') as typeof import('@sentry/profiling-node')).nodeProfilingIntegration
       : null;
 
   return {
     dsn,
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NODE_ENV ?? 'development',
     release:
-      process.env['SENTRY_RELEASE'] ||
+      process.env['SENTRY_RELEASE'] ??
       (process.env['RAILWAY_GIT_COMMIT_SHA']
         ? `the-copy-backend@${process.env['RAILWAY_GIT_COMMIT_SHA'].slice(0, 12)}`
-        : `the-copy-backend@${process.env.npm_package_version || '1.0.0'}`),
+        : `the-copy-backend@${process.env.npm_package_version ?? '1.0.0'}`),
     serverName:
-      process.env['HOSTNAME'] || process.env['SENTRY_SERVER_NAME'] || 'backend-server',
+      (process.env['HOSTNAME'] ?? process.env['SENTRY_SERVER_NAME']) ?? 'backend-server',
     tracesSampleRate: isProduction ? APM_CONFIG.tracesSampleRate : 1.0,
     tracePropagationTargets: buildTracePropagationTargets(),
     profilesSampleRate: isProduction ? APM_CONFIG.profilesSampleRate : 1.0,

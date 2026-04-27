@@ -185,9 +185,7 @@ export class MetricsAggregatorService {
         dbMetrics.totalQueries += value.value ?? 0;
 
         const table = String(value.labels?.["table"] ?? 'unknown');
-        if (!dbMetrics.byTable[table]) {
-          dbMetrics.byTable[table] = { count: 0, avgDuration: 0 };
-        }
+        dbMetrics.byTable[table] ??= { count: 0, avgDuration: 0 };
         dbMetrics.byTable[table].count += value.value ?? 0;
       }
     }
@@ -456,7 +454,7 @@ export class MetricsAggregatorService {
    * Get latest snapshot
    */
   getLatestSnapshot(): MetricsSnapshot | null {
-    return this.snapshots.length > 0 ? this.snapshots[this.snapshots.length - 1] || null : null;
+    return this.snapshots.length > 0 ? this.snapshots[this.snapshots.length - 1] ?? null : null;
   }
 
   /**
@@ -472,20 +470,22 @@ export class MetricsAggregatorService {
   /**
    * Generate performance report
    */
-  async generatePerformanceReport(
+  generatePerformanceReport(
     startTime: Date,
     endTime: Date
   ): Promise<PerformanceReport> {
     const snapshots = this.getSnapshotsInRange(startTime, endTime);
 
     if (snapshots.length === 0) {
-      throw new Error('No metrics data available for the specified time range');
+      return Promise.reject(
+        new Error('No metrics data available for the specified time range')
+      );
     }
 
     const latest = snapshots[snapshots.length - 1];
 
     if (!latest) {
-      throw new Error('No valid metrics data available');
+      return Promise.reject(new Error('No valid metrics data available'));
     }
 
     // Calculate summary
@@ -570,7 +570,7 @@ export class MetricsAggregatorService {
       });
     }
 
-    return {
+    return Promise.resolve({
       period: {
         start: startTime.toISOString(),
         end: endTime.toISOString(),
@@ -586,9 +586,8 @@ export class MetricsAggregatorService {
       },
       recommendations,
       alerts,
-    };
+    });
   }
 }
 
 export const metricsAggregator = new MetricsAggregatorService();
-export default metricsAggregator;

@@ -47,7 +47,7 @@ export class WorkflowBuilder {
       id: `step-${this.stepCounter++}`,
       agentId,
       taskType,
-      dependencies: options?.dependencies || [],
+      dependencies: options?.dependencies ?? [],
       parallel: options?.parallel ?? false,
       skipOnError: options?.skipOnError ?? false,
       retryPolicy: options?.retryPolicy ?? {

@@ -12,7 +12,15 @@ const mockClient = {
   quit: quitMock,
 } as unknown;
 
-const createClientMock = vi.fn(() => mockClient);
+interface RedisClientConfig {
+  url: string;
+  socket: {
+    connectTimeout: number;
+    reconnectStrategy: (retries: number) => false;
+  };
+}
+
+const createClientMock = vi.fn((_options?: RedisClientConfig) => mockClient);
 const getRedisConfigMock = vi.fn();
 
 vi.mock('redis', () => ({
@@ -32,6 +40,15 @@ vi.mock('./logger', () => ({
     warn: warnMock,
   },
 }));
+
+function getFirstRedisClientConfig(): RedisClientConfig {
+  const config = createClientMock.mock.calls[0]?.[0];
+  if (!config) {
+    throw new Error('Redis client config was not captured');
+  }
+
+  return config;
+}
 
 describe('Redis Health Utility', () => {
   beforeEach(() => {
@@ -76,7 +93,7 @@ describe('Redis Health Utility', () => {
     expect(pingMock).toHaveBeenCalledTimes(1);
     expect(infoMock).toHaveBeenCalledWith('[Redis] Health check passed');
 
-    const clientConfig = createClientMock.mock.calls[0][0];
+    const clientConfig = getFirstRedisClientConfig();
     expect(clientConfig.url).toBe('redis://:super-secret@cache.internal:6381');
     expect(clientConfig.socket.connectTimeout).toBe(5000);
     expect(clientConfig.socket.reconnectStrategy(0)).toBe(false);

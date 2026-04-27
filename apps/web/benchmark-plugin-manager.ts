@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+
 import { PluginManager } from "./src/app/(main)/art-director/core/PluginManager";
 import {
   Plugin,

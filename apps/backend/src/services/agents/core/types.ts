@@ -73,7 +73,7 @@ export interface AIAgentConfig {
   collaboratesWith?: string[];
   enhances?: string[];
   parallelizable?: boolean;
-  cacheStrategy?: CacheStrategy | string;
+  cacheStrategy?: CacheStrategy | (string & {});
   confidenceThreshold?: number;
   prompt?: string;
   systemInstruction?: string;

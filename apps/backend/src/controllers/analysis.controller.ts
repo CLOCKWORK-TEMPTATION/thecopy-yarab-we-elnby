@@ -34,7 +34,7 @@ const exportBodySchema = z.object({
 });
 
 function getUserId(req: Request): string {
-  return (req as unknown as { user?: { id: string } }).user?.id || 'anonymous';
+  return (req as unknown as { user?: { id: string } }).user?.id ?? 'anonymous';
 }
 
 function sessionBelongsTo(metadata: Record<string, unknown>, ownerId: string): boolean {
@@ -138,7 +138,14 @@ function buildPdf(snap: { projectName: string; finalReport: string | null; stati
  * the buildPdf docstring above.
  */
 function asciiSafe(text: string): string {
-  return text.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '?');
+  return Array.from(text)
+    .map((character) => {
+      const code = character.charCodeAt(0);
+      const isSupported =
+        code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126);
+      return isSupported ? character : '?';
+    })
+    .join('');
 }
 
 function stationOutputToText(output: unknown): string {
@@ -263,7 +270,7 @@ export class AnalysisController {
    * Create a streaming session and start running the pipeline.
    * Returns the analysisId the client uses to subscribe to /stream/:id.
    */
-  async startStreamSession(req: Request, res: Response): Promise<void> {
+  startStreamSession(req: Request, res: Response): void {
     try {
       const validation = startStreamBodySchema.safeParse(req.body);
       if (!validation.success) {
@@ -275,7 +282,7 @@ export class AnalysisController {
 
       const session = analysisStreamRegistry.create({
         projectId: projectId ?? null,
-        projectName: projectName || 'تحليل درامي شامل',
+        projectName: projectName ?? 'تحليل درامي شامل',
         textLength: text.length,
         ownerId,
       });
@@ -284,8 +291,8 @@ export class AnalysisController {
       // Fire-and-forget; events flow through the SSE channel.
       void this.analysisService
         .runFullPipelineStreaming({ analysisId, fullText: text, projectName: session.snapshot.projectName })
-        .catch((err) => {
-          logger.error('Streaming pipeline crashed', { analysisId, err });
+        .catch((error: unknown) => {
+          logger.error('Streaming pipeline crashed', { analysisId, error });
         });
 
       res.json({ success: true, analysisId });
@@ -298,8 +305,8 @@ export class AnalysisController {
   /**
    * SSE endpoint. Honors `Last-Event-ID` for replay-on-reconnect.
    */
-  async streamEvents(req: Request, res: Response): Promise<void> {
-    const analysisId = String(req.params['analysisId'] || '');
+  streamEvents(req: Request, res: Response): void {
+    const analysisId = String(req.params['analysisId'] ?? '');
     const session = analysisStreamRegistry.get(analysisId);
     if (!session) {
       res.status(404).json({ error: 'الجلسة غير موجودة أو انتهت' });
@@ -344,8 +351,8 @@ export class AnalysisController {
   /**
    * Snapshot of the current session state — used on resume.
    */
-  async getAnalysisSnapshot(req: Request, res: Response): Promise<void> {
-    const analysisId = String(req.params['analysisId'] || '');
+  getAnalysisSnapshot(req: Request, res: Response): void {
+    const analysisId = String(req.params['analysisId'] ?? '');
     const snap = analysisStreamRegistry.getSnapshot(analysisId);
     if (!snap) {
       res.status(404).json({ error: 'الجلسة غير موجودة' });
@@ -363,7 +370,7 @@ export class AnalysisController {
    */
   async retryStation(req: Request, res: Response): Promise<void> {
     try {
-      const analysisId = String(req.params['analysisId'] || '');
+      const analysisId = String(req.params['analysisId'] ?? '');
       const stationIdRaw = Number(req.params['stationId']);
       if (!Number.isInteger(stationIdRaw) || stationIdRaw < 1 || stationIdRaw > 7) {
         res.status(400).json({ error: 'stationId غير صالح' });
@@ -402,7 +409,7 @@ export class AnalysisController {
    */
   async exportAnalysis(req: Request, res: Response): Promise<void> {
     try {
-      const analysisId = String(req.params['analysisId'] || '');
+      const analysisId = String(req.params['analysisId'] ?? '');
       const validation = exportBodySchema.safeParse(req.body);
       if (!validation.success) {
         res.status(400).json({ error: 'صيغة التصدير غير صحيحة' });
@@ -448,7 +455,7 @@ export class AnalysisController {
     }
   }
 
-  async getStationDetails(_req: Request, res: Response): Promise<void> {
+  getStationDetails(_req: Request, res: Response): void {
     try {
       const stationInfo = {
         stations: [

@@ -26,7 +26,10 @@ vi.mock("./loggerService", () => ({
 
 vi.mock("../../utils/kv-utils", () => ({
   encodeRecord: vi.fn((obj: unknown) => JSON.stringify(obj)),
-  decodeRecord: vi.fn((text: string) => JSON.parse(text)),
+  decodeRecord: vi.fn((text: string) => {
+    const parsed: unknown = JSON.parse(text);
+    return parsed;
+  }),
   unflatten: vi.fn((obj: unknown) => obj),
 }));
 

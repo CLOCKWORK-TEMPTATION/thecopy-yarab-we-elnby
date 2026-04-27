@@ -10,13 +10,21 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { MetricsController } from '@/controllers/metrics.controller';
+
 import type { Request, Response } from 'express';
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+};
+
 // ─── Mock للخدمات ───
-const mockTakeSnapshot = vi.fn();
+const mockTakeSnapshot = vi.fn<(...args: unknown[]) => Promise<unknown>>();
 vi.mock('@/services/metrics-aggregator.service', () => ({
   metricsAggregator: {
-    takeSnapshot: (...args: unknown[]) => mockTakeSnapshot(...args),
+    takeSnapshot: (...args: unknown[]): Promise<unknown> => mockTakeSnapshot(...args),
     getHistory: vi.fn().mockReturnValue([]),
   },
 }));
@@ -51,8 +59,6 @@ vi.mock('@/controllers/metrics.helpers.js', () => ({
   resetPerformanceMetrics: vi.fn(),
 }));
 
-import { MetricsController } from '@/controllers/metrics.controller';
-
 // ─── مساعدات ───
 
 function createReq(overrides: Record<string, unknown> = {}): Request {
@@ -64,11 +70,19 @@ function createReq(overrides: Record<string, unknown> = {}): Request {
   } as unknown as Request;
 }
 
-function createRes(): Response {
+function createRes(): MockResponse {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-  } as unknown as Response;
+  };
+}
+
+function asResponse(response: MockResponse): Response {
+  return response as unknown as Response;
+}
+
+function anyObjectMatcher(): unknown {
+  return expect.any(Object);
 }
 
 // ═══ اختبارات ═══
@@ -91,10 +105,10 @@ describe('MetricsController', () => {
       const req = createReq();
       const res = createRes();
 
-      await controller.getSnapshot(req, res);
+      await controller.getSnapshot(req, asResponse(res));
 
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, data: expect.any(Object) })
+        expect.objectContaining({ success: true, data: anyObjectMatcher() })
       );
     });
 
@@ -104,7 +118,7 @@ describe('MetricsController', () => {
       const req = createReq();
       const res = createRes();
 
-      await controller.getSnapshot(req, res);
+      await controller.getSnapshot(req, asResponse(res));
 
       expect(res.status).toHaveBeenCalledWith(500);
     });
@@ -115,7 +129,7 @@ describe('MetricsController', () => {
       const req = createReq();
       const res = createRes();
 
-      await controller.getLatest(req, res);
+      await controller.getLatest(req, asResponse(res));
 
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({ success: true })
@@ -124,11 +138,11 @@ describe('MetricsController', () => {
   });
 
   describe('getRange', () => {
-    it('يجب أن يرفض بدون start/end بـ 400', async () => {
+    it('يجب أن يرفض بدون start/end بـ 400', () => {
       const req = createReq({ query: {} });
       const res = createRes();
 
-      await controller.getRange(req, res);
+      controller.getRange(req, asResponse(res));
 
       expect(res.status).toHaveBeenCalledWith(400);
     });

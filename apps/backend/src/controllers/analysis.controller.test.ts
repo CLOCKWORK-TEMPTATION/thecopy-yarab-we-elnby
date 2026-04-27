@@ -1,10 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { AnalysisController } from './analysis.controller';
+
 import type { Request, Response } from 'express';
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockRequest = Partial<Request> & { user?: { id: string } };
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+};
+
 const { mockRunFullPipeline, mockQueueAIAnalysis } = vi.hoisted(() => ({
-  mockRunFullPipeline: vi.fn(),
-  mockQueueAIAnalysis: vi.fn(),
+  mockRunFullPipeline: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+  mockQueueAIAnalysis: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
 }));
 
 vi.mock('@/services/analysis.service', () => ({
@@ -24,26 +33,63 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-import { AnalysisController } from './analysis.controller';
+let analysisController: AnalysisController;
+let mockRequest: MockRequest;
+let mockResponse: MockResponse;
 
-describe('AnalysisController', () => {
-  let analysisController: AnalysisController;
-  let mockRequest: Partial<Request> & { user?: { id: string } };
-  let mockResponse: Partial<Response>;
+beforeEach(() => {
+  vi.clearAllMocks();
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+  analysisController = new AnalysisController();
+  mockRequest = {
+    body: {},
+    user: { id: 'user-123' },
+  };
+  mockResponse = {
+    status: vi.fn().mockReturnThis(),
+    json: vi.fn().mockReturnThis(),
+  };
+});
 
-    analysisController = new AnalysisController();
-    mockRequest = {
-      body: {},
-      user: { id: 'user-123' },
-    };
-    mockResponse = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
-    };
-  });
+function asRequest(): Request {
+  return mockRequest as Request;
+}
+
+function asResponse(): Response {
+  return mockResponse as unknown as Response;
+}
+
+function anyNumberMatcher(): unknown {
+  return expect.any(Number);
+}
+
+function anyStringMatcher(): unknown {
+  return expect.any(String);
+}
+
+function anyArrayMatcher(): unknown {
+  return expect.any(Array);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function firstJsonPayload(): Record<string, unknown> {
+  const payload: unknown = mockResponse.json.mock.calls[0]?.[0];
+  return isRecord(payload) ? payload : {};
+}
+
+function arrayField(record: Record<string, unknown>, key: string): unknown[] {
+  const value = record[key];
+  return Array.isArray(value) ? value : [];
+}
+
+function stationId(station: unknown): string {
+  return isRecord(station) && typeof station['id'] === 'string'
+    ? station['id']
+    : '';
+}
 
   describe('runSevenStationsPipeline', () => {
     it('يعالج النص عبر خدمة التحليل المباشرة', async () => {
@@ -61,8 +107,8 @@ describe('AnalysisController', () => {
       mockRequest.body = { text: 'نص درامي للتحليل' };
 
       await analysisController.runSevenStationsPipeline(
-        mockRequest as Request,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockRunFullPipeline).toHaveBeenCalledWith(
@@ -77,8 +123,8 @@ describe('AnalysisController', () => {
           success: true,
           report: 'تقرير التحليل الكامل',
           confidence: 0.91,
-          executionTime: expect.any(Number),
-          timestamp: expect.any(String),
+          executionTime: anyNumberMatcher(),
+          timestamp: anyStringMatcher(),
           stationsCount: 7,
         })
       );
@@ -88,8 +134,8 @@ describe('AnalysisController', () => {
       mockRequest.body = {};
 
       await analysisController.runSevenStationsPipeline(
-        mockRequest as Request,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -103,8 +149,8 @@ describe('AnalysisController', () => {
       mockRequest.body = { text: '   ' };
 
       await analysisController.runSevenStationsPipeline(
-        mockRequest as Request,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -115,8 +161,8 @@ describe('AnalysisController', () => {
       mockRequest.body = { text: 'نص طويل', async: true };
 
       await analysisController.runSevenStationsPipeline(
-        mockRequest as Request,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockQueueAIAnalysis).toHaveBeenCalledWith(
@@ -140,8 +186,8 @@ describe('AnalysisController', () => {
       mockRequest.body = { text: 'نص الاختبار' };
 
       await analysisController.runSevenStationsPipeline(
-        mockRequest as Request,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
@@ -154,24 +200,23 @@ describe('AnalysisController', () => {
   });
 
   describe('getStationDetails', () => {
-    it('يعيد معلومات المحطات السبع', async () => {
-      await analysisController.getStationDetails(
-        mockRequest as Request,
-        mockResponse as Response
+    it('يعيد معلومات المحطات السبع', () => {
+      analysisController.getStationDetails(
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          stations: expect.any(Array),
+          stations: anyArrayMatcher(),
           totalStations: 7,
-          executionOrder: expect.any(String),
-          outputFormat: expect.any(String),
+          executionOrder: anyStringMatcher(),
+          outputFormat: anyStringMatcher(),
         })
       );
 
-      const stations = (mockResponse.json as ReturnType<typeof vi.fn>).mock.calls[0][0].stations;
+      const stations = arrayField(firstJsonPayload(), 'stations');
       expect(stations).toHaveLength(7);
-      expect(new Set(stations.map((station: { id: string }) => station.id)).size).toBe(7);
+      expect(new Set(stations.map(stationId)).size).toBe(7);
     });
   });
-});

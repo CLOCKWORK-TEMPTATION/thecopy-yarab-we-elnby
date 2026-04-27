@@ -36,7 +36,7 @@ export const plotRules: Rule[] = [
 
       return hasCausalAnalysis || !params?.requireCausality;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'وضح كيف تؤدي الأحداث إلى بعضها البعض بشكل منطقي';
     },
   },
@@ -84,7 +84,7 @@ export const plotRules: Rule[] = [
 
       return true;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'ابحث عن أي ثغرات أو تناقضات في الحبكة وأشر إليها';
     },
   },
@@ -118,7 +118,7 @@ export const plotRules: Rule[] = [
 
       return analyzesPacing || !params?.analyzePacing;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'ناقش إيقاع السرد: هل هو سريع؟ بطيء؟ متنوع؟';
     },
   },
@@ -152,7 +152,7 @@ export const plotRules: Rule[] = [
 
       return recognizesStructure || !params?.requireStructureAnalysis;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'حدد البنية السردية: المقدمة، التصاعد، الذروة، الحل';
     },
   },
@@ -187,7 +187,7 @@ export const plotRules: Rule[] = [
 
       return identifiesForeshadowing || !params?.identifyForeshadowing;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'ابحث عن التلميحات المسبقة التي تشير إلى أحداث لاحقة';
     },
   },
@@ -211,7 +211,7 @@ export const plotRules: Rule[] = [
     check: (text: string, context?: unknown, params?: Record<string, unknown>) => {
       // Check if there are subplots mentioned in context
       const ctx = context as Record<string, unknown> | undefined;
-      const hasSubplots = ctx?.hasSubplots || false;
+      const hasSubplots = ctx?.hasSubplots ?? false;
 
       if (!hasSubplots) {
         return true; // Rule doesn't apply
@@ -228,7 +228,7 @@ export const plotRules: Rule[] = [
 
       return analyzesSubplots || !params?.analyzeSubplots;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'ناقش كيف تتكامل الحبكات الفرعية مع الحبكة الرئيسية';
     },
   },
@@ -262,7 +262,7 @@ export const plotRules: Rule[] = [
 
       return analyzesTension || !params?.requireTensionAnalysis;
     },
-    suggest: async (_text: string) => {
+    suggest: (_text: string) => {
       return 'وصف كيف يتصاعد التوتر الدرامي ويتطور عبر السرد';
     },
   },

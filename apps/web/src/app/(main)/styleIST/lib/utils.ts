@@ -19,7 +19,11 @@ export function getFriendlyErrorMessage(
   } else if (typeof error === "string") {
     rawMessage = error;
   } else if (error) {
-    rawMessage = String(error);
+    try {
+      rawMessage = JSON.stringify(error) ?? rawMessage;
+    } catch {
+      rawMessage = "An unknown error occurred.";
+    }
   }
 
   if (rawMessage.includes("Unsupported MIME type")) {

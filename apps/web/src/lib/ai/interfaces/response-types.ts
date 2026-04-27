@@ -281,7 +281,8 @@ export function validateResponse<T extends z.ZodType>(
   schema: T,
   data: unknown
 ): z.infer<T> {
-  return schema.parse(data);
+  const parsed: unknown = schema.parse(data);
+  return parsed as z.infer<T>;
 }
 
 /**
@@ -293,7 +294,8 @@ export function safeValidateResponse<T extends z.ZodType>(
 ): { success: true; data: z.infer<T> } | { success: false; error: z.ZodError } {
   const result = schema.safeParse(data);
   if (result.success) {
-    return { success: true, data: result.data as z.infer<T> };
+    const parsedData: unknown = result.data;
+    return { success: true, data: parsedData as z.infer<T> };
   }
   return { success: false, error: result.error };
 }

@@ -1,3 +1,5 @@
+import { parseJsonResponse } from "./utils/unknown-values";
+
 import type {
   ApiResponse,
   Project,
@@ -140,7 +142,7 @@ export async function runSevenStationsAnalysis(
     throw new Error(`Seven Stations analysis failed: ${response.statusText}`);
   }
 
-  return response.json();
+  return parseJsonResponse<ApiResponse<unknown>>(response);
 }
 
 /**
@@ -155,7 +157,7 @@ export async function getAnalysisJobStatus(
     throw new Error(`Failed to get job status: ${response.statusText}`);
   }
 
-  return response.json();
+  return parseJsonResponse<ApiResponse<unknown>>(response);
 }
 
 export async function analyzeScript(
@@ -171,7 +173,7 @@ export async function analyzeScript(
     throw new Error(`Analysis failed: ${response.statusText}`);
   }
 
-  return response.json();
+  return parseJsonResponse<ApiResponse<AnalyzeScriptResponse>>(response);
 }
 
 export async function getShotSuggestion(
@@ -187,7 +189,7 @@ export async function getShotSuggestion(
     throw new Error(`Shot suggestion failed: ${response.statusText}`);
   }
 
-  return response.json();
+  return parseJsonResponse<ApiResponse<string>>(response);
 }
 
 export async function chatWithAI(
@@ -204,20 +206,20 @@ export async function chatWithAI(
     throw new Error(`Chat failed: ${response.statusText}`);
   }
 
-  return response.json();
+  return parseJsonResponse<ApiResponse<ChatResponse>>(response);
 }
 
 // Project API functions
 export async function getProjects(): Promise<ApiResponse<Project[]>> {
   const response = await fetchWithAuth("/api/projects");
   if (!response.ok) throw new Error("Failed to fetch projects");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Project[]>>(response);
 }
 
 export async function getProject(id: string): Promise<ApiResponse<Project>> {
   const response = await fetchWithAuth(`/api/projects/${id}`);
   if (!response.ok) throw new Error("Failed to fetch project");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Project>>(response);
 }
 
 export async function createProject(
@@ -228,7 +230,7 @@ export async function createProject(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to create project");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Project>>(response);
 }
 
 export async function updateProject(
@@ -240,7 +242,7 @@ export async function updateProject(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to update project");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Project>>(response);
 }
 
 export async function deleteProject(id: string): Promise<ApiResponse<void>> {
@@ -248,7 +250,7 @@ export async function deleteProject(id: string): Promise<ApiResponse<void>> {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to delete project");
-  return response.json();
+  return parseJsonResponse<ApiResponse<void>>(response);
 }
 
 // Scene API functions
@@ -257,7 +259,7 @@ export async function getProjectScenes(
 ): Promise<ApiResponse<Scene[]>> {
   const response = await fetchWithAuth(`/api/projects/${projectId}/scenes`);
   if (!response.ok) throw new Error("Failed to fetch scenes");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Scene[]>>(response);
 }
 
 export async function createScene(
@@ -269,7 +271,7 @@ export async function createScene(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to create scene");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Scene>>(response);
 }
 
 export async function updateScene(
@@ -281,7 +283,7 @@ export async function updateScene(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to update scene");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Scene>>(response);
 }
 
 export async function deleteScene(sceneId: string): Promise<ApiResponse<void>> {
@@ -289,7 +291,7 @@ export async function deleteScene(sceneId: string): Promise<ApiResponse<void>> {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to delete scene");
-  return response.json();
+  return parseJsonResponse<ApiResponse<void>>(response);
 }
 
 // Character API functions
@@ -298,7 +300,7 @@ export async function getProjectCharacters(
 ): Promise<ApiResponse<Character[]>> {
   const response = await fetchWithAuth(`/api/projects/${projectId}/characters`);
   if (!response.ok) throw new Error("Failed to fetch characters");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Character[]>>(response);
 }
 
 export async function createCharacter(
@@ -313,7 +315,7 @@ export async function createCharacter(
     }
   );
   if (!response.ok) throw new Error("Failed to create character");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Character>>(response);
 }
 
 export async function updateCharacter(
@@ -325,7 +327,7 @@ export async function updateCharacter(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to update character");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Character>>(response);
 }
 
 export async function deleteCharacter(
@@ -335,7 +337,7 @@ export async function deleteCharacter(
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to delete character");
-  return response.json();
+  return parseJsonResponse<ApiResponse<void>>(response);
 }
 
 // Shot API functions
@@ -344,7 +346,7 @@ export async function getSceneShots(
 ): Promise<ApiResponse<Shot[]>> {
   const response = await fetchWithAuth(`/api/scenes/${sceneId}/shots`);
   if (!response.ok) throw new Error("Failed to fetch shots");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Shot[]>>(response);
 }
 
 export async function createShot(
@@ -356,7 +358,7 @@ export async function createShot(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to create shot");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Shot>>(response);
 }
 
 export async function updateShot(
@@ -368,7 +370,7 @@ export async function updateShot(
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error("Failed to update shot");
-  return response.json();
+  return parseJsonResponse<ApiResponse<Shot>>(response);
 }
 
 export async function deleteShot(shotId: string): Promise<ApiResponse<void>> {
@@ -376,7 +378,7 @@ export async function deleteShot(shotId: string): Promise<ApiResponse<void>> {
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Failed to delete shot");
-  return response.json();
+  return parseJsonResponse<ApiResponse<void>>(response);
 }
 
 // Export all functions as a namespace for wildcard imports

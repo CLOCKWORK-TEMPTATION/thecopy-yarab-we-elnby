@@ -92,9 +92,9 @@ export function buildVotingPrompt(args: DebateArgument[], topic: string): string
  */
 export function extractReasoning(text: string): string {
   const patterns = [
-    /لأن[^\.]+\./g,
-    /بسبب[^\.]+\./g,
-    /نظراً[^\.]+\./g,
+    /لأن[^.]+\./g,
+    /بسبب[^.]+\./g,
+    /نظراً[^.]+\./g,
   ];
 
   let reasoning = '';
@@ -116,7 +116,7 @@ export function extractEvidence(text: string): string[] {
   const lines = text.split('\n');
 
   for (const line of lines) {
-    if ((/^[\-\*\•]\s/.exec(line)) || (/^\d+[\.\)]\s/.exec(line))) {
+    if ((/^[-*•]\s/.exec(line)) || (/^\d+[.)]\s/.exec(line))) {
       evidence.push(line.trim());
     }
   }

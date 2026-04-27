@@ -39,7 +39,7 @@ export class BreakdownController {
     return req.user.id;
   }
 
-  async health(_req: AuthRequest, res: Response): Promise<void> {
+  health(_req: AuthRequest, res: Response): void {
     res.json({
       success: true,
       data: {

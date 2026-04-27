@@ -44,6 +44,20 @@ const toStringArray = (value: unknown): string[] =>
     ? value.filter((entry): entry is string => typeof entry === "string")
     : [];
 
+const toSafeString = (value: unknown, fallback = ""): string => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return value.toString();
+  }
+  if (value instanceof Error) return value.message;
+  try {
+    return JSON.stringify(value) ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 const toJsonRecord = (value: unknown): JsonRecord =>
   value && typeof value === "object" ? (value as JsonRecord) : {};
 
@@ -96,7 +110,7 @@ const parseToolJson = (raw: unknown, toolName: string): JsonRecord => {
       return toJsonRecord(JSON.parse(raw));
     } catch (error) {
       throw new Error(
-        `تعذر تحليل JSON من ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
+        `تعذر تحليل JSON من ${toolName}: ${toSafeString(error)}`,
         { cause: error }
       );
     }
@@ -150,7 +164,7 @@ const toClassification = (value: JsonRecord): ClassificationResult | null => {
     type: value["type"] as ClassificationResult["type"],
     pages: Number(value["pages"] ?? 0),
     size_mb: Number(value["size_mb"] ?? 0),
-    filename: String(value["filename"] ?? ""),
+    filename: toSafeString(value["filename"]),
     has_arabic: Boolean(value["has_arabic"]),
     recommended_engine: value[
       "recommended_engine"
@@ -450,7 +464,7 @@ const main = async (): Promise<void> => {
 };
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = toSafeString(error);
   writeStderr(`open-pdf-agent failed: ${message}`);
   process.stdout.write(
     JSON.stringify({

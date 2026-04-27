@@ -10,8 +10,28 @@ import {
   type ApiResponse,
 } from './index';
 
-describe('Type Definitions', () => {
-  describe('PipelineInputSchema', () => {
+function expectValidPipelineInput(input: unknown): PipelineInput {
+  const result = PipelineInputSchema.safeParse(input);
+  expect(result.success).toBe(true);
+
+  if (!result.success) {
+    throw new Error('Expected pipeline input to be valid');
+  }
+
+  return result.data;
+}
+
+function expectInvalidPipelineInput(input: unknown): z.ZodIssue[] {
+  const result = PipelineInputSchema.safeParse(input);
+  expect(result.success).toBe(false);
+
+  if (result.success) {
+    throw new Error('Expected pipeline input to be invalid');
+  }
+
+  return result.error.issues;
+}
+
     describe('Valid Input Validation', () => {
       it('should validate minimal valid input', () => {
         const input = {
@@ -19,14 +39,11 @@ describe('Type Definitions', () => {
           projectName: 'Test Project',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
 
-        if (result.success) {
-          expect(result.data.fullText).toBe('Sample dramatic text');
-          expect(result.data.projectName).toBe('Test Project');
-          expect(result.data.language).toBe('ar'); // default
-        }
+        expect(data.fullText).toBe('Sample dramatic text');
+        expect(data.projectName).toBe('Test Project');
+        expect(data.language).toBe('ar'); // default
       });
 
       it('should validate full input with all fields', () => {
@@ -54,8 +71,9 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.agents.model).toBe('gemini-pro');
       });
 
       it('should apply default values for optional fields', () => {
@@ -64,20 +82,17 @@ describe('Type Definitions', () => {
           projectName: 'Project',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
 
-        if (result.success) {
-          expect(result.data.language).toBe('ar');
-          expect(result.data.context).toEqual({});
-          expect(result.data.flags).toEqual({
-            runStations: true,
-            fastMode: false,
-            skipValidation: false,
-            verboseLogging: false,
-          });
-          expect(result.data.agents).toEqual({ temperature: 0.2 });
-        }
+        expect(data.language).toBe('ar');
+        expect(data.context).toEqual({});
+        expect(data.flags).toEqual({
+          runStations: true,
+          fastMode: false,
+          skipValidation: false,
+          verboseLogging: false,
+        });
+        expect(data.agents).toEqual({ temperature: 0.2 });
       });
 
       it('should validate Arabic language code', () => {
@@ -87,8 +102,9 @@ describe('Type Definitions', () => {
           language: 'ar' as const,
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.language).toBe('ar');
       });
 
       it('should validate English language code', () => {
@@ -98,8 +114,9 @@ describe('Type Definitions', () => {
           language: 'en' as const,
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.language).toBe('en');
       });
     });
 
@@ -110,12 +127,9 @@ describe('Type Definitions', () => {
           projectName: 'Project',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
 
-        if (!result.success) {
-          expect(result.error.issues[0].message).toContain('النص مطلوب');
-        }
+        expect(issues[0].message).toContain('النص مطلوب');
       });
 
       it('should reject empty projectName', () => {
@@ -124,12 +138,9 @@ describe('Type Definitions', () => {
           projectName: '',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
 
-        if (!result.success) {
-          expect(result.error.issues[0].message).toContain('اسم المشروع مطلوب');
-        }
+        expect(issues[0].message).toContain('اسم المشروع مطلوب');
       });
 
       it('should reject missing required fields', () => {
@@ -137,8 +148,9 @@ describe('Type Definitions', () => {
           fullText: 'Text',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
+
+        expect(issues).not.toHaveLength(0);
       });
 
       it('should reject invalid language code', () => {
@@ -148,8 +160,9 @@ describe('Type Definitions', () => {
           language: 'fr', // Invalid - only 'ar' or 'en' allowed
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
+
+        expect(issues).not.toHaveLength(0);
       });
 
       it('should reject invalid temperature (too low)', () => {
@@ -161,8 +174,9 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
+
+        expect(issues).not.toHaveLength(0);
       });
 
       it('should reject invalid temperature (too high)', () => {
@@ -174,8 +188,9 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(false);
+        const issues = expectInvalidPipelineInput(input);
+
+        expect(issues).not.toHaveLength(0);
       });
     });
 
@@ -192,13 +207,10 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
 
-        if (result.success) {
-          expect(result.data.context.title).toBe('Drama Title');
-          expect(result.data.context.sceneHints).toHaveLength(2);
-        }
+        expect(data.context.title).toBe('Drama Title');
+        expect(data.context.sceneHints).toHaveLength(2);
       });
 
       it('should validate flags object with all boolean fields', () => {
@@ -213,13 +225,10 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
 
-        if (result.success) {
-          expect(result.data.flags.fastMode).toBe(true);
-          expect(result.data.flags.runStations).toBe(false);
-        }
+        expect(data.flags.fastMode).toBe(true);
+        expect(data.flags.runStations).toBe(false);
       });
 
       it('should validate agents configuration', () => {
@@ -233,13 +242,10 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
 
-        if (result.success) {
-          expect(result.data.agents.temperature).toBe(0.7);
-          expect(result.data.agents.maxTokens).toBe(4096);
-        }
+        expect(data.agents.temperature).toBe(0.7);
+        expect(data.agents.maxTokens).toBe(4096);
       });
     });
 
@@ -251,8 +257,9 @@ describe('Type Definitions', () => {
           projectName: 'Project',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.fullText).toHaveLength(100000);
       });
 
       it('should handle special characters in text', () => {
@@ -261,8 +268,9 @@ describe('Type Definitions', () => {
           projectName: 'Project!@#',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.projectName).toBe('Project!@#');
       });
 
       it('should handle Unicode characters (Arabic)', () => {
@@ -271,8 +279,9 @@ describe('Type Definitions', () => {
           projectName: 'مشروع درامي',
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.language).toBe('ar');
       });
 
       it('should handle empty sceneHints array', () => {
@@ -284,8 +293,9 @@ describe('Type Definitions', () => {
           },
         };
 
-        const result = PipelineInputSchema.safeParse(input);
-        expect(result.success).toBe(true);
+        const data = expectValidPipelineInput(input);
+
+        expect(data.context.sceneHints).toEqual([]);
       });
 
       it('should validate boundary temperature values', () => {
@@ -301,13 +311,11 @@ describe('Type Definitions', () => {
           agents: { temperature: 2 },
         };
 
-        expect(PipelineInputSchema.safeParse(input1).success).toBe(true);
-        expect(PipelineInputSchema.safeParse(input2).success).toBe(true);
+        expect(expectValidPipelineInput(input1).agents.temperature).toBe(0);
+        expect(expectValidPipelineInput(input2).agents.temperature).toBe(2);
       });
     });
-  });
 
-  describe('Type Interfaces', () => {
     describe('StationOutput', () => {
       it('should accept valid station output', () => {
         const output: StationOutput = {
@@ -447,7 +455,6 @@ describe('Type Definitions', () => {
         expect(response.data?.projectName).toBe('Project');
       });
     });
-  });
 
   describe('Schema Transformations', () => {
     it('should infer correct TypeScript type from schema', () => {
@@ -472,4 +479,3 @@ describe('Type Definitions', () => {
       expect(typedInput.fullText).toBe('Text');
     });
   });
-});

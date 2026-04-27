@@ -79,7 +79,7 @@ export async function presentArguments(
       const result = await participant.agent.executeTask({
         input: prompt,
         options: { temperature: 0.7, enableRAG: true, enableSelfCritique: true },
-        context: context || '',
+        context: context ?? '',
       });
 
       const argument: DebateArgument = {
@@ -90,7 +90,7 @@ export async function presentArguments(
         reasoning: extractReasoning(result.text),
         evidence: extractEvidence(result.text),
         confidence: result.confidence,
-        referencesTo: previousArguments?.map(arg => arg.id) || [],
+        referencesTo: previousArguments?.map(arg => arg.id) ?? [],
         timestamp: new Date(),
       };
 
@@ -131,7 +131,7 @@ export async function refuteArguments(
       const result = await participant.agent.executeTask({
         input: prompt,
         options: { temperature: 0.7, enableRAG: true, enableSelfCritique: true },
-        context: context || '',
+        context: context ?? '',
       });
 
       const refutation: DebateArgument = {
@@ -245,7 +245,7 @@ export async function voteOnBestResponse(
   args.forEach(arg => scoreMap.set(arg.id, 0));
 
   allVotes.forEach(vote => {
-    const currentScore = scoreMap.get(vote.argumentId) || 0;
+    const currentScore = scoreMap.get(vote.argumentId) ?? 0;
     scoreMap.set(vote.argumentId, currentScore + vote.score);
   });
 

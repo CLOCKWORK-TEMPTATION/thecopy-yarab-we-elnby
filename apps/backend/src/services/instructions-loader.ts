@@ -8,7 +8,11 @@ interface InstructionSet {
   instructions: string[];
   outputFormat?: Record<string, string>;
   examples?: { input: string; output: string }[];
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 class InstructionsLoader {
@@ -55,7 +59,7 @@ class InstructionsLoader {
         throw new Error(`Failed to load instructions for ${agentId}: ${response.statusText}`);
       }
 
-      const instructions = await response.json();
+      const instructions: unknown = await response.json();
       return this.validateInstructions(instructions);
     } catch (error) {
       logger.warn(`Failed to load instructions for ${agentId}, using fallback`, { error });
@@ -66,11 +70,23 @@ class InstructionsLoader {
   /**
    * Validate instruction format
    */
-  private validateInstructions(instructions: any): InstructionSet {
-    if (!instructions.systemPrompt || !Array.isArray(instructions.instructions)) {
+  private validateInstructions(instructions: unknown): InstructionSet {
+    if (!isRecord(instructions)) {
       throw new Error('Invalid instruction format');
     }
-    return instructions;
+
+    const systemPrompt = instructions['systemPrompt'];
+    const instructionItems = instructions['instructions'];
+
+    if (
+      typeof systemPrompt !== 'string' ||
+      !Array.isArray(instructionItems) ||
+      !instructionItems.every((item) => typeof item === 'string')
+    ) {
+      throw new Error('Invalid instruction format');
+    }
+
+    return instructions as unknown as InstructionSet;
   }
 
   /**

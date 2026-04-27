@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- experimental embeddings module */
 /**
  * Gemini Embedding Generator
  * مولد التضمينات باستخدام Gemini Embedding 2
  */
 
-import { GoogleGenAI } from "@google/genai";
+import { createHash } from "node:crypto";
+
+import { GoogleGenAI, type Part } from "@google/genai";
 
 import { logger } from "@/lib/logger";
 
@@ -17,7 +18,7 @@ export class GeminiEmbeddingGenerator {
 
   constructor() {
     this.client = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || "",
+      apiKey: (process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENAI_API_KEY) ?? "",
     });
   }
 
@@ -39,8 +40,8 @@ export class GeminiEmbeddingGenerator {
         model: this.defaultModel,
         contents: [{ role: "user", parts: [{ text: content }] }],
         config: {
-          taskType: options.taskType || "CODE_RETRIEVAL",
-          outputDimensionality: options.dimensionality || 1536,
+          taskType: options.taskType ?? "CODE_RETRIEVAL",
+          outputDimensionality: options.dimensionality ?? 1536,
         },
       });
 
@@ -51,7 +52,7 @@ export class GeminiEmbeddingGenerator {
 
       return {
         embedding,
-        dimensionality: options.dimensionality || 1536,
+        dimensionality: options.dimensionality ?? 1536,
         contentHash: this.hashContent(content),
       };
     } catch (error) {
@@ -77,7 +78,7 @@ export class GeminiEmbeddingGenerator {
         contents: [{ role: "user", parts: [{ text: content }] }],
         config: {
           taskType: "SEMANTIC_SIMILARITY",
-          outputDimensionality: options.dimensionality || 1536,
+          outputDimensionality: options.dimensionality ?? 1536,
         },
       });
 
@@ -88,7 +89,7 @@ export class GeminiEmbeddingGenerator {
 
       return {
         embedding,
-        dimensionality: options.dimensionality || 1536,
+        dimensionality: options.dimensionality ?? 1536,
         contentHash: this.hashContent(content),
       };
     } catch (error) {
@@ -104,7 +105,7 @@ export class GeminiEmbeddingGenerator {
     input: MultimodalInput,
     options: { dimensionality?: 768 | 1536 | 3072 } = {}
   ): Promise<EmbeddingResult> {
-    const parts: any[] = [];
+    const parts: Part[] = [];
 
     if (input.text) {
       parts.push({ text: input.text });
@@ -152,7 +153,7 @@ export class GeminiEmbeddingGenerator {
         contents: [{ role: "user", parts }],
         config: {
           taskType: "SEMANTIC_SIMILARITY",
-          outputDimensionality: options.dimensionality || 3072,
+          outputDimensionality: options.dimensionality ?? 3072,
         },
       });
 
@@ -163,7 +164,7 @@ export class GeminiEmbeddingGenerator {
 
       return {
         embedding,
-        dimensionality: options.dimensionality || 3072,
+        dimensionality: options.dimensionality ?? 3072,
         contentHash: this.hashContent(JSON.stringify(input)),
       };
     } catch (error) {
@@ -189,7 +190,7 @@ export class GeminiEmbeddingGenerator {
         contents: contents.map((c) => ({ role: "user", parts: [{ text: c }] })),
         config: {
           taskType: "SEMANTIC_SIMILARITY",
-          outputDimensionality: options.dimensionality || 1536,
+          outputDimensionality: options.dimensionality ?? 1536,
         },
       });
 
@@ -203,10 +204,10 @@ export class GeminiEmbeddingGenerator {
 
           return [{
             embedding,
-            dimensionality: options.dimensionality || 1536,
+            dimensionality: options.dimensionality ?? 1536,
             contentHash: this.hashContent(content),
           }];
-        }) || []
+        }) ?? []
       );
     } catch (error) {
       // Process one by one if batch fails
@@ -236,7 +237,7 @@ export class GeminiEmbeddingGenerator {
       contents: [{ role: "user", parts: [{ text: content }] }],
       config: {
         taskType: "SEMANTIC_SIMILARITY",
-        outputDimensionality: options.dimensionality || 768,
+        outputDimensionality: options.dimensionality ?? 768,
       },
     });
 
@@ -247,13 +248,13 @@ export class GeminiEmbeddingGenerator {
 
     return {
       embedding,
-      dimensionality: options.dimensionality || 768,
+      dimensionality: options.dimensionality ?? 768,
       contentHash: this.hashContent(content),
     };
   }
 
   private buildCodePrompt(code: string, filePath: string): string {
-    const extension = filePath.split(".").pop() || "";
+    const extension = filePath.split(".").pop() ?? "";
     return `File: ${filePath}
 Language: ${extension}
 
@@ -275,7 +276,7 @@ ${code}
   }
 
   private hashContent(content: string): string {
-    return require("crypto").createHash("sha256").update(content).digest("hex");
+    return createHash("sha256").update(content).digest("hex");
   }
 
   private getMimeType(uri: string): string {
@@ -287,7 +288,7 @@ ${code}
       webp: "image/webp",
       gif: "image/gif",
     };
-    return mimeTypes[ext || ""] || "image/jpeg";
+    return mimeTypes[ext ?? ""] ?? "image/jpeg";
   }
 }
 

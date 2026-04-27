@@ -313,7 +313,15 @@ class WebVitalsService {
 
     window.fetch = async (...args) => {
       const startTime = performance.now();
-      const url = args[0]?.toString() || "unknown";
+      const requestInput = args[0];
+      const url =
+        typeof requestInput === "string"
+          ? requestInput
+          : requestInput instanceof URL
+            ? requestInput.href
+            : requestInput instanceof Request
+              ? requestInput.url
+              : "unknown";
 
       try {
         const response = await originalFetch(...args);

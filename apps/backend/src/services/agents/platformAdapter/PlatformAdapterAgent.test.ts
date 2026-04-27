@@ -12,6 +12,16 @@ vi.mock("../shared/standardAgentPattern", () => ({
   executeStandardAgentPattern: mockExecuteStandardPattern,
 }));
 
+function firstStandardPatternPrompt(): string {
+  const calls = mockExecuteStandardPattern.mock.calls as readonly (readonly unknown[])[];
+  const prompt = calls[0]?.[0];
+  if (typeof prompt !== "string") {
+    throw new Error("Standard pattern prompt was not captured");
+  }
+
+  return prompt;
+}
+
 describe("PlatformAdapterAgent", () => {
   let agent: PlatformAdapterAgent;
 
@@ -58,7 +68,7 @@ describe("PlatformAdapterAgent", () => {
       },
     });
 
-    const prompt = mockExecuteStandardPattern.mock.calls[0]?.[0];
+    const prompt = firstStandardPatternPrompt();
 
     expect(prompt).toContain("Instagram Reels");
     expect(prompt).toContain("المحتوى يعتمد على تصاعد عاطفي واضح");

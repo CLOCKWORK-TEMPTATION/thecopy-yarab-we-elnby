@@ -46,10 +46,10 @@ const urlToFile = (url: string, filename: string): Promise<File> => {
       }, "image/png");
     };
 
-    image.onerror = (error) => {
+    image.onerror = () => {
       reject(
         new Error(
-          `Could not load image from URL for canvas conversion. Error: ${error}`
+          "Could not load image from URL for canvas conversion."
         )
       );
     };

@@ -107,7 +107,7 @@ async function executeDebate(
 }
 
 export class BrainstormController {
-  async getCatalog(_req: Request, res: Response): Promise<void> {
+  getCatalog(_req: Request, res: Response): void {
     try {
       const payload = {
         agents: getBrainstormAgents(),

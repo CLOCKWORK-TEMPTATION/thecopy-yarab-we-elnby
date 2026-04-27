@@ -1,13 +1,35 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockEnv, mockGenerateContent, mockGenerateImages, mockEditImage } = vi.hoisted(() => ({
+interface MockEnv {
+  GEMINI_API_KEY: string | undefined;
+  GOOGLE_GENAI_API_KEY: string | undefined;
+}
+
+type MockGenAiMethod = ReturnType<
+  typeof vi.fn<(apiKey: string, payload: unknown) => Promise<unknown>>
+>;
+
+const { mockEnv, mockGenerateContent, mockGenerateImages, mockEditImage } = vi.hoisted<{
+  mockEnv: MockEnv;
+  mockGenerateContent: ReturnType<
+    typeof vi.fn<(apiKey: string, payload: unknown) => Promise<{ text: string }>>
+  >;
+  mockGenerateImages: MockGenAiMethod;
+  mockEditImage: MockGenAiMethod;
+}>(() => ({
   mockEnv: {
     GEMINI_API_KEY: 'valid-gemini-key',
     GOOGLE_GENAI_API_KEY: 'expired-google-key',
   },
-  mockGenerateContent: vi.fn(),
-  mockGenerateImages: vi.fn(),
-  mockEditImage: vi.fn(),
+  mockGenerateContent: vi.fn<
+    (apiKey: string, payload: unknown) => Promise<{ text: string }>
+  >(),
+  mockGenerateImages: vi.fn<
+    (apiKey: string, payload: unknown) => Promise<unknown>
+  >(),
+  mockEditImage: vi.fn<
+    (apiKey: string, payload: unknown) => Promise<unknown>
+  >(),
 }));
 
 vi.mock('@google/genai', () => ({
@@ -28,6 +50,10 @@ vi.mock('@/config/env', () => ({
 
 import { PlatformGenAIService } from './platform-genai.service';
 
+function objectContainingMatcher(value: Record<string, unknown>): unknown {
+  return expect.objectContaining(value);
+}
+
 describe('PlatformGenAIService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,12 +62,12 @@ describe('PlatformGenAIService', () => {
   });
 
   it('prefers GEMINI_API_KEY when both aliases are present', async () => {
-    mockGenerateContent.mockImplementation(async (apiKey: string) => {
+    mockGenerateContent.mockImplementation((apiKey: string) => {
       if (apiKey !== 'valid-gemini-key') {
         throw new Error('API key expired');
       }
 
-      return { text: 'OK' };
+      return Promise.resolve({ text: 'OK' });
     });
 
     const service = new PlatformGenAIService();
@@ -50,7 +76,7 @@ describe('PlatformGenAIService', () => {
 
     expect(status).toMatchObject({
       status: 'healthy',
-      details: expect.objectContaining({
+      details: objectContainingMatcher({
         credentialsConfigured: true,
       }),
     });
@@ -63,8 +89,8 @@ describe('PlatformGenAIService', () => {
   });
 
   it('returns shared details when no AI credentials are configured', async () => {
-    mockEnv.GEMINI_API_KEY = undefined as any;
-    mockEnv.GOOGLE_GENAI_API_KEY = undefined as any;
+    mockEnv.GEMINI_API_KEY = undefined;
+    mockEnv.GOOGLE_GENAI_API_KEY = undefined;
 
     const service = new PlatformGenAIService();
 

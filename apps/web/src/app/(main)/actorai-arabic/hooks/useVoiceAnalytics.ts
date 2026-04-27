@@ -408,7 +408,9 @@ export function useVoiceAnalytics() {
 
     // إغلاق سياق الصوت
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      audioContextRef.current.close().catch(() => {
+        // لا نعيد رمي خطأ إغلاق سياق الصوت أثناء إيقاف الاستماع.
+      });
       audioContextRef.current = null;
     }
 
@@ -420,8 +422,10 @@ export function useVoiceAnalytics() {
 
     // حفظ المقاييس في التاريخ + إرسالها للباك إند بشكل best-effort
     setState((prev) => {
-      void postToBackend("/api/public/actorai/voice-analytics", prev.metrics, {
+      postToBackend("/api/public/actorai/voice-analytics", prev.metrics, {
         bestEffort: true,
+      }).catch(() => {
+        // best-effort فقط؛ لا نكسر إيقاف التسجيل عند فشل الإرسال.
       });
 
       return {
@@ -453,7 +457,9 @@ export function useVoiceAnalytics() {
         cancelAnimationFrame(animationFrameRef.current);
       }
       if (audioContextRef.current) {
-        audioContextRef.current.close();
+        audioContextRef.current.close().catch(() => {
+          // تنظيف غير متزامن أثناء إزالة المكوّن.
+        });
       }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());

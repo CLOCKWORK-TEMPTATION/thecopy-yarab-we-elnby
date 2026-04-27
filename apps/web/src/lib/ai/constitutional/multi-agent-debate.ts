@@ -2,6 +2,11 @@
 
 import { logger } from "@/lib/logger";
 import { stripHtmlTags } from "@/lib/security/sanitize-html";
+import {
+  isUnknownRecord,
+  stringArrayFromUnknown,
+  stringifyUnknown,
+} from "@/lib/utils/unknown-values";
 
 import { GeminiService } from "../../ai/stations/gemini-service";
 
@@ -64,6 +69,85 @@ export interface DebateResult {
   rounds: DebateRound[];
   verdict: DebateVerdict;
   debateDynamics: DebateDynamics;
+}
+
+const fallbackVerdict: DebateVerdict = {
+  consensusAreas: [],
+  disputedAreas: [],
+  finalVerdict: {
+    overallAssessment: "تعذر إصدار حكم نهائي بسبب خطأ في الخدمة.",
+    strengths: [],
+    weaknesses: [],
+    recommendations: [],
+    confidence: 0,
+  },
+};
+
+function numberFromUnknown(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : fallback;
+}
+
+function parseDebateVerdict(content: string): DebateVerdict {
+  const parsed: unknown = JSON.parse(content);
+  if (!isUnknownRecord(parsed)) {
+    return fallbackVerdict;
+  }
+
+  const consensusAreas = Array.isArray(parsed["consensusAreas"])
+    ? parsed["consensusAreas"].flatMap((area) => {
+        if (!isUnknownRecord(area)) {
+          return [];
+        }
+        return [
+          {
+            aspect: stringifyUnknown(area["aspect"]),
+            agreement: stringifyUnknown(area["agreement"]),
+            confidence: numberFromUnknown(area["confidence"], 0),
+          },
+        ];
+      })
+    : [];
+
+  const disputedAreas = Array.isArray(parsed["disputedAreas"])
+    ? parsed["disputedAreas"].flatMap((area) => {
+        if (!isUnknownRecord(area)) {
+          return [];
+        }
+        return [
+          {
+            aspect: stringifyUnknown(area["aspect"]),
+            prosecutorView: stringifyUnknown(area["prosecutorView"]),
+            defenderView: stringifyUnknown(area["defenderView"]),
+            judgeOpinion: stringifyUnknown(area["judgeOpinion"]),
+            resolution: stringifyUnknown(area["resolution"]),
+          },
+        ];
+      })
+    : [];
+
+  const finalVerdict = isUnknownRecord(parsed["finalVerdict"])
+    ? {
+        overallAssessment: stringifyUnknown(
+          parsed["finalVerdict"]["overallAssessment"]
+        ),
+        strengths: stringArrayFromUnknown(parsed["finalVerdict"]["strengths"]),
+        weaknesses: stringArrayFromUnknown(
+          parsed["finalVerdict"]["weaknesses"]
+        ),
+        recommendations: stringArrayFromUnknown(
+          parsed["finalVerdict"]["recommendations"]
+        ),
+        confidence: numberFromUnknown(parsed["finalVerdict"]["confidence"], 0),
+      }
+    : fallbackVerdict.finalVerdict;
+
+  return {
+    consensusAreas,
+    disputedAreas,
+    finalVerdict,
+  };
 }
 
 /**
@@ -427,22 +511,10 @@ export class MultiAgentDebateSystem {
         validator: (value): value is string => typeof value === "string",
       });
 
-      // Try to parse the JSON result
-      return JSON.parse(result.content);
+      return parseDebateVerdict(result.content);
     } catch (error) {
       logger.error("Failed to generate verdict:", error);
-      // Return a default verdict in case of failure
-      return {
-        consensusAreas: [],
-        disputedAreas: [],
-        finalVerdict: {
-          overallAssessment: "تعذر إصدار حكم نهائي بسبب خطأ في الخدمة.",
-          strengths: [],
-          weaknesses: [],
-          recommendations: [],
-          confidence: 0,
-        },
-      };
+      return fallbackVerdict;
     }
   }
 

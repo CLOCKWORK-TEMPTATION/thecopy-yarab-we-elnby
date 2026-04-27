@@ -89,7 +89,7 @@ ${userInput}
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -115,20 +115,20 @@ ${userInput}
       enhancedNotes.push("تنبؤات استكشافية تحتاج تحقق إضافي");
     }
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       notes: enhancedNotes,
-    };
+    });
   }
 
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `# تنبؤات الحبكة - وضع الطوارئ
+    return Promise.resolve(`# تنبؤات الحبكة - وضع الطوارئ
 
 بناءً على السياق المتاح، إليك تنبؤات أولية للحبكة:
 
@@ -149,7 +149,7 @@ ${userInput}
 - بناء التوتر تدريجياً نحو الذروة
 - الحفاظ على التماسك المنطقي للأحداث
 
-ملاحظة: هذه تنبؤات أولية. يُنصح بإعادة التحليل مع سياق إضافي للحصول على رؤى أعمق.`;
+ملاحظة: هذه تنبؤات أولية. يُنصح بإعادة التحليل مع سياق إضافي للحصول على رؤى أعمق.`);
   }
 }
 

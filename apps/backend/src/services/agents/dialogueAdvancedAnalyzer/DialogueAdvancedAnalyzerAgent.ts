@@ -17,7 +17,7 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
     super(
       "DialogueDeepScan AI",
       TaskType.DIALOGUE_ADVANCED_ANALYZER,
-      DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.75;
@@ -75,16 +75,16 @@ ${userInput}
   /**
    * استجابة احتياطية
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `# تحليل حوار (احتياطي)
+    return Promise.resolve(`# تحليل حوار (احتياطي)
 
 تحليل أولي للحوار:
 
 1. **التدفق**: يبدو طبيعياً ولكن يحتاج لمزيد من التوتر.
 2. **النص الضمني**: الحوار مباشر جداً (On the nose)، حاول إضافة المزيد من المعاني المبطنة.
-3. **التوصية**: ركز على رغبات الشخصيات في المشهد، ماذا يريد كل منهم من الآخر؟`;
+3. **التوصية**: ركز على رغبات الشخصيات في المشهد، ماذا يريد كل منهم من الآخر؟`);
   }
 }
 

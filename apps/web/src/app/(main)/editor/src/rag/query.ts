@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
+
 import {
   qdrantClient,
   RAG_COLLECTION_NAME,
@@ -34,12 +36,12 @@ export async function searchCode(
       }) => {
         const p = result.payload ?? {};
         const metadata: SearchResult["chunk"]["metadata"] = {
-          filePath: String(p.filePath ?? ""),
-          fileName: String(p.fileName ?? ""),
-          fileType: String(p.fileType ?? ""),
+          filePath: stringifyUnknown(p.filePath),
+          fileName: stringifyUnknown(p.fileName),
+          fileType: stringifyUnknown(p.fileType),
           chunkIndex: Number(p.chunkIndex ?? 0),
           totalChunks: Number(p.totalChunks ?? 0),
-          language: String(p.language ?? ""),
+          language: stringifyUnknown(p.language),
           ...(typeof p.functionName === "string" && {
             functionName: p.functionName,
           }),
@@ -51,7 +53,7 @@ export async function searchCode(
 
         return {
           chunk: {
-            content: String(p.content ?? ""),
+            content: stringifyUnknown(p.content),
             metadata,
           },
           score: result.score || 0,

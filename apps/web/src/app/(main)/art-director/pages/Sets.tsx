@@ -51,7 +51,7 @@ function Sets() {
           condition: "excellent",
           dimensions: "",
         });
-        loadInventory();
+        await loadInventory();
       }
     } catch (error) {
       console.error("Error:", error);

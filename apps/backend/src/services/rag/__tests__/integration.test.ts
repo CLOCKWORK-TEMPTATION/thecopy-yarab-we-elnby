@@ -3,7 +3,7 @@
  */
 
 import { SemanticChunker } from "@the-copy/core-memory";
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 
 const { mockIndexAdHocDocument, mockRetrieve } = vi.hoisted(() => ({
   mockIndexAdHocDocument: vi.fn(),
@@ -24,7 +24,6 @@ vi.mock("../../../memory/retrieval/weaviate-retrieval.service", () => ({
 
 import { EnhancedRAGService } from "../enhancedRAG.service";
 
-describe("RAG Integration Tests", () => {
   it("should execute the unified ad hoc pipeline end to end", async () => {
     mockIndexAdHocDocument.mockResolvedValue({
       documentHash: "hash-1",
@@ -96,17 +95,17 @@ describe("RAG Integration Tests", () => {
       coherenceThreshold: 0.5,
     });
 
-    const mockGetEmbedding = async (text: string): Promise<number[]> => {
+    const mockGetEmbedding = (text: string): Promise<number[]> => {
       const words = text.toLowerCase().split(/\s+/);
-      const embedding = new Array(100).fill(0);
+      const embedding = Array.from({ length: 100 }, () => 0);
 
       words.forEach((word) => {
         const hash = word.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const index = hash % 100;
-        embedding[index] += 1;
+        embedding[index] = (embedding[index] ?? 0) + 1;
       });
 
-      return embedding;
+      return Promise.resolve(embedding);
     };
 
     const text = `
@@ -163,4 +162,3 @@ describe("RAG Integration Tests", () => {
     expect(augmentedPrompt).toContain("حوار الشخصيات طبيعي وواقعي");
     expect(augmentedPrompt).toContain("سياق");
   });
-});

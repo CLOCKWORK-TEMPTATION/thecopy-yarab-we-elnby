@@ -19,6 +19,14 @@ import type { Request, Response, NextFunction } from 'express';
 
 // ─── مساعدات بناء كائنات الطلب والاستجابة الوهمية ───
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Response & {
+  locals: Record<string, unknown>;
+  status: MockFn;
+  json: MockFn;
+  cookie: MockFn;
+};
+
 function createMockReq(overrides: Partial<Request> & {
   method?: string;
   path?: string;
@@ -35,25 +43,24 @@ function createMockReq(overrides: Partial<Request> & {
   } as unknown as Request;
 }
 
-function createMockRes(): Response {
+function createMockRes(): MockResponse {
   const res = {
-    locals: {} as Record<string, unknown>,
+    locals: {},
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
     cookie: vi.fn().mockReturnThis(),
-  } as unknown as Response;
+  } as MockResponse;
   return res;
 }
 
 // ═══ اختبارات CSRF Protection ═══
 
-describe('csrfProtection', () => {
-  let next: NextFunction;
+let next: NextFunction;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    next = vi.fn();
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  next = vi.fn();
+});
 
   // ─── طلبات آمنة (GET/HEAD/OPTIONS) ───
 
@@ -256,7 +263,6 @@ describe('csrfProtection', () => {
       expect(next).toHaveBeenCalled();
     });
   });
-});
 
 // ═══ اختبارات setCsrfToken ═══
 

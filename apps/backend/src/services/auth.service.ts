@@ -107,7 +107,7 @@ export class AuthService {
         iat?: number;
       }>(token);
 
-      const resolvedUserId = payload.sub || payload.userId;
+      const resolvedUserId = payload.sub ?? payload.userId;
       if (!resolvedUserId) {
         throw new Error('رمز التحقق غير صالح');
       }
@@ -120,7 +120,7 @@ export class AuthService {
         ...(payload.exp !== undefined && { exp: payload.exp }),
         ...(payload.iat !== undefined && { iat: payload.iat }),
       };
-    } catch (error) {
+    } catch {
       throw new Error('رمز التحقق غير صالح');
     }
   }

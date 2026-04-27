@@ -65,10 +65,10 @@ export class RepositoryCrawler {
   };
 
   async crawl(options: CrawlOptions): Promise<FileInfo[]> {
-    const include = options.include || this.defaultInclude;
-    const exclude = options.exclude || this.defaultExclude;
-    const maxFileSize = options.maxFileSize || 5 * 1024 * 1024;
-    const maxFiles = options.maxFiles || 10000;
+    const include = options.include ?? this.defaultInclude;
+    const exclude = options.exclude ?? this.defaultExclude;
+    const maxFileSize = options.maxFileSize ?? 5 * 1024 * 1024;
+    const maxFiles = options.maxFiles ?? 10000;
 
     const files: FileInfo[] = [];
 
@@ -89,35 +89,13 @@ export class RepositoryCrawler {
           // Skip if already processed
           if (files.some((f) => f.path === filePath)) continue;
 
-          try {
-            const handle = await open(filePath, "r");
-            try {
-              const fileStat = await handle.stat();
-
-              if (fileStat.size > maxFileSize) {
-                logger.warn(
-                  `Skipping large file: ${filePath} (${(fileStat.size / 1024 / 1024).toFixed(2)} MB)`
-                );
-                continue;
-              }
-
-              const content = await handle.readFile("utf-8");
-              const extension = path.extname(filePath).slice(1);
-
-              files.push({
-                path: filePath,
-                relativePath: path.relative(options.rootPath, filePath),
-                content,
-                size: fileStat.size,
-                lastModified: fileStat.mtime,
-                language: this.languageMap[extension] || "unknown",
-                extension,
-              });
-            } finally {
-              await handle.close();
-            }
-          } catch (error) {
-            logger.error(`Error reading file ${filePath}`, { error });
+          const fileInfo = await this.readMatchingFile(
+            filePath,
+            options.rootPath,
+            maxFileSize
+          );
+          if (fileInfo) {
+            files.push(fileInfo);
           }
         }
       } catch (error) {
@@ -126,6 +104,44 @@ export class RepositoryCrawler {
     }
 
     return files;
+  }
+
+  private async readMatchingFile(
+    filePath: string,
+    rootPath: string,
+    maxFileSize: number
+  ): Promise<FileInfo | null> {
+    try {
+      const handle = await open(filePath, "r");
+      try {
+        const fileStat = await handle.stat();
+
+        if (fileStat.size > maxFileSize) {
+          logger.warn(
+            `Skipping large file: ${filePath} (${(fileStat.size / 1024 / 1024).toFixed(2)} MB)`
+          );
+          return null;
+        }
+
+        const content = await handle.readFile("utf-8");
+        const extension = path.extname(filePath).slice(1);
+
+        return {
+          path: filePath,
+          relativePath: path.relative(rootPath, filePath),
+          content,
+          size: fileStat.size,
+          lastModified: fileStat.mtime,
+          language: this.languageMap[extension] ?? "unknown",
+          extension,
+        };
+      } finally {
+        await handle.close();
+      }
+    } catch (error) {
+      logger.error(`Error reading file ${filePath}`, { error });
+      return null;
+    }
   }
 
   /**
@@ -155,7 +171,7 @@ export class RepositoryCrawler {
             content,
             size: fileStat.size,
             lastModified: fileStat.mtime,
-            language: this.languageMap[extension] || "unknown",
+            language: this.languageMap[extension] ?? "unknown",
             extension,
           });
         } finally {
@@ -201,7 +217,7 @@ export class RepositoryCrawler {
   groupByType(files: FileInfo[]): Record<string, FileInfo[]> {
     return files.reduce((acc, file) => {
       const type = this.getFileType(file);
-      if (!acc[type]) acc[type] = [];
+      acc[type] ??= [];
       acc[type].push(file);
       return acc;
     }, {} as Record<string, FileInfo[]>);

@@ -113,7 +113,13 @@ class CacheService {
 
     if (this.isServiceWorkerSupported) {
       log.info("✅ Service Worker is supported", null, "CacheService");
-      this.registerServiceWorker();
+      this.registerServiceWorker().catch((error: unknown) => {
+        log.error(
+          "❌ Service Worker registration failed",
+          error,
+          "CacheService"
+        );
+      });
     } else {
       log.warn("⚠️ Service Worker is not supported", null, "CacheService");
     }
@@ -179,7 +185,13 @@ class CacheService {
     this.syncPendingActions();
 
     // Preload critical resources
-    this.preloadCriticalResources();
+    this.preloadCriticalResources().catch((error: unknown) => {
+      log.warn(
+        "⚠️ Failed to preload critical resources",
+        error,
+        "CacheService"
+      );
+    });
   }
 
   private handleOfflineStatus(): void {

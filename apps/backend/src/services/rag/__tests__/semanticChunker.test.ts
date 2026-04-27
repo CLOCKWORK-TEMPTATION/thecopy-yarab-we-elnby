@@ -55,9 +55,9 @@ describe('SemanticChunker', () => {
 
   describe('chunkText', () => {
     // Mock embedding function
-    const mockGetEmbedding = async (text: string): Promise<number[]> => {
+    const mockGetEmbedding = (_text: string): Promise<number[]> => {
       // Simple mock: return random embedding
-      return Array.from({ length: 768 }, () => Math.random());
+      return Promise.resolve(Array.from({ length: 768 }, () => Math.random()));
     };
 
     it('should chunk long text', async () => {

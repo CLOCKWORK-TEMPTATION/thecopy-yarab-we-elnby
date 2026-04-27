@@ -3,6 +3,8 @@
  * @description خدمة التواصل مع API العصف الذهني
  */
 
+import { parseJsonResponse } from "@/lib/utils/unknown-values";
+
 import { ERROR_MESSAGES } from "../constants";
 
 import type { BrainstormApiRequest, BrainstormApiResponse } from "../types";
@@ -26,5 +28,5 @@ export async function conductDebate(
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  return parseJsonResponse<BrainstormApiResponse>(response);
 }

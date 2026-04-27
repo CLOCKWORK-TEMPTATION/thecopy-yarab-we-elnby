@@ -36,8 +36,8 @@ export function selectDebatingAgents(
     throw new Error('لا توجد وكلاء متاحة للمناظرة');
   }
 
-  const maxParticipants = config?.maxParticipants || 5;
-  const minParticipants = config?.minParticipants || 2;
+  const maxParticipants = config?.maxParticipants ?? 5;
+  const minParticipants = config?.minParticipants ?? 2;
 
   // اختيار الوكلاء وتعيين الأدوار
 

@@ -77,7 +77,7 @@ export async function applyRulesWithContext(
 
   return {
     violations,
-    correctedText: correctedText || undefined,
+    correctedText: correctedText ?? undefined,
     applied: violations.length === 0,
     summary,
   };
@@ -132,7 +132,7 @@ function generateViolationSummary(violations: RuleViolation[]): string {
   }
 
   const bySeverity = violations.reduce((acc, v) => {
-    acc[v.severity] = (acc[v.severity] || 0) + 1;
+    acc[v.severity] = (acc[v.severity] ?? 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 

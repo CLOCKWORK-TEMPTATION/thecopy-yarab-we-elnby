@@ -149,10 +149,10 @@ export function extractBulletPoints(text: string): string[] {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if ((/^[\-\*\•]\s/.exec(trimmed)) || (/^\d+[\.\)]\s/.exec(trimmed))) {
+    if ((/^[-*•]\s/.exec(trimmed)) || (/^\d+[.)]\s/.exec(trimmed))) {
       const point = trimmed
-        .replace(/^[\-\*\•]\s/, '')
-        .replace(/^\d+[\.\)]\s/, '')
+        .replace(/^[-*•]\s/, '')
+        .replace(/^\d+[.)]\s/, '')
         .trim();
 
       if (point.length > 0) {

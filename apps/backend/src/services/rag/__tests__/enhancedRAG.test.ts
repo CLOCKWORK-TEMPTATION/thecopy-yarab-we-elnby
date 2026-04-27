@@ -4,6 +4,10 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { EnhancedRAGService } from "../enhancedRAG.service";
+
+import type { RetrievedChunk } from "../enhancedRAG.service";
+
 const {
   mockIndexAdHocDocument,
   mockRetrieve,
@@ -12,7 +16,7 @@ const {
 } = vi.hoisted(() => ({
   mockIndexAdHocDocument: vi.fn(),
   mockRetrieve: vi.fn(),
-  mockSelectHits: vi.fn(),
+  mockSelectHits: vi.fn<(hits: RetrievedChunk[]) => RetrievedChunk[]>(),
   mockBuildAugmentedPrompt: vi.fn(),
 }));
 
@@ -35,60 +39,57 @@ vi.mock("../../../memory/context/context-assembly.service", () => ({
   },
 }));
 
-import { EnhancedRAGService } from "../enhancedRAG.service";
+let service: EnhancedRAGService;
 
-describe("EnhancedRAGService", () => {
-  let service: EnhancedRAGService;
+beforeEach(() => {
+  vi.clearAllMocks();
+  service = new EnhancedRAGService();
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    service = new EnhancedRAGService();
-
-    mockIndexAdHocDocument.mockResolvedValue({
-      documentHash: "doc-hash",
-      totalChunks: 4,
-      inserted: 4,
-    });
-    mockRetrieve.mockResolvedValue([
-      {
-        text: "Relevant chunk 1",
-        source: "request-document",
-        type: "ad-hoc",
-        collection: "AdHocChunks",
-        chunkIndex: 0,
-        startIndex: 0,
-        endIndex: 16,
-        coherenceScore: 0.8,
-        sentences: ["Relevant chunk 1"],
-        documentHash: "doc-hash",
-        metadata: {},
-        relevanceScore: 0.91,
-        rank: 1,
-      },
-      {
-        text: "Relevant chunk 2",
-        source: "request-document",
-        type: "ad-hoc",
-        collection: "AdHocChunks",
-        chunkIndex: 1,
-        startIndex: 17,
-        endIndex: 33,
-        coherenceScore: 0.7,
-        sentences: ["Relevant chunk 2"],
-        documentHash: "doc-hash",
-        metadata: {},
-        relevanceScore: 0.86,
-        rank: 2,
-      },
-    ]);
-    mockSelectHits.mockImplementation((hits) =>
-      hits.map((hit: any, index: number) => ({
-        ...hit,
-        rank: index + 1,
-      }))
-    );
-    mockBuildAugmentedPrompt.mockReturnValue("augmented prompt");
+  mockIndexAdHocDocument.mockResolvedValue({
+    documentHash: "doc-hash",
+    totalChunks: 4,
+    inserted: 4,
   });
+  mockRetrieve.mockResolvedValue([
+    {
+      text: "Relevant chunk 1",
+      source: "request-document",
+      type: "ad-hoc",
+      collection: "AdHocChunks",
+      chunkIndex: 0,
+      startIndex: 0,
+      endIndex: 16,
+      coherenceScore: 0.8,
+      sentences: ["Relevant chunk 1"],
+      documentHash: "doc-hash",
+      metadata: {},
+      relevanceScore: 0.91,
+      rank: 1,
+    },
+    {
+      text: "Relevant chunk 2",
+      source: "request-document",
+      type: "ad-hoc",
+      collection: "AdHocChunks",
+      chunkIndex: 1,
+      startIndex: 17,
+      endIndex: 33,
+      coherenceScore: 0.7,
+      sentences: ["Relevant chunk 2"],
+      documentHash: "doc-hash",
+      metadata: {},
+      relevanceScore: 0.86,
+      rank: 2,
+    },
+  ]);
+  mockSelectHits.mockImplementation((hits) =>
+    hits.map((hit, index) => ({
+      ...hit,
+      rank: index + 1,
+    }))
+  );
+  mockBuildAugmentedPrompt.mockReturnValue("augmented prompt");
+});
 
   describe("performRAG", () => {
     it("should retrieve relevant chunks through unified services", async () => {
@@ -150,7 +151,7 @@ describe("EnhancedRAGService", () => {
         maxChunks: 1,
       });
 
-      mockSelectHits.mockImplementation((hits) => [hits[0]]);
+      mockSelectHits.mockImplementation((hits) => hits.slice(0, 1));
 
       const result = await serviceWithLimit.performRAG(
         "query",
@@ -218,4 +219,3 @@ describe("EnhancedRAGService", () => {
       expect(service.getOptions().chunkSize).toBe(initialChunkSize);
     });
   });
-});

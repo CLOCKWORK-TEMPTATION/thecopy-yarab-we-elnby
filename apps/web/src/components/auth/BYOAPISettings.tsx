@@ -40,7 +40,9 @@ export function BYOAPISettings() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadProviders();
+    loadProviders().catch((err: unknown) => {
+      logger.error("خطأ غير متوقع في تحميل المزودين:", err);
+    });
   }, []);
 
   const loadProviders = async () => {

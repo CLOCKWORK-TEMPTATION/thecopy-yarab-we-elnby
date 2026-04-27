@@ -99,7 +99,7 @@ export class GeminiService {
 
     if (!rawTextOutput) {
       const firstCandidate = response.candidates![0];
-      if (firstCandidate && firstCandidate.finishReason !== "STOP") {
+      if (firstCandidate && String(firstCandidate.finishReason) !== "STOP") {
         return { error: ` أنهى Gemini المعالجة بسبب: ${firstCandidate.finishReason}. قد يكون المحتوى قد تم حظره أو انتهى بشكل غير متوقع.` };
       }
       return { error: "أرجع Gemini استجابة نصية فارغة." };
@@ -119,13 +119,11 @@ export class GeminiService {
 
     if (jsonStr.startsWith('{') || jsonStr.startsWith('[')) {
       try {
-        const parsedData: GeminiTaskResultData = JSON.parse(jsonStr);
-        return { data: parsedData, rawText: rawTextOutput };
+        return { data: parseGeminiTaskResult(jsonStr), rawText: rawTextOutput };
       } catch {
         const fixedJsonStr = attemptToFixJson(jsonStr);
         try {
-          const parsedData: GeminiTaskResultData = JSON.parse(fixedJsonStr);
-          return { data: parsedData, rawText: rawTextOutput };
+          return { data: parseGeminiTaskResult(fixedJsonStr), rawText: rawTextOutput };
         } catch {
           logger.error("فشل في تحليل JSON حتى بعد محاولة الإصلاح");
           if (shouldExpectJson) {
@@ -148,7 +146,7 @@ export class GeminiService {
 
     const error = e as GeminiError & { status?: number; message?: string; toString?: () => string; response?: { error?: { message?: string } } };
 
-    if (retries < MAX_RETRIES && (error.status && error.status >= 500 || (error.message && error.message.toLowerCase().includes("network error")) ) ) {
+    if (retries < MAX_RETRIES && (error.status && error.status >= 500 || (error.message?.toLowerCase().includes("network error")) ) ) {
       logger.info(`إعادة المحاولة (${retries + 1}/${MAX_RETRIES})...`);
       await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retries)));
       return this.processTextsWithGemini(params, retries + 1);
@@ -156,4 +154,8 @@ export class GeminiService {
 
     return { error: buildErrorMessage(error) };
   }
+}
+
+function parseGeminiTaskResult(jsonText: string): GeminiTaskResultData {
+  return JSON.parse(jsonText) as GeminiTaskResultData;
 }

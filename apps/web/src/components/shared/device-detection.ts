@@ -81,7 +81,8 @@ export function getMaxTextureSize(): number {
       (canvas.getContext("experimental-webgl") as WebGLRenderingContext | null);
 
     if (gl) {
-      return gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      const maxTextureSize: unknown = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      return typeof maxTextureSize === "number" ? maxTextureSize : 2048;
     }
   } catch (e) {
     logger.warn("Failed to get max texture size:", e);

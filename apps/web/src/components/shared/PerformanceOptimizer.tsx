@@ -9,9 +9,10 @@
 
 "use client";
 
-import { logger } from "@/lib/logger";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+
+import { logger } from "@/lib/logger";
 
 // Extend Window interface for TypeScript
 declare global {

@@ -6,11 +6,19 @@ import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { DialogueForensicsAgent } from "./DialogueForensicsAgent";
 
-vi.mock("../../services/geminiService", () => ({
+const { mockAnalyzeText, mockGenerateText } = vi.hoisted(() => {
+  const mockAgentText =
+    "نعم\nتحليل تجريبي مفصل يفحص الحوار ووظائفه الدرامية وإيقاعه ومستوى اتساق الأصوات.";
+  return {
+    mockAnalyzeText: vi.fn(() => Promise.resolve(mockAgentText)),
+    mockGenerateText: vi.fn(() => Promise.resolve(mockAgentText)),
+  };
+});
+
+vi.mock("@/services/gemini.service", () => ({
   geminiService: {
-    generateContent: vi
-      .fn()
-      .mockResolvedValue("Mock AI response for dialogue forensics analysis"),
+    analyzeText: mockAnalyzeText,
+    generateText: mockGenerateText,
   },
 }));
 

@@ -8,6 +8,7 @@
  *     window.__diagnosePipeline(myText)    // يستخدم نص مخصص
  */
 import { logger } from "@/lib/logger";
+
 import {
   classifyLines,
   PIPELINE_FLAGS,
@@ -223,6 +224,10 @@ export const diagnosePipeline = (
 
 // ─── عرض التقرير في الـ console ────────────────────────────────────
 
+const logDiagnosticTable = (label: string, data: unknown): void => {
+  logger.warn(label, data);
+};
+
 const printReport = (report: DiagnosticReport): void => {
   logger.warn(
     "%c╔══════════════════════════════════════════════════════╗",
@@ -239,14 +244,15 @@ const printReport = (report: DiagnosticReport): void => {
 
   logger.warn(`\n📊 Baseline: ${report.inputLines} lines`);
 
-  console.table(report.baselineTypeDist);
+  logDiagnosticTable("Baseline type distribution", report.baselineTypeDist);
 
   logger.warn(
     "\n%c🏆 Layer Impact Ranking (من الأكثر تأثير للأقل):",
     "color: #ffcc00; font-weight: bold"
   );
 
-  console.table(
+  logDiagnosticTable(
+    "Layer impact ranking",
     report.ranking.map((r) => ({
       "🏷️ Layer": r.flag,
       "📐 Changed Lines": r.changedLines,
@@ -269,13 +275,14 @@ const printReport = (report: DiagnosticReport): void => {
     if (Object.keys(layer.typeDistDelta).length > 0) {
       logger.warn("   Type distribution delta:");
 
-      console.table(layer.typeDistDelta);
+      logDiagnosticTable("Type distribution delta", layer.typeDistDelta);
     }
 
     // أول 10 تغييرات كمثال
     const sample = layer.diffs.slice(0, 10);
 
-    console.table(
+    logDiagnosticTable(
+      "Layer diff sample",
       sample.map((d) => ({
         "Line#": d.lineIndex,
         Text: d.text.slice(0, 40),
@@ -298,7 +305,8 @@ const printReport = (report: DiagnosticReport): void => {
     "color: #ff00ff; font-weight: bold"
   );
   if (report.allOnReport.diffs.length > 0) {
-    console.table(
+    logDiagnosticTable(
+      "All layers diff sample",
       report.allOnReport.diffs.slice(0, 15).map((d) => ({
         "Line#": d.lineIndex,
         Text: d.text.slice(0, 40),
@@ -309,7 +317,7 @@ const printReport = (report: DiagnosticReport): void => {
   }
 
   logger.warn("\n%c─── Full report object: ───", "color: #888");
-  logger.warn(report);
+  logger.warn({ report }, "pipeline diagnostic report");
 };
 
 // ─── ربط بالـ window للاستخدام من الـ console ──────────────────────

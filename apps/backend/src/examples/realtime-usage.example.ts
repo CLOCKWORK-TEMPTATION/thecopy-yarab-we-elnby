@@ -16,6 +16,18 @@ import {
   SystemEventPayload,
 } from '@/types/realtime.types';
 
+interface ExampleRealtimeJob {
+  id?: string;
+  name: string;
+  data: Record<string, unknown>;
+  timestamp: number;
+  attemptsMade: number;
+  opts: {
+    attempts?: number;
+  };
+  updateProgress(progress: number): Promise<void> | void;
+}
+
 /**
  * Example 1: Broadcasting job progress updates
  *
@@ -48,10 +60,10 @@ export function broadcastJobProgress(
   });
 
   // Broadcast via WebSocket
-  websocketService.toUser(userId || 'anonymous', event);
+  websocketService.toUser(userId ?? 'anonymous', event);
 
   // Broadcast via SSE
-  sseService.sendToUser(userId || 'anonymous', event);
+  sseService.sendToUser(userId ?? 'anonymous', event);
 }
 
 /**
@@ -89,7 +101,7 @@ export function streamAnalysisProgress(
   sseService.sendToRoom(analysisRoom, event);
 
   // Also stream raw log data if needed
-  logs.forEach((log) => {
+  logs.forEach((_log) => {
     // Stream each log line to SSE clients
     // Note: This requires knowing the clientId
     // You would typically track this when initializing the SSE connection
@@ -101,16 +113,17 @@ export function streamAnalysisProgress(
  *
  * Add this code to your BullMQ job processor to emit real-time updates
  */
-export async function exampleJobProcessorWithRealtime(job: any): Promise<any> {
-  const { userId } = job.data;
+export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): Promise<{ success: boolean; data: string }> {
+  const userId = typeof job.data['userId'] === 'string' ? job.data['userId'] : undefined;
+  const jobId = String(job.id ?? '');
 
   // Emit job started
   websocketService.emitJobStarted({
-    jobId: job.id as string,
+    jobId,
     queueName: 'ai-analysis',
     jobName: job.name,
     data: job.data,
-    userId,
+    ...(userId ? { userId } : {}),
   });
 
   try {
@@ -121,7 +134,7 @@ export async function exampleJobProcessorWithRealtime(job: any): Promise<any> {
 
       // Emit progress via WebSocket & SSE
       websocketService.emitJobProgress({
-        jobId: job.id as string,
+        jobId,
         queueName: 'ai-analysis',
         progress: i,
         status: 'active',
@@ -129,7 +142,7 @@ export async function exampleJobProcessorWithRealtime(job: any): Promise<any> {
         currentStep: `Step ${i / 10}`,
         totalSteps: 10,
         completedSteps: i / 10,
-        userId,
+        ...(userId ? { userId } : {}),
       });
 
       // Simulate work
@@ -140,24 +153,26 @@ export async function exampleJobProcessorWithRealtime(job: any): Promise<any> {
 
     // Emit job completed
     websocketService.emitJobCompleted({
-      jobId: job.id as string,
+      jobId,
       queueName: 'ai-analysis',
       result,
       duration: Date.now() - job.timestamp,
-      userId,
+      ...(userId ? { userId } : {}),
     });
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+
     // Emit job failed
     websocketService.emitJobFailed({
-      jobId: job.id as string,
+      jobId,
       queueName: 'ai-analysis',
-      error: error.message,
-      stackTrace: error.stack,
+      error: normalizedError.message,
       attemptsMade: job.attemptsMade,
-      attemptsMax: job.opts.attempts || 3,
-      userId,
+      attemptsMax: job.opts.attempts ?? 3,
+      ...(normalizedError.stack ? { stackTrace: normalizedError.stack } : {}),
+      ...(userId ? { userId } : {}),
     });
 
     throw error;

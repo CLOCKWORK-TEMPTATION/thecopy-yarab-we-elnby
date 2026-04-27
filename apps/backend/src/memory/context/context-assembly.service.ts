@@ -224,7 +224,7 @@ export class ContextAssemblyService {
     const fileCount = new Set(results.map((result) => result.source)).size;
     const typeBreakdown = results.reduce<Record<string, number>>(
       (accumulator, result) => {
-        accumulator[result.type] = (accumulator[result.type] || 0) + 1;
+        accumulator[result.type] = (accumulator[result.type] ?? 0) + 1;
         return accumulator;
       },
       {}

@@ -10,7 +10,7 @@ export class VisualCinematicAnalyzerAgent extends BaseAgent {
     super(
       "VisualCinematicAnalyzer AI",
       TaskType.VISUAL_CINEMATIC_ANALYZER,
-      VISUAL_CINEMATIC_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      VISUAL_CINEMATIC_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
     this.confidenceFloor = 0.75;
   }

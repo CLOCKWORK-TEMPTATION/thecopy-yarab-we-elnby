@@ -25,10 +25,6 @@ const STATION_TASKS: { stationId: StationId; task: TaskType }[] = [
 ];
 
 export class AnalysisService {
-
-  constructor() {
-  }
-
   /**
    * NEW: Multi-Agent Pipeline using advanced orchestration
    * This replaces the simplified seven stations with real AI agents
@@ -78,8 +74,8 @@ export class AnalysisService {
         pipelineMetadata: {
           stationsCompleted: 7,
           totalExecutionTime: orchestrationResult.summary.totalExecutionTime,
-          startedAt: orchestrationResult.metadata?.startedAt || new Date(startTime).toISOString(),
-          finishedAt: orchestrationResult.metadata?.finishedAt || new Date(endTime).toISOString(),
+          startedAt: orchestrationResult.metadata?.startedAt ?? new Date(startTime).toISOString(),
+          finishedAt: orchestrationResult.metadata?.finishedAt ?? new Date(endTime).toISOString(),
           agentsUsed: agentTasks.length,
           averageConfidence: orchestrationResult.summary.averageConfidence,
           successfulAgents: orchestrationResult.summary.successfulTasks,
@@ -252,7 +248,7 @@ export class AnalysisService {
       return [];
     }
 
-    const names = (text.match(/[\u0600-\u06FF]{3,}/g) || [])
+    const names = (text.match(/[\u0600-\u06FF]{3,}/g) ?? [])
       .map((value) => value.trim())
       .filter((value) => value.length >= 3);
 
@@ -266,8 +262,8 @@ export class AnalysisService {
 
     return [
       {
-        character1: names[0] || 'الشخصية الأولى',
-        character2: names[1] || 'الشخصية الثانية',
+        character1: names[0] ?? 'الشخصية الأولى',
+        character2: names[1] ?? 'الشخصية الثانية',
         relationshipType,
         strength: 0.5,
       },
@@ -354,7 +350,7 @@ export class AnalysisService {
           input: args.fullText,
           context: {
             projectName: args.projectName,
-            language: args.language || 'ar',
+            language: args.language ?? 'ar',
             previousResults: Object.fromEntries(results),
           },
           options: {
@@ -432,7 +428,7 @@ export class AnalysisService {
     try {
       const output = await agent.executeTask({
         input: args.fullText,
-        context: { projectName: args.projectName, language: args.language || 'ar' },
+        context: { projectName: args.projectName, language: args.language ?? 'ar' },
         options: {
           enableRAG: true,
           enableSelfCritique: true,

@@ -1,6 +1,6 @@
 import { createServer, Server as HTTPServer } from 'http';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
 const {
   mockSocketServerCtor,
@@ -62,6 +62,19 @@ const createMockSocket = () => ({
   disconnect: vi.fn(),
 });
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockHandler = (payload?: unknown) => void;
+
+function findMockHandler(mock: MockFn, eventName: string): MockHandler {
+  const calls = mock.mock.calls as unknown[][];
+  const handler = calls.find((call) => call[0] === eventName)?.[1];
+  if (typeof handler !== 'function') {
+    throw new Error(`Missing mock handler for ${eventName}`);
+  }
+
+  return handler as MockHandler;
+}
+
 vi.mock('socket.io', () => {
   class MockServer {
     constructor(...args: unknown[]) {
@@ -112,8 +125,7 @@ import { RealtimeEventType } from '@/types/realtime.types';
 
 import { websocketService } from './websocket.service';
 
-describe('WebSocketService', () => {
-  let httpServer: HTTPServer;
+let httpServer: HTTPServer;
 
   beforeEach(async () => {
     await websocketService.shutdown();
@@ -153,9 +165,9 @@ describe('WebSocketService', () => {
   it('يرسل حدث الاتصال ويسجل معالجات الجلسة', () => {
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
+    connectionHandler(socket);
 
     expect(socket.on).toHaveBeenCalledWith('authenticate', expect.any(Function));
     expect(socket.on).toHaveBeenCalledWith('token:refresh', expect.any(Function));
@@ -175,9 +187,9 @@ describe('WebSocketService', () => {
     vi.useFakeTimers();
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
+    connectionHandler(socket);
     vi.advanceTimersByTime(5001);
 
     expect(socket.emit).toHaveBeenCalledWith(
@@ -193,11 +205,11 @@ describe('WebSocketService', () => {
   it('يوثق المستخدم بنجاح عند تمرير توكن صالح', () => {
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
-    const authHandler = socket.on.mock.calls.find((call) => call[0] === 'authenticate')?.[1];
-    authHandler?.({ token: 'valid-token' });
+    connectionHandler(socket);
+    const authHandler = findMockHandler(socket.on, 'authenticate');
+    authHandler({ token: 'valid-token' });
 
     expect(mockVerifyToken).toHaveBeenCalledWith('valid-token');
     expect(socket.join).toHaveBeenCalledWith('user:verified-user');
@@ -217,11 +229,11 @@ describe('WebSocketService', () => {
   it('يدعم مسار التطوير المحلي عند توفر userId على العنوان المحلي', () => {
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
-    const authHandler = socket.on.mock.calls.find((call) => call[0] === 'authenticate')?.[1];
-    authHandler?.({ userId: 'dev-user' });
+    connectionHandler(socket);
+    const authHandler = findMockHandler(socket.on, 'authenticate');
+    authHandler({ userId: 'dev-user' });
 
     expect(socket.join).toHaveBeenCalledWith('user:dev-user');
     expect(socket.emit).toHaveBeenCalledWith(
@@ -237,11 +249,11 @@ describe('WebSocketService', () => {
   it('يرفض المصادقة غير الصالحة', () => {
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
-    const authHandler = socket.on.mock.calls.find((call) => call[0] === 'authenticate')?.[1];
-    authHandler?.({});
+    connectionHandler(socket);
+    const authHandler = findMockHandler(socket.on, 'authenticate');
+    authHandler({});
 
     expect(socket.emit).toHaveBeenCalledWith(
       'auth_error',
@@ -256,12 +268,12 @@ describe('WebSocketService', () => {
   it('يدير الاشتراك في الغرف بحسب حالة المصادقة', () => {
     websocketService.initialize(httpServer);
     const socket = createMockSocket();
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
 
-    connectionHandler?.(socket);
-    const subscribeHandler = socket.on.mock.calls.find((call) => call[0] === 'subscribe')?.[1];
+    connectionHandler(socket);
+    const subscribeHandler = findMockHandler(socket.on, 'subscribe');
 
-    subscribeHandler?.({ room: 'project:123' });
+    subscribeHandler({ room: 'project:123' });
     expect(socket.emit).toHaveBeenCalledWith(
       RealtimeEventType.UNAUTHORIZED,
       expect.objectContaining({
@@ -271,7 +283,7 @@ describe('WebSocketService', () => {
 
     socket.emit.mockClear();
     socket.authenticated = true;
-    subscribeHandler?.({ room: 'project:123' });
+    subscribeHandler({ room: 'project:123' });
 
     expect(socket.join).toHaveBeenCalledWith('project:123');
     expect(socket.emit).toHaveBeenCalledWith(
@@ -332,8 +344,8 @@ describe('WebSocketService', () => {
     const socket = createMockSocket();
     socket.authenticated = true;
     socket.userId = 'test-user';
-    const connectionHandler = mockIO.on.mock.calls.find((call) => call[0] === 'connection')?.[1];
-    connectionHandler?.(socket);
+    const connectionHandler = findMockHandler(mockIO.on, 'connection');
+    connectionHandler(socket);
 
     const stats = websocketService.getStats();
 
@@ -359,4 +371,3 @@ describe('WebSocketService', () => {
     expect(mockIO.close).toHaveBeenCalled();
     expect(websocketService.getIO()).toBeNull();
   });
-});

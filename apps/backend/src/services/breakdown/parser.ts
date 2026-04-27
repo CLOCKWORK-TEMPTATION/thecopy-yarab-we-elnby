@@ -12,7 +12,7 @@ const STRUCTURED_UPPERCASE_PATTERN = /^[A-Z0-9\s\-–—/.]+$/;
 const TRANSITION_PATTERN =
   /^(?:CUT\s+TO|FADE\s+IN|FADE\s+OUT|DISSOLVE\s+TO|SMASH\s+CUT|MATCH\s+CUT|JUMP\s+CUT|WIPE\s+TO|IRIS\s+(?:IN|OUT)|قطع\s+إلى|تلاشي\s+(?:دخول|خروج)|ذوبان\s+إلى|قطع\s+مفاجئ|قطع\s+مطابق)\s*:?\s*$/i;
 const CHARACTER_PATTERN = /^.{1,40}\s*:\s*$/;
-const ACTION_PREFIX_PATTERN = /^[\-–—(]/;
+const ACTION_PREFIX_PATTERN = /^[-–—(]/;
 
 function normalizeLine(line: string): string {
   return line.replace(/\u00A0/g, ' ').trim();
@@ -218,14 +218,17 @@ function flushScene(
   }
 }
 
-function processHeadingLine(
-  trimmed: string,
-  lines: string[],
-  index: number,
-  state: { headerLines: string[]; contentLines: string[]; started: boolean },
-  scenes: ParsedScene[],
-  warnings: string[]
-): number {
+interface HeadingProcessContext {
+  trimmed: string;
+  lines: string[];
+  index: number;
+  state: { headerLines: string[]; contentLines: string[]; started: boolean };
+  scenes: ParsedScene[];
+  warnings: string[];
+}
+
+function processHeadingLine(context: HeadingProcessContext): number {
+  const { trimmed, lines, index, state, scenes, warnings } = context;
   if (state.started) {
     flushScene(state.headerLines, state.contentLines, scenes, warnings);
   }
@@ -259,7 +262,7 @@ export function parseScreenplay(
     const trimmed = normalizeLine(rawLine);
 
     if (looksLikeSceneHeading(trimmed)) {
-      index = processHeadingLine(trimmed, lines, index, state, scenes, warnings);
+      index = processHeadingLine({ trimmed, lines, index, state, scenes, warnings });
       continue;
     }
 

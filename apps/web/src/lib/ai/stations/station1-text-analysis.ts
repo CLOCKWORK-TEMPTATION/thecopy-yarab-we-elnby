@@ -1,3 +1,5 @@
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
+
 import { BaseStation, StationInput, StationOptions } from "./base-station";
 import { GeminiService, GeminiModel } from "./gemini-service";
 
@@ -834,7 +836,7 @@ ${contextText}`;
     if (typeof content === "string") {
       text = content;
     } else if (content && typeof content === "object" && "raw" in content) {
-      text = String(content.raw ?? "");
+      text = stringifyUnknown(content.raw);
     } else {
       throw new Error("Invalid content format");
     }
@@ -844,7 +846,8 @@ ${contextText}`;
       throw new Error("No JSON found in response");
     }
 
-    return JSON.parse(jsonMatch[0]);
+    const parsed: unknown = JSON.parse(jsonMatch[0]);
+    return parsed as T;
   }
 
   private extractText(content: { raw?: unknown } | string): string {
@@ -852,7 +855,7 @@ ${contextText}`;
       return content.trim();
     }
     if (content && typeof content === "object" && "raw" in content) {
-      return String(content.raw ?? "").trim();
+      return stringifyUnknown(content.raw).trim();
     }
     return "";
   }

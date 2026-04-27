@@ -113,7 +113,7 @@ export class PlatformGenAIService {
     // Prefer the canonical GEMINI alias first because the editor runtime and
     // several shared packages already standardize on it, then fall back to the
     // legacy GOOGLE_GENAI alias for backward compatibility.
-    const apiKey = env.GEMINI_API_KEY || env.GOOGLE_GENAI_API_KEY;
+    const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_GENAI_API_KEY;
     if (!apiKey) {
       throw new Error(
         'GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured. The AI provider is required for this operation.'
@@ -323,7 +323,7 @@ export class PlatformGenAIService {
 
   private async runHealthProbe(): Promise<AIProviderHealthStatus> {
     const startedAt = Date.now();
-    const hasKey = Boolean(env.GOOGLE_GENAI_API_KEY || env.GEMINI_API_KEY);
+    const hasKey = Boolean(env.GOOGLE_GENAI_API_KEY ?? env.GEMINI_API_KEY);
     const details = { provider: 'google-genai', credentialsConfigured: hasKey };
     const buildProbeResult = (
       result: Omit<AIProviderHealthStatus, 'details'>

@@ -6,6 +6,8 @@
  * بصيغ مختلفة لمشاركتها مع فريق الإنتاج
  */
 
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
+
 /**
  * تنزيل ملف
  */
@@ -67,11 +69,11 @@ export function exportBreakdownToMarkdown(
           if (typeof item === "object" && item !== null) {
             const obj = item as Record<string, unknown>;
             for (const [k, v] of Object.entries(obj)) {
-              md += `- **${k}:** ${String(v)}\n`;
+              md += `- **${k}:** ${stringifyUnknown(v)}\n`;
             }
             md += `\n`;
           } else {
-            md += `- ${String(item)}\n`;
+            md += `- ${stringifyUnknown(item)}\n`;
           }
         }
       } else {
@@ -114,7 +116,7 @@ export function exportBreakdownToCSV(
       const val = scene[h];
       if (val === null || val === undefined) return "";
       if (typeof val === "object") return escapeCSV(JSON.stringify(val));
-      return escapeCSV(String(val));
+      return escapeCSV(stringifyUnknown(val));
     });
     csvRows.push(row.join(","));
   }

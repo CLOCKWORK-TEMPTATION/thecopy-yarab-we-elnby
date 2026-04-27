@@ -67,7 +67,9 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter" && !isAssistantLoading) {
         event.preventDefault();
-        askAssistant();
+        askAssistant().catch(() => {
+          // يعرض hook الإنتاج حالة الخطأ في الواجهة.
+        });
       }
     },
     [askAssistant, isAssistantLoading]

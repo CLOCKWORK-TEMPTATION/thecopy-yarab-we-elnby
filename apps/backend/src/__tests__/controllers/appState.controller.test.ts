@@ -13,20 +13,31 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { AppStateController } from '@/controllers/appState.controller';
+
 import type { Request, Response } from 'express';
 
 // ─── Mock لخدمة App State ───
-const mockReadAppState = vi.fn();
-const mockSaveAppState = vi.fn();
-const mockClearAppState = vi.fn();
+type AsyncServiceMock = ReturnType<
+  typeof vi.fn<(...args: unknown[]) => Promise<unknown>>
+>;
+type MockFn = ReturnType<typeof vi.fn>;
+type TestResponse = Response & {
+  _status: number;
+  _json: unknown;
+  status: MockFn;
+  json: MockFn;
+};
+
+const mockReadAppState: AsyncServiceMock = vi.fn();
+const mockSaveAppState: AsyncServiceMock = vi.fn();
+const mockClearAppState: AsyncServiceMock = vi.fn();
 
 vi.mock('@/services/app-state.service', () => ({
-  readAppState: (...args: unknown[]) => mockReadAppState(...args),
-  saveAppState: (...args: unknown[]) => mockSaveAppState(...args),
-  clearAppState: (...args: unknown[]) => mockClearAppState(...args),
+  readAppState: (...args: unknown[]): Promise<unknown> => mockReadAppState(...args),
+  saveAppState: (...args: unknown[]): Promise<unknown> => mockSaveAppState(...args),
+  clearAppState: (...args: unknown[]): Promise<unknown> => mockClearAppState(...args),
 }));
-
-import { AppStateController } from '@/controllers/appState.controller';
 
 // ─── مساعدات ───
 
@@ -39,20 +50,24 @@ function createReq(overrides: Record<string, unknown> = {}): Request {
   } as unknown as Request;
 }
 
-function createRes(): Response & { _status: number; _json: unknown } {
+function createRes(): TestResponse {
   const res = {
     _status: 200,
     _json: null,
-    status: vi.fn(function (this: any, code: number) {
-      this._status = code;
-      return this;
+    status: vi.fn((code: number): TestResponse => {
+      res._status = code;
+      return res;
     }),
-    json: vi.fn(function (this: any, data: unknown) {
-      this._json = data;
-      return this;
+    json: vi.fn((data: unknown): TestResponse => {
+      res._json = data;
+      return res;
     }),
-  } as unknown as Response & { _status: number; _json: unknown };
+  } as TestResponse;
   return res;
+}
+
+function objectContainingMatcher(value: Record<string, unknown>): unknown {
+  return expect.objectContaining(value);
 }
 
 // ═══ اختبارات ═══
@@ -82,7 +97,7 @@ describe('AppStateController', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          data: expect.objectContaining({ step: 3 }),
+          data: objectContainingMatcher({ step: 3 }),
         })
       );
     });

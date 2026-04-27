@@ -158,6 +158,15 @@ const REPEATED_SUSPICIOUS_TOKENS = new Set([
 
 type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 interface CheckContext { userId?: string; requestType?: string }
+interface OutputProcessingReport {
+  content: string;
+  sanitizedContent: string;
+  violations: GuardrailViolation[];
+  warnings: string[];
+  riskLevel: RiskLevel;
+  piiDetected: boolean;
+  context?: CheckContext;
+}
 
 // ============================================
 // MAIN SERVICE CLASS
@@ -179,9 +188,7 @@ export class LLMGuardrailsService {
   private readonly MAX_CONTENT_LENGTH = 100000; // 100KB max
 
   static getInstance(): LLMGuardrailsService {
-    if (!LLMGuardrailsService.instance) {
-      LLMGuardrailsService.instance = new LLMGuardrailsService();
-    }
+    LLMGuardrailsService.instance ??= new LLMGuardrailsService();
 
     return LLMGuardrailsService.instance;
   }
@@ -236,7 +243,7 @@ export class LLMGuardrailsService {
       .split(/\s+/)
       .filter(Boolean)
       .reduce<Record<string, number>>((acc, token) => {
-        acc[token] = (acc[token] || 0) + 1;
+        acc[token] = (acc[token] ?? 0) + 1;
         return acc;
       }, {});
 
@@ -371,14 +378,18 @@ export class LLMGuardrailsService {
    * Reports output processing results to logs and Sentry
    */
   private reportOutputProcessing(
-    content: string,
-    sanitizedContent: string,
-    violations: GuardrailViolation[],
-    warnings: string[],
-    riskLevel: RiskLevel,
-    piiDetected: boolean,
-    context?: CheckContext
+    report: OutputProcessingReport
   ): void {
+    const {
+      content,
+      sanitizedContent,
+      violations,
+      warnings,
+      riskLevel,
+      piiDetected,
+      context,
+    } = report;
+
     logger.info('LLM Output processed by guardrails', {
       userId: context?.userId,
       requestType: context?.requestType,
@@ -499,9 +510,15 @@ export class LLMGuardrailsService {
 
     // Record metrics and report
     this.recordViolations(violations);
-    this.reportOutputProcessing(
-      content, sanitizedContent, violations, warnings, riskLevel, piiDetected, context
-    );
+    this.reportOutputProcessing({
+      content,
+      sanitizedContent,
+      violations,
+      warnings,
+      riskLevel,
+      piiDetected,
+      ...(context ? { context } : {}),
+    });
 
     return {
       isAllowed,
@@ -631,11 +648,11 @@ export class LLMGuardrailsService {
     for (const violation of violations) {
       // Count by type
       this.metrics.violationsByType[violation.type] = 
-        (this.metrics.violationsByType[violation.type] || 0) + 1;
+        (this.metrics.violationsByType[violation.type] ?? 0) + 1;
 
       // Count by severity
       this.metrics.violationsBySeverity[violation.severity] = 
-        (this.metrics.violationsBySeverity[violation.severity] || 0) + 1;
+        (this.metrics.violationsBySeverity[violation.severity] ?? 0) + 1;
 
       // Track top patterns
       if (violation.pattern) {
@@ -724,6 +741,3 @@ export class LLMGuardrailsService {
 // ============================================
 
 export const llmGuardrails = LLMGuardrailsService.getInstance();
-
-// Backward compatibility - also export as default
-export default llmGuardrails;

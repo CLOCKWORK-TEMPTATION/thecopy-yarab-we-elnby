@@ -205,7 +205,7 @@ export class ConstitutionalRulesEngine {
    * Track rule violation for learning purposes
    */
   private trackViolation(ruleId: string): void {
-    const count = this.violationHistory.get(ruleId) || 0;
+    const count = this.violationHistory.get(ruleId) ?? 0;
     this.violationHistory.set(ruleId, count + 1);
   }
 

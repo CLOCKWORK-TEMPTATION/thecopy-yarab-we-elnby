@@ -16,8 +16,8 @@
  * - {@link registerPipelineRecorderUI} — ربط بالـ window
  */
 
-import { logger } from "@/lib/logger";
 import { definedProps } from "@/lib/defined-props";
+import { logger } from "@/lib/logger";
 
 type PipelineRecorderDebugWindow = Window & {
   __lastPipelineRun?: PipelineRunReport | null;
@@ -33,6 +33,10 @@ const isPipelineConsoleDebugEnabled = (): boolean => {
   } catch {
     return false;
   }
+};
+
+const logRecorderTable = (label: string, data: unknown): void => {
+  logger.warn(label, data);
 };
 
 // ─── الأنواع ──────────────────────────────────────────────────────
@@ -540,7 +544,7 @@ const printRunReport = (report: PipelineRunReport): void => {
     };
   });
 
-  console.table(stageTable);
+  logRecorderTable("Stage-by-stage progression", stageTable);
 
   // ── Type Distribution النهائي ──
   logger.warn(
@@ -548,7 +552,7 @@ const printRunReport = (report: PipelineRunReport): void => {
     "color: #00ff88; font-weight: bold"
   );
 
-  console.table(report.finalTypeDist);
+  logRecorderTable("Final type distribution", report.finalTypeDist);
 
   // ── Diffs بين المراحل ──
   for (const diff of report.diffs) {
@@ -561,7 +565,8 @@ const printRunReport = (report: PipelineRunReport): void => {
 
     const sample = diff.changes.slice(0, 15);
 
-    console.table(
+    logRecorderTable(
+      "Stage diff sample",
       sample.map((c) => ({
         "Line#": c.lineIndex,
         Text: c.text.slice(0, 40),
@@ -601,7 +606,8 @@ const printRunReport = (report: PipelineRunReport): void => {
       bySource.set(c.source, entry);
     }
 
-    console.table(
+    logRecorderTable(
+      "AI corrections by source",
       Object.fromEntries(
         Array.from(bySource.entries()).map(([source, stats]) => [source, stats])
       )
@@ -613,7 +619,8 @@ const printRunReport = (report: PipelineRunReport): void => {
         "color: #00ff88; font-weight: bold"
       );
 
-      console.table(
+      logRecorderTable(
+        "Applied AI corrections",
         applied.slice(0, 20).map((c) => ({
           "Line#": c.lineIndex,
           Text: c.text.slice(0, 35),
@@ -627,7 +634,7 @@ const printRunReport = (report: PipelineRunReport): void => {
   }
 
   logger.warn("\n%c─── Full report object: ───", "color: #888");
-  logger.warn(report);
+  logger.warn({ report }, "pipeline run report");
 };
 
 const printLineJourney = (
@@ -676,7 +683,7 @@ const printLineJourney = (
     prevType = line.type;
   }
 
-  console.table(journey);
+  logRecorderTable("Line journey", journey);
 
   // تصحيحات AI لهذا السطر
   const aiForLine = report.aiCorrections.filter(
@@ -688,7 +695,8 @@ const printLineJourney = (
       "color: #ff00ff; font-weight: bold"
     );
 
-    console.table(
+    logRecorderTable(
+      "AI corrections for line",
       aiForLine.map((c) => ({
         Source: c.source,
         From: c.previousType,

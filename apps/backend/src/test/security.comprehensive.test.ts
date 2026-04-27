@@ -17,14 +17,12 @@ import { describe, it, expect, beforeAll, vi } from 'vitest';
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'Pass123!';
 const WRONG_PASSWORD = 'pass';
-const MOCK_TOKEN = 'mock-valid-token';
 const MOCK_INVALID_TOKEN = 'invalid.jwt.token';
 const MOCK_MALFORMED_TOKEN = 'Bearer malformed-token';
 const MOCK_EXPIRED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0IiwiZXhwIjoxfQ.sig';
 const MOCK_TAMPERED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJhZG1pbiJ9.sig';
 const MOCK_MANIPULATED_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VySWQiOiJhdHRhY2tlciJ9.sig';
 const UUID_WITH_PREFIX = 'valid-token-';
-const SESSION_TOKEN = 'token=session-token; HttpOnly; SameSite=Strict';
 
 // Mock database and services before importing middleware
 vi.mock('@/db', () => ({
@@ -88,12 +86,95 @@ const createTestApp = () => {
   return app;
 };
 
-describe('🔒 Comprehensive Security Tests', () => {
-  let app: express.Application;
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
 
-  beforeAll(() => {
-    app = createTestApp();
-  });
+function responseBody(response: { body: unknown }): Record<string, unknown> {
+  return asRecord(response.body);
+}
+
+function nestedRecord(source: Record<string, unknown>, field: string): Record<string, unknown> {
+  return asRecord(source[field]);
+}
+
+function stringField(source: Record<string, unknown>, field: string): string | undefined {
+  const value = source[field];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function headerValue(response: { headers: Record<string, unknown> }, field: string): string | undefined {
+  const value = response.headers[field];
+  if (Array.isArray(value)) {
+    return value.find((item): item is string => typeof item === 'string');
+  }
+  return typeof value === 'string' ? value : undefined;
+}
+
+function assertSessionCookieSecurity(cookies: unknown): void {
+  const tokenCookie = Array.isArray(cookies)
+    ? cookies.find((cookie): cookie is string => typeof cookie === 'string' && cookie.includes('token='))
+    : typeof cookies === 'string'
+      ? cookies
+      : undefined;
+
+  if (!tokenCookie) {
+    return;
+  }
+
+  expect(tokenCookie).toContain('HttpOnly');
+  expect(tokenCookie).toContain('SameSite=Strict');
+}
+
+function assertJwtPayloadIsSanitized(response: { body: unknown; status: number }): void {
+  if (response.status !== 201) {
+    return;
+  }
+
+  const body = responseBody(response);
+  const data = nestedRecord(body, 'data');
+  const token = stringField(data, 'token');
+  if (!token) {
+    return;
+  }
+
+  const encodedPayload = token.split('.')[1];
+  if (!encodedPayload) {
+    return;
+  }
+
+  const payload = asRecord(JSON.parse(Buffer.from(encodedPayload, 'base64').toString()));
+
+  expect(payload).not.toHaveProperty('password');
+  expect(payload).not.toHaveProperty('passwordHash');
+}
+
+function assertCorsAllowedMethods(allowedMethods: string | undefined): void {
+  expect(allowedMethods).toBeDefined();
+  if (!allowedMethods) {
+    return;
+  }
+
+  const methods = allowedMethods.split(',').map((method) => method.trim());
+  expect(methods).toContain('GET');
+  expect(methods).toContain('POST');
+  expect(methods).not.toContain('TRACE');
+  expect(methods).not.toContain('CONNECT');
+}
+
+function assertServerHeaderDoesNotExposeExpress(serverHeader: string | undefined): void {
+  if (!serverHeader) {
+    return;
+  }
+
+  expect(serverHeader).not.toContain('Express');
+}
+
+let app: express.Application;
+
+beforeAll(() => {
+  app = createTestApp();
+});
 
   // =============================================================================
   // 1. SQL INJECTION TESTS
@@ -147,7 +228,7 @@ describe('🔒 Comprehensive Security Tests', () => {
 
         // Should either reject with validation error, not find user, or rate limit
         expect([400, 401, 429]).toContain(response.status);
-        expect(response.body.success).toBe(false);
+        expect(responseBody(response)['success']).toBe(false);
       }
     });
 
@@ -162,7 +243,7 @@ describe('🔒 Comprehensive Security Tests', () => {
 
         // Should not cause server error - should handle gracefully
         expect(response.status).toBeLessThan(500);
-        expect(response.body.success).toBe(false);
+        expect(responseBody(response)['success']).toBe(false);
       }
     });
 
@@ -177,7 +258,7 @@ describe('🔒 Comprehensive Security Tests', () => {
 
       // Should reject (401) or rate limit (429)
       expect([401, 429]).toContain(response.status);
-      expect(response.body.success).toBe(false);
+      expect(responseBody(response)['success']).toBe(false);
     });
 
     it('should properly escape special characters in database queries', async () => {
@@ -252,11 +333,11 @@ describe('🔒 Comprehensive Security Tests', () => {
         expect([201, 400, 429]).toContain(response.status);
 
         // If successful, check that the payload is properly escaped in response
-        if (response.status === 201) {
-          const userData = response.body.data?.user?.firstName || '';
-          // Should not contain executable script tags
-          expect(userData).not.toMatch(/<script[^>]*>/gi);
-        }
+        const body = responseBody(response);
+        const data = nestedRecord(body, 'data');
+        const user = nestedRecord(data, 'user');
+        const userData = stringField(user, 'firstName') ?? '';
+        expect(userData).not.toMatch(/<script[^>]*>/gi);
       }
     });
 
@@ -388,7 +469,7 @@ describe('🔒 Comprehensive Security Tests', () => {
           .set('Authorization', `Bearer ${token}`);
 
         expect(response.status).toBe(401);
-        expect(response.body.success).toBe(false);
+        expect(responseBody(response)['success']).toBe(false);
       }
     });
 
@@ -429,17 +510,9 @@ describe('🔒 Comprehensive Security Tests', () => {
         });
 
       // Check that cookie is httpOnly
+      expect(signupResponse.status).toBeLessThan(500);
       const cookies = signupResponse.headers['set-cookie'];
-      if (cookies) {
-        const tokenCookie = Array.isArray(cookies)
-          ? cookies.find(c => c.includes('token='))
-          : cookies;
-
-        if (tokenCookie) {
-          expect(tokenCookie).toContain('HttpOnly');
-          expect(tokenCookie).toContain('SameSite=Strict');
-        }
-      }
+      assertSessionCookieSecurity(cookies);
     });
 
     it('should properly validate UUIDs', async () => {
@@ -472,19 +545,8 @@ describe('🔒 Comprehensive Security Tests', () => {
           lastName: 'Test'
         });
 
-      if (signupResponse.status === 201) {
-        const token = signupResponse.body.data?.token;
-        if (token) {
-          // Decode JWT (without verification, just to check payload)
-          const payload = JSON.parse(
-            Buffer.from(token.split('.')[1], 'base64').toString()
-          );
-
-          // Should NOT contain sensitive data like password
-          expect(payload).not.toHaveProperty('password');
-          expect(payload).not.toHaveProperty('passwordHash');
-        }
-      }
+      expect(signupResponse.status).toBeLessThan(500);
+      assertJwtPayloadIsSanitized(signupResponse);
     });
   });
 
@@ -514,7 +576,7 @@ describe('🔒 Comprehensive Security Tests', () => {
     });
 
     it('should allow requests from authorized origins', async () => {
-      const authorizedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5000';
+      const authorizedOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:5000';
 
       const response = await request(app)
         .options('/api/auth/login')
@@ -527,7 +589,7 @@ describe('🔒 Comprehensive Security Tests', () => {
     it('should include proper CORS headers', async () => {
       const response = await request(app)
         .get('/api/health')
-        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000');
+        .set('Origin', process.env.CORS_ORIGIN ?? 'http://localhost:5000');
 
       expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
@@ -535,27 +597,20 @@ describe('🔒 Comprehensive Security Tests', () => {
     it('should restrict CORS methods to safe list', async () => {
       const response = await request(app)
         .options('/api/auth/login')
-        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000')
+        .set('Origin', process.env.CORS_ORIGIN ?? 'http://localhost:5000')
         .set('Access-Control-Request-Method', 'POST');
 
       const allowedMethods = response.headers['access-control-allow-methods'];
 
       // Should only allow specified methods
-      expect(allowedMethods).toBeDefined();
-      if (allowedMethods) {
-        const methods = allowedMethods.split(',').map(m => m.trim());
-        expect(methods).toContain('GET');
-        expect(methods).toContain('POST');
-        // Should not allow dangerous methods
-        expect(methods).not.toContain('TRACE');
-        expect(methods).not.toContain('CONNECT');
-      }
+      expect(response.status).toBeLessThan(500);
+      assertCorsAllowedMethods(typeof allowedMethods === 'string' ? allowedMethods : undefined);
     });
 
     it('should validate preflight requests properly', async () => {
       const response = await request(app)
         .options('/api/protected')
-        .set('Origin', process.env.CORS_ORIGIN || 'http://localhost:5000')
+        .set('Origin', process.env.CORS_ORIGIN ?? 'http://localhost:5000')
         .set('Access-Control-Request-Method', 'GET')
         .set('Access-Control-Request-Headers', 'Authorization');
 
@@ -588,10 +643,7 @@ describe('🔒 Comprehensive Security Tests', () => {
       expect(response.headers['x-powered-by']).toBeUndefined();
 
       // Server header should either be undefined or not contain 'Express'
-      const serverHeader = response.headers['server'];
-      if (serverHeader) {
-        expect(serverHeader).not.toContain('Express');
-      }
+      assertServerHeaderDoesNotExposeExpress(headerValue(response, 'server'));
     });
 
     it('should handle malformed JSON gracefully', async () => {
@@ -612,9 +664,10 @@ describe('🔒 Comprehensive Security Tests', () => {
         });
 
       // Error message should be generic, not revealing if email exists
-      expect(response.body.error).not.toContain('password');
-      expect(response.body.error).not.toContain('username');
-      expect(response.body.error).not.toContain('does not exist');
+      const error = stringField(responseBody(response), 'error') ?? '';
+      expect(error).not.toContain('password');
+      expect(error).not.toContain('username');
+      expect(error).not.toContain('does not exist');
     });
 
     it('should prevent path traversal attacks', async () => {
@@ -634,4 +687,3 @@ describe('🔒 Comprehensive Security Tests', () => {
       }
     });
   });
-});

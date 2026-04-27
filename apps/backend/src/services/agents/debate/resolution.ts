@@ -305,7 +305,7 @@ export function calculateVoteResults(
   const argumentScores = new Map<string, number>();
 
   votes.forEach(vote => {
-    const currentScore = argumentScores.get(vote.argumentId) || 0;
+    const currentScore = argumentScores.get(vote.argumentId) ?? 0;
     argumentScores.set(vote.argumentId, currentScore + vote.score);
   });
 

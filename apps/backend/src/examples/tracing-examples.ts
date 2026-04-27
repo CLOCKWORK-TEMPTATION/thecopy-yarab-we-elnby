@@ -7,6 +7,15 @@
 
 import { trace, context, SpanStatusCode } from '@opentelemetry/api';
 
+interface ProjectTraceExample {
+  id: number;
+}
+
+interface QueueJobTraceData {
+  type?: string;
+  attemptsMade?: number;
+}
+
 /**
  * Example 1: Basic custom span for a business operation
  */
@@ -117,7 +126,7 @@ export async function analyzeScript(scriptId: string): Promise<void> {
 /**
  * Example 3: Database operation tracing
  */
-export async function getUserProjects(userId: string): Promise<any[]> {
+export async function getUserProjects(userId: string): Promise<ProjectTraceExample[]> {
   const tracer = trace.getTracer('database-service');
   
   const span = tracer.startSpan('db.query.user_projects', {
@@ -132,7 +141,7 @@ export async function getUserProjects(userId: string): Promise<any[]> {
   try {
     // Simulate database query
     const startTime = Date.now();
-    const projects = await new Promise((resolve) =>
+    const projects = await new Promise<ProjectTraceExample[]>((resolve) =>
       setTimeout(() => resolve([{ id: 1 }, { id: 2 }]), 80)
     );
     const duration = Date.now() - startTime;
@@ -144,7 +153,7 @@ export async function getUserProjects(userId: string): Promise<any[]> {
     });
 
     span.setStatus({ code: SpanStatusCode.OK });
-    return projects as any[];
+    return projects;
   } catch (error) {
     span.setStatus({
       code: SpanStatusCode.ERROR,
@@ -174,7 +183,7 @@ export async function callExternalAI(prompt: string): Promise<string> {
 
   try {
     // Simulate API call
-    const response = await new Promise((resolve) =>
+    const response = await new Promise<string>((resolve) =>
       setTimeout(() => resolve('AI response'), 150)
     );
 
@@ -184,7 +193,7 @@ export async function callExternalAI(prompt: string): Promise<string> {
     });
 
     span.setStatus({ code: SpanStatusCode.OK });
-    return response as string;
+    return response;
   } catch (error) {
     span.setStatus({
       code: SpanStatusCode.ERROR,
@@ -200,7 +209,10 @@ export async function callExternalAI(prompt: string): Promise<string> {
 /**
  * Example 5: Background job tracing
  */
-export async function processQueueJob(jobId: string, jobData: any): Promise<void> {
+export async function processQueueJob(
+  jobId: string,
+  jobData: QueueJobTraceData
+): Promise<void> {
   const tracer = trace.getTracer('queue-service');
   
   const span = tracer.startSpan('queue.job.process', {
@@ -208,13 +220,13 @@ export async function processQueueJob(jobId: string, jobData: any): Promise<void
       'messaging.system': 'bullmq',
       'messaging.operation': 'process',
       'job.id': jobId,
-      'job.type': jobData.type || 'unknown',
+      'job.type': jobData.type ?? 'unknown',
     },
   });
 
   try {
     span.addEvent('job_started', {
-      'job.attempt': jobData.attemptsMade || 1,
+      'job.attempt': jobData.attemptsMade ?? 1,
     });
 
     // Simulate job processing

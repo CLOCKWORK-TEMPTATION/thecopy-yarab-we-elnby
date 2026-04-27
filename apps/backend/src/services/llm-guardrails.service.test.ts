@@ -19,8 +19,15 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-describe('LLMGuardrailsService', () => {
-  let service: LLMGuardrailsService;
+function objectContainingMatcher(value: Record<string, unknown>): unknown {
+  return expect.objectContaining(value);
+}
+
+function arrayContainingMatcher(value: unknown[]): unknown {
+  return expect.arrayContaining(value);
+}
+
+let service: LLMGuardrailsService;
 
   beforeEach(() => {
     service = new LLMGuardrailsService();
@@ -105,9 +112,9 @@ describe('LLMGuardrailsService', () => {
       
       expect(captureException).toHaveBeenCalledWith(
         expect.any(Error),
-        expect.objectContaining({
-          violations: expect.arrayContaining([
-            expect.objectContaining({
+        objectContainingMatcher({
+          violations: arrayContainingMatcher([
+            objectContainingMatcher({
               type: 'prompt_injection',
               severity: 'critical'
             })
@@ -363,4 +370,3 @@ describe('LLMGuardrailsService', () => {
       expect(result.sanitizedContent).toContain('[PHONE_REDACTED]');
     });
   });
-});

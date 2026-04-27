@@ -43,7 +43,7 @@ export class WeaviateMemoryStore {
   constructor() {
     this.enabled = env.MEMORY_SYSTEM_ENABLED;
     this.required = env.WEAVIATE_REQUIRED;
-    this.host = env.WEAVIATE_URL || "http://localhost:8080";
+    this.host = env.WEAVIATE_URL ?? "http://localhost:8080";
     this.apiKey = env.WEAVIATE_API_KEY;
     this.runtimeStatus = {
       enabled: this.enabled,
@@ -148,11 +148,12 @@ export class WeaviateMemoryStore {
     return this.client;
   }
 
-  async disconnect(): Promise<void> {
+  disconnect(): Promise<void> {
     this.client = null;
     this.mark({
       state: this.enabled ? "degraded" : "disabled",
     });
+    return Promise.resolve();
   }
 
   getClient(): WeaviateClient {

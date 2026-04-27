@@ -112,7 +112,7 @@ export async function checkRedis(): Promise<HealthCheck> {
   }
 }
 
-export async function checkMemory(): Promise<HealthCheck> {
+export function checkMemory(): HealthCheck {
   try {
     const usage = process.memoryUsage();
     const heapUsed = usage.heapUsed / 1024 / 1024;
@@ -180,7 +180,7 @@ export async function checkDisk(): Promise<HealthCheck> {
   }
 }
 
-export async function checkEnvironment(): Promise<HealthCheck> {
+export function checkEnvironment(): HealthCheck {
   try {
     const requiredEnvVars = ["NODE_ENV", "DATABASE_URL", "JWT_SECRET"];
     const hasGeminiProvider =

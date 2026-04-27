@@ -17,7 +17,7 @@ export function calculateOverallScore(
   let totalWeight = 0;
 
   dimensionScores.forEach((score, index) => {
-    const weight = dimensions[index]?.weight || 1;
+    const weight = dimensions[index]?.weight ?? 1;
     totalScore += score.score * weight;
     totalWeight += weight;
   });
@@ -52,11 +52,11 @@ function isRawDimensionPayload(value: unknown): value is RawDimensionPayload {
     return false;
   }
   const v = value as Record<string, unknown>;
-  if (v.score !== undefined && typeof v.score !== "number") return false;
-  if (v.level !== undefined && typeof v.level !== "string") return false;
-  if (v.strengths !== undefined && !Array.isArray(v.strengths)) return false;
-  if (v.weaknesses !== undefined && !Array.isArray(v.weaknesses)) return false;
-  if (v.suggestions !== undefined && !Array.isArray(v.suggestions)) return false;
+  if (v["score"] !== undefined && typeof v["score"] !== "number") return false;
+  if (v["level"] !== undefined && typeof v["level"] !== "string") return false;
+  if (v["strengths"] !== undefined && !Array.isArray(v["strengths"])) return false;
+  if (v["weaknesses"] !== undefined && !Array.isArray(v["weaknesses"])) return false;
+  if (v["suggestions"] !== undefined && !Array.isArray(v["suggestions"])) return false;
   return true;
 }
 

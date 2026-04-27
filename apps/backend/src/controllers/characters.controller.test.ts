@@ -34,49 +34,71 @@ vi.mock('@/utils/logger', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((col, val) => ({ col, val })),
-  and: vi.fn((...conds) => ({ conditions: conds })),
+  eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
+  and: vi.fn((...conds: unknown[]) => ({ conditions: conds })),
 }));
 
-describe('CharactersController', () => {
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
-  let mockDb: any;
+const dbMethods = [
+  'select',
+  'from',
+  'where',
+  'insert',
+  'update',
+  'delete',
+  'values',
+  'returning',
+  'innerJoin',
+  'limit',
+  'orderBy',
+  'set',
+] as const;
 
-  beforeEach(async () => {
-    mockRequest = {
-      params: {},
-      body: {},
-      user: { id: 'user-123' },
-    };
+type DbMethod = (typeof dbMethods)[number];
+type MockFn = ReturnType<typeof vi.fn>;
+type MockDb = Record<DbMethod, MockFn>;
+type MockRequest = Partial<Request>;
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+};
 
-    mockResponse = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
-    };
+let mockRequest: MockRequest;
+let mockResponse: MockResponse;
+let mockDb: MockDb;
 
-    const dbModule = await import('@/db');
-    mockDb = dbModule.db;
+function asRequest(): Request {
+  return mockRequest as Request;
+}
 
-    vi.clearAllMocks();
+function asResponse(): Response {
+  return mockResponse as unknown as Response;
+}
 
-    [
-      'select',
-      'from',
-      'where',
-      'insert',
-      'update',
-      'delete',
-      'values',
-      'returning',
-      'innerJoin',
-      'limit',
-      'orderBy',
-      'set',
-    ].forEach((method) => {
-      mockDb[method].mockReset().mockReturnThis();
-    });
+function anyArrayMatcher(): unknown {
+  return expect.any(Array);
+}
+
+beforeEach(async () => {
+  mockRequest = {
+    params: {},
+    body: {},
+    user: { id: 'user-123' },
+  };
+
+  mockResponse = {
+    status: vi.fn().mockReturnThis(),
+    json: vi.fn().mockReturnThis(),
+  };
+
+  const dbModule = await import('@/db');
+  mockDb = dbModule.db as unknown as MockDb;
+
+  vi.clearAllMocks();
+
+  dbMethods.forEach((method) => {
+    mockDb[method].mockReset().mockReturnThis();
   });
+});
 
   describe('getCharacters', () => {
     it('should return characters for authorized user', async () => {
@@ -96,8 +118,8 @@ describe('CharactersController', () => {
       mockRequest.params = { projectId: 'project-1' };
 
       await charactersController.getCharacters(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -110,8 +132,8 @@ describe('CharactersController', () => {
       mockRequest.user = undefined;
 
       await charactersController.getCharacters(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(401);
@@ -125,8 +147,8 @@ describe('CharactersController', () => {
       mockRequest.params = {};
 
       await charactersController.getCharacters(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -146,8 +168,8 @@ describe('CharactersController', () => {
       mockRequest.params = { projectId: 'nonexistent-project' };
 
       await charactersController.getCharacters(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -163,8 +185,8 @@ describe('CharactersController', () => {
       mockRequest.params = { projectId: 'project-1' };
 
       await charactersController.getCharacters(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
@@ -191,8 +213,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'char-1' };
 
       await charactersController.getCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -211,8 +233,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'nonexistent-character' };
 
       await charactersController.getCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -237,8 +259,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'char-1' };
 
       await charactersController.getCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(403);
@@ -272,8 +294,8 @@ describe('CharactersController', () => {
       mockRequest.body = newCharacterData;
 
       await charactersController.createCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -293,15 +315,15 @@ describe('CharactersController', () => {
       mockRequest.body = invalidData;
 
       await charactersController.createCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
 
@@ -314,8 +336,8 @@ describe('CharactersController', () => {
       };
 
       await charactersController.createCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -340,8 +362,8 @@ describe('CharactersController', () => {
       };
 
       await charactersController.createCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
@@ -383,8 +405,8 @@ describe('CharactersController', () => {
       mockRequest.body = updateData;
 
       await charactersController.updateCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -405,8 +427,8 @@ describe('CharactersController', () => {
       mockRequest.body = { name: 'Updated Name' };
 
       await charactersController.updateCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -431,15 +453,15 @@ describe('CharactersController', () => {
       };
 
       await charactersController.updateCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'بيانات غير صالحة',
-        details: expect.any(Array),
+        details: anyArrayMatcher(),
       });
     });
   });
@@ -464,8 +486,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'char-1' };
 
       await charactersController.deleteCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -484,8 +506,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'nonexistent-character' };
 
       await charactersController.deleteCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
@@ -510,8 +532,8 @@ describe('CharactersController', () => {
       mockRequest.params = { id: 'char-1' };
 
       await charactersController.deleteCharacter(
-        mockRequest as any,
-        mockResponse as Response
+        asRequest(),
+        asResponse()
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(403);
@@ -521,4 +543,3 @@ describe('CharactersController', () => {
       });
     });
   });
-});

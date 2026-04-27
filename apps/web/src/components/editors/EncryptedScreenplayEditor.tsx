@@ -72,13 +72,17 @@ export function EncryptedScreenplayEditor({
   // تحميل المستند عند التهيئة
   useEffect(() => {
     if (currentDocId) {
-      handleLoad(currentDocId);
+      handleLoad(currentDocId).catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "خطأ في التحميل");
+      });
     }
   }, [currentDocId]);
 
   // تحميل قائمة المستندات
   useEffect(() => {
-    loadDocumentsList();
+    loadDocumentsList().catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "خطأ في تحميل المستندات");
+    });
   }, []);
 
   const loadDocumentsList = async () => {

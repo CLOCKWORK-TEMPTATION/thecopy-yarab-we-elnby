@@ -26,7 +26,12 @@ export function useAuth() {
       }
     }
 
-    fetchUser();
+    fetchUser().catch(() => {
+      if (mounted) {
+        setUser(null);
+        setLoading(false);
+      }
+    });
 
     return () => {
       mounted = false;

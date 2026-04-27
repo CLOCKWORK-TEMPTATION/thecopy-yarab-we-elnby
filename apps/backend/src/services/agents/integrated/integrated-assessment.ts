@@ -3,7 +3,7 @@
  * Extracted to reduce file size of IntegratedAgent.ts
  */
 
-export async function assessIntegration(text: string): Promise<number> {
+export function assessIntegration(text: string): number {
   let score = 0.6;
 
   const integrationTerms = ["تكامل", "دمج", "ربط", "توحيد", "تركيب", "تنسيق"];
@@ -24,15 +24,15 @@ export async function assessIntegration(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessBalance(text: string): Promise<number> {
+export function assessBalance(text: string): number {
   let score = 0.5;
 
   const balanceTerms = ["توازن", "توازي", "تكامل", "انسجام"];
   const hasBalanceTerms = balanceTerms.some((term) => text.includes(term));
   if (hasBalanceTerms) score += 0.2;
 
-  const analysisCount = (text.match(/تحليل/g) || []).length;
-  const creativeCount = (text.match(/إبداع/g) || []).length;
+  const analysisCount = (text.match(/تحليل/g) ?? []).length;
+  const creativeCount = (text.match(/إبداع/g) ?? []).length;
 
   if (analysisCount > 0 && creativeCount > 0) {
     const ratio = Math.min(analysisCount, creativeCount) / Math.max(analysisCount, creativeCount);
@@ -42,7 +42,7 @@ export async function assessBalance(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessCoherence(text: string): Promise<number> {
+export function assessCoherence(text: string): number {
   let score = 0.6;
 
   const coherenceTerms = ["تماسك", "انسجام", "اتساق", "ترابط", "وضوح"];
@@ -60,7 +60,7 @@ export async function assessCoherence(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessOverallQuality(text: string): Promise<number> {
+export function assessOverallQuality(text: string): number {
   let score = 0.5;
 
   if (text.length > 1000) score += 0.2;
@@ -147,7 +147,7 @@ export function translateStrategy(strategy: string): string {
     parallel: "متوازي",
     iterative: "تكرارية",
   };
-  return strategies[strategy] || strategy;
+  return strategies[strategy] ?? strategy;
 }
 
 export function translateDepth(depth: string): string {
@@ -156,7 +156,7 @@ export function translateDepth(depth: string): string {
     moderate: "متوسط",
     deep: "عميق",
   };
-  return depths[depth] || depth;
+  return depths[depth] ?? depth;
 }
 
 export function translateTargetOutput(target: string): string {
@@ -165,7 +165,7 @@ export function translateTargetOutput(target: string): string {
     creative: "إبداع مدمج",
     synthesis: "تركيب شامل",
   };
-  return targets[target] || target;
+  return targets[target] ?? target;
 }
 
 export function truncateText(text: string, maxLength: number): string {
@@ -173,15 +173,25 @@ export function truncateText(text: string, maxLength: number): string {
   return text.substring(0, maxLength) + "...";
 }
 
-export function generateIntegrationNotes(
+interface IntegrationNotesInput {
   outputConfidence: number,
   outputNotes: string[] | undefined,
   integrationScore: number,
   balanceScore: number,
   coherenceScore: number,
   qualityScore: number,
-): string[] {
+}
+
+export function generateIntegrationNotes(input: IntegrationNotesInput): string[] {
   const notes: string[] = [];
+  const {
+    outputConfidence,
+    outputNotes,
+    integrationScore,
+    balanceScore,
+    coherenceScore,
+    qualityScore,
+  } = input;
 
   if (outputConfidence > 0.85) notes.push("ثقة عالية في التكامل");
   else if (outputConfidence > 0.7) notes.push("ثقة جيدة");

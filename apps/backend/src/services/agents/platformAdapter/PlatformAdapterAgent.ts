@@ -18,7 +18,7 @@ export class PlatformAdapterAgent extends BaseAgent {
     super(
       "MediaTransmorph AI",
       TaskType.PLATFORM_ADAPTER,
-      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt || ""
+      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.78;
@@ -90,7 +90,7 @@ ${userInput}
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -116,11 +116,11 @@ ${userInput}
       enhancedNotes.push("تحويل أولي - يُنصح بالمراجعة والتحسين");
     }
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       notes: enhancedNotes,
-    };
+    });
   }
 
   private buildSourceSection(sourceContent: string, userInput: string): string {
@@ -135,12 +135,25 @@ ${userInput}
   private buildConstraintsSection(constraints: Record<string, unknown>): string {
     if (Object.keys(constraints).length === 0) return "";
     let section = `### قيود المنصة:\n`;
-    if (constraints["characterLimit"]) section += `- حد الأحرف: ${constraints["characterLimit"]}\n`;
-    if (constraints["videoLength"]) section += `- طول الفيديو: ${constraints["videoLength"]}\n`;
-    if (constraints["imageSpecs"]) section += `- مواصفات الصور: ${constraints["imageSpecs"]}\n`;
-    if (constraints["hashtagCount"]) section += `- عدد الهاشتاغات: ${constraints["hashtagCount"]}\n`;
+    section += this.formatConstraint("حد الأحرف", constraints["characterLimit"]);
+    section += this.formatConstraint("طول الفيديو", constraints["videoLength"]);
+    section += this.formatConstraint("مواصفات الصور", constraints["imageSpecs"]);
+    section += this.formatConstraint("عدد الهاشتاغات", constraints["hashtagCount"]);
     section += `\n`;
     return section;
+  }
+
+  private formatConstraint(label: string, value: unknown): string {
+    const rendered = this.renderConstraintValue(value);
+    return rendered ? `- ${label}: ${rendered}\n` : "";
+  }
+
+  private renderConstraintValue(value: unknown): string | undefined {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") {
+      return String(value);
+    }
+    return undefined;
   }
 
   private buildPreviousStationsSection(contextObj: Record<string, unknown>): string {
@@ -159,7 +172,7 @@ ${userInput}
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
     const contextObj =
@@ -168,7 +181,7 @@ ${userInput}
         : {};
     const targetPlatform = (contextObj)["targetPlatform"] as string || "المنصة المستهدفة";
 
-    return `# تحويل المحتوى - وضع الطوارئ
+    return Promise.resolve(`# تحويل المحتوى - وضع الطوارئ
 
 ## المنصة المستهدفة: ${targetPlatform}
 
@@ -193,7 +206,7 @@ ${userInput}
 ### الخطوة التالية:
 يُنصح بتفعيل جميع الخيارات المتقدمة (RAG، التحليل الدستوري، كشف الهلوسة) للحصول على تحويل دقيق ومُحسّن للمنصة.
 
-ملاحظة: هذا تحليل احتياطي. للحصول على نتائج أفضل، يرجى المحاولة مرة أخرى مع توفير سياق أكثر اكتمالاً.`;
+ملاحظة: هذا تحليل احتياطي. للحصول على نتائج أفضل، يرجى المحاولة مرة أخرى مع توفير سياق أكثر اكتمالاً.`);
   }
 }
 

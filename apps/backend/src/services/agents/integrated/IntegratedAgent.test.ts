@@ -6,16 +6,23 @@ import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { IntegratedAgent } from "./IntegratedAgent";
 
-vi.mock("@/ai/gemini-service", () => ({
+const { mockAnalyzeText, mockGenerateText } = vi.hoisted(() => {
+  const mockAgentText =
+    "نعم\nتحليل تجريبي مفصل يدمج نتائج التحليل والإبداع ويعرض رؤية مركبة قابلة للاختبار دون كتل بيانات.";
+  return {
+    mockAnalyzeText: vi.fn(() => Promise.resolve(mockAgentText)),
+    mockGenerateText: vi.fn(() => Promise.resolve(mockAgentText)),
+  };
+});
+
+vi.mock("@/services/gemini.service", () => ({
   geminiService: {
-    generateContent: vi
-      .fn()
-      .mockResolvedValue("Mock AI response for integrated synthesis"),
+    analyzeText: mockAnalyzeText,
+    generateText: mockGenerateText,
   },
 }));
 
-describe("IntegratedAgent", () => {
-  let agent: IntegratedAgent;
+let agent: IntegratedAgent;
 
   beforeEach(() => {
     agent = new IntegratedAgent();
@@ -242,7 +249,10 @@ describe("IntegratedAgent", () => {
 
   describe("Error Handling", () => {
     it("should handle errors gracefully", async () => {
-      vi.spyOn(agent as any, "buildPrompt").mockImplementation(() => {
+      vi.spyOn(
+        agent as unknown as { buildPrompt(input: StandardAgentInput): string },
+        "buildPrompt"
+      ).mockImplementation(() => {
         throw new Error("Test error");
       });
 
@@ -265,16 +275,11 @@ describe("IntegratedAgent", () => {
         context: {},
       };
       // Force an error
-      vi.spyOn(agent as any, "executeTask").mockRejectedValueOnce(
+      vi.spyOn(agent, "executeTask").mockRejectedValueOnce(
         new Error("Test error")
       );
 
-      try {
-        await agent.executeTask(input);
-      } catch (error) {
-        // Should be caught by BaseAgent
-        expect(error).toBeDefined();
-      }
+      await expect(agent.executeTask(input)).rejects.toThrow("Test error");
     });
   });
 
@@ -369,9 +374,7 @@ describe("IntegratedAgent", () => {
       expect(result).toBeDefined();
       expect(result.metadata).toBeDefined();
       // Should have balance assessment in metadata
-      if (result.metadata) {
-        expect(result.metadata.balanceQuality).toBeDefined();
-      }
+      expect(result.metadata?.balanceQuality).toBeDefined();
     });
   });
 
@@ -400,4 +403,3 @@ describe("IntegratedAgent", () => {
       expect(result.text).toBeTruthy();
     });
   });
-});

@@ -390,20 +390,21 @@ export function ArabicRhymeFinder({
   >("all");
 
   // Search for rhymes
-  const searchRhymes = async () => {
-    if (!searchWord.trim()) return;
+  const searchRhymes = async (wordOverride?: string) => {
+    const activeWord = wordOverride ?? searchWord;
+    if (!activeWord.trim()) return;
 
     setIsSearching(true);
 
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const ending = getWordEnding(searchWord);
+    const ending = getWordEnding(activeWord);
     let foundRhymes = ARABIC_RHYMES[ending] ?? [];
 
     // If no exact match, try similar endings
     if (foundRhymes.length === 0) {
-      const lastChar = searchWord.slice(-1);
+      const lastChar = activeWord.slice(-1);
       for (const [key, rhymes] of Object.entries(ARABIC_RHYMES)) {
         if (key.includes(lastChar)) {
           foundRhymes = [
@@ -423,16 +424,28 @@ export function ArabicRhymeFinder({
     setIsSearching(false);
 
     // Add to search history
-    if (!searchHistory.includes(searchWord)) {
-      setSearchHistory((prev) => [searchWord, ...prev.slice(0, 9)]);
+    if (!searchHistory.includes(activeWord)) {
+      setSearchHistory((prev) => [activeWord, ...prev.slice(0, 9)]);
     }
+  };
+
+  const runSearchRhymes = (wordOverride?: string): void => {
+    searchRhymes(wordOverride).catch(() => {
+      setIsSearching(false);
+    });
   };
 
   // Copy word to clipboard
   const copyWord = (word: string) => {
-    navigator.clipboard.writeText(word);
-    setCopiedWord(word);
-    setTimeout(() => setCopiedWord(null), 2000);
+    navigator.clipboard
+      .writeText(word)
+      .then(() => {
+        setCopiedWord(word);
+        setTimeout(() => setCopiedWord(null), 2000);
+      })
+      .catch(() => {
+        setCopiedWord(null);
+      });
   };
 
   // Toggle favorite
@@ -489,11 +502,20 @@ export function ArabicRhymeFinder({
                     placeholder="اكتب كلمة للبحث..."
                     value={searchWord}
                     onChange={(e) => setSearchWord(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && searchRhymes()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        runSearchRhymes();
+                      }
+                    }}
                     className="flex-1"
                     dir="rtl"
                   />
-                  <Button onClick={searchRhymes} disabled={isSearching}>
+                  <Button
+                    onClick={() => {
+                      runSearchRhymes();
+                    }}
+                    disabled={isSearching}
+                  >
                     {isSearching ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -586,7 +608,7 @@ export function ArabicRhymeFinder({
                         size="sm"
                         onClick={() => {
                           setSearchWord(word);
-                          searchRhymes();
+                          runSearchRhymes(word);
                         }}
                         className="text-xs"
                       >
@@ -750,7 +772,7 @@ export function ArabicRhymeFinder({
                     className="text-base px-3 py-1 cursor-pointer hover:bg-purple-500/20"
                     onClick={() => {
                       setSearchWord(word);
-                      searchRhymes();
+                      runSearchRhymes(word);
                     }}
                   >
                     {word}

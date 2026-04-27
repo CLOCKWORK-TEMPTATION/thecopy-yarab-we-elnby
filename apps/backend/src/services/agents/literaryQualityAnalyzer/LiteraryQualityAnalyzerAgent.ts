@@ -20,7 +20,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     super(
       "AestheticsJudge AI",
       TaskType.LITERARY_QUALITY_ANALYZER,
-      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt || ""
+      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     // Set agent-specific confidence floor (high due to critical nature)
@@ -138,14 +138,14 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Post-process the literary quality output
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
 
     // Assess evaluation quality
-    const qualityMetrics = await this.assessEvaluationQuality(processedText);
+    const qualityMetrics = this.assessEvaluationQuality(processedText);
 
     // Adjust confidence based on quality
     const adjustedConfidence =
@@ -154,7 +154,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
       qualityMetrics.criticalRigor * 0.2 +
       qualityMetrics.comprehensiveness * 0.15;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: Math.min(1, adjustedConfidence),
@@ -166,7 +166,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
         criticalRigor: qualityMetrics.criticalRigor,
         comprehensiveness: qualityMetrics.comprehensiveness,
       },
-    };
+    });
   }
 
   /**
@@ -219,12 +219,12 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     "سردي", "عاطفي", "فني", "معايير",
   ];
 
-  private async assessEvaluationQuality(text: string): Promise<{
+  private assessEvaluationQuality(text: string): {
     linguisticDepth: number;
     criticalRigor: number;
     comprehensiveness: number;
     overallScore: number;
-  }> {
+  } {
     const linguisticDepth = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.LINGUISTIC_TERMS);
     const criticalRigor = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.CRITICAL_TERMS);
     const comprehensiveness = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.PILLAR_TERMS);
@@ -325,10 +325,10 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to literary quality analysis
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `التقييم الأدبي الأولي:
+    return Promise.resolve(`التقييم الأدبي الأولي:
 
 بناءً على النص المقدم، يمكن تقديم ملاحظات أولية حول الجودة الأدبية:
 
@@ -355,7 +355,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
 **توصية:**
 للحصول على تقييم أدبي شامل ودقيق، يُنصح بتفعيل جميع خيارات التحليل المتقدمة.
 
-ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`;
+ملاحظة: حدث خطأ تقني مؤقت. يُرجى المحاولة مرة أخرى.`);
   }
 }
 

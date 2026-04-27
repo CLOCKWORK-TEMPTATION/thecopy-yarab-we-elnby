@@ -25,6 +25,14 @@ import {
 
 import type { CritiqueDimension } from "./critiqueTypes";
 
+interface ImprovementContext {
+  originalOutput: string;
+  task: string;
+  context: CritiqueContext;
+  dimensionScores: DimensionScore[];
+  critiqueNotes: string[];
+  config: CritiqueConfiguration;
+}
 
 export class EnhancedSelfCritiqueModule {
   /** تطبيق النقد الذاتي المحسّن */
@@ -43,9 +51,15 @@ export class EnhancedSelfCritiqueModule {
     });
     const critiqueNotes = generateCritiqueNotes(dimensionScores, overallScore, config);
 
-    const state = await this.applyImprovementIfNeeded(
-      originalOutput, task, context, dimensionScores, critiqueNotes, overallScore, config
-    );
+    const improvementContext: ImprovementContext = {
+      originalOutput,
+      task,
+      context,
+      dimensionScores,
+      critiqueNotes,
+      config,
+    };
+    const state = await this.applyImprovementIfNeeded(improvementContext, overallScore);
 
     const improvementPlanResult = generateImprovementPlan(dimensionScores, config);
 
@@ -73,17 +87,15 @@ export class EnhancedSelfCritiqueModule {
   }
 
   private async applyImprovementIfNeeded(
-    originalOutput: string, task: string, context: CritiqueContext,
-    dimensionScores: DimensionScore[], critiqueNotes: string[],
-    overallScore: number, config: CritiqueConfiguration
+    improvementContext: ImprovementContext,
+    overallScore: number
   ): Promise<{ refinedOutput: string; improved: boolean; iterations: number; improvementScore: number }> {
+    const { originalOutput, task, context, dimensionScores, config } = improvementContext;
     if (overallScore >= config.thresholds.good || !config.enableAutoCorrection) {
       return { refinedOutput: originalOutput, improved: false, iterations: 0, improvementScore: 0 };
     }
 
-    const result = await this.performImprovementCycles(
-      originalOutput, task, context, dimensionScores, critiqueNotes, config
-    );
+    const result = await this.performImprovementCycles(improvementContext);
 
     if (result.improved) {
       const newScores = await this.evaluateAllDimensions(result.refinedOutput, task, context, config);
@@ -122,9 +134,9 @@ export class EnhancedSelfCritiqueModule {
   }
 
   private async performImprovementCycles(
-    originalOutput: string, task: string, context: CritiqueContext,
-    dimensionScores: DimensionScore[], critiqueNotes: string[], config: CritiqueConfiguration
+    improvementContext: ImprovementContext
   ): Promise<{ refinedOutput: string; improved: boolean; iterations: number }> {
+    const { originalOutput, config } = improvementContext;
     let currentOutput = originalOutput;
     let improved = false;
 
@@ -132,9 +144,7 @@ export class EnhancedSelfCritiqueModule {
       const iteration = i + 1;
       logger.debug(`[Enhanced Critique] Improvement cycle ${iteration}/${config.maxIterations}`);
 
-      const result = await this.runSingleCycle(
-        currentOutput, task, context, dimensionScores, critiqueNotes, config, iteration
-      );
+      const result = await this.runSingleCycle(currentOutput, improvementContext, iteration);
 
       if (result === null) break;
       currentOutput = result;
@@ -145,11 +155,11 @@ export class EnhancedSelfCritiqueModule {
   }
 
   private async runSingleCycle(
-    currentOutput: string, task: string, context: CritiqueContext,
-    dimensionScores: DimensionScore[], critiqueNotes: string[],
-    _config: CritiqueConfiguration, iteration: number
+    currentOutput: string,
+    improvementContext: ImprovementContext,
+    iteration: number
   ): Promise<string | null> {
-    const prompt = this.buildImprovementPrompt(currentOutput, task, context, dimensionScores, critiqueNotes);
+    const prompt = this.buildImprovementPrompt(currentOutput, improvementContext);
     try {
       const improved = await geminiService.generateText(prompt, { temperature: 0.7, maxTokens: 4096 });
       const hasImproved = await this.verifyImprovement(currentOutput, improved);
@@ -166,9 +176,10 @@ export class EnhancedSelfCritiqueModule {
   }
 
   private buildImprovementPrompt(
-    currentOutput: string, task: string, context: CritiqueContext,
-    dimensionScores: DimensionScore[], critiqueNotes: string[]
+    currentOutput: string,
+    improvementContext: ImprovementContext
   ): string {
+    const { task, context, dimensionScores, critiqueNotes } = improvementContext;
     const weaknesses = dimensionScores.flatMap((d) => d.weaknesses);
     const suggestions = dimensionScores.flatMap((d) => d.suggestions);
 

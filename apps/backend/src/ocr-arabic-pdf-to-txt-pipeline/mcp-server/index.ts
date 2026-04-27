@@ -1,24 +1,65 @@
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { format as formatLogLine } from "node:util";
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
+import { parse as parseEnv } from "dotenv";
+
+interface ServerInstance {
+  setRequestHandler<TRequest>(
+    schema: unknown,
+    handler: (request: TRequest) => unknown
+  ): void;
+  connect(transport: StdioTransportInstance): Promise<void>;
+}
+
+type StdioTransportInstance = object;
+
+interface McpServerModule {
+  Server: new (
+    info: { name: string; version: string },
+    options: { capabilities: { tools: Record<string, unknown> } }
+  ) => ServerInstance;
+}
+
+interface StdioModule {
+  StdioServerTransport: new () => StdioTransportInstance;
+}
+
+interface McpTypesModule {
+  CallToolRequestSchema: unknown;
+  ListToolsRequestSchema: unknown;
+  ErrorCode: {
+    InvalidParams: number;
+    MethodNotFound: number;
+  };
+  McpError: new (code: number, message: string) => Error;
+}
+
+interface CallToolRequest {
+  params: {
+    name: string;
+    arguments?: unknown;
+  };
+}
+
+const loadRuntimeModule = createRequire(__filename);
+const { Server } = loadRuntimeModule(
+  "@modelcontextprotocol/sdk/server/index.js"
+) as McpServerModule;
+const { StdioServerTransport } = loadRuntimeModule(
+  "@modelcontextprotocol/sdk/server/stdio.js"
+) as StdioModule;
+const {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ErrorCode,
   McpError,
-} from "@modelcontextprotocol/sdk/types.js";
-import { parse as parseEnv } from "dotenv";
+} = loadRuntimeModule("@modelcontextprotocol/sdk/types.js") as McpTypesModule;
 
 function writeStderr(...args: unknown[]): void {
   process.stderr.write(formatLogLine(...args) + "\n");
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const collectEnvCandidates = (startPath: string, limit = 5): string[] => {
   const candidates: string[] = [];
@@ -229,7 +270,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
   if (request.params.name !== "convert_document_to_markdown") {
     throw new McpError(
       ErrorCode.MethodNotFound,
@@ -278,14 +319,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   const config: ConfigManager = {
     inputPath,
-    outputPath,
+    ...(outputPath ? { outputPath } : {}),
     normalizeOutput,
-    normalizerOptions,
+    ...(normalizerOptions ? { normalizerOptions } : {}),
     saveRawMarkdown,
     llm: {
       enabled: useLlm,
       model: llmModel,
-      referencePath: llmReferencePath,
+      ...(llmReferencePath ? { referencePath: llmReferencePath } : {}),
       strict: llmStrict,
       iterative: true,
       maxIterations: 2,

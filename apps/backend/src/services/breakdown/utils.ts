@@ -190,7 +190,7 @@ export function buildElementsByCategory(
 ): Record<string, number> {
   return scenes.reduce<Record<string, number>>((accumulator, scene) => {
     scene.analysis.elements.forEach((element) => {
-      accumulator[element.category] = (accumulator[element.category] || 0) + 1;
+      accumulator[element.category] = (accumulator[element.category] ?? 0) + 1;
     });
     return accumulator;
   }, {});

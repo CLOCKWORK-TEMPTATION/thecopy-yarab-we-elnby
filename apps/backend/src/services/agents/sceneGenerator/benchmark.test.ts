@@ -4,6 +4,17 @@ import { logger } from "@/lib/logger";
 
 import { sceneGeneratorAgent } from "./SceneGeneratorAgent";
 
+interface SceneGeneratorInternals {
+  countCharacters(text: string): number;
+  assessDialogueQuality(text: string): Promise<number>;
+  assessPacing(text: string): Promise<number>;
+  calculateDialoguePercentage(text: string): number;
+}
+
+function agentInternals(): SceneGeneratorInternals {
+  return sceneGeneratorAgent as unknown as SceneGeneratorInternals;
+}
+
 const sampleText = `
 سالم: "ماذا نفعل الآن؟"
 أحمد: "لا أعرف، ربما يجب أن ننتظر."
@@ -13,11 +24,11 @@ const sampleText = `
 `.repeat(100);
 
 describe("SceneGeneratorAgent Performance", () => {
-  it("should benchmark countCharacters (contains loop calling regex)", async () => {
+  it("should benchmark countCharacters (contains loop calling regex)", () => {
     const start = performance.now();
     const iterations = 50000;
     for (let i = 0; i < iterations; i++) {
-      (sceneGeneratorAgent as any).countCharacters(sampleText);
+      agentInternals().countCharacters(sampleText);
     }
     const end = performance.now();
     logger.info(`Time taken for ${iterations} iterations (countCharacters): ${(end - start).toFixed(2)} ms`);
@@ -28,7 +39,7 @@ describe("SceneGeneratorAgent Performance", () => {
     const start = performance.now();
     const iterations = 50000;
     for (let i = 0; i < iterations; i++) {
-      await (sceneGeneratorAgent as any).assessDialogueQuality(sampleText);
+      await agentInternals().assessDialogueQuality(sampleText);
     }
     const end = performance.now();
     logger.info(`Time taken for ${iterations} iterations (assessDialogueQuality): ${(end - start).toFixed(2)} ms`);
@@ -39,18 +50,18 @@ describe("SceneGeneratorAgent Performance", () => {
     const start = performance.now();
     const iterations = 50000;
     for (let i = 0; i < iterations; i++) {
-      await (sceneGeneratorAgent as any).assessPacing(sampleText);
+      await agentInternals().assessPacing(sampleText);
     }
     const end = performance.now();
     logger.info(`Time taken for ${iterations} iterations (assessPacing): ${(end - start).toFixed(2)} ms`);
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
-  it("should benchmark calculateDialoguePercentage", async () => {
+  it("should benchmark calculateDialoguePercentage", () => {
     const start = performance.now();
     const iterations = 50000;
     for (let i = 0; i < iterations; i++) {
-      (sceneGeneratorAgent as any).calculateDialoguePercentage(sampleText);
+      agentInternals().calculateDialoguePercentage(sampleText);
     }
     const end = performance.now();
     logger.info(`Time taken for ${iterations} iterations (calculateDialoguePercentage): ${(end - start).toFixed(2)} ms`);

@@ -18,7 +18,7 @@ interface MockControllerResponse {
 
 // Simple mock implementation for the scenes controller
 class MockScenesController {
-  async getScenes(req: MockControllerRequest, res: MockControllerResponse) {
+  getScenes(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -45,7 +45,7 @@ class MockScenesController {
     });
   }
 
-  async getScene(req: MockControllerRequest, res: MockControllerResponse) {
+  getScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -69,7 +69,7 @@ class MockScenesController {
     });
   }
 
-  async createScene(req: MockControllerRequest, res: MockControllerResponse) {
+  createScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -95,7 +95,7 @@ class MockScenesController {
       return res.status(201).json({
         success: true,
         message: 'تم إنشاء المشهد بنجاح',
-        data: { id: 'new-scene', ...validatedData, description: validatedData.description || null },
+        data: { id: 'new-scene', ...validatedData, description: validatedData.description ?? null },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -113,7 +113,7 @@ class MockScenesController {
     }
   }
 
-  async updateScene(req: MockControllerRequest, res: MockControllerResponse) {
+  updateScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -148,7 +148,7 @@ class MockScenesController {
         data: { 
           id, 
           ...validatedData,
-          description: validatedData.description !== undefined ? validatedData.description : undefined
+          description: validatedData.description ?? undefined
         },
       });
     } catch (error) {
@@ -167,7 +167,7 @@ class MockScenesController {
     }
   }
 
-  async deleteScene(req: MockControllerRequest, res: MockControllerResponse) {
+  deleteScene(req: MockControllerRequest, res: MockControllerResponse) {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -194,7 +194,6 @@ class MockScenesController {
 // Create a singleton instance
 const scenesController = new MockScenesController();
 
-describe('ScenesController', () => {
   let mockRequest: MockControllerRequest;
   let mockResponse: MockControllerResponse;
   let mockJson: MockControllerResponse['json'];
@@ -217,10 +216,10 @@ describe('ScenesController', () => {
   });
 
   describe('getScenes', () => {
-    it('should return scenes for authorized user', async () => {
+    it('should return scenes for authorized user', () => {
       mockRequest.params = { projectId: 'project-1' };
 
-      await scenesController.getScenes(
+      scenesController.getScenes(
         mockRequest,
         mockResponse
       );
@@ -234,11 +233,11 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { projectId: 'project-1' };
 
-      await scenesController.getScenes(
+      scenesController.getScenes(
         mockRequest,
         mockResponse
       );
@@ -250,10 +249,10 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 400 when project ID is missing', async () => {
+    it('should return 400 when project ID is missing', () => {
       mockRequest.params = {};
 
-      await scenesController.getScenes(
+      scenesController.getScenes(
         mockRequest,
         mockResponse
       );
@@ -267,10 +266,10 @@ describe('ScenesController', () => {
   });
 
   describe('getScene', () => {
-    it('should return scene for authorized user', async () => {
+    it('should return scene for authorized user', () => {
       mockRequest.params = { id: 'scene-1' };
 
-      await scenesController.getScene(
+      scenesController.getScene(
         mockRequest,
         mockResponse
       );
@@ -281,11 +280,11 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'scene-1' };
 
-      await scenesController.getScene(
+      scenesController.getScene(
         mockRequest,
         mockResponse
       );
@@ -297,10 +296,10 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 400 when scene ID is missing', async () => {
+    it('should return 400 when scene ID is missing', () => {
       mockRequest.params = {};
 
-      await scenesController.getScene(
+      scenesController.getScene(
         mockRequest,
         mockResponse
       );
@@ -314,7 +313,7 @@ describe('ScenesController', () => {
   });
 
   describe('createScene', () => {
-    it('should create scene with valid data', async () => {
+    it('should create scene with valid data', () => {
       const sceneData = {
         title: 'New Scene',
         sceneNumber: 1,
@@ -327,7 +326,7 @@ describe('ScenesController', () => {
 
       mockRequest.body = sceneData;
 
-      await scenesController.createScene(
+      scenesController.createScene(
         mockRequest,
         mockResponse
       );
@@ -347,11 +346,11 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.body = { title: 'New Scene', projectId: 'project-1' };
 
-      await scenesController.createScene(
+      scenesController.createScene(
         mockRequest,
         mockResponse
       );
@@ -363,7 +362,7 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should validate scene data', async () => {
+    it('should validate scene data', () => {
       const invalidData = {
         title: '', // Empty title
         projectId: 'project-1',
@@ -371,7 +370,7 @@ describe('ScenesController', () => {
 
       mockRequest.body = invalidData;
 
-      await scenesController.createScene(
+      scenesController.createScene(
         mockRequest,
         mockResponse
       );
@@ -386,7 +385,7 @@ describe('ScenesController', () => {
   });
 
   describe('updateScene', () => {
-    it('should update scene with valid data', async () => {
+    it('should update scene with valid data', () => {
       const updateData = {
         title: 'Updated Scene Title',
         description: 'Updated description',
@@ -395,7 +394,7 @@ describe('ScenesController', () => {
       mockRequest.params = { id: 'scene-1' };
       mockRequest.body = updateData;
 
-      await scenesController.updateScene(
+      scenesController.updateScene(
         mockRequest,
         mockResponse
       );
@@ -407,12 +406,12 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'scene-1' };
       mockRequest.body = { title: 'Updated Title' };
 
-      await scenesController.updateScene(
+      scenesController.updateScene(
         mockRequest,
         mockResponse
       );
@@ -424,11 +423,11 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 400 when scene ID is missing', async () => {
+    it('should return 400 when scene ID is missing', () => {
       mockRequest.params = {};
       mockRequest.body = { title: 'Updated Title' };
 
-      await scenesController.updateScene(
+      scenesController.updateScene(
         mockRequest,
         mockResponse
       );
@@ -440,13 +439,13 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should validate update data', async () => {
+    it('should validate update data', () => {
       mockRequest.params = { id: 'scene-1' };
       mockRequest.body = {
         title: '', // Invalid: empty title
       };
 
-      await scenesController.updateScene(
+      scenesController.updateScene(
         mockRequest,
         mockResponse
       );
@@ -461,10 +460,10 @@ describe('ScenesController', () => {
   });
 
   describe('deleteScene', () => {
-    it('should delete scene successfully', async () => {
+    it('should delete scene successfully', () => {
       mockRequest.params = { id: 'scene-1' };
 
-      await scenesController.deleteScene(
+      scenesController.deleteScene(
         mockRequest,
         mockResponse
       );
@@ -475,11 +474,11 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 401 for unauthorized user', async () => {
+    it('should return 401 for unauthorized user', () => {
       mockRequest.user = undefined;
       mockRequest.params = { id: 'scene-1' };
 
-      await scenesController.deleteScene(
+      scenesController.deleteScene(
         mockRequest,
         mockResponse
       );
@@ -491,10 +490,10 @@ describe('ScenesController', () => {
       });
     });
 
-    it('should return 400 when scene ID is missing', async () => {
+    it('should return 400 when scene ID is missing', () => {
       mockRequest.params = {};
 
-      await scenesController.deleteScene(
+      scenesController.deleteScene(
         mockRequest,
         mockResponse
       );
@@ -506,4 +505,3 @@ describe('ScenesController', () => {
       });
     });
   });
-});

@@ -432,7 +432,17 @@ function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  return String(error ?? "unknown error");
+  if (typeof error === "string") {
+    return error;
+  }
+  if (typeof error === "number" || typeof error === "boolean") {
+    return error.toString();
+  }
+  try {
+    return JSON.stringify(error) ?? "unknown error";
+  } catch {
+    return "unknown error";
+  }
 }
 
 function inferMimeType(fileName: string): string {

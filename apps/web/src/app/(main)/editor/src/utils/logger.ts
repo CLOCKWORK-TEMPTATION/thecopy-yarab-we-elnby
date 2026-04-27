@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+import { logger as unifiedLogger } from "@/lib/logger";
 /**
  * @module utils/logger
  * @description مسجّل أحداث مركزي بأربعة مستويات (info, warn, error, debug).
@@ -101,19 +101,19 @@ const writeLog = (
   const payload = normalizeLogData(context?.data);
 
   if (level === "info") {
-    logger.info(formatted, payload ?? "");
+    unifiedLogger.info(formatted, payload ?? "");
     return;
   }
   if (level === "warn") {
-    logger.warn(formatted, payload ?? "");
+    unifiedLogger.warn(formatted, payload ?? "");
     return;
   }
   if (level === "error") {
-    logger.error(formatted, payload ?? "");
+    unifiedLogger.error(formatted, payload ?? "");
     return;
   }
   if (canDebug()) {
-    console.debug(formatted, payload ?? "");
+    unifiedLogger.debug(formatted, payload ?? "");
   }
 };
 

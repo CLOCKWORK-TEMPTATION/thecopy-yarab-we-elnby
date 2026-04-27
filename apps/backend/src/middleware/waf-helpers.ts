@@ -25,7 +25,7 @@ const VALUE_EXTRACTORS: Record<RequestLocation, (req: Request) => string> = {
       : String(req.query || ""),
   headers: (req) => JSON.stringify(req.headers),
   path: (req) => req.path + (req.originalUrl || ""),
-  cookies: (req) => JSON.stringify(req.cookies || {}),
+  cookies: (req) => JSON.stringify(req.cookies ?? {}),
 };
 
 function prepareValueForInspection(value: string, maxLength: number): string {

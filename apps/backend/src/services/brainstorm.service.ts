@@ -81,7 +81,7 @@ Return ONLY valid JSON with this exact shape:
 
     return {
       agentId,
-      proposal: response.proposal || 'No proposal generated.',
+      proposal: response.proposal ?? 'No proposal generated.',
       supportingEvidence: Array.isArray(response.supportingEvidence)
         ? response.supportingEvidence
         : [],

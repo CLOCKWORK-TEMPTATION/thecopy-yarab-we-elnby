@@ -83,8 +83,8 @@ export async function checkRedisConnectivity(): Promise<HealthCheckResult> {
       status: isHealthy ? 'healthy' : 'unhealthy',
       message: isHealthy ? 'Redis connection successful' : 'Redis connection failed',
       metadata: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: parseInt(process.env.REDIS_PORT ?? '6379'),
       },
     };
   } catch (error) {
@@ -124,10 +124,10 @@ function getUnixDiskUsage(): DiskUsage {
   const dfOutput = execSync('df -k / | tail -1').toString();
   const parts = dfOutput.split(/\s+/);
 
-  const total = parseInt(parts[1] || '0') * 1024;
-  const used = parseInt(parts[2] || '0') * 1024;
-  const available = parseInt(parts[3] || '0') * 1024;
-  const percentage = parseInt(parts[4] || '0');
+  const total = parseInt(parts[1] ?? '0') * 1024;
+  const used = parseInt(parts[2] ?? '0') * 1024;
+  const available = parseInt(parts[3] ?? '0') * 1024;
+  const percentage = parseInt(parts[4] ?? '0');
 
   return { total, free: available, used, percentage };
 }
@@ -149,7 +149,7 @@ function getDiskHealthStatus(freePercentage: number): { status: 'healthy' | 'deg
  * Check disk space availability
  * Warns if available space is less than 10%
  */
-export async function checkDiskSpace(): Promise<HealthCheckResult> {
+export function checkDiskSpace(): HealthCheckResult {
   try {
     let diskUsage: DiskUsage;
 
@@ -195,11 +195,11 @@ export async function checkDiskSpace(): Promise<HealthCheckResult> {
  */
 export async function performReadinessCheck(): Promise<ReadinessCheckResult> {
   // Run all checks in parallel
-  const [database, redis, diskSpace] = await Promise.all([
+  const [database, redis] = await Promise.all([
     checkDatabaseHealth(),
     checkRedisConnectivity(),
-    checkDiskSpace(),
   ]);
+  const diskSpace = checkDiskSpace();
 
   // Determine overall readiness status
   const isReady =

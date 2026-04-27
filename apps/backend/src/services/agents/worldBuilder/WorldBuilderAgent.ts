@@ -138,7 +138,7 @@ export class WorldBuilderAgent extends BaseAgent {
   /**
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
@@ -177,7 +177,7 @@ export class WorldBuilderAgent extends BaseAgent {
       worldQuality.coherence * 0.1;
     const adjustedConfidence = output.confidence * 0.6 + qualityScore * 0.4;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: cleanedText,
       confidence: adjustedConfidence,
@@ -188,7 +188,7 @@ export class WorldBuilderAgent extends BaseAgent {
         worldLength: cleanedText.length,
         sectionsCount: this.countSections(cleanedText),
       },
-    };
+    });
   }
 
   private assessWorldQuality(text: string): {
@@ -243,10 +243,10 @@ export class WorldBuilderAgent extends BaseAgent {
   /**
    * استجابة احتياطية في حالة الفشل
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `# عالم درامي - نسخة أولية
+    return Promise.resolve(`# عالم درامي - نسخة أولية
 
 ## نظرة عامة
 عالم درامي غني بالإمكانيات السردية، يحتاج إلى تطوير تفصيلي.
@@ -269,7 +269,7 @@ export class WorldBuilderAgent extends BaseAgent {
 ## ملاحظات للكتّاب
 هذا العالم يوفر إطاراً أساسياً للسرد. يُنصح بتطوير التفاصيل الدقيقة حسب احتياجات القصة المحددة.
 
-ملاحظة: هذه نسخة أولية. لبناء عالم أكثر تفصيلاً وغنىً، يُرجى تفعيل الخيارات المتقدمة وتوفير مزيد من السياق والمتطلبات المحددة.`;
+ملاحظة: هذه نسخة أولية. لبناء عالم أكثر تفصيلاً وغنىً، يُرجى تفعيل الخيارات المتقدمة وتوفير مزيد من السياق والمتطلبات المحددة.`);
   }
 }
 

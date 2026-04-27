@@ -27,7 +27,7 @@ export interface AIWritingAssistantLike {
  * Provides core analytics for the Naqid MVP by aggregating structural screenplay metrics
  * and orchestrating qualitative AI-driven insights such as synopses and loglines.
  */
-export default class AnalysisService {
+export class AnalysisService {
   private readonly aiAssistant: AIWritingAssistantLike;
 
   constructor(aiAssistant: AIWritingAssistantLike) {

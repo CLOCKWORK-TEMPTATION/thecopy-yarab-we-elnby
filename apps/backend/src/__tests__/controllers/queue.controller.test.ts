@@ -11,13 +11,21 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { QueueController } from '@/controllers/queue.controller';
+
 import type { Request, Response } from 'express';
 
+type MockFn = ReturnType<typeof vi.fn>;
+type MockResponse = Partial<Response> & {
+  status: MockFn;
+  json: MockFn;
+};
+
 // ─── Mock لنظام القوائم ───
-const mockGetQueue = vi.fn();
+const mockGetQueue = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock('@/queues/queue.config', () => ({
   queueManager: {
-    getQueue: (...args: unknown[]) => mockGetQueue(...args),
+    getQueue: (...args: unknown[]): unknown => mockGetQueue(...args),
   },
   QueueName: {
     AI_ANALYSIS: 'ai-analysis',
@@ -27,8 +35,6 @@ vi.mock('@/queues/queue.config', () => ({
     CACHE_WARMING: 'cache-warming',
   },
 }));
-
-import { QueueController } from '@/controllers/queue.controller';
 
 // ─── مساعدات ───
 
@@ -41,11 +47,24 @@ function createReq(overrides: Record<string, unknown> = {}): Request {
   } as unknown as Request;
 }
 
-function createRes(): Response {
+function createRes(): MockResponse {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-  } as unknown as Response;
+  };
+}
+
+function asResponse(response: MockResponse): Response {
+  return response as unknown as Response;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function firstJsonPayload(response: MockResponse): Record<string, unknown> {
+  const payload: unknown = response.json.mock.calls[0]?.[0];
+  return isRecord(payload) ? payload : {};
 }
 
 // ═══ اختبارات ═══
@@ -65,7 +84,7 @@ describe('QueueController', () => {
       const req = createReq({ params: {} });
       const res = createRes();
 
-      await controller.getJobStatus(req, res);
+      await controller.getJobStatus(req, asResponse(res));
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -80,7 +99,7 @@ describe('QueueController', () => {
       });
       const res = createRes();
 
-      await controller.getJobStatus(req, res);
+      await controller.getJobStatus(req, asResponse(res));
 
       expect(res.status).toHaveBeenCalledWith(400);
     });
@@ -97,7 +116,7 @@ describe('QueueController', () => {
       });
       const res = createRes();
 
-      await controller.getJobStatus(req, res);
+      await controller.getJobStatus(req, asResponse(res));
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -127,11 +146,11 @@ describe('QueueController', () => {
       });
       const res = createRes();
 
-      await controller.getJobStatus(req, res);
+      await controller.getJobStatus(req, asResponse(res));
 
-      const call = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
-      expect(call.success).toBe(true);
-      expect(call.job).toMatchObject({
+      const call = firstJsonPayload(res);
+      expect(call['success']).toBe(true);
+      expect(call['job']).toMatchObject({
         id: 'job-123',
         state: 'active',
       });

@@ -89,7 +89,7 @@ export class BreakdownService {
       throw new Error('معرف المستخدم مطلوب');
     }
 
-    const projectTitle = title?.trim() || 'مشروع بريك دون';
+    const projectTitle = title?.trim() ?? 'مشروع بريك دون';
 
     const [insertedProject] = await db
       .insert(projects)
@@ -240,7 +240,7 @@ export class BreakdownService {
     project: typeof projects.$inferSelect,
     currentReport: BreakdownReport | null
   ): ParsedScene {
-    const parsed = parseScreenplay(project.scriptContent || '', project.title);
+    const parsed = parseScreenplay(project.scriptContent ?? '', project.title);
     const matched = parsed.scenes.find(
       (s) => s.headerData.sceneNumber === sceneRecord.sceneNumber
     ) ?? null;

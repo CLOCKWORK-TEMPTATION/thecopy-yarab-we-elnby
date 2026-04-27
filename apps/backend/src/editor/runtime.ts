@@ -44,10 +44,8 @@ interface LoadedEditorRuntime {
   docxConverterScriptExists: boolean;
 }
 
-const dynamicImport = new Function(
-  'modulePath',
-  'return import(modulePath);'
-) as DynamicImport;
+const dynamicImport: DynamicImport = async <T>(modulePath: string) =>
+  import(modulePath) as Promise<T>;
 
 const runtimeRoot = resolve(process.cwd(), 'editor-runtime');
 let loadedRuntimePromise: Promise<LoadedEditorRuntime> | null = null;
@@ -71,7 +69,7 @@ function buildRateLimiter(limit: number): RequestHandler {
     handler: (_req, res, _next, options) => {
       res.status(options.statusCode).json({
         success: false,
-        error: options.message,
+        error: String(options.message),
       });
     },
   });
@@ -148,7 +146,7 @@ async function checkGoogleModelAvailability(
       ? supportedGenerationMethods.includes('generateContent')
         ? undefined
         : 'Model does not advertise generateContent support.'
-      : payload?.error?.message || `Google model lookup failed with HTTP ${response.status}.`;
+      : payload?.error?.message ?? `Google model lookup failed with HTTP ${response.status}.`;
     const result: ModelAvailability = {
       available: response.ok && supportedGenerationMethods.includes('generateContent'),
       checkedAt: new Date().toISOString(),
@@ -202,8 +200,7 @@ async function importRuntimeModule<T>(relativePath: string): Promise<T> {
 }
 
 async function loadEditorRuntime(): Promise<LoadedEditorRuntime> {
-  if (!loadedRuntimePromise) {
-    loadedRuntimePromise = (async () => {
+  loadedRuntimePromise ??= (async () => {
       const [
         extractModule,
         textExtractModule,
@@ -262,7 +259,6 @@ async function loadEditorRuntime(): Promise<LoadedEditorRuntime> {
         docxConverterScriptExists: docxExtractorModule.DOCX_TO_DOC_SCRIPT_EXISTS,
       };
     })();
-  }
 
   return loadedRuntimePromise;
 }
@@ -350,8 +346,8 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
     service: 'backend-editor-runtime',
     officialBackend: true,
     mode: 'embedded',
-    antiwordPath: runtime.antiwordPreflight.antiwordPath || runtime.defaultAntiwordPath,
-    antiwordHome: runtime.antiwordPreflight.antiwordHome || runtime.defaultAntiwordHome,
+    antiwordPath: runtime.antiwordPreflight.antiwordPath ?? runtime.defaultAntiwordPath,
+    antiwordHome: runtime.antiwordPreflight.antiwordHome ?? runtime.defaultAntiwordHome,
     antiwordRuntimeSource: runtime.antiwordPreflight.runtimeSource,
     antiwordBinaryAvailable: runtime.antiwordPreflight.binaryAvailable,
     antiwordHomeExists: runtime.antiwordPreflight.antiwordHomeExists,
@@ -377,7 +373,7 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
   };
 }
 
-export async function registerEditorRuntimeRoutes(app: Application): Promise<void> {
+export function registerEditorRuntimeRoutes(app: Application): void {
   const createLazyRuntimeHandler = (
     pickHandler: (runtime: LoadedEditorRuntime) => RuntimeHandler
   ): RequestHandler => {

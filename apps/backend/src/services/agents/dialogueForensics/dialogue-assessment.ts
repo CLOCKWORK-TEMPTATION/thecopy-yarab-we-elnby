@@ -4,7 +4,7 @@
  */
 import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 
-export async function assessAuthenticity(text: string): Promise<number> {
+export function assessAuthenticity(text: string): number {
   let score = 0.5;
 
   const authenticityTerms = [
@@ -17,13 +17,13 @@ export async function assessAuthenticity(text: string): Promise<number> {
   const negCount = safeCountMultipleTerms(text, negativeTerms);
   score -= Math.min(0.2, sumCounts(negCount) * 0.05);
 
-  const hasExamples = (text.match(/["«]/g) || []).length >= 3;
+  const hasExamples = (text.match(/["«]/g) ?? []).length >= 3;
   if (hasExamples) score += 0.15;
 
   return Math.min(1, Math.max(0, score));
 }
 
-export async function assessCharacterization(text: string): Promise<number> {
+export function assessCharacterization(text: string): number {
   let score = 0.6;
 
   const charTerms = [
@@ -38,7 +38,7 @@ export async function assessCharacterization(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessFunctionality(text: string): Promise<number> {
+export function assessFunctionality(text: string): number {
   let score = 0.5;
 
   const functionalTerms = [
@@ -54,7 +54,7 @@ export async function assessFunctionality(text: string): Promise<number> {
   return Math.min(1, score);
 }
 
-export async function assessTechnicalQuality(text: string): Promise<number> {
+export function assessTechnicalQuality(text: string): number {
   let score = 0.6;
 
   const technicalTerms = [
@@ -107,7 +107,7 @@ export function translateFocusArea(area: string): string {
     conflict: "بناء الصراع",
     pacing: "الوتيرة",
   };
-  return areas[area] || area;
+  return areas[area] ?? area;
 }
 
 interface ThresholdCheck {
@@ -127,7 +127,6 @@ export function addDialogueThresholdNotes(notes: string[], checks: ThresholdChec
 
 export function generateDialogueNotes(
   outputNotes: string[] | undefined,
-  outputConfidence: number,
   authenticity: number,
   characterization: number,
   functionality: number,
@@ -148,6 +147,5 @@ export function generateDialogueNotes(
   ]);
 
   if (outputNotes) notes.push(...outputNotes);
-  void outputConfidence; // retained for future use
   return notes;
 }

@@ -8,7 +8,7 @@
  * 4. Error scenarios
  */
 
-import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi, type Mock } from 'vitest';
 
 // Mock database module
 vi.mock('@/db', () => ({
@@ -19,17 +19,39 @@ vi.mock('@/db', () => ({
   },
 }));
 
-describe('Database Integration Tests', () => {
-  let mockDb: any;
+type QueryRow = Record<string, unknown>;
 
-  beforeAll(async () => {
-    const db = (await import('@/db')).db;
-    mockDb = db;
-  });
+interface QueryResult {
+  rows: QueryRow[];
+  rowCount?: number;
+  executionTime?: number;
+}
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+interface MockDb {
+  query: Mock<(sql: string, params?: unknown[]) => Promise<QueryResult>>;
+  transaction: Mock<<T>(callback: () => T | Promise<T>) => Promise<T>>;
+  exec: Mock<(...args: unknown[]) => unknown>;
+}
+
+let mockDb: MockDb;
+
+function requiredRow(result: QueryResult, index: number): QueryRow {
+  const row = result.rows[index];
+  if (!row) {
+    throw new Error(`Expected row at index ${index}`);
+  }
+
+  return row;
+}
+
+beforeAll(async () => {
+  const db = (await import('@/db')).db;
+  mockDb = db as unknown as MockDb;
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
   describe('Database Connection', () => {
     it('should establish connection to database', async () => {
@@ -119,8 +141,8 @@ describe('Database Integration Tests', () => {
       const result = await mockDb.query('SELECT * FROM projects');
 
       expect(result.rows).toHaveLength(2);
-      expect(result.rows[0].title).toBe('Project 1');
-      expect(result.rows[1].title).toBe('Project 2');
+      expect(requiredRow(result, 0)['title']).toBe('Project 1');
+      expect(requiredRow(result, 1)['title']).toBe('Project 2');
     });
 
     it('should handle empty result set', async () => {
@@ -155,8 +177,8 @@ describe('Database Integration Tests', () => {
         'SELECT COUNT(*) as count, AVG(LENGTH(description)) as avg_length FROM projects'
       );
 
-      expect(result.rows[0].count).toBe('42');
-      expect(result.rows[0].avg_length).toBe('150');
+      expect(requiredRow(result, 0)['count']).toBe('42');
+      expect(requiredRow(result, 0)['avg_length']).toBe('150');
     });
   });
 
@@ -170,7 +192,7 @@ describe('Database Integration Tests', () => {
         ['Updated Title', 'published', 1]
       );
 
-      expect(result.rows[0].title).toBe('Updated Title');
+      expect(requiredRow(result, 0)['title']).toBe('Updated Title');
       expect(result.rowCount).toBe(1);
     });
 
@@ -186,7 +208,7 @@ describe('Database Integration Tests', () => {
     });
 
     it('should handle bulk updates', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 10 });
+      mockDb.query.mockResolvedValueOnce({ rows: [], rowCount: 10 });
 
       const result = await mockDb.query(
         'UPDATE projects SET status = $1 WHERE created_at < $2',
@@ -199,7 +221,7 @@ describe('Database Integration Tests', () => {
 
   describe('CRUD Operations - Delete', () => {
     it('should delete record successfully', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 1 });
+      mockDb.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
 
       const result = await mockDb.query('DELETE FROM projects WHERE id = $1', [1]);
 
@@ -207,7 +229,7 @@ describe('Database Integration Tests', () => {
     });
 
     it('should handle delete with no affected rows', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 0 });
+      mockDb.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
 
       const result = await mockDb.query('DELETE FROM projects WHERE id = $1', [999]);
 
@@ -215,7 +237,7 @@ describe('Database Integration Tests', () => {
     });
 
     it('should handle cascade delete', async () => {
-      mockDb.query.mockResolvedValueOnce({ rowCount: 5 });
+      mockDb.query.mockResolvedValueOnce({ rows: [], rowCount: 5 });
 
       const result = await mockDb.query(
         'DELETE FROM projects WHERE status = $1',
@@ -228,13 +250,13 @@ describe('Database Integration Tests', () => {
 
   describe('Transaction Handling', () => {
     it('should execute transaction successfully', async () => {
-      mockDb.transaction.mockImplementationOnce(async (callback: () => any) => {
-        return callback();
+      mockDb.transaction.mockImplementationOnce(<T>(callback: () => T | Promise<T>): Promise<T> => {
+        return Promise.resolve(callback());
       });
 
-      const result = await mockDb.transaction(async () => {
+      const result = await mockDb.transaction(() => {
         return { success: true };
-      });
+      }) as { success: boolean };
 
       expect(result.success).toBe(true);
       expect(mockDb.transaction).toHaveBeenCalled();
@@ -245,24 +267,24 @@ describe('Database Integration Tests', () => {
       mockDb.transaction.mockRejectedValueOnce(transactionError);
 
       await expect(
-        mockDb.transaction(async () => {
+        mockDb.transaction(() => {
           throw transactionError;
         })
       ).rejects.toThrow('Transaction failed');
     });
 
     it('should handle nested transactions', async () => {
-      mockDb.transaction.mockImplementationOnce(async (callback: () => any) => {
-        return callback();
+      mockDb.transaction.mockImplementationOnce(<T>(callback: () => T | Promise<T>): Promise<T> => {
+        return Promise.resolve(callback());
       });
 
-      let result;
+      let result: { nested: boolean } | undefined;
       try {
-        result = await mockDb.transaction(async () => {
+        result = await mockDb.transaction(() => {
           // Nested transaction should be handled by database
           return { nested: true };
-        });
-      } catch (error) {
+        }) as { nested: boolean };
+      } catch {
         result = { nested: false };
       }
 
@@ -321,11 +343,7 @@ describe('Database Integration Tests', () => {
       const errorMessage = 'Syntax error in SQL statement';
       mockDb.query.mockRejectedValueOnce(new Error(errorMessage));
 
-      try {
-        await mockDb.query('SELECT * FORM projects'); // Typo: FORM instead of FROM
-      } catch (error: any) {
-        expect(error.message).toContain('Syntax error');
-      }
+      await expect(mockDb.query('SELECT * FORM projects')).rejects.toThrow('Syntax error');
     });
 
     it('should handle connection pool exhaustion', async () => {
@@ -345,4 +363,3 @@ describe('Database Integration Tests', () => {
         .rejects.toThrow('Deadlock');
     });
   });
-});

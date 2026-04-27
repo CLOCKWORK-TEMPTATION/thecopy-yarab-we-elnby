@@ -59,14 +59,15 @@ export function requireValue<T>(value: T | null | undefined, message: string): T
   return value;
 }
 
-function pushItems(
-  elements: BreakdownElement[],
-  items: string[],
-  type: string,
-  category: string,
-  color: string,
-  notes?: string
-): void {
+function pushItems(input: {
+  elements: BreakdownElement[];
+  items: string[];
+  type: string;
+  category: string;
+  color: string;
+  notes?: string;
+}): void {
+  const { elements, items, type, category, color, notes } = input;
   items.forEach((item) => {
     elements.push({
       id: generateId(type.toLowerCase()),
@@ -117,25 +118,33 @@ export function buildBreakdownElements(
 
   pushCastElements(elements, analysis.cast);
   pushExtrasGroupElements(elements, analysis.extrasGroups);
+  const addItems = (
+    items: string[],
+    type: string,
+    category: string,
+    color: string
+  ): void => {
+    pushItems({ elements, items, type, category, color });
+  };
 
-  pushItems(elements, analysis.silentBits, 'CAST', 'الصامتون', getElementColor('CAST'));
-  pushItems(elements, analysis.props, 'PROPS', 'الإكسسوارات', getElementColor('PROPS'));
-  pushItems(elements, analysis.handProps, 'PROPS', 'الهاند بروبس', getElementColor('PROPS'));
-  pushItems(elements, analysis.setDressing, 'SET_DRESSING', 'فرش الديكور', getElementColor('SET_DRESSING'));
-  pushItems(elements, analysis.costumes, 'WARDROBE', 'الأزياء', getElementColor('WARDROBE'));
-  pushItems(elements, analysis.makeup, 'MAKEUP', 'المكياج', getElementColor('MAKEUP'));
-  pushItems(elements, analysis.sound, 'SOUND', 'الصوت', getElementColor('SOUND'));
-  pushItems(elements, analysis.soundRequirements, 'SOUND', 'متطلبات الصوت', getElementColor('SOUND'));
-  pushItems(elements, analysis.equipment, 'EQUIPMENT', 'المعدات الخاصة', getElementColor('EQUIPMENT'));
-  pushItems(elements, analysis.specialEquipment, 'EQUIPMENT', 'تجهيزات خاصة', getElementColor('EQUIPMENT'));
-  pushItems(elements, analysis.vehicles, 'VEHICLES', 'المركبات', getElementColor('VEHICLES'));
-  pushItems(elements, analysis.animals, 'ANIMALS', 'الحيوانات', getElementColor('ANIMALS'));
-  pushItems(elements, analysis.stunts, 'STUNTS', 'المشاهد الخطرة', getElementColor('STUNTS'));
-  pushItems(elements, analysis.spfx, 'SFX', 'المؤثرات الخاصة', getElementColor('SFX'));
-  pushItems(elements, analysis.vfx, 'VFX', 'المؤثرات البصرية', getElementColor('VFX'));
-  pushItems(elements, analysis.graphics, 'GRAPHICS', 'الجرافيكس', getElementColor('GRAPHICS'));
-  pushItems(elements, analysis.continuity, 'CONTINUITY', 'الراكور', getElementColor('CONTINUITY'));
-  pushItems(elements, analysis.continuityNotes, 'CONTINUITY', 'ملاحظات الراكور', getElementColor('CONTINUITY'));
+  addItems(analysis.silentBits, 'CAST', 'الصامتون', getElementColor('CAST'));
+  addItems(analysis.props, 'PROPS', 'الإكسسوارات', getElementColor('PROPS'));
+  addItems(analysis.handProps, 'PROPS', 'الهاند بروبس', getElementColor('PROPS'));
+  addItems(analysis.setDressing, 'SET_DRESSING', 'فرش الديكور', getElementColor('SET_DRESSING'));
+  addItems(analysis.costumes, 'WARDROBE', 'الأزياء', getElementColor('WARDROBE'));
+  addItems(analysis.makeup, 'MAKEUP', 'المكياج', getElementColor('MAKEUP'));
+  addItems(analysis.sound, 'SOUND', 'الصوت', getElementColor('SOUND'));
+  addItems(analysis.soundRequirements, 'SOUND', 'متطلبات الصوت', getElementColor('SOUND'));
+  addItems(analysis.equipment, 'EQUIPMENT', 'المعدات الخاصة', getElementColor('EQUIPMENT'));
+  addItems(analysis.specialEquipment, 'EQUIPMENT', 'تجهيزات خاصة', getElementColor('EQUIPMENT'));
+  addItems(analysis.vehicles, 'VEHICLES', 'المركبات', getElementColor('VEHICLES'));
+  addItems(analysis.animals, 'ANIMALS', 'الحيوانات', getElementColor('ANIMALS'));
+  addItems(analysis.stunts, 'STUNTS', 'المشاهد الخطرة', getElementColor('STUNTS'));
+  addItems(analysis.spfx, 'SFX', 'المؤثرات الخاصة', getElementColor('SFX'));
+  addItems(analysis.vfx, 'VFX', 'المؤثرات البصرية', getElementColor('VFX'));
+  addItems(analysis.graphics, 'GRAPHICS', 'الجرافيكس', getElementColor('GRAPHICS'));
+  addItems(analysis.continuity, 'CONTINUITY', 'الراكور', getElementColor('CONTINUITY'));
+  addItems(analysis.continuityNotes, 'CONTINUITY', 'ملاحظات الراكور', getElementColor('CONTINUITY'));
 
   return elements;
 }

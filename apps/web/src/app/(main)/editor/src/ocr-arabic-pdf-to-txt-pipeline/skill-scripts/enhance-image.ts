@@ -14,9 +14,10 @@
  *   5. إزالة الضوضاء (denoise)
  */
 
-import { logger } from "@/lib/logger";
 import { readdirSync, mkdirSync, statSync, existsSync } from "node:fs";
 import { join, basename, extname } from "node:path";
+
+import { logger } from "@/lib/logger";
 
 // ─── تحليل المعاملات ──────────────────────────────────────────
 
@@ -150,4 +151,8 @@ async function main(): Promise<void> {
   process.exit(1);
 }
 
-main();
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : "فشل غير متوقع";
+  logger.error(message);
+  process.exit(1);
+});

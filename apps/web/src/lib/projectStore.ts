@@ -1,5 +1,7 @@
 import type { Project as ApiProject } from "./api-types";
 
+import { isUnknownRecord } from "./utils/unknown-values";
+
 /**
  * Project store for managing current project state
  */
@@ -11,11 +13,40 @@ export interface Project extends ApiProject {
 
 let currentProject: Project | null = null;
 
+function parseStoredProject(stored: string): Project | null {
+  const parsed: unknown = JSON.parse(stored);
+
+  if (!isUnknownRecord(parsed)) {
+    return null;
+  }
+
+  const requiredStrings = [
+    "id",
+    "title",
+    "userId",
+    "createdAt",
+    "updatedAt",
+  ] as const;
+
+  if (requiredStrings.some((key) => typeof parsed[key] !== "string")) {
+    return null;
+  }
+
+  if (
+    parsed.scriptContent !== null &&
+    typeof parsed.scriptContent !== "string"
+  ) {
+    return null;
+  }
+
+  return parsed as Project;
+}
+
 export function getCurrentProject(): Project | null {
   if (typeof window !== "undefined") {
     const stored = sessionStorage.getItem("currentProject");
     if (stored) {
-      return JSON.parse(stored);
+      return parseStoredProject(stored);
     }
   }
   return currentProject;

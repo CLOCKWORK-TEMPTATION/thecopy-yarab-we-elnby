@@ -37,7 +37,7 @@ export class RhythmMappingAgent extends BaseAgent {
     super(
       "RhythmMapper AI",
       TaskType.RHYTHM_MAPPING,
-      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt || ""
+      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt ?? ""
     );
 
     this.confidenceFloor = 0.8;
@@ -47,12 +47,12 @@ export class RhythmMappingAgent extends BaseAgent {
     const { input: taskInput, context } = input;
     const ctx = context as RhythmMappingContext;
 
-    const focusAspects = ctx?.focusAspects || ["pacing", "tempo", "flow"];
-    const genre = ctx?.genre || "غير محدد";
+    const focusAspects = ctx?.focusAspects ?? ["pacing", "tempo", "flow"];
+    const genre = ctx?.genre ?? "غير محدد";
 
     let prompt = `مهمة رسم خريطة الإيقاع السردي\n\n`;
-    prompt += this.buildTextSection(ctx?.originalText || "");
-    prompt += this.buildSceneSection(ctx?.sceneBreakdown || []);
+    prompt += this.buildTextSection(ctx?.originalText ?? "");
+    prompt += this.buildSceneSection(ctx?.sceneBreakdown ?? []);
     prompt += this.buildAnalysisInfo(ctx, genre, focusAspects);
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += this.buildRhythmInstructions(ctx, genre);
@@ -68,7 +68,7 @@ export class RhythmMappingAgent extends BaseAgent {
     if (scenes.length === 0) return "";
     let section = `تفصيل المشاهد:\n`;
     scenes.slice(0, 6).forEach((scene, idx) => {
-      const desc = typeof scene === "string" ? scene : (scene.description || `مشهد ${idx + 1}`);
+      const desc = typeof scene === "string" ? scene : (scene.description ?? `مشهد ${idx + 1}`);
       const len = typeof scene === "object" && scene.length ? ` (${scene.length} كلمة)` : "";
       section += `${idx + 1}. ${desc}${len}\n`;
     });
@@ -79,7 +79,7 @@ export class RhythmMappingAgent extends BaseAgent {
   private buildAnalysisInfo(ctx: RhythmMappingContext | undefined, genre: string, focusAspects: string[]): string {
     let section = `معلومات التحليل:\n`;
     section += `- النوع الأدبي: ${genre}\n`;
-    section += `- جوانب التركيز: ${focusAspects.map(this.translateAspect).join("، ")}\n`;
+    section += `- جوانب التركيز: ${focusAspects.map((aspect) => this.translateAspect(aspect)).join("، ")}\n`;
     section += `- تحديد الأنماط: ${(ctx?.identifyPatterns ?? true) ? "نعم" : "لا"}\n`;
     section += `- تحليل التنوع: ${(ctx?.analyzeVariation ?? true) ? "نعم" : "لا"}\n`;
     section += `- مقارنة بمعايير النوع: ${(ctx?.compareGenreNorms ?? false) ? "نعم" : "لا"}\n`;
@@ -173,17 +173,17 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
 لا تستخدم JSON أو رسومات معقدة - وصف تحليلي مباشر فقط.`;
   }
 
-  protected override async postProcess(
+  protected override postProcess(
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupRhythmText(output.text);
 
     const analysisComprehensiveness =
-      await this.assessAnalysisComprehensiveness(processedText);
+      this.assessAnalysisComprehensiveness(processedText);
     const technicalPrecision =
-      await this.assessTechnicalPrecision(processedText);
-    const practicalInsight = await this.assessPracticalInsight(processedText);
-    const evidenceQuality = await this.assessEvidenceQuality(processedText);
+      this.assessTechnicalPrecision(processedText);
+    const practicalInsight = this.assessPracticalInsight(processedText);
+    const evidenceQuality = this.assessEvidenceQuality(processedText);
 
     const qualityScore =
       analysisComprehensiveness * 0.3 +
@@ -193,7 +193,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
 
     const adjustedConfidence = output.confidence * 0.5 + qualityScore * 0.5;
 
-    return {
+    return Promise.resolve({
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
@@ -217,7 +217,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
         beatsIdentified: this.countBeats(processedText),
         optimizationSuggestions: this.countOptimizations(processedText),
       },
-    };
+    });
   }
 
   private cleanupRhythmText(text: string): string {
@@ -231,7 +231,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessAnalysisComprehensiveness(text: string): Promise<number> {
+  private assessAnalysisComprehensiveness(text: string): number {
     let score = 0.5;
 
     const rhythmTerms = [
@@ -266,7 +266,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     return Math.min(1, score);
   }
 
-  private async assessTechnicalPrecision(text: string): Promise<number> {
+  private assessTechnicalPrecision(text: string): number {
     let score = 0.6;
 
     const technicalTerms = [
@@ -290,7 +290,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     return Math.min(1, score);
   }
 
-  private async assessPracticalInsight(text: string): Promise<number> {
+  private assessPracticalInsight(text: string): number {
     let score = 0.5;
 
     const insightWords = [
@@ -313,7 +313,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceMarkers = [
@@ -328,7 +328,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
     score += Math.min(0.25, sumCounts(evidenceCount) * 0.025);
 
-    const hasExamples = (text.match(/["«]/g) || []).length >= 2;
+    const hasExamples = (text.match(/["«]/g) ?? []).length >= 2;
     if (hasExamples) score += 0.15;
 
     return Math.min(1, score);
@@ -394,13 +394,13 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
       variation: "التنوع والديناميكية",
       patterns: "الأنماط المتكررة",
     };
-    return aspects[aspect] || aspect;
+    return aspects[aspect] ?? aspect;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
   ): Promise<string> {
-    return `نظرة عامة على الإيقاع:
+    return Promise.resolve(`نظرة عامة على الإيقاع:
 النص يتبع إيقاعاً متوسط السرعة مع تنوع معتدل بين المشاهد السريعة والبطيئة.
 
 تحليل الوتيرة:
@@ -445,7 +445,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
 نقاط القوة: التصاعد المتزن، الذروة القوية، التوزيع المعقول للنبضات
 المجالات المحتاجة تحسين: البداية تحتاج حيوية أكبر، الوسط يحتاج مزيد من التنوع، الحل سريع نسبياً
 
-ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من تفاصيل المشاهد والنوع الأدبي للحصول على خريطة إيقاعية أكثر دقة وتفصيلاً مع تحليل عميق للأنماط وتوصيات محددة قابلة للتطبيق.`;
+ملاحظة: يُرجى تفعيل الخيارات المتقدمة وتوفير المزيد من تفاصيل المشاهد والنوع الأدبي للحصول على خريطة إيقاعية أكثر دقة وتفصيلاً مع تحليل عميق للأنماط وتوصيات محددة قابلة للتطبيق.`);
   }
 }
 

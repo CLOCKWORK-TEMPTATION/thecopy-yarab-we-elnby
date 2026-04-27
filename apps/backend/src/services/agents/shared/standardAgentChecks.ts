@@ -6,7 +6,11 @@
 import { geminiService } from "@/services/gemini.service";
 
 // Type for Gemini model IDs
-export type ModelId = "gemini-2.0-flash-exp" | "gemini-1.5-flash" | "gemini-1.5-pro" | string;
+export type ModelId =
+  | "gemini-2.0-flash-exp"
+  | "gemini-1.5-flash"
+  | "gemini-1.5-pro"
+  | (string & {});
 
 // Helper function to call Gemini AI with text prompt
 async function callGeminiText(
@@ -148,7 +152,7 @@ export async function measureUncertainty(
   const uncertaintyScore = 1 - consistency;
   const confidence = Math.max(0.5, consistency);
 
-  const uncertainPhrases = text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) || [];
+  const uncertainPhrases = text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) ?? [];
 
   return { score: uncertaintyScore, confidence, uncertainAspects: uncertainPhrases.slice(0, 3) };
 }

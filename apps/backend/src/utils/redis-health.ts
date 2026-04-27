@@ -28,8 +28,8 @@ function getRedisEndpointMetadata(): { host: string; port: number } {
   }
 
   return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number.parseInt(process.env.REDIS_PORT || '6379', 10),
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: Number.parseInt(process.env.REDIS_PORT ?? '6379', 10),
   };
 }
 

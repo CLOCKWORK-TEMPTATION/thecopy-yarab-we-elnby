@@ -13,9 +13,10 @@
  * المخرج: ملف JSON يحتوي نتائج OCR لكل صفحة
  */
 
-import { logger } from "@/lib/logger";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
+
+import { logger } from "@/lib/logger";
 
 const CANONICAL_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
 
@@ -388,4 +389,8 @@ async function runOcr(): Promise<void> {
   }
 }
 
-runOcr();
+runOcr().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : "فشل غير متوقع";
+  logger.error(message);
+  process.exit(1);
+});

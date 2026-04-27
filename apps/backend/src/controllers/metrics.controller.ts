@@ -50,7 +50,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/range?start=...&end=... */
-  async getRange(req: Request, res: Response): Promise<void> {
+  getRange(req: Request, res: Response): void {
     try {
       const parsed = parseDateRange(req.query['start'], req.query['end']);
 
@@ -187,7 +187,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/cache/realtime */
-  async getCacheRealtime(_req: Request, res: Response): Promise<void> {
+  getCacheRealtime(_req: Request, res: Response): void {
     try {
       const stats = cacheMetricsService.getRealTimeStats();
       res.json({ success: true, data: stats });
@@ -228,7 +228,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/apm/dashboard */
-  async getApmDashboard(_req: Request, res: Response): Promise<void> {
+  getApmDashboard(_req: Request, res: Response): void {
     try {
       const dashboard = getPerformanceDashboard();
       res.json({ success: true, data: dashboard });
@@ -239,7 +239,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/apm/config */
-  async getApmConfig(_req: Request, res: Response): Promise<void> {
+  getApmConfig(_req: Request, res: Response): void {
     try {
       res.json({ success: true, data: buildApmConfig() });
     } catch (error) {
@@ -249,7 +249,7 @@ export class MetricsController {
   }
 
   /** POST /api/metrics/apm/reset */
-  async resetApmMetrics(_req: Request, res: Response): Promise<void> {
+  resetApmMetrics(_req: Request, res: Response): void {
     try {
       resetPerformanceMetrics();
       res.json({ success: true, message: 'تم إعادة تعيين مقاييس الأداء' });
@@ -260,7 +260,7 @@ export class MetricsController {
   }
 
   /** GET /api/metrics/apm/alerts */
-  async getApmAlerts(_req: Request, res: Response): Promise<void> {
+  getApmAlerts(_req: Request, res: Response): void {
     try {
       const alerts = buildApmAlerts();
       res.json({ success: true, data: alerts });

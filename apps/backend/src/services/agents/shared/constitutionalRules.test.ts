@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { logger } from "@/lib/logger";
 
@@ -53,5 +53,7 @@ describe('ConstitutionalRulesEngine Performance Benchmark', () => {
     logger.info(`Average time over ${iterations} iterations: ${totalTime / iterations}ms`);
     logger.info(`Expected theoretical minimum (parallel): ~60ms`);
     logger.info(`Expected theoretical sequential: ~550ms`);
+
+    expect(totalTime).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,7 @@
 import { logger } from '@/lib/logger';
-import { AIAgentConfig, TaskType, AgentConfigMapping } from "@core/types";
+import { TaskType } from "@core/types";
+
+import type { AIAgentConfig, AgentConfigMapping } from "@core/types";
 
 /**
  * Agent configuration mapping
@@ -130,8 +132,13 @@ export const loadAgentConfig = async (
     throw new Error(`Unknown task type: ${taskType}`);
   }
 
-  const module = await import(/* @vite-ignore */ mapping.path);
-  return module[mapping.configName];
+  const agentModule = await import(/* @vite-ignore */ mapping.path) as Record<string, unknown>;
+  const config = agentModule[mapping.configName];
+  if (!isAIAgentConfig(config)) {
+    throw new Error(`Invalid agent config export: ${mapping.configName}`);
+  }
+
+  return config;
 };
 // Static imports removed to eliminate Vite dynamic import warnings
 // All agent configs are now loaded dynamically via loadAgentConfig()
@@ -165,3 +172,11 @@ export const AGENT_CONFIGS = Object.freeze<AIAgentConfig[]>([]);
 export { multiAgentOrchestrator } from './orchestrator';
 export { TaskType } from './core/enums';
 export type { OrchestrationInput, OrchestrationOutput } from './orchestrator';
+
+function isAIAgentConfig(value: unknown): value is AIAgentConfig {
+  return (
+    typeof value === "object"
+    && value !== null
+    && typeof (value as { id?: unknown }).id === "string"
+  );
+}

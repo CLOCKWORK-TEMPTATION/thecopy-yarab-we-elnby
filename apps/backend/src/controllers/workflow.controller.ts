@@ -209,9 +209,9 @@ export async function executeWorkflow(req: Request, res: Response) {
     logger.info(`[Workflow API] Executing preset workflow: ${preset}`);
 
     const agentInput: StandardAgentInput = {
-      input: input.input || input.text || '',
-      context: input.context || {},
-      options: input.options || {},
+      input: input.input ?? input.text ?? '',
+      context: input.context ?? {},
+      options: input.options ?? {},
     };
 
     const workflow = getPresetWorkflow(preset as PresetWorkflowName);
@@ -254,9 +254,9 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
     logger.info(`[Workflow API] Executing custom workflow: ${config.name}`);
 
     const agentInput: StandardAgentInput = {
-      input: input.input || input.text || '',
-      context: input.context || {},
-      options: input.options || {},
+      input: input.input ?? input.text ?? '',
+      context: input.context ?? {},
+      options: input.options ?? {},
     };
 
     startWorkflowProgress(config);
@@ -283,18 +283,18 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
 /**
  * Get available workflow presets
  */
-export async function getWorkflowPresets(_req: Request, res: Response) {
+export function getWorkflowPresets(_req: Request, res: Response) {
   try {
     const presets = Object.entries(PRESET_WORKFLOWS).map(([id, factory]) => {
       const workflow = factory();
       return {
         id,
         name: workflow.name,
-        description: workflow.description || '',
-        estimatedDuration: workflow.globalTimeout || 300000,
+        description: workflow.description ?? '',
+        estimatedDuration: workflow.globalTimeout ?? 300000,
         agentCount: workflow.steps.length,
-        maxConcurrency: workflow.maxConcurrency || 5,
-        errorHandling: workflow.errorHandling || 'lenient',
+        maxConcurrency: workflow.maxConcurrency ?? 5,
+        errorHandling: workflow.errorHandling ?? 'lenient',
       };
     });
 
@@ -314,7 +314,7 @@ export async function getWorkflowPresets(_req: Request, res: Response) {
 /**
  * Get workflow progress.
  */
-export async function getWorkflowProgress(req: Request, res: Response) {
+export function getWorkflowProgress(req: Request, res: Response) {
   try {
     const workflowParam = req.params["workflowId"];
     const workflowId = Array.isArray(workflowParam)
@@ -355,7 +355,7 @@ export async function getWorkflowProgress(req: Request, res: Response) {
 /**
  * Get workflow history.
  */
-export async function getWorkflowHistory(_req: Request, res: Response) {
+export function getWorkflowHistory(_req: Request, res: Response) {
   try {
     return res.json({
       success: true,
@@ -373,7 +373,7 @@ export async function getWorkflowHistory(_req: Request, res: Response) {
 /**
  * Get workflow details
  */
-export async function getWorkflowDetails(req: Request, res: Response) {
+export function getWorkflowDetails(req: Request, res: Response) {
   try {
     const preset = typeof req.params["preset"] === 'string' ? req.params["preset"] : '';
 

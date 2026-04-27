@@ -34,8 +34,7 @@ export function hasCandidates(response: GenerateContentResponse): boolean {
 export function hasValidContent(response: GenerateContentResponse): boolean {
   return !!(
     hasCandidates(response) &&
-    response.candidates![0].content &&
-    response.candidates![0].content.parts &&
+    response.candidates![0].content?.parts &&
     response.candidates![0].content.parts.length > 0
   );
 }
@@ -72,9 +71,9 @@ export function isNetworkError(error: unknown): boolean {
   if (error && typeof error === 'object') {
     const err = error as { code?: string; message?: string };
     return !!(
-      err.code?.includes('NETWORK') ||
-      err.code?.includes('TIMEOUT') ||
-      err.message?.toLowerCase().includes('network') ||
+      err.code?.includes('NETWORK') ??
+      (err.code?.includes('TIMEOUT') ??
+      err.message?.toLowerCase().includes('network')) ??
       err.message?.toLowerCase().includes('timeout')
     );
   }
@@ -84,7 +83,7 @@ export function isNetworkError(error: unknown): boolean {
 export function isApiError(error: unknown): boolean {
   if (error && typeof error === 'object') {
     const err = error as { status?: number; statusCode?: number };
-    return !!(err.status || err.statusCode);
+    return !!(err.status ?? err.statusCode);
   }
   return false;
 }

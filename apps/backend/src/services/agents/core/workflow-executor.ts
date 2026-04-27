@@ -133,7 +133,15 @@ export class WorkflowExecutor {
       const { output, retryCount } = await this.runStepWithRetries(step, config, context);
       const endTime = new Date();
 
-      this.recordStepSuccess(step, config, context, output, startTime, endTime, retryCount);
+      this.recordStepSuccess({
+        step,
+        config,
+        context,
+        output,
+        startTime,
+        endTime,
+        retryCount,
+      });
     } catch (error) {
       this.recordStepFailure(step, config, context, error, startTime);
 
@@ -195,7 +203,7 @@ export class WorkflowExecutor {
     }
 
     if (!output) {
-      throw lastError || new Error('Step failed without output');
+      throw lastError ?? new Error('Step failed without output');
     }
     return { output, retryCount };
   }
@@ -203,10 +211,16 @@ export class WorkflowExecutor {
   /**
    * Record a successful step result
    */
-  private recordStepSuccess(
-    step: WorkflowStep, config: WorkflowConfig, context: WorkflowContext,
-    output: StandardAgentOutput, startTime: Date, endTime: Date, retryCount: number
-  ): void {
+  private recordStepSuccess(result: {
+    step: WorkflowStep;
+    config: WorkflowConfig;
+    context: WorkflowContext;
+    output: StandardAgentOutput;
+    startTime: Date;
+    endTime: Date;
+    retryCount: number;
+  }): void {
+    const { step, config, context, output, startTime, endTime, retryCount } = result;
     context.results.set(step.id, {
       agentId: step.agentId, taskType: step.taskType,
       status: AgentStatus.COMPLETED, output, startTime, endTime,
@@ -293,7 +307,7 @@ export class WorkflowExecutor {
   }
 
   private emit(event: WorkflowEvent): void {
-    const handlers = this.listeners.get(event.type) || [];
+    const handlers = this.listeners.get(event.type) ?? [];
     handlers.forEach((handler) => handler(event));
   }
 }

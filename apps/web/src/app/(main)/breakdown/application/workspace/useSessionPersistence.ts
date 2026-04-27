@@ -10,6 +10,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 
+import { isUnknownRecord } from "@/lib/utils/unknown-values";
+
 /** مفتاح التخزين */
 const STORAGE_KEY = "breakdown_sessions";
 const AUTO_SAVE_KEY = "breakdown_autosave";
@@ -31,6 +33,20 @@ interface SessionStore {
   version: number;
 }
 
+function isSavedBreakdownSession(
+  value: unknown
+): value is SavedBreakdownSession {
+  return (
+    isUnknownRecord(value) &&
+    typeof value["id"] === "string" &&
+    typeof value["scriptTitle"] === "string" &&
+    typeof value["scriptExcerpt"] === "string" &&
+    typeof value["createdAt"] === "string" &&
+    typeof value["updatedAt"] === "string" &&
+    isUnknownRecord(value["data"])
+  );
+}
+
 /**
  * قراءة المخزن
  */
@@ -39,7 +55,17 @@ function readStore(): SessionStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { sessions: [], version: 1 };
-    return JSON.parse(raw) as SessionStore;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isUnknownRecord(parsed)) {
+      return { sessions: [], version: 1 };
+    }
+
+    return {
+      sessions: Array.isArray(parsed["sessions"])
+        ? parsed["sessions"].filter(isSavedBreakdownSession)
+        : [],
+      version: typeof parsed["version"] === "number" ? parsed["version"] : 1,
+    };
   } catch {
     return { sessions: [], version: 1 };
   }
@@ -64,9 +90,15 @@ export function useBreakdownSessionPersistence() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const store = readStore();
-    setTimeout(() => { ; }, 0);
-    setIsLoaded(true);
+    const timeout = setTimeout(() => {
+      const store = readStore();
+      setSavedSessions(store.sessions);
+      setIsLoaded(true);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, []);
 
   /**
@@ -166,7 +198,15 @@ export function useBreakdownSessionPersistence() {
     try {
       const raw = localStorage.getItem(AUTO_SAVE_KEY);
       if (!raw) return null;
-      return JSON.parse(raw);
+      const parsed: unknown = JSON.parse(raw);
+      if (
+        !isUnknownRecord(parsed) ||
+        !isUnknownRecord(parsed["data"]) ||
+        typeof parsed["savedAt"] !== "string"
+      ) {
+        return null;
+      }
+      return { data: parsed["data"], savedAt: parsed["savedAt"] };
     } catch {
       return null;
     }

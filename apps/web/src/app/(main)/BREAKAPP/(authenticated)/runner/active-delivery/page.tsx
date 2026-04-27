@@ -90,7 +90,13 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
   }, []);
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks().catch(() => {
+      toast({
+        title: "خطأ في جلب المهام",
+        description: "تعذّر تحميل مهام التوصيل",
+        variant: "destructive",
+      });
+    });
   }, [fetchTasks]);
 
   /**

@@ -1,8 +1,9 @@
-import { logger } from "@/lib/logger";
 import { Dirent, existsSync } from "node:fs";
 import { readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+
+import { logger } from "@/lib/logger";
 
 type RemovePath = (targetPath: string) => Promise<void>;
 type ReadDirectory = (targetPath: string) => Promise<Dirent[]>;

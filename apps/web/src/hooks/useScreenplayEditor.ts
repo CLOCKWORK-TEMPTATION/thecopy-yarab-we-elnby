@@ -8,6 +8,7 @@
 
 import { useEffect, useCallback, useRef } from "react";
 
+import { logger } from "@/lib/ai/utils/logger";
 import { ScreenplayClassifier } from "@/lib/screenplay/classifier";
 import { useScreenplayStore } from "@/lib/stores/screenplayStore";
 
@@ -52,7 +53,9 @@ export function useScreenplayEditor(documentId?: string) {
     if (!documentId || !isDirty) return;
 
     const timer = setTimeout(() => {
-      saveDocument();
+      saveDocument().catch((error: unknown) => {
+        logger.error("فشل الحفظ التلقائي للمستند", error);
+      });
     }, settings.autoSaveInterval);
 
     return () => clearTimeout(timer);
@@ -63,7 +66,9 @@ export function useScreenplayEditor(documentId?: string) {
    */
   useEffect(() => {
     if (documentId) {
-      loadDocument(documentId);
+      loadDocument(documentId).catch((error: unknown) => {
+        logger.error("فشل تحميل المستند", error);
+      });
     }
   }, [documentId]);
 
@@ -327,7 +332,9 @@ export function useAutoSave(interval = 30000) {
     if (!isDirty) return;
 
     const timer = setInterval(() => {
-      saveDocument();
+      saveDocument().catch((error: unknown) => {
+        logger.error("فشل الحفظ التلقائي المتكرر", error);
+      });
     }, interval);
 
     return () => clearInterval(timer);

@@ -39,7 +39,8 @@ vi.mock("zod", () => ({
 }));
 
 // ─── Mock لـ backend-proxy ───
-const mockProxyToBackend = vi.fn();
+const mockProxyToBackend =
+  vi.fn<(...args: unknown[]) => Promise<Response>>();
 vi.mock("@/lib/server/backend-proxy", () => ({
   proxyToBackend: (...args: unknown[]) => mockProxyToBackend(...args),
   buildProxyErrorResponse: vi.fn((_error: unknown, message: string) => {
