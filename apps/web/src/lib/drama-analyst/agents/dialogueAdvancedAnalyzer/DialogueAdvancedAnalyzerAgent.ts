@@ -30,7 +30,7 @@ export class DialogueAdvancedAnalyzerAgent extends BaseAgent {
     // Extract dialogue context
     const contextObj: Record<string, unknown> =
       typeof context === "object" && context !== null
-        ? (context as Record<string, unknown>)
+        ? (context)
         : {};
     const rawDialogueContext = contextObj.dialogueContext;
     const dialogueContext =

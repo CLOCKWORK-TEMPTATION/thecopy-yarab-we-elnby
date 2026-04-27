@@ -57,7 +57,8 @@ export default function LauncherCenterCard({
   const { ref: sceneRef, size } = useElementSize<HTMLDivElement>();
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const router = useRouter();

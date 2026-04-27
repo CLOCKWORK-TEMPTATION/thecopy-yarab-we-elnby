@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { CreativeWritingStudio } from "@/app/(main)/arabic-creative-writing-studio/components/CreativeWritingStudio";
+
 import type { PromptLibraryProps } from "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary";
 import type { SettingsPanelProps } from "@/app/(main)/arabic-creative-writing-studio/components/SettingsPanel";
 import type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor";

@@ -123,7 +123,7 @@ export class DataManager {
   getSettings(): AppSettings {
     const value = this.storage.get(this.STORAGE_KEYS.SETTINGS);
     return value && !Array.isArray(value)
-      ? (value as AppSettings)
+      ? (value)
       : this.getDefaultSettings();
   }
 

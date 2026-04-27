@@ -322,7 +322,7 @@ export class SetReusabilityOptimizer implements Plugin {
 
     return {
       success: true,
-      data: analysis as unknown as Record<string, unknown>,
+      data: analysis,
     };
   }
 
@@ -564,7 +564,7 @@ export class SetReusabilityOptimizer implements Plugin {
 
     return {
       success: true,
-      data: report as unknown as Record<string, unknown>,
+      data: report,
     };
   }
 

@@ -265,7 +265,7 @@ export class TerminologyTranslator implements Plugin {
           translated: text,
           sourceLanguage: from,
           targetLanguage: to,
-        } as TranslationResult as unknown as Record<string, unknown>,
+        },
       };
     }
 
@@ -301,7 +301,7 @@ export class TerminologyTranslator implements Plugin {
           ...result,
           definition: to === "en" ? term.definition : term.definitionAr,
           category: term.category,
-        } as unknown as Record<string, unknown>,
+        },
       };
     }
 

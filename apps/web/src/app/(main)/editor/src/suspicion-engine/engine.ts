@@ -20,8 +20,8 @@ import { detectMultiOverride } from "@editor/suspicion-engine/detectors/cross-pa
 import { detectReverseConflict } from "@editor/suspicion-engine/detectors/cross-pass/reverse-conflict.detector";
 import { detectViterbiConflict } from "@editor/suspicion-engine/detectors/cross-pass/viterbi-conflict.detector";
 import { detectActionGateBreak } from "@editor/suspicion-engine/detectors/gate-break/action-gate.detector";
-import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
 import { detectCharacterGateBreak } from "@editor/suspicion-engine/detectors/gate-break/character-gate.detector";
+import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
 
 // ── Corruption detectors ──
 

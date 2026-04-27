@@ -116,7 +116,7 @@ describe("MemorizationView", () => {
     fireEvent.click(btn);
     const textarea = screen.getByPlaceholderText(
       "أدخل النص هنا..."
-    ) as HTMLTextAreaElement;
+    );
     expect(textarea.value).toContain("أكون أو لا أكون");
   });
 

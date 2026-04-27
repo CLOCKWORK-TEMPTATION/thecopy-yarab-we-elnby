@@ -54,7 +54,7 @@ describe("SceneRhythmView", () => {
     const textarea = screen.getByPlaceholderText(
       "الصق نصك هنا..."
     ) as HTMLTextAreaElement;
-    expect(textarea.value.length).toBeGreaterThan(20);
+    expect((textarea.value ?? "").length).toBeGreaterThan(20);
   });
 
   it("لا يبدأ التحليل بدون نص", () => {

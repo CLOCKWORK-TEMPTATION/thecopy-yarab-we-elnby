@@ -260,7 +260,7 @@ export class RiskAnalyzer implements Plugin {
           maxRiskScore: maxScore,
         },
         recommendations: this.generateRecommendations(risks, data),
-      } as unknown as Record<string, unknown>,
+      },
     };
   }
 

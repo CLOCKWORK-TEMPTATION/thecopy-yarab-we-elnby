@@ -30,7 +30,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     // Extract character context
     const contextObj: { characterName?: string; previousAnalysis?: string } =
       typeof context === "object" && context !== null
-        ? (context as { characterName?: string; previousAnalysis?: string })
+        ? (context)
         : {};
     const characterName = contextObj.characterName ?? "الشخصية المستهدفة";
     const previousAnalysis = contextObj.previousAnalysis;

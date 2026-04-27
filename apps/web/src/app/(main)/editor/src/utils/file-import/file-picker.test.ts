@@ -10,7 +10,7 @@ describe("pickImportFile", () => {
   });
 
   it("يعيد null عند إلغاء نافذة اختيار الملف", async () => {
-    type FakeInput = {
+    interface FakeInput {
       type: string;
       name: string;
       accept: string;
@@ -22,7 +22,7 @@ describe("pickImportFile", () => {
       removeEventListener: (event: string) => void;
       remove: () => undefined;
       click: () => undefined;
-    };
+    }
     let createdInput: FakeInput | null = null;
     const listeners = new Map<string, EventListener>();
 

@@ -270,7 +270,7 @@ export class CollaborativeReviewPlatform implements Plugin {
 
     return {
       success: true,
-      data: summary as unknown as Record<string, unknown>,
+      data: summary,
     };
   }
 

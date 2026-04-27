@@ -285,7 +285,7 @@ export class CompletionAgent extends BaseAgent {
   ): string {
     const contextObj: { completionScope?: string } =
       typeof input.context === "object" && input.context !== null
-        ? (input.context as { completionScope?: string })
+        ? (input.context)
         : {};
     const scope = contextObj.completionScope ?? "paragraph";
 
