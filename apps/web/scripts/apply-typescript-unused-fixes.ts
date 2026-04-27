@@ -162,7 +162,7 @@ function applyEdits(edits: FileEdit[]): number {
   return filesChanged;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const configPath = path.resolve(process.cwd(), "tsconfig.json");
   const parsed = loadTsConfig(configPath);
   const currentDirectory = path.dirname(configPath);

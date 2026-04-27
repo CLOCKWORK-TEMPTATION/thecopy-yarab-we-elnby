@@ -135,7 +135,7 @@ const convertDocumentInputSchema = {
   required: ["inputPath"],
 };
 
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+server.setRequestHandler(ListToolsRequestSchema, () => {
   return {
     tools: [
       {

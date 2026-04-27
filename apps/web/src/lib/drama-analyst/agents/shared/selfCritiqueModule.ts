@@ -17,7 +17,7 @@ export class SelfCritiqueModule {
   async applySelfCritique(
     output: string,
     task: string,
-    context: any,
+    context: unknown,
     maxIterations = 3
   ): Promise<SelfCritiqueResult> {
     log.info("Starting self-critique", { maxIterations }, "SelfCritiqueModule");
@@ -94,7 +94,7 @@ export class SelfCritiqueModule {
   private async generateCritique(
     output: string,
     task: string,
-    context: any
+    context: unknown
   ): Promise<string> {
     const critiquePrompt = `
 أنت ناقد محترف متخصص في المحتوى الدرامي.
@@ -164,7 +164,7 @@ ${critique}
     output: string,
     critique: string,
     task: string,
-    context: any
+    context: unknown
   ): Promise<string> {
     const refinementPrompt = `
 المهمة الأصلية:

@@ -75,10 +75,10 @@ describe("Core Types", () => {
   describe("AIAgentConfig Type", () => {
     it("validate-pipeline: should have required properties", () => {
       const config = {
-        id: "test" as any,
+        id: "test",
         name: "Test Agent",
         description: "Test description",
-        category: "core" as any,
+        category: "core",
         capabilities: {
           multiModal: false,
           reasoningChains: false,

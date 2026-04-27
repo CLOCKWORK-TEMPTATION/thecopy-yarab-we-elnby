@@ -107,7 +107,19 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
     return `$${value}`;
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface TooltipEntry {
+    name?: string | number;
+    value?: number;
+    color?: string;
+  }
+
+  interface CustomTooltipProps {
+    active?: boolean;
+    payload?: TooltipEntry[];
+    label?: string | number;
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload?.length) {
       return (
         <div
@@ -118,9 +130,9 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
           }`}
         >
           <p className="font-semibold">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry: TooltipEntry, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.name}: {formatCurrency(entry.value)}
+              {entry.name}: {formatCurrency(entry.value ?? 0)}
             </p>
           ))}
         </div>

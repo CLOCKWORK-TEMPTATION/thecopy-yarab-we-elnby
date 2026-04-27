@@ -415,7 +415,7 @@ export class Station7Finalization extends BaseStation<
     return this.extractText(response.content);
   }
 
-  private async generateOverallAssessment(
+  private generateOverallAssessment(
     scoreMatrix: ScoreMatrix,
     _s1?: Station1Output,
     _s2?: Station2Output,
@@ -423,7 +423,7 @@ export class Station7Finalization extends BaseStation<
     s4?: Station4Output,
     _s5?: Station5Output,
     _s6?: Station6Output
-  ): Promise<Station7Output["finalReport"]["overallAssessment"]> {
+  ): Station7Output["finalReport"]["overallAssessment"] {
     const narrativeQualityScore =
       (scoreMatrix.foundation + scoreMatrix.conceptual) / 2;
     const structuralIntegrityScore = scoreMatrix.conflictNetwork;
@@ -695,14 +695,14 @@ ${allIssues.map((issue, i) => `${i + 1}. ${issue.description} (نوع: ${issue.c
     }
   }
 
-  private async calculateFinalConfidence(
+  private calculateFinalConfidence(
     s1?: Station1Output,
     s2?: Station2Output,
     s3?: Station3Output,
     s4?: Station4Output,
     s5?: Station5Output,
     s6?: Station6Output
-  ): Promise<Station7Output["finalConfidence"]> {
+  ): Station7Output["finalConfidence"] {
     const stationConfidences = new Map<string, number>();
 
     if (s1?.uncertaintyReport?.confidence)

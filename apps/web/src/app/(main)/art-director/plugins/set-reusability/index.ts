@@ -80,7 +80,7 @@ export class SetReusabilityOptimizer implements Plugin {
   private inventory = new Map<string, SetPiece>();
   private styleTransformations = new Map<string, Modification[]>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     this.initializeTransformations();
     logger.info(
       `[${this.name}] Initialized with ${this.styleTransformations.size} transformation templates`
@@ -173,7 +173,7 @@ export class SetReusabilityOptimizer implements Plugin {
     ]);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "add-piece":
         return this.addSetPiece(input.data);
@@ -211,7 +211,7 @@ export class SetReusabilityOptimizer implements Plugin {
     }
   }
 
-  private async addSetPiece(data: Partial<SetPiece>): Promise<PluginOutput> {
+  private addSetPiece(data: Partial<SetPiece>): PluginOutput {
     if (!data.name || !data.category) {
       return {
         success: false,
@@ -276,9 +276,9 @@ export class SetReusabilityOptimizer implements Plugin {
     return Math.min(100, Math.max(0, score));
   }
 
-  private async analyzeReusability(
+  private analyzeReusability(
     data: AnalyzeSetInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     const analysis = {
       name: data.name,
       category: data.category,
@@ -338,9 +338,9 @@ export class SetReusabilityOptimizer implements Plugin {
     return allStyles.filter((s) => s !== currentStyle);
   }
 
-  private async findReusablePieces(
+  private findReusablePieces(
     data: FindReusableInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     let pieces = Array.from(this.inventory.values());
 
     if (data.requiredCategory) {
@@ -410,10 +410,10 @@ export class SetReusabilityOptimizer implements Plugin {
     return undefined;
   }
 
-  private async suggestModifications(data: {
+  private suggestModifications(data: {
     pieceId: string;
     targetStyle: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const piece = this.inventory.get(data.pieceId);
 
     if (!piece) {
@@ -440,11 +440,11 @@ export class SetReusabilityOptimizer implements Plugin {
     };
   }
 
-  private async calculateSavings(data: {
+  private calculateSavings(data: {
     pieceId: string;
     modifications: string[];
     newBuildCost: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const piece = this.inventory.get(data.pieceId);
 
     if (!piece) {
@@ -484,10 +484,10 @@ export class SetReusabilityOptimizer implements Plugin {
     };
   }
 
-  private async getInventory(data: {
+  private getInventory(data: {
     category?: string;
     minCondition?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     let pieces = Array.from(this.inventory.values());
 
     if (data.category) {
@@ -511,9 +511,9 @@ export class SetReusabilityOptimizer implements Plugin {
     };
   }
 
-  private async generateSustainabilityReport(data: {
+  private generateSustainabilityReport(data: {
     productionId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const pieces = Array.from(this.inventory.values());
 
     const report = {
@@ -568,7 +568,7 @@ export class SetReusabilityOptimizer implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

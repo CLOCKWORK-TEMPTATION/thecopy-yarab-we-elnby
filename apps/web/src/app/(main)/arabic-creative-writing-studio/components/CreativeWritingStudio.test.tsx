@@ -2,13 +2,30 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { CreativeWritingStudio } from "@/app/(main)/arabic-creative-writing-studio/components/CreativeWritingStudio";
+import type { PromptLibraryProps } from "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary";
+import type { SettingsPanelProps } from "@/app/(main)/arabic-creative-writing-studio/components/SettingsPanel";
+import type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor";
+import type {
+  CreativePrompt,
+  CreativeProject,
+  AppSettings,
+} from "@/app/(main)/arabic-creative-writing-studio/types";
 
 // Mock the child components
 vi.mock("./PromptLibrary", () => ({
-  PromptLibrary: ({ onPromptSelect, onEnhancePrompt, loading }: any) => (
+  PromptLibrary: ({
+    onPromptSelect,
+    onEnhancePrompt,
+    loading,
+  }: PromptLibraryProps) => (
     <div data-testid="prompt-library">
       <button
-        onClick={() => onPromptSelect({ id: "test", title: "Test Prompt" })}
+        onClick={() =>
+          onPromptSelect({
+            id: "test",
+            title: "Test Prompt",
+          } as unknown as CreativePrompt)
+        }
       >
         Select Prompt
       </button>
@@ -25,9 +42,16 @@ vi.mock("./PromptLibrary", () => ({
 }));
 
 vi.mock("./WritingEditor", () => ({
-  WritingEditor: ({ onSave }: any) => (
+  WritingEditor: ({ onSave }: WritingEditorProps) => (
     <div data-testid="writing-editor">
-      <button onClick={() => onSave({ id: "test", title: "Test Project" })}>
+      <button
+        onClick={() =>
+          onSave({
+            id: "test",
+            title: "Test Project",
+          } as unknown as CreativeProject)
+        }
+      >
         Save Project
       </button>
     </div>
@@ -35,9 +59,13 @@ vi.mock("./WritingEditor", () => ({
 }));
 
 vi.mock("./SettingsPanel", () => ({
-  SettingsPanel: ({ onSettingsUpdate }: any) => (
+  SettingsPanel: ({ onSettingsUpdate }: SettingsPanelProps) => (
     <div data-testid="settings-panel">
-      <button onClick={() => onSettingsUpdate({ language: "ar" })}>
+      <button
+        onClick={() =>
+          onSettingsUpdate({ language: "ar" } satisfies Partial<AppSettings>)
+        }
+      >
         Update Settings
       </button>
     </div>

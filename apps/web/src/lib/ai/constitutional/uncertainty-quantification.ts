@@ -10,19 +10,33 @@ export interface UncertaintyMetrics {
   }[];
 }
 
+/**
+ * Context payload passed alongside the text for uncertainty quantification.
+ * Implementations may inspect arbitrary upstream station data, so the shape
+ * is intentionally open. Use `unknown` (not `any`) so callers must narrow
+ * before reading fields.
+ */
+export type UncertaintyContext = Readonly<Record<string, unknown>>;
+
 export interface UncertaintyQuantificationEngine {
-  quantify(text: string, context: any): Promise<UncertaintyMetrics>;
+  quantify(
+    text: string,
+    context: UncertaintyContext
+  ): Promise<UncertaintyMetrics>;
 }
 
 class SimpleUncertaintyEngine implements UncertaintyQuantificationEngine {
   constructor(_geminiService: GeminiService) {}
 
-  async quantify(_text: string, _context: any): Promise<UncertaintyMetrics> {
-    return {
+  quantify(
+    _text: string,
+    _context: UncertaintyContext
+  ): Promise<UncertaintyMetrics> {
+    return Promise.resolve({
       confidence: 0.8,
       type: "epistemic",
       sources: [],
-    };
+    });
   }
 }
 

@@ -703,7 +703,7 @@ function calculateAgeRanges(
  */
 function generateCastInsights(
   _members: ExtendedCastMember[],
-  summary: any
+  summary: CastAnalysisResult["summary"]
 ): string[] {
   const insights: string[] = [];
 
@@ -884,17 +884,32 @@ export const generateCastingCall = (
 /**
  * Validate and normalize cast member data
  */
-export const normalizeCastMember = (member: any): CastMember => {
-  const gender = validateGender(member.gender ?? "Unknown");
-  const role = validateRole(member.roleCategory ?? member.role);
+interface RawCastMember {
+  name?: unknown;
+  role?: unknown;
+  roleCategory?: unknown;
+  age?: unknown;
+  ageRange?: unknown;
+  gender?: unknown;
+  description?: unknown;
+  visualDescription?: unknown;
+  motivation?: unknown;
+}
+
+const asString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+export const normalizeCastMember = (member: RawCastMember): CastMember => {
+  const gender = validateGender(asString(member.gender, "Unknown"));
+  const role = validateRole(asString(member.roleCategory ?? member.role));
 
   return {
-    name: member.name ?? "Unknown",
+    name: asString(member.name, "Unknown"),
     role,
-    age: member.ageRange ?? member.age ?? "Unknown",
+    age: asString(member.ageRange ?? member.age, "Unknown"),
     gender,
-    description: member.visualDescription ?? member.description ?? "",
-    motivation: member.motivation ?? "",
+    description: asString(member.visualDescription ?? member.description),
+    motivation: asString(member.motivation),
   };
 };
 

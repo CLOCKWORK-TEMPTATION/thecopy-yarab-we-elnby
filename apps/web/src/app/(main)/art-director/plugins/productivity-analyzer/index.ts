@@ -87,11 +87,11 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   private delays = new Map<string, Delay>();
   private blockers = new Map<string, Blocker>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "log-time":
         return this.logTime(input.data as unknown as LogTimeInput);
@@ -125,7 +125,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     }
   }
 
-  private async logTime(data: LogTimeInput): Promise<PluginOutput> {
+  private logTime(data: LogTimeInput): PluginOutput {
     if (!data.taskId || !data.taskName || !data.department) {
       return {
         success: false,
@@ -158,11 +158,11 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async completeTask(data: {
+  private completeTask(data: {
     taskId: string;
     actualHours: number;
     notes?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const entries = Array.from(this.timeEntries.values()).filter(
       (e) => e.taskId === data.taskId
     );
@@ -209,7 +209,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async reportDelay(data: Partial<Delay>): Promise<PluginOutput> {
+  private reportDelay(data: Partial<Delay>): PluginOutput {
     if (!data.taskId || !data.reason || !data.hoursLost) {
       return {
         success: false,
@@ -238,7 +238,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async reportBlocker(data: Partial<Blocker>): Promise<PluginOutput> {
+  private reportBlocker(data: Partial<Blocker>): PluginOutput {
     if (!data.description || !data.department) {
       return {
         success: false,
@@ -267,9 +267,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async resolveBlocker(data: {
+  private resolveBlocker(data: {
     blockerId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const blocker = this.blockers.get(data.blockerId);
 
     if (!blocker) {
@@ -295,9 +295,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async analyzePerformance(
+  private analyzePerformance(
     data: AnalyzePerformanceInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     let entries = Array.from(this.timeEntries.values());
 
     if (data.department) {
@@ -368,9 +368,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async getDepartmentReport(data: {
+  private getDepartmentReport(data: {
     department: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const entries = Array.from(this.timeEntries.values()).filter(
       (e) => e.department === data.department
     );
@@ -419,10 +419,10 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async getEfficiencyTrends(data: {
+  private getEfficiencyTrends(data: {
     productionId: string;
     period: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const entries = Array.from(this.timeEntries.values())
       .filter((e) => e.endTime)
       .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
@@ -471,9 +471,9 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  private async getRecommendations(data: {
+  private getRecommendations(data: {
     productionId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const entries = Array.from(this.timeEntries.values());
     const delays = Array.from(this.delays.values());
     const blockers = Array.from(this.blockers.values());
@@ -549,7 +549,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

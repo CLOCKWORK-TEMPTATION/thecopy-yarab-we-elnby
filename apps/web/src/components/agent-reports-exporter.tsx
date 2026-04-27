@@ -15,7 +15,12 @@ export interface AgentTaskResult {
 }
 
 export interface AgentReportsExporterProps {
-  reports: Record<string, any>;
+  /**
+   * خريطة تقارير الوكلاء — القيمة قد تكون نصًا (تُكتب كما هي) أو كائنًا
+   * (يُسلسَل عبر JSON.stringify). نُبقي النوع `unknown` لإجبار المستهلك
+   * على التحقق من الشكل قبل الاستخدام بدلًا من قبول `any`.
+   */
+  reports: Record<string, unknown>;
   originalText?: string;
   taskResults?: Record<string, AgentTaskResult>;
   onExport?: (format: string) => void;

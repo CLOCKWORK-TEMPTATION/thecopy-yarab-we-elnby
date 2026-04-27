@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function HEAD() {
+export function HEAD() {
   return NextResponse.json({
     service: "Workflow Presets",
     status: "proxied to backend",

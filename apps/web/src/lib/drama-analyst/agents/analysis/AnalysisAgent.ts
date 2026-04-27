@@ -8,9 +8,16 @@ import {
 
 import { ANALYSIS_AGENT_CONFIG } from "./agent";
 
+interface PreviousAnalysisShape {
+  mainFindings?: string;
+  recommendations?: string | string[];
+  strengths?: string;
+  weaknesses?: string;
+}
+
 interface AnalysisContext {
   originalText?: string;
-  previousAnalysis?: any;
+  previousAnalysis?: PreviousAnalysisShape | string;
   targetAudience?: string;
   genre?: string;
   analysisDepth?: "surface" | "moderate" | "deep";
@@ -253,7 +260,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Assess structural analysis quality
    */
-  private async assessStructuralAnalysis(text: string): Promise<number> {
+  private assessStructuralAnalysis(text: string): number {
     let score = 0.6; // Base score
 
     // Check for structural elements
@@ -288,7 +295,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Assess dialectical analysis quality
    */
-  private async assessDialecticalAnalysis(text: string): Promise<number> {
+  private assessDialecticalAnalysis(text: string): number {
     let score = 0.5; // Base score
 
     // Check for dialectical elements
@@ -309,7 +316,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Assess recommendations quality
    */
-  private async assessRecommendations(text: string): Promise<number> {
+  private assessRecommendations(text: string): number {
     let score = 0.5; // Base score
 
     // Check for recommendations
@@ -340,7 +347,7 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Assess analytical depth
    */
-  private async assessAnalyticalDepth(text: string): Promise<number> {
+  private assessAnalyticalDepth(text: string): number {
     let score = 0.5; // Base score
 
     // Check text length (longer analysis usually means more depth)
@@ -456,7 +463,9 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Summarize previous analysis
    */
-  private summarizeAnalysis(analysis: any): string {
+  private summarizeAnalysis(
+    analysis: PreviousAnalysisShape | string
+  ): string {
     if (typeof analysis === "string") {
       return analysis.length > 500
         ? analysis.substring(0, 500) + "..."
@@ -465,11 +474,11 @@ export class AnalysisAgent extends BaseAgent {
 
     const summary: string[] = [];
 
-    if (analysis?.mainFindings) {
+    if (analysis.mainFindings) {
       summary.push(`النتائج الرئيسية: ${analysis.mainFindings}`);
     }
 
-    if (analysis?.recommendations) {
+    if (analysis.recommendations) {
       const recs =
         typeof analysis.recommendations === "string"
           ? analysis.recommendations
@@ -479,11 +488,11 @@ export class AnalysisAgent extends BaseAgent {
       summary.push(`التوصيات: ${recs}`);
     }
 
-    if (analysis?.strengths) {
+    if (analysis.strengths) {
       summary.push(`نقاط القوة: ${analysis.strengths}`);
     }
 
-    if (analysis?.weaknesses) {
+    if (analysis.weaknesses) {
       summary.push(`نقاط الضعف: ${analysis.weaknesses}`);
     }
 
@@ -493,9 +502,9 @@ export class AnalysisAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `تحليل نقدي معماري:
 تم إجراء تحليل أولي للنص المقدم باستخدام المنهجية الجدلية والتحليل الشعاعي.
 

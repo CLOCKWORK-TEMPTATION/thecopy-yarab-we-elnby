@@ -98,9 +98,9 @@ export interface Plugin {
   description: string;
   descriptionAr: string;
   category: PluginCategory;
-  initialize(): Promise<void>;
-  execute(input: PluginInput): Promise<PluginOutput>;
-  shutdown(): Promise<void>;
+  initialize(): Promise<void> | void;
+  execute(input: PluginInput): Promise<PluginOutput> | PluginOutput;
+  shutdown(): Promise<void> | void;
 }
 
 // ==================== Project Types ====================

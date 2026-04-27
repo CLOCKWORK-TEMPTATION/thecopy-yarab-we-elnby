@@ -79,11 +79,11 @@ export class CollaborativeReviewPlatform implements Plugin {
 
   private reviews = new Map<string, Review>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "create":
         return this.createReview(input.data as unknown as CreateReviewInput);
@@ -105,7 +105,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     }
   }
 
-  private async createReview(data: CreateReviewInput): Promise<PluginOutput> {
+  private createReview(data: CreateReviewInput): PluginOutput {
     if (!data.projectId || !data.sceneId || !data.author || !data.content) {
       return {
         success: false,
@@ -143,7 +143,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  private async addReply(data: AddReplyInput): Promise<PluginOutput> {
+  private addReply(data: AddReplyInput): PluginOutput {
     const review = this.reviews.get(data.reviewId);
     if (!review) {
       return {
@@ -171,7 +171,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  private async getReviews(data: GetReviewsInput): Promise<PluginOutput> {
+  private getReviews(data: GetReviewsInput): PluginOutput {
     let reviews = Array.from(this.reviews.values());
 
     if (data.projectId) {
@@ -201,10 +201,10 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  private async updateStatus(data: {
+  private updateStatus(data: {
     reviewId: string;
     status: Review["status"];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const review = this.reviews.get(data.reviewId);
     if (!review) {
       return {
@@ -225,9 +225,9 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  private async getReviewSummary(data: {
+  private getReviewSummary(data: {
     projectId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const reviews = Array.from(this.reviews.values()).filter(
       (r) => r.projectId === data.projectId
     );
@@ -274,7 +274,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

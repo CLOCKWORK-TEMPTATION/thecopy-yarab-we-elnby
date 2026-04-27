@@ -1,5 +1,5 @@
 import "server-only";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
 
 import { logger } from "../utils/logger";
 
@@ -65,7 +65,7 @@ interface RateLimitState {
 export class GeminiService {
   private ai: GoogleGenAI;
   private config: GeminiConfig;
-  private cache: Map<string, CacheEntry<any>>;
+  private cache: Map<string, CacheEntry<unknown>>;
   private rateLimitState: RateLimitState;
   private readonly CACHE_TTL = 3600000;
   private readonly RATE_LIMIT_WINDOW = 60000;
@@ -228,7 +228,7 @@ export class GeminiService {
 
     const fullPrompt = `${systemPart}${contextPart}${request.prompt}`;
 
-    const finalConfig: any = {
+    const finalConfig: GenerateContentConfig = {
       temperature: request.temperature ?? 0.7,
       maxOutputTokens: request.maxTokens ?? 8192,
       topP: request.topP ?? 0.95,
@@ -310,10 +310,10 @@ export class GeminiService {
     return { raw: responseText } as T;
   }
 
-  private async handleError<T>(
+  private handleError<T>(
     error: unknown,
     request: GeminiRequest<T>
-  ): Promise<never> {
+  ): never {
     const message = error instanceof Error ? error.message : "Unknown error";
     logger.error(
       `[GeminiService] Failed to generate content with model ${request.model}`,
@@ -324,7 +324,7 @@ export class GeminiService {
     throw error instanceof Error ? error : new Error(message);
   }
 
-  private generateCacheKey(request: GeminiRequest<any>): string {
+  private generateCacheKey(request: GeminiRequest<unknown>): string {
     const model = request.model ?? this.config.defaultModel;
     const temp = request.temperature ?? 0.7;
     const maxTokens = request.maxTokens ?? 8192;

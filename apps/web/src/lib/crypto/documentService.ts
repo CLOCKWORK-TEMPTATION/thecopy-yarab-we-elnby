@@ -30,6 +30,33 @@ export interface LoadDocumentParams {
   userId: string;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+interface SavedDocumentResponse {
+  id?: string;
+  version?: number;
+}
+
+interface EncryptedDocumentPayload {
+  ciphertext: string;
+  iv: string;
+  wrappedDEK: string;
+  wrappedDEKiv: string;
+  version: number;
+}
+
+interface DocumentListEntry {
+  id: string;
+  version: number;
+  ciphertextSize: number;
+  createdAt: string;
+  lastModified: string;
+}
+
 /**
  * حفظ مستند مشفر
  */
@@ -82,7 +109,7 @@ export async function saveEncryptedDocument(
       body: JSON.stringify(payload),
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<SavedDocumentResponse>;
 
     if (!data.success) {
       return {
@@ -93,7 +120,7 @@ export async function saveEncryptedDocument(
 
     return {
       success: true,
-      docId: data.data.id ?? docId,
+      docId: data.data?.id ?? docId,
     };
   } catch (error) {
     logger.error("خطأ في حفظ المستند المشفر:", error);
@@ -126,9 +153,9 @@ export async function loadEncryptedDocument(
       credentials: "include",
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<EncryptedDocumentPayload>;
 
-    if (!data.success) {
+    if (!data.success || !data.data) {
       return {
         success: false,
         error: data.error ?? "فشل في تحميل المستند",
@@ -188,7 +215,7 @@ export async function listEncryptedDocuments(): Promise<{
       credentials: "include",
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<DocumentListEntry[]>;
 
     if (!data.success) {
       return {
@@ -222,7 +249,7 @@ export async function deleteEncryptedDocument(
       credentials: "include",
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<unknown>;
 
     if (!data.success) {
       return {
@@ -257,9 +284,9 @@ async function getNextVersion(docId: string): Promise<number> {
       credentials: "include",
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ApiResponse<SavedDocumentResponse>;
 
-    if (data.success && data.data.version) {
+    if (data.success && data.data?.version) {
       return data.data.version + 1;
     }
 

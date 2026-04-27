@@ -1,9 +1,32 @@
 import { toText, safeSub } from "../utils/text-utils";
 
-import { BaseStation, StationInput } from "./base-station";
+import { BaseStation, StationInput, StationOptions } from "./base-station";
 import { GeminiService, GeminiModel } from "./gemini-service";
-import { Station1Output } from "./station1-text-analysis";
+import {
+  Station1Output,
+  type CharacterProfile,
+} from "./station1-text-analysis";
 import { Station2Output } from "./station2-conceptual-analysis";
+
+/**
+ * Pivotal point in a conflict's progression.
+ */
+export interface ConflictPivotPoint {
+  timestamp: string | Date;
+  description: string;
+  impact: number;
+  affectedElements?: string[];
+}
+
+/**
+ * Hint about a relationship inferred from previous stations.
+ */
+export interface RelationshipHint {
+  source?: string;
+  target?: string;
+  description?: string;
+  strength?: number;
+}
 
 // Define types locally for now
 export enum RelationshipType {
@@ -94,7 +117,7 @@ export interface Conflict {
   phase: ConflictPhase;
   strength: number;
   relatedRelationships: string[];
-  pivotPoints: any[];
+  pivotPoints: ConflictPivotPoint[];
   timestamps: Date[];
   metadata: {
     source: string;
@@ -198,8 +221,8 @@ export class NetworkDiagnostics {
 
 export interface Station3Context {
   majorCharacters: string[];
-  characterProfiles?: Map<string, any>;
-  relationshipData?: any[];
+  characterProfiles?: Map<string, CharacterProfile>;
+  relationshipData?: RelationshipHint[];
   fullText: string;
 }
 
@@ -673,15 +696,15 @@ class NetworkAnalyzer {
     void geminiService;
   }
 
-  async analyzeNetwork(
+  analyzeNetwork(
     network: ConflictNetwork,
     _context: Station3Context
-  ): Promise<{
+  ): {
     density: number;
     complexity: number;
     balance: number;
     dynamicRange: number;
-  }> {
+  } {
     // حساب كثافة الشبكة
     const maxPossibleConnections =
       (network.characters.size * (network.characters.size - 1)) / 2;
@@ -756,15 +779,15 @@ class NetworkAnalyzer {
     return Math.min(stdDev / mean, 1) || 0;
   }
 
-  async analyzeConflicts(
+  analyzeConflicts(
     network: ConflictNetwork,
     _context: Station3Context
-  ): Promise<{
+  ): {
     mainConflict: Conflict;
     subConflicts: Conflict[];
     conflictTypes: Map<string, number>;
     intensityProgression: number[];
-  }> {
+  } {
     const conflicts = Array.from(network.conflicts.values());
 
     // تحديد الصراع الرئيسي (الأقوى)
@@ -823,10 +846,10 @@ class NetworkAnalyzer {
     };
   }
 
-  async generateCharacterArcs(
+  generateCharacterArcs(
     network: ConflictNetwork,
     _context: Station3Context
-  ): Promise<Map<string, CharacterArc>> {
+  ): Map<string, CharacterArc> {
     const characterArcs = new Map<string, CharacterArc>();
 
     for (const character of network.characters.values()) {
@@ -978,17 +1001,15 @@ class NetworkAnalyzer {
     return 0.9; // عالي
   }
 
-  async identifyPivotPoints(
+  identifyPivotPoints(
     network: ConflictNetwork,
     _context: Station3Context
-  ): Promise<
-    {
+  ): {
       timestamp: string;
       description: string;
       impact: number;
       affectedElements: string[];
-    }[]
-  > {
+    }[] {
     const pivotPoints: {
       timestamp: string;
       description: string;
@@ -1057,7 +1078,7 @@ export class Station3NetworkBuilder extends BaseStation {
 
   protected async execute(
     input: StationInput,
-    _options: any
+    _options: StationOptions
   ): Promise<Station3Output> {
     if (
       !(
@@ -1245,7 +1266,7 @@ export class Station3NetworkBuilder extends BaseStation {
   }
 
   private buildContext(input: Station3Input): Station3Context {
-    const relationshipHints: any[] = [];
+    const relationshipHints: RelationshipHint[] = [];
 
     return {
       majorCharacters: input.station1Output.majorCharacters.map((c) => c.name),

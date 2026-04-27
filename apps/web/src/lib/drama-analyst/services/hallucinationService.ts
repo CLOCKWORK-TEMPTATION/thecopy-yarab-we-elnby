@@ -29,7 +29,7 @@ export class HallucinationService {
   async detectHallucinations(
     output: string,
     sourceText: string,
-    analysisReport: any
+    analysisReport: unknown
   ): Promise<HallucinationDetection> {
     log.info("Starting hallucination detection", null, "HallucinationService");
 
@@ -121,7 +121,7 @@ ${output.substring(0, 3000)}
   private async factCheckClaim(
     claim: string,
     sourceText: string,
-    analysisReport: any
+    analysisReport: unknown
   ): Promise<FactCheck> {
     const factCheckPrompt = `
 قم بالتحقق من صحة الادعاء التالي بناءً على المصادر المتاحة:

@@ -86,20 +86,31 @@ export class LightingSimulator implements Plugin {
   descriptionAr = "محاكاة دقيقة لظروف الإضاءة الطبيعية والصناعية";
   category = "ai-analytics" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "simulate":
         return this.simulateLighting(
           input.data as unknown as LightingSimulationInput
         );
       case "calculate":
-        return this.calculateEquipment(input.data as any);
+        return this.calculateEquipment(
+          input.data as unknown as {
+            area: number;
+            targetLux: number;
+            colorTemp: number;
+          }
+        );
       case "match":
-        return this.matchNaturalLight(input.data as any);
+        return this.matchNaturalLight(
+          input.data as unknown as {
+            targetTime: string;
+            currentSetup: LightingSetup;
+          }
+        );
       default:
         return {
           success: false,
@@ -108,9 +119,9 @@ export class LightingSimulator implements Plugin {
     }
   }
 
-  private async simulateLighting(
+  private simulateLighting(
     data: LightingSimulationInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     const { scene, style = "naturalistic" } = data;
 
     const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] ?? 5600;
@@ -400,11 +411,11 @@ export class LightingSimulator implements Plugin {
     return `المشهد: ${locations[scene.location]} - ${times[scene.timeOfDay]}\nالنمط: ${style}\nدرجة حرارة اللون: ${TIME_COLOR_TEMPS[scene.timeOfDay]}K`;
   }
 
-  private async calculateEquipment(data: {
+  private calculateEquipment(data: {
     area: number;
     targetLux: number;
     colorTemp: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { area, targetLux, colorTemp } = data;
 
     // Calculate required lumens
@@ -451,10 +462,10 @@ export class LightingSimulator implements Plugin {
     };
   }
 
-  private async matchNaturalLight(data: {
+  private matchNaturalLight(data: {
     targetTime: string;
     currentSetup: LightingSetup;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { targetTime, currentSetup } = data;
     const targetTemp = TIME_COLOR_TEMPS[targetTime] ?? 5600;
 
@@ -486,7 +497,7 @@ export class LightingSimulator implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

@@ -102,8 +102,8 @@ describe("stripHtmlTags - Security Tests", () => {
     });
 
     it("should handle null/undefined", () => {
-      expect(stripHtmlTags(null as any)).toBe("");
-      expect(stripHtmlTags(undefined as any)).toBe("");
+      expect(stripHtmlTags(null as unknown as string)).toBe("");
+      expect(stripHtmlTags(undefined as unknown as string)).toBe("");
     });
 
     it("should handle plain text without tags", () => {
@@ -151,7 +151,9 @@ describe("createSafeStyleObject - Security Tests", () => {
     expect(result.color ?? "").toBe("red");
     expect(result.width ?? "").toBe("100%");
     // -moz-binding should be filtered
-    expect((result as any)["-moz-binding"]).toBeUndefined();
+    expect(
+      (result as unknown as Record<string, string>)["-moz-binding"]
+    ).toBeUndefined();
   });
 
   it("should sanitize CSS values with url()", () => {

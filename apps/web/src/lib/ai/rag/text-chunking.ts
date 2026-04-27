@@ -231,7 +231,7 @@ export class TextChunker {
   /**
    * إنشاء ملخص للأجزاء
    */
-  private async generateSummary(chunks: TextChunk[]): Promise<string> {
+  private generateSummary(chunks: TextChunk[]): string {
     // للتبسيط، نستخدم أول 500 حرف من كل جزء لإنشاء ملخص
     const excerpts = chunks
       .map((chunk) =>
@@ -246,7 +246,7 @@ export class TextChunker {
   /**
    * بناء خريطة السياق
    */
-  private async buildContextMap(chunks: TextChunk[]): Promise<ContextMap> {
+  private buildContextMap(chunks: TextChunk[]): ContextMap {
     const contextMap: ContextMap = {
       chunks: new Map(),
       entities: new Map(),

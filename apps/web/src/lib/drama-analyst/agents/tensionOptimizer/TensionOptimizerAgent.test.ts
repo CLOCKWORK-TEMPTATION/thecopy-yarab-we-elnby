@@ -411,7 +411,7 @@ describe("TensionOptimizerAgent", () => {
     it("should use default options when not provided", async () => {
       const input: StandardAgentInput = {
         input: "حلل التوتر",
-        options: undefined as any,
+        options: undefined,
         context: {
           originalText: "نص",
         },

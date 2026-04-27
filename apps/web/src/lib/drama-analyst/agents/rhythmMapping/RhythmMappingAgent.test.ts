@@ -373,7 +373,7 @@ describe("RhythmMappingAgent", () => {
     it("should use default options when not provided", async () => {
       const input: StandardAgentInput = {
         input: "حلل الإيقاع",
-        options: undefined as any,
+        options: undefined,
         context: {
           originalText: "نص",
         },

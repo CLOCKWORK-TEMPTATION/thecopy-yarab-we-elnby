@@ -54,7 +54,7 @@ describe("editor clipboard helpers", () => {
   });
 
   it("copies the selected text with a detailed success result", async () => {
-    const writeText = vi.fn(async () => undefined);
+    const writeText = vi.fn(() => undefined);
     setClipboard({ writeText });
 
     const result = await copyToClipboard(createEditor(), true);
@@ -66,7 +66,7 @@ describe("editor clipboard helpers", () => {
   });
 
   it("cuts the selected text only after a successful copy", async () => {
-    const writeText = vi.fn(async () => undefined);
+    const writeText = vi.fn(() => undefined);
     const editor = createEditor();
     setClipboard({ writeText });
 
@@ -78,9 +78,9 @@ describe("editor clipboard helpers", () => {
   });
 
   it("pastes plain text through the import callback", async () => {
-    const readText = vi.fn(async () => "نص منسوخ");
-    const importText = vi.fn(async () => undefined);
-    const importBlocks = vi.fn(async () => undefined);
+    const readText = vi.fn(() => "نص منسوخ");
+    const importText = vi.fn(() => undefined);
+    const importBlocks = vi.fn(() => undefined);
     setClipboard({ readText });
 
     const result = await pasteFromClipboard("menu", importText, importBlocks);
@@ -95,7 +95,7 @@ describe("editor clipboard helpers", () => {
 
   it("returns a permission error when clipboard writing is denied", async () => {
     setClipboard({
-      writeText: vi.fn(async () => {
+      writeText: vi.fn(() => {
         throw new DOMException("denied", "NotAllowedError");
       }),
     });

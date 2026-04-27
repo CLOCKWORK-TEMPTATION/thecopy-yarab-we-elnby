@@ -1,7 +1,7 @@
 import { Play, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 
-import { toolConfigs, ToolId, ToolInput } from "../core/toolConfigs";
+import { toolConfigs, ToolId, ToolInput, ToolInputOption } from "../core/toolConfigs";
 import "./Tools.css";
 import { artDirectorApiPath } from "../lib/api-client";
 
@@ -17,7 +17,11 @@ function Tools() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [selectedTool, setSelectedTool] = useState<ToolId | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    success?: boolean;
+    error?: string;
+    [key: string]: unknown;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -47,7 +51,11 @@ function Tools() {
           body: JSON.stringify(formData),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+        [key: string]: unknown;
+      };
       setResult(data);
     } catch {
       setResult({ success: false, error: "حدث خطأ في الاتصال" });
@@ -66,7 +74,7 @@ function Tools() {
           }
         >
           <option value="">اختر...</option>
-          {input.options?.map((opt: any) => (
+          {input.options?.map((opt: ToolInputOption) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -127,7 +135,7 @@ function Tools() {
                     setFormData({});
                     setResult(null);
                   }}
-                  style={{ "--tool-color": color } as any}
+                  style={{ "--tool-color": color } as CSSProperties}
                 >
                   <Icon size={20} style={{ color }} />
                   <div className="tool-info">

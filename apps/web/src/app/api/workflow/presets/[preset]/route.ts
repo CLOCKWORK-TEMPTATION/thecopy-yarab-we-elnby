@@ -23,7 +23,7 @@ export async function GET(
   }
 }
 
-export async function HEAD(
+export function HEAD(
   _request: NextRequest,
   { params }: { params: { preset: string } }
 ) {

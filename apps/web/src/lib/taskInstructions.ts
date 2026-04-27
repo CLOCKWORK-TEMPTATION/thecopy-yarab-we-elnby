@@ -10,11 +10,11 @@ export interface TaskInstruction {
   description: string;
   instructions: string[];
   examples?: string[];
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   validation?: {
     required?: string[];
     optional?: string[];
-    constraints?: Record<string, any>;
+    constraints?: Record<string, unknown>;
   };
 }
 

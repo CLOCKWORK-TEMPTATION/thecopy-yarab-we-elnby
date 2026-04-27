@@ -212,7 +212,7 @@ export class TerminologyTranslator implements Plugin {
   private terms = new Map<string, CinemaTerm>();
   private termsAr = new Map<string, CinemaTerm>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     // Build lookup maps
     for (const term of CINEMA_TERMS) {
       this.terms.set(term.en.toLowerCase(), term);
@@ -221,16 +221,27 @@ export class TerminologyTranslator implements Plugin {
     logger.info(`[${this.name}] Initialized with ${CINEMA_TERMS.length} terms`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "translate":
-        return this.translate(input.data as any);
+        return this.translate(
+          input.data as unknown as {
+            text: string;
+            from: "en" | "ar";
+            to: "en" | "ar";
+          }
+        );
       case "lookup":
-        return this.lookup(input.data as any);
+        return this.lookup(input.data as unknown as { term: string });
       case "list":
         return this.listTerms(input.data);
       case "search":
-        return this.searchTerms(input.data as any);
+        return this.searchTerms(
+          input.data as unknown as {
+            query: string;
+            language?: "en" | "ar";
+          }
+        );
       default:
         return {
           success: false,
@@ -239,11 +250,11 @@ export class TerminologyTranslator implements Plugin {
     }
   }
 
-  private async translate(data: {
+  private translate(data: {
     text: string;
     from: "en" | "ar";
     to: "en" | "ar";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { text, from, to } = data;
 
     if (from === to) {
@@ -301,7 +312,7 @@ export class TerminologyTranslator implements Plugin {
     };
   }
 
-  private async lookup(data: { term: string }): Promise<PluginOutput> {
+  private lookup(data: { term: string }): PluginOutput {
     const { term } = data;
 
     // Search in both languages
@@ -338,7 +349,7 @@ export class TerminologyTranslator implements Plugin {
     };
   }
 
-  private async listTerms(data: { category?: string }): Promise<PluginOutput> {
+  private listTerms(data: { category?: string }): PluginOutput {
     let terms = CINEMA_TERMS;
 
     if (data.category) {
@@ -359,10 +370,10 @@ export class TerminologyTranslator implements Plugin {
     };
   }
 
-  private async searchTerms(data: {
+  private searchTerms(data: {
     query: string;
     language?: "en" | "ar";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { query, language = "en" } = data;
     const matches = this.searchTermsInternal(query, language);
 
@@ -400,7 +411,7 @@ export class TerminologyTranslator implements Plugin {
     });
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     this.terms.clear();
     this.termsAr.clear();
     logger.info(`[${this.name}] Shut down`);

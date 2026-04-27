@@ -51,7 +51,7 @@ export const runProductionSelfCheck = async (
     return inFlightSelfCheck;
   }
 
-  const run = (async (): Promise<ProductionSelfCheckReport> => {
+  const run = ((): ProductionSelfCheckReport => {
     const startedAt = performance.now();
     const failures: { name: string; message: string }[] = [];
 

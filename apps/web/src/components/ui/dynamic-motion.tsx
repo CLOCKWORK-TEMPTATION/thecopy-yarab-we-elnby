@@ -27,7 +27,7 @@
 
 import dynamic from "next/dynamic";
 
-import type { HTMLMotionProps } from "framer-motion";
+import type { HTMLMotionProps, SVGMotionProps } from "framer-motion";
 import type { ComponentType, ReactNode } from "react";
 
 interface LoadingProps {
@@ -158,7 +158,7 @@ export const DynamicMotionUl = dynamic(
 export const DynamicMotionPath = dynamic(
   () =>
     import("framer-motion").then((mod) => mod.motion.path) as Promise<
-      ComponentType<any>
+      ComponentType<SVGMotionProps<SVGPathElement>>
     >,
   {
     loading: () => <MotionLoading />,
@@ -169,7 +169,7 @@ export const DynamicMotionPath = dynamic(
 export const DynamicMotionSvg = dynamic(
   () =>
     import("framer-motion").then((mod) => mod.motion.svg) as Promise<
-      ComponentType<any>
+      ComponentType<SVGMotionProps<SVGSVGElement>>
     >,
   {
     loading: () => <MotionLoading />,

@@ -313,11 +313,11 @@ export class ProductionReadinessReportPromptBuilder implements Plugin {
   descriptionAr = "يبني موجهاً عربياً لإعداد تقرير جاهزية الإنتاج.";
   category = "documentation" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     if (input.type !== "build-prompt") {
       return {
         success: false,
@@ -342,7 +342,7 @@ export class ProductionReadinessReportPromptBuilder implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

@@ -11,9 +11,9 @@ import { CONFLICT_DYNAMICS_AGENT_CONFIG } from "./agent";
 
 interface ConflictDynamicsContext {
   originalText?: string;
-  analysisReport?: any;
-  characters?: any[];
-  plotPoints?: any[];
+  analysisReport?: unknown;
+  characters?: unknown[];
+  plotPoints?: unknown[];
   conflictTypes?: string[]; // ['internal', 'interpersonal', 'societal', 'man-vs-nature']
   analyzeEvolution?: boolean;
   trackIntensity?: boolean;
@@ -56,9 +56,11 @@ export class ConflictDynamicsAgent extends BaseAgent {
 
     if (characters.length > 0) {
       prompt += `الشخصيات الرئيسية:\n`;
-      characters.slice(0, 5).forEach((char: any, idx: number) => {
+      characters.slice(0, 5).forEach((char: unknown, idx: number) => {
         const charName =
-          typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
+          typeof char === "string"
+            ? char
+            : this.readStringField(char, "name", `شخصية ${idx + 1}`);
         prompt += `${idx + 1}. ${charName}\n`;
       });
       prompt += "\n";
@@ -66,11 +68,11 @@ export class ConflictDynamicsAgent extends BaseAgent {
 
     if (plotPoints.length > 0) {
       prompt += `نقاط الحبكة الرئيسية:\n`;
-      plotPoints.slice(0, 4).forEach((point: any, idx: number) => {
+      plotPoints.slice(0, 4).forEach((point: unknown, idx: number) => {
         const pointText =
           typeof point === "string"
             ? point
-            : (point.description ?? `نقطة ${idx + 1}`);
+            : this.readStringField(point, "description", `نقطة ${idx + 1}`);
         prompt += `${idx + 1}. ${pointText}\n`;
       });
       prompt += "\n";
@@ -191,7 +193,7 @@ ${
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessConflictIdentification(text: string): Promise<number> {
+  private assessConflictIdentification(text: string): number {
     let score = 0.5;
 
     const conflictTerms = [
@@ -218,7 +220,7 @@ ${
     return Math.min(1, score);
   }
 
-  private async assessAnalysisDepth(text: string): Promise<number> {
+  private assessAnalysisDepth(text: string): number {
     let score = 0.5;
 
     const depthIndicators = [
@@ -244,7 +246,7 @@ ${
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceMarkers = [
@@ -266,7 +268,7 @@ ${
     return Math.min(1, score);
   }
 
-  private async assessInsightfulness(text: string): Promise<number> {
+  private assessInsightfulness(text: string): number {
     let score = 0.5;
 
     const insightWords = [
@@ -366,6 +368,24 @@ ${
     return notes;
   }
 
+  private readStringField(
+    candidate: unknown,
+    field: string,
+    fallback: string
+  ): string {
+    if (
+      typeof candidate === "object" &&
+      candidate !== null &&
+      !Array.isArray(candidate)
+    ) {
+      const value = (candidate as Record<string, unknown>)[field];
+      if (typeof value === "string" && value.length > 0) {
+        return value;
+      }
+    }
+    return fallback;
+  }
+
   private translateConflictType(type: string): string {
     const types: Record<string, string> = {
       internal: "داخلي (الإنسان ضد نفسه)",
@@ -379,9 +399,9 @@ ${
     return types[type] ?? type;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `نظرة عامة:
 النص يحتوي على عدة مستويات من الصراعات التي تحرك الأحداث وتطور الشخصيات.
 

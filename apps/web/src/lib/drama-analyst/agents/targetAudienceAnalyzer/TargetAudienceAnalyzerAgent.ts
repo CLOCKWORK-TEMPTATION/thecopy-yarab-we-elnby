@@ -168,12 +168,12 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Assess the quality of audience analysis
    */
-  private async assessAnalysisQuality(text: string): Promise<{
+  private assessAnalysisQuality(text: string): {
     demographicCoverage: number;
     psychographicDepth: number;
     marketInsights: number;
     overallScore: number;
-  }> {
+  } {
     // Demographic indicators
     const demographicTerms = [
       "الفئة العمرية",
@@ -293,9 +293,9 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to audience analysis
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context

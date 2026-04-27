@@ -9,7 +9,7 @@ export class PluginManager {
   private plugins = new Map<string, Plugin>();
   private initialized = false;
 
-  async registerPlugin(plugin: Plugin): Promise<void> {
+  registerPlugin(plugin: Plugin): void {
     if (this.plugins.has(plugin.id)) {
       throw new Error(`Plugin with ID "${plugin.id}" is already registered`);
     }

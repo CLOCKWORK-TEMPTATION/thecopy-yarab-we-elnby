@@ -66,7 +66,7 @@ describe("Art Director Integration Tests", () => {
   it("يعرض نتيجة محلل التناسق البصري بشكل مفهوم", async () => {
     const user = userEvent.setup();
 
-    mockFetchArtDirectorJson.mockImplementation(async (path) => {
+    mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/plugins") {
         return {
           success: true,
@@ -117,7 +117,7 @@ describe("Art Director Integration Tests", () => {
   it("يعرض فشل الأداة دون ترك منطقة النتيجة فارغة", async () => {
     const user = userEvent.setup();
 
-    mockFetchArtDirectorJson.mockImplementation(async (path) => {
+    mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/plugins") {
         return {
           success: true,
@@ -236,7 +236,7 @@ describe("Art Director Integration Tests", () => {
   it("يضيف موقعا ويعيد عرضه بعد البحث", async () => {
     const user = userEvent.setup();
 
-    mockFetchArtDirectorJson.mockImplementation(async (path) => {
+    mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/locations/add") {
         return { success: true };
       }
@@ -286,7 +286,7 @@ describe("Art Director Integration Tests", () => {
   it("يضيف قطعة ديكور ويعرضها في المخزون", async () => {
     const user = userEvent.setup();
 
-    mockFetchArtDirectorJson.mockImplementation(async (path) => {
+    mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/sets/add-piece") {
         return { success: true };
       }

@@ -1,3 +1,6 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock dynamic import for particle-background-optimized
@@ -19,10 +22,8 @@ describe("Particle Background Optimization", () => {
       expect(typeof OptimizedComponent).toBe("function");
     });
 
-    it("should not contain console.log statements in optimized version", async () => {
+    it("should not contain console.log statements in optimized version", () => {
       // Check if the file contains console.log statements
-      const fs = require("fs");
-      const path = require("path");
 
       const filePath = path.join(
         __dirname,
@@ -44,8 +45,6 @@ describe("Particle Background Optimization", () => {
   describe("Performance Configuration", () => {
     it("should have optimized particle counts for different devices", () => {
       // Verify the optimized configuration uses device detection
-      const fs = require("fs");
-      const path = require("path");
 
       const filePath = path.join(
         __dirname,
@@ -60,8 +59,6 @@ describe("Particle Background Optimization", () => {
     });
 
     it("should implement requestIdleCallback optimization", () => {
-      const fs = require("fs");
-      const path = require("path");
 
       const filePath = path.join(
         __dirname,

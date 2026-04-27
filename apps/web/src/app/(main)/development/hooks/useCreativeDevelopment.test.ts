@@ -60,7 +60,7 @@ function okResponse(body: unknown = { success: true }) {
   return {
     ok: true,
     status: 200,
-    json: async () => body,
+    json: () => body,
   } as unknown as Response;
 }
 
@@ -69,7 +69,7 @@ function errResponse(status = 500) {
   return {
     ok: false,
     status,
-    json: async () => ({ error: "server error" }),
+    json: () => ({ error: "server error" }),
   } as unknown as Response;
 }
 
@@ -80,6 +80,14 @@ function errResponse(status = 500) {
 /** Render the hook and return { result } */
 function mountHook() {
   return renderHook(() => useCreativeDevelopment());
+}
+
+/** Read the RequestInit options from a captured fetch mock call */
+function fetchCallOptions(callIndex: number): RequestInit | undefined {
+  const call = mockFetch.mock.calls[callIndex] as
+    | [unknown, RequestInit | undefined]
+    | undefined;
+  return call?.[1];
 }
 
 const READY_TEXT_INPUT = "أ".repeat(200);
@@ -137,7 +145,7 @@ describe("T013: executeTask — ExecutionAdapter routing", () => {
     const [url1] = mockFetch.mock.calls[1] as [string];
     expect(url0).toBe("/api/development/execute");
     expect(url1).toBe("/api/brainstorm");
-    expect(mockFetch.mock.calls[1][1]?.method).toBe("POST");
+    expect(fetchCallOptions(1)?.method).toBe("POST");
   });
 
   it("workflow-single mode calls POST /api/workflow/execute-custom (via fallback when primary fails)", async () => {
@@ -167,7 +175,7 @@ describe("T013: executeTask — ExecutionAdapter routing", () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
     const [url1] = mockFetch.mock.calls[1] as [string];
     expect(url1).toBe("/api/workflow/execute-custom");
-    expect(mockFetch.mock.calls[1][1]?.method).toBe("POST");
+    expect(fetchCallOptions(1)?.method).toBe("POST");
   });
 
   it("workflow-single mode sends a single-step config (via fallback)", async () => {
@@ -192,7 +200,7 @@ describe("T013: executeTask — ExecutionAdapter routing", () => {
       await result.current.executeTask("character-deep-analyzer");
     });
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const body = JSON.parse(rawBody) as { config: { steps: unknown[] } };
     expect(body.config).toBeDefined();
     expect(Array.isArray(body.config.steps)).toBe(true);
@@ -225,7 +233,7 @@ describe("T013: executeTask — ExecutionAdapter routing", () => {
     const [url1] = mockFetch.mock.calls[1] as [string];
     expect(url1).toBe("/api/workflow/execute-custom");
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const body = JSON.parse(rawBody) as { config: { steps: unknown[] } };
     expect(body.config).toBeDefined();
     expect(body.config.steps.length).toBeGreaterThan(1);
@@ -260,7 +268,7 @@ describe("T013: executeTask — ExecutionAdapter routing", () => {
       await result.current.executeTask("character-deep-analyzer");
     });
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const body = JSON.parse(rawBody) as {
       input: {
         advancedSettings: { enableRAG: boolean; enableDebate: boolean };
@@ -437,7 +445,7 @@ describe("T021: brainstorm payload shape matches contract", () => {
 
     // Call 0 = primary /api/development/execute (fails), call 1 = /api/brainstorm
     expect(mockFetch).toHaveBeenCalledTimes(2);
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const payload = JSON.parse(rawBody) as {
       task: string;
       context: { brief: string; phase: number; sessionId: string };
@@ -486,7 +494,7 @@ describe("T021: brainstorm payload shape matches contract", () => {
       await result.current.executeTask("creative");
     });
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const payload = JSON.parse(rawBody) as { task: string };
 
     // The task string is assembled from multiple parts including the original text
@@ -513,7 +521,7 @@ describe("T021: brainstorm payload shape matches contract", () => {
       await result.current.executeTask("creative");
     });
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const payload = JSON.parse(rawBody) as { context: { brief: string } };
 
     expect(payload.context.brief).toContain(report);
@@ -535,7 +543,7 @@ describe("T021: brainstorm payload shape matches contract", () => {
       await result.current.executeTask("rhythm-mapping");
     });
 
-    const rawBody = mockFetch.mock.calls[1][1]?.body as string;
+    const rawBody = fetchCallOptions(1)?.body as string;
     const payload = JSON.parse(rawBody) as { agentIds: string[] };
 
     expect(payload.agentIds).toContain("rhythm-mapping");

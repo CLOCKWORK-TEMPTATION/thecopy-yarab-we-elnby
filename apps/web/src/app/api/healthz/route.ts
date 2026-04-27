@@ -5,7 +5,7 @@ import { withNoStoreResponseInit } from "@/lib/server/no-store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export function GET() {
   return NextResponse.json(
     {
       status: "ok",

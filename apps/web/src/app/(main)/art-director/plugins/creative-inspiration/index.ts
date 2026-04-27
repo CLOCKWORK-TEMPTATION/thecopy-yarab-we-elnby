@@ -47,7 +47,7 @@ export class CreativeInspirationAssistant implements Plugin {
   private styleDatabase = new Map<string, string[]>();
   private colorPalettes = new Map<string, string[]>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     this.initializeStyleDatabase();
     this.initializeColorPalettes();
     logger.info(
@@ -167,7 +167,7 @@ export class CreativeInspirationAssistant implements Plugin {
     }
   }
 
-  private async analyzeScene(data: AnalyzeSceneInput): Promise<PluginOutput> {
+  private analyzeScene(data: AnalyzeSceneInput): PluginOutput {
     if (!data.description) {
       return {
         success: false,
@@ -394,10 +394,10 @@ export class CreativeInspirationAssistant implements Plugin {
     };
   }
 
-  private async suggestColorPalette(data: {
+  private suggestColorPalette(data: {
     mood: string;
     era?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const palette = this.selectColorPalette(
       data.mood,
       data.era ?? "contemporary"
@@ -420,9 +420,9 @@ export class CreativeInspirationAssistant implements Plugin {
     };
   }
 
-  private async getStyleReferences(data: {
+  private getStyleReferences(data: {
     style: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const references = this.styleDatabase.get(data.style.toLowerCase());
 
     if (!references) {
@@ -442,7 +442,7 @@ export class CreativeInspirationAssistant implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

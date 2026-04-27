@@ -8,9 +8,37 @@ import { logger } from "@/lib/ai/utils/logger";
 // dataManager.ts
 // مدير البيانات المحلية لاستوديو الكتابة الإبداعية
 
+// إدخال تاريخي محفوظ في سجل النشاط
+export interface HistoryEntry {
+  type?: string;
+  description?: string;
+  promptId?: string;
+  projectId?: string;
+  timestamp?: Date;
+  [key: string]: unknown;
+}
+
+// إحصائيات الاستخدام المُجمَّعة
+export interface UsageStatistics {
+  totalProjects: number;
+  completedProjects: number;
+  totalWords: number;
+  averageWordsPerProject: number;
+  mostUsedGenre: string;
+  writingSessions: number;
+  lastActivity: number | null;
+}
+
+// قيمة مُخزَّنة داخلياً في الذاكرة المؤقتة
+type StoredValue =
+  | CreativeProject[]
+  | CreativePrompt[]
+  | HistoryEntry[]
+  | AppSettings;
+
 export class DataManager {
   private static instance: DataManager;
-  private storage = new Map<string, any>();
+  private storage = new Map<string, StoredValue>();
   private readonly STORAGE_KEYS = {
     PROJECTS: "creative_projects",
     SETTINGS: "app_settings",
@@ -61,7 +89,8 @@ export class DataManager {
 
   // استرجاع المشاريع
   getProjects(): CreativeProject[] {
-    return this.storage.get(this.STORAGE_KEYS.PROJECTS) ?? [];
+    const value = this.storage.get(this.STORAGE_KEYS.PROJECTS);
+    return Array.isArray(value) ? (value as CreativeProject[]) : [];
   }
 
   // حفظ مشروع واحد
@@ -92,9 +121,10 @@ export class DataManager {
 
   // استرجاع الإعدادات
   getSettings(): AppSettings {
-    return (
-      this.storage.get(this.STORAGE_KEYS.SETTINGS) ?? this.getDefaultSettings()
-    );
+    const value = this.storage.get(this.STORAGE_KEYS.SETTINGS);
+    return value && !Array.isArray(value)
+      ? (value as AppSettings)
+      : this.getDefaultSettings();
   }
 
   // حفظ محفز مخصص
@@ -106,11 +136,12 @@ export class DataManager {
 
   // استرجاع المحفزات المخصصة
   getCustomPrompts(): CreativePrompt[] {
-    return this.storage.get(this.STORAGE_KEYS.PROMPTS) ?? [];
+    const value = this.storage.get(this.STORAGE_KEYS.PROMPTS);
+    return Array.isArray(value) ? (value as CreativePrompt[]) : [];
   }
 
   // إضافة إلى التاريخ
-  addToHistory(entry: any): void {
+  addToHistory(entry: HistoryEntry): void {
     const history = this.getHistory();
     history.unshift({ ...entry, timestamp: new Date() });
 
@@ -123,8 +154,9 @@ export class DataManager {
   }
 
   // استرجاع التاريخ
-  getHistory(): any[] {
-    return this.storage.get(this.STORAGE_KEYS.HISTORY) ?? [];
+  getHistory(): HistoryEntry[] {
+    const value = this.storage.get(this.STORAGE_KEYS.HISTORY);
+    return Array.isArray(value) ? (value as HistoryEntry[]) : [];
   }
 
   // تصدير جميع البيانات
@@ -143,7 +175,12 @@ export class DataManager {
   // استيراد البيانات
   importData(jsonData: string): boolean {
     try {
-      const data = JSON.parse(jsonData);
+      const data = JSON.parse(jsonData) as {
+        projects?: CreativeProject[];
+        settings?: Partial<AppSettings>;
+        customPrompts?: CreativePrompt[];
+        history?: unknown[];
+      };
 
       if (data.projects) {
         this.saveProjects(data.projects);
@@ -158,7 +195,10 @@ export class DataManager {
       }
 
       if (data.history) {
-        this.storage.set(this.STORAGE_KEYS.HISTORY, data.history);
+        this.storage.set(
+          this.STORAGE_KEYS.HISTORY,
+          data.history as HistoryEntry[]
+        );
       }
 
       return true;
@@ -174,7 +214,7 @@ export class DataManager {
   }
 
   // إحصائيات الاستخدام
-  getUsageStatistics(): any {
+  getUsageStatistics(): UsageStatistics {
     const projects = this.getProjects();
     const history = this.getHistory();
 
@@ -227,7 +267,11 @@ export class DataManager {
   // استعادة من النسخة الاحتياطية
   restoreFromBackup(backupData: string): boolean {
     try {
-      const backup = JSON.parse(backupData);
+      const backup = JSON.parse(backupData) as {
+        version?: string;
+        timestamp?: string;
+        data?: string;
+      };
 
       if (backup.data) {
         return this.importData(backup.data);

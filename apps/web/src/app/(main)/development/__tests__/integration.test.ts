@@ -62,7 +62,7 @@ function primaryOk(text = "النتيجة من Gemini مباشرةً") {
   return {
     ok: true,
     status: 200,
-    json: async () => ({
+    json: () => ({
       success: true,
       result: {
         finalDecision: text,
@@ -84,7 +84,7 @@ function primaryFail(status = 503) {
   return {
     ok: false,
     status,
-    json: async () => ({
+    json: () => ({
       success: false,
       error: "Gemini API key missing",
       fallback: true,
@@ -97,7 +97,7 @@ function brainstormOk(text = "نتيجة من brainstorm") {
   return {
     ok: true,
     status: 200,
-    json: async () => ({
+    json: () => ({
       finalDecision: text,
       proposals: [{ agentId: "completion", text, confidence: 0.82 }],
     }),
@@ -119,7 +119,7 @@ async function prepareForExecution(
   result: ReturnType<typeof mountHook>["result"],
   overrides?: { text?: string; report?: string; scope?: string }
 ) {
-  await act(async () => {
+  await act(() => {
     result.current.setTextInput(overrides?.text ?? "أ".repeat(200));
     result.current.setAnalysisReport(
       overrides?.report ?? "تقرير تحليل الأداء الدرامي — حد أدنى مطلوب"
@@ -321,7 +321,7 @@ describe("T043-T045: isAnalysisComplete gate unlock logic", () => {
 describe("T046-T047: handleCatalogTaskSelect", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("T046: handleCatalogTaskSelect sets selectedCatalogTaskId", async () => {
+  it("T046: handleCatalogTaskSelect sets selectedCatalogTaskId", () => {
     const { result } = mountHook();
 
     expect(result.current.selectedCatalogTaskId).toBeNull();
@@ -398,7 +398,7 @@ describe("T048: isLoading transitions", () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
-      json: async () => ({ error: "server error" }),
+      json: () => ({ error: "server error" }),
     });
 
     const { result } = mountHook();
@@ -423,7 +423,7 @@ describe("T049: Empty result handling", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => ({
+      json: () => ({
         success: true,
         result: {
           finalDecision: "   ", // whitespace-only

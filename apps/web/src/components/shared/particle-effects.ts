@@ -18,8 +18,8 @@ import {
  * Enhanced requestIdleCallback with fallback
  */
 export const requestIdle = (
-  callback: (deadline: any) => void,
-  options?: any
+  callback: IdleRequestCallback,
+  options?: IdleRequestOptions
 ): number => {
   if (typeof requestIdleCallback !== "undefined") {
     return requestIdleCallback(callback, options);
@@ -32,7 +32,7 @@ export const requestIdle = (
           didTimeout: false,
         }),
       options?.timeout ?? 0
-    ) as any;
+    ) as unknown as number;
   }
 };
 
@@ -50,15 +50,15 @@ export const cancelIdle = (id: number): void => {
 /**
  * Batch processor for particle operations
  */
-export class BatchProcessor {
-  private items: any[] = [];
+export class BatchProcessor<T = unknown> {
+  private items: T[] = [];
   private batchSize: number;
 
   constructor(batchSize = 500) {
     this.batchSize = batchSize;
   }
 
-  add(item: any): void {
+  add(item: T): void {
     this.items.push(item);
   }
 

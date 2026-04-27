@@ -2,6 +2,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import React, { useRef } from "react";
 
+import type { MotionValue } from "framer-motion";
+
 export const TextRevealByWord = ({
   text,
   className,
@@ -39,7 +41,7 @@ const Word = ({
   range,
 }: {
   children: React.ReactNode;
-  progress: any;
+  progress: MotionValue<number>;
   range: [number, number];
 }) => {
   const opacity = useTransform(progress, range, [0, 1]);

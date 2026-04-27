@@ -34,12 +34,20 @@ export class CompletionAgent extends BaseAgent {
     const { input: taskInput, context } = input;
 
     // Extract relevant context
-    const contextObj =
+    const contextObj: Record<string, unknown> =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj as any)?.originalText ?? "";
-    const previousCompletions = (contextObj as any)?.previousCompletions ?? [];
-    const completionScope = (contextObj as any)?.completionScope ?? "paragraph";
-    const enhancements = (contextObj as any)?.enhancements ?? [];
+    const originalText =
+      typeof contextObj.originalText === "string" ? contextObj.originalText : "";
+    const previousCompletions = Array.isArray(contextObj.previousCompletions)
+      ? (contextObj.previousCompletions as string[])
+      : [];
+    const completionScope =
+      typeof contextObj.completionScope === "string"
+        ? contextObj.completionScope
+        : "paragraph";
+    const enhancements = Array.isArray(contextObj.enhancements)
+      ? (contextObj.enhancements as string[])
+      : [];
 
     // Build structured prompt
     let prompt = `${COMPLETION_MODE_INSTRUCTIONS}\n\n`;
@@ -52,7 +60,7 @@ export class CompletionAgent extends BaseAgent {
     // Add previous completions if any
     if (previousCompletions.length > 0) {
       prompt += `الاستكمالات السابقة:\n`;
-      previousCompletions.forEach((comp: any, index: number) => {
+      previousCompletions.forEach((comp, index) => {
         prompt += `[استكمال ${index + 1}]: ${comp}\n`;
       });
       prompt += "\n";
@@ -149,7 +157,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Assess completion quality
    */
-  private async assessCompletionQuality(text: string): Promise<number> {
+  private assessCompletionQuality(text: string): number {
     // Simple heuristic-based quality assessment
     let score = 0.5; // Base score
 
@@ -178,7 +186,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Check character consistency
    */
-  private async checkCharacterConsistency(_text: string): Promise<number> {
+  private checkCharacterConsistency(_text: string): number {
     // This would ideally check against character profiles
     // For now, return a reasonable default
     return 0.85;
@@ -187,7 +195,7 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Check narrative flow
    */
-  private async checkNarrativeFlow(text: string): Promise<number> {
+  private checkNarrativeFlow(text: string): number {
     // Check for logical connectors and flow
     const connectors = [
       "ثم",
@@ -272,14 +280,14 @@ export class CompletionAgent extends BaseAgent {
   /**
    * Generate fallback response specific to completion
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
-  ): Promise<string> {
-    const contextObj =
+  ): string {
+    const contextObj: { completionScope?: string } =
       typeof input.context === "object" && input.context !== null
-        ? input.context
+        ? (input.context as { completionScope?: string })
         : {};
-    const scope = (contextObj as any)?.completionScope ?? "paragraph";
+    const scope = contextObj.completionScope ?? "paragraph";
 
     return `تحليل موجز: النص يحتاج إلى استكمال ${this.translateScope(scope)} يتماشى مع السياق والأسلوب المقدم.
 

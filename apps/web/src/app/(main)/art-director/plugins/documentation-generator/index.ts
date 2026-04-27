@@ -130,11 +130,11 @@ export class AutomaticDocumentationGenerator implements Plugin {
   private styleGuides = new Map<string, StyleGuide>();
   private decisionLogs = new Map<string, DecisionLog>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "generate-book":
         return this.generateProductionBook(
@@ -174,9 +174,9 @@ export class AutomaticDocumentationGenerator implements Plugin {
     }
   }
 
-  private async generateProductionBook(
+  private generateProductionBook(
     data: GenerateBookInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     if (!data.productionId || !data.title || !data.includeSections) {
       return {
         success: false,
@@ -328,9 +328,9 @@ export class AutomaticDocumentationGenerator implements Plugin {
     }
   }
 
-  private async generateStyleGuide(
+  private generateStyleGuide(
     data: GenerateStyleGuideInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     if (!data.productionId || !data.title) {
       return {
         success: false,
@@ -367,7 +367,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async logDecision(data: Partial<DecisionLog>): Promise<PluginOutput> {
+  private logDecision(data: Partial<DecisionLog>): PluginOutput {
     if (!data.productionId || !data.decision || !data.madeBy) {
       return {
         success: false,
@@ -401,9 +401,9 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async getProductionBook(data: {
+  private getProductionBook(data: {
     bookId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const book = this.productionBooks.get(data.bookId);
 
     if (!book) {
@@ -419,9 +419,9 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async getStyleGuide(data: {
+  private getStyleGuide(data: {
     guideId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const guide = this.styleGuides.get(data.guideId);
 
     if (!guide) {
@@ -437,10 +437,10 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async getDecisions(data: {
+  private getDecisions(data: {
     productionId: string;
     category?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     let decisions = Array.from(this.decisionLogs.values()).filter(
       (d) => d.productionId === data.productionId
     );
@@ -460,10 +460,10 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async exportBook(data: {
+  private exportBook(data: {
     bookId: string;
     format: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const book = this.productionBooks.get(data.bookId);
 
     if (!book) {
@@ -503,11 +503,11 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  private async updateBookSection(data: {
+  private updateBookSection(data: {
     bookId: string;
     sectionId: string;
     content: Partial<BookSection>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const book = this.productionBooks.get(data.bookId);
 
     if (!book) {
@@ -538,7 +538,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

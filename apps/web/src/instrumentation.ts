@@ -16,7 +16,7 @@ function resolveSentryRelease(): string | undefined {
   return sha ? `the-copy-web@${sha.slice(0, 12)}` : undefined;
 }
 
-export async function register() {
+export function register() {
   const dsn = process.env["NEXT_PUBLIC_SENTRY_DSN"];
   const isDevelopment = process.env.NODE_ENV === "development";
   const release = resolveSentryRelease();

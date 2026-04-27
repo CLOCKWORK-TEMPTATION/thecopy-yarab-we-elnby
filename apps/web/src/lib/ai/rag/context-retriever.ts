@@ -228,9 +228,9 @@ export class ContextRetriever {
   /**
    * استخراج العلاقات بين الكيانات
    */
-  private async extractRelationships(
+  private extractRelationships(
     chunks: TextChunk[]
-  ): Promise<Map<string, string[]>> {
+  ): Map<string, string[]> {
     const relationships = new Map<string, string[]>();
 
     // للتبسيط، نستخرج العلاقات بناءً على ظهور الكيانات معاً في نفس الجزء
@@ -275,11 +275,11 @@ export class ContextRetriever {
   /**
    * حساب درجة الصلة بين الاستعلام والجزء
    */
-  private async calculateRelevanceScore(
+  private calculateRelevanceScore(
     query: string,
     chunk: TextChunk,
     contextMap: ContextMap
-  ): Promise<number> {
+  ): number {
     // للتبسيط، نستخدم تشابه الكلمات المفتاحية
     const queryWords = query.toLowerCase().split(/\s+/);
     const chunkContent = chunk.content.toLowerCase();

@@ -301,11 +301,11 @@ export abstract class BaseSystem {
   /**
    * إنشاء البيانات الوصفية النهائية
    */
-  private async createMetadata(
+  private createMetadata(
     startTime: number,
     options: SystemOptions,
     input: SystemInput
-  ): Promise<SystemMetadata> {
+  ): SystemMetadata {
     const executionTime = Date.now() - startTime;
 
     return {

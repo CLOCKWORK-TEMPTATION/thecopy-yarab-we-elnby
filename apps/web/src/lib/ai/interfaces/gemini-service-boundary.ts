@@ -109,7 +109,7 @@ export function createGeminiServiceBoundary(
       return String(response.content);
     },
 
-    async generateCharacterAnalysis(_prompt, _options = {}) {
+    generateCharacterAnalysis(_prompt, _options = {}) {
       // In a real implementation, we would parse the text as JSON or structured data
       // For now, we return a basic structure
       return {
@@ -118,18 +118,18 @@ export function createGeminiServiceBoundary(
       };
     },
 
-    async generateRelationships(_prompt, _options = {}) {
+    generateRelationships(_prompt, _options = {}) {
       // Parse relationships from text response
       // For now, return empty array - would need proper parsing
       return [];
     },
 
-    async generateConflicts(_prompt, _options = {}) {
+    generateConflicts(_prompt, _options = {}) {
       // Parse conflicts from text response
       return [];
     },
 
-    async generateThemes(_prompt, _options = {}) {
+    generateThemes(_prompt, _options = {}) {
       // Parse themes from text response
       return [];
     },

@@ -83,9 +83,9 @@ ${previousAnalysis.substring(0, 1000)}
   /**
    * استجابة احتياطية
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `# تحليل شخصية (احتياطي)
 
 نواجه صعوبة في إجراء التحليل العميق الكامل حالياً. إليك ملاحظات أولية:

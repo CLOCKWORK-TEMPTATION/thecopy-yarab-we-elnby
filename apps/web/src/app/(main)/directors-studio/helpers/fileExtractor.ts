@@ -33,9 +33,9 @@ export interface ExtractionResult {
  * extractTextFromFile - معطّلة
  * رمي خطأ دائماً لأن الاستيراد متاح فقط من /editor
  */
-export async function extractTextFromFile(
+export function extractTextFromFile(
   _file: File
-): Promise<ExtractionResult> {
+): ExtractionResult {
   throw new FileExtractionError(
     ExtractionErrorType.EXTRACTION_DISABLED,
     "استيراد الملفات معطّل في directors-studio. الرجاء استخدام /editor لاستيراد السيناريوهات."

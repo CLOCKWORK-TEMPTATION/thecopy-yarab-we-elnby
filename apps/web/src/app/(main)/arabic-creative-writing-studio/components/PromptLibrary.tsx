@@ -14,6 +14,8 @@ import {
   CreativeGenre,
   WritingTechnique,
   DifficultyLevel,
+  EnhancedPromptData,
+  ApiResponse,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +42,7 @@ export interface PromptLibraryProps {
     prompt: string,
     genre: CreativeGenre,
     technique: WritingTechnique
-  ) => Promise<any>;
+  ) => Promise<ApiResponse<EnhancedPromptData> | EnhancedPromptData | void>;
   loading: boolean;
 }
 

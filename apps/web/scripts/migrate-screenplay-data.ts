@@ -18,7 +18,7 @@ export interface OldScreenplayFormat {
   createdAt: Date | string;
   updatedAt?: Date | string;
   htmlContent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -32,7 +32,7 @@ export interface NewScreenplayFormat extends OldScreenplayFormat {
     wordCount: number;
     characterCount: number;
     sceneCount: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -72,9 +72,9 @@ export interface MigrationResult {
  * @param oldData - البيانات القديمة
  * @returns البيانات الجديدة
  */
-export async function migrateScreenplayData(
+export function migrateScreenplayData(
   oldData: OldScreenplayFormat
-): Promise<NewScreenplayFormat> {
+): NewScreenplayFormat {
   const classifier = new ScreenplayClassifier();
 
   // تقسيم المحتوى إلى سطور
@@ -279,11 +279,11 @@ export function rollbackMigration(
  * تنفيذ الترحيل الكامل مع النسخ الاحتياطي
  * @returns نتيجة الترحيل
  */
-export async function executeFullMigration(): Promise<{
+export function executeFullMigration(): {
   success: boolean;
   migratedCount: number;
   backup: Record<string, OldScreenplayFormat>;
-}> {
+} {
   try {
     // 1. إنشاء نسخة احتياطية
     console.log("📦 إنشاء نسخة احتياطية...");
@@ -376,8 +376,22 @@ export function printMigrationReport(result: {
 }
 
 // تصدير للاستخدام في browser
+interface ScreenplayMigrationGlobal {
+  migrateScreenplayData: typeof migrateScreenplayData;
+  migrateLocalStorage: typeof migrateLocalStorage;
+  exportLocalStorage: typeof exportLocalStorage;
+  importToLocalStorage: typeof importToLocalStorage;
+  validateMigratedData: typeof validateMigratedData;
+  rollbackMigration: typeof rollbackMigration;
+  executeFullMigration: typeof executeFullMigration;
+  manualMigrateSingle: typeof manualMigrateSingle;
+  printMigrationReport: typeof printMigrationReport;
+}
+
 if (typeof window !== "undefined") {
-  (window as any).ScreenplayMigration = {
+  (
+    window as unknown as { ScreenplayMigration: ScreenplayMigrationGlobal }
+  ).ScreenplayMigration = {
     migrateScreenplayData,
     migrateLocalStorage,
     exportLocalStorage,

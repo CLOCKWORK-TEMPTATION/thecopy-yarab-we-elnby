@@ -124,7 +124,7 @@ async function selectFirstTool(page: Page) {
 // ---------------------------------------------------------------------------
 
 test.describe("Development page — tool execution", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(({ page }) => {
     // Silence console errors from missing env vars in test environment
     page.on("console", () => {});
   });

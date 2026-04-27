@@ -7,10 +7,12 @@ import {
 } from "./station1-text-analysis";
 import {
   Station2ConceptualAnalysis,
+  type Station2Input,
   type Station2Output,
 } from "./station2-conceptual-analysis";
 import {
   Station3NetworkBuilder,
+  type Station3Input,
   type Station3Output,
 } from "./station3-network-builder";
 import {
@@ -163,10 +165,11 @@ export class StationsOrchestrator {
               throw new Error("Station 1 output is required for Station 2");
             }
             const station2 = new Station2ConceptualAnalysis(this.geminiService);
-            const result = await station2.run({
+            const station2Input: Station2Input = {
               text: fullText,
               station1Output: stationOutputs.station1,
-            } as any);
+            };
+            const result = await station2.run(station2Input);
             return result.result as Station2Output;
           }
         );
@@ -191,11 +194,12 @@ export class StationsOrchestrator {
               );
             }
             const station3 = new Station3NetworkBuilder(this.geminiService);
-            const result = await station3.run({
+            const station3Input: Station3Input = {
               text: fullText,
               station1Output: stationOutputs.station1,
               station2Output: stationOutputs.station2,
-            } as any);
+            };
+            const result = await station3.run(station3Input);
             return result.result as Station3Output;
           }
         );

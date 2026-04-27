@@ -139,7 +139,7 @@ async function loadContainer(): Promise<ContainerModule> {
  * يثبت أن الناقل يكون معطّلًا حين علم البيئة غير مضبوط على "1"،
  * وأنه يصير فعالًا عند تفعيله.
  */
-async function exerciseBusEnvFlag(bus: BusModule): Promise<void> {
+function exerciseBusEnvFlag(bus: BusModule): void {
   const previousFlag = process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
   try {
     delete process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
@@ -187,9 +187,9 @@ async function exerciseBusEnvFlag(bus: BusModule): Promise<void> {
  * - يُرَكَّب مع `role="status"` و `aria-live="polite"` عند `visible=true`.
  * - يعرض الحقول الستة المطلوبة في العقد.
  */
-async function exerciseOverlayPresentation(
+function exerciseOverlayPresentation(
   overlay: OverlayModule
-): Promise<void> {
+): void {
   const baseProps = {
     camera: {
       permission: "granted",
@@ -284,7 +284,7 @@ async function exerciseContainerHotkey(
   );
 
   // الضغط على Ctrl+Shift+D يُظهر.
-  await act(async () => {
+  await act(() => {
     fireEvent.keyDown(window, {
       key: "D",
       ctrlKey: true,
@@ -298,7 +298,7 @@ async function exerciseContainerHotkey(
   assert.ok(visibleNow, "overlay must appear after Ctrl+Shift+D");
 
   // الضغط مرة أخرى يُخفي.
-  await act(async () => {
+  await act(() => {
     fireEvent.keyDown(window, {
       key: "d",
       ctrlKey: true,

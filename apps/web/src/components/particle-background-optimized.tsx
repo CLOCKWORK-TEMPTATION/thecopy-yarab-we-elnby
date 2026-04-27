@@ -30,6 +30,7 @@ import {
 } from "@/components/particle-letters.constants";
 import { createModuleLogger } from "@/lib/logger";
 
+import type { ParticleLODConfig } from "@/components/device-detection";
 import type {
   ParticleVelocity,
   ParticlePosition,
@@ -46,7 +47,7 @@ type Effect = "default" | "spark" | "wave" | "vortex";
 function getOptimalParticleCount(): {
   count: number;
   batchSize: number;
-  config: any;
+  config: ParticleLODConfig | null;
 } {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return { count: 3000, batchSize: 400, config: null };
@@ -83,8 +84,8 @@ function getOptimalParticleCount(): {
  * Enhanced requestIdleCallback with fallback
  */
 const requestIdle = (
-  callback: (deadline: any) => void,
-  options?: any
+  callback: IdleRequestCallback,
+  options?: IdleRequestOptions
 ): number => {
   if (typeof requestIdleCallback !== "undefined") {
     return requestIdleCallback(callback, options);
@@ -96,7 +97,7 @@ const requestIdle = (
           didTimeout: false,
         }),
       options?.timeout ?? 0
-    ) as any;
+    ) as unknown as number;
   }
 };
 
@@ -576,7 +577,7 @@ const generateParticlesInBatches = async (): Promise<{
   originalPositions: Float32Array;
   phases: Float32Array;
   velocities: Float32Array;
-  lodConfig: any;
+  lodConfig: ParticleLODConfig | null;
 }> => {
   try {
     // Get optimal particle count based on device capabilities
@@ -1235,9 +1236,9 @@ export default function OptimizedParticleAnimation() {
         performanceMonitor.reset();
 
         if (sceneRef.current) {
-          sceneRef.current.originalPositions = null as any;
-          sceneRef.current.velocities = null as any;
-          sceneRef.current.phases = null as any;
+          sceneRef.current.originalPositions = new Float32Array(0);
+          sceneRef.current.velocities = new Float32Array(0);
+          sceneRef.current.phases = new Float32Array(0);
           sceneRef.current = null;
         }
 

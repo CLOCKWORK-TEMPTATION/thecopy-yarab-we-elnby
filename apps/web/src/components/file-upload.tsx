@@ -67,7 +67,8 @@ export default function FileUpload({
               const page = await pdf.getPage(i);
               const textContent = await page.getTextContent();
               const pageText = textContent.items
-                .map((item: any) => item.str)
+                .filter((item): item is { str: string } => "str" in item)
+                .map((item) => item.str)
                 .join(" ");
               fullText += pageText + "\n";
             }

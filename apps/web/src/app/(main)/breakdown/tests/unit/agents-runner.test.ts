@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-const generateContent = vi.fn(async () => ({
+const generateContent = vi.fn(() => ({
   text: JSON.stringify({ items: ["عنصر"] }),
 }));
 

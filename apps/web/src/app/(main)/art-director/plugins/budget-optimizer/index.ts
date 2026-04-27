@@ -71,22 +71,37 @@ export class BudgetOptimizer implements Plugin {
     contingency: { min: 0.05, max: 0.1, typical: 0.07 },
   };
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "optimize":
         return this.optimizeBudget(
           input.data as unknown as BudgetOptimizationInput
         );
       case "analyze":
-        return this.analyzeBudget(input.data as any);
+        return this.analyzeBudget(
+          input.data as unknown as { budget: Budget }
+        );
       case "compare":
-        return this.compareBudgets(input.data as any);
+        return this.compareBudgets(
+          input.data as unknown as {
+            budget1: Budget;
+            budget2: Budget;
+            label1?: string;
+            label2?: string;
+          }
+        );
       case "forecast":
-        return this.forecastSpending(input.data as any);
+        return this.forecastSpending(
+          input.data as unknown as {
+            budget: Budget;
+            daysElapsed: number;
+            totalDays: number;
+          }
+        );
       default:
         return {
           success: false,
@@ -95,9 +110,9 @@ export class BudgetOptimizer implements Plugin {
     }
   }
 
-  private async optimizeBudget(
+  private optimizeBudget(
     data: BudgetOptimizationInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     const { totalBudget, currency, categories, constraints } = data;
 
     if (!categories || categories.length === 0) {
@@ -237,7 +252,7 @@ export class BudgetOptimizer implements Plugin {
     };
   }
 
-  private async analyzeBudget(data: { budget: Budget }): Promise<PluginOutput> {
+  private analyzeBudget(data: { budget: Budget }): PluginOutput {
     const { budget } = data;
 
     const analysis = {
@@ -276,12 +291,12 @@ export class BudgetOptimizer implements Plugin {
     };
   }
 
-  private async compareBudgets(data: {
+  private compareBudgets(data: {
     budget1: Budget;
     budget2: Budget;
     label1?: string;
     label2?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { budget1, budget2, label1 = "Budget 1", label2 = "Budget 2" } = data;
 
     const comparison = {
@@ -315,11 +330,11 @@ export class BudgetOptimizer implements Plugin {
     };
   }
 
-  private async forecastSpending(data: {
+  private forecastSpending(data: {
     budget: Budget;
     daysElapsed: number;
     totalDays: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const { budget, daysElapsed, totalDays } = data;
 
     const dailySpendRate = budget.spent / daysElapsed;
@@ -355,7 +370,7 @@ export class BudgetOptimizer implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

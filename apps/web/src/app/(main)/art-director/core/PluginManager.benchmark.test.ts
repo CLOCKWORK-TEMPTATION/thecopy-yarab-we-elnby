@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { PluginManager } from "../core/PluginManager";
-import { Plugin, PluginCategory } from "../types";
+import { Plugin, PluginCategory, PluginOutput } from "../types";
 
 class MockPlugin implements Plugin {
   id: string;
@@ -24,7 +24,7 @@ class MockPlugin implements Plugin {
     await new Promise((resolve) => setTimeout(resolve, this.delay));
   }
 
-  async execute(): Promise<any> {
+  execute(): PluginOutput {
     return { success: true };
   }
 

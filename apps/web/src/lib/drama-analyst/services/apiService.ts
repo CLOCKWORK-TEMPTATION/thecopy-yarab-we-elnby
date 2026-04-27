@@ -28,7 +28,7 @@ class APIService {
     this.checkBackendHealth();
   }
 
-  private async checkBackendHealth(): Promise<void> {
+  private checkBackendHealth(): void {
     // Skip health check for local development
     this.backendHealthy = false;
   }
@@ -39,7 +39,7 @@ class APIService {
     try {
       const geminiResponse = await geminiService.analyze(req);
       return { ok: true, value: geminiResponse };
-    } catch (error: any) {
+    } catch (error: unknown) {
       log.error("❌ Gemini API call failed", error, "APIService");
       const message =
         error instanceof Error && error.message.trim()

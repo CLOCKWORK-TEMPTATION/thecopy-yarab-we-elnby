@@ -47,18 +47,23 @@ export class VisualConsistencyAnalyzer implements Plugin {
   descriptionAr = "كشف التناقضات اللونية والأخطاء في الأزياء والديكورات";
   category = "ai-analytics" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "analyze":
         return this.analyzeVisualConsistency(
           input.data as unknown as AnalyzeInput
         );
       case "compare":
-        return this.compareScenes(input.data as any);
+        return this.compareScenes(
+          input.data as unknown as {
+            scene1: AnalyzeInput["scenes"][number];
+            scene2: AnalyzeInput["scenes"][number];
+          }
+        );
       default:
         return {
           success: false,
@@ -67,9 +72,9 @@ export class VisualConsistencyAnalyzer implements Plugin {
     }
   }
 
-  private async analyzeVisualConsistency(
+  private analyzeVisualConsistency(
     data: AnalyzeInput
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     const issues: VisualIssue[] = [];
     const suggestions: string[] = [];
 
@@ -300,16 +305,16 @@ export class VisualConsistencyAnalyzer implements Plugin {
     return Math.max(0, Math.min(100, baseScore - deductions));
   }
 
-  private async compareScenes(data: {
-    scene1: any;
-    scene2: any;
-  }): Promise<PluginOutput> {
+  private compareScenes(data: {
+    scene1: AnalyzeInput["scenes"][number];
+    scene2: AnalyzeInput["scenes"][number];
+  }): PluginOutput {
     return this.analyzeVisualConsistency({
       scenes: [data.scene1, data.scene2],
     });
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

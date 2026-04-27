@@ -296,7 +296,7 @@ function simulateDrag(
  *  3. تتابع الأسهم يُطلق onChange بقيم متسلسلة منطقية ضمن النطاق (drag-like).
  *  4. القيم التي تتجاوز [min, max] تُكبَح (clamping) إلى الحد الأقرب.
  */
-async function exerciseSlider(config: SliderConfig): Promise<void> {
+function exerciseSlider(config: SliderConfig): void {
   const harness = makeControlledHarness(config);
   const utils = render(React.createElement(harness.Harness));
 

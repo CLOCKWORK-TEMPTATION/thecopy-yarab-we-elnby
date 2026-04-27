@@ -324,7 +324,7 @@ class CacheService {
     return totalSize;
   }
 
-  private async getCacheHitRate(_cacheName: string): Promise<number> {
+  private getCacheHitRate(_cacheName: string): number {
     // This would require tracking cache hits/misses
     // For now, return a placeholder value
     return 0.85; // 85% hit rate
@@ -398,7 +398,7 @@ class CacheService {
   }
 
   // Offline action management
-  private async getPendingActions(): Promise<PendingAction[]> {
+  private getPendingActions(): PendingAction[] {
     try {
       const actionsText = localStorage.getItem("pending-actions");
       if (!actionsText) return [];
@@ -430,7 +430,7 @@ class CacheService {
     }
   }
 
-  private async executeAction(action: PendingAction): Promise<void> {
+  private executeAction(action: PendingAction): void {
     // Implement action execution logic
     log.info(
       `🔄 Executing pending action: ${action.type ?? "unknown"}`,

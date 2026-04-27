@@ -107,18 +107,22 @@ export class RiskAnalyzer implements Plugin {
   descriptionAr = "تحليل خطط الإنتاج وتحديد المخاطر المحتملة";
   category = "safety" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "analyze":
         return this.analyzeRisks(input.data as unknown as RiskAnalysisInput);
       case "assess":
-        return this.assessSpecificRisk(input.data as any);
+        return this.assessSpecificRisk(
+          input.data as unknown as { riskType: string; context: unknown }
+        );
       case "mitigate":
-        return this.generateMitigation(input.data as any);
+        return this.generateMitigation(
+          input.data as unknown as { risk: Risk }
+        );
       default:
         return {
           success: false,
@@ -133,7 +137,7 @@ export class RiskAnalyzer implements Plugin {
     return value in RISK_TEMPLATES;
   }
 
-  private async analyzeRisks(data: RiskAnalysisInput): Promise<PluginOutput> {
+  private analyzeRisks(data: RiskAnalysisInput): PluginOutput {
     const risks: Risk[] = [];
     const mitigations: Mitigation[] = [];
     const contingencyPlans: ContingencyPlan[] = [];
@@ -436,10 +440,10 @@ export class RiskAnalyzer implements Plugin {
     return recommendations;
   }
 
-  private async assessSpecificRisk(data: {
+  private assessSpecificRisk(data: {
     riskType: string;
-    context: any;
-  }): Promise<PluginOutput> {
+    context: unknown;
+  }): PluginOutput {
     if (!this.isRiskTemplateKey(data.riskType)) {
       return {
         success: false,
@@ -459,9 +463,9 @@ export class RiskAnalyzer implements Plugin {
     };
   }
 
-  private async generateMitigation(data: {
+  private generateMitigation(data: {
     risk: Risk;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const mitigation = this.generateMitigationForRisk(data.risk);
     const contingency =
       data.risk.score > 0.4 ? this.generateContingencyForRisk(data.risk) : null;
@@ -475,7 +479,7 @@ export class RiskAnalyzer implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

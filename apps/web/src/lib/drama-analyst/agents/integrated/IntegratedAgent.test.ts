@@ -240,7 +240,10 @@ describe("IntegratedAgent", () => {
 
   describe("Error Handling", () => {
     it("should handle errors gracefully", async () => {
-      vi.spyOn(agent as any, "buildPrompt").mockImplementation(() => {
+      const agentWithBuildPrompt = agent as unknown as {
+        buildPrompt: (input: StandardAgentInput) => string;
+      };
+      vi.spyOn(agentWithBuildPrompt, "buildPrompt").mockImplementation(() => {
         throw new Error("Test error");
       });
 
@@ -263,7 +266,7 @@ describe("IntegratedAgent", () => {
         context: {},
       };
       // Force an error
-      vi.spyOn(agent as any, "executeTask").mockRejectedValueOnce(
+      vi.spyOn(agent, "executeTask").mockRejectedValueOnce(
         new Error("Test error")
       );
 

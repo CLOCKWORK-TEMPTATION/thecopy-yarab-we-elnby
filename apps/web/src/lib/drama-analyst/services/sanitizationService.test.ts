@@ -46,9 +46,11 @@ describe("SanitizationService", () => {
 
     // يجب التعامل مع الإدخال الفارغ
     it("validate-pipeline: should handle empty input", () => {
+      const nullInput = null as unknown as string;
+      const undefinedInput = undefined as unknown as string;
       expect(sanitization.text("")).toBe("");
-      expect(sanitization.text(null as any)).toBe("");
-      expect(sanitization.text(undefined as any)).toBe("");
+      expect(sanitization.text(nullInput)).toBe("");
+      expect(sanitization.text(undefinedInput)).toBe("");
     });
   });
 
@@ -69,8 +71,9 @@ describe("SanitizationService", () => {
 
     // يجب التعامل مع الإدخال الفارغ
     it("validate-pipeline: should handle empty input", () => {
+      const nullInput = null as unknown as string;
       expect(sanitization.fileName("")).toBe("unknown.txt");
-      expect(sanitization.fileName(null as any)).toBe("unknown.txt");
+      expect(sanitization.fileName(nullInput)).toBe("unknown.txt");
     });
   });
 

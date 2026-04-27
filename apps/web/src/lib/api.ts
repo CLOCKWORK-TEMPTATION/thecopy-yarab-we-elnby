@@ -16,6 +16,13 @@ import type {
   ChatResponse,
 } from "./api-types";
 
+interface AuthResponseEnvelope {
+  success?: boolean;
+  data?: unknown;
+  error?: string;
+  details?: { message?: string }[];
+}
+
 /**
  * Authenticated fetch wrapper
  * Automatically includes auth token and handles common headers
@@ -64,7 +71,7 @@ export async function loginUser(
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as AuthResponseEnvelope;
 
   if (!response.ok || !data.success) {
     throw new Error(
@@ -88,7 +95,7 @@ export async function registerUser(
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await response.json();
+  const data = (await response.json()) as AuthResponseEnvelope;
 
   if (!response.ok || !data.success) {
     throw new Error(
@@ -112,7 +119,7 @@ export async function getCurrentUser(): Promise<unknown> {
   if (!response.ok) {
     throw new Error("Failed to get current user");
   }
-  const data = await response.json();
+  const data = (await response.json()) as AuthResponseEnvelope;
   return data.data;
 }
 

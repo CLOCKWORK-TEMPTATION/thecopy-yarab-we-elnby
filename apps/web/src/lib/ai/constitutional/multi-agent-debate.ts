@@ -65,6 +65,17 @@ export interface DebateResult {
   debateDynamics: DebateDynamics;
 }
 
+/**
+ * Context passed to a debate run. Carries the analysis classification and
+ * any upstream results that may inform the prosecutor/defender/judge roles.
+ * Upstream payloads are deliberately `unknown`-typed so consumers must
+ * narrow before reading instead of trusting an open shape.
+ */
+export interface DebateContext {
+  analysisType: string;
+  previousResults?: unknown;
+}
+
 export class MultiAgentDebateSystem {
   constructor(private geminiService: GeminiService) {}
 
@@ -74,10 +85,7 @@ export class MultiAgentDebateSystem {
   async conductDebate(
     text: string,
     analysis: string,
-    context: {
-      analysisType: string;
-      previousResults?: any;
-    },
+    context: DebateContext,
     maxRounds = 3
   ): Promise<DebateResult> {
     console.log(
@@ -154,7 +162,7 @@ export class MultiAgentDebateSystem {
     roundNumber: number,
     text: string,
     analysis: string,
-    _context: any,
+    _context: DebateContext,
     previousRounds: DebateRound[]
   ): Promise<DebateRound> {
     // Build context from previous rounds
@@ -440,7 +448,7 @@ export class MultiAgentDebateSystem {
   /**
    * فحص التقارب بين الآراء
    */
-  private async checkConvergence(rounds: DebateRound[]): Promise<number> {
+  private checkConvergence(rounds: DebateRound[]): number {
     if (rounds.length < 2) return 0;
 
     // Simple heuristic: compare strength scores
@@ -471,9 +479,9 @@ export class MultiAgentDebateSystem {
   /**
    * تحديد المواضيع الخلافية
    */
-  private async identifyControversialTopics(
+  private identifyControversialTopics(
     rounds: DebateRound[]
-  ): Promise<string[]> {
+  ): string[] {
     const topics: string[] = [];
 
     for (const round of rounds) {

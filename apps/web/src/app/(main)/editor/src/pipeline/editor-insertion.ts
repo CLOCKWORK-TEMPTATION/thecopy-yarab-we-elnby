@@ -31,11 +31,11 @@ export interface InsertionOptions {
 /**
  * إدراج عناصر مصنفة في المحرر
  */
-export async function insertClassifiedItems(
+export function insertClassifiedItems(
   view: EditorView,
   items: ClassifiedItem[],
   options: InsertionOptions = {}
-): Promise<void> {
+): void {
   const { from = 0, to = view.state.doc.content.size } = options;
 
   insertionLogger.info("inserting-classified-items", {

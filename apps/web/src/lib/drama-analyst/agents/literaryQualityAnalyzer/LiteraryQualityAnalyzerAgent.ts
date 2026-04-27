@@ -176,12 +176,12 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Assess the quality of literary evaluation
    */
-  private async assessEvaluationQuality(text: string): Promise<{
+  private assessEvaluationQuality(text: string): {
     linguisticDepth: number;
     criticalRigor: number;
     comprehensiveness: number;
     overallScore: number;
-  }> {
+  } {
     // Linguistic analysis indicators
     const linguisticTerms = [
       "استعارة",
@@ -330,9 +330,9 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
   /**
    * Generate fallback response specific to literary quality analysis
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `التقييم الأدبي الأولي:
 
 بناءً على النص المقدم، يمكن تقديم ملاحظات أولية حول الجودة الأدبية:

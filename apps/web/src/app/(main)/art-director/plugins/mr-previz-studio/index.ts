@@ -147,30 +147,47 @@ export class MRPrevizStudio implements Plugin {
   descriptionAr = "منصة تجمع بين VR/AR/MR للتصور الشامل";
   category = "xr-immersive" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized with XR capabilities`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
+    const data = input.data as unknown;
     switch (input.type) {
       case "create-scene":
-        return this.createScene(input.data as any);
+        return this.createScene(
+          data as Parameters<MRPrevizStudio["createScene"]>[0]
+        );
       case "add-object":
-        return this.addObject(input.data as any);
+        return this.addObject(
+          data as Parameters<MRPrevizStudio["addObject"]>[0]
+        );
       case "setup-camera":
-        return this.setupCamera(input.data as any);
+        return this.setupCamera(
+          data as Parameters<MRPrevizStudio["setupCamera"]>[0]
+        );
       case "simulate-movement":
-        return this.simulateCameraMovement(input.data as any);
+        return this.simulateCameraMovement(
+          data as Parameters<MRPrevizStudio["simulateCameraMovement"]>[0]
+        );
       case "configure-lighting":
-        return this.configureLighting(input.data as any);
+        return this.configureLighting(
+          data as Parameters<MRPrevizStudio["configureLighting"]>[0]
+        );
       case "export-scene":
-        return this.exportScene(input.data as any);
+        return this.exportScene(
+          data as Parameters<MRPrevizStudio["exportScene"]>[0]
+        );
       case "get-devices":
         return this.getSupportedDevices();
       case "ar-preview":
-        return this.generateARPreview(input.data as any);
+        return this.generateARPreview(
+          data as Parameters<MRPrevizStudio["generateARPreview"]>[0]
+        );
       case "vr-walkthrough":
-        return this.generateVRWalkthrough(input.data as any);
+        return this.generateVRWalkthrough(
+          data as Parameters<MRPrevizStudio["generateVRWalkthrough"]>[0]
+        );
       case "list-scenes":
         return this.listScenes();
       default:
@@ -178,12 +195,12 @@ export class MRPrevizStudio implements Plugin {
     }
   }
 
-  private async createScene(data: {
+  private createScene(data: {
     name: string;
     description: string;
     environment: "indoor" | "outdoor" | "studio" | "virtual";
     dimensions: { width: number; height: number; depth: number };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene: XRScene = {
       id: uuidv4(),
       name: data.name,
@@ -239,10 +256,10 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async addObject(data: {
+  private addObject(data: {
     sceneId: string;
     object: Partial<XRObject>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -276,10 +293,10 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async setupCamera(data: {
+  private setupCamera(data: {
     sceneId: string;
     camera: Partial<VirtualCamera>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -360,11 +377,11 @@ export class MRPrevizStudio implements Plugin {
     );
   }
 
-  private async simulateCameraMovement(data: {
+  private simulateCameraMovement(data: {
     sceneId: string;
     cameraId: string;
     movement: CameraMovement;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -436,10 +453,10 @@ export class MRPrevizStudio implements Plugin {
     }
   }
 
-  private async configureLighting(data: {
+  private configureLighting(data: {
     sceneId: string;
     lighting: Partial<XRLighting>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -471,11 +488,11 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async exportScene(data: {
+  private exportScene(data: {
     sceneId: string;
     format: "gltf" | "usdz" | "fbx" | "obj";
     target: "vr" | "ar" | "mr" | "all";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -521,7 +538,7 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async getSupportedDevices(): Promise<PluginOutput> {
+  private getSupportedDevices(): PluginOutput {
     return {
       success: true,
       data: {
@@ -532,10 +549,10 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async generateARPreview(data: {
+  private generateARPreview(data: {
     sceneId: string;
     targetDevice: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -564,10 +581,10 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async generateVRWalkthrough(data: {
+  private generateVRWalkthrough(data: {
     sceneId: string;
     waypoints?: Vector3D[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scene = scenes.get(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
@@ -606,7 +623,7 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private async listScenes(): Promise<PluginOutput> {
+  private listScenes(): PluginOutput {
     const sceneList = Array.from(scenes.values()).map((s) => ({
       id: s.id,
       name: s.name,
@@ -628,7 +645,7 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     scenes.clear();
     logger.info(`[${this.name}] Shut down`);
   }

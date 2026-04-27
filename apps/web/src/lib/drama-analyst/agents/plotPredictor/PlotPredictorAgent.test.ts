@@ -269,7 +269,7 @@ describe("PlotPredictorAgent", () => {
       const input: StandardAgentInput = {
         input: "تنبأ بالحبكة",
         options: {},
-        context: undefined as any,
+        context: undefined,
       };
 
       const result = await agent.executeTask(input);
@@ -309,7 +309,7 @@ describe("PlotPredictorAgent", () => {
     it("should use default options when not provided", async () => {
       const input: StandardAgentInput = {
         input: "تنبأ بالحبكة",
-        options: undefined as any,
+        options: undefined,
         context: {},
       };
 

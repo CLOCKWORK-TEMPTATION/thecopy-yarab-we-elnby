@@ -315,41 +315,56 @@ export class CinemaSkillsTrainer implements Plugin {
   descriptionAr = "منصة تدريبية تفاعلية باستخدام VR والذكاء الاصطناعي";
   category = "learning" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(
       `[${this.name}] Initialized with ${trainingScenarios.length} training scenarios`
     );
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
+    const data = input.data as unknown;
     switch (input.type) {
       case "list-scenarios":
         return this.listScenarios(input.data);
       case "start-scenario":
-        return this.startScenario(input.data as any);
+        return this.startScenario(
+          data as Parameters<CinemaSkillsTrainer["startScenario"]>[0]
+        );
       case "get-equipment":
         return this.getEquipment(input.data);
       case "simulate-equipment":
-        return this.simulateEquipment(input.data as any);
+        return this.simulateEquipment(
+          data as Parameters<CinemaSkillsTrainer["simulateEquipment"]>[0]
+        );
       case "evaluate-performance":
-        return this.evaluatePerformance(input.data as any);
+        return this.evaluatePerformance(
+          data as Parameters<CinemaSkillsTrainer["evaluatePerformance"]>[0]
+        );
       case "get-progress":
-        return this.getProgress(input.data as any);
+        return this.getProgress(
+          data as Parameters<CinemaSkillsTrainer["getProgress"]>[0]
+        );
       case "complete-scenario":
-        return this.completeScenario(input.data as any);
+        return this.completeScenario(
+          data as Parameters<CinemaSkillsTrainer["completeScenario"]>[0]
+        );
       case "get-recommendations":
-        return this.getRecommendations(input.data as any);
+        return this.getRecommendations(
+          data as Parameters<CinemaSkillsTrainer["getRecommendations"]>[0]
+        );
       case "create-custom-scenario":
-        return this.createCustomScenario(input.data as any);
+        return this.createCustomScenario(
+          data as Parameters<CinemaSkillsTrainer["createCustomScenario"]>[0]
+        );
       default:
         return { success: false, error: `Unknown operation: ${input.type}` };
     }
   }
 
-  private async listScenarios(data: {
+  private listScenarios(data: {
     category?: TrainingCategory;
     difficulty?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     let scenarios = [...trainingScenarios];
 
     if (data.category) {
@@ -384,11 +399,11 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async startScenario(data: {
+  private startScenario(data: {
     scenarioId: string;
     traineeId: string;
     traineeName?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scenario = trainingScenarios.find((s) => s.id === data.scenarioId);
     if (!scenario) {
       return { success: false, error: "Scenario not found" };
@@ -450,10 +465,10 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async getEquipment(data: {
+  private getEquipment(data: {
     type?: string;
     equipmentId?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     if (data.equipmentId) {
       const equipment = vrEquipment.find((e) => e.id === data.equipmentId);
       if (!equipment) {
@@ -492,11 +507,11 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async simulateEquipment(data: {
+  private simulateEquipment(data: {
     equipmentId: string;
     action: string;
     parameters?: Record<string, unknown>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const equipment = vrEquipment.find((e) => e.id === data.equipmentId);
     if (!equipment) {
       return { success: false, error: "Equipment not found" };
@@ -533,7 +548,7 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async evaluatePerformance(data: {
+  private evaluatePerformance(data: {
     traineeId: string;
     scenarioId: string;
     metrics: {
@@ -543,7 +558,7 @@ export class CinemaSkillsTrainer implements Plugin {
       creativity?: number;
       safety?: number;
     };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scenario = trainingScenarios.find((s) => s.id === data.scenarioId);
     if (!scenario) {
       return { success: false, error: "Scenario not found" };
@@ -686,9 +701,9 @@ export class CinemaSkillsTrainer implements Plugin {
       .map((s) => s.id);
   }
 
-  private async getProgress(data: {
+  private getProgress(data: {
     traineeId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const progress = traineeProgress.get(data.traineeId);
     if (!progress) {
       return {
@@ -721,13 +736,13 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async completeScenario(data: {
+  private completeScenario(data: {
     traineeId: string;
     scenarioId: string;
     score: number;
     timeSpent: number;
     feedback?: string[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const scenario = trainingScenarios.find((s) => s.id === data.scenarioId);
     if (!scenario) {
       return { success: false, error: "Scenario not found" };
@@ -813,9 +828,9 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async getRecommendations(data: {
+  private getRecommendations(data: {
     traineeId: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const progress = traineeProgress.get(data.traineeId);
 
     const recommendations: { scenarioId: string; reason: string }[] = [];
@@ -866,21 +881,21 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  private async createCustomScenario(data: {
+  private createCustomScenario(data: {
     name: string;
     nameAr: string;
     category: TrainingCategory;
-    difficulty: string;
+    difficulty: TrainingScenario["difficulty"];
     objectives: string[];
     equipment: string[];
     duration: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const customScenario: TrainingScenario = {
       id: `custom-${uuidv4().substring(0, 8)}`,
       name: data.name,
       nameAr: data.nameAr,
       category: data.category,
-      difficulty: data.difficulty as any,
+      difficulty: data.difficulty,
       duration: data.duration,
       objectives: data.objectives,
       equipment: data.equipment,
@@ -900,7 +915,7 @@ export class CinemaSkillsTrainer implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     traineeProgress.clear();
     logger.info(`[${this.name}] Shut down`);
   }

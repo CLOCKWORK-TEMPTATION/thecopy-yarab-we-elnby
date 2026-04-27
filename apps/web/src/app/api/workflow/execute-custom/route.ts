@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function HEAD() {
+export function HEAD() {
   return NextResponse.json({
     service: "Workflow Execute Custom",
     status: "proxied to backend",

@@ -201,7 +201,12 @@ export const requestContextEnhancement = async (
 
       if (sseEvent.event === "correction") {
         try {
-          const correction = JSON.parse(sseEvent.data);
+          const correction = JSON.parse(sseEvent.data) as {
+            lineIndex: number;
+            correctedType: string;
+            confidence?: number;
+            reason?: string;
+          };
           totalCorrections += 1;
 
           // تحويل إلى AICorrectionCommand
@@ -226,7 +231,7 @@ export const requestContextEnhancement = async (
         }
       } else if (sseEvent.event === "error") {
         try {
-          const errorData = JSON.parse(sseEvent.data);
+          const errorData = JSON.parse(sseEvent.data) as { message?: string };
           contextLogger.error("context-enhance-stream-error", {
             sessionId,
             message: errorData.message,

@@ -29,6 +29,14 @@ const performanceMonitor = new PerformanceMonitor();
 
 type Effect = "default" | "spark" | "wave" | "vortex";
 
+// نوع إعدادات التحريك للجسيم — يستخدم في updateParticlePhysics
+interface ParticleAnimationConfig {
+  intersectionPoint: { x: number; y: number; z: number } | null;
+  effect?: Effect;
+  repelStrength: number;
+  damping: number;
+}
+
 function updateCameraPosition(
   camera: THREE.PerspectiveCamera,
   rotationX: number,
@@ -66,7 +74,7 @@ function updateParticlePhysics(
   originalPositions: Float32Array,
   _colors: Float32Array,
   particleCount: number,
-  config: any
+  config: ParticleAnimationConfig
 ): void {
   const { intersectionPoint, repelStrength, damping } = config;
 
@@ -617,11 +625,11 @@ export default function V0ParticleAnimation() {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    points: THREE.Points;
-    geometry: THREE.BufferGeometry;
-    originalPositions: Float32Array;
-    velocities: Float32Array;
-    phases: Float32Array;
+    points: THREE.Points | null;
+    geometry: THREE.BufferGeometry | null;
+    originalPositions: Float32Array | null;
+    velocities: Float32Array | null;
+    phases: Float32Array | null;
     intersectionPoint: THREE.Vector3 | null;
     rotationX: number;
     rotationY: number;
@@ -680,8 +688,8 @@ export default function V0ParticleAnimation() {
       scene,
       camera,
       renderer,
-      points: null as any,
-      geometry: null as any,
+      points: null,
+      geometry: null,
       originalPositions,
       velocities,
       phases,
@@ -737,7 +745,12 @@ export default function V0ParticleAnimation() {
         particleCount,
       } = sceneRef.current;
 
-      if (!geometry || particleCount === 0) {
+      if (
+        !geometry ||
+        particleCount === 0 ||
+        !velocities ||
+        !originalPositions
+      ) {
         renderer.render(scene, camera);
         animationId = requestAnimationFrame(animate);
         return;
@@ -919,9 +932,9 @@ export default function V0ParticleAnimation() {
         performanceMonitor.destroy();
 
         if (sceneRef.current) {
-          sceneRef.current.originalPositions = null as any;
-          sceneRef.current.velocities = null as any;
-          sceneRef.current.phases = null as any;
+          sceneRef.current.originalPositions = null;
+          sceneRef.current.velocities = null;
+          sceneRef.current.phases = null;
           sceneRef.current = null;
         }
       } catch (error) {

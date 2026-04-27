@@ -110,8 +110,8 @@ class GeminiService {
 
         log.info("✅ Gemini API call successful", null, "GeminiService");
         return text;
-      } catch (error: any) {
-        lastError = error;
+      } catch (error: unknown) {
+        lastError = error instanceof Error ? error : new Error(String(error));
         log.error(
           `❌ Gemini API error (attempt ${attempt})`,
           error,

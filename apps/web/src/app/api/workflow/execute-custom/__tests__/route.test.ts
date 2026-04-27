@@ -58,7 +58,10 @@ describe("POST /api/workflow/execute-custom", () => {
     const req = createInvalidRequest();
 
     const response = await POST(req);
-    const body = await response.json();
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
 
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);
@@ -68,7 +71,10 @@ describe("POST /api/workflow/execute-custom", () => {
     const req = createJsonRequest({ input: "some input" });
 
     const response = await POST(req);
-    const body = await response.json();
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
 
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);
@@ -79,7 +85,10 @@ describe("POST /api/workflow/execute-custom", () => {
     const req = createJsonRequest({ config: { model: "gpt-4" } });
 
     const response = await POST(req);
-    const body = await response.json();
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
 
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);
@@ -90,7 +99,10 @@ describe("POST /api/workflow/execute-custom", () => {
     const req = createJsonRequest(null);
 
     const response = await POST(req);
-    const body = await response.json();
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
 
     expect(response.status).toBe(400);
     expect(body.success).toBe(false);
@@ -116,7 +128,10 @@ describe("POST /api/workflow/execute-custom", () => {
     const req = createJsonRequest({ config: null, input: "test" });
 
     const response = await POST(req);
-    const body = await response.json();
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
 
     expect(response.status).toBe(400);
     expect(body.error).toContain("config");

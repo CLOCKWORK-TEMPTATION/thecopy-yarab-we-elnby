@@ -56,14 +56,14 @@ export class KeyManager {
   /**
    * إنهاء الجلسة (مسح المفاتيح من الذاكرة)
    */
-  public async endSession(): Promise<void> {
+  public endSession(): void {
     this.clearKEK();
   }
 
   /**
    * حذف كامل (إنهاء الجلسة)
    */
-  public async fullLogout(): Promise<void> {
+  public fullLogout(): void {
     this.clearKEK();
   }
 }

@@ -188,7 +188,7 @@ export class ContextMemoryManager {
     });
   }
 
-  async loadContext(sessionId: string): Promise<EnhancedContextMemory | null> {
+  loadContext(sessionId: string): EnhancedContextMemory | null {
     if (this.storage.has(sessionId)) {
       logger.info(`Loading context for session: ${sessionId}`, {
         scope: "MemoryManager",
@@ -211,10 +211,10 @@ export class ContextMemoryManager {
     return null;
   }
 
-  async saveContext(
+  saveContext(
     sessionId: string,
     memory: EnhancedContextMemory | ContextMemory
-  ): Promise<void> {
+  ): void {
     logger.info(`Saving context for session: ${sessionId}`, {
       scope: "MemoryManager",
     });

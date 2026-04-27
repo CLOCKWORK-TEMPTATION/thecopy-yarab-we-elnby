@@ -8,29 +8,31 @@ import {
 
 import { AUDIENCE_RESONANCE_AGENT_CONFIG } from "./agent";
 
+interface AudienceProfile {
+  demographics?: {
+    ageRange?: string;
+    gender?: string;
+    education?: string;
+    culturalBackground?: string;
+    socioeconomicStatus?: string;
+  };
+  psychographics?: {
+    values?: string[];
+    interests?: string[];
+    lifestyle?: string;
+    emotionalTriggers?: string[];
+  };
+  preferences?: {
+    genrePreferences?: string[];
+    contentStyle?: string;
+    complexity?: string;
+  };
+}
+
 interface AudienceResonanceContext {
   originalText?: string;
-  analysisReport?: any;
-  targetAudience?: {
-    demographics?: {
-      ageRange?: string;
-      gender?: string;
-      education?: string;
-      culturalBackground?: string;
-      socioeconomicStatus?: string;
-    };
-    psychographics?: {
-      values?: string[];
-      interests?: string[];
-      lifestyle?: string;
-      emotionalTriggers?: string[];
-    };
-    preferences?: {
-      genrePreferences?: string[];
-      contentStyle?: string;
-      complexity?: string;
-    };
-  };
+  analysisReport?: unknown;
+  targetAudience?: AudienceProfile;
   contentType?: string;
   platform?: string;
   previousResponses?: {
@@ -263,7 +265,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Assess comprehensiveness of analysis
    */
-  private async assessComprehensiveness(text: string): Promise<number> {
+  private assessComprehensiveness(text: string): number {
     let score = 0.5; // Base score
 
     // Check for required sections
@@ -283,7 +285,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Assess insight depth
    */
-  private async assessInsightDepth(text: string): Promise<number> {
+  private assessInsightDepth(text: string): number {
     let score = 0.5; // Base score
 
     // Check for analytical depth indicators
@@ -327,7 +329,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Assess actionability of recommendations
    */
-  private async assessActionability(text: string): Promise<number> {
+  private assessActionability(text: string): number {
     let score = 0.5; // Base score
 
     // Check for actionable language
@@ -427,7 +429,7 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Format audience profile
    */
-  private formatAudienceProfile(audience: any): string {
+  private formatAudienceProfile(audience: AudienceProfile): string {
     const formatted: string[] = [];
 
     // Demographics
@@ -482,9 +484,9 @@ export class AudienceResonanceAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     const ctx = input.context as AudienceResonanceContext;
     const audienceInfo = ctx?.targetAudience ? "محدد" : "عام";
 

@@ -41,7 +41,7 @@ function Sets() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
+      const data = (await response.json()) as { success?: boolean };
       if (data.success) {
         setShowAddForm(false);
         setFormData({
@@ -66,7 +66,10 @@ function Sets() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: { pieces?: SetPiece[] };
+      };
       if (data.success && data.data?.pieces) {
         setPieces(data.data.pieces);
       }
@@ -86,7 +89,10 @@ function Sets() {
           body: JSON.stringify({}),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: SustainabilityReport;
+      };
       if (data.success && data.data) {
         setReport(data.data);
       }

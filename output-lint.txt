@@ -1,0 +1,8 @@
+
+> the-copy-monorepo@1.0.0 prelint C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm agent:guard:step
+
+
+> the-copy-monorepo@1.0.0 agent:guard:step C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> tsx scripts/agent/guard.ts --phase=step
+

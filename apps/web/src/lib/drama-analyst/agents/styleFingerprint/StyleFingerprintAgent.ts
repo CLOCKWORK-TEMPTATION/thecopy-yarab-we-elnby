@@ -10,7 +10,7 @@ import { STYLE_FINGERPRINT_AGENT_CONFIG } from "./agent";
 
 interface StyleFingerprintContext {
   originalText?: string;
-  analysisReport?: any;
+  analysisReport?: unknown;
   compareWithText?: string;
   analysisDepth?: string; // 'basic', 'detailed', 'comprehensive'
   focusAreas?: string[]; // ['lexical', 'syntactic', 'rhetorical', 'thematic']
@@ -165,7 +165,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessAnalyticalDepth(text: string): Promise<number> {
+  private assessAnalyticalDepth(text: string): number {
     let score = 0.5;
 
     const analyticalTerms = [
@@ -210,7 +210,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessSpecificity(text: string): Promise<number> {
+  private assessSpecificity(text: string): number {
     let score = 0.6;
 
     const hasQuotes = (text.match(/["«]/g) ?? []).length;
@@ -226,7 +226,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessComprehensiveness(text: string): Promise<number> {
+  private assessComprehensiveness(text: string): number {
     let score = 0.5;
 
     const dimensions = ["معجم", "نحو", "بلاغ", "أسلوب", "إيقاع", "نبرة"];
@@ -241,7 +241,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceWords = [
@@ -326,9 +326,9 @@ export class StyleFingerprintAgent extends BaseAgent {
     return areas[area] ?? area;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `التحليل المعجمي:
 النص يظهر تنوعاً معجمياً يعكس مستوى لغوي متوسط إلى مرتفع.
 

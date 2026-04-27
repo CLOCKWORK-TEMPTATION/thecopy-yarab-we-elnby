@@ -147,7 +147,7 @@ class BackendService {
     };
   }
 
-  async healthCheck(): Promise<boolean> {
+  healthCheck(): boolean {
     // Skip health check for local development
     return true;
   }
@@ -166,7 +166,7 @@ export async function callBackendAPI(
   return backendService.analyzeText(req);
 }
 
-export async function checkBackendHealth(): Promise<boolean> {
+export function checkBackendHealth(): Promise<boolean> {
   return backendService.healthCheck();
 }
 

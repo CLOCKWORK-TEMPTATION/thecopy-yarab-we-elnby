@@ -194,13 +194,13 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Assess the quality of recommendations
    */
-  private async assessRecommendationsQuality(text: string): Promise<{
+  private assessRecommendationsQuality(text: string): {
     actionability: number;
     specificity: number;
     comprehensiveness: number;
     creativeSolutions: number;
     overallScore: number;
-  }> {
+  } {
     // Actionability indicators
     const actionTerms = [
       "يجب",
@@ -376,9 +376,9 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   /**
    * Generate fallback response specific to recommendations
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `التوصيات والتحسينات المقترحة:
 
 بناءً على التحليل الأولي للنص المقدم، إليك بعض التوصيات العامة:

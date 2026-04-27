@@ -315,7 +315,7 @@ function installDomEnvironment(): () => void {
   };
 }
 
-async function runConfigSuite(): Promise<void> {
+function runConfigSuite(): void {
   const snapshot = {
     imageMaxMb: process.env.NEXT_PUBLIC_CINE_IMAGE_MAX_MB,
     videoMaxMb: process.env.NEXT_PUBLIC_CINE_VIDEO_MAX_MB,
@@ -604,7 +604,7 @@ async function runCameraBindingSuite(): Promise<void> {
       configurable: true,
       writable: true,
       value: {
-        getUserMedia: async () => fakeStream,
+        getUserMedia: () => fakeStream,
       },
     });
 

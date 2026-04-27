@@ -51,7 +51,10 @@ function Documentation() {
           body: JSON.stringify(bookForm),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: ProductionBook;
+      };
       if (data.success && data.data) {
         setProductionBook(data.data);
         setShowBookForm(false);
@@ -75,7 +78,10 @@ function Documentation() {
           }),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: StyleGuide;
+      };
       if (data.success && data.data) {
         setStyleGuide(data.data);
       }
@@ -96,7 +102,7 @@ function Documentation() {
           body: JSON.stringify(decisionForm),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as { success?: boolean };
       if (data.success) {
         setShowDecisionForm(false);
         setDecisionForm({
@@ -122,7 +128,7 @@ function Documentation() {
           body: JSON.stringify({ format }),
         }
       );
-      const data = await response.json();
+      const data = (await response.json()) as { success?: boolean };
       if (data.success) {
         alert(`تم تصدير التوثيق بصيغة ${format.toUpperCase()}`);
       }

@@ -36,7 +36,7 @@ export class MultiAgentDebateSystem {
    */
   async conductDebate(
     task: string,
-    context: any,
+    context: unknown,
     participatingAgents: string[]
   ): Promise<DebateResult> {
     log.info(
@@ -122,7 +122,7 @@ export class MultiAgentDebateSystem {
   private async generateProposal(
     agentId: string,
     task: string,
-    context: any,
+    context: unknown,
     previousProposals: AgentProposal[]
   ): Promise<AgentProposal> {
     let prompt = `
@@ -161,7 +161,9 @@ ${JSON.stringify(context, null, 2).substring(0, 2000)}
         agentId,
         proposal: parsed.proposal ?? "",
         supportingEvidence: Array.isArray(parsed.supportingEvidence)
-          ? parsed.supportingEvidence
+          ? parsed.supportingEvidence.filter(
+              (item): item is string => typeof item === "string"
+            )
           : [],
         confidence:
           typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
@@ -241,7 +243,7 @@ ${JSON.stringify(context, null, 2).substring(0, 2000)}
   private async judgeDecision(
     task: string,
     proposals: AgentProposal[],
-    context: any
+    context: unknown
   ): Promise<{ decision: string; reasoning: string }> {
     const judgePrompt = `
 أنت حكم محايد ومتخصص في التطوير الدرامي.

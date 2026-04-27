@@ -147,7 +147,7 @@ export const logger = {
     data?: unknown,
     context?: Omit<LogContext, "data">
   ): void {
-    const logContext: any = { data };
+    const logContext: LogContext = { data };
     if (context?.scope !== undefined) logContext.scope = context.scope;
     if (context?.tags !== undefined) logContext.tags = context.tags;
     writeLog("info", `telemetry:${event}`, logContext);

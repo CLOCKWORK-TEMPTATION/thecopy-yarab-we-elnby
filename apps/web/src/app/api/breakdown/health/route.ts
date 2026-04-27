@@ -32,7 +32,7 @@ function ensureCsrfCookie(request: NextRequest, response: NextResponse): void {
   }
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export function GET(request: NextRequest): NextResponse {
   const response = NextResponse.json({
     success: true,
     data: {

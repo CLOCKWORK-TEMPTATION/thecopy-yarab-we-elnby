@@ -43,7 +43,7 @@ export class ConstitutionalAI {
     },
   ];
 
-  async evaluate(_content: string): Promise<ConstitutionalResult> {
+  evaluate(_content: string): ConstitutionalResult {
     const checks: ConstitutionalCheck[] = [];
 
     for (const principle of this.principles) {

@@ -198,7 +198,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     if (!scriptText.trim()) {
       setError("Please enter a script or scene description");
       return;
@@ -218,7 +218,11 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ scenario: scriptText, title: budgetName }),
           });
-          const genData = await genResponse.json();
+          const genData = (await genResponse.json()) as {
+            error?: string;
+            data?: { budget?: unknown };
+            budget?: unknown;
+          };
           if (!genResponse.ok) {
             throw new Error(genData.error ?? "فشل في توليد الميزانية");
           }
@@ -235,7 +239,10 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ scenario: scriptText }),
           });
-          const analyzeData = await analyzeResponse.json();
+          const analyzeData = (await analyzeResponse.json()) as {
+            data?: { analysis?: unknown };
+            analysis?: unknown;
+          };
           if (analyzeResponse.ok) {
             const analysisResult =
               analyzeData.data?.analysis ?? analyzeData.analysis;
@@ -254,14 +261,16 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
         {
           loading: "Analyzing script...",
           success: (msg) => msg,
-          error: (err) => `Error: ${err.message}`,
+          error: (err: unknown) =>
+            `Error: ${err instanceof Error ? err.message : String(err)}`,
         }
       );
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
       logger.error("Budget generation failed", { error: e });
-      setError(e.message ?? "Failed to generate budget. Please try again.");
+      setError(message ?? "Failed to generate budget. Please try again.");
       setStatus("error");
-      toast.error(e.message ?? "Failed to generate budget");
+      toast.error(message ?? "Failed to generate budget");
     }
   };
 

@@ -4,18 +4,27 @@ import { describe, expect, it, vi } from "vitest";
 import { WritingEditor } from "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor";
 
 import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
+import type { PropsWithChildren, ReactNode } from "react";
+
+type ClassNameMockProps = PropsWithChildren<{ className?: string }>;
+type DropdownItemMockProps = PropsWithChildren<{ onSelect?: () => void }>;
+interface DropdownTriggerMockProps {
+  children: ReactNode;
+}
 
 vi.mock("@/components/aceternity/card-spotlight", () => ({
-  CardSpotlight: ({ children, className }: any) => (
+  CardSpotlight: ({ children, className }: ClassNameMockProps) => (
     <div className={className}>{children}</div>
   ),
 }));
 
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: any) => children,
-  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuItem: ({ children, onSelect }: any) => (
+  DropdownMenu: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: DropdownTriggerMockProps) => children,
+  DropdownMenuContent: ({ children }: PropsWithChildren) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuItem: ({ children, onSelect }: DropdownItemMockProps) => (
     <button type="button" onClick={onSelect}>
       {children}
     </button>

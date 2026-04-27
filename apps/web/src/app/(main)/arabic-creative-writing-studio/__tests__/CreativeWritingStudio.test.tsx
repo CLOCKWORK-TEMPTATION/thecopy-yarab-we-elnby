@@ -8,15 +8,30 @@ import { vi } from "vitest";
 
 import { CreativeWritingStudio } from "@/app/(main)/arabic-creative-writing-studio/components/CreativeWritingStudio";
 
-import type { AppSettings } from "@/app/(main)/arabic-creative-writing-studio/types";
+import type { PromptLibraryProps } from "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary";
+import type { SettingsPanelProps } from "@/app/(main)/arabic-creative-writing-studio/components/SettingsPanel";
+import type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor";
+import type {
+  AppSettings,
+  CreativePrompt,
+  CreativeProject,
+} from "@/app/(main)/arabic-creative-writing-studio/types";
+import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
+
+type ButtonMockProps = PropsWithChildren<
+  Pick<
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    "onClick" | "className" | "disabled"
+  >
+>;
 
 // Mock dependencies
 vi.mock("@/ai/gemini-service", () => ({
   GeminiService: class {
-    async testConnection() {
+    testConnection() {
       return { success: true };
     }
-    async analyzeText() {
+    analyzeText() {
       return { success: true, data: {} };
     }
   },
@@ -25,10 +40,12 @@ vi.mock("@/ai/gemini-service", () => ({
 vi.mock(
   "@/app/(main)/arabic-creative-writing-studio/components/PromptLibrary",
   () => ({
-    PromptLibrary: ({ onPromptSelect, loading }: any) => (
+    PromptLibrary: ({ onPromptSelect, loading }: PromptLibraryProps) => (
       <div data-testid="prompt-library">
         <button
-          onClick={() => onPromptSelect({ id: "test", title: "Test" })}
+          onClick={() =>
+            onPromptSelect({ id: "test", title: "Test" } as CreativePrompt)
+          }
           disabled={loading}
         >
           مكتبة المحفزات
@@ -42,9 +59,13 @@ vi.mock(
 vi.mock(
   "@/app/(main)/arabic-creative-writing-studio/components/WritingEditor",
   () => ({
-    WritingEditor: ({ onSave }: any) => (
+    WritingEditor: ({ onSave }: WritingEditorProps) => (
       <div data-testid="writing-editor">
-        <button onClick={() => onSave({ id: "test", title: "Test Project" })}>
+        <button
+          onClick={() =>
+            onSave({ id: "test", title: "Test Project" } as CreativeProject)
+          }
+        >
           حفظ المشروع
         </button>
       </div>
@@ -55,7 +76,7 @@ vi.mock(
 vi.mock(
   "@/app/(main)/arabic-creative-writing-studio/components/SettingsPanel",
   () => ({
-    SettingsPanel: ({ onSettingsUpdate }: any) => (
+    SettingsPanel: ({ onSettingsUpdate }: SettingsPanelProps) => (
       <div data-testid="settings-panel">
         <button onClick={() => onSettingsUpdate({ theme: "dark" })}>
           تحديث الإعدادات
@@ -67,7 +88,7 @@ vi.mock(
 
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, className, disabled }: any) => (
+  Button: ({ children, onClick, className, disabled }: ButtonMockProps) => (
     <button onClick={onClick} className={className} disabled={disabled}>
       {children}
     </button>
@@ -75,24 +96,26 @@ vi.mock("@/components/ui/button", () => ({
 }));
 
 vi.mock("@/components/ui/card", () => ({
-  Card: ({ children }: any) => <div>{children}</div>,
-  CardContent: ({ children }: any) => <div>{children}</div>,
-  CardHeader: ({ children }: any) => <div>{children}</div>,
-  CardTitle: ({ children }: any) => <h3>{children}</h3>,
-  CardDescription: ({ children }: any) => <p>{children}</p>,
+  Card: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardContent: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardHeader: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  CardTitle: ({ children }: PropsWithChildren) => <h3>{children}</h3>,
+  CardDescription: ({ children }: PropsWithChildren) => <p>{children}</p>,
 }));
 
 vi.mock("@/components/ui/alert", () => ({
-  Alert: ({ children }: any) => <div role="alert">{children}</div>,
-  AlertDescription: ({ children }: any) => <div>{children}</div>,
+  Alert: ({ children }: PropsWithChildren) => (
+    <div role="alert">{children}</div>
+  ),
+  AlertDescription: ({ children }: PropsWithChildren) => <div>{children}</div>,
 }));
 
 vi.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ children }: any) => <div>{children}</div>,
-  DialogContent: ({ children }: any) => <div>{children}</div>,
-  DialogDescription: ({ children }: any) => <div>{children}</div>,
-  DialogHeader: ({ children }: any) => <div>{children}</div>,
-  DialogTitle: ({ children }: any) => <h3>{children}</h3>,
+  Dialog: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  DialogContent: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  DialogDescription: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  DialogHeader: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  DialogTitle: ({ children }: PropsWithChildren) => <h3>{children}</h3>,
 }));
 
 describe("CreativeWritingStudio - اختبار الدخان", () => {

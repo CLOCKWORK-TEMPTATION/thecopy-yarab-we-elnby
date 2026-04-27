@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     success: true,
     data: {

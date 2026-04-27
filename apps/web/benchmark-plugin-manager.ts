@@ -2,6 +2,7 @@ import { PluginManager } from "./src/app/(main)/art-director/core/PluginManager"
 import {
   Plugin,
   PluginCategory,
+  PluginOutput,
 } from "./src/app/(main)/art-director/types/index";
 
 class MockPlugin implements Plugin {
@@ -25,7 +26,7 @@ class MockPlugin implements Plugin {
     await new Promise((resolve) => setTimeout(resolve, this.delay));
   }
 
-  async execute(): Promise<any> {
+  execute(): PluginOutput {
     return { success: true };
   }
 

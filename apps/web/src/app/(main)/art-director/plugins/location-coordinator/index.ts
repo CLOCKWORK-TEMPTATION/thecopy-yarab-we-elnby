@@ -83,11 +83,11 @@ export class LocationSetCoordinator implements Plugin {
   private locations = new Map<string, Location>();
   private setDesigns = new Map<string, SetDesign>();
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
     switch (input.type) {
       case "add-location":
         return this.addLocation(input.data);
@@ -123,7 +123,7 @@ export class LocationSetCoordinator implements Plugin {
     }
   }
 
-  private async addLocation(data: Partial<Location>): Promise<PluginOutput> {
+  private addLocation(data: Partial<Location>): PluginOutput {
     if (!data.name || !data.type) {
       return {
         success: false,
@@ -168,9 +168,9 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async searchLocations(
+  private searchLocations(
     criteria: SearchCriteria
-  ): Promise<PluginOutput> {
+  ): PluginOutput {
     let results = Array.from(this.locations.values());
 
     if (criteria.type) {
@@ -239,7 +239,7 @@ export class LocationSetCoordinator implements Plugin {
     return true;
   }
 
-  private async getLocation(data: { id: string }): Promise<PluginOutput> {
+  private getLocation(data: { id: string }): PluginOutput {
     const location = this.locations.get(data.id);
 
     if (!location) {
@@ -255,10 +255,10 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async updateAvailability(data: {
+  private updateAvailability(data: {
     locationId: string;
     slot: AvailabilitySlot;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const location = this.locations.get(data.locationId);
 
     if (!location) {
@@ -281,10 +281,10 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async addPermit(data: {
+  private addPermit(data: {
     locationId: string;
     permit: Permit;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const location = this.locations.get(data.locationId);
 
     if (!location) {
@@ -307,7 +307,7 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async addSetDesign(data: Partial<SetDesign>): Promise<PluginOutput> {
+  private addSetDesign(data: Partial<SetDesign>): PluginOutput {
     if (!data.name || !data.locationId) {
       return {
         success: false,
@@ -342,9 +342,9 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async getSetDesigns(data: {
+  private getSetDesigns(data: {
     locationId?: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     let sets = Array.from(this.setDesigns.values());
 
     if (data.locationId) {
@@ -360,9 +360,9 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async matchLocationToScene(data: {
+  private matchLocationToScene(data: {
     sceneRequirements: Record<string, unknown>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const reqs = data.sceneRequirements;
     const scores: {
       location: Location;
@@ -418,10 +418,10 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  private async getSchedule(data: {
+  private getSchedule(data: {
     startDate: string;
     endDate: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const schedule: {
       location: Location;
       bookings: AvailabilitySlot[];
@@ -457,7 +457,7 @@ export class LocationSetCoordinator implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     logger.info(`[${this.name}] Shut down`);
   }
 }

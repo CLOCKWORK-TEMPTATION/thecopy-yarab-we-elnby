@@ -85,7 +85,7 @@ describe("kv-utils", () => {
       };
       const result = unflatten(input);
       expect(result).toEqual({});
-      expect(({} as any).polluted).toBeUndefined();
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
     });
 
     it("should prevent prototype pollution via constructor", () => {
@@ -94,7 +94,7 @@ describe("kv-utils", () => {
       };
       const result = unflatten(input);
       expect(result).toEqual({});
-      expect(({} as any).polluted).toBeUndefined();
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
     });
 
     it("should prevent prototype pollution via prototype", () => {
@@ -103,7 +103,7 @@ describe("kv-utils", () => {
       };
       const result = unflatten(input);
       expect(result).toEqual({});
-      expect(({} as any).polluted).toBeUndefined();
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
     });
 
     it("should safely handle regular keys that overlap with dangerous names but aren't exactly them", () => {

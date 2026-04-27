@@ -17,13 +17,27 @@ import {
 // Mock the gemini-core module
 vi.mock("@/lib/ai/gemini-core", () => ({
   callGeminiText: vi.fn(),
-  toText: vi.fn((v: any) => {
+  toText: vi.fn((v: unknown): string => {
     if (typeof v === "string") return v;
-    if (v && typeof v === "object" && "raw" in v) return v.raw;
-    return String(v ?? "");
+    if (
+      v !== null &&
+      typeof v === "object" &&
+      "raw" in v &&
+      typeof v.raw === "string"
+    ) {
+      return v.raw;
+    }
+    if (v === null || v === undefined) return "";
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return "";
   }),
-  safeSub: vi.fn((s: any, a: number, b?: number) => {
-    const text = String(s ?? "");
+  safeSub: vi.fn((s: unknown, a: number, b?: number): string => {
+    const text =
+      typeof s === "string"
+        ? s
+        : typeof s === "number" || typeof s === "boolean"
+          ? String(s)
+          : "";
     return b !== undefined ? text.substring(a, b) : text.substring(a);
   }),
 }));

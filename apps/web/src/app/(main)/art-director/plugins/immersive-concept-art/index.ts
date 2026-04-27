@@ -185,34 +185,55 @@ export class ImmersiveConceptArt implements Plugin {
     "محرك ثلاثي الأبعاد مدمج مع دعم الواقع الافتراضي للتصور المسبق";
   category = "xr-immersive" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(
       `[${this.name}] Initialized with 3D modeling and VR capabilities`
     );
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
+    const data = input.data as unknown;
     switch (input.type) {
       case "create-project":
-        return this.createProject(input.data as any);
+        return this.createProject(
+          data as Parameters<ImmersiveConceptArt["createProject"]>[0]
+        );
       case "create-model":
-        return this.createModel3D(input.data as any);
+        return this.createModel3D(
+          data as Parameters<ImmersiveConceptArt["createModel3D"]>[0]
+        );
       case "create-environment":
-        return this.createEnvironment(input.data as any);
+        return this.createEnvironment(
+          data as Parameters<ImmersiveConceptArt["createEnvironment"]>[0]
+        );
       case "create-character":
-        return this.createCharacter(input.data as any);
+        return this.createCharacter(
+          data as Parameters<ImmersiveConceptArt["createCharacter"]>[0]
+        );
       case "generate-moodboard":
-        return this.generateMoodboard(input.data as any);
+        return this.generateMoodboard(
+          data as Parameters<ImmersiveConceptArt["generateMoodboard"]>[0]
+        );
       case "create-vr-experience":
-        return this.createVRExperience(input.data as any);
+        return this.createVRExperience(
+          data as Parameters<ImmersiveConceptArt["createVRExperience"]>[0]
+        );
       case "sculpt-model":
-        return this.sculptModel(input.data as any);
+        return this.sculptModel(
+          data as Parameters<ImmersiveConceptArt["sculptModel"]>[0]
+        );
       case "apply-material":
-        return this.applyMaterial(input.data as any);
+        return this.applyMaterial(
+          data as Parameters<ImmersiveConceptArt["applyMaterial"]>[0]
+        );
       case "render-preview":
-        return this.renderPreview(input.data as any);
+        return this.renderPreview(
+          data as Parameters<ImmersiveConceptArt["renderPreview"]>[0]
+        );
       case "export-assets":
-        return this.exportAssets(input.data as any);
+        return this.exportAssets(
+          data as Parameters<ImmersiveConceptArt["exportAssets"]>[0]
+        );
       case "list-projects":
         return this.listProjects();
       default:
@@ -220,11 +241,11 @@ export class ImmersiveConceptArt implements Plugin {
     }
   }
 
-  private async createProject(data: {
+  private createProject(data: {
     name: string;
     description: string;
     style: ArtStyle;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project: ConceptArtProject = {
       id: uuidv4(),
       name: data.name,
@@ -266,13 +287,13 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async createModel3D(data: {
+  private createModel3D(data: {
     projectId: string;
     name: string;
     type: Model3D["type"];
     baseMesh?: "cube" | "sphere" | "cylinder" | "plane" | "custom";
     dimensions?: { width: number; height: number; depth: number };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -342,12 +363,12 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async createEnvironment(data: {
+  private createEnvironment(data: {
     projectId: string;
     name: string;
     type: Environment3D["type"];
     preset?: "daylight" | "sunset" | "night" | "overcast" | "studio";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -451,12 +472,12 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async createCharacter(data: {
+  private createCharacter(data: {
     projectId: string;
     name: string;
     type: Character3D["type"];
     rigType?: RigInfo["type"];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -517,13 +538,13 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async generateMoodboard(data: {
+  private generateMoodboard(data: {
     projectId: string;
     name: string;
     theme: string;
     keywords: string[];
     colorScheme?: string[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -632,13 +653,13 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async createVRExperience(data: {
+  private createVRExperience(data: {
     projectId: string;
     name: string;
     type: VRExperience["type"];
     includeModels?: string[];
     includeEnvironments?: string[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -712,14 +733,14 @@ export class ImmersiveConceptArt implements Plugin {
     return interactions[type] ?? [];
   }
 
-  private async sculptModel(data: {
+  private sculptModel(data: {
     projectId: string;
     modelId: string;
     operation: "add" | "subtract" | "smooth" | "flatten" | "pinch";
     brushSize: number;
     intensity: number;
     position: { x: number; y: number; z: number };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -751,11 +772,11 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async applyMaterial(data: {
+  private applyMaterial(data: {
     projectId: string;
     modelId: string;
     material: Partial<Material3D>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -794,7 +815,7 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async renderPreview(data: {
+  private renderPreview(data: {
     projectId: string;
     targetId: string;
     targetType: "model" | "environment" | "character";
@@ -803,7 +824,7 @@ export class ImmersiveConceptArt implements Plugin {
       position: { x: number; y: number; z: number };
       target: { x: number; y: number; z: number };
     };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -829,13 +850,13 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  private async exportAssets(data: {
+  private exportAssets(data: {
     projectId: string;
     assetIds?: string[];
     format: "gltf" | "fbx" | "obj" | "usdz" | "blend";
     includeTextures: boolean;
     includeAnimations: boolean;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const project = projects.get(data.projectId);
     if (!project) {
       return { success: false, error: "Project not found" };
@@ -874,7 +895,7 @@ export class ImmersiveConceptArt implements Plugin {
     return compatibility[format] ?? [];
   }
 
-  private async listProjects(): Promise<PluginOutput> {
+  private listProjects(): PluginOutput {
     const projectList = Array.from(projects.values()).map((p) => ({
       id: p.id,
       name: p.name,
@@ -897,7 +918,7 @@ export class ImmersiveConceptArt implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     projects.clear();
     logger.info(`[${this.name}] Shut down`);
   }

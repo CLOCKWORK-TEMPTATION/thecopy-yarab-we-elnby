@@ -25,7 +25,7 @@ export class RAGService {
   async retrieveContext(
     query: string,
     originalText: string,
-    analysisReport: any,
+    analysisReport: unknown,
     topK = 5
   ): Promise<RAGContext> {
     log.debug("Retrieving context for query", null, "RAGService");
@@ -96,23 +96,25 @@ export class RAGService {
    * تقسيم تقرير التحليل لأجزاء
    * Chunk analysis report by sections
    */
-  private chunkAnalysisReport(report: any): RetrievedChunk[] {
+  private chunkAnalysisReport(report: unknown): RetrievedChunk[] {
     const chunks: RetrievedChunk[] = [];
 
     if (!report || typeof report !== "object") {
       return chunks;
     }
 
-    Object.entries(report).forEach(([station, content]) => {
-      if (typeof content === "string" && content.length > 0) {
-        chunks.push({
-          content: `${station}: ${content}`,
-          source: "analysis_report",
-          relevanceScore: 0,
-          location: station,
-        });
+    Object.entries(report as Record<string, unknown>).forEach(
+      ([station, content]) => {
+        if (typeof content === "string" && content.length > 0) {
+          chunks.push({
+            content: `${station}: ${content}`,
+            source: "analysis_report",
+            relevanceScore: 0,
+            location: station,
+          });
+        }
       }
-    });
+    );
 
     return chunks;
   }
@@ -126,7 +128,7 @@ export class RAGService {
     chunks: RetrievedChunk[]
   ): Promise<RetrievedChunk[]> {
     // Simple keyword-based scoring (can be enhanced with embeddings)
-    const scoringPromises = chunks.map(async (chunk) => {
+    const scoringPromises = chunks.map((chunk) => {
       const score = this.scoreChunkSimple(query, chunk.content);
       return { ...chunk, relevanceScore: score };
     });

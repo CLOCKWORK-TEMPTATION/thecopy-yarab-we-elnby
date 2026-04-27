@@ -32,13 +32,24 @@ export function createScrollAnimation(
   if (!element || typeof window === "undefined") return null;
 
   try {
+    interface ScrollTimelineOptions {
+      source?: Element;
+      axis?: "block" | "inline" | "x" | "y";
+    }
+    type ScrollTimelineCtor = new (
+      options?: ScrollTimelineOptions
+    ) => AnimationTimeline;
+    const scrollTimelineWindow = window as Window & {
+      ScrollTimeline?: ScrollTimelineCtor;
+    };
+
     // Check if ScrollTimeline is available
-    if (typeof (window as any).ScrollTimeline === "undefined") {
+    if (typeof scrollTimelineWindow.ScrollTimeline === "undefined") {
       logger.warn("Scroll-driven animations not supported");
       return null;
     }
 
-    const ScrollTimelineConstructor = (window as any).ScrollTimeline;
+    const ScrollTimelineConstructor = scrollTimelineWindow.ScrollTimeline;
     const animation = element.animate(keyframes, {
       timeline: new ScrollTimelineConstructor({
         source: document.documentElement,

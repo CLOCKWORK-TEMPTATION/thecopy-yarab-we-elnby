@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function HEAD() {
+export function HEAD() {
   return NextResponse.json({
     service: "Brain Storm AI",
     status: "proxied to backend",

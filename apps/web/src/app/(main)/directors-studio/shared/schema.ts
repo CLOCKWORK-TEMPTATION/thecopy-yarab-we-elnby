@@ -44,7 +44,7 @@ const baseInsertProjectSchema = createInsertSchema(projects, {
 });
 
 export const insertProjectSchema =
-  baseInsertProjectSchema as unknown as z.ZodType<any>;
+  baseInsertProjectSchema as unknown as z.ZodType<typeof projects.$inferInsert>;
 
 export type InsertProject = typeof projects.$inferInsert;
 export type Project = typeof projects.$inferSelect;
@@ -77,7 +77,7 @@ const baseInsertSceneSchema = createInsertSchema(scenes, {
 });
 
 export const insertSceneSchema =
-  baseInsertSceneSchema as unknown as z.ZodType<any>;
+  baseInsertSceneSchema as unknown as z.ZodType<typeof scenes.$inferInsert>;
 
 export type InsertScene = typeof scenes.$inferInsert;
 export type Scene = typeof scenes.$inferSelect;
@@ -103,7 +103,9 @@ const baseInsertCharacterSchema = createInsertSchema(characters, {
 });
 
 export const insertCharacterSchema =
-  baseInsertCharacterSchema as unknown as z.ZodType<any>;
+  baseInsertCharacterSchema as unknown as z.ZodType<
+    typeof characters.$inferInsert
+  >;
 
 export type InsertCharacter = typeof characters.$inferInsert;
 export type Character = typeof characters.$inferSelect;
@@ -134,7 +136,7 @@ const baseInsertShotSchema = createInsertSchema(shots, {
 });
 
 export const insertShotSchema =
-  baseInsertShotSchema as unknown as z.ZodType<any>;
+  baseInsertShotSchema as unknown as z.ZodType<typeof shots.$inferInsert>;
 
 export type InsertShot = typeof shots.$inferInsert;
 export type Shot = typeof shots.$inferSelect;

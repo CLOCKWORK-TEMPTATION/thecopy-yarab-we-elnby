@@ -10,6 +10,10 @@ import images from "@/lib/images";
 import { IntroVideoModal } from "./IntroVideoModal";
 import { VideoTextMask } from "./VideoTextMask";
 
+import type { ResponsiveConfig } from "@/lib/hero-config";
+
+type HeroCardPosition = ResponsiveConfig["cardPositions"][number];
+
 interface HeroAnimationProps {
   onContinue?: () => void;
 }
@@ -60,7 +64,7 @@ export const HeroAnimation = ({
             {/* V-Shape Container */}
             <div className="v-shape-container absolute top-0 left-0 w-full h-full m-0 p-0">
               <div className="v-shape-cards-layer absolute inset-0">
-                {responsiveValues.cardPositions.map((_pos: any, i: number) => {
+                {responsiveValues.cardPositions.map((_pos: HeroCardPosition, i: number) => {
                   const centerIndex = Math.floor(
                     responsiveValues.cardPositions.length / 2
                   );

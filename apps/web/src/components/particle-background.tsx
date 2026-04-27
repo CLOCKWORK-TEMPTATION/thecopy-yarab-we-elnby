@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
+import { createModuleLogger } from "@/lib/logger";
 import {
   BASELINE,
   STROKE_WIDTH,
@@ -21,8 +22,6 @@ import {
   PerformanceMonitor,
   logDeviceCapabilities,
 } from "./device-detection";
-
-import { createModuleLogger } from "@/lib/logger";
 
 import type React from "react";
 

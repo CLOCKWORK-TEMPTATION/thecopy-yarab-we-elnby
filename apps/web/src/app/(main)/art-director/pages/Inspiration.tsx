@@ -39,7 +39,10 @@ function Inspiration() {
           era: era || undefined,
         }),
       });
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: MoodBoard;
+      };
       if (data.success && data.data) {
         setResult(data.data);
       }
@@ -59,7 +62,10 @@ function Inspiration() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mood, count: 3 }),
       });
-      const data = await response.json();
+      const data = (await response.json()) as {
+        success?: boolean;
+        data?: { palettes?: ColorPalette[] };
+      };
       if (data.success && data.data?.palettes) {
         setPalettes(data.data.palettes);
       }

@@ -10,8 +10,21 @@ describe("pickImportFile", () => {
   });
 
   it("يعيد null عند إلغاء نافذة اختيار الملف", async () => {
-    let createdInput: any = null;
-    const listeners = new Map<string, Function>();
+    type FakeInput = {
+      type: string;
+      name: string;
+      accept: string;
+      tabIndex: number;
+      style: Record<string, string>;
+      files: File[];
+      setAttribute: () => undefined;
+      addEventListener: (event: string, cb: EventListener) => void;
+      removeEventListener: (event: string) => void;
+      remove: () => undefined;
+      click: () => undefined;
+    };
+    let createdInput: FakeInput | null = null;
+    const listeners = new Map<string, EventListener>();
 
     const fakeDocument = {
       body: {
@@ -29,7 +42,7 @@ describe("pickImportFile", () => {
           style: {},
           files: [],
           setAttribute: () => undefined,
-          addEventListener: (event: string, cb: Function) => {
+          addEventListener: (event: string, cb: EventListener) => {
             listeners.set(event, cb);
           },
           removeEventListener: (event: string) => {
@@ -42,15 +55,15 @@ describe("pickImportFile", () => {
       },
     } as unknown as Document;
 
-    const focusListeners = new Map<string, Function>();
+    const focusListeners = new Map<string, EventListener>();
     const fakeWindow = {
-      addEventListener: (event: string, cb: Function) => {
+      addEventListener: (event: string, cb: EventListener) => {
         focusListeners.set(event, cb);
       },
       removeEventListener: (event: string) => {
         focusListeners.delete(event);
       },
-      setTimeout: (cb: Function) => {
+      setTimeout: (cb: () => void) => {
         cb();
         return 1;
       },
@@ -64,7 +77,7 @@ describe("pickImportFile", () => {
     expect(createdInput).not.toBeNull();
     const focusHandler = focusListeners.get("focus");
     expect(focusHandler).toBeTypeOf("function");
-    focusHandler?.();
+    focusHandler?.(new Event("focus"));
 
     await expect(pending).resolves.toBeNull();
   });

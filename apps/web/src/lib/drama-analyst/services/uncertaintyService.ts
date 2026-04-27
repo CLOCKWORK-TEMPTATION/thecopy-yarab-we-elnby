@@ -162,7 +162,7 @@ export class UncertaintyService {
    * تقييم شامل للثقة
    * Comprehensive confidence assessment
    */
-  async assessConfidence(output: string, context: any): Promise<number> {
+  async assessConfidence(output: string, context: unknown): Promise<number> {
     const assessmentPrompt = `
 قم بتقييم مستوى الثقة في المخرج التالي على مقياس من 0 إلى 1.
 

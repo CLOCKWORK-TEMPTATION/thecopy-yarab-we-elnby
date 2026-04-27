@@ -25,7 +25,7 @@ export class PipelineAgentManager {
   /**
    * Initialize the pipeline agent worker
    */
-  async initialize(): Promise<void> {
+  initialize(): void {
     try {
       this.workerPool.worker = new Worker(
         new URL("./pipeline-agent.worker.ts", import.meta.url),

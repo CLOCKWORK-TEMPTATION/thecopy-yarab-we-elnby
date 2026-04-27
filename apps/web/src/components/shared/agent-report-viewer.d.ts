@@ -1,5 +1,16 @@
 import React from 'react';
 
+/**
+ * قيم metadata المقبولة — primitives قابلة للتحويل النصي مباشرة عبر String()
+ * أو الإقحام النصي ${value}. أي بنية أعمق يجب تسطيحها قبل التمرير.
+ */
+export type AgentReportMetadataValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
+
 export interface AgentReport {
   agentName: string;
   agentId: string;
@@ -7,7 +18,7 @@ export interface AgentReport {
   confidence: number;
   notes?: string[];
   timestamp?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, AgentReportMetadataValue>;
 }
 
 export interface AgentReportViewerProps {

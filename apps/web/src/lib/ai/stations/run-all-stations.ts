@@ -386,10 +386,10 @@ ${result.errors.length > 0 ? `\nالأخطاء:\n${result.errors.map((e) => `- �
     };
   }
 
-  async estimateAnalysisTime(textLength: number): Promise<{
+  estimateAnalysisTime(textLength: number): {
     estimatedTime: number;
     breakdown: Record<string, number>;
-  }> {
+  } {
     const baseTimePerStation = 30000;
     const timePerCharacter = 0.5;
     const overheadTime = 42000;

@@ -497,9 +497,9 @@ export class Station4EfficiencyMetrics extends BaseStation<
     }
   }
 
-  private async calculateEfficiencyMetrics(
+  private calculateEfficiencyMetrics(
     conflictNetwork: Station3Output["conflictNetwork"]
-  ): Promise<EfficiencyMetrics> {
+  ): EfficiencyMetrics {
     // Calculate basic metrics from the conflict network
     const charactersCount = conflictNetwork.characters.size;
     const relationshipsCount = conflictNetwork.relationships.size;
@@ -655,14 +655,14 @@ export class Station4EfficiencyMetrics extends BaseStation<
   /**
    * Check constitutional compliance of analysis.
    */
-  private async checkConstitutionalCompliance(
+  private checkConstitutionalCompliance(
     analysis: string,
     originalText: string
-  ): Promise<{
+  ): {
     compliant: boolean;
     correctedAnalysis: string;
     improvementScore: number;
-  }> {
+  } {
     try {
       const recommendations = this.parseRecommendationBuckets(analysis);
       const violations = this.detectConstitutionalViolations(
@@ -693,10 +693,10 @@ export class Station4EfficiencyMetrics extends BaseStation<
   /**
    * Quantify uncertainty in analysis results.
    */
-  private async quantifyUncertainty(
+  private quantifyUncertainty(
     analysis: string,
     originalText: string
-  ): Promise<UncertaintyReport> {
+  ): UncertaintyReport {
     try {
       const parsed = this.tryParseJsonObject(analysis);
       const words = originalText.trim().split(/\s+/).filter(Boolean).length;

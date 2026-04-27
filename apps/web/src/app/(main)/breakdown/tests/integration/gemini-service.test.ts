@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../infrastructure/gemini/segment-script", () => ({
-  segmentScript: vi.fn(async () => ({
+  segmentScript: vi.fn(() => ({
     scenes: [{ header: "مشهد 1", content: "محتوى المشهد" }],
   })),
 }));
 
 vi.mock("../../infrastructure/gemini/analyze-scene", () => ({
-  analyzeScene: vi.fn(async () => ({
+  analyzeScene: vi.fn(() => ({
     cast: [],
     costumes: [],
     makeup: [],
@@ -28,7 +28,7 @@ vi.mock("../../infrastructure/gemini/analyze-scene", () => ({
 }));
 
 vi.mock("../../infrastructure/gemini/analyze-scenarios", () => ({
-  analyzeProductionScenarios: vi.fn(async () => ({
+  analyzeProductionScenarios: vi.fn(() => ({
     scenarios: [],
   })),
 }));

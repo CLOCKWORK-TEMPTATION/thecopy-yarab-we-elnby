@@ -8,10 +8,20 @@ import {
 
 import { CHARACTER_VOICE_AGENT_CONFIG } from "./agent";
 
+interface CharacterProfile {
+  name?: string;
+  age?: string | number;
+  personality?: string;
+  background?: string;
+  goals?: string;
+  fears?: string;
+  speechPattern?: string;
+}
+
 interface CharacterVoiceContext {
   originalText?: string;
-  analysisReport?: any;
-  characterProfile?: any;
+  analysisReport?: unknown;
+  characterProfile?: CharacterProfile | string;
   sceneContext?: string;
   dialogueObjective?: string;
   existingDialogue?: string[];
@@ -251,7 +261,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Assess voice consistency
    */
-  private async assessVoiceConsistency(text: string): Promise<number> {
+  private assessVoiceConsistency(text: string): number {
     let score = 0.7; // Base score
 
     // Check for consistent vocabulary patterns
@@ -288,7 +298,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Assess naturality of dialogue
    */
-  private async assessNaturality(text: string): Promise<number> {
+  private assessNaturality(text: string): number {
     let score = 0.6; // Base score
 
     // Check for conversational markers
@@ -325,7 +335,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Assess emotional depth
    */
-  private async assessEmotionalDepth(text: string): Promise<number> {
+  private assessEmotionalDepth(text: string): number {
     let score = 0.5; // Base score
 
     // Check for emotional vocabulary
@@ -425,14 +435,14 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Format character profile
    */
-  private formatCharacterProfile(profile: any): string {
+  private formatCharacterProfile(profile: CharacterProfile | string): string {
     if (typeof profile === "string") return profile;
 
     const formatted: string[] = [];
 
-    if (profile && typeof profile === "object" && profile.name)
-      formatted.push(`الاسم: ${profile.name}`);
-    if (profile.age) formatted.push(`العمر: ${profile.age}`);
+    if (profile.name) formatted.push(`الاسم: ${profile.name}`);
+    if (profile.age !== undefined && profile.age !== "")
+      formatted.push(`العمر: ${profile.age}`);
     if (profile.personality) formatted.push(`الشخصية: ${profile.personality}`);
     if (profile.background) formatted.push(`الخلفية: ${profile.background}`);
     if (profile.goals) formatted.push(`الأهداف: ${profile.goals}`);
@@ -465,11 +475,13 @@ export class CharacterVoiceAgent extends BaseAgent {
   /**
    * Generate fallback response
    */
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     const ctx = input.context as CharacterVoiceContext;
-    const character = ctx?.characterProfile?.name ?? "الشخصية";
+    const profile = ctx?.characterProfile;
+    const character =
+      typeof profile === "object" ? (profile?.name ?? "الشخصية") : "الشخصية";
 
     return `تحليل صوت ${character}:
 الشخصية لديها نمط كلام مميز يعكس خلفيتها وشخصيتها.

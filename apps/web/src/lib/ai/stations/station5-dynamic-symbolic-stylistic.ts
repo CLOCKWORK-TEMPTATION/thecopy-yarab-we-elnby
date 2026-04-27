@@ -369,10 +369,11 @@ class DynamicAnalysisEngine {
     }
 
     // Process conflicts
-    const conflicts = network.conflicts ?? new Map();
+    const conflicts: Map<string, ConflictWithPhase> =
+      network.conflicts ?? new Map<string, ConflictWithPhase>();
     for (const conflict of Array.from(conflicts.values())) {
       const legacyTimestamp = (
-        conflict as Conflict & {
+        conflict as ConflictWithPhase & {
           timestamp?: Date | Date[];
         }
       ).timestamp;
@@ -578,7 +579,8 @@ class DynamicAnalysisEngine {
         }
       }
 
-      const conflicts = network.conflicts ?? new Map();
+      const conflicts: Map<string, ConflictWithPhase> =
+        network.conflicts ?? new Map<string, ConflictWithPhase>();
       for (const [confId, conf] of Array.from(conflicts.entries())) {
         if (conf.involvedCharacters?.includes(charId)) {
           characterConflicts.push(confId);
@@ -678,7 +680,8 @@ class DynamicAnalysisEngine {
   ): Promise<Map<string, ConflictProgression>> {
     const progressionMap = new Map<string, ConflictProgression>();
 
-    const conflicts = network.conflicts ?? new Map();
+    const conflicts: Map<string, ConflictWithPhase> =
+      network.conflicts ?? new Map<string, ConflictWithPhase>();
     for (const [confId, conflict] of Array.from(conflicts.entries())) {
       const phaseTransitions: ConflictProgression["phaseTransitions"] = [];
       const intensityProgression: number[] = [];

@@ -279,9 +279,9 @@ async function processSubmittedTask(taskId: string): Promise<void> {
 /**
  * Submit a task to the executor.
  */
-export async function submitTask(
+export function submitTask(
   taskRequest: PipelineTaskRequest
-): Promise<PipelineTaskSubmission> {
+): PipelineTaskSubmission {
   if (!Array.isArray(taskRequest.steps) || taskRequest.steps.length === 0) {
     throw new Error("submitTask requires at least one pipeline step");
   }

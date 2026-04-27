@@ -104,30 +104,49 @@ export class VirtualSetEditor implements Plugin {
   descriptionAr = "أداة AR لتعديل عناصر الديكور افتراضياً أثناء التصوير";
   category = "xr-immersive" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(`[${this.name}] Initialized with real-time AR capabilities`);
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
+    const data = input.data as unknown;
     switch (input.type) {
       case "create-set":
-        return this.createVirtualSet(input.data as any);
+        return this.createVirtualSet(
+          data as Parameters<VirtualSetEditor["createVirtualSet"]>[0]
+        );
       case "add-element":
-        return this.addElement(input.data as any);
+        return this.addElement(
+          data as Parameters<VirtualSetEditor["addElement"]>[0]
+        );
       case "modify-element":
-        return this.modifyElement(input.data as any);
+        return this.modifyElement(
+          data as Parameters<VirtualSetEditor["modifyElement"]>[0]
+        );
       case "adjust-lighting":
-        return this.adjustLighting(input.data as any);
+        return this.adjustLighting(
+          data as Parameters<VirtualSetEditor["adjustLighting"]>[0]
+        );
       case "add-cgi":
-        return this.addCGIExtension(input.data as any);
+        return this.addCGIExtension(
+          data as Parameters<VirtualSetEditor["addCGIExtension"]>[0]
+        );
       case "real-time-preview":
-        return this.generateRealTimePreview(input.data as any);
+        return this.generateRealTimePreview(
+          data as Parameters<VirtualSetEditor["generateRealTimePreview"]>[0]
+        );
       case "share-vision":
-        return this.shareVision(input.data as any);
+        return this.shareVision(
+          data as Parameters<VirtualSetEditor["shareVision"]>[0]
+        );
       case "color-grade":
-        return this.colorGradePreview(input.data as any);
+        return this.colorGradePreview(
+          data as Parameters<VirtualSetEditor["colorGradePreview"]>[0]
+        );
       case "export-composition":
-        return this.exportComposition(input.data as any);
+        return this.exportComposition(
+          data as Parameters<VirtualSetEditor["exportComposition"]>[0]
+        );
       case "list-sets":
         return this.listSets();
       default:
@@ -135,11 +154,11 @@ export class VirtualSetEditor implements Plugin {
     }
   }
 
-  private async createVirtualSet(data: {
+  private createVirtualSet(data: {
     name: string;
     description: string;
     realTimeRendering?: boolean;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set: VirtualSet = {
       id: uuidv4(),
       name: data.name,
@@ -189,10 +208,10 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async addElement(data: {
+  private addElement(data: {
     setId: string;
     element: Partial<VirtualSetElement>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -234,11 +253,11 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async modifyElement(data: {
+  private modifyElement(data: {
     setId: string;
     elementId: string;
     modifications: Partial<VirtualSetElement>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -283,12 +302,12 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async adjustLighting(data: {
+  private adjustLighting(data: {
     setId: string;
     lightId?: string;
     adjustment: Partial<LightingAdjustment>;
     addNew?: boolean;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -368,10 +387,10 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async addCGIExtension(data: {
+  private addCGIExtension(data: {
     setId: string;
     extension: Partial<CGIExtension>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -402,11 +421,11 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async generateRealTimePreview(data: {
+  private generateRealTimePreview(data: {
     setId: string;
     viewpoint?: Vector3D;
     quality: "draft" | "preview" | "high";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -445,10 +464,10 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async shareVision(data: {
+  private shareVision(data: {
     setId: string;
     collaborators: { name: string; role: string; email?: string }[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -489,7 +508,7 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async colorGradePreview(data: {
+  private colorGradePreview(data: {
     setId: string;
     grading: {
       exposure?: number;
@@ -501,7 +520,7 @@ export class VirtualSetEditor implements Plugin {
       highlights?: string;
       lut?: string;
     };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -532,12 +551,12 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async exportComposition(data: {
+  private exportComposition(data: {
     setId: string;
     format: "exr" | "png" | "mov" | "prores";
     includeAlpha: boolean;
     resolution: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const set = virtualSets.get(data.setId);
     if (!set) {
       return { success: false, error: "Virtual set not found" };
@@ -569,7 +588,7 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  private async listSets(): Promise<PluginOutput> {
+  private listSets(): PluginOutput {
     const setList = Array.from(virtualSets.values()).map((s) => ({
       id: s.id,
       name: s.name,
@@ -591,7 +610,7 @@ export class VirtualSetEditor implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     virtualSets.clear();
     logger.info(`[${this.name}] Shut down`);
   }

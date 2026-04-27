@@ -15,7 +15,7 @@ import { ADAPTIVE_REWRITING_AGENT_CONFIG } from "./agent";
  */
 interface AdaptiveRewritingContext {
   originalText?: string;
-  analysisReport?: Record<string, any>; // تحسين النوع بدلاً من any
+  analysisReport?: Record<string, unknown>; // تحسين النوع بدلاً من any
   rewritingGoals?: string[];
   targetAudience?: string;
   targetTone?: string;
@@ -207,7 +207,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
 
   // --- دوال التقييم (Heuristics Evaluation) ---
 
-  private async assessGoalAchievement(text: string): Promise<number> {
+  private assessGoalAchievement(text: string): number {
     let score = 0.5; // درجة أساسية
 
     const achievementTerms = [
@@ -231,7 +231,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessQualityImprovement(text: string): Promise<number> {
+  private assessQualityImprovement(text: string): number {
     let score = 0.5;
 
     const qualityIndicators = [
@@ -256,7 +256,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessCoherence(text: string): Promise<number> {
+  private assessCoherence(text: string): number {
     let score = 0.6;
 
     // أدوات الربط العربية التي تدل على تماسك النص
@@ -282,7 +282,7 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessCreativity(text: string): Promise<number> {
+  private assessCreativity(text: string): number {
     let score = 0.4;
 
     const creativeWords = [
@@ -371,9 +371,9 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return mapping[focus] ?? focus;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `عذراً، واجه الوكيل صعوبة في إتمام عملية إعادة الكتابة بشكل كامل.
     
 التحليل الأولي:

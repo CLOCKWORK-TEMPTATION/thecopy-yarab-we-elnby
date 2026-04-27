@@ -35,7 +35,7 @@ function generateCacheKey(request: NextRequest, prefix = "api"): string {
 /**
  * Cache wrapper for API route handlers
  */
-export function withCache<T = any>(
+export function withCache<T = unknown>(
   handler: (request: NextRequest) => Promise<NextResponse<T>>,
   options: CacheOptions = {}
 ) {

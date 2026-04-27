@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     service: "Seven Stations Analysis",
     status: "proxied to backend",

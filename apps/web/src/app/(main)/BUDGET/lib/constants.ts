@@ -1,6 +1,6 @@
-import { Budget, BudgetTemplate } from "./types";
+import { Budget, BudgetTemplate, LineItem, Category, Section } from "./types";
 
-const createLineItem = (code: string, description: string) => ({
+const createLineItem = (code: string, description: string): LineItem => ({
   code,
   description,
   amount: 0,
@@ -11,7 +11,11 @@ const createLineItem = (code: string, description: string) => ({
   lastModified: new Date().toISOString(),
 });
 
-const createCategory = (code: string, name: string, items: any[]) => ({
+const createCategory = (
+  code: string,
+  name: string,
+  items: LineItem[]
+): Category => ({
   code,
   name,
   items,
@@ -22,9 +26,9 @@ const createCategory = (code: string, name: string, items: any[]) => ({
 const createSection = (
   id: string,
   name: string,
-  categories: any[],
+  categories: Category[],
   color: string
-) => ({
+): Section => ({
   id,
   name,
   categories,

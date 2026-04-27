@@ -635,7 +635,7 @@ export class EditorArea implements EditorHandle {
   getProgressiveSurfaceState = (): ProgressiveSurfaceState | null =>
     this.progressiveSurfaceState;
 
-  approveCurrentVersion = async (): Promise<void> => {
+  approveCurrentVersion = (): void => {
     const progressiveState = this.progressiveSurfaceState;
     const activeRun = progressiveState?.activeRun;
     const visibleVersion = progressiveState?.visibleVersion;

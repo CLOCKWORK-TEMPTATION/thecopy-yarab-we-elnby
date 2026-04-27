@@ -72,7 +72,7 @@ describe("cinematography fallback timing", () => {
     const { result } = renderHook(() => useProduction("noir"));
 
     let pendingAnalysis: Promise<void> | undefined;
-    await act(async () => {
+    await act(() => {
       pendingAnalysis = result.current.handleAnalyzeShot(file);
     });
 
@@ -125,7 +125,7 @@ describe("cinematography fallback timing", () => {
     const { result } = renderHook(() => usePostProduction("noir"));
 
     let pendingUpload: Promise<void> | undefined;
-    await act(async () => {
+    await act(() => {
       pendingUpload = result.current.uploadFootage(file);
     });
 

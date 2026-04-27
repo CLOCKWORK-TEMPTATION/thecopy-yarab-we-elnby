@@ -883,14 +883,37 @@ ${contextText}`;
     return "flat";
   }
 
-  private normalizeIssues(issues: any[]): DialogueMetrics["issues"] {
+  private normalizeIssues(issues: unknown[]): DialogueMetrics["issues"] {
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+
+    const asString = (value: unknown): string => {
+      if (typeof value === "string") return value;
+      if (value === undefined || value === null) return "";
+      if (typeof value === "number" || typeof value === "boolean") {
+        return String(value);
+      }
+      // For objects/arrays/symbols, JSON-encode to avoid "[object Object]".
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return "";
+      }
+    };
+
     return issues
-      .filter((i) => i?.type && i.location)
+      .filter(
+        (i): i is Record<string, unknown> =>
+          isRecord(i) &&
+          typeof i["type"] === "string" &&
+          i["location"] !== undefined &&
+          i["location"] !== null
+      )
       .map((i) => ({
-        type: this.normalizeIssueType(i.type),
-        location: String(i.location),
-        severity: this.normalizeSeverity(i.severity),
-        suggestion: String(i.suggestion ?? ""),
+        type: this.normalizeIssueType(asString(i["type"])),
+        location: asString(i["location"]),
+        severity: this.normalizeSeverity(asString(i["severity"])),
+        suggestion: asString(i["suggestion"] ?? ""),
       }));
   }
 

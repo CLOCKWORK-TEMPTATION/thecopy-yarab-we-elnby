@@ -10,11 +10,11 @@ export interface ConstitutionalCheckResult {
   correctedAnalysis?: string;
 }
 
-export async function checkConstitutionalCompliance(
+export function checkConstitutionalCompliance(
   text: string,
   _originalText: string,
   _geminiService: GeminiService
-): Promise<ConstitutionalCheckResult> {
+): ConstitutionalCheckResult {
   // Simplified implementation
   return {
     compliant: true,

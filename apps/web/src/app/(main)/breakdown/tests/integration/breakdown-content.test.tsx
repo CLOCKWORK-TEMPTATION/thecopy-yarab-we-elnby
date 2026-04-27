@@ -53,7 +53,7 @@ describe("BreakdownContent", () => {
   it("validate-pipeline: يرجع إلى الملف الثابت إذا لم توجد لقطة محفوظة", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => validReport,
+      json: () => validReport,
     });
 
     vi.stubGlobal("fetch", fetchMock);

@@ -301,11 +301,11 @@ export abstract class BaseStation {
   /**
    * إنشاء البيانات الوصفية النهائية
    */
-  private async createMetadata(
+  private createMetadata(
     startTime: number,
     options: StationOptions,
     input: StationInput
-  ): Promise<StationMetadata> {
+  ): StationMetadata {
     const executionTime = Date.now() - startTime;
 
     return {

@@ -185,6 +185,6 @@ export type AppEvent =
 export interface AppEventData {
   type: AppEvent;
   timestamp: Date;
-  data: any;
+  data: unknown;
   userId?: string;
 }

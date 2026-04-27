@@ -1,7 +1,7 @@
 // Station Types and Interfaces
 export interface StationInput {
   text: string;
-  previousResults?: any;
+  previousResults?: Record<string, unknown>;
   options?: Record<string, unknown>;
 }
 
@@ -22,18 +22,18 @@ export interface StationOutput {
 }
 
 export interface Station6Input extends StationInput {
-  conflictNetwork: any;
-  previousStations: any[];
+  conflictNetwork: Record<string, unknown>;
+  previousStations: Record<string, unknown>[];
 }
 
 export interface Station6Output extends StationOutput {
-  diagnostics: any[];
-  recommendations: any[];
-  treatmentPlan: any;
+  diagnostics: Record<string, unknown>[];
+  recommendations: Record<string, unknown>[];
+  treatmentPlan: Record<string, unknown>;
 }
 
 export interface UncertaintyQuantificationEngine {
-  quantify(data: any): {
+  quantify(data: unknown): {
     epistemic: number;
     aleatoric: number;
     total: number;

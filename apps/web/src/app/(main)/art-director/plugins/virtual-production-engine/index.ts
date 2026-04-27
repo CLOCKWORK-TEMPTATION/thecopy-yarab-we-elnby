@@ -214,38 +214,63 @@ export class VirtualProductionEngine implements Plugin {
   descriptionAr = "أداة بصرية تفاعلية مع كاميرا افتراضية وحاسبة الخداع البصري";
   category = "xr-immersive" as const;
 
-  async initialize(): Promise<void> {
+  initialize(): void {
     logger.info(
       `[${this.name}] Initialized with LED wall and camera tracking support`
     );
   }
 
-  async execute(input: PluginInput): Promise<PluginOutput> {
+  execute(input: PluginInput): PluginOutput {
+    const data = input.data as unknown;
     switch (input.type) {
       case "create-production":
-        return this.createProduction(input.data as any);
+        return this.createProduction(
+          data as Parameters<VirtualProductionEngine["createProduction"]>[0]
+        );
       case "setup-led-wall":
-        return this.setupLEDWall(input.data as any);
+        return this.setupLEDWall(
+          data as Parameters<VirtualProductionEngine["setupLEDWall"]>[0]
+        );
       case "configure-camera":
-        return this.configureCamera(input.data as any);
+        return this.configureCamera(
+          data as Parameters<VirtualProductionEngine["configureCamera"]>[0]
+        );
       case "start-tracking":
-        return this.startTracking(input.data as any);
+        return this.startTracking(
+          data as Parameters<VirtualProductionEngine["startTracking"]>[0]
+        );
       case "calculate-frustum":
-        return this.calculateFrustum(input.data as any);
+        return this.calculateFrustum(
+          data as Parameters<VirtualProductionEngine["calculateFrustum"]>[0]
+        );
       case "setup-scene":
-        return this.setupScene(input.data as any);
+        return this.setupScene(
+          data as Parameters<VirtualProductionEngine["setupScene"]>[0]
+        );
       case "calculate-illusion":
-        return this.calculateOpticalIllusion(input.data as any);
+        return this.calculateOpticalIllusion(
+          data as Parameters<
+            VirtualProductionEngine["calculateOpticalIllusion"]
+          >[0]
+        );
       case "list-illusions":
         return this.listIllusions();
       case "add-vfx":
-        return this.addVisualEffect(input.data as any);
+        return this.addVisualEffect(
+          data as Parameters<VirtualProductionEngine["addVisualEffect"]>[0]
+        );
       case "calibrate-system":
-        return this.calibrateSystem(input.data as any);
+        return this.calibrateSystem(
+          data as Parameters<VirtualProductionEngine["calibrateSystem"]>[0]
+        );
       case "real-time-composite":
-        return this.realTimeComposite(input.data as any);
+        return this.realTimeComposite(
+          data as Parameters<VirtualProductionEngine["realTimeComposite"]>[0]
+        );
       case "export-previz":
-        return this.exportPreviz(input.data as any);
+        return this.exportPreviz(
+          data as Parameters<VirtualProductionEngine["exportPreviz"]>[0]
+        );
       case "list-productions":
         return this.listProductions();
       default:
@@ -253,10 +278,10 @@ export class VirtualProductionEngine implements Plugin {
     }
   }
 
-  private async createProduction(data: {
+  private createProduction(data: {
     name: string;
     description: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production: VirtualProduction = {
       id: uuidv4(),
       name: data.name,
@@ -294,14 +319,14 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async setupLEDWall(data: {
+  private setupLEDWall(data: {
     productionId: string;
     name: string;
     dimensions: { width: number; height: number };
     pixelPitch: number;
     curvature?: number;
     colorSpace?: "rec709" | "rec2020" | "dci-p3";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -350,13 +375,13 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async configureCamera(data: {
+  private configureCamera(data: {
     productionId: string;
     name: string;
     type: VPCamera["type"];
     lens: Partial<LensInfo>;
     trackingSystem?: VPCamera["trackingSystem"];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -429,11 +454,11 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async startTracking(data: {
+  private startTracking(data: {
     productionId: string;
     cameraId: string;
     targetFps?: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -485,13 +510,13 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async calculateFrustum(data: {
+  private calculateFrustum(data: {
     focalLength: number;
     sensorWidth: number;
     sensorHeight: number;
     subjectDistance: number;
     ledWallDistance?: number;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const fovH =
       2 *
       Math.atan(data.sensorWidth / (2 * data.focalLength)) *
@@ -547,12 +572,12 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async setupScene(data: {
+  private setupScene(data: {
     productionId: string;
     name: string;
     environment: string;
     hdriBackground: string;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -589,7 +614,7 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async calculateOpticalIllusion(data: {
+  private calculateOpticalIllusion(data: {
     illusionType: OpticalIllusion["type"];
     parameters: {
       subjectSize?: { width: number; height: number };
@@ -598,7 +623,7 @@ export class VirtualProductionEngine implements Plugin {
       focalLength?: number;
       miniatureScale?: number;
     };
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     let calculation: Record<string, unknown> = {};
 
     switch (data.illusionType) {
@@ -714,7 +739,7 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async listIllusions(): Promise<PluginOutput> {
+  private listIllusions(): PluginOutput {
     return {
       success: true,
       data: {
@@ -738,13 +763,13 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async addVisualEffect(data: {
+  private addVisualEffect(data: {
     productionId: string;
     name: string;
     type: VisualEffect["type"];
     realTime: boolean;
     parameters?: Record<string, unknown>;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -793,10 +818,10 @@ export class VirtualProductionEngine implements Plugin {
     return defaults[type] ?? {};
   }
 
-  private async calibrateSystem(data: {
+  private calibrateSystem(data: {
     productionId: string;
     components: ("camera" | "led-wall" | "tracking")[];
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -850,12 +875,12 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async realTimeComposite(data: {
+  private realTimeComposite(data: {
     productionId: string;
     sceneId: string;
     cameraId: string;
     outputFormat: "4k" | "8k" | "hd";
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -895,11 +920,11 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async exportPreviz(data: {
+  private exportPreviz(data: {
     productionId: string;
     format: "mp4" | "prores" | "exr-sequence" | "usd";
     includeMetadata: boolean;
-  }): Promise<PluginOutput> {
+  }): PluginOutput {
     const production = productions.get(data.productionId);
     if (!production) {
       return { success: false, error: "Production not found" };
@@ -942,7 +967,7 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  private async listProductions(): Promise<PluginOutput> {
+  private listProductions(): PluginOutput {
     const productionList = Array.from(productions.values()).map((p) => ({
       id: p.id,
       name: p.name,
@@ -964,7 +989,7 @@ export class VirtualProductionEngine implements Plugin {
     };
   }
 
-  async shutdown(): Promise<void> {
+  shutdown(): void {
     productions.clear();
     logger.info(`[${this.name}] Shut down`);
   }

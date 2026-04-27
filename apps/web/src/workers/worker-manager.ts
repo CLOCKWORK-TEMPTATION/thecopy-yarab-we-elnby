@@ -22,7 +22,7 @@ export class ParticleWorkerManager {
   /**
    * Initialize workers
    */
-  async initializeWorkers(): Promise<void> {
+  initializeWorkers(): void {
     try {
       // Initialize particle generator worker
       this.workerPool.generatorWorker = new Worker(

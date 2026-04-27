@@ -150,7 +150,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  private async assessNetworkComprehensiveness(text: string): Promise<number> {
+  private assessNetworkComprehensiveness(text: string): number {
     let score = 0.5;
 
     const networkTerms = [
@@ -184,7 +184,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessRelationshipDepth(text: string): Promise<number> {
+  private assessRelationshipDepth(text: string): number {
     let score = 0.5;
 
     const relTypes = [
@@ -219,7 +219,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessStructuralInsight(text: string): Promise<number> {
+  private assessStructuralInsight(text: string): number {
     let score = 0.5;
 
     const structuralTerms = [
@@ -251,7 +251,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     return Math.min(1, score);
   }
 
-  private async assessEvidenceQuality(text: string): Promise<number> {
+  private assessEvidenceQuality(text: string): number {
     let score = 0.6;
 
     const evidenceMarkers = [
@@ -337,9 +337,9 @@ export class CharacterNetworkAgent extends BaseAgent {
     return types[type] ?? type;
   }
 
-  protected override async getFallbackResponse(
+  protected override getFallbackResponse(
     _input: StandardAgentInput
-  ): Promise<string> {
+  ): string {
     return `نظرة عامة على الشبكة:
 النص يحتوي على عدة شخصيات مترابطة بعلاقات متنوعة تشكل شبكة اجتماعية معقدة.
 
