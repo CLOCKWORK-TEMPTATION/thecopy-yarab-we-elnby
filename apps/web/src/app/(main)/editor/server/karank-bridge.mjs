@@ -293,7 +293,7 @@ const spawnProcess = () => {
     proc = null;
 
     // reject all pending requests
-    for (const [_id, { reject: rej, timer }] of pending) {
+    for (const { reject: rej, timer } of pending.values()) {
       clearTimeout(timer);
       rej(new Error(`عملية المحرك انتهت برمز ${code}`));
     }

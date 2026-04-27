@@ -124,7 +124,15 @@ export function useScreenplayEditor(documentId?: string) {
 
       markDirty();
     },
-    [content, cursorPosition, selection, processText, markDirty]
+    [
+      content,
+      cursorPosition,
+      selection,
+      processText,
+      markDirty,
+      setCursorPosition,
+      setSelection,
+    ]
   );
 
   /**
@@ -137,7 +145,7 @@ export function useScreenplayEditor(documentId?: string) {
       setCursorPosition(start);
       markDirty();
     },
-    [content, processText, markDirty]
+    [content, processText, markDirty, setCursorPosition]
   );
 
   /**
@@ -151,7 +159,7 @@ export function useScreenplayEditor(documentId?: string) {
       setCursorPosition(start + text.length);
       markDirty();
     },
-    [content, processText, markDirty]
+    [content, processText, markDirty, setCursorPosition]
   );
 
   /**

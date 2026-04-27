@@ -597,7 +597,7 @@ async function runCameraBindingSuite(): Promise<void> {
     }
     const stoppedTracks: FakeTrack[] = [];
     const fakeStream = {
-      getTracks: () => [{ stop: () => stoppedTracks.push({ stop: () => {} }) }],
+      getTracks: () => [{ stop: () => stoppedTracks.push({ stop: () => { /* empty */ } }) }],
     } as unknown as MediaStream;
 
     Object.defineProperty(globalThis.navigator, "mediaDevices", {

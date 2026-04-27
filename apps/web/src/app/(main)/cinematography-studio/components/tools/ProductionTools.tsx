@@ -52,6 +52,26 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
     recommendedColorTemp,
     mediaInput,
   } = useProduction(mood);
+  const {
+    state: mediaInputState,
+    cameraVideoRef,
+    cameraCanvasRef,
+    setMode,
+    selectMediaFile,
+    requestCamera,
+    stopCamera,
+    captureCameraFrame,
+    clearMedia,
+    canAnalyze,
+  } = mediaInput;
+  const {
+    mode,
+    previewType,
+    previewUrl,
+    error: mediaError,
+    isPreparing: isPreparingMedia,
+    cameraPermission,
+  } = mediaInputState;
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,44 +106,37 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
   const handleImageSelected = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0] ?? null;
-      await mediaInput.selectMediaFile(file);
+      await selectMediaFile(file);
       event.target.value = "";
     },
-    [mediaInput]
+    [selectMediaFile]
   );
 
   const handleVideoSelected = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0] ?? null;
-      await mediaInput.selectMediaFile(file);
+      await selectMediaFile(file);
       event.target.value = "";
     },
-    [mediaInput]
+    [selectMediaFile]
   );
 
   const handleEnableCamera = useCallback(async () => {
-    await mediaInput.requestCamera();
-  }, [mediaInput]);
+    await requestCamera();
+  }, [requestCamera]);
 
   const handleCaptureFromCamera = useCallback(async () => {
-    const frame = await mediaInput.captureCameraFrame();
+    const frame = await captureCameraFrame();
     if (frame) {
       await handleAnalyzeShot(frame);
     }
-  }, [handleAnalyzeShot, mediaInput]);
+  }, [captureCameraFrame, handleAnalyzeShot]);
 
   const handleAnalyzeSelectedInput = useCallback(async () => {
     await handleAnalyzeShot();
   }, [handleAnalyzeShot]);
 
   const issuesList = analysis?.issues ?? [];
-  const mode = mediaInput.state.mode;
-  const previewType = mediaInput.state.previewType;
-  const previewUrl = mediaInput.state.previewUrl;
-  const mediaError = mediaInput.state.error;
-  const canAnalyze = mediaInput.canAnalyze;
-  const isPreparingMedia = mediaInput.state.isPreparing;
-  const cameraPermission = mediaInput.state.cameraPermission;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -143,24 +156,24 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                 label="صورة"
                 icon={ImageIcon}
                 active={mode === "image"}
-                onClick={() => mediaInput.setMode("image")}
+                onClick={() => setMode("image")}
               />
               <ModeButton
                 label="فيديو"
                 icon={Video}
                 active={mode === "video"}
-                onClick={() => mediaInput.setMode("video")}
+                onClick={() => setMode("video")}
               />
               <ModeButton
                 label="كاميرا"
                 icon={Camera}
                 active={mode === "camera"}
-                onClick={() => mediaInput.setMode("camera")}
+                onClick={() => setMode("camera")}
               />
               <Button
                 type="button"
                 variant="outline"
-                onClick={mediaInput.clearMedia}
+                onClick={clearMedia}
                 className="h-10 border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -183,11 +196,11 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                 className="hidden"
                 onChange={handleVideoSelected}
               />
-              <canvas ref={mediaInput.cameraCanvasRef} className="hidden" />
+              <canvas ref={cameraCanvasRef} className="hidden" />
 
               {previewType === "camera" ? (
                 <video
-                  ref={mediaInput.cameraVideoRef}
+                  ref={cameraVideoRef}
                   autoPlay
                   muted
                   playsInline
@@ -294,7 +307,7 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                         <ActionButton
                           label="إيقاف الكاميرا"
                           icon={CameraOff}
-                          onClick={mediaInput.stopCamera}
+                          onClick={stopCamera}
                           variant="ghost"
                         />
                       </>

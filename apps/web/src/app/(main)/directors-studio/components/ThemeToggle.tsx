@@ -1,25 +1,43 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 
+const THEME_STORAGE_EVENT = "directors-studio-theme-change";
+
+function getStoredTheme(): "light" | "dark" {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+  return localStorage.getItem("theme") === "dark" ? "dark" : "light";
+}
+
+function subscribeThemeChange(onStoreChange: () => void): () => void {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(THEME_STORAGE_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(THEME_STORAGE_EVENT, onStoreChange);
+  };
+}
+
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const theme = useSyncExternalStore(
+    subscribeThemeChange,
+    getStoredTheme,
+    () => "light"
+  );
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as "light" | "dark" | null;
-    const initialTheme = stored ?? "light";
-    setTimeout(() => {}, 0);
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
-  }, []);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
+    window.dispatchEvent(new Event(THEME_STORAGE_EVENT));
   };
 
   return (

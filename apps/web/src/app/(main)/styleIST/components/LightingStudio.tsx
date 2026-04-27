@@ -12,7 +12,7 @@ import {
   Html,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import React, { useRef, useState, Suspense, useEffect } from "react";
+import React, { useRef, useState, Suspense } from "react";
 import * as THREE from "three";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -28,6 +28,53 @@ interface LightingStudioProps {
 
 const EMPTY_TEXTURE_DATA_URL =
   "data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=";
+
+const FILM_LOOK_SETTINGS: Record<
+  FilmLook,
+  {
+    ambientColor: string;
+    spotColor: string;
+    spotIntensity: number;
+    ambientIntensity: number;
+    cssFilter: string;
+  }
+> = {
+  STD: {
+    ambientColor: "#ffffff",
+    spotColor: "#ffffff",
+    spotIntensity: 1.5,
+    ambientIntensity: 0.5,
+    cssFilter: "none",
+  },
+  NOIR: {
+    ambientColor: "#ffffff",
+    spotColor: "#ffffff",
+    spotIntensity: 2.5,
+    ambientIntensity: 0.2,
+    cssFilter: "grayscale(100%) contrast(140%) brightness(1.1)",
+  },
+  MATRIX: {
+    ambientColor: "#003300",
+    spotColor: "#ccffcc",
+    spotIntensity: 2.0,
+    ambientIntensity: 0.4,
+    cssFilter: "sepia(100%) hue-rotate(50deg) saturate(200%) contrast(120%)",
+  },
+  KODAK: {
+    ambientColor: "#ffebd6",
+    spotColor: "#ffaa00",
+    spotIntensity: 1.8,
+    ambientIntensity: 0.6,
+    cssFilter: "sepia(30%) saturate(140%) contrast(110%)",
+  },
+  BLADERUNNER: {
+    ambientColor: "#002244",
+    spotColor: "#ff9900",
+    spotIntensity: 3.0,
+    ambientIntensity: 0.3,
+    cssFilter: "contrast(125%) saturate(110%)",
+  },
+};
 
 // --- 3D Mannequin Component ---
 const Mannequin = ({ textureUrl, color }: LightingStudioProps) => {
@@ -64,57 +111,13 @@ const Mannequin = ({ textureUrl, color }: LightingStudioProps) => {
 // --- Main Studio Component ---
 const LightingStudio: React.FC<LightingStudioProps> = (props) => {
   const [activeLook, setActiveLook] = useState<FilmLook>("STD");
-
-  // Lighting State
-  const [ambientColor, setAmbientColor] = useState("#ffffff");
-  const [spotColor, setSpotColor] = useState("#ffffff");
-  const [spotIntensity, setSpotIntensity] = useState(1.5);
-  const [ambientIntensity, setAmbientIntensity] = useState(0.5);
-
-  // CSS Filters State
-  const [cssFilter, setCssFilter] = useState("");
-
-  // Apply "Film Look" Logic
-  useEffect(() => {
-    switch (activeLook) {
-      case "NOIR":
-        setTimeout(() => {}, 0);
-        setSpotColor("#ffffff");
-        setSpotIntensity(2.5); // Hard light
-        setAmbientIntensity(0.2); // Deep shadows
-        setCssFilter("grayscale(100%) contrast(140%) brightness(1.1)");
-        break;
-      case "MATRIX":
-        setAmbientColor("#003300");
-        setSpotColor("#ccffcc");
-        setSpotIntensity(2.0);
-        setAmbientIntensity(0.4);
-        setCssFilter(
-          "sepia(100%) hue-rotate(50deg) saturate(200%) contrast(120%)"
-        );
-        break;
-      case "KODAK": // Warm Golden Hour
-        setAmbientColor("#ffebd6");
-        setSpotColor("#ffaa00");
-        setSpotIntensity(1.8);
-        setAmbientIntensity(0.6);
-        setCssFilter("sepia(30%) saturate(140%) contrast(110%)");
-        break;
-      case "BLADERUNNER": // Teal & Orange
-        setAmbientColor("#002244"); // Deep blue shadows
-        setSpotColor("#ff9900"); // Orange key
-        setSpotIntensity(3.0);
-        setAmbientIntensity(0.3);
-        setCssFilter("contrast(125%) saturate(110%)");
-        break;
-      default: // STD (Rec.709)
-        setAmbientColor("#ffffff");
-        setSpotColor("#ffffff");
-        setSpotIntensity(1.5);
-        setAmbientIntensity(0.5);
-        setCssFilter("none");
-    }
-  }, [activeLook]);
+  const {
+    ambientColor,
+    spotColor,
+    spotIntensity,
+    ambientIntensity,
+    cssFilter,
+  } = FILM_LOOK_SETTINGS[activeLook];
 
   return (
     <CardSpotlight className="overflow-hidden rounded-[22px] w-full h-full relative bg-black/14 shadow-2xl border border-white/8 group">

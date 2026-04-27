@@ -97,7 +97,7 @@ describe("SelfTapeSuite", () => {
     });
 
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => { /* empty */ });
 
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,

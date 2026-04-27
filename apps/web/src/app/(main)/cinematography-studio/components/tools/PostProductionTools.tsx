@@ -67,6 +67,26 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
     recommendedTemperature,
     mediaInput,
   } = usePostProduction(mood);
+  const {
+    state: mediaInputState,
+    cameraVideoRef,
+    cameraCanvasRef,
+    setMode,
+    selectMediaFile,
+    requestCamera,
+    stopCamera,
+    captureCameraFrame,
+    clearMedia,
+    canAnalyze,
+  } = mediaInput;
+  const {
+    previewType,
+    previewUrl,
+    mode,
+    isPreparing: isPreparingMedia,
+    error: mediaError,
+    cameraPermission,
+  } = mediaInputState;
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
@@ -93,60 +113,52 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
   );
 
   const handleSelectImage = useCallback(() => {
-    mediaInput.setMode("image");
+    setMode("image");
     imageInputRef.current?.click();
-  }, [mediaInput]);
+  }, [setMode]);
 
   const handleSelectVideo = useCallback(() => {
-    mediaInput.setMode("video");
+    setMode("video");
     videoInputRef.current?.click();
-  }, [mediaInput]);
+  }, [setMode]);
 
   const handleImageSelected = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0] ?? null;
-      await mediaInput.selectMediaFile(file);
+      await selectMediaFile(file);
       event.target.value = "";
     },
-    [mediaInput]
+    [selectMediaFile]
   );
 
   const handleVideoSelected = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0] ?? null;
-      await mediaInput.selectMediaFile(file);
+      await selectMediaFile(file);
       event.target.value = "";
     },
-    [mediaInput]
+    [selectMediaFile]
   );
 
   const handleEnableCamera = useCallback(async () => {
-    mediaInput.setMode("camera");
-    await mediaInput.requestCamera();
-  }, [mediaInput]);
+    setMode("camera");
+    await requestCamera();
+  }, [requestCamera, setMode]);
 
   const handleCaptureFromCamera = useCallback(async () => {
-    const frame = await mediaInput.captureCameraFrame();
+    const frame = await captureCameraFrame();
     if (frame) {
       await uploadFootage(frame);
     }
-  }, [mediaInput, uploadFootage]);
+  }, [captureCameraFrame, uploadFootage]);
 
   const handleAnalyzeCurrentInput = useCallback(async () => {
     await uploadFootage();
   }, [uploadFootage]);
 
   const handleClearMedia = useCallback(() => {
-    mediaInput.clearMedia();
-  }, [mediaInput]);
-
-  const previewType = mediaInput.state.previewType;
-  const previewUrl = mediaInput.state.previewUrl;
-  const mode = mediaInput.state.mode;
-  const canAnalyze = mediaInput.canAnalyze;
-  const isPreparingMedia = mediaInput.state.isPreparing;
-  const mediaError = mediaInput.state.error;
-  const cameraPermission = mediaInput.state.cameraPermission;
+    clearMedia();
+  }, [clearMedia]);
 
   return (
     <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_320px]">
@@ -255,19 +267,19 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                 label="صورة"
                 icon={ImageIcon}
                 active={mode === "image"}
-                onClick={() => mediaInput.setMode("image")}
+                onClick={() => setMode("image")}
               />
               <ControlButton
                 label="فيديو"
                 icon={Video}
                 active={mode === "video"}
-                onClick={() => mediaInput.setMode("video")}
+                onClick={() => setMode("video")}
               />
               <ControlButton
                 label="كاميرا"
                 icon={Camera}
                 active={mode === "camera"}
-                onClick={() => mediaInput.setMode("camera")}
+                onClick={() => setMode("camera")}
               />
               <Button
                 type="button"
@@ -293,12 +305,12 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
               className="hidden"
               onChange={handleVideoSelected}
             />
-            <canvas ref={mediaInput.cameraCanvasRef} className="hidden" />
+            <canvas ref={cameraCanvasRef} className="hidden" />
 
             <div className="relative aspect-[16/9] overflow-hidden rounded-[10px] border border-[#343434] bg-[#050505]">
               {previewType === "camera" ? (
                 <video
-                  ref={mediaInput.cameraVideoRef}
+                  ref={cameraVideoRef}
                   autoPlay
                   muted
                   playsInline
@@ -361,7 +373,7 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                     <SecondaryButton
                       label="إيقاف الكاميرا"
                       icon={CameraOff}
-                      onClick={mediaInput.stopCamera}
+                      onClick={stopCamera}
                     />
                   </>
                 ) : (

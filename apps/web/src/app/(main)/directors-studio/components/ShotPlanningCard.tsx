@@ -25,7 +25,7 @@ import {
   Eye,
   Film,
 } from "lucide-react";
-import { useState, useEffect, memo, useCallback, useMemo } from "react";
+import { useState, memo, useCallback, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,33 @@ interface AISuggestion {
   reasoning: string;
 }
 
+function parseAISuggestion(value: unknown): AISuggestion | null {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "suggestion" in parsed &&
+      typeof parsed.suggestion === "string" &&
+      "reasoning" in parsed &&
+      typeof parsed.reasoning === "string"
+    ) {
+      return {
+        suggestion: parsed.suggestion,
+        reasoning: parsed.reasoning,
+      };
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 /**
  * خريطة أيقونات وأوصاف أنواع اللقطات
  * السبب: توفير معلومات بصرية لمساعدة المخرج في الاختيار
@@ -94,6 +121,17 @@ const DEFAULT_VALUES = {
   lighting: "natural",
 } as const;
 
+function createShotResetKey(shot: Partial<Shot> | undefined): string {
+  return [
+    String(shot?.id ?? "new"),
+    shot?.shotType ?? DEFAULT_VALUES.shotType,
+    shot?.cameraAngle ?? DEFAULT_VALUES.cameraAngle,
+    shot?.cameraMovement ?? DEFAULT_VALUES.cameraMovement,
+    shot?.lighting ?? DEFAULT_VALUES.lighting,
+    shot?.aiSuggestion ?? "",
+  ].join("|");
+}
+
 /**
  * مكوّن بطاقة تخطيط اللقطة
  *
@@ -103,7 +141,13 @@ const DEFAULT_VALUES = {
  * السبب في استخدام memo: بطاقات اللقطات تُعرض في قوائم
  * ونريد تجنب إعادة العرض غير الضرورية.
  */
-const ShotPlanningCard = memo(function ShotPlanningCard({
+const MemoizedShotPlanningCard = memo(function ShotPlanningCardWrapper(
+  props: ShotPlanningCardProps
+) {
+  return <ShotPlanningCard key={createShotResetKey(props.shot)} {...props} />;
+});
+
+function ShotPlanningCard({
   shot,
   shotNumber,
   sceneNumber,
@@ -123,29 +167,12 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
   const [lighting, setLighting] = useState(
     shot?.lighting ?? DEFAULT_VALUES.lighting
   );
-  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(() =>
+    parseAISuggestion(shot?.aiSuggestion)
+  );
 
   const getSuggestionMutation = useGetShotSuggestion();
   const { toast } = useToast();
-
-  /**
-   * تحميل اقتراح AI المحفوظ عند تحميل اللقطة
-   */
-  useEffect(() => {
-    if (shot) {
-      setTimeout(() => {}, 0);
-      setCameraAngle(shot.cameraAngle ?? DEFAULT_VALUES.cameraAngle);
-      setCameraMovement(shot.cameraMovement ?? DEFAULT_VALUES.cameraMovement);
-      setLighting(shot.lighting ?? DEFAULT_VALUES.lighting);
-      if (shot.aiSuggestion) {
-        try {
-          setAiSuggestion(JSON.parse(shot.aiSuggestion));
-        } catch {
-          setAiSuggestion(null);
-        }
-      }
-    }
-  }, [shot]);
 
   /**
    * معالج الحصول على اقتراح من AI
@@ -430,6 +457,6 @@ const ShotPlanningCard = memo(function ShotPlanningCard({
       </CardContent>
     </Card>
   );
-});
+}
 
-export default ShotPlanningCard;
+export default MemoizedShotPlanningCard;

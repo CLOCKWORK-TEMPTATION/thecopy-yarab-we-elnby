@@ -111,6 +111,7 @@
     }
   },
   "scripts": {
+    "check:line-budget": "node scripts/check-file-line-budget.mjs",
     "agent:bootstrap": "tsx scripts/agent/bootstrap.ts",
     "agent:guard:start": "tsx scripts/agent/guard.ts --phase=start",
     "agent:guard:step": "tsx scripts/agent/guard.ts --phase=step",

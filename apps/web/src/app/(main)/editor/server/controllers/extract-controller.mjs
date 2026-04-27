@@ -219,7 +219,7 @@ const extractByType = async (buffer, extension, filename) => {
         rawExtractedText: normalizedEngineResult.rawText,
       };
     } finally {
-      await rm(tempDir, { recursive: true, force: true }).catch(() => {});
+      await rm(tempDir, { recursive: true, force: true }).catch(() => { /* empty */ });
     }
   }
 

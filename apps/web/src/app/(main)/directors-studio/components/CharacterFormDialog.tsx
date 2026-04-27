@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -118,17 +118,17 @@ export default function CharacterFormDialog({
   const { toast } = useToast();
   const createCharacter = useCreateCharacter();
   const updateCharacter = useUpdateCharacter();
+  const resetKey = `${open ? "open" : "closed"}:${character?.id ?? "new"}`;
 
+  const [formResetKey, setFormResetKey] = useState(resetKey);
   const [formData, setFormData] = useState<CharacterFormState>(() =>
     mapCharacterToFormData(character)
   );
 
-  /**
-   * إعادة تعيين النموذج عند تغيير الشخصية أو فتح الحوار
-   */
-  useEffect(() => {
-    setTimeout(() => {}, 0);
-  }, [character, open]);
+  if (formResetKey !== resetKey) {
+    setFormResetKey(resetKey);
+    setFormData(mapCharacterToFormData(character));
+  }
 
   /**
    * التحقق من صحة النموذج

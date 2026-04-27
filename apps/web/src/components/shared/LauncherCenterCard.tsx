@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import images from "@/lib/images";
@@ -23,6 +23,10 @@ const V_LAYOUT = [
   { x: 0.21, y: 0.07, s: CARD_SCALE, r: 4, z: 2 }, // وسط يمين
   { x: 0.28, y: -0.01, s: CARD_SCALE, r: 7, z: 1 }, // أعلى يمين
 ];
+
+function subscribeMounted(_onStoreChange: () => void): () => void {
+  return () => undefined;
+}
 
 function useElementSize<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
@@ -53,12 +57,12 @@ export default function LauncherCenterCard({
 }: {
   className?: string;
 }) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeMounted,
+    () => true,
+    () => false
+  );
   const { ref: sceneRef, size } = useElementSize<HTMLDivElement>();
-
-  useEffect(() => {
-    setTimeout(() => {}, 0);
-  }, []);
 
   const router = useRouter();
 

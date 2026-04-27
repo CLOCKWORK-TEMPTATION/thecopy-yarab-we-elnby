@@ -173,7 +173,7 @@ export default function ArabicPromptEngineeringStudioPage() {
         setComparisonResult(snapshot.comparisonResult ?? null);
         setSuggestions(snapshot.suggestions ?? []);
       })
-      .catch(() => {})
+      .catch(() => { /* empty */ })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -205,7 +205,7 @@ export default function ArabicPromptEngineeringStudioPage() {
           comparisonResult,
           suggestions,
         }
-      ).catch(() => {});
+      ).catch(() => { /* empty */ });
     }, 400);
 
     return () => {

@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -114,6 +114,13 @@ const sceneToFormData = (scene: Scene): SceneFormData => ({
   status: scene.status,
 });
 
+function createSceneFormData(
+  scene: Scene | undefined,
+  maxSceneNumber: number
+): SceneFormData {
+  return scene ? sceneToFormData(scene) : getDefaultFormData(maxSceneNumber);
+}
+
 /**
  * مكوّن حوار نموذج المشهد
  *
@@ -133,21 +140,17 @@ export default function SceneFormDialog({
   const { toast } = useToast();
   const createScene = useCreateScene();
   const updateScene = useUpdateScene();
+  const resetKey = `${open ? "open" : "closed"}:${scene?.id ?? "new"}:${maxSceneNumber}`;
 
+  const [formResetKey, setFormResetKey] = useState(resetKey);
   const [formData, setFormData] = useState<SceneFormData>(() =>
-    scene ? sceneToFormData(scene) : getDefaultFormData(maxSceneNumber)
+    createSceneFormData(scene, maxSceneNumber)
   );
 
-  /**
-   * إعادة تعيين النموذج عند فتح/إغلاق الحوار أو تغيير المشهد
-   */
-  useEffect(() => {
-    if (scene) {
-      setTimeout(() => {}, 0);
-    } else {
-      setFormData(getDefaultFormData(maxSceneNumber));
-    }
-  }, [scene, maxSceneNumber, open]);
+  if (formResetKey !== resetKey) {
+    setFormResetKey(resetKey);
+    setFormData(createSceneFormData(scene, maxSceneNumber));
+  }
 
   /**
    * التحقق من صحة النموذج

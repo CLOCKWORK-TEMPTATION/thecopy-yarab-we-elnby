@@ -82,7 +82,7 @@ function withCameraRequestTimeout<T>(
       },
       (error) => {
         window.clearTimeout(timeoutId);
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     );
   });

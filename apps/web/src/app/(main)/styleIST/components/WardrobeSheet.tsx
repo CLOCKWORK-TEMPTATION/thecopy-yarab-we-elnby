@@ -63,7 +63,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
           rows.map((r) => ({ id: r.id, name: r.name, url: r.imageUrl }))
         )
       )
-      .catch(() => {});
+      .catch(() => { /* empty */ });
   }, [isOpen, projectId]);
 
   const allItems = [...defaultWardrobe, ...savedItems];
@@ -102,7 +102,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
             { id: row.id, name: row.name, url: row.imageUrl },
           ])
         )
-        .catch(() => {});
+        .catch(() => { /* empty */ });
     }
   };
 
@@ -131,7 +131,7 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
             { id: row.id, name: row.name, url: row.imageUrl },
           ])
         )
-        .catch(() => {});
+        .catch(() => { /* empty */ });
     } catch {
       setError("Failed to generate.");
     } finally {

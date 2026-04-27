@@ -18,12 +18,6 @@ describe("createIntersectionObserver", () => {
     callback: IntersectionObserverCallback;
     options: IntersectionObserverInit | undefined;
   }[] = [];
-  let lastObserver: {
-    observe: ReturnType<typeof vi.fn>;
-    unobserve: ReturnType<typeof vi.fn>;
-    disconnect: ReturnType<typeof vi.fn>;
-  } | null = null;
-
   class IntersectionObserverMock {
     public observe = vi.fn();
     public unobserve = vi.fn();
@@ -40,17 +34,11 @@ describe("createIntersectionObserver", () => {
     ) {
       this.callback = cb;
       constructorCalls.push({ callback: cb, options });
-      lastObserver = {
-        observe: this.observe,
-        unobserve: this.unobserve,
-        disconnect: this.disconnect,
-      };
     }
   }
 
   beforeEach(() => {
     constructorCalls = [];
-    lastObserver = null;
     vi.clearAllMocks();
     (
       window as unknown as {

@@ -147,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setRecordings(snapshot.recordings);
         }
       })
-      .catch(() => {})
+      .catch(() => { /* empty */ })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -182,7 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         user,
         scripts,
         recordings,
-      }).catch(() => {});
+      }).catch(() => { /* empty */ });
     }, 400);
 
     return () => {

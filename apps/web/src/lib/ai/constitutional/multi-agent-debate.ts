@@ -2,151 +2,37 @@
 
 import { logger } from "@/lib/logger";
 import { stripHtmlTags } from "@/lib/security/sanitize-html";
-import {
-  isUnknownRecord,
-  stringArrayFromUnknown,
-  stringifyUnknown,
-} from "@/lib/utils/unknown-values";
 
 import { GeminiService } from "../../ai/stations/gemini-service";
 
-export interface DebateParticipant {
-  role: "prosecutor" | "defender" | "judge";
-  name: string;
-  perspective: string;
-}
+import {
+  DEFAULT_DEBATE_PARTICIPANTS,
+  fallbackVerdict,
+  parseDebateVerdict,
+  type DebateArgument,
+  type DebateResult,
+  type DebateRound,
+  type DebateVerdict,
+} from "./multi-agent-debate-models";
+import {
+  buildDefenderPrompt,
+  buildJudgePrompt,
+  buildPreviousRoundsContext,
+  buildProsecutorPrompt,
+  buildVerdictPrompt,
+} from "./multi-agent-debate-prompts";
 
-export interface DebateArgument {
-  participant: string;
-  argument: string;
-  evidence: string[];
-  strength: number;
-}
-
-export interface DebateRound {
-  round: number;
-  prosecutorArgument: DebateArgument;
-  defenderArgument: DebateArgument;
-  judgeComments: string;
-}
-
-export interface ConsensusArea {
-  aspect: string;
-  agreement: string;
-  confidence: number;
-}
-
-export interface DisputedArea {
-  aspect: string;
-  prosecutorView: string;
-  defenderView: string;
-  judgeOpinion: string;
-  resolution: string;
-}
-
-export interface FinalVerdict {
-  overallAssessment: string;
-  strengths: string[];
-  weaknesses: string[];
-  recommendations: string[];
-  confidence: number;
-}
-
-export interface DebateVerdict {
-  consensusAreas: ConsensusArea[];
-  disputedAreas: DisputedArea[];
-  finalVerdict: FinalVerdict;
-}
-
-export interface DebateDynamics {
-  rounds: number;
-  convergenceScore: number; // مدى تقارب الآراء
-  controversialTopics: string[];
-}
-
-export interface DebateResult {
-  participants: DebateParticipant[];
-  rounds: DebateRound[];
-  verdict: DebateVerdict;
-  debateDynamics: DebateDynamics;
-}
-
-const fallbackVerdict: DebateVerdict = {
-  consensusAreas: [],
-  disputedAreas: [],
-  finalVerdict: {
-    overallAssessment: "تعذر إصدار حكم نهائي بسبب خطأ في الخدمة.",
-    strengths: [],
-    weaknesses: [],
-    recommendations: [],
-    confidence: 0,
-  },
-};
-
-function numberFromUnknown(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function parseDebateVerdict(content: string): DebateVerdict {
-  const parsed: unknown = JSON.parse(content);
-  if (!isUnknownRecord(parsed)) {
-    return fallbackVerdict;
-  }
-
-  const consensusAreas = Array.isArray(parsed["consensusAreas"])
-    ? parsed["consensusAreas"].flatMap((area) => {
-        if (!isUnknownRecord(area)) {
-          return [];
-        }
-        return [
-          {
-            aspect: stringifyUnknown(area["aspect"]),
-            agreement: stringifyUnknown(area["agreement"]),
-            confidence: numberFromUnknown(area["confidence"], 0),
-          },
-        ];
-      })
-    : [];
-
-  const disputedAreas = Array.isArray(parsed["disputedAreas"])
-    ? parsed["disputedAreas"].flatMap((area) => {
-        if (!isUnknownRecord(area)) {
-          return [];
-        }
-        return [
-          {
-            aspect: stringifyUnknown(area["aspect"]),
-            prosecutorView: stringifyUnknown(area["prosecutorView"]),
-            defenderView: stringifyUnknown(area["defenderView"]),
-            judgeOpinion: stringifyUnknown(area["judgeOpinion"]),
-            resolution: stringifyUnknown(area["resolution"]),
-          },
-        ];
-      })
-    : [];
-
-  const finalVerdict = isUnknownRecord(parsed["finalVerdict"])
-    ? {
-        overallAssessment: stringifyUnknown(
-          parsed["finalVerdict"]["overallAssessment"]
-        ),
-        strengths: stringArrayFromUnknown(parsed["finalVerdict"]["strengths"]),
-        weaknesses: stringArrayFromUnknown(
-          parsed["finalVerdict"]["weaknesses"]
-        ),
-        recommendations: stringArrayFromUnknown(
-          parsed["finalVerdict"]["recommendations"]
-        ),
-        confidence: numberFromUnknown(parsed["finalVerdict"]["confidence"], 0),
-      }
-    : fallbackVerdict.finalVerdict;
-
-  return {
-    consensusAreas,
-    disputedAreas,
-    finalVerdict,
-  };
-}
+export type {
+  ConsensusArea,
+  DebateArgument,
+  DebateDynamics,
+  DebateParticipant,
+  DebateResult,
+  DebateRound,
+  DebateVerdict,
+  DisputedArea,
+  FinalVerdict,
+} from "./multi-agent-debate-models";
 
 /**
  * Context passed to a debate run. Carries the analysis classification and
@@ -175,24 +61,7 @@ export class MultiAgentDebateSystem {
       `[Multi-Agent Debate] Starting debate with max ${maxRounds} rounds`
     );
 
-    // Define participants
-    const participants: DebateParticipant[] = [
-      {
-        role: "prosecutor",
-        name: "المدعي الناقد",
-        perspective: "تحديد نقاط الضعف والأخطاء والتحيزات",
-      },
-      {
-        role: "defender",
-        name: "المدافع البناء",
-        perspective: "إبراز نقاط القوة والجوانب الإيجابية",
-      },
-      {
-        role: "judge",
-        name: "القاضي الموضوعي",
-        perspective: "التوصل لحكم متوازن وشامل",
-      },
-    ];
+    const participants = [...DEFAULT_DEBATE_PARTICIPANTS];
 
     const rounds: DebateRound[] = [];
 
@@ -248,16 +117,7 @@ export class MultiAgentDebateSystem {
     _context: DebateContext,
     previousRounds: DebateRound[]
   ): Promise<DebateRound> {
-    // Build context from previous rounds
-    let debateContext = "";
-    if (previousRounds.length > 0) {
-      debateContext = "\n\nالجولات السابقة:\n";
-      previousRounds.forEach((round, index) => {
-        debateContext += `\nجولة ${index + 1}:\n`;
-        debateContext += `المدعي: ${round.prosecutorArgument.argument.substring(0, 200)}...\n`;
-        debateContext += `المدافع: ${round.defenderArgument.argument.substring(0, 200)}...\n`;
-      });
-    }
+    const debateContext = buildPreviousRoundsContext(previousRounds);
 
     // Prosecutor's argument
     const prosecutorArg = await this.generateProsecutorArgument(
@@ -296,36 +156,7 @@ export class MultiAgentDebateSystem {
     analysis: string,
     debateContext: string
   ): Promise<DebateArgument> {
-    const prompt = `
-أنت المدعي الناقد في نقاش علمي حول جودة التحليل.
-مهمتك: تحديد نقاط الضعف والأخطاء والتحيزات في التحليل المقدم.
-
-النص الأصلي:
-"""
- ${text.substring(0, 2000)}
-"""
-
-التحليل المقدم:
-"""
- ${analysis.substring(0, 2000)}
-"""
-
- ${debateContext}
-
-قدم حجتك النقدية مع التركيز على:
-1. **الأخطاء المنطقية**: هل هناك تناقضات أو قفزات منطقية؟
-2. **التحيزات**: هل يظهر التحليل تحيزاً معيناً؟
-3. **النقاط غير المدعومة**: ادعاءات بدون دليل كافٍ
-4. **الإغفالات**: جوانب مهمة لم يتطرق لها التحليل
-
-قدم إجابتك بالصيغة التالية:
-الحجة: [حجتك النقدية الرئيسية]
-الأدلة: 
-- [دليل 1]
-- [دليل 2]
-- [دليل 3]
-قوة الحجة: [رقم من 0 إلى 10]
-`;
+    const prompt = buildProsecutorPrompt(text, analysis, debateContext);
 
     try {
       const result = await this.geminiService.generate<string>({
@@ -357,41 +188,12 @@ export class MultiAgentDebateSystem {
     prosecutorArgument: string,
     debateContext: string
   ): Promise<DebateArgument> {
-    const prompt = `
-أنت المدافع البناء في نقاش علمي حول جودة التحليل.
-مهمتك: إبراز نقاط القوة والرد على اتهامات المدعي بشكل موضوعي.
-
-النص الأصلي:
-"""
- ${text.substring(0, 2000)}
-"""
-
-التحليل المقدم:
-"""
- ${analysis.substring(0, 2000)}
-"""
-
-حجة المدعي:
-"""
- ${prosecutorArgument}
-"""
-
- ${debateContext}
-
-قدم دفاعك مع التركيز على:
-1. **نقاط القوة**: ما الجيد في هذا التحليل؟
-2. **الرد على الاتهامات**: رد موضوعي على نقاط المدعي
-3. **السياق المفقود**: جوانب لم يأخذها المدعي بعين الاعتبار
-4. **القيمة الإجمالية**: ما القيمة التي يضيفها هذا التحليل؟
-
-قدم إجابتك بالصيغة التالية:
-الحجة: [حجتك الدفاعية الرئيسية]
-الأدلة:
-- [دليل 1]
-- [دليل 2]
-- [دليل 3]
-قوة الحجة: [رقم من 0 إلى 10]
-`;
+    const prompt = buildDefenderPrompt(
+      text,
+      analysis,
+      prosecutorArgument,
+      debateContext
+    );
 
     try {
       const result = await this.geminiService.generate<string>({
@@ -421,21 +223,7 @@ export class MultiAgentDebateSystem {
     prosecutorArg: DebateArgument,
     defenderArg: DebateArgument
   ): Promise<string> {
-    const prompt = `
-أنت القاضي الموضوعي في نقاش علمي.
-مهمتك: تقييم حجج الطرفين بموضوعية والتعليق على الجولة.
-
-حجة المدعي:
- ${prosecutorArg.argument}
-
-حجة المدافع:
- ${defenderArg.argument}
-
-قدم تعليقاً موجزاً (3-4 جمل) يتضمن:
-1. تقييم قوة كل حجة
-2. النقاط الصحيحة من كل طرف
-3. ما الذي نتفق عليه حتى الآن؟
-`;
+    const prompt = buildJudgePrompt(prosecutorArg, defenderArg);
 
     try {
       const result = await this.geminiService.generate<string>({
@@ -459,47 +247,7 @@ export class MultiAgentDebateSystem {
     _analysis: string,
     rounds: DebateRound[]
   ): Promise<DebateVerdict> {
-    // Build summary of debate
-    let debateSummary = "ملخص النقاش:\n\n";
-    rounds.forEach((round, index) => {
-      debateSummary += `جولة ${index + 1}:\n`;
-      debateSummary += `- المدعي: ${round.prosecutorArgument.argument.substring(0, 150)}...\n`;
-      debateSummary += `- المدافع: ${round.defenderArgument.argument.substring(0, 150)}...\n`;
-      debateSummary += `- تعليق القاضي: ${round.judgeComments.substring(0, 100)}...\n\n`;
-    });
-
-    const prompt = `
-بصفتك القاضي الموضوعي، قدم حكمك النهائي على التحليل بناءً على النقاش الكامل.
-
- ${debateSummary}
-
-قدم حكمك بالصيغة التالية (JSON):
-{
-  "consensusAreas": [
-    {
-      "aspect": "الجانب المتفق عليه",
-      "agreement": "وصف الاتفاق",
-      "confidence": 0.9
-    }
-  ],
-  "disputedAreas": [
-    {
-      "aspect": "الجانب الخلافي",
-      "prosecutorView": "رأي المدعي",
-      "defenderView": "رأي المدافع",
-      "judgeOpinion": "رأيك كقاضي",
-      "resolution": "الحل المقترح"
-    }
-  ],
-  "finalVerdict": {
-    "overallAssessment": "تقييم شامل للتحليل",
-    "strengths": ["نقطة قوة 1", "نقطة قوة 2"],
-    "weaknesses": ["نقطة ضعف 1", "نقطة ضعف 2"],
-    "recommendations": ["توصية 1", "توصية 2"],
-    "confidence": 0.85
-  }
-}
-`;
+    const prompt = buildVerdictPrompt(rounds);
 
     try {
       const result = await this.geminiService.generate<string>({
@@ -637,8 +385,6 @@ let debateSystemInstance: MultiAgentDebateSystem | null = null;
 export function getMultiAgentDebateSystem(
   geminiService: GeminiService
 ): MultiAgentDebateSystem {
-  if (!debateSystemInstance) {
-    debateSystemInstance = new MultiAgentDebateSystem(geminiService);
-  }
+  debateSystemInstance ??= new MultiAgentDebateSystem(geminiService);
   return debateSystemInstance;
 }

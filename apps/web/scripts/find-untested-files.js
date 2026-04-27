@@ -119,7 +119,7 @@ function scanDirectory(dir) {
       }
       const relativePath = path.relative(srcDir, dir);
       fullPath = safeResolve(srcDir, relativePath, item);
-    } catch (error) {
+    } catch {
       console.warn(`Skipping invalid path: ${item}`);
       continue;
     }

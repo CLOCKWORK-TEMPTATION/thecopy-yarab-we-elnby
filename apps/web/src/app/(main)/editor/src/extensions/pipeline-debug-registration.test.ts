@@ -31,7 +31,7 @@ afterEach(() => {
 
 describe("pipeline debug registration", () => {
   it("يخفي رسائل الجاهزية افتراضيًا مع بقاء الأدوات اليدوية", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => { /* empty */ });
 
     registerPipelineRecorderUI();
     registerPipelineDiagnostics(() => "سطر تجريبي");

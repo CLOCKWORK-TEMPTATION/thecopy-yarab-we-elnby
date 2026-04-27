@@ -14,51 +14,29 @@ import {
   sendMetricToSentry,
   trackWebVitalsInitialized,
 } from "./webVitalsDispatch";
+import {
+  calculatePerformanceScore,
+  installApiCallTiming,
+  installFileProcessingTiming,
+  markComponentRenderEnd,
+  markComponentRenderStart,
+  measureAppLoadTime,
+  measureComponentRender,
+  observeComponentRenderTime,
+} from "./webVitalsRuntime";
 
-import type { Metric } from "web-vitals";
-
-export interface WebVitalsConfig {
-  enableGA4: boolean;
-  enableSentry: boolean;
-  enableConsoleLog: boolean;
-  customEndpoint?: string;
-  debug: boolean;
-}
-
-export interface CustomMetric {
-  name: string;
-  value: number;
-  delta: number;
-  id: string;
-  navigationType: string;
-  rating: Metric["rating"];
-  entries: PerformanceEntry[];
-  customData?: Record<string, unknown>;
-}
-
-export type NavigatorWithConnection = Navigator & {
-  connection?: {
-    effectiveType?: string;
-  };
-};
+import type { CustomMetric, WebVitalsConfig } from "./webVitalsTypes";
 
 type PerformanceNavigationTimingWithDomLoading = PerformanceNavigationTiming & {
   domLoading?: number;
 };
 
-type PerformanceEntryWithDetail = PerformanceEntry & {
-  detail?: unknown;
-};
-
-type GtagFunction = (
-  command: string,
-  eventName: string,
-  params?: Record<string, unknown>
-) => void;
-
-export type WindowWithGtag = Window & {
-  gtag?: GtagFunction;
-};
+export type {
+  CustomMetric,
+  NavigatorWithConnection,
+  WebVitalsConfig,
+  WindowWithGtag,
+} from "./webVitalsTypes";
 
 class WebVitalsService {
   private config: WebVitalsConfig;
@@ -264,175 +242,26 @@ class WebVitalsService {
   }
 
   private measureAppLoadTime(): void {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => {
-        this.measureCustomMetric("AppLoadTime", performance.now());
-      });
-    } else {
-      this.measureCustomMetric("AppLoadTime", performance.now());
-    }
+    measureAppLoadTime((name, value, customData) =>
+      this.measureCustomMetric(name, value, customData)
+    );
   }
 
   private measureFileProcessingTime(): void {
-    // This will be called when file processing starts/ends
-    const originalMeasure = performance.measure.bind(performance);
-
-    // Override performance.measure to track file processing
-    performance.measure = (
-      name: string,
-      startMark?: string,
-      endMark?: string
-    ) => {
-      const result = originalMeasure(name, startMark, endMark);
-
-      if (name.includes("file-processing")) {
-        const customMetric: CustomMetric = {
-          name: "FileProcessingTime",
-          value: result.duration,
-          delta: result.duration,
-          id: `file-processing-${Date.now()}`,
-          navigationType: "navigate",
-          rating: "good",
-          entries: [],
-          customData: {
-            fileName: name.split("-").pop(),
-            startTime: result.startTime,
-          },
-        };
-
-        this.handleMetric("FileProcessingTime", customMetric);
-      }
-
-      return result;
-    };
+    installFileProcessingTiming((name, metric) =>
+      this.handleMetric(name, metric)
+    );
   }
 
   private measureAPICallTime(): void {
-    // This will be called when API calls are made
-    const originalFetch = window.fetch.bind(window);
-
-    window.fetch = async (...args) => {
-      const startTime = performance.now();
-      const requestInput = args[0];
-      const url =
-        typeof requestInput === "string"
-          ? requestInput
-          : requestInput instanceof URL
-            ? requestInput.href
-            : requestInput instanceof Request
-              ? requestInput.url
-              : "unknown";
-
-      try {
-        const response = await originalFetch(...args);
-        const endTime = performance.now();
-
-        const customMetric: CustomMetric = {
-          name: "APICallTime",
-          value: endTime - startTime,
-          delta: endTime - startTime,
-          id: `api-${Date.now()}`,
-          navigationType: "navigate",
-          rating: "good",
-          entries: [],
-          customData: {
-            url,
-            status: response.status,
-            method: args[1]?.method ?? "GET",
-          },
-        };
-
-        this.handleMetric("APICallTime", customMetric);
-
-        return response;
-      } catch (error) {
-        const endTime = performance.now();
-
-        const customMetric: CustomMetric = {
-          name: "APICallError",
-          value: endTime - startTime,
-          delta: endTime - startTime,
-          id: `api-error-${Date.now()}`,
-          navigationType: "navigate",
-          rating: "good",
-          entries: [],
-          customData: {
-            url,
-            error: error instanceof Error ? error.message : "Unknown error",
-          },
-        };
-
-        this.handleMetric("APICallError", customMetric);
-
-        throw error;
-      }
-    };
+    installApiCallTiming((name, metric) => this.handleMetric(name, metric));
   }
 
   private measureComponentRenderTime(): void {
-    // Track React component render times using performance marks and measures
-    if (!("PerformanceObserver" in window) || !window.performance?.mark) {
-      log.warn(
-        "⚠️ Performance API not available for component render tracking",
-        null,
-        "WebVitalsService"
-      );
-      return;
-    }
-
-    try {
-      // Observe performance measures for component renders
-      const observer = new PerformanceObserver((list) => {
-        list.getEntries().forEach((entry) => {
-          if (entry.entryType === "measure") {
-            // Track measures that match component render patterns
-            // Common patterns: "Component.render", "⚛ ComponentName", etc.
-            const isComponentMeasure =
-              entry.name.includes("Component") ||
-              entry.name.includes("⚛") ||
-              entry.name.includes("render");
-
-            if (isComponentMeasure) {
-              const customMetric: CustomMetric = {
-                name: "ComponentRender",
-                value: entry.duration,
-                delta: entry.duration,
-                id: `component-${Date.now()}`,
-                navigationType: "navigate",
-                rating: entry.duration < 16 ? "good" : "poor", // 16ms = 60fps
-                entries: [],
-                customData: {
-                  componentName: entry.name,
-                  duration: entry.duration,
-                  startTime: entry.startTime,
-                  detail: (entry as PerformanceEntryWithDetail).detail,
-                },
-              };
-
-              // Only track slow renders (> 16ms for 60fps)
-              if (entry.duration > 16) {
-                this.handleMetric("ComponentRender", customMetric);
-              }
-            }
-          }
-        });
-      });
-
-      observer.observe({ entryTypes: ["measure"] });
-      this.observers.add(observer);
-
-      log.info(
-        "✅ Component render time tracking initialized",
-        null,
-        "WebVitalsService"
-      );
-    } catch (error) {
-      log.error(
-        "❌ Failed to initialize component render tracking",
-        error,
-        "WebVitalsService"
-      );
-    }
+    observeComponentRenderTime(
+      (observer) => this.observers.add(observer),
+      (name, metric) => this.handleMetric(name, metric)
+    );
   }
 
   /**
@@ -440,13 +269,7 @@ class WebVitalsService {
    * Usage: webVitalsService.markComponentRenderStart('MyComponent')
    */
   public markComponentRenderStart(componentName: string): void {
-    if (typeof window !== "undefined" && window.performance) {
-      try {
-        performance.mark(`${componentName}-render-start`);
-      } catch {
-        // Silently fail if marking fails
-      }
-    }
+    markComponentRenderStart(componentName);
   }
 
   /**
@@ -454,27 +277,7 @@ class WebVitalsService {
    * Usage: webVitalsService.markComponentRenderEnd('MyComponent')
    */
   public markComponentRenderEnd(componentName: string): void {
-    if (typeof window !== "undefined" && window.performance) {
-      try {
-        const endMark = `${componentName}-render-end`;
-        const startMark = `${componentName}-render-start`;
-
-        performance.mark(endMark);
-
-        // Create a measure between start and end marks
-        try {
-          performance.measure(`⚛ ${componentName} render`, startMark, endMark);
-
-          // Clean up marks to avoid memory leaks
-          performance.clearMarks(startMark);
-          performance.clearMarks(endMark);
-        } catch {
-          // Start mark might not exist, which is fine
-        }
-      } catch {
-        // Silently fail if marking fails
-      }
-    }
+    markComponentRenderEnd(componentName);
   }
 
   /**
@@ -485,13 +288,7 @@ class WebVitalsService {
     componentName: string,
     renderFn: () => T | Promise<T>
   ): Promise<T> {
-    this.markComponentRenderStart(componentName);
-    try {
-      const result = await renderFn();
-      return result;
-    } finally {
-      this.markComponentRenderEnd(componentName);
-    }
+    return measureComponentRender(componentName, renderFn);
   }
 
   private handleMetric(name: string, metric: CustomMetric): void {
@@ -563,34 +360,7 @@ class WebVitalsService {
   }
 
   public getPerformanceScore(): number {
-    const metrics = Array.from(this.metrics.values());
-    let score = 100;
-
-    // Penalize based on Core Web Vitals
-    metrics.forEach((metric) => {
-      switch (metric.name) {
-        case "CLS":
-          if (metric.value > 0.25) score -= 20;
-          else if (metric.value > 0.1) score -= 10;
-          break;
-        case "INP":
-          if (metric.value > 200) score -= 20;
-          else if (metric.value > 100) score -= 10;
-          break;
-        case "LCP":
-          if (metric.value > 2500) score -= 20;
-          else if (metric.value > 1800) score -= 10;
-          break;
-        case "FCP":
-          if (metric.value > 1800) score -= 10;
-          break;
-        case "TTFB":
-          if (metric.value > 800) score -= 10;
-          break;
-      }
-    });
-
-    return Math.max(0, score);
+    return calculatePerformanceScore(Array.from(this.metrics.values()));
   }
 
   public destroy(): void {

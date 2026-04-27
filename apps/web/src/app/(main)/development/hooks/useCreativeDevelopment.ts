@@ -435,7 +435,7 @@ export function useCreativeDevelopment() {
           dispatch({ type: "SET_TEXT_INPUT", payload: snapshot.text });
         }
       })
-      .catch(() => {});
+      .catch(() => { /* empty */ });
 
     // التحقق من النص الأصلي المحفوظ
     const storedText = sessionStorage.getItem("originalText");

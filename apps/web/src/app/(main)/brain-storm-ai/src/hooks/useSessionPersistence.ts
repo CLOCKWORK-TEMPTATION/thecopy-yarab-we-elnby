@@ -176,15 +176,15 @@ function writeStore(store: SessionStore): void {
 }
 
 export function useSessionPersistence() {
-  const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
+  const [savedSessions, setSavedSessions] = useState<SavedSession[]>(
+    () => readStore().sessions
+  );
   const [isLoaded, setIsLoaded] = useState(false);
 
   /** تحميل الجلسات المحفوظة عند التهيئة */
   useEffect(() => {
     let cancelled = false;
     const localStore = readStore();
-
-    setTimeout(() => {}, 0);
 
     void loadRemoteAppState<BrainstormPersistenceSnapshot>("brain-storm-ai")
       .then((snapshot) => {
@@ -221,7 +221,7 @@ export function useSessionPersistence() {
 
         setSavedSessions(nextStore.sessions);
       })
-      .catch(() => {})
+      .catch(() => { /* empty */ })
       .finally(() => {
         if (!cancelled) {
           setIsLoaded(true);
@@ -269,7 +269,7 @@ export function useSessionPersistence() {
 
       writeStore(store);
       setSavedSessions([...store.sessions]);
-      void persistRemoteStore(store).catch(() => {});
+      void persistRemoteStore(store).catch(() => { /* empty */ });
     },
     []
   );
@@ -282,7 +282,7 @@ export function useSessionPersistence() {
     store.sessions = store.sessions.filter((s) => s.session.id !== sessionId);
     writeStore(store);
     setSavedSessions([...store.sessions]);
-    void persistRemoteStore(store).catch(() => {});
+    void persistRemoteStore(store).catch(() => { /* empty */ });
   }, []);
 
   /**
@@ -309,7 +309,7 @@ export function useSessionPersistence() {
         currentSessionId: null,
         version: 1,
       }
-    ).catch(() => {});
+    ).catch(() => { /* empty */ });
   }, []);
 
   /**
@@ -331,7 +331,7 @@ export function useSessionPersistence() {
         currentSessionId: id,
         version: store.version,
       }
-    ).catch(() => {});
+    ).catch(() => { /* empty */ });
   }, []);
 
   /**

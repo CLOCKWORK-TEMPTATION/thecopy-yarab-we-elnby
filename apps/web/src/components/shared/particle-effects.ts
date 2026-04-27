@@ -78,13 +78,13 @@ export class BatchProcessor<T = unknown> {
               void batch;
               resolve();
             } catch (error) {
-              reject(error);
+              reject(error instanceof Error ? error : new Error(String(error)));
             }
           },
           { timeout: 100 }
         );
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }

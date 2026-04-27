@@ -11,8 +11,6 @@
 
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
-
 // Colors for terminal output
 const colors = {
   reset: "\x1b[0m",

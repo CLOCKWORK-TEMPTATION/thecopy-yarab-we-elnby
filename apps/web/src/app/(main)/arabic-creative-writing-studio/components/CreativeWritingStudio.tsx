@@ -453,7 +453,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
         setSelectedPrompt(snapshot.selectedPrompt ?? null);
         setSettings(buildSettings(snapshot.settings));
       })
-      .catch(() => {})
+      .catch(() => { /* empty */ })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -480,7 +480,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
           projects: projects.map(persistProject),
           settings,
         }
-      ).catch(() => {});
+      ).catch(() => { /* empty */ });
     }, 400);
 
     return () => window.clearTimeout(timeoutId);

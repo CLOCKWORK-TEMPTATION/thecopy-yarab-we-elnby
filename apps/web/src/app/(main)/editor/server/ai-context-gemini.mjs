@@ -20,7 +20,6 @@ const logger = pino({ name: "ai-context-gemini" });
 
 const DEFAULT_MODEL = "gemini-3.1-flash-lite-preview";
 const MAX_LINES_PER_REQUEST = 500;
-const _REQUEST_TIMEOUT_MS = 60_000;
 
 // ─── تحليل الإعدادات من البيئة ────────────────────────────────────
 
