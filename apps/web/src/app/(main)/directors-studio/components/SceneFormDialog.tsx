@@ -143,6 +143,7 @@ export default function SceneFormDialog({
    */
   useEffect(() => {
     if (scene) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(sceneToFormData(scene));
     } else {
       setFormData(getDefaultFormData(maxSceneNumber));

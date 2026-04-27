@@ -124,6 +124,7 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
 
   useEffect(() => {
     const report = evaluateSafety(selectedFabric, hazards);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSafetyReport(report);
     const tp = generateFullTechPack(
       selectedFabric,

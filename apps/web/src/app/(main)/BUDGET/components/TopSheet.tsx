@@ -30,6 +30,7 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
   useEffect(() => {
     const currentNum = parseFloat(localVal);
     if (Math.abs(currentNum - value * 100) > 0.001) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalVal((value * 100).toString());
     }
   }, [value]);

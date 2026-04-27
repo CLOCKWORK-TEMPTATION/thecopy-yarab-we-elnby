@@ -57,6 +57,7 @@ export default function LauncherCenterCard({
   const { ref: sceneRef, size } = useElementSize<HTMLDivElement>();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

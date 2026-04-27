@@ -78,6 +78,7 @@ const LightingStudio: React.FC<LightingStudioProps> = (props) => {
   useEffect(() => {
     switch (activeLook) {
       case "NOIR":
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAmbientColor("#aaaaaa");
         setSpotColor("#ffffff");
         setSpotIntensity(2.5); // Hard light

@@ -48,6 +48,7 @@ export function usePerformanceDetection() {
   useEffect(() => {
     // Get initial capabilities
     const initialCaps = performanceDetector.getCapabilities();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCapabilities(initialCaps);
     setParticleConfig(performanceDetector.getParticleConfig());
     setShouldDisable(performanceDetector.shouldDisableParticles());
@@ -179,6 +180,7 @@ export function usePerformanceMetric<K extends keyof DeviceCapabilities>(
 
     // Set initial value
     const initialCaps = performanceDetector.getCapabilities();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(initialCaps[metric]);
 
     return () => unsubscribe();

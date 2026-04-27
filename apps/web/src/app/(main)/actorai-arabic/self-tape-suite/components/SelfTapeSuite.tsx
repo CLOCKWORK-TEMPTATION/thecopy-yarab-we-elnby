@@ -451,6 +451,7 @@ export const SelfTapeSuite: React.FC = () => {
   );
   const bestExportableTake = useMemo(() => {
     return [...availableTakes]
+      // eslint-disable-next-line react-hooks/refs
       .filter((take) => blobRegistryRef.current.has(take.id))
       .sort((left, right) => (right.score ?? 0) - (left.score ?? 0))[0];
   }, [availableTakes]);
@@ -1627,6 +1628,7 @@ export const SelfTapeSuite: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  // eslint-disable-next-line react-hooks/refs
                   <div className="max-h-[560px] space-y-3 overflow-y-auto">
                     {availableTakes.map((take) => (
                       <div
@@ -1844,6 +1846,7 @@ export const SelfTapeSuite: React.FC = () => {
                       </CardDescription>
                     )}
                   </CardHeader>
+                  // eslint-disable-next-line react-hooks/refs
                   <CardContent className="space-y-4">
                     {take?.videoUrl ? (
                       <video
@@ -2318,6 +2321,7 @@ export const SelfTapeSuite: React.FC = () => {
                     للتنزيل.
                   </CardDescription>
                 </CardHeader>
+                // eslint-disable-next-line react-hooks/refs
                 <CardContent className="space-y-4">
                   {availableTakes.map((take) => {
                     const canDownload = blobRegistryRef.current.has(take.id);

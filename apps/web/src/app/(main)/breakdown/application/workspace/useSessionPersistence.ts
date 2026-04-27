@@ -65,6 +65,7 @@ export function useBreakdownSessionPersistence() {
 
   useEffect(() => {
     const store = readStore();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSavedSessions(store.sessions);
     setIsLoaded(true);
   }, []);

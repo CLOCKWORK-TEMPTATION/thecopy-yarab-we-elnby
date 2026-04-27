@@ -9,11 +9,11 @@
     "src/types/env.d.ts",
     "src/types/mcp-sdk-compat.d.ts",
     "src/types/module-alias.d.ts",
-    "src/modules/**/*.ts",
-    "src/modules/**/*.tsx",
-    "src/modules/**/*.js",
-    "src/modules/**/*.mjs",
-    "src/modules/**/*.cjs"
+    "src/editor/**/*.ts",
+    "src/editor/**/*.tsx",
+    "src/editor/**/*.js",
+    "src/editor/**/*.mjs",
+    "src/editor/**/*.cjs"
   ],
   "exclude": [
     "node_modules",

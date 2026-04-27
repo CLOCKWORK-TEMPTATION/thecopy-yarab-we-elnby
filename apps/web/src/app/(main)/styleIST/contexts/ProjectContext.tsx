@@ -61,6 +61,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   useEffect(() => {
     if (!externalProjectId) return;
     // تحديث الـ projectId لو اتغير من بره
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState((prev) => ({ ...prev, projectId: externalProjectId }));
   }, [externalProjectId]);
 

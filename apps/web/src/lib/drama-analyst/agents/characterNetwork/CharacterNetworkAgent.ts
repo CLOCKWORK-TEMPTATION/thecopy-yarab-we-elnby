@@ -20,8 +20,8 @@ import {
 
 export interface CharacterNetworkContext {
   originalText?: string;
-  analysisReport?: any;
-  characters?: any[];
+  analysisReport?: unknown;
+  characters?: unknown[];
   focusCharacters?: string[];
   relationshipTypes?: string[]; // ['family', 'romantic', 'professional', 'adversarial', 'friendship']
   analyzeEvolution?: boolean;

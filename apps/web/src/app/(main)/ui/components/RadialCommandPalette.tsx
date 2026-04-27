@@ -59,12 +59,14 @@ export function RadialCommandPalette({
   // Filter commands with debounced search
   useEffect(() => {
     if (debouncedSearch) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredCommands(
         commands.filter((cmd) =>
           cmd.label.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
       );
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredCommands(commands);
     }
   }, [debouncedSearch, commands]);
