@@ -293,7 +293,7 @@ export function safeValidateResponse<T extends z.ZodType>(
 ): { success: true; data: z.infer<T> } | { success: false; error: z.ZodError } {
   const result = schema.safeParse(data);
   if (result.success) {
-    return { success: true, data: result.data };
+    return { success: true, data: result.data as z.infer<T> };
   }
   return { success: false, error: result.error };
 }

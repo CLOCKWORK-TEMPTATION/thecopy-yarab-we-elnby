@@ -29,6 +29,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
+function fetchCallOptions(callIndex: number): RequestInit | undefined {
+  const call = mockFetch.mock.calls[callIndex] as
+    | [unknown, RequestInit | undefined]
+    | undefined;
+  return call?.[1];
+}
+
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
@@ -151,7 +158,7 @@ describe("T040-T042: Primary path — /api/development/execute → catalogResult
     // First (and only) call must be to the primary route
     const [url] = mockFetch.mock.calls[0] as [string];
     expect(url).toBe("/api/development/execute");
-    expect(mockFetch.mock.calls[0][1]?.method).toBe("POST");
+    expect(fetchCallOptions(0)?.method).toBe("POST");
   });
 
   it("T041: catalogResult is non-null after successful primary-path executeTask", async () => {
@@ -186,7 +193,7 @@ describe("T040-T042: Primary path — /api/development/execute → catalogResult
       await result.current.executeTask("creative");
     });
 
-    const rawBody = mockFetch.mock.calls[0][1]?.body as string;
+    const rawBody = fetchCallOptions(0)?.body as string;
     const payload = JSON.parse(rawBody) as {
       taskId: string;
       taskName: string;
@@ -216,7 +223,7 @@ describe("T040-T042: Primary path — /api/development/execute → catalogResult
       await result.current.executeTask("analysis");
     });
 
-    const rawBody = mockFetch.mock.calls[0][1]?.body as string;
+    const rawBody = fetchCallOptions(0)?.body as string;
     const payload = JSON.parse(rawBody) as { analysisReport: string };
 
     expect(payload.analysisReport).toBe(report);

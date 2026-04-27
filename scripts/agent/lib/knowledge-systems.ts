@@ -121,6 +121,7 @@ const KNOWLEDGE_DISCOVERY_EXCLUDED_FILE_PATTERNS = [
   "dop_assistant_spec_package/",
   "arab-stylist-studio-spec/",
   "scripts/lint-chunked.mjs",
+  "scripts/run-vitest-chunks.mjs",
 ];
 
 const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
@@ -716,7 +717,8 @@ function collectPackageScriptSignals(content: string): string[] {
         if (
           scriptName === "lint" ||
           scriptName.startsWith("lint:") ||
-          scriptValue.includes("lint-chunked.mjs")
+          scriptValue.includes("lint-chunked.mjs") ||
+          scriptValue.includes("run-vitest-chunks.mjs")
         ) {
           return false;
         }

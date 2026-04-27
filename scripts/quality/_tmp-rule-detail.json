@@ -1,43 +1,4 @@
 {
-  "apps/web/e2e/cinematography-studio.spec.ts": [
-    {
-      "line": 153,
-      "column": 11,
-      "endLine": 153,
-      "endColumn": 52,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 154,
-      "column": 11,
-      "endLine": 154,
-      "endColumn": 50,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/scripts/migrate-screenplay-data.ts": [
-    {
-      "line": 141,
-      "column": 17,
-      "endLine": 141,
-      "endColumn": 67,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 180,
-      "column": 13,
-      "endLine": 180,
-      "endColumn": 52,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 233,
-      "column": 15,
-      "endLine": 233,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/ai/gemini-service.ts": [
     {
       "line": 100,
@@ -54,30 +15,19 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/(main)/actorai-arabic/components/ActorAiArabicStudio.tsx": [
+  "apps/web/src/app/(main)/BUDGET/components/BudgetApp.tsx": [
     {
-      "line": 2392,
-      "column": 27,
-      "endLine": 2392,
-      "endColumn": 38,
-      "message": "Unsafe spread of an `any` value in an array."
-    }
-  ],
-  "apps/web/src/app/(main)/actorai-arabic/components/VoiceCoach.tsx": [
-    {
-      "line": 260,
-      "column": 15,
-      "endLine": 260,
-      "endColumn": 27,
-      "message": "Unsafe spread of an `any` value in an array."
-    }
-  ],
-  "apps/web/src/app/(main)/arabic-creative-writing-studio/components/WritingEditor.test.tsx": [
-    {
-      "line": 85,
+      "line": 386,
       "column": 7,
-      "endLine": 85,
-      "endColumn": 13,
+      "endLine": 386,
+      "endColumn": 49,
+      "message": "Unsafe assignment of an `any` value."
+    },
+    {
+      "line": 434,
+      "column": 7,
+      "endLine": 434,
+      "endColumn": 49,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -87,38 +37,6 @@
       "column": 9,
       "endLine": 281,
       "endColumn": 54,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/art-director/pages/Locations.tsx": [
-    {
-      "line": 35,
-      "column": 13,
-      "endLine": 35,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 57,
-      "column": 13,
-      "endLine": 57,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts": [
-    {
-      "line": 201,
-      "column": 11,
-      "endLine": 201,
-      "endColumn": 79,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 206,
-      "column": 7,
-      "endLine": 206,
-      "endColumn": 48,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -138,65 +56,6 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/(main)/cinematography-studio/lib/session-storage.ts": [
-    {
-      "line": 179,
-      "column": 11,
-      "endLine": 179,
-      "endColumn": 35,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/development/hooks/useCreativeDevelopment.ts": [
-    {
-      "line": 370,
-      "column": 15,
-      "endLine": 371,
-      "endColumn": 40,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 394,
-      "column": 15,
-      "endLine": 394,
-      "endColumn": 56,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/directors-studio/characters/page.tsx": [
-    {
-      "line": 126,
-      "column": 13,
-      "endLine": 126,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/directors-studio/scenes/page.tsx": [
-    {
-      "line": 154,
-      "column": 13,
-      "endLine": 154,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/directors-studio/shots/page.tsx": [
-    {
-      "line": 132,
-      "column": 13,
-      "endLine": 132,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 148,
-      "column": 13,
-      "endLine": 148,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/app/(main)/editor/src/editor.ts": [
     {
       "line": 194,
@@ -204,13 +63,6 @@
       "endLine": 197,
       "endColumn": 6,
       "message": "Unsafe assignment of an error typed value."
-    },
-    {
-      "line": 224,
-      "column": 5,
-      "endLine": 270,
-      "endColumn": 6,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `Extensions`."
     }
   ],
   "apps/web/src/app/(main)/editor/src/extensions/context-memory-manager.ts": [
@@ -231,123 +83,12 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/(main)/editor/src/extensions/reverse-classification-pass.ts": [
-    {
-      "line": 181,
-      "column": 9,
-      "endLine": 181,
-      "endColumn": 71,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `(ElementType | null)[]`."
-    },
-    {
-      "line": 182,
-      "column": 9,
-      "endLine": 182,
-      "endColumn": 60,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `number[]`."
-    }
-  ],
   "apps/web/src/app/(main)/editor/src/utils/exporters/export-pdfa.ts": [
     {
       "line": 61,
       "column": 11,
       "endLine": 61,
       "endColumn": 62,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/styleIST/components/FittingRoom.tsx": [
-    {
-      "line": 48,
-      "column": 10,
-      "endLine": 48,
-      "endColumn": 22,
-      "message": "Unsafe array destructuring of a tuple element with an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/styleIST/components/ui/sparkles.tsx": [
-    {
-      "line": 165,
-      "column": 17,
-      "endLine": 165,
-      "endColumn": 32,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/styleIST/lib/utils.ts": [
-    {
-      "line": 27,
-      "column": 13,
-      "endLine": 27,
-      "endColumn": 47,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 28,
-      "column": 13,
-      "endLine": 28,
-      "endColumn": 54,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 30,
-      "column": 15,
-      "endLine": 30,
-      "endColumn": 71,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/styleIST/services/geminiService.ts": [
-    {
-      "line": 121,
-      "column": 11,
-      "endLine": 121,
-      "endColumn": 40,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/styleIST/services/styleistApi.ts": [
-    {
-      "line": 27,
-      "column": 9,
-      "endLine": 27,
-      "endColumn": 37,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/(main)/ui/pages/AnalysisPage.tsx": [
-    {
-      "line": 396,
-      "column": 32,
-      "endLine": 396,
-      "endColumn": 73,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/__regression__/04-analysis-paths.test.ts": [
-    {
-      "line": 85,
-      "column": 13,
-      "endLine": 85,
-      "endColumn": 50,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/__regression__/06-brainstorm-export.test.ts": [
-    {
-      "line": 211,
-      "column": 13,
-      "endLine": 211,
-      "endColumn": 38,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/app-state/[app]/__tests__/route.test.ts": [
-    {
-      "line": 108,
-      "column": 11,
-      "endLine": 108,
-      "endColumn": 39,
       "message": "Unsafe assignment of an `any` value."
     }
   ],
@@ -374,272 +115,12 @@
       "message": "Unsafe assignment of an `any` value."
     }
   ],
-  "apps/web/src/app/api/projects/[id]/__tests__/route.test.ts": [
-    {
-      "line": 61,
-      "column": 11,
-      "endLine": 61,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/projects/[id]/characters/route.ts": [
-    {
-      "line": 27,
-      "column": 11,
-      "endLine": 27,
-      "endColumn": 38,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/projects/[id]/scenes/route.ts": [
-    {
-      "line": 27,
-      "column": 11,
-      "endLine": 27,
-      "endColumn": 38,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/projects/__tests__/route.test.ts": [
-    {
-      "line": 53,
-      "column": 11,
-      "endLine": 53,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 63,
-      "column": 11,
-      "endLine": 63,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 100,
-      "column": 11,
-      "endLine": 100,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/review-screenplay/route.ts": [
-    {
-      "line": 8,
-      "column": 11,
-      "endLine": 8,
-      "endColumn": 42,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/scenes/[id]/shots/route.ts": [
-    {
-      "line": 27,
-      "column": 11,
-      "endLine": 27,
-      "endColumn": 38,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
   "apps/web/src/app/api/workflow/execute-custom/__tests__/route.test.ts": [
     {
       "line": 122,
       "column": 9,
       "endLine": 122,
       "endColumn": 33,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/workflow/execute-custom/route.test.ts": [
-    {
-      "line": 18,
-      "column": 7,
-      "endLine": 18,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/app/api/workflow/presets/route.test.ts": [
-    {
-      "line": 18,
-      "column": 7,
-      "endLine": 18,
-      "endColumn": 34,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/auth/ZKSignupForm.tsx": [
-    {
-      "line": 96,
-      "column": 13,
-      "endLine": 96,
-      "endColumn": 41,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/shared/stations-pipeline.tsx": [
-    {
-      "line": 372,
-      "column": 21,
-      "endLine": 372,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/stations-pipeline.tsx": [
-    {
-      "line": 201,
-      "column": 9,
-      "endLine": 201,
-      "endColumn": 17,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `string[]`."
-    },
-    {
-      "line": 465,
-      "column": 21,
-      "endLine": 465,
-      "endColumn": 36,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/ui/lens-simulator.tsx": [
-    {
-      "line": 280,
-      "column": 25,
-      "endLine": 280,
-      "endColumn": 36,
-      "message": "Unsafe spread of an `any` value in an array."
-    }
-  ],
-  "apps/web/src/components/ui/theme-customizer-enhanced.tsx": [
-    {
-      "line": 219,
-      "column": 17,
-      "endLine": 219,
-      "endColumn": 46,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/components/ui/theme-customizer.tsx": [
-    {
-      "line": 77,
-      "column": 13,
-      "endLine": 77,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/hooks/useMetrics.ts": [
-    {
-      "line": 42,
-      "column": 9,
-      "endLine": 42,
-      "endColumn": 37,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/ai/interfaces/response-types.ts": [
-    {
-      "line": 296,
-      "column": 29,
-      "endLine": 296,
-      "endColumn": 46,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/ai/stations/gemini-service.ts": [
-    {
-      "line": 553,
-      "column": 15,
-      "endLine": 553,
-      "endColumn": 54,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 554,
-      "column": 9,
-      "endLine": 554,
-      "endColumn": 29,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/cache-middleware.ts": [
-    {
-      "line": 75,
-      "column": 15,
-      "endLine": 75,
-      "endColumn": 43,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/characterDeepAnalyzer/CharacterDeepAnalyzerAgent.ts": [
-    {
-      "line": 33,
-      "column": 11,
-      "endLine": 34,
-      "endColumn": 64,
-      "message": "Unsafe assignment of an `any` value."
-    },
-    {
-      "line": 35,
-      "column": 11,
-      "endLine": 35,
-      "endColumn": 67,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/characterNetwork/prompt-builder.ts": [
-    {
-      "line": 22,
-      "column": 11,
-      "endLine": 23,
-      "endColumn": 74,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/agents/index.ts": [
-    {
-      "line": 134,
-      "column": 9,
-      "endLine": 134,
-      "endColumn": 63,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/lib/drama-analyst/services/hallucinationService.ts": [
-    {
-      "line": 161,
-      "column": 9,
-      "endLine": 161,
-      "endColumn": 69,
-      "message": "Unsafe assignment of type `any[]` to a variable of type `string[]`."
-    }
-  ],
-  "apps/web/src/lib/server/__tests__/backend-proxy.test.ts": [
-    {
-      "line": 40,
-      "column": 11,
-      "endLine": 40,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/src/mcp/ocr-arabic-pdf-to-txt-pipeline-server/mistral-ocr-client.ts": [
-    {
-      "line": 374,
-      "column": 11,
-      "endLine": 374,
-      "endColumn": 39,
-      "message": "Unsafe assignment of an `any` value."
-    }
-  ],
-  "apps/web/tests/e2e/directors-editor-flow.integration.spec.ts": [
-    {
-      "line": 54,
-      "column": 11,
-      "endLine": 57,
-      "endColumn": 7,
       "message": "Unsafe assignment of an `any` value."
     }
   ]

@@ -85,10 +85,9 @@ const VALID_TYPES = new Set([
  * فحص صلاحية المخطط — كل كتلة يجب أن تحتوي type صالح و text غير فارغ.
  */
 const validateSchema = (blocks: readonly StructuredBlock[]): boolean => {
-  if (!Array.isArray(blocks) || blocks.length === 0) return false;
+  if (blocks.length === 0) return false;
   return blocks.every(
-    (block) =>
-      block &&
+    (block: StructuredBlock) =>
       typeof block.type === "string" &&
       VALID_TYPES.has(block.type) &&
       typeof block.text === "string" &&

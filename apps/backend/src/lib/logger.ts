@@ -129,6 +129,12 @@ type CompatibleLogMethod = (
   arg2?: unknown,
   ...rest: unknown[]
 ) => void;
+type FlexibleLogFn = (
+  this: PinoLogger,
+  arg1: unknown,
+  arg2?: unknown,
+  ...rest: unknown[]
+) => void;
 type CompatibleLogger = Omit<PinoLogger, LevelMethod | 'child'> &
   Record<LevelMethod, CompatibleLogMethod> & {
     child(...childArgs: Parameters<PinoLogger['child']>): CompatibleLogger;
@@ -166,7 +172,7 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
     get(target, prop, receiver): unknown {
       if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
-        const original = target[method] as unknown as FlexibleLogFn;
+        const original: FlexibleLogFn = target[method];
         return function adaptedLogMethod(
           this: unknown,
           arg1: unknown,

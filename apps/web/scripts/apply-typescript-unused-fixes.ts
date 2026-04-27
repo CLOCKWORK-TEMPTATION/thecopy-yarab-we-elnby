@@ -210,7 +210,9 @@ function main(): void {
   console.log(`Finished. Files changed: ${totalChangedFiles}.`);
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error("Failed to apply TypeScript unused fixes.", error);
   process.exit(1);
-});
+}

@@ -162,4 +162,35 @@ describe.sequential("collectKnowledgeInventory", () => {
     expect(inventory.ungovernedFiles).not.toContain("apps/backend/package.json");
     expect(inventory.ungovernedFiles).not.toContain("apps/backend/scripts/lint-chunked.mjs");
   });
+
+  test("does not treat chunked vitest runner scripts as retrieval systems", async () => {
+    currentTempRepo = await createBaseKnowledgeRepo(true);
+    await writeRepoFile(
+      currentTempRepo,
+      "apps/web/package.json",
+      JSON.stringify(
+        {
+          name: "@the-copy/web",
+          scripts: {
+            test: "node scripts/run-vitest-chunks.mjs",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    await writeRepoFile(
+      currentTempRepo,
+      "apps/web/scripts/run-vitest-chunks.mjs",
+      "console.log('vitest chunks');\n",
+    );
+
+    process.chdir(currentTempRepo);
+    const inventory = await collectKnowledgeInventory();
+
+    expect(inventory.ungovernedFiles).not.toContain("apps/web/package.json");
+    expect(inventory.ungovernedFiles).not.toContain(
+      "apps/web/scripts/run-vitest-chunks.mjs",
+    );
+  });
 });

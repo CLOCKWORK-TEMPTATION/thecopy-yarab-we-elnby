@@ -178,8 +178,10 @@ export const reverseClassificationPass = (
     return { reverseTypes: [], reverseConfidences: [] };
   }
 
-  const reverseTypes: (ElementType | null)[] = new Array(n).fill(null);
-  const reverseConfidences: number[] = new Array(n).fill(0);
+  const reverseTypes: (ElementType | null)[] = new Array<ElementType | null>(
+    n
+  ).fill(null);
+  const reverseConfidences: number[] = new Array<number>(n).fill(0);
 
   // بناء scene ranges من DCG — مع clamp على حجم classified
   // (DCG بيُبنى من raw lines اللي ممكن تكون أكبر من classified بسبب الدمج/الحذف)

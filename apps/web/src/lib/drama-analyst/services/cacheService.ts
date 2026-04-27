@@ -217,7 +217,7 @@ class CacheService {
     });
   }
 
-  private async syncPendingActions(): Promise<void> {
+  private syncPendingActions(): void {
     try {
       // Get pending actions from IndexedDB or localStorage
       const pendingActions = this.getPendingActions();

@@ -778,31 +778,27 @@
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
-    "ungovernedFiles": [
-      "apps/web/scripts/run-vitest-chunks.mjs"
-    ],
-    "discoveryWarnings": [
-      "مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/scripts/run-vitest-chunks.mjs (path signal: chunk)"
-    ],
-    "governanceStatus": "ungoverned"
+    "ungovernedFiles": [],
+    "discoveryWarnings": [],
+    "governanceStatus": "governed"
   },
   "codeMemory": {
     "exists": true,
-    "stale": true,
-    "generatedAt": "2026-04-27T02:37:54.779Z",
+    "stale": false,
+    "generatedAt": "2026-04-27T04:36:10.198Z",
     "totalFiles": 1996,
-    "totalChunks": 5200,
-    "embeddedChunks": 5200,
+    "totalChunks": 5202,
+    "embeddedChunks": 5202,
     "coverageRate": 1,
-    "missingChunks": 4,
-    "deletedChunks": 4,
-    "changedFiles": 2,
+    "missingChunks": 0,
+    "deletedChunks": 0,
+    "changedFiles": 0,
     "storage": {
       "local": "lancedb",
       "qdrant": "not-configured"
     },
     "qdrantCollection": null,
-    "message": "Code memory is stale."
+    "message": "Code memory is current."
   },
   "openIssues": [
     "لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص"

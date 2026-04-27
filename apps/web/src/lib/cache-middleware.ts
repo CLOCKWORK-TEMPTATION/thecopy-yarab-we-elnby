@@ -79,7 +79,7 @@ export function withCache<T = unknown>(
             "X-Cache": "MISS",
             "Cache-Control": `public, s-maxage=${ttl}, stale-while-revalidate=${ttl * 2}`,
           },
-        }) as NextResponse<T>;
+        });
       }
 
       return response;

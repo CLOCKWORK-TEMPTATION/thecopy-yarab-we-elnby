@@ -1,0 +1,12 @@
+LIVE_TOTAL=15 FILES=10
+  3 apps/web/src/app/api/cineai/analyze/route.ts
+  2 apps/web/src/ai/gemini-service.ts
+  2 apps/web/src/app/(main)/BUDGET/components/BudgetApp.tsx
+  2 apps/web/src/app/(main)/cinematography-studio/components/tools/DOFCalculatorTool.test.tsx
+  1 apps/web/src/app/(main)/art-director/__tests__/integration.test.tsx
+  1 apps/web/src/app/(main)/editor/src/editor.ts
+  1 apps/web/src/app/(main)/editor/src/extensions/context-memory-manager.ts
+  1 apps/web/src/app/(main)/editor/src/extensions/paste-classifier.ts
+  1 apps/web/src/app/(main)/editor/src/utils/exporters/export-pdfa.ts
+  1 apps/web/src/app/api/workflow/execute-custom/__tests__/route.test.ts
+DETAIL_DUMP=scripts/quality/_tmp-rule-detail.json
