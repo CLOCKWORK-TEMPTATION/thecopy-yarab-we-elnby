@@ -35,6 +35,8 @@ export function chunkText(text: string, options?: ChunkOptions): TextChunk[] {
   return chunks;
 }
 
-export default {
+const TextChunkingExport = {
   chunkText,
 };
+
+export default TextChunkingExport;

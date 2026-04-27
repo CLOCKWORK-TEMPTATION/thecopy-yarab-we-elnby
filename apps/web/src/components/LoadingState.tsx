@@ -181,10 +181,12 @@ export function ProgressBar({
   );
 }
 
-export default {
+const LoadingStateExport = {
   LoadingSpinner,
   LoadingOverlay,
   Skeleton,
   LoadingCard,
   ProgressBar,
 };
+
+export default LoadingStateExport;

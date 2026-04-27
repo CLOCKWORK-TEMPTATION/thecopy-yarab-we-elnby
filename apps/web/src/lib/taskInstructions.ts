@@ -295,9 +295,11 @@ export function getAllTaskInstructions(): TaskInstruction[] {
 }
 
 // Default export
-export default {
+const TaskInstructionsExport = {
   taskInstructions,
   getTaskInstructions,
   getTaskInstruction,
   getAllTaskInstructions,
 };
+
+export default TaskInstructionsExport;

@@ -1,5 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { platformGenAIService } from '@/services/platform-genai.service';
+
+// عقد المدخلات والمخرجات الصارم لخدمة CineAI.
+// تم استبدال `Record<string, any>` بـ schemas محكمة عبر zod مع type-guards.
+import { z } from 'zod';
 
 interface ValidateShotInput {
   imageBase64?: string;
@@ -14,7 +17,50 @@ interface ColorGradingInput {
   temperature?: number;
 }
 
-function parseShotValidationPayload(text: string): Record<string, any> {
+// schema للمخرج المتوقع من فاحص اللقطة
+const technicalDetailsSchema = z
+  .object({
+    histogram: z.string().optional(),
+    waveform: z.string().optional(),
+    vectorscope: z.string().optional(),
+  })
+  .partial()
+  .passthrough();
+
+const shotValidationResultSchema = z
+  .object({
+    score: z.number(),
+    status: z.string(),
+    exposure: z.string().optional(),
+    composition: z.string().optional(),
+    focus: z.string().optional(),
+    colorBalance: z.string().optional(),
+    suggestions: z.array(z.string()).optional(),
+    technicalDetails: technicalDetailsSchema.optional(),
+    strengths: z.array(z.string()).optional(),
+    improvements: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+export type ShotValidationResult = z.infer<typeof shotValidationResultSchema>;
+
+const colorPaletteResultSchema = z
+  .object({
+    palette: z.array(z.string()),
+    primaryColor: z.string(),
+    secondaryColor: z.string().optional(),
+    accentColor: z.string().optional(),
+    suggestions: z.array(z.string()).optional(),
+    lutRecommendation: z.string().optional(),
+    cinematicReferences: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+export type ColorPaletteResult = z.infer<typeof colorPaletteResultSchema>;
+
+// محاولة استخراج JSON صالح من نص قد يحتوي على code fences أو نص محيط.
+// النتيجة `unknown` ثم تتحقق منها الدالة المنادية عبر zod schema.
+function extractJsonCandidate(text: string): unknown {
   const normalized = text.trim();
   const candidates = new Set<string>();
 
@@ -36,18 +82,29 @@ function parseShotValidationPayload(text: string): Record<string, any> {
 
   for (const candidate of candidates) {
     try {
-      return JSON.parse(candidate);
+      return JSON.parse(candidate) as unknown;
     } catch {
-      // Try the next normalized candidate.
+      // جرب المرشح التالي
     }
   }
 
   throw new Error("The AI provider returned an invalid shot validation payload.");
 }
 
+function parseShotValidationPayload(text: string): ShotValidationResult {
+  const candidate = extractJsonCandidate(text);
+  const result = shotValidationResultSchema.safeParse(candidate);
+  if (!result.success) {
+    throw new Error(
+      `Shot validation payload failed schema validation: ${result.error.message}`
+    );
+  }
+  return result.data;
+}
+
 export class CineAIService {
-   
-  async validateShot(input: ValidateShotInput): Promise<Record<string, any>> {
+  // فحص اللقطة سواءً مع صورة مرجعية أو بدونها
+  async validateShot(input: ValidateShotInput): Promise<ShotValidationResult> {
     const withImage = Boolean(input.imageBase64 && input.mimeType);
 
     if (withImage) {
@@ -100,13 +157,21 @@ export class CineAIService {
 Input:
 ${JSON.stringify(input ?? {}, null, 2)}`;
 
-    return platformGenAIService.generateJson<Record<string, any>>(prompt, {
+    const raw = await platformGenAIService.generateJson<unknown>(prompt, {
       temperature: 0.3,
       maxOutputTokens: 4096,
     });
+    const validated = shotValidationResultSchema.safeParse(raw);
+    if (!validated.success) {
+      throw new Error(
+        `Shot validation prompt response failed schema validation: ${validated.error.message}`
+      );
+    }
+    return validated.data;
   }
 
-  async generateColorPalette(input: ColorGradingInput): Promise<Record<string, any>> {
+  // توليد لوحة ألوان سينمائية مبنية على نوع المشهد والمزاج
+  async generateColorPalette(input: ColorGradingInput): Promise<ColorPaletteResult> {
     if (!input.sceneType?.trim()) {
       throw new Error('Scene type is required.');
     }
@@ -127,10 +192,17 @@ Return ONLY valid JSON:
 Input:
 ${JSON.stringify(input, null, 2)}`;
 
-    return platformGenAIService.generateJson<Record<string, any>>(prompt, {
+    const raw = await platformGenAIService.generateJson<unknown>(prompt, {
       temperature: 0.35,
       maxOutputTokens: 4096,
     });
+    const validated = colorPaletteResultSchema.safeParse(raw);
+    if (!validated.success) {
+      throw new Error(
+        `Color palette response failed schema validation: ${validated.error.message}`
+      );
+    }
+    return validated.data;
   }
 }
 

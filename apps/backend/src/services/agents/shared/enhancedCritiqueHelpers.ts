@@ -37,6 +37,35 @@ export function determineLevel(
   return "poor";
 }
 
+// نوع داخلي يصف الشكل المتوقع من رد LLM لتقييم البُعد قبل التحقق منه
+interface RawDimensionPayload {
+  score?: number;
+  level?: DimensionScore["level"];
+  strengths?: string[];
+  weaknesses?: string[];
+  suggestions?: string[];
+}
+
+// type guard يتحقق أن قيمة `unknown` تطابق RawDimensionPayload
+function isRawDimensionPayload(value: unknown): value is RawDimensionPayload {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const v = value as Record<string, unknown>;
+  if (v.score !== undefined && typeof v.score !== "number") return false;
+  if (v.level !== undefined && typeof v.level !== "string") return false;
+  if (v.strengths !== undefined && !Array.isArray(v.strengths)) return false;
+  if (v.weaknesses !== undefined && !Array.isArray(v.weaknesses)) return false;
+  if (v.suggestions !== undefined && !Array.isArray(v.suggestions)) return false;
+  return true;
+}
+
+// يضمن أن المصفوفة تحتوي سلاسل فقط
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 /** تحليل استجابة تقييم البُعد من JSON */
 export function parseDimensionResponse(
   response: string,
@@ -45,15 +74,30 @@ export function parseDimensionResponse(
   try {
     const jsonMatch = /```json\s*([\s\S]*?)\s*```/.exec(response);
     if (jsonMatch?.[1]) {
-      const parsed = JSON.parse(jsonMatch[1]);
-      return {
-        dimension: dimension.name,
-        score: Math.max(0, Math.min(1, parsed.score || 0.5)),
-        level: parsed.level || "satisfactory",
-        strengths: parsed.strengths || [],
-        weaknesses: parsed.weaknesses || [],
-        suggestions: parsed.suggestions || []
-      };
+      const parsed: unknown = JSON.parse(jsonMatch[1]);
+      if (isRawDimensionPayload(parsed)) {
+        const rawScore = parsed.score ?? 0.5;
+        const validLevels: DimensionScore["level"][] = [
+          "excellent",
+          "good",
+          "satisfactory",
+          "needs_improvement",
+          "poor",
+        ];
+        const level: DimensionScore["level"] =
+          parsed.level && validLevels.includes(parsed.level)
+            ? parsed.level
+            : "satisfactory";
+        return {
+          dimension: dimension.name,
+          score: Math.max(0, Math.min(1, rawScore)),
+          level,
+          strengths: asStringArray(parsed.strengths),
+          weaknesses: asStringArray(parsed.weaknesses),
+          suggestions: asStringArray(parsed.suggestions),
+        };
+      }
+      logger.warn("[Enhanced Critique] JSON payload did not match expected shape, using fallback");
     }
   } catch {
     logger.warn("[Enhanced Critique] Failed to parse JSON response, using fallback");

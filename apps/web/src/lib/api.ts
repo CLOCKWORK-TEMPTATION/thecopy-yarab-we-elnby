@@ -380,7 +380,7 @@ export async function deleteShot(shotId: string): Promise<ApiResponse<void>> {
 }
 
 // Export all functions as a namespace for wildcard imports
-export default {
+const ApiExport = {
   runSevenStationsAnalysis,
   getAnalysisJobStatus,
   analyzeScript,
@@ -404,3 +404,5 @@ export default {
   updateShot,
   deleteShot,
 };
+
+export default ApiExport;

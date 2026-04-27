@@ -88,4 +88,6 @@ export function useScreenplayStore() {
 
 export const screenplayActions = {};
 
-export default { useScreenplayStore, screenplayActions };
+const ScreenplayStoreExport = { useScreenplayStore, screenplayActions };
+
+export default ScreenplayStoreExport;
