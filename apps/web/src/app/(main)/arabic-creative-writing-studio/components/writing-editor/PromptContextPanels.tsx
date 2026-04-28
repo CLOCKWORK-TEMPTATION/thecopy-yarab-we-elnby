@@ -2,7 +2,7 @@ import type { FeaturedWeeklyChallenge } from "@/app/(main)/arabic-creative-writi
 import type { CreativePrompt } from "@/app/(main)/arabic-creative-writing-studio/types";
 
 interface PromptContextPanelsProps {
-  activeChallenge?: FeaturedWeeklyChallenge | null;
+  activeChallenge?: FeaturedWeeklyChallenge | null | undefined;
   selectedPrompt: CreativePrompt | null;
 }
 

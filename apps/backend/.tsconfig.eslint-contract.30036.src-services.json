@@ -9,7 +9,11 @@
     "src/types/env.d.ts",
     "src/types/mcp-sdk-compat.d.ts",
     "src/types/module-alias.d.ts",
-    "src/ocr-arabic-pdf-to-txt-pipeline/mcp-server/index.ts"
+    "src/services/**/*.ts",
+    "src/services/**/*.tsx",
+    "src/services/**/*.js",
+    "src/services/**/*.mjs",
+    "src/services/**/*.cjs"
   ],
   "exclude": [
     "node_modules",

@@ -7,10 +7,10 @@ import type { ParsedScene } from "./types";
 
 type SceneInsert = typeof scenes.$inferInsert;
 type SceneSelect = typeof scenes.$inferSelect;
-type SceneUpdate = {
+interface SceneUpdate {
   id: string;
   values: Partial<SceneInsert>;
-};
+}
 
 const CHUNK_SIZE = 50;
 

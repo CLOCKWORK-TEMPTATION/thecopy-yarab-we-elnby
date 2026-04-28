@@ -1,18 +1,17 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-
 import {
   EMOTIONAL_TONE_LABELS,
   QUALITY_LABELS,
 } from "@/app/(main)/arabic-creative-writing-studio/lib/studio/writing-editor-utils";
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
-import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
 import type {
   CalculatedTextStats,
   OperationFeedEntry,
 } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
+import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
 
 interface EditorInsightsSidebarProps {
   analysis: TextAnalysis | null;

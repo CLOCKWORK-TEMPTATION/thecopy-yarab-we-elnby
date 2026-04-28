@@ -1,20 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
+import {
+  useOperationFeed,
+  useWritingAnalysis,
+  useWritingProjectState,
+  useWritingTimer,
+} from "@/app/(main)/arabic-creative-writing-studio/hooks/useWritingEditorSupport";
 import {
   buildAnalysisNarrative,
   calculateTextStats,
-  formatWritingTime,
   getAverageQuality,
 } from "@/app/(main)/arabic-creative-writing-studio/lib/studio/writing-editor-utils";
 
-import type { CreativeProject } from "@/app/(main)/arabic-creative-writing-studio/types";
-import type {
-  OperationFeedEntry,
-  WritingEditorProps,
-} from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
+import type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
 import type { ExportFormat } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+
+type ActiveWritingEditorProps = Omit<WritingEditorProps, "project"> & {
+  project: NonNullable<WritingEditorProps["project"]>;
+};
 
 export function useWritingEditorController({
   project,
@@ -25,236 +30,90 @@ export function useWritingEditorController({
   analysisAvailable,
   analysisBlockedReason,
   settings,
-}: WritingEditorProps) {
-  const [content, setContent] = useState("");
-  const [title, setTitle] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysis, setAnalysis] =
-    useState<Awaited<ReturnType<typeof onAnalyze>>>(null);
-  const [analysisSnapshot, setAnalysisSnapshot] = useState("");
-  const [writingTime, setWritingTime] = useState(0);
-  const [isWriting, setIsWriting] = useState(false);
-  const [operationFeed, setOperationFeed] = useState<OperationFeedEntry[]>([]);
-
+}: ActiveWritingEditorProps) {
   const editorRef = useRef<HTMLTextAreaElement>(null);
-  const startTimeRef = useRef(Date.now());
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (project) {
-      setContent(project.content);
-      setTitle(project.title);
-    } else {
-      setContent("");
-      setTitle("مشروع جديد");
-    }
-
-    setAnalysis(null);
-    setAnalysisSnapshot("");
-  }, [project]);
-
-  const textStats = useMemo(() => calculateTextStats(content), [content]);
-  const isAnalysisStale = Boolean(analysis && analysisSnapshot !== content);
-  const writingTimeLabel = useMemo(
-    () => formatWritingTime(writingTime),
-    [writingTime]
-  );
-  const analysisNarrative = useMemo(
-    () => (analysis ? buildAnalysisNarrative(analysis) : null),
-    [analysis]
-  );
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
-
-    if (isWriting) {
-      interval = setInterval(() => {
-        setWritingTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isWriting]);
-
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-    };
-  }, []);
-
-  const pushOperation = useCallback(
-    (tone: OperationFeedEntry["tone"], label: string, message: string) => {
-      const nextEntry: OperationFeedEntry = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        tone,
-        label,
-        message,
-        timestamp: Date.now(),
-      };
-
-      setOperationFeed((previous) => [nextEntry, ...previous].slice(0, 4));
-    },
-    []
-  );
-
-  const buildProjectSnapshot = useCallback(
-    (nextTitle: string, nextContent: string): CreativeProject | null => {
-      if (!project) {
-        return null;
-      }
-
-      const nextStats = calculateTextStats(nextContent);
-
-      return {
-        ...project,
-        title: nextTitle,
-        content: nextContent,
-        wordCount: nextStats.wordCount,
-        characterCount: nextStats.characterCount,
-        paragraphCount: nextStats.paragraphCount,
-        updatedAt: new Date(),
-      };
-    },
-    [project]
-  );
-
-  const queueAutoSave = useCallback(
-    (nextProject: CreativeProject) => {
-      if (!settings.autoSave) {
-        return;
-      }
-
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-
-      autoSaveTimerRef.current = setTimeout(() => {
-        onSave(nextProject);
-        pushOperation("success", "حفظ تلقائي", "تم حفظ آخر تعديل تلقائياً.");
-        autoSaveTimerRef.current = null;
-      }, settings.autoSaveInterval);
-    },
-    [onSave, pushOperation, settings.autoSave, settings.autoSaveInterval]
-  );
-
-  const handleTitleChange = useCallback(
-    (nextTitle: string) => {
-      setTitle(nextTitle);
-      const updatedProject = buildProjectSnapshot(nextTitle, content);
-      if (!updatedProject) return;
-
-      onProjectChange(updatedProject);
-      queueAutoSave(updatedProject);
-    },
-    [buildProjectSnapshot, content, onProjectChange, queueAutoSave]
-  );
-
-  const handleContentChange = useCallback(
-    (nextContent: string) => {
-      setContent(nextContent);
-      setIsWriting(true);
-
-      const updatedProject = buildProjectSnapshot(title, nextContent);
-      if (!updatedProject) return;
-
-      onProjectChange(updatedProject);
-      queueAutoSave(updatedProject);
-    },
-    [buildProjectSnapshot, onProjectChange, queueAutoSave, title]
-  );
-
-  const handleAnalyze = useCallback(async () => {
-    if (!content.trim()) {
-      pushOperation(
-        "blocked",
-        "تحليل النص",
-        "أضف محتوى أولاً قبل تشغيل التحليل."
-      );
-      return;
-    }
-
-    if (!analysisAvailable) {
-      pushOperation(
-        "blocked",
-        "تحليل النص",
-        analysisBlockedReason ?? "تحليل النص غير متاح حالياً."
-      );
-      return;
-    }
-
-    setIsAnalyzing(true);
-    pushOperation("info", "تحليل النص", "جاري إرسال النسخة الحالية للتحليل.");
-
-    try {
-      const result = await onAnalyze(content);
-
-      if (!result) {
-        setAnalysis(null);
-        pushOperation(
-          "error",
-          "تحليل النص",
-          "فشل التحليل أو لم يرجع نتيجة قابلة للعرض."
-        );
-        return;
-      }
-
-      setAnalysis(result);
-      setAnalysisSnapshot(content);
-      pushOperation(
-        "success",
-        "تحليل النص",
-        `اكتمل التحليل. متوسط الجودة الحالي ${getAverageQuality(result)}/100.`
-      );
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [
+  const { operationFeed, pushOperation } = useOperationFeed();
+  const { markWriting, writingTimeLabel } = useWritingTimer();
+  const { content, handleContentChange, handleTitleChange, title } =
+    useWritingProjectState({
+      onProjectChange,
+      onSave,
+      project,
+      pushOperation,
+      settings,
+    });
+  const {
+    analysis,
+    analysisSnapshot,
+    handleAnalyze,
+    isAnalyzing,
+  } = useWritingAnalysis({
     analysisAvailable,
     analysisBlockedReason,
     content,
     onAnalyze,
     pushOperation,
-  ]);
+  });
 
-  const handleSave = useCallback(() => {
-    const updatedProject = buildProjectSnapshot(title, content);
+  const textStats = useMemo(() => calculateTextStats(content), [content]);
+  const isAnalysisStale = Boolean(analysis && analysisSnapshot !== content);
+  const analysisNarrative = useMemo(
+    () => (analysis ? buildAnalysisNarrative(analysis) : null),
+    [analysis],
+  );
 
-    if (!updatedProject) {
-      pushOperation("blocked", "حفظ المشروع", "لا يوجد مشروع مفتوح للحفظ.");
+  const handleTrackedContentChange = useCallback(
+    (nextContent: string) => {
+      markWriting();
+      handleContentChange(nextContent);
+    },
+    [handleContentChange, markWriting],
+  );
+
+  const handleTrackedAnalyze = useCallback(async () => {
+    const result = await handleAnalyze();
+    if (!result) {
       return;
     }
 
+    pushOperation(
+      "success",
+      "تحليل النص",
+      `اكتمل التحليل. متوسط الجودة الحالي ${getAverageQuality(result)}/100.`,
+    );
+  }, [handleAnalyze, pushOperation]);
+
+  const handleSave = useCallback(() => {
+    const updatedProject = {
+      ...project,
+      title,
+      content,
+      wordCount: textStats.wordCount,
+      characterCount: textStats.characterCount,
+      paragraphCount: textStats.paragraphCount,
+      updatedAt: new Date(),
+    };
+
     onSave(updatedProject);
     pushOperation("success", "حفظ المشروع", "تم حفظ المشروع يدوياً.");
-  }, [buildProjectSnapshot, content, onSave, pushOperation, title]);
+  }, [content, onSave, project, pushOperation, textStats, title]);
 
   const handleExport = useCallback(
     async (format: ExportFormat) => {
-      if (!project) {
-        pushOperation("blocked", "تصدير", "لا يوجد مشروع مفتوح للتصدير.");
-        return;
-      }
-
       pushOperation(
         "info",
         "تصدير",
-        `جاري تجهيز ملف ${format.toUpperCase()} للتنزيل.`
+        `جاري تجهيز ملف ${format.toUpperCase()} للتنزيل.`,
       );
 
       const result = await Promise.resolve(onExport(project, format));
       pushOperation(
         result.success ? "success" : "error",
         "تصدير",
-        result.message
+        result.message,
       );
     },
-    [onExport, project, pushOperation]
+    [onExport, project, pushOperation],
   );
 
   return {
@@ -262,8 +121,8 @@ export function useWritingEditorController({
     analysisNarrative,
     content,
     editorRef,
-    handleAnalyze,
-    handleContentChange,
+    handleAnalyze: handleTrackedAnalyze,
+    handleContentChange: handleTrackedContentChange,
     handleExport,
     handleSave,
     handleTitleChange,

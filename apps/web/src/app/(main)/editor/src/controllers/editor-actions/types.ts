@@ -1,6 +1,6 @@
-import type { MenuToastPayload } from "../insert-menu-controller";
 import type { EditorArea } from "../../components/editor";
 import type { RunDocumentThroughPasteWorkflowOptions } from "../../types";
+import type { MenuToastPayload } from "../insert-menu-controller";
 
 export interface EditorActionsDeps {
   getArea: () => EditorArea | null;

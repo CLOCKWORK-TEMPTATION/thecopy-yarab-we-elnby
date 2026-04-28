@@ -1,14 +1,14 @@
 import type {
+  ExportFormat,
+  ExportResult,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+import type { FeaturedWeeklyChallenge } from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
+import type {
   AppSettings,
   CreativeProject,
   CreativePrompt,
   TextAnalysis,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
-import type { FeaturedWeeklyChallenge } from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
-import type {
-  ExportFormat,
-  ExportResult,
-} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
 
 export interface WritingEditorProps {
   project: CreativeProject | null;
@@ -22,8 +22,8 @@ export interface WritingEditorProps {
   ) => ExportResult | Promise<ExportResult>;
   onOpenSettings: () => void;
   analysisAvailable: boolean;
-  analysisBlockedReason?: string;
-  activeChallenge?: FeaturedWeeklyChallenge | null;
+  analysisBlockedReason?: string | undefined;
+  activeChallenge?: FeaturedWeeklyChallenge | null | undefined;
   settings: AppSettings;
   loading: boolean;
 }

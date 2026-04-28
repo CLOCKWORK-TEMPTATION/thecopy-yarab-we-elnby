@@ -1,34 +1,23 @@
 "use client";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-
 import { EditorInsightsSidebar } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/EditorInsightsSidebar";
 import { EditorWorkspace } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/EditorWorkspace";
 import { PromptContextPanels } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/PromptContextPanels";
 import { WorkspaceHeader } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/WorkspaceHeader";
 import { useWritingEditorController } from "@/app/(main)/arabic-creative-writing-studio/hooks/useWritingEditorController";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 import type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
 
 export type { WritingEditorProps } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
 
-export function WritingEditor(props: WritingEditorProps) {
-  const controller = useWritingEditorController(props);
-
-  if (!props.project) {
-    return (
-      <div className="py-12 text-center">
-        <div className="mb-4 text-6xl">✍️</div>
-        <h3 className="mb-2 text-xl font-semibold text-white/55">
-          لا يوجد مشروع مفتوح
-        </h3>
-        <p className="text-white/45">
-          اختر محفزاً من المكتبة أو أنشئ مشروعاً جديداً
-        </p>
-      </div>
-    );
+function ActiveWritingEditor(
+  props: WritingEditorProps & {
+    project: NonNullable<WritingEditorProps["project"]>;
   }
+) {
+  const controller = useWritingEditorController(props);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -83,6 +72,40 @@ export function WritingEditor(props: WritingEditorProps) {
         />
       </div>
     </div>
+  );
+}
+
+export function WritingEditor(props: WritingEditorProps) {
+  if (!props.project) {
+    return (
+      <div className="py-12 text-center">
+        <div className="mb-4 text-6xl">✍️</div>
+        <h3 className="mb-2 text-xl font-semibold text-white/55">
+          لا يوجد مشروع مفتوح
+        </h3>
+        <p className="text-white/45">
+          اختر محفزاً من المكتبة أو أنشئ مشروعاً جديداً
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ActiveWritingEditor
+      key={props.project.id}
+      project={props.project}
+      selectedPrompt={props.selectedPrompt}
+      onProjectChange={props.onProjectChange}
+      onSave={props.onSave}
+      onAnalyze={props.onAnalyze}
+      onExport={props.onExport}
+      onOpenSettings={props.onOpenSettings}
+      analysisAvailable={props.analysisAvailable}
+      analysisBlockedReason={props.analysisBlockedReason}
+      activeChallenge={props.activeChallenge}
+      settings={props.settings}
+      loading={props.loading}
+    />
   );
 }
 

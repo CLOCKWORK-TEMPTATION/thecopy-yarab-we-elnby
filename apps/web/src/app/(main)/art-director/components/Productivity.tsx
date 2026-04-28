@@ -10,13 +10,13 @@ import {
 } from "lucide-react";
 
 import {
-  DelayForm,
-  TimeForm,
-} from "@/app/(main)/art-director/components/productivity/ProductivityForms";
-import {
   MetricCard,
   RecommendationsList,
 } from "@/app/(main)/art-director/components/productivity/ProductivityCards";
+import {
+  DelayForm,
+  TimeForm,
+} from "@/app/(main)/art-director/components/productivity/ProductivityForms";
 import { ProductivityVisuals } from "@/app/(main)/art-director/components/productivity/ProductivityVisuals";
 import { useProductivityData } from "@/app/(main)/art-director/hooks/useProductivityData";
 

@@ -1,21 +1,13 @@
 "use client";
 
-/**
- * الصفحة: arabic-prompt-engineering-studio
- * الهوية: استوديو هندسة توجيهات بطابع مختبري/منهجي داخل قشرة موحدة
- * المتغيرات الخاصة المضافة: --page-accent, --page-accent-2, --page-border
- * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
- */
-
-import * as React from "react";
 import {
+  ArrowUpDown,
+  BookOpen,
+  FlaskConical,
+  History,
+  PenTool,
   Sparkles,
   Wand2,
-  BookOpen,
-  ArrowUpDown,
-  History,
-  FlaskConical,
-  PenTool,
 } from "lucide-react";
 
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
@@ -25,98 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import { usePromptStudio } from "./hooks/usePromptStudio";
-import { PromptEditor } from "./components/PromptEditor";
 import { PromptAnalysisResult } from "./components/PromptAnalysisResult";
+import { PromptEditor } from "./components/PromptEditor";
+import { usePromptStudio } from "./hooks/usePromptStudio";
 
 export default function ArabicPromptEngineeringStudioPage() {
-  const [prompt, setPrompt] = React.useState("");
-  const [analysis, setAnalysis] = React.useState<PromptAnalysis | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("editor");
-  const [selectedTemplate, setSelectedTemplate] =
-    React.useState<PromptTemplate | null>(null);
-  const [templateVariables, setTemplateVariables] = React.useState<
-    Record<string, string>
-  >({});
-  const [promptHistory, setPromptHistory] = React.useState<
-    PromptHistoryEntry[]
-  >([]);
-  const [comparePrompt1, setComparePrompt1] = React.useState("");
-  const [comparePrompt2, setComparePrompt2] = React.useState("");
-  const [comparisonResult, setComparisonResult] = React.useState<ReturnType<
-    typeof comparePrompts
-  > | null>(null);
-  const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const [isRemoteStateReady, setIsRemoteStateReady] = React.useState(false);
-
-  React.useEffect(() => {
-    let cancelled = false;
-
-    void loadRemoteAppState<PromptEngineeringSnapshot>(
-      "arabic-prompt-engineering-studio"
-    )
-      .then((snapshot) => {
-        if (cancelled || !snapshot) {
-          return;
-        }
-
-        setPrompt(snapshot.prompt ?? "");
-        setAnalysis(snapshot.analysis ?? null);
-        setActiveTab(snapshot.activeTab ?? "editor");
-        setSelectedTemplate(snapshot.selectedTemplate ?? null);
-        setTemplateVariables(snapshot.templateVariables ?? {});
-        setPromptHistory(restorePromptHistory(snapshot.promptHistory));
-        setComparePrompt1(snapshot.comparePrompt1 ?? "");
-        setComparePrompt2(snapshot.comparePrompt2 ?? "");
-        setComparisonResult(snapshot.comparisonResult ?? null);
-        setSuggestions(snapshot.suggestions ?? []);
-      })
-      .catch(() => { /* empty */ })
-      .finally(() => {
-        if (!cancelled) {
-          setIsRemoteStateReady(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (!isRemoteStateReady) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      void persistRemoteAppState<PromptEngineeringSnapshot>(
-        "arabic-prompt-engineering-studio",
-        {
-          prompt,
-          analysis,
-          activeTab,
-          selectedTemplate,
-          templateVariables,
-          promptHistory: persistPromptHistory(promptHistory),
-          comparePrompt1,
-          comparePrompt2,
-          comparisonResult,
-          suggestions,
-        }
-      ).catch(() => { /* empty */ });
-    }, 400);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [
-    activeTab,
-    analysis,
-    comparePrompt1,
-    comparePrompt2,
-    comparisonResult,
-    isRemoteStateReady,
+  const {
     prompt,
     setPrompt,
     analysis,

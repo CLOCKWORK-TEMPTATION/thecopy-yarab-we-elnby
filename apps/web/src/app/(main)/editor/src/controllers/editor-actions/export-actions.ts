@@ -3,8 +3,8 @@ import { definedProps } from "@/lib/defined-props";
 import { ensureDocxFilename } from "../../constants/format-mappings";
 import { logger } from "../../utils/logger";
 
-import type { ExportFormat } from "../../constants/menu-definitions";
 import type { EditorActionsFeedbackDeps } from "./types";
+import type { ExportFormat } from "../../constants/menu-definitions";
 
 const LABEL_BY_FORMAT: Record<ExportFormat, string> = {
   docx: "DOCX",

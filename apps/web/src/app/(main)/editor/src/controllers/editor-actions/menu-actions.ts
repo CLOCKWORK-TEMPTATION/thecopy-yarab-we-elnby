@@ -11,25 +11,51 @@ import {
 } from "../../types/app";
 import { logger } from "../../utils/logger";
 
-import { openFile } from "./file-actions";
 import { runExport } from "./export-actions";
+import { openFile } from "./file-actions";
 
-import type { FileImportMode } from "../../components/editor";
-import type { MenuActionId } from "../../constants/menu-definitions";
-import type { EditorEngineAdapter } from "../../types";
 import type { EditorActionsDeps } from "./types";
+import type { EditorArea, FileImportMode } from "../../components/editor";
+import type { MenuActionId } from "../../constants/menu-definitions";
 
 const buildLockedSurfaceMessage = () =>
   "انتظر حتى تستقر النسخة الحالية أو نفذ استردادًا صريحًا بعد الفشل قبل بدء تشغيل جديد.";
 
+const LOCKED_ACTIONS = new Set<MenuActionId>([
+  "new-file",
+  "open-file",
+  "insert-file",
+  "paste",
+  "tool-auto-check",
+  "tool-reclassify",
+  "restore-draft",
+]);
+
+const EXPORT_ACTIONS: Partial<
+  Record<MenuActionId, { format: Parameters<typeof runExport>[0]; fileBase?: string }>
+> = {
+  "export-html": { format: "html", fileBase: "screenplay-export" },
+  "export-pdf": { format: "pdf", fileBase: "screenplay-export" },
+  "export-pdfa": { format: "pdfa", fileBase: "screenplay-export" },
+  "export-fdx": { format: "fdx", fileBase: "screenplay-export" },
+  "export-fountain": {
+    format: "fountain",
+    fileBase: "screenplay-export",
+  },
+  "export-classified": { format: "classified", fileBase: "النص_المصنف" },
+};
+
+const isLockedMenuAction = (actionId: MenuActionId) =>
+  LOCKED_ACTIONS.has(actionId);
+
 const handleClipboardAction = async (
   actionId: "copy" | "cut" | "paste",
-  engine: EditorEngineAdapter,
+  area: EditorArea,
   deps: EditorActionsDeps
 ): Promise<void> => {
   if (actionId === "paste") {
     try {
-      const result = await engine.pasteFromClipboard("menu");
+      const result = await area.pasteFromClipboard("menu");
       if (result.ok) {
         deps.toast({
           title: "تم اللصق",
@@ -61,8 +87,8 @@ const handleClipboardAction = async (
 
   const result =
     actionId === "copy"
-      ? await engine.copySelectionToClipboard()
-      : await engine.cutSelectionToClipboard();
+      ? await area.copySelectionToClipboard()
+      : await area.cutSelectionToClipboard();
   const fallbackCommand = actionId === "copy" ? "copy" : "cut";
   const failureTitle = actionId === "copy" ? "تعذر النسخ" : "تعذر القص";
   const successTitle = actionId === "copy" ? "تم النسخ" : "تم القص";
@@ -86,12 +112,12 @@ const handleClipboardAction = async (
 };
 
 const saveLocalDraft = (
-  engine: EditorEngineAdapter,
+  area: EditorArea,
   deps: EditorActionsDeps
 ): void => {
   const snapshot: EditorAutosaveSnapshot = {
-    html: engine.getAllHtml(),
-    text: engine.getAllText(),
+    html: area.getAllHtml(),
+    text: area.getAllText(),
     updatedAt: new Date().toISOString(),
     version: 2,
   };
@@ -179,73 +205,56 @@ const applyProjectTemplate = (
   });
 };
 
-export const handleMenuAction = async (
+const runFileMenuAction = async (
   actionId: MenuActionId,
-  deps: EditorActionsDeps
-): Promise<void> => {
-  const area = deps.getArea();
-  if (!area) return;
-  const engine = area as unknown as EditorEngineAdapter;
-
-  if (deps.resolveMenuCommand(actionId)) return;
-
-  if (
-    deps.isProgressiveSurfaceLocked() &&
-    (actionId === "new-file" ||
-      actionId === "open-file" ||
-      actionId === "insert-file" ||
-      actionId === "paste" ||
-      actionId === "tool-auto-check" ||
-      actionId === "tool-reclassify" ||
-      actionId === "restore-draft")
-  ) {
-    deps.toast({
-      title: "التشغيل الحالي لم يستقر بعد",
-      description: buildLockedSurfaceMessage(),
-      variant: "destructive",
-    });
-    return;
-  }
-
+  area: EditorArea,
+  deps: EditorActionsDeps,
+): Promise<boolean> => {
   switch (actionId) {
     case "new-file":
       area.clear();
       deps.toast({ title: "مستند جديد", description: "تم إنشاء مستند فارغ." });
-      break;
+      return true;
     case "open-file":
       await openFile("replace", deps);
-      break;
+      return true;
     case "insert-file":
       await openFile("insert", deps);
-      break;
+      return true;
     case "save-file":
-      saveLocalDraft(engine, deps);
-      break;
+      saveLocalDraft(area, deps);
+      return true;
     case "print-file":
       window.print();
-      break;
-    case "export-html":
-      await runExport("html", deps, "screenplay-export");
-      break;
-    case "export-pdf":
-      await runExport("pdf", deps, "screenplay-export");
-      break;
-    case "export-pdfa":
-      await runExport("pdfa", deps, "screenplay-export");
-      break;
-    case "export-fdx":
-      await runExport("fdx", deps, "screenplay-export");
-      break;
-    case "export-fountain":
-      await runExport("fountain", deps, "screenplay-export");
-      break;
-    case "export-classified":
-      await runExport("classified", deps, "النص_المصنف");
-      break;
+      return true;
+    default:
+      return false;
+  }
+};
+
+const runExportMenuAction = async (
+  actionId: MenuActionId,
+  deps: EditorActionsDeps,
+): Promise<boolean> => {
+  const exportAction = EXPORT_ACTIONS[actionId];
+  if (!exportAction) {
+    return false;
+  }
+
+  await runExport(exportAction.format, deps, exportAction.fileBase);
+  return true;
+};
+
+const runEditingMenuAction = async (
+  actionId: MenuActionId,
+  area: EditorArea,
+  deps: EditorActionsDeps,
+): Promise<boolean> => {
+  switch (actionId) {
     case "undo":
     case "redo":
-      engine.runCommand({ command: actionId });
-      break;
+      area.runCommand({ command: actionId });
+      return true;
     case "bold":
     case "italic":
     case "underline":
@@ -253,7 +262,7 @@ export const handleMenuAction = async (
     case "align-center":
     case "align-left":
       area.runCommand(actionId);
-      break;
+      return true;
     case "quick-cycle-format": {
       const current = area.getCurrentFormat();
       const currentIndex = current ? FORMAT_CYCLE_ORDER.indexOf(current) : -1;
@@ -262,42 +271,41 @@ export const handleMenuAction = async (
           ? FORMAT_CYCLE_ORDER[(currentIndex + 1) % FORMAT_CYCLE_ORDER.length]
           : FORMAT_CYCLE_ORDER[0];
 
-      if (!nextFormat) break;
+      if (!nextFormat) {
+        return true;
+      }
 
       area.setFormat(nextFormat);
       deps.toast({
         title: "تبديل التنسيق",
         description: `تم التحويل إلى: ${FORMAT_LABEL_BY_TYPE[nextFormat]}`,
       });
-      break;
+      return true;
     }
     case "show-draft-info":
       showDraftInfo(deps);
-      break;
+      return true;
     case "copy":
     case "cut":
     case "paste":
-      await handleClipboardAction(actionId, engine, deps);
-      break;
+      await handleClipboardAction(actionId, area, deps);
+      return true;
     case "select-all":
-      engine.runCommand({ command: "select-all" });
-      break;
-    case "about":
-      deps.toast({
-        title: "أفان تيتر",
-        description: "واجهة Aceternity + محرك تصنيف Tiptap مفعلين معًا.",
-      });
-      break;
-    case "help-shortcuts":
-      deps.toast({
-        title: "اختصارات سريعة",
-        description:
-          "Ctrl+S حفظ، Ctrl+O فتح، Ctrl+N مستند جديد، Ctrl+Z تراجع، Ctrl+Y إعادة، Ctrl+B/I/U تنسيق.",
-      });
-      break;
+      area.runCommand({ command: "select-all" });
+      return true;
+    default:
+      return false;
+  }
+};
+
+const runWorkflowMenuAction = async (
+  actionId: MenuActionId,
+  deps: EditorActionsDeps,
+): Promise<boolean> => {
+  switch (actionId) {
     case "restore-draft":
       await deps.restoreAutosaveDraft();
-      break;
+      return true;
     case "tool-auto-check":
       await deps.runDocumentThroughPasteWorkflow({
         source: "manual-deferred",
@@ -305,7 +313,7 @@ export const handleMenuAction = async (
         policyProfile: "strict-structure",
       });
       await deps.runForcedProductionSelfCheck("manual-auto-check");
-      break;
+      return true;
     case "tool-reclassify":
       await deps.runDocumentThroughPasteWorkflow({
         source: "manual-deferred",
@@ -313,10 +321,70 @@ export const handleMenuAction = async (
         policyProfile: "interactive-legacy",
       });
       await deps.runForcedProductionSelfCheck("manual-reclassify");
-      break;
+      return true;
     default:
-      break;
+      return false;
   }
+};
+
+const runInfoMenuAction = (
+  actionId: MenuActionId,
+  deps: EditorActionsDeps,
+): boolean => {
+  switch (actionId) {
+    case "about":
+      deps.toast({
+        title: "أفان تيتر",
+        description: "واجهة Aceternity + محرك تصنيف Tiptap مفعلين معًا.",
+      });
+      return true;
+    case "help-shortcuts":
+      deps.toast({
+        title: "اختصارات سريعة",
+        description:
+          "Ctrl+S حفظ، Ctrl+O فتح، Ctrl+N مستند جديد، Ctrl+Z تراجع، Ctrl+Y إعادة، Ctrl+B/I/U تنسيق.",
+      });
+      return true;
+    default:
+      return false;
+  }
+};
+
+export const handleMenuAction = async (
+  actionId: MenuActionId,
+  deps: EditorActionsDeps
+): Promise<void> => {
+  const area = deps.getArea();
+  if (!area) return;
+
+  if (deps.resolveMenuCommand(actionId)) return;
+
+  if (deps.isProgressiveSurfaceLocked() && isLockedMenuAction(actionId)) {
+    deps.toast({
+      title: "التشغيل الحالي لم يستقر بعد",
+      description: buildLockedSurfaceMessage(),
+      variant: "destructive",
+    });
+    return;
+  }
+
+  if (await runFileMenuAction(actionId, area, deps)) {
+    return;
+  }
+
+  if (await runExportMenuAction(actionId, deps)) {
+    return;
+  }
+
+  if (await runEditingMenuAction(actionId, area, deps)) {
+    return;
+  }
+
+  if (await runWorkflowMenuAction(actionId, deps)) {
+    return;
+  }
+
+  runInfoMenuAction(actionId, deps);
 };
 
 export const handleSidebarItemAction = async (

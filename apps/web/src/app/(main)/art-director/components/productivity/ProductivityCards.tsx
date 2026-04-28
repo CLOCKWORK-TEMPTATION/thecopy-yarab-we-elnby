@@ -1,6 +1,6 @@
-import type { ComponentType } from "react";
-
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
+import type { ComponentType } from "react";
 
 interface RecommendationsListProps {
   recommendations: string[];
@@ -26,7 +26,7 @@ export function RecommendationsList({
         >
           توصيات التحسين
         </h3>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }} role="list">
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {recommendations.map((recommendation, index) => (
             <li
               key={index}

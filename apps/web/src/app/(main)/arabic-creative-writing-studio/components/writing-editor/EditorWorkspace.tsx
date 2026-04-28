@@ -1,6 +1,5 @@
-import type { RefObject } from "react";
-
 import type { AppSettings } from "@/app/(main)/arabic-creative-writing-studio/types";
+import type { RefObject } from "react";
 
 interface EditorWorkspaceProps {
   content: string;

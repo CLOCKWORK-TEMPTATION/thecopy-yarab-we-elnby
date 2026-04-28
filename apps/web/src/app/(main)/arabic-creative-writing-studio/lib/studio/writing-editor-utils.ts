@@ -1,5 +1,5 @@
-import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
 import type { CalculatedTextStats } from "@/app/(main)/arabic-creative-writing-studio/components/writing-editor/types";
+import type { TextAnalysis } from "@/app/(main)/arabic-creative-writing-studio/types";
 
 export const QUALITY_LABELS: Record<
   keyof TextAnalysis["qualityMetrics"],

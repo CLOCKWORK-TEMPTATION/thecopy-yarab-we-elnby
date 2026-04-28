@@ -12,8 +12,8 @@ import {
   computeEmissionScores,
 } from "./structural-sequence-optimizer/emissions";
 import { extractSequenceFeatures } from "./structural-sequence-optimizer/feature-extraction";
-import { applyViterbiOverrides as applyViterbiOverridesInternal } from "./structural-sequence-optimizer/overrides";
 import { getRequiredItem } from "./structural-sequence-optimizer/model";
+import { applyViterbiOverrides as applyViterbiOverridesInternal } from "./structural-sequence-optimizer/overrides";
 import { viterbiDecode } from "./structural-sequence-optimizer/viterbi";
 
 import type { ClassifiedDraft } from "./classification-types";
