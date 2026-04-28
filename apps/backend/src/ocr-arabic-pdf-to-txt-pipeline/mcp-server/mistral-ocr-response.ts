@@ -3,6 +3,7 @@
  */
 
 import { field, str } from "./text-helpers.js";
+
 import type { JsonRecord } from "./types.js";
 
 export function extractBatchBody(row: unknown): JsonRecord | undefined {

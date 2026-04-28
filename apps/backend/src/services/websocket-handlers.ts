@@ -1,8 +1,8 @@
-import { breakappService } from "@/modules/breakapp/service";
-import { logger } from "@/lib/logger";
-import { trackWebSocketAuth } from "@/utils/connectivity-telemetry";
 import { WEBSOCKET_CONFIG } from "@/config/websocket.config";
+import { logger } from "@/lib/logger";
+import { breakappService } from "@/modules/breakapp/service";
 import { RealtimeEventType } from "@/types/realtime.types";
+import { trackWebSocketAuth } from "@/utils/connectivity-telemetry";
 
 import {
   handleAuthentication,
@@ -19,48 +19,7 @@ export function handleConnection(socket: AuthenticatedSocket): void {
   // Store connection
   connections.set(socket.id, socket);
 
-  let authTimeout: NodeJS.Timeout | null = null;
-
-  if (socket.authenticated === true && socket.userId) {
-    trackWebSocketAuth("ws:auth:middleware_success", {
-      socketId: socket.id,
-      userId: socket.userId,
-      authMethod: "middleware",
-    });
-
-    socket.emit(RealtimeEventType.AUTHENTICATED, {
-      message: "Authenticated successfully",
-      userId: socket.userId,
-      timestamp: new Date().toISOString(),
-    });
-
-    if (socket.authExpiresAtMs) {
-      scheduleSessionExpiry(socket, socket.authExpiresAtMs);
-    }
-  } else {
-    authTimeout = setTimeout(() => {
-      if (!socket.authenticated) {
-        trackWebSocketAuth("ws:auth:timeout", {
-          socketId: socket.id,
-          reason: "auth_timeout",
-        });
-        logger.warn("[WebSocket] Authentication timeout");
-        socket.emit("auth_error", {
-          reason: "auth_timeout",
-          message: "Connection timed out. Please reconnect.",
-        });
-        socket.disconnect(true);
-      }
-    }, WEBSOCKET_CONFIG.TIMEOUTS.AUTHENTICATION);
-
-    socket.on("authenticate", (data: { token?: string; userId?: string }) => {
-      if (authTimeout) {
-        clearTimeout(authTimeout);
-        authTimeout = null;
-      }
-      handleAuthentication(socket, data);
-    });
-  }
+  setupConnectionAuthentication(socket);
 
   socket.on("token:refresh", (data: { token?: string }) => {
     handleTokenRefresh(socket, data);
@@ -85,6 +44,63 @@ export function handleConnection(socket: AuthenticatedSocket): void {
     handleRoomUnsubscription(socket, data.room);
   });
 
+  registerBreakappRealtimeHandlers(socket);
+
+  // Send connection confirmation
+  socket.emit(RealtimeEventType.CONNECTED, {
+    socketId: socket.id,
+    message: "Connected successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+function setupConnectionAuthentication(socket: AuthenticatedSocket): void {
+  let authTimeout: NodeJS.Timeout | null = null;
+
+  if (socket.authenticated === true && socket.userId) {
+    trackWebSocketAuth("ws:auth:middleware_success", {
+      socketId: socket.id,
+      userId: socket.userId,
+      authMethod: "middleware",
+    });
+
+    socket.emit(RealtimeEventType.AUTHENTICATED, {
+      message: "Authenticated successfully",
+      userId: socket.userId,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (socket.authExpiresAtMs) {
+      scheduleSessionExpiry(socket, socket.authExpiresAtMs);
+    }
+    return;
+  }
+
+  authTimeout = setTimeout(() => {
+    if (!socket.authenticated) {
+      trackWebSocketAuth("ws:auth:timeout", {
+        socketId: socket.id,
+        reason: "auth_timeout",
+      });
+      logger.warn("[WebSocket] Authentication timeout");
+      socket.emit("auth_error", {
+        reason: "auth_timeout",
+        message: "Connection timed out. Please reconnect.",
+      });
+      socket.disconnect(true);
+    }
+  }, WEBSOCKET_CONFIG.TIMEOUTS.AUTHENTICATION);
+
+  socket.on("authenticate", (data: { token?: string; userId?: string }) => {
+    if (authTimeout) {
+      clearTimeout(authTimeout);
+      authTimeout = null;
+    }
+    handleAuthentication(socket, data);
+  });
+}
+
+function registerBreakappRealtimeHandlers(socket: AuthenticatedSocket): void {
   socket.on("runner:register", (data: { runnerId?: string }) => {
     if (!data?.runnerId) {
       return;
@@ -168,13 +184,6 @@ export function handleConnection(socket: AuthenticatedSocket): void {
       });
     },
   );
-
-  // Send connection confirmation
-  socket.emit(RealtimeEventType.CONNECTED, {
-    socketId: socket.id,
-    message: "Connected successfully",
-    timestamp: new Date().toISOString(),
-  });
 }
 
 /**
@@ -245,7 +254,7 @@ export function emitCustom(
   payload: Record<string, unknown>,
 ): void {
   // This will be called from service instance
-  console.log(`[WebSocket] Custom event: ${eventName}`, payload);
+  logger.info(`[WebSocket] Custom event: ${eventName}`, payload);
 }
 
 // Connections storage (will be moved to service instance)

@@ -24,6 +24,7 @@ import { isRedisEnabled } from '@/config/redis-gate';
 import { logger } from '@/lib/logger';
 
 import { buildRedisClient } from './cache-redis-init';
+
 import type { CacheEntry, CacheMetrics, RedisClientInstance, RedisOperation } from './cache.types';
 
 const sentryEnabled = Boolean(env.SENTRY_DSN);

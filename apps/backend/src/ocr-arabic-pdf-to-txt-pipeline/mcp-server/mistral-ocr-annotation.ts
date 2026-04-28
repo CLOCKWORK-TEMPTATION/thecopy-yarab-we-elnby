@@ -5,6 +5,7 @@
 import { readFile } from "node:fs/promises";
 
 import { fileExists, field, str } from "./text-helpers.js";
+
 import type { JsonRecord, MistralOCRConfig } from "./types.js";
 
 export class AnnotationFormatBuilder {

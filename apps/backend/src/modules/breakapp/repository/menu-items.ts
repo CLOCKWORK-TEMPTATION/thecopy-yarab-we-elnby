@@ -3,9 +3,10 @@ import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { breakappMenuItems, breakappVendors } from '@/db/schema';
 
-import type { BreakappMenuItemView } from '../service.types';
 import { ensureDatabase } from './_helpers';
 import { getVendorOwnedByUser } from './vendors';
+
+import type { BreakappMenuItemView } from '../service.types';
 
 export async function listMenuItemsForVendor(
   vendorId: string,

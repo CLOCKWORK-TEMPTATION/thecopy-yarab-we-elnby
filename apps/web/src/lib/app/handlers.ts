@@ -4,6 +4,8 @@
  */
 
 import { sanitizeTypingSystemSettings } from "../types";
+import type { UnifiedLogger } from "@/lib/logger";
+import type { EditorHandle } from "@/app/(main)/editor/src/components/editor/editor-area.types";
 
 import type {
   RunDocumentThroughPasteWorkflowOptions,
@@ -14,13 +16,23 @@ import type {
   MAX_DIAGNOSTIC_EVENTS,
 } from "../types/app";
 
+type ToastVariant = "default" | "destructive" | null | undefined;
+
+interface ToastOptions {
+  title?: string;
+  description?: string;
+  variant?: ToastVariant;
+}
+
+type ToastFunction = (options: ToastOptions) => void;
+
 interface EditorState {
-  editorAreaRef: React.RefObject<any>;
+  editorAreaRef: React.RefObject<EditorHandle | null>;
   liveTypingWorkflowTimeoutRef: React.RefObject<number | null>;
   applyingTypingWorkflowRef: React.RefObject<boolean>;
   lastLiveWorkflowTextRef: React.RefObject<string>;
   documentText: string;
-  progressiveSurfaceState: any;
+  progressiveSurfaceState: unknown;
   typingSystemSettings: TypingSystemSettings;
   setTypingSystemSettings: (settings: TypingSystemSettings) => void;
   setDocumentText: (text: string) => void;
@@ -31,8 +43,8 @@ interface HandlerDeps {
   runDocumentThroughPasteWorkflow: (
     options: RunDocumentThroughPasteWorkflowOptions
   ) => Promise<void>;
-  toast: any;
-  logger: any;
+  toast: ToastFunction;
+  logger: UnifiedLogger;
 }
 
 export function createRecordDiagnostic(

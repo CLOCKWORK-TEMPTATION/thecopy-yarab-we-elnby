@@ -8,8 +8,9 @@ import {
   breakappVendors,
 } from '@/db/schema';
 
-import type { OrderStatus } from '../service.types';
 import { ensureDatabase } from './_helpers';
+
+import type { OrderStatus } from '../service.types';
 
 export interface SessionBatchRow {
   vendorId: string;

@@ -1,12 +1,8 @@
-import { describe, it, expect, beforeAll } from "vitest";
-import request from "supertest";
 import express from "express";
+import request from "supertest";
+import { describe, it, expect, beforeAll } from "vitest";
+
 import { createTestApp } from "../helpers/security-app";
-import {
-  responseBody,
-  assertSessionCookieSecurity,
-  assertJwtPayloadIsSanitized,
-} from "../helpers/security-utils";
 import {
   MOCK_INVALID_TOKEN,
   MOCK_MALFORMED_TOKEN,
@@ -15,6 +11,11 @@ import {
   MOCK_MANIPULATED_TOKEN,
   UUID_WITH_PREFIX,
 } from "../helpers/security-tokens";
+import {
+  responseBody,
+  assertSessionCookieSecurity,
+  assertJwtPayloadIsSanitized,
+} from "../helpers/security-utils";
 
 const TEST_PASSWORD = "Password123!";
 

@@ -4,7 +4,8 @@
     "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
-    "turbo.json"
+    "turbo.json",
+    "scripts/quality/*.mjs"
   ],
   "globalEnv": ["NODE_ENV", "CI", "TIPTAP_PRO_TOKEN"],
   "tasks": {

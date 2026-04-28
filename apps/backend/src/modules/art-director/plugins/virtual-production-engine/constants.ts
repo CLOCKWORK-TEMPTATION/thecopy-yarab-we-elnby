@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 // Virtual Production Engine Constants
 // ثوابت وقواعد بيانات محرك الإنتاج الافتراضي
 

@@ -1,8 +1,9 @@
 import { db } from '@/db';
 import { breakappInviteTokens } from '@/db/schema';
 
-import type { BreakappRole } from '../service.types';
 import { ensureDatabase } from './_helpers';
+
+import type { BreakappRole } from '../service.types';
 
 export async function createInviteToken(input: {
   projectId: string;

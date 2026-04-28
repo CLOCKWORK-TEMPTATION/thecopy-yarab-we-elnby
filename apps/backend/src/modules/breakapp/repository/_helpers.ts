@@ -1,6 +1,7 @@
+import { inArray } from 'drizzle-orm';
+
 import { db } from '@/db';
 import { breakappOrderItems } from '@/db/schema';
-import { inArray } from 'drizzle-orm';
 
 import type {
   BreakappVendorView,

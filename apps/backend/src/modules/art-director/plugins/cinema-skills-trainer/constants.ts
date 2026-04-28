@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 // CineArchitect AI - Cinema Skills Trainer Constants
 // الثوابت والبيانات الثابتة للمدرب الافتراضي
 

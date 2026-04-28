@@ -1,6 +1,5 @@
-import type { Application } from 'express';
 import { createServer as createNetServer } from 'net';
-import type { Server } from 'http';
+
 
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
@@ -18,6 +17,9 @@ import { initializeWorkers, shutdownQueues } from '@/queues';
 import { sseService } from '@/services/sse.service';
 import { websocketService } from '@/services/websocket.service';
 import { checkRedisHealth } from '@/utils/redis-health';
+
+import type { Application } from 'express';
+import type { Server } from 'http';
 
 const startPort = Number(process.env.PORT) || env.PORT;
 const DEVELOPMENT_PRIMARY_PORT_WAIT_MS =

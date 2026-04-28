@@ -5,7 +5,7 @@ import helmet from "helmet";
 
 export function createTestApp(): express.Application {
   const app = express();
-  const allowedOrigin = process.env["CORS_ORIGIN"] ?? "http://localhost:5000";
+  const allowedOrigin = process.env.CORS_ORIGIN ?? "http://localhost:5000";
 
   app.disable("x-powered-by");
   app.use(helmet());

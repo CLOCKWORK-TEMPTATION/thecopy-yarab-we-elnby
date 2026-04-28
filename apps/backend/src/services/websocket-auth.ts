@@ -1,7 +1,10 @@
 import { env } from '@/config/env';
-import { authService } from './auth.service';
-import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
+import { logger } from '@/lib/logger';
 import { createRoomName, RealtimeEventType, WebSocketRoom } from '@/types/realtime.types';
+import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
+
+import { authService } from './auth.service';
+
 
 import type { AuthenticatedSocket } from './websocket-types';
 
@@ -90,7 +93,7 @@ export function handleAuthentication(
     const userRoom = createRoomName(WebSocketRoom.USER, data.userId);
     void socket.join(userRoom);
 
-    console.warn('[WebSocket] Development fallback auth used');
+    logger.warn('[WebSocket] Development fallback auth used');
 
     socket.emit(RealtimeEventType.AUTHENTICATED, {
       message: 'Authenticated successfully',
@@ -98,7 +101,7 @@ export function handleAuthentication(
       timestamp: new Date().toISOString(),
     });
   } else {
-    console.warn('[WebSocket] Authentication failed');
+    logger.warn('[WebSocket] Authentication failed');
     trackWebSocketAuth('ws:auth:denied', {
       socketId: socket.id,
       reason: 'missing_token',

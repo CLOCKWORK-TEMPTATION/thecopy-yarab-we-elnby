@@ -9,7 +9,7 @@ export function getFormatCompatibility(format: string): string[] {
     blend: ["Blender"],
   };
 
-  return compatibility[format] || [];
+  return compatibility[format] ?? [];
 }
 
 export const qualitySettings = {

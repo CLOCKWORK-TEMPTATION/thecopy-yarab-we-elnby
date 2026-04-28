@@ -5,8 +5,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { log } from "./ocr-logger.js";
 import { mistralRequestJson, mistralRequestRaw } from "./mistral-ocr-http.js";
+import { log } from "./ocr-logger.js";
 import { fileExists, field, str } from "./text-helpers.js";
 
 export async function uploadPdfForOcr(pdfPath: string): Promise<string> {

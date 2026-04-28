@@ -3,8 +3,9 @@ import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { breakappProjectMembers } from '@/db/schema';
 
-import type { BreakappRole } from '../service.types';
 import { ensureDatabase } from './_helpers';
+
+import type { BreakappRole } from '../service.types';
 
 export async function addProjectMember(input: {
   projectId: string;

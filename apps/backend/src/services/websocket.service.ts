@@ -26,9 +26,9 @@ import {
 } from "@/types/realtime.types";
 
 import { authService } from "./auth.service";
-import { AuthenticatedSocket } from "./websocket-types";
 import { setAuthExpiry } from "./websocket-auth";
 import { getConnections, handleConnection } from "./websocket-handlers";
+import { AuthenticatedSocket } from "./websocket-types";
 
 import type { ServerOptions } from "socket.io";
 

@@ -252,3 +252,8 @@ if (Object.keys(current).length > 0) {
     console.error(`  ...and ${sorted.length - reportLimit} more unique violation(s).`);
   }
 }
+
+if (errors > 0 || warnings > 0) {
+  console.error(`[lint] ${project}: lint violations detected.`);
+  process.exit(1);
+}

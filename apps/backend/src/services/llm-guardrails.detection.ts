@@ -1,6 +1,5 @@
 // Pure detection functions for LLM Guardrails Service
 
-import type { GuardrailViolation, RiskLevel } from './llm-guardrails.types';
 import {
   BANNED_PATTERNS,
   HARMFUL_CONTENT_PATTERNS,
@@ -12,6 +11,8 @@ import {
   MAX_PATTERN_CHECK_LENGTH,
   PROMPT_INJECTION_METRIC_PATTERN,
 } from './llm-guardrails.patterns';
+
+import type { GuardrailViolation, RiskLevel } from './llm-guardrails.types';
 
 export function detectPromptInjections(content: string): GuardrailViolation[] {
   const contentToCheck = content.substring(0, MAX_PATTERN_CHECK_LENGTH);

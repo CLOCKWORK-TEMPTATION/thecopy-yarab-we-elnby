@@ -1,11 +1,12 @@
-import type { Response } from 'express';
-import { signJwt } from '@/utils/jwt-secret-manager';
 import { env } from '@/config/env';
+import { signJwt } from '@/utils/jwt-secret-manager';
 
 import { REFRESH_COOKIE_NAME, ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL_MS } from './constants';
-import { breakappService } from './service';
 import * as repo from './repository';
+import { breakappService } from './service';
+
 import type { BreakappTokenPayload } from './service.types';
+import type { Response } from 'express';
 
 export function issueAccessToken(params: {
   userId: string;

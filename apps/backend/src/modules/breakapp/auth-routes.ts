@@ -8,6 +8,7 @@ import {
 } from "./auth-handlers";
 import { publicAuthLimiter, protectedLimiter } from "./limiters";
 import { requireAuth } from "./middlewares";
+
 import type { AuthenticatedRequest } from "./middlewares";
 
 export function registerAuthRoutes(router: Router): void {

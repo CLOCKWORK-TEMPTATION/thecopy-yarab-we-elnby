@@ -48,7 +48,7 @@ afterEach(() => {
 });
 
 const guardrailsInternals = (): GuardrailsInternals =>
-  guardrails as unknown as GuardrailsInternals;
+  guardrails;
 
   describe('Input Validation', () => {
     it('should allow valid input', () => {

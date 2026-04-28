@@ -1,7 +1,8 @@
 // PII detection and sanitization utilities for LLM Guardrails Service
 
-import type { PIIDetection } from './llm-guardrails.types';
 import { PII_PATTERNS } from './llm-guardrails.patterns';
+
+import type { PIIDetection } from './llm-guardrails.types';
 
 export function detectPII(content: string): PIIDetection[] {
   const detections: PIIDetection[] = [];

@@ -5,6 +5,7 @@
  */
 
 import { cloneTemplate, recalculateBudget } from './budget-default-template';
+
 import type { BudgetAnalysis, BudgetDocument } from './budget-types';
 
 // ─── أدوات قراءة آمنة ────────────────────────────────────────────

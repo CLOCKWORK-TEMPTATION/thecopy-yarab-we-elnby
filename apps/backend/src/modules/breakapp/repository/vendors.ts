@@ -3,11 +3,12 @@ import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { breakappVendors } from '@/db/schema';
 
+import { ensureDatabase, mapVendorRow } from './_helpers';
+
 import type {
   BreakappNearbyVendor,
   BreakappVendorView,
 } from '../service.types';
-import { ensureDatabase, mapVendorRow } from './_helpers';
 
 export async function listVendors(): Promise<BreakappVendorView[]> {
   ensureDatabase();

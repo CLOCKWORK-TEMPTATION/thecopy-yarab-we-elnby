@@ -3,8 +3,9 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { breakappSessions } from '@/db/schema';
 
-import type { BreakappSessionView } from '../service.types';
 import { ensureDatabase, toSessionView } from './_helpers';
+
+import type { BreakappSessionView } from '../service.types';
 
 export async function createSession(input: {
   projectId: string;

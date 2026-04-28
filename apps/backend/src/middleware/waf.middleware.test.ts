@@ -7,6 +7,16 @@
 import { Request } from "express";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+
+import { createMockRequest, createMockResponse } from "./__tests__/mocks";
+import {
+  sqlInjectionPayloads,
+  xssPayloads,
+  commandInjectionPayloads,
+  pathTraversalPayloads,
+  maliciousBots,
+  legitimatePayloads,
+} from "./__tests__/payloads";
 import {
   wafMiddleware,
   updateWAFConfig,
@@ -24,16 +34,6 @@ import {
   WAF_PATTERNS,
   WAFRule,
 } from "./waf.middleware";
-
-import { createMockRequest, createMockResponse } from "./__tests__/mocks";
-import {
-  sqlInjectionPayloads,
-  xssPayloads,
-  commandInjectionPayloads,
-  pathTraversalPayloads,
-  maliciousBots,
-  legitimatePayloads,
-} from "./__tests__/payloads";
 
 // Mock logger
 vi.mock("@/utils/logger", () => ({

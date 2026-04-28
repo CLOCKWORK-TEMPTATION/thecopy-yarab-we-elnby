@@ -3,12 +3,13 @@ import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { breakappOrderItems, breakappOrders } from '@/db/schema';
 
+import { ensureDatabase, loadItemsForOrders } from './_helpers';
+
 import type {
   BreakappOrderItemInput,
   BreakappOrderView,
   OrderStatus,
 } from '../service.types';
-import { ensureDatabase, loadItemsForOrders } from './_helpers';
 
 export async function createOrderWithItems(input: {
   sessionId: string;

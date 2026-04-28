@@ -4,7 +4,6 @@
 
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { log } from "./ocr-logger.js";
 import { downloadMistralFileText } from "./mistral-ocr-files.js";
 import { mistralRequestJson } from "./mistral-ocr-http.js";
 import {
@@ -12,6 +11,7 @@ import {
   extractMarkdownFromOcrResponse,
   readDocumentAnnotation,
 } from "./mistral-ocr-response.js";
+import { log } from "./ocr-logger.js";
 import { field, str } from "./text-helpers.js";
 
 import type { JsonRecord, MistralOCRConfig } from "./types.js";

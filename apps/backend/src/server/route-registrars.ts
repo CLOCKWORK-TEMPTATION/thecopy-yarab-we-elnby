@@ -1,8 +1,6 @@
-import type { Application } from 'express';
 
 import { actorAiController } from '@/controllers/actorai.controller';
 import { aiController } from '@/controllers/ai.controller';
-import type { AnalysisController } from '@/controllers/analysis.controller';
 import { appStateController } from '@/controllers/appState.controller';
 import { authController } from '@/controllers/auth.controller';
 import { brainstormController } from '@/controllers/brainstorm.controller';
@@ -18,7 +16,6 @@ import {
   listEncryptedDocuments,
   updateEncryptedDocument,
 } from '@/controllers/encryptedDocs.controller';
-import type { HealthController } from '@/controllers/health.controller';
 import { metricsController } from '@/controllers/metrics.controller';
 import { projectsController } from '@/controllers/projects.controller';
 import { queueController } from '@/controllers/queue.controller';
@@ -59,6 +56,10 @@ import {
   wafIpBodySchema,
 } from './schemas';
 
+import type { AnalysisController } from '@/controllers/analysis.controller';
+import type { HealthController } from '@/controllers/health.controller';
+import type { Application } from 'express';
+
 interface RouteDeps {
   analysisController: AnalysisController;
   healthController: HealthController;
@@ -67,6 +68,22 @@ interface RouteDeps {
 export function registerAllRoutes(
   app: Application,
   { analysisController, healthController }: RouteDeps
+): void {
+  registerHealthAndCostRoutes(app, healthController);
+  registerAuthAndAnalysisRoutes(app, analysisController);
+  registerProjectAndPublicRoutes(app);
+  registerProductionRoutes(app);
+  registerActorAndStateRoutes(app, analysisController);
+  registerBreakdownAndQueueRoutes(app);
+  registerMetricsRoutes(app);
+  registerWafRoutes(app);
+  registerWorkflowRoutes(app);
+  registerMemoryRoutes(app);
+}
+
+function registerHealthAndCostRoutes(
+  app: Application,
+  healthController: HealthController
 ): void {
   // Health check endpoints for Blue-Green deployment
   app.get('/api/health', healthController.getHealth.bind(healthController));
@@ -97,7 +114,12 @@ export function registerAllRoutes(
       });
     }
   });
+}
 
+function registerAuthAndAnalysisRoutes(
+  app: Application,
+  analysisController: AnalysisController
+): void {
   // Auth endpoints (public) - CSRF token is set after successful authentication
   app.post('/api/auth/signup', authController.signup.bind(authController));
   app.post('/api/auth/login', authController.login.bind(authController));
@@ -138,7 +160,9 @@ export function registerAllRoutes(
     }
     res.status(204).end();
   });
+}
 
+function registerProjectAndPublicRoutes(app: Application): void {
   // Enhanced Self-Critique endpoints (protected)
   app.get('/api/critique/config', authMiddleware, critiqueController.getAllCritiqueConfigs.bind(critiqueController));
   app.get('/api/critique/config/:taskType', authMiddleware, critiqueController.getCritiqueConfig.bind(critiqueController));
@@ -180,7 +204,9 @@ export function registerAllRoutes(
 
   // StyleIST costume design endpoints (protected)
   app.use('/api/styleist', authMiddleware, styleistRouter);
+}
 
+function registerProductionRoutes(app: Application): void {
   // Directors Studio - Scenes endpoints (protected)
   app.get('/api/projects/:projectId/scenes', authMiddleware, scenesController.getScenes.bind(scenesController));
   app.get('/api/scenes/:id', authMiddleware, scenesController.getScene.bind(scenesController));
@@ -206,7 +232,12 @@ export function registerAllRoutes(
   // AI endpoints (protected) — محدودة بمُعرّف المستخدم بالإضافة إلى الحد العام
   app.post('/api/ai/chat', authMiddleware, perUserAiLimiter, csrfProtection, aiController.chat.bind(aiController));
   app.post('/api/ai/shot-suggestion', authMiddleware, perUserAiLimiter, csrfProtection, aiController.getShotSuggestion.bind(aiController));
+}
 
+function registerActorAndStateRoutes(
+  app: Application,
+  analysisController: AnalysisController
+): void {
   // ActorAI endpoints (protected)
   app.post('/api/actorai/voice-analytics', authMiddleware, csrfProtection, actorAiController.saveVoiceAnalytics.bind(actorAiController));
   app.post('/api/actorai/webcam-analysis', authMiddleware, csrfProtection, actorAiController.saveWebcamAnalysis.bind(actorAiController));
@@ -262,7 +293,9 @@ export function registerAllRoutes(
   app.get('/api/app-state/:appId', appStateController.getState.bind(appStateController));
   app.put('/api/app-state/:appId', appStateController.setState.bind(appStateController));
   app.delete('/api/app-state/:appId', appStateController.clearState.bind(appStateController));
+}
 
+function registerBreakdownAndQueueRoutes(app: Application): void {
   // Breakdown endpoints
   app.get('/api/breakdown/health', breakdownController.health.bind(breakdownController));
   app.post('/api/breakdown/projects/bootstrap', authMiddleware, csrfProtection, breakdownController.bootstrapProject.bind(breakdownController));
@@ -281,10 +314,9 @@ export function registerAllRoutes(
   app.get('/api/queue/:queueName/stats', authMiddleware, queueController.getSpecificQueueStats.bind(queueController));
   app.post('/api/queue/jobs/:jobId/retry', authMiddleware, csrfProtection, queueController.retryJob.bind(queueController));
   app.post('/api/queue/:queueName/clean', authMiddleware, csrfProtection, queueController.cleanQueue.bind(queueController));
+}
 
-  registerMetricsRoutes(app);
-  registerWafRoutes(app);
-
+function registerWorkflowRoutes(app: Application): void {
   // Workflow execution endpoints
   app.get('/api/workflow/presets', authMiddleware, workflowController.listPresets.bind(workflowController));
   app.get('/api/workflow/presets/:preset', authMiddleware, workflowController.getPreset.bind(workflowController));
@@ -292,7 +324,9 @@ export function registerAllRoutes(
   app.get('/api/workflow/history', authMiddleware, workflowController.history.bind(workflowController));
   app.post('/api/workflow/execute', authMiddleware, csrfProtection, workflowController.execute.bind(workflowController));
   app.post('/api/workflow/execute-custom', authMiddleware, csrfProtection, workflowController.executeCustom.bind(workflowController));
+}
 
+function registerMemoryRoutes(app: Application): void {
   app.get('/api/memory/health', memoryHealthHandler);
 
   // Memory System endpoints (protected)

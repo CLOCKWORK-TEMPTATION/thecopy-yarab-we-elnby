@@ -32,7 +32,7 @@ const interactionsByType: Record<string, string[]> = {
 export function getInteractionsForType(
   type: VRExperience["type"]
 ): string[] {
-  return interactionsByType[type] || [];
+  return interactionsByType[type] ?? [];
 }
 
 export function calculateExperienceDuration(

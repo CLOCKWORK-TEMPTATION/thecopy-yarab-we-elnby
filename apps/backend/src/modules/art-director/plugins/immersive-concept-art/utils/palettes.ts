@@ -32,7 +32,7 @@ export function suggestComplementaryColors(palette: string[]): string[] {
 
 export function suggestRelatedThemes(theme: string): string[] {
   return (
-    themeRelations[theme.toLowerCase()] || [
+    themeRelations[theme.toLowerCase()] ?? [
       "contemporary",
       "minimal",
       "dramatic",
