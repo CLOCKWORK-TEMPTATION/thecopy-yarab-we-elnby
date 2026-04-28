@@ -1,4 +1,4 @@
- 
+
 /**
  * Multi-Layer Cache Service
  *
@@ -18,59 +18,15 @@
 import crypto from 'crypto';
 
 import * as Sentry from '@sentry/node';
-import { createClient } from 'redis';
 
 import { env } from '@/config/env';
 import { isRedisEnabled } from '@/config/redis-gate';
 import { logger } from '@/lib/logger';
 
+import { buildRedisClient } from './cache-redis-init';
+import type { CacheEntry, CacheMetrics, RedisClientInstance, RedisOperation } from './cache.types';
+
 const sentryEnabled = Boolean(env.SENTRY_DSN);
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
-
-interface CacheMetrics {
-  hits: {
-    l1: number;
-    l2: number;
-    total: number;
-  };
-  misses: number;
-  sets: number;
-  deletes: number;
-  errors: number;
-  redisConnectionHealth: RedisHealthStatus;
-}
-
-interface RedisHealthStatus {
-  status: 'connected' | 'disconnected' | 'error';
-  lastCheck: number;
-  consecutiveFailures: number;
-}
-
-type RedisOperation<T> = () => Promise<T>;
-type RedisClientInstance = ReturnType<typeof createClient>;
-
-interface RedisRetryOptions {
-  error?: {
-    code?: string;
-  };
-  total_retry_time: number;
-  attempt: number;
-}
-
-type CacheRedisConfig = NonNullable<Parameters<typeof createClient>[0]> & {
-  host?: string;
-  port?: number;
-  password?: string;
-  sentinels?: { host: string; port: number }[];
-  name?: string;
-  sentinelPassword?: string;
-  retry_strategy?: (options: RedisRetryOptions) => Error | number | undefined;
-};
 
 export class CacheService {
   private redis: RedisClientInstance | null = null;
@@ -107,105 +63,41 @@ export class CacheService {
   }
 
   /**
-   * Initialize Redis connection with Sentinel support and retry strategy
-   * Supports REDIS_URL, Sentinel, and individual REDIS_HOST/PORT/PASSWORD
+   * Initialize Redis connection with Sentinel support and retry strategy.
+   * Config building and client creation delegated to cache-redis-init.
    */
-   
   private initializeRedis(): void {
     try {
-      let redisConfig: CacheRedisConfig;
+      const redisClient = buildRedisClient({
+        onError: (error: Error) => {
+          logger.warn('Redis connection error, falling back to memory cache:', error.message);
+          this.updateRedisHealth('error');
+          this.metrics.errors++;
 
-      // Sentinel configuration
-      if (process.env.REDIS_SENTINEL_ENABLED === 'true') {
-        const sentinels = (process.env.REDIS_SENTINELS ?? '127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381')
-          .split(',')
-          .map(s => {
-            const [host, port] = s.trim().split(':');
-            return { host: host ?? '127.0.0.1', port: parseInt(port ?? '26379') };
-          });
+          if (sentryEnabled) {
+            Sentry.captureException(error, {
+              tags: { component: 'cache-service', layer: 'redis' },
+              level: 'warning',
+            });
+          }
+        },
+        onConnect: () => {
+          logger.info('Redis cache connected successfully');
+          this.updateRedisHealth('connected');
+        },
+        onEnd: () => {
+          logger.warn('Redis connection closed');
+          this.updateRedisHealth('disconnected');
+        },
+      });
 
-        redisConfig = {
-          sentinels,
-          name: process.env.REDIS_MASTER_NAME ?? 'mymaster',
-        };
-
-        if (process.env.REDIS_PASSWORD) {
-          redisConfig.password = process.env.REDIS_PASSWORD;
-        }
-
-        if (process.env.REDIS_SENTINEL_PASSWORD) {
-          redisConfig.sentinelPassword = process.env.REDIS_SENTINEL_PASSWORD;
-        }
-
-        logger.info(`Connecting to Redis via Sentinel: ${sentinels.length} sentinels`);
-      } else if (process.env.REDIS_URL) {
-        redisConfig = {
-          url: process.env.REDIS_URL,
-        };
-      } else {
-        redisConfig = {
-          host: process.env.REDIS_HOST ?? 'localhost',
-          port: parseInt(process.env.REDIS_PORT ?? '6379'),
-        };
-
-        if (process.env.REDIS_PASSWORD) {
-          redisConfig.password = process.env.REDIS_PASSWORD;
-        }
-      }
-
-      // Add retry strategy
-      redisConfig.retry_strategy = (options: RedisRetryOptions) => {
-        if (options.error?.code === 'ECONNREFUSED') {
-          logger.error('Redis connection refused');
-          return new Error('Redis Server Connection Error');
-        }
-        if (options.total_retry_time > 1000 * 60 * 60) {
-          logger.error('Redis retry time exhausted');
-          return new Error('Retry time exhausted');
-        }
-        if (options.attempt > 10) {
-          return undefined;
-        }
-        const delay = Math.min(options.attempt * 100, 3000);
-        logger.debug(`Redis retry attempt ${options.attempt}, delay: ${delay}ms`);
-        return delay;
-      };
-
-      const redisClient = createClient(
-        redisConfig as Parameters<typeof createClient>[0]
-      );
       this.redis = redisClient;
 
-      redisClient.on('error', (error: Error) => {
-        logger.warn('Redis connection error, falling back to memory cache:', error.message);
-        this.updateRedisHealth('error');
-        this.metrics.errors++;
-
-        if (sentryEnabled) {
-          Sentry.captureException(error, {
-            tags: { component: 'cache-service', layer: 'redis' },
-            level: 'warning',
-          });
-        }
-      });
-
-      redisClient.on('connect', () => {
-        logger.info('Redis cache connected successfully');
-        this.updateRedisHealth('connected');
-      });
-
-      redisClient.on('end', () => {
-        logger.warn('Redis connection closed');
-        this.updateRedisHealth('disconnected');
-      });
-
-      // Attempt to connect
       redisClient.connect().catch((error: Error) => {
         logger.warn('Redis initial connection failed, using memory cache only:', error.message);
         this.updateRedisHealth('error');
         this.redis = null;
       });
-
     } catch (error) {
       logger.warn('Redis initialization failed, using memory cache only:', error);
       this.updateRedisHealth('error');
@@ -236,8 +128,8 @@ export class CacheService {
   }
 
   /**
-   * Execute a Redis operation with error handling and metrics tracking
-   * Returns null if Redis is unavailable or the operation fails
+   * Execute a Redis operation with error handling and metrics tracking.
+   * Returns null if Redis is unavailable or the operation fails.
    */
   private async executeRedisOperation<T>(
     operation: RedisOperation<T>,
@@ -263,11 +155,7 @@ export class CacheService {
   /**
    * Capture error to Sentry if configured
    */
-  private captureError(
-    error: unknown,
-    operation: string,
-    layer?: string
-  ): void {
+  private captureError(error: unknown, operation: string, layer?: string): void {
     if (!sentryEnabled) return;
 
     Sentry.captureException(error, {
@@ -328,19 +216,16 @@ export class CacheService {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      // Try L1 (memory) cache first
       const l1Result = this.getFromL1Cache<T>(key);
       if (l1Result !== null) {
         return l1Result;
       }
 
-      // Try L2 (Redis) cache
       const l2Result = await this.getFromL2Cache<T>(key);
       if (l2Result !== null) {
         return l2Result;
       }
 
-      // Cache miss
       logger.debug(`Cache miss: ${key}`);
       this.metrics.misses++;
       return null;
@@ -368,7 +253,6 @@ export class CacheService {
       return memEntry.data as T;
     }
 
-    // Entry expired, remove it
     this.memoryCache.delete(key);
     return null;
   }
@@ -409,10 +293,8 @@ export class CacheService {
         return;
       }
 
-      // Always set in L1 (memory)
       this.setMemoryCache(key, value, normalizedTTL);
 
-      // Attempt to set in L2 (Redis)
       const redisSuccess = await this.setInL2Cache(key, serialized, normalizedTTL);
       const layer = redisSuccess ? 'L1+L2' : 'L1 only';
 
@@ -426,8 +308,8 @@ export class CacheService {
   }
 
   /**
-   * Attempt to set value in L2 (Redis) cache
-   * Returns true if successful, false otherwise
+   * Attempt to set value in L2 (Redis) cache.
+   * Returns true if successful, false otherwise.
    */
   private async setInL2Cache(key: string, serialized: string, ttl: number): Promise<boolean> {
     const result = await this.executeRedisOperation(
@@ -442,10 +324,8 @@ export class CacheService {
    */
   async delete(key: string): Promise<void> {
     try {
-      // Delete from L1 (memory)
       this.memoryCache.delete(key);
 
-      // Delete from L2 (Redis)
       await this.executeRedisOperation(
         () => this.redis!.del(key),
         'delete'
@@ -476,16 +356,12 @@ export class CacheService {
     }
   }
 
-  /**
-   * Clear cache entries matching a specific pattern
-   */
   private async clearByPattern(pattern: string): Promise<void> {
-    // Clear matching entries from L1
-    const keysToDelete = Array.from(this.memoryCache.keys())
-      .filter(key => key.startsWith(pattern));
-    keysToDelete.forEach(key => this.memoryCache.delete(key));
+    const keysToDelete = Array.from(this.memoryCache.keys()).filter((key) =>
+      key.startsWith(pattern)
+    );
+    keysToDelete.forEach((key) => this.memoryCache.delete(key));
 
-    // Clear matching entries from L2
     await this.executeRedisOperation(async () => {
       const keys = await this.redis!.keys(`${pattern}*`);
       if (keys.length > 0) {
@@ -497,9 +373,6 @@ export class CacheService {
     logger.info(`Cache cleared for pattern: ${pattern}`);
   }
 
-  /**
-   * Clear all cache entries
-   */
   private async clearAll(): Promise<void> {
     this.memoryCache.clear();
 
@@ -515,7 +388,6 @@ export class CacheService {
    * Set value in L1 memory cache with LRU eviction
    */
   private setMemoryCache<T>(key: string, value: T, ttl: number): void {
-    // Implement simple LRU: if cache is full, remove oldest entry
     if (this.memoryCache.size >= this.MAX_MEMORY_CACHE_SIZE) {
       const firstKey = this.memoryCache.keys().next().value;
       if (firstKey) {
@@ -534,14 +406,14 @@ export class CacheService {
    * Start periodic cleanup of expired memory cache entries
    */
   private startMemoryCacheCleanup(): void {
-    const CLEANUP_INTERVAL_MS = 60000; // Run every minute
+    const CLEANUP_INTERVAL_MS = 60000;
 
     this.cleanupInterval = setInterval(() => {
       const expiredKeys = Array.from(this.memoryCache.entries())
         .filter(([, entry]) => !this.isEntryValid(entry))
         .map(([key]) => key);
 
-      expiredKeys.forEach(key => this.memoryCache.delete(key));
+      expiredKeys.forEach((key) => this.memoryCache.delete(key));
 
       if (expiredKeys.length > 0) {
         logger.debug(`Cleaned up ${expiredKeys.length} expired cache entries`);
@@ -569,15 +441,12 @@ export class CacheService {
     };
   }
 
-  /**
-   * Calculate cache hit rate percentage
-   */
   private calculateHitRate(totalRequests: number): number {
     if (totalRequests === 0) {
       return 0;
     }
     const rate = (this.metrics.hits.total / totalRequests) * 100;
-    return Math.round(rate * 100) / 100; // Round to 2 decimal places
+    return Math.round(rate * 100) / 100;
   }
 
   /**
@@ -604,21 +473,17 @@ export class CacheService {
    * Disconnect Redis and cleanup resources
    */
   async disconnect(): Promise<void> {
-    // Clear cleanup interval
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
 
-    // Disconnect Redis
     if (this.redis) {
       await this.redis.disconnect();
       this.redis = null;
     }
 
-    // Clear memory cache
     this.memoryCache.clear();
-    
     logger.info('Cache service disconnected and cleaned up');
   }
 }

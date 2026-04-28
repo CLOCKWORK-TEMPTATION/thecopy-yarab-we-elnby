@@ -1,7 +1,11 @@
 {
   "extends": "./tsconfig.check.json",
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "tsBuildInfoFile": "./.tsbuildinfo.contract.39464.src-__tests__"
   },
   "include": [
     "src/global.d.ts",
@@ -9,11 +13,8 @@
     "src/types/env.d.ts",
     "src/types/mcp-sdk-compat.d.ts",
     "src/types/module-alias.d.ts",
-    "src/services/**/*.ts",
-    "src/services/**/*.tsx",
-    "src/services/**/*.js",
-    "src/services/**/*.mjs",
-    "src/services/**/*.cjs"
+    "src/__tests__/**/*.ts",
+    "src/__tests__/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

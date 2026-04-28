@@ -51,12 +51,15 @@ export async function mistralRequestRaw(
 
   const timeoutState = createTimeoutState(MISTRAL_HTTP_TIMEOUT_MS);
   try {
-    return await fetch(url, {
+    const init: RequestInit = {
       method,
       headers,
-      body: bodyInit,
       signal: timeoutState.signal,
-    });
+    };
+    if (bodyInit !== undefined) {
+      init.body = bodyInit;
+    }
+    return await fetch(url, init);
   } finally {
     timeoutState.cleanup();
   }
