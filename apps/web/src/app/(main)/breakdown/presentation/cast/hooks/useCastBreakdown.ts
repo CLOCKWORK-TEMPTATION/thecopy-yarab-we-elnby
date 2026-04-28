@@ -39,7 +39,8 @@ export function useCastBreakdown({
   const [showNetwork, setShowNetwork] = useState(false);
   const [showStats, setShowStats] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<CastAnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] =
+    useState<CastAnalysisResult | null>(null);
 
   const enhancedCast = useMemo<CastCardData[]>(() => {
     return cast.map((member) => {
@@ -69,10 +70,15 @@ export function useCastBreakdown({
           .includes(query);
         if (!matchName && !matchArabic && !matchDesc) return false;
       }
-      if (filterRole !== "all" && member.roleCategory !== filterRole && member.role !== filterRole) {
+      if (
+        filterRole !== "all" &&
+        member.roleCategory !== filterRole &&
+        member.role !== filterRole
+      ) {
         return false;
       }
-      if (filterGender !== "all" && member.gender !== filterGender) return false;
+      if (filterGender !== "all" && member.gender !== filterGender)
+        return false;
       return true;
     });
   }, [enhancedCast, searchQuery, filterRole, filterGender]);
@@ -81,11 +87,25 @@ export function useCastBreakdown({
     return [...filteredCast].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
-        case "name": comparison = a.name.localeCompare(b.name); break;
-        case "role": comparison = (a.roleCategory || a.role || "").localeCompare(b.roleCategory || b.role || ""); break;
-        case "age": comparison = (a.ageRange || a.age || "").localeCompare(b.ageRange || b.age || ""); break;
-        case "gender": comparison = a.gender.localeCompare(b.gender); break;
-        case "dialogueCount": comparison = (a.dialogueCount ?? 0) - (b.dialogueCount ?? 0); break;
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "role":
+          comparison = (a.roleCategory || a.role || "").localeCompare(
+            b.roleCategory || b.role || ""
+          );
+          break;
+        case "age":
+          comparison = (a.ageRange || a.age || "").localeCompare(
+            b.ageRange || b.age || ""
+          );
+          break;
+        case "gender":
+          comparison = a.gender.localeCompare(b.gender);
+          break;
+        case "dialogueCount":
+          comparison = (a.dialogueCount ?? 0) - (b.dialogueCount ?? 0);
+          break;
       }
       return sortOrder === "asc" ? comparison : -comparison;
     });
@@ -116,12 +136,25 @@ export function useCastBreakdown({
     downloadFile(exportCastToCSV(sortedCast), "cast-breakdown.csv", "text/csv");
 
   const handleExportJSON = () => {
-    const data = analysisResult ?? { members: sortedCast, summary: {}, insights: [], warnings: [] };
-    downloadFile(exportCastToJSON(data as CastAnalysisResult), "cast-breakdown.json", "application/json");
+    const data = analysisResult ?? {
+      members: sortedCast,
+      summary: {},
+      insights: [],
+      warnings: [],
+    };
+    downloadFile(
+      exportCastToJSON(data as CastAnalysisResult),
+      "cast-breakdown.json",
+      "application/json"
+    );
   };
 
   const handleExportCastingCall = () =>
-    downloadFile(generateCastingCall(sortedCast), "casting-call.txt", "text/plain");
+    downloadFile(
+      generateCastingCall(sortedCast),
+      "casting-call.txt",
+      "text/plain"
+    );
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -130,14 +163,21 @@ export function useCastBreakdown({
   };
 
   return {
-    searchQuery, setSearchQuery,
-    sortBy, setSortBy,
-    sortOrder, setSortOrder,
-    filterRole, setFilterRole,
-    filterGender, setFilterGender,
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    filterRole,
+    setFilterRole,
+    filterGender,
+    setFilterGender,
     expandedCards,
-    showNetwork, setShowNetwork,
-    showStats, setShowStats,
+    showNetwork,
+    setShowNetwork,
+    showStats,
+    setShowStats,
     analyzing,
     analysisResult,
     enhancedCast,

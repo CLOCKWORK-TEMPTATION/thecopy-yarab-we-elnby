@@ -1,7 +1,21 @@
-import type { CastMember, ExtendedCastMember, CastAnalysisResult } from "../types/cast-breakdown-types";
+import type {
+  CastMember,
+  ExtendedCastMember,
+  CastAnalysisResult,
+} from "../types/cast-breakdown-types";
 
-export function exportCastToCSV(members: CastMember[] | ExtendedCastMember[]): string {
-  const headers = ["Name", "Arabic Name", "Role", "Age", "Gender", "Description", "Motivation"];
+export function exportCastToCSV(
+  members: CastMember[] | ExtendedCastMember[]
+): string {
+  const headers = [
+    "Name",
+    "Arabic Name",
+    "Role",
+    "Age",
+    "Gender",
+    "Description",
+    "Motivation",
+  ];
   const rows = members.map((member) => {
     const extended = member as ExtendedCastMember;
     return [
@@ -21,15 +35,20 @@ export function exportCastToJSON(result: CastAnalysisResult): string {
   return JSON.stringify(result, null, 2);
 }
 
-export function generateCastingCall(members: CastMember[] | ExtendedCastMember[]): string {
+export function generateCastingCall(
+  members: CastMember[] | ExtendedCastMember[]
+): string {
   let documentText = "CASTING CALL DOCUMENT\n";
   documentText += `${"=".repeat(50)}\n\n`;
 
   const leads = members.filter(
-    (m) => (m as ExtendedCastMember).roleCategory === "Lead" || m.role === "Lead"
+    (m) =>
+      (m as ExtendedCastMember).roleCategory === "Lead" || m.role === "Lead"
   );
   const supporting = members.filter(
-    (m) => (m as ExtendedCastMember).roleCategory === "Supporting" || m.role === "Supporting"
+    (m) =>
+      (m as ExtendedCastMember).roleCategory === "Supporting" ||
+      m.role === "Supporting"
   );
 
   if (leads.length > 0) {
@@ -56,7 +75,11 @@ export function generateCastingCall(members: CastMember[] | ExtendedCastMember[]
   return documentText;
 }
 
-export function downloadFile(content: string, filename: string, mimeType: string): void {
+export function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string
+): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

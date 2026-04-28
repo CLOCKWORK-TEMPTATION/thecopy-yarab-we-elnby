@@ -1,4 +1,8 @@
-import type { CastMember, ExtendedCastMember, CastAnalysisResult } from "../../domain/models";
+import type {
+  CastMember,
+  ExtendedCastMember,
+  CastAnalysisResult,
+} from "../../domain/models";
 
 export type { CastMember, ExtendedCastMember, CastAnalysisResult };
 

@@ -33,14 +33,23 @@ interface CastControlsBarProps {
 }
 
 export const CastControlsBar: React.FC<CastControlsBarProps> = ({
-  searchQuery, onSearchChange,
-  filterRole, onFilterRoleChange,
-  filterGender, onFilterGenderChange,
-  sortBy, onSortByChange,
-  sortOrder, onToggleSortOrder,
-  showStats, onToggleStats,
-  showNetwork, onToggleNetwork,
-  onExportCSV, onExportJSON, onExportCastingCall,
+  searchQuery,
+  onSearchChange,
+  filterRole,
+  onFilterRoleChange,
+  filterGender,
+  onFilterGenderChange,
+  sortBy,
+  onSortByChange,
+  sortOrder,
+  onToggleSortOrder,
+  showStats,
+  onToggleStats,
+  showNetwork,
+  onToggleNetwork,
+  onExportCSV,
+  onExportJSON,
+  onExportCastingCall,
 }) => {
   return (
     <div className="space-y-3 mb-6">
@@ -99,21 +108,35 @@ export const CastControlsBar: React.FC<CastControlsBarProps> = ({
           className="p-2 bg-white/6 border border-white/8 rounded-[22px] hover:bg-white/8 transition-colors"
           aria-label="Toggle sort order"
         >
-          {sortOrder === "asc"
-            ? <ChevronUp className="w-4 h-4 text-white/55" />
-            : <ChevronDown className="w-4 h-4 text-white/55" />}
+          {sortOrder === "asc" ? (
+            <ChevronUp className="w-4 h-4 text-white/55" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-white/55" />
+          )}
         </button>
 
         <div className="flex-1" />
 
-        <button onClick={onExportCSV} className="flex items-center gap-2 px-3 py-2 bg-white/6 border border-white/8 rounded-[22px] hover:bg-white/8 transition-colors text-sm text-white/68">
-          <Download className="w-4 h-4" />CSV
+        <button
+          onClick={onExportCSV}
+          className="flex items-center gap-2 px-3 py-2 bg-white/6 border border-white/8 rounded-[22px] hover:bg-white/8 transition-colors text-sm text-white/68"
+        >
+          <Download className="w-4 h-4" />
+          CSV
         </button>
-        <button onClick={onExportJSON} className="flex items-center gap-2 px-3 py-2 bg-white/6 border border-white/8 rounded-[22px] hover:bg-white/8 transition-colors text-sm text-white/68">
-          <Download className="w-4 h-4" />JSON
+        <button
+          onClick={onExportJSON}
+          className="flex items-center gap-2 px-3 py-2 bg-white/6 border border-white/8 rounded-[22px] hover:bg-white/8 transition-colors text-sm text-white/68"
+        >
+          <Download className="w-4 h-4" />
+          JSON
         </button>
-        <button onClick={onExportCastingCall} className="flex items-center gap-2 px-3 py-2 bg-emerald-700 border border-emerald-600 rounded-[22px] hover:bg-emerald-600 transition-colors text-sm text-white">
-          <FileText className="w-4 h-4" />Casting Call
+        <button
+          onClick={onExportCastingCall}
+          className="flex items-center gap-2 px-3 py-2 bg-emerald-700 border border-emerald-600 rounded-[22px] hover:bg-emerald-600 transition-colors text-sm text-white"
+        >
+          <FileText className="w-4 h-4" />
+          Casting Call
         </button>
       </div>
 
@@ -122,7 +145,8 @@ export const CastControlsBar: React.FC<CastControlsBarProps> = ({
           onClick={onToggleStats}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-[22px] text-xs font-medium transition-colors ${showStats ? "bg-indigo-600 text-white" : "bg-white/6 text-white/55 hover:bg-white/8"}`}
         >
-          <Filter className="w-3 h-3" />Statistics
+          <Filter className="w-3 h-3" />
+          Statistics
         </button>
         <button
           onClick={onToggleNetwork}

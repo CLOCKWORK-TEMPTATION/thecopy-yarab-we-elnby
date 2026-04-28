@@ -126,7 +126,9 @@ export async function measureUncertainty(
   const alternatives: string[] = [text];
 
   for (let i = 0; i < 2; i++) {
-    const alt = await callGeminiText(prompt, { temperature: temperature + 0.2 });
+    const alt = await callGeminiText(prompt, {
+      temperature: temperature + 0.2,
+    });
     alternatives.push(alt);
   }
 
@@ -209,7 +211,9 @@ ${unsupportedClaims.map((c) => `- ${c.claim}`).join("\n")}
 
 قدم نسخة محسنة بدون ادعاءات غير مدعومة.`;
 
-    correctedText = await callGeminiText(correctionPrompt, { temperature: 0.2 });
+    correctedText = await callGeminiText(correctionPrompt, {
+      temperature: 0.2,
+    });
   }
 
   return { detected, claims: checkedClaims, correctedText };

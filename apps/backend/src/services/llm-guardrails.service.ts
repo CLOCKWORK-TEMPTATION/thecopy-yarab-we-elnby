@@ -12,7 +12,7 @@ import {
   determineRiskLevel,
   shouldBlock,
 } from './llm-guardrails.detection';
-import { detectPII, sanitizePII } from './llm-guardrails.pii';
+import { detectPII, isValidCreditCard, sanitizePII } from './llm-guardrails.pii';
 import type {
   GuardrailViolation,
   GuardrailResult,
@@ -242,6 +242,9 @@ export class LLMGuardrailsService {
       this.metrics.topPatterns = this.metrics.topPatterns.slice(0, 10);
     }
   }
+
+  detectPII(content: string) { return detectPII(content); }
+  isValidCreditCard(value: string) { return isValidCreditCard(value); }
 
   getMetrics(): GuardrailMetrics {
     return { ...this.metrics };
