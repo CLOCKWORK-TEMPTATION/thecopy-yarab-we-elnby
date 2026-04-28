@@ -196,6 +196,317 @@ export function usePostProduction(mood: VisualMood = "noir") {
   /**
    * تحليل إيقاع المونتاج
    */
+k مخصص لإدارة أدوات ما بعد الإنتاج
+ *
+ * هذا الـ Hook يوفر جميع الوظائف المطلوبة لمرحلة ما بعد الإنتاج
+ * بما في ذلك تدريج الألوان، المونتاج، وإعدادات التصدير.
+ * يتضمن معالجة الأخطاء والتحقق من صحة البيانات.
+ *
+ * @module cinematography-studio/hooks/usePostProduction
+ */
+
+"use client";
+
+import { useState, useCallback, useMemo } from "react";
+import { toast } from "react-hot-toast";
+
+import { createLocalFootageSummary } from "../lib/local-shot-analysis";
+import { resolveAnalysisWinner } from "../lib/resolve-analysis-winner";
+import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
+import { ColorTemperatureSchema, ColorPaletteSchema } from "../types";
+
+import { useMediaInputPipeline } from "./useMediaInputPipeline";
+
+import type {
+  VisualMood,
+  ExportSettings,
+  FootageAnalysisSummary,
+} from "../types";
+
+// ============================================
+// واجهات الحالة الداخلية
+// ============================================
+
+/**
+ * نوع المشهد للتدريج اللوني
+ */
+type SceneType =
+  | "morning"
+  | "night"
+  | "indoor"
+  | "outdoor"
+  | "happy"
+  | "sad"
+  | null;
+
+/**
+ * حالة تدريج الألوان
+ */
+interface ColorGradingState {
+  /** نوع المشهد المحدد */
+  sceneType: SceneType;
+  /** درجة حرارة اللون بالكلفن */
+  temperature: number;
+  /** لوحة الألوان المولدة */
+  colorPalette: string[];
+  /** حالة التوليد جارية */
+  isGenerating: boolean;
+}
+
+/**
+ * حالة المونتاج
+ */
+interface EditorialState {
+  /** ملاحظات المونتاج */
+  notes: string;
+  /** حالة التحليل جارية */
+  isAnalyzing: boolean;
+}
+
+/**
+ * حالة تحليل المشاهد
+ */
+interface FootageState {
+  /** حالة الرفع جارية */
+  isUploading: boolean;
+  /** رسالة الخطأ */
+  error: string | null;
+  /** ملخص التحليل */
+  summary: FootageAnalysisSummary | null;
+  /** مصدر التحليل الحالي */
+  analysisSource: "remote" | "local-fallback" | null;
+  /** حالة التحليل */
+  analysisStatus: {
+    exposure: "pending" | "analyzing" | "complete";
+    colorConsistency: "pending" | "analyzing" | "complete";
+    focusQuality: "pending" | "analyzing" | "complete";
+    motionBlur: "pending" | "analyzing" | "complete";
+  };
+}
+
+// ============================================
+// الثوابت
+// ============================================
+
+/**
+ * درجة الحرارة الافتراضية
+ */
+const DEFAULT_TEMPERATURE = 5500;
+
+/**
+ * الحالة الابتدائية لتدريج الألوان
+ */
+const initialColorGradingState: ColorGradingState = {
+  sceneType: null,
+  temperature: DEFAULT_TEMPERATURE,
+  colorPalette: [],
+  isGenerating: false,
+};
+
+/**
+ * الحالة الابتدائية للمونتاج
+ */
+const initialEditorialState: EditorialState = {
+  notes: "",
+  isAnalyzing: false,
+};
+
+/**
+ * الحالة الابتدائية لتحليل المشاهد
+ */
+const initialFootageState: FootageState = {
+  isUploading: false,
+  error: null,
+  summary: null,
+  analysisSource: null,
+  analysisStatus: {
+    exposure: "pending",
+    colorConsistency: "pending",
+    focusQuality: "pending",
+    motionBlur: "pending",
+  },
+};
+
+interface ColorGradingResponse {
+  success?: boolean;
+  palette?: string[];
+}
+
+interface ChatResponse {
+  success?: boolean;
+  data?: {
+    response?: string;
+  };
+}
+
+interface ValidateShotResponse {
+  success?: boolean;
+  validation?: {
+    score?: number;
+    status?: string;
+    exposure?: string;
+    composition?: string;
+    focus?: string;
+    colorBalance?: string;
+    suggestions?: string[];
+    improvements?: string[];
+  };
+}
+
+// ============================================
+// الـ Hook الرئيسي
+// ============================================
+
+/**
+ * Hook مخصص لإدارة أدوات ما بعد الإنتاج
+ *
+ * يوفر هذا الـ Hook:
+ * - إدارة تدريج الألوان وتوليد لوحات الألوان
+ * - تحليل إيقاع المونتاج
+ * - تحليل المشاهد المصورة
+ * - إعدادات التصدير والتسليم
+ * - معالجة الأخطاء مع إشعارات Toast
+ *
+ * @example
+ * ```tsx
+ * const {
+ *   colorPalette,
+ *   generateColorPalette,
+ *   temperature,
+ *   setTemperature
+ * } = usePostProduction("noir");
+ * ```
+ *
+ * @param mood - المود البصري للمشروع
+ * @returns كائن يحتوي على الحالة والدوال المساعدة
+ */
+export function usePostProduction(mood: VisualMood = "noir") {
+  // ============================================
+  // الحالة
+  // ============================================
+
+  const [colorGrading, setColorGrading] = useState<ColorGradingState>(
+    initialColorGradingState
+  );
+  const [editorial, setEditorial] = useState<EditorialState>(
+    initialEditorialState
+  );
+  const [footage, setFootage] = useState<FootageState>(initialFootageState);
+  const [exportSettings, setExportSettings] = useState<ExportSettings | null>(
+    null
+  );
+  const mediaInput = useMediaInputPipeline("image");
+
+  // ============================================
+  // دوال تدريج الألوان
+  // ============================================
+
+  /**
+   * تحديث نوع المشهد
+   *
+   * @param sceneType - نوع المشهد الجديد
+   */
+  const setSceneType = useCallback((sceneType: SceneType) => {
+    setColorGrading((prev) => ({
+      ...prev,
+      sceneType,
+    }));
+  }, []);
+
+  /**
+   * تحديث درجة حرارة اللون
+   *
+   * @param value - القيمة الجديدة
+   */
+  const setTemperature = useCallback((value: number[]) => {
+    const temperature = value[0] ?? DEFAULT_TEMPERATURE;
+
+    // التحقق من صحة القيمة
+    const validation = ColorTemperatureSchema.safeParse(temperature);
+    if (!validation.success) {
+      toast.error(validation.error.errors[0]?.message ?? "قيمة غير صالحة");
+      return;
+    }
+
+    setColorGrading((prev) => ({
+      ...prev,
+      temperature,
+    }));
+  }, []);
+
+  /**
+   * توليد لوحة الألوان
+   *
+   * تقوم هذه الدالة بتوليد لوحة ألوان مناسبة بناءً على:
+   * - المود البصري للمشروع
+   * - نوع المشهد المحدد
+   * - درجة حرارة اللون
+   */
+  const generateColorPalette = useCallback(async () => {
+    try {
+      setColorGrading((prev) => ({
+        ...prev,
+        isGenerating: true,
+      }));
+
+      toast.loading("جاري توليد لوحة الألوان...", { id: "palette" });
+
+      // استدعاء API لتوليد لوحة الألوان
+      const data = await postStudioJson<ColorGradingResponse>(
+        "/api/cineai/color-grading",
+        {
+          sceneType: colorGrading.sceneType,
+          mood,
+          temperature: colorGrading.temperature,
+        }
+      );
+      const palette = data.palette ?? [];
+
+      // التحقق من صحة اللوحة
+      const validation = ColorPaletteSchema.safeParse(palette);
+      if (!validation.success) {
+        throw new Error("فشل في توليد لوحة الألوان");
+      }
+
+      setColorGrading((prev) => ({
+        ...prev,
+        isGenerating: false,
+        colorPalette: validation.data,
+      }));
+
+      toast.success("تم توليد لوحة الألوان بنجاح!", { id: "palette" });
+    } catch (error) {
+      setColorGrading((prev) => ({
+        ...prev,
+        isGenerating: false,
+      }));
+
+      toast.error(
+        error instanceof Error ? error.message : "فشل في توليد لوحة الألوان",
+        { id: "palette" }
+      );
+    }
+  }, [mood, colorGrading.sceneType, colorGrading.temperature]);
+
+  // ============================================
+  // دوال المونتاج
+  // ============================================
+
+  /**
+   * تحديث ملاحظات المونتاج
+   *
+   * @param notes - الملاحظات الجديدة
+   */
+  const setEditorialNotes = useCallback((notes: string) => {
+    setEditorial((prev) => ({
+      ...prev,
+      notes,
+    }));
+  }, []);
+
+  /**
+   * تحليل إيقاع المونتاج
+   */
   const analyzeRhythm = useCallback(async () => {
     if (!editorial.notes.trim()) {
       toast.error("يرجى إدخال ملاحظات المونتاج أولاً");
