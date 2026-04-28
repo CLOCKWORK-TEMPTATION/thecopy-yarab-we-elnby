@@ -2,7 +2,6 @@
  * @fileoverview كشف الروابط الضعيفة في شبكة الصراعات.
  */
 
-
 import {
   getConflictEntries,
   getRelationships,

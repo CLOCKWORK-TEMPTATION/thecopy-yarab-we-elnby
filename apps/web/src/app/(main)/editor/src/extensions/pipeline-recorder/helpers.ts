@@ -1,10 +1,6 @@
 import { logger } from "@/lib/logger";
 
-import type {
-  PipelineSnapshot,
-  SnapshotLine,
-  StageDiff,
-} from "./types";
+import type { PipelineSnapshot, SnapshotLine, StageDiff } from "./types";
 
 export const isPipelineConsoleDebugEnabled = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -47,7 +43,8 @@ export const computeDiff = (
         text: (fromLine?.text ?? toLine?.text ?? "").slice(0, 50),
         fromType: fromLine?.type ?? "—",
         toType: toLine?.type ?? "—",
-        confidenceDelta: (toLine?.confidence ?? 0) - (fromLine?.confidence ?? 0),
+        confidenceDelta:
+          (toLine?.confidence ?? 0) - (fromLine?.confidence ?? 0),
       });
       continue;
     }

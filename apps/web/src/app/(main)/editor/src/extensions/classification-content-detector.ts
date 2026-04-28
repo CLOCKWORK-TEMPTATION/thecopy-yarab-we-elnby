@@ -1,7 +1,4 @@
-import {
-  CONVERSATIONAL_MARKERS_RE,
-  VOCATIVE_RE,
-} from "./arabic-patterns";
+import { CONVERSATIONAL_MARKERS_RE, VOCATIVE_RE } from "./arabic-patterns";
 import {
   hasEmbeddedNarrativeActionInDialogue,
   hasHighConfidenceActionSignal,

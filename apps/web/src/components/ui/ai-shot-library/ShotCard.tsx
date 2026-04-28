@@ -136,7 +136,9 @@ export function ShotCard({
             <Clock className="w-3.5 h-3.5" />
             <span>{formatDuration(shot.duration)}</span>
             <span className="text-white/70">•</span>
-            <span className="text-white/70">{getAspectRatioLabel(shot.aspectRatio)}</span>
+            <span className="text-white/70">
+              {getAspectRatioLabel(shot.aspectRatio)}
+            </span>
           </div>
         </div>
       </div>

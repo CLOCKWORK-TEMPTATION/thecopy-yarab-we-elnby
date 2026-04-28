@@ -122,7 +122,9 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
           })
         );
       })
-      .catch(() => { /* empty */ });
+      .catch(() => {
+        /* empty */
+      });
   }, [projectId]);
 
   useEffect(() => {
@@ -151,7 +153,9 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
       projectId,
       sceneId: activeSceneId,
       wardrobeItemId: item.id,
-    }).catch(() => { /* empty */ });
+    }).catch(() => {
+      /* empty */
+    });
   };
 
   const handleFixContinuity = (

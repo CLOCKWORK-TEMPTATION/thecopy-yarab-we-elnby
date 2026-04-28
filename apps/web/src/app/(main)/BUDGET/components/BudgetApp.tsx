@@ -34,24 +34,47 @@ interface BudgetAppProps {
   initialScript?: string;
 }
 
-const BudgetApp: React.FC<BudgetAppProps> = ({ initialBudget, initialScript }) => {
+const BudgetApp: React.FC<BudgetAppProps> = ({
+  initialBudget,
+  initialScript,
+}) => {
   const {
-    scriptText, setScriptText,
+    scriptText,
+    setScriptText,
     budget,
-    status, error,
-    budgetName, setBudgetName,
-    showChart, setShowChart,
-    showAnalytics, setShowAnalytics,
-    showExportModal, setShowExportModal,
-    showTemplateSelector, setShowTemplateSelector,
-    sidebarOpen, setSidebarOpen,
-    searchTerm, setSearchTerm,
+    status,
+    error,
+    budgetName,
+    setBudgetName,
+    showChart,
+    setShowChart,
+    showAnalytics,
+    setShowAnalytics,
+    showExportModal,
+    setShowExportModal,
+    showTemplateSelector,
+    setShowTemplateSelector,
+    sidebarOpen,
+    setSidebarOpen,
+    searchTerm,
+    setSearchTerm,
     preferences,
-    risk, aiAnalysis,
-    finalTotal, filteredBudgets, resolvedTheme, stats,
-    handleGenerate, handleRiskUpdate, handleLineItemUpdate,
-    loadExample, saveBudget, loadSavedBudget, deleteSavedBudget,
-    duplicateBudget, loadTemplate, savePreferences,
+    risk,
+    aiAnalysis,
+    finalTotal,
+    filteredBudgets,
+    resolvedTheme,
+    stats,
+    handleGenerate,
+    handleRiskUpdate,
+    handleLineItemUpdate,
+    loadExample,
+    saveBudget,
+    loadSavedBudget,
+    deleteSavedBudget,
+    duplicateBudget,
+    loadTemplate,
+    savePreferences,
     formatCurrency,
   } = useBudgetState({ initialBudget, initialScript });
 
@@ -80,7 +103,9 @@ const BudgetApp: React.FC<BudgetAppProps> = ({ initialBudget, initialScript }) =
       <BudgetHeader
         preferences={preferences}
         onToggleTheme={() =>
-          savePreferences({ theme: preferences.theme === "dark" ? "light" : "dark" })
+          savePreferences({
+            theme: preferences.theme === "dark" ? "light" : "dark",
+          })
         }
         onOpenExport={() => setShowExportModal(true)}
         onOpenSidebar={() => setSidebarOpen(true)}
@@ -105,7 +130,8 @@ const BudgetApp: React.FC<BudgetAppProps> = ({ initialBudget, initialScript }) =
               preferences.theme === "dark" ? "text-white/68" : "text-white/55"
             }`}
           >
-            Transform your script into a detailed, industry-standard budget in minutes
+            Transform your script into a detailed, industry-standard budget in
+            minutes
           </p>
         </motion.div>
 
@@ -292,7 +318,9 @@ const BudgetApp: React.FC<BudgetAppProps> = ({ initialBudget, initialScript }) =
                   </div>
                   <div
                     className={`text-sm ${
-                      preferences.theme === "dark" ? "text-white/55" : "text-white/45"
+                      preferences.theme === "dark"
+                        ? "text-white/55"
+                        : "text-white/45"
                     }`}
                   >
                     Last updated: {new Date().toLocaleString()}

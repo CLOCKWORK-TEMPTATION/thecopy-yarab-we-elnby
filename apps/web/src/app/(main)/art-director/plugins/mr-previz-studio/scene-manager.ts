@@ -47,7 +47,10 @@ export function createScene(data: {
       },
     ],
     lighting: {
-      ambient: { color: DEFAULT_AMBIENT_COLOR, intensity: DEFAULT_AMBIENT_INTENSITY },
+      ambient: {
+        color: DEFAULT_AMBIENT_COLOR,
+        intensity: DEFAULT_AMBIENT_INTENSITY,
+      },
       directional: [
         {
           id: uuidv4(),
@@ -134,7 +137,11 @@ export function updateSceneLighting(
 /**
  * تحديث حركة كاميرا في مشهد
  */
-export function updateCameraMovement(sceneId: string, cameraId: string, movement: any): boolean {
+export function updateCameraMovement(
+  sceneId: string,
+  cameraId: string,
+  movement: any
+): boolean {
   const scene = scenes.get(sceneId);
   if (!scene) {
     return false;

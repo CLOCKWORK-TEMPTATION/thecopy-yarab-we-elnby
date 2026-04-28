@@ -1,6 +1,11 @@
 import { GeminiModel, GeminiService } from "../../gemini-service";
 import { toText } from "../../../utils/text-utils";
-import { asJsonRecord, asNumber, asString, asStringArray } from "../json-helpers";
+import {
+  asJsonRecord,
+  asNumber,
+  asString,
+  asStringArray,
+} from "../json-helpers";
 import type { Station2Context } from "../types";
 
 export async function identifyTargetAudience(

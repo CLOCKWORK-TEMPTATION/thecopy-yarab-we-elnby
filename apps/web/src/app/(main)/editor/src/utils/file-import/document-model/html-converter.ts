@@ -4,10 +4,7 @@
  */
 
 import type { ScreenplayBlock } from "./types";
-import {
-  normalizeBlockText,
-  escapeHtml,
-} from "./encoding";
+import { normalizeBlockText, escapeHtml } from "./encoding";
 import {
   getFormatIdFromElement,
   splitLegacyTopLineText,

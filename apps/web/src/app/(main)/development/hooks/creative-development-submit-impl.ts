@@ -20,7 +20,11 @@ import {
   type BrainstormDebateResponse,
 } from "./creative-development-types";
 
-type ToastFn = (options: { title?: string; description?: string; variant?: "default" | "destructive" }) => void;
+type ToastFn = (options: {
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive";
+}) => void;
 
 export interface SubmitParams {
   textInput: string;
@@ -51,13 +55,17 @@ export async function handleSubmitImpl(
   });
 
   if (!validationResult.success) {
-    const errorMessage = validationResult.error.errors[0]?.message ?? "يرجى التحقق من المدخلات";
+    const errorMessage =
+      validationResult.error.errors[0]?.message ?? "يرجى التحقق من المدخلات";
     dispatch({ type: "SET_ERROR", payload: errorMessage });
     return;
   }
 
   if (!params.selectedTask || params.textInput.length < MIN_TEXT_LENGTH) {
-    dispatch({ type: "SET_ERROR", payload: "يرجى اختيار مهمة وإدخال نص لا يقل عن 100 حرف" });
+    dispatch({
+      type: "SET_ERROR",
+      payload: "يرجى اختيار مهمة وإدخال نص لا يقل عن 100 حرف",
+    });
     return;
   }
 
@@ -95,7 +103,8 @@ export async function handleSubmitImpl(
   }
 
   if (params.selectedTask === CreativeTaskType.COMPLETION) {
-    requestOptions.selectedCompletionEnhancements = params.selectedCompletionEnhancements;
+    requestOptions.selectedCompletionEnhancements =
+      params.selectedCompletionEnhancements;
   }
 
   const request: AIRequestData = {
@@ -118,12 +127,16 @@ export async function handleSubmitImpl(
             .filter((id): id is string => Boolean(id))
         : [];
 
-    const agentIds = Array.from(new Set([primaryAgentId, ...completionAgentIds]));
+    const agentIds = Array.from(
+      new Set([primaryAgentId, ...completionAgentIds])
+    );
 
     const taskPromptParts = [
       `نوع المهمة: ${CREATIVE_TASK_LABELS[params.selectedTask]}`,
       `التوجيه الخاص: ${request.prompt || "بدون توجيه خاص"}`,
-      params.completionScope ? `نطاق الإكمال المطلوب: ${params.completionScope}` : "",
+      params.completionScope
+        ? `نطاق الإكمال المطلوب: ${params.completionScope}`
+        : "",
       params.additionalInfo ? `معلومات إضافية: ${params.additionalInfo}` : "",
       "النص الأصلي:",
       request.context.files[0]?.textContent ?? "",
@@ -137,9 +150,15 @@ export async function handleSubmitImpl(
         task: taskPromptParts.join("\n\n"),
         context: {
           brief: [
-            params.analysisReport ? `تقرير التحليل:\n${params.analysisReport}` : "",
-            params.additionalInfo ? `معلومات داعمة:\n${params.additionalInfo}` : "",
-          ].filter(Boolean).join("\n\n"),
+            params.analysisReport
+              ? `تقرير التحليل:\n${params.analysisReport}`
+              : "",
+            params.additionalInfo
+              ? `معلومات داعمة:\n${params.additionalInfo}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
           phase: 3,
           sessionId: params.analysisId ?? `development-${Date.now()}`,
         },
@@ -147,11 +166,14 @@ export async function handleSubmitImpl(
       }),
     });
 
-    const payload = (await response.json().catch(() => null)) as BrainstormDebateResponse | null;
+    const payload = (await response
+      .json()
+      .catch(() => null)) as BrainstormDebateResponse | null;
 
     if (!response.ok || !payload?.success) {
       const errorMsg =
-        payload?.error ?? `فشل تنفيذ المهمة عبر الباك إند (رمز الحالة: ${response.status})`;
+        payload?.error ??
+        `فشل تنفيذ المهمة عبر الباك إند (رمز الحالة: ${response.status})`;
       throw new Error(errorMsg);
     }
 
@@ -176,12 +198,21 @@ export async function handleSubmitImpl(
     };
 
     dispatch({ type: "SET_AI_RESPONSE", payload: result });
-    toast({ title: "تم التحليل بنجاح", description: "تم إكمال المهمة عبر الباك إند بنجاح" });
+    toast({
+      title: "تم التحليل بنجاح",
+      description: "تم إكمال المهمة عبر الباك إند بنجاح",
+    });
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "حدث خطأ غير متوقع أثناء الإرسال";
+      error instanceof Error
+        ? error.message
+        : "حدث خطأ غير متوقع أثناء الإرسال";
     dispatch({ type: "SET_ERROR", payload: errorMessage });
-    toast({ variant: "destructive", title: "خطأ في التحليل", description: errorMessage });
+    toast({
+      variant: "destructive",
+      title: "خطأ في التحليل",
+      description: errorMessage,
+    });
   } finally {
     dispatch({ type: "SET_LOADING", payload: false });
   }

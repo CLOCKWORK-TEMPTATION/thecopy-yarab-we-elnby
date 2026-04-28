@@ -33,7 +33,7 @@ export function useProductivityData() {
 
   const maxHours = useMemo(
     () => Math.max(...chartData.map((item) => item.hours), 1),
-    [chartData],
+    [chartData]
   );
 
   return {

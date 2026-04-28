@@ -1,10 +1,6 @@
 import { clamp } from "./normalizers";
 
-import type {
-  CharacterProfile,
-  DialogueMetrics,
-  VoiceAnalysis,
-} from "./types";
+import type { CharacterProfile, DialogueMetrics, VoiceAnalysis } from "./types";
 
 export function buildUncertaintyReport(
   characters: CharacterProfile[],

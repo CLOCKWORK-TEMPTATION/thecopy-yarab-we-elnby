@@ -50,8 +50,15 @@ export function ColorGradingPreview({
           />
 
           <div className="space-y-4">
-            <PresetsCard selectedPreset={selectedPreset} onApplyPreset={applyPreset} />
-            <BasicAdjustmentsCard grade={grade} onReset={resetGrade} onUpdate={updateGrade} />
+            <PresetsCard
+              selectedPreset={selectedPreset}
+              onApplyPreset={applyPreset}
+            />
+            <BasicAdjustmentsCard
+              grade={grade}
+              onReset={resetGrade}
+              onUpdate={updateGrade}
+            />
             <ColorWheelsCard grade={grade} onUpdate={updateGrade} />
           </div>
         </div>

@@ -75,8 +75,8 @@ export function PromptEditor({
                 {prompt.length} حرف
               </span>
               <span className="flex items-center gap-1">
-                <Zap className="h-4 w-4" />~
-                {Math.ceil(prompt.length / 4)} tokens
+                <Zap className="h-4 w-4" />~{Math.ceil(prompt.length / 4)}{" "}
+                tokens
               </span>
             </div>
             <Button

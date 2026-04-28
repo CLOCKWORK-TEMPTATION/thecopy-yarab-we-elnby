@@ -15,7 +15,10 @@ interface PresetsCardProps {
   onApplyPreset: (presetId: string) => void;
 }
 
-export function PresetsCard({ selectedPreset, onApplyPreset }: PresetsCardProps) {
+export function PresetsCard({
+  selectedPreset,
+  onApplyPreset,
+}: PresetsCardProps) {
   return (
     <Card className="bg-zinc-900 border-zinc-800">
       <CardHeader className="pb-3">
@@ -43,7 +46,9 @@ export function PresetsCard({ selectedPreset, onApplyPreset }: PresetsCardProps)
                       className="w-4 h-4 rounded-full"
                       style={{ background: preset.primaryColor }}
                     />
-                    <span className="text-xs text-zinc-200 truncate">{preset.nameAr}</span>
+                    <span className="text-xs text-zinc-200 truncate">
+                      {preset.nameAr}
+                    </span>
                   </div>
                 </button>
               </TooltipTrigger>
@@ -51,7 +56,9 @@ export function PresetsCard({ selectedPreset, onApplyPreset }: PresetsCardProps)
                 <div className="space-y-1">
                   <p className="font-medium">{preset.name}</p>
                   {preset.film ? (
-                    <p className="text-xs text-muted-foreground">{preset.film}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {preset.film}
+                    </p>
                   ) : null}
                   <p className="text-xs">{preset.description}</p>
                 </div>

@@ -25,7 +25,9 @@ export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
             </span>
             <Badge
               variant={pitch.stability > 0.7 ? "default" : "destructive"}
-              className={pitch.stability > 0.7 ? "bg-green-500/20 text-green-300" : ""}
+              className={
+                pitch.stability > 0.7 ? "bg-green-500/20 text-green-300" : ""
+              }
             >
               {pitch.stability > 0.7 ? "مستقر" : "متذبذب"}
             </Badge>
@@ -33,7 +35,9 @@ export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
-              style={{ width: `${Math.min(100, (pitch.current / 500) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, (pitch.current / 500) * 100)}%`,
+              }}
             />
           </div>
           <div className="flex justify-between text-xs text-white/55">
@@ -42,8 +46,13 @@ export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
             <span>مرتفع</span>
           </div>
           {pitch.warning && (
-            <Alert variant="destructive" className="bg-red-900/30 border-red-900">
-              <AlertDescription className="text-red-200">{pitch.warning}</AlertDescription>
+            <Alert
+              variant="destructive"
+              className="bg-red-900/30 border-red-900"
+            >
+              <AlertDescription className="text-red-200">
+                {pitch.warning}
+              </AlertDescription>
             </Alert>
           )}
         </div>

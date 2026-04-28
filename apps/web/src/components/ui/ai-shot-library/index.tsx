@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +47,12 @@ export function AIShotLibrary({
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-background rounded-lg border", className)}>
+    <div
+      className={cn(
+        "flex flex-col h-full bg-background rounded-lg border",
+        className
+      )}
+    >
       <Toolbar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -104,7 +114,10 @@ export function AIShotLibrary({
             )}
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Duration: {previewShot ? formatDuration(previewShot.duration) : "0:00"}</span>
+            <span>
+              Duration:{" "}
+              {previewShot ? formatDuration(previewShot.duration) : "0:00"}
+            </span>
             <span>Aspect: {previewShot?.aspectRatio}</span>
             <span>Category: {previewShot?.category}</span>
           </div>

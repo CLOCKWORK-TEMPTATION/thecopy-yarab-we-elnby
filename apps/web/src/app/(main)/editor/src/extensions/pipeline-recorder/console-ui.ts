@@ -21,8 +21,9 @@ export const printRunReport = (report: PipelineRunReport): void => {
   const frontendMs =
     report.snapshots.length >= 2
       ? Math.round(
-          (report.snapshots.find((snapshot) => snapshot.stage === "render-first")
-            ?.timestamp ??
+          (report.snapshots.find(
+            (snapshot) => snapshot.stage === "render-first"
+          )?.timestamp ??
             report.snapshots[report.snapshots.length - 1]?.timestamp ??
             0) - (report.snapshots[0]?.timestamp ?? 0)
         )
@@ -105,8 +106,12 @@ export const printRunReport = (report: PipelineRunReport): void => {
     }
   }
 
-  const applied = report.aiCorrections.filter((correction) => correction.applied);
-  const skipped = report.aiCorrections.filter((correction) => !correction.applied);
+  const applied = report.aiCorrections.filter(
+    (correction) => correction.applied
+  );
+  const skipped = report.aiCorrections.filter(
+    (correction) => !correction.applied
+  );
 
   if (report.aiCorrections.length > 0) {
     logger.warn(
@@ -120,7 +125,10 @@ export const printRunReport = (report: PipelineRunReport): void => {
 
     const bySource = new Map<string, { applied: number; skipped: number }>();
     for (const correction of report.aiCorrections) {
-      const sourceStats = bySource.get(correction.source) ?? { applied: 0, skipped: 0 };
+      const sourceStats = bySource.get(correction.source) ?? {
+        applied: 0,
+        skipped: 0,
+      };
       if (correction.applied) sourceStats.applied++;
       else sourceStats.skipped++;
       bySource.set(correction.source, sourceStats);
@@ -226,7 +234,9 @@ export const printLineJourney = (
 
   const lastSnapshot = report.snapshots[report.snapshots.length - 1];
   const finalLine = lastSnapshot?.lines[lineIndex];
-  const lastAppliedAi = aiForLine.filter((correction) => correction.applied).pop();
+  const lastAppliedAi = aiForLine
+    .filter((correction) => correction.applied)
+    .pop();
   const finalType = lastAppliedAi?.correctedType ?? finalLine?.type ?? "???";
   logger.warn(
     `\n   Final type: %c${finalType}`,

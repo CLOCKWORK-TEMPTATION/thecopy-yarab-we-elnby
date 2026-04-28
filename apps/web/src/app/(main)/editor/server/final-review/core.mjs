@@ -3,7 +3,10 @@
 // ─────────────────────────────────────────────────────────
 
 import { randomUUID } from "crypto";
-import { invokeWithFallback, resolveProviderErrorInfo } from "../langchain-fallback-chain.mjs";
+import {
+  invokeWithFallback,
+  resolveProviderErrorInfo,
+} from "../langchain-fallback-chain.mjs";
 import { updateReviewRuntimeSnapshot } from "../provider-api-runtime.mjs";
 import {
   FINAL_REVIEW_CHANNEL,
@@ -15,7 +18,10 @@ import {
 } from "./constants.mjs";
 import { validateFinalReviewRequestBody } from "./validation.mjs";
 import { buildFinalReviewMessages } from "./messaging.mjs";
-import { parseFinalReviewResponse, normalizeCommandsAgainstRequest } from "./response.mjs";
+import {
+  parseFinalReviewResponse,
+  normalizeCommandsAgainstRequest,
+} from "./response.mjs";
 import { determineCoverageStatus } from "./coverage.mjs";
 import {
   resolveFinalReviewMockMode,
@@ -23,7 +29,11 @@ import {
   buildFinalReviewMeta,
   computeFinalReviewMaxTokens,
 } from "./mock.mjs";
-import { logger, getFinalReviewConfig, resolveFinalReviewRuntime } from "./config.mjs";
+import {
+  logger,
+  getFinalReviewConfig,
+  resolveFinalReviewRuntime,
+} from "./config.mjs";
 
 export const requestFinalReview = async (body) => {
   const startTime = Date.now();

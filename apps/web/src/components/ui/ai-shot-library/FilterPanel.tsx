@@ -3,7 +3,12 @@
 import React from "react";
 import { X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ShotFilters, ShotCategory, ShotMood, ShotTimeOfDay } from "./types";
+import type {
+  ShotFilters,
+  ShotCategory,
+  ShotMood,
+  ShotTimeOfDay,
+} from "./types";
 import {
   allCategories,
   allMoods,

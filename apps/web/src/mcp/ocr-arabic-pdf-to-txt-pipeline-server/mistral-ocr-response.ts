@@ -49,7 +49,11 @@ export function extractMarkdownFromOcrResponse(response: unknown): string {
 }
 
 export function readDocumentAnnotation(response: unknown): unknown {
-  const raw = field<string | object | null>(response, "document_annotation", null);
+  const raw = field<string | object | null>(
+    response,
+    "document_annotation",
+    null
+  );
   if (raw === null || raw === undefined) {
     return undefined;
   }

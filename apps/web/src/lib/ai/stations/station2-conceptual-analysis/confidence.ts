@@ -5,11 +5,7 @@ import {
   getDefaultGenreMatrix,
   getDefaultThemeAnalysis,
 } from "./defaults";
-import type {
-  Station2Output,
-  ThemeAnalysis,
-  ThreeDMapResult,
-} from "./types";
+import type { Station2Output, ThemeAnalysis, ThreeDMapResult } from "./types";
 
 export function calculateConfidenceScore(
   storyStatements: string[],

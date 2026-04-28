@@ -37,7 +37,9 @@ class MockResizeObserver implements ResizeObserver {
   disconnect = vi.fn();
   takeRecords = vi.fn(() => []);
 
-  constructor(_callback: ResizeObserverCallback) { /* empty */ }
+  constructor(_callback: ResizeObserverCallback) {
+    /* empty */
+  }
 }
 
 Object.defineProperty(globalThis, "ResizeObserver", {
@@ -56,7 +58,9 @@ class MockIntersectionObserver implements IntersectionObserver {
   disconnect = vi.fn();
   takeRecords = vi.fn(() => []);
 
-  constructor(_callback: IntersectionObserverCallback) { /* empty */ }
+  constructor(_callback: IntersectionObserverCallback) {
+    /* empty */
+  }
 }
 
 Object.defineProperty(globalThis, "IntersectionObserver", {

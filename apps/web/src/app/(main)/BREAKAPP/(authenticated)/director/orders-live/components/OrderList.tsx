@@ -96,9 +96,7 @@ export const OrderList: React.FC<OrderListProps> = ({
                       }
                       className="w-full px-4 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed text-sm font-cairo transition"
                     >
-                      {isAssignOpen
-                        ? "إغلاق قائمة الإسناد"
-                        : "إسناد لـ runner"}
+                      {isAssignOpen ? "إغلاق قائمة الإسناد" : "إسناد لـ runner"}
                     </button>
                     {isAssignOpen && (
                       <div className="mt-2 p-3 bg-white/6 rounded-[22px] border border-white/8">

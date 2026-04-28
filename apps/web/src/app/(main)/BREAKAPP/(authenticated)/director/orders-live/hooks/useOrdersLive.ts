@@ -1,4 +1,11 @@
-import { useState, useRef, useEffect, useCallback, useMemo, type ChangeEvent } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+  type ChangeEvent,
+} from "react";
 import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import { toast } from "@/hooks/use-toast";
@@ -23,7 +30,9 @@ export function useOrdersLive() {
   const [timeSort, setTimeSort] = useState<TimeSortOrder>("newest");
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [batching, setBatching] = useState(false);
-  const [batchResult, setBatchResult] = useState<BatchVendorResult[] | null>(null);
+  const [batchResult, setBatchResult] = useState<BatchVendorResult[] | null>(
+    null
+  );
   const [assignTargetId, setAssignTargetId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
 
@@ -118,8 +127,12 @@ export function useOrdersLive() {
             ? {
                 ...order,
                 status: evt.status,
-                ...(evt.vendorId !== undefined ? { vendorId: evt.vendorId } : {}),
-                ...(evt.runnerId !== undefined ? { runnerId: evt.runnerId } : {}),
+                ...(evt.vendorId !== undefined
+                  ? { vendorId: evt.vendorId }
+                  : {}),
+                ...(evt.runnerId !== undefined
+                  ? { runnerId: evt.runnerId }
+                  : {}),
               }
             : order
         )

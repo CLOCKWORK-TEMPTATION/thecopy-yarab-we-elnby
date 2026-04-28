@@ -27,7 +27,8 @@ const triggerDownload = (payload: DocumentationExportPayload): void => {
 export function useDocumentationController() {
   const [showBookForm, setShowBookForm] = useState(false);
   const [showDecisionForm, setShowDecisionForm] = useState(false);
-  const [productionBook, setProductionBook] = useState<ProductionBookState | null>(null);
+  const [productionBook, setProductionBook] =
+    useState<ProductionBookState | null>(null);
   const [styleGuide, setStyleGuide] = useState<StyleGuideState | null>(null);
   const [decisionsCount, setDecisionsCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -35,15 +36,17 @@ export function useDocumentationController() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [bookForm, setBookForm] = useState<BookFormData>(DEFAULT_BOOK_FORM);
-  const [decisionForm, setDecisionForm] = useState<DecisionFormData>(DEFAULT_DECISION_FORM);
+  const [decisionForm, setDecisionForm] = useState<DecisionFormData>(
+    DEFAULT_DECISION_FORM
+  );
 
   const loadState = useCallback(async () => {
     setError(null);
 
     try {
-      const response = await fetchArtDirectorJson<ApiResponse<DocumentationStatePayload>>(
-        "/documentation/state"
-      );
+      const response = await fetchArtDirectorJson<
+        ApiResponse<DocumentationStatePayload>
+      >("/documentation/state");
       if (response.success && response.data) {
         setProductionBook(response.data.productionBook);
         setStyleGuide(response.data.styleGuide);
@@ -52,7 +55,8 @@ export function useDocumentationController() {
       }
       setError(response.error ?? "تعذر تحميل حالة التوثيق الحالية");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "تعذر تحميل حالة التوثيق الحالية";
+      const message =
+        err instanceof Error ? err.message : "تعذر تحميل حالة التوثيق الحالية";
       setError(message);
     }
   }, []);
@@ -63,14 +67,13 @@ export function useDocumentationController() {
     setSuccessMessage(null);
 
     try {
-      const response = await fetchArtDirectorJson<ApiResponse<ProductionBookState>>(
-        "/documentation/generate",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookForm),
-        }
-      );
+      const response = await fetchArtDirectorJson<
+        ApiResponse<ProductionBookState>
+      >("/documentation/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookForm),
+      });
 
       if (response.success && response.data) {
         await loadState();
@@ -81,7 +84,8 @@ export function useDocumentationController() {
         setError(response.error ?? "فشل في إنشاء الكتاب");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "حدث خطأ أثناء الإنشاء";
+      const message =
+        err instanceof Error ? err.message : "حدث خطأ أثناء الإنشاء";
       setError(message);
     } finally {
       setLoading(false);
@@ -100,7 +104,8 @@ export function useDocumentationController() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            projectName: productionBook?.title ?? (bookForm.projectName || "مشروع جديد"),
+            projectName:
+              productionBook?.title ?? (bookForm.projectName || "مشروع جديد"),
           }),
         }
       );
@@ -112,7 +117,8 @@ export function useDocumentationController() {
         setError(response.error ?? "فشل في إنشاء دليل الأسلوب");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "حدث خطأ أثناء الإنشاء";
+      const message =
+        err instanceof Error ? err.message : "حدث خطأ أثناء الإنشاء";
       setError(message);
     } finally {
       setLoading(false);
@@ -134,7 +140,9 @@ export function useDocumentationController() {
             ...decisionForm,
             projectName:
               productionBook?.title ??
-              (bookForm.projectName || bookForm.projectNameAr || "art-director-default"),
+              (bookForm.projectName ||
+                bookForm.projectNameAr ||
+                "art-director-default"),
           }),
         }
       );
@@ -148,7 +156,8 @@ export function useDocumentationController() {
         setError(response.error ?? "فشل في توثيق القرار");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "حدث خطأ أثناء التوثيق";
+      const message =
+        err instanceof Error ? err.message : "حدث خطأ أثناء التوثيق";
       setError(message);
     } finally {
       setLoading(false);
@@ -167,23 +176,25 @@ export function useDocumentationController() {
       setSuccessMessage(null);
 
       try {
-        const response = await fetchArtDirectorJson<ApiResponse<DocumentationExportPayload>>(
-          "/documentation/export",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ format, bookId: productionBook?.id }),
-          }
-        );
+        const response = await fetchArtDirectorJson<
+          ApiResponse<DocumentationExportPayload>
+        >("/documentation/export", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ format, bookId: productionBook?.id }),
+        });
 
         if (response.success && response.data) {
           triggerDownload(response.data);
-          setSuccessMessage(`تم تنزيل ملف التوثيق بصيغة ${response.data.format}`);
+          setSuccessMessage(
+            `تم تنزيل ملف التوثيق بصيغة ${response.data.format}`
+          );
         } else {
           setError(response.error ?? "فشل في التصدير");
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "حدث خطأ أثناء التصدير";
+        const message =
+          err instanceof Error ? err.message : "حدث خطأ أثناء التصدير";
         setError(message);
       }
     },
@@ -194,9 +205,12 @@ export function useDocumentationController() {
     setBookForm((previous) => ({ ...previous, ...data }));
   }, []);
 
-  const handleDecisionFormChange = useCallback((data: Partial<DecisionFormData>) => {
-    setDecisionForm((previous) => ({ ...previous, ...data }));
-  }, []);
+  const handleDecisionFormChange = useCallback(
+    (data: Partial<DecisionFormData>) => {
+      setDecisionForm((previous) => ({ ...previous, ...data }));
+    },
+    []
+  );
 
   useEffect(() => {
     void loadState();

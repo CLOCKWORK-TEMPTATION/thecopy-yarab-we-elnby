@@ -1,10 +1,19 @@
 import { BaseStation, StationInput, StationOptions } from "../base-station";
 import { GeminiService } from "../gemini-service";
 
-import { analyzeMarketPotential, identifyTargetAudience } from "./analyzers/market";
-import { analyzeThemes, generateArtisticReferences } from "./analyzers/themes-and-references";
+import {
+  analyzeMarketPotential,
+  identifyTargetAudience,
+} from "./analyzers/market";
+import {
+  analyzeThemes,
+  generateArtisticReferences,
+} from "./analyzers/themes-and-references";
 import { generate3DMap, generateDynamicTone } from "./analyzers/structure";
-import { generateElevatorPitch, generateStoryStatements } from "./analyzers/story-and-pitch";
+import {
+  generateElevatorPitch,
+  generateStoryStatements,
+} from "./analyzers/story-and-pitch";
 import { generateGenreMatrix, generateHybridGenre } from "./analyzers/genre";
 import { buildContextFromStation1 } from "./context";
 import { calculateConfidenceScore, getErrorFallback } from "./confidence";

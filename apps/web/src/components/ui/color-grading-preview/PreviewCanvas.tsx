@@ -105,7 +105,8 @@ export function PreviewCanvas({
               <path
                 d={`M 0 40 ${Array.from(
                   { length: 20 },
-                  (_, index) => `L ${index * 5} ${40 - seededAmplitude(index, 37.719, 22)}`
+                  (_, index) =>
+                    `L ${index * 5} ${40 - seededAmplitude(index, 37.719, 22)}`
                 ).join(" ")} L 100 40 Z`}
                 fill="rgba(0,0,255,0.3)"
               />
@@ -116,7 +117,10 @@ export function PreviewCanvas({
             {selectedPreset ? (
               <Badge className="bg-black/60 text-white border-0">
                 <Film className="h-3 w-3 ml-1" />
-                {LUT_PRESETS.find((preset) => preset.id === selectedPreset)?.nameAr}
+                {
+                  LUT_PRESETS.find((preset) => preset.id === selectedPreset)
+                    ?.nameAr
+                }
               </Badge>
             ) : null}
           </div>

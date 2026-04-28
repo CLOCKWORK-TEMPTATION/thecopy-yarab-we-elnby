@@ -11,9 +11,20 @@ export const ART_STYLES: ArtStyle[] = [
     id: "cinematic-realism",
     name: "Cinematic Realism",
     nameAr: "الواقعية السينمائية",
-    description: "Photorealistic concept art with cinematic lighting and composition",
-    visualCharacteristics: ["Photorealistic textures", "Dramatic lighting", "Film grain", "Shallow depth of field"],
-    recommendedTechniques: ["Photo bashing", "3D rendering", "Digital painting", "Matte painting"],
+    description:
+      "Photorealistic concept art with cinematic lighting and composition",
+    visualCharacteristics: [
+      "Photorealistic textures",
+      "Dramatic lighting",
+      "Film grain",
+      "Shallow depth of field",
+    ],
+    recommendedTechniques: [
+      "Photo bashing",
+      "3D rendering",
+      "Digital painting",
+      "Matte painting",
+    ],
     exampleReferences: ["Blade Runner 2049", "Dune", "Mad Max: Fury Road"],
   },
   {
@@ -21,8 +32,18 @@ export const ART_STYLES: ArtStyle[] = [
     name: "Stylized Animation",
     nameAr: "الأسلوب المتحرك",
     description: "Bold colors and simplified forms inspired by animation",
-    visualCharacteristics: ["Vibrant colors", "Clean shapes", "Exaggerated proportions", "Expressive lighting"],
-    recommendedTechniques: ["Cel shading", "Toon rendering", "Shape design", "Color scripting"],
+    visualCharacteristics: [
+      "Vibrant colors",
+      "Clean shapes",
+      "Exaggerated proportions",
+      "Expressive lighting",
+    ],
+    recommendedTechniques: [
+      "Cel shading",
+      "Toon rendering",
+      "Shape design",
+      "Color scripting",
+    ],
     exampleReferences: ["Spider-Verse", "Arcane", "Into the Spider-Verse"],
   },
   {
@@ -30,8 +51,18 @@ export const ART_STYLES: ArtStyle[] = [
     name: "Fantasy Epic",
     nameAr: "الفنتازيا الملحمية",
     description: "Grand, mythical aesthetics with magical elements",
-    visualCharacteristics: ["Atmospheric perspective", "Magical effects", "Ancient architecture", "Mythical creatures"],
-    recommendedTechniques: ["Atmospheric painting", "Particle effects", "World building", "Scale contrast"],
+    visualCharacteristics: [
+      "Atmospheric perspective",
+      "Magical effects",
+      "Ancient architecture",
+      "Mythical creatures",
+    ],
+    recommendedTechniques: [
+      "Atmospheric painting",
+      "Particle effects",
+      "World building",
+      "Scale contrast",
+    ],
     exampleReferences: ["Lord of the Rings", "Game of Thrones", "The Witcher"],
   },
 ];
@@ -54,8 +85,18 @@ export const THEME_RELATIONS: Record<string, string[]> = {
 };
 
 export const VR_INTERACTIONS: Record<string, string[]> = {
-  walkthrough: ["teleportation", "free-movement", "look-around", "object-inspection"],
-  presentation: ["slide-control", "laser-pointer", "annotations", "voice-notes"],
+  walkthrough: [
+    "teleportation",
+    "free-movement",
+    "look-around",
+    "object-inspection",
+  ],
+  presentation: [
+    "slide-control",
+    "laser-pointer",
+    "annotations",
+    "voice-notes",
+  ],
   interactive: ["grab-objects", "scale-models", "rotate-view", "paint-sculpt"],
   sculpting: ["brush-tools", "clay-manipulation", "mirror-mode", "undo-redo"],
 };
@@ -74,9 +115,35 @@ export const DEFAULT_SCULPTING_TIPS = [
 ];
 
 export const MATERIAL_PRESETS = {
-  gold: { type: "pbr" as const, baseColor: "#FFD700", roughness: 0.2, metalness: 1.0 },
-  silver: { type: "pbr" as const, baseColor: "#C0C0C0", roughness: 0.2, metalness: 1.0 },
-  glass: { type: "glass" as const, baseColor: "#FFFFFF", roughness: 0.0, metalness: 0.0, transparency: 0.9 },
-  clay: { type: "pbr" as const, baseColor: "#B66A50", roughness: 0.9, metalness: 0.0 },
-  plastic: { type: "pbr" as const, baseColor: "#FF6B6B", roughness: 0.3, metalness: 0.0 },
+  gold: {
+    type: "pbr" as const,
+    baseColor: "#FFD700",
+    roughness: 0.2,
+    metalness: 1.0,
+  },
+  silver: {
+    type: "pbr" as const,
+    baseColor: "#C0C0C0",
+    roughness: 0.2,
+    metalness: 1.0,
+  },
+  glass: {
+    type: "glass" as const,
+    baseColor: "#FFFFFF",
+    roughness: 0.0,
+    metalness: 0.0,
+    transparency: 0.9,
+  },
+  clay: {
+    type: "pbr" as const,
+    baseColor: "#B66A50",
+    roughness: 0.9,
+    metalness: 0.0,
+  },
+  plastic: {
+    type: "pbr" as const,
+    baseColor: "#FF6B6B",
+    roughness: 0.3,
+    metalness: 0.0,
+  },
 };

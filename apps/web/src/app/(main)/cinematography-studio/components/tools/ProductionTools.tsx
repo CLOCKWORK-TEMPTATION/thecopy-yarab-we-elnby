@@ -549,14 +549,4 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
   );
 };
 
-
-
-
-
-
-
-
-
-
-
 export default ProductionTools;

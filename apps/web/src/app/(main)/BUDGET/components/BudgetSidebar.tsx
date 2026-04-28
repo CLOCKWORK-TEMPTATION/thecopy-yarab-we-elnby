@@ -89,7 +89,9 @@ export const BudgetSidebar: React.FC<BudgetSidebarProps> = ({
               {filteredBudgets.length === 0 ? (
                 <div
                   className={`text-center py-8 ${
-                    preferences.theme === "dark" ? "text-white/55" : "text-white/45"
+                    preferences.theme === "dark"
+                      ? "text-white/55"
+                      : "text-white/45"
                   }`}
                 >
                   <Save size={48} className="mx-auto mb-4 opacity-50" />
@@ -110,7 +112,9 @@ export const BudgetSidebar: React.FC<BudgetSidebarProps> = ({
                     <div className="flex justify-between items-start mb-2">
                       <h4
                         className={`font-medium truncate flex-1 ${
-                          preferences.theme === "dark" ? "text-white" : "text-white"
+                          preferences.theme === "dark"
+                            ? "text-white"
+                            : "text-white"
                         }`}
                       >
                         {saved.name}
@@ -131,7 +135,9 @@ export const BudgetSidebar: React.FC<BudgetSidebarProps> = ({
                     </div>
                     <p
                       className={`text-sm mb-2 line-clamp-2 ${
-                        preferences.theme === "dark" ? "text-white/68" : "text-white/55"
+                        preferences.theme === "dark"
+                          ? "text-white/68"
+                          : "text-white/55"
                       }`}
                     >
                       {saved.script.substring(0, 100)}...
@@ -139,7 +145,9 @@ export const BudgetSidebar: React.FC<BudgetSidebarProps> = ({
                     <div className="flex justify-between items-center">
                       <span
                         className={`text-xs ${
-                          preferences.theme === "dark" ? "text-white/55" : "text-white/45"
+                          preferences.theme === "dark"
+                            ? "text-white/55"
+                            : "text-white/45"
                         }`}
                       >
                         {new Date(saved.date).toLocaleDateString()}

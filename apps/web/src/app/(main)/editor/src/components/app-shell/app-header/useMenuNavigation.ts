@@ -13,8 +13,12 @@ import {
 
 export interface UseMenuNavigationReturn {
   menubarId: string;
-  menubarButtonRefs: React.MutableRefObject<Record<string, HTMLButtonElement | null>>;
-  menuItemRefs: React.MutableRefObject<Record<string, HTMLButtonElement | null>>;
+  menubarButtonRefs: React.MutableRefObject<
+    Record<string, HTMLButtonElement | null>
+  >;
+  menuItemRefs: React.MutableRefObject<
+    Record<string, HTMLButtonElement | null>
+  >;
   previouslyActiveMenuRef: React.MutableRefObject<string | null>;
   pendingFocusFirstItemRef: React.MutableRefObject<string | null>;
   sectionIndex: Map<string, number>;
@@ -132,12 +136,7 @@ export function useMenuNavigation(
     }
 
     previouslyActiveMenuRef.current = activeMenu;
-  }, [
-    activeMenu,
-    menuSections,
-    focusMenuItem,
-    focusSectionButton,
-  ]);
+  }, [activeMenu, menuSections, focusMenuItem, focusSectionButton]);
 
   return {
     menubarId,

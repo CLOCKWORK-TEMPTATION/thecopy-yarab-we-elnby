@@ -262,7 +262,9 @@ const updateRuntimeForSuccessfulInvocation = (response, invocation) => {
     activeModel: invocation.model,
     activeSpecifier: invocation.requestedSpecifier,
     usedFallback: invocation.usedFallback,
-    fallbackReason: invocation.usedFallback ? "temporary-primary-failure" : null,
+    fallbackReason: invocation.usedFallback
+      ? "temporary-primary-failure"
+      : null,
     lastStatus: response.status,
     lastErrorClass: null,
     lastErrorMessage: null,
@@ -273,7 +275,12 @@ const updateRuntimeForSuccessfulInvocation = (response, invocation) => {
   });
 };
 
-const buildFailedInvocationResponse = (request, startTime, reviewModel, error) => {
+const buildFailedInvocationResponse = (
+  request,
+  startTime,
+  reviewModel,
+  error
+) => {
   const providerInfo = resolveProviderErrorInfo(error);
   const coverage = determineCoverage([], request);
   return {
@@ -291,7 +298,12 @@ const buildFailedInvocationResponse = (request, startTime, reviewModel, error) =
   };
 };
 
-const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) => {
+const updateRuntimeForFailedInvocation = (
+  response,
+  error,
+  config,
+  reviewModel
+) => {
   const providerInfo = resolveProviderErrorInfo(error);
   updateReviewRuntimeSnapshot(AGENT_REVIEW_CHANNEL, {
     activeProvider: error?.provider ?? config.resolvedProvider,
@@ -299,8 +311,8 @@ const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) 
     activeSpecifier: error?.specifier ?? config.resolvedSpecifier,
     usedFallback: Boolean(
       config.fallback?.usable &&
-        error?.specifier &&
-        config.fallback.specifier === error.specifier
+      error?.specifier &&
+      config.fallback.specifier === error.specifier
     ),
     fallbackReason:
       config.fallback?.usable &&
@@ -320,7 +332,12 @@ const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) 
   });
 };
 
-const requestReviewFromProvider = async (request, startTime, config, reviewModel) => {
+const requestReviewFromProvider = async (
+  request,
+  startTime,
+  config,
+  reviewModel
+) => {
   const messages = buildAgentReviewMessages(request);
 
   for (const boostFactor of [1, 2]) {

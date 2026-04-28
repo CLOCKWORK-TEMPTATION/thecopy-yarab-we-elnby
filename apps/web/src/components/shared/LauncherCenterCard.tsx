@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import images from "@/lib/images";

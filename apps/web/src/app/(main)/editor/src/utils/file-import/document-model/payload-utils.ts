@@ -8,16 +8,23 @@ import {
   SCREENPLAY_PAYLOAD_TOKEN,
   MARKER_RE,
 } from "./constants";
-import type { ScreenplayPayloadV1, UnsignedPayload, ScreenplayBlock } from "./types";
-import { utf8ToBase64, base64ToUtf8, fnv1a, normalizeBlockText } from "./encoding";
+import type {
+  ScreenplayPayloadV1,
+  UnsignedPayload,
+  ScreenplayBlock,
+} from "./types";
+import {
+  utf8ToBase64,
+  base64ToUtf8,
+  fnv1a,
+  normalizeBlockText,
+} from "./encoding";
 import { normalizeIncomingBlocks } from "./block-utils";
 import { normalizeFormatId } from "./format-utils";
 import { htmlToScreenplayBlocks } from "./html-converter";
 
 /** يحسب بصمة FNV1a للحمولة بدون حقل checksum عبر تسلسل JSON */
-const computePayloadChecksum = (
-  payload: UnsignedPayload
-): string => {
+const computePayloadChecksum = (payload: UnsignedPayload): string => {
   return fnv1a(JSON.stringify(payload));
 };
 

@@ -48,7 +48,11 @@ interface SceneViewportProps {
   dragStart: { x: number; y: number };
   viewOffset: { x: number; y: number };
   zoom: number;
-  getObjectViewportPosition: (pos: Position3D) => { x: number; y: number; scale: number };
+  getObjectViewportPosition: (pos: Position3D) => {
+    x: number;
+    y: number;
+    scale: number;
+  };
   getTimeOfDayStyle: () => string;
   setViewMode: (mode: "top" | "side" | "front" | "perspective") => void;
   setShowGrid: (v: boolean) => void;

@@ -17,7 +17,9 @@ export function isVisualIssue(value: unknown): value is VisualIssue {
   );
 }
 
-export function isVisualAnalysisData(value: unknown): value is VisualAnalysisData {
+export function isVisualAnalysisData(
+  value: unknown
+): value is VisualAnalysisData {
   if (!isRecord(value)) return false;
 
   return (

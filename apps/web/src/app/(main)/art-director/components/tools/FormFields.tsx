@@ -3,7 +3,11 @@
 import { InputField } from "./InputField";
 import type { FormFieldsProps } from "./types";
 
-export function FormFields({ inputs, formData, onFieldChange }: FormFieldsProps) {
+export function FormFields({
+  inputs,
+  formData,
+  onFieldChange,
+}: FormFieldsProps) {
   return (
     <>
       {inputs.map((input) => (

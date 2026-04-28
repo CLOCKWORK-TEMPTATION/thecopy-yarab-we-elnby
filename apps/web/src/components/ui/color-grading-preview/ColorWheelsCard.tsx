@@ -28,7 +28,8 @@ export function ColorWheelsCard({ grade, onUpdate }: ColorWheelsCardProps) {
               <div
                 className="w-12 h-12 mx-auto rounded-full border-2 border-zinc-700 relative cursor-pointer"
                 style={{
-                  background: "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)",
+                  background:
+                    "conic-gradient(red, yellow, lime, aqua, blue, magenta, red)",
                 }}
                 onClick={(event) => {
                   const rect = event.currentTarget.getBoundingClientRect();

@@ -2,15 +2,24 @@
 
 import type { ShotReference, ShotFilters, SortOption } from "./types";
 
-export function filterShots(shots: ShotReference[], filters: ShotFilters): ShotReference[] {
+export function filterShots(
+  shots: ShotReference[],
+  filters: ShotFilters
+): ShotReference[] {
   return shots.filter((shot) => {
-    if (filters.categories.length > 0 && !filters.categories.includes(shot.category)) {
+    if (
+      filters.categories.length > 0 &&
+      !filters.categories.includes(shot.category)
+    ) {
       return false;
     }
     if (filters.moods.length > 0 && !filters.moods.includes(shot.mood)) {
       return false;
     }
-    if (filters.timesOfDay.length > 0 && !filters.timesOfDay.includes(shot.timeOfDay)) {
+    if (
+      filters.timesOfDay.length > 0 &&
+      !filters.timesOfDay.includes(shot.timeOfDay)
+    ) {
       return false;
     }
     if (filters.aiGeneratedOnly && !shot.aiGenerated) {
@@ -24,7 +33,8 @@ export function filterShots(shots: ShotReference[], filters: ShotFilters): ShotR
     }
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
-      const searchableText = `${shot.title} ${shot.description} ${shot.tags.join(" ")}`.toLowerCase();
+      const searchableText =
+        `${shot.title} ${shot.description} ${shot.tags.join(" ")}`.toLowerCase();
       if (!searchableText.includes(query)) {
         return false;
       }
@@ -33,7 +43,10 @@ export function filterShots(shots: ShotReference[], filters: ShotFilters): ShotR
   });
 }
 
-export function sortShots(shots: ShotReference[], sortBy: SortOption): ShotReference[] {
+export function sortShots(
+  shots: ShotReference[],
+  sortBy: SortOption
+): ShotReference[] {
   const sorted = [...shots];
   switch (sortBy) {
     case "popular":

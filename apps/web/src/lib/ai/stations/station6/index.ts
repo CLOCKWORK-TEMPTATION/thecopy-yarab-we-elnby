@@ -54,10 +54,11 @@ export class Station6Diagnostics {
 
     try {
       // Generate comprehensive diagnostics report
-      const diagnosticsReport = await this.diagnosticsGenerator.generateComprehensiveDiagnostics(
-        text,
-        previousStationsOutput
-      );
+      const diagnosticsReport =
+        await this.diagnosticsGenerator.generateComprehensiveDiagnostics(
+          text,
+          previousStationsOutput
+        );
 
       // Conduct multi-agent debate for critical validation
       const debateResults = await this.debateConductor.conductValidationDebate(
@@ -67,26 +68,29 @@ export class Station6Diagnostics {
       );
 
       // Generate detailed treatment plan
-      const treatmentPlan = await this.treatmentPlanner.generateDetailedTreatmentPlan(
-        diagnosticsReport,
-        debateResults,
-        previousStationsOutput
-      );
+      const treatmentPlan =
+        await this.treatmentPlanner.generateDetailedTreatmentPlan(
+          diagnosticsReport,
+          debateResults,
+          previousStationsOutput
+        );
 
       // Predict plot trajectory with alternatives
-      const plotPredictions = await this.plotPredictor.predictPlotTrajectoryWithAlternatives(
-        text,
-        previousStationsOutput,
-        diagnosticsReport
-      );
+      const plotPredictions =
+        await this.plotPredictor.predictPlotTrajectoryWithAlternatives(
+          text,
+          previousStationsOutput,
+          diagnosticsReport
+        );
 
       // Quantify uncertainty across all analyses
-      const uncertaintyReport = await this.uncertaintyQuantifier.quantifyComprehensiveUncertainty({
-        diagnosticsReport,
-        debateResults,
-        treatmentPlan,
-        plotPredictions,
-      });
+      const uncertaintyReport =
+        await this.uncertaintyQuantifier.quantifyComprehensiveUncertainty({
+          diagnosticsReport,
+          debateResults,
+          treatmentPlan,
+          plotPredictions,
+        });
 
       const metadata = {
         analysisTimestamp: new Date(),

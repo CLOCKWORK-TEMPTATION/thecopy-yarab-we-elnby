@@ -53,13 +53,18 @@ export const optimizeSequence = (
   });
 
   const viterbiSequence = viterbiDecode(allEmissions);
-  const disagreements = detectDisagreements(drafts, viterbiSequence, allEmissions);
+  const disagreements = detectDisagreements(
+    drafts,
+    viterbiSequence,
+    allEmissions
+  );
 
   const result: SequenceOptimizationResult = {
     viterbiSequence,
     disagreements,
     totalDisagreements: disagreements.length,
-    disagreementRate: drafts.length > 0 ? disagreements.length / drafts.length : 0,
+    disagreementRate:
+      drafts.length > 0 ? disagreements.length / drafts.length : 0,
   };
 
   if (disagreements.length > 0) {
@@ -69,7 +74,10 @@ export const optimizeSequence = (
       disagreementRate: result.disagreementRate.toFixed(3),
       topDisagreements: disagreements
         .slice()
-        .sort((left, right) => right.disagreementStrength - left.disagreementStrength)
+        .sort(
+          (left, right) =>
+            right.disagreementStrength - left.disagreementStrength
+        )
         .slice(0, 5)
         .map((entry) => ({
           line: entry.lineIndex,

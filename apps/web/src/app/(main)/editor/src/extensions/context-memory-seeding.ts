@@ -110,8 +110,7 @@ function hasActionContamination(lines: string[], name: string) {
     if (!trimmed || /[:：]\s*$/.test(trimmed)) return false;
     const firstWord = trimmed.split(/\s+/)[0] ?? "";
     return (
-      normalizeCharacterName(firstWord) === name &&
-      isActionVerbStart(trimmed)
+      normalizeCharacterName(firstWord) === name && isActionVerbStart(trimmed)
     );
   });
 }

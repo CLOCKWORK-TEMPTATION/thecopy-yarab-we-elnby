@@ -5,7 +5,10 @@ import type {
   SuspicionFeature,
 } from "@editor/suspicion-engine/types";
 
-export function makeTrace(lineIndex: number, text: string): ClassificationTrace {
+export function makeTrace(
+  lineIndex: number,
+  text: string
+): ClassificationTrace {
   return {
     lineIndex,
     rawText: text,

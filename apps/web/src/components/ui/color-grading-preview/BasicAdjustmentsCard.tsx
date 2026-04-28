@@ -22,7 +22,12 @@ export function BasicAdjustmentsCard({
       <CardHeader className="pb-3">
         <CardTitle className="text-sm text-zinc-400 uppercase tracking-wider flex items-center justify-between">
           التعديلات الأساسية
-          <Button variant="ghost" size="sm" onClick={onReset} className="h-6 px-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReset}
+            className="h-6 px-2"
+          >
             <RotateCcw className="h-3 w-3" />
           </Button>
         </CardTitle>
@@ -35,7 +40,9 @@ export function BasicAdjustmentsCard({
               حرارة اللون
             </label>
             <span className="text-xs font-mono text-amber-500">
-              {grade.temperature > 0 ? `+${grade.temperature}` : grade.temperature}
+              {grade.temperature > 0
+                ? `+${grade.temperature}`
+                : grade.temperature}
             </span>
           </div>
           <div className="relative">
@@ -44,7 +51,9 @@ export function BasicAdjustmentsCard({
               value={[grade.temperature]}
               min={-100}
               max={100}
-              onValueChange={([value]) => onUpdate("temperature", value ?? grade.temperature)}
+              onValueChange={([value]) =>
+                onUpdate("temperature", value ?? grade.temperature)
+              }
             />
           </div>
         </div>
@@ -55,13 +64,17 @@ export function BasicAdjustmentsCard({
               <Contrast className="h-3 w-3" />
               التباين
             </label>
-            <span className="text-xs font-mono text-amber-500">{grade.contrast}%</span>
+            <span className="text-xs font-mono text-amber-500">
+              {grade.contrast}%
+            </span>
           </div>
           <Slider
             value={[grade.contrast]}
             min={50}
             max={200}
-            onValueChange={([value]) => onUpdate("contrast", value ?? grade.contrast)}
+            onValueChange={([value]) =>
+              onUpdate("contrast", value ?? grade.contrast)
+            }
           />
         </div>
 
@@ -71,13 +84,17 @@ export function BasicAdjustmentsCard({
               <Droplets className="h-3 w-3" />
               التشبع
             </label>
-            <span className="text-xs font-mono text-amber-500">{grade.saturation}%</span>
+            <span className="text-xs font-mono text-amber-500">
+              {grade.saturation}%
+            </span>
           </div>
           <Slider
             value={[grade.saturation]}
             min={0}
             max={200}
-            onValueChange={([value]) => onUpdate("saturation", value ?? grade.saturation)}
+            onValueChange={([value]) =>
+              onUpdate("saturation", value ?? grade.saturation)
+            }
           />
         </div>
 
@@ -88,7 +105,10 @@ export function BasicAdjustmentsCard({
               التعريض
             </label>
             <span className="text-xs font-mono text-amber-500">
-              {grade.exposure > 0 ? `+${grade.exposure.toFixed(1)}` : grade.exposure.toFixed(1)} EV
+              {grade.exposure > 0
+                ? `+${grade.exposure.toFixed(1)}`
+                : grade.exposure.toFixed(1)}{" "}
+              EV
             </span>
           </div>
           <Slider
@@ -96,7 +116,9 @@ export function BasicAdjustmentsCard({
             min={-2}
             max={2}
             step={0.1}
-            onValueChange={([value]) => onUpdate("exposure", value ?? grade.exposure)}
+            onValueChange={([value]) =>
+              onUpdate("exposure", value ?? grade.exposure)
+            }
           />
         </div>
 
@@ -104,25 +126,33 @@ export function BasicAdjustmentsCard({
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-xs text-zinc-400">الإضاءات</label>
-              <span className="text-xs font-mono text-amber-500">{grade.highlights}</span>
+              <span className="text-xs font-mono text-amber-500">
+                {grade.highlights}
+              </span>
             </div>
             <Slider
               value={[grade.highlights]}
               min={-100}
               max={100}
-              onValueChange={([value]) => onUpdate("highlights", value ?? grade.highlights)}
+              onValueChange={([value]) =>
+                onUpdate("highlights", value ?? grade.highlights)
+              }
             />
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-xs text-zinc-400">الظلال</label>
-              <span className="text-xs font-mono text-amber-500">{grade.shadows}</span>
+              <span className="text-xs font-mono text-amber-500">
+                {grade.shadows}
+              </span>
             </div>
             <Slider
               value={[grade.shadows]}
               min={-100}
               max={100}
-              onValueChange={([value]) => onUpdate("shadows", value ?? grade.shadows)}
+              onValueChange={([value]) =>
+                onUpdate("shadows", value ?? grade.shadows)
+              }
             />
           </div>
         </div>

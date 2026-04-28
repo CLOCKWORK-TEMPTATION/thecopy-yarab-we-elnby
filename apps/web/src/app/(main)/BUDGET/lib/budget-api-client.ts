@@ -1,7 +1,4 @@
-import {
-  downloadBlob,
-  resolveFilename,
-} from "./budget-page-utils";
+import { downloadBlob, resolveFilename } from "./budget-page-utils";
 
 import type {
   BudgetAnalysisRuntimePayload,
@@ -41,7 +38,8 @@ export async function generateBudgetDocument({
       scenario,
     }),
   });
-  const payload = (await response.json()) as BudgetEnvelope<BudgetRuntimePayload>;
+  const payload =
+    (await response.json()) as BudgetEnvelope<BudgetRuntimePayload>;
 
   if (
     !response.ok ||

@@ -70,7 +70,10 @@ export default function Documentation() {
 
       <div className="art-grid-2" style={{ gap: "24px" }}>
         {state.productionBook ? (
-          <ProductionBookCard book={state.productionBook} onExport={actions.handleExport} />
+          <ProductionBookCard
+            book={state.productionBook}
+            onExport={actions.handleExport}
+          />
         ) : null}
         {state.styleGuide ? <StyleGuideCard guide={state.styleGuide} /> : null}
       </div>

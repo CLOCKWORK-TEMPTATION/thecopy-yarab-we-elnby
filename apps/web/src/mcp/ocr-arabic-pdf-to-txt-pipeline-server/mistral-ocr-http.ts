@@ -149,7 +149,5 @@ export async function mistralRequestJson(
     }
   }
 
-  throw new Error(
-    `Mistral request failed after retries: ${String(lastError)}`
-  );
+  throw new Error(`Mistral request failed after retries: ${String(lastError)}`);
 }

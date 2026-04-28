@@ -26,12 +26,8 @@ export function HeaderSecondary({
   onApproveVisibleVersion,
   onDismissFailure,
 }: HeaderSecondaryProps): React.JSX.Element {
-  const {
-    statusLabel,
-    showStatus,
-    approvalEligible,
-    hasRecoverableFailure,
-  } = statusState;
+  const { statusLabel, showStatus, approvalEligible, hasRecoverableFailure } =
+    statusState;
 
   return (
     <div className="app-header-secondary flex items-center gap-2">

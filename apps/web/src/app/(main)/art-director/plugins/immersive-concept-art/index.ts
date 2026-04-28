@@ -22,12 +22,16 @@ export class ImmersiveConceptArtStudio implements Plugin {
   name = "Immersive Concept Art Studio";
   nameAr = "استوديو الفن التصوري الغامر";
   version = "1.0.0";
-  description = "Create concept art in VR with 3D sculpting, material painting, and immersive visualization";
-  descriptionAr = "أنشئ فناً تصورياً في VR مع النحت ثلاثي الأبعاد ورسم المواد والتصور الغامر";
+  description =
+    "Create concept art in VR with 3D sculpting, material painting, and immersive visualization";
+  descriptionAr =
+    "أنشئ فناً تصورياً في VR مع النحت ثلاثي الأبعاد ورسم المواد والتصور الغامر";
   category = "art-creation" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized with ${ART_STYLES.length} art styles`);
+    console.log(
+      `[${this.name}] Initialized with ${ART_STYLES.length} art styles`
+    );
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {

@@ -28,7 +28,11 @@ export function DocumentationToolbar({
         <PenTool size={18} aria-hidden="true" />
         دليل الأسلوب
       </button>
-      <button className="art-btn art-btn-secondary" onClick={onLogDecision} type="button">
+      <button
+        className="art-btn art-btn-secondary"
+        onClick={onLogDecision}
+        type="button"
+      >
         <Plus size={18} aria-hidden="true" />
         توثيق قرار
       </button>

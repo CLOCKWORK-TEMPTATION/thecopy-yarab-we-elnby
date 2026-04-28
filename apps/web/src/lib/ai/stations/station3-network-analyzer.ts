@@ -37,7 +37,9 @@ export class NetworkAnalyzer {
       (network.characters.size * (network.characters.size - 1)) / 2;
     const actualConnections = network.relationships.size;
     const density =
-      maxPossibleConnections > 0 ? actualConnections / maxPossibleConnections : 0;
+      maxPossibleConnections > 0
+        ? actualConnections / maxPossibleConnections
+        : 0;
 
     const avgConnectionsPerCharacter =
       network.characters.size > 0
@@ -70,7 +72,9 @@ export class NetworkAnalyzer {
     };
   }
 
-  private calculateConflictDistribution(network: ConflictNetwork): Map<string, number> {
+  private calculateConflictDistribution(
+    network: ConflictNetwork
+  ): Map<string, number> {
     const distribution = new Map<string, number>();
     for (const character of network.characters.values()) {
       const conflictCount = Array.from(network.conflicts.values()).filter(
@@ -86,7 +90,8 @@ export class NetworkAnalyzer {
     if (values.length === 0) return 0;
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const variance =
-      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+      values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+      values.length;
     const stdDev = Math.sqrt(variance);
     return Math.min(stdDev / mean, 1) || 0;
   }
@@ -134,7 +139,10 @@ export class NetworkAnalyzer {
       relatedRelationships: [],
       pivotPoints: [],
       timestamps: [new Date()],
-      metadata: { source: "Default_Analysis", inferenceTimestamp: new Date().toISOString() },
+      metadata: {
+        source: "Default_Analysis",
+        inferenceTimestamp: new Date().toISOString(),
+      },
     };
   }
 
@@ -145,8 +153,8 @@ export class NetworkAnalyzer {
     const characterArcs = new Map<string, CharacterArc>();
 
     for (const character of network.characters.values()) {
-      const conflicts = Array.from(network.conflicts.values()).filter(
-        (c) => c.involvedCharacters.includes(character.id)
+      const conflicts = Array.from(network.conflicts.values()).filter((c) =>
+        c.involvedCharacters.includes(character.id)
       );
       const relationships = Array.from(network.relationships.values()).filter(
         (r) => r.source === character.id || r.target === character.id
@@ -156,10 +164,22 @@ export class NetworkAnalyzer {
         characterId: character.id,
         characterName: character.name,
         arcType: this.inferArcType(character, conflicts, relationships),
-        arcDescription: this.generateArcDescription(character, conflicts, relationships),
+        arcDescription: this.generateArcDescription(
+          character,
+          conflicts,
+          relationships
+        ),
         keyMoments: this.extractKeyMoments(character, conflicts, relationships),
-        transformation: this.describeTransformation(character, conflicts, relationships),
-        confidence: this.calculateArcConfidence(character, conflicts, relationships),
+        transformation: this.describeTransformation(
+          character,
+          conflicts,
+          relationships
+        ),
+        confidence: this.calculateArcConfidence(
+          character,
+          conflicts,
+          relationships
+        ),
       });
     }
 
@@ -178,8 +198,10 @@ export class NetworkAnalyzer {
     );
 
     if (conflictStrength > 10 && relationshipBalance < 0) return "fall";
-    if (conflictStrength > 10 && relationshipBalance > 0) return "transformational";
-    if (conflictStrength > 5) return relationshipBalance > 0 ? "positive" : "negative";
+    if (conflictStrength > 10 && relationshipBalance > 0)
+      return "transformational";
+    if (conflictStrength > 5)
+      return relationshipBalance > 0 ? "positive" : "negative";
     return "flat";
   }
 
@@ -189,7 +211,9 @@ export class NetworkAnalyzer {
     relationships: Relationship[]
   ): string {
     const conflictNames = conflicts.map((c) => c.name).join("، ");
-    const relationshipTypes = relationships.map((r) => r.type.toString()).join("، ");
+    const relationshipTypes = relationships
+      .map((r) => r.type.toString())
+      .join("، ");
     return `قوس ${character.name} يتضمن الصراعات: ${conflictNames} والعلاقات: ${relationshipTypes}`;
   }
 
@@ -198,7 +222,11 @@ export class NetworkAnalyzer {
     conflicts: Conflict[],
     relationships: Relationship[]
   ): { timestamp: Date; description: string; impact: number }[] {
-    const keyMoments: { timestamp: Date; description: string; impact: number }[] = [];
+    const keyMoments: {
+      timestamp: Date;
+      description: string;
+      impact: number;
+    }[] = [];
 
     for (const conflict of conflicts) {
       if (conflict.timestamps && conflict.timestamps.length > 0) {
@@ -226,8 +254,12 @@ export class NetworkAnalyzer {
     _conflicts: Conflict[],
     relationships: Relationship[]
   ): string {
-    const positiveRels = relationships.filter((r) => r.nature === RelationshipNature.POSITIVE).length;
-    const negativeRels = relationships.filter((r) => r.nature === RelationshipNature.NEGATIVE).length;
+    const positiveRels = relationships.filter(
+      (r) => r.nature === RelationshipNature.POSITIVE
+    ).length;
+    const negativeRels = relationships.filter(
+      (r) => r.nature === RelationshipNature.NEGATIVE
+    ).length;
 
     if (positiveRels > negativeRels)
       return `${character.name} يتحول نحو الأفضل من خلال العلاقات الإيجابية`;
@@ -272,7 +304,8 @@ export class NetworkAnalyzer {
         });
 
         pivotPoints.push({
-          timestamp: conflict.timestamps?.[0]?.toISOString() ?? new Date().toISOString(),
+          timestamp:
+            conflict.timestamps?.[0]?.toISOString() ?? new Date().toISOString(),
           description: `نقطة تحول: ${conflict.name}`,
           impact: conflict.strength / 10,
           affectedElements: affectedCharacters,

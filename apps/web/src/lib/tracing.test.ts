@@ -18,7 +18,9 @@ describe("browser tracing", () => {
 
   it("skips initialization work when tracing is disabled", () => {
     process.env.NEXT_PUBLIC_TRACING_ENABLED = "false";
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => { /* empty */ });
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {
+      /* empty */
+    });
 
     initBrowserTracing();
 

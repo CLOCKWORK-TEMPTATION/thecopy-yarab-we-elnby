@@ -40,29 +40,26 @@ export function useProductivitySnapshot() {
   const [chartData, setChartData] = useState<
     ProductivitySummaryResponse["chartData"]
   >([]);
-  const [pieData, setPieData] = useState<ProductivitySummaryResponse["pieData"]>(
-    [],
-  );
+  const [pieData, setPieData] = useState<
+    ProductivitySummaryResponse["pieData"]
+  >([]);
   const [analysis, setAnalysis] =
     useState<ProductivityAnalysis>(EMPTY_ANALYSIS);
   const [error, setError] = useState<string | null>(null);
 
-  const applySnapshot = useCallback(
-    async (clearError: boolean) => {
-      const [summaryData, analysisData] = await Promise.all([
-        loadProductivitySummary(),
-        loadProductivityAnalysis(),
-      ]);
+  const applySnapshot = useCallback(async (clearError: boolean) => {
+    const [summaryData, analysisData] = await Promise.all([
+      loadProductivitySummary(),
+      loadProductivityAnalysis(),
+    ]);
 
-      setChartData(summaryData.chartData);
-      setPieData(summaryData.pieData);
-      setAnalysis(analysisData);
-      if (clearError) {
-        setError(null);
-      }
-    },
-    [],
-  );
+    setChartData(summaryData.chartData);
+    setPieData(summaryData.pieData);
+    setAnalysis(analysisData);
+    if (clearError) {
+      setError(null);
+    }
+  }, []);
 
   const refreshProductivity = useCallback(async () => {
     try {
@@ -129,7 +126,7 @@ export function useProductivitySnapshot() {
 
 export function useProductivityForms(
   refreshProductivity: () => Promise<void>,
-  setError: (value: string | null) => void,
+  setError: (value: string | null) => void
 ) {
   const [showTimeForm, setShowTimeForm] = useState(false);
   const [showDelayForm, setShowDelayForm] = useState(false);

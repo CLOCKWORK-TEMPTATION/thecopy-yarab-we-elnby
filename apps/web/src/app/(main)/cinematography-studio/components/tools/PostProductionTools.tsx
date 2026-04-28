@@ -23,6 +23,7 @@ import { usePostProduction } from "../../hooks";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
 import { PLATFORM_LABELS, SCENE_TYPES } from "./post-production/constants";
+import { DeliveryManagerPanel } from "./post-production/DeliveryManagerPanel";
 import {
   ControlButton,
   InlineBanner,
@@ -481,54 +482,11 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
           </div>
         </StudioPanel>
 
-        <StudioPanel
-          title="Delivery Manager"
-          subtitle="إعدادات التصدير النهائية"
-        >
-          <div className="space-y-3">
-            {(Object.keys(PLATFORM_LABELS) as ExportSettings["platform"][]).map(
-              (platform) => (
-                <Button
-                  key={platform}
-                  type="button"
-                  onClick={() => handleCreateExportSettings(platform)}
-                  className={
-                    exportSettings?.platform === platform
-                      ? "h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
-                      : "h-11 w-full border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-                  }
-                >
-                  {PLATFORM_LABELS[platform]}
-                </Button>
-              )
-            )}
-
-            {exportSettings ? (
-              <div className="rounded-[10px] border border-[#262626] bg-[#070707] p-4">
-                <div className="grid gap-3">
-                  <StudioMetricCell
-                    label="Platform"
-                    value={PLATFORM_LABELS[exportSettings.platform]}
-                    tone="white"
-                  />
-                  <StudioMetricCell
-                    label="Resolution"
-                    value={exportSettings.resolution ?? "--"}
-                  />
-                  <StudioMetricCell
-                    label="Frame Rate"
-                    value={exportSettings.frameRate ?? "--"}
-                    tone="white"
-                  />
-                  <StudioMetricCell
-                    label="Codec"
-                    value={exportSettings.codec ?? "--"}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </StudioPanel>
+        <DeliveryManagerPanel
+          exportSettings={exportSettings}
+          platformLabels={PLATFORM_LABELS}
+          onCreateExportSettings={handleCreateExportSettings}
+        />
       </div>
     </div>
   );

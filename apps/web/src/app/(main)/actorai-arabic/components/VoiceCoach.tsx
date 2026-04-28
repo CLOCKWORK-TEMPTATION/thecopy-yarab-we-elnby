@@ -138,7 +138,9 @@ export const VoiceCoach: React.FC = () => {
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={351.8}
-                  strokeDashoffset={351.8 - (351.8 * metrics.overallScore) / 100}
+                  strokeDashoffset={
+                    351.8 - (351.8 * metrics.overallScore) / 100
+                  }
                   className="text-white transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                 />
               </svg>

@@ -134,7 +134,10 @@ export class CinemaSkillsTrainer implements Plugin {
 
     let progress = traineeProgress.get(data.traineeId);
     if (!progress) {
-      progress = createInitialProgress(data.traineeId, data.traineeName ?? "Trainee");
+      progress = createInitialProgress(
+        data.traineeId,
+        data.traineeName ?? "Trainee"
+      );
       traineeProgress.set(data.traineeId, progress);
     }
 
@@ -301,7 +304,11 @@ export class CinemaSkillsTrainer implements Plugin {
       evaluation.areasForImprovement.push("Technical execution");
 
     evaluation.recommendations = generateRecommendations(evaluation, scenario);
-    evaluation.nextScenarios = suggestNextScenarios(scenario, overallScore, trainingScenarios);
+    evaluation.nextScenarios = suggestNextScenarios(
+      scenario,
+      overallScore,
+      trainingScenarios
+    );
 
     return {
       success: true,
@@ -381,8 +388,16 @@ export class CinemaSkillsTrainer implements Plugin {
       data.feedback
     );
 
-    const skillUpdate = updateSkillLevel(progress, scenario.category, data.score);
-    const newAchievements = generateAchievements(progress, data.scenarioId, data.score);
+    const skillUpdate = updateSkillLevel(
+      progress,
+      scenario.category,
+      data.score
+    );
+    const newAchievements = generateAchievements(
+      progress,
+      data.scenarioId,
+      data.score
+    );
     progress.achievements.push(...newAchievements);
 
     return {

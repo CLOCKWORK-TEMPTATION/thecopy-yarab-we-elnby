@@ -1,4 +1,8 @@
-import { clamp, formatEfficiencyRating, formatOverallRating } from "./score-utils";
+import {
+  clamp,
+  formatEfficiencyRating,
+  formatOverallRating,
+} from "./score-utils";
 import { summarizeText } from "./text-analysis";
 import type { AnalysisPipelinePayload } from "./types";
 
@@ -54,7 +58,9 @@ export function buildStationOutputs(
         pacingAnalysis: {
           overall: paragraphs.length > 6 ? "moderate" : "slow",
           variation: clamp(
-            Math.round((paragraphs.length / Math.max(sentences.length, 1)) * 10),
+            Math.round(
+              (paragraphs.length / Math.max(sentences.length, 1)) * 10
+            ),
             2,
             8
           ),
@@ -194,7 +200,8 @@ export function buildStationOutputs(
                     "حجم المادة السردية قصير نسبيًا ويصعب معه تثبيت قوس تحولي كامل.",
                   location: "النص العام",
                   impact: 7,
-                  suggestion: "إضافة مشاهد تأسيس ومواجهة تكشف التحول قبل الخاتمة.",
+                  suggestion:
+                    "إضافة مشاهد تأسيس ومواجهة تكشف التحول قبل الخاتمة.",
                   affectedElements: ["البنية", "الإيقاع"],
                   priority: 8,
                 },

@@ -57,7 +57,11 @@ export interface SpatialSceneActions {
   applyCameraPreset: (preset: (typeof CAMERA_PRESETS)[number]) => void;
   goToShot: (shot: ShotKeyframe) => void;
   handleSave: () => void;
-  getObjectViewportPosition: (pos: Position3D) => { x: number; y: number; scale: number };
+  getObjectViewportPosition: (pos: Position3D) => {
+    x: number;
+    y: number;
+    scale: number;
+  };
   getTimeOfDayStyle: () => string;
 }
 
@@ -90,15 +94,19 @@ export function useSpatialScene(
   });
 
   const [shots, setShots] = React.useState<ShotKeyframe[]>([]);
-  const [selectedObject, setSelectedObject] = React.useState<string | null>(null);
+  const [selectedObject, setSelectedObject] = React.useState<string | null>(
+    null
+  );
   const [selectedShot, setSelectedShot] = React.useState<string | null>(null);
   const [tool, setTool] = React.useState<SpatialSceneState["tool"]>("select");
-  const [viewMode, setViewMode] = React.useState<SpatialSceneState["viewMode"]>("perspective");
+  const [viewMode, setViewMode] =
+    React.useState<SpatialSceneState["viewMode"]>("perspective");
   const [showGrid, setShowGrid] = React.useState(true);
   const [showLightPreview, setShowLightPreview] = React.useState(true);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
-  const [timeOfDay, setTimeOfDay] = React.useState<SpatialSceneState["timeOfDay"]>("day");
+  const [timeOfDay, setTimeOfDay] =
+    React.useState<SpatialSceneState["timeOfDay"]>("day");
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStart, setDragStart] = React.useState({ x: 0, y: 0 });
   const [viewOffset, setViewOffset] = React.useState({ x: 0, y: 0 });

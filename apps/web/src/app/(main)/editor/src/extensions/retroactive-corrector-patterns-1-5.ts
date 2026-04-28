@@ -41,7 +41,8 @@ export const applyPattern1_ActionEndingWithColon = (
 
     const next = classified[i + 1];
     if (!next) continue;
-    if (next.type !== "action" || hasVeryStrongActionSignal(next.text)) continue;
+    if (next.type !== "action" || hasVeryStrongActionSignal(next.text))
+      continue;
 
     classified[i] = correctedDraft(current, "character", 4);
     classified[i + 1] = correctedDraft(next, "dialogue", 4);

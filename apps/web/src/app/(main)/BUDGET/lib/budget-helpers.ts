@@ -1,6 +1,9 @@
 import { LineItem, Category, Section } from "./types";
 
-export const createLineItem = (code: string, description: string): LineItem => ({
+export const createLineItem = (
+  code: string,
+  description: string
+): LineItem => ({
   code,
   description,
   amount: 0,
@@ -11,7 +14,11 @@ export const createLineItem = (code: string, description: string): LineItem => (
   lastModified: new Date().toISOString(),
 });
 
-export const createCategory = (code: string, name: string, items: LineItem[]): Category => ({
+export const createCategory = (
+  code: string,
+  name: string,
+  items: LineItem[]
+): Category => ({
   code,
   name,
   items,
@@ -19,7 +26,12 @@ export const createCategory = (code: string, name: string, items: LineItem[]): C
   description: "",
 });
 
-export const createSection = (id: string, name: string, categories: Category[], color: string): Section => ({
+export const createSection = (
+  id: string,
+  name: string,
+  categories: Category[],
+  color: string
+): Section => ({
   id,
   name,
   categories,

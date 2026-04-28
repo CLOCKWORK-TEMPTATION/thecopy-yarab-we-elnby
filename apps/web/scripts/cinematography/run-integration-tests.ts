@@ -3,11 +3,21 @@ import { resolve } from "node:path";
 import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
 
 import { runSuite, SuiteResult } from "./utils/test-helpers";
-import { runConfigSuite, runLocalFallbackSuite, runRouteSuite, runMediaHookSuite, runSessionStorageSuite, runCameraBindingSuite } from "./test-suites";
+import {
+  runConfigSuite,
+  runLocalFallbackSuite,
+  runRouteSuite,
+  runMediaHookSuite,
+  runSessionStorageSuite,
+  runCameraBindingSuite,
+} from "./test-suites";
 import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
 import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
 
-const outputDirectory = resolve(process.cwd(), "../../output/cinematography-integration");
+const outputDirectory = resolve(
+  process.cwd(),
+  "../../output/cinematography-integration"
+);
 const reportPath = resolve(outputDirectory, "integration-results.json");
 
 mkdirSync(outputDirectory, { recursive: true });

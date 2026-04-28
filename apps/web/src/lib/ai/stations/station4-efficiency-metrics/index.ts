@@ -1,4 +1,7 @@
-import { BaseStation, type StationConfig } from "../../core/pipeline/base-station";
+import {
+  BaseStation,
+  type StationConfig,
+} from "../../core/pipeline/base-station";
 import { GeminiService } from "../gemini-service";
 
 import { LiteraryQualityAnalyzer } from "./agents/literary-quality";

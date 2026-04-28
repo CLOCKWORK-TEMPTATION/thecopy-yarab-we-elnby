@@ -53,7 +53,10 @@ interface UseCreativeStudioProps {
   geminiService: GeminiService | null;
   showNotification: (type: NotificationState["type"], message: string) => void;
   analysisBlockedReason: string;
-  exportProjectFn: (project: CreativeProject, format: ExportFormat) => { success: boolean; message: string };
+  exportProjectFn: (
+    project: CreativeProject,
+    format: ExportFormat
+  ) => { success: boolean; message: string };
 }
 
 export function useCreativeStudio({
@@ -99,7 +102,9 @@ export function useCreativeStudio({
         setSelectedPrompt(snapshot.selectedPrompt ?? null);
         setSettings(buildSettings(snapshot.settings));
       })
-      .catch(() => { /* empty */ })
+      .catch(() => {
+        /* empty */
+      })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -127,7 +132,9 @@ export function useCreativeStudio({
           projects: projects.map(persistProject),
           settings,
         }
-      ).catch(() => { /* empty */ });
+      ).catch(() => {
+        /* empty */
+      });
     }, 400);
 
     return () => window.clearTimeout(timeoutId);

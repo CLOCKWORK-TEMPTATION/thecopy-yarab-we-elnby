@@ -49,9 +49,15 @@ export function inferFromKeywords<T>(
 // ---------------------------------------------------------------------------
 
 const RELATIONSHIP_TYPE_MAPPINGS: KeywordMapping<RelationshipType>[] = [
-  { keywords: ["أسرة", "أب", "أم", "أخ", "أخت"], value: RelationshipType.FAMILY },
+  {
+    keywords: ["أسرة", "أب", "أم", "أخ", "أخت"],
+    value: RelationshipType.FAMILY,
+  },
   { keywords: ["صديق", "رفاق"], value: RelationshipType.FRIENDSHIP },
-  { keywords: ["حب", "علاقة عاطفية", "زواج"], value: RelationshipType.ROMANTIC },
+  {
+    keywords: ["حب", "علاقة عاطفية", "زواج"],
+    value: RelationshipType.ROMANTIC,
+  },
   { keywords: ["عمل", "زميل", "مدير"], value: RelationshipType.PROFESSIONAL },
   { keywords: ["عدو", "خصم", "منافس"], value: RelationshipType.ANTAGONISTIC },
   { keywords: ["معلم", "تلميذ", "مرشد"], value: RelationshipType.MENTORSHIP },
@@ -60,7 +66,10 @@ const RELATIONSHIP_TYPE_MAPPINGS: KeywordMapping<RelationshipType>[] = [
 const RELATIONSHIP_NATURE_MAPPINGS: KeywordMapping<RelationshipNature>[] = [
   { keywords: ["إيجابي", "داعم", "جيد"], value: RelationshipNature.POSITIVE },
   { keywords: ["سلبي", "معادي", "سيء"], value: RelationshipNature.NEGATIVE },
-  { keywords: ["متغير", "متبدل", "غير مستقر"], value: RelationshipNature.VOLATILE },
+  {
+    keywords: ["متغير", "متبدل", "غير مستقر"],
+    value: RelationshipNature.VOLATILE,
+  },
 ];
 
 const RELATIONSHIP_DIRECTION_MAPPINGS: KeywordMapping<RelationshipDirection>[] =
@@ -199,15 +208,29 @@ export class RelationshipInferenceEngine {
   }
 
   private inferRelationshipType(description: string): RelationshipType {
-    return inferFromKeywords(description, RELATIONSHIP_TYPE_MAPPINGS, RelationshipType.OTHER);
+    return inferFromKeywords(
+      description,
+      RELATIONSHIP_TYPE_MAPPINGS,
+      RelationshipType.OTHER
+    );
   }
 
   private inferRelationshipNature(description: string): RelationshipNature {
-    return inferFromKeywords(description, RELATIONSHIP_NATURE_MAPPINGS, RelationshipNature.NEUTRAL);
+    return inferFromKeywords(
+      description,
+      RELATIONSHIP_NATURE_MAPPINGS,
+      RelationshipNature.NEUTRAL
+    );
   }
 
-  private inferRelationshipDirection(description: string): RelationshipDirection {
-    return inferFromKeywords(description, RELATIONSHIP_DIRECTION_MAPPINGS, RelationshipDirection.BIDIRECTIONAL);
+  private inferRelationshipDirection(
+    description: string
+  ): RelationshipDirection {
+    return inferFromKeywords(
+      description,
+      RELATIONSHIP_DIRECTION_MAPPINGS,
+      RelationshipDirection.BIDIRECTIONAL
+    );
   }
 
   private inferRelationshipStrength(description: string): number {
@@ -260,14 +283,20 @@ export class ConflictInferenceEngine {
     });
 
     const analysisText = toText(result.content) || "";
-    const inferredConflicts = this.parseConflictsFromText(analysisText, characters);
+    const inferredConflicts = this.parseConflictsFromText(
+      analysisText,
+      characters
+    );
 
     return inferredConflicts.length > 0
       ? inferredConflicts
       : this.createDefaultConflicts(characters);
   }
 
-  private parseConflictsFromText(text: string, characters: Character[]): Conflict[] {
+  private parseConflictsFromText(
+    text: string,
+    characters: Character[]
+  ): Conflict[] {
     const conflicts: Conflict[] = [];
     const charNameToId = new Map(characters.map((c) => [c.name, c.id]));
 
@@ -298,7 +327,10 @@ export class ConflictInferenceEngine {
         } else {
           conflictName = "الصراع الرئيسي";
           conflictDesc = match[1]?.trim() ?? "";
-          involvedChars = this.extractCharactersFromDescription(conflictDesc, characters);
+          involvedChars = this.extractCharactersFromDescription(
+            conflictDesc,
+            characters
+          );
         }
 
         const charIds = involvedChars
@@ -346,7 +378,10 @@ export class ConflictInferenceEngine {
         relatedRelationships: [],
         pivotPoints: [],
         timestamps: [new Date()],
-        metadata: { source: "Default_Inference", inferenceTimestamp: new Date().toISOString() },
+        metadata: {
+          source: "Default_Inference",
+          inferenceTimestamp: new Date().toISOString(),
+        },
       });
     }
 
@@ -363,14 +398,20 @@ export class ConflictInferenceEngine {
         relatedRelationships: [],
         pivotPoints: [],
         timestamps: [new Date()],
-        metadata: { source: "Default_Inference", inferenceTimestamp: new Date().toISOString() },
+        metadata: {
+          source: "Default_Inference",
+          inferenceTimestamp: new Date().toISOString(),
+        },
       });
     }
 
     return conflicts;
   }
 
-  private extractCharactersFromDescription(description: string, characters: Character[]): string[] {
+  private extractCharactersFromDescription(
+    description: string,
+    characters: Character[]
+  ): string[] {
     const mentionedChars = characters
       .filter((c) => description.includes(c.name))
       .map((c) => c.name);

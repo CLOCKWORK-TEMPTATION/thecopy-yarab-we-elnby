@@ -14,10 +14,14 @@ export function generateJsonReport(output: Station7Output): string {
   const report = {
     executiveSummary: finalReport.executiveSummary,
     overallAssessment: {
-      narrativeQualityScore: finalReport.overallAssessment.narrativeQualityScore,
-      structuralIntegrityScore: finalReport.overallAssessment.structuralIntegrityScore,
-      characterDevelopmentScore: finalReport.overallAssessment.characterDevelopmentScore,
-      conflictEffectivenessScore: finalReport.overallAssessment.conflictEffectivenessScore,
+      narrativeQualityScore:
+        finalReport.overallAssessment.narrativeQualityScore,
+      structuralIntegrityScore:
+        finalReport.overallAssessment.structuralIntegrityScore,
+      characterDevelopmentScore:
+        finalReport.overallAssessment.characterDevelopmentScore,
+      conflictEffectivenessScore:
+        finalReport.overallAssessment.conflictEffectivenessScore,
       overallScore: finalReport.overallAssessment.overallScore,
       rating: finalReport.overallAssessment.rating,
     },

@@ -42,24 +42,20 @@ export function useWritingEditorController({
       pushOperation,
       settings,
     });
-  const {
-    analysis,
-    analysisSnapshot,
-    handleAnalyze,
-    isAnalyzing,
-  } = useWritingAnalysis({
-    analysisAvailable,
-    analysisBlockedReason,
-    content,
-    onAnalyze,
-    pushOperation,
-  });
+  const { analysis, analysisSnapshot, handleAnalyze, isAnalyzing } =
+    useWritingAnalysis({
+      analysisAvailable,
+      analysisBlockedReason,
+      content,
+      onAnalyze,
+      pushOperation,
+    });
 
   const textStats = useMemo(() => calculateTextStats(content), [content]);
   const isAnalysisStale = Boolean(analysis && analysisSnapshot !== content);
   const analysisNarrative = useMemo(
     () => (analysis ? buildAnalysisNarrative(analysis) : null),
-    [analysis],
+    [analysis]
   );
 
   const handleTrackedContentChange = useCallback(
@@ -67,7 +63,7 @@ export function useWritingEditorController({
       markWriting();
       handleContentChange(nextContent);
     },
-    [handleContentChange, markWriting],
+    [handleContentChange, markWriting]
   );
 
   const handleTrackedAnalyze = useCallback(async () => {
@@ -79,7 +75,7 @@ export function useWritingEditorController({
     pushOperation(
       "success",
       "تحليل النص",
-      `اكتمل التحليل. متوسط الجودة الحالي ${getAverageQuality(result)}/100.`,
+      `اكتمل التحليل. متوسط الجودة الحالي ${getAverageQuality(result)}/100.`
     );
   }, [handleAnalyze, pushOperation]);
 
@@ -103,17 +99,17 @@ export function useWritingEditorController({
       pushOperation(
         "info",
         "تصدير",
-        `جاري تجهيز ملف ${format.toUpperCase()} للتنزيل.`,
+        `جاري تجهيز ملف ${format.toUpperCase()} للتنزيل.`
       );
 
       const result = await Promise.resolve(onExport(project, format));
       pushOperation(
         result.success ? "success" : "error",
         "تصدير",
-        result.message,
+        result.message
       );
     },
-    [onExport, project, pushOperation],
+    [onExport, project, pushOperation]
   );
 
   return {

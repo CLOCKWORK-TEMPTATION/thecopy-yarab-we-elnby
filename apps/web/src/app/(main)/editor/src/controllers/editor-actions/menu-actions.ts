@@ -32,7 +32,10 @@ const LOCKED_ACTIONS = new Set<MenuActionId>([
 ]);
 
 const EXPORT_ACTIONS: Partial<
-  Record<MenuActionId, { format: Parameters<typeof runExport>[0]; fileBase?: string }>
+  Record<
+    MenuActionId,
+    { format: Parameters<typeof runExport>[0]; fileBase?: string }
+  >
 > = {
   "export-html": { format: "html", fileBase: "screenplay-export" },
   "export-pdf": { format: "pdf", fileBase: "screenplay-export" },
@@ -111,10 +114,7 @@ const handleClipboardAction = async (
   }
 };
 
-const saveLocalDraft = (
-  area: EditorArea,
-  deps: EditorActionsDeps
-): void => {
+const saveLocalDraft = (area: EditorArea, deps: EditorActionsDeps): void => {
   const snapshot: EditorAutosaveSnapshot = {
     html: area.getAllHtml(),
     text: area.getAllText(),
@@ -208,7 +208,7 @@ const applyProjectTemplate = (
 const runFileMenuAction = async (
   actionId: MenuActionId,
   area: EditorArea,
-  deps: EditorActionsDeps,
+  deps: EditorActionsDeps
 ): Promise<boolean> => {
   switch (actionId) {
     case "new-file":
@@ -234,7 +234,7 @@ const runFileMenuAction = async (
 
 const runExportMenuAction = async (
   actionId: MenuActionId,
-  deps: EditorActionsDeps,
+  deps: EditorActionsDeps
 ): Promise<boolean> => {
   const exportAction = EXPORT_ACTIONS[actionId];
   if (!exportAction) {
@@ -248,7 +248,7 @@ const runExportMenuAction = async (
 const runEditingMenuAction = async (
   actionId: MenuActionId,
   area: EditorArea,
-  deps: EditorActionsDeps,
+  deps: EditorActionsDeps
 ): Promise<boolean> => {
   switch (actionId) {
     case "undo":
@@ -300,7 +300,7 @@ const runEditingMenuAction = async (
 
 const runWorkflowMenuAction = async (
   actionId: MenuActionId,
-  deps: EditorActionsDeps,
+  deps: EditorActionsDeps
 ): Promise<boolean> => {
   switch (actionId) {
     case "restore-draft":
@@ -329,7 +329,7 @@ const runWorkflowMenuAction = async (
 
 const runInfoMenuAction = (
   actionId: MenuActionId,
-  deps: EditorActionsDeps,
+  deps: EditorActionsDeps
 ): boolean => {
   switch (actionId) {
     case "about":

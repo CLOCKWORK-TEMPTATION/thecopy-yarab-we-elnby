@@ -10,10 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import {
-  SIDEBAR_WIDTH_MOBILE,
-  useSidebar,
-} from "./sidebar-context";
+import { SIDEBAR_WIDTH_MOBILE, useSidebar } from "./sidebar-context";
 
 export const Sidebar = React.forwardRef<
   HTMLDivElement,

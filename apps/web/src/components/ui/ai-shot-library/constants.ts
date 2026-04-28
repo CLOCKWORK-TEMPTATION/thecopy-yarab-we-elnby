@@ -1,6 +1,11 @@
 // Constants for AI Shot Library
 
-import type { ShotCategory, ShotMood, ShotTimeOfDay, SortOption } from "./types";
+import type {
+  ShotCategory,
+  ShotMood,
+  ShotTimeOfDay,
+  SortOption,
+} from "./types";
 
 export const allCategories: ShotCategory[] = [
   "establishing",
@@ -23,7 +28,13 @@ export const allMoods: ShotMood[] = [
   "mysterious",
 ];
 
-export const allTimesOfDay: ShotTimeOfDay[] = ["dawn", "day", "golden", "blue", "night"];
+export const allTimesOfDay: ShotTimeOfDay[] = [
+  "dawn",
+  "day",
+  "golden",
+  "blue",
+  "night",
+];
 
 export const sortOptions: { value: SortOption; label: string }[] = [
   { value: "popular", label: "Most Popular" },

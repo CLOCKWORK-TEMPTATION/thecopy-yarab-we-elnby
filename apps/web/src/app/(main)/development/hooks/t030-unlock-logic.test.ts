@@ -63,7 +63,9 @@ describe("T030: unlock status and manual mode", () => {
       result.current.setAnalysisReport("أ".repeat(101));
     });
     // Wait for the effect to fire
-    await act(async () => { /* empty */ });
+    await act(async () => {
+      /* empty */
+    });
     expect(result.current.unlockStatus.locked).toBe(false);
     expect(result.current.unlockStatus.reason).toBe("ready");
     expect(result.current.isAnalysisComplete).toBe(true);

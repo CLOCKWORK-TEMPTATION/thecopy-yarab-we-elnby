@@ -19,12 +19,7 @@ export type FilterRole =
   | "Group"
   | "Mystery";
 
-export type FilterGender =
-  | "all"
-  | "Male"
-  | "Female"
-  | "Non-binary"
-  | "Unknown";
+export type FilterGender = "all" | "Male" | "Female" | "Non-binary" | "Unknown";
 
 export interface CastBreakdownViewProps {
   /** قائمة أعضاء طاقم التمثيل */

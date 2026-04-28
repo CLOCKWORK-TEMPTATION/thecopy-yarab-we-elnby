@@ -10,16 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  PHASE_CARDS,
-  TAB_VALUE_BY_PHASE,
-  TOOLS,
-} from "./cine-studio-config";
-import {
-  StudioMetricCell,
-  StudioMiniLegend,
-  StudioPanel,
-} from "./studio-ui";
+import { PHASE_CARDS, TAB_VALUE_BY_PHASE, TOOLS } from "./cine-studio-config";
+import { StudioMetricCell, StudioMiniLegend, StudioPanel } from "./studio-ui";
 
 import type { Phase, ToolStatus, VisualMood } from "../types";
 import type { PhaseCard, ToolDefinition } from "./cine-studio-config";
@@ -253,7 +245,10 @@ function DashboardPanels({
         </div>
       </StudioPanel>
 
-      <StudioPanel title="Production Stages" subtitle="مراحل التنفيذ داخل المسار">
+      <StudioPanel
+        title="Production Stages"
+        subtitle="مراحل التنفيذ داخل المسار"
+      >
         <div className="grid gap-4 xl:grid-cols-3">
           {PHASE_CARDS.map((card) => (
             <PhaseStageCard
@@ -281,7 +276,10 @@ function PhaseWorkspace({
   phaseContent: ReactNode;
 }) {
   return (
-    <StudioPanel title="Phase Workspace" subtitle={currentPhaseData.description}>
+    <StudioPanel
+      title="Phase Workspace"
+      subtitle={currentPhaseData.description}
+    >
       <div className="space-y-4">
         <div className="grid gap-3 lg:grid-cols-3">
           {PHASE_CARDS.map((card) => (

@@ -63,7 +63,11 @@ export interface BudgetStateReturn {
   };
   // دوال المعالجة
   handleGenerate: () => void;
-  handleRiskUpdate: (key: keyof SecurityRisk, _field: "percent", value: number) => void;
+  handleRiskUpdate: (
+    key: keyof SecurityRisk,
+    _field: "percent",
+    value: number
+  ) => void;
   handleLineItemUpdate: (
     sectionId: string,
     categoryCode: string,
@@ -132,7 +136,9 @@ export function useBudgetState({
       }
       if (initialScript) setScriptText(initialScript);
     }, 0);
-    return () => { clearTimeout(timeout); };
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [initialBudget, initialScript]);
 
   // — تحميل البيانات المحفوظة عند التحميل الأول
@@ -147,20 +153,29 @@ export function useBudgetState({
       try {
         const savedPrefs = localStorage.getItem("filmbudgetai-preferences");
         if (savedPrefs) {
-          setPreferences((prev) => ({ ...prev, ...parsePreferences(savedPrefs) }));
+          setPreferences((prev) => ({
+            ...prev,
+            ...parsePreferences(savedPrefs),
+          }));
         }
       } catch (e) {
         logger.error("Failed to load preferences:", e);
       }
     }, 0);
-    return () => { clearTimeout(timeout); };
+    return () => {
+      clearTimeout(timeout);
+    };
   }, []);
 
   // — الحفظ التلقائي عند تفعيل الخيار
   useEffect(() => {
     if (preferences.autoSave && budgetName && budget.grandTotal > 0) {
-      const timeout = setTimeout(() => { saveBudget(true); }, 5000);
-      return () => { clearTimeout(timeout); };
+      const timeout = setTimeout(() => {
+        saveBudget(true);
+      }, 5000);
+      return () => {
+        clearTimeout(timeout);
+      };
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,9 +185,18 @@ export function useBudgetState({
   const risk = useMemo<SecurityRisk>(() => {
     const baseTotal = budget.grandTotal;
     return {
-      bondFee: { ...riskConfig.bondFee, total: baseTotal * riskConfig.bondFee.percent },
-      contingency: { ...riskConfig.contingency, total: baseTotal * riskConfig.contingency.percent },
-      credits: { ...riskConfig.credits, total: -(baseTotal * riskConfig.credits.percent) },
+      bondFee: {
+        ...riskConfig.bondFee,
+        total: baseTotal * riskConfig.bondFee.percent,
+      },
+      contingency: {
+        ...riskConfig.contingency,
+        total: baseTotal * riskConfig.contingency.percent,
+      },
+      credits: {
+        ...riskConfig.credits,
+        total: -(baseTotal * riskConfig.credits.percent),
+      },
     };
   }, [budget.grandTotal, riskConfig]);
 
@@ -195,14 +219,19 @@ export function useBudgetState({
   const stats = useMemo(() => {
     const totalItems = budget.sections.reduce(
       (sum, section) =>
-        sum + section.categories.reduce((catSum, cat) => catSum + cat.items.length, 0),
+        sum +
+        section.categories.reduce(
+          (catSum, cat) => catSum + cat.items.length,
+          0
+        ),
       0
     );
     const activeItems = budget.sections.reduce(
       (sum, section) =>
         sum +
         section.categories.reduce(
-          (catSum, cat) => catSum + cat.items.filter((item) => item.total > 0).length,
+          (catSum, cat) =>
+            catSum + cat.items.filter((item) => item.total > 0).length,
           0
         ),
       0
@@ -210,8 +239,12 @@ export function useBudgetState({
     return {
       totalItems,
       activeItems,
-      totalCategories: budget.sections.reduce((sum, s) => sum + s.categories.length, 0),
-      efficiency: totalItems > 0 ? Math.round((activeItems / totalItems) * 100) : 0,
+      totalCategories: budget.sections.reduce(
+        (sum, s) => sum + s.categories.length,
+        0
+      ),
+      efficiency:
+        totalItems > 0 ? Math.round((activeItems / totalItems) * 100) : 0,
     };
   }, [budget]);
 
@@ -253,7 +286,8 @@ export function useBudgetState({
         data?: { budget?: unknown };
         budget?: unknown;
       };
-      if (!genResponse.ok) throw new Error(genData.error ?? "فشل في توليد الميزانية");
+      if (!genResponse.ok)
+        throw new Error(genData.error ?? "فشل في توليد الميزانية");
       const aiResponse = (genData.data?.budget ?? genData.budget) as Budget;
 
       setStatus("calculating");
@@ -270,7 +304,8 @@ export function useBudgetState({
         analysis?: unknown;
       };
       if (analyzeResponse.ok) {
-        const analysisResult = analyzeData.data?.analysis ?? analyzeData.analysis;
+        const analysisResult =
+          analyzeData.data?.analysis ?? analyzeData.analysis;
         if (analysisResult) setAiAnalysis(analysisResult as AIAnalysis);
       }
 
@@ -318,9 +353,14 @@ export function useBudgetState({
             if (category.code !== categoryCode) return category;
             const newItems = category.items.map((item) => {
               if (item.code !== itemCode) return item;
-              const updatedItem = { ...item, [field]: value, lastModified: new Date().toISOString() };
+              const updatedItem = {
+                ...item,
+                [field]: value,
+                lastModified: new Date().toISOString(),
+              };
               if (field === "amount" || field === "rate") {
-                updatedItem.total = Number(updatedItem.amount) * Number(updatedItem.rate);
+                updatedItem.total =
+                  Number(updatedItem.amount) * Number(updatedItem.rate);
               }
               return updatedItem;
             });
@@ -391,10 +431,16 @@ stunt work, visual effects, and a large cast.`);
       date: new Date().toISOString(),
       tags: ["manual-save"],
     };
-    const updatedSaved = [...savedBudgets.filter((b) => b.name !== budgetName), newSaved];
+    const updatedSaved = [
+      ...savedBudgets.filter((b) => b.name !== budgetName),
+      newSaved,
+    ];
     setSavedBudgets(updatedSaved);
     if (typeof window !== "undefined") {
-      localStorage.setItem("filmbudgetai-saved-v3", JSON.stringify(updatedSaved));
+      localStorage.setItem(
+        "filmbudgetai-saved-v3",
+        JSON.stringify(updatedSaved)
+      );
     }
     if (!isAutoSave) toast.success("Budget saved successfully!");
   }
@@ -412,7 +458,10 @@ stunt work, visual effects, and a large cast.`);
     const updatedSaved = savedBudgets.filter((b) => b.id !== id);
     setSavedBudgets(updatedSaved);
     if (typeof window !== "undefined") {
-      localStorage.setItem("filmbudgetai-saved-v3", JSON.stringify(updatedSaved));
+      localStorage.setItem(
+        "filmbudgetai-saved-v3",
+        JSON.stringify(updatedSaved)
+      );
     }
     toast.success("Budget deleted");
   };
@@ -430,7 +479,10 @@ stunt work, visual effects, and a large cast.`);
     const updatedSaved = [...savedBudgets, newSaved];
     setSavedBudgets(updatedSaved);
     if (typeof window !== "undefined") {
-      localStorage.setItem("filmbudgetai-saved-v3", JSON.stringify(updatedSaved));
+      localStorage.setItem(
+        "filmbudgetai-saved-v3",
+        JSON.stringify(updatedSaved)
+      );
     }
     toast.success("Budget duplicated!");
   };
@@ -446,22 +498,42 @@ stunt work, visual effects, and a large cast.`);
   };
 
   return {
-    scriptText, setScriptText,
+    scriptText,
+    setScriptText,
     budget,
-    status, error,
-    budgetName, setBudgetName,
-    showChart, setShowChart,
-    showAnalytics, setShowAnalytics,
-    showExportModal, setShowExportModal,
-    showTemplateSelector, setShowTemplateSelector,
-    sidebarOpen, setSidebarOpen,
-    searchTerm, setSearchTerm,
+    status,
+    error,
+    budgetName,
+    setBudgetName,
+    showChart,
+    setShowChart,
+    showAnalytics,
+    setShowAnalytics,
+    showExportModal,
+    setShowExportModal,
+    showTemplateSelector,
+    setShowTemplateSelector,
+    sidebarOpen,
+    setSidebarOpen,
+    searchTerm,
+    setSearchTerm,
     preferences,
-    risk, aiAnalysis,
-    finalTotal, filteredBudgets, resolvedTheme, stats,
-    handleGenerate, handleRiskUpdate, handleLineItemUpdate,
-    loadExample, saveBudget, loadSavedBudget, deleteSavedBudget,
-    duplicateBudget, loadTemplate, savePreferences,
+    risk,
+    aiAnalysis,
+    finalTotal,
+    filteredBudgets,
+    resolvedTheme,
+    stats,
+    handleGenerate,
+    handleRiskUpdate,
+    handleLineItemUpdate,
+    loadExample,
+    saveBudget,
+    loadSavedBudget,
+    deleteSavedBudget,
+    duplicateBudget,
+    loadTemplate,
+    savePreferences,
     formatCurrency,
   };
 }

@@ -50,8 +50,14 @@ export function BudgetAnalysisPanel({
                 </div>
               </div>
               <div className="grid gap-4">
-                <SectionList title="التوصيات" items={analysis.recommendations} />
-                <SectionList title="عوامل المخاطر" items={analysis.riskFactors} />
+                <SectionList
+                  title="التوصيات"
+                  items={analysis.recommendations}
+                />
+                <SectionList
+                  title="عوامل المخاطر"
+                  items={analysis.riskFactors}
+                />
                 <SectionList
                   title="فرص خفض التكلفة"
                   items={analysis.costOptimization}

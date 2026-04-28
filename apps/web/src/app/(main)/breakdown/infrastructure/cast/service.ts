@@ -17,9 +17,17 @@ export type { ArcAnalysis, ArcType } from "./utils/arc-analysis";
 export { analyzeCharacterArc } from "./utils/arc-analysis";
 export type { SceneMetadata } from "./utils/scene-metadata";
 export { extractSceneMetadata } from "./utils/scene-metadata";
-export { exportCastToCSV, exportCastToJSON, generateCastingCall } from "./utils/export";
+export {
+  exportCastToCSV,
+  exportCastToJSON,
+  generateCastingCall,
+} from "./utils/export";
 export { normalizeCastMember } from "./utils/validation";
-import { calculateAgeRanges, generateCastInsights, generateCastWarnings } from "./utils/insights";
+import {
+  calculateAgeRanges,
+  generateCastInsights,
+  generateCastWarnings,
+} from "./utils/insights";
 
 // Types are now re-exported from utils modules above
 

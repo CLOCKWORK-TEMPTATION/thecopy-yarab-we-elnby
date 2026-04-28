@@ -22,7 +22,12 @@ import {
   getProductionList,
 } from "./utils";
 
-import type { LensInfo, OpticalIllusion, VPCamera, VisualEffect } from "./types";
+import type {
+  LensInfo,
+  OpticalIllusion,
+  VPCamera,
+  VisualEffect,
+} from "./types";
 import type { Plugin, PluginInput, PluginOutput } from "../../types";
 
 export class VirtualProductionEngine implements Plugin {

@@ -2,7 +2,6 @@
  * @fileoverview كشف الشخصيات المعزولة واقتراح ربطها بالشبكة.
  */
 
-
 import {
   getCharacterConflicts,
   getCharacterEntries,

@@ -7,11 +7,7 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import {
-  Download,
-  Eye,
-  Lightbulb,
-} from "lucide-react";
+import { Download, Eye, Lightbulb } from "lucide-react";
 import dynamic from "next/dynamic";
 import React, { useCallback, useMemo } from "react";
 
@@ -383,7 +379,9 @@ const DramaAnalystApp: React.FC = () => {
             <AgentReportsExporter
               reports={taskResults}
               originalText={textInput}
-              onExport={() => { /* empty */ }}
+              onExport={() => {
+                /* empty */
+              }}
             />
           </CardContent>
         </Card>

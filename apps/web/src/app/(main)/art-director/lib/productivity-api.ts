@@ -25,7 +25,7 @@ export async function loadProductivityAnalysis() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
-    },
+    }
   );
 
   if (!summary.success || !summary.data) {
@@ -56,11 +56,14 @@ export async function submitLoggedTime(params: {
   hours: number;
   task: string;
 }) {
-  const data = await fetchArtDirectorJson<ApiResponse>("/productivity/log-time", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
+  const data = await fetchArtDirectorJson<ApiResponse>(
+    "/productivity/log-time",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    }
+  );
 
   if (!data.success) {
     throw new Error(data.error ?? "فشل في تسجيل الوقت");
@@ -78,7 +81,7 @@ export async function submitReportedDelay(params: {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
-    },
+    }
   );
 
   if (!data.success) {

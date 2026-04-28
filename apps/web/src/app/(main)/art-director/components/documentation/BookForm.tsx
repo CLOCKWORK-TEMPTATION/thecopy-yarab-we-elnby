@@ -41,7 +41,9 @@ export function BookForm({
               className="art-input"
               placeholder="مثال: رحلة إلى المجهول"
               value={formData.projectNameAr}
-              onChange={(event) => onFormChange({ projectNameAr: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ projectNameAr: event.target.value })
+              }
             />
           </div>
           <div className="art-form-group">
@@ -52,7 +54,9 @@ export function BookForm({
               className="art-input"
               placeholder="Example: Journey to the Unknown"
               value={formData.projectName}
-              onChange={(event) => onFormChange({ projectName: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ projectName: event.target.value })
+              }
             />
           </div>
           <div className="art-form-group">
@@ -63,7 +67,9 @@ export function BookForm({
               className="art-input"
               placeholder="اسم المخرج"
               value={formData.director}
-              onChange={(event) => onFormChange({ director: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ director: event.target.value })
+              }
             />
           </div>
           <div className="art-form-group">
@@ -74,16 +80,27 @@ export function BookForm({
               className="art-input"
               placeholder="اسم الشركة"
               value={formData.productionCompany}
-              onChange={(event) => onFormChange({ productionCompany: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ productionCompany: event.target.value })
+              }
             />
           </div>
         </div>
         <div className="art-form-actions">
-          <button className="art-btn" onClick={onSubmit} disabled={loading} type="button">
+          <button
+            className="art-btn"
+            onClick={onSubmit}
+            disabled={loading}
+            type="button"
+          >
             <Book size={18} aria-hidden="true" />
             {loading ? "جاري الإنشاء..." : "إنشاء"}
           </button>
-          <button className="art-btn art-btn-secondary" onClick={onCancel} type="button">
+          <button
+            className="art-btn art-btn-secondary"
+            onClick={onCancel}
+            type="button"
+          >
             إلغاء
           </button>
         </div>

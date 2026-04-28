@@ -18,7 +18,10 @@ export const applyViterbiOverrides = (
     return 0;
   }
 
-  const maxOverrides = Math.max(1, Math.ceil(classified.length * OVERRIDE_MAX_RATIO));
+  const maxOverrides = Math.max(
+    1,
+    Math.ceil(classified.length * OVERRIDE_MAX_RATIO)
+  );
   const sortedDisagreements = [...disagreements].sort(
     (left, right) => right.disagreementStrength - left.disagreementStrength
   );
@@ -27,9 +30,14 @@ export const applyViterbiOverrides = (
   for (const disagreement of sortedDisagreements) {
     if (applied >= maxOverrides) break;
     if (disagreement.disagreementStrength < OVERRIDE_MIN_STRENGTH) break;
-    if (disagreement.forwardConfidence > OVERRIDE_MAX_FORWARD_CONFIDENCE) continue;
+    if (disagreement.forwardConfidence > OVERRIDE_MAX_FORWARD_CONFIDENCE)
+      continue;
 
-    const draft = getRequiredItem(classified, disagreement.lineIndex, "classified draft");
+    const draft = getRequiredItem(
+      classified,
+      disagreement.lineIndex,
+      "classified draft"
+    );
     if (draft.classificationMethod === "regex" && draft.confidence >= 90) {
       continue;
     }
@@ -59,7 +67,9 @@ export const applyViterbiOverrides = (
       }
     }
     if (nextType && sequenceValid) {
-      const validFromNew = CLASSIFICATION_VALID_SEQUENCES.get(disagreement.viterbiType);
+      const validFromNew = CLASSIFICATION_VALID_SEQUENCES.get(
+        disagreement.viterbiType
+      );
       if (validFromNew && !validFromNew.has(nextType)) {
         sequenceValid = false;
       }

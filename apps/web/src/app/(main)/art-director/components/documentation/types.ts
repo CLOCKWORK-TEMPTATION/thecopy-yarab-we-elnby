@@ -38,4 +38,5 @@ export interface DocumentationExportPayload {
 export type DocumentationStateResponse = ApiResponse<DocumentationStatePayload>;
 export type ProductionBookResponse = ApiResponse<ProductionBookState>;
 export type StyleGuideResponse = ApiResponse<StyleGuideState>;
-export type DocumentationExportResponse = ApiResponse<DocumentationExportPayload>;
+export type DocumentationExportResponse =
+  ApiResponse<DocumentationExportPayload>;

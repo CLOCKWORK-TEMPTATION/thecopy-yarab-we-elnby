@@ -1,6 +1,11 @@
 import type { CreativeProject, CreativePrompt, AppSettings } from "../types";
 
-export type StudioView = "home" | "library" | "editor" | "analysis" | "settings";
+export type StudioView =
+  | "home"
+  | "library"
+  | "editor"
+  | "analysis"
+  | "settings";
 
 export interface PersistedCreativeProject extends Omit<
   CreativeProject,

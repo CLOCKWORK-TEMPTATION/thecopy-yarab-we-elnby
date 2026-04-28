@@ -6,9 +6,16 @@
 import { loadRemoteAppState } from "@/lib/app-state-client";
 
 import type { SevenStationsAnalysis } from "../types";
-import type { ActionType, AnalysisSnapshot } from "./creative-development-types";
+import type {
+  ActionType,
+  AnalysisSnapshot,
+} from "./creative-development-types";
 
-type ToastFn = (options: { title?: string; description?: string; variant?: "default" | "destructive" }) => void;
+type ToastFn = (options: {
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive";
+}) => void;
 
 /**
  * تحميل بيانات التحليل المحفوظة من localStorage أو sessionStorage.
@@ -24,7 +31,9 @@ export function loadSavedAnalysisDataImpl(
   const sevenStationsData = localStorage.getItem("sevenStationsAnalysis");
   if (sevenStationsData) {
     try {
-      const analysisData = JSON.parse(sevenStationsData) as SevenStationsAnalysis;
+      const analysisData = JSON.parse(
+        sevenStationsData
+      ) as SevenStationsAnalysis;
       if (analysisData.finalReport && analysisData.originalText) {
         dispatch({ type: "LOAD_SEVEN_STATIONS", payload: analysisData });
         toast({
@@ -52,7 +61,11 @@ export function loadSavedAnalysisDataImpl(
         dispatch({
           type: "LOAD_SESSION_ANALYSIS",
           payload: {
-            report: JSON.stringify(analysisData.stationOutputs.station7, null, 2),
+            report: JSON.stringify(
+              analysisData.stationOutputs.station7,
+              null,
+              2
+            ),
             id: storedId,
           },
         });
@@ -82,7 +95,9 @@ export function loadSavedAnalysisDataImpl(
         dispatch({ type: "SET_TEXT_INPUT", payload: snapshot.text });
       }
     })
-    .catch(() => { /* empty */ });
+    .catch(() => {
+      /* empty */
+    });
 
   // التحقق من النص الأصلي المحفوظ
   const storedText = sessionStorage.getItem("originalText");
@@ -108,13 +123,22 @@ export function loadSavedAnalysisDataImpl(
             dispatch({ type: "SET_TEXT_INPUT", payload: parsed.textInput });
           }
           if (parsed.analysisReport) {
-            dispatch({ type: "SET_ANALYSIS_REPORT", payload: parsed.analysisReport });
+            dispatch({
+              type: "SET_ANALYSIS_REPORT",
+              payload: parsed.analysisReport,
+            });
           }
           if (parsed.specialRequirements) {
-            dispatch({ type: "SET_SPECIAL_REQUIREMENTS", payload: parsed.specialRequirements });
+            dispatch({
+              type: "SET_SPECIAL_REQUIREMENTS",
+              payload: parsed.specialRequirements,
+            });
           }
           if (parsed.additionalInfo) {
-            dispatch({ type: "SET_ADDITIONAL_INFO", payload: parsed.additionalInfo });
+            dispatch({
+              type: "SET_ADDITIONAL_INFO",
+              payload: parsed.additionalInfo,
+            });
           }
           toast({
             title: "تم استعادة المسودة",

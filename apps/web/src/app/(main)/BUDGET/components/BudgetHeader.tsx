@@ -60,7 +60,11 @@ export const BudgetHeader: React.FC<BudgetHeaderProps> = ({
                 : "text-white/55 hover:text-white hover:bg-white/8/6"
             }`}
           >
-            {preferences.theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {preferences.theme === "dark" ? (
+              <Sun size={18} />
+            ) : (
+              <Moon size={18} />
+            )}
           </button>
 
           <button

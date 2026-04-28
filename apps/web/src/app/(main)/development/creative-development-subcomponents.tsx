@@ -98,95 +98,97 @@ interface AISettingsProps {
   onSettingChange: (key: keyof AdvancedAISettings, value: boolean) => void;
 }
 
-export const AdvancedAISettingsCard = React.memo(function AdvancedAISettingsCard({
-  settings,
-  onSettingChange,
-}: AISettingsProps) {
-  const settingsConfig = useMemo(
-    () => [
-      {
-        key: "enableRAG" as const,
-        icon: <Database className="w-4 h-4 text-blue-500" />,
-        title: "RAG (الاسترجاع المعزز)",
-        description: "يسترجع سياق ذي صلة من النص الأصلي والتحليل لضمان الدقة",
-      },
-      {
-        key: "enableSelfCritique" as const,
-        icon: <Brain className="w-4 h-4 text-purple-500" />,
-        title: "النقد الذاتي",
-        description: "مراجعة وتحسين المخرجات تلقائياً قبل العرض النهائي",
-      },
-      {
-        key: "enableConstitutional" as const,
-        icon: <Shield className="w-4 h-4 text-green-500" />,
-        title: "الذكاء الدستوري",
-        description: "التأكد من الالتزام بقواعد الأمانة والتماسك السردي",
-      },
-      {
-        key: "enableHallucination" as const,
-        icon: <AlertTriangle className="w-4 h-4 text-orange-500" />,
-        title: "كشف الهلوسات",
-        description: "اكتشاف وتصحيح المحتوى غير المستند للنص الأصلي",
-      },
-      {
-        key: "enableUncertainty" as const,
-        icon: <CheckCircle2 className="w-4 h-4 text-cyan-500" />,
-        title: "قياس عدم اليقين",
-        description: "قياس مستوى الثقة في المخرجات (قد يبطئ الأداء)",
-      },
-      {
-        key: "enableDebate" as const,
-        icon: <Users className="w-4 h-4 text-indigo-500" />,
-        title: "النقاش متعدد الوكلاء",
-        description: "نقاش بين وكلاء متعددة للتوصل لأفضل حل (بطيء جداً)",
-      },
-    ],
-    []
-  );
+export const AdvancedAISettingsCard = React.memo(
+  function AdvancedAISettingsCard({
+    settings,
+    onSettingChange,
+  }: AISettingsProps) {
+    const settingsConfig = useMemo(
+      () => [
+        {
+          key: "enableRAG" as const,
+          icon: <Database className="w-4 h-4 text-blue-500" />,
+          title: "RAG (الاسترجاع المعزز)",
+          description: "يسترجع سياق ذي صلة من النص الأصلي والتحليل لضمان الدقة",
+        },
+        {
+          key: "enableSelfCritique" as const,
+          icon: <Brain className="w-4 h-4 text-purple-500" />,
+          title: "النقد الذاتي",
+          description: "مراجعة وتحسين المخرجات تلقائياً قبل العرض النهائي",
+        },
+        {
+          key: "enableConstitutional" as const,
+          icon: <Shield className="w-4 h-4 text-green-500" />,
+          title: "الذكاء الدستوري",
+          description: "التأكد من الالتزام بقواعد الأمانة والتماسك السردي",
+        },
+        {
+          key: "enableHallucination" as const,
+          icon: <AlertTriangle className="w-4 h-4 text-orange-500" />,
+          title: "كشف الهلوسات",
+          description: "اكتشاف وتصحيح المحتوى غير المستند للنص الأصلي",
+        },
+        {
+          key: "enableUncertainty" as const,
+          icon: <CheckCircle2 className="w-4 h-4 text-cyan-500" />,
+          title: "قياس عدم اليقين",
+          description: "قياس مستوى الثقة في المخرجات (قد يبطئ الأداء)",
+        },
+        {
+          key: "enableDebate" as const,
+          icon: <Users className="w-4 h-4 text-indigo-500" />,
+          title: "النقاش متعدد الوكلاء",
+          description: "نقاش بين وكلاء متعددة للتوصل لأفضل حل (بطيء جداً)",
+        },
+      ],
+      []
+    );
 
-  return (
-    <Card className={SHELL_CARD}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="w-5 h-5" />
-          الإعدادات المتقدمة لأنظمة الذكاء الاصطناعي
-        </CardTitle>
-        <CardDescription>
-          تفعيل/تعطيل الأنظمة المتقدمة (RAG، النقد الذاتي، الذكاء الدستوري، كشف
-          الهلوسات)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {settingsConfig.map((config) => (
-            <div
-              key={config.key}
-              className="flex items-start space-x-3 space-x-reverse p-3 rounded-lg border border-white/8 bg-white/[0.04]"
-            >
-              <Checkbox
-                id={config.key}
-                checked={settings[config.key]}
-                onCheckedChange={(checked) =>
-                  onSettingChange(config.key, checked as boolean)
-                }
-              />
-              <div className="space-y-1 flex-1">
-                <Label
-                  htmlFor={config.key}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                >
-                  {config.icon}
-                  {config.title}
-                </Label>
-                <p className="text-xs text-white/55">{config.description}</p>
+    return (
+      <Card className={SHELL_CARD}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            الإعدادات المتقدمة لأنظمة الذكاء الاصطناعي
+          </CardTitle>
+          <CardDescription>
+            تفعيل/تعطيل الأنظمة المتقدمة (RAG، النقد الذاتي، الذكاء الدستوري،
+            كشف الهلوسات)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {settingsConfig.map((config) => (
+              <div
+                key={config.key}
+                className="flex items-start space-x-3 space-x-reverse p-3 rounded-lg border border-white/8 bg-white/[0.04]"
+              >
+                <Checkbox
+                  id={config.key}
+                  checked={settings[config.key]}
+                  onCheckedChange={(checked) =>
+                    onSettingChange(config.key, checked as boolean)
+                  }
+                />
+                <div className="space-y-1 flex-1">
+                  <Label
+                    htmlFor={config.key}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                  >
+                    {config.icon}
+                    {config.title}
+                  </Label>
+                  <p className="text-xs text-white/55">{config.description}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-});
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
 
 interface TaskButtonsProps {
   tasks: CreativeTaskType[];

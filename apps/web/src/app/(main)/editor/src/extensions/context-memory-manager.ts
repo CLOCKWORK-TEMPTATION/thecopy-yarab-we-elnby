@@ -336,10 +336,7 @@ export class ContextMemoryManager {
    * @param endIdx - نهاية الكتلة (inclusive)
    * @returns تحليل هيكلي للكتلة
    */
-  getBlockAnalysis(
-    startIdx: number,
-    endIdx: number
-  ): BlockAnalysis {
+  getBlockAnalysis(startIdx: number, endIdx: number): BlockAnalysis {
     return analyzeContextMemoryBlock(this.runtimeRecords, startIdx, endIdx);
   }
 

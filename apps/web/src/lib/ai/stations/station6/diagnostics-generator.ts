@@ -1,10 +1,12 @@
-import type {
-  DiagnosticsReport,
-  JsonRecord,
-  DiagnosticIssue,
-} from "./types";
+import type { DiagnosticsReport, JsonRecord, DiagnosticIssue } from "./types";
 import type { GeminiService } from "../gemini-service";
-import { asArray, asJsonRecord, asJsonNumber, asString, firstJsonObject } from "./utils";
+import {
+  asArray,
+  asJsonRecord,
+  asJsonNumber,
+  asString,
+  firstJsonObject,
+} from "./utils";
 import { createStructuredAnalysisSummary } from "./analysis-summary";
 
 type PreviousStationsOutput = Partial<
@@ -149,7 +151,10 @@ ${text.substring(0, 4000)}
   ): DiagnosticsReport {
     const station4 = asJsonRecord(previousStationsOutput.station4);
     const efficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
-    const efficiencyScore = asJsonRecord(efficiencyMetrics.overallEfficiencyScore, 50);
+    const efficiencyScore = asJsonRecord(
+      efficiencyMetrics.overallEfficiencyScore,
+      50
+    );
 
     return {
       overallHealthScore: Math.min(100, efficiencyScore),

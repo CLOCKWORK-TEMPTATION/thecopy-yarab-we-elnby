@@ -5,8 +5,19 @@
 import { v4 as uuidv4 } from "uuid";
 import { definedProps } from "@/utils/defined-props";
 import type { PluginOutput } from "../../types";
-import type { ConceptArtProject, Model3D, Material3D, VRExperience } from "./types";
-import { projects, ART_STYLES, SUPPORTED_VR_DEVICES, DEFAULT_SCULPTING_TIPS, MATERIAL_PRESETS } from "./constants";
+import type {
+  ConceptArtProject,
+  Model3D,
+  Material3D,
+  VRExperience,
+} from "./types";
+import {
+  projects,
+  ART_STYLES,
+  SUPPORTED_VR_DEVICES,
+  DEFAULT_SCULPTING_TIPS,
+  MATERIAL_PRESETS,
+} from "./constants";
 import {
   getPaletteForTheme,
   suggestComplementaryColors,
@@ -17,7 +28,11 @@ import {
   calculateVertexChange,
 } from "./utils";
 
-export function createProjectOperation(data: { name: string; description: string; styleId: string }): PluginOutput {
+export function createProjectOperation(data: {
+  name: string;
+  description: string;
+  styleId: string;
+}): PluginOutput {
   const style = ART_STYLES.find((s) => s.id === data.styleId);
 
   const project: ConceptArtProject = {
@@ -37,9 +52,18 @@ export function createProjectOperation(data: { name: string; description: string
   return {
     success: true,
     data: {
-      project: { id: project.id, name: project.name, createdAt: project.createdAt },
+      project: {
+        id: project.id,
+        name: project.name,
+        createdAt: project.createdAt,
+      },
       studioUrl: `/concept-art/studio/${project.id}`,
-      capabilities: ["3D Modeling", "VR Preview", "Material Editor", "Lighting Studio"],
+      capabilities: [
+        "3D Modeling",
+        "VR Preview",
+        "Material Editor",
+        "Lighting Studio",
+      ],
       message: "Concept art project created",
       messageAr: "تم إنشاء مشروع الفن التصوري",
     },
@@ -144,7 +168,12 @@ export function createModelOperation(data: {
     return { success: false, error: "Project not found" };
   }
 
-  const geometryCount = data.baseGeometry === "sphere" ? 960 : data.baseGeometry === "cylinder" ? 480 : 24;
+  const geometryCount =
+    data.baseGeometry === "sphere"
+      ? 960
+      : data.baseGeometry === "cylinder"
+        ? 480
+        : 24;
 
   const model: Model3D = {
     id: uuidv4(),
@@ -317,7 +346,10 @@ export function exportProjectOperation(data: {
         contents: {
           models3D: project.models3D.length,
           environments: project.environments.length,
-          materials: project.models3D.reduce((acc, m) => acc + m.materials.length, 0),
+          materials: project.models3D.reduce(
+            (acc, m) => acc + m.materials.length,
+            0
+          ),
         },
       },
       downloadUrl: `/concept-art/export/${project.id}/${data.format}`,

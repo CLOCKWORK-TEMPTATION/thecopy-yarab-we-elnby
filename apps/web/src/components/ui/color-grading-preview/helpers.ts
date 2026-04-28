@@ -1,11 +1,18 @@
 import type { ColorGrade } from "./types";
 
-export function seededAmplitude(index: number, seed: number, amplitude: number): number {
+export function seededAmplitude(
+  index: number,
+  seed: number,
+  amplitude: number
+): number {
   const value = Math.sin((index + 1) * seed) * 10000;
   return (value - Math.floor(value)) * amplitude;
 }
 
-export function buildPreviewFilter(grade: ColorGrade, showOriginal: boolean): string {
+export function buildPreviewFilter(
+  grade: ColorGrade,
+  showOriginal: boolean
+): string {
   if (showOriginal) {
     return "none";
   }

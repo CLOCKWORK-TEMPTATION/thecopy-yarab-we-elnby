@@ -8,12 +8,18 @@ import {
 import type { ElementType } from "../classification-types";
 import type { SequenceFeatures } from "./types";
 
-export const computeEmissionScores = (features: SequenceFeatures): Float64Array => {
+export const computeEmissionScores = (
+  features: SequenceFeatures
+): Float64Array => {
   const scores = new Float64Array(NUM_TYPES).fill(0);
 
   {
     const index = TYPE_INDEX.get("basmala")!;
-    if (features.wordCount >= 3 && features.wordCount <= 6 && !features.endsWithColon) {
+    if (
+      features.wordCount >= 3 &&
+      features.wordCount <= 6 &&
+      !features.endsWithColon
+    ) {
       adjustNumericValue(scores, index, 0.5);
     } else {
       adjustNumericValue(scores, index, -5.0);
@@ -22,7 +28,11 @@ export const computeEmissionScores = (features: SequenceFeatures): Float64Array 
 
   {
     const index = TYPE_INDEX.get("scene_header_1")!;
-    if (features.wordCount <= 3 && !features.endsWithColon && !features.hasActionIndicators) {
+    if (
+      features.wordCount <= 3 &&
+      !features.endsWithColon &&
+      !features.hasActionIndicators
+    ) {
       adjustNumericValue(scores, index, 0.5);
     } else {
       adjustNumericValue(scores, index, -4.0);
@@ -43,7 +53,11 @@ export const computeEmissionScores = (features: SequenceFeatures): Float64Array 
 
   {
     const index = TYPE_INDEX.get("scene_header_3")!;
-    if (features.wordCount <= 8 && !features.endsWithColon && !features.hasActionIndicators) {
+    if (
+      features.wordCount <= 8 &&
+      !features.endsWithColon &&
+      !features.hasActionIndicators
+    ) {
       adjustNumericValue(scores, index, 0.5);
     } else {
       adjustNumericValue(scores, index, -3.0);
@@ -76,7 +90,8 @@ export const computeEmissionScores = (features: SequenceFeatures): Float64Array 
     if (features.wordCount > 5) adjustNumericValue(scores, index, -3.0);
     if (features.hasActionIndicators) adjustNumericValue(scores, index, -3.0);
 
-    if (features.nameRepetitionCount >= 2) adjustNumericValue(scores, index, 2.5);
+    if (features.nameRepetitionCount >= 2)
+      adjustNumericValue(scores, index, 2.5);
     else if (features.nameRepetitionCount === 1) {
       adjustNumericValue(scores, index, -1.0);
     }

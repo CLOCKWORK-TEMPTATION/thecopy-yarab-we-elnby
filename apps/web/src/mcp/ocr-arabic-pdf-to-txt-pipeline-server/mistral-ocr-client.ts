@@ -104,7 +104,8 @@ export class MistralOCRService {
   ): Promise<string> {
     this.lastDocumentAnnotation = undefined;
 
-    const commonKwargs = await this.annotationBuilder.buildCommonRequestKwargs();
+    const commonKwargs =
+      await this.annotationBuilder.buildCommonRequestKwargs();
     const result = await processDocumentViaBatch(
       this.config,
       documentUrl,

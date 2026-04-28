@@ -36,7 +36,7 @@ const beginFilePreparation = (
   area: NonNullable<ReturnType<EditorFileActionDeps["getArea"]>>,
   file: File,
   mode: FileImportMode,
-  detectedFileType: ReturnType<typeof getFileType>,
+  detectedFileType: ReturnType<typeof getFileType>
 ): void => {
   area.beginProgressivePreparation({
     intakeKind: "file-open",
@@ -60,7 +60,7 @@ const ensurePdfReadiness = async (
   file: File,
   mode: FileImportMode,
   area: NonNullable<ReturnType<EditorFileActionDeps["getArea"]>>,
-  deps: EditorFileActionDeps,
+  deps: EditorFileActionDeps
 ): Promise<boolean> => {
   if (detectedFileType !== "pdf") {
     return true;
@@ -73,7 +73,7 @@ const ensurePdfReadiness = async (
 
   const readinessMessage = formatPdfOcrIssueDescription(
     readiness.errorCode,
-    readiness.errorMessage,
+    readiness.errorMessage
   );
 
   deps.toast({
@@ -98,13 +98,13 @@ const ensurePdfReadiness = async (
 const extractFileContent = async (
   file: File,
   mode: FileImportMode,
-  detectedFileType: ReturnType<typeof getFileType>,
+  detectedFileType: ReturnType<typeof getFileType>
 ) => {
   const extractStart = performance.now();
   pipelineRecorder.logFileOpen(file.name, detectedFileType ?? "unknown", mode);
   const backendTimeoutMs = resolveBackendExtractionTimeoutMs(
     detectedFileType ?? "txt",
-    file.size,
+    file.size
   );
   const extraction = await extractImportedFile(file, {
     backend: { timeoutMs: backendTimeoutMs },
@@ -126,8 +126,12 @@ const applyExtractionResult = async (
   area: NonNullable<ReturnType<EditorFileActionDeps["getArea"]>>,
   fileName: string,
   mode: FileImportMode,
-  extraction: Awaited<ReturnType<typeof extractImportedFile>>,
-): Promise<{ description: string; title: string; variant: "destructive" } | null> => {
+  extraction: Awaited<ReturnType<typeof extractImportedFile>>
+): Promise<{
+  description: string;
+  title: string;
+  variant: "destructive";
+} | null> => {
   const action = buildFileOpenPipelineAction(extraction, mode);
   let appliedPipeline = "paste-classifier" as const;
 
@@ -165,7 +169,7 @@ const applyExtractionResult = async (
 
 const normalizeFileActionError = (
   error: unknown,
-  mode: FileImportMode,
+  mode: FileImportMode
 ): {
   message: string;
   shouldLog: boolean;
@@ -195,7 +199,9 @@ const normalizeFileActionError = (
   }
 
   const rawMessage =
-    error instanceof Error ? error.message : "حدث خطأ غير معروف أثناء فتح الملف.";
+    error instanceof Error
+      ? error.message
+      : "حدث خطأ غير معروف أثناء فتح الملف.";
   const extractionErrorCode =
     typeof (error as { errorCode?: unknown })?.errorCode === "string"
       ? ((error as { errorCode?: string }).errorCode ?? "").trim()
@@ -206,7 +212,7 @@ const normalizeFileActionError = (
     : rawMessage;
   const backendRelatedFailure =
     /failed to fetch|backend|connection|timed out|err_connection_refused|vite_file_import_backend_url/i.test(
-      normalizedMessage,
+      normalizedMessage
     );
 
   return {
@@ -247,7 +253,7 @@ export const openFile = async (
       file,
       mode,
       area,
-      deps,
+      deps
     );
     if (!ready) {
       return;
@@ -258,7 +264,7 @@ export const openFile = async (
       area,
       file.name,
       mode,
-      extraction,
+      extraction
     );
     if (rejectionToast) {
       deps.toast(rejectionToast);

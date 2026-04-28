@@ -11,7 +11,7 @@ export function BackgroundGrid(): React.JSX.Element {
             linear-gradient(to right, #000 1px, transparent 1px),
             linear-gradient(to bottom, #000 1px, transparent 1px)
           `,
-          backgroundSize: '50px 50px',
+          backgroundSize: "50px 50px",
         }}
       />
     </div>

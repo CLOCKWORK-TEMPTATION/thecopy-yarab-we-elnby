@@ -20,7 +20,9 @@ describe("ErrorBoundary", () => {
   });
 
   it("renders error UI when there is an error", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => { /* empty */ });
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* empty */
+    });
 
     render(
       <ErrorBoundary>

@@ -12,10 +12,7 @@ import {
   getWordEnding,
   type RhymeResult,
 } from "./arabic-rhyme-finder-data";
-import {
-  RhymeFavorites,
-  RhymeResults,
-} from "./arabic-rhyme-finder-results";
+import { RhymeFavorites, RhymeResults } from "./arabic-rhyme-finder-results";
 import {
   RhymeSearchPanel,
   type RhymeFilterType,

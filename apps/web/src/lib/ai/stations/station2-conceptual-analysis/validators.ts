@@ -38,9 +38,7 @@ export function validate3DMap(parsed: unknown): ThreeDMapResult {
     temporalDevelopmentAxis: {
       pastInfluence: asString(temporalDevelopmentAxis.pastInfluence),
       presentChoices: asString(temporalDevelopmentAxis.presentChoices),
-      futureExpectations: asString(
-        temporalDevelopmentAxis.futureExpectations
-      ),
+      futureExpectations: asString(temporalDevelopmentAxis.futureExpectations),
       heroArcConnection: asString(temporalDevelopmentAxis.heroArcConnection),
       causality: asString(temporalDevelopmentAxis.causality),
     },
@@ -58,12 +56,8 @@ export function validateGenreMatrix(parsed: unknown): GenreMatrixResult {
         visualCompositionContribution: asString(
           contributions.visualCompositionContribution
         ),
-        soundMusicContribution: asString(
-          contributions.soundMusicContribution
-        ),
-        charactersContribution: asString(
-          contributions.charactersContribution
-        ),
+        soundMusicContribution: asString(contributions.soundMusicContribution),
+        charactersContribution: asString(contributions.charactersContribution),
         weight: asNumber(contributions.weight, 0.5),
       };
     }

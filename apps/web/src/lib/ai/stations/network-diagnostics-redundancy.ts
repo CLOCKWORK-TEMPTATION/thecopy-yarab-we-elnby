@@ -2,7 +2,6 @@
  * @fileoverview كشف العلاقات والصراعات المكررة في الشبكة.
  */
 
-
 import {
   getConflictEntries,
   getRelationships,

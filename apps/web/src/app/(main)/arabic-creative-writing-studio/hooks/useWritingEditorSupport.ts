@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { calculateTextStats, formatWritingTime } from "@/app/(main)/arabic-creative-writing-studio/lib/studio/writing-editor-utils";
+import {
+  calculateTextStats,
+  formatWritingTime,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/studio/writing-editor-utils";
 
 import type {
   OperationFeedEntry,
@@ -16,7 +19,7 @@ import type {
 type PushOperation = (
   tone: OperationFeedEntry["tone"],
   label: string,
-  message: string,
+  message: string
 ) => void;
 
 export function useOperationFeed() {
@@ -48,7 +51,7 @@ export function useWritingTimer() {
     if (isWriting && startTimeRef.current !== null) {
       interval = setInterval(() => {
         setWritingTime(
-          Math.floor((Date.now() - (startTimeRef.current ?? Date.now())) / 1000),
+          Math.floor((Date.now() - (startTimeRef.current ?? Date.now())) / 1000)
         );
       }, 1000);
     }
@@ -65,7 +68,10 @@ export function useWritingTimer() {
       startTimeRef.current ??= Date.now();
       setIsWriting(true);
     },
-    writingTimeLabel: useMemo(() => formatWritingTime(writingTime), [writingTime]),
+    writingTimeLabel: useMemo(
+      () => formatWritingTime(writingTime),
+      [writingTime]
+    ),
   };
 }
 
@@ -90,7 +96,7 @@ export function useWritingProjectState({
         clearTimeout(autoSaveTimerRef.current);
       }
     },
-    [],
+    []
   );
 
   const buildProjectSnapshot = useCallback(
@@ -107,7 +113,7 @@ export function useWritingProjectState({
         updatedAt: new Date(),
       };
     },
-    [activeProject],
+    [activeProject]
   );
 
   const queueAutoSave = useCallback(
@@ -126,7 +132,7 @@ export function useWritingProjectState({
         autoSaveTimerRef.current = null;
       }, settings.autoSaveInterval);
     },
-    [onSave, pushOperation, settings.autoSave, settings.autoSaveInterval],
+    [onSave, pushOperation, settings.autoSave, settings.autoSaveInterval]
   );
 
   const handleTitleChange = useCallback(
@@ -136,7 +142,7 @@ export function useWritingProjectState({
       onProjectChange(updatedProject);
       queueAutoSave(updatedProject);
     },
-    [buildProjectSnapshot, content, onProjectChange, queueAutoSave],
+    [buildProjectSnapshot, content, onProjectChange, queueAutoSave]
   );
 
   const handleContentChange = useCallback(
@@ -147,7 +153,7 @@ export function useWritingProjectState({
       onProjectChange(updatedProject);
       queueAutoSave(updatedProject);
     },
-    [buildProjectSnapshot, onProjectChange, queueAutoSave, title],
+    [buildProjectSnapshot, onProjectChange, queueAutoSave, title]
   );
 
   return {
@@ -180,7 +186,7 @@ export function useWritingAnalysis({
       pushOperation(
         "blocked",
         "تحليل النص",
-        "أضف محتوى أولاً قبل تشغيل التحليل.",
+        "أضف محتوى أولاً قبل تشغيل التحليل."
       );
       return;
     }
@@ -189,7 +195,7 @@ export function useWritingAnalysis({
       pushOperation(
         "blocked",
         "تحليل النص",
-        analysisBlockedReason ?? "تحليل النص غير متاح حالياً.",
+        analysisBlockedReason ?? "تحليل النص غير متاح حالياً."
       );
       return;
     }
@@ -205,7 +211,7 @@ export function useWritingAnalysis({
         pushOperation(
           "error",
           "تحليل النص",
-          "فشل التحليل أو لم يرجع نتيجة قابلة للعرض.",
+          "فشل التحليل أو لم يرجع نتيجة قابلة للعرض."
         );
         return;
       }

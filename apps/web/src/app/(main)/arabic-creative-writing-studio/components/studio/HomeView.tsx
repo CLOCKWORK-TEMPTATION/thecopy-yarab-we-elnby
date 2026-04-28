@@ -1,6 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   FEATURED_DAILY_PROMPT,
@@ -29,9 +34,7 @@ export function HomeView({
 }: HomeViewProps) {
   return (
     <div className="text-center py-10 md:py-12 text-white">
-      <h2 className="text-4xl font-bold mb-6">
-        مرحباً بك في عالم الإبداع
-      </h2>
+      <h2 className="text-4xl font-bold mb-6">مرحباً بك في عالم الإبداع</h2>
       <p className="text-xl text-white/62 mb-8">
         ابدأ رحلتك الإبداعية مع أكثر من 114 محفز كتابة احترافي
       </p>
@@ -42,9 +45,7 @@ export function HomeView({
         >
           <CardContent className="p-6">
             <div className="text-4xl mb-4">📚</div>
-            <CardTitle className="mb-2 text-white">
-              مكتبة المحفزات
-            </CardTitle>
+            <CardTitle className="mb-2 text-white">مكتبة المحفزات</CardTitle>
             <CardDescription className="text-white/55">
               استكشف مجموعة متنوعة من المحفزات الإبداعية
             </CardDescription>
@@ -56,9 +57,7 @@ export function HomeView({
         >
           <CardContent className="p-6">
             <div className="text-4xl mb-4">✍️</div>
-            <CardTitle className="mb-2 text-white">
-              ابدأ الكتابة
-            </CardTitle>
+            <CardTitle className="mb-2 text-white">ابدأ الكتابة</CardTitle>
             <CardDescription className="text-white/55">
               أنشئ مشروع جديد وابدأ رحلة الإبداع
             </CardDescription>
@@ -86,9 +85,7 @@ export function HomeView({
         <Card className="border-white/8 bg-black/14 text-right">
           <CardContent className="p-6">
             <div className="text-4xl mb-4">🏆</div>
-            <CardTitle className="mb-2 text-white">
-              التحدي الأسبوعي
-            </CardTitle>
+            <CardTitle className="mb-2 text-white">التحدي الأسبوعي</CardTitle>
             <CardDescription className="text-white/55">
               {ACTIVE_WEEKLY_CHALLENGE.title}
             </CardDescription>
@@ -108,9 +105,7 @@ export function HomeView({
 
       <div className="mt-10 max-w-5xl mx-auto text-right">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-2xl font-bold text-white">
-            المشاريع المحفوظة
-          </h3>
+          <h3 className="text-2xl font-bold text-white">المشاريع المحفوظة</h3>
           <span className="text-sm text-white/45">
             {projects.length} مشروع محفوظ على الخادم المحلي
           </span>
@@ -137,8 +132,7 @@ export function HomeView({
                           {project.title}
                         </h4>
                         <p className="text-sm text-white/45">
-                          آخر تحديث:{" "}
-                          {project.updatedAt.toLocaleString("ar-EG")}
+                          آخر تحديث: {project.updatedAt.toLocaleString("ar-EG")}
                         </p>
                       </div>
                       <span className="text-xs rounded-full bg-purple-500/15 text-purple-200 px-3 py-1">
@@ -168,8 +162,8 @@ export function HomeView({
         ) : (
           <Card className="max-w-3xl mx-auto border-white/8 bg-black/14">
             <CardContent className="p-6 text-center text-white/52">
-              أول مشروع تحفظه سيظهر هنا تلقائياً لتستعيده من أي إعادة
-              تحميل للصفحة.
+              أول مشروع تحفظه سيظهر هنا تلقائياً لتستعيده من أي إعادة تحميل
+              للصفحة.
             </CardContent>
           </Card>
         )}

@@ -2,7 +2,8 @@
 // final-review/utils.mjs — أدوات مساعدة
 // ─────────────────────────────────────────────────────────
 
-export const isObjectRecord = (value) => typeof value === "object" && value !== null;
+export const isObjectRecord = (value) =>
+  typeof value === "object" && value !== null;
 
 export const isNonEmptyString = (value) =>
   typeof value === "string" && value.trim().length > 0;

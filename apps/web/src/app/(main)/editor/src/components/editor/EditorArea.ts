@@ -6,9 +6,7 @@ import {
   applyPasteClassifierFlowToView,
   PASTE_CLASSIFIER_ERROR_EVENT,
 } from "../../extensions/paste-classifier";
-import {
-  pipelineRecorder,
-} from "../../extensions/pipeline-recorder";
+import { pipelineRecorder } from "../../extensions/pipeline-recorder";
 import { maybeReconstructUnstructured } from "../../pipeline/unstructured";
 import { CharacterWidowFixer } from "../../utils/character-widow-fix";
 import {
@@ -50,9 +48,7 @@ import type {
   EditorClipboardOperationResult,
 } from "../../types/editor-clipboard";
 import type { RunEditorCommandOptions } from "../../types/editor-engine";
-import type {
-  ReceptionSourceType,
-} from "../../types/unified-reception";
+import type { ReceptionSourceType } from "../../types/unified-reception";
 
 /**
  * @description المكون الرئيسي لمنطقة تحرير السيناريو.
@@ -148,8 +144,9 @@ export class EditorArea implements EditorHandle {
   countTextMatches = (query: string): number =>
     countTextOccurrences(this.getAllText(), query);
 
-  runCommand = (commandInput: EditorCommand | RunEditorCommandOptions): boolean =>
-    runEditorCommand(this.editor, commandInput);
+  runCommand = (
+    commandInput: EditorCommand | RunEditorCommandOptions
+  ): boolean => runEditorCommand(this.editor, commandInput);
 
   setFormat = (format: ElementType): boolean =>
     setEditorFormat(this.editor, format);
@@ -164,8 +161,7 @@ export class EditorArea implements EditorHandle {
   // تفويض للـ ProgressiveSurfaceManager
   // ============================================
 
-  isSurfaceLocked = (): boolean =>
-    this.progressiveManager.isSurfaceLocked();
+  isSurfaceLocked = (): boolean => this.progressiveManager.isSurfaceLocked();
 
   getProgressiveSurfaceState = (): ProgressiveSurfaceState | null =>
     this.progressiveManager.getState();
@@ -225,8 +221,10 @@ export class EditorArea implements EditorHandle {
 
     const skipUnstructured =
       context?.classificationProfile === "paste" ||
-      ((context?.structuredHints && context.structuredHints.length > 0) ?? false) ||
-      ((context?.schemaElements && context.schemaElements.length > 0) ?? false) ||
+      ((context?.structuredHints && context.structuredHints.length > 0) ??
+        false) ||
+      ((context?.schemaElements && context.schemaElements.length > 0) ??
+        false) ||
       context?.sourceFileType === "doc" ||
       context?.sourceFileType === "docx";
 

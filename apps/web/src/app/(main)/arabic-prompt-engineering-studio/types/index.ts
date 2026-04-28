@@ -1,4 +1,7 @@
-import type { PromptAnalysis, PromptTemplate } from "@the-copy/prompt-engineering";
+import type {
+  PromptAnalysis,
+  PromptTemplate,
+} from "@the-copy/prompt-engineering";
 
 export interface PromptHistoryEntry {
   prompt: string;

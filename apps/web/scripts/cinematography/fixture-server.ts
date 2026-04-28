@@ -51,77 +51,75 @@ export async function startFixtureServer(): Promise<StartedFixtureServer> {
     receivedBodies: [],
   };
 
-  const server = createServer(
-    async (request: any, response: any) => {
-      const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-      const fixtureMode =
-        requestUrl.searchParams.get("fixtureMode") === "fail"
-          ? "fail"
-          : "success";
+  const server = createServer(async (request: any, response: any) => {
+    const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+    const fixtureMode =
+      requestUrl.searchParams.get("fixtureMode") === "fail"
+        ? "fail"
+        : "success";
 
-      if (request.method === "GET" && requestUrl.pathname === "/health") {
-        response.writeHead(200, { "content-type": "application/json" });
-        response.end(JSON.stringify({ ok: true, fixtureMode }));
-        return;
-      }
-
-      if (
-        request.method === "POST" &&
-        requestUrl.pathname === "/api/cineai/validate-shot"
-      ) {
-        const bodyText = await readBodyAsText(request);
-        const payload = bodyText
-          ? (JSON.parse(bodyText) as Record<string, unknown>)
-          : {};
-        state.receivedBodies.push(payload);
-
-        if (fixtureMode === "fail") {
-          response.writeHead(503, { "content-type": "application/json" });
-          response.end(
-            JSON.stringify({
-              success: false,
-              error: "Fixture backend failure",
-            })
-          );
-          return;
-        }
-
-        response.writeHead(200, { "content-type": "application/json" });
-        response.end(
-          JSON.stringify({
-            success: true,
-            validation: {
-              score: 88,
-              exposure: "Balanced",
-              composition: "Strong thirds",
-              focus: "Sharp",
-              colorBalance: "Neutral",
-              suggestions: ["تحسين خفيف في فصل الخلفية."],
-            },
-          })
-        );
-        return;
-      }
-
-      if (
-        request.method === "POST" &&
-        requestUrl.pathname === "/api/cineai/color-grading"
-      ) {
-        response.writeHead(200, { "content-type": "application/json" });
-        response.end(
-          JSON.stringify({
-            success: true,
-            sceneType: "generic",
-            palette: ["#111111", "#3a3a3a", "#7f5f3a", "#c9a56a", "#f4e2b8"],
-          })
-        );
-        return;
-      }
-
-      response.writeHead(404, { "content-type": "application/json" });
-      response.end(JSON.stringify({ success: false, error: "Not found" }));
+    if (request.method === "GET" && requestUrl.pathname === "/health") {
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ ok: true, fixtureMode }));
+      return;
     }
-  );
+
+    if (
+      request.method === "POST" &&
+      requestUrl.pathname === "/api/cineai/validate-shot"
+    ) {
+      const bodyText = await readBodyAsText(request);
+      const payload = bodyText
+        ? (JSON.parse(bodyText) as Record<string, unknown>)
+        : {};
+      state.receivedBodies.push(payload);
+
+      if (fixtureMode === "fail") {
+        response.writeHead(503, { "content-type": "application/json" });
+        response.end(
+          JSON.stringify({
+            success: false,
+            error: "Fixture backend failure",
+          })
+        );
+        return;
+      }
+
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(
+        JSON.stringify({
+          success: true,
+          validation: {
+            score: 88,
+            exposure: "Balanced",
+            composition: "Strong thirds",
+            focus: "Sharp",
+            colorBalance: "Neutral",
+            suggestions: ["تحسين خفيف في فصل الخلفية."],
+          },
+        })
+      );
+      return;
+    }
+
+    if (
+      request.method === "POST" &&
+      requestUrl.pathname === "/api/cineai/color-grading"
+    ) {
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(
+        JSON.stringify({
+          success: true,
+          sceneType: "generic",
+          palette: ["#111111", "#3a3a3a", "#7f5f3a", "#c9a56a", "#f4e2b8"],
+        })
+      );
+      return;
+    }
+
+    response.writeHead(404, { "content-type": "application/json" });
+    response.end(JSON.stringify({ success: false, error: "Not found" }));
+  });
 
   await new Promise<void>((resolveStart, rejectStart) => {
     server.once("error", rejectStart);

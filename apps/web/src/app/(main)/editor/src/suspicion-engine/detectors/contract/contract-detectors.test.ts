@@ -6,7 +6,12 @@ import { detectContractParentheticalPosition } from "./contract-parenthetical-po
 import { detectContractSceneHeaderSequence } from "./contract-scene-header-sequence.detector";
 import { detectContractTransitionIsolation } from "./contract-transition-isolation.detector";
 
-import { makeTrace, makeDraft, makeFeatures, makeContext } from "./__tests__/helpers";
+import {
+  makeTrace,
+  makeDraft,
+  makeFeatures,
+  makeContext,
+} from "./__tests__/helpers";
 
 // ─────────────────────────────────────────────────────────────────────
 // contract-character-shape.detector

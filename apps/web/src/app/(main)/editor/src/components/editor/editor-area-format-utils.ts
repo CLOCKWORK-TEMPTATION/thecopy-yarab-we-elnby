@@ -98,11 +98,8 @@ export function applyTextAlignDomFallback(
 
   if (anchorNode) {
     const anchorElement =
-      anchorNode instanceof HTMLElement
-        ? anchorNode
-        : anchorNode.parentElement;
-    targetElement =
-      anchorElement?.closest<HTMLElement>("[data-type]") ?? null;
+      anchorNode instanceof HTMLElement ? anchorNode : anchorNode.parentElement;
+    targetElement = anchorElement?.closest<HTMLElement>("[data-type]") ?? null;
   }
 
   if (!targetElement) {
@@ -217,8 +214,7 @@ export function computeDocumentStats(
   html: string,
   pagesCount: number
 ): DocumentStats {
-  const words =
-    text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
+  const words = text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
   const characters = text.replace(/\s+/g, "").length;
   const scenes = (
     html.match(

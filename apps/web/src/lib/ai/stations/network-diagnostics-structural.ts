@@ -2,7 +2,6 @@
  * @fileoverview تحليل الأعطال البنيوية لشبكة الصراعات.
  */
 
-
 import { getCharacterRelationships } from "./network-diagnostics-helpers";
 
 import type { StructuralIssue } from "./network-diagnostics-types";

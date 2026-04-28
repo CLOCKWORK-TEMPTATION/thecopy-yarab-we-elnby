@@ -26,7 +26,9 @@ export interface UncertaintyQuantificationEngine {
 }
 
 class SimpleUncertaintyEngine implements UncertaintyQuantificationEngine {
-  constructor(_geminiService: GeminiService) { /* empty */ }
+  constructor(_geminiService: GeminiService) {
+    /* empty */
+  }
 
   quantify(
     _text: string,

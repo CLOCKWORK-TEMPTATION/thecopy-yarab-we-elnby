@@ -169,10 +169,18 @@ interface StubTracer {
 export const trace = {
   getTracer: (): StubTracer => ({
     startSpan: (): StubSpan => ({
-      end: () => { /* empty */ },
-      setAttribute: () => { /* empty */ },
-      setStatus: () => { /* empty */ },
-      recordException: () => { /* empty */ },
+      end: () => {
+        /* empty */
+      },
+      setAttribute: () => {
+        /* empty */
+      },
+      setStatus: () => {
+        /* empty */
+      },
+      recordException: () => {
+        /* empty */
+      },
     }),
   }),
 };

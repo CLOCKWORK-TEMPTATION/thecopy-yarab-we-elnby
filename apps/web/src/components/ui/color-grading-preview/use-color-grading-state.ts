@@ -5,7 +5,9 @@ import { buildPreviewFilter, buildPreviewOverlay } from "./helpers";
 
 import type { ColorGrade } from "./types";
 
-export function useColorGradingState(onGradeChange?: (grade: ColorGrade) => void) {
+export function useColorGradingState(
+  onGradeChange?: (grade: ColorGrade) => void
+) {
   const [grade, setGrade] = React.useState<ColorGrade>(DEFAULT_GRADE);
   const [selectedPreset, setSelectedPreset] = React.useState<string>("neutral");
   const [showOriginal, setShowOriginal] = React.useState(false);
@@ -19,10 +21,13 @@ export function useColorGradingState(onGradeChange?: (grade: ColorGrade) => void
     }
   }, []);
 
-  const updateGrade = React.useCallback((key: keyof ColorGrade, value: number) => {
-    setGrade((previous) => ({ ...previous, [key]: value }));
-    setSelectedPreset("");
-  }, []);
+  const updateGrade = React.useCallback(
+    (key: keyof ColorGrade, value: number) => {
+      setGrade((previous) => ({ ...previous, [key]: value }));
+      setSelectedPreset("");
+    },
+    []
+  );
 
   const resetGrade = React.useCallback(() => {
     setGrade(DEFAULT_GRADE);

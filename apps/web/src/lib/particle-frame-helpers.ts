@@ -99,7 +99,12 @@ export const calculateParticleColor = (
     return calculateWaveColor(position, intersectionPoint, effectRadius, time);
   }
   if (effect === "vortex") {
-    return calculateVortexColor(position, intersectionPoint, effectRadius, time);
+    return calculateVortexColor(
+      position,
+      intersectionPoint,
+      effectRadius,
+      time
+    );
   }
 
   return { r: 1, g: 1, b: 1 };

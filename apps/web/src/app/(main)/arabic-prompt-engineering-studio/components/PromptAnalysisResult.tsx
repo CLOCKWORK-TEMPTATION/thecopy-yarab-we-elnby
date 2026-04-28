@@ -17,11 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { PromptAnalysis } from "@the-copy/prompt-engineering";
 
-import {
-  CATEGORY_LABELS,
-  getScoreColor,
-  getScoreBgColor,
-} from "../constants";
+import { CATEGORY_LABELS, getScoreColor, getScoreBgColor } from "../constants";
 
 interface PromptAnalysisResultProps {
   analysis: PromptAnalysis | null;
@@ -95,10 +91,10 @@ export function PromptAnalysisResult({ analysis }: PromptAnalysisResultProps) {
                 {analysis.metrics.overallScore >= 80
                   ? "ممتاز"
                   : analysis.metrics.overallScore >= 60
-                  ? "جيد"
-                  : analysis.metrics.overallScore >= 40
-                  ? "مقبول"
-                  : "يحتاج تحسين"}
+                    ? "جيد"
+                    : analysis.metrics.overallScore >= 40
+                      ? "مقبول"
+                      : "يحتاج تحسين"}
               </Badge>
             </div>
           </div>
@@ -171,8 +167,8 @@ export function PromptAnalysisResult({ analysis }: PromptAnalysisResultProps) {
                 {analysis.language === "ar"
                   ? "عربية"
                   : analysis.language === "en"
-                  ? "إنجليزية"
-                  : "مختلطة"}
+                    ? "إنجليزية"
+                    : "مختلطة"}
               </Badge>
             </div>
             <div className="text-center p-3 bg-white/[0.04] rounded-lg">
@@ -181,8 +177,8 @@ export function PromptAnalysisResult({ analysis }: PromptAnalysisResultProps) {
                 {analysis.complexity === "low"
                   ? "منخفض"
                   : analysis.complexity === "medium"
-                  ? "متوسط"
-                  : "عالي"}
+                    ? "متوسط"
+                    : "عالي"}
               </Badge>
             </div>
             <div className="text-center p-3 bg-white/[0.04] rounded-lg">

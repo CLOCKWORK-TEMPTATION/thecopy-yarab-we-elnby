@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
-const MAX_LINES = 600;
+const MAX_LINES = 500;
 const ROOTS = ["apps", "packages"];
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 const IGNORED_DIRS = new Set([

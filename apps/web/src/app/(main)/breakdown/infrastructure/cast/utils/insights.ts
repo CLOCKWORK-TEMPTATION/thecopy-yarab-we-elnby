@@ -1,6 +1,9 @@
 // Cast Insights Generation Utilities
 
-import type { ExtendedCastMember, CastAnalysisResult } from "../../domain/models";
+import type {
+  ExtendedCastMember,
+  CastAnalysisResult,
+} from "../../domain/models";
 
 /**
  * Calculate age range distribution

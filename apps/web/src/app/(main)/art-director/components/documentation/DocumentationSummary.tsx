@@ -44,7 +44,9 @@ export function DocumentationSummary({
           <div style={{ color: "var(--art-text-muted)", fontSize: "13px" }}>
             القرارات الموثقة
           </div>
-          <div style={{ fontSize: "18px", fontWeight: 700 }}>{decisionsCount}</div>
+          <div style={{ fontSize: "18px", fontWeight: 700 }}>
+            {decisionsCount}
+          </div>
         </div>
       </div>
     </CardSpotlight>

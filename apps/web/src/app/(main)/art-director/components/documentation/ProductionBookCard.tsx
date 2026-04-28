@@ -9,7 +9,10 @@ interface ProductionBookCardProps {
   onExport: (format: "markdown" | "json") => void;
 }
 
-export function ProductionBookCard({ book, onExport }: ProductionBookCardProps) {
+export function ProductionBookCard({
+  book,
+  onExport,
+}: ProductionBookCardProps) {
   return (
     <CardSpotlight className="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.04] p-5 backdrop-blur-xl">
       <div style={{ animation: "fadeIn 0.3s ease-in-out" }}>
@@ -21,7 +24,11 @@ export function ProductionBookCard({ book, onExport }: ProductionBookCardProps) 
             marginBottom: "20px",
           }}
         >
-          <Book size={24} style={{ color: "var(--art-primary)" }} aria-hidden="true" />
+          <Book
+            size={24}
+            style={{ color: "var(--art-primary)" }}
+            aria-hidden="true"
+          />
           <div>
             <h3 style={{ margin: 0 }}>{book.titleAr}</h3>
             <p

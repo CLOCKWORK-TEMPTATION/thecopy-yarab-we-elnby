@@ -38,7 +38,12 @@ export function PreviewHeader({
           )}
           {showOriginal ? "معالج" : "أصلي"}
         </Button>
-        <Button variant="outline" size="sm" onClick={onCopy} className="border-zinc-700">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCopy}
+          className="border-zinc-700"
+        >
           {copied ? (
             <Check className="h-4 w-4 ml-2 text-green-500" />
           ) : (

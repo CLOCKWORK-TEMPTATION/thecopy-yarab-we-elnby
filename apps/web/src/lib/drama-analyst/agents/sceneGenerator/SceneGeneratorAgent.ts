@@ -7,12 +7,7 @@ import {
 } from "../shared/standardAgentPattern";
 
 import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
-import {
-  asJsonRecord,
-  asString,
-  asStringArray,
-  asUnknownArray,
-} from "./types";
+import { asJsonRecord, asString, asStringArray, asUnknownArray } from "./types";
 import {
   cleanupSceneText,
   formatCharacter,
@@ -160,7 +155,13 @@ export class SceneGeneratorAgent extends BaseAgent {
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
-      notes: generateSceneNotes(output, dramaticTension, dialogueQuality, visualClarity, pacing),
+      notes: generateSceneNotes(
+        output,
+        dramaticTension,
+        dialogueQuality,
+        visualClarity,
+        pacing
+      ),
       metadata: {
         ...output.metadata,
         sceneQuality: qualityScore,

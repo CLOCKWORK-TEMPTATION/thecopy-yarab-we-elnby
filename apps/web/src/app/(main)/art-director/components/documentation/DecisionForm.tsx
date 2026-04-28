@@ -51,7 +51,9 @@ export function DecisionForm({
               className="art-input"
               placeholder="وصف تفصيلي للقرار"
               value={formData.description}
-              onChange={(event) => onFormChange({ description: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ description: event.target.value })
+              }
               rows={3}
               style={{ resize: "none" }}
             />
@@ -62,7 +64,9 @@ export function DecisionForm({
               id="decision-category"
               className="art-input"
               value={formData.category}
-              onChange={(event) => onFormChange({ category: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ category: event.target.value })
+              }
             >
               <option value="color">الألوان</option>
               <option value="lighting">الإضاءة</option>
@@ -79,16 +83,27 @@ export function DecisionForm({
               className="art-input"
               placeholder="سبب اتخاذ هذا القرار"
               value={formData.rationale}
-              onChange={(event) => onFormChange({ rationale: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ rationale: event.target.value })
+              }
             />
           </div>
         </div>
         <div className="art-form-actions">
-          <button className="art-btn" onClick={onSubmit} disabled={loading} type="button">
+          <button
+            className="art-btn"
+            onClick={onSubmit}
+            disabled={loading}
+            type="button"
+          >
             <Plus size={18} aria-hidden="true" />
             توثيق
           </button>
-          <button className="art-btn art-btn-secondary" onClick={onCancel} type="button">
+          <button
+            className="art-btn art-btn-secondary"
+            onClick={onCancel}
+            type="button"
+          >
             إلغاء
           </button>
         </div>

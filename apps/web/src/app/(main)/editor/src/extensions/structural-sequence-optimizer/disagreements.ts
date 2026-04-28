@@ -1,10 +1,7 @@
 import { TYPE_INDEX, getRequiredItem, readNumericValue } from "./model";
 
 import type { ClassifiedDraft } from "../classification-types";
-import type {
-  SequenceDisagreement,
-  ViterbiResult,
-} from "./types";
+import type { SequenceDisagreement, ViterbiResult } from "./types";
 
 export const detectDisagreements = (
   drafts: readonly ClassifiedDraft[],
@@ -15,7 +12,11 @@ export const detectDisagreements = (
 
   for (let index = 0; index < drafts.length; index++) {
     const draft = getRequiredItem(drafts, index, "draft");
-    const viterbiResult = getRequiredItem(viterbiResults, index, "viterbi result");
+    const viterbiResult = getRequiredItem(
+      viterbiResults,
+      index,
+      "viterbi result"
+    );
     const forwardType = draft.type;
     const viterbiType = viterbiResult.type;
 

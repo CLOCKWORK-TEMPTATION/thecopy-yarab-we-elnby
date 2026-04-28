@@ -78,10 +78,8 @@ export function normalizeIssueType(
 
 export function normalizeSeverity(severity: string): "low" | "medium" | "high" {
   const normalized = (severity || "").toLowerCase();
-  if (normalized.includes("high") || normalized.includes("عالي"))
-    return "high";
-  if (normalized.includes("low") || normalized.includes("منخفض"))
-    return "low";
+  if (normalized.includes("high") || normalized.includes("عالي")) return "high";
+  if (normalized.includes("low") || normalized.includes("منخفض")) return "low";
   return "medium";
 }
 
@@ -91,12 +89,10 @@ export function normalizePacingSpeed(
   const normalized = (speed || "").toLowerCase();
   if (normalized.includes("very_slow") || normalized.includes("بطيء جداً"))
     return "very_slow";
-  if (normalized.includes("slow") || normalized.includes("بطيء"))
-    return "slow";
+  if (normalized.includes("slow") || normalized.includes("بطيء")) return "slow";
   if (normalized.includes("fast") && normalized.includes("very"))
     return "very_fast";
-  if (normalized.includes("fast") || normalized.includes("سريع"))
-    return "fast";
+  if (normalized.includes("fast") || normalized.includes("سريع")) return "fast";
   return "moderate";
 }
 
@@ -119,8 +115,7 @@ export function normalizeVocabulary(
   const normalized = (vocabulary || "").toLowerCase();
   if (normalized.includes("extensive") || normalized.includes("واسع"))
     return "extensive";
-  if (normalized.includes("rich") || normalized.includes("ثري"))
-    return "rich";
+  if (normalized.includes("rich") || normalized.includes("ثري")) return "rich";
   if (normalized.includes("limited") || normalized.includes("محدود"))
     return "limited";
   return "standard";

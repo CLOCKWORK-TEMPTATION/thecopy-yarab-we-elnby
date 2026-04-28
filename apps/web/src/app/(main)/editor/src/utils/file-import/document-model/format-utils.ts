@@ -54,9 +54,7 @@ export const getFormatIdFromElement = (
  * @param text - نص السطر المُركَّب
  * @returns مصفوفة كتل مقسّمة (1-2 عنصر) أو مصفوفة فارغة
  */
-export const splitLegacyTopLineText = (
-  text: string
-): SplitTopLineBlock[] => {
+export const splitLegacyTopLineText = (text: string): SplitTopLineBlock[] => {
   const normalized = normalizeBlockText(text).replace(/\s+/g, " ").trim();
   if (!normalized) return [];
 

@@ -2,7 +2,6 @@
  * @fileoverview كشف الشخصيات المُحمّلة فوق طاقتها واقتراح إعادة التوزيع.
  */
 
-
 import {
   getCharacterConflicts,
   getCharacterEntries,

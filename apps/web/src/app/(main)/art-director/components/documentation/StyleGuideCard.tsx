@@ -20,7 +20,11 @@ export function StyleGuideCard({ guide }: StyleGuideCardProps) {
             marginBottom: "20px",
           }}
         >
-          <PenTool size={24} style={{ color: "var(--art-purple)" }} aria-hidden="true" />
+          <PenTool
+            size={24}
+            style={{ color: "var(--art-purple)" }}
+            aria-hidden="true"
+          />
           <div>
             <h3 style={{ margin: 0 }}>{guide.nameAr}</h3>
             <p

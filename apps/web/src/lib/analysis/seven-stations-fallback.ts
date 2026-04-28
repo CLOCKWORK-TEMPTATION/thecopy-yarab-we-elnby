@@ -56,11 +56,17 @@ export function buildFallbackSevenStationsResult(
     92
   );
   const healthScore = clamp(
-    efficiencyScore - (characters.length < 2 ? 8 : 0) - (paragraphs.length < 3 ? 6 : 0),
+    efficiencyScore -
+      (characters.length < 2 ? 8 : 0) -
+      (paragraphs.length < 3 ? 6 : 0),
     35,
     90
   );
-  const overallScore = clamp(Math.round((efficiencyScore + healthScore) / 2 + 4), 40, 92);
+  const overallScore = clamp(
+    Math.round((efficiencyScore + healthScore) / 2 + 4),
+    40,
+    92
+  );
   const summary = summarizeText(normalizedText, 3);
   const warningList = input.warning ? [input.warning] : [];
 

@@ -7,10 +7,7 @@ import {
   looksLikeNarrativeActionSyntax,
   hasDirectDialogueMarkers,
 } from "./text-utils";
-import {
-  correctedDraft,
-  wordCount,
-} from "./retroactive-corrector-utils";
+import { correctedDraft, wordCount } from "./retroactive-corrector-utils";
 
 import type { ClassifiedDraft, ElementType } from "./classification-types";
 

@@ -34,7 +34,12 @@ export const FrequencyDisplay: React.FC<FrequencyDisplayProps> = ({
       const dataPoint = data[i] ?? 0;
       barHeight = dataPoint * height;
 
-      const gradient = ctx.createLinearGradient(0, height, 0, height - barHeight);
+      const gradient = ctx.createLinearGradient(
+        0,
+        height,
+        0,
+        height - barHeight
+      );
       gradient.addColorStop(0, "#3b82f6");
       gradient.addColorStop(1, "#ec4899");
 

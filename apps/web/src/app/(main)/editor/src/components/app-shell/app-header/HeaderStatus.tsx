@@ -20,10 +20,7 @@ export function HeaderStatus({
       data-testid="app-header-status"
     >
       <span className="text-[color:var(--mf-text-muted)]">الحالة</span>
-      <span
-        className="text-[color:var(--mf-text-strong)]"
-        aria-live="polite"
-      >
+      <span className="text-[color:var(--mf-text-strong)]" aria-live="polite">
         {statusLabel}
       </span>
     </div>

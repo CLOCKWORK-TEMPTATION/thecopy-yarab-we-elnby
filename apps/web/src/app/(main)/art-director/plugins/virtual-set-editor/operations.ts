@@ -360,12 +360,7 @@ export function shareVision(data: {
       totalCollaborators: set.collaborators.length,
       shareUrl: `/ar/collaborate/${set.id}`,
       inviteCode: set.id.substring(0, 8).toUpperCase(),
-      features: [
-        "real-time-sync",
-        "annotations",
-        "voice-chat",
-        "screen-share",
-      ],
+      features: ["real-time-sync", "annotations", "voice-chat", "screen-share"],
       message: "Virtual vision shared with collaborators",
       messageAr: "?? ?????? ?????? ?????????? ?? ??????????",
     },

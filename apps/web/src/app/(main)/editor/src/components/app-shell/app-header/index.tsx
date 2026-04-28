@@ -41,12 +41,8 @@ export function AppHeader({
   onlineDotColor,
 }: AppHeaderProps): React.JSX.Element {
   const menuNavigation = useMenuNavigation(menuSections, activeMenu);
-  const {
-    menubarId,
-    menubarButtonRefs,
-    menuItemRefs,
-    sectionIndex,
-  } = menuNavigation;
+  const { menubarId, menubarButtonRefs, menuItemRefs, sectionIndex } =
+    menuNavigation;
 
   const { handleSectionButtonKeyDown, handleMenuItemKeyDown } =
     useKeyboardHandlers({
@@ -77,7 +73,10 @@ export function AppHeader({
     >
       {/* مجموعة يمين (بصريًا في RTL): الهوية + شريط القوائم */}
       <div className="app-header-primary flex items-center gap-3">
-        <HeaderBrand infoDotColor={infoDotColor} brandGradient={brandGradient} />
+        <HeaderBrand
+          infoDotColor={infoDotColor}
+          brandGradient={brandGradient}
+        />
 
         <HoverBorderGradient
           as="div"
@@ -111,7 +110,9 @@ export function AppHeader({
                   role="menuitem"
                   aria-haspopup="menu"
                   aria-expanded={isOpen}
-                  aria-controls={isOpen ? `${menubarId}-menu-${sectionTestId}` : undefined}
+                  aria-controls={
+                    isOpen ? `${menubarId}-menu-${sectionTestId}` : undefined
+                  }
                   tabIndex={activeMenu ? (isOpen ? 0 : -1) : 0}
                   className={`flex h-full min-w-[72px] items-center justify-center rounded-full px-4 text-[13px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--mf-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                     isOpen

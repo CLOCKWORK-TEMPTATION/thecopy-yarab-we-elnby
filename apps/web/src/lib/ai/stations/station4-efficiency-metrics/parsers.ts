@@ -108,7 +108,9 @@ export function parseProducibility(text: string): ProducibilityAnalysis {
     productionChallenges: parseProductionChallenges(
       parsed["productionChallenges"]
     ),
-    locationRequirements: stringArrayFromUnknown(parsed["locationRequirements"]),
+    locationRequirements: stringArrayFromUnknown(
+      parsed["locationRequirements"]
+    ),
     specialEffectsNeeded:
       typeof parsed["specialEffectsNeeded"] === "boolean"
         ? parsed["specialEffectsNeeded"]
@@ -127,7 +129,9 @@ export function parsePace(value: unknown): RhythmAnalysis["overallPace"] {
     : "medium";
 }
 
-export function parseActBreakdown(value: unknown): RhythmAnalysis["actBreakdown"] {
+export function parseActBreakdown(
+  value: unknown
+): RhythmAnalysis["actBreakdown"] {
   if (!Array.isArray(value)) {
     return [];
   }

@@ -22,8 +22,8 @@ function createInitialAgentStates(
 export function useAgentStates(agents: readonly BrainstormAgentDefinition[]) {
   const realAgents = useMemo(() => agents, [agents]);
 
-  const [agentStates, setAgentStates] = useState<Map<string, AgentState>>(
-    () => createInitialAgentStates(realAgents)
+  const [agentStates, setAgentStates] = useState<Map<string, AgentState>>(() =>
+    createInitialAgentStates(realAgents)
   );
 
   const [expandedAgents, setExpandedAgents] = useState<Set<string>>(new Set());

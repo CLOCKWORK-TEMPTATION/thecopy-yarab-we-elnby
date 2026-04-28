@@ -22,10 +22,7 @@ export function useBudgetStudio() {
     null
   );
 
-  const totalLineItems = useMemo(
-    () => countBudgetLineItems(budget),
-    [budget]
-  );
+  const totalLineItems = useMemo(() => countBudgetLineItems(budget), [budget]);
 
   const { restoringState, persistedAt, persistBudgetState } =
     useBudgetRemoteState({

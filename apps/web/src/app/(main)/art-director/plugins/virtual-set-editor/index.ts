@@ -36,33 +36,21 @@ export class VirtualSetEditor implements Plugin {
     const data = input.data as unknown;
     switch (input.type) {
       case "create-set":
-        return createVirtualSet(
-          data as Parameters<typeof createVirtualSet>[0]
-        );
+        return createVirtualSet(data as Parameters<typeof createVirtualSet>[0]);
       case "add-element":
-        return addElement(
-          data as Parameters<typeof addElement>[0]
-        );
+        return addElement(data as Parameters<typeof addElement>[0]);
       case "modify-element":
-        return modifyElement(
-          data as Parameters<typeof modifyElement>[0]
-        );
+        return modifyElement(data as Parameters<typeof modifyElement>[0]);
       case "adjust-lighting":
-        return adjustLighting(
-          data as Parameters<typeof adjustLighting>[0]
-        );
+        return adjustLighting(data as Parameters<typeof adjustLighting>[0]);
       case "add-cgi":
-        return addCGIExtension(
-          data as Parameters<typeof addCGIExtension>[0]
-        );
+        return addCGIExtension(data as Parameters<typeof addCGIExtension>[0]);
       case "real-time-preview":
         return generateRealTimePreview(
           data as Parameters<typeof generateRealTimePreview>[0]
         );
       case "share-vision":
-        return shareVision(
-          data as Parameters<typeof shareVision>[0]
-        );
+        return shareVision(data as Parameters<typeof shareVision>[0]);
       case "color-grade":
         return colorGradePreview(
           data as Parameters<typeof colorGradePreview>[0]

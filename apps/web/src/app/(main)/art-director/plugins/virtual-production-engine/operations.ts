@@ -318,29 +318,27 @@ export function calibrateSystemOperation(data: {
     return { success: false, error: "Production not found" };
   }
 
-  const calibrationSteps: Record<
-    "camera" | "led-wall" | "tracking",
-    string[]
-  > = {
-    camera: [
-      "Capture lens distortion chart",
-      "Calculate distortion coefficients",
-      "Store lens profile",
-      "Verify with test pattern",
-    ],
-    "led-wall": [
-      "Display color calibration pattern",
-      "Measure color accuracy",
-      "Adjust per-panel brightness",
-      "Set color space mapping",
-    ],
-    tracking: [
-      "Place calibration markers",
-      "Capture reference positions",
-      "Calculate transformation matrix",
-      "Verify tracking accuracy",
-    ],
-  };
+  const calibrationSteps: Record<"camera" | "led-wall" | "tracking", string[]> =
+    {
+      camera: [
+        "Capture lens distortion chart",
+        "Calculate distortion coefficients",
+        "Store lens profile",
+        "Verify with test pattern",
+      ],
+      "led-wall": [
+        "Display color calibration pattern",
+        "Measure color accuracy",
+        "Adjust per-panel brightness",
+        "Set color space mapping",
+      ],
+      tracking: [
+        "Place calibration markers",
+        "Capture reference positions",
+        "Calculate transformation matrix",
+        "Verify tracking accuracy",
+      ],
+    };
 
   const selectedSteps = Object.fromEntries(
     data.components.map((component) => [component, calibrationSteps[component]])
@@ -402,9 +400,11 @@ export function realTimeCompositeOperation(data: {
   };
 }
 
-function getOutputResolution(
-  outputFormat: "4k" | "8k" | "hd"
-): { width: number; height: number; bandwidth: string } {
+function getOutputResolution(outputFormat: "4k" | "8k" | "hd"): {
+  width: number;
+  height: number;
+  bandwidth: string;
+} {
   const resolutions = {
     hd: { width: 1920, height: 1080, bandwidth: "3Gbps" },
     "4k": { width: 3840, height: 2160, bandwidth: "12Gbps" },
@@ -446,9 +446,9 @@ export function exportPrevizOperation(data: {
   };
 }
 
-function getExportFormatInfo(format: "mp4" | "prores" | "exr-sequence" | "usd"):
-  | { codec: string; container: string; use: string }
-  | undefined {
+function getExportFormatInfo(
+  format: "mp4" | "prores" | "exr-sequence" | "usd"
+): { codec: string; container: string; use: string } | undefined {
   const formatInfo = {
     mp4: { codec: "H.264", container: "MP4", use: "Review and sharing" },
     prores: { codec: "ProRes 4444", container: "MOV", use: "Editorial" },

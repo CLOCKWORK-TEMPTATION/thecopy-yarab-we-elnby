@@ -28,7 +28,11 @@ export const viterbiDecode = (
   for (let lineIndex = 1; lineIndex < lineCount; lineIndex++) {
     const currentOffset = lineIndex * typeCount;
     const prevOffset = (lineIndex - 1) * typeCount;
-    const currentEmissions = getRequiredItem(allEmissions, lineIndex, "emissions");
+    const currentEmissions = getRequiredItem(
+      allEmissions,
+      lineIndex,
+      "emissions"
+    );
 
     for (let currentType = 0; currentType < typeCount; currentType++) {
       let bestScore = -Infinity;
@@ -37,7 +41,10 @@ export const viterbiDecode = (
       for (let prevType = 0; prevType < typeCount; prevType++) {
         const score =
           readNumericValue(prob, prevOffset + prevType) +
-          readNumericValue(TRANSITION_MATRIX, prevType * typeCount + currentType) +
+          readNumericValue(
+            TRANSITION_MATRIX,
+            prevType * typeCount + currentType
+          ) +
           readNumericValue(currentEmissions, currentType);
         if (score > bestScore) {
           bestScore = score;
@@ -65,7 +72,10 @@ export const viterbiDecode = (
 
   for (let lineIndex = lineCount - 2; lineIndex >= 0; lineIndex--) {
     const nextTypeIndex = readNumericValue(path, lineIndex + 1);
-    path[lineIndex] = readNumericValue(prev, (lineIndex + 1) * typeCount + nextTypeIndex);
+    path[lineIndex] = readNumericValue(
+      prev,
+      (lineIndex + 1) * typeCount + nextTypeIndex
+    );
   }
 
   return path.map((typeIndex, lineIndex) => ({

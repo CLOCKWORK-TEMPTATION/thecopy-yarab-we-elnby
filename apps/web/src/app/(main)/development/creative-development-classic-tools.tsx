@@ -81,10 +81,7 @@ export function ClassicToolsCard({
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {completionEnhancements.map((enhancement) => (
-                <div
-                  key={enhancement}
-                  className="flex items-center space-x-2"
-                >
+                <div key={enhancement} className="flex items-center space-x-2">
                   <Checkbox
                     id={enhancement}
                     checked={selectedCompletionEnhancements.includes(

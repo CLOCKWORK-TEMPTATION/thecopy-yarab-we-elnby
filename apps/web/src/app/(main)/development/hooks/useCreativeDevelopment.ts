@@ -12,10 +12,7 @@ import { useCallback, useEffect, useReducer } from "react";
 import { toText } from "@/ai/gemini-core";
 import { useToast } from "@/hooks/use-toast";
 
-import {
-  CreativeTaskType,
-  CREATIVE_TASK_LABELS,
-} from "../types";
+import { CreativeTaskType, CREATIVE_TASK_LABELS } from "../types";
 
 import {
   TASKS_REQUIRING_COMPLETION_SCOPE,
@@ -44,7 +41,10 @@ export type { UnlockStatus };
  * @returns كائن يحتوي على الحالة والإجراءات
  */
 export function useCreativeDevelopment() {
-  const [state, dispatch] = useReducer(creativeDevelopmentReducer, initialState);
+  const [state, dispatch] = useReducer(
+    creativeDevelopmentReducer,
+    initialState
+  );
   const { toast } = useToast();
 
   // ============================================
@@ -52,7 +52,12 @@ export function useCreativeDevelopment() {
   // ============================================
 
   const loadSavedAnalysisData = useCallback(() => {
-    loadSavedAnalysisDataImpl(dispatch, state.textInput, state.analysisReport, toast);
+    loadSavedAnalysisDataImpl(
+      dispatch,
+      state.textInput,
+      state.analysisReport,
+      toast
+    );
   }, [toast, state.textInput, state.analysisReport]);
 
   useEffect(() => {
@@ -92,7 +97,12 @@ export function useCreativeDevelopment() {
     } catch {
       // quota exceeded — non-critical
     }
-  }, [state.textInput, state.analysisReport, state.specialRequirements, state.additionalInfo]);
+  }, [
+    state.textInput,
+    state.analysisReport,
+    state.specialRequirements,
+    state.additionalInfo,
+  ]);
 
   // ============================================
   // الإجراءات البسيطة
@@ -106,9 +116,12 @@ export function useCreativeDevelopment() {
     dispatch({ type: "SET_SELECTED_CATALOG_TASK", payload: taskId });
   }, []);
 
-  const handleToggleEnhancement = useCallback((enhancementId: CreativeTaskType) => {
-    dispatch({ type: "TOGGLE_ENHANCEMENT", payload: enhancementId });
-  }, []);
+  const handleToggleEnhancement = useCallback(
+    (enhancementId: CreativeTaskType) => {
+      dispatch({ type: "TOGGLE_ENHANCEMENT", payload: enhancementId });
+    },
+    []
+  );
 
   const clearAnalysisData = useCallback(() => {
     sessionStorage.removeItem("stationAnalysisResults");
@@ -127,14 +140,20 @@ export function useCreativeDevelopment() {
   const handleFileContent = useCallback(
     (content: string, _filename: string) => {
       dispatch({ type: "SET_TEXT_INPUT", payload: content });
-      toast({ title: "تم تحميل الملف", description: "تم استيراد محتوى الملف بنجاح" });
+      toast({
+        title: "تم تحميل الملف",
+        description: "تم استيراد محتوى الملف بنجاح",
+      });
     },
     [toast]
   );
 
   const enableManualMode = useCallback(() => {
     dispatch({ type: "ENABLE_MANUAL_MODE" });
-    toast({ title: "الوضع اليدوي", description: "يمكنك الآن تعديل النص وتقرير التحليل بحرية" });
+    toast({
+      title: "الوضع اليدوي",
+      description: "يمكنك الآن تعديل النص وتقرير التحليل بحرية",
+    });
   }, [toast]);
 
   // ============================================
@@ -161,10 +180,16 @@ export function useCreativeDevelopment() {
       );
     },
     [
-      state.textInput, state.completionScope, state.specialRequirements,
-      state.additionalInfo, state.analysisReport, state.analysisId,
-      state.selectedCompletionEnhancements, state.advancedSettings,
-      state.taskResults, toast,
+      state.textInput,
+      state.completionScope,
+      state.specialRequirements,
+      state.additionalInfo,
+      state.analysisReport,
+      state.analysisId,
+      state.selectedCompletionEnhancements,
+      state.advancedSettings,
+      state.taskResults,
+      toast,
     ]
   );
 
@@ -185,10 +210,16 @@ export function useCreativeDevelopment() {
       toast
     );
   }, [
-    state.textInput, state.selectedTask, state.completionScope,
-    state.selectedCompletionEnhancements, state.specialRequirements,
-    state.additionalInfo, state.analysisReport, state.analysisId,
-    state.advancedSettings, toast,
+    state.textInput,
+    state.selectedTask,
+    state.completionScope,
+    state.selectedCompletionEnhancements,
+    state.specialRequirements,
+    state.additionalInfo,
+    state.analysisReport,
+    state.analysisId,
+    state.advancedSettings,
+    toast,
   ]);
 
   // ============================================
@@ -197,7 +228,9 @@ export function useCreativeDevelopment() {
 
   const exportReport = useCallback(() => {
     if (!state.aiResponse) return;
-    const blob = new Blob([toText(state.aiResponse.raw)], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([toText(state.aiResponse.raw)], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -207,7 +240,10 @@ export function useCreativeDevelopment() {
   }, [state.aiResponse, state.selectedTask]);
 
   const showReport = useCallback(() => {
-    dispatch({ type: "SET_SHOW_REPORT_MODAL", payload: state.selectedTask ?? "result" });
+    dispatch({
+      type: "SET_SHOW_REPORT_MODAL",
+      payload: state.selectedTask ?? "result",
+    });
   }, [state.selectedTask]);
 
   const closeReport = useCallback(() => {
@@ -217,7 +253,9 @@ export function useCreativeDevelopment() {
   const getAgentReport = useCallback(() => {
     if (!state.aiResponse) return null;
     return {
-      agentName: state.selectedTask ? CREATIVE_TASK_LABELS[state.selectedTask] : "التقرير",
+      agentName: state.selectedTask
+        ? CREATIVE_TASK_LABELS[state.selectedTask]
+        : "التقرير",
       agentId: state.selectedTask ?? "unknown",
       text: toText(state.aiResponse.raw),
       confidence: 1.0,
@@ -239,16 +277,37 @@ export function useCreativeDevelopment() {
     const textLen = state.textInput.trim().length;
 
     if (state.isAnalysisComplete) {
-      return { locked: false, reason: "ready" as const, reportLength: reportLen, minRequired: MIN_TEXT_LENGTH, progress: 100 };
+      return {
+        locked: false,
+        reason: "ready" as const,
+        reportLength: reportLen,
+        minRequired: MIN_TEXT_LENGTH,
+        progress: 100,
+      };
     }
 
     const bestLen = Math.max(reportLen, textLen);
-    const progress = Math.min(100, Math.round((bestLen / MIN_TEXT_LENGTH) * 100));
+    const progress = Math.min(
+      100,
+      Math.round((bestLen / MIN_TEXT_LENGTH) * 100)
+    );
 
     if (bestLen === 0) {
-      return { locked: true, reason: "no-report" as const, reportLength: 0, minRequired: MIN_TEXT_LENGTH, progress: 0 };
+      return {
+        locked: true,
+        reason: "no-report" as const,
+        reportLength: 0,
+        minRequired: MIN_TEXT_LENGTH,
+        progress: 0,
+      };
     }
-    return { locked: true, reason: "short-report" as const, reportLength: bestLen, minRequired: MIN_TEXT_LENGTH, progress };
+    return {
+      locked: true,
+      reason: "short-report" as const,
+      reportLength: bestLen,
+      minRequired: MIN_TEXT_LENGTH,
+      progress,
+    };
   })();
 
   // ============================================
@@ -266,11 +325,16 @@ export function useCreativeDevelopment() {
     completionEnhancements: COMPLETION_ENHANCEMENT_OPTIONS,
 
     // تحديث المدخلات
-    setTextInput: (value: string) => dispatch({ type: "SET_TEXT_INPUT", payload: value }),
-    setSpecialRequirements: (value: string) => dispatch({ type: "SET_SPECIAL_REQUIREMENTS", payload: value }),
-    setAdditionalInfo: (value: string) => dispatch({ type: "SET_ADDITIONAL_INFO", payload: value }),
-    setCompletionScope: (value: string) => dispatch({ type: "SET_COMPLETION_SCOPE", payload: value }),
-    setAnalysisReport: (value: string) => dispatch({ type: "SET_ANALYSIS_REPORT", payload: value }),
+    setTextInput: (value: string) =>
+      dispatch({ type: "SET_TEXT_INPUT", payload: value }),
+    setSpecialRequirements: (value: string) =>
+      dispatch({ type: "SET_SPECIAL_REQUIREMENTS", payload: value }),
+    setAdditionalInfo: (value: string) =>
+      dispatch({ type: "SET_ADDITIONAL_INFO", payload: value }),
+    setCompletionScope: (value: string) =>
+      dispatch({ type: "SET_COMPLETION_SCOPE", payload: value }),
+    setAnalysisReport: (value: string) =>
+      dispatch({ type: "SET_ANALYSIS_REPORT", payload: value }),
 
     // حالة الفتح/القفل
     unlockStatus,

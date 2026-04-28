@@ -1,7 +1,4 @@
-import {
-  FULL_ACTION_VERB_SET,
-  PRONOUN_ACTION_RE,
-} from "./arabic-patterns";
+import { FULL_ACTION_VERB_SET, PRONOUN_ACTION_RE } from "./arabic-patterns";
 import {
   hasActionVerbStructure,
   isActionCueLine,
@@ -142,10 +139,7 @@ export const hasEmbeddedNarrativeActionInDialogue = (text: string): boolean => {
 };
 
 export const normalizeNameFragment = (text: string): string =>
-  (text ?? "")
-    .replace(INVISIBLE_FORMAT_RE, "")
-    .replace(/[:：]/g, "")
-    .trim();
+  (text ?? "").replace(INVISIBLE_FORMAT_RE, "").replace(/[:：]/g, "").trim();
 
 export const isLikelyCharacterFragment = (
   text: string,

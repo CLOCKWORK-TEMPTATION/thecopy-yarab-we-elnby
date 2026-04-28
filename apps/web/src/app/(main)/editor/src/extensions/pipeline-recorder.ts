@@ -6,7 +6,10 @@
 
 import { logger } from "@/lib/logger";
 
-import { printLineJourney, printRunReport } from "./pipeline-recorder/console-ui";
+import {
+  printLineJourney,
+  printRunReport,
+} from "./pipeline-recorder/console-ui";
 import { isPipelineConsoleDebugEnabled } from "./pipeline-recorder/helpers";
 import { PipelineRecorder } from "./pipeline-recorder/recorder";
 

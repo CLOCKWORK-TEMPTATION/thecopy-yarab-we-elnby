@@ -1,10 +1,6 @@
 import { definedProps } from "@/lib/defined-props";
 
-import {
-  computeDiff,
-  computeTypeDist,
-  toSnapshotLine,
-} from "./helpers";
+import { computeDiff, computeTypeDist, toSnapshotLine } from "./helpers";
 
 import type {
   PipelineEvent,
@@ -190,7 +186,8 @@ export class PipelineRecorder {
       this._currentRun.endTime - this._currentRun.startTime
     );
 
-    const lastSnapshot = this._currentRun.snapshots[this._currentRun.snapshots.length - 1];
+    const lastSnapshot =
+      this._currentRun.snapshots[this._currentRun.snapshots.length - 1];
     if (lastSnapshot) {
       this._currentRun.finalTypeDist = computeTypeDist(lastSnapshot.lines);
     }
@@ -198,8 +195,9 @@ export class PipelineRecorder {
     this._emit({
       kind: "run-end",
       totalDurationMs: this._currentRun.totalDurationMs,
-      totalVerdicts: this._currentRun.aiCorrections.filter((correction) => correction.applied)
-        .length,
+      totalVerdicts: this._currentRun.aiCorrections.filter(
+        (correction) => correction.applied
+      ).length,
       finalTypeDist: this._currentRun.finalTypeDist,
       outcome: this._currentRun.failure ? "failed-after-visible" : "settled",
     });

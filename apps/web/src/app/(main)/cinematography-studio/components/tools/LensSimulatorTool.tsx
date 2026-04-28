@@ -18,9 +18,16 @@ import { cn } from "@/lib/utils";
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
-import { DEFAULT_LENS_SETTINGS, LENS_PRESETS } from "./lens-simulator/constants";
+import {
+  DEFAULT_LENS_SETTINGS,
+  LENS_PRESETS,
+} from "./lens-simulator/constants";
 import { LensViewport } from "./lens-simulator/LensViewport";
-import { calculateFOV, getLensType, getPresetDistortion } from "./lens-simulator/utils";
+import {
+  calculateFOV,
+  getLensType,
+  getPresetDistortion,
+} from "./lens-simulator/utils";
 
 import type {
   LensSettings,
@@ -227,7 +234,10 @@ export function LensSimulatorTool({
             headerRight={<Sparkles className="h-4 w-4 text-[#e5b54f]" />}
           >
             <div className="space-y-4">
-              <Select value={settings.selectedPreset ?? ""} onValueChange={applyPreset}>
+              <Select
+                value={settings.selectedPreset ?? ""}
+                onValueChange={applyPreset}
+              >
                 <SelectTrigger className="border-[#343434] bg-[#0d0d0d] text-[#f2e4bc]">
                   <SelectValue placeholder="اختر عدسة..." />
                 </SelectTrigger>

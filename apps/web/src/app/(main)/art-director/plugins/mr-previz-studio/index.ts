@@ -14,7 +14,11 @@ import type {
   CameraMovement,
   Vector3D,
 } from "./types";
-import { supportedDevices, EXPORT_FORMATS, DEFAULT_VR_WAYPOINTS } from "./constants";
+import {
+  supportedDevices,
+  EXPORT_FORMATS,
+  DEFAULT_VR_WAYPOINTS,
+} from "./constants";
 import { analyzeComposition, generateKeyframes } from "./utils";
 import {
   createScene,

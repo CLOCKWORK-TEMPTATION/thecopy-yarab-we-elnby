@@ -506,7 +506,9 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
 
     // إدخال النص والنقر على التحليل
     const textarea = page.locator("textarea").first();
-    await textarea.fill(E2E_SCRIPT).catch(() => { /* empty */ });
+    await textarea.fill(E2E_SCRIPT).catch(() => {
+      /* empty */
+    });
 
     const analyzeButton = page
       .locator("button")
@@ -555,7 +557,9 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
     await page.waitForTimeout(1500);
 
     const textarea = page.locator("textarea").first();
-    await textarea.fill(E2E_SCRIPT).catch(() => { /* empty */ });
+    await textarea.fill(E2E_SCRIPT).catch(() => {
+      /* empty */
+    });
 
     const analyzeButton = page
       .locator("button")

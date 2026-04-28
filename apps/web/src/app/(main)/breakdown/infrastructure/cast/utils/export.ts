@@ -1,6 +1,10 @@
 // Cast Export Utilities
 
-import type { CastMember, ExtendedCastMember, CastAnalysisResult } from "../../domain/models";
+import type {
+  CastMember,
+  ExtendedCastMember,
+  CastAnalysisResult,
+} from "../../domain/models";
 
 /**
  * Export cast members as CSV
