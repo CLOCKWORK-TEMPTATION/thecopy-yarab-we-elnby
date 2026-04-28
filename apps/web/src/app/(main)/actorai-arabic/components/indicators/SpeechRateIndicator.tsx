@@ -1,7 +1,9 @@
 import React from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+
 import { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
 
 export interface SpeechRateIndicatorProps {

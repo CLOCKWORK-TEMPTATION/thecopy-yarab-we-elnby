@@ -1,5 +1,6 @@
-import { GeminiModel, GeminiService } from "../../gemini-service";
 import { safeSub, toText } from "../../../utils/text-utils";
+import { GeminiModel, GeminiService } from "../../gemini-service";
+
 import type { Station2Context } from "../types";
 
 export async function generateStoryStatements(

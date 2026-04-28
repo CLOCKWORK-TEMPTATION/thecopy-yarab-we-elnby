@@ -1,3 +1,5 @@
+import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
+import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import {
   useState,
   useRef,
@@ -6,9 +8,10 @@ import {
   useMemo,
   type ChangeEvent,
 } from "react";
-import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
-import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+
 import { toast } from "@/hooks/use-toast";
+
+import { STATUS_LABELS, SESSION_STORAGE_KEY } from "../constants";
 import {
   OrderStatusFilter,
   TimeSortOrder,
@@ -18,7 +21,6 @@ import {
   BatchVendorResult,
   OrderStatusEvent,
 } from "../types";
-import { STATUS_LABELS, SESSION_STORAGE_KEY } from "../constants";
 
 export function useOrdersLive() {
   const [sessionId, setSessionId] = useState<string>("");

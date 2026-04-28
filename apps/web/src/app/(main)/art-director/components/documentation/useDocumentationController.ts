@@ -4,7 +4,6 @@ import { fetchArtDirectorJson } from "../../lib/api-client";
 
 import { DEFAULT_BOOK_FORM, DEFAULT_DECISION_FORM } from "./constants";
 
-import type { ApiResponse } from "../../types";
 import type {
   BookFormData,
   DecisionFormData,
@@ -13,6 +12,7 @@ import type {
   ProductionBookState,
   StyleGuideState,
 } from "./types";
+import type { ApiResponse } from "../../types";
 
 const triggerDownload = (payload: DocumentationExportPayload): void => {
   const blob = new Blob([payload.content], { type: payload.mimeType });

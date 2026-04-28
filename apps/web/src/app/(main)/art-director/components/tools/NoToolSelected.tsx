@@ -1,6 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 export function NoToolSelected() {

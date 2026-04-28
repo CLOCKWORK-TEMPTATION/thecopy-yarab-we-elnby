@@ -1,7 +1,9 @@
 "use client";
 
 import { Play } from "lucide-react";
+
 import { toolConfigs } from "../../core/toolConfigs";
+
 import type { ToolItemProps, CSSPropertiesWithVars } from "./types";
 
 export function ToolItem({ plugin, isActive, onClick }: ToolItemProps) {

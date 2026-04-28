@@ -3,14 +3,15 @@
  * @description تحويل HTML/كتل السيناريو
  */
 
-import type { ScreenplayBlock } from "./types";
+import { normalizeIncomingBlocks } from "./block-utils";
 import { normalizeBlockText, escapeHtml } from "./encoding";
 import {
   getFormatIdFromElement,
   splitLegacyTopLineText,
   toLineTextsFromNode,
 } from "./format-utils";
-import { normalizeIncomingBlocks } from "./block-utils";
+
+import type { ScreenplayBlock } from "./types";
 
 /**
  * يحوّل سلسلة HTML إلى مصفوفة كتل سيناريو عبر DOMParser.

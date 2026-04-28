@@ -1,8 +1,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { ensureMediaFixtures } from "../../tests/fixtures/media/ensure-media-fixtures.mjs";
 
-import { runSuite, SuiteResult } from "./utils/test-helpers";
+import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
+import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
 import {
   runConfigSuite,
   runLocalFallbackSuite,
@@ -11,8 +13,7 @@ import {
   runSessionStorageSuite,
   runCameraBindingSuite,
 } from "./test-suites";
-import { runDiagnosticOverlaySuite } from "./__tests__/cinematography-diagnostic-overlay.test";
-import { runSliderDragSuite } from "./__tests__/cinematography-slider-drag.test";
+import { runSuite, SuiteResult } from "./utils/test-helpers";
 
 const outputDirectory = resolve(
   process.cwd(),

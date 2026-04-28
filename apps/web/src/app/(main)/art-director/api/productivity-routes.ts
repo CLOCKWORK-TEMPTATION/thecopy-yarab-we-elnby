@@ -1,5 +1,7 @@
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../core/PluginManager";
+
 import { getRequestBody } from "./route-utils";
 
 export function registerProductivityRoutes(router: Router): void {

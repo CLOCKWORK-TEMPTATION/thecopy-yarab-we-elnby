@@ -1,13 +1,15 @@
 "use client";
 
-import React from "react";
 import { Grid3X3, List, Clock, ArrowUpDown } from "lucide-react";
+import React from "react";
+
 import { cn } from "@/lib/utils";
-import type { ViewMode, SortOption } from "./types";
+
 import { sortOptions } from "./constants";
 import { FilterPanel } from "./FilterPanel";
 import { SearchBar } from "./SearchBar";
-import type { ShotFilters } from "./types";
+
+import type { ViewMode, SortOption , ShotFilters } from "./types";
 
 interface ToolbarProps {
   viewMode: ViewMode;

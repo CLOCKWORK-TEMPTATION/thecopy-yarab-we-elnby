@@ -4,8 +4,8 @@
  */
 
 import { toText, safeSub } from "../utils/text-utils";
+
 import { GeminiService, GeminiModel } from "./gemini-service";
-import type { Station2Output } from "./station2-conceptual-analysis";
 import {
   RelationshipType,
   RelationshipNature,
@@ -14,6 +14,8 @@ import {
   ConflictScope,
   ConflictPhase,
 } from "./station3-types";
+
+import type { Station2Output } from "./station2-conceptual-analysis";
 import type {
   Character,
   Conflict,

@@ -1,16 +1,17 @@
 // CineArchitect AI - Performance Evaluation Service
 // خدمة تقييم الأداء
 
-import type {
-  PerformanceEvaluation,
-  PerformanceMetrics,
-  TrainingScenario,
-} from "./types";
 import {
   PERFORMANCE_WEIGHTS,
   DIFFICULTY_ORDER,
   TRAINING_SCENARIOS,
 } from "./constants";
+
+import type {
+  PerformanceEvaluation,
+  PerformanceMetrics,
+  TrainingScenario,
+} from "./types";
 
 /**
  * Calculates the overall performance score based on metrics.

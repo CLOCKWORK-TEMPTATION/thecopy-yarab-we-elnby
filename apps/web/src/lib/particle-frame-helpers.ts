@@ -1,8 +1,6 @@
 // Pure per-frame helpers for the optimized particle animation.
 // Shared between particle-background-optimized variants.
 
-import type * as THREE from "three";
-
 import {
   applyDefaultEffect,
   applySparkEffect,
@@ -14,6 +12,9 @@ import {
   type ParticlePosition,
   type ParticleVelocity,
 } from "@/components/particle-effects";
+
+import type * as THREE from "three";
+
 
 export type ParticleEffect = "default" | "spark" | "wave" | "vortex";
 

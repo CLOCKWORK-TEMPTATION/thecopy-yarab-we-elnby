@@ -3,11 +3,11 @@
  * @description الأنماط 6–9 للتصحيح الرجعي (أنماط جديدة — تُفعَّل بـ enableNewPatterns).
  */
 
+import { correctedDraft, wordCount } from "./retroactive-corrector-utils";
 import {
   looksLikeNarrativeActionSyntax,
   hasDirectDialogueMarkers,
 } from "./text-utils";
-import { correctedDraft, wordCount } from "./retroactive-corrector-utils";
 
 import type { ClassifiedDraft, ElementType } from "./classification-types";
 

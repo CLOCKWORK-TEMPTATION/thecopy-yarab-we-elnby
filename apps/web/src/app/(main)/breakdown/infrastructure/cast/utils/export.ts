@@ -22,7 +22,7 @@ export const exportCastToCSV = (
     "Motivation",
   ];
   const rows = members.map((m) => {
-    const extended = m as ExtendedCastMember;
+    const extended = m;
     return [
       m.name,
       extended.nameArabic ?? "",
@@ -55,11 +55,11 @@ export const generateCastingCall = (
 
   const leads = members.filter(
     (m) =>
-      (m as ExtendedCastMember).roleCategory === "Lead" || m.role === "Lead"
+      (m).roleCategory === "Lead" || m.role === "Lead"
   );
   const supporting = members.filter(
     (m) =>
-      (m as ExtendedCastMember).roleCategory === "Supporting" ||
+      (m).roleCategory === "Supporting" ||
       m.role === "Supporting"
   );
 
@@ -67,7 +67,7 @@ export const generateCastingCall = (
     doc += "LEAD ROLES\n";
     doc += "-".repeat(30) + "\n";
     leads.forEach((m) => {
-      const extended = m as ExtendedCastMember;
+      const extended = m;
       doc += `\n${m.name.toUpperCase()} (${m.gender}, ${extended.ageRange || m.age})\n`;
       doc += `Description: ${extended.visualDescription || m.description || "N/A"}\n`;
       doc += `In this scene: ${m.motivation || "N/A"}\n`;
@@ -78,7 +78,7 @@ export const generateCastingCall = (
     doc += "\n\nSUPPORTING ROLES\n";
     doc += "-".repeat(30) + "\n";
     supporting.forEach((m) => {
-      const extended = m as ExtendedCastMember;
+      const extended = m;
       doc += `\n${m.name} (${m.gender}, ${extended.ageRange || m.age})\n`;
       doc += `${extended.visualDescription || m.description || "N/A"}\n`;
     });

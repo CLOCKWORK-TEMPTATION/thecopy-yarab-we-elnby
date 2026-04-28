@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
   BarChart3,
@@ -13,10 +14,8 @@ import {
   Zap,
 } from "lucide-react";
 import React from "react";
-import toast, { Toaster } from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 
-import type { Budget } from "../lib/types";
 
 import { BudgetAnalytics } from "./BudgetAnalytics";
 import { BudgetHeader } from "./BudgetHeader";
@@ -28,6 +27,8 @@ import { ExportModal } from "./ExportModal";
 import { TemplateSelector } from "./TemplateSelector";
 import { TopSheet } from "./TopSheet";
 import { useBudgetState } from "./useBudgetState";
+
+import type { Budget } from "../lib/types";
 
 interface BudgetAppProps {
   initialBudget?: Budget;

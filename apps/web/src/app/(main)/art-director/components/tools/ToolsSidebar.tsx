@@ -1,7 +1,9 @@
 "use client";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { ToolItem } from "./ToolItem";
+
 import type { ToolsSidebarProps } from "./types";
 
 export function ToolsSidebar({

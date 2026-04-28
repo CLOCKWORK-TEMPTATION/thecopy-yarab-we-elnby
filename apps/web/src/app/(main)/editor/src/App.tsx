@@ -8,7 +8,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { DotBackground } from "@/components/ui/dot-background";
-import { getCurrentProject } from "@/lib/projectStore";
 
 import {
   AppDock,
@@ -25,15 +24,6 @@ import {
 } from "./components/editor";
 import { BackgroundGrid } from "./components/ui/BackgroundGrid";
 import {
-  LOCKED_EDITOR_FONT_LABEL,
-  LOCKED_EDITOR_FONT_VALUE,
-  LOCKED_EDITOR_SIZE_LABEL,
-  SUPPORTED_LEGACY_FORMAT_COUNT,
-  CLASSIFIER_OPTION_COUNT,
-  ACTION_BLOCK_SPACING,
-  getConstants,
-} from "./lib/app/constants";
-import {
   handleMenuAction,
   handleSidebarItemAction,
   runExport,
@@ -46,25 +36,16 @@ import {
   useIsMobile as getIsMobile,
   useMenuCommandResolver,
 } from "./hooks";
-import { loadFromStorage, saveToStorage } from "./hooks/storage";
+import { saveToStorage } from "./hooks/storage";
+import { scheduleAutoSave } from "./hooks/use-local-storage";
 import {
-  DEFAULT_TYPING_SYSTEM_SETTINGS,
-  minutesToMilliseconds,
-  sanitizeTypingSystemSettings,
-  type RunDocumentThroughPasteWorkflowOptions,
-  type TypingSystemSettings,
-} from "./types";
-import { resolveFileImportExtractEndpoint } from "./utils/backend-endpoints";
-import { logger } from "./utils/logger";
-import type { MenuActionId } from "./constants/menu-definitions";
-import type { ElementType } from "./extensions/classification-types";
-import {
-  EditorAutosaveSnapshot,
-  EditorDiagnosticEvent,
-  TYPING_SETTINGS_STORAGE_KEY,
-  AUTOSAVE_DRAFT_STORAGE_KEY,
-  MAX_DIAGNOSTIC_EVENTS,
-} from "./types/app";
+  LOCKED_EDITOR_FONT_LABEL,
+  LOCKED_EDITOR_SIZE_LABEL,
+  SUPPORTED_LEGACY_FORMAT_COUNT,
+  CLASSIFIER_OPTION_COUNT,
+  ACTION_BLOCK_SPACING,
+  getConstants,
+} from "./lib/app/constants";
 import {
   readTypingSystemSettings,
   readActiveProjectTitle,
@@ -72,7 +53,24 @@ import {
   canRestoreAutosaveSnapshot,
   applyAutosaveSnapshot,
   buildKeyHandler,
+  applyDesignTokens,
 } from "./lib/app/utils";
+import {
+  minutesToMilliseconds,
+  sanitizeTypingSystemSettings,
+  type RunDocumentThroughPasteWorkflowOptions,
+  type TypingSystemSettings,
+} from "./types";
+import {
+  EditorAutosaveSnapshot,
+  EditorDiagnosticEvent,
+  MAX_DIAGNOSTIC_EVENTS,
+} from "./types/app";
+import { resolveFileImportExtractEndpoint } from "./utils/backend-endpoints";
+import { logger } from "./utils/logger";
+
+import type { MenuActionId } from "./constants/menu-definitions";
+import type { ElementType } from "./extensions/classification-types";
 
 const TYPING_SETTINGS_STORAGE_KEY_INTERNAL = "filmlane.typing-system.settings";
 const AUTOSAVE_DRAFT_STORAGE_KEY_INTERNAL =
@@ -153,9 +151,9 @@ export function App(): React.JSX.Element {
 
     const snapshot = readAutosaveSnapshot();
     if (canRestoreAutosaveSnapshot(snapshot)) {
-      void applyAutosaveSnapshot(editorArea, snapshot)
+      void (applyAutosaveSnapshot(editorArea, snapshot) as Promise<void>)
         .then(() => setDocumentText(editorArea.getAllText()))
-        .catch((error) => {
+        .catch((error: unknown) => {
           recordDiagnostic(
             "فشل الاستعادة التلقائية",
             error instanceof Error
@@ -214,8 +212,7 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     const area = editorAreaRef.current;
     if (!area) return;
-    const { useAutoSave } = require("./hooks");
-    useAutoSave<EditorAutosaveSnapshot>(
+    scheduleAutoSave<EditorAutosaveSnapshot>(
       AUTOSAVE_DRAFT_STORAGE_KEY_INTERNAL,
       {
         html: area.getAllHtml(),
@@ -247,7 +244,6 @@ export function App(): React.JSX.Element {
 
   // Design tokens
   useEffect(() => {
-    const { applyDesignTokens } = require("./lib/app/utils");
     applyDesignTokens();
   }, []);
 
@@ -557,7 +553,7 @@ export function App(): React.JSX.Element {
     EDITOR_CANVAS_COMPACT_SHELL_WIDTH_PX,
   } = getConstants();
   const currentFormatLabel = currentFormat
-    ? FORMAT_LABEL_BY_TYPE[currentFormat]
+    ? (FORMAT_LABEL_BY_TYPE as Record<string, string>)[currentFormat]
     : "—";
   const fileImportBackendEndpoint = resolveFileImportExtractEndpoint();
   const hasFileImportBackend = fileImportBackendEndpoint.length > 0;
@@ -582,9 +578,9 @@ export function App(): React.JSX.Element {
         onAction={(actionId) =>
           void dispatchMenuAction(actionId as MenuActionId)
         }
-        infoDotColor={semanticColors.info}
-        brandGradient={gradients.jungle}
-        onlineDotColor={brandColors.jungleGreen}
+        infoDotColor={(semanticColors as { info: string }).info}
+        brandGradient={(gradients as { jungle: string }).jungle}
+        onlineDotColor={(brandColors as { jungleGreen: string }).jungleGreen}
       />
       <div
         className="app-main relative z-10 flex flex-1 overflow-hidden"
@@ -645,6 +641,8 @@ export function App(): React.JSX.Element {
               }
             />
             <div
+              role="button"
+              tabIndex={0}
               className="app-editor-scroll scrollbar-none relative flex flex-1 justify-center overflow-x-hidden overflow-y-auto"
               style={{
                 paddingTop: `${EDITOR_CANVAS_TOP_OFFSET_PX}px`,
@@ -656,6 +654,14 @@ export function App(): React.JSX.Element {
                 const target = e.target as HTMLElement;
                 if (target.closest(".ProseMirror")) return;
                 editorAreaRef.current?.focusEditor();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  const target = e.target as HTMLElement;
+                  if (target.closest(".ProseMirror")) return;
+                  editorAreaRef.current?.focusEditor();
+                }
               }}
             >
               <DotBackground />
@@ -711,7 +717,7 @@ export function App(): React.JSX.Element {
         </aside>
       ) : null}
       <div className="sr-only">
-        {screenplayFormats.map((format) => (
+        {(screenplayFormats as { id: string; label: string }[]).map((format) => (
           <span key={format.id}>{format.label}</span>
         ))}
       </div>

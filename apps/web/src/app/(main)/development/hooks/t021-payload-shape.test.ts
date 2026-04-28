@@ -6,9 +6,10 @@
  *  T021 — Regression: brainstorm payload shape matches the contract exactly
  */
 
-import { renderHook, act } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { READY_TEXT_INPUT, READY_ANALYSIS_REPORT } from "../test-fixtures";
 import {
   okResponse,
   errResponse,
@@ -16,7 +17,6 @@ import {
   fetchCallOptions,
   applyExecutionPrerequisites,
 } from "../test-helpers";
-import { READY_TEXT_INPUT, READY_ANALYSIS_REPORT } from "../test-fixtures";
 
 // ---------------------------------------------------------------------------
 // Global mocks (must be hoisted before module imports that use them)
@@ -40,7 +40,7 @@ vi.mock("@/lib/app-state-client", () => ({
 // ---------------------------------------------------------------------------
 // Import the hook AFTER mocks are set up
 // ---------------------------------------------------------------------------
-const { useCreativeDevelopment } = await import("../useCreativeDevelopment");
+const { useCreativeDevelopment: _useCreativeDevelopment } = await import("../useCreativeDevelopment");
 
 // ---------------------------------------------------------------------------
 // T021: Regression — brainstorm payload shape

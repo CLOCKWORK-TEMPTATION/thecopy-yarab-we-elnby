@@ -4,12 +4,14 @@
  */
 
 import { useCallback, useMemo, useRef, useEffect, useId } from "react";
-import type { AppShellMenuSection } from "./types";
+
 import {
   getFirstEnabledIndex,
   getLastEnabledIndex,
   stepEnabledIndex,
 } from "./utils";
+
+import type { AppShellMenuSection } from "./types";
 
 export interface UseMenuNavigationReturn {
   menubarId: string;

@@ -5,20 +5,19 @@
 import {
   UserCircle,
   Eye,
-  Network,
   AlertTriangle,
   RefreshCw,
   Filter,
 } from "lucide-react";
 import React from "react";
 
-import type { CastMember, ExtendedCastMember } from "../domain/models";
 
 import CastCard from "./components/CastCard";
 import { CastControlsBar } from "./components/CastControlsBar";
 import NetworkVisualization from "./components/NetworkVisualization";
 import StatisticsPanel from "./components/StatisticsPanel";
 import { useCastBreakdown } from "./hooks/useCastBreakdown";
+
 import type { CastBreakdownViewProps } from "./types";
 
 const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({

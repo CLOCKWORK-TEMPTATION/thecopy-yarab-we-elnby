@@ -19,9 +19,13 @@ import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
 import { ColorTemperatureSchema, ColorPaletteSchema } from "../types";
 
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
-
-import type { VisualMood, ExportSettings } from "../types";
-
+import {
+  DEFAULT_TEMPERATURE,
+  initialColorGradingState,
+  initialEditorialState,
+  initialFootageState,
+  getRecommendedTemperature,
+} from "./usePostProduction-constants";
 import {
   type SceneType,
   type ColorGradingState,
@@ -31,21 +35,12 @@ import {
   type ChatResponse,
   type ValidateShotResponse,
 } from "./usePostProduction-types";
-
-import {
-  DEFAULT_TEMPERATURE,
-  initialColorGradingState,
-  initialEditorialState,
-  initialFootageState,
-  REMOTE_ANALYSIS_TIMEOUT_MS,
-  getRecommendedTemperature,
-} from "./usePostProduction-constants";
-
 import {
   getExportSettingsForPlatform,
   normalizeFootageSummary,
-  clampScore,
 } from "./usePostProduction-utils";
+
+import type { VisualMood, ExportSettings } from "../types";
 
 // ============================================
 // الـ Hook الرئيسي

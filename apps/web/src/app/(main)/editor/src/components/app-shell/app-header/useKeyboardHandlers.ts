@@ -4,6 +4,7 @@
  */
 
 import { useCallback } from "react";
+
 import type { AppShellMenuSection } from "./types";
 import type { UseMenuNavigationReturn } from "./useMenuNavigation";
 

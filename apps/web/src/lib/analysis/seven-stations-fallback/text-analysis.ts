@@ -1,4 +1,5 @@
 import { ARABIC_STOP_WORDS, GENRE_RULES, THEME_RULES } from "./constants";
+
 import type { TextChunk } from "./types";
 
 export function normalizeWhitespace(text: string): string {

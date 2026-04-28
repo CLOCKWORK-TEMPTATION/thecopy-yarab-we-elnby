@@ -1,7 +1,3 @@
-import { randomUUID } from "crypto";
-
-import { logger } from "@/lib/ai/utils/logger";
-
 import type { TimeOfDay } from "@/app/(main)/breakdown/domain/models";
 
 /**

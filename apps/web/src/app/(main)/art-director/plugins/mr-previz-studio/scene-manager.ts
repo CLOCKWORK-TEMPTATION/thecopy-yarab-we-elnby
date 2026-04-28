@@ -2,7 +2,7 @@
 // إدارة مشاهد الواقع الممتد
 
 import { v4 as uuidv4 } from "uuid";
-import type { XRScene } from "./types";
+
 import {
   DEFAULT_CAMERA_POSITION,
   DEFAULT_CAMERA_TARGET,
@@ -15,6 +15,8 @@ import {
   DEFAULT_DIRECTIONAL_INTENSITY,
   DEFAULT_DIRECTIONAL_POSITION,
 } from "./constants";
+
+import type { XRScene } from "./types";
 
 const scenes = new Map<string, XRScene>();
 
@@ -160,7 +162,7 @@ export function updateCameraMovement(
 /**
  * الحصول على قائمة كل المشاهد
  */
-export function listAllScenes(): Array<{
+export function listAllScenes(): {
   id: string;
   name: string;
   environment: string;
@@ -168,7 +170,7 @@ export function listAllScenes(): Array<{
   cameraCount: number;
   createdAt: Date;
   updatedAt: Date;
-}> {
+}[] {
   return Array.from(scenes.values()).map((s) => ({
     id: s.id,
     name: s.name,

@@ -3,6 +3,13 @@
 import { useState, useMemo } from "react";
 
 import { logError } from "../../../domain/errors";
+import {
+  exportCastToCSV,
+  exportCastToJSON,
+  generateCastingCall,
+  downloadFile,
+} from "../utils/cast-export";
+
 import type {
   CastMember,
   ExtendedCastMember,
@@ -12,12 +19,6 @@ import type {
   FilterRole,
   FilterGender,
 } from "../types";
-import {
-  exportCastToCSV,
-  exportCastToJSON,
-  generateCastingCall,
-  downloadFile,
-} from "../utils/cast-export";
 
 interface UseCastBreakdownProps {
   cast: CastMember[] | ExtendedCastMember[];

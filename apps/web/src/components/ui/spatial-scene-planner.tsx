@@ -13,6 +13,7 @@ import { SceneRightSidebar } from "./spatial-scene-planner/components/SceneRight
 import { SceneTimeline } from "./spatial-scene-planner/components/SceneTimeline";
 import { SceneViewport } from "./spatial-scene-planner/components/SceneViewport";
 import { useSpatialScene } from "./spatial-scene-planner/hooks/use-spatial-scene";
+
 import type { SpatialScenePlannerProps } from "./spatial-scene-planner/types";
 
 export type { SpatialScenePlannerProps };

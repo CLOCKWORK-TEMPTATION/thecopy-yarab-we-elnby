@@ -1,3 +1,7 @@
+import { stringifyUnknown } from "@/lib/utils/unknown-values";
+
+import { ELEMENT_COLORS } from "./breakdown-constants";
+
 import type {
   BreakdownElement,
   CastMember,
@@ -8,9 +12,6 @@ import type {
   ScenarioOption,
   SceneStats,
 } from "@/app/(main)/breakdown/domain/models";
-import { stringifyUnknown } from "@/lib/utils/unknown-values";
-
-import { ELEMENT_COLORS } from "./breakdown-constants";
 
 /**
  * بناء عناصر التفريغ من القوائم

@@ -6,7 +6,7 @@
  *  T013 — brainstorm / workflow-single / workflow-custom routing + advancedSettings pass-through
  */
 
-import { renderHook, act } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import {
@@ -39,7 +39,7 @@ vi.mock("@/lib/app-state-client", () => ({
 // ---------------------------------------------------------------------------
 // Import the hook AFTER mocks are set up
 // ---------------------------------------------------------------------------
-const { useCreativeDevelopment } = await import("../useCreativeDevelopment");
+const { useCreativeDevelopment: _useCreativeDevelopment } = await import("../useCreativeDevelopment");
 
 // ---------------------------------------------------------------------------
 // T013: ExecutionAdapter — routing per executionMode

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, type ChangeEvent } from "react";
+
 import type { InputFieldProps } from "./types";
 
 export function InputField({ input, value, onChange }: InputFieldProps) {

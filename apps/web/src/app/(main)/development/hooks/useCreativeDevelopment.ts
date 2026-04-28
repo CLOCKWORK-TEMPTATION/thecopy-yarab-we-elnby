@@ -14,6 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 
 import { CreativeTaskType, CREATIVE_TASK_LABELS } from "../types";
 
+import { executeTaskImpl } from "./creative-development-execute-impl";
+import { creativeDevelopmentReducer } from "./creative-development-reducer";
+import { loadSavedAnalysisDataImpl } from "./creative-development-storage";
+import { handleSubmitImpl } from "./creative-development-submit-impl";
 import {
   TASKS_REQUIRING_COMPLETION_SCOPE,
   COMPLETION_ENHANCEMENT_OPTIONS,
@@ -21,10 +25,6 @@ import {
   initialState,
   type UnlockStatus,
 } from "./creative-development-types";
-import { creativeDevelopmentReducer } from "./creative-development-reducer";
-import { loadSavedAnalysisDataImpl } from "./creative-development-storage";
-import { executeTaskImpl } from "./creative-development-execute-impl";
-import { handleSubmitImpl } from "./creative-development-submit-impl";
 
 export type { UnlockStatus };
 

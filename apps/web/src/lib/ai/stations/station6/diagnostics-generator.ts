@@ -1,5 +1,4 @@
-import type { DiagnosticsReport, JsonRecord, DiagnosticIssue } from "./types";
-import type { GeminiService } from "../gemini-service";
+import { createStructuredAnalysisSummary } from "./analysis-summary";
 import {
   asArray,
   asJsonRecord,
@@ -7,7 +6,9 @@ import {
   asString,
   firstJsonObject,
 } from "./utils";
-import { createStructuredAnalysisSummary } from "./analysis-summary";
+
+import type { DiagnosticsReport, JsonRecord, DiagnosticIssue } from "./types";
+import type { GeminiService } from "../gemini-service";
 
 type PreviousStationsOutput = Partial<
   Record<

@@ -1,6 +1,8 @@
 // CineArchitect AI - Trainee Progress Service
 // خدمة تقدم المتدربين
 
+import { DEFAULT_SKILL_LEVELS, TRAINING_SCENARIOS } from "./constants";
+
 import type {
   TraineeProgress,
   CompletedScenario,
@@ -8,7 +10,6 @@ import type {
   TrainingScenario,
   TrainingCategory,
 } from "./types";
-import { DEFAULT_SKILL_LEVELS, TRAINING_SCENARIOS } from "./constants";
 
 /**
  * Gets or creates a trainee progress record.

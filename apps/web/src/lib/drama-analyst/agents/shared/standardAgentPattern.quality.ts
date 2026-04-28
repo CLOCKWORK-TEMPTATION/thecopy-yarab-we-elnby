@@ -6,6 +6,7 @@
 import { callGeminiText } from "@/lib/ai/gemini-core";
 
 import { CONSTITUTIONAL_RULES } from "./constitutionalRules";
+
 import type {
   ModelId,
   SelfCritiqueResult,

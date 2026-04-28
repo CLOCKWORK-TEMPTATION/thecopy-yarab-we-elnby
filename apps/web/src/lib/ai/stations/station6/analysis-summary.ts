@@ -1,5 +1,6 @@
-import type { JsonRecord } from "./types";
 import { asArray, asJsonRecord, asNumber, asString } from "./utils";
+
+import type { JsonRecord } from "./types";
 
 type PreviousStationsOutput = Partial<
   Record<

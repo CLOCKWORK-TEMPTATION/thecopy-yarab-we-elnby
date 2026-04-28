@@ -1,16 +1,18 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import {
   FEATURED_DAILY_PROMPT,
   ACTIVE_WEEKLY_CHALLENGE,
 } from "../../lib/featured-content";
+
 import type { CreativeProject } from "../../types";
 
 interface HomeViewProps {

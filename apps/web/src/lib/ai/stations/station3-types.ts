@@ -3,9 +3,8 @@
  * Extracted from station3-network-builder.ts to keep each file ≤ 500 lines.
  */
 
-import type { CharacterProfile } from "./station1-text-analysis";
 import type { StationInput } from "./base-station";
-import type { Station1Output } from "./station1-text-analysis";
+import type { CharacterProfile , Station1Output } from "./station1-text-analysis";
 import type { Station2Output } from "./station2-conceptual-analysis";
 
 // ---------------------------------------------------------------------------

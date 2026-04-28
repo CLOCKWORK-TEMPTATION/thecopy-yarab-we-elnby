@@ -1,4 +1,5 @@
 import React from "react";
+
 import { BatchVendorResult } from "../types";
 
 export interface BatchResultsProps {

@@ -1,7 +1,5 @@
 // Gender Analysis Utilities
 
-import { normalizeArabic } from "./text";
-
 export interface GenderAnalysis {
   gender: "Male" | "Female" | "Non-binary" | "Unknown";
   confidence: number;

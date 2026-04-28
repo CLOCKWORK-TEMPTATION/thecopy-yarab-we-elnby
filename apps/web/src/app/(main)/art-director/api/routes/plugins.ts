@@ -1,6 +1,7 @@
 // Plugin Routes
 
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../../core/PluginManager";
 import { PluginCategorySchema } from "../../types";
 import { getRouteParam, getRequestBody, toPluginInput } from "../utils";

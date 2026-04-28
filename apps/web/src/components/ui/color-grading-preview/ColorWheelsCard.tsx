@@ -7,7 +7,7 @@ interface ColorWheelsCardProps {
   onUpdate: (key: keyof ColorGrade, value: number) => void;
 }
 
-const COLOR_WHEELS: Array<{ key: keyof ColorGrade; label: string }> = [
+const COLOR_WHEELS: { key: keyof ColorGrade; label: string }[] = [
   { key: "shadowHue", label: "الظلال" },
   { key: "midtoneHue", label: "النصف" },
   { key: "highlightHue", label: "الإضاءات" },

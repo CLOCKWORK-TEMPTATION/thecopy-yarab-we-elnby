@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../core/PluginManager";
 import { PluginCategorySchema } from "../types";
+
 import { getRouteParam, getRequestBody, toPluginInput } from "./route-utils";
 
 export function registerPluginRoutes(router: Router): void {

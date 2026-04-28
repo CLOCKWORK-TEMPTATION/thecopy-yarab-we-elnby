@@ -4,12 +4,12 @@
 // The error reporter is injected so each consumer can keep its own
 // logger style (structured logger vs console).
 
+import { type ParticleLODConfig } from "@/components/device-detection";
 import {
   PARTICLE_THRESHOLDS,
   SAMPLING_BOUNDS,
 } from "@/components/particle-letters.constants";
 import { dist } from "@/lib/particle-letters-sdf";
-import { type ParticleLODConfig } from "@/components/device-detection";
 
 import { getOptimalParticleCount, requestIdle } from "./particle-lod-utils";
 

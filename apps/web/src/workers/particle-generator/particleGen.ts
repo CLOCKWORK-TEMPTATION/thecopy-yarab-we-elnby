@@ -1,8 +1,9 @@
+import { dist_all } from "./letterShapes";
+
 import type {
   GenerateParticlesMessage,
   GeneratedParticlesPayload,
 } from "./types";
-import { dist_all } from "./letterShapes";
 
 export function generateParticles(
   config: GenerateParticlesMessage["config"]

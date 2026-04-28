@@ -1,11 +1,14 @@
 "use client";
 
-import React from "react";
 import { Play, Clock, Heart, MoreHorizontal } from "lucide-react";
+import React from "react";
+
 import { cn } from "@/lib/utils";
-import type { ShotReference, ViewMode } from "./types";
-import { formatDuration, getAspectRatioLabel } from "./utils";
+
 import { categoryLabels, moodLabels, timeLabels } from "./constants";
+import { formatDuration, getAspectRatioLabel } from "./utils";
+
+import type { ShotReference, ViewMode } from "./types";
 
 interface ShotCardProps {
   shot: ShotReference;

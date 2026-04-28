@@ -12,16 +12,17 @@ import { safeSub } from "../utils/text-utils";
 
 import { BaseStation, StationInput, StationOptions } from "./base-station";
 import { GeminiService } from "./gemini-service";
-import type { Station1Output } from "./station1-text-analysis";
-import {
-  ConflictNetworkImpl,
-  NetworkDiagnostics,
-} from "./station3-network-impl";
 import {
   RelationshipInferenceEngine,
   ConflictInferenceEngine,
 } from "./station3-inference-engines";
 import { NetworkAnalyzer } from "./station3-network-analyzer";
+import {
+  ConflictNetworkImpl,
+  NetworkDiagnostics,
+} from "./station3-network-impl";
+
+import type { Station1Output } from "./station1-text-analysis";
 
 // Re-export everything that was public in the original file
 export * from "./station3-types";

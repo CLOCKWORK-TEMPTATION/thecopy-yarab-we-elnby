@@ -3,8 +3,8 @@
  * @description أنواع TypeScript لمكون AppHeader
  */
 
-import type { LucideIcon } from "lucide-react";
 import type { ProgressiveSurfaceState } from "../editor";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * عنصر قائمة واحد داخل قائمة منسدلة من قوائم الهيدر.

@@ -3,7 +3,7 @@
  * @fileoverview T030: unlock logic and manual mode tests
  */
 
-import { renderHook, act } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { mountHook } from "../test-helpers";
@@ -27,7 +27,7 @@ vi.mock("@/lib/app-state-client", () => ({
 // ---------------------------------------------------------------------------
 // Import the hook AFTER mocks are set up
 // ---------------------------------------------------------------------------
-const { useCreativeDevelopment } = await import("../useCreativeDevelopment");
+const { useCreativeDevelopment: _useCreativeDevelopment } = await import("../useCreativeDevelopment");
 
 // ---------------------------------------------------------------------------
 // T030: unlock logic and manual mode

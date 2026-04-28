@@ -6,13 +6,13 @@
 
 import { callGeminiText, toText } from "@/lib/ai/gemini-core";
 
-import { performRAG, buildPromptWithRAG } from "./standardAgentPattern.rag";
 import {
   performSelfCritique,
   performConstitutionalCheck,
   measureUncertainty,
   detectHallucinations,
 } from "./standardAgentPattern.quality";
+import { performRAG, buildPromptWithRAG } from "./standardAgentPattern.rag";
 
 export { formatAgentOutput } from "./standardAgentFormat";
 

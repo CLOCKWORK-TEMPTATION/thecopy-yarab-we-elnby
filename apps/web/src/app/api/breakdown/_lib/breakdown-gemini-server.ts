@@ -4,32 +4,32 @@ import { GoogleGenAI } from "@google/genai";
 
 import { logger } from "@/lib/ai/utils/logger";
 
-import type {
-  BreakdownReport,
-  BreakdownReportScene,
-  SceneBreakdown,
-  SceneHeaderData,
-  ScenarioAnalysis,
-  ScriptSegmentScene,
-} from "@/app/(main)/breakdown/domain/models";
 
+import {
+  buildElementsByCategory,
+  buildReportSummary,
+  buildShootingSchedule,
+} from "./breakdown-builders";
 import { GEMINI_MODEL } from "./breakdown-constants";
+import { buildFallbackAnalysis } from "./breakdown-fallback";
+import {
+  normalizeSceneBreakdown,
+  normalizeScenarioAnalysis,
+} from "./breakdown-normalizers";
 import {
   extractJsonFromText,
   getGeminiApiKey,
   isValidApiKey,
   parseSceneHeader,
 } from "./breakdown-utils";
-import {
-  normalizeSceneBreakdown,
-  normalizeScenarioAnalysis,
-} from "./breakdown-normalizers";
-import {
-  buildElementsByCategory,
-  buildReportSummary,
-  buildShootingSchedule,
-} from "./breakdown-builders";
-import { buildFallbackAnalysis } from "./breakdown-fallback";
+
+import type {
+  BreakdownReport,
+  BreakdownReportScene,
+  SceneBreakdown,
+  ScenarioAnalysis,
+  ScriptSegmentScene,
+} from "@/app/(main)/breakdown/domain/models";
 
 /**
  * تحليل مشهد واحد بالذكاء الاصطناعي

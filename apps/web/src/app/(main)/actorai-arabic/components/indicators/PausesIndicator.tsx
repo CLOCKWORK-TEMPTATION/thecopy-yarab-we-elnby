@@ -1,6 +1,8 @@
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
 
 export interface PausesIndicatorProps {

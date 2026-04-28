@@ -1,12 +1,16 @@
 "use client";
 
 import { Play, Loader2 } from "lucide-react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { toolConfigs } from "../../core/toolConfigs";
-import { FormFields } from "./FormFields";
+
 import { ErrorAlert } from "./ErrorAlert";
+import { FormFields } from "./FormFields";
 import { NoToolSelected } from "./NoToolSelected";
 import { ExecutionResultDisplay } from "./ResultComponents";
+
 import type { ToolWorkspaceProps } from "./types";
 
 export function ToolWorkspace({

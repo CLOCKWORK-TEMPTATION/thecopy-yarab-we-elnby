@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { Search, X } from "lucide-react";
+import React from "react";
 
 interface SearchBarProps {
   value: string;

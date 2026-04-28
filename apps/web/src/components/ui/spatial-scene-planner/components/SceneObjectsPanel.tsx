@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { ObjectIcons } from "../constants";
+
 import type { SceneObject } from "../types";
 
 interface SceneObjectsPanelProps {

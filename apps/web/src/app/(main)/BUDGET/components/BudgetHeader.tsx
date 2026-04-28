@@ -1,7 +1,7 @@
 "use client";
 
-import { Download, Film, Menu, Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
+import { Download, Film, Menu, Moon, Sun } from "lucide-react";
 
 import type { UserPreferences } from "../lib/types";
 

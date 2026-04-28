@@ -1,6 +1,6 @@
 import type { DebateResult, DiagnosticsReport, JsonRecord } from "./types";
-import type { GeminiService } from "../gemini-service";
 import type { MultiAgentDebateSystem } from "../constitutional/multi-agent-debate";
+import type { GeminiService } from "../gemini-service";
 
 type PreviousStationsOutput = Partial<
   Record<

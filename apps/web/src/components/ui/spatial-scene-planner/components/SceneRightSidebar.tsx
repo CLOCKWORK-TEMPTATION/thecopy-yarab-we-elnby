@@ -17,6 +17,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 
 import { CAMERA_PRESETS } from "../constants";
+
 import type { CameraSettings, SceneObject } from "../types";
 
 const OBJECT_COLORS = [

@@ -4,9 +4,12 @@
  */
 
 import { User } from "lucide-react";
+
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
-import { HeaderStatus } from "./HeaderStatus";
+
 import { HeaderActions } from "./HeaderActions";
+import { HeaderStatus } from "./HeaderStatus";
+
 import type { StatusState } from "./useStatusState";
 
 interface HeaderSecondaryProps {

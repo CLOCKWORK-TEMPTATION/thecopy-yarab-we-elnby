@@ -11,10 +11,6 @@ import { useState, useEffect, useCallback } from "react";
 
 import { GeminiService } from "@/ai/gemini-service";
 import { exportProjectDocument } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
-import {
-  CreativeGenre,
-  WritingTechnique,
-} from "@/app/(main)/arabic-creative-writing-studio/types";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { NoiseBackground } from "@/components/aceternity/noise-background";
@@ -25,12 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import { useCreativeStudio } from "../hooks/useCreativeStudio";
+
 import { StudioHeader, StudioNotification, HomeView } from "./studio";
+
 import type { PromptLibraryProps } from "./PromptLibrary";
 import type { SettingsPanelProps } from "./SettingsPanel";
 import type { WritingEditorProps } from "./WritingEditor";
-import type { NotificationState, StudioView } from "../types/studio";
+import type { NotificationState } from "../types/studio";
 
 const PromptLibrary = dynamic<PromptLibraryProps>(
   () =>
@@ -104,7 +103,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     activeChallenge,
     settings,
     loading,
-    setLoading,
     saveProject,
     createNewProject,
     startDailyPrompt,
@@ -160,8 +158,8 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
             onEnhancePrompt={(prompt, genre, technique) =>
               enhancePrompt(
                 prompt,
-                genre as CreativeGenre,
-                technique as WritingTechnique
+                genre,
+                technique
               )
             }
             loading={loading}

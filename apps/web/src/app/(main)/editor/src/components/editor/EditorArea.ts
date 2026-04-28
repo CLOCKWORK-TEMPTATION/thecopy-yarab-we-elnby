@@ -1,7 +1,6 @@
 import { definedProps } from "@/lib/defined-props";
 
 import { createScreenplayEditor } from "../../editor";
-import type { ElementType } from "../../extensions/classification-types";
 import {
   applyPasteClassifierFlowToView,
   PASTE_CLASSIFIER_ERROR_EVENT,
@@ -43,6 +42,7 @@ import type {
   ImportClassificationContext,
   ProgressiveSurfaceState,
 } from "./editor-area.types";
+import type { ElementType } from "../../extensions/classification-types";
 import type {
   ClipboardOrigin,
   EditorClipboardOperationResult,

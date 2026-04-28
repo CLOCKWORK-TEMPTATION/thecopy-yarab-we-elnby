@@ -1,12 +1,5 @@
 import type { JsonRecord } from "./types";
 
-type PreviousStationsOutput = Partial<
-  Record<
-    "station1" | "station2" | "station3" | "station4" | "station5",
-    JsonRecord
-  >
->;
-
 export function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null;
 }

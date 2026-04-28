@@ -1,5 +1,4 @@
 import type {
-  CastMember,
   ExtendedCastMember,
   CastAnalysisOptions,
   CastAnalysisResult,

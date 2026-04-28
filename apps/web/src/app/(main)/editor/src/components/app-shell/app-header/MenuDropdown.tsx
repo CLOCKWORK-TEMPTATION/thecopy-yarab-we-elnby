@@ -3,8 +3,9 @@
  * @description مكون القائمة المنسدلة
  */
 
-import type { AppShellMenuSection, AppShellMenuItem } from "./types";
 import { toTestId, isEnabled } from "./utils";
+
+import type { AppShellMenuSection } from "./types";
 
 interface MenuDropdownProps {
   section: AppShellMenuSection;

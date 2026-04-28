@@ -1,26 +1,15 @@
-import type { Editor } from "@tiptap/core";
 
 import { definedProps } from "@/lib/defined-props";
-import {
-  captureVisibleElements,
-  captureTopLevelNodes,
-} from "./editor-area-element-capture";
+
 import {
   pipelineRecorder,
   type PipelineEvent,
 } from "../../extensions/pipeline-recorder";
+
 import {
-  shouldClearProgressiveStateOnRunEnd,
-  shouldKeepSurfaceEditableAfterFailure,
-} from "./progressive-surface-guards";
-import type { ProgressiveSurfaceState } from "./editor-area.types";
-import type {
-  FailureRecoveryAction,
-  ProgressiveReviewRun,
-  ReceptionSourceType,
-  VisibleVersion,
-  VisibleVersionStage,
-} from "../../types/unified-reception";
+  captureVisibleElements,
+  captureTopLevelNodes,
+} from "./editor-area-element-capture";
 import {
   mapSnapshotStageToRunStatus,
   mapSnapshotStageToVisibleStage,
@@ -29,6 +18,20 @@ import {
   resolveApprovalToken,
   resolveFirstVisibleSourceKind,
 } from "./editor-area-stage-mappers";
+import {
+  shouldClearProgressiveStateOnRunEnd,
+  shouldKeepSurfaceEditableAfterFailure,
+} from "./progressive-surface-guards";
+
+import type { ProgressiveSurfaceState } from "./editor-area.types";
+import type {
+  FailureRecoveryAction,
+  ProgressiveReviewRun,
+  ReceptionSourceType,
+  VisibleVersion,
+  VisibleVersionStage,
+} from "../../types/unified-reception";
+import type { Editor } from "@tiptap/core";
 
 interface ProgressiveSurfaceManagerCallbacks {
   onProgressiveStateChange?: (state: ProgressiveSurfaceState | null) => void;

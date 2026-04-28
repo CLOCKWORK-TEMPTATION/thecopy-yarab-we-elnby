@@ -7,6 +7,15 @@ import { logger } from "@/lib/ai/utils/logger";
 import { stringifyUnknown } from "@/lib/utils/unknown-values";
 
 import { INITIAL_BUDGET_TEMPLATE, BUDGET_TEMPLATES } from "../lib/constants";
+
+import {
+  formatCurrency,
+  recalculateBudget,
+  parseSavedBudgets,
+  parsePreferences,
+  isSavedBudget,
+} from "./budget-utils";
+
 import type {
   Budget,
   LineItem,
@@ -17,13 +26,6 @@ import type {
   UserPreferences,
 } from "../lib/types";
 
-import {
-  formatCurrency,
-  recalculateBudget,
-  parseSavedBudgets,
-  parsePreferences,
-  isSavedBudget,
-} from "./budget-utils";
 
 export interface BudgetStateReturn {
   // حالة المحرر الأساسية

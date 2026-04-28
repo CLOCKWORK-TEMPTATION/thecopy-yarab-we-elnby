@@ -1,7 +1,7 @@
 "use client";
 
-import { Award, DollarSign, Star, Target, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { Award, DollarSign, Star, Target, TrendingUp } from "lucide-react";
 
 import type { SecurityRisk, UserPreferences } from "../lib/types";
 

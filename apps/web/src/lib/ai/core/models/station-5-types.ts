@@ -20,7 +20,7 @@ export interface Station5Output {
 
   // التحليل الرمزي
   symbolicAnalysis: {
-    keySymbols: Symbol[];
+    keySymbols: symbol[];
     recurringMotifs: Motif[];
     thematicConnections: string[];
     depthScore: number;

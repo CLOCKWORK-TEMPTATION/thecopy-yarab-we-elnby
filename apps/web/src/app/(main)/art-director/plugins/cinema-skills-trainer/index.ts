@@ -2,19 +2,19 @@
 // المدرب الافتراضي للمهارات السينمائية
 
 import { v4 as uuidv4 } from "uuid";
+
 import { logger } from "@/lib/logger";
+
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
-import type {
-  TrainingScenario,
-  TrainingCategory,
-  CompletedScenario,
-  Achievement,
-  PerformanceEvaluation,
-} from "./types";
 
-import { trainingScenarios } from "./data/scenarios";
 import { vrEquipment } from "./data/equipment";
+import { trainingScenarios } from "./data/scenarios";
+import {
+  calculateOverallScore,
+  generateRecommendations,
+  suggestNextScenarios,
+} from "./utils/evaluation";
 import {
   traineeProgress,
   createInitialProgress,
@@ -22,11 +22,12 @@ import {
   generateAchievements,
   completeScenario as completeScenarioUtil,
 } from "./utils/progress";
-import {
-  calculateOverallScore,
-  generateRecommendations,
-  suggestNextScenarios,
-} from "./utils/evaluation";
+
+import type {
+  TrainingScenario,
+  TrainingCategory,
+  PerformanceEvaluation,
+} from "./types";
 
 export class CinemaSkillsTrainer implements Plugin {
   id = "cinema-skills-trainer";

@@ -1,6 +1,7 @@
 // Training Routes
 
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../../core/PluginManager";
 import { getRouteParam, getRequestBody } from "../utils";
 

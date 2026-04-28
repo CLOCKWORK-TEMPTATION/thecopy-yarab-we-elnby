@@ -13,7 +13,6 @@ import type {
   Vector3D,
   Collaborator,
 } from "./types";
-
 import type { PluginOutput } from "../../types";
 
 const virtualSets = new Map<string, VirtualSet>();

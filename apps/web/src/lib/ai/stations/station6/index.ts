@@ -1,25 +1,13 @@
-import {
-  MultiAgentDebateSystem,
-  DebateResult,
-} from "../constitutional/multi-agent-debate";
-import {
-  UncertaintyQuantificationEngine,
-  getUncertaintyQuantificationEngine,
-} from "../constitutional/uncertainty-quantification";
+import { MultiAgentDebateSystem } from "../constitutional/multi-agent-debate";
+import { getUncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
 
-import type { Station6Output, JsonRecord } from "./types";
-import { DiagnosticsGenerator } from "./diagnostics-generator";
 import { DebateConductor } from "./debate-conductor";
-import { TreatmentPlanner } from "./treatment-planner";
+import { DiagnosticsGenerator } from "./diagnostics-generator";
 import { PlotPredictor } from "./plot-predictor";
+import { TreatmentPlanner } from "./treatment-planner";
 import { UncertaintyQuantifier } from "./uncertainty-quantifier";
 
-type PreviousStationsOutput = Partial<
-  Record<
-    "station1" | "station2" | "station3" | "station4" | "station5",
-    JsonRecord
-  >
->;
+import type { Station6Output } from "./types";
 
 export class Station6Diagnostics {
   private diagnosticsGenerator: DiagnosticsGenerator;

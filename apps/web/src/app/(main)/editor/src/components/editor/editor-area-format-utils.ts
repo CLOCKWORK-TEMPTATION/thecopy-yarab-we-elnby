@@ -1,18 +1,20 @@
 import { redo, undo } from "@tiptap/pm/history";
-import type { Editor } from "@tiptap/core";
+
 
 import { SCREENPLAY_ELEMENTS } from "../../editor";
 import {
   isElementType,
   type ElementType,
 } from "../../extensions/classification-types";
-import type { DocumentStats, EditorCommand } from "./editor-area.types";
-import type { RunEditorCommandOptions } from "../../types/editor-engine";
 
 import {
   commandNameByFormat,
   formatLabelByType,
 } from "./editor-area-constants";
+
+import type { DocumentStats, EditorCommand } from "./editor-area.types";
+import type { RunEditorCommandOptions } from "../../types/editor-engine";
+import type { Editor } from "@tiptap/core";
 
 // — ينفذ أمراً عاماً على المحرر ويعيد true عند النجاح
 export function runEditorCommand(

@@ -1,14 +1,10 @@
 "use client";
 
-import React from "react";
 import { X, SlidersHorizontal } from "lucide-react";
+import React from "react";
+
 import { cn } from "@/lib/utils";
-import type {
-  ShotFilters,
-  ShotCategory,
-  ShotMood,
-  ShotTimeOfDay,
-} from "./types";
+
 import {
   allCategories,
   allMoods,
@@ -17,6 +13,13 @@ import {
   moodLabels,
   timeLabels,
 } from "./constants";
+
+import type {
+  ShotFilters,
+  ShotCategory,
+  ShotMood,
+  ShotTimeOfDay,
+} from "./types";
 
 interface FilterPanelProps {
   filters: ShotFilters;

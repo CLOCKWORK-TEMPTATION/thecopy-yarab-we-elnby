@@ -1,7 +1,7 @@
 // API Route Utilities
 
-import type { Request } from "express";
 import type { PluginInput } from "../types";
+import type { Request } from "express";
 
 export function getRouteParam(req: Request, paramName: string): string | null {
   const value = req.params[paramName];

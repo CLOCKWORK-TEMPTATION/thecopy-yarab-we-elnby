@@ -1,3 +1,11 @@
+import {
+  asArray,
+  asJsonRecord,
+  asJsonNumber,
+  asString,
+  firstJsonObject,
+} from "./utils";
+
 import type {
   TreatmentPlan,
   Recommendation,
@@ -6,13 +14,6 @@ import type {
   JsonRecord,
 } from "./types";
 import type { GeminiService } from "../gemini-service";
-import {
-  asArray,
-  asJsonRecord,
-  asJsonNumber,
-  asString,
-  firstJsonObject,
-} from "./utils";
 
 type PreviousStationsOutput = Partial<
   Record<

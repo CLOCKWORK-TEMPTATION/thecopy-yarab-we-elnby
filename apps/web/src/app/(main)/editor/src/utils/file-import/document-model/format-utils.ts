@@ -4,8 +4,9 @@
  */
 
 import { DATA_TYPE_TO_FORMAT_ID, FORMAT_ID_SET } from "./constants";
-import type { ScreenplayFormatId, SplitTopLineBlock } from "./types";
 import { normalizeBlockText } from "./encoding";
+
+import type { ScreenplayFormatId, SplitTopLineBlock } from "./types";
 
 /**
  * يُطبّع معرّف تنسيق خام إلى {@link ScreenplayFormatId} صالح.

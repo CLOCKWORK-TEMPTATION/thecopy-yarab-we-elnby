@@ -7,19 +7,12 @@ import { definedProps } from "@/lib/defined-props";
 import { logger } from "@/lib/logger";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
-import type {
-  XRScene,
-  XRObject,
-  VirtualCamera,
-  CameraMovement,
-  Vector3D,
-} from "./types";
+
 import {
   supportedDevices,
   EXPORT_FORMATS,
   DEFAULT_VR_WAYPOINTS,
 } from "./constants";
-import { analyzeComposition, generateKeyframes } from "./utils";
 import {
   createScene,
   getScene,
@@ -30,6 +23,14 @@ import {
   listAllScenes,
   clearAllScenes,
 } from "./scene-manager";
+import { analyzeComposition, generateKeyframes } from "./utils";
+
+import type {
+  XRObject,
+  VirtualCamera,
+  CameraMovement,
+  Vector3D,
+} from "./types";
 
 export class MRPrevizStudio implements Plugin {
   id = "mr-previz-studio";

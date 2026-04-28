@@ -21,17 +21,6 @@ import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
 import { ShotAnalysisSchema } from "../types";
 
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
-
-import type { VisualMood } from "../types";
-
-import {
-  type AnalysisState,
-  type AssistantState,
-  type TechnicalSettings,
-  type ValidateShotResponse,
-  type ChatResponse,
-} from "./useProduction-types";
-
 import {
   initialAnalysisState,
   initialAssistantState,
@@ -39,12 +28,19 @@ import {
   defaultTechnicalSettings,
   getRecommendedColorTemp,
 } from "./useProduction-constants";
-
+import {
+  type AnalysisState,
+  type AssistantState,
+  type TechnicalSettings,
+  type ValidateShotResponse,
+  type ChatResponse,
+} from "./useProduction-types";
 import {
   REMOTE_ANALYSIS_TIMEOUT_MS,
   normalizeShotAnalysis,
-  clampScore,
 } from "./useProduction-utils";
+
+import type { VisualMood } from "../types";
 
 // ============================================
 // الـ Hook الرئيسي

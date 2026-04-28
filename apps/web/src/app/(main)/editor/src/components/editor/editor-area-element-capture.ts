@@ -1,7 +1,7 @@
+import type { ProgressiveElement } from "../../types/unified-reception";
 import type { Editor } from "@tiptap/core";
 import type { Node as PmNode } from "@tiptap/pm/model";
 
-import type { ProgressiveElement } from "../../types/unified-reception";
 
 /**
  * @description يسجّل جميع العناصر الظاهرة في المحرر لحظة الاستدعاء،

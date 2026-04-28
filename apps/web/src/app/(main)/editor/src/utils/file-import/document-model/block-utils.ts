@@ -3,10 +3,10 @@
  * @description أدوات معالجة كتل السيناريو
  */
 
-import type { ScreenplayBlock } from "./types";
-import { normalizeFormatId } from "./format-utils";
-import { splitLegacyTopLineText } from "./format-utils";
 import { normalizeBlockText } from "./encoding";
+import { normalizeFormatId , splitLegacyTopLineText } from "./format-utils";
+
+import type { ScreenplayBlock } from "./types";
 
 /**
  * يُطبّع مصفوفة كتل واردة: يُطبّع المعرّفات، يفكّ أسطر top-line، ويُطبّع النصوص.

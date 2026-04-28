@@ -1,7 +1,7 @@
 "use client";
 
-import { Save, Search, Trash2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Save, Search, Trash2, X } from "lucide-react";
 
 import type { SavedBudget, UserPreferences } from "../lib/types";
 

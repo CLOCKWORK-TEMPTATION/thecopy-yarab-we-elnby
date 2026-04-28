@@ -33,6 +33,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { CELL_SIZE, ObjectIcons } from "../constants";
+
 import type { SceneObject, CameraSettings, Position3D } from "../types";
 
 interface SceneViewportProps {

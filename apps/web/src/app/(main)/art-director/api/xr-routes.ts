@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../core/PluginManager";
-import { getRequestBody, getRouteParam } from "./route-utils";
+
+import { getRequestBody } from "./route-utils";
 
 export function registerXRRoutes(router: Router): void {
   // =====================================================

@@ -2,27 +2,24 @@
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 import { useVoiceAnalytics } from "../hooks/useVoiceAnalytics";
 
-import { WaveformDisplay } from "./indicators/WaveformDisplay";
-import { FrequencyDisplay } from "./indicators/FrequencyDisplay";
-import { PitchIndicator } from "./indicators/PitchIndicator";
-import { VolumeIndicator } from "./indicators/VolumeIndicator";
-import { SpeechRateIndicator } from "./indicators/SpeechRateIndicator";
 import { ArticulationIndicator } from "./indicators/ArticulationIndicator";
 import { BreathingIndicator } from "./indicators/BreathingIndicator";
+import { FrequencyDisplay } from "./indicators/FrequencyDisplay";
 import { PausesIndicator } from "./indicators/PausesIndicator";
+import { PitchIndicator } from "./indicators/PitchIndicator";
+import { SpeechRateIndicator } from "./indicators/SpeechRateIndicator";
+import { VolumeIndicator } from "./indicators/VolumeIndicator";
+import { WaveformDisplay } from "./indicators/WaveformDisplay";
 
 export const VoiceCoach: React.FC = () => {
   const {

@@ -1,7 +1,8 @@
 "use client";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import type { NotificationState } from "../../types/studio";
 
 interface StudioNotificationProps {

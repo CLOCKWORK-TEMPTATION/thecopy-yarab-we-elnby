@@ -9,13 +9,15 @@
  */
 
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+
 import { HeaderBrand } from "./HeaderBrand";
 import { HeaderSecondary } from "./HeaderSecondary";
 import { MenuDropdown } from "./MenuDropdown";
-import { useMenuNavigation } from "./useMenuNavigation";
 import { useKeyboardHandlers } from "./useKeyboardHandlers";
+import { useMenuNavigation } from "./useMenuNavigation";
 import { useStatusState } from "./useStatusState";
 import { toTestId } from "./utils";
+
 import type { AppHeaderProps } from "./types";
 
 export type {
@@ -41,7 +43,7 @@ export function AppHeader({
   onlineDotColor,
 }: AppHeaderProps): React.JSX.Element {
   const menuNavigation = useMenuNavigation(menuSections, activeMenu);
-  const { menubarId, menubarButtonRefs, menuItemRefs, sectionIndex } =
+  const { menubarId, menubarButtonRefs, menuItemRefs, sectionIndex: _sectionIndex } =
     menuNavigation;
 
   const { handleSectionButtonKeyDown, handleMenuItemKeyDown } =

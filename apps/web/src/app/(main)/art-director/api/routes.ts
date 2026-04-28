@@ -3,11 +3,11 @@
 
 import { Router } from "express";
 
-import pluginsRouter from "./routes/plugins";
-import xrRouter from "./routes/xr";
-import trainingRouter from "./routes/training";
 import conceptArtRouter from "./routes/concept-art";
+import pluginsRouter from "./routes/plugins";
+import trainingRouter from "./routes/training";
 import virtualProductionRouter from "./routes/virtual-production";
+import xrRouter from "./routes/xr";
 
 export const router = Router();
 

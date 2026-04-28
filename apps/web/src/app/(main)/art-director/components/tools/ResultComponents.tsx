@@ -1,8 +1,11 @@
 "use client";
 
 import { Gauge, ListChecks, CheckCircle2, AlertTriangle } from "lucide-react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+
 import { isVisualAnalysisData } from "./resultUtils";
+
 import type { VisualIssue, ExecutionResultProps } from "./types";
 
 function SeverityBadge({ severity }: { severity: VisualIssue["severity"] }) {

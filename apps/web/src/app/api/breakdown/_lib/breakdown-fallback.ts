@@ -1,16 +1,13 @@
-import { randomUUID } from "crypto";
+
+import { ELEMENT_COLORS } from "./breakdown-constants";
+import { parseSceneHeader } from "./breakdown-utils";
 
 import type {
-  BreakdownReportScene,
   SceneBreakdown,
-  SceneHeaderData,
   ScenarioAnalysis,
   ScriptSegmentScene,
   SceneStats,
 } from "@/app/(main)/breakdown/domain/models";
-
-import { ELEMENT_COLORS } from "./breakdown-constants";
-import { parseSceneHeader } from "./breakdown-utils";
 
 /**
  * تحليل احتياطي عندما لا يتوفر مفتاح API

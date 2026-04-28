@@ -9,6 +9,7 @@ import {
   type ParticlePosition,
   type ParticleVelocity,
 } from "@/components/particle-effects";
+import { createModuleLogger } from "@/lib/logger";
 import { generateParticlesInBatches } from "@/lib/particle-batch-generator";
 import {
   applyAttraction,
@@ -19,7 +20,6 @@ import {
   updatePosition,
   type ParticleEffect,
 } from "@/lib/particle-frame-helpers";
-import { createModuleLogger } from "@/lib/logger";
 
 const logger = createModuleLogger("components.particle-background-optimized");
 

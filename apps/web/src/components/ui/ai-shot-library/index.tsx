@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -10,11 +11,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-import type { ShotReference, ViewMode, SortOption, ShotFilters } from "./types";
 import { defaultFilters } from "./constants";
-import { filterShots, sortShots, formatDuration } from "./utils";
-import { Toolbar } from "./Toolbar";
 import { ShotCard } from "./ShotCard";
+import { Toolbar } from "./Toolbar";
+import { filterShots, sortShots, formatDuration } from "./utils";
+
+import type { ShotReference, ViewMode, SortOption, ShotFilters } from "./types";
 
 export type { ShotReference, ViewMode, SortOption, ShotFilters } from "./types";
 

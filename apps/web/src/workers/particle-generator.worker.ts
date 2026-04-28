@@ -3,11 +3,12 @@
  * Offloads heavy SDF calculations and particle generation from main thread
  */
 
+import { generateParticles } from "./particle-generator/particleGen";
+
 import type {
   GenerateParticlesMessage,
   ParticleGenerationResult,
 } from "./particle-generator/types";
-import { generateParticles } from "./particle-generator/particleGen";
 
 function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
   return event.origin === "" || event.origin === self.location.origin;

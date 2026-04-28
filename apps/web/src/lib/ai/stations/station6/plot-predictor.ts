@@ -1,3 +1,6 @@
+import { createStructuredAnalysisSummary } from "./analysis-summary";
+import { asArray, asJsonRecord, asNumber, firstJsonObject } from "./utils";
+
 import type {
   PlotPredictions,
   JsonRecord,
@@ -7,8 +10,6 @@ import type {
   PlotPath,
 } from "./types";
 import type { GeminiService } from "../gemini-service";
-import { asArray, asJsonRecord, asNumber, firstJsonObject } from "./utils";
-import { createStructuredAnalysisSummary } from "./analysis-summary";
 
 type PreviousStationsOutput = Partial<
   Record<

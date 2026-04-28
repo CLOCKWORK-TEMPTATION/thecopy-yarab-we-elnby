@@ -1,5 +1,7 @@
 import { Router, Request, Response } from "express";
+
 import { pluginManager } from "../core/PluginManager";
+
 import { getRequestBody, getRouteParam } from "./route-utils";
 
 export function registerTrainingRoutes(router: Router): void {

@@ -1,7 +1,10 @@
 import React from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { LiveOrder, AvailableRunner } from "../types";
+
 import { STATUS_LABELS } from "../constants";
+import { LiveOrder, AvailableRunner } from "../types";
+
 import type { Order } from "@the-copy/breakapp";
 
 export interface OrderListProps {
