@@ -2,10 +2,11 @@
  * @fileoverview تحليل الأعطال البنيوية لشبكة الصراعات.
  */
 
-import type { ConflictNetwork } from "../core/models/base-entities";
 
 import { getCharacterRelationships } from "./network-diagnostics-helpers";
+
 import type { StructuralIssue } from "./network-diagnostics-types";
+import type { ConflictNetwork } from "../core/models/base-entities";
 
 export function analyzeStructuralIssues(
   network: ConflictNetwork

@@ -2,19 +2,20 @@
  * @fileoverview كشف الصراعات المهجورة في الشبكة.
  */
 
-import type {
-  Conflict,
-  ConflictNetwork,
-} from "../core/models/base-entities";
 
 import {
   calculateDaysSinceLastUpdate,
   getConflictEntries,
 } from "./network-diagnostics-helpers";
+
 import type {
   AbandonedConflictIssue,
   DiagnosticReport,
 } from "./network-diagnostics-types";
+import type {
+  Conflict,
+  ConflictNetwork,
+} from "../core/models/base-entities";
 
 export function findAbandonedConflicts(
   network: ConflictNetwork

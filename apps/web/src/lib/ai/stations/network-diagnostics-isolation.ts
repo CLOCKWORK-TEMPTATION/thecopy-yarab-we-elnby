@@ -2,7 +2,6 @@
  * @fileoverview كشف الشخصيات المعزولة واقتراح ربطها بالشبكة.
  */
 
-import type { ConflictNetwork } from "../core/models/base-entities";
 
 import {
   getCharacterConflicts,
@@ -10,10 +9,12 @@ import {
   getCharacterRelationships,
   getConflictEntries,
 } from "./network-diagnostics-helpers";
+
 import type {
   DiagnosticReport,
   IsolatedCharacterIssue,
 } from "./network-diagnostics-types";
+import type { ConflictNetwork } from "../core/models/base-entities";
 
 export function findIsolatedCharacters(
   network: ConflictNetwork

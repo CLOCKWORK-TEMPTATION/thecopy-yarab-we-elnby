@@ -1,0 +1,81 @@
+import type { LensPreset, LensSettings } from "./types";
+
+export const DEFAULT_LENS_SETTINGS: LensSettings = {
+  focalLength: 50,
+  aperture: 2.8,
+  distortion: 0,
+  showBokeh: true,
+  isAnamorphic: false,
+  selectedPreset: null,
+};
+
+export const LENS_PRESETS: LensPreset[] = [
+  {
+    id: "cooke-s4",
+    name: "Cooke S4/i",
+    nameAr: "كوك S4",
+    brand: "Cooke",
+    focalLength: 50,
+    maxAperture: 2.0,
+    characteristics: ["Warm tones", "Soft highlights", "Gentle bokeh"],
+    famousFilms: ["The King's Speech", "Gravity"],
+  },
+  {
+    id: "zeiss-master-prime",
+    name: "Zeiss Master Prime",
+    nameAr: "زايس ماستر برايم",
+    brand: "Zeiss",
+    focalLength: 35,
+    maxAperture: 1.4,
+    characteristics: [
+      "Clinical sharpness",
+      "Minimal distortion",
+      "Clean bokeh",
+    ],
+    famousFilms: ["Skyfall", "Inglourious Basterds"],
+  },
+  {
+    id: "panavision-primo",
+    name: "Panavision Primo",
+    nameAr: "بانافيجن بريمو",
+    brand: "Panavision",
+    focalLength: 75,
+    maxAperture: 1.9,
+    characteristics: ["Rich colors", "Smooth focus fall-off", "Classic look"],
+    famousFilms: ["The Dark Knight", "Inception"],
+  },
+  {
+    id: "arri-signature",
+    name: "ARRI Signature Prime",
+    nameAr: "آري سيجنتشر",
+    brand: "ARRI",
+    focalLength: 40,
+    maxAperture: 1.8,
+    characteristics: [
+      "Modern rendering",
+      "Pleasing skin tones",
+      "Large coverage",
+    ],
+    famousFilms: ["1917", "Joker"],
+  },
+  {
+    id: "anamorphic-hawk",
+    name: "Hawk V-Lite Anamorphic",
+    nameAr: "هوك أنامورفيك",
+    brand: "Vantage",
+    focalLength: 50,
+    maxAperture: 2.2,
+    characteristics: ["Horizontal flares", "Oval bokeh", "2.39:1 aspect"],
+    famousFilms: ["La La Land", "Blade Runner 2049"],
+  },
+  {
+    id: "vintage-super-baltar",
+    name: "Super Baltar",
+    nameAr: "سوبر بالتار",
+    brand: "Bausch & Lomb",
+    focalLength: 25,
+    maxAperture: 2.0,
+    characteristics: ["Vintage character", "Soft edges", "Warm flares"],
+    famousFilms: ["The Godfather", "Apocalypse Now"],
+  },
+];

@@ -2,17 +2,18 @@
  * @fileoverview كشف الشخصيات المُحمّلة فوق طاقتها واقتراح إعادة التوزيع.
  */
 
-import type { ConflictNetwork } from "../core/models/base-entities";
 
 import {
   getCharacterConflicts,
   getCharacterEntries,
   getCharacterRelationships,
 } from "./network-diagnostics-helpers";
+
 import type {
   DiagnosticReport,
   OverloadedCharacterIssue,
 } from "./network-diagnostics-types";
+import type { ConflictNetwork } from "../core/models/base-entities";
 
 export function findOverloadedCharacters(
   network: ConflictNetwork

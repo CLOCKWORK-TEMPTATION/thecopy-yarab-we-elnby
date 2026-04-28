@@ -2,20 +2,21 @@
  * @fileoverview كشف العلاقات والصراعات المكررة في الشبكة.
  */
 
-import type {
-  Conflict,
-  ConflictNetwork,
-  Relationship,
-} from "../core/models/base-entities";
 
 import {
   getConflictEntries,
   getRelationships,
 } from "./network-diagnostics-helpers";
+
 import type {
   DiagnosticReport,
   RedundancyIssue,
 } from "./network-diagnostics-types";
+import type {
+  Conflict,
+  ConflictNetwork,
+  Relationship,
+} from "../core/models/base-entities";
 
 export function findRedundancies(
   network: ConflictNetwork

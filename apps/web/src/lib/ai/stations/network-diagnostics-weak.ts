@@ -2,16 +2,17 @@
  * @fileoverview كشف الروابط الضعيفة في شبكة الصراعات.
  */
 
-import type { ConflictNetwork } from "../core/models/base-entities";
 
 import {
   getConflictEntries,
   getRelationships,
 } from "./network-diagnostics-helpers";
+
 import type {
   DiagnosticReport,
   WeakConnectionIssue,
 } from "./network-diagnostics-types";
+import type { ConflictNetwork } from "../core/models/base-entities";
 
 export function findWeakConnections(
   network: ConflictNetwork
