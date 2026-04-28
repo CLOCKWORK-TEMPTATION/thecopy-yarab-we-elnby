@@ -10,7 +10,7 @@
 import { describe, it, expect } from "vitest";
 
 import { DEVELOPMENT_TASKS, getTaskById } from "../utils/task-catalog";
-import { BRAINSTORM_TASK_IDS } from "../test-constants";
+import { BRAINSTORM_TASK_IDS } from "./test-constants";
 
 // ---------------------------------------------------------------------------
 // T020: Regression — task catalog executionMode correctness
