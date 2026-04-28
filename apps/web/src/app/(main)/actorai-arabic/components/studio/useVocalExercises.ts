@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 
-export const useVocalExercises = (showNotification: (type: string, message: string) => void) => {
+export const useVocalExercises = (
+  showNotification: (type: string, message: string) => void
+) => {
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [exerciseTimer, setExerciseTimer] = useState(0);
 
@@ -14,11 +16,14 @@ export const useVocalExercises = (showNotification: (type: string, message: stri
     return () => clearInterval(interval);
   }, [activeExercise]);
 
-  const startExercise = useCallback((exerciseId: string) => {
-    setActiveExercise(exerciseId);
-    setExerciseTimer(0);
-    showNotification("info", "بدأ التمرين! 🎤");
-  }, [showNotification]);
+  const startExercise = useCallback(
+    (exerciseId: string) => {
+      setActiveExercise(exerciseId);
+      setExerciseTimer(0);
+      showNotification("info", "بدأ التمرين! 🎤");
+    },
+    [showNotification]
+  );
 
   const stopExercise = useCallback(() => {
     setActiveExercise(null);

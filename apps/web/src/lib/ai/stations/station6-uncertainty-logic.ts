@@ -12,7 +12,6 @@ import type {
 import type { DebateResult } from "../constitutional/multi-agent-debate";
 import type { UncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
 
-
 interface AnalysesBundle {
   diagnosticsReport: DiagnosticsReport;
   debateResults: DebateResult;

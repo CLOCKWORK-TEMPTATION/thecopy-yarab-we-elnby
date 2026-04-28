@@ -6,7 +6,10 @@ import type { User } from "../../types";
 
 export const useAuth = (
   setUser: (user: User | null) => void,
-  showNotification: (type: "success" | "error" | "info", message: string) => void,
+  showNotification: (
+    type: "success" | "error" | "info",
+    message: string
+  ) => void,
   navigate: (view: any) => void
 ) => {
   const handleLogin = useCallback(

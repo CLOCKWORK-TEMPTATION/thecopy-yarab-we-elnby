@@ -2,13 +2,18 @@ import { useState, useCallback, useEffect } from "react";
 import type { WebcamAnalysisResult, WebcamSession } from "../../types";
 import { useWebcamAnalysis as useWebcamAnalysisEngine } from "../useWebcamAnalysis";
 
-export const useWebcamAnalysis = (showNotification: (type: string, message: string) => void) => {
+export const useWebcamAnalysis = (
+  showNotification: (type: string, message: string) => void
+) => {
   const [webcamActive, setWebcamActive] = useState(false);
   const [webcamAnalyzing, setWebcamAnalyzing] = useState(false);
   const [webcamAnalysisTime, setWebcamAnalysisTime] = useState(0);
-  const [webcamAnalysisResult, setWebcamAnalysisResult] = useState<WebcamAnalysisResult | null>(null);
+  const [webcamAnalysisResult, setWebcamAnalysisResult] =
+    useState<WebcamAnalysisResult | null>(null);
   const [webcamSessions, setWebcamSessions] = useState<WebcamSession[]>([]);
-  const [webcamPermission, setWebcamPermission] = useState<"granted" | "denied" | "pending">("pending");
+  const [webcamPermission, setWebcamPermission] = useState<
+    "granted" | "denied" | "pending"
+  >("pending");
   const webcamEngine = useWebcamAnalysisEngine();
 
   useEffect(() => {

@@ -3,7 +3,13 @@
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +23,9 @@ interface RhythmAnalysisProps {
   analyzingRhythm: boolean;
   rhythmAnalysis: SceneRhythmAnalysis | null;
   selectedRhythmTab: "map" | "comparison" | "monotony" | "suggestions";
-  setSelectedRhythmTab: (tab: "map" | "comparison" | "monotony" | "suggestions") => void;
+  setSelectedRhythmTab: (
+    tab: "map" | "comparison" | "monotony" | "suggestions"
+  ) => void;
   useRhythmSampleScript: () => void;
   analyzeSceneRhythm: () => void;
   getTempoColor: (tempo: string) => string;
@@ -95,9 +103,7 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
       <Card className="bg-gradient-to-l from-purple-50 to-blue-50">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl">
-              📊 نتائج تحليل الإيقاع
-            </CardTitle>
+            <CardTitle className="text-2xl">📊 نتائج تحليل الإيقاع</CardTitle>
             <Badge
               className={
                 rhythmAnalysis.rhythmScore >= 80
@@ -112,7 +118,10 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={selectedRhythmTab} onValueChange={(v) => setSelectedRhythmTab(v as any)}>
+          <Tabs
+            value={selectedRhythmTab}
+            onValueChange={(v) => setSelectedRhythmTab(v as any)}
+          >
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="map">🗺️ خريطة الإيقاع</TabsTrigger>
               <TabsTrigger value="comparison">📈 المقارنة</TabsTrigger>
@@ -140,7 +149,10 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Progress value={point.intensity} className="flex-1 h-2" />
+                          <Progress
+                            value={point.intensity}
+                            className="flex-1 h-2"
+                          />
                           <span className="text-sm text-white/55">
                             {point.intensity}%
                           </span>
@@ -154,7 +166,9 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
 
             <TabsContent value="comparison" className="space-y-4">
               <div className="bg-white p-4 rounded-[22px]">
-                <h4 className="font-semibold mb-4">المقارنة مع المعايير المثلى</h4>
+                <h4 className="font-semibold mb-4">
+                  المقارنة مع المعايير المثلى
+                </h4>
                 <div className="space-y-4">
                   {rhythmAnalysis.comparisons.map((comp, idx) => (
                     <div key={idx} className="space-y-2">
@@ -166,7 +180,10 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
                       </div>
                       <div className="flex items-center gap-2">
                         <Progress value={comp.yourScore} className="flex-1" />
-                        <span className="text-sm font-medium">{comp.difference > 0 ? "+" : ""}{comp.difference}</span>
+                        <span className="text-sm font-medium">
+                          {comp.difference > 0 ? "+" : ""}
+                          {comp.difference}
+                        </span>
                       </div>
                       <p className="text-sm text-white/55">{comp.feedback}</p>
                     </div>
@@ -194,7 +211,9 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-white/55">لا توجد تنبيهات رتابة - الإيقاع جيد!</p>
+                  <p className="text-white/55">
+                    لا توجد تنبيهات رتابة - الإيقاع جيد!
+                  </p>
                 )}
               </div>
             </TabsContent>
@@ -203,23 +222,35 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
               <div className="bg-white p-4 rounded-[22px]">
                 <h4 className="font-semibold mb-4">اقتراحات تحسين العاطفة</h4>
                 <div className="space-y-4">
-                  {rhythmAnalysis.emotionalSuggestions.map((suggestion, idx) => (
-                    <div key={idx} className="p-4 border rounded-lg bg-blue-50">
-                      <p className="font-medium mb-2">"{suggestion.segment}"</p>
-                      <div className="space-y-2 text-sm">
-                        <p>
-                          <span className="text-white/55">الحالي:</span> {suggestion.currentEmotion}
+                  {rhythmAnalysis.emotionalSuggestions.map(
+                    (suggestion, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 border rounded-lg bg-blue-50"
+                      >
+                        <p className="font-medium mb-2">
+                          "{suggestion.segment}"
                         </p>
-                        <p>
-                          <span className="text-white/55">المقترح:</span> {suggestion.suggestedEmotion}
-                        </p>
-                        <p>
-                          <span className="text-white/55">التقنية:</span> {suggestion.technique}
-                        </p>
-                        <p className="italic text-blue-700">{suggestion.example}</p>
+                        <div className="space-y-2 text-sm">
+                          <p>
+                            <span className="text-white/55">الحالي:</span>{" "}
+                            {suggestion.currentEmotion}
+                          </p>
+                          <p>
+                            <span className="text-white/55">المقترح:</span>{" "}
+                            {suggestion.suggestedEmotion}
+                          </p>
+                          <p>
+                            <span className="text-white/55">التقنية:</span>{" "}
+                            {suggestion.technique}
+                          </p>
+                          <p className="italic text-blue-700">
+                            {suggestion.example}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               </div>
             </TabsContent>

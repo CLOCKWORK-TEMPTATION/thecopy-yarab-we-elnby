@@ -1,6 +1,5 @@
 import { redo, undo } from "@tiptap/pm/history";
 
-
 import { SCREENPLAY_ELEMENTS } from "../../editor";
 import {
   isElementType,

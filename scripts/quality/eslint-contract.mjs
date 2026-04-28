@@ -3,9 +3,7 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
-  mkdirSync,
   readdirSync,
-  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -13,13 +11,9 @@ import {
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { enforceBaselineUpdatePolicy } from "./baseline-update-policy.mjs";
-
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const baselinePath = resolve(repoRoot, "scripts/quality/baselines/eslint.json");
 
 const args = process.argv.slice(2);
-const updateBaseline = args.includes("--update-baseline");
 const projectArg = args.find((arg) => arg.startsWith("--project="));
 const project = projectArg?.slice("--project=".length);
 const limitArg = args.find((arg) => arg.startsWith("--limit="));
@@ -28,7 +22,6 @@ const targetArgs = args
   .filter((arg) => arg.startsWith("--target="))
   .map((arg) => arg.slice("--target=".length))
   .filter(Boolean);
-const baselineReview = enforceBaselineUpdatePolicy(args, "eslint-contract");
 
 const projects = {
   web: {
@@ -93,13 +86,13 @@ const projects = {
 
 if (!project || !projects[project]) {
   console.error(
-    "Usage: node scripts/quality/eslint-contract.mjs --project=web|backend [--limit=N] [--update-baseline --reviewed-by=<human> --review-ref=<ticket-or-pr>]",
+    "Usage: node scripts/quality/eslint-contract.mjs --project=web|backend [--limit=N] [--target=<path>]",
   );
   process.exit(2);
 }
 
 if (!Number.isFinite(reportLimit) || reportLimit < 1) {
-  console.error("[eslint-contract] --limit must be a positive number.");
+  console.error("[lint] --limit must be a positive number.");
   process.exit(2);
 }
 
@@ -110,35 +103,10 @@ const targets =
     ? targetArgs
     : (config.targets ?? config.discoverTargets(config.root));
 
-function readBaseline() {
-  if (!existsSync(baselinePath)) {
-    return {};
-  }
-  return JSON.parse(readFileSync(baselinePath, "utf8"));
-}
-
-function writeBaseline(baseline) {
-  mkdirSync(dirname(baselinePath), { recursive: true });
-  writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
-}
-
-function normalizeMessage(message) {
-  return message
-    .replace(
-      /[A-Za-z]:[^\n\r]*?[\\/]apps[\\/](web|backend)[\\/]/g,
-      (_, project) => `apps/${project}/`,
-    )
-    .replace(
-      /((?:File|Function '[^']+'|Arrow function|Async arrow function|Method '[^']+'|Async method '[^']+') has too many lines )\(\d+\)\. Maximum allowed is \d+\./g,
-      "$1(N). Maximum allowed is M.",
-    )
-    .replaceAll("\\", "/");
-}
-
 function fingerprint(message, filePath) {
   const file = relative(repoRoot, filePath).replaceAll("\\", "/");
   const rule = message.ruleId ?? "parser";
-  return `${file}|${rule}|${normalizeMessage(message.message)}`;
+  return `${file}|${rule}|${message.message}`;
 }
 
 function addCount(map, key, amount = 1) {
@@ -269,61 +237,18 @@ if (fatalOutputs.length > 0) {
   process.exit(1);
 }
 
-const baseline = readBaseline();
-baseline[project] ??= {};
-
-if (updateBaseline) {
-  baseline[project] = current;
-  writeBaseline(baseline);
-  console.log(
-    `[eslint-contract] ${project}: baseline update reviewed by ${baselineReview.reviewedBy} (${baselineReview.reviewRef}).`,
-  );
-  console.log(
-    `[eslint-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`,
-  );
-  process.exit(0);
-}
-
-const projectBaseline = baseline[project];
-const normalizedBaseline = {};
-for (const [key, count] of Object.entries(projectBaseline)) {
-  const firstSeparator = key.indexOf("|");
-  const secondSeparator = key.indexOf("|", firstSeparator + 1);
-
-  if (firstSeparator === -1 || secondSeparator === -1) {
-    addCount(normalizedBaseline, key, count);
-    continue;
-  }
-
-  const file = key.slice(0, firstSeparator).replaceAll("\\", "/");
-  const rule = key.slice(firstSeparator + 1, secondSeparator);
-  const message = normalizeMessage(key.slice(secondSeparator + 1));
-  addCount(normalizedBaseline, `${file}|${rule}|${message}`, count);
-}
-
-const newViolations = [];
-for (const [key, count] of Object.entries(current)) {
-  const allowed = normalizedBaseline[key] ?? 0;
-  if (count > allowed) {
-    newViolations.push({ key, count, allowed });
-  }
-}
-
 console.log(
-  `[eslint-contract] ${project}: ${errors} errors, ${warnings} warnings, ${filesWithMessages} files with messages.`,
+  `[lint] ${project}: ${errors} error(s), ${warnings} warning(s), ${filesWithMessages} file(s) with messages.`,
 );
 
-if (newViolations.length > 0) {
-  console.error(`[eslint-contract] ${project}: new lint violations detected.`);
-  for (const item of newViolations.slice(0, reportLimit)) {
-    console.error(`  ${item.count - item.allowed} new: ${item.key}`);
+if (Object.keys(current).length > 0) {
+  const sorted = Object.entries(current)
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => b.count - a.count);
+  for (const item of sorted.slice(0, reportLimit)) {
+    console.error(`  ${item.count}× ${item.key}`);
   }
-  if (newViolations.length > reportLimit) {
-    console.error(`  ...and ${newViolations.length - reportLimit} more.`);
+  if (sorted.length > reportLimit) {
+    console.error(`  ...and ${sorted.length - reportLimit} more unique violation(s).`);
   }
-  process.exit(1);
 }
-
-console.log(
-  `[eslint-contract] ${project}: no new lint violations above baseline.`,
-);

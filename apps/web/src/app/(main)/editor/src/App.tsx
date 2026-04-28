@@ -24,10 +24,7 @@ import {
   runExport,
   type EditorActionsDeps,
 } from "./controllers";
-import {
-  toast,
-  useMenuCommandResolver,
-} from "./hooks";
+import { toast, useMenuCommandResolver } from "./hooks";
 import { useEditorEffects } from "./hooks/use-editor-effects";
 import { useEditorState } from "./hooks/use-editor-state";
 import {
@@ -48,9 +45,7 @@ import {
   createHandleTypingModeChange,
   createHandleLiveIdleMinutesChange,
 } from "./lib/app/handlers";
-import {
-  type RunDocumentThroughPasteWorkflowOptions,
-} from "./types";
+import { type RunDocumentThroughPasteWorkflowOptions } from "./types";
 import { resolveFileImportExtractEndpoint } from "./utils/backend-endpoints";
 import { logger } from "./utils/logger";
 
@@ -58,10 +53,11 @@ import type { MenuActionId } from "./constants/menu-definitions";
 
 export function App(): React.JSX.Element {
   const state = useEditorState();
-  const recordDiagnostic = useCallback(createRecordDiagnostic(state.setDiagnosticEvents), [state.setDiagnosticEvents]);
+  const recordDiagnostic = useCallback(
+    createRecordDiagnostic(state.setDiagnosticEvents),
+    [state.setDiagnosticEvents]
+  );
   useEditorEffects(state, { recordDiagnostic, toast, logger });
-
-
 
   const handleTypingModeChange = createHandleTypingModeChange(
     state.setTypingSystemSettings,
@@ -69,7 +65,9 @@ export function App(): React.JSX.Element {
     logger
   );
 
-  const handleLiveIdleMinutesChange = createHandleLiveIdleMinutesChange(state.setTypingSystemSettings);
+  const handleLiveIdleMinutesChange = createHandleLiveIdleMinutesChange(
+    state.setTypingSystemSettings
+  );
 
   const runDocumentThroughPasteWorkflow = useCallback(
     async (options: RunDocumentThroughPasteWorkflowOptions): Promise<void> => {
@@ -79,7 +77,9 @@ export function App(): React.JSX.Element {
   );
 
   const runForcedProductionSelfCheck = useCallback(
-    async (trigger: "manual-auto-check" | "manual-reclassify"): Promise<void> => {
+    async (
+      trigger: "manual-auto-check" | "manual-reclassify"
+    ): Promise<void> => {
       await runSelfCheck(state, trigger, { toast, logger });
     },
     [state, toast, logger]
@@ -164,7 +164,9 @@ export function App(): React.JSX.Element {
         menuSections={MENU_SECTIONS}
         activeMenu={state.activeMenu}
         onToggleMenu={(sectionLabel) =>
-          state.setActiveMenu((prev) => (prev === sectionLabel ? null : sectionLabel))
+          state.setActiveMenu((prev) =>
+            prev === sectionLabel ? null : sectionLabel
+          )
         }
         activeProjectTitle={state.activeProjectTitle}
         progressiveSurfaceState={state.progressiveSurfaceState}
@@ -326,9 +328,11 @@ export function App(): React.JSX.Element {
         </aside>
       ) : null}
       <div className="sr-only">
-        {(screenplayFormats as { id: string; label: string }[]).map((format) => (
-          <span key={format.id}>{format.label}</span>
-        ))}
+        {(screenplayFormats as { id: string; label: string }[]).map(
+          (format) => (
+            <span key={format.id}>{format.label}</span>
+          )
+        )}
       </div>
     </div>
   );

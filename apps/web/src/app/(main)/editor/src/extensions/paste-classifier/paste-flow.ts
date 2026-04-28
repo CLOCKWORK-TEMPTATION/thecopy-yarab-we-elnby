@@ -44,9 +44,7 @@ import {
 } from "./pipeline-state";
 import { renderClassifiedDraftsToView } from "./prosemirror-adapter";
 import { applySuspicionReviewLayer } from "./suspicion-review-layer";
-import {
-  buildLiteralPreviewDrafts,
-} from "./utils/draft-builders";
+import { buildLiteralPreviewDrafts } from "./utils/draft-builders";
 import { simpleHash } from "./utils/hash";
 import {
   computeDocumentSignature,

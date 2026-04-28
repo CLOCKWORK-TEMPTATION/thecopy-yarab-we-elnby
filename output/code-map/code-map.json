@@ -609,11 +609,13 @@
           "apps/web/src/lib/ai/rag/text-chunking.ts",
           "apps/web/src/lib/ai/stations/gemini-service.ts",
           "apps/web/src/lib/ai/text-chunking.ts",
+          "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
           "apps/web/src/lib/drama-analyst/services/ragService.ts"
         ],
         "inputs": [
           "apps/web/src/lib/ai/rag/context-retriever.ts",
           "apps/web/src/lib/ai/rag/text-chunking.ts",
+          "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
           "apps/web/src/lib/drama-analyst/services/ragService.ts"
         ],
         "artifacts": [
@@ -649,6 +651,11 @@
           {
             "kind": "retrieval",
             "path": "apps/web/src/lib/ai/rag/context-retriever.ts",
+            "exists": true
+          },
+          {
+            "kind": "retrieval",
+            "path": "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
             "exists": true
           },
           {
@@ -725,6 +732,7 @@
       "apps/web/src/lib/ai/rag/text-chunking.ts",
       "apps/web/src/lib/ai/stations/gemini-service.ts",
       "apps/web/src/lib/ai/text-chunking.ts",
+      "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
       "apps/web/src/lib/drama-analyst/services/ragService.ts",
       "packages/core-memory/src/chunking/semanticChunker.ts",
       "packages/core-memory/src/types.ts",
@@ -778,19 +786,15 @@
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
-    "ungovernedFiles": [
-      "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts"
-    ],
-    "discoveryWarnings": [
-      "مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts (path signal: rag)"
-    ],
-    "governanceStatus": "ungoverned"
+    "ungovernedFiles": [],
+    "discoveryWarnings": [],
+    "governanceStatus": "governed"
   },
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-04-28T03:24:08.953Z",
-    "totalFiles": 2538,
+    "generatedAt": "2026-04-28T06:37:49.848Z",
+    "totalFiles": 2604,
     "totalChunks": 5569,
     "embeddedChunks": 5569,
     "coverageRate": 1,

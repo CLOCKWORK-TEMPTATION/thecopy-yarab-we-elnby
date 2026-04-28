@@ -20,7 +20,6 @@ import { CATEGORY_LABELS, getScoreColor, getScoreBgColor } from "../constants";
 
 import type { PromptAnalysis } from "@the-copy/prompt-engineering";
 
-
 interface PromptAnalysisResultProps {
   analysis: PromptAnalysis | null;
 }

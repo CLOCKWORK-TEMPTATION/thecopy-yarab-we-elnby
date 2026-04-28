@@ -9,7 +9,7 @@ import { sortOptions } from "./constants";
 import { FilterPanel } from "./FilterPanel";
 import { SearchBar } from "./SearchBar";
 
-import type { ViewMode, SortOption , ShotFilters } from "./types";
+import type { ViewMode, SortOption, ShotFilters } from "./types";
 
 interface ToolbarProps {
   viewMode: ViewMode;

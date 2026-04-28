@@ -197,7 +197,9 @@ export const RecorderPanel: React.FC<RecorderPanelProps> = ({
                 <p className="text-sm text-white/55">إجمالي التسجيلات</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-green-400">{bestScore}%</p>
+                <p className="text-3xl font-bold text-green-400">
+                  {bestScore}%
+                </p>
                 <p className="text-sm text-white/55">أعلى تقييم</p>
               </div>
               <div className="text-center">
@@ -287,9 +289,7 @@ export const RecorderPanel: React.FC<RecorderPanelProps> = ({
                   )}
 
                   <div className="mb-3 text-sm text-white/68">
-                    <p>
-                      {take.notes[0]?.content ?? "لا توجد ملاحظات بعد."}
-                    </p>
+                    <p>{take.notes[0]?.content ?? "لا توجد ملاحظات بعد."}</p>
                   </div>
 
                   <div className="flex gap-2">

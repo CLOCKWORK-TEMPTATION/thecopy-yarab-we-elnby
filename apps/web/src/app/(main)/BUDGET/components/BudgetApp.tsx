@@ -16,7 +16,6 @@ import {
 import React from "react";
 import { Toaster } from "react-hot-toast";
 
-
 import { BudgetAnalytics } from "./BudgetAnalytics";
 import { BudgetHeader } from "./BudgetHeader";
 import { BudgetQuickStats } from "./BudgetQuickStats";

@@ -6,7 +6,7 @@
 - الخلفية المرجعية تعمل على المنفذ `3001`
 - لا يوجد مصدر أعلى للحقيقة غير `AGENTS.md` والعقد التشغيلي الكامل
 - `output/session-state.md` هو المصدر الوحيد للحالة الحالية
-- طبقة المعرفة والاسترجاع الحالية حالتها `ungoverned`
+- طبقة المعرفة والاسترجاع الحالية حالتها `governed`
 
 ## إشارات التشتت أو المنافسة
 
@@ -14,8 +14,8 @@
 
 ## تحذيرات الكشف
 
-- مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts (path signal: rag)
+- لا توجد تحذيرات كشف مفتوحة.
 
 ## الملفات غير المحكومة مرجعيًا
 
-- `apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts`
+- لا توجد ملفات معرفة غير محكومة مكتشفة.

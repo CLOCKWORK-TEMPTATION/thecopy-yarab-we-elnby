@@ -10,15 +10,19 @@ import {
   handleCreateOrder,
   handleGetOrder,
 } from "./handlers";
-import { protectedLimiter, requireAuth, requireRole } from "./middlewares";
-import type { AuthenticatedRequest } from "./middlewares";
+import { protectedLimiter } from "./limiters";
+import { requireAuth, requireRole } from "./middlewares";
 import { orderStatusSchema } from "./schemas";
 import { breakappService } from "./service";
+
+import type { AuthenticatedRequest } from "./middlewares";
 import type { OrderStatus } from "./service.types";
+
+type ValidationErrorHandler = (res: Response, error: z.ZodError) => void;
 
 export function registerOrdersRoutes(
   router: Router,
-  handleValidationError: (res: Response, error: z.ZodError) => void,
+  handleValidationError: ValidationErrorHandler,
 ): void {
   router.post(
     "/geo/session",
@@ -28,12 +32,22 @@ export function registerOrdersRoutes(
     handleCreateSession,
   );
 
-  router.get("/orders/my-orders", protectedLimiter, requireAuth, handleGetOrders);
+  router.get(
+    "/orders/my-orders",
+    protectedLimiter,
+    requireAuth,
+    handleGetOrders,
+  );
 
   router.post("/orders", protectedLimiter, requireAuth, handleCreateOrder);
 
   router.get("/orders/:id", protectedLimiter, requireAuth, handleGetOrder);
 
+  registerOrderSessionRoutes(router);
+  registerOrderStatusRoutes(router, handleValidationError);
+}
+
+function registerOrderSessionRoutes(router: Router): void {
   router.get(
     "/orders/session/:sessionId",
     protectedLimiter,
@@ -73,6 +87,33 @@ export function registerOrdersRoutes(
     },
   );
 
+  router.post(
+    "/orders/session/:id/batch",
+    protectedLimiter,
+    requireAuth,
+    async (req, res) => {
+      try {
+        const sessionId = req.params["id"];
+        if (typeof sessionId !== "string" || !sessionId) {
+          res.status(400).json({ success: false, error: "معرف الجلسة مطلوب" });
+          return;
+        }
+        const batches = await breakappService.getSessionBatches(sessionId);
+        res.json(batches);
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : "فشل الجلب",
+        });
+      }
+    },
+  );
+}
+
+function registerOrderStatusRoutes(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
+): void {
   router.patch(
     "/orders/:id/status",
     protectedLimiter,
@@ -123,28 +164,6 @@ export function registerOrdersRoutes(
         res.status(500).json({
           success: false,
           error: error instanceof Error ? error.message : "فشل تحديث الحالة",
-        });
-      }
-    },
-  );
-
-  router.post(
-    "/orders/session/:id/batch",
-    protectedLimiter,
-    requireAuth,
-    async (req, res) => {
-      try {
-        const sessionId = req.params["id"];
-        if (typeof sessionId !== "string" || !sessionId) {
-          res.status(400).json({ success: false, error: "معرف الجلسة مطلوب" });
-          return;
-        }
-        const batches = await breakappService.getSessionBatches(sessionId);
-        res.json(batches);
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل الجلب",
         });
       }
     },

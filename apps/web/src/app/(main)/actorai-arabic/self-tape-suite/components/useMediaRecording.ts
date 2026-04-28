@@ -407,8 +407,8 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
     stopRecording,
     mediaCaptureSupported: Boolean(
       typeof navigator !== "undefined" &&
-        typeof navigator.mediaDevices?.getUserMedia === "function" &&
-        typeof MediaRecorder !== "undefined"
+      typeof navigator.mediaDevices?.getUserMedia === "function" &&
+      typeof MediaRecorder !== "undefined"
     ),
     stopCameraTracks,
   };

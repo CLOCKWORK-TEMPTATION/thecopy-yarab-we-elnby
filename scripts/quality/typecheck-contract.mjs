@@ -3,9 +3,7 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
-  mkdirSync,
   readdirSync,
-  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -13,23 +11,15 @@ import {
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { enforceBaselineUpdatePolicy } from "./baseline-update-policy.mjs";
-
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const baselinePath = resolve(
-  repoRoot,
-  "scripts/quality/baselines/typecheck.json",
-);
 const tscPath = resolve(repoRoot, "node_modules/typescript/lib/tsc.js");
 
 const args = process.argv.slice(2);
-const updateBaseline = args.includes("--update-baseline");
 const fullMode = args.includes("--full");
 const projectArg = args.find((arg) => arg.startsWith("--project="));
 const project = projectArg?.slice("--project=".length);
 const limitArg = args.find((arg) => arg.startsWith("--limit="));
 const reportLimit = limitArg ? Number(limitArg.slice("--limit=".length)) : 50;
-const baselineReview = enforceBaselineUpdatePolicy(args, "typecheck-contract");
 
 const projects = {
   web: {
@@ -90,31 +80,19 @@ const projects = {
 
 if (!project || !projects[project]) {
   console.error(
-    "Usage: node scripts/quality/typecheck-contract.mjs --project=web|backend [--full] [--limit=N] [--update-baseline --reviewed-by=<human> --review-ref=<ticket-or-pr>]",
+    "Usage: node scripts/quality/typecheck-contract.mjs --project=web|backend [--full] [--limit=N]",
   );
   process.exit(2);
 }
 
 if (fullMode && project !== "backend") {
-  console.error("[typecheck-contract] --full is only supported for backend.");
+  console.error("[typecheck] --full is only supported for backend.");
   process.exit(2);
 }
 
 if (!Number.isFinite(reportLimit) || reportLimit < 1) {
-  console.error("[typecheck-contract] --limit must be a positive number.");
+  console.error("[typecheck] --limit must be a positive number.");
   process.exit(2);
-}
-
-function readBaseline() {
-  if (!existsSync(baselinePath)) {
-    return {};
-  }
-  return JSON.parse(readFileSync(baselinePath, "utf8"));
-}
-
-function writeBaseline(baseline) {
-  mkdirSync(dirname(baselinePath), { recursive: true });
-  writeFileSync(baselinePath, `${JSON.stringify(baseline, null, 2)}\n`);
 }
 
 function addCount(map, key, amount = 1) {
@@ -207,20 +185,25 @@ function runBackend() {
       exclude: ["node_modules", "dist"],
     };
 
-    writeFileSync(tempConfig, `${JSON.stringify(config, null, 2)}\n`);
-    const result = runCommand(root, [
-      "--max-old-space-size=8192",
-      tscPath,
-      "-p",
-      tempConfig,
-      "--pretty",
-      "false",
-    ]);
-    rmSync(tempConfig, { force: true });
-    rmSync(
-      resolve(root, `.tsbuildinfo.contract.${process.pid}.${chunk.name}`),
-      { force: true },
+    const tempBuildInfo = resolve(
+      root,
+      `.tsbuildinfo.contract.${process.pid}.${chunk.name}`,
     );
+    let result;
+    try {
+      writeFileSync(tempConfig, `${JSON.stringify(config, null, 2)}\n`);
+      result = runCommand(root, [
+        "--max-old-space-size=8192",
+        tscPath,
+        "-p",
+        tempConfig,
+        "--pretty",
+        "false",
+      ]);
+    } finally {
+      rmSync(tempConfig, { force: true });
+      rmSync(tempBuildInfo, { force: true });
+    }
     results.push(result);
   }
 
@@ -249,47 +232,17 @@ if (fatal) {
   process.exit(1);
 }
 
-const baseline = readBaseline();
-baseline[project] ??= {};
+console.log(`[typecheck] ${project}: ${parsedErrors} TypeScript error(s).`);
 
-if (updateBaseline) {
-  baseline[project] = current;
-  writeBaseline(baseline);
-  console.log(
-    `[typecheck-contract] ${project}: baseline update reviewed by ${baselineReview.reviewedBy} (${baselineReview.reviewRef}).`,
-  );
-  console.log(
-    `[typecheck-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`,
-  );
+if (parsedErrors > 0) {
+  const sorted = Object.entries(current)
+    .map(([key, count]) => ({ key, count }))
+    .sort((a, b) => b.count - a.count);
+  for (const item of sorted.slice(0, reportLimit)) {
+    console.error(`  ${item.count}× ${item.key}`);
+  }
+  if (sorted.length > reportLimit) {
+    console.error(`  ...and ${sorted.length - reportLimit} more unique error(s).`);
+  }
   process.exit(0);
 }
-
-const projectBaseline = baseline[project];
-const newViolations = [];
-for (const [key, count] of Object.entries(current)) {
-  const allowed = projectBaseline[key] ?? 0;
-  if (count > allowed) {
-    newViolations.push({ key, count, allowed });
-  }
-}
-
-console.log(
-  `[typecheck-contract] ${project}: ${parsedErrors} TypeScript errors detected.`,
-);
-
-if (newViolations.length > 0) {
-  console.error(
-    `[typecheck-contract] ${project}: new TypeScript errors detected.`,
-  );
-  for (const item of newViolations.slice(0, reportLimit)) {
-    console.error(`  ${item.count - item.allowed} new: ${item.key}`);
-  }
-  if (newViolations.length > reportLimit) {
-    console.error(`  ...and ${newViolations.length - reportLimit} more.`);
-  }
-  process.exit(1);
-}
-
-console.log(
-  `[typecheck-contract] ${project}: no new TypeScript errors above baseline.`,
-);

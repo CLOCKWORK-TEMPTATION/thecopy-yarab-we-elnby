@@ -221,9 +221,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
             {exportingTakeId && (
               <div className="rounded-xl border border-purple-500/30 bg-black/14 p-4">
-                <p className="mb-3 text-white">
-                  جاري إعداد الملف للتنزيل...
-                </p>
+                <p className="mb-3 text-white">جاري إعداد الملف للتنزيل...</p>
                 <Progress value={exportProgress} className="h-3" />
                 <p className="mt-2 text-sm text-purple-300">
                   {exportProgress}%
@@ -271,8 +269,8 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
 
                   {!canDownload && (
                     <p className="mt-3 text-sm text-yellow-300">
-                      هذا التسجيل محفوظ كمرجع وصفي فقط بعد إعادة التحميل، لذا
-                      لا يملك ملف فيديو صالحاً للتنزيل.
+                      هذا التسجيل محفوظ كمرجع وصفي فقط بعد إعادة التحميل، لذا لا
+                      يملك ملف فيديو صالحاً للتنزيل.
                     </p>
                   )}
                 </div>

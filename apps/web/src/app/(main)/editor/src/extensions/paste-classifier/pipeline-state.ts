@@ -34,7 +34,10 @@ export const markPipelineStopped = (): void => {
 /**
  * فحص ما إذا كان النص قد عولج للتو ضمن نافذة الـ deduplication.
  */
-export const isDuplicateOfRecentText = (textHash: string, now: number): boolean =>
+export const isDuplicateOfRecentText = (
+  textHash: string,
+  now: number
+): boolean =>
   textHash === lastProcessedHash && now - lastProcessedAt < DEDUP_WINDOW_MS;
 
 /**

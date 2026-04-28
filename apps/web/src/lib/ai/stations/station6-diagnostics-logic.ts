@@ -3,7 +3,6 @@
  * Extracted from station6-diagnostics-treatment.ts to keep file ≤ 600 lines.
  */
 
-
 import {
   asArray,
   asJsonNumber,

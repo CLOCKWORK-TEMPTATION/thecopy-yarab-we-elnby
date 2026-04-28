@@ -7,7 +7,6 @@ import { logger } from "@/lib/logger";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
-
 import { vrEquipment } from "./data/equipment";
 import { trainingScenarios } from "./data/scenarios";
 import {

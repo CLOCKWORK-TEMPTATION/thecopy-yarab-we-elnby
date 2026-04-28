@@ -240,4 +240,9 @@ export const PERFORMANCE_WEIGHTS = {
   safety: 0.1,
 };
 
-export const DIFFICULTY_ORDER: ("beginner" | "intermediate" | "advanced" | "expert")[] = ["beginner", "intermediate", "advanced", "expert"];
+export const DIFFICULTY_ORDER: (
+  | "beginner"
+  | "intermediate"
+  | "advanced"
+  | "expert"
+)[] = ["beginner", "intermediate", "advanced", "expert"];

@@ -1,7 +1,13 @@
 import { GeminiService, GeminiModel } from "../../gemini-service";
 
 import { StylisticAnalysis } from "./types";
-import { safeSub, asJsonRecord, asArray, asStringArray, asNumber } from "./utils";
+import {
+  safeSub,
+  asJsonRecord,
+  asArray,
+  asStringArray,
+  asNumber,
+} from "./utils";
 
 export class StylisticAnalysisEngine {
   private geminiService: GeminiService;

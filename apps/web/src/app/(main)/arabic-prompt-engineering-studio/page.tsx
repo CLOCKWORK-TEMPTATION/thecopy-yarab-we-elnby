@@ -24,17 +24,14 @@ import { usePromptStudio } from "./hooks/usePromptStudio";
 export default function ArabicPromptEngineeringStudioPage() {
   const {
     prompt,
-    promptHistory,
-    selectedTemplate,
+    setPrompt,
+    analysis,
+    isAnalyzing,
+    activeTab,
+    setActiveTab,
     suggestions,
-    templateVariables
-  ]);
-
-  const {
-    handlers: {
-      handleAnalyzePrompt,
-      setPromptText
-    }
+    handleAnalyze,
+    handleCopy,
   } = usePromptStudio();
 
   return (

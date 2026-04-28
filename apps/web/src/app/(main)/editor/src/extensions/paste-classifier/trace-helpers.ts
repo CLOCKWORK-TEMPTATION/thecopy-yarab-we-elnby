@@ -6,9 +6,7 @@
  * - recordStageVotes: تسجيل قرار كل سطر كصوت لمرحلة محددة.
  */
 
-import {
-  traceCollector,
-} from "@editor/suspicion-engine/trace/trace-collector";
+import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
 import type { LineRepairRecord } from "@editor/suspicion-engine/adapters/from-classifier";
 import type { PassStage } from "@editor/suspicion-engine/types";
 

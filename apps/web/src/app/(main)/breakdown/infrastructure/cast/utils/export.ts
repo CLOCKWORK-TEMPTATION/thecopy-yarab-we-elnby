@@ -54,13 +54,10 @@ export const generateCastingCall = (
   doc += "=".repeat(50) + "\n\n";
 
   const leads = members.filter(
-    (m) =>
-      (m).roleCategory === "Lead" || m.role === "Lead"
+    (m) => m.roleCategory === "Lead" || m.role === "Lead"
   );
   const supporting = members.filter(
-    (m) =>
-      (m).roleCategory === "Supporting" ||
-      m.role === "Supporting"
+    (m) => m.roleCategory === "Supporting" || m.role === "Supporting"
   );
 
   if (leads.length > 0) {

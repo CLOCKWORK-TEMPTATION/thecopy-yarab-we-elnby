@@ -3,21 +3,29 @@ import { z } from "zod";
 
 import { websocketService } from "@/services/websocket.service";
 
-import { breakappService } from "./service";
 import { breakappGateway } from "./gateway";
-import {
-  protectedLimiter,
-  runnerLocationLimiter,
-  requireAuth,
-  requireRole,
-} from "./middlewares";
-import type { AuthenticatedRequest } from "./middlewares";
-import { orderStatusSchema, runnerLocationSchema } from "./schemas";
+import { protectedLimiter, runnerLocationLimiter } from "./limiters";
+import { requireAuth, requireRole } from "./middlewares";
 import * as repo from "./repository";
+import { orderStatusSchema, runnerLocationSchema } from "./schemas";
+import { breakappService } from "./service";
+
+import type { AuthenticatedRequest } from "./middlewares";
+
+type ValidationErrorHandler = (res: Response, error: z.ZodError) => void;
 
 export function registerRunnersRoutes(
   router: Router,
-  handleValidationError: (res: Response, error: z.ZodError) => void,
+  handleValidationError: ValidationErrorHandler,
+): void {
+  registerRunnerLocationRoute(router, handleValidationError);
+  registerRunnerTaskRoutes(router, handleValidationError);
+  registerRunnerSessionRoutes(router);
+}
+
+function registerRunnerLocationRoute(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
 ): void {
   router.post(
     "/runners/location",
@@ -70,7 +78,12 @@ export function registerRunnersRoutes(
       }
     },
   );
+}
 
+function registerRunnerTaskRoutes(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
+): void {
   router.get(
     "/runners/me/tasks",
     protectedLimiter,
@@ -132,7 +145,9 @@ export function registerRunnersRoutes(
       }
     },
   );
+}
 
+function registerRunnerSessionRoutes(router: Router): void {
   router.get(
     "/runners/session/:sessionId",
     protectedLimiter,

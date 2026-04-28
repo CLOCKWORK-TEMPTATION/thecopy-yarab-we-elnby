@@ -106,9 +106,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({
                         </p>
                       </div>
                       <div className="rounded-xl bg-black/14 p-4 text-center">
-                        <p className="text-sm text-white/55">
-                          تحتاج تحسين
-                        </p>
+                        <p className="text-sm text-white/55">تحتاج تحسين</p>
                         <p className="text-3xl font-bold text-yellow-400">
                           {
                             take.notes.filter(

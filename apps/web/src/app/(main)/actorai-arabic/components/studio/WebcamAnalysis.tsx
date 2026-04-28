@@ -3,7 +3,13 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
 import type { WebcamAnalysisResult } from "../../types";
@@ -142,8 +148,7 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
           {webcamPermission === "denied" && (
             <Alert variant="destructive">
               <AlertDescription>
-                تم رفض الوصول للكاميرا. يرجى السماح بالوصول من إعدادات
-                المتصفح.
+                تم رفض الوصول للكاميرا. يرجى السماح بالوصول من إعدادات المتصفح.
               </AlertDescription>
             </Alert>
           )}
@@ -209,9 +214,7 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
       <Card className="mt-6 bg-gradient-to-l from-blue-50 to-purple-50">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl">
-              📋 نتائج التحليل البصري
-            </CardTitle>
+            <CardTitle className="text-2xl">📋 نتائج التحليل البصري</CardTitle>
             <Badge
               className={
                 webcamAnalysisResult.overallScore >= 80
@@ -235,9 +238,7 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
               <div>
                 <p className="text-sm text-white/55">الاتجاه الغالب</p>
                 <p className="font-medium">
-                  {getEyeDirectionText(
-                    webcamAnalysisResult.eyeLine.direction
-                  )}
+                  {getEyeDirectionText(webcamAnalysisResult.eyeLine.direction)}
                 </p>
               </div>
               <div>
@@ -285,9 +286,7 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
-              <span className="text-sm text-white/55">
-                المشاعر المتطابقة:
-              </span>
+              <span className="text-sm text-white/55">المشاعر المتطابقة:</span>
               {webcamAnalysisResult.expressionSync.matchedEmotions.map(
                 (emotion, idx) => (
                   <Badge
@@ -310,13 +309,17 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-white/55">الحالة</p>
-                <p className={`font-medium ${getBlinkStatusColor(webcamAnalysisResult.blinkRate.status)}`}>
+                <p
+                  className={`font-medium ${getBlinkStatusColor(webcamAnalysisResult.blinkRate.status)}`}
+                >
                   {getBlinkStatusText(webcamAnalysisResult.blinkRate.status)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-white/55">المعدل (رمشة/دقيقة)</p>
-                <p className="font-medium">{webcamAnalysisResult.blinkRate.rate}</p>
+                <p className="font-medium">
+                  {webcamAnalysisResult.blinkRate.rate}
+                </p>
               </div>
             </div>
           </div>

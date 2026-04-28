@@ -15,16 +15,12 @@ import { z } from "zod";
 import { registerAdminRoutes } from "./admin-routes";
 import { registerAuthRoutes } from "./auth-routes";
 import { registerGeoVendorRoutes } from "./geo-vendors-routes";
+import { adminWriteLimiter, protectedLimiter } from "./limiters";
+import { requireAuth, requireRole } from "./middlewares";
 import { registerOrdersRoutes } from "./orders-routes";
 import { registerRunnersRoutes } from "./runners-routes";
-import { registerVendorRoutes } from "./vendor-routes";
-import {
-  adminWriteLimiter,
-  protectedLimiter,
-  requireAuth,
-  requireRole,
-} from "./middlewares";
 import { breakappService } from "./service";
+import { registerVendorRoutes } from "./vendor-routes";
 
 const router = Router();
 

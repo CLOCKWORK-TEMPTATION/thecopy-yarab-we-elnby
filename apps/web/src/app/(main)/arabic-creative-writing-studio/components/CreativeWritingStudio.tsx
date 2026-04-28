@@ -156,11 +156,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
               createNewProject(prompt);
             }}
             onEnhancePrompt={(prompt, genre, technique) =>
-              enhancePrompt(
-                prompt,
-                genre,
-                technique
-              )
+              enhancePrompt(prompt, genre, technique)
             }
             loading={loading}
           />

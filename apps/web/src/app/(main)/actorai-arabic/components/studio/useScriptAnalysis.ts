@@ -2,11 +2,16 @@ import { useState, useCallback } from "react";
 import type { AnalysisResult } from "../../types";
 import { SAMPLE_SCRIPT } from "../../types/constants";
 
-export const useScriptAnalysis = (showNotification: (type: string, message: string) => void) => {
+export const useScriptAnalysis = (
+  showNotification: (type: string, message: string) => void
+) => {
   const [scriptText, setScriptText] = useState("");
-  const [selectedMethodology, setSelectedMethodology] = useState("stanislavsky");
+  const [selectedMethodology, setSelectedMethodology] =
+    useState("stanislavsky");
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
+    null
+  );
 
   const useSampleScript = useCallback(() => {
     setScriptText(SAMPLE_SCRIPT);

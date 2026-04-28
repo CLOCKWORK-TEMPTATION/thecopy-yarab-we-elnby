@@ -1,7 +1,8 @@
 import { Router } from "express";
 
+import { protectedLimiter } from "./limiters";
+import { requireAuth } from "./middlewares";
 import { breakappService } from "./service";
-import { protectedLimiter, requireAuth } from "./middlewares";
 
 export function registerGeoVendorRoutes(router: Router): void {
   router.get(
@@ -21,7 +22,11 @@ export function registerGeoVendorRoutes(router: Router): void {
           return;
         }
 
-        const vendors = await breakappService.getNearbyVendors(lat, lng, radius);
+        const vendors = await breakappService.getNearbyVendors(
+          lat,
+          lng,
+          radius,
+        );
         res.json(vendors);
       } catch (error) {
         res.status(500).json({

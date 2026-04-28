@@ -31,9 +31,6 @@ import type {
   TextAnalysis,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
 
-
-
-
 const DEFAULT_SETTINGS: AppSettings = {
   language: "ar",
   theme: "dark",

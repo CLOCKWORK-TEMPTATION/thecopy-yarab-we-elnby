@@ -8,9 +8,7 @@ export const Footer: React.FC = () => (
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             🎭 الممثل الذكي
           </h3>
-          <p className="text-white/55">
-            منصة تدريب الممثلين بالذكاء الاصطناعي
-          </p>
+          <p className="text-white/55">منصة تدريب الممثلين بالذكاء الاصطناعي</p>
         </div>
         <div>
           <h4 className="font-semibold mb-4">المنتج</h4>

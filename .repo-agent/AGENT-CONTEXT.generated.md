@@ -4,10 +4,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-28T03:24:09.937Z |
+| آخر مزامنة مرجعية | 2026-04-28T06:37:50.472Z |
 | الفرع الحالي | `main` |
-| آخر commit | `03473ec111c8ea9ea590cabde1fdd22a3e4cb207` |
-| حالة الشجرة | غير نظيفة — 78 ملف متغير |
+| آخر commit | `d308328df426442bcfba76810be5899a7cf3a864` |
+| حالة الشجرة | غير نظيفة — 32 ملف متغير |
 | مستوى drift | `hard-drift` |
 
 ## المرجع الحاكم
@@ -98,7 +98,7 @@ backend: 3001
 
 - الحالة الحاكمة:
 
-`ungoverned`
+`governed`
 
 - عدد الأنظمة المكتشفة:
 
@@ -176,7 +176,7 @@ backend: 3001
   - الحالة: `governed`
   - المزودات: `gemini`
   - المخازن المتجهية: لا يوجد
-  - المدخلات: `apps/web/src/lib/ai/rag/context-retriever.ts`، `apps/web/src/lib/ai/rag/text-chunking.ts`، `apps/web/src/lib/drama-analyst/services/ragService.ts`
+  - المدخلات: `apps/web/src/lib/ai/rag/context-retriever.ts`، `apps/web/src/lib/ai/rag/text-chunking.ts`، `apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts`، `apps/web/src/lib/drama-analyst/services/ragService.ts`
   - المخرجات أو artifacts: `In-memory context maps`، `In-memory retrieved chunks`
   - الاعتماديات: `Frontend in-memory chunking`، `GeminiService`
 
@@ -186,11 +186,11 @@ backend: 3001
 
 - تحذيرات الكشف:
 
-- مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts (path signal: rag)
+- لا توجد تحذيرات كشف مفتوحة.
 
 - ملفات معرفة غير محكومة:
 
-- `apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts`
+- لا توجد ملفات غير محكومة مكتشفة.
 
 
 ## ذاكرة الكود الحية
@@ -209,7 +209,7 @@ backend: 3001
 
 - الملفات:
 
-`2538`
+`2604`
 
 - القطع:
 

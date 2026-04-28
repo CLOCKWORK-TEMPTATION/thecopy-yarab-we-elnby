@@ -4,7 +4,6 @@ import { GoogleGenAI } from "@google/genai";
 
 import { logger } from "@/lib/ai/utils/logger";
 
-
 import {
   buildElementsByCategory,
   buildReportSummary,

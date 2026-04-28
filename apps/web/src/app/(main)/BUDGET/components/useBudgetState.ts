@@ -26,7 +26,6 @@ import type {
   UserPreferences,
 } from "../lib/types";
 
-
 export interface BudgetStateReturn {
   // حالة المحرر الأساسية
   scriptText: string;

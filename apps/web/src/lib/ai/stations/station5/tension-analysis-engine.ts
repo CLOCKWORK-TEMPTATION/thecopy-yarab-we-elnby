@@ -1,7 +1,13 @@
 import { GeminiService, GeminiModel } from "../../gemini-service";
 
 import { TensionAnalysis } from "./types";
-import { safeSub, asJsonRecord, asArray, asStringArray, scaledTimestamp } from "./utils";
+import {
+  safeSub,
+  asJsonRecord,
+  asArray,
+  asStringArray,
+  scaledTimestamp,
+} from "./utils";
 
 export class TensionAnalysisEngine {
   private geminiService: GeminiService;
@@ -67,12 +73,12 @@ export class TensionAnalysisEngine {
         })
       );
 
-      const reduceTension = asArray<any>(
-        recommendations.reduce_tension
-      ).map((loc) => ({
-        ...loc,
-        timestamp: scaledTimestamp(loc.timestamp),
-      }));
+      const reduceTension = asArray<any>(recommendations.reduce_tension).map(
+        (loc) => ({
+          ...loc,
+          timestamp: scaledTimestamp(loc.timestamp),
+        })
+      );
 
       return {
         tensionCurve: asArray<number>(analysis.tension_curve),

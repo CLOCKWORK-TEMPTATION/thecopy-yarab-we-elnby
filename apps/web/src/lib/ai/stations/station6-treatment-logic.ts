@@ -3,8 +3,6 @@
  * Extracted from station6-diagnostics-treatment.ts to keep file ≤ 600 lines.
  */
 
-
-
 import {
   asArray,
   asJsonNumber,
@@ -99,7 +97,9 @@ export class TreatmentLogic {
         record.estimatedImprovementScore,
         50
       ),
-      implementationComplexity: validComplexity(record.implementationComplexity),
+      implementationComplexity: validComplexity(
+        record.implementationComplexity
+      ),
       totalTimeEstimate: asString(record.totalTimeEstimate, "غير محدد"),
       riskAssessment: {
         overallRisk: validComplexity(riskAssessment.overallRisk),

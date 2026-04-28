@@ -1,7 +1,7 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "3a1a36e0ec043f061bf8a223d9657965008f403c16c1c3d002b86a304f11d0c0",
+    ".agent-code-memory/manifest.json": "90788f54f448e121a67eb2bb2d4f1141fe2a8c67503bd1563c268ef8b1151d04",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -38,6 +38,7 @@
     "apps/web/src/lib/ai/rag/text-chunking.ts": "720779f795cb915f61f05567d980f8f85adc528b7a61765f038ba02103037dcb",
     "apps/web/src/lib/ai/stations/gemini-service.ts": "8710845b62f0e639cda6ae1af8549c0991eccb7661b635044e7596395b2c5dbc",
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
+    "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "191196ad297d1de448d843d8b0373bf19abfd5a80b66c53229bd25645dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
     "package.json": "b58a2d3e3b2c1e0f268c09d7c2035e653b781226b9fd547766f6d9428bf6d0a9",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
@@ -63,37 +64,36 @@
     "scripts/agent/lib/code-memory/store.ts": "4fe1963e66b2a3a9a3cd107589a1f792a01fbcba9bf0bfceca672b863b5c72cf",
     "scripts/doctor.ps1": "f9e9e23f2867c90f78ecbea972f1777f36bff88b11e4b1fbe9dd1e9210d5a180",
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
-    "turbo.json": "f8fa498e4161317aac6d8317cce6cc1430bc77a674c98e712e9692b6066e49dc",
-    "WORKSPACE-EMBEDDING-SUMMARY.md": "392ec511b63f4ec561706794ced532ebf9c7e2a037db41d2b13e018f49c3a31c"
+    "turbo.json": "cadd19b6bb50849c800dca320c425f56c942c366664193956989ab3868b6a785"
   },
   "driftLevel": "hard-drift",
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "03473ec111c8ea9ea590cabde1fdd22a3e4cb207",
+  "headCommit": "d308328df426442bcfba76810be5899a7cf3a864",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
-  "knowledgeHash": "66285531c4f021b0e6d0c86095136a46b93d4c9f230f9ae27717774c2bf47cd0",
-  "knowledgeStatus": "ungoverned",
-  "lastBootstrapTimestamp": "2026-04-28T03:24:09.937Z",
+  "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
+  "knowledgeStatus": "governed",
+  "lastBootstrapTimestamp": "2026-04-28T06:37:50.472Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "89fc3bfa3c8cdbd6e2ae28d311f1ec61d0be26f167e1161727b1ee25757167cd",
-    "output/code-map/code-map.json": "ffbac7469dd7dd48e5f40f60851f8f1be2ace791d324b75e75eb342654d7a1eb",
-    "output/code-map/CODEMAP.md": "ef48b33658dfe9953f92f4f6db119234ce517692821c0b88a40dde8c694e7922",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "010b7b26edddd511735751b7b3172d93f5029efc70bf2d96fa53318e20095879",
+    "output/code-map/code-map.json": "45767ab3e456a573becf30ed38b823a405989b9ca5bb5ad3a8f18a198f6862f0",
+    "output/code-map/CODEMAP.md": "92d32d346a862a6f9b617647811de4be7dec0fe5dd732948645a073dcea20e76",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
-    "output/code-map/findings.md": "bf9e7ed1d872db7c5a475b65f60a6995ccd669a36e585d5736d40d66155df0f8",
-    "output/code-map/rag-entrypoints.md": "a9f7ac6caf82f61967eb6b46c626b8431098af9165a63070a051209fe5eecf1b",
-    "output/code-map/rag-systems.md": "54049de34464de13c355b0504707023b31fe2482489bc098559d49300084204a",
+    "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
+    "output/code-map/rag-entrypoints.md": "3d50cb2d34e2c35b33338a738717e7b0b60daa5bfe48c75865c97ba9a80c27e9",
+    "output/code-map/rag-systems.md": "00bd374feac592cdfb4a6223ce4c3ac87400bc69e71c1889f4faf40c8de47ce5",
     "output/code-map/runtime-flows.md": "6de542bf4efe54f3e0b973cf196a05147416c7bbe156b7f6f57bf316941b4070",
-    "output/mind-map/mindmap-summary.md": "f9f0e5f2b355d86f68ddbeb9e5287124adfc38854c964d2e265ff47da7eec73e",
+    "output/mind-map/mindmap-summary.md": "ced9ea0f4dd34c925fc5661018caa73c580e3d62ca3b7f9865c0a73f5def2107",
     "output/mind-map/mindmap.json": "29998bc641b102a1ef6c797945a49d9731982290a607a34d61bdef952e69d604",
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "2f118882105b3cd7e9027214db21b9d322288700424b39dbb9a87f7e8153a94b",
-    "output/session-state.md": "66a0d0e7314cf901a1ef3b7f6f3f5e1a26b232f2d6fadbc50cd54545efe3f45b"
+    "output/round-notes.md": "924876c9517b2bbfd915c7bc174d06c17ab5c7fa8bcc5f9d3fd726737009ca05",
+    "output/session-state.md": "0c636d3eeac25ec87c0acb8d10be2ccd244794e35371336f597a4f189ec3aa4d"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +103,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "a747a4e5c80903a164d060d89973566ba5bac1daa492337c129aa96090f7d113",
+  "repoFactsHash": "8ddc3de0d8f07eb96ee1f75d78b82bf3dbe1abe02956cd1330525b79f1b4e29e",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -144,6 +144,7 @@
     "apps/web/src/lib/ai/rag/text-chunking.ts",
     "apps/web/src/lib/ai/stations/gemini-service.ts",
     "apps/web/src/lib/ai/text-chunking.ts",
+    "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
     "apps/web/src/lib/drama-analyst/services/ragService.ts",
     "package.json",
     "packages/breakapp/package.json",
@@ -173,6 +174,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "54feb910a431017d4c07299253a0cc89943a5f8fd06dac40dd9f9eff87aa798c",
-  "workingTreeHash": "9765903942c81db7d6f110167dd4e5f6bf81f13262e3da60e1991d08564d73be"
+  "structuralHash": "e1ad5b3211d28018c07780cf7a6264122aa73c8d1628afc36f0cb3e8da87bd54",
+  "workingTreeHash": "6638b69336d28d9a3649cccd77424afba572420ff3b2dd91c7d764b2fcdbeed4"
 }

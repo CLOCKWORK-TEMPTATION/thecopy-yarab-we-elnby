@@ -1,7 +1,13 @@
 import { GeminiService, GeminiModel } from "../../gemini-service";
 
 import { VisualCinematicAnalysis } from "./types";
-import { safeSub, asJsonRecord, asArray, asStringArray, scaledTimestamp } from "./utils";
+import {
+  safeSub,
+  asJsonRecord,
+  asArray,
+  asStringArray,
+  scaledTimestamp,
+} from "./utils";
 
 export class VisualCinematicAnalysisEngine {
   private geminiService: GeminiService;
@@ -49,12 +55,12 @@ export class VisualCinematicAnalysisEngine {
 
       const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
 
-      const keyVisualMoments = asArray<any>(
-        analysis.key_visual_moments
-      ).map((moment) => ({
-        ...moment,
-        timestamp: scaledTimestamp(moment.timestamp),
-      }));
+      const keyVisualMoments = asArray<any>(analysis.key_visual_moments).map(
+        (moment) => ({
+          ...moment,
+          timestamp: scaledTimestamp(moment.timestamp),
+        })
+      );
 
       return {
         visualDensity: Number(analysis.visual_density) || 5,

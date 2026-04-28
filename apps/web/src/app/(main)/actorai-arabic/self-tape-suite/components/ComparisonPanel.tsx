@@ -172,8 +172,7 @@ export const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   <div>
                     <p>لا يوجد ملف فيديو مباشر لهذا الجانب.</p>
                     <p className="text-sm">
-                      ستبقى المقارنة الرقمية متاحة من خلال التقييمات
-                      والملاحظات.
+                      ستبقى المقارنة الرقمية متاحة من خلال التقييمات والملاحظات.
                     </p>
                   </div>
                 </div>
@@ -183,9 +182,7 @@ export const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-white/55">التقييم</span>
-                    <span
-                      className={`font-bold ${getScoreColor(take.score)}`}
-                    >
+                    <span className={`font-bold ${getScoreColor(take.score)}`}>
                       {take.score ?? 0}%
                     </span>
                   </div>

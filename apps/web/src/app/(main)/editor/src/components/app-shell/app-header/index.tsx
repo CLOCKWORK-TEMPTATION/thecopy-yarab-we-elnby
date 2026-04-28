@@ -43,8 +43,12 @@ export function AppHeader({
   onlineDotColor,
 }: AppHeaderProps): React.JSX.Element {
   const menuNavigation = useMenuNavigation(menuSections, activeMenu);
-  const { menubarId, menubarButtonRefs, menuItemRefs, sectionIndex: _sectionIndex } =
-    menuNavigation;
+  const {
+    menubarId,
+    menubarButtonRefs,
+    menuItemRefs,
+    sectionIndex: _sectionIndex,
+  } = menuNavigation;
 
   const { handleSectionButtonKeyDown, handleMenuItemKeyDown } =
     useKeyboardHandlers({

@@ -4,7 +4,7 @@
 
 ## الحالة العامة
 
-- governance status: `ungoverned`
+- governance status: `governed`
 - total systems: `5`
 
 ## الأنظمة المكتشفة
@@ -187,6 +187,7 @@
 - inputs:
   - `apps/web/src/lib/ai/rag/context-retriever.ts`
   - `apps/web/src/lib/ai/rag/text-chunking.ts`
+  - `apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts`
   - `apps/web/src/lib/drama-analyst/services/ragService.ts`
 - artifacts:
   - `In-memory context maps`

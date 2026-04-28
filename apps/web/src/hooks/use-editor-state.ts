@@ -5,12 +5,18 @@
 
 import { useRef, useState } from "react";
 
-import { readActiveProjectTitle, readTypingSystemSettings } from "../lib/app/utils";
+import {
+  readActiveProjectTitle,
+  readTypingSystemSettings,
+} from "../lib/app/utils";
 
 import { useEditorCompactMode } from "./use-editor-compact-mode";
 import { getIsMobile } from "./use-is-mobile";
 
-import type { DocumentStats, ProgressiveSurfaceState } from "../components/editor";
+import type {
+  DocumentStats,
+  ProgressiveSurfaceState,
+} from "../components/editor";
 import type { EditorArea } from "../components/editor/EditorArea";
 import type { TypingSystemSettings } from "../types";
 import type { EditorDiagnosticEvent, ElementType } from "../types/app";

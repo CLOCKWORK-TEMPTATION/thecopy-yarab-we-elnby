@@ -4,7 +4,13 @@ import { useRef } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
 import type { ChatMessage } from "../../types";
@@ -43,9 +49,7 @@ export const ScenePartner: React.FC<ScenePartnerProps> = ({
           {!rehearsing ? (
             <div className="text-center py-12">
               <div className="text-8xl mb-6">🎭</div>
-              <h3 className="text-2xl font-semibold mb-4">
-                مستعد للتدريب؟
-              </h3>
+              <h3 className="text-2xl font-semibold mb-4">مستعد للتدريب؟</h3>
               <p className="text-white/55 mb-6">
                 سيقوم الذكاء الاصطناعي بدور الشخصية الأخرى في المشهد
               </p>
@@ -70,9 +74,7 @@ export const ScenePartner: React.FC<ScenePartnerProps> = ({
                       }`}
                     >
                       <p className="font-medium mb-1">
-                        {msg.role === "user"
-                          ? "أنت (أحمد):"
-                          : "ليلى (AI):"}
+                        {msg.role === "user" ? "أنت (أحمد):" : "ليلى (AI):"}
                       </p>
                       <p className={msg.typing ? "animate-pulse" : ""}>
                         {msg.text}
@@ -98,10 +100,7 @@ export const ScenePartner: React.FC<ScenePartnerProps> = ({
                   className="flex-1"
                 />
                 <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!userInput.trim()}
-                  >
+                  <Button onClick={sendMessage} disabled={!userInput.trim()}>
                     📤 إرسال
                   </Button>
                   <Button variant="outline" onClick={endRehearsal}>

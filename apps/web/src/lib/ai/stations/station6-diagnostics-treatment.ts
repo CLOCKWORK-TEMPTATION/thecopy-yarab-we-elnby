@@ -94,10 +94,11 @@ export class Station6Diagnostics {
         diagnosticsReport
       );
 
-      const treatmentPlan = await this.treatmentLogic.generateDetailedTreatmentPlan(
-        diagnosticsReport,
-        debateResults
-      );
+      const treatmentPlan =
+        await this.treatmentLogic.generateDetailedTreatmentPlan(
+          diagnosticsReport,
+          debateResults
+        );
 
       const plotPredictions =
         await this.plotLogic.predictPlotTrajectoryWithAlternatives(
@@ -107,12 +108,13 @@ export class Station6Diagnostics {
           (output) => this.createStructuredAnalysisSummary(output)
         );
 
-      const uncertaintyReport = await this.uncertaintyLogic.quantifyComprehensiveUncertainty({
-        diagnosticsReport,
-        debateResults,
-        treatmentPlan,
-        plotPredictions,
-      });
+      const uncertaintyReport =
+        await this.uncertaintyLogic.quantifyComprehensiveUncertainty({
+          diagnosticsReport,
+          debateResults,
+          treatmentPlan,
+          plotPredictions,
+        });
 
       const metadata: StationMetadata = {
         analysisTimestamp: new Date(),
@@ -131,7 +133,9 @@ export class Station6Diagnostics {
         executionTime: Date.now() - startTime,
       };
 
-      console.warn(`[Station 6] Analysis completed in ${metadata.executionTime}ms`);
+      console.warn(
+        `[Station 6] Analysis completed in ${metadata.executionTime}ms`
+      );
 
       return {
         diagnosticsReport,
@@ -164,7 +168,10 @@ export class Station6Diagnostics {
 **أهم القضايا الحرجة:**
 ${diagnosticsReport.criticalIssues
   .slice(0, 5)
-  .map((issue) => `- ${issue.category}: ${issue.description} (التأثير: ${issue.impact}/10)`)
+  .map(
+    (issue) =>
+      `- ${issue.category}: ${issue.description} (التأثير: ${issue.impact}/10)`
+  )
   .join("\n")}
 
 **الملخص:**
@@ -217,7 +224,9 @@ ${diagnosticsReport.summary}
     const station2PrimaryThemes = asArray<unknown>(station2Themes.primary);
     const station3NetworkAnalysis = asJsonRecord(station3.networkAnalysis);
     const station3ConflictAnalysis = asJsonRecord(station3.conflictAnalysis);
-    const station3MainConflict = asJsonRecord(station3ConflictAnalysis.mainConflict);
+    const station3MainConflict = asJsonRecord(
+      station3ConflictAnalysis.mainConflict
+    );
     const station4EfficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
     const station5SymbolicAnalysis = asJsonRecord(station5.symbolicAnalysis);
     const station5TensionAnalysis = asJsonRecord(station5.tensionAnalysis);
@@ -244,4 +253,3 @@ ${diagnosticsReport.summary}
 `;
   }
 }
-

@@ -39,7 +39,8 @@ vi.mock("@/lib/app-state-client", () => ({
 // ---------------------------------------------------------------------------
 // Import the hook AFTER mocks are set up
 // ---------------------------------------------------------------------------
-const { useCreativeDevelopment: _useCreativeDevelopment } = await import("../useCreativeDevelopment");
+const { useCreativeDevelopment: _useCreativeDevelopment } =
+  await import("../useCreativeDevelopment");
 
 // ---------------------------------------------------------------------------
 // T013: ExecutionAdapter — routing per executionMode

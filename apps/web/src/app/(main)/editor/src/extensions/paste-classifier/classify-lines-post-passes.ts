@@ -15,9 +15,7 @@
  */
 
 import { ContextMemoryManager } from "../context-memory-manager";
-import {
-  agentReviewLogger,
-} from "../paste-classifier-config";
+import { agentReviewLogger } from "../paste-classifier-config";
 import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import { pipelineRecorder } from "../pipeline-recorder";
 import { retroactiveCorrectionPass } from "../retroactive-corrector";

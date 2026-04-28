@@ -1,7 +1,13 @@
 import { GeminiService, GeminiModel } from "../../gemini-service";
 
 import { SymbolicAnalysis, Symbol, Motif } from "./types";
-import { safeSub, asJsonRecord, asArray, asStringArray, asNumber } from "./utils";
+import {
+  safeSub,
+  asJsonRecord,
+  asArray,
+  asStringArray,
+  asNumber,
+} from "./utils";
 
 export class SymbolicAnalysisEngine {
   private geminiService: GeminiService;

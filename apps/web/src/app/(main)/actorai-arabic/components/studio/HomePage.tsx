@@ -49,11 +49,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => (
         >
           🎵 إيقاع المشهد
         </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          onClick={() => onNavigate("ar")}
-        >
+        <Button size="lg" variant="outline" onClick={() => onNavigate("ar")}>
           🥽 تدريب AR/MR
         </Button>
       </div>

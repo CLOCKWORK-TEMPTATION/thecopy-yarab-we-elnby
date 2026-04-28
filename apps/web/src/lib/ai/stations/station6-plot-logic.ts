@@ -3,12 +3,7 @@
  * Extracted from station6-diagnostics-treatment.ts to keep file ≤ 600 lines.
  */
 
-
-import {
-  asArray,
-  asJsonRecord,
-  asNumber,
-} from "./station6-json-helpers";
+import { asArray, asJsonRecord, asNumber } from "./station6-json-helpers";
 import { buildPlotPredictionPrompt } from "./station6-prompts";
 
 import type { GeminiService } from "./gemini-service";

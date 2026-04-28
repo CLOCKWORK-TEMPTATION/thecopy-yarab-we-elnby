@@ -2,7 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import type { Recording } from "../../types";
 
@@ -50,11 +56,7 @@ export const Recording: React.FC<RecordingProps> = ({
                 {formatTime(recordingTime)}
               </h3>
               <p className="text-white/55 mb-6">جاري التسجيل...</p>
-              <Button
-                size="lg"
-                variant="destructive"
-                onClick={stopRecording}
-              >
+              <Button size="lg" variant="destructive" onClick={stopRecording}>
                 ⏹️ إيقاف التسجيل
               </Button>
             </>

@@ -7,10 +7,7 @@
  * - بناء خريطة SourceHints لكل سطر مصنف.
  */
 
-import type {
-  ImportSource,
-  SourceHints,
-} from "@editor/suspicion-engine/types";
+import type { ImportSource, SourceHints } from "@editor/suspicion-engine/types";
 
 import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 

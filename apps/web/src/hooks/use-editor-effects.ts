@@ -7,15 +7,30 @@ import { useEffect } from "react";
 
 import { EditorArea } from "../components/editor/EditorArea";
 import { subscribeIsMobile } from "../hooks";
-import { applyDesignTokens, scheduleAutoSave , saveToStorage } from "../hooks/storage";
-import { buildKeyHandler , readActiveProjectTitle, readAutosaveSnapshot, canRestoreAutosaveSnapshot, applyAutosaveSnapshot } from "../lib/app/utils";
+import {
+  applyDesignTokens,
+  scheduleAutoSave,
+  saveToStorage,
+} from "../hooks/storage";
+import {
+  buildKeyHandler,
+  readActiveProjectTitle,
+  readAutosaveSnapshot,
+  canRestoreAutosaveSnapshot,
+  applyAutosaveSnapshot,
+} from "../lib/app/utils";
 
-import type { EditorAutosaveSnapshot, EditorDiagnosticEvent } from "../types/app";
+import type {
+  EditorAutosaveSnapshot,
+  EditorDiagnosticEvent,
+} from "../types/app";
 
 interface EditorState {
   editorMountRef: React.RefObject<HTMLDivElement | null>;
   editorAreaRef: React.RefObject<EditorArea | null>;
-  handleMenuActionRef: React.RefObject<((actionId: string) => Promise<void>) | null>;
+  handleMenuActionRef: React.RefObject<
+    ((actionId: string) => Promise<void>) | null
+  >;
   liveTypingWorkflowTimeoutRef: React.RefObject<number | null>;
   applyingTypingWorkflowRef: React.RefObject<boolean>;
   lastLiveWorkflowTextRef: React.RefObject<string>;
@@ -72,7 +87,8 @@ export function useEditorEffects(state: EditorState, deps: EditorEffectsDeps) {
           variant: "destructive",
         });
       },
-      onProgressiveStateChange: (state) => state.setProgressiveSurfaceState(state),
+      onProgressiveStateChange: (state) =>
+        state.setProgressiveSurfaceState(state),
     });
     state.editorAreaRef.current = editorArea;
 
@@ -152,7 +168,10 @@ export function useEditorEffects(state: EditorState, deps: EditorEffectsDeps) {
   }, [state.documentText]);
 
   useEffect(() => {
-    saveToStorage("filmlane.typing-system.settings", state.typingSystemSettings);
+    saveToStorage(
+      "filmlane.typing-system.settings",
+      state.typingSystemSettings
+    );
   }, [state.typingSystemSettings]);
 
   useEffect(() => {

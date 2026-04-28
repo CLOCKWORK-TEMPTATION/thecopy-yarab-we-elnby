@@ -1,6 +1,4 @@
-import type {
-  KnowledgeSystemDefinition,
-} from "./types";
+import type { KnowledgeSystemDefinition } from "./types";
 import { RAG_CONTRACT_PATH } from "../constants";
 
 export const KNOWLEDGE_DISCOVERY_EXCLUDED_FILE_PATTERNS = [
@@ -442,12 +440,14 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       "apps/web/src/lib/ai/rag/index.ts",
       "apps/web/src/lib/ai/rag/text-chunking.ts",
       "apps/web/src/lib/ai/text-chunking.ts",
+      "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
       "apps/web/src/lib/drama-analyst/services/ragService.ts",
       RAG_CONTRACT_PATH,
     ],
     inputs: [
       "apps/web/src/lib/ai/rag/context-retriever.ts",
       "apps/web/src/lib/ai/rag/text-chunking.ts",
+      "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
       "apps/web/src/lib/drama-analyst/services/ragService.ts",
     ],
     artifacts: ["In-memory context maps", "In-memory retrieved chunks"],
@@ -459,6 +459,10 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       {
         kind: "retrieval",
         path: "apps/web/src/lib/ai/rag/context-retriever.ts",
+      },
+      {
+        kind: "retrieval",
+        path: "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
       },
       {
         kind: "retrieval",

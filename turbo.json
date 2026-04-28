@@ -6,7 +6,7 @@
     "pnpm-workspace.yaml",
     "turbo.json"
   ],
-  "globalEnv": ["NODE_ENV", "CI"],
+  "globalEnv": ["NODE_ENV", "CI", "TIPTAP_PRO_TOKEN"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

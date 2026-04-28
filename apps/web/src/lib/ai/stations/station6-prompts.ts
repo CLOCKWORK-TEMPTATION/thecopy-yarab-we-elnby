@@ -184,7 +184,9 @@ ${text.substring(0, 3000)}
 `;
 }
 
-export function buildDebateContext(diagnosticsReport: DiagnosticsReport): string {
+export function buildDebateContext(
+  diagnosticsReport: DiagnosticsReport
+): string {
   return `
 **التقرير التشخيصي:**
 - درجة الصحة الإجمالية: ${diagnosticsReport.overallHealthScore}/100

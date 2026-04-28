@@ -3,7 +3,13 @@
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -16,7 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { AR_FEATURES, GESTURE_CONTROLS, SHOT_TYPES } from "../../types/constants";
+import {
+  AR_FEATURES,
+  GESTURE_CONTROLS,
+  SHOT_TYPES,
+} from "../../types/constants";
 
 import type {
   TeleprompterSettings,
@@ -27,8 +37,22 @@ import type {
 } from "../../types";
 
 interface ARTrainingProps {
-  arMode: "setup" | "teleprompter" | "blocking" | "camera" | "partner" | "gestures";
-  setArMode: (mode: "setup" | "teleprompter" | "blocking" | "camera" | "partner" | "gestures") => void;
+  arMode:
+    | "setup"
+    | "teleprompter"
+    | "blocking"
+    | "camera"
+    | "partner"
+    | "gestures";
+  setArMode: (
+    mode:
+      | "setup"
+      | "teleprompter"
+      | "blocking"
+      | "camera"
+      | "partner"
+      | "gestures"
+  ) => void;
   teleprompterSettings: TeleprompterSettings;
   setTeleprompterSettings: (settings: TeleprompterSettings) => void;
   blockingMarks: BlockingMark[];
@@ -62,14 +86,16 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
   visionProConnected,
 }) => (
   <div className="max-w-6xl mx-auto py-8">
-    <h2 className="text-3xl font-bold text-white/85 mb-2">
-      🥽 تدريب AR/MR
-    </h2>
+    <h2 className="text-3xl font-bold text-white/85 mb-2">🥽 تدريب AR/MR</h2>
     <p className="text-white/55 mb-8">
       تجربة غامرة مع Vision Pro للتدريب الاحترافي
     </p>
 
-    <Tabs defaultValue="setup" value={arMode} onValueChange={(v) => setArMode(v as any)}>
+    <Tabs
+      defaultValue="setup"
+      value={arMode}
+      onValueChange={(v) => setArMode(v as any)}
+    >
       <TabsList className="grid w-full grid-cols-6 mb-6">
         <TabsTrigger value="setup">⚙️ الإعداد</TabsTrigger>
         <TabsTrigger value="teleprompter">📄 Teleprompter</TabsTrigger>
@@ -97,19 +123,26 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                     <p className="text-sm text-white/55">حالة الاتصال</p>
                   </div>
                 </div>
-                <Badge className={visionProConnected ? "bg-green-600" : "bg-red-600"}>
+                <Badge
+                  className={visionProConnected ? "bg-green-600" : "bg-red-600"}
+                >
                   {visionProConnected ? "متصل" : "غير متصل"}
                 </Badge>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {AR_FEATURES.map((feature, idx) => (
-                  <div key={idx} className="p-4 border rounded-[22px] hover:bg-white/[0.04] transition-colors">
+                  <div
+                    key={idx}
+                    className="p-4 border rounded-[22px] hover:bg-white/[0.04] transition-colors"
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-2xl">{feature.icon}</span>
                       <h4 className="font-semibold">{feature.name}</h4>
                     </div>
-                    <p className="text-sm text-white/55">{feature.description}</p>
+                    <p className="text-sm text-white/55">
+                      {feature.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -146,7 +179,10 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                     const rect = e.currentTarget.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const percentage = Math.round((x / rect.width) * 100);
-                    setTeleprompterSettings({ ...teleprompterSettings, speed: percentage });
+                    setTeleprompterSettings({
+                      ...teleprompterSettings,
+                      speed: percentage,
+                    });
                   }}
                 />
               </div>
@@ -174,7 +210,10 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                     const rect = e.currentTarget.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const percentage = Math.round((x / rect.width) * 100);
-                    setTeleprompterSettings({ ...teleprompterSettings, opacity: percentage });
+                    setTeleprompterSettings({
+                      ...teleprompterSettings,
+                      opacity: percentage,
+                    });
                   }}
                 />
               </div>
@@ -251,10 +290,7 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                 >
                   ➕ إضافة نقطة
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setBlockingMarks([])}
-                >
+                <Button variant="outline" onClick={() => setBlockingMarks([])}>
                   🗑️ مسح الكل
                 </Button>
               </div>
@@ -443,7 +479,9 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                       </div>
                       <input
                         type="checkbox"
-                        checked={activeGestures.some((g) => g.id === gesture.id)}
+                        checked={activeGestures.some(
+                          (g) => g.id === gesture.id
+                        )}
                         onChange={(e) => {
                           if (e.target.checked) {
                             setActiveGestures([...activeGestures, gesture]);
@@ -455,7 +493,9 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                         }}
                       />
                     </div>
-                    <p className="text-sm text-white/55">{gesture.description}</p>
+                    <p className="text-sm text-white/55">
+                      {gesture.description}
+                    </p>
                   </div>
                 ))}
               </div>

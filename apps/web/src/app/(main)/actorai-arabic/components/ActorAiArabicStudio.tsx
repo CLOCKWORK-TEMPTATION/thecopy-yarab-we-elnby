@@ -94,12 +94,8 @@ export const ActorAiArabicStudio: React.FC = () => {
     formatTime,
   } = useRecording();
 
-  const {
-    activeExercise,
-    exerciseTimer,
-    startExercise,
-    stopExercise,
-  } = useVocalExercises(showNotification);
+  const { activeExercise, exerciseTimer, startExercise, stopExercise } =
+    useVocalExercises(showNotification);
 
   const {
     rhythmScriptText,

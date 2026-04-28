@@ -3,7 +3,13 @@
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -53,11 +59,7 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <Label>النص المسرحي/السينمائي</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={useSampleScript}
-            >
+            <Button variant="outline" size="sm" onClick={useSampleScript}>
               📄 استخدم نص تجريبي
             </Button>
           </div>
@@ -109,9 +111,7 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
         {analysisResult && (
           <Card className="bg-blue-50 mt-6">
             <CardHeader>
-              <CardTitle className="text-blue-900">
-                🎯 نتائج التحليل
-              </CardTitle>
+              <CardTitle className="text-blue-900">🎯 نتائج التحليل</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* الأهداف */}
@@ -129,11 +129,9 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
                   <div>
                     <strong>النبضات:</strong>
                     <ul className="list-disc list-inside mt-1">
-                      {analysisResult.objectives.beats.map(
-                        (beat, idx) => (
-                          <li key={idx}>{beat}</li>
-                        )
-                      )}
+                      {analysisResult.objectives.beats.map((beat, idx) => (
+                        <li key={idx}>{beat}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -146,21 +144,17 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
                   <div className="bg-white/[0.04] p-4 rounded-[22px]">
                     <strong>داخلية:</strong>
                     <ul className="list-disc list-inside mt-1">
-                      {analysisResult.obstacles.internal.map(
-                        (obs, idx) => (
-                          <li key={idx}>{obs}</li>
-                        )
-                      )}
+                      {analysisResult.obstacles.internal.map((obs, idx) => (
+                        <li key={idx}>{obs}</li>
+                      ))}
                     </ul>
                   </div>
                   <div className="bg-white/[0.04] p-4 rounded-[22px]">
                     <strong>خارجية:</strong>
                     <ul className="list-disc list-inside mt-1">
-                      {analysisResult.obstacles.external.map(
-                        (obs, idx) => (
-                          <li key={idx}>{obs}</li>
-                        )
-                      )}
+                      {analysisResult.obstacles.external.map((obs, idx) => (
+                        <li key={idx}>{obs}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -168,9 +162,7 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
 
               {/* المسار العاطفي */}
               <div>
-                <h4 className="font-semibold mb-2 text-lg">
-                  المسار العاطفي:
-                </h4>
+                <h4 className="font-semibold mb-2 text-lg">المسار العاطفي:</h4>
                 <div className="flex gap-4 flex-wrap">
                   {analysisResult.emotionalArc.map((arc, idx) => (
                     <div
@@ -185,10 +177,7 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
                             : "❤️"}
                       </div>
                       <Badge variant="outline">{arc.emotion}</Badge>
-                      <Progress
-                        value={arc.intensity}
-                        className="mt-2 w-20"
-                      />
+                      <Progress value={arc.intensity} className="mt-2 w-20" />
                       <span className="text-sm text-white/55">
                         {arc.intensity}%
                       </span>

@@ -4,7 +4,10 @@
  */
 
 import type { StationInput } from "./base-station";
-import type { CharacterProfile , Station1Output } from "./station1-text-analysis";
+import type {
+  CharacterProfile,
+  Station1Output,
+} from "./station1-text-analysis";
 import type { Station2Output } from "./station2-conceptual-analysis";
 
 // ---------------------------------------------------------------------------

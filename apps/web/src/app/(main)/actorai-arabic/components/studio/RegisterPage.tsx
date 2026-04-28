@@ -4,7 +4,14 @@ import { useState } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -13,7 +20,10 @@ interface RegisterPageProps {
   onNavigate: (view: any) => void;
 }
 
-export const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister, onNavigate }) => {
+export const RegisterPage: React.FC<RegisterPageProps> = ({
+  onRegister,
+  onNavigate,
+}) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +70,10 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister, onNaviga
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" onClick={() => onRegister(name, email, password)}>
+            <Button
+              className="w-full"
+              onClick={() => onRegister(name, email, password)}
+            >
               إنشاء الحساب
             </Button>
             <p className="text-sm text-white/55">

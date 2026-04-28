@@ -15,7 +15,10 @@ import type {
   FinalReviewSuspiciousLinePayload,
 } from "@editor/types/final-review";
 
-import { FINAL_REVIEW_MAX_RATIO, FINAL_REVIEW_PROMOTION_THRESHOLD } from "../../paste-classifier-config";
+import {
+  FINAL_REVIEW_MAX_RATIO,
+  FINAL_REVIEW_PROMOTION_THRESHOLD,
+} from "../../paste-classifier-config";
 
 /**
  * ترقية حالات agent-candidate ذات alternative-pull قوي (≥ promotion threshold)
@@ -83,7 +86,7 @@ export const shouldEscalatePayloadToFinalReview = (
   if (payload.distinctSignalFamilies >= 2) return true;
   return Boolean(
     payload.primarySuggestedType &&
-      payload.primarySuggestedType !== payload.assignedType
+    payload.primarySuggestedType !== payload.assignedType
   );
 };
 
@@ -99,15 +102,9 @@ export const selectFinalReviewPayloads = (
   return [...suspiciousLines]
     .filter(shouldEscalatePayloadToFinalReview)
     .sort((a, b) => {
-      if (
-        a.routingBand === "agent-forced" &&
-        b.routingBand !== "agent-forced"
-      )
+      if (a.routingBand === "agent-forced" && b.routingBand !== "agent-forced")
         return -1;
-      if (
-        b.routingBand === "agent-forced" &&
-        a.routingBand !== "agent-forced"
-      )
+      if (b.routingBand === "agent-forced" && a.routingBand !== "agent-forced")
         return 1;
       return b.suspicionScore - a.suspicionScore;
     })

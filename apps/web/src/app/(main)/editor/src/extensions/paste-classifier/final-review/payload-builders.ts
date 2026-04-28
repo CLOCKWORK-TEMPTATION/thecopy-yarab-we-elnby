@@ -9,7 +9,10 @@
  * - mergeSuspicionReviewCandidates: دمج candidates محلية مع استجابة النموذج.
  */
 
-import type { ImportSource, SuspicionCase } from "@editor/suspicion-engine/types";
+import type {
+  ImportSource,
+  SuspicionCase,
+} from "@editor/suspicion-engine/types";
 import type { FinalReviewSuspiciousLinePayload } from "@editor/types/final-review";
 import type {
   SuspicionReviewContextLine,
@@ -21,9 +24,7 @@ import type {
 
 import { buildContextLines } from "@editor/final-review/payload-builder";
 
-import {
-  REVIEWABLE_AGENT_TYPES,
-} from "../../paste-classifier-config";
+import { REVIEWABLE_AGENT_TYPES } from "../../paste-classifier-config";
 import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 import { shouldKeepSuspicionModelDecisionForFinalReview } from "../../suspicion-review-routing";
 

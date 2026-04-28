@@ -1,25 +1,35 @@
 import { Router, type Response } from "express";
 import { z } from "zod";
 
-import { breakappService } from "./service";
 import { breakappGateway } from "./gateway";
-import {
-  protectedLimiter,
-  requireAuth,
-  requireRole,
-} from "./middlewares";
-import type { AuthenticatedRequest } from "./middlewares";
+import { protectedLimiter } from "./limiters";
+import { requireAuth, requireRole } from "./middlewares";
+import * as repo from "./repository";
 import {
   orderStatusSchema,
   createMenuItemSchema,
   updateMenuItemSchema,
 } from "./schemas";
-import * as repo from "./repository";
+import { breakappService } from "./service";
+
+import type { AuthenticatedRequest } from "./middlewares";
 import type { OrderStatus } from "./service.types";
+
+type ValidationErrorHandler = (res: Response, error: z.ZodError) => void;
 
 export function registerVendorRoutes(
   router: Router,
-  handleValidationError: (res: Response, error: z.ZodError) => void,
+  handleValidationError: ValidationErrorHandler,
+): void {
+  registerVendorOrderRoutes(router, handleValidationError);
+  registerVendorMenuCreateRoute(router, handleValidationError);
+  registerVendorMenuUpdateRoute(router, handleValidationError);
+  registerVendorMenuDeleteRoute(router);
+}
+
+function registerVendorOrderRoutes(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
 ): void {
   router.get(
     "/vendor/orders",
@@ -111,7 +121,12 @@ export function registerVendorRoutes(
       }
     },
   );
+}
 
+function registerVendorMenuCreateRoute(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
+): void {
   router.post(
     "/vendor/menu-items",
     protectedLimiter,
@@ -154,7 +169,12 @@ export function registerVendorRoutes(
       }
     },
   );
+}
 
+function registerVendorMenuUpdateRoute(
+  router: Router,
+  handleValidationError: ValidationErrorHandler,
+): void {
   router.patch(
     "/vendor/menu-items/:id",
     protectedLimiter,
@@ -199,7 +219,9 @@ export function registerVendorRoutes(
       }
     },
   );
+}
 
+function registerVendorMenuDeleteRoute(router: Router): void {
   router.delete(
     "/vendor/menu-items/:id",
     protectedLimiter,

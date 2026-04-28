@@ -3,12 +3,7 @@
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useVoiceAnalytics } from "../hooks/useVoiceAnalytics";
 

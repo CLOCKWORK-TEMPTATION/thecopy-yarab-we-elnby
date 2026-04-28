@@ -6,9 +6,7 @@ export const VoiceCoachPage: React.FC = () => (
     <h2 className="text-3xl font-bold text-white/85 mb-2">
       🎙️ مدرب الصوت اللحظي
     </h2>
-    <p className="text-white/55 mb-8">
-      تحليل صوتي متقدم لتطوير أدائك التمثيلي
-    </p>
+    <p className="text-white/55 mb-8">تحليل صوتي متقدم لتطوير أدائك التمثيلي</p>
     <VoiceCoach />
   </div>
 );

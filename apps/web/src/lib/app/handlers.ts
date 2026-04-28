@@ -5,8 +5,14 @@
 
 import { sanitizeTypingSystemSettings } from "../types";
 
-import type { RunDocumentThroughPasteWorkflowOptions, TypingSystemSettings } from "../types";
-import type { EditorDiagnosticEvent, MAX_DIAGNOSTIC_EVENTS } from "../types/app";
+import type {
+  RunDocumentThroughPasteWorkflowOptions,
+  TypingSystemSettings,
+} from "../types";
+import type {
+  EditorDiagnosticEvent,
+  MAX_DIAGNOSTIC_EVENTS,
+} from "../types/app";
 
 interface EditorState {
   editorAreaRef: React.RefObject<any>;
@@ -22,12 +28,16 @@ interface EditorState {
 }
 
 interface HandlerDeps {
-  runDocumentThroughPasteWorkflow: (options: RunDocumentThroughPasteWorkflowOptions) => Promise<void>;
+  runDocumentThroughPasteWorkflow: (
+    options: RunDocumentThroughPasteWorkflowOptions
+  ) => Promise<void>;
   toast: any;
   logger: any;
 }
 
-export function createRecordDiagnostic(setDiagnosticEvents: (events: EditorDiagnosticEvent[]) => void) {
+export function createRecordDiagnostic(
+  setDiagnosticEvents: (events: EditorDiagnosticEvent[]) => void
+) {
   return (title: string, message: string): void => {
     setDiagnosticEvents((current) =>
       [
@@ -66,7 +76,9 @@ export function createHandleTypingModeChange(
   };
 }
 
-export function createHandleLiveIdleMinutesChange(setTypingSystemSettings: (settings: TypingSystemSettings) => void) {
+export function createHandleLiveIdleMinutesChange(
+  setTypingSystemSettings: (settings: TypingSystemSettings) => void
+) {
   return (nextMinutes: number): void => {
     setTypingSystemSettings((current) =>
       sanitizeTypingSystemSettings({ ...current, liveIdleMinutes: nextMinutes })
@@ -223,7 +235,10 @@ export async function restoreAutosaveDraft(
   }
 }
 
-export function approveCurrentVersion(state: EditorState, deps: HandlerDeps): void {
+export function approveCurrentVersion(
+  state: EditorState,
+  deps: HandlerDeps
+): void {
   const { toast } = deps;
   const area = state.editorAreaRef.current;
   if (!area) return;

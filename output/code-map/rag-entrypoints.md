@@ -70,6 +70,7 @@
 - `apps/web/src/lib/ai/rag/text-chunking.ts`
 - `apps/web/src/lib/ai/stations/gemini-service.ts`
 - `apps/web/src/lib/ai/text-chunking.ts`
+- `apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts`
 - `apps/web/src/lib/drama-analyst/services/ragService.ts`
 - `packages/core-memory/src/chunking/semanticChunker.ts`
 - `packages/core-memory/src/types.ts`

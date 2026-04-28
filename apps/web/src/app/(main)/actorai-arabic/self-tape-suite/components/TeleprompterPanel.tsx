@@ -19,7 +19,9 @@ interface TeleprompterPanelProps {
   setScriptText: (value: string) => void;
   teleprompterSettings: TeleprompterSettings;
   setTeleprompterSettings: (
-    settings: TeleprompterSettings | ((prev: TeleprompterSettings) => TeleprompterSettings)
+    settings:
+      | TeleprompterSettings
+      | ((prev: TeleprompterSettings) => TeleprompterSettings)
   ) => void;
   teleprompterRunning: boolean;
   teleprompterPosition: number;

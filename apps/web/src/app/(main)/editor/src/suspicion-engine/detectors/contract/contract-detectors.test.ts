@@ -12,7 +12,6 @@ import { detectContractParentheticalPosition } from "./contract-parenthetical-po
 import { detectContractSceneHeaderSequence } from "./contract-scene-header-sequence.detector";
 import { detectContractTransitionIsolation } from "./contract-transition-isolation.detector";
 
-
 // ─────────────────────────────────────────────────────────────────────
 // contract-character-shape.detector
 // ─────────────────────────────────────────────────────────────────────

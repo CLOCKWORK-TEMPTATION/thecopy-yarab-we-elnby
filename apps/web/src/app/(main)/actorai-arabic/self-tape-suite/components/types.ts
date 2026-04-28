@@ -11,7 +11,12 @@ export type NotificationState = {
   type: "success" | "error" | "info";
   message: string;
 } | null;
-export type NoteType = "emotion" | "delivery" | "timing" | "movement" | "improvement";
+export type NoteType =
+  | "emotion"
+  | "delivery"
+  | "timing"
+  | "movement"
+  | "improvement";
 export type NoteSeverity = "positive" | "neutral" | "needs_work";
 
 export interface TakeNote {

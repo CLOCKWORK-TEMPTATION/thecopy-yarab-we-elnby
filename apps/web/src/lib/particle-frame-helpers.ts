@@ -15,7 +15,6 @@ import {
 
 import type * as THREE from "three";
 
-
 export type ParticleEffect = "default" | "spark" | "wave" | "vortex";
 
 /**

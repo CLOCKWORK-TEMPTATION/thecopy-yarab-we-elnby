@@ -1,5 +1,11 @@
 import { useState } from "react";
-import type { TeleprompterSettings, BlockingMark, CameraSettings, HolographicPartner, GestureControl } from "../../types";
+import type {
+  TeleprompterSettings,
+  BlockingMark,
+  CameraSettings,
+  HolographicPartner,
+  GestureControl,
+} from "../../types";
 import { GESTURE_CONTROLS } from "../types/constants";
 
 export const useARTraining = () => {
@@ -32,12 +38,13 @@ export const useARTraining = () => {
     angle: "eye-level",
     movement: "static",
   });
-  const [holographicPartner, setHolographicPartner] = useState<HolographicPartner>({
-    character: "ليلى",
-    emotion: "حب",
-    intensity: 70,
-    isActive: false,
-  });
+  const [holographicPartner, setHolographicPartner] =
+    useState<HolographicPartner>({
+      character: "ليلى",
+      emotion: "حب",
+      intensity: 70,
+      isActive: false,
+    });
   const [activeGestures, setActiveGestures] =
     useState<GestureControl[]>(GESTURE_CONTROLS);
   const [arSessionActive, setArSessionActive] = useState(false);

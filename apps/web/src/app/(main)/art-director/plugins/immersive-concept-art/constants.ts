@@ -1,4 +1,3 @@
- 
 // Immersive Concept Art Studio Constants
 // ثوابت استوديو الفن التصوري الغامر
 

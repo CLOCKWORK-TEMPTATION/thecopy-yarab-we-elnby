@@ -4,7 +4,7 @@
  */
 
 import { normalizeBlockText } from "./encoding";
-import { normalizeFormatId , splitLegacyTopLineText } from "./format-utils";
+import { normalizeFormatId, splitLegacyTopLineText } from "./format-utils";
 
 import type { ScreenplayBlock } from "./types";
 

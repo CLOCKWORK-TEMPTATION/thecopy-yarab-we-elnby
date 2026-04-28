@@ -56,24 +56,39 @@ export const useWebcamAnalysisBridge = (
       showNotification("error", "لا توجد بيانات كافية للتحليل");
       return;
     }
-    showNotification("success", `تم التحليل! النتيجة: ${result.overallScore}/100`);
+    showNotification(
+      "success",
+      `تم التحليل! النتيجة: ${result.overallScore}/100`
+    );
   }, [showNotification, webcamEngine]);
 
-  const getBlinkStatusText = useCallback((status: "normal" | "high" | "low"): string => {
-    switch (status) {
-      case "high": return "مرتفع (قد يدل على توتر)";
-      case "low": return "منخفض (تركيز عالي)";
-      default: return "طبيعي";
-    }
-  }, []);
+  const getBlinkStatusText = useCallback(
+    (status: "normal" | "high" | "low"): string => {
+      switch (status) {
+        case "high":
+          return "مرتفع (قد يدل على توتر)";
+        case "low":
+          return "منخفض (تركيز عالي)";
+        default:
+          return "طبيعي";
+      }
+    },
+    []
+  );
 
-  const getBlinkStatusColor = useCallback((status: "normal" | "high" | "low"): string => {
-    switch (status) {
-      case "high": return "text-orange-600";
-      case "low": return "text-blue-600";
-      default: return "text-green-600";
-    }
-  }, []);
+  const getBlinkStatusColor = useCallback(
+    (status: "normal" | "high" | "low"): string => {
+      switch (status) {
+        case "high":
+          return "text-orange-600";
+        case "low":
+          return "text-blue-600";
+        default:
+          return "text-green-600";
+      }
+    },
+    []
+  );
 
   const getEyeDirectionText = useCallback((direction: string): string => {
     const directions: Record<string, string> = {
