@@ -118,14 +118,17 @@ export default function ArabicPromptEngineeringStudioPage() {
     comparisonResult,
     isRemoteStateReady,
     prompt,
-    setPrompt,
-    analysis,
-    isAnalyzing,
-    activeTab,
-    setActiveTab,
+    promptHistory,
+    selectedTemplate,
     suggestions,
-    handleAnalyze,
-    handleCopy,
+    templateVariables
+  ]);
+
+  const {
+    handlers: {
+      handleAnalyzePrompt,
+      setPromptText
+    }
   } = usePromptStudio();
 
   return (
