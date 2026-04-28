@@ -5,3 +5,12 @@
 
 // Hooks
 export { useSelfTapeState } from "./useSelfTapeState";
+export { useCameraRecording } from "./useCameraRecording";
+
+// UI Components
+export { Header } from "./Header";
+export { Notification } from "./Notification";
+export { ToolNavigation } from "./ToolNavigation";
+
+// Page Components
+export { TeleprompterPage } from "./TeleprompterPage";
