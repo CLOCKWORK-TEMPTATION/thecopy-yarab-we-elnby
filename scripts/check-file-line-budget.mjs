@@ -1,45 +1,64 @@
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, extname } from 'path';
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import path from "node:path";
 
-function getAllFiles(dirPath, arrayOfFiles = []) {
-  const files = readdirSync(dirPath);
-  files.forEach(file => {
-    const fullPath = join(dirPath, file);
-    if (statSync(fullPath).isDirectory()) {
-      if (!['node_modules', '.next', 'dist', 'build', 'coverage'].includes(file)) {
-        arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
+const MAX_LINES = 500;
+const ROOTS = ["apps", "packages"];
+const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
+const IGNORED_DIRS = new Set([
+  ".git",
+  ".next",
+  ".turbo",
+  "build",
+  "coverage",
+  "dist",
+  "node_modules",
+  "out",
+]);
+
+function collectFiles(dir, files = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!IGNORED_DIRS.has(entry.name)) {
+        collectFiles(path.join(dir, entry.name), files);
       }
-    } else {
-      if (['.ts', '.tsx', '.js', '.jsx', '.mjs'].includes(extname(file))) {
-        arrayOfFiles.push(fullPath);
-      }
+      continue;
     }
-  });
-  return arrayOfFiles;
-}
 
-const rootDir = process.cwd();
-let files = [];
-try {
-  files = files.concat(getAllFiles(join(rootDir, 'apps')));
-} catch (e) {}
-try {
-  files = files.concat(getAllFiles(join(rootDir, 'packages')));
-} catch (e) {}
-
-let violations = [];
-files.forEach(file => {
-  const content = readFileSync(file, 'utf8');
-  const lines = content.split('\n').length;
-  if (lines > 500) {
-    violations.push({ file, lines });
+    if (entry.isFile() && EXTENSIONS.has(path.extname(entry.name))) {
+      files.push(path.join(dir, entry.name));
+    }
   }
-});
-
-if (violations.length > 0) {
-  console.log('Files exceeding 500 lines:');
-  violations.forEach(v => console.log(`${v.lines}\t${v.file}`));
-  process.exit(1);
-} else {
-  console.log('All files are within 500 lines.');
+  return files;
 }
+
+function countLines(filePath) {
+  const text = readFileSync(filePath, "utf8");
+  return text.length === 0 ? 0 : text.split(/\r\n|\n|\r/).length;
+}
+
+function formatPath(filePath) {
+  return path.relative(process.cwd(), filePath).replaceAll(path.sep, "/");
+}
+
+const files = ROOTS.flatMap((root) =>
+  existsSync(root) ? collectFiles(root) : []
+);
+
+const violations = files
+  .map((file) => ({ file: formatPath(file), lines: countLines(file) }))
+  .filter((entry) => entry.lines > MAX_LINES)
+  .sort((a, b) => b.lines - a.lines || a.file.localeCompare(b.file));
+
+if (violations.length === 0) {
+  console.log(`All scanned files are within ${MAX_LINES} lines.`);
+  process.exit(0);
+}
+
+console.log(`Files exceeding ${MAX_LINES} lines: ${violations.length}`);
+console.log("| lines | file |");
+console.log("|---:|---|");
+for (const violation of violations) {
+  console.log(`| ${violation.lines} | ${violation.file} |`);
+}
+
+process.exit(1);

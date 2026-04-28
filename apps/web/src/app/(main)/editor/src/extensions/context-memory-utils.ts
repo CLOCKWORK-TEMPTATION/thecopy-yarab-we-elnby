@@ -50,8 +50,7 @@ export const isValidMemoryCharacterName = (rawName: string): boolean => {
 export const detectLocalRepeatedPattern = (
   classifications: readonly string[]
 ): string | null => {
-  if (!Array.isArray(classifications) || classifications.length < 4)
-    return null;
+  if (classifications.length < 4) return null;
 
   const detectInOrder = (ordered: readonly string[]): string | null => {
     const pairCounts = new Map<string, number>();
@@ -77,6 +76,6 @@ export const detectLocalRepeatedPattern = (
 
   return (
     detectInOrder(classifications) ??
-    detectInOrder([...classifications].reverse())
+    detectInOrder(Array.from(classifications).reverse())
   );
 };

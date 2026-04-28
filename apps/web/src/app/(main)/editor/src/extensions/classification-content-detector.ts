@@ -9,12 +9,12 @@ import {
   type TextFeatures,
 } from "./classification-text-features";
 
+import type { SuspicionDetector } from "./classification-detector-types";
 import type {
   ClassifiedLine,
   DetectorFinding,
   ElementType,
 } from "./classification-types";
-import type { SuspicionDetector } from "./classification-detector-types";
 
 const BASMALA_REVERSE_RE = /بسم\s+الله\s+الرحمن\s+الرحيم/;
 

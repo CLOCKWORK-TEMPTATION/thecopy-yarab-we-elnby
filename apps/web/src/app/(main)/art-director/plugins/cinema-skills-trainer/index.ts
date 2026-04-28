@@ -2,308 +2,31 @@
 // المدرب الافتراضي للمهارات السينمائية
 
 import { v4 as uuidv4 } from "uuid";
-
 import { logger } from "@/lib/logger";
-
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
-interface TrainingScenario {
-  id: string;
-  name: string;
-  nameAr: string;
-  category: TrainingCategory;
-  difficulty: "beginner" | "intermediate" | "advanced" | "expert";
-  duration: number;
-  objectives: string[];
-  equipment: string[];
-  vrRequired: boolean;
-  aiAssisted: boolean;
-}
+import type {
+  TrainingScenario,
+  TrainingCategory,
+  CompletedScenario,
+  Achievement,
+  PerformanceEvaluation,
+} from "./types";
 
-type TrainingCategory =
-  | "camera-operation"
-  | "lighting-setup"
-  | "sound-recording"
-  | "directing"
-  | "set-design"
-  | "color-grading"
-  | "visual-effects"
-  | "production-management";
-
-interface VREquipment {
-  id: string;
-  name: string;
-  nameAr: string;
-  type: string;
-  model3D: string;
-  interactions: string[];
-  tutorials: TutorialStep[];
-}
-
-interface TutorialStep {
-  step: number;
-  title: string;
-  titleAr: string;
-  description: string;
-  descriptionAr: string;
-  action: string;
-  validationCriteria: string;
-}
-
-interface TraineeProgress {
-  traineeId: string;
-  name: string;
-  completedScenarios: CompletedScenario[];
-  skillLevels: Record<TrainingCategory, number>;
-  totalTrainingHours: number;
-  achievements: Achievement[];
-  currentStreak: number;
-}
-
-interface CompletedScenario {
-  scenarioId: string;
-  completedAt: Date;
-  score: number;
-  timeSpent: number;
-  feedback: string[];
-}
-
-interface Achievement {
-  id: string;
-  name: string;
-  nameAr: string;
-  earnedAt: Date;
-  category: string;
-}
-
-interface PerformanceEvaluation {
-  overallScore: number;
-  categoryScores: Record<string, number>;
-  strengths: string[];
-  areasForImprovement: string[];
-  recommendations: string[];
-  nextScenarios: string[];
-}
-
-const trainingScenarios: TrainingScenario[] = [
-  {
-    id: "cam-101",
-    name: "Basic Camera Movement",
-    nameAr: "حركات الكاميرا الأساسية",
-    category: "camera-operation",
-    difficulty: "beginner",
-    duration: 30,
-    objectives: [
-      "Master pan and tilt movements",
-      "Understand dolly shots",
-      "Practice tracking shots",
-    ],
-    equipment: ["Camera rig", "Dolly", "Tripod"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "cam-201",
-    name: "Advanced Steadicam Techniques",
-    nameAr: "تقنيات ستيديكام المتقدمة",
-    category: "camera-operation",
-    difficulty: "advanced",
-    duration: 60,
-    objectives: [
-      "Smooth walking shots",
-      "Stair navigation",
-      "Complex choreography",
-    ],
-    equipment: ["Steadicam rig", "Vest", "Monitor"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "light-101",
-    name: "Three-Point Lighting Setup",
-    nameAr: "إعداد الإضاءة ثلاثية النقاط",
-    category: "lighting-setup",
-    difficulty: "beginner",
-    duration: 45,
-    objectives: [
-      "Position key light",
-      "Set fill light ratio",
-      "Add back light",
-    ],
-    equipment: ["Fresnel lights", "Softboxes", "Flags", "C-stands"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "light-301",
-    name: "Cinematic Night Scenes",
-    nameAr: "مشاهد الليل السينمائية",
-    category: "lighting-setup",
-    difficulty: "expert",
-    duration: 90,
-    objectives: [
-      "Create moonlight effect",
-      "Light large exterior",
-      "Manage color contrast",
-    ],
-    equipment: ["HMI lights", "LED panels", "Gels", "Generators"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "dir-101",
-    name: "Blocking Fundamentals",
-    nameAr: "أساسيات تحريك الممثلين",
-    category: "directing",
-    difficulty: "beginner",
-    duration: 45,
-    objectives: [
-      "Stage actors for camera",
-      "Maintain screen direction",
-      "Create visual storytelling",
-    ],
-    equipment: ["Virtual actors", "Set pieces", "Camera"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "sound-101",
-    name: "Location Sound Recording",
-    nameAr: "تسجيل الصوت في الموقع",
-    category: "sound-recording",
-    difficulty: "intermediate",
-    duration: 45,
-    objectives: [
-      "Microphone placement",
-      "Managing ambient noise",
-      "Boom operation",
-    ],
-    equipment: ["Boom pole", "Shotgun mic", "Lavalier mics", "Mixer"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "set-201",
-    name: "Period Set Dressing",
-    nameAr: "تجهيز الديكور التاريخي",
-    category: "set-design",
-    difficulty: "intermediate",
-    duration: 60,
-    objectives: [
-      "Historical accuracy",
-      "Color coordination",
-      "Prop placement for camera",
-    ],
-    equipment: ["Period furniture", "Props", "Textiles", "Lighting fixtures"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-  {
-    id: "vfx-201",
-    name: "Green Screen Compositing",
-    nameAr: "دمج الشاشة الخضراء",
-    category: "visual-effects",
-    difficulty: "intermediate",
-    duration: 60,
-    objectives: [
-      "Proper lighting for keying",
-      "Camera tracking markers",
-      "Color matching",
-    ],
-    equipment: ["Green screen", "Even lighting", "Tracking markers"],
-    vrRequired: true,
-    aiAssisted: true,
-  },
-];
-
-const vrEquipment: VREquipment[] = [
-  {
-    id: "arri-alexa",
-    name: "ARRI ALEXA Mini",
-    nameAr: "أري أليكسا ميني",
-    type: "camera",
-    model3D: "/models/arri-alexa-mini.glb",
-    interactions: ["power", "record", "menu", "lens-mount", "monitor-attach"],
-    tutorials: [
-      {
-        step: 1,
-        title: "Power On",
-        titleAr: "التشغيل",
-        description: "Press and hold the power button",
-        descriptionAr: "اضغط مع الاستمرار على زر الطاقة",
-        action: "hold-power",
-        validationCriteria: "camera-powered",
-      },
-      {
-        step: 2,
-        title: "Mount Lens",
-        titleAr: "تركيب العدسة",
-        description: "Align the lens and rotate clockwise",
-        descriptionAr: "قم بمحاذاة العدسة ولفها في اتجاه عقارب الساعة",
-        action: "mount-lens",
-        validationCriteria: "lens-mounted",
-      },
-    ],
-  },
-  {
-    id: "steadicam-ultra",
-    name: "Steadicam Ultra",
-    nameAr: "ستيديكام ألترا",
-    type: "stabilizer",
-    model3D: "/models/steadicam.glb",
-    interactions: ["balance", "mount-camera", "adjust-arm", "calibrate"],
-    tutorials: [
-      {
-        step: 1,
-        title: "Wear Vest",
-        titleAr: "ارتداء السترة",
-        description: "Put on the support vest and adjust straps",
-        descriptionAr: "ارتد سترة الدعم واضبط الأحزمة",
-        action: "wear-vest",
-        validationCriteria: "vest-worn",
-      },
-      {
-        step: 2,
-        title: "Connect Arm",
-        titleAr: "توصيل الذراع",
-        description: "Attach the iso-elastic arm",
-        descriptionAr: "قم بتوصيل الذراع المرنة",
-        action: "connect-arm",
-        validationCriteria: "arm-connected",
-      },
-    ],
-  },
-  {
-    id: "skypanel-s60",
-    name: "ARRI SkyPanel S60",
-    nameAr: "أري سكاي بانل S60",
-    type: "lighting",
-    model3D: "/models/skypanel.glb",
-    interactions: ["power", "color-temp", "intensity", "effects", "dmx"],
-    tutorials: [
-      {
-        step: 1,
-        title: "Mount Light",
-        titleAr: "تركيب الضوء",
-        description: "Secure to stand with yoke",
-        descriptionAr: "ثبت على الحامل باستخدام القوس",
-        action: "mount-light",
-        validationCriteria: "light-mounted",
-      },
-      {
-        step: 2,
-        title: "Set Color Temperature",
-        titleAr: "ضبط درجة حرارة اللون",
-        description: "Adjust color temperature using the control panel",
-        descriptionAr: "اضبط درجة حرارة اللون باستخدام لوحة التحكم",
-        action: "set-temp",
-        validationCriteria: "temp-set",
-      },
-    ],
-  },
-];
-
-const traineeProgress = new Map<string, TraineeProgress>();
+import { trainingScenarios } from "./data/scenarios";
+import { vrEquipment } from "./data/equipment";
+import {
+  traineeProgress,
+  createInitialProgress,
+  updateSkillLevel,
+  generateAchievements,
+  completeScenario as completeScenarioUtil,
+} from "./utils/progress";
+import {
+  calculateOverallScore,
+  generateRecommendations,
+  suggestNextScenarios,
+} from "./utils/evaluation";
 
 export class CinemaSkillsTrainer implements Plugin {
   id = "cinema-skills-trainer";
@@ -411,24 +134,7 @@ export class CinemaSkillsTrainer implements Plugin {
 
     let progress = traineeProgress.get(data.traineeId);
     if (!progress) {
-      progress = {
-        traineeId: data.traineeId,
-        name: data.traineeName ?? "Trainee",
-        completedScenarios: [],
-        skillLevels: {
-          "camera-operation": 0,
-          "lighting-setup": 0,
-          "sound-recording": 0,
-          directing: 0,
-          "set-design": 0,
-          "color-grading": 0,
-          "visual-effects": 0,
-          "production-management": 0,
-        },
-        totalTrainingHours: 0,
-        achievements: [],
-        currentStreak: 0,
-      };
+      progress = createInitialProgress(data.traineeId, data.traineeName ?? "Trainee");
       traineeProgress.set(data.traineeId, progress);
     }
 
@@ -564,23 +270,9 @@ export class CinemaSkillsTrainer implements Plugin {
       return { success: false, error: "Scenario not found" };
     }
 
-    const weights = {
-      accuracy: 0.25,
-      timing: 0.2,
-      technique: 0.3,
-      creativity: 0.15,
-      safety: 0.1,
-    };
+    const overallScore = calculateOverallScore(data.metrics);
 
     const metrics = data.metrics;
-    const overallScore = Math.round(
-      (metrics.accuracy ?? 70) * weights.accuracy +
-        (metrics.timing ?? 70) * weights.timing +
-        (metrics.technique ?? 70) * weights.technique +
-        (metrics.creativity ?? 70) * weights.creativity +
-        (metrics.safety ?? 100) * weights.safety
-    );
-
     const evaluation: PerformanceEvaluation = {
       overallScore,
       categoryScores: {
@@ -608,14 +300,8 @@ export class CinemaSkillsTrainer implements Plugin {
     if ((metrics.technique ?? 70) < 70)
       evaluation.areasForImprovement.push("Technical execution");
 
-    evaluation.recommendations = this.generateRecommendations(
-      evaluation,
-      scenario
-    );
-    evaluation.nextScenarios = this.suggestNextScenarios(
-      scenario,
-      overallScore
-    );
+    evaluation.recommendations = generateRecommendations(evaluation, scenario);
+    evaluation.nextScenarios = suggestNextScenarios(scenario, overallScore, trainingScenarios);
 
     return {
       success: true,
@@ -634,71 +320,6 @@ export class CinemaSkillsTrainer implements Plugin {
         messageAr: "تم تقييم الأداء",
       },
     };
-  }
-
-  private generateRecommendations(
-    evaluation: PerformanceEvaluation,
-    scenario: TrainingScenario
-  ): string[] {
-    const recommendations: string[] = [];
-    const techniqueScore = evaluation.categoryScores["technique"] ?? 0;
-    const accuracyScore = evaluation.categoryScores["accuracy"] ?? 0;
-    const timingScore = evaluation.categoryScores["timing"] ?? 0;
-
-    if (techniqueScore < 80) {
-      recommendations.push(`Review ${scenario.category} fundamentals`);
-    }
-    if (accuracyScore < 75) {
-      recommendations.push("Practice precision exercises");
-    }
-    if (timingScore < 75) {
-      recommendations.push("Work on time management and pacing");
-    }
-
-    if (recommendations.length === 0) {
-      recommendations.push("Ready to advance to more challenging scenarios");
-    }
-
-    return recommendations;
-  }
-
-  private suggestNextScenarios(
-    currentScenario: TrainingScenario,
-    score: number
-  ): string[] {
-    const difficultyOrder: (
-      | "beginner"
-      | "intermediate"
-      | "advanced"
-      | "expert"
-    )[] = ["beginner", "intermediate", "advanced", "expert"];
-    const currentDifficultyIndex = difficultyOrder.indexOf(
-      currentScenario.difficulty
-    );
-
-    let targetDifficulty: "beginner" | "intermediate" | "advanced" | "expert" =
-      currentScenario.difficulty;
-    if (score >= 85 && currentDifficultyIndex < difficultyOrder.length - 1) {
-      const nextDifficulty = difficultyOrder[currentDifficultyIndex + 1];
-      if (nextDifficulty) {
-        targetDifficulty = nextDifficulty;
-      }
-    } else if (score < 60 && currentDifficultyIndex > 0) {
-      const previousDifficulty = difficultyOrder[currentDifficultyIndex - 1];
-      if (previousDifficulty) {
-        targetDifficulty = previousDifficulty;
-      }
-    }
-
-    return trainingScenarios
-      .filter(
-        (s) =>
-          s.category === currentScenario.category &&
-          s.difficulty === targetDifficulty &&
-          s.id !== currentScenario.id
-      )
-      .slice(0, 3)
-      .map((s) => s.id);
   }
 
   private getProgress(data: { traineeId: string }): PluginOutput {
@@ -748,65 +369,20 @@ export class CinemaSkillsTrainer implements Plugin {
 
     let progress = traineeProgress.get(data.traineeId);
     if (!progress) {
-      progress = {
-        traineeId: data.traineeId,
-        name: "Trainee",
-        completedScenarios: [],
-        skillLevels: {
-          "camera-operation": 0,
-          "lighting-setup": 0,
-          "sound-recording": 0,
-          directing: 0,
-          "set-design": 0,
-          "color-grading": 0,
-          "visual-effects": 0,
-          "production-management": 0,
-        },
-        totalTrainingHours: 0,
-        achievements: [],
-        currentStreak: 0,
-      };
+      progress = createInitialProgress(data.traineeId, "Trainee");
       traineeProgress.set(data.traineeId, progress);
     }
 
-    const completed: CompletedScenario = {
-      scenarioId: data.scenarioId,
-      completedAt: new Date(),
-      score: data.score,
-      timeSpent: data.timeSpent,
-      feedback: data.feedback ?? [],
-    };
-
-    progress.completedScenarios.push(completed);
-    progress.totalTrainingHours += data.timeSpent / 60;
-    progress.currentStreak++;
-
-    const skillIncrease = Math.round(data.score / 10);
-    progress.skillLevels[scenario.category] = Math.min(
-      100,
-      (progress.skillLevels[scenario.category] || 0) + skillIncrease
+    const completed = completeScenarioUtil(
+      progress,
+      data.scenarioId,
+      data.score,
+      data.timeSpent,
+      data.feedback
     );
 
-    const newAchievements: Achievement[] = [];
-    if (progress.completedScenarios.length === 1) {
-      newAchievements.push({
-        id: "first-scenario",
-        name: "First Steps",
-        nameAr: "الخطوات الأولى",
-        earnedAt: new Date(),
-        category: "milestone",
-      });
-    }
-    if (data.score >= 95) {
-      newAchievements.push({
-        id: `perfect-${data.scenarioId}`,
-        name: "Perfect Performance",
-        nameAr: "أداء مثالي",
-        earnedAt: new Date(),
-        category: "excellence",
-      });
-    }
-
+    const skillUpdate = updateSkillLevel(progress, scenario.category, data.score);
+    const newAchievements = generateAchievements(progress, data.scenarioId, data.score);
     progress.achievements.push(...newAchievements);
 
     return {
@@ -815,8 +391,8 @@ export class CinemaSkillsTrainer implements Plugin {
         completed: completed as unknown as Record<string, unknown>,
         skillIncrease: {
           category: scenario.category,
-          increase: skillIncrease,
-          newLevel: progress.skillLevels[scenario.category],
+          increase: skillUpdate.increase,
+          newLevel: skillUpdate.newLevel,
         },
         newAchievements,
         streak: progress.currentStreak,

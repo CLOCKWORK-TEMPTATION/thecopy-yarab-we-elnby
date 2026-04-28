@@ -22,6 +22,7 @@ export interface TextFeatures {
   readonly normalized: string;
 }
 
+const INVISIBLE_FORMAT_RE = /[\u200f\u200e\ufeff]/g;
 const CONNECTOR_THEN_ACTION_RE =
   /(?:^|[\s،,؛:.!?؟…])ثم\s+([يتنأ][؀-ۿ]{2,})(?=$|[\s،,؛:.!?؟…])/;
 const ARABIC_EDGE_CLEAN_RE = /(^[^؀-ۿ]+)|([^؀-ۿ]+$)/g;
@@ -79,7 +80,7 @@ export const hasStrongNarrativeActionSignal = (text: string): boolean => {
 };
 
 export const extractTextFeatures = (text: string): TextFeatures => {
-  const normalized = text.replace(/[‏‎﻿]/g, "").trim();
+  const normalized = text.replace(INVISIBLE_FORMAT_RE, "").trim();
   const words = normalized.split(/\s+/).filter(Boolean);
 
   return {
@@ -99,7 +100,7 @@ const cleanArabicToken = (token: string): string =>
   (token ?? "").replace(ARABIC_EDGE_CLEAN_RE, "").trim();
 
 export const hasEmbeddedNarrativeActionInDialogue = (text: string): boolean => {
-  const normalized = (text ?? "").replace(/[‏‎﻿]/g, "").trim();
+  const normalized = (text ?? "").replace(INVISIBLE_FORMAT_RE, "").trim();
   if (!normalized) return false;
 
   const thenMatch = CONNECTOR_THEN_ACTION_RE.exec(normalized);
@@ -142,7 +143,7 @@ export const hasEmbeddedNarrativeActionInDialogue = (text: string): boolean => {
 
 export const normalizeNameFragment = (text: string): string =>
   (text ?? "")
-    .replace(/[‏‎﻿]/g, "")
+    .replace(INVISIBLE_FORMAT_RE, "")
     .replace(/[:：]/g, "")
     .trim();
 

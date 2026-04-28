@@ -18,12 +18,12 @@ import {
   type TextFeatures,
 } from "./classification-text-features";
 
+import type { SuspicionDetector } from "./classification-detector-types";
 import type {
   ClassifiedLine,
   DetectorFinding,
   ElementType,
 } from "./classification-types";
-import type { SuspicionDetector } from "./classification-detector-types";
 
 export type { SuspicionDetector } from "./classification-detector-types";
 export { createContentTypeMismatchDetector } from "./classification-content-detector";

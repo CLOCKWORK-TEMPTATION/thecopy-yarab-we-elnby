@@ -1,10 +1,4 @@
 import {
-  calculateTotalSuspicion,
-  computeEscalationScore,
-  extractContextWindow,
-  isCriticalMismatchFromFindings,
-} from "./classification-scoring";
-import {
   createConfidenceDropDetector,
   createContentTypeMismatchDetector,
   createReversePatternMismatchDetector,
@@ -14,6 +8,12 @@ import {
   createStatisticalAnomalyDetector,
   type SuspicionDetector,
 } from "./classification-detectors";
+import {
+  calculateTotalSuspicion,
+  computeEscalationScore,
+  extractContextWindow,
+  isCriticalMismatchFromFindings,
+} from "./classification-scoring";
 import { extractTextFeatures } from "./classification-text-features";
 
 import type {
