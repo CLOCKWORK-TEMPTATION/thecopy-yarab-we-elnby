@@ -4,7 +4,6 @@
 
 import path from "node:path";
 
-import { log } from "./ocr-logger.js";
 import { AnnotationFormatBuilder } from "./mistral-ocr-annotation.js";
 import { processDocumentViaBatch } from "./mistral-ocr-batch.js";
 import { DEFAULT_MISTRAL_OCR_MODEL } from "./mistral-ocr-config.js";
@@ -18,6 +17,7 @@ import {
   extractMarkdownFromOcrResponse,
   readDocumentAnnotation,
 } from "./mistral-ocr-response.js";
+import { log } from "./ocr-logger.js";
 
 import type { JsonRecord, MistralOCRConfig } from "./types.js";
 

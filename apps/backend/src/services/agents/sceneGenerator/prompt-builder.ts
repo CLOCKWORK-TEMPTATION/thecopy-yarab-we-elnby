@@ -1,4 +1,3 @@
-import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { formatCharacter, summarizeScene } from "./formatUtils";
 import {
@@ -12,6 +11,8 @@ import {
   asStringArray,
   asUnknownArray,
 } from "./types";
+
+import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
 function buildOriginalTextSection(text: string): string {
   return text ? `السياق الأصلي:\n${text}\n\n` : "";
@@ -81,14 +82,14 @@ export function buildScenePrompt(input: StandardAgentInput): string {
   const { input: taskInput, context } = input;
   const contextObj = asJsonRecord(context);
 
-  const sceneType = asString(contextObj.sceneType, "dramatic");
-  const emotionalTone = asString(contextObj.emotionalTone, "neutral");
-  const conflictLevel = asString(contextObj.conflictLevel, "medium");
-  const originalText = asString(contextObj.originalText);
-  const characters = asUnknownArray(contextObj.characters);
-  const setting = asString(contextObj.setting);
-  const objectives = asStringArray(contextObj.objectives);
-  const previousScenes = asUnknownArray(contextObj.previousScenes);
+  const sceneType = asString(contextObj["sceneType"], "dramatic");
+  const emotionalTone = asString(contextObj["emotionalTone"], "neutral");
+  const conflictLevel = asString(contextObj["conflictLevel"], "medium");
+  const originalText = asString(contextObj["originalText"]);
+  const characters = asUnknownArray(contextObj["characters"]);
+  const setting = asString(contextObj["setting"]);
+  const objectives = asStringArray(contextObj["objectives"]);
+  const previousScenes = asUnknownArray(contextObj["previousScenes"]);
 
   let prompt = `مهمة توليد المشهد الدرامي\n\n`;
   prompt += buildOriginalTextSection(originalText);

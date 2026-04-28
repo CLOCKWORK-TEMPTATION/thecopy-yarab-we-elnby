@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -5,47 +7,54 @@ const MAX_LINES = 600;
 const ROOTS = ["apps", "packages"];
 const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 const IGNORED_DIRS = new Set([
-  ".git",
+  "node_modules",
   ".next",
-  ".turbo",
+  "dist",
   "build",
   "coverage",
-  "dist",
-  "node_modules",
-  "out",
 ]);
 
-function collectFiles(dir, files = []) {
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+function collectFiles(directory, files = []) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       if (!IGNORED_DIRS.has(entry.name)) {
-        collectFiles(path.join(dir, entry.name), files);
+        collectFiles(path.join(directory, entry.name), files);
       }
       continue;
     }
 
-    if (entry.isFile() && EXTENSIONS.has(path.extname(entry.name))) {
-      files.push(path.join(dir, entry.name));
+    if (!entry.isFile()) {
+      continue;
     }
+
+    if (!EXTENSIONS.has(path.extname(entry.name))) {
+      continue;
+    }
+
+    files.push(path.join(directory, entry.name));
   }
+
   return files;
 }
 
 function countLines(filePath) {
   const text = readFileSync(filePath, "utf8");
-  return text.length === 0 ? 0 : text.split(/\r\n|\n|\r/).length;
+  if (text.length === 0) {
+    return 0;
+  }
+  return text.split(/\r\n|\n|\r/).length;
 }
 
-function formatPath(filePath) {
-  return path.relative(process.cwd(), filePath).replaceAll(path.sep, "/");
+function toRelative(filePath) {
+  return path.relative(process.cwd(), filePath).split(path.sep).join("/");
 }
 
-const files = ROOTS.flatMap((root) =>
-  existsSync(root) ? collectFiles(root) : []
-);
-
+const files = ROOTS.flatMap((root) => (existsSync(root) ? collectFiles(root) : []));
 const violations = files
-  .map((file) => ({ file: formatPath(file), lines: countLines(file) }))
+  .map((filePath) => ({
+    file: toRelative(filePath),
+    lines: countLines(filePath),
+  }))
   .filter((entry) => entry.lines > MAX_LINES)
   .sort((a, b) => b.lines - a.lines || a.file.localeCompare(b.file));
 

@@ -1,18 +1,4 @@
-// Station 7: التقرير النهائي المتكامل
-
-import { StationInput } from "../../stations/base-station";
-
-import {
-  StationMetadata,
-  ScoreMatrix,
-} from "./base-entities";
-
-import { Station1Output } from "./station-1-types";
-import { Station2Output } from "./station-2-types";
-import { Station3Output } from "./station-3-types";
-import { Station4Output } from "./station-4-types";
-import { Station5Output } from "./station-5-types";
-import { Station6Output } from "./station-6-types";
+// Station 7 Types
 
 export interface Station7Input extends StationInput {
   previousAnalysis: {

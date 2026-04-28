@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
+
 import { DEFAULT_LENS_SETTINGS, LENS_PRESETS } from "./lens-simulator/constants";
 import { LensViewport } from "./lens-simulator/LensViewport";
 import { calculateFOV, getLensType, getPresetDistortion } from "./lens-simulator/utils";

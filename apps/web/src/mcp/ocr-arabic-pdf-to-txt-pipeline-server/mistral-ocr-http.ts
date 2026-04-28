@@ -4,12 +4,12 @@
 
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { APP_NAME, log } from "./ocr-logger.js";
 import {
   MISTRAL_BASE_URL,
   MISTRAL_HTTP_MAX_RETRIES,
   MISTRAL_HTTP_TIMEOUT_MS,
 } from "./mistral-ocr-config.js";
+import { APP_NAME, log } from "./ocr-logger.js";
 import {
   createTimeoutState,
   ensureMistralApiKey,

@@ -46,20 +46,20 @@ export interface VirtualCamera {
 
 export interface XRLighting {
   ambient: { color: string; intensity: number };
-  directional: Array<{
+  directional: {
     id: string;
     color: string;
     intensity: number;
     position: Vector3D;
     target: Vector3D;
-  }>;
-  pointLights: Array<{
+  }[];
+  pointLights: {
     id: string;
     color: string;
     intensity: number;
     position: Vector3D;
     radius: number;
-  }>;
+  }[];
   hdriEnvironment?: string;
 }
 

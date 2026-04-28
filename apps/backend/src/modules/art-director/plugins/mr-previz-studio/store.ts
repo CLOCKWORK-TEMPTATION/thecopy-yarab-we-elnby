@@ -1,6 +1,6 @@
 import type { XRDevice, XRScene } from "./types";
 
-export const scenes: Map<string, XRScene> = new Map();
+export const scenes = new Map<string, XRScene>();
 
 export const supportedDevices: XRDevice[] = [
   {

@@ -145,9 +145,9 @@ export function formatCharacter(character: unknown): string {
 
   const characterRecord = asJsonRecord(character);
   const parts: string[] = [];
-  const name = asString(characterRecord.name);
-  const role = asString(characterRecord.role);
-  const motivation = asString(characterRecord.motivation);
+  const name = asString(characterRecord["name"]);
+  const role = asString(characterRecord["role"]);
+  const motivation = asString(characterRecord["motivation"]);
 
   if (name) parts.push(name);
   if (role) parts.push(`(${role})`);

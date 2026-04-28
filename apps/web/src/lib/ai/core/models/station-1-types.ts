@@ -1,18 +1,4 @@
-// Station 1: التحليل النصي الأساسي
-
-import { StationInput } from "../../stations/base-station";
-
-import {
-  Character,
-  CharacterAnalysis,
-  DialogueAnalysis,
-  UncertaintyReport,
-  StationMetadata,
-} from "./base-entities";
-
-export interface Station1Input extends StationInput {
-  // لا يوجد مدخلات إضافية خاصة بالمحطة 1
-}
+// Station 1 Types
 
 export interface Station1Output {
   // البيانات الأساسية

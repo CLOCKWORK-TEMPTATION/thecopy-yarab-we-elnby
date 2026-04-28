@@ -2,8 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import { definedProps } from "@/utils/defined-props";
 
-import { PluginOutput } from "../../types";
+
 import { scenes, supportedDevices } from "./store";
+
 import type {
   AddObjectInput,
   CameraMovement,
@@ -16,10 +17,10 @@ import type {
   SimulateCameraMovementInput,
   Vector3D,
   VirtualCamera,
-  XRLighting,
   XRObject,
   XRScene,
 } from "./types";
+import type { PluginOutput } from "../../types";
 
 function sceneNotFound(): PluginOutput {
   return { success: false, error: "Scene not found" };
@@ -114,7 +115,7 @@ function generateKeyframes(movement: CameraMovement): unknown[] {
   return keyframes;
 }
 
-export async function createScene(data: CreateSceneInput): Promise<PluginOutput> {
+export function createScene(data: CreateSceneInput): PluginOutput {
   const scene: XRScene = {
     id: uuidv4(),
     name: data.name,
@@ -170,7 +171,7 @@ export async function createScene(data: CreateSceneInput): Promise<PluginOutput>
   };
 }
 
-export async function addObject(data: AddObjectInput): Promise<PluginOutput> {
+export function addObject(data: AddObjectInput): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -178,11 +179,11 @@ export async function addObject(data: AddObjectInput): Promise<PluginOutput> {
 
   const newObject: XRObject = {
     id: uuidv4(),
-    name: data.object.name || "New Object",
-    type: data.object.type || "prop",
-    position: data.object.position || { x: 0, y: 0, z: 0 },
-    rotation: data.object.rotation || { x: 0, y: 0, z: 0 },
-    scale: data.object.scale || { x: 1, y: 1, z: 1 },
+    name: data.object.name ?? "New Object",
+    type: data.object.type ?? "prop",
+    position: data.object.position ?? { x: 0, y: 0, z: 0 },
+    rotation: data.object.rotation ?? { x: 0, y: 0, z: 0 },
+    scale: data.object.scale ?? { x: 1, y: 1, z: 1 },
     isInteractive: data.object.isInteractive ?? false,
     ...definedProps({
       model3D: data.object.model3D,
@@ -204,7 +205,7 @@ export async function addObject(data: AddObjectInput): Promise<PluginOutput> {
   };
 }
 
-export async function setupCamera(data: SetupCameraInput): Promise<PluginOutput> {
+export function setupCamera(data: SetupCameraInput): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -212,13 +213,13 @@ export async function setupCamera(data: SetupCameraInput): Promise<PluginOutput>
 
   const newCamera: VirtualCamera = {
     id: uuidv4(),
-    name: data.camera.name || "Camera",
-    type: data.camera.type || "main",
-    position: data.camera.position || { x: 0, y: 1.7, z: 5 },
-    target: data.camera.target || { x: 0, y: 1, z: 0 },
-    fov: data.camera.fov || 50,
-    lensLength: data.camera.lensLength || 35,
-    aspectRatio: data.camera.aspectRatio || "16:9",
+    name: data.camera.name ?? "Camera",
+    type: data.camera.type ?? "main",
+    position: data.camera.position ?? { x: 0, y: 1.7, z: 5 },
+    target: data.camera.target ?? { x: 0, y: 1, z: 0 },
+    fov: data.camera.fov ?? 50,
+    lensLength: data.camera.lensLength ?? 35,
+    aspectRatio: data.camera.aspectRatio ?? "16:9",
     ...definedProps({
       movement: data.camera.movement,
     }),
@@ -240,9 +241,9 @@ export async function setupCamera(data: SetupCameraInput): Promise<PluginOutput>
   };
 }
 
-export async function simulateCameraMovement(
+export function simulateCameraMovement(
   data: SimulateCameraMovementInput
-): Promise<PluginOutput> {
+): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -272,9 +273,9 @@ export async function simulateCameraMovement(
   };
 }
 
-export async function configureLighting(
+export function configureLighting(
   data: ConfigureLightingInput
-): Promise<PluginOutput> {
+): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -306,7 +307,7 @@ export async function configureLighting(
   };
 }
 
-export async function exportScene(data: ExportSceneInput): Promise<PluginOutput> {
+export function exportScene(data: ExportSceneInput): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -348,7 +349,7 @@ export async function exportScene(data: ExportSceneInput): Promise<PluginOutput>
   };
 }
 
-export async function getSupportedDevices(): Promise<PluginOutput> {
+export function getSupportedDevices(): PluginOutput {
   return {
     success: true,
     data: {
@@ -359,9 +360,9 @@ export async function getSupportedDevices(): Promise<PluginOutput> {
   };
 }
 
-export async function generateARPreview(
+export function generateARPreview(
   data: GenerateArPreviewInput
-): Promise<PluginOutput> {
+): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -391,15 +392,15 @@ export async function generateARPreview(
   };
 }
 
-export async function generateVRWalkthrough(
+export function generateVRWalkthrough(
   data: GenerateVrWalkthroughInput
-): Promise<PluginOutput> {
+): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
   }
 
-  const waypoints = data.waypoints || [
+  const waypoints = data.waypoints ?? [
     { x: 0, y: 1.7, z: 5 },
     { x: 3, y: 1.7, z: 3 },
     { x: 0, y: 1.7, z: 0 },
@@ -432,7 +433,7 @@ export async function generateVRWalkthrough(
   };
 }
 
-export async function listScenes(): Promise<PluginOutput> {
+export function listScenes(): PluginOutput {
   const sceneList = Array.from(scenes.values()).map((s) => ({
     id: s.id,
     name: s.name,

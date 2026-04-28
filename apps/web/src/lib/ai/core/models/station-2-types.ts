@@ -1,16 +1,4 @@
-// Station 2: التحليل المفاهيمي والموضوعي
-
-import { StationInput } from "../../stations/base-station";
-
-import {
-  Theme,
-  AudienceProfile,
-  ScoreMatrix,
-  StationMetadata,
-  UncertaintyReport,
-} from "./base-entities";
-
-import { Station1Output } from "./station-1-types";
+// Station 2 Types
 
 export interface Station2Input extends StationInput {
   previousAnalysis: Station1Output;

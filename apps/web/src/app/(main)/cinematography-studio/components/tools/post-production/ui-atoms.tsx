@@ -1,7 +1,9 @@
-import { CameraOff, Image as ImageIcon, RefreshCcw } from "lucide-react";
-import type React from "react";
+import { Image as ImageIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+
+import type { LucideIcon } from "lucide-react";
+import type React from "react";
 
 export function ControlButton({
   label,
@@ -37,7 +39,7 @@ export function SecondaryButton({
 }: {
   label: string;
   onClick: () => void | Promise<void>;
-  icon?: typeof RefreshCcw | typeof CameraOff;
+  icon?: LucideIcon;
 }) {
   return (
     <Button

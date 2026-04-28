@@ -1,19 +1,4 @@
-// Station 6: التشخيص والعلاج
-
-import { StationInput } from "../../stations/base-station";
-
-import {
-  StationMetadata,
-  UncertaintyReport,
-  DebateResult,
-  Recommendation,
-} from "./base-entities";
-
-import { Station1Output } from "./station-1-types";
-import { Station2Output } from "./station-2-types";
-import { Station3Output } from "./station-3-types";
-import { Station4Output } from "./station-4-types";
-import { Station5Output } from "./station-5-types";
+// Station 6 Types
 
 export interface Station6Input extends StationInput {
   previousAnalysis: {
@@ -38,7 +23,7 @@ export interface Station6Output {
     structuralIssues: StructuralIssue[];
   };
 
-  // نتائج النقاش متعدد الوكاء (إذا كان مفعلاً)
+  // نتائج النقاش متعدد الوكلاء (إذا كان مفعلاً)
   debateResults?: DebateResult;
 
   // خطة العلاج

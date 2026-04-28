@@ -128,7 +128,8 @@ export class SceneGeneratorAgent extends BaseAgent {
   protected override getFallbackResponse(
     input: StandardAgentInput
   ): Promise<string> {
-    const sceneType = asString(asJsonRecord(input.context).sceneType, "dramatic");
+    const contextObj = asJsonRecord(input.context);
+    const sceneType = asString(contextObj["sceneType"], "dramatic");
 
     return Promise.resolve(`وصف المشهد:
 مشهد ${translateSceneType(sceneType)} يحتاج إلى تطوير أعمق للشخصيات والصراع.
