@@ -44,23 +44,31 @@ export class MRPrevizStudio implements Plugin {
   async execute(input: PluginInput): Promise<PluginOutput> {
     switch (input.type) {
       case "create-scene":
-        return createScene(input.data as CreateSceneInput);
+        return createScene(input.data as unknown as CreateSceneInput);
       case "add-object":
-        return addObject(input.data as AddObjectInput);
+        return addObject(input.data as unknown as AddObjectInput);
       case "setup-camera":
-        return setupCamera(input.data as SetupCameraInput);
+        return setupCamera(input.data as unknown as SetupCameraInput);
       case "simulate-movement":
-        return simulateCameraMovement(input.data as SimulateCameraMovementInput);
+        return simulateCameraMovement(
+          input.data as unknown as SimulateCameraMovementInput,
+        );
       case "configure-lighting":
-        return configureLighting(input.data as ConfigureLightingInput);
+        return configureLighting(
+          input.data as unknown as ConfigureLightingInput,
+        );
       case "export-scene":
-        return exportScene(input.data as ExportSceneInput);
+        return exportScene(input.data as unknown as ExportSceneInput);
       case "get-devices":
         return getSupportedDevices();
       case "ar-preview":
-        return generateARPreview(input.data as GenerateArPreviewInput);
+        return generateARPreview(
+          input.data as unknown as GenerateArPreviewInput,
+        );
       case "vr-walkthrough":
-        return generateVRWalkthrough(input.data as GenerateVrWalkthroughInput);
+        return generateVRWalkthrough(
+          input.data as unknown as GenerateVrWalkthroughInput,
+        );
       case "list-scenes":
         return listScenes();
       default:

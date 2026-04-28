@@ -1,8 +1,9 @@
-import type { Request, Response, NextFunction } from 'express';
-import { verifyJwt } from '@/utils/jwt-secret-manager';
+import { verifyJwt } from "@/utils/jwt-secret-manager";
 
-import type { BreakappRole, BreakappTokenPayload } from './service.types';
-import { getBearerToken, readCookie } from './utils';
+import { getBearerToken } from "./utils";
+
+import type { BreakappRole, BreakappTokenPayload } from "./service.types";
+import type { Request, Response, NextFunction } from "express";
 
 export interface AuthenticatedRequest extends Request {
   breakappAuth?: BreakappTokenPayload;
@@ -11,7 +12,7 @@ export interface AuthenticatedRequest extends Request {
 export function requireAuth(
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   try {
     const payload = verifyBreakappToken(req);
@@ -20,22 +21,26 @@ export function requireAuth(
   } catch (error) {
     res.status(401).json({
       success: false,
-      error: error instanceof Error ? error.message : 'غير مصرح',
+      error: error instanceof Error ? error.message : "غير مصرح",
     });
   }
 }
 
 export function requireRole(...allowed: BreakappRole[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  return (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+  ): void => {
     const auth = req.breakappAuth;
     if (!auth) {
-      res.status(401).json({ success: false, error: 'غير مصرح' });
+      res.status(401).json({ success: false, error: "غير مصرح" });
       return;
     }
     if (!allowed.includes(auth.role)) {
       res.status(403).json({
         success: false,
-        error: 'صلاحيات غير كافية',
+        error: "صلاحيات غير كافية",
       });
       return;
     }
@@ -46,7 +51,7 @@ export function requireRole(...allowed: BreakappRole[]) {
 function verifyBreakappToken(request: Request): BreakappTokenPayload {
   const token = getBearerToken(request);
   if (!token) {
-    throw new Error('مطلوب رمز مصادقة');
+    throw new Error("مطلوب رمز مصادقة");
   }
   return verifyJwt<BreakappTokenPayload>(token);
 }

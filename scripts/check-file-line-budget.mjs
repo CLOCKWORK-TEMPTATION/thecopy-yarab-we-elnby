@@ -1,73 +1,71 @@
 #!/usr/bin/env node
 
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import path from "node:path";
+/**
+ * @file scripts/check-file-line-budget.mjs
+ * @description Checks that no code file exceeds 600 lines.
+ */
 
+import { readdirSync, statSync, readFileSync } from 'fs';
+import { join, extname } from 'path';
+
+const ALLOWED_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
+const EXCLUDE_PATTERNS = [
+  /node_modules/,
+  /\.next/,
+  /dist/,
+  /build/,
+  /coverage/,
+  /test-results/,
+  /\.git/
+];
 const MAX_LINES = 600;
-const ROOTS = ["apps", "packages"];
-const EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
-const IGNORED_DIRS = new Set([
-  "node_modules",
-  ".next",
-  "dist",
-  "build",
-  "coverage",
-]);
 
-function collectFiles(directory, files = []) {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (!IGNORED_DIRS.has(entry.name)) {
-        collectFiles(path.join(directory, entry.name), files);
-      }
-      continue;
+function shouldExclude(path) {
+  return EXCLUDE_PATTERNS.some(pattern => pattern.test(path));
+}
+
+function countLines(content) {
+  return content.split('\n').length;
+}
+
+function walk(dir, files = []) {
+  const items = readdirSync(dir);
+  for (const item of items) {
+    const fullPath = join(dir, item);
+    if (shouldExclude(fullPath)) continue;
+
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      walk(fullPath, files);
+    } else if (ALLOWED_EXTENSIONS.includes(extname(fullPath))) {
+      files.push(fullPath);
     }
-
-    if (!entry.isFile()) {
-      continue;
-    }
-
-    if (!EXTENSIONS.has(path.extname(entry.name))) {
-      continue;
-    }
-
-    files.push(path.join(directory, entry.name));
   }
-
   return files;
 }
 
-function countLines(filePath) {
-  const text = readFileSync(filePath, "utf8");
-  if (text.length === 0) {
-    return 0;
+function main() {
+  const root = process.cwd();
+  const files = walk(root);
+  const violations = [];
+
+  for (const file of files) {
+    const content = readFileSync(file, 'utf8');
+    const lines = countLines(content);
+    if (lines > MAX_LINES) {
+      violations.push({ file, lines });
+    }
   }
-  return text.split(/\r\n|\n|\r/).length;
+
+  if (violations.length > 0) {
+    console.error('❌ Files exceeding 600 lines:');
+    violations.forEach(({ file, lines }) => {
+      console.error(`  ${lines} lines: ${file}`);
+    });
+    process.exit(1);
+  } else {
+    console.log('✅ All files are within the 600 line budget.');
+  }
 }
 
-function toRelative(filePath) {
-  return path.relative(process.cwd(), filePath).split(path.sep).join("/");
-}
-
-const files = ROOTS.flatMap((root) => (existsSync(root) ? collectFiles(root) : []));
-const violations = files
-  .map((filePath) => ({
-    file: toRelative(filePath),
-    lines: countLines(filePath),
-  }))
-  .filter((entry) => entry.lines > MAX_LINES)
-  .sort((a, b) => b.lines - a.lines || a.file.localeCompare(b.file));
-
-if (violations.length === 0) {
-  console.log(`All scanned files are within ${MAX_LINES} lines.`);
-  process.exit(0);
-}
-
-console.log(`Files exceeding ${MAX_LINES} lines: ${violations.length}`);
-console.log("| lines | file |");
-console.log("|---:|---|");
-for (const violation of violations) {
-  console.log(`| ${violation.lines} | ${violation.file} |`);
-}
-
-process.exit(1);
+main();

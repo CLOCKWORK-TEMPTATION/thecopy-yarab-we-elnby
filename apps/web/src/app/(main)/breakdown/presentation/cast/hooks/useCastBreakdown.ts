@@ -45,7 +45,7 @@ export function useCastBreakdown({
 
   const enhancedCast = useMemo<CastCardData[]>(() => {
     return cast.map((member) => {
-      const extended = member as ExtendedCastMember;
+      const extended = member;
       return {
         ...member,
         dialogueCount: extended.scenePresence?.dialogueLines ?? 0,

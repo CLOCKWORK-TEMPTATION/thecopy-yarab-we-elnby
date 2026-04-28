@@ -18,6 +18,7 @@
     "lint:fix": "node scripts/lint-chunked.mjs --fix",
     "lint:strict": "node scripts/lint-chunked.mjs --max-warnings=0",
     "type-check": "node ../../scripts/quality/typecheck-contract.mjs --project=backend",
+    "type-check:full": "node ../../scripts/quality/typecheck-contract.mjs --project=backend --full",
     "type-check:strict": "tsc -p tsconfig.check.json --noEmit --pretty false && tsc -p tsconfig.build.json --noEmit --pretty false && tsc -p tsconfig.budget-runtime.json --noEmit --pretty false",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",

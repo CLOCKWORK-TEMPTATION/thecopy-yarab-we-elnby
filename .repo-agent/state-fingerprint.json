@@ -1,10 +1,10 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "e2706bcef00dff9423ee8d9686c4873fcb6cf542c5beb5261a0a69f3b61459af",
+    ".agent-code-memory/manifest.json": "3a1a36e0ec043f061bf8a223d9657965008f403c16c1c3d002b86a304f11d0c0",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
-    "apps/backend/package.json": "0274d5cb701f7732030014fec5f83edac7b51f53f941c96ea77da746e59642b5",
+    "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
     "apps/backend/src/memory/api/routes.ts": "d5e2a9974786fd2fccc87a9a49dd74568e500d1eae45bc401a5e2231a9d74781",
     "apps/backend/src/memory/context/context-assembly.service.ts": "e33462d8186bb9d6a007d02c7b8fb7f59442990a1e86ef2cf92c905bf94b06fb",
     "apps/backend/src/memory/embeddings/generator.ts": "db6376ead8d64d7fc7d58c01bad15b513d0741b037af5ba299c6e2cbc7d0b29d",
@@ -39,7 +39,7 @@
     "apps/web/src/lib/ai/stations/gemini-service.ts": "8710845b62f0e639cda6ae1af8549c0991eccb7661b635044e7596395b2c5dbc",
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
-    "package.json": "4395f2de24bb2078529fc2e1cd36d4bbf6768ef7d66c07027f5cdd5fe5c9a452",
+    "package.json": "b58a2d3e3b2c1e0f268c09d7c2035e653b781226b9fd547766f6d9428bf6d0a9",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
@@ -70,30 +70,30 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "b1942bb32995206281cc98a217a834771c0c5ff7",
+  "headCommit": "03473ec111c8ea9ea590cabde1fdd22a3e4cb207",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
-  "knowledgeHash": "3fad6170aad0db16a2a575be9bb36225d2e6aad5af492233d3dd6f3d3c7d9573",
-  "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-28T00:17:43.922Z",
+  "knowledgeHash": "66285531c4f021b0e6d0c86095136a46b93d4c9f230f9ae27717774c2bf47cd0",
+  "knowledgeStatus": "ungoverned",
+  "lastBootstrapTimestamp": "2026-04-28T03:24:09.937Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "1f83f0def43321ecd968c64babd83a69696104a80860f1778e7cce69b47070e9",
-    "output/code-map/code-map.json": "f07568c4a73c21a8c9757cccf8ca72bd75e1eb0f2393be0f5996b5f83cc5becb",
-    "output/code-map/CODEMAP.md": "4e34700c11172dceffb5705df67c0812f3820670919395fcf9093a3e47f22f8c",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "89fc3bfa3c8cdbd6e2ae28d311f1ec61d0be26f167e1161727b1ee25757167cd",
+    "output/code-map/code-map.json": "ffbac7469dd7dd48e5f40f60851f8f1be2ace791d324b75e75eb342654d7a1eb",
+    "output/code-map/CODEMAP.md": "ef48b33658dfe9953f92f4f6db119234ce517692821c0b88a40dde8c694e7922",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
-    "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
+    "output/code-map/findings.md": "bf9e7ed1d872db7c5a475b65f60a6995ccd669a36e585d5736d40d66155df0f8",
     "output/code-map/rag-entrypoints.md": "a9f7ac6caf82f61967eb6b46c626b8431098af9165a63070a051209fe5eecf1b",
-    "output/code-map/rag-systems.md": "949cc7cacf4fd3f9d208ee271c779ad6a974d452570b17d772e23185391867aa",
+    "output/code-map/rag-systems.md": "54049de34464de13c355b0504707023b31fe2482489bc098559d49300084204a",
     "output/code-map/runtime-flows.md": "6de542bf4efe54f3e0b973cf196a05147416c7bbe156b7f6f57bf316941b4070",
-    "output/mind-map/mindmap-summary.md": "ced9ea0f4dd34c925fc5661018caa73c580e3d62ca3b7f9865c0a73f5def2107",
+    "output/mind-map/mindmap-summary.md": "f9f0e5f2b355d86f68ddbeb9e5287124adfc38854c964d2e265ff47da7eec73e",
     "output/mind-map/mindmap.json": "29998bc641b102a1ef6c797945a49d9731982290a607a34d61bdef952e69d604",
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "f98a33db64cc799bc1d4447d15714fe82f6281d909421e7bddbad3a4196fcb2f",
-    "output/session-state.md": "c623f654ff2cedda8eb9423883daed8e25cbd52ee9af80eb9009b25bf25351dc"
+    "output/round-notes.md": "2f118882105b3cd7e9027214db21b9d322288700424b39dbb9a87f7e8153a94b",
+    "output/session-state.md": "66a0d0e7314cf901a1ef3b7f6f3f5e1a26b232f2d6fadbc50cd54545efe3f45b"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +103,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "e6c3d095a328569b49d1aff44c08be77cfed3d9572045a978006957b1d1ffe3e",
+  "repoFactsHash": "a747a4e5c80903a164d060d89973566ba5bac1daa492337c129aa96090f7d113",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -173,6 +173,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "4fa7cc5882e573b2e159d0bd16482bc269d0367bbc52e40e6d7ca88808b7869c",
-  "workingTreeHash": "09621c7e202019e42026641d7ef3633d086bf925f25b36978942bc4fbe09526a"
+  "structuralHash": "54feb910a431017d4c07299253a0cc89943a5f8fd06dac40dd9f9eff87aa798c",
+  "workingTreeHash": "9765903942c81db7d6f110167dd4e5f6bf81f13262e3da60e1991d08564d73be"
 }

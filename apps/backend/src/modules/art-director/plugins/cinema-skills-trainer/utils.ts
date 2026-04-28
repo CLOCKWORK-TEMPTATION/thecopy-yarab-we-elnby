@@ -26,7 +26,7 @@ export function createSkillLevels(): Record<TrainingCategory, number> {
 
 export function getSkillLevel(
   skillLevels: Record<TrainingCategory, number>,
-  category: TrainingCategory
+  category: TrainingCategory,
 ): number {
   return skillLevels[category] ?? 0;
 }
@@ -34,21 +34,21 @@ export function getSkillLevel(
 export function setSkillLevel(
   skillLevels: Record<TrainingCategory, number>,
   category: TrainingCategory,
-  value: number
+  value: number,
 ): void {
   skillLevels[category] = value;
 }
 
 export function incrementCategoryCount(
   counts: Record<TrainingCategory, number>,
-  category: TrainingCategory
+  category: TrainingCategory,
 ): void {
   setSkillLevel(counts, category, getSkillLevel(counts, category) + 1);
 }
 
 export function generateRecommendations(
   categoryScores: Record<string, number>,
-  category: string
+  category: string,
 ): string[] {
   const recommendations: string[] = [];
   const techniqueScore = categoryScores["technique"] ?? 0;
@@ -76,7 +76,7 @@ export function suggestNextScenarios(
   currentDifficulty: "beginner" | "intermediate" | "advanced" | "expert",
   currentCategory: string,
   currentId: string,
-  score: number
+  score: number,
 ): { targetDifficulty: typeof currentDifficulty; reason: string } {
   const difficultyOrder: Array<typeof currentDifficulty> = [
     "beginner",
@@ -87,7 +87,7 @@ export function suggestNextScenarios(
   const currentDifficultyIndex = difficultyOrder.indexOf(currentDifficulty);
 
   let targetDifficulty = currentDifficulty;
-  let reason = "Continue practicing at current level";
+  let reason = `Continue practicing ${currentCategory} after ${currentId}`;
 
   if (score >= 85 && currentDifficultyIndex < difficultyOrder.length - 1) {
     targetDifficulty =

@@ -1,7 +1,5 @@
 // Color Palette Utilities
 
-import type { ArtStyle } from "../types";
-
 export const colorPalettes: Record<string, string[]> = {
   warm: ["#ff6b6b", "#feca57", "#ff9f43", "#ee5253", "#f368e0"],
   cool: ["#54a0ff", "#5f27cd", "#48dbfb", "#0abde3", "#10ac84"],
@@ -44,7 +42,7 @@ export function suggestRelatedThemes(theme: string): string[] {
 
 export function generateStyleGuide(
   theme: string,
-  palette: string[]
+  palette: string[],
 ): Record<string, unknown> {
   return {
     primaryColor: palette[0],

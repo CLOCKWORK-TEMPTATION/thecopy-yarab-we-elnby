@@ -1,15 +1,18 @@
- /**
+/**
  * WebSocket Service
  *
  * Central service for managing Socket.IO connections and broadcasting events
  */
 
-import { Server as HTTPServer } from 'http';
+import { Server as HTTPServer } from "http";
 
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer } from "socket.io";
 
-import { getWebSocketConfig, WEBSOCKET_CONFIG } from '@/config/websocket.config';
-import { logger } from '@/lib/logger';
+import {
+  getWebSocketConfig,
+  WEBSOCKET_CONFIG,
+} from "@/config/websocket.config";
+import { logger } from "@/lib/logger";
 import {
   RealtimeEvent,
   RealtimeEventType,
@@ -20,28 +23,14 @@ import {
   JobStartedPayload,
   JobCompletedPayload,
   JobFailedPayload,
-} from '@/types/realtime.types';
+} from "@/types/realtime.types";
 
-import { authService } from './auth.service';
-import { AuthenticatedSocket } from './websocket-types';
-import {
-  clearSessionExpiry,
-  getSessionTimers,
-  handleAuthentication,
-  handleTokenRefresh,
-  scheduleSessionExpiry,
-  setAuthExpiry,
-} from './websocket-auth';
-import {
-  emitCustom,
-  getConnections,
-  handleConnection,
-  handleDisconnection,
-  handleRoomSubscription,
-  handleRoomUnsubscription,
-} from './websocket-handlers';
+import { authService } from "./auth.service";
+import { AuthenticatedSocket } from "./websocket-types";
+import { setAuthExpiry } from "./websocket-auth";
+import { getConnections, handleConnection } from "./websocket-handlers";
 
-import type { ServerOptions } from 'socket.io';
+import type { ServerOptions } from "socket.io";
 
 /**
  * WebSocket Service Manager
@@ -49,14 +38,13 @@ import type { ServerOptions } from 'socket.io';
 class WebSocketService {
   private io: SocketIOServer | null = null;
   private connections = getConnections();
-  private sessionTimers = getSessionTimers();
 
   /**
    * Initialize WebSocket server
    */
   initialize(httpServer: HTTPServer): void {
     if (this.io) {
-      logger.warn('[WebSocket] Service already initialized');
+      logger.warn("[WebSocket] Service already initialized");
       return;
     }
 
@@ -64,7 +52,7 @@ class WebSocketService {
     this.io = new SocketIOServer(httpServer, config);
 
     this.setupEventHandlers();
-    logger.info('[WebSocket] Service initialized successfully');
+    logger.info("[WebSocket] Service initialized successfully");
   }
 
   /**
@@ -77,19 +65,21 @@ class WebSocketService {
     this.io.use((socket: AuthenticatedSocket, next) => {
       try {
         // 1. Try checking handshake auth
-        let token = readStringField(socket.handshake.auth, 'token');
+        let token = readStringField(socket.handshake.auth, "token");
 
         // 2. Try checking cookies (manual parse to avoid extra dependency)
         if (!token && socket.handshake.headers.cookie) {
-          const cookies = socket.handshake.headers.cookie.split(';').reduce((res: Record<string, string>, item) => {
-            const data = item.trim().split('=');
-            if (data.length === 2 && data[0]) {
-              res[data[0]] = decodeURIComponent(data[1]!);
-            }
-            return res;
-          }, {});
-          if (cookies['accessToken']) {
-            token = cookies['accessToken'];
+          const cookies = socket.handshake.headers.cookie
+            .split(";")
+            .reduce((res: Record<string, string>, item) => {
+              const data = item.trim().split("=");
+              if (data.length === 2 && data[0]) {
+                res[data[0]] = decodeURIComponent(data[1]!);
+              }
+              return res;
+            }, {});
+          if (cookies["accessToken"]) {
+            token = cookies["accessToken"];
           }
         }
 
@@ -106,58 +96,66 @@ class WebSocketService {
 
         next();
       } catch {
-        next(new Error('Authentication error'));
+        next(new Error("Authentication error"));
       }
     });
 
-    this.io.on(WEBSOCKET_CONFIG.EVENTS.CONNECTION, (socket: AuthenticatedSocket) => {
-      logger.info('[WebSocket] Client connected');
+    this.io.on(
+      WEBSOCKET_CONFIG.EVENTS.CONNECTION,
+      (socket: AuthenticatedSocket) => {
+        logger.info("[WebSocket] Client connected");
 
-      if (socket.authenticated && socket.userId) {
-        const userRoom = createRoomName(WebSocketRoom.USER, socket.userId);
-        void socket.join(userRoom);
-      }
+        if (socket.authenticated && socket.userId) {
+          const userRoom = createRoomName(WebSocketRoom.USER, socket.userId);
+          void socket.join(userRoom);
+        }
 
-      handleConnection(socket);
-    });
+        handleConnection(socket);
+      },
+    );
 
     // Handle errors at server level
     this.io.engine.on(WEBSOCKET_CONFIG.EVENTS.ERROR, (error: Error) => {
-      logger.error('[WebSocket] Engine error:', error);
+      logger.error("[WebSocket] Engine error:", error);
     });
   }
-
 
   /**
    * Broadcast event to all connected clients
    */
   broadcast<T extends RealtimePayload>(event: RealtimeEvent<T>): void {
     if (!this.io) {
-      logger.warn('[WebSocket] Service not initialized');
+      logger.warn("[WebSocket] Service not initialized");
       return;
     }
 
     this.io.emit(event.event, event.payload);
-    logger.debug('[WebSocket] Broadcasted event');
+    logger.debug("[WebSocket] Broadcasted event");
   }
 
   /**
    * Send event to specific room
    */
-  toRoom<T extends RealtimePayload>(room: string, event: RealtimeEvent<T>): void {
+  toRoom<T extends RealtimePayload>(
+    room: string,
+    event: RealtimeEvent<T>,
+  ): void {
     if (!this.io) {
-      logger.warn('[WebSocket] Service not initialized');
+      logger.warn("[WebSocket] Service not initialized");
       return;
     }
 
     this.io.to(room).emit(event.event, event.payload);
-    logger.debug('[WebSocket] Sent event to room');
+    logger.debug("[WebSocket] Sent event to room");
   }
 
   /**
    * Send event to specific user
    */
-  toUser<T extends RealtimePayload>(userId: string, event: RealtimeEvent<T>): void {
+  toUser<T extends RealtimePayload>(
+    userId: string,
+    event: RealtimeEvent<T>,
+  ): void {
     const userRoom = createRoomName(WebSocketRoom.USER, userId);
     this.toRoom(userRoom, event);
   }
@@ -165,7 +163,10 @@ class WebSocketService {
   /**
    * Send event to specific project subscribers
    */
-  toProject<T extends RealtimePayload>(projectId: string, event: RealtimeEvent<T>): void {
+  toProject<T extends RealtimePayload>(
+    projectId: string,
+    event: RealtimeEvent<T>,
+  ): void {
     const projectRoom = createRoomName(WebSocketRoom.PROJECT, projectId);
     this.toRoom(projectRoom, event);
   }
@@ -173,25 +174,30 @@ class WebSocketService {
   /**
    * Send event to queue monitoring room
    */
-  toQueue<T extends RealtimePayload>(queueName: string, event: RealtimeEvent<T>): void {
+  toQueue<T extends RealtimePayload>(
+    queueName: string,
+    event: RealtimeEvent<T>,
+  ): void {
     const queueRoom = createRoomName(WebSocketRoom.QUEUE, queueName);
     this.toRoom(queueRoom, event);
   }
 
   emitCustom(eventName: string, payload: Record<string, unknown>): void {
     if (!this.io) {
-      logger.warn('[WebSocket] Service not initialized');
+      logger.warn("[WebSocket] Service not initialized");
       return;
     }
 
     this.io.emit(eventName, payload);
-    logger.debug('[WebSocket] Broadcasted custom event');
+    logger.debug("[WebSocket] Broadcasted custom event");
   }
 
   /**
    * Emit job progress update
    */
-  emitJobProgress(payload: Omit<JobProgressPayload, 'timestamp' | 'eventType'>): void {
+  emitJobProgress(
+    payload: Omit<JobProgressPayload, "timestamp" | "eventType">,
+  ): void {
     const event: RealtimeEvent<JobProgressPayload> = {
       event: RealtimeEventType.JOB_PROGRESS,
       payload: {
@@ -211,7 +217,9 @@ class WebSocketService {
   /**
    * Emit job started event
    */
-  emitJobStarted(payload: Omit<JobStartedPayload, 'timestamp' | 'eventType'>): void {
+  emitJobStarted(
+    payload: Omit<JobStartedPayload, "timestamp" | "eventType">,
+  ): void {
     const event: RealtimeEvent<JobStartedPayload> = {
       event: RealtimeEventType.JOB_STARTED,
       payload: {
@@ -230,7 +238,9 @@ class WebSocketService {
   /**
    * Emit job completed event
    */
-  emitJobCompleted(payload: Omit<JobCompletedPayload, 'timestamp' | 'eventType'>): void {
+  emitJobCompleted(
+    payload: Omit<JobCompletedPayload, "timestamp" | "eventType">,
+  ): void {
     const event: RealtimeEvent<JobCompletedPayload> = {
       event: RealtimeEventType.JOB_COMPLETED,
       payload: {
@@ -249,7 +259,9 @@ class WebSocketService {
   /**
    * Emit job failed event
    */
-  emitJobFailed(payload: Omit<JobFailedPayload, 'timestamp' | 'eventType'>): void {
+  emitJobFailed(
+    payload: Omit<JobFailedPayload, "timestamp" | "eventType">,
+  ): void {
     const event: RealtimeEvent<JobFailedPayload> = {
       event: RealtimeEventType.JOB_FAILED,
       payload: {
@@ -282,12 +294,12 @@ class WebSocketService {
     }
 
     const authenticatedCount = Array.from(this.connections.values()).filter(
-      (socket) => socket.authenticated
+      (socket) => socket.authenticated,
     ).length;
 
     // Get all rooms
     const rooms = Array.from(this.io.sockets.adapter.rooms.keys()).filter(
-      (room) => !this.connections.has(room) // Filter out socket IDs
+      (room) => !this.connections.has(room), // Filter out socket IDs
     );
 
     return {
@@ -303,7 +315,7 @@ class WebSocketService {
   async shutdown(): Promise<void> {
     if (!this.io) return;
 
-    logger.info('[WebSocket] Shutting down service...');
+    logger.info("[WebSocket] Shutting down service...");
 
     // Disconnect all clients
     void this.io.disconnectSockets(true);
@@ -311,7 +323,7 @@ class WebSocketService {
     // Close server
     await new Promise<void>((resolve) => {
       void this.io?.close(() => {
-        logger.info('[WebSocket] Service shut down successfully');
+        logger.info("[WebSocket] Service shut down successfully");
         resolve();
       });
     });
@@ -332,10 +344,10 @@ class WebSocketService {
 export const websocketService = new WebSocketService();
 
 function readStringField(source: unknown, key: string): string | null {
-  if (typeof source !== 'object' || source === null) {
+  if (typeof source !== "object" || source === null) {
     return null;
   }
 
   const value = (source as Record<string, unknown>)[key];
-  return typeof value === 'string' ? value : null;
+  return typeof value === "string" ? value : null;
 }

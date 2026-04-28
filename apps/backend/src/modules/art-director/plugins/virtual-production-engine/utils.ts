@@ -2,10 +2,13 @@
 // Virtual Production Engine Utilities
 // دوال مساعدة لمحاكاة الإنتاج الافتراضي
 
-import type { LensInfo, VPCamera, VisualEffect } from "./types";
+import type { IllusionType, LensInfo, VPCamera, VisualEffect } from "./types";
 import { VFX_DEFAULTS } from "./constants";
 
-export function calculateFOV(focalLength: number, sensorSize: { width: number; height: number }): number {
+export function calculateFOV(
+  focalLength: number,
+  sensorSize: { width: number; height: number },
+): number {
   return 2 * Math.atan(sensorSize.width / (2 * focalLength)) * (180 / Math.PI);
 }
 
@@ -14,13 +17,16 @@ export function calculateFrustum(
   sensorWidth: number,
   sensorHeight: number,
   subjectDistance: number,
-  ledWallDistance?: number
+  ledWallDistance?: number,
 ) {
   const fovH = 2 * Math.atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
-  const fovV = 2 * Math.atan(sensorHeight / (2 * focalLength)) * (180 / Math.PI);
+  const fovV =
+    2 * Math.atan(sensorHeight / (2 * focalLength)) * (180 / Math.PI);
 
-  const coverageWidth = 2 * subjectDistance * Math.tan(((fovH / 2) * Math.PI) / 180);
-  const coverageHeight = 2 * subjectDistance * Math.tan(((fovV / 2) * Math.PI) / 180);
+  const coverageWidth =
+    2 * subjectDistance * Math.tan(((fovH / 2) * Math.PI) / 180);
+  const coverageHeight =
+    2 * subjectDistance * Math.tan(((fovV / 2) * Math.PI) / 180);
 
   let ledWallCoverage = null;
   if (ledWallDistance) {
@@ -43,7 +49,7 @@ export function createCamera(
   name: string,
   type: VPCamera["type"],
   lens: Partial<LensInfo>,
-  trackingSystem?: VPCamera["trackingSystem"]
+  trackingSystem?: VPCamera["trackingSystem"],
 ): Omit<VPCamera, "id"> {
   const sensorSize = lens.sensorSize || { width: 36, height: 24 };
   const focalLength = lens.focalLength || 35;
@@ -76,7 +82,7 @@ export function createLEDWall(
   dimensions: { width: number; height: number },
   pixelPitch: number,
   curvature?: number,
-  colorSpace?: "rec709" | "rec2020" | "dci-p3"
+  colorSpace?: "rec709" | "rec2020" | "dci-p3",
 ) {
   const resolutionWidth = Math.round((dimensions.width * 1000) / pixelPitch);
   const resolutionHeight = Math.round((dimensions.height * 1000) / pixelPitch);
@@ -95,19 +101,24 @@ export function createLEDWall(
 }
 
 export function calculateOpticalIllusion(
-  illusionType: VisualEffect["type"],
+  illusionType: IllusionType,
   parameters: {
     subjectSize?: { width: number; height: number };
     desiredApparentSize?: { width: number; height: number };
     cameraDistance?: number;
     focalLength?: number;
     miniatureScale?: number;
-  }
+  },
 ): Record<string, unknown> {
   switch (illusionType) {
     case "forced-perspective":
-      if (parameters.subjectSize && parameters.desiredApparentSize && parameters.cameraDistance) {
-        const scaleRatio = parameters.desiredApparentSize.height / parameters.subjectSize.height;
+      if (
+        parameters.subjectSize &&
+        parameters.desiredApparentSize &&
+        parameters.cameraDistance
+      ) {
+        const scaleRatio =
+          parameters.desiredApparentSize.height / parameters.subjectSize.height;
         const subjectDistance = parameters.cameraDistance / scaleRatio;
 
         return {
@@ -164,7 +175,9 @@ export function calculateOpticalIllusion(
   return {};
 }
 
-export function getDefaultVFXParameters(type: VisualEffect["type"]): Record<string, unknown> {
+export function getDefaultVFXParameters(
+  type: VisualEffect["type"],
+): Record<string, unknown> {
   return VFX_DEFAULTS[type] || {};
 }
 

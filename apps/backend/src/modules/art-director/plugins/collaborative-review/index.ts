@@ -90,7 +90,7 @@ export class CollaborativeReviewPlatform implements Plugin {
         return this.getReviews(input.data as unknown as GetReviewsInput);
       case "update-status":
         return this.updateStatus(
-          input.data as { reviewId: string; status: Review["status"] }
+          input.data as { reviewId: string; status: Review["status"] },
         );
       case "summary":
         return this.getReviewSummary(input.data as { projectId: string });
@@ -117,7 +117,7 @@ export class CollaborativeReviewPlatform implements Plugin {
       author: data.author,
       authorRole: data.authorRole,
       content: data.content,
-      contentAr: data.contentAr,
+      ...(data.contentAr !== undefined ? { contentAr: data.contentAr } : {}),
       timestamp: new Date(),
       status: "pending",
       priority: data.priority || "medium",
@@ -224,7 +224,7 @@ export class CollaborativeReviewPlatform implements Plugin {
     projectId: string;
   }): Promise<PluginOutput> {
     const reviews = Array.from(this.reviews.values()).filter(
-      (r) => r.projectId === data.projectId
+      (r) => r.projectId === data.projectId,
     );
 
     const summary = {
@@ -252,7 +252,7 @@ export class CollaborativeReviewPlatform implements Plugin {
       recentActivity: reviews
         .sort(
           (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
         )
         .slice(0, 5)
         .map((r) => ({

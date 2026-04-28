@@ -1,12 +1,16 @@
-import { breakappService } from '@/modules/breakapp/service';
-import { logger } from '@/lib/logger';
-import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
-import { WEBSOCKET_CONFIG } from '@/config/websocket.config';
-import { createRoomName, RealtimeEventType, WebSocketRoom } from '@/types/realtime.types';
+import { breakappService } from "@/modules/breakapp/service";
+import { logger } from "@/lib/logger";
+import { trackWebSocketAuth } from "@/utils/connectivity-telemetry";
+import { WEBSOCKET_CONFIG } from "@/config/websocket.config";
+import { RealtimeEventType } from "@/types/realtime.types";
 
-import { handleAuthentication, handleTokenRefresh, scheduleSessionExpiry } from './websocket-auth';
+import {
+  handleAuthentication,
+  handleTokenRefresh,
+  scheduleSessionExpiry,
+} from "./websocket-auth";
 
-import type { AuthenticatedSocket } from './websocket-types';
+import type { AuthenticatedSocket } from "./websocket-types";
 
 /**
  * Handle new client connection
@@ -18,14 +22,14 @@ export function handleConnection(socket: AuthenticatedSocket): void {
   let authTimeout: NodeJS.Timeout | null = null;
 
   if (socket.authenticated === true && socket.userId) {
-    trackWebSocketAuth('ws:auth:middleware_success', {
+    trackWebSocketAuth("ws:auth:middleware_success", {
       socketId: socket.id,
       userId: socket.userId,
-      authMethod: 'middleware',
+      authMethod: "middleware",
     });
 
     socket.emit(RealtimeEventType.AUTHENTICATED, {
-      message: 'Authenticated successfully',
+      message: "Authenticated successfully",
       userId: socket.userId,
       timestamp: new Date().toISOString(),
     });
@@ -36,20 +40,20 @@ export function handleConnection(socket: AuthenticatedSocket): void {
   } else {
     authTimeout = setTimeout(() => {
       if (!socket.authenticated) {
-        trackWebSocketAuth('ws:auth:timeout', {
+        trackWebSocketAuth("ws:auth:timeout", {
           socketId: socket.id,
-          reason: 'auth_timeout',
+          reason: "auth_timeout",
         });
-        logger.warn('[WebSocket] Authentication timeout');
-        socket.emit('auth_error', {
-          reason: 'auth_timeout',
-          message: 'Connection timed out. Please reconnect.',
+        logger.warn("[WebSocket] Authentication timeout");
+        socket.emit("auth_error", {
+          reason: "auth_timeout",
+          message: "Connection timed out. Please reconnect.",
         });
         socket.disconnect(true);
       }
     }, WEBSOCKET_CONFIG.TIMEOUTS.AUTHENTICATION);
 
-    socket.on('authenticate', (data: { token?: string; userId?: string }) => {
+    socket.on("authenticate", (data: { token?: string; userId?: string }) => {
       if (authTimeout) {
         clearTimeout(authTimeout);
         authTimeout = null;
@@ -58,7 +62,7 @@ export function handleConnection(socket: AuthenticatedSocket): void {
     });
   }
 
-  socket.on('token:refresh', (data: { token?: string }) => {
+  socket.on("token:refresh", (data: { token?: string }) => {
     handleTokenRefresh(socket, data);
   });
 
@@ -69,26 +73,26 @@ export function handleConnection(socket: AuthenticatedSocket): void {
 
   // Handle errors
   socket.on(WEBSOCKET_CONFIG.EVENTS.ERROR, (error: Error) => {
-    logger.error('[WebSocket] Socket error', error);
+    logger.error("[WebSocket] Socket error", error);
   });
 
   // Handle room subscriptions
-  socket.on('subscribe', (data: { room: string }) => {
+  socket.on("subscribe", (data: { room: string }) => {
     handleRoomSubscription(socket, data.room);
   });
 
-  socket.on('unsubscribe', (data: { room: string }) => {
+  socket.on("unsubscribe", (data: { room: string }) => {
     handleRoomUnsubscription(socket, data.room);
   });
 
-  socket.on('runner:register', (data: { runnerId?: string }) => {
+  socket.on("runner:register", (data: { runnerId?: string }) => {
     if (!data?.runnerId) {
       return;
     }
 
     const room = `breakapp-runner:${data.runnerId}`;
     void socket.join(room);
-    socket.emit('runner:registered', {
+    socket.emit("runner:registered", {
       runnerId: data.runnerId,
       room,
       timestamp: new Date().toISOString(),
@@ -96,7 +100,7 @@ export function handleConnection(socket: AuthenticatedSocket): void {
   });
 
   socket.on(
-    'runner:location',
+    "runner:location",
     async (data: {
       runnerId?: string;
       lat?: number;
@@ -105,8 +109,8 @@ export function handleConnection(socket: AuthenticatedSocket): void {
     }) => {
       if (
         !data?.runnerId ||
-        typeof data.lat !== 'number' ||
-        typeof data.lng !== 'number'
+        typeof data.lat !== "number" ||
+        typeof data.lng !== "number"
       ) {
         return;
       }
@@ -117,51 +121,58 @@ export function handleConnection(socket: AuthenticatedSocket): void {
         lng: data.lng,
         timestamp: data.timestamp ?? Date.now(),
       });
-    }
+    },
   );
 
   socket.on(
-    'order:status',
-    async (data: { orderId?: string; status?: 'pending' | 'processing' | 'completed' | 'cancelled' }) => {
+    "order:status",
+    async (data: {
+      orderId?: string;
+      status?: "pending" | "processing" | "completed" | "cancelled";
+    }) => {
       if (!data?.orderId || !data.status) {
         return;
       }
 
       await breakappService.updateOrderStatus(data.orderId, data.status);
-      emitCustom('order:status:update', {
+      emitCustom("order:status:update", {
         orderId: data.orderId,
         status: data.status,
         timestamp: new Date().toISOString(),
       });
-    }
+    },
   );
 
   socket.on(
-    'batch:status',
-    (data: { batchId?: string; vendorId?: string; status?: 'pending' | 'in-progress' | 'completed' }) => {
+    "batch:status",
+    (data: {
+      batchId?: string;
+      vendorId?: string;
+      status?: "pending" | "in-progress" | "completed";
+    }) => {
       if (!data?.batchId || !data?.vendorId || !data.status) {
         return;
       }
 
-      logger.info('[WebSocket] Batch status update received', {
+      logger.info("[WebSocket] Batch status update received", {
         batchId: data.batchId,
         vendorId: data.vendorId,
         status: data.status,
       });
 
-      emitCustom('batch:status:update', {
+      emitCustom("batch:status:update", {
         batchId: data.batchId,
         vendorId: data.vendorId,
         status: data.status,
         timestamp: new Date().toISOString(),
       });
-    }
+    },
   );
 
   // Send connection confirmation
   socket.emit(RealtimeEventType.CONNECTED, {
     socketId: socket.id,
-    message: 'Connected successfully',
+    message: "Connected successfully",
     timestamp: new Date().toISOString(),
   });
 }
@@ -170,12 +181,12 @@ export function handleConnection(socket: AuthenticatedSocket): void {
  * Handle client disconnection
  */
 export function handleDisconnection(socket: AuthenticatedSocket): void {
-  logger.info('[WebSocket] Client disconnected');
+  logger.info("[WebSocket] Client disconnected");
   connections.delete(socket.id);
 
   if (socket.userId) {
     socket.emit(RealtimeEventType.DISCONNECTED, {
-      message: 'Disconnected',
+      message: "Disconnected",
       timestamp: new Date().toISOString(),
     });
   }
@@ -184,10 +195,13 @@ export function handleDisconnection(socket: AuthenticatedSocket): void {
 /**
  * Handle room subscription
  */
-export function handleRoomSubscription(socket: AuthenticatedSocket, room: string): void {
+export function handleRoomSubscription(
+  socket: AuthenticatedSocket,
+  room: string,
+): void {
   if (!socket.authenticated) {
     socket.emit(RealtimeEventType.UNAUTHORIZED, {
-      message: 'Must authenticate before subscribing to rooms',
+      message: "Must authenticate before subscribing to rooms",
     });
     return;
   }
@@ -195,13 +209,13 @@ export function handleRoomSubscription(socket: AuthenticatedSocket, room: string
   const currentRooms = Array.from(socket.rooms).length;
   if (currentRooms >= WEBSOCKET_CONFIG.LIMITS.MAX_ROOMS_PER_SOCKET) {
     socket.emit(RealtimeEventType.SYSTEM_ERROR, {
-      message: 'Maximum room limit reached',
+      message: "Maximum room limit reached",
     });
     return;
   }
 
   void socket.join(room);
-  logger.info('[WebSocket] Socket joined room');
+  logger.info("[WebSocket] Socket joined room");
   socket.emit(RealtimeEventType.SYSTEM_INFO, {
     message: `Subscribed to room: ${room}`,
     timestamp: new Date().toISOString(),
@@ -211,9 +225,12 @@ export function handleRoomSubscription(socket: AuthenticatedSocket, room: string
 /**
  * Handle room unsubscription
  */
-export function handleRoomUnsubscription(socket: AuthenticatedSocket, room: string): void {
+export function handleRoomUnsubscription(
+  socket: AuthenticatedSocket,
+  room: string,
+): void {
   void socket.leave(room);
-  logger.info('[WebSocket] Socket left room');
+  logger.info("[WebSocket] Socket left room");
   socket.emit(RealtimeEventType.SYSTEM_INFO, {
     message: `Unsubscribed from room: ${room}`,
     timestamp: new Date().toISOString(),
@@ -223,7 +240,10 @@ export function handleRoomUnsubscription(socket: AuthenticatedSocket, room: stri
 /**
  * Emit custom event (will be called from service)
  */
-export function emitCustom(eventName: string, payload: Record<string, unknown>): void {
+export function emitCustom(
+  eventName: string,
+  payload: Record<string, unknown>,
+): void {
   // This will be called from service instance
   console.log(`[WebSocket] Custom event: ${eventName}`, payload);
 }

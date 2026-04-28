@@ -1,6 +1,6 @@
 // Environment Preset Utilities
 
-import type { Environment3D, EnvironmentLighting, AtmosphereSettings } from "../types";
+import type { Environment3D } from "../types";
 
 export const environmentPresets: Record<string, Partial<Environment3D>> = {
   daylight: {
@@ -71,7 +71,7 @@ export const environmentPresets: Record<string, Partial<Environment3D>> = {
 };
 
 export function getEnvironmentPreset(
-  presetName: string
+  presetName: string,
 ): Partial<Environment3D> {
   return (
     environmentPresets[presetName] ??

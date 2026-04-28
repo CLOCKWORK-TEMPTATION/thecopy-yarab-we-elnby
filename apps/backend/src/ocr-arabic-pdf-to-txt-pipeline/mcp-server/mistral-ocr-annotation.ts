@@ -16,23 +16,23 @@ export class AnnotationFormatBuilder {
     const kwargs: JsonRecord = {};
 
     if (this.config.tableFormat) {
-      kwargs.table_format = this.config.tableFormat;
+      kwargs["table_format"] = this.config.tableFormat;
     }
     if (this.config.extractHeader) {
-      kwargs.extract_header = true;
+      kwargs["extract_header"] = true;
     }
     if (this.config.extractFooter) {
-      kwargs.extract_footer = true;
+      kwargs["extract_footer"] = true;
     }
     if (this.config.includeImageBase64) {
-      kwargs.include_image_base64 = true;
+      kwargs["include_image_base64"] = true;
     }
 
     const annotationFormat = await this.buildAnnotationFormat();
     if (annotationFormat) {
-      kwargs.document_annotation_format = annotationFormat;
+      kwargs["document_annotation_format"] = annotationFormat;
       if (this.config.annotationPrompt) {
-        kwargs.document_annotation_prompt = this.config.annotationPrompt;
+        kwargs["document_annotation_prompt"] = this.config.annotationPrompt;
       }
     }
 
@@ -70,7 +70,7 @@ export class AnnotationFormatBuilder {
 
     if (!(await fileExists(this.config.annotationSchemaPath))) {
       throw new Error(
-        `ملف annotation schema غير موجود: ${this.config.annotationSchemaPath}`
+        `ملف annotation schema غير موجود: ${this.config.annotationSchemaPath}`,
       );
     }
 
