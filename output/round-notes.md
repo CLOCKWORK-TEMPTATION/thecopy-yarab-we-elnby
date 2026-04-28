@@ -1,5 +1,50 @@
 # سجل الجولات التنفيذية
 
+## جولة 105 — Refactor 5 ملفات تتجاوز 500 سطر إلى وحدات أصغر — 2026-04-28
+
+### قاعدة منع إضعاف الفحوصات
+
+مقروءة ومثبتة من `AGENTS.md` و `.repo-agent/OPERATING-CONTRACT.md` و `CLAUDE.md`. لم تُعدَّل أي ملفات فحص أو contract أو test config أو tsconfig أو eslint config. سكربت `scripts/check-file-line-budget.mjs` كان موجودًا مسبقًا ولم يُعدَّل.
+
+### الملفات المعالجة (الأصلية → بعد)
+
+| الملف الأصلي | قبل | بعد | الملفات المستخرجة |
+|---|---:|---:|---|
+| `apps/web/src/app/(main)/editor/src/extensions/classification-core.ts` | 931 | 254 | `classification-text-features.ts` (180), `classification-detector-types.ts` (12), `classification-detectors.ts` (313), `classification-content-detector.ts` (215) |
+| `apps/web/src/app/(main)/actorai-arabic/lib/studio-engines.ts` | 865 | 313 | `studio-engines-fixtures.ts` (203), `studio-engines-text-utils.ts` (89), `studio-engines-webcam.ts` (201), `studio-engines-selftape.ts` (93) |
+| `apps/backend/src/modules/brainstorm/catalog.ts` | 797 | 98 | `catalog-types.ts` (114), `catalog-agents-primary.ts` (322), `catalog-agents-secondary.ts` (303) |
+| `apps/web/src/components/ui/arabic-rhyme-finder.tsx` | 799 | 168 | `arabic-rhyme-finder-data.ts` (340), `arabic-rhyme-finder-search-panel.tsx` (189), `arabic-rhyme-finder-results.tsx` (223) |
+| `apps/web/src/app/(main)/development/creative-development.tsx` | 805 | 395 | `creative-development-subcomponents.tsx` (260), `creative-development-execution-panel.tsx` (144), `creative-development-classic-tools.tsx` (151) |
+
+### قرارات التصميم
+
+- **classification-***: الفصل بين الـ pure text features، الـ detector interface، والـ detectors نفسها. الـ `createContentTypeMismatchDetector` (الأكبر، ~195 سطر) في ملفه المنفصل لتجنّب تجاوز 500 سطر في ملف الـ detectors المجمَّع. الـ `PostClassificationReviewer` class بقي في `classification-core.ts` كواجهة عامة.
+- **studio-engines**: الفصل بين fixtures (sample data + clones)، utilities (clamp/hash/keyword)، webcam pipeline (نقل types `WebcamAnalysisFrameSample` و `WebcamAnalysisInput` إلى ملف webcam ثم إعادة تصديرها من الـ barrel)، و self-tape review. الواجهة العامة (`createDeterministicMemorizationMask`, `analyzeDemoScript`, `buildSceneRhythmAnalysis`, `buildScenePartnerReply`, `WebcamAnalysisFrameSample` كنوع، إلخ) بقيت متاحة عبر `studio-engines.ts`.
+- **brainstorm/catalog**: تقسيم الـ 27 agent catalog إلى primary (15 وكيل: core+analysis+creative) و secondary (12 وكيل: predictive+advanced)، مع types في ملفه. الـ catalog الرئيسي يجمع الجزأين عبر spread. كل الـ public functions (`getBrainstormAgents`, `getBrainstormAgentById`, `getBrainstormPhases`, `getBrainstormAgentsForPhase`, `getBrainstormStats`) و الـ types و `BRAINSTORM_PHASES` لا تزال متاحة من `catalog.ts`.
+- **arabic-rhyme-finder**: استخراج الـ rhymes data + poetry meters + helper utilities إلى ملف data نقي، ثم تقسيم الـ UI إلى search panel + results card + favorites card. الـ `ArabicRhymeFinder` و default export بقيا.
+- **creative-development**: استخراج الـ subcomponents (LockedStateAlert, LoadedStateAlert, AdvancedAISettingsCard, TaskButtons, CatalogTaskButtons + الثوابت SHELL_CARD و CATEGORY_LABELS)، استخراج الـ ExecutionPanel + ClassicToolsCard كمكونات منفصلة، إبقاء `DramaAnalystApp` كـ composition layer. الـ default export `DramaAnalystApp` بقي.
+
+### نتائج التحقق
+
+| الأمر | النتيجة | ملاحظات |
+|---|---|---|
+| `node scripts/check-file-line-budget.mjs` (مفلتر للملفات الجديدة + الأصلية الخمسة) | ✓ | لا أحد منها > 500 سطر. كل الملفات الجديدة ≤ 340 سطر |
+| `tsc --noEmit -p apps/web/tsconfig.json` (مفلتر للنطاق) | ✓ | لا أخطاء جديدة في ملفات الـ refactor. الأخطاء الباقية في `arabic-prompt-engineering-studio/page.tsx` (خارج النطاق، pre-existing) |
+| `tsc --noEmit` لـ apps/backend (مفلتر) | ✓ | لا أخطاء في `brainstorm/catalog*`. أخطاء `breakapp/routes.ts` pre-existing وخارج النطاق |
+| `npx vitest run` على `actorai-arabic/__tests__` + `editor/src/extensions/` | ✓ | 27/27 اختبار يمر (`production-readiness-engines.test.ts` 8/8، اختبارات editor extensions 19/19) |
+| `npx eslint` لكل ملفات الـ refactor | ⚠ pre-existing | 9 أخطاء `max-lines-per-function` و `complexity` في دوال محتواها منقول حرفياً من الكود الأصلي قبل refactor (`createContentTypeMismatchDetector`، `DramaAnalystApp`، `RhymeResults`، `RhymeSearchPanel`، `buildWebcamAnalysisSummary`). لم يُضف أي خطأ lint جديد. لا تعديل لأي قاعدة eslint |
+
+### قيود وملاحظات
+
+- اختبارات `apps/web/src/app/(main)/development/__tests__/integration.test.ts` فيها 6 فشل سابقة لـ refactor (تختبر منطق `useCreativeDevelopment` hook والـ `executeTask`، خارج نطاق هذا التغيير). تأكدت بـ `git stash` أن الـ baseline يعطي نفس الفشل بالضبط.
+- الأحرف الـ unicode الخفية (U+200F، U+200E، U+FEFF) في regex لـ `classification-text-features.ts` حُوِّلت إلى `\uXXXX` escape sequences لإصلاح `no-irregular-whitespace`، مع الحفاظ على نفس السلوك.
+- `import/order` تم إصلاحه في classification-core.ts و classification-detectors.ts و classification-content-detector.ts.
+
+### ما لم يُلمس
+
+- بقية ملفات المستودع المخالفة (~115 ملف > 500 سطر) خارج نطاق هذه الجولة.
+- لم تُغيَّر أي واجهة عامة، لا default export، ولا named export يستهلكه code خارجي.
+
 ## جولة 104 — جلستان 5 و 6: تضييق أنواع apps/backend و apps/web — 2026-04-27
 
 ### قاعدة منع إضعاف الفحوصات
@@ -9553,6 +9598,373 @@ git push -u origin str-098-foundation-completion
 ### حالة طبقة المعرفة والاسترجاع
 
 - governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 154
+
+### التاريخ والوقت
+
+2026-04-28T00:08:55.550Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 155
+
+### التاريخ والوقت
+
+2026-04-28T00:17:43.922Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+---
+
+## جولة: تقليص الملفات المتجاوزة حد 600 سطر
+
+### التاريخ
+2026-04-28
+
+### الهدف
+تقليص 3 ملفات كانت تتجاوز حد 600 سطر إلى ما دون الحد.
+
+### الملفات المستهدفة والنتيجة
+
+| الملف | قبل | بعد | الأسلوب |
+|-------|------|------|---------|
+| `apps/backend/src/ocr-arabic-pdf-to-txt-pipeline/mcp-server/mistral-ocr-client.ts` | 624 | ~118 | واجهة facade + 6 ملفات مساعدة |
+| `apps/web/src/app/(main)/actorai-arabic/types/index.ts` | 621 | ~20 | barrel + 14 ملف نوع |
+| `apps/web/src/lib/ai/stations/network-diagnostics.ts` | 620 | 61 | واجهة facade + 9 ملفات تشخيص |
+
+### الملفات المُنشأة
+
+**mcp-server:**
+- `mistral-ocr-config.ts`, `mistral-ocr-response.ts`, `mistral-ocr-http.ts`
+- `mistral-ocr-files.ts`, `mistral-ocr-annotation.ts`, `mistral-ocr-batch.ts`
+
+**actorai-arabic/types:**
+- `user.ts`, `script.ts`, `recording.ts`, `analysis.ts`, `chat.ts`, `vocal.ts`
+- `view.ts`, `rhythm.ts`, `webcam.ts`, `memorization.ts`, `ar.ts`
+- `notification.ts`, `methodology.ts`, `app-state.ts`
+
+**network-diagnostics:**
+- `network-diagnostics-types.ts`, `network-diagnostics-helpers.ts`
+- `network-diagnostics-structural.ts`, `network-diagnostics-isolation.ts`
+- `network-diagnostics-abandonment.ts`, `network-diagnostics-overload.ts`
+- `network-diagnostics-weak.ts`, `network-diagnostics-redundancy.ts`
+- `network-diagnostics-health.ts`
+
+### الفحوصات
+
+- line-budget: ✓ الثلاثة الملفات خرجت من قائمة الانتهاكات (22 ملفًا متبقيًا، كلها سابقة)
+- typecheck web: ✓ خطأ واحد فقط سابق في `test-routing.ts:201`
+- typecheck backend: ✓ لا أخطاء في ملفات mistral
+- lint network-diagnostics: ✓ صفر أخطاء بعد إصلاح ترتيب الاستيراد
+
+### ما بقي مفتوحًا
+
+- لا شيء من هذه الجولة
+
+### هل استلزم الأمر تحديث session-state
+
+لا — لم تتغير الحقائق البنيوية للجلسة
+
+## الجولة 156
+
+### التاريخ والوقت
+
+2026-04-28T02:51:48.287Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/code-map/findings.md
+- output/code-map/rag-systems.md
+- output/mind-map/mindmap-summary.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `ungoverned`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 157
+
+### التاريخ والوقت
+
+2026-04-28T03:09:47.488Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `ungoverned`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 158
+
+### التاريخ والوقت
+
+2026-04-28T03:12:19.196Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `ungoverned`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 159
+
+### التاريخ والوقت
+
+2026-04-28T03:15:57.770Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `ungoverned`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 160
+
+### التاريخ والوقت
+
+2026-04-28T03:24:09.937Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `ungoverned`
 - total systems: `5`
 
 ### ما الذي بقي مفتوحًا

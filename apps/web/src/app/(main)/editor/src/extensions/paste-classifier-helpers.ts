@@ -72,7 +72,9 @@ export const buildFetchSignal = (
     const timeoutSignal = abortSignalStatic.timeout(timeoutMs);
     return {
       signal: abortSignalStatic.any([controller.signal, timeoutSignal]),
-      cleanup: () => { /* empty */ },
+      cleanup: () => {
+        /* empty */
+      },
     };
   }
 

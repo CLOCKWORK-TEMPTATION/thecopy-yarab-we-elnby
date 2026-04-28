@@ -4,7 +4,7 @@
 
 ## الحالة العامة
 
-- governance status: `governed`
+- governance status: `ungoverned`
 - total systems: `5`
 
 ## الأنظمة المكتشفة

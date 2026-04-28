@@ -39,7 +39,7 @@ const timeoutMap = new Map<string, number>();
  * useAutoSave('doc-draft', currentData);
  * ```
  */
-export const useAutoSave = <T>(key: string, value: T, delay = 3000): void => {
+export const scheduleAutoSave = <T>(key: string, value: T, delay = 3000): void => {
   if (typeof window === "undefined") return;
 
   const pending = timeoutMap.get(key);

@@ -7,10 +7,7 @@ import {
 } from "../normalizers";
 import { parseJSON } from "../parsers";
 
-import type {
-  NarrativeStyleAnalysis,
-  NarrativeStyleResponse,
-} from "../types";
+import type { NarrativeStyleAnalysis, NarrativeStyleResponse } from "../types";
 
 export async function analyzeNarrativeStyle(
   geminiService: GeminiService,

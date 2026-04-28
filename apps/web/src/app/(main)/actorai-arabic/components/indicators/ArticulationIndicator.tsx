@@ -1,6 +1,8 @@
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
 
 export interface ArticulationIndicatorProps {
@@ -63,10 +65,10 @@ export const ArticulationIndicator: React.FC<ArticulationIndicatorProps> = ({
                   articulation.level === "poor"
                     ? "stroke-red-500"
                     : articulation.level === "fair"
-                    ? "stroke-yellow-500"
-                    : articulation.level === "good"
-                    ? "stroke-blue-500"
-                    : "stroke-green-500"
+                      ? "stroke-yellow-500"
+                      : articulation.level === "good"
+                        ? "stroke-blue-500"
+                        : "stroke-green-500"
                 }`}
                 strokeDasharray={`${articulation.score * 100}, 100`}
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"

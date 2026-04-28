@@ -778,17 +778,21 @@
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
-    "ungovernedFiles": [],
-    "discoveryWarnings": [],
-    "governanceStatus": "governed"
+    "ungovernedFiles": [
+      "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts"
+    ],
+    "discoveryWarnings": [
+      "مرشح معرفة غير ممثل في الجرد المرجعي: apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts (path signal: rag)"
+    ],
+    "governanceStatus": "ungoverned"
   },
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-04-27T23:28:23.493Z",
-    "totalFiles": 2143,
-    "totalChunks": 5281,
-    "embeddedChunks": 5281,
+    "generatedAt": "2026-04-28T03:24:08.953Z",
+    "totalFiles": 2538,
+    "totalChunks": 5569,
+    "embeddedChunks": 5569,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,

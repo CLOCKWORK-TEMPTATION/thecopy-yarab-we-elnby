@@ -92,21 +92,30 @@ export function calculateStationScore(station: unknown): number {
   const stationScore = toStationScoreLike(station);
   if (!stationScore) return 0;
   const scores = [];
-  if (typeof stationScore.confidence === "number") scores.push(stationScore.confidence);
-  if (typeof stationScore.qualityScore === "number") scores.push(stationScore.qualityScore);
-  if (typeof stationScore.overallScore === "number") scores.push(stationScore.overallScore);
-  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 50;
+  if (typeof stationScore.confidence === "number")
+    scores.push(stationScore.confidence);
+  if (typeof stationScore.qualityScore === "number")
+    scores.push(stationScore.qualityScore);
+  if (typeof stationScore.overallScore === "number")
+    scores.push(stationScore.overallScore);
+  return scores.length > 0
+    ? scores.reduce((a, b) => a + b) / scores.length
+    : 50;
 }
 
 export function calculateStation5Score(s5?: Station5Output): number {
   if (!s5) return 0;
   const scores = [];
-  if (s5.symbolicAnalysis?.depthScore) scores.push(s5.symbolicAnalysis.depthScore * 10);
-  if (s5.symbolicAnalysis?.consistencyScore) scores.push(s5.symbolicAnalysis.consistencyScore * 10);
+  if (s5.symbolicAnalysis?.depthScore)
+    scores.push(s5.symbolicAnalysis.depthScore * 10);
+  if (s5.symbolicAnalysis?.consistencyScore)
+    scores.push(s5.symbolicAnalysis.consistencyScore * 10);
   if (s5.stylisticAnalysis?.toneAssessment?.toneConsistency) {
     scores.push(s5.stylisticAnalysis.toneAssessment.toneConsistency * 10);
   }
-  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 50;
+  return scores.length > 0
+    ? scores.reduce((a, b) => a + b) / scores.length
+    : 50;
 }
 
 // ---------------------------------------------------------------------------
@@ -116,17 +125,27 @@ export function calculateStation5Score(s5?: Station5Output): number {
 export function calculateCharacterScore(s3?: Station3Output): number {
   if (!s3?.networkAnalysis) return 50;
   const scores = [];
-  if (s3.networkAnalysis.complexity) scores.push(s3.networkAnalysis.complexity * 100);
+  if (s3.networkAnalysis.complexity)
+    scores.push(s3.networkAnalysis.complexity * 100);
   if (s3.networkAnalysis.balance) scores.push(s3.networkAnalysis.balance * 100);
-  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 50;
+  return scores.length > 0
+    ? scores.reduce((a, b) => a + b) / scores.length
+    : 50;
 }
 
-export function calculateConflictScore(s3?: Station3Output, s4?: Station4Output): number {
+export function calculateConflictScore(
+  s3?: Station3Output,
+  s4?: Station4Output
+): number {
   if (!s3 && !s4) return 50;
   const scores = [];
-  if (s4?.efficiencyMetrics?.conflictCohesion) scores.push(s4.efficiencyMetrics.conflictCohesion * 100);
-  if (s3?.networkAnalysis?.density) scores.push(s3.networkAnalysis.density * 100);
-  return scores.length > 0 ? scores.reduce((a, b) => a + b) / scores.length : 50;
+  if (s4?.efficiencyMetrics?.conflictCohesion)
+    scores.push(s4.efficiencyMetrics.conflictCohesion * 100);
+  if (s3?.networkAnalysis?.density)
+    scores.push(s3.networkAnalysis.density * 100);
+  return scores.length > 0
+    ? scores.reduce((a, b) => a + b) / scores.length
+    : 50;
 }
 
 export function determineRating(
@@ -217,7 +236,10 @@ export function extractAgentsUsed(
 ): string[] {
   const agents = new Set<string>();
   [s1, s3, s4, s5, s6].forEach((station) => {
-    if (station?.metadata?.agentsUsed && Array.isArray(station.metadata.agentsUsed)) {
+    if (
+      station?.metadata?.agentsUsed &&
+      Array.isArray(station.metadata.agentsUsed)
+    ) {
       station.metadata.agentsUsed.forEach((agent: string) => agents.add(agent));
     }
   });

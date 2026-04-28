@@ -1,7 +1,4 @@
-import {
-  CONVERSATIONAL_MARKERS_RE,
-  VOCATIVE_RE,
-} from "./arabic-patterns";
+import { CONVERSATIONAL_MARKERS_RE, VOCATIVE_RE } from "./arabic-patterns";
 import {
   hasEmbeddedNarrativeActionInDialogue,
   hasHighConfidenceActionSignal,
@@ -9,12 +6,12 @@ import {
   type TextFeatures,
 } from "./classification-text-features";
 
+import type { SuspicionDetector } from "./classification-detector-types";
 import type {
   ClassifiedLine,
   DetectorFinding,
   ElementType,
 } from "./classification-types";
-import type { SuspicionDetector } from "./classification-detector-types";
 
 const BASMALA_REVERSE_RE = /بسم\s+الله\s+الرحمن\s+الرحيم/;
 

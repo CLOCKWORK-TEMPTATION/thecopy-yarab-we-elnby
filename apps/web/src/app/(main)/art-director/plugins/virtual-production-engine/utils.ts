@@ -13,13 +13,9 @@ export function calculateFrustum(data: {
   ledWallDistance?: number;
 }) {
   const fovH =
-    2 *
-    Math.atan(data.sensorWidth / (2 * data.focalLength)) *
-    (180 / Math.PI);
+    2 * Math.atan(data.sensorWidth / (2 * data.focalLength)) * (180 / Math.PI);
   const fovV =
-    2 *
-    Math.atan(data.sensorHeight / (2 * data.focalLength)) *
-    (180 / Math.PI);
+    2 * Math.atan(data.sensorHeight / (2 * data.focalLength)) * (180 / Math.PI);
 
   const coverageWidth =
     2 * data.subjectDistance * Math.tan(((fovH / 2) * Math.PI) / 180);
@@ -29,10 +25,8 @@ export function calculateFrustum(data: {
   let ledWallCoverage = null;
   if (data.ledWallDistance) {
     ledWallCoverage = {
-      width:
-        2 * data.ledWallDistance * Math.tan(((fovH / 2) * Math.PI) / 180),
-      height:
-        2 * data.ledWallDistance * Math.tan(((fovV / 2) * Math.PI) / 180),
+      width: 2 * data.ledWallDistance * Math.tan(((fovH / 2) * Math.PI) / 180),
+      height: 2 * data.ledWallDistance * Math.tan(((fovV / 2) * Math.PI) / 180),
     };
   }
 

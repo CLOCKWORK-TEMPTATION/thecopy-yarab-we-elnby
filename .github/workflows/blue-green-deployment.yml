@@ -6,22 +6,22 @@ name: Blue-Green Deployment
 # - On workflow_dispatch: Manual deployment/rollback
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment (blue/green)'
+        description: "Target environment (blue/green)"
         required: false
-        default: 'auto'
+        default: "auto"
         type: choice
         options:
           - auto
           - blue
           - green
       skip_tests:
-        description: 'Skip tests'
+        description: "Skip tests"
         required: false
         default: false
         type: boolean
@@ -32,7 +32,7 @@ permissions:
   actions: read
 
 env:
-  PNPM_VERSION: '10.32.1'
+  PNPM_VERSION: "10.32.1"
   BLUE_PORT: 3001
   GREEN_PORT: 3002
   SSH_PRIVATE_KEY_SECRET_NAME: SSH_PRIVATE_KEY
@@ -58,6 +58,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Install backend dependencies
+        run: pnpm install --frozen-lockfile --filter @the-copy/backend...
+
+      - name: Full backend type check before deployment
+        run: pnpm --filter @the-copy/backend run type-check:full
 
       - name: Verify tracked dockerignore
         run: node scripts/ci/check-dockerignore.mjs
@@ -145,7 +157,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
-          
+
       - name: Deploy to production
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -179,16 +191,16 @@ jobs:
             echo "@tiptap-pro:registry=https://registry.tiptap.dev/"
             printf '//registry.tiptap.dev/:_authToken=%s\n' "$TIPTAP_PRO_TOKEN"
           } > ~/.npmrc
-          
+
           # Configuration
           PROJECT_DIR="/opt/theeeecopy"
           BLUE_PORT="${{ env.BLUE_PORT }}"
           GREEN_PORT="${{ env.GREEN_PORT }}"
-          
+
           # Create project directory if it doesn't exist
           sudo mkdir -p "$PROJECT_DIR"
           sudo chown $USER:$USER "$PROJECT_DIR"
-          
+
           # Clone or update repository
           if [ -d "$PROJECT_DIR/.git" ]; then
             cd "$PROJECT_DIR"
@@ -208,33 +220,34 @@ jobs:
             corepack enable
             corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
           fi
-          
+
           # Install dependencies and build
           pnpm install --frozen-lockfile --filter @the-copy/backend...
+          pnpm --filter @the-copy/backend run type-check:full
           pnpm --filter @the-copy/backend build
-          
+
           # Set environment variables
           export BLUE_PORT="$BLUE_PORT"
           export GREEN_PORT="$GREEN_PORT"
           export NODE_ENV="production"
-          
+
           # Run blue-green deployment
           chmod +x scripts/deploy/blue-green-deploy.sh
           ./scripts/deploy/blue-green-deploy.sh deploy
-          
+
           # Cleanup old deployments (keep last 3)
           cd "$PROJECT_DIR"
           find . -name "backup.*" -type d | sort -r | tail -n +4 | xargs rm -rf || true
-          
+
           echo "Deployment completed successfully"
           EOF
-          
+
           chmod +x deploy.sh
-          
+
           # Copy deployment script and execute remotely
           scp -i ~/.ssh/deploy_key deploy.sh "$SSH_USER@$SSH_HOST:/tmp/deploy.sh"
           ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" "export TIPTAP_PRO_TOKEN=\$(printf '%s' '$TIPTAP_PRO_TOKEN_B64' | base64 -d); bash /tmp/deploy.sh"
-          
+
       - name: Verify deployment
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -250,11 +263,11 @@ jobs:
 
           # Wait for deployment to stabilize
           sleep 30
-          
+
           # Check health endpoint
           max_attempts=10
           attempt=1
-          
+
           while [ $attempt -le $max_attempts ]; do
             if curl -f -s "${PRODUCTION_URL}/health" > /dev/null; then
               echo "✅ Health check passed"
@@ -265,12 +278,12 @@ jobs:
               attempt=$((attempt + 1))
             fi
           done
-          
+
           if [ $attempt -gt $max_attempts ]; then
             echo "❌ Health check failed after $max_attempts attempts"
             exit 1
           fi
-          
+
           # Check readiness endpoint
           if curl -f -s "${PRODUCTION_URL}/health/ready" | jq -r '.status' | grep -q "ready"; then
             echo "✅ Readiness check passed"
@@ -278,10 +291,10 @@ jobs:
             echo "❌ Readiness check failed"
             exit 1
           fi
-          
+
           # Run smoke tests
           echo "Running smoke tests..."
-          
+
           # Test API endpoints
           if curl -f -s "${PRODUCTION_URL}/api/health" > /dev/null; then
             echo "✅ API health check passed"
@@ -296,13 +309,13 @@ jobs:
             echo "❌ Editor runtime health check failed"
             exit 1
           fi
-          
+
           echo "✅ All deployment verification checks passed"
-          
+
       - name: Cleanup SSH keys
         if: always()
         run: rm -f ~/.ssh/deploy_key
-        
+
       - name: Notify deployment status
         if: always()
         env:
@@ -330,7 +343,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup SSH
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -348,7 +361,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
-          
+
       - name: Perform rollback
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -364,7 +377,7 @@ jobs:
 
           ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" << EOF
           cd /opt/theeeecopy
-          
+
           # Get current active environment
           CURRENT_ENV=\$(grep -oP 'localhost:\K[0-9]+' /etc/nginx/sites-available/theeeecopy | head -1)
           if [ "\$CURRENT_ENV" = "${{ env.BLUE_PORT }}" ]; then
@@ -376,21 +389,21 @@ jobs:
             CURRENT_PORT="${{ env.GREEN_PORT }}"
             TARGET_PORT="${{ env.BLUE_PORT }}"
           fi
-          
+
           echo "Current environment: \$CURRENT_ENV"
           echo "Target environment: $TARGET_ENVIRONMENT"
-          
+
           if [ "\$CURRENT_ENV" = "$TARGET_ENVIRONMENT" ]; then
             echo "Already on $TARGET_ENVIRONMENT environment - no rollback needed"
             exit 0
           fi
-          
+
           # Switch traffic back
           ./scripts/deploy/blue-green-deploy.sh rollback
-          
+
           echo "Rollback completed successfully"
           EOF
-          
+
       - name: Verify rollback
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -405,7 +418,7 @@ jobs:
           fi
 
           sleep 15
-          
+
           # Verify health after rollback
           if curl -f -s "${PRODUCTION_URL}/health" > /dev/null; then
             echo "✅ Rollback verification passed"
@@ -413,11 +426,11 @@ jobs:
             echo "❌ Rollback verification failed"
             exit 1
           fi
-          
+
       - name: Cleanup SSH keys
         if: always()
         run: rm -f ~/.ssh/deploy_key
-        
+
       - name: Notify rollback status
         if: always()
         env:
@@ -461,7 +474,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
-          
+
       - name: Cleanup old deployments
         env:
           SECRETS_JSON: ${{ toJson(secrets) }}
@@ -477,17 +490,17 @@ jobs:
           ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" << EOF
           # Cleanup old PM2 processes
           pm2 delete all 2>/dev/null || true
-          
+
           # Cleanup old build artifacts (keep last 5)
           cd /opt/theeeecopy
           find . -name "backup.*" -type d | sort -r | tail -n +6 | xargs rm -rf || true
-          
+
           # Cleanup old log files (keep last 30 days)
           find /var/log -name "*.log" -mtime +30 -delete 2>/dev/null || true
-          
+
           echo "Cleanup completed"
           EOF
-          
+
       - name: Cleanup SSH keys
         if: always()
         run: rm -f ~/.ssh/deploy_key

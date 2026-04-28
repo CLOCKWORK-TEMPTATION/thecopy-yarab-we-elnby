@@ -51,9 +51,7 @@ describe("SceneRhythmView", () => {
   it("يحمّل النص التجريبي", () => {
     renderWithApp(<SceneRhythmView />);
     fireEvent.click(screen.getByText("📄 نص تجريبي"));
-    const textarea = screen.getByPlaceholderText(
-      "الصق نصك هنا..."
-    );
+    const textarea = screen.getByPlaceholderText("الصق نصك هنا...");
     expect(screen.getByDisplayValue(/[\s\S]{21,}/)).toBe(textarea);
   });
 

@@ -29,7 +29,11 @@ export function measureAppLoadTime(
 export function installFileProcessingTiming(handleMetric: HandleMetric): void {
   const originalMeasure = performance.measure.bind(performance);
 
-  performance.measure = (name: string, startMark?: string, endMark?: string) => {
+  performance.measure = (
+    name: string,
+    startMark?: string,
+    endMark?: string
+  ) => {
     const result = originalMeasure(name, startMark, endMark);
 
     if (name.includes("file-processing")) {

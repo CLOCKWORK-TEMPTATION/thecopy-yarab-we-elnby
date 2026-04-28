@@ -8,7 +8,6 @@
  *   - station7-report-generators.ts  (human-readable, Markdown, JSON generators)
  */
 
-import { ConflictNetwork } from "../core/models/base-entities";
 import { BaseStation, type StationConfig } from "../core/pipeline/base-station";
 import { logger } from "../utils/logger";
 import { saveText } from "../utils/saveText";
@@ -22,8 +21,19 @@ import { Station5Output } from "./station5-dynamic-symbolic-stylistic";
 import { Station6Output } from "./station6-diagnostics-treatment";
 
 // Re-export public types
-export type { Station7Input, Station7Output, AudienceResonance, RewritingSuggestion, ScoreMatrix } from "./station7-types";
+export type {
+  Station7Input,
+  Station7Output,
+  AudienceResonance,
+  RewritingSuggestion,
+  ScoreMatrix,
+} from "./station7-types";
 
+import {
+  generateHumanReadableReport,
+  generateMarkdownReport,
+  generateJsonReport,
+} from "./station7-report-generators";
 import {
   calculateScoreMatrix,
   calculateCharacterScore,
@@ -39,11 +49,6 @@ import {
   parseAudienceResonance,
   parseRewritingSuggestions,
 } from "./station7-text-parsers";
-import {
-  generateHumanReadableReport,
-  generateMarkdownReport,
-  generateJsonReport,
-} from "./station7-report-generators";
 
 import type {
   AudienceResonance,
@@ -58,7 +63,10 @@ import type {
 // Station7Finalization
 // ---------------------------------------------------------------------------
 
-export class Station7Finalization extends BaseStation<Station7Input, Station7Output> {
+export class Station7Finalization extends BaseStation<
+  Station7Input,
+  Station7Output
+> {
   private outputDir: string;
 
   constructor(
@@ -75,14 +83,31 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
     logger.info("[S7] Starting comprehensive final report generation...");
 
     try {
-      const station1 = input.allPreviousStationsData.get(1) as Station1Output | undefined;
-      const station2 = input.allPreviousStationsData.get(2) as Station2Output | undefined;
-      const station3 = input.allPreviousStationsData.get(3) as Station3Output | undefined;
-      const station4 = input.allPreviousStationsData.get(4) as Station4Output | undefined;
-      const station5 = input.allPreviousStationsData.get(5) as Station5Output | undefined;
+      const station1 = input.allPreviousStationsData.get(1) as
+        | Station1Output
+        | undefined;
+      const station2 = input.allPreviousStationsData.get(2) as
+        | Station2Output
+        | undefined;
+      const station3 = input.allPreviousStationsData.get(3) as
+        | Station3Output
+        | undefined;
+      const station4 = input.allPreviousStationsData.get(4) as
+        | Station4Output
+        | undefined;
+      const station5 = input.allPreviousStationsData.get(5) as
+        | Station5Output
+        | undefined;
       const station6 = input.station6Output;
 
-      const scoreMatrix = calculateScoreMatrix(station1, station2, station3, station4, station5, station6);
+      const scoreMatrix = calculateScoreMatrix(
+        station1,
+        station2,
+        station3,
+        station4,
+        station5,
+        station6
+      );
 
       const [
         executiveSummary,
@@ -92,12 +117,53 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
         rewritingSuggestions,
         finalConfidence,
       ] = await Promise.all([
-        this.generateExecutiveSummary(station1, station2, station3, station4, station5, station6, scoreMatrix),
-        Promise.resolve(this.generateOverallAssessment(scoreMatrix, station1, station2, station3, station4, station5, station6)),
-        this.generateSWOTAnalysis(station1, station2, station3, station4, station5, station6),
-        this.analyzeAudienceResonance(station1, station2, station3, station4, station5, station6),
+        this.generateExecutiveSummary(
+          station1,
+          station2,
+          station3,
+          station4,
+          station5,
+          station6,
+          scoreMatrix
+        ),
+        Promise.resolve(
+          this.generateOverallAssessment(
+            scoreMatrix,
+            station1,
+            station2,
+            station3,
+            station4,
+            station5,
+            station6
+          )
+        ),
+        this.generateSWOTAnalysis(
+          station1,
+          station2,
+          station3,
+          station4,
+          station5,
+          station6
+        ),
+        this.analyzeAudienceResonance(
+          station1,
+          station2,
+          station3,
+          station4,
+          station5,
+          station6
+        ),
         this.generateRewritingSuggestions(station6, station4, station5),
-        Promise.resolve(calculateFinalConfidence(station1, station2, station3, station4, station5, station6)),
+        Promise.resolve(
+          calculateFinalConfidence(
+            station1,
+            station2,
+            station3,
+            station4,
+            station5,
+            station6
+          )
+        ),
       ]);
 
       const finalReport = {
@@ -108,17 +174,37 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
         opportunitiesForImprovement: swotAnalysis.opportunities,
         threatsToCoherence: swotAnalysis.threats,
         finalRecommendations: {
-          mustDo: rewritingSuggestions.filter((s) => s.priority === "must").map((s) => s.suggestedRewrite),
-          shouldDo: rewritingSuggestions.filter((s) => s.priority === "should").map((s) => s.suggestedRewrite),
-          couldDo: rewritingSuggestions.filter((s) => s.priority === "could").map((s) => s.suggestedRewrite),
+          mustDo: rewritingSuggestions
+            .filter((s) => s.priority === "must")
+            .map((s) => s.suggestedRewrite),
+          shouldDo: rewritingSuggestions
+            .filter((s) => s.priority === "should")
+            .map((s) => s.suggestedRewrite),
+          couldDo: rewritingSuggestions
+            .filter((s) => s.priority === "could")
+            .map((s) => s.suggestedRewrite),
         },
         audienceResonance,
         rewritingSuggestions,
       };
 
       const totalExecutionTime = Date.now() - startTime;
-      const agentsUsed = extractAgentsUsed(station1, station2, station3, station4, station5, station6);
-      const tokensUsed = calculateTotalTokens(station1, station2, station3, station4, station5, station6);
+      const agentsUsed = extractAgentsUsed(
+        station1,
+        station2,
+        station3,
+        station4,
+        station5,
+        station6
+      );
+      const tokensUsed = calculateTotalTokens(
+        station1,
+        station2,
+        station3,
+        station4,
+        station5,
+        station6
+      );
 
       const output: Station7Output = {
         finalReport,
@@ -180,7 +266,8 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
       model: GeminiModel.PRO,
       temperature: 0.3,
       maxTokens: 1024,
-      systemInstruction: "أنت محلل دراما محترف متخصص في كتابة ملخصات تنفيذية دقيقة وشاملة.",
+      systemInstruction:
+        "أنت محلل دراما محترف متخصص في كتابة ملخصات تنفيذية دقيقة وشاملة.",
     });
     return extractText(response.content);
   }
@@ -194,7 +281,8 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
     _s5?: Station5Output,
     _s6?: Station6Output
   ): Station7Output["finalReport"]["overallAssessment"] {
-    const narrativeQualityScore = (scoreMatrix.foundation + scoreMatrix.conceptual) / 2;
+    const narrativeQualityScore =
+      (scoreMatrix.foundation + scoreMatrix.conceptual) / 2;
     const structuralIntegrityScore = scoreMatrix.conflictNetwork;
     const characterDevelopmentScore = calculateCharacterScore(s3);
     const conflictEffectivenessScore = calculateConflictScore(s3, s4);
@@ -219,7 +307,12 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
     s4?: Station4Output,
     _s5?: Station5Output,
     s6?: Station6Output
-  ): Promise<{ strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] }> {
+  ): Promise<{
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+  }> {
     const prompt = `
 بناءً على التحليل الشامل للنص، حدد:
 
@@ -249,7 +342,8 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
       model: GeminiModel.PRO,
       temperature: 0.4,
       maxTokens: 2048,
-      systemInstruction: "أنت محلل استراتيجي متخصص في تحليل SWOT للأعمال الدرامية.",
+      systemInstruction:
+        "أنت محلل استراتيجي متخصص في تحليل SWOT للأعمال الدرامية.",
     });
 
     try {
@@ -299,7 +393,8 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
       model: GeminiModel.PRO,
       temperature: 0.5,
       maxTokens: 1024,
-      systemInstruction: "أنت محلل جمهور متخصص في توقع استجابات الجمهور للأعمال الدرامية.",
+      systemInstruction:
+        "أنت محلل جمهور متخصص في توقع استجابات الجمهور للأعمال الدرامية.",
     });
 
     try {
@@ -316,7 +411,16 @@ export class Station7Finalization extends BaseStation<Station7Input, Station7Out
         controversialElements: parsed.controversialElements ?? [],
       };
     } catch {
-      return { emotionalImpact: 5, intellectualEngagement: 5, relatability: 5, memorability: 5, viralPotential: 5, primaryResponse: "تحليل الجمهور غير متاح", secondaryResponses: [], controversialElements: [] };
+      return {
+        emotionalImpact: 5,
+        intellectualEngagement: 5,
+        relatability: 5,
+        memorability: 5,
+        viralPotential: 5,
+        primaryResponse: "تحليل الجمهور غير متاح",
+        secondaryResponses: [],
+        controversialElements: [],
+      };
     }
   }
 
@@ -369,9 +473,18 @@ ${allIssues.map((issue, i) => `${i + 1}. ${issue.description} (نوع: ${issue.c
 
   private async saveReports(output: Station7Output): Promise<void> {
     try {
-      await saveText(`${this.outputDir}/final-report.txt`, generateHumanReadableReport(output));
-      await saveText(`${this.outputDir}/final-report.md`, generateMarkdownReport(output));
-      await saveText(`${this.outputDir}/final-report.json`, generateJsonReport(output));
+      await saveText(
+        `${this.outputDir}/final-report.txt`,
+        generateHumanReadableReport(output)
+      );
+      await saveText(
+        `${this.outputDir}/final-report.md`,
+        generateMarkdownReport(output)
+      );
+      await saveText(
+        `${this.outputDir}/final-report.json`,
+        generateJsonReport(output)
+      );
       logger.info("[S7] All report formats saved successfully");
     } catch (error) {
       logger.error("[S7] Error saving reports:", error);
@@ -386,7 +499,8 @@ ${allIssues.map((issue, i) => `${i + 1}. ${issue.description} (نوع: ${issue.c
     return {
       charactersCount: input.conflictNetwork.characters.size,
       conflictsCount: input.conflictNetwork.conflicts?.size ?? 0,
-      station6Issues: input.station6Output.diagnosticsReport.criticalIssues.length,
+      station6Issues:
+        input.station6Output.diagnosticsReport.criticalIssues.length,
       stationsTracked: input.allPreviousStationsData.size,
     };
   }
@@ -395,18 +509,59 @@ ${allIssues.map((issue, i) => `${i + 1}. ${issue.description} (نوع: ${issue.c
     return {
       finalReport: {
         executiveSummary: "فشل في توليد التقرير النهائي",
-        overallAssessment: { narrativeQualityScore: 0, structuralIntegrityScore: 0, characterDevelopmentScore: 0, conflictEffectivenessScore: 0, thematicDepthScore: 0, overallScore: 0, rating: "Needs Work" },
+        overallAssessment: {
+          narrativeQualityScore: 0,
+          structuralIntegrityScore: 0,
+          characterDevelopmentScore: 0,
+          conflictEffectivenessScore: 0,
+          thematicDepthScore: 0,
+          overallScore: 0,
+          rating: "Needs Work",
+        },
         strengthsAnalysis: [],
         weaknessesIdentified: [],
         opportunitiesForImprovement: [],
         threatsToCoherence: [],
         finalRecommendations: { mustDo: [], shouldDo: [], couldDo: [] },
-        audienceResonance: { emotionalImpact: 0, intellectualEngagement: 0, relatability: 0, memorability: 0, viralPotential: 0, primaryResponse: "", secondaryResponses: [], controversialElements: [] },
+        audienceResonance: {
+          emotionalImpact: 0,
+          intellectualEngagement: 0,
+          relatability: 0,
+          memorability: 0,
+          viralPotential: 0,
+          primaryResponse: "",
+          secondaryResponses: [],
+          controversialElements: [],
+        },
         rewritingSuggestions: [],
       },
-      scoreMatrix: { foundation: 0, conceptual: 0, conflictNetwork: 0, efficiency: 0, dynamicSymbolic: 0, diagnostics: 0, overall: 0 },
-      finalConfidence: { overallConfidence: 0, stationConfidences: new Map(), uncertaintyAggregation: { epistemicUncertainties: [], aleatoricUncertainties: [], resolvableIssues: [] } },
-      metadata: { analysisTimestamp: new Date(), totalExecutionTime: 0, stationsCompleted: 0, agentsUsed: [], tokensUsed: 0, modelUsed: "gemini-2.5-pro", status: "Failed" },
+      scoreMatrix: {
+        foundation: 0,
+        conceptual: 0,
+        conflictNetwork: 0,
+        efficiency: 0,
+        dynamicSymbolic: 0,
+        diagnostics: 0,
+        overall: 0,
+      },
+      finalConfidence: {
+        overallConfidence: 0,
+        stationConfidences: new Map(),
+        uncertaintyAggregation: {
+          epistemicUncertainties: [],
+          aleatoricUncertainties: [],
+          resolvableIssues: [],
+        },
+      },
+      metadata: {
+        analysisTimestamp: new Date(),
+        totalExecutionTime: 0,
+        stationsCompleted: 0,
+        agentsUsed: [],
+        tokensUsed: 0,
+        modelUsed: "gemini-2.5-pro",
+        status: "Failed",
+      },
     };
   }
 }

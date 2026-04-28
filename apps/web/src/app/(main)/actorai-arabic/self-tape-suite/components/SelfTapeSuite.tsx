@@ -552,7 +552,9 @@ export const SelfTapeSuite: React.FC = () => {
           setNotesTakeId(snapshot.notesTakeId);
         }
       })
-      .catch(() => { /* empty */ })
+      .catch(() => {
+        /* empty */
+      })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -589,7 +591,9 @@ export const SelfTapeSuite: React.FC = () => {
           comparisonView,
           notesTakeId,
         }
-      ).catch(() => { /* empty */ });
+      ).catch(() => {
+        /* empty */
+      });
     }, 400);
 
     return () => {

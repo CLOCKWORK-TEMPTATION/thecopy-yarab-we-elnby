@@ -105,7 +105,8 @@ export const ADVANCED_AGENTS: readonly BrainstormAgentDefinition[] =
       name: "ChronoContext AI",
       nameAr: "سياق الزمن",
       role: "التحليل الثقافي التاريخي",
-      description: "الوحدة 7 - سياق الزمن الثقافي: محلل سياق ثقافي تاريخي متطور",
+      description:
+        "الوحدة 7 - سياق الزمن الثقافي: محلل سياق ثقافي تاريخي متطور",
       category: "advanced",
       icon: "globe",
       taskType: TaskType.CULTURAL_HISTORICAL_ANALYZER,

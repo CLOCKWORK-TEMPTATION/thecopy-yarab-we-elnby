@@ -7,7 +7,12 @@ import { v4 as uuidv4 } from "uuid";
 
 import { isTrainingCategory } from "./utils";
 import { trainingScenarios, traineeProgress } from "./constants";
-import type { TrainingCategory, TrainingScenario, CompletedScenario, Achievement } from "./types";
+import type {
+  TrainingCategory,
+  TrainingScenario,
+  CompletedScenario,
+  Achievement,
+} from "./types";
 import {
   listScenariosOperation,
   getEquipmentOperation,
@@ -24,12 +29,15 @@ export class CinemaSkillsTrainer implements Plugin {
   name = "Virtual Cinema Skills Trainer";
   nameAr = "المدرب الافتراضي للمهارات السينمائية";
   version = "1.0.0";
-  description = "Interactive VR and AI-powered training platform for cinema skills";
+  description =
+    "Interactive VR and AI-powered training platform for cinema skills";
   descriptionAr = "منصة تدريبية تفاعلية باستخدام VR والذكاء الاصطناعي";
   category = "learning" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized with ${trainingScenarios.length} training scenarios`);
+    console.log(
+      `[${this.name}] Initialized with ${trainingScenarios.length} training scenarios`,
+    );
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {
@@ -67,11 +75,13 @@ export class CinemaSkillsTrainer implements Plugin {
       return { success: false, error: "Scenario not found" };
     }
 
-    const progress = getOrCreateTraineeProgress(data.traineeId, data.traineeName);
-    const relevantEquipment = await import("./constants").then(m => 
+    getOrCreateTraineeProgress(data.traineeId, data.traineeName);
+    const relevantEquipment = await import("./constants").then((m) =>
       m.vrEquipment.filter((e: import("./types").VREquipment) =>
-        scenario.equipment.some((eq) => e.name.toLowerCase().includes(eq.toLowerCase()))
-      )
+        scenario.equipment.some((eq) =>
+          e.name.toLowerCase().includes(eq.toLowerCase()),
+        ),
+      ),
     );
 
     return {
@@ -79,17 +89,23 @@ export class CinemaSkillsTrainer implements Plugin {
       data: {
         scenario: scenario as unknown as Record<string, unknown>,
         vrSessionUrl: `/vr/training/${scenario.id}/${data.traineeId}`,
-        equipment: relevantEquipment.map((e: import("./types").VREquipment) => ({
-          id: e.id,
-          name: e.name,
-          nameAr: e.nameAr,
-          type: e.type,
-        })),
+        equipment: relevantEquipment.map(
+          (e: import("./types").VREquipment) => ({
+            id: e.id,
+            name: e.name,
+            nameAr: e.nameAr,
+            type: e.type,
+          }),
+        ),
         objectives: scenario.objectives,
         estimatedDuration: scenario.duration,
         aiCoach: {
           enabled: scenario.aiAssisted,
-          features: ["real-time-feedback", "mistake-detection", "performance-tips"],
+          features: [
+            "real-time-feedback",
+            "mistake-detection",
+            "performance-tips",
+          ],
         },
         message: "Training scenario started",
         messageAr: "تم بدء سيناريو التدريب",
@@ -114,11 +130,14 @@ export class CinemaSkillsTrainer implements Plugin {
       data: {
         evaluation: result as unknown as Record<string, unknown>,
         passed: result.overallScore >= 70,
-        certificate: result.overallScore >= 85 ? {
-          available: true,
-          name: `${scenario.name} Proficiency`,
-          level: result.overallScore >= 95 ? "distinction" : "proficient",
-        } : null,
+        certificate:
+          result.overallScore >= 85
+            ? {
+                available: true,
+                name: `${scenario.name} Proficiency`,
+                level: result.overallScore >= 95 ? "distinction" : "proficient",
+              }
+            : null,
         message: "Performance evaluated",
         messageAr: "تم تقييم الأداء",
       },
@@ -150,7 +169,11 @@ export class CinemaSkillsTrainer implements Plugin {
     progress.totalTrainingHours += data.timeSpent / 60;
     progress.currentStreak++;
 
-    const { skillIncrease, newSkillLevel } = updateSkillLevel(progress, scenario.category, data.score);
+    const { skillIncrease, newSkillLevel } = updateSkillLevel(
+      progress,
+      scenario.category,
+      data.score,
+    );
 
     const newAchievements: Achievement[] = [];
     if (progress.completedScenarios.length === 1) {
@@ -178,7 +201,11 @@ export class CinemaSkillsTrainer implements Plugin {
       success: true,
       data: {
         completed: completed as unknown as Record<string, unknown>,
-        skillIncrease: { category: scenario.category, increase: skillIncrease, newLevel: newSkillLevel },
+        skillIncrease: {
+          category: scenario.category,
+          increase: skillIncrease,
+          newLevel: newSkillLevel,
+        },
         newAchievements,
         streak: progress.currentStreak,
         message: "Scenario completed",

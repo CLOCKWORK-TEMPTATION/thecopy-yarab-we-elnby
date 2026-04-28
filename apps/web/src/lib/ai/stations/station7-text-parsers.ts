@@ -4,6 +4,7 @@
  */
 
 import { asRecord } from "./station7-score-utils";
+
 import type { AudienceResonance, RewritingSuggestion } from "./station7-types";
 
 // ---------------------------------------------------------------------------
@@ -18,11 +19,13 @@ export function extractText(content: unknown): string {
     if (typeof record["text"] === "string") return record["text"];
     if (typeof record["report"] === "string") return record["report"];
     if (content === null || content === undefined) return "";
-    if (typeof content === "number" || typeof content === "boolean") return String(content);
+    if (typeof content === "number" || typeof content === "boolean")
+      return String(content);
     return "";
   }
   if (content === null || content === undefined) return "";
-  if (typeof content === "number" || typeof content === "boolean") return String(content);
+  if (typeof content === "number" || typeof content === "boolean")
+    return String(content);
   return "";
 }
 
@@ -74,7 +77,9 @@ export function parseStructuredText(text: string): {
 // Audience resonance parser
 // ---------------------------------------------------------------------------
 
-export function parseAudienceResonance(text: string): Partial<AudienceResonance> {
+export function parseAudienceResonance(
+  text: string
+): Partial<AudienceResonance> {
   const result: Partial<AudienceResonance> = {
     secondaryResponses: [],
     controversialElements: [],
@@ -109,9 +114,15 @@ export function parseAudienceResonance(text: string): Partial<AudienceResonance>
       currentSection = "controversial";
     } else if (trimmed.startsWith("-")) {
       const item = trimmed.substring(1).trim();
-      if (currentSection === "secondary" && item) result.secondaryResponses!.push(item);
-      else if (currentSection === "controversial" && item) result.controversialElements!.push(item);
-    } else if (currentSection === "primary" && trimmed && !trimmed.includes(":")) {
+      if (currentSection === "secondary" && item)
+        result.secondaryResponses!.push(item);
+      else if (currentSection === "controversial" && item)
+        result.controversialElements!.push(item);
+    } else if (
+      currentSection === "primary" &&
+      trimmed &&
+      !trimmed.includes(":")
+    ) {
       result.primaryResponse = trimmed;
     }
   }
@@ -128,7 +139,10 @@ export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
   const blocks = text.split("---").filter((b) => b.trim());
 
   for (const block of blocks) {
-    const lines = block.split("\n").map((l) => l.trim()).filter((l) => l);
+    const lines = block
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l);
     const suggestion: Partial<RewritingSuggestion> = {};
 
     for (const line of lines) {
@@ -155,7 +169,11 @@ export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
       }
     }
 
-    if (suggestion.location && suggestion.currentIssue && suggestion.suggestedRewrite) {
+    if (
+      suggestion.location &&
+      suggestion.currentIssue &&
+      suggestion.suggestedRewrite
+    ) {
       suggestions.push(suggestion as RewritingSuggestion);
     }
   }

@@ -111,7 +111,6 @@
     }
   },
   "scripts": {
-    "check:line-budget": "node scripts/check-file-line-budget.mjs",
     "agent:bootstrap": "tsx scripts/agent/bootstrap.ts",
     "agent:guard:start": "tsx scripts/agent/guard.ts --phase=start",
     "agent:guard:step": "tsx scripts/agent/guard.ts --phase=step",
@@ -170,6 +169,9 @@
     "test:strict": "pnpm run test && pnpm run prepush:verify",
     "guard:staged": "node scripts/quality/guard-staged.mjs",
     "guard:budgets": "node scripts/quality/guard-budgets.mjs",
+    "list-new-violations": "node scripts/quality/list-new-violations.mjs",
+    "list-new-violations:web": "node scripts/quality/list-new-violations.mjs --project=web",
+    "list-new-violations:backend": "node scripts/quality/list-new-violations.mjs --project=backend",
     "lint": "turbo lint",
     "lint:strict": "pnpm run lint && pnpm run check:exports",
     "type-check": "turbo type-check",

@@ -1,6 +1,8 @@
 import React from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
 
 export interface VolumeIndicatorProps {
@@ -25,8 +27,8 @@ export const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
                   volume.current > 0.8
                     ? "bg-red-500"
                     : volume.current > 0.4
-                    ? "bg-green-500"
-                    : "bg-blue-500"
+                      ? "bg-green-500"
+                      : "bg-blue-500"
                 }`}
                 style={{ width: `${volume.current * 100}%` }}
               />
@@ -47,8 +49,8 @@ export const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
                 volume.label === "مناسب"
                   ? "bg-green-500/20 text-green-300"
                   : volume.label === "مرتفع جداً"
-                  ? "bg-red-500/20 text-red-300"
-                  : "bg-blue-500/20 text-blue-300"
+                    ? "bg-red-500/20 text-red-300"
+                    : "bg-blue-500/20 text-blue-300"
               }`}
             >
               {volume.label}

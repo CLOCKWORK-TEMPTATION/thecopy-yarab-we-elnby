@@ -2,6 +2,7 @@
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Button } from "@/components/ui/button";
+
 import type { StudioView } from "../../types/studio";
 
 interface StudioHeaderProps {

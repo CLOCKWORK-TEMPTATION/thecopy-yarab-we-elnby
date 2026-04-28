@@ -1,5 +1,9 @@
+import {
+  createLineItem,
+  createCategory,
+  createSection,
+} from "./budget-helpers";
 import { Budget } from "./types";
-import { createLineItem, createCategory, createSection } from "./budget-helpers";
 
 // Above The Line Section
 const aboveTheLineSection = createSection(
@@ -213,10 +217,33 @@ export const INITIAL_BUDGET_TEMPLATE: Budget = {
     locations: [],
     genre: "",
   },
-  sections: [aboveTheLineSection, productionSection, cameraSection, postSection],
+  sections: [
+    aboveTheLineSection,
+    productionSection,
+    cameraSection,
+    postSection,
+  ],
 };
 
 // Additional constants
-export const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY", "AED", "SAR"] as const;
+export const CURRENCIES = [
+  "USD",
+  "EUR",
+  "GBP",
+  "CAD",
+  "AUD",
+  "JPY",
+  "AED",
+  "SAR",
+] as const;
 
-export const UNITS = ["Flat", "Day", "Week", "Month", "Hour", "Page", "Shot", "Unit"] as const;
+export const UNITS = [
+  "Flat",
+  "Day",
+  "Week",
+  "Month",
+  "Hour",
+  "Page",
+  "Shot",
+  "Unit",
+] as const;

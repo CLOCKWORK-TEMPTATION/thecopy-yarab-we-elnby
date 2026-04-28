@@ -1,8 +1,6 @@
 // Pure per-frame helpers for the optimized particle animation.
 // Shared between particle-background-optimized variants.
 
-import type * as THREE from "three";
-
 import {
   applyDefaultEffect,
   applySparkEffect,
@@ -14,6 +12,9 @@ import {
   type ParticlePosition,
   type ParticleVelocity,
 } from "@/components/particle-effects";
+
+import type * as THREE from "three";
+
 
 export type ParticleEffect = "default" | "spark" | "wave" | "vortex";
 
@@ -99,7 +100,12 @@ export const calculateParticleColor = (
     return calculateWaveColor(position, intersectionPoint, effectRadius, time);
   }
   if (effect === "vortex") {
-    return calculateVortexColor(position, intersectionPoint, effectRadius, time);
+    return calculateVortexColor(
+      position,
+      intersectionPoint,
+      effectRadius,
+      time
+    );
   }
 
   return { r: 1, g: 1, b: 1 };

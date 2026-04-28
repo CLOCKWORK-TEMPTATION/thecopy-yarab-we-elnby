@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Sparkles,
   Copy,
@@ -11,6 +10,7 @@ import {
   Lightbulb,
   ChevronRight,
 } from "lucide-react";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,8 +75,8 @@ export function PromptEditor({
                 {prompt.length} حرف
               </span>
               <span className="flex items-center gap-1">
-                <Zap className="h-4 w-4" />~
-                {Math.ceil(prompt.length / 4)} tokens
+                <Zap className="h-4 w-4" />~{Math.ceil(prompt.length / 4)}{" "}
+                tokens
               </span>
             </div>
             <Button

@@ -1,16 +1,16 @@
-import { createHash } from 'node:crypto';
-import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import type { Request } from 'express';
+import { createHash } from "node:crypto";
 
-import { getBearerToken } from './utils';
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+
+import { getBearerToken } from "./utils";
 
 export const publicAuthLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`,
-  message: { success: false, error: 'تم تجاوز حد محاولات المصادقة' },
+  keyGenerator: (req) => `ip:${ipKeyGenerator(req.ip ?? "unknown")}`,
+  message: { success: false, error: "تم تجاوز حد محاولات المصادقة" },
 });
 
 export const protectedLimiter = rateLimit({
@@ -21,12 +21,12 @@ export const protectedLimiter = rateLimit({
   keyGenerator: (req) => {
     const token = getBearerToken(req);
     if (token) {
-      const tokenHash = createHash('sha256').update(token).digest('hex');
+      const tokenHash = createHash("sha256").update(token).digest("hex");
       return `token:${tokenHash}`;
     }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
+    return `ip:${ipKeyGenerator(req.ip ?? "unknown")}`;
   },
-  message: { success: false, error: 'تم تجاوز حد طلبات الخدمة' },
+  message: { success: false, error: "تم تجاوز حد طلبات الخدمة" },
 });
 
 export const runnerLocationLimiter = rateLimit({
@@ -37,11 +37,11 @@ export const runnerLocationLimiter = rateLimit({
   keyGenerator: (req) => {
     const token = getBearerToken(req);
     if (token) {
-      return `token:${createHash('sha256').update(token).digest('hex')}`;
+      return `token:${createHash("sha256").update(token).digest("hex")}`;
     }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
+    return `ip:${ipKeyGenerator(req.ip ?? "unknown")}`;
   },
-  message: { success: false, error: 'تم تجاوز حد تحديثات الموقع' },
+  message: { success: false, error: "تم تجاوز حد تحديثات الموقع" },
 });
 
 export const adminWriteLimiter = rateLimit({
@@ -52,9 +52,9 @@ export const adminWriteLimiter = rateLimit({
   keyGenerator: (req) => {
     const token = getBearerToken(req);
     if (token) {
-      return `token:${createHash('sha256').update(token).digest('hex')}`;
+      return `token:${createHash("sha256").update(token).digest("hex")}`;
     }
-    return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
+    return `ip:${ipKeyGenerator(req.ip ?? "unknown")}`;
   },
-  message: { success: false, error: 'تم تجاوز حد الكتابة الإدارية' },
+  message: { success: false, error: "تم تجاوز حد الكتابة الإدارية" },
 });

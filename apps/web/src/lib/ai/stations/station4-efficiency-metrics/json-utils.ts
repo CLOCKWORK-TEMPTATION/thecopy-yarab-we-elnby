@@ -22,9 +22,7 @@ export function sanitizeRecommendationList(value: unknown): string[] {
     .filter(Boolean);
 }
 
-export function hasCompleteMetricSet(
-  parsed: Record<string, unknown>
-): boolean {
+export function hasCompleteMetricSet(parsed: Record<string, unknown>): boolean {
   return [
     "efficiencyMetrics",
     "qualityAssessment",
@@ -39,8 +37,7 @@ export function countRecommendationItems(value: unknown): number {
   }
 
   return ["priorityActions", "quickFixes", "structuralRevisions"].reduce(
-    (total, key) =>
-      total + sanitizeRecommendationList(value[key]).length,
+    (total, key) => total + sanitizeRecommendationList(value[key]).length,
     0
   );
 }

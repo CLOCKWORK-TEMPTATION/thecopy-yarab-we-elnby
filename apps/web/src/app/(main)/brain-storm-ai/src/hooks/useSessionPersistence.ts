@@ -221,7 +221,9 @@ export function useSessionPersistence() {
 
         setSavedSessions(nextStore.sessions);
       })
-      .catch(() => { /* empty */ })
+      .catch(() => {
+        /* empty */
+      })
       .finally(() => {
         if (!cancelled) {
           setIsLoaded(true);
@@ -269,7 +271,9 @@ export function useSessionPersistence() {
 
       writeStore(store);
       setSavedSessions([...store.sessions]);
-      void persistRemoteStore(store).catch(() => { /* empty */ });
+      void persistRemoteStore(store).catch(() => {
+        /* empty */
+      });
     },
     []
   );
@@ -282,7 +286,9 @@ export function useSessionPersistence() {
     store.sessions = store.sessions.filter((s) => s.session.id !== sessionId);
     writeStore(store);
     setSavedSessions([...store.sessions]);
-    void persistRemoteStore(store).catch(() => { /* empty */ });
+    void persistRemoteStore(store).catch(() => {
+      /* empty */
+    });
   }, []);
 
   /**
@@ -309,7 +315,9 @@ export function useSessionPersistence() {
         currentSessionId: null,
         version: 1,
       }
-    ).catch(() => { /* empty */ });
+    ).catch(() => {
+      /* empty */
+    });
   }, []);
 
   /**
@@ -331,7 +339,9 @@ export function useSessionPersistence() {
         currentSessionId: id,
         version: store.version,
       }
-    ).catch(() => { /* empty */ });
+    ).catch(() => {
+      /* empty */
+    });
   }, []);
 
   /**

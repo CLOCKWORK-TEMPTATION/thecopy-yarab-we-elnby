@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Aperture,
-  Circle,
-  Move,
-  RotateCcw,
-  Sparkles,
-  ZoomIn,
-} from "lucide-react";
+import { Aperture, Move, RotateCcw, Sparkles, ZoomIn } from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,174 +18,21 @@ import { cn } from "@/lib/utils";
 import SliderNumberInput from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
-interface LensPreset {
-  id: string;
-  name: string;
-  nameAr: string;
-  brand: string;
-  focalLength: number;
-  maxAperture: number;
-  characteristics: string[];
-  famousFilms?: string[];
-}
+import {
+  DEFAULT_LENS_SETTINGS,
+  LENS_PRESETS,
+} from "./lens-simulator/constants";
+import { LensViewport } from "./lens-simulator/LensViewport";
+import {
+  calculateFOV,
+  getLensType,
+  getPresetDistortion,
+} from "./lens-simulator/utils";
 
-interface LensSettings {
-  focalLength: number;
-  aperture: number;
-  distortion: number;
-  showBokeh: boolean;
-  isAnamorphic: boolean;
-  selectedPreset: string | null;
-}
-
-interface LensSimulatorToolProps {
-  className?: string;
-  onLensChange?: (lens: {
-    focalLength: number;
-    aperture: number;
-    distortion: number;
-  }) => void;
-}
-
-const DEFAULT_LENS_SETTINGS: LensSettings = {
-  focalLength: 50,
-  aperture: 2.8,
-  distortion: 0,
-  showBokeh: true,
-  isAnamorphic: false,
-  selectedPreset: null,
-};
-
-const LENS_PRESETS: LensPreset[] = [
-  {
-    id: "cooke-s4",
-    name: "Cooke S4/i",
-    nameAr: "كوك S4",
-    brand: "Cooke",
-    focalLength: 50,
-    maxAperture: 2.0,
-    characteristics: ["Warm tones", "Soft highlights", "Gentle bokeh"],
-    famousFilms: ["The King's Speech", "Gravity"],
-  },
-  {
-    id: "zeiss-master-prime",
-    name: "Zeiss Master Prime",
-    nameAr: "زايس ماستر برايم",
-    brand: "Zeiss",
-    focalLength: 35,
-    maxAperture: 1.4,
-    characteristics: [
-      "Clinical sharpness",
-      "Minimal distortion",
-      "Clean bokeh",
-    ],
-    famousFilms: ["Skyfall", "Inglourious Basterds"],
-  },
-  {
-    id: "panavision-primo",
-    name: "Panavision Primo",
-    nameAr: "بانافيجن بريمو",
-    brand: "Panavision",
-    focalLength: 75,
-    maxAperture: 1.9,
-    characteristics: ["Rich colors", "Smooth focus fall-off", "Classic look"],
-    famousFilms: ["The Dark Knight", "Inception"],
-  },
-  {
-    id: "arri-signature",
-    name: "ARRI Signature Prime",
-    nameAr: "آري سيجنتشر",
-    brand: "ARRI",
-    focalLength: 40,
-    maxAperture: 1.8,
-    characteristics: [
-      "Modern rendering",
-      "Pleasing skin tones",
-      "Large coverage",
-    ],
-    famousFilms: ["1917", "Joker"],
-  },
-  {
-    id: "anamorphic-hawk",
-    name: "Hawk V-Lite Anamorphic",
-    nameAr: "هوك أنامورفيك",
-    brand: "Vantage",
-    focalLength: 50,
-    maxAperture: 2.2,
-    characteristics: ["Horizontal flares", "Oval bokeh", "2.39:1 aspect"],
-    famousFilms: ["La La Land", "Blade Runner 2049"],
-  },
-  {
-    id: "vintage-super-baltar",
-    name: "Super Baltar",
-    nameAr: "سوبر بالتار",
-    brand: "Bausch & Lomb",
-    focalLength: 25,
-    maxAperture: 2.0,
-    characteristics: ["Vintage character", "Soft edges", "Warm flares"],
-    famousFilms: ["The Godfather", "Apocalypse Now"],
-  },
-];
-
-function calculateFOV(focalLength: number, sensorWidth = 36): number {
-  return 2 * Math.atan(sensorWidth / (2 * focalLength)) * (180 / Math.PI);
-}
-
-function getLensType(focalLength: number): {
-  type: string;
-  typeAr: string;
-  description: string;
-} {
-  if (focalLength <= 20) {
-    return {
-      type: "Ultra Wide",
-      typeAr: "عريضة جداً",
-      description: "مثالية للمناظر الطبيعية والمساحات الضيقة",
-    };
-  }
-
-  if (focalLength <= 35) {
-    return {
-      type: "Wide",
-      typeAr: "عريضة",
-      description: "ممتازة للمشاهد الواسعة والبيئات",
-    };
-  }
-
-  if (focalLength <= 60) {
-    return {
-      type: "Standard",
-      typeAr: "قياسية",
-      description: "تحاكي رؤية العين البشرية",
-    };
-  }
-
-  if (focalLength <= 100) {
-    return {
-      type: "Portrait",
-      typeAr: "بورتريه",
-      description: "مثالية للوجوه والتفاصيل",
-    };
-  }
-
-  return {
-    type: "Telephoto",
-    typeAr: "تيليفوتو",
-    description: "ضغط المسافات والعزل",
-  };
-}
-
-function getPresetDistortion(presetId: string): number {
-  if (presetId.includes("vintage")) {
-    return 5;
-  }
-
-  if (presetId.includes("anamorphic")) {
-    return 8;
-  }
-
-  return 0;
-}
+import type {
+  LensSettings,
+  LensSimulatorToolProps,
+} from "./lens-simulator/types";
 
 export function LensSimulatorTool({
   className,
@@ -540,92 +380,6 @@ export function LensSimulatorTool({
         </div>
       </div>
     </TooltipProvider>
-  );
-}
-
-function LensViewport({
-  title,
-  titleAr,
-  aspectClassName,
-  settings,
-  fov,
-  distortion,
-  highlighted = false,
-}: {
-  title: string;
-  titleAr: string;
-  aspectClassName: string;
-  settings: LensSettings;
-  fov: number;
-  distortion: number;
-  highlighted?: boolean;
-}) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-end justify-between">
-        <h3 className="text-sm font-semibold text-[#f6cf72]">
-          {title} / {titleAr}
-        </h3>
-        <p className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]">
-          {fov.toFixed(1)}°
-        </p>
-      </div>
-
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-[10px] border bg-[#050505]",
-          aspectClassName,
-          highlighted ? "border-[#73572a]" : "border-[#343434]"
-        )}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(229,181,79,0.16),transparent_26%),linear-gradient(135deg,#0d0d0d_0%,#040404_55%,#17120c_100%)]" />
-        <div
-          className="absolute inset-[11%] border border-[#e5b54f]/30 transition-all"
-          style={{
-            transform: `scale(${Math.min(1.2, Math.max(0.56, fov / 92))})`,
-            borderRadius: `${distortion * 2}%`,
-          }}
-        >
-          <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[#e5b54f]/25" />
-          <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-[#e5b54f]/25" />
-        </div>
-
-        {settings.showBokeh ? (
-          <>
-            {[0, 1, 2, 3].map((index) => (
-              <div
-                key={`${title}-bokeh-${index}`}
-                className="absolute rounded-full bg-[#f6cf72]/20 blur-md"
-                style={{
-                  width: `${28 + index * 18}px`,
-                  height: settings.isAnamorphic
-                    ? `${16 + index * 10}px`
-                    : `${28 + index * 18}px`,
-                  left: `${18 + index * 15}%`,
-                  top: `${18 + index * 12}%`,
-                }}
-              />
-            ))}
-          </>
-        ) : null}
-
-        {settings.isAnamorphic || highlighted ? (
-          <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent blur-sm" />
-        ) : null}
-
-        <div className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#e5b54f]/40">
-          <Circle className="h-5 w-5 text-[#e5b54f]/50" />
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-[#262626] bg-black/70 px-4 py-3 text-[10px] uppercase tracking-[0.24em] text-[#e8dab3]">
-          <span>{settings.focalLength}mm</span>
-          <span>f/{settings.aperture.toFixed(1)}</span>
-          <span>
-            {settings.isAnamorphic || highlighted ? "2.39:1" : "1.85:1"}
-          </span>
-        </div>
-      </div>
-    </div>
   );
 }
 

@@ -9,7 +9,11 @@ import { analyzeDialogue } from "./analyzers/dialogue";
 import { generateLogline } from "./analyzers/logline";
 import { analyzeNarrativeStyle } from "./analyzers/narrative-style";
 import { analyzeVoices } from "./analyzers/voices";
-import { AGENTS_USED, getDefaultDialogueMetrics, getDefaultVoiceAnalysis } from "./defaults";
+import {
+  AGENTS_USED,
+  getDefaultDialogueMetrics,
+  getDefaultVoiceAnalysis,
+} from "./defaults";
 import { calculateTextStatistics, chunkText } from "./text-utils";
 import { buildUncertaintyReport } from "./uncertainty";
 

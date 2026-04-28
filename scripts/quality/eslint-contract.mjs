@@ -1,9 +1,19 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { enforceBaselineUpdatePolicy } from "./baseline-update-policy.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const baselinePath = resolve(repoRoot, "scripts/quality/baselines/eslint.json");
@@ -12,10 +22,13 @@ const args = process.argv.slice(2);
 const updateBaseline = args.includes("--update-baseline");
 const projectArg = args.find((arg) => arg.startsWith("--project="));
 const project = projectArg?.slice("--project=".length);
+const limitArg = args.find((arg) => arg.startsWith("--limit="));
+const reportLimit = limitArg ? Number(limitArg.slice("--limit=".length)) : 50;
 const targetArgs = args
   .filter((arg) => arg.startsWith("--target="))
   .map((arg) => arg.slice("--target=".length))
   .filter(Boolean);
+const baselineReview = enforceBaselineUpdatePolicy(args, "eslint-contract");
 
 const projects = {
   web: {
@@ -79,13 +92,23 @@ const projects = {
 };
 
 if (!project || !projects[project]) {
-  console.error("Usage: node scripts/quality/eslint-contract.mjs --project=web|backend [--update-baseline]");
+  console.error(
+    "Usage: node scripts/quality/eslint-contract.mjs --project=web|backend [--limit=N] [--update-baseline --reviewed-by=<human> --review-ref=<ticket-or-pr>]",
+  );
+  process.exit(2);
+}
+
+if (!Number.isFinite(reportLimit) || reportLimit < 1) {
+  console.error("[eslint-contract] --limit must be a positive number.");
   process.exit(2);
 }
 
 const eslintBin = resolve(repoRoot, "node_modules/eslint/bin/eslint.js");
 const config = projects[project];
-const targets = targetArgs.length > 0 ? targetArgs : (config.targets ?? config.discoverTargets(config.root));
+const targets =
+  targetArgs.length > 0
+    ? targetArgs
+    : (config.targets ?? config.discoverTargets(config.root));
 
 function readBaseline() {
   if (!existsSync(baselinePath)) {
@@ -128,7 +151,10 @@ function createBackendLintProject(target) {
   }
 
   const safeName = target.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 120);
-  const tempConfig = resolve(config.root, `.tsconfig.eslint-contract.${process.pid}.${safeName}.json`);
+  const tempConfig = resolve(
+    config.root,
+    `.tsconfig.eslint-contract.${process.pid}.${safeName}.json`,
+  );
   const isFile = /\.[cm]?[jt]sx?$/.test(target);
   const include = [
     "src/global.d.ts",
@@ -249,7 +275,12 @@ baseline[project] ??= {};
 if (updateBaseline) {
   baseline[project] = current;
   writeBaseline(baseline);
-  console.log(`[eslint-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`);
+  console.log(
+    `[eslint-contract] ${project}: baseline update reviewed by ${baselineReview.reviewedBy} (${baselineReview.reviewRef}).`,
+  );
+  console.log(
+    `[eslint-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`,
+  );
   process.exit(0);
 }
 
@@ -284,13 +315,15 @@ console.log(
 
 if (newViolations.length > 0) {
   console.error(`[eslint-contract] ${project}: new lint violations detected.`);
-  for (const item of newViolations.slice(0, 50)) {
+  for (const item of newViolations.slice(0, reportLimit)) {
     console.error(`  ${item.count - item.allowed} new: ${item.key}`);
   }
-  if (newViolations.length > 50) {
-    console.error(`  ...and ${newViolations.length - 50} more.`);
+  if (newViolations.length > reportLimit) {
+    console.error(`  ...and ${newViolations.length - reportLimit} more.`);
   }
   process.exit(1);
 }
 
-console.log(`[eslint-contract] ${project}: no new lint violations above baseline.`);
+console.log(
+  `[eslint-contract] ${project}: no new lint violations above baseline.`,
+);

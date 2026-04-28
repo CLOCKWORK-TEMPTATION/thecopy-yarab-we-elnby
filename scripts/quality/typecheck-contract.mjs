@@ -1,18 +1,35 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { enforceBaselineUpdatePolicy } from "./baseline-update-policy.mjs";
+
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const baselinePath = resolve(repoRoot, "scripts/quality/baselines/typecheck.json");
+const baselinePath = resolve(
+  repoRoot,
+  "scripts/quality/baselines/typecheck.json",
+);
 const tscPath = resolve(repoRoot, "node_modules/typescript/lib/tsc.js");
 
 const args = process.argv.slice(2);
 const updateBaseline = args.includes("--update-baseline");
+const fullMode = args.includes("--full");
 const projectArg = args.find((arg) => arg.startsWith("--project="));
 const project = projectArg?.slice("--project=".length);
+const limitArg = args.find((arg) => arg.startsWith("--limit="));
+const reportLimit = limitArg ? Number(limitArg.slice("--limit=".length)) : 50;
+const baselineReview = enforceBaselineUpdatePolicy(args, "typecheck-contract");
 
 const projects = {
   web: {
@@ -20,7 +37,15 @@ const projects = {
     command(root) {
       return {
         cwd: root,
-        args: ["--max-old-space-size=8192", tscPath, "-p", "tsconfig.check.json", "--noEmit", "--pretty", "false"],
+        args: [
+          "--max-old-space-size=8192",
+          tscPath,
+          "-p",
+          "tsconfig.check.json",
+          "--noEmit",
+          "--pretty",
+          "false",
+        ],
       };
     },
   },
@@ -32,16 +57,25 @@ const projects = {
       for (const entry of readdirSync(src)) {
         const full = resolve(src, entry);
         if (statSync(full).isDirectory()) {
-          chunks.push({ name: `src-${entry}`, include: [`src/${entry}/**/*.ts`, `src/${entry}/**/*.tsx`] });
+          chunks.push({
+            name: `src-${entry}`,
+            include: [`src/${entry}/**/*.ts`, `src/${entry}/**/*.tsx`],
+          });
         } else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) {
-          chunks.push({ name: entry.replace(/[^a-zA-Z0-9_-]/g, "-"), files: [`src/${entry}`] });
+          chunks.push({
+            name: entry.replace(/[^a-zA-Z0-9_-]/g, "-"),
+            files: [`src/${entry}`],
+          });
         }
       }
 
       for (const entry of ["scripts", "agents", "examples"]) {
         const full = resolve(root, entry);
         if (existsSync(full) && statSync(full).isDirectory()) {
-          chunks.push({ name: entry, include: [`${entry}/**/*.ts`, `${entry}/**/*.tsx`] });
+          chunks.push({
+            name: entry,
+            include: [`${entry}/**/*.ts`, `${entry}/**/*.tsx`],
+          });
         }
       }
 
@@ -55,7 +89,19 @@ const projects = {
 };
 
 if (!project || !projects[project]) {
-  console.error("Usage: node scripts/quality/typecheck-contract.mjs --project=web|backend [--update-baseline]");
+  console.error(
+    "Usage: node scripts/quality/typecheck-contract.mjs --project=web|backend [--full] [--limit=N] [--update-baseline --reviewed-by=<human> --review-ref=<ticket-or-pr>]",
+  );
+  process.exit(2);
+}
+
+if (fullMode && project !== "backend") {
+  console.error("[typecheck-contract] --full is only supported for backend.");
+  process.exit(2);
+}
+
+if (!Number.isFinite(reportLimit) || reportLimit < 1) {
+  console.error("[typecheck-contract] --limit must be a positive number.");
   process.exit(2);
 }
 
@@ -87,7 +133,10 @@ function parseTypeScriptErrors(output) {
     }
 
     const [, rawFile, , , code, message] = match;
-    const file = relative(repoRoot, resolve(projects[project].root, rawFile)).replaceAll("\\", "/");
+    const file = relative(
+      repoRoot,
+      resolve(projects[project].root, rawFile),
+    ).replaceAll("\\", "/");
     const key = `${file}|${code}|${message}`;
     addCount(counts, key);
     parsed += 1;
@@ -115,10 +164,27 @@ function runWeb() {
 
 function runBackend() {
   const root = projects.backend.root;
+  if (fullMode) {
+    return [
+      runCommand(root, [
+        "--max-old-space-size=8192",
+        tscPath,
+        "-p",
+        "tsconfig.check.json",
+        "--noEmit",
+        "--pretty",
+        "false",
+      ]),
+    ];
+  }
+
   const results = [];
 
   for (const chunk of projects.backend.chunks(root)) {
-    const tempConfig = resolve(root, `.tsconfig.contract.${process.pid}.${chunk.name}.json`);
+    const tempConfig = resolve(
+      root,
+      `.tsconfig.contract.${process.pid}.${chunk.name}.json`,
+    );
     const include = [
       "src/global.d.ts",
       "src/env.d.ts",
@@ -151,7 +217,10 @@ function runBackend() {
       "false",
     ]);
     rmSync(tempConfig, { force: true });
-    rmSync(resolve(root, `.tsbuildinfo.contract.${process.pid}.${chunk.name}`), { force: true });
+    rmSync(
+      resolve(root, `.tsbuildinfo.contract.${process.pid}.${chunk.name}`),
+      { force: true },
+    );
     results.push(result);
   }
 
@@ -186,7 +255,12 @@ baseline[project] ??= {};
 if (updateBaseline) {
   baseline[project] = current;
   writeBaseline(baseline);
-  console.log(`[typecheck-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`);
+  console.log(
+    `[typecheck-contract] ${project}: baseline update reviewed by ${baselineReview.reviewedBy} (${baselineReview.reviewRef}).`,
+  );
+  console.log(
+    `[typecheck-contract] ${project}: baseline updated with ${Object.keys(current).length} fingerprints.`,
+  );
   process.exit(0);
 }
 
@@ -199,17 +273,23 @@ for (const [key, count] of Object.entries(current)) {
   }
 }
 
-console.log(`[typecheck-contract] ${project}: ${parsedErrors} TypeScript errors detected.`);
+console.log(
+  `[typecheck-contract] ${project}: ${parsedErrors} TypeScript errors detected.`,
+);
 
 if (newViolations.length > 0) {
-  console.error(`[typecheck-contract] ${project}: new TypeScript errors detected.`);
-  for (const item of newViolations.slice(0, 50)) {
+  console.error(
+    `[typecheck-contract] ${project}: new TypeScript errors detected.`,
+  );
+  for (const item of newViolations.slice(0, reportLimit)) {
     console.error(`  ${item.count - item.allowed} new: ${item.key}`);
   }
-  if (newViolations.length > 50) {
-    console.error(`  ...and ${newViolations.length - 50} more.`);
+  if (newViolations.length > reportLimit) {
+    console.error(`  ...and ${newViolations.length - reportLimit} more.`);
   }
   process.exit(1);
 }
 
-console.log(`[typecheck-contract] ${project}: no new TypeScript errors above baseline.`);
+console.log(
+  `[typecheck-contract] ${project}: no new TypeScript errors above baseline.`,
+);

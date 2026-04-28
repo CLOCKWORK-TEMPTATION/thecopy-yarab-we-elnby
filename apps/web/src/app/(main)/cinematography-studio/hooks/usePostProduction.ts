@@ -19,146 +19,29 @@ import { postStudioFormData, postStudioJson } from "../lib/studio-route-client";
 import { ColorTemperatureSchema, ColorPaletteSchema } from "../types";
 
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
+import {
+  DEFAULT_TEMPERATURE,
+  initialColorGradingState,
+  initialEditorialState,
+  initialFootageState,
+  getRecommendedTemperature,
+  REMOTE_ANALYSIS_TIMEOUT_MS,
+} from "./usePostProduction-constants";
+import {
+  type SceneType,
+  type ColorGradingState,
+  type EditorialState,
+  type FootageState,
+  type ColorGradingResponse,
+  type ChatResponse,
+  type ValidateShotResponse,
+} from "./usePostProduction-types";
+import {
+  getExportSettingsForPlatform,
+  normalizeFootageSummary,
+} from "./usePostProduction-utils";
 
-import type {
-  VisualMood,
-  ExportSettings,
-  FootageAnalysisSummary,
-} from "../types";
-
-// ============================================
-// واجهات الحالة الداخلية
-// ============================================
-
-/**
- * نوع المشهد للتدريج اللوني
- */
-type SceneType =
-  | "morning"
-  | "night"
-  | "indoor"
-  | "outdoor"
-  | "happy"
-  | "sad"
-  | null;
-
-/**
- * حالة تدريج الألوان
- */
-interface ColorGradingState {
-  /** نوع المشهد المحدد */
-  sceneType: SceneType;
-  /** درجة حرارة اللون بالكلفن */
-  temperature: number;
-  /** لوحة الألوان المولدة */
-  colorPalette: string[];
-  /** حالة التوليد جارية */
-  isGenerating: boolean;
-}
-
-/**
- * حالة المونتاج
- */
-interface EditorialState {
-  /** ملاحظات المونتاج */
-  notes: string;
-  /** حالة التحليل جارية */
-  isAnalyzing: boolean;
-}
-
-/**
- * حالة تحليل المشاهد
- */
-interface FootageState {
-  /** حالة الرفع جارية */
-  isUploading: boolean;
-  /** رسالة الخطأ */
-  error: string | null;
-  /** ملخص التحليل */
-  summary: FootageAnalysisSummary | null;
-  /** مصدر التحليل الحالي */
-  analysisSource: "remote" | "local-fallback" | null;
-  /** حالة التحليل */
-  analysisStatus: {
-    exposure: "pending" | "analyzing" | "complete";
-    colorConsistency: "pending" | "analyzing" | "complete";
-    focusQuality: "pending" | "analyzing" | "complete";
-    motionBlur: "pending" | "analyzing" | "complete";
-  };
-}
-
-// ============================================
-// الثوابت
-// ============================================
-
-/**
- * درجة الحرارة الافتراضية
- */
-const DEFAULT_TEMPERATURE = 5500;
-
-/**
- * الحالة الابتدائية لتدريج الألوان
- */
-const initialColorGradingState: ColorGradingState = {
-  sceneType: null,
-  temperature: DEFAULT_TEMPERATURE,
-  colorPalette: [],
-  isGenerating: false,
-};
-
-/**
- * الحالة الابتدائية للمونتاج
- */
-const initialEditorialState: EditorialState = {
-  notes: "",
-  isAnalyzing: false,
-};
-
-/**
- * الحالة الابتدائية لتحليل المشاهد
- */
-const initialFootageState: FootageState = {
-  isUploading: false,
-  error: null,
-  summary: null,
-  analysisSource: null,
-  analysisStatus: {
-    exposure: "pending",
-    colorConsistency: "pending",
-    focusQuality: "pending",
-    motionBlur: "pending",
-  },
-};
-
-interface ColorGradingResponse {
-  success?: boolean;
-  palette?: string[];
-}
-
-interface ChatResponse {
-  success?: boolean;
-  data?: {
-    response?: string;
-  };
-}
-
-interface ValidateShotResponse {
-  success?: boolean;
-  validation?: {
-    score?: number;
-    status?: string;
-    exposure?: string;
-    composition?: string;
-    focus?: string;
-    colorBalance?: string;
-    suggestions?: string[];
-    improvements?: string[];
-  };
-}
-
-// ============================================
-// الـ Hook الرئيسي
-// ============================================
+import type { VisualMood, ExportSettings } from "../types";
 
 /**
  * Hook مخصص لإدارة أدوات ما بعد الإنتاج
@@ -184,10 +67,6 @@ interface ValidateShotResponse {
  * @returns كائن يحتوي على الحالة والدوال المساعدة
  */
 export function usePostProduction(mood: VisualMood = "noir") {
-  // ============================================
-  // الحالة
-  // ============================================
-
   const [colorGrading, setColorGrading] = useState<ColorGradingState>(
     initialColorGradingState
   );
@@ -200,14 +79,8 @@ export function usePostProduction(mood: VisualMood = "noir") {
   );
   const mediaInput = useMediaInputPipeline("image");
 
-  // ============================================
-  // دوال تدريج الألوان
-  // ============================================
-
   /**
    * تحديث نوع المشهد
-   *
-   * @param sceneType - نوع المشهد الجديد
    */
   const setSceneType = useCallback((sceneType: SceneType) => {
     setColorGrading((prev) => ({
@@ -218,13 +91,10 @@ export function usePostProduction(mood: VisualMood = "noir") {
 
   /**
    * تحديث درجة حرارة اللون
-   *
-   * @param value - القيمة الجديدة
    */
   const setTemperature = useCallback((value: number[]) => {
     const temperature = value[0] ?? DEFAULT_TEMPERATURE;
 
-    // التحقق من صحة القيمة
     const validation = ColorTemperatureSchema.safeParse(temperature);
     if (!validation.success) {
       toast.error(validation.error.errors[0]?.message ?? "قيمة غير صالحة");
@@ -239,11 +109,6 @@ export function usePostProduction(mood: VisualMood = "noir") {
 
   /**
    * توليد لوحة الألوان
-   *
-   * تقوم هذه الدالة بتوليد لوحة ألوان مناسبة بناءً على:
-   * - المود البصري للمشروع
-   * - نوع المشهد المحدد
-   * - درجة حرارة اللون
    */
   const generateColorPalette = useCallback(async () => {
     try {
@@ -254,7 +119,6 @@ export function usePostProduction(mood: VisualMood = "noir") {
 
       toast.loading("جاري توليد لوحة الألوان...", { id: "palette" });
 
-      // استدعاء API لتوليد لوحة الألوان
       const data = await postStudioJson<ColorGradingResponse>(
         "/api/cineai/color-grading",
         {
@@ -265,7 +129,6 @@ export function usePostProduction(mood: VisualMood = "noir") {
       );
       const palette = data.palette ?? [];
 
-      // التحقق من صحة اللوحة
       const validation = ColorPaletteSchema.safeParse(palette);
       if (!validation.success) {
         throw new Error("فشل في توليد لوحة الألوان");
@@ -291,14 +154,8 @@ export function usePostProduction(mood: VisualMood = "noir") {
     }
   }, [mood, colorGrading.sceneType, colorGrading.temperature]);
 
-  // ============================================
-  // دوال المونتاج
-  // ============================================
-
   /**
    * تحديث ملاحظات المونتاج
-   *
-   * @param notes - الملاحظات الجديدة
    */
   const setEditorialNotes = useCallback((notes: string) => {
     setEditorial((prev) => ({
@@ -324,7 +181,6 @@ export function usePostProduction(mood: VisualMood = "noir") {
 
       toast.loading("جاري تحليل الإيقاع...", { id: "rhythm" });
 
-      // استدعاء API لتحليل إيقاع المونتاج
       const response = await postStudioJson<ChatResponse>(
         "/api/ai/chat",
         {
@@ -358,22 +214,8 @@ export function usePostProduction(mood: VisualMood = "noir") {
     }
   }, [editorial.notes, mood]);
 
-  // ============================================
-  // دوال تحليل المشاهد
-  // ============================================
-
-  /**
-   * حد المهلة لمسار التحليل البعيد (ms).
-   * يجب أن يسبق مهلة الاختبار الطرفي بهامش آمن.
-   */
-  const REMOTE_ANALYSIS_TIMEOUT_MS = 12_000;
-
   /**
    * تحليل المشاهد المرفوعة — مسار متوازٍ
-   *
-   * يبدأ الطلب البعيد والبديل المحلي معًا.
-   * إذا عاد التحليل البعيد بنتيجة صالحة قبل المهلة يُعتمد كمصدر نهائي.
-   * إذا تأخر أو فشل أو أعاد حمولة غير صالحة يُثبَّت الملخص المحلي فورًا.
    */
   const analyzeFootage = useCallback(
     async (file: File) => {
@@ -396,12 +238,10 @@ export function usePostProduction(mood: VisualMood = "noir") {
         },
       }));
 
-      // تجهيز البديل المحلي بالتوازي من اللحظة الأولى
       const localPromise = createLocalFootageSummary(file, mood).catch(
         () => null
       );
 
-      // الطلب البعيد مع مهلة واضحة
       const formData = new FormData();
       formData.set("image", file);
 
@@ -455,7 +295,6 @@ export function usePostProduction(mood: VisualMood = "noir") {
         return;
       }
 
-      // كلا المسارين فشلا
       setFootage((prev) => ({
         ...prev,
         analysisSource: null,
@@ -512,14 +351,8 @@ export function usePostProduction(mood: VisualMood = "noir") {
     [analyzeFootage, mediaInput.state.analysisFile]
   );
 
-  // ============================================
-  // دوال التصدير
-  // ============================================
-
   /**
    * إنشاء إعدادات التصدير
-   *
-   * @param platform - المنصة المستهدفة
    */
   const createExportSettings = useCallback(
     (platform: ExportSettings["platform"]) => {
@@ -530,33 +363,14 @@ export function usePostProduction(mood: VisualMood = "noir") {
     []
   );
 
-  // ============================================
-  // قيم محسوبة
-  // ============================================
-
-  /**
-   * درجة الحرارة الموصى بها بناءً على المود
-   */
   const recommendedTemperature = useMemo((): number => {
-    const moodDefaults: Record<VisualMood, number> = {
-      noir: 3200,
-      realistic: 5600,
-      surreal: 4500,
-      vintage: 3800,
-    };
-    return moodDefaults[mood];
+    return getRecommendedTemperature(mood);
   }, [mood]);
 
-  /**
-   * التحقق من وجود لوحة ألوان
-   */
   const hasColorPalette = useMemo((): boolean => {
     return colorGrading.colorPalette.length > 0;
   }, [colorGrading.colorPalette]);
 
-  /**
-   * التحقق من اكتمال تحليل المشاهد
-   */
   const isFootageAnalysisComplete = useMemo((): boolean => {
     const { analysisStatus } = footage;
     return Object.values(analysisStatus).every(
@@ -564,20 +378,12 @@ export function usePostProduction(mood: VisualMood = "noir") {
     );
   }, [footage.analysisStatus]);
 
-  /**
-   * قيمة درجة الحرارة للعرض
-   */
   const temperatureValue = useMemo(
     () => [colorGrading.temperature],
     [colorGrading.temperature]
   );
 
-  // ============================================
-  // القيمة المُرجعة
-  // ============================================
-
   return {
-    // تدريج الألوان
     sceneType: colorGrading.sceneType,
     temperature: colorGrading.temperature,
     temperatureValue,
@@ -589,13 +395,11 @@ export function usePostProduction(mood: VisualMood = "noir") {
     hasColorPalette,
     recommendedTemperature,
 
-    // المونتاج
     editorialNotes: editorial.notes,
     isAnalyzingRhythm: editorial.isAnalyzing,
     setEditorialNotes,
     analyzeRhythm,
 
-    // تحليل المشاهد
     isUploadingFootage: footage.isUploading,
     footageAnalysisStatus: footage.analysisStatus,
     footageSummary: footage.summary,
@@ -605,81 +409,9 @@ export function usePostProduction(mood: VisualMood = "noir") {
     isFootageAnalysisComplete,
     mediaInput,
 
-    // التصدير
     exportSettings,
     createExportSettings,
   };
 }
 
-/**
- * الحصول على إعدادات التصدير للمنصة
- */
-function getExportSettingsForPlatform(
-  platform: ExportSettings["platform"]
-): ExportSettings {
-  const settingsMap: Record<ExportSettings["platform"], ExportSettings> = {
-    "cinema-dcp": {
-      platform: "cinema-dcp",
-      resolution: "4096x2160",
-      frameRate: 24,
-      codec: "JPEG2000",
-    },
-    "broadcast-hd": {
-      platform: "broadcast-hd",
-      resolution: "1920x1080",
-      frameRate: 25,
-      codec: "ProRes 422",
-    },
-    "web-social": {
-      platform: "web-social",
-      resolution: "1920x1080",
-      frameRate: 30,
-      codec: "H.264",
-    },
-    bluray: {
-      platform: "bluray",
-      resolution: "1920x1080",
-      frameRate: 24,
-      codec: "H.264 High Profile",
-    },
-  };
-
-  return settingsMap[platform];
-}
-
 export default usePostProduction;
-
-function normalizeFootageSummary(
-  validation:
-    | {
-        score?: number;
-        status?: string;
-        exposure?: string;
-        composition?: string;
-        focus?: string;
-        colorBalance?: string;
-        suggestions?: string[];
-        improvements?: string[];
-      }
-    | undefined
-): FootageAnalysisSummary {
-  return {
-    score: clampScore(validation?.score),
-    status: validation?.status ?? "unknown",
-    exposure: validation?.exposure ?? "غير متاح",
-    colorBalance: validation?.colorBalance ?? "غير متاح",
-    focus: validation?.focus ?? "غير متاح",
-    suggestions: [
-      ...(validation?.suggestions ?? []),
-      ...(validation?.improvements ?? []),
-    ].filter((value, index, array) => array.indexOf(value) === index),
-  };
-}
-
-function clampScore(value: number | undefined): number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(100, Math.round(value)));
-}

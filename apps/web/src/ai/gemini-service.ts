@@ -97,8 +97,10 @@ export class GeminiService {
         process.env["GEMINI_API_KEY"] ??
         process.env["GOOGLE_GENAI_API_KEY"];
       if (key) {
-        const { GoogleGenerativeAI } = require("@google/generative-ai");
-        this.genAI = new GoogleGenerativeAI(key);
+        const GoogleGenAI = require("@google/generative-ai") as {
+          GoogleGenerativeAI: typeof GoogleGenerativeAI;
+        };
+        this.genAI = new GoogleGenAI.GoogleGenerativeAI(key);
       }
     }
   }

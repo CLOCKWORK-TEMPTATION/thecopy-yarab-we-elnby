@@ -1,8 +1,9 @@
 import { toText } from "../../../gemini-core";
 import { GeminiModel, GeminiService } from "../../gemini-service";
-import type { Station3Output } from "../../station3-network-builder";
 import { defaultLiteraryQuality } from "../defaults";
 import { parseLiteraryQuality } from "../parsers";
+
+import type { Station3Output } from "../../station3-network-builder";
 import type { LiteraryQualityAssessment } from "../types";
 
 // Literary Quality Analyzer Agent

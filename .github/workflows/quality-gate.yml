@@ -28,12 +28,28 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  baseline-update-policy:
+    name: Baseline Update Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Reject update-baseline in workflows
+        run: node scripts/ci/reject-baseline-update-in-ci.mjs
+
   tech-debt-ratchet:
     name: Tech Debt Ratchet
     runs-on: ubuntu-latest
@@ -113,6 +129,58 @@ jobs:
             sudo apt-get update -y
             sudo apt-get install -y jq
           fi
+
+      - name: Require human review for baseline changes
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          fetch_pages() {
+            local base_url="$1"
+            local page=1
+            local combined="[]"
+
+            while true; do
+              page_json="$(curl -fsSL \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "${base_url}&per_page=100&page=${page}")"
+              combined="$(jq -s '.[0] + .[1]' <(printf '%s' "$combined") <(printf '%s' "$page_json"))"
+              count="$(echo "$page_json" | jq 'length')"
+              if [ "$count" -lt 100 ]; then
+                break
+              fi
+              page=$((page + 1))
+            done
+
+            printf '%s' "$combined"
+          }
+
+          files_json="$(fetch_pages "https://api.github.com/repos/$REPOSITORY/pulls/$PR_NUMBER/files?")"
+
+          changed_baselines="$(echo "$files_json" | jq -r '.[] | .filename | select(. == "tech-debt-baseline.json" or test("^scripts/quality/baselines/.*\\.json$"))')"
+
+          if [ -z "$changed_baselines" ]; then
+            echo "[OK] لا توجد ملفات baseline معدلة."
+            exit 0
+          fi
+
+          echo "[CHECK] ملفات baseline معدلة:"
+          echo "$changed_baselines"
+
+          reviews_json="$(fetch_pages "https://api.github.com/repos/$REPOSITORY/pulls/$PR_NUMBER/reviews?")"
+
+          approvers="$(echo "$reviews_json" | jq -r --arg actor "$GITHUB_ACTOR" '.[] | select(.state == "APPROVED") | .user.login | select(. != $actor) | select(test("\\[bot\\]$") | not)' | sort -u)"
+
+          if [ -z "$approvers" ]; then
+            echo "::error::تعديل baseline يتطلب موافقة بشرية من مراجع غير صاحب التغيير."
+            exit 1
+          fi
+
+          echo "[OK] baseline review approved by:"
+          echo "$approvers"
 
       - name: Reject baseline-relaxation in same PR
         run: |

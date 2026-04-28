@@ -1,4 +1,5 @@
 import React from "react";
+
 import { BatchVendorResult } from "../types";
 
 export interface BatchResultsProps {
@@ -15,10 +16,7 @@ export const BatchResults: React.FC<BatchResultsProps> = ({ batchResult }) => {
       </p>
       <ul className="space-y-1">
         {batchResult.map((row) => (
-          <li
-            key={row.vendorId}
-            className="text-sm text-white/85 font-cairo"
-          >
+          <li key={row.vendorId} className="text-sm text-white/85 font-cairo">
             {row.vendorName} — {row.totalItems} عنصر
           </li>
         ))}

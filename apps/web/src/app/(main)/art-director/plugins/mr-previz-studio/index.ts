@@ -8,134 +8,29 @@ import { logger } from "@/lib/logger";
 
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 
-interface XRScene {
-  id: string;
-  name: string;
-  description: string;
-  environment: "indoor" | "outdoor" | "studio" | "virtual";
-  dimensions: { width: number; height: number; depth: number };
-  objects: XRObject[];
-  cameras: VirtualCamera[];
-  lighting: XRLighting;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import {
+  supportedDevices,
+  EXPORT_FORMATS,
+  DEFAULT_VR_WAYPOINTS,
+} from "./constants";
+import {
+  createScene,
+  getScene,
+  addObjectToScene,
+  addCameraToScene,
+  updateSceneLighting,
+  updateCameraMovement,
+  listAllScenes,
+  clearAllScenes,
+} from "./scene-manager";
+import { analyzeComposition, generateKeyframes } from "./utils";
 
-interface XRObject {
-  id: string;
-  name: string;
-  type: "prop" | "set-piece" | "character" | "vehicle" | "environment";
-  position: Vector3D;
-  rotation: Vector3D;
-  scale: Vector3D;
-  model3D?: string;
-  material?: string;
-  isInteractive: boolean;
-}
-
-interface VirtualCamera {
-  id: string;
-  name: string;
-  type: "main" | "secondary" | "tracking" | "crane" | "steadicam" | "drone";
-  position: Vector3D;
-  target: Vector3D;
-  fov: number;
-  lensLength: number;
-  aspectRatio: string;
-  movement?: CameraMovement;
-}
-
-interface CameraMovement {
-  type:
-    | "static"
-    | "pan"
-    | "tilt"
-    | "dolly"
-    | "track"
-    | "crane"
-    | "orbit"
-    | "follow";
-  startPosition: Vector3D;
-  endPosition: Vector3D;
-  duration: number;
-  easing: "linear" | "ease-in" | "ease-out" | "ease-in-out";
-}
-
-interface XRLighting {
-  ambient: { color: string; intensity: number };
-  directional: {
-    id: string;
-    color: string;
-    intensity: number;
-    position: Vector3D;
-    target: Vector3D;
-  }[];
-  pointLights: {
-    id: string;
-    color: string;
-    intensity: number;
-    position: Vector3D;
-    radius: number;
-  }[];
-  hdriEnvironment?: string;
-}
-
-interface Vector3D {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface XRDevice {
-  type: "vr-headset" | "ar-glasses" | "mr-headset" | "mobile-ar" | "desktop";
-  name: string;
-  capabilities: string[];
-  resolution: { width: number; height: number };
-  trackingType: "3dof" | "6dof" | "inside-out" | "outside-in";
-}
-
-const scenes = new Map<string, XRScene>();
-
-const supportedDevices: XRDevice[] = [
-  {
-    type: "vr-headset",
-    name: "Meta Quest Pro",
-    capabilities: [
-      "6dof-tracking",
-      "hand-tracking",
-      "passthrough",
-      "eye-tracking",
-    ],
-    resolution: { width: 1800, height: 1920 },
-    trackingType: "inside-out",
-  },
-  {
-    type: "mr-headset",
-    name: "Apple Vision Pro",
-    capabilities: [
-      "mixed-reality",
-      "hand-tracking",
-      "eye-tracking",
-      "spatial-audio",
-    ],
-    resolution: { width: 3660, height: 3200 },
-    trackingType: "inside-out",
-  },
-  {
-    type: "ar-glasses",
-    name: "HoloLens 2",
-    capabilities: ["hand-tracking", "spatial-mapping", "voice-control"],
-    resolution: { width: 2048, height: 1080 },
-    trackingType: "inside-out",
-  },
-  {
-    type: "mobile-ar",
-    name: "ARKit/ARCore Device",
-    capabilities: ["plane-detection", "light-estimation", "face-tracking"],
-    resolution: { width: 1920, height: 1080 },
-    trackingType: "6dof",
-  },
-];
+import type {
+  XRObject,
+  VirtualCamera,
+  CameraMovement,
+  Vector3D,
+} from "./types";
 
 export class MRPrevizStudio implements Plugin {
   id = "mr-previz-studio";
@@ -201,43 +96,7 @@ export class MRPrevizStudio implements Plugin {
     environment: "indoor" | "outdoor" | "studio" | "virtual";
     dimensions: { width: number; height: number; depth: number };
   }): PluginOutput {
-    const scene: XRScene = {
-      id: uuidv4(),
-      name: data.name,
-      description: data.description,
-      environment: data.environment,
-      dimensions: data.dimensions,
-      objects: [],
-      cameras: [
-        {
-          id: uuidv4(),
-          name: "Main Camera",
-          type: "main",
-          position: { x: 0, y: 1.7, z: 5 },
-          target: { x: 0, y: 1, z: 0 },
-          fov: 50,
-          lensLength: 35,
-          aspectRatio: "16:9",
-        },
-      ],
-      lighting: {
-        ambient: { color: "#ffffff", intensity: 0.3 },
-        directional: [
-          {
-            id: uuidv4(),
-            color: "#fff5e6",
-            intensity: 1.0,
-            position: { x: 10, y: 10, z: 5 },
-            target: { x: 0, y: 0, z: 0 },
-          },
-        ],
-        pointLights: [],
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    scenes.set(scene.id, scene);
+    const scene = createScene(data);
 
     return {
       success: true,
@@ -260,7 +119,7 @@ export class MRPrevizStudio implements Plugin {
     sceneId: string;
     object: Partial<XRObject>;
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
@@ -279,8 +138,7 @@ export class MRPrevizStudio implements Plugin {
       }),
     };
 
-    scene.objects.push(newObject);
-    scene.updatedAt = new Date();
+    addObjectToScene(data.sceneId, newObject);
 
     return {
       success: true,
@@ -297,7 +155,7 @@ export class MRPrevizStudio implements Plugin {
     sceneId: string;
     camera: Partial<VirtualCamera>;
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
@@ -316,10 +174,9 @@ export class MRPrevizStudio implements Plugin {
       }),
     };
 
-    scene.cameras.push(newCamera);
-    scene.updatedAt = new Date();
+    addCameraToScene(data.sceneId, newCamera);
 
-    const composition = this.analyzeComposition(newCamera, scene);
+    const composition = analyzeComposition(newCamera, scene);
 
     return {
       success: true,
@@ -333,56 +190,12 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private analyzeComposition(
-    camera: VirtualCamera,
-    scene: XRScene
-  ): Record<string, unknown> {
-    const objectsInFrame = scene.objects.filter((obj) => {
-      const distance = Math.sqrt(
-        Math.pow(obj.position.x - camera.position.x, 2) +
-          Math.pow(obj.position.y - camera.position.y, 2) +
-          Math.pow(obj.position.z - camera.position.z, 2)
-      );
-      return distance < 20;
-    });
-
-    return {
-      ruleOfThirds: {
-        applied: objectsInFrame.length > 0,
-        suggestions:
-          objectsInFrame.length === 0
-            ? ["Add subjects to the scene"]
-            : ["Consider positioning key elements at intersection points"],
-      },
-      depthLayers: {
-        foreground: objectsInFrame.filter(
-          (o) => this.getDistance(o.position, camera.position) < 3
-        ).length,
-        midground: objectsInFrame.filter((o) => {
-          const d = this.getDistance(o.position, camera.position);
-          return d >= 3 && d < 8;
-        }).length,
-        background: objectsInFrame.filter(
-          (o) => this.getDistance(o.position, camera.position) >= 8
-        ).length,
-      },
-      estimatedFps: 60,
-      qualityLevel: "high",
-    };
-  }
-
-  private getDistance(a: Vector3D, b: Vector3D): number {
-    return Math.sqrt(
-      Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2)
-    );
-  }
-
   private simulateCameraMovement(data: {
     sceneId: string;
     cameraId: string;
     movement: CameraMovement;
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
@@ -392,10 +205,9 @@ export class MRPrevizStudio implements Plugin {
       return { success: false, error: "Camera not found" };
     }
 
-    camera.movement = data.movement;
-    scene.updatedAt = new Date();
+    updateCameraMovement(data.sceneId, data.cameraId, data.movement);
 
-    const keyframes = this.generateKeyframes(data.movement);
+    const keyframes = generateKeyframes(data.movement);
 
     return {
       success: true,
@@ -412,70 +224,16 @@ export class MRPrevizStudio implements Plugin {
     };
   }
 
-  private generateKeyframes(movement: CameraMovement): unknown[] {
-    const frames = Math.round(movement.duration * 24);
-    const keyframes = [];
-
-    for (let i = 0; i <= frames; i += Math.max(1, Math.floor(frames / 10))) {
-      const t = i / frames;
-      const easedT = this.applyEasing(t, movement.easing);
-
-      keyframes.push({
-        frame: i,
-        time: i / 24,
-        position: {
-          x:
-            movement.startPosition.x +
-            (movement.endPosition.x - movement.startPosition.x) * easedT,
-          y:
-            movement.startPosition.y +
-            (movement.endPosition.y - movement.startPosition.y) * easedT,
-          z:
-            movement.startPosition.z +
-            (movement.endPosition.z - movement.startPosition.z) * easedT,
-        },
-      });
-    }
-
-    return keyframes;
-  }
-
-  private applyEasing(t: number, easing: string): number {
-    switch (easing) {
-      case "ease-in":
-        return t * t;
-      case "ease-out":
-        return t * (2 - t);
-      case "ease-in-out":
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      default:
-        return t;
-    }
-  }
-
   private configureLighting(data: {
     sceneId: string;
-    lighting: Partial<XRLighting>;
+    lighting: Partial<any>;
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
 
-    if (data.lighting.ambient) {
-      scene.lighting.ambient = data.lighting.ambient;
-    }
-    if (data.lighting.directional) {
-      scene.lighting.directional = data.lighting.directional;
-    }
-    if (data.lighting.pointLights) {
-      scene.lighting.pointLights = data.lighting.pointLights;
-    }
-    if (data.lighting.hdriEnvironment) {
-      scene.lighting.hdriEnvironment = data.lighting.hdriEnvironment;
-    }
-
-    scene.updatedAt = new Date();
+    updateSceneLighting(data.sceneId, data.lighting);
 
     return {
       success: true,
@@ -493,26 +251,10 @@ export class MRPrevizStudio implements Plugin {
     format: "gltf" | "usdz" | "fbx" | "obj";
     target: "vr" | "ar" | "mr" | "all";
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
-
-    const exportFormats: Record<
-      string,
-      { extension: string; description: string }
-    > = {
-      gltf: {
-        extension: ".gltf",
-        description: "GL Transmission Format - WebXR compatible",
-      },
-      usdz: {
-        extension: ".usdz",
-        description: "Universal Scene Description - iOS AR",
-      },
-      fbx: { extension: ".fbx", description: "Autodesk FBX - Game engines" },
-      obj: { extension: ".obj", description: "Wavefront OBJ - Universal 3D" },
-    };
 
     return {
       success: true,
@@ -520,7 +262,7 @@ export class MRPrevizStudio implements Plugin {
         sceneId: scene.id,
         sceneName: scene.name,
         format: data.format,
-        formatInfo: exportFormats[data.format],
+        formatInfo: EXPORT_FORMATS[data.format],
         target: data.target,
         exportUrl: `/xr/export/${scene.id}/${data.format}`,
         fileSize: "~" + Math.round(scene.objects.length * 2.5 + 5) + " MB",
@@ -553,7 +295,7 @@ export class MRPrevizStudio implements Plugin {
     sceneId: string;
     targetDevice: string;
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
@@ -585,17 +327,12 @@ export class MRPrevizStudio implements Plugin {
     sceneId: string;
     waypoints?: Vector3D[];
   }): PluginOutput {
-    const scene = scenes.get(data.sceneId);
+    const scene = getScene(data.sceneId);
     if (!scene) {
       return { success: false, error: "Scene not found" };
     }
 
-    const waypoints = data.waypoints ?? [
-      { x: 0, y: 1.7, z: 5 },
-      { x: 3, y: 1.7, z: 3 },
-      { x: 0, y: 1.7, z: 0 },
-      { x: -3, y: 1.7, z: 3 },
-    ];
+    const waypoints = data.waypoints ?? DEFAULT_VR_WAYPOINTS;
 
     return {
       success: true,
@@ -624,15 +361,7 @@ export class MRPrevizStudio implements Plugin {
   }
 
   private listScenes(): PluginOutput {
-    const sceneList = Array.from(scenes.values()).map((s) => ({
-      id: s.id,
-      name: s.name,
-      environment: s.environment,
-      objectCount: s.objects.length,
-      cameraCount: s.cameras.length,
-      createdAt: s.createdAt,
-      updatedAt: s.updatedAt,
-    }));
+    const sceneList = listAllScenes();
 
     return {
       success: true,
@@ -646,7 +375,7 @@ export class MRPrevizStudio implements Plugin {
   }
 
   shutdown(): void {
-    scenes.clear();
+    clearAllScenes();
     logger.info(`[${this.name}] Shut down`);
   }
 }

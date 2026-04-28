@@ -4,17 +4,12 @@
 
 import type { PluginOutput } from "../../types";
 import type { TrainingScenario } from "./types";
-import {
-  trainingScenarios,
-  vrEquipment,
-  traineeProgress,
-} from "./constants";
+import { trainingScenarios, vrEquipment, traineeProgress } from "./constants";
 import {
   createSkillLevels,
   getSkillLevel,
   setSkillLevel,
   incrementCategoryCount,
-  generateRecommendations,
   suggestNextScenarios,
 } from "./utils";
 
@@ -128,7 +123,8 @@ export function simulateEquipmentOperation(data: {
             step: tutorial.step,
             title: tutorial["title"],
             titleAr: tutorial.titleAr,
-            nextAction: equipment.tutorials[tutorial.step]?.action || "complete",
+            nextAction:
+              equipment.tutorials[tutorial.step]?.action || "complete",
           }
         : null,
       vrSimulationUrl: `/vr/simulate/${equipment.id}/${data.action}`,
@@ -148,7 +144,7 @@ export interface EvaluationMetrics {
 
 export function evaluatePerformanceOperation(
   scenario: TrainingScenario,
-  metrics: EvaluationMetrics
+  metrics: EvaluationMetrics,
 ): {
   overallScore: number;
   categoryScores: Record<string, number>;
@@ -169,7 +165,7 @@ export function evaluatePerformanceOperation(
       (metrics.timing || 70) * weights.timing +
       (metrics.technique || 70) * weights.technique +
       (metrics.creativity || 70) * weights.creativity +
-      (metrics.safety || 100) * weights.safety
+      (metrics.safety || 100) * weights.safety,
   );
 
   const categoryScores = {
@@ -181,11 +177,11 @@ export function evaluatePerformanceOperation(
   };
 
   const strengths: string[] = [];
-  if ((metrics.technique || 70) >= 80) strengths.push("Strong technical skills");
+  if ((metrics.technique || 70) >= 80)
+    strengths.push("Strong technical skills");
   if ((metrics.creativity || 70) >= 80)
     strengths.push("Creative problem-solving");
-  if ((metrics.timing || 70) >= 80)
-    strengths.push("Excellent time management");
+  if ((metrics.timing || 70) >= 80) strengths.push("Excellent time management");
 
   const areasForImprovement: string[] = [];
   if ((metrics.accuracy || 70) < 70)
@@ -197,7 +193,7 @@ export function evaluatePerformanceOperation(
     scenario.difficulty,
     scenario.category,
     scenario.id,
-    overallScore
+    overallScore,
   );
 
   const nextScenarios = trainingScenarios
@@ -205,7 +201,7 @@ export function evaluatePerformanceOperation(
       (s) =>
         s.category === scenario.category &&
         s.difficulty === targetDifficulty &&
-        s.id !== scenario.id
+        s.id !== scenario.id,
     )
     .slice(0, 3)
     .map((s) => s.id);
@@ -260,11 +256,11 @@ export function getRecommendationsOperation(traineeId: string): PluginOutput {
   if (!progress || progress.completedScenarios.length === 0) {
     recommendations.push(
       { scenarioId: "cam-101", reason: "Start with camera fundamentals" },
-      { scenarioId: "light-101", reason: "Learn basic lighting techniques" }
+      { scenarioId: "light-101", reason: "Learn basic lighting techniques" },
     );
   } else {
     const weakestSkill = Object.entries(progress.skillLevels).sort(
-      ([, a], [, b]) => a - b
+      ([, a], [, b]) => a - b,
     )[0];
 
     if (weakestSkill) {
@@ -272,7 +268,7 @@ export function getRecommendationsOperation(traineeId: string): PluginOutput {
         .filter((s) => s.category === weakestSkill[0])
         .filter(
           (s) =>
-            !progress.completedScenarios.find((c) => c.scenarioId === s.id)
+            !progress.completedScenarios.find((c) => c.scenarioId === s.id),
         );
 
       relevantScenarios.slice(0, 2).forEach((s) => {
@@ -297,7 +293,7 @@ export function getRecommendationsOperation(traineeId: string): PluginOutput {
 
 export function getOrCreateTraineeProgress(
   traineeId: string,
-  traineeName?: string
+  traineeName?: string,
 ): import("./types").TraineeProgress {
   let progress = traineeProgress.get(traineeId);
   if (!progress) {
@@ -318,12 +314,12 @@ export function getOrCreateTraineeProgress(
 export function updateSkillLevel(
   progress: import("./types").TraineeProgress,
   category: import("./types").TrainingCategory,
-  score: number
+  score: number,
 ): { skillIncrease: number; newSkillLevel: number } {
   const skillIncrease = Math.round(score / 10);
   const newSkillLevel = Math.min(
     100,
-    getSkillLevel(progress.skillLevels, category) + skillIncrease
+    getSkillLevel(progress.skillLevels, category) + skillIncrease,
   );
   setSkillLevel(progress.skillLevels, category, newSkillLevel);
   return { skillIncrease, newSkillLevel };

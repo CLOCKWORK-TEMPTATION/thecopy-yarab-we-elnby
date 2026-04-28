@@ -18,7 +18,9 @@ export function clampMetric(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-export function detectEmotionalTone(text: string): TextAnalysis["emotionalTone"] {
+export function detectEmotionalTone(
+  text: string
+): TextAnalysis["emotionalTone"] {
   const positiveWords = ["أمل", "نجاح", "فرح", "حب", "نور", "انتصار"];
   const negativeWords = ["خوف", "حزن", "فشل", "ظلام", "موت", "ضياع"];
   const positiveScore = positiveWords.filter((word) =>
@@ -134,7 +136,10 @@ function resolveEmotionalTone(
     : detectEmotionalTone(text);
 }
 
-export function buildTextAnalysis(text: string, rawAnalysis: unknown): TextAnalysis {
+export function buildTextAnalysis(
+  text: string,
+  rawAnalysis: unknown
+): TextAnalysis {
   const stats = collectTextStats(text);
   const fallbackSuggestions = [
     "راجع تنوع الجمل والإيقاع قبل الاعتماد النهائي.",

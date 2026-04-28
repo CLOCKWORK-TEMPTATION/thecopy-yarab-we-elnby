@@ -58,7 +58,10 @@ export function BudgetHero({
                   : "غير منفذ"}
           </BudgetStat>
           <BudgetStat label="إجمالي البنود">{totalLineItems}</BudgetStat>
-          <BudgetStat label="الإجمالي الحالي" className="col-span-2 md:col-span-1">
+          <BudgetStat
+            label="الإجمالي الحالي"
+            className="col-span-2 md:col-span-1"
+          >
             {budget ? formatCurrency(budget.grandTotal, budget.currency) : "—"}
           </BudgetStat>
           <BudgetStat label="مصدر التوليد" className="col-span-2 md:col-span-1">
@@ -84,7 +87,9 @@ function BudgetStat({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-white/8 bg-white/[0.04]/6 p-4 ${className}`}>
+    <div
+      className={`rounded-2xl border border-white/8 bg-white/[0.04]/6 p-4 ${className}`}
+    >
       <p className="text-xs text-white/42">{label}</p>
       <p className="mt-2 text-lg font-semibold text-white">{children}</p>
     </div>

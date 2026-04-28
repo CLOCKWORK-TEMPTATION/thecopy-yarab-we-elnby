@@ -1,5 +1,3 @@
-import type { TypingSystemSettings } from "./index";
-
 export interface EditorAutosaveSnapshot {
   html?: string;
   text: string;

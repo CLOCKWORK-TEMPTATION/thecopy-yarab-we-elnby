@@ -126,7 +126,9 @@ async function selectFirstTool(page: Page) {
 test.describe("Development page — tool execution", () => {
   test.beforeEach(({ page }) => {
     // Silence console errors from missing env vars in test environment
-    page.on("console", () => { /* empty */ });
+    page.on("console", () => {
+      /* empty */
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -236,7 +238,9 @@ test.describe("Development page — tool execution", () => {
     // Wait for network idle to confirm the call was made
     await page
       .waitForLoadState("networkidle", { timeout: 10_000 })
-      .catch(() => { /* empty */ });
+      .catch(() => {
+        /* empty */
+      });
 
     expect(apiCallCount).toBeGreaterThanOrEqual(1);
   });

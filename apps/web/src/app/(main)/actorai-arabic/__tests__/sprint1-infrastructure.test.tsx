@@ -36,7 +36,9 @@ describe("AppContext", () => {
     }
 
     // suppress console.error for expected throw
-    const spy = vi.spyOn(console, "error").mockImplementation(() => { /* empty */ });
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* empty */
+    });
     expect(() => render(<Orphan />)).toThrow();
     spy.mockRestore();
   });

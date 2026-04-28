@@ -1,13 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { GeminiService } from "@/ai/gemini-service";
-import type { ExportFormat } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+
 import {
   ACTIVE_WEEKLY_CHALLENGE,
   FEATURED_DAILY_PROMPT,
   type FeaturedWeeklyChallenge,
 } from "@/app/(main)/arabic-creative-writing-studio/lib/featured-content";
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
+
+import { restoreProject, persistProject } from "../lib/studio/project-helpers";
+import { buildTextAnalysis } from "../lib/studio/text-analysis";
+
+import type {
+  CreativeWritingStudioSnapshot,
+  StudioView,
+  NotificationState,
+} from "../types/studio";
+import type { GeminiService } from "@/ai/gemini-service";
+import type { ExportFormat } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
 import type {
   CreativeProject,
   CreativePrompt,
@@ -16,18 +30,9 @@ import type {
   WritingTechnique,
   TextAnalysis,
 } from "@/app/(main)/arabic-creative-writing-studio/types";
-import {
-  loadRemoteAppState,
-  persistRemoteAppState,
-} from "@/lib/app-state-client";
-import type {
-  CreativeWritingStudioSnapshot,
-  PersistedCreativeProject,
-  StudioView,
-  NotificationState,
-} from "../types/studio";
-import { buildTextAnalysis } from "../lib/studio/text-analysis";
-import { restoreProject, persistProject } from "../lib/studio/project-helpers";
+
+
+
 
 const DEFAULT_SETTINGS: AppSettings = {
   language: "ar",
@@ -53,7 +58,10 @@ interface UseCreativeStudioProps {
   geminiService: GeminiService | null;
   showNotification: (type: NotificationState["type"], message: string) => void;
   analysisBlockedReason: string;
-  exportProjectFn: (project: CreativeProject, format: ExportFormat) => { success: boolean; message: string };
+  exportProjectFn: (
+    project: CreativeProject,
+    format: ExportFormat
+  ) => { success: boolean; message: string };
 }
 
 export function useCreativeStudio({
@@ -99,7 +107,9 @@ export function useCreativeStudio({
         setSelectedPrompt(snapshot.selectedPrompt ?? null);
         setSettings(buildSettings(snapshot.settings));
       })
-      .catch(() => { /* empty */ })
+      .catch(() => {
+        /* empty */
+      })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -127,7 +137,9 @@ export function useCreativeStudio({
           projects: projects.map(persistProject),
           settings,
         }
-      ).catch(() => { /* empty */ });
+      ).catch(() => {
+        /* empty */
+      });
     }, 400);
 
     return () => window.clearTimeout(timeoutId);

@@ -2,27 +2,24 @@
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 import { useVoiceAnalytics } from "../hooks/useVoiceAnalytics";
 
-import { WaveformDisplay } from "./indicators/WaveformDisplay";
-import { FrequencyDisplay } from "./indicators/FrequencyDisplay";
-import { PitchIndicator } from "./indicators/PitchIndicator";
-import { VolumeIndicator } from "./indicators/VolumeIndicator";
-import { SpeechRateIndicator } from "./indicators/SpeechRateIndicator";
 import { ArticulationIndicator } from "./indicators/ArticulationIndicator";
 import { BreathingIndicator } from "./indicators/BreathingIndicator";
+import { FrequencyDisplay } from "./indicators/FrequencyDisplay";
 import { PausesIndicator } from "./indicators/PausesIndicator";
+import { PitchIndicator } from "./indicators/PitchIndicator";
+import { SpeechRateIndicator } from "./indicators/SpeechRateIndicator";
+import { VolumeIndicator } from "./indicators/VolumeIndicator";
+import { WaveformDisplay } from "./indicators/WaveformDisplay";
 
 export const VoiceCoach: React.FC = () => {
   const {
@@ -138,7 +135,9 @@ export const VoiceCoach: React.FC = () => {
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={351.8}
-                  strokeDashoffset={351.8 - (351.8 * metrics.overallScore) / 100}
+                  strokeDashoffset={
+                    351.8 - (351.8 * metrics.overallScore) / 100
+                  }
                   className="text-white transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                 />
               </svg>

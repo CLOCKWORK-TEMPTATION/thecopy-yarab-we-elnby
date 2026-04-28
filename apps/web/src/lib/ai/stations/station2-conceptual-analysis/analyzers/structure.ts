@@ -1,8 +1,13 @@
-import { GeminiModel, GeminiService } from "../../gemini-service";
 import { safeSub, toText } from "../../../utils/text-utils";
+import { GeminiModel, GeminiService } from "../../gemini-service";
 import { getDefault3DMap, getDefaultDynamicTone } from "../defaults";
 import { validate3DMap, validateDynamicTone } from "../validators";
-import type { DynamicToneResult, Station2Context, ThreeDMapResult } from "../types";
+
+import type {
+  DynamicToneResult,
+  Station2Context,
+  ThreeDMapResult,
+} from "../types";
 
 export async function generate3DMap(
   geminiService: GeminiService,

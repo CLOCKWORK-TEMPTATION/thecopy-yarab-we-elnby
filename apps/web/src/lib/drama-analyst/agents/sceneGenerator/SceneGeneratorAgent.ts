@@ -1,4 +1,3 @@
-import { safeCountMultipleTerms } from "@/lib/security/safe-regexp";
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
@@ -8,31 +7,26 @@ import {
 } from "../shared/standardAgentPattern";
 
 import { SCENE_GENERATOR_AGENT_CONFIG } from "./agent";
-
-type JsonRecord = Record<string, unknown>;
-
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asJsonRecord(value: unknown): JsonRecord {
-  return isJsonRecord(value) ? value : {};
-}
-
-function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
-}
-
-function asStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
-}
-
-function asUnknownArray(value: unknown): unknown[] {
-  if (!Array.isArray(value)) return [];
-  return value.map((item: unknown) => item);
-}
+import {
+  cleanupSceneText,
+  formatCharacter,
+  summarizeScene,
+} from "./formatUtils";
+import {
+  assessDramaticTension,
+  assessDialogueQuality,
+  assessVisualClarity,
+  assessPacing,
+  calculateDialoguePercentage,
+  countCharactersInScene,
+} from "./sceneAssessors";
+import { generateSceneNotes } from "./sceneNotes";
+import {
+  translateSceneType,
+  translateEmotionalTone,
+  translateConflictLevel,
+} from "./translationHelpers";
+import { asJsonRecord, asString, asStringArray, asUnknownArray } from "./types";
 
 /**
  * Scene Generator Agent - وكيل مولد المشاهد
@@ -78,15 +72,15 @@ export class SceneGeneratorAgent extends BaseAgent {
 
     // Add scene specifications
     prompt += `مواصفات المشهد:\n`;
-    prompt += `- نوع المشهد: ${this.translateSceneType(sceneType)}\n`;
-    prompt += `- النبرة العاطفية: ${this.translateEmotionalTone(emotionalTone)}\n`;
-    prompt += `- مستوى الصراع: ${this.translateConflictLevel(conflictLevel)}\n\n`;
+    prompt += `- نوع المشهد: ${translateSceneType(sceneType)}\n`;
+    prompt += `- النبرة العاطفية: ${translateEmotionalTone(emotionalTone)}\n`;
+    prompt += `- مستوى الصراع: ${translateConflictLevel(conflictLevel)}\n\n`;
 
     // Add characters
     if (characters.length > 0) {
       prompt += `الشخصيات في المشهد:\n`;
       characters.forEach((character, index) => {
-        prompt += `${index + 1}. ${this.formatCharacter(character)}\n`;
+        prompt += `${index + 1}. ${formatCharacter(character)}\n`;
       });
       prompt += "\n";
     }
@@ -109,7 +103,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     if (previousScenes.length > 0) {
       prompt += `ملخص المشاهد السابقة:\n`;
       previousScenes.slice(-2).forEach((scene, index) => {
-        prompt += `[مشهد ${index + 1}]: ${this.summarizeScene(scene)}\n`;
+        prompt += `[مشهد ${index + 1}]: ${summarizeScene(scene)}\n`;
       });
       prompt += "\n";
     }
@@ -139,13 +133,13 @@ export class SceneGeneratorAgent extends BaseAgent {
     output: StandardAgentOutput
   ): Promise<StandardAgentOutput> {
     // Clean and format the scene
-    const processedText = this.cleanupSceneText(output.text);
+    const processedText = cleanupSceneText(output.text);
 
     // Assess scene quality
-    const dramaticTension = this.assessDramaticTension(processedText);
-    const dialogueQuality = this.assessDialogueQuality(processedText);
-    const visualClarity = this.assessVisualClarity(processedText);
-    const pacing = this.assessPacing(processedText);
+    const dramaticTension = assessDramaticTension(processedText);
+    const dialogueQuality = assessDialogueQuality(processedText);
+    const visualClarity = assessVisualClarity(processedText);
+    const pacing = assessPacing(processedText);
 
     // Calculate composite quality score
     const qualityScore =
@@ -161,7 +155,7 @@ export class SceneGeneratorAgent extends BaseAgent {
       ...output,
       text: processedText,
       confidence: adjustedConfidence,
-      notes: this.generateSceneNotes(
+      notes: generateSceneNotes(
         output,
         dramaticTension,
         dialogueQuality,
@@ -179,440 +173,10 @@ export class SceneGeneratorAgent extends BaseAgent {
           pacing,
         },
         sceneLength: processedText.length,
-        dialoguePercentage: this.calculateDialoguePercentage(processedText),
-        numberOfCharacters: this.countCharacters(processedText),
+        dialoguePercentage: calculateDialoguePercentage(processedText),
+        numberOfCharacters: countCharactersInScene(processedText),
       },
     });
-  }
-
-  /**
-   * Clean up scene text formatting
-   */
-  private cleanupSceneText(text: string): string {
-    // Remove JSON and code artifacts
-    text = text.replace(/```json[\s\S]*?```/g, "");
-    text = text.replace(/```[\s\S]*?```/g, "");
-    text = text.replace(/\{[\s\S]*?\}/g, (match) => {
-      if (match.includes('"') && match.includes(":")) return "";
-      return match;
-    });
-
-    // Format scene elements
-    const formatted = this.formatSceneElements(text);
-
-    // Ensure proper scene structure
-    const structured = this.structureScene(formatted);
-
-    // Clean up whitespace
-    return structured.replace(/\n{3,}/g, "\n\n").trim();
-  }
-
-  /**
-   * Format scene elements (dialogue, action, description)
-   */
-  private formatSceneElements(text: string): string {
-    const lines = text.split("\n");
-    const formatted: string[] = [];
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) {
-        formatted.push("");
-        continue;
-      }
-
-      // Format character names in dialogue
-      if (this.isCharacterName(trimmed)) {
-        formatted.push(`\n${trimmed.toUpperCase()}`);
-      }
-      // Format dialogue
-      else if (this.isDialogue(trimmed)) {
-        formatted.push(this.formatDialogue(trimmed));
-      }
-      // Format stage directions
-      else if (this.isStageDirection(trimmed)) {
-        formatted.push(`(${trimmed})`);
-      }
-      // Regular description
-      else {
-        formatted.push(trimmed);
-      }
-    }
-
-    return formatted.join("\n");
-  }
-
-  /**
-   * Structure the scene properly
-   */
-  private structureScene(text: string): string {
-    // Extract main components
-    const sceneHeading = this.extractSceneHeading(text);
-    const description = this.extractDescription(text);
-    const action = this.extractAction(text);
-
-    // Rebuild in proper order
-    let structured = "";
-
-    if (sceneHeading) {
-      structured += `${sceneHeading}\n\n`;
-    }
-
-    if (description) {
-      structured += `${description}\n\n`;
-    }
-
-    if (action) {
-      structured += action;
-    }
-
-    // If no clear structure, return original
-    return structured || text;
-  }
-
-  /**
-   * Assess dramatic tension in the scene
-   */
-  private assessDramaticTension(text: string): number {
-    let score = 0.5;
-
-    // Check for conflict indicators
-    const conflictWords = [
-      "لكن",
-      "رغم",
-      "ضد",
-      "تحدي",
-      "صراع",
-      "مواجهة",
-      "رفض",
-      "اعتراض",
-    ];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const conflictCount = safeCountMultipleTerms(text, conflictWords);
-    score += Math.min(0.2, conflictCount * 0.02);
-
-    // Check for emotional intensity
-    const emotionalWords = [
-      "غضب",
-      "خوف",
-      "حب",
-      "كره",
-      "قلق",
-      "صدمة",
-      "دهشة",
-      "!",
-    ];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const emotionCount = safeCountMultipleTerms(text, emotionalWords);
-    score += Math.min(0.15, emotionCount * 0.015);
-
-    // Check for turning points
-    const turningWords = ["فجأة", "لحظة", "الآن", "أخيراً", "لا يمكن"];
-    const hasTurning = turningWords.some((word) => text.includes(word));
-    if (hasTurning) score += 0.15;
-
-    return Math.min(1, score);
-  }
-
-  /**
-   * Assess dialogue quality
-   */
-  private assessDialogueQuality(text: string): number {
-    let score = 0.6;
-
-    // Check for dialogue presence
-    const hasDialogue =
-      text.includes('"') || text.includes("«") || text.includes(":");
-    if (!hasDialogue) return 0.3;
-
-    // Check for varied dialogue lengths
-    const dialogueMatches = text.match(/"[^"]+"/g) ?? [];
-    if (dialogueMatches.length > 0) {
-      const lengths = dialogueMatches.map((d) => d.length);
-      const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-      const variance =
-        lengths.reduce((sum, len) => sum + Math.abs(len - avgLength), 0) /
-        lengths.length;
-
-      // Higher variance is better (varied dialogue)
-      if (variance > 20) score += 0.2;
-    }
-
-    // Check for subtext and implication
-    const subtextWords = ["ربما", "يبدو", "أظن", "لعل", "..."];
-    const hasSubtext = subtextWords.some((word) => text.includes(word));
-    if (hasSubtext) score += 0.2;
-
-    return Math.min(1, score);
-  }
-
-  /**
-   * Assess visual clarity
-   */
-  private assessVisualClarity(text: string): number {
-    let score = 0.5;
-
-    // Check for visual descriptors
-    const visualWords = [
-      "يرى",
-      "ينظر",
-      "يشاهد",
-      "مشهد",
-      "منظر",
-      "ضوء",
-      "ظلام",
-      "لون",
-      "حركة",
-    ];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const visualCount = safeCountMultipleTerms(text, visualWords);
-    score += Math.min(0.25, visualCount * 0.025);
-
-    // Check for spatial indicators
-    const spatialWords = [
-      "أمام",
-      "خلف",
-      "يمين",
-      "يسار",
-      "فوق",
-      "تحت",
-      "بجانب",
-      "وسط",
-    ];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const spatialCount = safeCountMultipleTerms(text, spatialWords);
-    score += Math.min(0.15, spatialCount * 0.03);
-
-    // Check for action verbs
-    const actionVerbs = [
-      "يدخل",
-      "يخرج",
-      "يقف",
-      "يجلس",
-      "يمشي",
-      "يركض",
-      "يلتفت",
-      "يمسك",
-    ];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const actionCount = safeCountMultipleTerms(text, actionVerbs);
-    score += Math.min(0.1, actionCount * 0.02);
-
-    return Math.min(1, score);
-  }
-
-  /**
-   * Assess pacing
-   */
-  private assessPacing(text: string): number {
-    let score = 0.6;
-
-    // Check sentence variety
-    const sentences = text.split(/[.!?]/);
-    const lengths = sentences.map((s) => s.split(/\s+/).length);
-
-    if (lengths.length > 3) {
-      const avgLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-      const hasShort = lengths.some((l) => l < avgLength * 0.5);
-      const hasLong = lengths.some((l) => l > avgLength * 1.5);
-
-      if (hasShort && hasLong) score += 0.2; // Good variety
-    }
-
-    // Check for rhythm markers
-    const rhythmWords = ["ثم", "بعد", "فجأة", "ببطء", "بسرعة", "في الحال"];
-    // SECURITY FIX: Use safe RegExp utility to prevent injection
-    const rhythmCount = safeCountMultipleTerms(text, rhythmWords);
-    score += Math.min(0.2, rhythmCount * 0.04);
-
-    return Math.min(1, score);
-  }
-
-  /**
-   * Helper methods
-   */
-  private isCharacterName(line: string): boolean {
-    return /^[أ-ي\s]+:/.test(line) || /^[A-Z\s]+:/.test(line);
-  }
-
-  private isDialogue(line: string): boolean {
-    return (
-      line.includes('"') ||
-      line.includes("«") ||
-      (line.includes(":") && line.length > 20)
-    );
-  }
-
-  private isStageDirection(line: string): boolean {
-    return (
-      line.startsWith("(") ||
-      line.includes("[") ||
-      line.toLowerCase().includes("يدخل") ||
-      line.toLowerCase().includes("يخرج")
-    );
-  }
-
-  private formatDialogue(text: string): string {
-    if (!text.startsWith('"') && !text.includes("«")) {
-      return `"${text}"`;
-    }
-    return text;
-  }
-
-  private extractSceneHeading(text: string): string | null {
-    const lines = text.split("\n");
-    const heading = lines.find(
-      (line) =>
-        line.includes("INT.") ||
-        line.includes("EXT.") ||
-        line.includes("داخلي") ||
-        line.includes("خارجي") ||
-        line.includes("المشهد")
-    );
-    return heading ?? null;
-  }
-
-  private extractDescription(text: string): string | null {
-    const paragraphs = text.split("\n\n");
-    const description = paragraphs.find(
-      (p) => p.length > 100 && !p.includes('"') && !p.includes(":")
-    );
-    return description ?? null;
-  }
-
-  private extractAction(text: string): string {
-    // Return everything that's not heading or pure description
-    const heading = this.extractSceneHeading(text);
-    const description = this.extractDescription(text);
-
-    let action = text;
-    if (heading) action = action.replace(heading, "");
-    if (description) action = action.replace(description, "");
-
-    return action.trim();
-  }
-
-  private calculateDialoguePercentage(text: string): number {
-    const dialogueMatches = text.match(/"[^"]+"|«[^»]+»/g) ?? [];
-    const dialogueLength = dialogueMatches.join("").length;
-    return Math.round((dialogueLength / text.length) * 100);
-  }
-
-  private countCharacters(text: string): number {
-    const characterNames = new Set<string>();
-    const lines = text.split("\n");
-
-    for (const line of lines) {
-      if (this.isCharacterName(line)) {
-        const name = line.split(":")[0]?.trim();
-        if (name) characterNames.add(name);
-      }
-    }
-
-    return characterNames.size;
-  }
-
-  private summarizeScene(scene: unknown): string {
-    if (typeof scene === "string") {
-      return scene.substring(0, 200) + "...";
-    }
-    return "مشهد سابق";
-  }
-
-  private formatCharacter(character: unknown): string {
-    if (typeof character === "string") return character;
-
-    const characterRecord = asJsonRecord(character);
-    const parts: string[] = [];
-    const name = asString(characterRecord.name);
-    const role = asString(characterRecord.role);
-    const motivation = asString(characterRecord.motivation);
-
-    if (name) parts.push(name);
-    if (role) parts.push(`(${role})`);
-    if (motivation) parts.push(`- الدافع: ${motivation}`);
-
-    return parts.join(" ") || "شخصية";
-  }
-
-  /**
-   * Generate scene notes
-   */
-  private generateSceneNotes(
-    output: StandardAgentOutput,
-    tension: number,
-    dialogue: number,
-    visual: number,
-    pacing: number
-  ): string[] {
-    const notes: string[] = [];
-
-    // Overall quality
-    const avgQuality = (tension + dialogue + visual + pacing) / 4;
-    if (avgQuality > 0.8) {
-      notes.push("مشهد ممتاز الجودة");
-    } else if (avgQuality > 0.6) {
-      notes.push("مشهد جيد");
-    } else {
-      notes.push("يحتاج تحسين");
-    }
-
-    // Specific strengths/weaknesses
-    if (tension > 0.8) notes.push("توتر درامي قوي");
-    if (dialogue > 0.8) notes.push("حوارات متميزة");
-    if (visual > 0.8) notes.push("وضوح بصري ممتاز");
-    if (pacing > 0.8) notes.push("إيقاع متوازن");
-
-    if (tension < 0.5) notes.push("يحتاج مزيد من الصراع");
-    if (dialogue < 0.5) notes.push("الحوار يحتاج تطوير");
-
-    // Add original notes
-    if (output.notes) {
-      notes.push(...output.notes);
-    }
-
-    return notes;
-  }
-
-  /**
-   * Translation helpers
-   */
-  private translateSceneType(type: string): string {
-    const types: Record<string, string> = {
-      dramatic: "درامي",
-      action: "حركة",
-      dialogue: "حواري",
-      emotional: "عاطفي",
-      comedic: "كوميدي",
-      suspense: "تشويق",
-      romantic: "رومانسي",
-    };
-    return types[type] ?? type;
-  }
-
-  private translateEmotionalTone(tone: string): string {
-    const tones: Record<string, string> = {
-      neutral: "محايد",
-      tense: "متوتر",
-      happy: "سعيد",
-      sad: "حزين",
-      angry: "غاضب",
-      fearful: "خائف",
-      hopeful: "متفائل",
-      melancholic: "حزين عميق",
-    };
-    return tones[tone] ?? tone;
-  }
-
-  private translateConflictLevel(level: string): string {
-    const levels: Record<string, string> = {
-      none: "بدون صراع",
-      low: "منخفض",
-      medium: "متوسط",
-      high: "عالي",
-      extreme: "شديد جداً",
-    };
-    return levels[level] ?? level;
   }
 
   /**
@@ -627,7 +191,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     );
 
     return Promise.resolve(`وصف المشهد:
-مشهد ${this.translateSceneType(sceneType)} يحتاج إلى تطوير أعمق للشخصيات والصراع.
+مشهد ${translateSceneType(sceneType)} يحتاج إلى تطوير أعمق للشخصيات والصراع.
 
 نموذج مبسط:
 [المكان والزمان]

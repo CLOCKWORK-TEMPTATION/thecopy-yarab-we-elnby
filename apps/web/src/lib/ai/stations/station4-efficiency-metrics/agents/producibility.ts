@@ -1,8 +1,9 @@
 import { toText } from "../../../gemini-core";
 import { GeminiModel, GeminiService } from "../../gemini-service";
-import type { Station3Output } from "../../station3-network-builder";
 import { defaultProducibility } from "../defaults";
 import { parseProducibility } from "../parsers";
+
+import type { Station3Output } from "../../station3-network-builder";
 import type { ProducibilityAnalysis } from "../types";
 
 // Producibility Analyzer Agent

@@ -2,13 +2,11 @@
 
 import {
   Camera,
-  CameraOff,
   CheckCircle2,
   Clapperboard,
   Film,
   Image as ImageIcon,
   Palette,
-  RefreshCcw,
   Send,
   Trash2,
   Upload,
@@ -24,23 +22,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePostProduction } from "../../hooks";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
+import { PLATFORM_LABELS, SCENE_TYPES } from "./post-production/constants";
+import { DeliveryManagerPanel } from "./post-production/DeliveryManagerPanel";
+import {
+  ControlButton,
+  InlineBanner,
+  SecondaryButton,
+  StatusCell,
+} from "./post-production/ui-atoms";
+
 import type { ExportSettings, PostProductionToolsProps } from "../../types";
-
-const PLATFORM_LABELS: Record<ExportSettings["platform"], string> = {
-  "cinema-dcp": "Cinema DCP",
-  "broadcast-hd": "Broadcast HD",
-  "web-social": "Web / Social",
-  bluray: "Blu-ray",
-};
-
-const SCENE_TYPES = [
-  { type: "morning", label: "صباحي" },
-  { type: "night", label: "ليلي" },
-  { type: "indoor", label: "داخلي" },
-  { type: "outdoor", label: "خارجي" },
-  { type: "happy", label: "سعيد" },
-  { type: "sad", label: "حزين" },
-] as const;
 
 const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
   const {
@@ -491,149 +482,14 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
           </div>
         </StudioPanel>
 
-        <StudioPanel
-          title="Delivery Manager"
-          subtitle="إعدادات التصدير النهائية"
-        >
-          <div className="space-y-3">
-            {(Object.keys(PLATFORM_LABELS) as ExportSettings["platform"][]).map(
-              (platform) => (
-                <Button
-                  key={platform}
-                  type="button"
-                  onClick={() => handleCreateExportSettings(platform)}
-                  className={
-                    exportSettings?.platform === platform
-                      ? "h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
-                      : "h-11 w-full border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-                  }
-                >
-                  {PLATFORM_LABELS[platform]}
-                </Button>
-              )
-            )}
-
-            {exportSettings ? (
-              <div className="rounded-[10px] border border-[#262626] bg-[#070707] p-4">
-                <div className="grid gap-3">
-                  <StudioMetricCell
-                    label="Platform"
-                    value={PLATFORM_LABELS[exportSettings.platform]}
-                    tone="white"
-                  />
-                  <StudioMetricCell
-                    label="Resolution"
-                    value={exportSettings.resolution ?? "--"}
-                  />
-                  <StudioMetricCell
-                    label="Frame Rate"
-                    value={exportSettings.frameRate ?? "--"}
-                    tone="white"
-                  />
-                  <StudioMetricCell
-                    label="Codec"
-                    value={exportSettings.codec ?? "--"}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </StudioPanel>
+        <DeliveryManagerPanel
+          exportSettings={exportSettings}
+          platformLabels={PLATFORM_LABELS}
+          onCreateExportSettings={handleCreateExportSettings}
+        />
       </div>
     </div>
   );
 };
-
-function ControlButton({
-  label,
-  icon: Icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon: typeof ImageIcon;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      onClick={onClick}
-      className={
-        active
-          ? "h-10 border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
-          : "h-10 border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-      }
-    >
-      <Icon className="mr-2 h-4 w-4" />
-      {label}
-    </Button>
-  );
-}
-
-function SecondaryButton({
-  label,
-  onClick,
-  icon: Icon,
-}: {
-  label: string;
-  onClick: () => void | Promise<void>;
-  icon?: typeof RefreshCcw;
-}) {
-  return (
-    <Button
-      type="button"
-      onClick={() => void onClick()}
-      className="h-10 border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-    >
-      {Icon ? <Icon className="mr-2 h-4 w-4" /> : null}
-      {label}
-    </Button>
-  );
-}
-
-function InlineBanner({
-  children,
-  tone = "warning",
-}: {
-  children: React.ReactNode;
-  tone?: "warning" | "danger";
-}) {
-  return (
-    <div
-      className={
-        tone === "danger"
-          ? "rounded-[10px] border border-[#6b2f2f] bg-[#211010] px-4 py-3 text-sm text-[#f3b4b4]"
-          : "rounded-[10px] border border-[#705523] bg-[#1d1509] px-4 py-3 text-sm text-[#f6cf72]"
-      }
-    >
-      {children}
-    </div>
-  );
-}
-
-function StatusCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: "pending" | "analyzing" | "complete";
-}) {
-  const tone =
-    value === "complete"
-      ? "text-[#97d85c]"
-      : value === "analyzing"
-        ? "text-[#f6cf72]"
-        : "text-[#8f8a7d]";
-
-  return (
-    <div className="rounded-[10px] border border-[#262626] bg-[#070707] px-3 py-3">
-      <p className="text-[10px] uppercase tracking-[0.24em] text-[#7f7b71]">
-        {label}
-      </p>
-      <p className={`mt-2 text-sm font-semibold uppercase ${tone}`}>{value}</p>
-    </div>
-  );
-}
 
 export default PostProductionTools;

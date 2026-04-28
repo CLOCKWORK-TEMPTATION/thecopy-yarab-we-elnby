@@ -11,20 +11,29 @@ import { useState, useEffect, useCallback } from "react";
 
 import { GeminiService } from "@/ai/gemini-service";
 import { exportProjectDocument } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
-import { CreativeGenre, WritingTechnique } from "@/app/(main)/arabic-creative-writing-studio/types";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { NoiseBackground } from "@/components/aceternity/noise-background";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import { useCreativeStudio } from "../hooks/useCreativeStudio";
+
 import { StudioHeader, StudioNotification, HomeView } from "./studio";
+
 import type { PromptLibraryProps } from "./PromptLibrary";
 import type { SettingsPanelProps } from "./SettingsPanel";
 import type { WritingEditorProps } from "./WritingEditor";
-import type { NotificationState, StudioView } from "../types/studio";
+import type { NotificationState } from "../types/studio";
 
 const PromptLibrary = dynamic<PromptLibraryProps>(
-  () => import("./PromptLibrary").then((mod) => ({ default: mod.PromptLibrary })),
+  () =>
+    import("./PromptLibrary").then((mod) => ({ default: mod.PromptLibrary })),
   {
     loading: () => (
       <div className="flex items-center justify-center p-8">
@@ -36,7 +45,8 @@ const PromptLibrary = dynamic<PromptLibraryProps>(
 );
 
 const WritingEditor = dynamic<WritingEditorProps>(
-  () => import("./WritingEditor").then((mod) => ({ default: mod.WritingEditor })),
+  () =>
+    import("./WritingEditor").then((mod) => ({ default: mod.WritingEditor })),
   {
     loading: () => (
       <div className="flex items-center justify-center p-8">
@@ -48,7 +58,8 @@ const WritingEditor = dynamic<WritingEditorProps>(
 );
 
 const SettingsPanel = dynamic<SettingsPanelProps>(
-  () => import("./SettingsPanel").then((mod) => ({ default: mod.SettingsPanel })),
+  () =>
+    import("./SettingsPanel").then((mod) => ({ default: mod.SettingsPanel })),
   {
     loading: () => (
       <div className="flex items-center justify-center p-8">
@@ -66,8 +77,12 @@ interface CreativeWritingStudioProps {
 export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
   initialSettings,
 }) => {
-  const [notification, setNotification] = useState<NotificationState | null>(null);
-  const [geminiService, setGeminiService] = useState<GeminiService | null>(null);
+  const [notification, setNotification] = useState<NotificationState | null>(
+    null
+  );
+  const [geminiService, setGeminiService] = useState<GeminiService | null>(
+    null
+  );
 
   const showNotification = useCallback(
     (type: NotificationState["type"], message: string) => {
@@ -88,7 +103,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     activeChallenge,
     settings,
     loading,
-    setLoading,
     saveProject,
     createNewProject,
     startDailyPrompt,
@@ -103,7 +117,8 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     initialSettings,
     geminiService,
     showNotification,
-    analysisBlockedReason: "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.",
+    analysisBlockedReason:
+      "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.",
     exportProjectFn: exportProjectDocument,
   });
 
@@ -141,7 +156,11 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
               createNewProject(prompt);
             }}
             onEnhancePrompt={(prompt, genre, technique) =>
-              enhancePrompt(prompt, genre as CreativeGenre, technique as WritingTechnique)
+              enhancePrompt(
+                prompt,
+                genre,
+                technique
+              )
             }
             loading={loading}
           />
@@ -180,7 +199,10 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
                     : (result.error ?? "فشل اختبار الاتصال")
                 );
               } else {
-                showNotification("warning", "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.");
+                showNotification(
+                  "warning",
+                  "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر."
+                );
               }
             }}
           />
@@ -209,10 +231,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(194,37,92,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(64,165,179,0.16),transparent_34%)]" />
 
       <div className="relative z-10">
-        <StudioHeader
-          currentView={currentView}
-          onViewChange={setCurrentView}
-        />
+        <StudioHeader currentView={currentView} onViewChange={setCurrentView} />
         <StudioNotification notification={notification} />
         <main className="container mx-auto px-4 pb-8">
           <CardSpotlight className="overflow-hidden rounded-[30px] border border-[var(--page-border)] bg-[var(--page-surface)] p-4 backdrop-blur-2xl md:p-6">

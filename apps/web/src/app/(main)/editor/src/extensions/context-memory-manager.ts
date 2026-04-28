@@ -1,180 +1,48 @@
-/**
- * @module extensions/context-memory-manager
- * @description
- * مدير ذاكرة السياق — ذاكرة خفيفة تعمل داخل جلسة تصنيف واحدة (عملية لصق).
- *
- * يُصدّر:
- * - {@link ContextMemorySnapshot} — لقطة للقراءة فقط من حالة الذاكرة
- * - {@link ContextMemoryManager} — الفئة الرئيسية لتسجيل واسترجاع السياق
- *
- * لا يعتمد على React أو Backend — يعمل بالكامل في الذاكرة المحلية.
- * يُستهلك في {@link PasteClassifier} و {@link HybridClassifier}.
- */
+/** مدير ذاكرة سياق خفيف لجلسة تصنيف واحدة داخل المحرر. */
 import { loadFromStorage, saveToStorage } from "../hooks/use-local-storage";
 import { logger } from "../utils/logger";
 
+import { analyzeContextMemoryBlock } from "./context-memory-block-analysis";
 import {
-  parseInlineCharacterDialogue,
-  isCandidateCharacterName,
-} from "./character";
+  seedInlineCharacterEvidence,
+  seedStandaloneCharacterEvidence,
+} from "./context-memory-seeding";
+import { buildContextMemorySnapshot } from "./context-memory-snapshot";
+import {
+  MAX_RECENT_TYPES,
+  MAX_RUNTIME_RECORDS,
+  RUNTIME_SESSION_ID,
+  createEmptyEvidence,
+  detectLocalRepeatedPattern,
+  isEvidenceConfirmed,
+  isValidMemoryCharacterName,
+} from "./context-memory-utils";
 import { pipelineRecorder } from "./pipeline-recorder";
-import { normalizeCharacterName, isActionVerbStart } from "./text-utils";
+import { normalizeCharacterName } from "./text-utils";
 
-import type { ClassifiedDraft, ElementType } from "./classification-types";
+import type { ClassifiedDraft } from "./classification-types";
+import type {
+  BlockAnalysis,
+  CharacterEvidence,
+  ClassificationRecord,
+  ContextMemory,
+  ContextMemorySnapshot,
+  Correction,
+  EnhancedContextMemory,
+  LineRelation,
+} from "./context-memory-types";
 
-export interface DialogueBlock {
-  character: string;
-  startLine: number;
-  endLine: number;
-  lineCount: number;
-}
-
-export interface LineRelation {
-  previousLine: string;
-  currentLine: string;
-  relationType: "follows" | "precedes" | "interrupts";
-}
-
-export interface ClassificationRecord {
-  line: string;
-  classification: ElementType;
-}
-
-export interface ContextMemory {
-  sessionId: string;
-  lastModified?: number;
-  data: {
-    commonCharacters: string[];
-    commonLocations: string[];
-    lastClassifications: ElementType[];
-    characterDialogueMap: Record<string, number>;
-  };
-}
-
-export interface Correction {
-  line: string;
-  originalClassification: string;
-  newClassification: string;
-  timestamp: number;
-}
-
-export interface EnhancedContextMemory extends ContextMemory {
-  data: ContextMemory["data"] & {
-    dialogueBlocks: DialogueBlock[];
-    lineRelationships: LineRelation[];
-    userCorrections: Correction[];
-    confidenceMap: Record<string, number>;
-  };
-}
-
-export interface ContextMemorySnapshot {
-  readonly recentTypes: readonly ElementType[];
-  readonly characterFrequency: ReadonlyMap<string, number>;
-  readonly confirmedCharacters: ReadonlySet<string>;
-  readonly characterEvidence: ReadonlyMap<string, CharacterEvidence>;
-  readonly isInDialogueFlow: boolean;
-  readonly lastCharacterName: string | null;
-  readonly dialogueDepth: number;
-}
-
-/** أدلة تأكيد هوية الشخصية — كل عدّاد مستقل */
-export interface CharacterEvidence {
-  /** عدد مرات الظهور كـ inline pair (اسم: حوار في سطر واحد) */
-  inlinePairCount: number;
-  /** عدد مرات الظهور كـ standalone header (اسم: في سطر مستقل) */
-  standaloneHeaderCount: number;
-  /** عدد المرات اللي السطر التالي كان حوار */
-  dialogueFollowerCount: number;
-  /** عدد التكرارات الكلية */
-  repeatCount: number;
-  /** عدد مرات ظهور action contamination (الاسم ظهر في سياق فعل) */
-  actionContaminationCount: number;
-}
-
-const createEmptyEvidence = (): CharacterEvidence => ({
-  inlinePairCount: 0,
-  standaloneHeaderCount: 0,
-  dialogueFollowerCount: 0,
-  repeatCount: 0,
-  actionContaminationCount: 0,
-});
-
-/**
- * سياسة التأكيد — متى يُعتبر الاسم مؤكد كشخصية؟
- * مؤكد إذا:
- *   inlinePairCount >= 1
- *   أو (standaloneHeaderCount >= 2 و dialogueFollowerCount >= 2 و actionContaminationCount === 0)
- */
-const isEvidenceConfirmed = (ev: CharacterEvidence): boolean => {
-  if (ev.inlinePairCount >= 1) return true;
-  if (
-    ev.standaloneHeaderCount >= 2 &&
-    ev.dialogueFollowerCount >= 2 &&
-    ev.actionContaminationCount === 0
-  ) {
-    return true;
-  }
-  return false;
-};
-
-const RUNTIME_SESSION_ID = "__runtime-paste-session__";
-const MAX_RECENT_TYPES = 20;
-const MAX_RUNTIME_RECORDS = 120;
-
-const MEMORY_INVALID_SINGLE_TOKEN_RE =
-  /^(?:أنا|انا|إنت|انت|أنت|أنتِ|إنتي|انتي|هو|هي|هم|هن|إحنا|احنا|نحن|أنتم|انتم)$/;
-
-const isValidMemoryCharacterName = (rawName: string): boolean => {
-  const normalized = normalizeCharacterName(rawName);
-  if (!normalized) return false;
-  if (normalized.length < 2 || normalized.length > 40) return false;
-  if (/[؟!,،"«»]/.test(normalized)) return false;
-
-  const tokens = normalized.split(/\s+/).filter(Boolean);
-  if (tokens.length === 0 || tokens.length > 5) return false;
-  const firstToken = tokens[0];
-  if (
-    tokens.length === 1 &&
-    firstToken &&
-    MEMORY_INVALID_SINGLE_TOKEN_RE.test(firstToken)
-  )
-    return false;
-  return true;
-};
-
-const detectLocalRepeatedPattern = (
-  classifications: readonly string[]
-): string | null => {
-  if (!Array.isArray(classifications) || classifications.length < 4)
-    return null;
-
-  const detectInOrder = (ordered: readonly string[]): string | null => {
-    const pairCounts = new Map<string, number>();
-    for (let i = 0; i < ordered.length - 1; i += 1) {
-      const first = (ordered[i] ?? "").trim();
-      const second = (ordered[i + 1] ?? "").trim();
-      if (!first || !second) continue;
-      const key = `${first}-${second}`;
-      pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1);
-    }
-
-    let bestPattern: string | null = null;
-    let bestCount = 0;
-    pairCounts.forEach((count, pattern) => {
-      if (count > bestCount) {
-        bestCount = count;
-        bestPattern = pattern;
-      }
-    });
-
-    return bestCount >= 2 ? bestPattern : null;
-  };
-
-  return (
-    detectInOrder(classifications) ??
-    detectInOrder([...classifications].reverse())
-  );
-};
+export type {
+  BlockAnalysis,
+  CharacterEvidence,
+  ClassificationRecord,
+  ContextMemory,
+  ContextMemorySnapshot,
+  Correction,
+  DialogueBlock,
+  EnhancedContextMemory,
+  LineRelation,
+} from "./context-memory-types";
 
 export class ContextMemoryManager {
   private storage = new Map<string, EnhancedContextMemory>();
@@ -380,23 +248,10 @@ export class ContextMemoryManager {
    * بيغذّي الـ evidence map بـ inlinePairCount.
    */
   seedFromInlinePatterns(lines: string[]): void {
-    for (const line of lines) {
-      const trimmed = (line ?? "").trim();
-      if (!trimmed) continue;
-      const parsed = parseInlineCharacterDialogue(trimmed);
-      if (parsed) {
-        const normalizedName = normalizeCharacterName(parsed.characterName);
-        if (normalizedName && isValidMemoryCharacterName(normalizedName)) {
-          this._confirmedCharacters.add(normalizedName);
-          const ev =
-            this._characterEvidence.get(normalizedName) ??
-            createEmptyEvidence();
-          ev.inlinePairCount++;
-          ev.repeatCount++;
-          this._characterEvidence.set(normalizedName, ev);
-        }
-      }
-    }
+    seedInlineCharacterEvidence(lines, {
+      confirmedCharacters: this._confirmedCharacters,
+      characterEvidence: this._characterEvidence,
+    });
   }
 
   /**
@@ -412,75 +267,10 @@ export class ContextMemoryManager {
    * 6. الاسم ليس فعل (مش action verb)
    */
   seedFromStandalonePatterns(lines: string[]): void {
-    // regex هيكلي — سطر تالي فيه إشارة حوار
-    const DIALOGUE_FOLLOWER_RE = /[؟?!]|(?:\.{2,}|…)/;
-    // المرحلة الأولى: جمع candidates مع عدد التكرار
-    const candidates = new Map<
-      string,
-      { count: number; followerCount: number }
-    >();
-
-    for (let i = 0; i < lines.length; i++) {
-      const trimmed = (lines[i] ?? "").trim();
-      if (!trimmed) continue;
-
-      // شرط 1: ينتهي بـ colon
-      if (!/[:：]\s*$/.test(trimmed)) continue;
-
-      // شرط 2: اسم صالح بعد إزالة colon
-      const namePart = normalizeCharacterName(trimmed);
-      if (!namePart) continue;
-      const tokens = namePart.split(/\s+/).filter(Boolean);
-      if (tokens.length === 0 || tokens.length > 3) continue;
-      if (!isCandidateCharacterName(namePart)) continue;
-
-      // شرط إضافي: الاسم مش فعل
-      if (isActionVerbStart(namePart)) continue;
-
-      // شرط 3+4: السطر التالي موجود ومش colon line + dialogue-leaning
-      const nextLine = (lines[i + 1] ?? "").trim();
-      if (!nextLine) continue;
-      if (/[:：]\s*$/.test(nextLine)) continue;
-
-      // شرط 4: السطر التالي dialogue-leaning هيكلياً
-      const nextTokens = nextLine.split(/\s+/).filter(Boolean);
-      const isDialogueLeaning =
-        DIALOGUE_FOLLOWER_RE.test(nextLine) ||
-        (nextTokens.length >= 2 &&
-          nextTokens.length <= 20 &&
-          !isActionVerbStart(nextLine));
-
-      if (!isDialogueLeaning) continue;
-
-      const entry = candidates.get(namePart) ?? { count: 0, followerCount: 0 };
-      entry.count++;
-      entry.followerCount++;
-      candidates.set(namePart, entry);
-    }
-
-    // المرحلة الثانية: شرط 5 — التكرار ≥ 2 + لا action contamination
-    for (const [name, stats] of candidates) {
-      if (stats.count < 2) continue;
-
-      // شرط 6: لا action contamination — الاسم مش ظهر كبداية فعل في أي سطر آخر
-      const hasContamination = lines.some((l) => {
-        const t = (l ?? "").trim();
-        if (!t || /[:：]\s*$/.test(t)) return false;
-        const firstWord = t.split(/\s+/)[0] ?? "";
-        return (
-          normalizeCharacterName(firstWord) === name && isActionVerbStart(t)
-        );
-      });
-
-      if (hasContamination) continue;
-
-      this._confirmedCharacters.add(name);
-      const ev = this._characterEvidence.get(name) ?? createEmptyEvidence();
-      ev.standaloneHeaderCount += stats.count;
-      ev.dialogueFollowerCount += stats.followerCount;
-      ev.repeatCount += stats.count;
-      this._characterEvidence.set(name, ev);
-    }
+    seedStandaloneCharacterEvidence(lines, {
+      confirmedCharacters: this._confirmedCharacters,
+      characterEvidence: this._characterEvidence,
+    });
   }
 
   /**
@@ -517,71 +307,12 @@ export class ContextMemoryManager {
 
   getSnapshot(): ContextMemorySnapshot {
     const memory = this.getOrCreateRuntimeMemory();
-    const frequency = new Map<string, number>();
-
-    Object.entries(memory.data.characterDialogueMap).forEach(
-      ([name, count]) => {
-        if (!Number.isFinite(count) || count <= 0) return;
-        frequency.set(name, count);
-      }
-    );
-
-    const recentTypes = [...memory.data.lastClassifications];
-
-    // حساب isInDialogueFlow من آخر نوع
-    const lastType = recentTypes.at(-1);
-    const isInDialogueFlow =
-      lastType === "character" ||
-      lastType === "dialogue" ||
-      lastType === "parenthetical";
-
-    // آخر شخصية اتكلمت
-    let lastCharacterName: string | null = null;
-    for (let i = this.runtimeRecords.length - 1; i >= 0; i--) {
-      const record = this.runtimeRecords[i];
-      if (record?.type === "character") {
-        lastCharacterName = normalizeCharacterName(record.text);
-        break;
-      }
-    }
-
-    // عمق الحوار — كام سطر متتالي في dialogue flow
-    let dialogueDepth = 0;
-    for (let i = recentTypes.length - 1; i >= 0; i--) {
-      const t = recentTypes[i];
-      if (t === "dialogue" || t === "parenthetical") {
-        dialogueDepth++;
-      } else if (t === "character") {
-        dialogueDepth++;
-        break;
-      } else {
-        break;
-      }
-    }
-
-    // دمج inline-seeded + runtime evidence-confirmed
-    const confirmedCharacters = new Set(this._confirmedCharacters);
-    for (const [name] of this._characterEvidence) {
-      const ev = this._characterEvidence.get(name)!;
-      if (isEvidenceConfirmed(ev)) confirmedCharacters.add(name);
-    }
-    // أي اسم ظهر runtime بـ count >= 1 وعنده evidence مؤكدة
-    for (const [name, count] of frequency) {
-      if (count >= 1) {
-        const ev = this._characterEvidence.get(name);
-        if (ev && isEvidenceConfirmed(ev)) confirmedCharacters.add(name);
-      }
-    }
-
-    return {
-      recentTypes,
-      characterFrequency: frequency,
-      confirmedCharacters,
-      characterEvidence: new Map(this._characterEvidence),
-      isInDialogueFlow,
-      lastCharacterName,
-      dialogueDepth,
-    };
+    return buildContextMemorySnapshot({
+      memory,
+      runtimeRecords: this.runtimeRecords,
+      confirmedCharacters: this._confirmedCharacters,
+      characterEvidence: this._characterEvidence,
+    });
   }
 
   /**
@@ -605,63 +336,8 @@ export class ContextMemoryManager {
    * @param endIdx - نهاية الكتلة (inclusive)
    * @returns تحليل هيكلي للكتلة
    */
-  getBlockAnalysis(
-    startIdx: number,
-    endIdx: number
-  ): {
-    totalLines: number;
-    linesEndingWithColon: number;
-    actionWithoutStrongSignal: number;
-    typeDistribution: Record<string, number>;
-    hasConsecutiveSameType: boolean;
-    dominantType: ElementType | null;
-  } {
-    const safeStart = Math.max(0, startIdx);
-    const safeEnd = Math.min(this.runtimeRecords.length - 1, endIdx);
-    const slice = this.runtimeRecords.slice(safeStart, safeEnd + 1);
-
-    const typeDist: Record<string, number> = {};
-    let linesEndingWithColon = 0;
-    let actionWithoutStrongSignal = 0;
-    let hasConsecutiveSameType = false;
-
-    for (let i = 0; i < slice.length; i++) {
-      const entry = slice[i];
-      if (!entry) continue;
-      typeDist[entry.type] = (typeDist[entry.type] ?? 0) + 1;
-
-      if (/[:：]\s*$/.test(entry.text.trim())) {
-        linesEndingWithColon++;
-      }
-
-      if (entry.type === "action" && !/^[-–—]/.test(entry.text.trim())) {
-        actionWithoutStrongSignal++;
-      }
-
-      const previous = i > 0 ? slice[i - 1] : undefined;
-      if (previous?.type === entry.type) {
-        hasConsecutiveSameType = true;
-      }
-    }
-
-    // النوع المهيمن
-    let dominantType: ElementType | null = null;
-    let maxCount = 0;
-    for (const [typeKey, count] of Object.entries(typeDist)) {
-      if (count > maxCount) {
-        maxCount = count;
-        dominantType = typeKey as ElementType;
-      }
-    }
-
-    return {
-      totalLines: slice.length,
-      linesEndingWithColon,
-      actionWithoutStrongSignal,
-      typeDistribution: typeDist,
-      hasConsecutiveSameType,
-      dominantType,
-    };
+  getBlockAnalysis(startIdx: number, endIdx: number): BlockAnalysis {
+    return analyzeContextMemoryBlock(this.runtimeRecords, startIdx, endIdx);
   }
 
   /**

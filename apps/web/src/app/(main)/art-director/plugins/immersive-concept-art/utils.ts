@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 // Immersive Concept Art Studio Utilities
 // أدوات استوديو الفن التصوري الغامر
 
@@ -23,8 +23,15 @@ export function suggestRelatedThemes(theme: string): string[] {
   return THEME_RELATIONS[theme.toLowerCase()] ?? defaultThemes;
 }
 
-export function generateStyleGuide(theme: string, palette: string[]): Record<string, unknown> {
-  const [primaryColor = "#ff6b6b", secondaryColor = "#feca57", accentColor = "#ff9f43"] = palette;
+export function generateStyleGuide(
+  theme: string,
+  palette: string[]
+): Record<string, unknown> {
+  const [
+    primaryColor = "#ff6b6b",
+    secondaryColor = "#feca57",
+    accentColor = "#ff9f43",
+  ] = palette;
 
   return {
     primaryColor,
@@ -54,10 +61,17 @@ export function getVRExperienceDuration(type: string): number {
   }
 }
 
-export function calculateVertexChange(brushSize: number, intensity: number): number {
+export function calculateVertexChange(
+  brushSize: number,
+  intensity: number
+): number {
   return Math.round(brushSize * intensity * 10);
 }
 
-export function definedProps<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+export function definedProps<T extends Record<string, unknown>>(
+  obj: T
+): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  ) as Partial<T>;
 }

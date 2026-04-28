@@ -5,11 +5,34 @@
 import { v4 as uuidv4 } from "uuid";
 import { definedProps } from "@/utils/defined-props";
 import type { PluginOutput } from "../../types";
-import type { VirtualProduction, VPCamera, VPScene, VisualEffect, TrackingSession } from "./types";
-import { productions, illusionLibrary, CALIBRATION_STEPS, EXPORT_FORMATS, OUTPUT_FORMATS } from "./constants";
-import { createCamera, createLEDWall, calculateFrustum, calculateOpticalIllusion, getDefaultVFXParameters, getTrackingSpecs } from "./utils";
+import type {
+  VirtualProduction,
+  VPCamera,
+  VPScene,
+  VisualEffect,
+  TrackingSession,
+  IllusionType,
+} from "./types";
+import {
+  productions,
+  illusionLibrary,
+  CALIBRATION_STEPS,
+  EXPORT_FORMATS,
+  OUTPUT_FORMATS,
+} from "./constants";
+import {
+  createCamera,
+  createLEDWall,
+  calculateFrustum,
+  calculateOpticalIllusion,
+  getDefaultVFXParameters,
+  getTrackingSpecs,
+} from "./utils";
 
-export function createProductionOperation(data: { name: string; description: string }): PluginOutput {
+export function createProductionOperation(data: {
+  name: string;
+  description: string;
+}): PluginOutput {
   const production: VirtualProduction = {
     id: uuidv4(),
     name: data.name,
@@ -60,7 +83,13 @@ export function setupLEDWallOperation(data: {
     return { success: false, error: "Production not found" };
   }
 
-  const ledWallData = createLEDWall(data.name, data.dimensions, data.pixelPitch, data.curvature, data.colorSpace);
+  const ledWallData = createLEDWall(
+    data.name,
+    data.dimensions,
+    data.pixelPitch,
+    data.curvature,
+    data.colorSpace,
+  );
   const ledWall = { id: uuidv4(), ...ledWallData };
 
   production.ledWalls.push(ledWall);
@@ -96,7 +125,12 @@ export function configureCameraOperation(data: {
     return { success: false, error: "Production not found" };
   }
 
-  const cameraData = createCamera(data.name, data.type, data.lens, data.trackingSystem);
+  const cameraData = createCamera(
+    data.name,
+    data.type,
+    data.lens,
+    data.trackingSystem,
+  );
   const camera: VPCamera = {
     id: uuidv4(),
     ...cameraData,
@@ -121,15 +155,21 @@ export function configureCameraOperation(data: {
         coverageAtDistance: {
           "3m": {
             width: 2 * 3 * Math.tan(((fov / 2) * Math.PI) / 180),
-            height: (2 * 3 * Math.tan(((fov / 2) * Math.PI) / 180)) / (sensorSize.width / sensorSize.height),
+            height:
+              (2 * 3 * Math.tan(((fov / 2) * Math.PI) / 180)) /
+              (sensorSize.width / sensorSize.height),
           },
           "5m": {
             width: 2 * 5 * Math.tan(((fov / 2) * Math.PI) / 180),
-            height: (2 * 5 * Math.tan(((fov / 2) * Math.PI) / 180)) / (sensorSize.width / sensorSize.height),
+            height:
+              (2 * 5 * Math.tan(((fov / 2) * Math.PI) / 180)) /
+              (sensorSize.width / sensorSize.height),
           },
           "10m": {
             width: 2 * 10 * Math.tan(((fov / 2) * Math.PI) / 180),
-            height: (2 * 10 * Math.tan(((fov / 2) * Math.PI) / 180)) / (sensorSize.width / sensorSize.height),
+            height:
+              (2 * 10 * Math.tan(((fov / 2) * Math.PI) / 180)) /
+              (sensorSize.width / sensorSize.height),
           },
         },
       },
@@ -200,7 +240,7 @@ export function calculateFrustumOperation(data: {
     data.sensorWidth,
     data.sensorHeight,
     data.subjectDistance,
-    data.ledWallDistance
+    data.ledWallDistance,
   );
 
   return {
@@ -209,7 +249,8 @@ export function calculateFrustumOperation(data: {
       frustum: {
         horizontalFOV: Math.round(result.fovH * 10) / 10,
         verticalFOV: Math.round(result.fovV * 10) / 10,
-        aspectRatio: Math.round((data.sensorWidth / data.sensorHeight) * 100) / 100,
+        aspectRatio:
+          Math.round((data.sensorWidth / data.sensorHeight) * 100) / 100,
       },
       coverageAtSubject: {
         distance: data.subjectDistance,
@@ -221,7 +262,10 @@ export function calculateFrustumOperation(data: {
             distance: data.ledWallDistance,
             width: Math.round(result.ledWallCoverage.width * 100) / 100,
             height: Math.round(result.ledWallCoverage.height * 100) / 100,
-            recommendation: result.ledWallCoverage.width > 10 ? "Consider curved wall" : "Flat wall suitable",
+            recommendation:
+              result.ledWallCoverage.width > 10
+                ? "Consider curved wall"
+                : "Flat wall suitable",
           }
         : null,
       message: "Frustum calculated",
@@ -370,7 +414,9 @@ export function realTimeCompositeOperation(data: {
         scene: scene.name,
         camera: camera.name,
         resolution,
-        latency: camera.tracked ? `${camera.trackingSystem === "mocap" ? "8" : "15"}ms` : "N/A",
+        latency: camera.tracked
+          ? `${camera.trackingSystem === "mocap" ? "8" : "15"}ms`
+          : "N/A",
         colorSpace: production.ledWalls[0]?.colorSpace || "rec709",
       },
       streamUrl: `/vp/composite/${production.id}/live`,
@@ -447,7 +493,13 @@ export function listIllusionsOperation(): PluginOutput {
         description: i.description,
       })),
       totalIllusions: illusionLibrary.length,
-      categories: ["forced-perspective", "matte-painting", "miniature", "projection", "practical-effect"],
+      categories: [
+        "forced-perspective",
+        "matte-painting",
+        "miniature",
+        "projection",
+        "practical-effect",
+      ],
       message: "Optical illusion library retrieved",
       messageAr: "تم استرجاع مكتبة الخداع البصري",
     },
@@ -455,7 +507,7 @@ export function listIllusionsOperation(): PluginOutput {
 }
 
 export function calculateOpticalIllusionOperation(data: {
-  illusionType: VisualEffect["type"];
+  illusionType: IllusionType;
   parameters: {
     subjectSize?: { width: number; height: number };
     desiredApparentSize?: { width: number; height: number };
@@ -464,7 +516,10 @@ export function calculateOpticalIllusionOperation(data: {
     miniatureScale?: number;
   };
 }): PluginOutput {
-  const calculation = calculateOpticalIllusion(data.illusionType, data.parameters);
+  const calculation = calculateOpticalIllusion(
+    data.illusionType,
+    data.parameters,
+  );
 
   return {
     success: true,

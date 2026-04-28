@@ -21,7 +21,7 @@
  *   - `toolbar.ts` — يستورد `SCREENPLAY_ELEMENTS` لبناء القائمة المنسدلة.
  *   - `App.tsx` — يستورد `SCREENPLAY_ELEMENTS` لربط الاختصارات وعرض التسميات.
  */
-import { Editor, Extension, type Extensions } from "@tiptap/core";
+import { Editor, Extension } from "@tiptap/core";
 import Bold from "@tiptap/extension-bold";
 import Document from "@tiptap/extension-document";
 import Italic from "@tiptap/extension-italic";
@@ -267,7 +267,7 @@ export function createScreenplayEditor(element: HTMLElement): Editor {
       ScreenplayCommands,
       // تصنيف النص الملصوق تلقائياً
       PasteClassifier,
-    ] as Extensions,
+    ],
     content: getDefaultContent(),
     editorProps: {
       attributes: {

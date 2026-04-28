@@ -175,7 +175,9 @@ const StationsPipeline = () => {
           });
         }
       })
-      .catch(() => { /* empty */ })
+      .catch(() => {
+        /* empty */
+      })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -202,7 +204,9 @@ const StationsPipeline = () => {
         activeStation,
         errorMessage,
         analysisId,
-      }).catch(() => { /* empty */ });
+      }).catch(() => {
+        /* empty */
+      });
     }, 400);
 
     return () => {

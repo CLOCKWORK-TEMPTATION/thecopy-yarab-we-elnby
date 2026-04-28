@@ -95,7 +95,9 @@ function BudgetSectionSummary({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="font-semibold text-white">{section.name}</p>
-          <p className="text-xs text-white/45">{section.categories.length} فئة</p>
+          <p className="text-xs text-white/45">
+            {section.categories.length} فئة
+          </p>
         </div>
         <p className="text-sm font-semibold text-white">
           {formatCurrency(section.total, currency)}

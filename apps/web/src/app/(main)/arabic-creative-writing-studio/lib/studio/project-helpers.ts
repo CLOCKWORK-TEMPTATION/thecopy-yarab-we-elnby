@@ -12,7 +12,9 @@ export function restoreProject(
   };
 }
 
-export function persistProject(project: CreativeProject): PersistedCreativeProject {
+export function persistProject(
+  project: CreativeProject
+): PersistedCreativeProject {
   return {
     ...project,
     createdAt: project.createdAt.toISOString(),

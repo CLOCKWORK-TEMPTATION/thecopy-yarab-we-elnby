@@ -1,7 +1,14 @@
-import { GeminiModel, GeminiService } from "../../gemini-service";
 import { safeSub, toText } from "../../../utils/text-utils";
-import { getDefaultArtisticReferences, getDefaultThemeAnalysis } from "../defaults";
-import { validateArtisticReferences, validateThemeAnalysis } from "../validators";
+import { GeminiModel, GeminiService } from "../../gemini-service";
+import {
+  getDefaultArtisticReferences,
+  getDefaultThemeAnalysis,
+} from "../defaults";
+import {
+  validateArtisticReferences,
+  validateThemeAnalysis,
+} from "../validators";
+
 import type {
   ArtisticReferencesResult,
   Station2Context,
