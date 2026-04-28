@@ -9697,3 +9697,54 @@ git push -u origin str-098-foundation-completion
 ### هل استلزم الأمر تحديث session-state
 
 نعم
+
+---
+
+## جولة: تقليص الملفات المتجاوزة حد 600 سطر
+
+### التاريخ
+2026-04-28
+
+### الهدف
+تقليص 3 ملفات كانت تتجاوز حد 600 سطر إلى ما دون الحد.
+
+### الملفات المستهدفة والنتيجة
+
+| الملف | قبل | بعد | الأسلوب |
+|-------|------|------|---------|
+| `apps/backend/src/ocr-arabic-pdf-to-txt-pipeline/mcp-server/mistral-ocr-client.ts` | 624 | ~118 | واجهة facade + 6 ملفات مساعدة |
+| `apps/web/src/app/(main)/actorai-arabic/types/index.ts` | 621 | ~20 | barrel + 14 ملف نوع |
+| `apps/web/src/lib/ai/stations/network-diagnostics.ts` | 620 | 61 | واجهة facade + 9 ملفات تشخيص |
+
+### الملفات المُنشأة
+
+**mcp-server:**
+- `mistral-ocr-config.ts`, `mistral-ocr-response.ts`, `mistral-ocr-http.ts`
+- `mistral-ocr-files.ts`, `mistral-ocr-annotation.ts`, `mistral-ocr-batch.ts`
+
+**actorai-arabic/types:**
+- `user.ts`, `script.ts`, `recording.ts`, `analysis.ts`, `chat.ts`, `vocal.ts`
+- `view.ts`, `rhythm.ts`, `webcam.ts`, `memorization.ts`, `ar.ts`
+- `notification.ts`, `methodology.ts`, `app-state.ts`
+
+**network-diagnostics:**
+- `network-diagnostics-types.ts`, `network-diagnostics-helpers.ts`
+- `network-diagnostics-structural.ts`, `network-diagnostics-isolation.ts`
+- `network-diagnostics-abandonment.ts`, `network-diagnostics-overload.ts`
+- `network-diagnostics-weak.ts`, `network-diagnostics-redundancy.ts`
+- `network-diagnostics-health.ts`
+
+### الفحوصات
+
+- line-budget: ✓ الثلاثة الملفات خرجت من قائمة الانتهاكات (22 ملفًا متبقيًا، كلها سابقة)
+- typecheck web: ✓ خطأ واحد فقط سابق في `test-routing.ts:201`
+- typecheck backend: ✓ لا أخطاء في ملفات mistral
+- lint network-diagnostics: ✓ صفر أخطاء بعد إصلاح ترتيب الاستيراد
+
+### ما بقي مفتوحًا
+
+- لا شيء من هذه الجولة
+
+### هل استلزم الأمر تحديث session-state
+
+لا — لم تتغير الحقائق البنيوية للجلسة

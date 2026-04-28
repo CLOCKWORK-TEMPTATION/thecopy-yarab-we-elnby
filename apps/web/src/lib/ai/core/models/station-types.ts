@@ -1,27 +1,5 @@
-// frontend/src/lib/ai/core/models/station-types.ts
-
-import { StationInput } from "../../stations/base-station";
-
-import {
-  Character,
-  CharacterAnalysis,
-  DialogueAnalysis,
-  UncertaintyReport,
-  StationMetadata,
-  Relationship,
-  Conflict,
-  Theme,
-  AudienceProfile,
-  ScoreMatrix,
-  Recommendation,
-  DebateResult,
-} from "./base-entities";
-
-// ======== المحطة 1: التحليل النصي الأساسي ========
-
-export interface Station1Input extends StationInput {
-  // لا يوجد مدخلات إضافية خاصة بالمحطة 1
-}
+// Re-export all station types for backward compatibility
+export * from "./index";
 
 export interface Station1Output {
   // البيانات الأساسية

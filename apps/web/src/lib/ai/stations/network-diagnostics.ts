@@ -1,5 +1,3 @@
-import type { ConflictNetwork } from "../core/models/base-entities";
-
 import { findAbandonedConflicts } from "./network-diagnostics-abandonment";
 import {
   calculateOverallHealth,
@@ -11,6 +9,9 @@ import { findRedundancies } from "./network-diagnostics-redundancy";
 import { analyzeStructuralIssues } from "./network-diagnostics-structural";
 import { findWeakConnections } from "./network-diagnostics-weak";
 
+import type { DiagnosticReport } from "./network-diagnostics-types";
+import type { ConflictNetwork } from "../core/models/base-entities";
+
 export type {
   AbandonedConflictIssue,
   DiagnosticReport,
@@ -20,8 +21,6 @@ export type {
   StructuralIssue,
   WeakConnectionIssue,
 } from "./network-diagnostics-types";
-
-import type { DiagnosticReport } from "./network-diagnostics-types";
 
 export class NetworkDiagnostics {
   private network: ConflictNetwork;

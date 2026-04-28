@@ -22,108 +22,31 @@ import { ShotAnalysisSchema } from "../types";
 
 import { useMediaInputPipeline } from "./useMediaInputPipeline";
 
-import type { VisualMood, ShotAnalysis } from "../types";
+import type { VisualMood } from "../types";
 
-// ============================================
-// واجهات الحالة الداخلية
-// ============================================
+import {
+  type AnalysisState,
+  type AssistantState,
+  type TechnicalSettings,
+  type ValidateShotResponse,
+  type ChatResponse,
+} from "./useProduction-types";
 
-/**
- * حالة تحليل اللقطة
- */
-interface AnalysisState {
-  /** حالة التحليل جارية */
-  isAnalyzing: boolean;
-  /** نتيجة التحليل */
-  analysis: ShotAnalysis | null;
-  /** مصدر التحليل الفعلي */
-  source: "remote" | "local-fallback" | null;
-  /** رسالة الخطأ إن وجدت */
-  error: string | null;
-  /** سؤال المستخدم للمساعد */
-  question: string;
-}
+import {
+  initialAnalysisState,
+  initialAssistantState,
+  ASSISTANT_REQUEST_TIMEOUT_MS,
+  defaultTechnicalSettings,
+  getRecommendedColorTemp,
+} from "./useProduction-constants";
 
-/**
- * حالة المساعد الذكي — منفصلة عن حالة التحليل لأن الإجابة والخطأ
- * يجب أن يبقيا داخل لوحة المساعد لا في إشعار toast العابر.
- */
-interface AssistantState {
-  isLoading: boolean;
-  /** آخر إجابة ناجحة */
-  answer: string | null;
-  /** آخر سؤال أُرسل بنجاح (لعرضه فوق الإجابة) */
-  lastQuestion: string | null;
-  /** آخر خطأ */
-  error: string | null;
-}
+import {
+  REMOTE_ANALYSIS_TIMEOUT_MS,
+  normalizeShotAnalysis,
+  clampScore,
+} from "./useProduction-utils";
 
-/**
- * الإعدادات التقنية للكاميرا
- */
-interface TechnicalSettings {
-  /** Focus Peaking */
-  focusPeaking: boolean;
-  /** False Color */
-  falseColor: boolean;
-  /** درجة حرارة اللون بالكلفن */
-  colorTemp: number;
-}
 
-// ============================================
-// الثوابت
-// ============================================
-
-/**
- * الحالة الابتدائية للتحليل
- */
-const initialAnalysisState: AnalysisState = {
-  isAnalyzing: false,
-  analysis: null,
-  source: null,
-  error: null,
-  question: "",
-};
-
-const initialAssistantState: AssistantState = {
-  isLoading: false,
-  answer: null,
-  lastQuestion: null,
-  error: null,
-};
-
-/** حد المهلة لطلب المساعد الذكي (ms). */
-const ASSISTANT_REQUEST_TIMEOUT_MS = 15_000;
-
-/**
- * الإعدادات التقنية الافتراضية
- */
-const defaultTechnicalSettings: TechnicalSettings = {
-  focusPeaking: true,
-  falseColor: false,
-  colorTemp: 3200,
-};
-
-interface ValidateShotResponse {
-  success?: boolean;
-  validation?: {
-    score?: number;
-    status?: string;
-    exposure?: string;
-    composition?: string;
-    focus?: string;
-    colorBalance?: string;
-    suggestions?: string[];
-    improvements?: string[];
-  };
-}
-
-interface ChatResponse {
-  success?: boolean;
-  data?: {
-    response?: string;
-  };
-}
 
 // ============================================
 // الـ Hook الرئيسي
@@ -259,10 +182,7 @@ export function useProduction(mood: VisualMood = "noir") {
   // دوال التحليل
   // ============================================
 
-  /**
-   * حد المهلة لمسار التحليل البعيد (ms).
-   */
-  const REMOTE_ANALYSIS_TIMEOUT_MS = 12_000;
+
 
   /**
    * تحليل اللقطة الحالية — مسار متوازٍ
@@ -567,13 +487,7 @@ export function useProduction(mood: VisualMood = "noir") {
    * درجة الحرارة الموصى بها بناءً على المود الحالي
    */
   const recommendedColorTemp = useMemo((): number => {
-    const moodDefaults: Record<VisualMood, number> = {
-      noir: 3200,
-      realistic: 5600,
-      surreal: 4500,
-      vintage: 3800,
-    };
-    return moodDefaults[mood];
+    return getRecommendedColorTemp(mood);
   }, [mood]);
 
   /**
@@ -642,39 +556,3 @@ export function useProduction(mood: VisualMood = "noir") {
 }
 
 export default useProduction;
-
-function normalizeShotAnalysis(
-  validation:
-    | {
-        score?: number;
-        status?: string;
-        exposure?: string;
-        composition?: string;
-        focus?: string;
-        colorBalance?: string;
-        suggestions?: string[];
-        improvements?: string[];
-      }
-    | undefined
-): ShotAnalysis {
-  const issues = [
-    ...(validation?.suggestions ?? []),
-    ...(validation?.improvements ?? []),
-  ].filter((value, index, array) => array.indexOf(value) === index);
-
-  return {
-    score: clampScore(validation?.score),
-    dynamicRange: validation?.composition ?? validation?.exposure ?? "غير متاح",
-    grainLevel: validation?.focus ?? validation?.colorBalance ?? "غير متاح",
-    issues,
-    exposure: clampScore(validation?.score),
-  };
-}
-
-function clampScore(value: number | undefined): number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
