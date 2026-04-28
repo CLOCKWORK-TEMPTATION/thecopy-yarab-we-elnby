@@ -1,9 +1,9 @@
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, isNull } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappProjects } from '@/db/schema';
+import { db } from "@/db";
+import { breakappProjects } from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
+import { ensureDatabase } from "./_helpers";
 
 export async function createProject(input: {
   name: string;
@@ -18,7 +18,7 @@ export async function createProject(input: {
     })
     .returning({ id: breakappProjects.id, name: breakappProjects.name });
   if (!row) {
-    throw new Error('تعذر إنشاء المشروع');
+    throw new Error("تعذر إنشاء المشروع");
   }
   return row;
 }
@@ -46,7 +46,10 @@ export async function projectExists(projectId: string): Promise<boolean> {
     .select({ id: breakappProjects.id })
     .from(breakappProjects)
     .where(
-      and(eq(breakappProjects.id, projectId), isNull(breakappProjects.deletedAt))
+      and(
+        eq(breakappProjects.id, projectId),
+        isNull(breakappProjects.deletedAt),
+      ),
     )
     .limit(1);
   return rows.length > 0;

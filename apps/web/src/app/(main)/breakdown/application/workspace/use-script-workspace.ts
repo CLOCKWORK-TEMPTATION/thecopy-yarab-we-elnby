@@ -101,9 +101,7 @@ export function useScriptWorkspace() {
     } catch (err) {
       logError("useScriptWorkspace.processScript", err);
       const nextError: ScriptError = {
-        message: `خطأ في معالجة السيناريو: ${
-          err instanceof Error ? err.message : "خطأ غير معروف"
-        }`,
+        message: `خطأ في معالجة السيناريو: ${err instanceof Error ? err.message : "خطأ غير معروف"}`,
         code: "API_ERROR",
       };
       setError(nextError);
@@ -134,9 +132,7 @@ export function useScriptWorkspace() {
             const newVersion: Version = {
               id: Date.now().toString(),
               timestamp: Date.now(),
-              label: `نسخة ${oldVersions.length + 1} - ${new Date().toLocaleTimeString(
-                "ar-EG"
-              )}`,
+              label: `نسخة ${oldVersions.length + 1} - ${new Date().toLocaleTimeString("ar-EG")}`,
             };
             if (scene.analysis) {
               newVersion.analysis = scene.analysis;
@@ -272,9 +268,7 @@ export function useScriptWorkspace() {
         const currentVersion: Version = {
           id: Date.now().toString(),
           timestamp: Date.now(),
-          label: `نسخة ما قبل الاستعادة (${new Date().toLocaleTimeString(
-            "ar-EG"
-          )})`,
+          label: `نسخة ما قبل الاستعادة (${new Date().toLocaleTimeString("ar-EG")})`,
         };
         if (scene.analysis) {
           currentVersion.analysis = scene.analysis;

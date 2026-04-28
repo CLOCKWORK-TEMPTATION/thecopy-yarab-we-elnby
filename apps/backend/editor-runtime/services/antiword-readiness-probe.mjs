@@ -48,21 +48,24 @@ export const probeAntiwordReadiness = async () => {
     if (code === "ENOENT") {
       // الملف الثنائي غير موجود على المسار
       warnings.push(
-        `antiword binary غير موجود على المسار: ${runtime.antiwordPath}`
+        `antiword binary غير موجود على المسار: ${runtime.antiwordPath}`,
       );
     } else if (code === "EACCES") {
       // الملف موجود لكنه غير قابل للتنفيذ
       warnings.push(
-        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`
+        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`,
       );
     } else {
       // خطأ آخر - قد يكون antiword موجود لكن يرجع exit code غير صفري
       // في هذه الحالة نعتبره متاحًا
-      if (!error.message?.includes("ENOENT") && !error.message?.includes("EACCES")) {
+      if (
+        !error.message?.includes("ENOENT") &&
+        !error.message?.includes("EACCES")
+      ) {
         antiwordBinaryAvailable = true;
       } else {
         warnings.push(
-          `فشل التحقق من antiword: ${error instanceof Error ? error.message : String(error)}`
+          `فشل التحقق من antiword: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -72,7 +75,7 @@ export const probeAntiwordReadiness = async () => {
   const antiwordHomeExists = existsSync(runtime.antiwordHome);
   if (!antiwordHomeExists && antiwordBinaryAvailable) {
     warnings.push(
-      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`
+      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`,
     );
   }
 
@@ -147,20 +150,23 @@ export const probeAntiwordReadinessSync = () => {
     if (code === "ENOENT") {
       // الملف الثنائي غير موجود على المسار
       warnings.push(
-        `antiword binary غير موجود على المسار: ${runtime.antiwordPath}`
+        `antiword binary غير موجود على المسار: ${runtime.antiwordPath}`,
       );
     } else if (code === "EACCES") {
       // الملف موجود لكنه غير قابل للتنفيذ
       warnings.push(
-        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`
+        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`,
       );
     } else {
       // خطأ آخر - قد يكون antiword موجود لكن يرجع exit code غير صفري
-      if (!error.message?.includes("ENOENT") && !error.message?.includes("EACCES")) {
+      if (
+        !error.message?.includes("ENOENT") &&
+        !error.message?.includes("EACCES")
+      ) {
         antiwordBinaryAvailable = true;
       } else {
         warnings.push(
-          `فشل التحقق من antiword: ${error instanceof Error ? error.message : String(error)}`
+          `فشل التحقق من antiword: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -170,7 +176,7 @@ export const probeAntiwordReadinessSync = () => {
   const antiwordHomeExists = existsSync(runtime.antiwordHome);
   if (!antiwordHomeExists && antiwordBinaryAvailable) {
     warnings.push(
-      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`
+      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`,
     );
   }
 

@@ -9,14 +9,13 @@
  */
 
 import { ensureCharacterTrailingColon } from "../../character";
-
 import { generateItemId } from "../../paste-classifier-helpers";
-import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
+import { PREVIEW_LINE_TYPE } from "../constants";
+
+import { normalizePreviewText } from "./text-normalization";
 
 import type { ClassifiedDraft, ElementType } from "../../classification-types";
-
-import { PREVIEW_LINE_TYPE } from "../constants";
-import { normalizePreviewText } from "./text-normalization";
+import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 
 /**
  * بناء ClassifiedDraft بقواعد القصاصة الخاصة بالنوع:

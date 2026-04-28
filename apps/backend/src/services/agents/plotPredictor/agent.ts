@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const PLOT_PREDICTOR_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.PLOT_PREDICTOR,

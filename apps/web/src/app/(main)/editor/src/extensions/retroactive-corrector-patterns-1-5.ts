@@ -137,6 +137,58 @@ export const applyPattern3_IsolatedDialogue = (
 
 // ─── النمط 4: كتلة action طويلة (5+) مع سطر ينتهي بـ : ─────────
 
+function isSeededCandidateName(
+  text: string,
+  preSeeded?: ReadonlySet<string>
+): boolean {
+  const name = normalizeCharacterName(text);
+  if (!name || !isCandidateCharacterName(name)) return false;
+
+  const tokens = name.split(/\s+/).filter(Boolean);
+  return tokens.length !== 1 || !preSeeded || preSeeded.has(name);
+}
+
+function correctDialogueAfterCharacter(
+  classified: ClassifiedDraft[],
+  start: number,
+  blockEnd: number
+): number {
+  let corrections = 0;
+
+  for (let index = start + 1; index < blockEnd; index++) {
+    const draft = classified[index];
+    if (!draft) continue;
+    if (hasStrongActionSignal(draft.text)) break;
+    if (looksLikeCharacterStructurally(draft.text)) break;
+    classified[index] = correctedDraft(draft, "dialogue", 4);
+    corrections += 1;
+  }
+
+  return corrections;
+}
+
+function correctLongActionBlock(
+  classified: ClassifiedDraft[],
+  blockStart: number,
+  blockEnd: number,
+  preSeeded?: ReadonlySet<string>
+): number {
+  let corrections = 0;
+
+  for (let index = blockStart; index < blockEnd; index++) {
+    const draft = classified[index];
+    if (!draft) continue;
+    if (!looksLikeCharacterStructurally(draft.text)) continue;
+    if (!isSeededCandidateName(draft.text, preSeeded)) continue;
+
+    classified[index] = correctedDraft(draft, "character", 6);
+    corrections += 1;
+    corrections += correctDialogueAfterCharacter(classified, index, blockEnd);
+  }
+
+  return corrections;
+}
+
 export const applyPattern4_LongActionBlockWithColon = (
   classified: ClassifiedDraft[],
   preSeeded?: ReadonlySet<string>
@@ -160,29 +212,12 @@ export const applyPattern4_LongActionBlockWithColon = (
       const blockLength = blockEnd - blockStart;
 
       if (blockLength >= MIN_BLOCK_LENGTH) {
-        for (let j = blockStart; j < blockEnd; j++) {
-          const currentDraft = classified[j];
-          if (!currentDraft) continue;
-          if (!looksLikeCharacterStructurally(currentDraft.text)) continue;
-
-          const p4Name = normalizeCharacterName(currentDraft.text);
-          if (!p4Name || !isCandidateCharacterName(p4Name)) continue;
-          const p4Tokens = p4Name.split(/\s+/).filter(Boolean);
-          if (p4Tokens.length === 1 && preSeeded && !preSeeded.has(p4Name))
-            continue;
-
-          classified[j] = correctedDraft(currentDraft, "character", 6);
-          corrections += 1;
-
-          for (let k = j + 1; k < blockEnd; k++) {
-            const nextDraft = classified[k];
-            if (!nextDraft) continue;
-            if (hasStrongActionSignal(nextDraft.text)) break;
-            if (looksLikeCharacterStructurally(nextDraft.text)) break;
-            classified[k] = correctedDraft(nextDraft, "dialogue", 4);
-            corrections += 1;
-          }
-        }
+        corrections += correctLongActionBlock(
+          classified,
+          blockStart,
+          blockEnd,
+          preSeeded
+        );
       }
 
       blockStart = -1;
@@ -204,54 +239,19 @@ export const applyPattern5_UnconfirmedCharacterCluster = (
   preSeeded: ReadonlySet<string>
 ): number => {
   let corrections = 0;
-
-  const nameFrequency = new Map<string, number>();
-  for (const draft of classified) {
-    if (draft.type !== "character") continue;
-    const name = normalizeCharacterName(draft.text);
-    if (!name) continue;
-    nameFrequency.set(name, (nameFrequency.get(name) ?? 0) + 1);
-  }
-
-  const unconfirmedIndexes = new Set<number>();
-  for (let i = 0; i < classified.length; i++) {
-    const current = classified[i];
-    if (current?.type !== "character") continue;
-    const name = normalizeCharacterName(current.text);
-    if (!name) continue;
-    if ((nameFrequency.get(name) ?? 0) >= 2) continue;
-    if (preSeeded.has(name)) continue;
-    unconfirmedIndexes.add(i);
-  }
+  const nameFrequency = getCharacterNameFrequency(classified);
+  const unconfirmedIndexes = getUnconfirmedCharacterIndexes(
+    classified,
+    nameFrequency,
+    preSeeded
+  );
 
   if (unconfirmedIndexes.size === 0) return 0;
 
-  const CLUSTER_WINDOW = 5;
-  const DIALOGUE_FLOW = new Set<ElementType>(["dialogue", "parenthetical"]);
-
   for (const idx of unconfirmedIndexes) {
-    let confirmationSignals = 0;
-
-    const nextType =
-      idx + 1 < classified.length ? (classified[idx + 1]?.type ?? null) : null;
-    if (nextType && DIALOGUE_FLOW.has(nextType)) {
-      confirmationSignals += 1;
-    }
-
-    let nearbyUnconfirmed = 0;
-    for (
-      let j = Math.max(0, idx - CLUSTER_WINDOW);
-      j < Math.min(classified.length, idx + CLUSTER_WINDOW + 1);
-      j++
+    if (
+      !hasUnconfirmedCharacterConfirmation(classified, idx, unconfirmedIndexes)
     ) {
-      if (j === idx) continue;
-      if (unconfirmedIndexes.has(j)) nearbyUnconfirmed++;
-    }
-    if (nearbyUnconfirmed === 0) {
-      confirmationSignals += 1;
-    }
-
-    if (confirmationSignals === 0) {
       const current = classified[idx];
       if (!current) continue;
       classified[idx] = correctedDraft(current, "dialogue", 4);
@@ -261,3 +261,76 @@ export const applyPattern5_UnconfirmedCharacterCluster = (
 
   return corrections;
 };
+
+function getCharacterNameFrequency(classified: ClassifiedDraft[]) {
+  const nameFrequency = new Map<string, number>();
+
+  for (const draft of classified) {
+    if (draft.type !== "character") continue;
+    const name = normalizeCharacterName(draft.text);
+    if (!name) continue;
+    nameFrequency.set(name, (nameFrequency.get(name) ?? 0) + 1);
+  }
+
+  return nameFrequency;
+}
+
+function getUnconfirmedCharacterIndexes(
+  classified: ClassifiedDraft[],
+  nameFrequency: ReadonlyMap<string, number>,
+  preSeeded: ReadonlySet<string>
+) {
+  const indexes = new Set<number>();
+
+  for (let index = 0; index < classified.length; index++) {
+    const current = classified[index];
+    if (current?.type !== "character") continue;
+    const name = normalizeCharacterName(current.text);
+    if (!name) continue;
+    if ((nameFrequency.get(name) ?? 0) >= 2) continue;
+    if (preSeeded.has(name)) continue;
+    indexes.add(index);
+  }
+
+  return indexes;
+}
+
+function hasUnconfirmedCharacterConfirmation(
+  classified: ClassifiedDraft[],
+  index: number,
+  unconfirmedIndexes: ReadonlySet<number>
+) {
+  return (
+    hasDialogueFlowAfter(classified, index) ||
+    countNearbyUnconfirmed(index, classified.length, unconfirmedIndexes) === 0
+  );
+}
+
+function hasDialogueFlowAfter(classified: ClassifiedDraft[], index: number) {
+  const DIALOGUE_FLOW = new Set<ElementType>(["dialogue", "parenthetical"]);
+  const nextType =
+    index + 1 < classified.length
+      ? (classified[index + 1]?.type ?? null)
+      : null;
+
+  return Boolean(nextType && DIALOGUE_FLOW.has(nextType));
+}
+
+function countNearbyUnconfirmed(
+  index: number,
+  length: number,
+  unconfirmedIndexes: ReadonlySet<number>
+) {
+  const CLUSTER_WINDOW = 5;
+  let nearby = 0;
+
+  for (
+    let current = Math.max(0, index - CLUSTER_WINDOW);
+    current < Math.min(length, index + CLUSTER_WINDOW + 1);
+    current++
+  ) {
+    if (current !== index && unconfirmedIndexes.has(current)) nearby += 1;
+  }
+
+  return nearby;
+}

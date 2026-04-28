@@ -220,9 +220,10 @@ describe("Standard Agent Pattern", () => {
         input
       );
 
-      if (result.confidence < 0.7) {
-        expect(result.notes.some((n) => n.includes("نقاش"))).toBe(true);
-      }
+      expect(
+        result.confidence >= 0.7 ||
+          result.notes.some((note) => note.includes("نقاش"))
+      ).toBe(true);
     });
 
     it.todo("validate-pipeline: should handle errors gracefully");

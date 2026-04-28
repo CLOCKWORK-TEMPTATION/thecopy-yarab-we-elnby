@@ -17,15 +17,24 @@ import { Textarea } from "@/components/ui/textarea";
 
 import type { SceneRhythmAnalysis } from "../../types";
 
+type RhythmTab = "map" | "comparison" | "monotony" | "suggestions";
+
+function isRhythmTab(value: string): value is RhythmTab {
+  return (
+    value === "map" ||
+    value === "comparison" ||
+    value === "monotony" ||
+    value === "suggestions"
+  );
+}
+
 interface RhythmAnalysisProps {
   rhythmScriptText: string;
   setRhythmScriptText: (text: string) => void;
   analyzingRhythm: boolean;
   rhythmAnalysis: SceneRhythmAnalysis | null;
-  selectedRhythmTab: "map" | "comparison" | "monotony" | "suggestions";
-  setSelectedRhythmTab: (
-    tab: "map" | "comparison" | "monotony" | "suggestions"
-  ) => void;
+  selectedRhythmTab: RhythmTab;
+  setSelectedRhythmTab: (tab: RhythmTab) => void;
   useRhythmSampleScript: () => void;
   analyzeSceneRhythm: () => void;
   getTempoColor: (tempo: string) => string;
@@ -120,7 +129,11 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
         <CardContent>
           <Tabs
             value={selectedRhythmTab}
-            onValueChange={(v) => setSelectedRhythmTab(v as any)}
+            onValueChange={(value) => {
+              if (isRhythmTab(value)) {
+                setSelectedRhythmTab(value);
+              }
+            }}
           >
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="map">🗺️ خريطة الإيقاع</TabsTrigger>
@@ -229,7 +242,7 @@ export const RhythmAnalysis: React.FC<RhythmAnalysisProps> = ({
                         className="p-4 border rounded-lg bg-blue-50"
                       >
                         <p className="font-medium mb-2">
-                          "{suggestion.segment}"
+                          &quot;{suggestion.segment}&quot;
                         </p>
                         <div className="space-y-2 text-sm">
                           <p>

@@ -150,9 +150,7 @@ export function addCustomRule(rule: WAFRule): void {
 
 export function removeCustomRule(ruleId: string): void {
   const wafConfig = getWafConfig();
-  wafConfig.customRules = wafConfig.customRules.filter(
-    (r) => r.id !== ruleId
-  );
+  wafConfig.customRules = wafConfig.customRules.filter((r) => r.id !== ruleId);
   setWafConfig(wafConfig);
   logger.info("Custom WAF rule removed", { ruleId });
 }
@@ -230,9 +228,7 @@ export function resetWAFConfig(): void {
 // Alert System
 // ============================================================================
 
-export function onWAFAlert(
-  callback: (event: WAFEvent) => void
-): void {
+export function onWAFAlert(callback: (event: WAFEvent) => void): void {
   alertCallbacks.push(callback);
 }
 

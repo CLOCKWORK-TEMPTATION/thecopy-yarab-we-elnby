@@ -19,16 +19,6 @@ import { Station3Output } from "./station3-network-builder";
 import { Station4Output } from "./station4-efficiency-metrics";
 import { Station5Output } from "./station5-dynamic-symbolic-stylistic";
 import { Station6Output } from "./station6-diagnostics-treatment";
-
-// Re-export public types
-export type {
-  Station7Input,
-  Station7Output,
-  AudienceResonance,
-  RewritingSuggestion,
-  ScoreMatrix,
-} from "./station7-types";
-
 import {
   generateHumanReadableReport,
   generateMarkdownReport,
@@ -59,9 +49,145 @@ import type {
   Station7Output,
 } from "./station7-types";
 
+// Re-export public types
+export type {
+  Station7Input,
+  Station7Output,
+  AudienceResonance,
+  RewritingSuggestion,
+  ScoreMatrix,
+} from "./station7-types";
+
 // ---------------------------------------------------------------------------
 // Station7Finalization
 // ---------------------------------------------------------------------------
+
+interface StationOutputs {
+  station1?: Station1Output;
+  station2?: Station2Output;
+  station3?: Station3Output;
+  station4?: Station4Output;
+  station5?: Station5Output;
+  station6?: Station6Output;
+}
+
+interface ExecutiveSummaryContext extends StationOutputs {
+  scoreMatrix: ScoreMatrix;
+}
+
+function getStationOutputs(input: Station7Input): StationOutputs {
+  return {
+    station1: input.allPreviousStationsData.get(1) as
+      | Station1Output
+      | undefined,
+    station2: input.allPreviousStationsData.get(2) as
+      | Station2Output
+      | undefined,
+    station3: input.allPreviousStationsData.get(3) as
+      | Station3Output
+      | undefined,
+    station4: input.allPreviousStationsData.get(4) as
+      | Station4Output
+      | undefined,
+    station5: input.allPreviousStationsData.get(5) as
+      | Station5Output
+      | undefined,
+    station6: input.station6Output,
+  };
+}
+
+function buildExecutiveSummaryPrompt(context: ExecutiveSummaryContext) {
+  const { station3, station4, station6, scoreMatrix } = context;
+  const charactersCount = station3?.conflictNetwork?.characters?.size ?? 0;
+  const conflictsCount = station3?.conflictNetwork?.conflicts?.size ?? 0;
+  const efficiencyScore =
+    station4?.efficiencyMetrics?.overallEfficiencyScore ?? 0;
+  const healthScore = station6?.diagnosticsReport?.overallHealthScore ?? 0;
+  const criticalIssuesCount =
+    station6?.diagnosticsReport?.criticalIssues?.length ?? 0;
+
+  return `
+بناءً على التحليل الشامل للنص الدرامي عبر 7 محطات متخصصة، قم بكتابة ملخص تنفيذي شامل (200-300 كلمة) يتضمن:
+
+1. الطبيعة الأساسية للعمل والنوع الدرامي
+2. أبرز نقاط القوة الإبداعية
+3. التحديات الرئيسية المكتشفة
+4. التقييم العام (النتيجة: ${scoreMatrix.overall}/100)
+5. التوصية النهائية
+
+معلومات أساسية:
+- عدد الشخصيات: ${charactersCount}
+- عدد الصراعات: ${conflictsCount}
+- نتيجة الكفاءة: ${efficiencyScore}/100
+- نتيجة الصحة العامة: ${healthScore}/100
+- المشاكل الحرجة: ${criticalIssuesCount}
+
+اكتب بأسلوب احترافي وموضوعي، مع التركيز على القيمة الإبداعية والإمكانات الإنتاجية.
+`;
+}
+
+function buildAudiencePrompt(stations: StationOutputs) {
+  const audienceContext = stations.station2 as
+    | Station2AudienceContext
+    | undefined;
+  const genre = audienceContext?.hybridGenre?.primary ?? "غير محدد";
+  const audience =
+    audienceContext?.targetAudience?.primaryAudience ?? "غير محدد";
+  const symbolicScore = stations.station5?.symbolicAnalysis?.depthScore ?? 0;
+  const toneConsistency =
+    stations.station5?.stylisticAnalysis?.toneAssessment?.toneConsistency ?? 0;
+
+  return `
+قم بتحليل مدى صدى العمل الدرامي مع الجمهور:
+
+النوع: ${genre}
+الجمهور المستهدف: ${audience}
+القوة الرمزية: ${symbolicScore}/10
+التناسق الأسلوبي: ${toneConsistency}/10
+
+التأثير العاطفي: [0-10]
+التفاعل الفكري: [0-10]
+القابلية للارتباط: [0-10]
+قابلية التذكر: [0-10]
+الإمكانات الفيروسية: [0-10]
+الاستجابة الأولية:
+الاستجابات الثانوية:
+- استجابة 1
+العناصر المثيرة للجدل:
+- عنصر 1
+`;
+}
+
+function defaultAudienceResonance(
+  primaryResponse = "تحليل الجمهور غير متاح"
+): AudienceResonance {
+  return {
+    emotionalImpact: 5,
+    intellectualEngagement: 5,
+    relatability: 5,
+    memorability: 5,
+    viralPotential: 5,
+    primaryResponse,
+    secondaryResponses: [],
+    controversialElements: [],
+  };
+}
+
+function normalizeAudienceResonance(
+  parsed: Partial<AudienceResonance>
+): AudienceResonance {
+  return {
+    ...defaultAudienceResonance("غير متاح"),
+    emotionalImpact: parsed.emotionalImpact ?? 5,
+    intellectualEngagement: parsed.intellectualEngagement ?? 5,
+    relatability: parsed.relatability ?? 5,
+    memorability: parsed.memorability ?? 5,
+    viralPotential: parsed.viralPotential ?? 5,
+    primaryResponse: parsed.primaryResponse ?? "غير متاح",
+    secondaryResponses: parsed.secondaryResponses ?? [],
+    controversialElements: parsed.controversialElements ?? [],
+  };
+}
 
 export class Station7Finalization extends BaseStation<
   Station7Input,
@@ -83,31 +209,10 @@ export class Station7Finalization extends BaseStation<
     logger.info("[S7] Starting comprehensive final report generation...");
 
     try {
-      const station1 = input.allPreviousStationsData.get(1) as
-        | Station1Output
-        | undefined;
-      const station2 = input.allPreviousStationsData.get(2) as
-        | Station2Output
-        | undefined;
-      const station3 = input.allPreviousStationsData.get(3) as
-        | Station3Output
-        | undefined;
-      const station4 = input.allPreviousStationsData.get(4) as
-        | Station4Output
-        | undefined;
-      const station5 = input.allPreviousStationsData.get(5) as
-        | Station5Output
-        | undefined;
-      const station6 = input.station6Output;
+      const stations = getStationOutputs(input);
+      const { station4, station5, station6 } = stations;
 
-      const scoreMatrix = calculateScoreMatrix(
-        station1,
-        station2,
-        station3,
-        station4,
-        station5,
-        station6
-      );
+      const scoreMatrix = calculateScoreMatrix(stations);
 
       const [
         executiveSummary,
@@ -117,53 +222,12 @@ export class Station7Finalization extends BaseStation<
         rewritingSuggestions,
         finalConfidence,
       ] = await Promise.all([
-        this.generateExecutiveSummary(
-          station1,
-          station2,
-          station3,
-          station4,
-          station5,
-          station6,
-          scoreMatrix
-        ),
-        Promise.resolve(
-          this.generateOverallAssessment(
-            scoreMatrix,
-            station1,
-            station2,
-            station3,
-            station4,
-            station5,
-            station6
-          )
-        ),
-        this.generateSWOTAnalysis(
-          station1,
-          station2,
-          station3,
-          station4,
-          station5,
-          station6
-        ),
-        this.analyzeAudienceResonance(
-          station1,
-          station2,
-          station3,
-          station4,
-          station5,
-          station6
-        ),
+        this.generateExecutiveSummary({ ...stations, scoreMatrix }),
+        Promise.resolve(this.generateOverallAssessment(stations, scoreMatrix)),
+        this.generateSWOTAnalysis(stations),
+        this.analyzeAudienceResonance(stations),
         this.generateRewritingSuggestions(station6, station4, station5),
-        Promise.resolve(
-          calculateFinalConfidence(
-            station1,
-            station2,
-            station3,
-            station4,
-            station5,
-            station6
-          )
-        ),
+        Promise.resolve(calculateFinalConfidence(stations)),
       ]);
 
       const finalReport = {
@@ -189,22 +253,8 @@ export class Station7Finalization extends BaseStation<
       };
 
       const totalExecutionTime = Date.now() - startTime;
-      const agentsUsed = extractAgentsUsed(
-        station1,
-        station2,
-        station3,
-        station4,
-        station5,
-        station6
-      );
-      const tokensUsed = calculateTotalTokens(
-        station1,
-        station2,
-        station3,
-        station4,
-        station5,
-        station6
-      );
+      const agentsUsed = extractAgentsUsed(stations);
+      const tokensUsed = calculateTotalTokens(stations);
 
       const output: Station7Output = {
         finalReport,
@@ -235,34 +285,10 @@ export class Station7Finalization extends BaseStation<
   // -------------------------------------------------------------------------
 
   private async generateExecutiveSummary(
-    _s1?: Station1Output,
-    _s2?: Station2Output,
-    s3?: Station3Output,
-    s4?: Station4Output,
-    _s5?: Station5Output,
-    s6?: Station6Output,
-    scoreMatrix?: ScoreMatrix
+    context: ExecutiveSummaryContext
   ): Promise<string> {
-    const prompt = `
-بناءً على التحليل الشامل للنص الدرامي عبر 7 محطات متخصصة، قم بكتابة ملخص تنفيذي شامل (200-300 كلمة) يتضمن:
-
-1. الطبيعة الأساسية للعمل والنوع الدرامي
-2. أبرز نقاط القوة الإبداعية
-3. التحديات الرئيسية المكتشفة
-4. التقييم العام (النتيجة: ${scoreMatrix?.overall ?? 0}/100)
-5. التوصية النهائية
-
-معلومات أساسية:
-- عدد الشخصيات: ${s3?.conflictNetwork?.characters?.size ?? 0}
-- عدد الصراعات: ${s3?.conflictNetwork?.conflicts?.size ?? 0}
-- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore ?? 0}/100
-- نتيجة الصحة العامة: ${s6?.diagnosticsReport?.overallHealthScore ?? 0}/100
-- المشاكل الحرجة: ${s6?.diagnosticsReport?.criticalIssues?.length ?? 0}
-
-اكتب بأسلوب احترافي وموضوعي، مع التركيز على القيمة الإبداعية والإمكانات الإنتاجية.
-`;
     const response = await this.geminiService.generate<string>({
-      prompt,
+      prompt: buildExecutiveSummaryPrompt(context),
       model: GeminiModel.PRO,
       temperature: 0.3,
       maxTokens: 1024,
@@ -273,19 +299,18 @@ export class Station7Finalization extends BaseStation<
   }
 
   private generateOverallAssessment(
-    scoreMatrix: ScoreMatrix,
-    _s1?: Station1Output,
-    _s2?: Station2Output,
-    s3?: Station3Output,
-    s4?: Station4Output,
-    _s5?: Station5Output,
-    _s6?: Station6Output
+    stations: StationOutputs,
+    scoreMatrix: ScoreMatrix
   ): Station7Output["finalReport"]["overallAssessment"] {
+    const { station3, station4 } = stations;
     const narrativeQualityScore =
       (scoreMatrix.foundation + scoreMatrix.conceptual) / 2;
     const structuralIntegrityScore = scoreMatrix.conflictNetwork;
-    const characterDevelopmentScore = calculateCharacterScore(s3);
-    const conflictEffectivenessScore = calculateConflictScore(s3, s4);
+    const characterDevelopmentScore = calculateCharacterScore(station3);
+    const conflictEffectivenessScore = calculateConflictScore(
+      station3,
+      station4
+    );
     const thematicDepthScore = scoreMatrix.dynamicSymbolic;
     const overallScore = scoreMatrix.overall;
 
@@ -300,19 +325,13 @@ export class Station7Finalization extends BaseStation<
     };
   }
 
-  private async generateSWOTAnalysis(
-    _s1?: Station1Output,
-    _s2?: Station2Output,
-    _s3?: Station3Output,
-    s4?: Station4Output,
-    _s5?: Station5Output,
-    s6?: Station6Output
-  ): Promise<{
+  private async generateSWOTAnalysis(stations: StationOutputs): Promise<{
     strengths: string[];
     weaknesses: string[];
     opportunities: string[];
     threats: string[];
   }> {
+    const { station4, station6 } = stations;
     const prompt = `
 بناءً على التحليل الشامل للنص، حدد:
 
@@ -322,9 +341,9 @@ export class Station7Finalization extends BaseStation<
 4. التهديدات (Threats): 5 تهديدات محتملة للتماسك السردي
 
 المعلومات المتاحة:
-- المشاكل الحرجة من المحطة 6: ${s6?.diagnosticsReport?.criticalIssues?.map((i) => i.description).join("; ") ?? "لا يوجد"}
-- التحذيرات: ${s6?.diagnosticsReport?.warnings?.map((w) => w.description).join("; ") ?? "لا يوجد"}
-- نتيجة الكفاءة: ${s4?.efficiencyMetrics?.overallEfficiencyScore ?? 0}/100
+- المشاكل الحرجة من المحطة 6: ${station6?.diagnosticsReport?.criticalIssues?.map((i) => i.description).join("; ") ?? "لا يوجد"}
+- التحذيرات: ${station6?.diagnosticsReport?.warnings?.map((w) => w.description).join("; ") ?? "لا يوجد"}
+- نتيجة الكفاءة: ${station4?.efficiencyMetrics?.overallEfficiencyScore ?? 0}/100
 
 قدم كل نقطة في جملة واحدة. استخدم التنسيق التالي:
 
@@ -361,35 +380,10 @@ export class Station7Finalization extends BaseStation<
   }
 
   private async analyzeAudienceResonance(
-    _s1?: Station1Output,
-    s2?: Station2Output,
-    _s3?: Station3Output,
-    _s4?: Station4Output,
-    s5?: Station5Output,
-    _s6?: Station6Output
+    stations: StationOutputs
   ): Promise<AudienceResonance> {
-    const audienceContext = s2 as Station2AudienceContext | undefined;
-    const prompt = `
-قم بتحليل مدى صدى العمل الدرامي مع الجمهور:
-
-النوع: ${audienceContext?.hybridGenre?.primary ?? "غير محدد"}
-الجمهور المستهدف: ${audienceContext?.targetAudience?.primaryAudience ?? "غير محدد"}
-القوة الرمزية: ${s5?.symbolicAnalysis?.depthScore ?? 0}/10
-التناسق الأسلوبي: ${s5?.stylisticAnalysis?.toneAssessment?.toneConsistency ?? 0}/10
-
-التأثير العاطفي: [0-10]
-التفاعل الفكري: [0-10]
-القابلية للارتباط: [0-10]
-قابلية التذكر: [0-10]
-الإمكانات الفيروسية: [0-10]
-الاستجابة الأولية:
-الاستجابات الثانوية:
-- استجابة 1
-العناصر المثيرة للجدل:
-- عنصر 1
-`;
     const response = await this.geminiService.generate<unknown>({
-      prompt,
+      prompt: buildAudiencePrompt(stations),
       model: GeminiModel.PRO,
       temperature: 0.5,
       maxTokens: 1024,
@@ -400,27 +394,9 @@ export class Station7Finalization extends BaseStation<
     try {
       const text = extractText(response.content);
       const parsed = parseAudienceResonance(text);
-      return {
-        emotionalImpact: parsed.emotionalImpact ?? 5,
-        intellectualEngagement: parsed.intellectualEngagement ?? 5,
-        relatability: parsed.relatability ?? 5,
-        memorability: parsed.memorability ?? 5,
-        viralPotential: parsed.viralPotential ?? 5,
-        primaryResponse: parsed.primaryResponse ?? "غير متاح",
-        secondaryResponses: parsed.secondaryResponses ?? [],
-        controversialElements: parsed.controversialElements ?? [],
-      };
+      return normalizeAudienceResonance(parsed);
     } catch {
-      return {
-        emotionalImpact: 5,
-        intellectualEngagement: 5,
-        relatability: 5,
-        memorability: 5,
-        viralPotential: 5,
-        primaryResponse: "تحليل الجمهور غير متاح",
-        secondaryResponses: [],
-        controversialElements: [],
-      };
+      return defaultAudienceResonance();
     }
   }
 

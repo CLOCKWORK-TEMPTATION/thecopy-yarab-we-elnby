@@ -16,7 +16,9 @@ export class HealthController {
   async getHealth(_req: Request, res: Response): Promise<void> {
     try {
       const healthStatus = await performHealthChecks(this.startTime);
-      res.status(healthStatus.status === "unhealthy" ? 503 : 200).json(healthStatus);
+      res
+        .status(healthStatus.status === "unhealthy" ? 503 : 200)
+        .json(healthStatus);
     } catch (error) {
       logger.error("Health check failed", { error });
       res.status(503).json({
@@ -32,7 +34,9 @@ export class HealthController {
   async getReadiness(_req: Request, res: Response): Promise<void> {
     try {
       const readinessStatus = await performReadinessChecks();
-      res.status(readinessStatus.status === "not_ready" ? 503 : 200).json(readinessStatus);
+      res
+        .status(readinessStatus.status === "not_ready" ? 503 : 200)
+        .json(readinessStatus);
     } catch (error) {
       logger.error("Readiness check failed", { error });
       res.status(503).json({
@@ -86,7 +90,9 @@ export class HealthController {
   async getDetailedHealth(_req: Request, res: Response): Promise<void> {
     try {
       const detailedHealth = await performDetailedHealthChecks(this.startTime);
-      res.status(detailedHealth.status === "unhealthy" ? 503 : 200).json(detailedHealth);
+      res
+        .status(detailedHealth.status === "unhealthy" ? 503 : 200)
+        .json(detailedHealth);
     } catch (error) {
       logger.error("Detailed health check failed", { error });
       res.status(503).json({

@@ -7,7 +7,10 @@ import {
 } from "../shared/standardAgentPattern";
 
 import { ANALYSIS_AGENT_CONFIG } from "./agent";
-import { METHODOLOGY_INSTRUCTIONS, ANALYSIS_FALLBACK_RESPONSE } from "./instructions";
+import {
+  METHODOLOGY_INSTRUCTIONS,
+  ANALYSIS_FALLBACK_RESPONSE,
+} from "./instructions";
 
 interface AnalysisContext {
   originalText?: string;
@@ -28,7 +31,7 @@ function stringifySummaryValue(value: unknown): string {
     case "symbol":
       return String(value);
     case "object":
-      return value === null ? "" : JSON.stringify(value) ?? "";
+      return value === null ? "" : (JSON.stringify(value) ?? "");
     default:
       return "";
   }
@@ -40,7 +43,7 @@ export class AnalysisAgent extends BaseAgent {
     super(
       "CritiqueArchitect AI",
       TaskType.ANALYSIS,
-      ANALYSIS_AGENT_CONFIG.systemPrompt ?? ""
+      ANALYSIS_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -60,8 +63,6 @@ export class AnalysisAgent extends BaseAgent {
     return prompt;
   }
 
-
-   
   private buildContextSection(ctx: AnalysisContext | undefined): string {
     let section = "";
     const originalText = ctx?.originalText ?? "";
@@ -97,7 +98,7 @@ export class AnalysisAgent extends BaseAgent {
   }
 
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     await Promise.resolve();
     // Clean up the analysis text
@@ -106,9 +107,7 @@ export class AnalysisAgent extends BaseAgent {
     // Assess analysis quality
     const structuralScore = this.assessStructuralAnalysis(processedText);
     const dialecticalScore = this.assessDialecticalAnalysis(processedText);
-    const recommendationsScore = this.assessRecommendations(
-      processedText
-    );
+    const recommendationsScore = this.assessRecommendations(processedText);
     const depthScore = this.assessAnalyticalDepth(processedText);
 
     // Calculate adjusted confidence
@@ -128,7 +127,7 @@ export class AnalysisAgent extends BaseAgent {
         structuralScore,
         dialecticalScore,
         recommendationsScore,
-        depthScore
+        depthScore,
       ),
       metadata: {
         ...output.metadata,
@@ -178,7 +177,7 @@ export class AnalysisAgent extends BaseAgent {
   private isSectionStartLine(line: string, nextLine: string): boolean {
     return (
       this.isAnalysisSectionHeader(line) ||
-      (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
+      (!!/^\d+\./.exec(line) && !!nextLine && !/^\d+\./.exec(nextLine))
     );
   }
 
@@ -191,13 +190,39 @@ export class AnalysisAgent extends BaseAgent {
   }
 
   private isAnalysisSectionHeader(line: string): boolean {
-    const headers = ["ملخص تنفيذي", "التحليل الجدلي", "الأطروحة", "النقيض", "التركيب", "السلامة الهيكلية", "نقاط القوة", "نقاط الضعف", "شبكة الشخصيات", "المؤثرون الرئيسيون", "الديناميكيات العلائقية", "التوصيات", "أولوية", "حرجة", "عالية", "متوسطة"];
+    const headers = [
+      "ملخص تنفيذي",
+      "التحليل الجدلي",
+      "الأطروحة",
+      "النقيض",
+      "التركيب",
+      "السلامة الهيكلية",
+      "نقاط القوة",
+      "نقاط الضعف",
+      "شبكة الشخصيات",
+      "المؤثرون الرئيسيون",
+      "الديناميكيات العلائقية",
+      "التوصيات",
+      "أولوية",
+      "حرجة",
+      "عالية",
+      "متوسطة",
+    ];
     return headers.some((header) => line.includes(header));
   }
 
   private assessStructuralAnalysis(text: string): number {
     let score = 0.6;
-    const structuralTerms = ["بنية", "هيكل", "حبكة", "إيقاع", "مشهد", "اقتصاد", "ثغرة", "انتظام"];
+    const structuralTerms = [
+      "بنية",
+      "هيكل",
+      "حبكة",
+      "إيقاع",
+      "مشهد",
+      "اقتصاد",
+      "ثغرة",
+      "انتظام",
+    ];
     if (structuralTerms.some((term) => text.includes(term))) score += 0.2;
     if (text.includes("قوة") || text.includes("ضعف")) score += 0.1;
     if (/\d+\./.exec(text)) score += 0.1;
@@ -215,8 +240,10 @@ export class AnalysisAgent extends BaseAgent {
   private assessRecommendations(text: string): number {
     let score = 0.5;
     if (text.includes("توصية") || text.includes("ينصح")) score += 0.2;
-    if (["أولوية", "حرجة", "عالية", "متوسطة"].some((t) => text.includes(t))) score += 0.2;
-    if (["يجب", "ينبغي", "يمكن", "اقترح"].some((t) => text.includes(t))) score += 0.1;
+    if (["أولوية", "حرجة", "عالية", "متوسطة"].some((t) => text.includes(t)))
+      score += 0.2;
+    if (["يجب", "ينبغي", "يمكن", "اقترح"].some((t) => text.includes(t)))
+      score += 0.1;
     return Math.min(1, score);
   }
 
@@ -224,8 +251,18 @@ export class AnalysisAgent extends BaseAgent {
     let score = 0.5;
     if (text.length > 1000) score += 0.2;
     if (text.length > 2000) score += 0.2;
-    const analyticalTerms = ["تحليل", "تقييم", "تفسير", "كشف", "استكشاف", "فحص"];
-    const analyticalCount = analyticalTerms.reduce((count, term) => count + (text.split(term).length - 1), 0);
+    const analyticalTerms = [
+      "تحليل",
+      "تقييم",
+      "تفسير",
+      "كشف",
+      "استكشاف",
+      "فحص",
+    ];
+    const analyticalCount = analyticalTerms.reduce(
+      (count, term) => count + (text.split(term).length - 1),
+      0,
+    );
     score += Math.min(0.1, analyticalCount * 0.02);
     return Math.min(1, score);
   }
@@ -248,7 +285,7 @@ export class AnalysisAgent extends BaseAgent {
     structuralScore: number,
     dialecticalScore: number,
     recommendationsScore: number,
-    depthScore: number
+    depthScore: number,
   ): string[] {
     const notes: string[] = [];
     if (output.confidence > 0.85) notes.push("ثقة عالية في التحليل");
@@ -262,7 +299,8 @@ export class AnalysisAgent extends BaseAgent {
     else if (recommendationsScore < 0.6) notes.push("يحتاج تحسين التوصيات");
     if (depthScore > 0.8) notes.push("عمق تحليلي ممتاز");
 
-    if (output.notes) notes.push(...output.notes.filter((note) => !notes.includes(note)));
+    if (output.notes)
+      notes.push(...output.notes.filter((note) => !notes.includes(note)));
     return notes;
   }
 
@@ -280,42 +318,45 @@ export class AnalysisAgent extends BaseAgent {
     return depths[depth] ?? depth;
   }
 
-   
   private summarizeAnalysis(analysis: unknown): string {
     if (typeof analysis === "string") {
-      return analysis.length > 500 ? analysis.substring(0, 500) + "..." : analysis;
+      return analysis.length > 500
+        ? analysis.substring(0, 500) + "..."
+        : analysis;
     }
 
     const obj = analysis as Record<string, unknown>;
     const summary: string[] = [];
 
-    if (obj?.['mainFindings']) {
-      summary.push(`النتائج الرئيسية: ${stringifySummaryValue(obj['mainFindings'])}`);
+    if (obj?.["mainFindings"]) {
+      summary.push(
+        `النتائج الرئيسية: ${stringifySummaryValue(obj["mainFindings"])}`,
+      );
     }
 
-    if (obj?.['recommendations']) {
+    if (obj?.["recommendations"]) {
       const recs =
-        typeof obj['recommendations'] === "string"
-          ? obj['recommendations']
-          : Array.isArray(obj['recommendations'])
-          ? (obj['recommendations'] as string[]).join(", ")
-          : "توصيات متوفرة";
+        typeof obj["recommendations"] === "string"
+          ? obj["recommendations"]
+          : Array.isArray(obj["recommendations"])
+            ? (obj["recommendations"] as string[]).join(", ")
+            : "توصيات متوفرة";
       summary.push(`التوصيات: ${recs}`);
     }
 
-    if (obj?.['strengths']) {
-      summary.push(`نقاط القوة: ${stringifySummaryValue(obj['strengths'])}`);
+    if (obj?.["strengths"]) {
+      summary.push(`نقاط القوة: ${stringifySummaryValue(obj["strengths"])}`);
     }
 
-    if (obj?.['weaknesses']) {
-      summary.push(`نقاط الضعف: ${stringifySummaryValue(obj['weaknesses'])}`);
+    if (obj?.["weaknesses"]) {
+      summary.push(`نقاط الضعف: ${stringifySummaryValue(obj["weaknesses"])}`);
     }
 
     return summary.join("\n") || "تحليل سابق متوفر";
   }
 
   protected override async getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     return ANALYSIS_FALLBACK_RESPONSE;

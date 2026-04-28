@@ -1,7 +1,6 @@
 "use client";
 
 import { X, SlidersHorizontal } from "lucide-react";
-import React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -25,6 +24,7 @@ interface FilterPanelProps {
   filters: ShotFilters;
   onFiltersChange: (filters: ShotFilters) => void;
   isOpen: boolean;
+  onOpen: () => void;
   onClose: () => void;
 }
 
@@ -32,6 +32,7 @@ export function FilterPanel({
   filters,
   onFiltersChange,
   isOpen,
+  onOpen,
   onClose,
 }: FilterPanelProps) {
   const toggleCategory = (category: ShotCategory) => {
@@ -64,7 +65,7 @@ export function FilterPanel({
   if (!isOpen) {
     return (
       <button
-        onClick={() => {}}
+        onClick={onOpen}
         className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
         aria-label="Open filters"
       >

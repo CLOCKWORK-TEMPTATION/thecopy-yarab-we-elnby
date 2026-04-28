@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const themesMessagesAnalyzerInstructions = `
 تحليل الموضوعات والرسائل في النص الأدبي:
@@ -71,6 +71,6 @@ export const themesMessagesAnalyzerAgentConfig: AIAgentConfig = {
     "استخراج الموضوعات الرئيسية",
     "تحليل العمق الفلسفي",
     "اكتشاف الرسائل الضمنية",
-    "تقييم التماسك الموضوعاتي"
-  ]
+    "تقييم التماسك الموضوعاتي",
+  ],
 };

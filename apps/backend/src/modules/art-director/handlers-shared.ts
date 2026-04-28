@@ -9,7 +9,7 @@ export const DEFAULT_PRODUCTION_ID = "art-director-default";
 
 export function success(
   data: Record<string, unknown> = {},
-  status = 200
+  status = 200,
 ): ArtDirectorHandlerResponse {
   return {
     status,
@@ -23,7 +23,7 @@ export function success(
 export function failure(
   error: string,
   status = 400,
-  extra: Record<string, unknown> = {}
+  extra: Record<string, unknown> = {},
 ): ArtDirectorHandlerResponse {
   return {
     status,
@@ -113,7 +113,7 @@ export function slugify(value: string): string {
 
 export function uniqueById<T extends { id?: string }>(
   items: T[],
-  nextItem: T
+  nextItem: T,
 ): T[] {
   if (!nextItem.id) {
     return [...items, nextItem];
@@ -126,7 +126,7 @@ export function uniqueById<T extends { id?: string }>(
 
 export function extractNestedRecord(
   result: PluginOutput,
-  key: string
+  key: string,
 ): Record<string, unknown> | null {
   const data = asRecord(result.data);
   const nested = data[key];
@@ -192,11 +192,11 @@ const SET_VALUE_BASELINES: Record<string, number> = {
 
 export function estimateSetValue(
   category: string,
-  dimensions: { width: number; height: number; depth: number }
+  dimensions: { width: number; height: number; depth: number },
 ): number {
   const volume = Math.max(
     dimensions.width * dimensions.height * dimensions.depth,
-    1
+    1,
   );
   const baseline = SET_VALUE_BASELINES[category] ?? 450;
   return Math.round(baseline + volume * 12);
@@ -222,7 +222,7 @@ export function buildProductionId(name: string): string {
 }
 
 export function summarizeBook(
-  book: Record<string, unknown>
+  book: Record<string, unknown>,
 ): Record<string, unknown> {
   const sections = Array.isArray(book["sections"])
     ? book["sections"]
@@ -240,15 +240,13 @@ export function summarizeBook(
 }
 
 export function summarizeStyleGuide(
-  guide: Record<string, unknown>
+  guide: Record<string, unknown>,
 ): Record<string, unknown> {
   const colorPalettes = Array.isArray(guide["colorPalettes"])
     ? guide["colorPalettes"].filter(isRecord)
     : [];
   const paletteNames = colorPalettes
-    .map(
-      (palette) => asString(palette["nameAr"]) || asString(palette["name"])
-    )
+    .map((palette) => asString(palette["nameAr"]) || asString(palette["name"]))
     .filter(Boolean);
 
   const typography = asRecord(guide["typography"]);

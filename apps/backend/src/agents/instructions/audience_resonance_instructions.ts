@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const audienceResonanceInstructions = `
 تحليل صدى الجمهور للنص المقدم:
@@ -39,6 +39,6 @@ export const audienceResonanceAgentConfig: AIAgentConfig = {
     "تحليل التأثير العاطفي",
     "قياس مستوى الانخراط",
     "التحليل الديموغرافي",
-    "تقييم المخاطر والفرص"
-  ]
+    "تقييم المخاطر والفرص",
+  ],
 };

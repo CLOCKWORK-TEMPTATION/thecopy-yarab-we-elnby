@@ -20,7 +20,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     super(
       "AudienceCompass AI",
       TaskType.TARGET_AUDIENCE_ANALYZER,
-      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
+      TARGET_AUDIENCE_ANALYZER_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -43,7 +43,12 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
 
     let prompt = `${TARGET_AUDIENCE_ANALYZER_INSTRUCTIONS}\n\n`;
     prompt += `[مهمة محلل الجمهور المستهدف - AudienceCompass AI]\n\n`;
-    prompt += this.buildContextSections(originalText, genre, themes, previousAnalysis);
+    prompt += this.buildContextSections(
+      originalText,
+      genre,
+      themes,
+      previousAnalysis,
+    );
     prompt += `المهمة المحددة:\n${taskInput}\n\n`;
 
     // Add generation instructions
@@ -77,14 +82,19 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
   }
 
   private buildContextSections(
-    text: string, genre: string, themes: string[], prevAnalysis: string
+    text: string,
+    genre: string,
+    themes: string[],
+    prevAnalysis: string,
   ): string {
     let s = "";
     if (text) s += `النص الأصلي للتحليل:\n${text}\n\n`;
     if (genre) s += `نوع العمل: ${genre}\n\n`;
     if (themes.length > 0) {
       s += `الموضوعات الرئيسية:\n`;
-      themes.forEach((t, i) => { s += `${i + 1}. ${t}\n`; });
+      themes.forEach((t, i) => {
+        s += `${i + 1}. ${t}\n`;
+      });
       s += "\n";
     }
     if (prevAnalysis) s += `تحليلات سابقة ذات صلة:\n${prevAnalysis}\n\n`;
@@ -95,7 +105,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
    * Post-process the audience analysis output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
@@ -239,7 +249,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
       psychographicDepth: number;
       marketInsights: number;
       overallScore: number;
-    }
+    },
   ): string[] {
     const notes: string[] = [];
 
@@ -283,13 +293,13 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
    * Generate fallback response specific to audience analysis
    */
   protected override getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context
         : {};
-    const genre = (contextObj)["genre"] as string || "غير محدد";
+    const genre = (contextObj["genre"] as string) || "غير محدد";
 
     return Promise.resolve(`تحليل الجمهور المستهدف:
 

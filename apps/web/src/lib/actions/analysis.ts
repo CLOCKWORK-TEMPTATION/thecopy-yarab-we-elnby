@@ -59,23 +59,23 @@ function normalizeBackendStation(
 ): Record<string, unknown> {
   // إذا كان المحتوى يحتوي مباشرة على بنية الـ fallback، أعِده كما هو
   if (
-    raw.logline ||
-    raw.finalReport ||
-    raw.efficiencyMetrics ||
-    raw.dynamicAnalysisResults
+    raw["logline"] ||
+    raw["finalReport"] ||
+    raw["efficiencyMetrics"] ||
+    raw["dynamicAnalysisResults"]
   ) {
     return raw;
   }
 
   // إذا كان بشكل الخادم الخلفي { details: { ... } }، استخرج المحتوى
-  const details = raw.details as Record<string, unknown> | undefined;
+  const details = raw["details"] as Record<string, unknown> | undefined;
   if (details && typeof details === "object") {
     return {
       ...details,
-      stationId: raw.stationId,
-      stationName: raw.stationName,
-      status: raw.status,
-      executionTime: raw.executionTime,
+      stationId: raw["stationId"],
+      stationName: raw["stationName"],
+      status: raw["status"],
+      executionTime: raw["executionTime"],
     };
   }
 
@@ -90,8 +90,8 @@ function normalizePipelineResult(
   result: Record<string, unknown>,
   request: PipelineInput
 ): AnalysisPipelinePayload {
-  const rawOutputs = (result.stationOutputs ??
-    result.detailedResults ??
+  const rawOutputs = (result["stationOutputs"] ??
+    result["detailedResults"] ??
     {}) as Record<string, Record<string, unknown>>;
 
   const serialized = serializeAnalysisValue(rawOutputs);
@@ -105,7 +105,7 @@ function normalizePipelineResult(
   }
 
   const metadata = serializeAnalysisValue(
-    (result.metadata ?? result.pipelineMetadata ?? {}) as Record<
+    (result["metadata"] ?? result["pipelineMetadata"] ?? {}) as Record<
       string,
       unknown
     >
@@ -121,7 +121,7 @@ function normalizePipelineResult(
   }
 
   return {
-    success: Boolean(result.success),
+    success: Boolean(result["success"]),
     mode: "ai",
     warnings: [],
     stationOutputs: normalizedOutputs,
@@ -184,10 +184,10 @@ export async function runFullPipeline(
     const payload = (await response.json()) as Record<string, unknown>;
 
     // المسار الأول: الخادم يعيد detailedResults (شكل buildPipelineResponse)
-    if (payload.detailedResults) {
+    if (payload["detailedResults"]) {
       try {
         return normalizePipelineResult(
-          { ...payload, stationOutputs: payload.detailedResults },
+          { ...payload, stationOutputs: payload["detailedResults"] },
           request
         );
       } catch {
@@ -202,7 +202,7 @@ export async function runFullPipeline(
     }
 
     // المسار الثاني: الخادم يعيد stationOutputs مباشرة
-    if (payload.stationOutputs) {
+    if (payload["stationOutputs"]) {
       try {
         return normalizePipelineResult(payload, request);
       } catch {

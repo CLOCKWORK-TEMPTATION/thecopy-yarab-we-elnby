@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React, { Suspense } from "react";
+import { describe, it, expect, vi } from "vitest";
 
 // Helper component for wrapping pages with Suspense
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (

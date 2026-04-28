@@ -27,16 +27,22 @@ export class StyleFingerprintAgent extends BaseAgent {
     super(
       "AuthorDNA AI",
       TaskType.STYLE_FINGERPRINT,
-      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt ?? ""
+      STYLE_FINGERPRINT_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.85;
   }
 
-  private static readonly STYLE_DEFAULTS: Required<Pick<
-    StyleFingerprintContext,
-    'originalText' | 'compareWithText' | 'analysisDepth' | 'focusAreas' | 'authorSamples'
-  >> = {
+  private static readonly STYLE_DEFAULTS: Required<
+    Pick<
+      StyleFingerprintContext,
+      | "originalText"
+      | "compareWithText"
+      | "analysisDepth"
+      | "focusAreas"
+      | "authorSamples"
+    >
+  > = {
     originalText: "",
     compareWithText: "",
     analysisDepth: "detailed",
@@ -116,7 +122,7 @@ export class StyleFingerprintAgent extends BaseAgent {
   }
 
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupStyleText(output.text);
 
@@ -142,7 +148,7 @@ export class StyleFingerprintAgent extends BaseAgent {
         analyticalDepth,
         specificity,
         comprehensiveness,
-        evidenceQuality
+        evidenceQuality,
       ),
       metadata: {
         ...output.metadata,
@@ -171,7 +177,6 @@ export class StyleFingerprintAgent extends BaseAgent {
 
     return text.replace(/\n{3,}/g, "\n\n").trim();
   }
-
 
   private assessAnalyticalDepth(text: string): number {
     let score = 0.5;
@@ -239,7 +244,7 @@ export class StyleFingerprintAgent extends BaseAgent {
 
     const dimensions = ["معجم", "نحو", "بلاغ", "أسلوب", "إيقاع", "نبرة"];
     const dimensionsCovered = dimensions.filter((dim) =>
-      text.toLowerCase().includes(dim)
+      text.toLowerCase().includes(dim),
     ).length;
     score += (dimensionsCovered / dimensions.length) * 0.3;
 
@@ -277,7 +282,7 @@ export class StyleFingerprintAgent extends BaseAgent {
   private countDimensions(text: string): number {
     const dimensionMarkers = ["معجمي", "نحوي", "بلاغي", "موضوعي", "أسلوبي"];
     return dimensionMarkers.filter((marker) =>
-      text.toLowerCase().includes(marker)
+      text.toLowerCase().includes(marker),
     ).length;
   }
 
@@ -291,12 +296,18 @@ export class StyleFingerprintAgent extends BaseAgent {
     depth: number,
     specificity: number,
     comprehensiveness: number,
-    evidence: number
+    evidence: number,
   ): string[] {
     const notes: string[] = [];
     const avg = (depth + specificity + comprehensiveness + evidence) / 4;
     notes.push(this.overallStyleNote(avg));
-    this.addStyleStrengths(notes, depth, specificity, comprehensiveness, evidence);
+    this.addStyleStrengths(
+      notes,
+      depth,
+      specificity,
+      comprehensiveness,
+      evidence,
+    );
     this.addStyleWeaknesses(notes, depth, specificity, comprehensiveness);
     if (output.notes) notes.push(...output.notes);
     return notes;
@@ -308,14 +319,25 @@ export class StyleFingerprintAgent extends BaseAgent {
     return "يحتاج مزيد من العمق";
   }
 
-  private addStyleStrengths(notes: string[], d: number, s: number, c: number, e: number): void {
+  private addStyleStrengths(
+    notes: string[],
+    d: number,
+    s: number,
+    c: number,
+    e: number,
+  ): void {
     if (d > 0.8) notes.push("عمق تحليلي عالي");
     if (s > 0.8) notes.push("أمثلة محددة");
     if (c > 0.75) notes.push("شمولية جيدة");
     if (e > 0.8) notes.push("أدلة قوية");
   }
 
-  private addStyleWeaknesses(notes: string[], d: number, s: number, c: number): void {
+  private addStyleWeaknesses(
+    notes: string[],
+    d: number,
+    s: number,
+    c: number,
+  ): void {
     if (d < 0.5) notes.push("يحتاج عمق أكبر");
     if (s < 0.5) notes.push("يحتاج أمثلة أكثر");
     if (c < 0.6) notes.push("يحتاج تغطية أوسع");
@@ -342,7 +364,7 @@ export class StyleFingerprintAgent extends BaseAgent {
   }
 
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`التحليل المعجمي:
 النص يظهر تنوعاً معجمياً يعكس مستوى لغوي متوسط إلى مرتفع.

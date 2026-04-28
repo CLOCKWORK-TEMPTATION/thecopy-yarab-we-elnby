@@ -173,7 +173,7 @@ async function buildAgent() {
     log(
       "أدوات",
       C.cyan,
-      `تم تحميل ${Object.keys(mcpTools).length} أداة من خادم MCP`
+      `تم تحميل ${Object.keys(mcpTools).length} أداة من خادم MCP`,
     );
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -203,7 +203,7 @@ async function buildAgent() {
   log(
     "وكيل",
     C.green,
-    `إجمالي الأدوات: ${Object.keys(allTools).length} (${skillCount} مهارة + ${localCount} محلية + ${mcpCount} MCP)`
+    `إجمالي الأدوات: ${Object.keys(allTools).length} (${skillCount} مهارة + ${localCount} محلية + ${mcpCount} MCP)`,
   );
 
   // بناء الوكيل
@@ -224,7 +224,7 @@ async function buildAgent() {
           log(
             "أداة",
             C.cyan,
-            `← ${call.toolName}(${JSON.stringify(callArgs ?? {}).substring(0, 100)}...)`
+            `← ${call.toolName}(${JSON.stringify(callArgs ?? {}).substring(0, 100)}...)`,
           );
         }
       }
@@ -270,7 +270,7 @@ async function main(): Promise<void> {
   const { agent, mcpClient, config } = await buildAgent();
   const userPrompt = buildUserPrompt(
     process.argv.slice(2),
-    config.defaultInputDir
+    config.defaultInputDir,
   );
 
   log("طلب", C.blue, userPrompt.substring(0, 150));
@@ -300,7 +300,7 @@ async function main(): Promise<void> {
       log(
         "إحصائيات",
         C.dim,
-        `الرموز: ${input} إدخال + ${output} إخراج = ${total} إجمالي`
+        `الرموز: ${input} إدخال + ${output} إخراج = ${total} إجمالي`,
       );
     }
     log("إحصائيات", C.dim, `الخطوات: ${result.steps?.length ?? 0}`);

@@ -26,6 +26,66 @@ interface UseCastBreakdownProps {
   onAnalyze?: (content: string) => Promise<CastAnalysisResult>;
 }
 
+function isExtendedCastMember(
+  member: CastMember | ExtendedCastMember
+): member is ExtendedCastMember {
+  return "roleCategory" in member;
+}
+
+function toCastCardData(
+  member: CastMember | ExtendedCastMember,
+  index: number
+): CastCardData {
+  const scenePresence = isExtendedCastMember(member)
+    ? member.scenePresence
+    : undefined;
+  const sceneNumbers = scenePresence?.sceneNumbers ?? [];
+
+  return {
+    ...member,
+    id: isExtendedCastMember(member) ? member.id : `cast-${index}`,
+    roleCategory: isExtendedCastMember(member)
+      ? member.roleCategory
+      : "Mystery",
+    ageRange: isExtendedCastMember(member) ? member.ageRange : member.age,
+    gender: isExtendedCastMember(member) ? member.gender : "Unknown",
+    visualDescription: isExtendedCastMember(member)
+      ? member.visualDescription
+      : member.description,
+    dialogueCount: scenePresence?.dialogueLines ?? 0,
+    firstScene: sceneNumbers[0] ?? 1,
+    lastScene: sceneNumbers[sceneNumbers.length - 1] ?? 1,
+    totalScenes: 10,
+    sceneAppearances: sceneNumbers,
+  };
+}
+
+function createCastAnalysisResult(members: CastCardData[]): CastAnalysisResult {
+  return {
+    members,
+    summary: {
+      totalCharacters: members.length,
+      leadCount: members.filter((member) => member.roleCategory === "Lead")
+        .length,
+      supportingCount: members.filter(
+        (member) => member.roleCategory === "Supporting"
+      ).length,
+      maleCount: members.filter((member) => member.gender === "Male").length,
+      femaleCount: members.filter((member) => member.gender === "Female")
+        .length,
+      estimatedAgeRanges: members.reduce<Record<string, number>>(
+        (ranges, member) => {
+          ranges[member.ageRange] = (ranges[member.ageRange] ?? 0) + 1;
+          return ranges;
+        },
+        {}
+      ),
+    },
+    insights: [],
+    warnings: [],
+  };
+}
+
 export function useCastBreakdown({
   cast,
   sceneContent,
@@ -44,20 +104,7 @@ export function useCastBreakdown({
     useState<CastAnalysisResult | null>(null);
 
   const enhancedCast = useMemo<CastCardData[]>(() => {
-    return cast.map((member) => {
-      const extended = member;
-      return {
-        ...member,
-        dialogueCount: extended.scenePresence?.dialogueLines ?? 0,
-        firstScene: extended.scenePresence?.sceneNumbers?.[0] ?? 1,
-        lastScene:
-          extended.scenePresence?.sceneNumbers?.[
-            (extended.scenePresence.sceneNumbers.length ?? 1) - 1
-          ] ?? 1,
-        totalScenes: 10,
-        sceneAppearances: extended.scenePresence?.sceneNumbers ?? [],
-      } as CastCardData;
-    });
+    return cast.map(toCastCardData);
   }, [cast]);
 
   const filteredCast = useMemo(() => {
@@ -66,7 +113,7 @@ export function useCastBreakdown({
         const query = searchQuery.toLowerCase();
         const matchName = member.name.toLowerCase().includes(query);
         const matchArabic = member.nameArabic?.toLowerCase().includes(query);
-        const matchDesc = (member.visualDescription || member.description || "")
+        const matchDesc = member.visualDescription
           .toLowerCase()
           .includes(query);
         if (!matchName && !matchArabic && !matchDesc) return false;
@@ -92,14 +139,10 @@ export function useCastBreakdown({
           comparison = a.name.localeCompare(b.name);
           break;
         case "role":
-          comparison = (a.roleCategory || a.role || "").localeCompare(
-            b.roleCategory || b.role || ""
-          );
+          comparison = a.roleCategory.localeCompare(b.roleCategory);
           break;
         case "age":
-          comparison = (a.ageRange || a.age || "").localeCompare(
-            b.ageRange || b.age || ""
-          );
+          comparison = a.ageRange.localeCompare(b.ageRange);
           break;
         case "gender":
           comparison = a.gender.localeCompare(b.gender);
@@ -128,7 +171,11 @@ export function useCastBreakdown({
   const toggleCard = (index: number) => {
     setExpandedCards((prev) => {
       const next = new Set(prev);
-      next.has(index) ? next.delete(index) : next.add(index);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
       return next;
     });
   };
@@ -137,14 +184,9 @@ export function useCastBreakdown({
     downloadFile(exportCastToCSV(sortedCast), "cast-breakdown.csv", "text/csv");
 
   const handleExportJSON = () => {
-    const data = analysisResult ?? {
-      members: sortedCast,
-      summary: {},
-      insights: [],
-      warnings: [],
-    };
+    const data = analysisResult ?? createCastAnalysisResult(sortedCast);
     downloadFile(
-      exportCastToJSON(data as CastAnalysisResult),
+      exportCastToJSON(data),
       "cast-breakdown.json",
       "application/json"
     );

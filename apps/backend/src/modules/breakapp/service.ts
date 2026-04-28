@@ -4,9 +4,9 @@
  * لا تستخدم أي تخزين محلي JSON.
  */
 
-import crypto from 'node:crypto';
+import crypto from "node:crypto";
 
-import * as repo from './repository';
+import * as repo from "./repository";
 
 import type {
   BreakappMenuItemView,
@@ -18,16 +18,16 @@ import type {
   BreakappSessionView,
   BreakappVendorView,
   OrderStatus,
-} from './service.types';
+} from "./service.types";
 
-export type { BreakappTokenPayload } from './service.types';
+export type { BreakappTokenPayload } from "./service.types";
 
 const VALID_ROLES: readonly BreakappRole[] = [
-  'director',
-  'crew',
-  'runner',
-  'vendor',
-  'admin',
+  "director",
+  "crew",
+  "runner",
+  "vendor",
+  "admin",
 ];
 
 function isBreakappRole(value: string): value is BreakappRole {
@@ -43,13 +43,13 @@ class BreakappService {
     try {
       const vendors = await repo.listVendors();
       return {
-        status: 'ok',
+        status: "ok",
         vendors: vendors.length,
         timestamp: new Date().toISOString(),
       };
     } catch {
       return {
-        status: 'degraded',
+        status: "degraded",
         vendors: 0,
         timestamp: new Date().toISOString(),
       };
@@ -61,8 +61,8 @@ class BreakappService {
     role: BreakappRole;
     userId: string;
   } {
-    const [projectId, roleValue, userId] = qrToken.split(':');
-    const normalizedRole = roleValue?.trim().toLowerCase() ?? '';
+    const [projectId, roleValue, userId] = qrToken.split(":");
+    const normalizedRole = roleValue?.trim().toLowerCase() ?? "";
 
     if (
       !projectId ||
@@ -70,7 +70,7 @@ class BreakappService {
       !normalizedRole ||
       !isBreakappRole(normalizedRole)
     ) {
-      throw new Error('صيغة رمز QR غير صالحة');
+      throw new Error("صيغة رمز QR غير صالحة");
     }
 
     return {
@@ -87,7 +87,7 @@ class BreakappService {
   async getNearbyVendors(
     lat: number,
     lng: number,
-    radius: number
+    radius: number,
   ): Promise<BreakappNearbyVendor[]> {
     return repo.findNearbyVendors({ lat, lng, radiusMeters: radius });
   }
@@ -116,15 +116,15 @@ class BreakappService {
     items: BreakappOrderItemInput[];
   }): Promise<BreakappOrderView> {
     if (!input.sessionId) {
-      throw new Error('الجلسة غير موجودة');
+      throw new Error("الجلسة غير موجودة");
     }
     const session = await repo.getSession(input.sessionId);
     if (!session) {
-      throw new Error('الجلسة غير موجودة');
+      throw new Error("الجلسة غير موجودة");
     }
 
     if (!Array.isArray(input.items) || input.items.length === 0) {
-      throw new Error('يجب إرسال عنصر واحد على الأقل');
+      throw new Error("يجب إرسال عنصر واحد على الأقل");
     }
 
     const normalizedItems = input.items.map((item) => ({
@@ -136,28 +136,28 @@ class BreakappService {
         (item) =>
           !item.menuItemId ||
           !Number.isFinite(item.quantity) ||
-          item.quantity <= 0
+          item.quantity <= 0,
       )
     ) {
-      throw new Error('عنصر قائمة غير صالح');
+      throw new Error("عنصر قائمة غير صالح");
     }
 
     const ids = normalizedItems.map((item) => item.menuItemId);
     const menuItems = await repo.getMenuItems(ids);
     if (menuItems.length !== new Set(ids).size) {
-      throw new Error('عنصر قائمة غير صالح');
+      throw new Error("عنصر قائمة غير صالح");
     }
     if (menuItems.some((menuItem) => !menuItem.available)) {
-      throw new Error('عنصر قائمة غير صالح');
+      throw new Error("عنصر قائمة غير صالح");
     }
 
     const vendorIds = new Set(menuItems.map((menuItem) => menuItem.vendorId));
     if (vendorIds.size !== 1) {
-      throw new Error('يجب أن تنتمي عناصر الطلب إلى مورد واحد فقط');
+      throw new Error("يجب أن تنتمي عناصر الطلب إلى مورد واحد فقط");
     }
     const [vendorId] = Array.from(vendorIds);
     if (!vendorId) {
-      throw new Error('تعذر تحديد المورد');
+      throw new Error("تعذر تحديد المورد");
     }
 
     return repo.createOrderWithItems({
@@ -178,25 +178,24 @@ class BreakappService {
 
   async listOrdersForSession(
     sessionId: string,
-    status?: OrderStatus
+    status?: OrderStatus,
   ): Promise<BreakappOrderView[]> {
     return repo.listOrdersForSession({ sessionId, status });
   }
 
   async getSessionBatches(
-    sessionId: string
+    sessionId: string,
   ): Promise<{ vendorId: string; vendorName: string; totalItems: number }[]> {
     return repo.aggregateSessionBatches(sessionId);
   }
 
-  async updateOrderStatus(
-    orderId: string,
-    status: OrderStatus
-  ): Promise<void> {
+  async updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
     await repo.updateOrderStatus(orderId, status);
   }
 
-  async updateRunnerLocation(input: BreakappRunnerLocationInput): Promise<void> {
+  async updateRunnerLocation(
+    input: BreakappRunnerLocationInput,
+  ): Promise<void> {
     if (
       !input.runnerId ||
       !Number.isFinite(input.lat) ||
@@ -214,11 +213,11 @@ class BreakappService {
   }
 
   hashRefreshToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 
   generateRefreshToken(): string {
-    return crypto.randomBytes(48).toString('base64url');
+    return crypto.randomBytes(48).toString("base64url");
   }
 }
 

@@ -1,6 +1,6 @@
 // Utils for usePostProduction hook
 
-import type { ExportSettings, FootageAnalysisSummary } from "../../types";
+import type { ExportSettings, FootageAnalysisSummary } from "../types";
 
 /**
  * الحصول على إعدادات التصدير للمنصة

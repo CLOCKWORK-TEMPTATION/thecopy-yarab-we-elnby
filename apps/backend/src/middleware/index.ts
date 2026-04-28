@@ -28,13 +28,13 @@ import { sloMetricsMiddleware } from "./slo-metrics.middleware";
  */
 
 const EDITOR_RUNTIME_PATHS = new Set([
-  '/api/file-extract',
-  '/api/files/extract',
-  '/api/text-extract',
-  '/api/suspicion-review',
-  '/api/final-review',
-  '/api/ai/context-enhance',
-  '/api/export/pdfa',
+  "/api/file-extract",
+  "/api/files/extract",
+  "/api/text-extract",
+  "/api/suspicion-review",
+  "/api/final-review",
+  "/api/ai/context-enhance",
+  "/api/export/pdfa",
 ]);
 
 function isEditorRuntimePath(path: string): boolean {
@@ -43,7 +43,7 @@ function isEditorRuntimePath(path: string): boolean {
 
 function buildEffectiveWhitelist(): string[] {
   const allowedOrigins = env.CORS_ORIGIN.split(",").map((origin) =>
-    origin.trim()
+    origin.trim(),
   );
   const devWhitelist = [
     "http://localhost:3000",
@@ -69,10 +69,14 @@ function setupCors(app: express.Application): void {
         if (effectiveWhitelist.includes(origin)) {
           return callback(null, true);
         }
-        logSecurityEvent(SecurityEventType.CORS_VIOLATION, {} as express.Request, {
-          blockedOrigin: origin,
-          allowedOrigins: effectiveWhitelist,
-        });
+        logSecurityEvent(
+          SecurityEventType.CORS_VIOLATION,
+          {} as express.Request,
+          {
+            blockedOrigin: origin,
+            allowedOrigins: effectiveWhitelist,
+          },
+        );
         const error = new Error("CORS policy violation") as Error & {
           code?: string;
           statusCode?: number;
@@ -83,10 +87,15 @@ function setupCors(app: express.Application): void {
       },
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-XSRF-TOKEN"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "X-XSRF-TOKEN",
+      ],
       exposedHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining"],
       maxAge: 86400,
-    })
+    }),
   );
 }
 
@@ -103,7 +112,13 @@ function setupSecurity(app: express.Application): void {
           scriptSrc,
           styleSrc,
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "https://o*.ingest.sentry.io", process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ? new URL(process.env['OTEL_EXPORTER_OTLP_ENDPOINT']).origin : ""].filter(Boolean),
+          connectSrc: [
+            "'self'",
+            "https://o*.ingest.sentry.io",
+            process.env["OTEL_EXPORTER_OTLP_ENDPOINT"]
+              ? new URL(process.env["OTEL_EXPORTER_OTLP_ENDPOINT"]).origin
+              : "",
+          ].filter(Boolean),
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           mediaSrc: ["'self'"],
@@ -122,7 +137,7 @@ function setupSecurity(app: express.Application): void {
       noSniff: true,
       referrerPolicy: { policy: "strict-origin-when-cross-origin" },
       xssFilter: true,
-    })
+    }),
   );
 }
 
@@ -130,15 +145,24 @@ function setupBodyParsing(app: express.Application): void {
   app.use(compression());
 
   const jsonParser = express.json({ limit: "10mb" });
-  const urlEncodedParser = express.urlencoded({ extended: true, limit: "10mb" });
+  const urlEncodedParser = express.urlencoded({
+    extended: true,
+    limit: "10mb",
+  });
 
   app.use((req, res, next) => {
-    if (isEditorRuntimePath(req.path)) { next(); return; }
+    if (isEditorRuntimePath(req.path)) {
+      next();
+      return;
+    }
     jsonParser(req, res, next);
   });
 
   app.use((req, res, next) => {
-    if (isEditorRuntimePath(req.path)) { next(); return; }
+    if (isEditorRuntimePath(req.path)) {
+      next();
+      return;
+    }
     urlEncodedParser(req, res, next);
   });
 
@@ -176,7 +200,8 @@ function setupRateLimiting(app: express.Application): void {
     max: 20,
     message: {
       success: false,
-      error: "تم تجاوز الحد المسموح من طلبات التحليل بالذكاء الاصطناعي، يرجى المحاولة لاحقاً",
+      error:
+        "تم تجاوز الحد المسموح من طلبات التحليل بالذكاء الاصطناعي، يرجى المحاولة لاحقاً",
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -186,7 +211,10 @@ function setupRateLimiting(app: express.Application): void {
   app.use("/api/auth/login", authLimiter as unknown as express.RequestHandler);
   app.use("/api/auth/signup", authLimiter as unknown as express.RequestHandler);
   app.use("/api/analysis/", aiLimiter as unknown as express.RequestHandler);
-  app.use("/api/projects/:id/analyze", aiLimiter as unknown as express.RequestHandler);
+  app.use(
+    "/api/projects/:id/analyze",
+    aiLimiter as unknown as express.RequestHandler,
+  );
 }
 
 /**
@@ -215,7 +243,7 @@ export function createPerUserLimiter(options: {
         return `user:${userId}`;
       }
       // احتياطي: استخدم IP المعتمد بعد trust proxy مع تطبيع IPv6 الرسمي
-      return `ip:${ipKeyGenerator(req.ip ?? 'unknown')}`;
+      return `ip:${ipKeyGenerator(req.ip ?? "unknown")}`;
     },
     message: {
       success: false,
@@ -231,7 +259,7 @@ export function createPerUserLimiter(options: {
 export const perUserAiLimiter = createPerUserLimiter({
   windowMs: 60 * 60 * 1000,
   max: 30,
-  errorMessage: 'تم تجاوز حدّك الخاص لطلبات الذكاء الاصطناعي لهذه الساعة',
+  errorMessage: "تم تجاوز حدّك الخاص لطلبات الذكاء الاصطناعي لهذه الساعة",
 });
 
 /**
@@ -241,7 +269,7 @@ export const perUserAiLimiter = createPerUserLimiter({
 export const perUserWriteLimiter = createPerUserLimiter({
   windowMs: 60 * 1000,
   max: 60,
-  errorMessage: 'تم تجاوز حدّك الخاص لعمليات الكتابة لهذه الدقيقة',
+  errorMessage: "تم تجاوز حدّك الخاص لعمليات الكتابة لهذه الدقيقة",
 });
 
 function setupRequestLogging(app: express.Application): void {
@@ -303,9 +331,7 @@ function getErrorCode(error: Error): string | undefined {
 }
 
 function getPublicErrorMessage(statusCode: number): string {
-  return statusCode === 500
-    ? "حدث خطأ داخلي في الخادم"
-    : "طلب غير مصرح به";
+  return statusCode === 500 ? "حدث خطأ داخلي في الخادم" : "طلب غير مصرح به";
 }
 
 // Error handling middleware - must be registered separately in server.ts after all routes
@@ -313,7 +339,7 @@ export const errorHandler = (
   error: Error,
   req: express.Request,
   res: express.Response,
-  _next: express.NextFunction
+  _next: express.NextFunction,
 ): void => {
   const statusCode = getErrorStatusCode(error);
   const errorCode = getErrorCode(error);
@@ -349,8 +375,9 @@ export const errorHandler = (
     error: getPublicErrorMessage(statusCode),
     ...(errorCode && { code: errorCode }),
     // Only include error details in development
-    ...(env.NODE_ENV === "development" && statusCode === 500 && {
-      details: error.message,
-    }),
+    ...(env.NODE_ENV === "development" &&
+      statusCode === 500 && {
+        details: error.message,
+      }),
   });
 };

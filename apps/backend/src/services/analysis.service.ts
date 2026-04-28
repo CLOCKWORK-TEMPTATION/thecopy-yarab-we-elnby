@@ -1,14 +1,23 @@
-import { logger } from '@/lib/logger';
-import { PipelineInput, PipelineRunResult, Station1Output, StationOutput } from '@/types';
+import { logger } from "@/lib/logger";
+import {
+  PipelineInput,
+  PipelineRunResult,
+  Station1Output,
+  StationOutput,
+} from "@/types";
 
-import { multiAgentOrchestrator, TaskType, type OrchestrationOutput } from './agents';
-import { agentRegistry } from './agents/registry';
+import {
+  multiAgentOrchestrator,
+  TaskType,
+  type OrchestrationOutput,
+} from "./agents";
+import { agentRegistry } from "./agents/registry";
 import {
   analysisStreamRegistry,
   type StationId,
-} from './analysisStream.registry';
+} from "./analysisStream.registry";
 
-import type { StandardAgentOutput } from './agents/core/types';
+import type { StandardAgentOutput } from "./agents/core/types";
 
 /**
  * Maps the seven user-facing stations to the underlying agent task types.
@@ -31,7 +40,9 @@ export class AnalysisService {
    */
   async runFullPipeline(input: PipelineInput): Promise<PipelineRunResult> {
     const startTime = Date.now();
-    logger.info('Starting multi-agent analysis pipeline', { projectName: input.projectName });
+    logger.info("Starting multi-agent analysis pipeline", {
+      projectName: input.projectName,
+    });
 
     try {
       // Define the agents to run for comprehensive analysis
@@ -64,25 +75,29 @@ export class AnalysisService {
       // Convert agent results to station outputs for compatibility
       const stationOutputs = this.convertAgentResultsToStations(
         orchestrationResult,
-        input
+        input,
       );
 
       const endTime = Date.now();
-      
+
       return {
         stationOutputs: stationOutputs,
         pipelineMetadata: {
           stationsCompleted: 7,
           totalExecutionTime: orchestrationResult.summary.totalExecutionTime,
-          startedAt: orchestrationResult.metadata?.startedAt ?? new Date(startTime).toISOString(),
-          finishedAt: orchestrationResult.metadata?.finishedAt ?? new Date(endTime).toISOString(),
+          startedAt:
+            orchestrationResult.metadata?.startedAt ??
+            new Date(startTime).toISOString(),
+          finishedAt:
+            orchestrationResult.metadata?.finishedAt ??
+            new Date(endTime).toISOString(),
           agentsUsed: agentTasks.length,
           averageConfidence: orchestrationResult.summary.averageConfidence,
           successfulAgents: orchestrationResult.summary.successfulTasks,
         },
       };
     } catch (error) {
-      logger.error('Multi-agent pipeline execution failed:', error);
+      logger.error("Multi-agent pipeline execution failed:", error);
       throw error;
     }
   }
@@ -93,8 +108,8 @@ export class AnalysisService {
    */
   private convertAgentResultsToStations(
     orchestrationResult: OrchestrationOutput,
-    _input: PipelineInput
-  ): PipelineRunResult['stationOutputs'] {
+    _input: PipelineInput,
+  ): PipelineRunResult["stationOutputs"] {
     const results = orchestrationResult.results;
 
     const characterAnalysis = results.get(TaskType.CHARACTER_DEEP_ANALYZER);
@@ -123,94 +138,112 @@ export class AnalysisService {
     };
   }
 
-  private buildStationDetails(agentResult: StandardAgentOutput | undefined, extraDetails?: Record<string, unknown>) {
+  private buildStationDetails(
+    agentResult: StandardAgentOutput | undefined,
+    extraDetails?: Record<string, unknown>,
+  ) {
     return {
-      fullAnalysis: agentResult?.text ?? '',
+      fullAnalysis: agentResult?.text ?? "",
       confidence: agentResult?.confidence ?? 0,
       notes: Array.isArray(agentResult?.notes) ? agentResult.notes : [],
       ...(extraDetails ?? {}),
     };
   }
 
-  private runStation1(characterAnalysis: StandardAgentOutput | undefined): Station1Output {
+  private runStation1(
+    characterAnalysis: StandardAgentOutput | undefined,
+  ): Station1Output {
     return {
       stationId: 1,
-      stationName: 'التحليل العميق للشخصيات',
+      stationName: "التحليل العميق للشخصيات",
       executionTime: this.getProcessingTime(characterAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
-      majorCharacters: this.extractCharacters(characterAnalysis?.text ?? ''),
-      relationships: this.extractRelationships(characterAnalysis?.text ?? ''),
+      majorCharacters: this.extractCharacters(characterAnalysis?.text ?? ""),
+      relationships: this.extractRelationships(characterAnalysis?.text ?? ""),
       narrativeStyleAnalysis: {
-        overallTone: 'درامي',
-        pacing: 'متوسط',
+        overallTone: "درامي",
+        pacing: "متوسط",
         complexity: 8,
       },
       details: this.buildStationDetails(characterAnalysis),
     };
   }
 
-  private runStation2(dialogueAnalysis: StandardAgentOutput | undefined): StationOutput {
+  private runStation2(
+    dialogueAnalysis: StandardAgentOutput | undefined,
+  ): StationOutput {
     return {
       stationId: 2,
-      stationName: 'التحليل المتقدم للحوار',
+      stationName: "التحليل المتقدم للحوار",
       executionTime: this.getProcessingTime(dialogueAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(dialogueAnalysis),
     };
   }
 
-  private runStation3(visualAnalysis: StandardAgentOutput | undefined): StationOutput {
+  private runStation3(
+    visualAnalysis: StandardAgentOutput | undefined,
+  ): StationOutput {
     return {
       stationId: 3,
-      stationName: 'التحليل البصري والسينمائي',
+      stationName: "التحليل البصري والسينمائي",
       executionTime: this.getProcessingTime(visualAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(visualAnalysis),
     };
   }
 
-  private runStation4(themesAnalysis: StandardAgentOutput | undefined): StationOutput {
+  private runStation4(
+    themesAnalysis: StandardAgentOutput | undefined,
+  ): StationOutput {
     return {
       stationId: 4,
-      stationName: 'تحليل الموضوعات والرسائل',
+      stationName: "تحليل الموضوعات والرسائل",
       executionTime: this.getProcessingTime(themesAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(themesAnalysis),
     };
   }
 
-  private runStation5(culturalAnalysis: StandardAgentOutput | undefined): StationOutput {
+  private runStation5(
+    culturalAnalysis: StandardAgentOutput | undefined,
+  ): StationOutput {
     return {
       stationId: 5,
-      stationName: 'التحليل الثقافي والتاريخي',
+      stationName: "التحليل الثقافي والتاريخي",
       executionTime: this.getProcessingTime(culturalAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(culturalAnalysis),
     };
   }
 
-  private runStation6(producibilityAnalysis: StandardAgentOutput | undefined): StationOutput {
+  private runStation6(
+    producibilityAnalysis: StandardAgentOutput | undefined,
+  ): StationOutput {
     return {
       stationId: 6,
-      stationName: 'تحليل قابلية الإنتاج',
+      stationName: "تحليل قابلية الإنتاج",
       executionTime: this.getProcessingTime(producibilityAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(producibilityAnalysis),
     };
   }
 
-  private runStation7(audienceAnalysis: StandardAgentOutput | undefined, results: Map<TaskType, StandardAgentOutput>): StationOutput {
+  private runStation7(
+    audienceAnalysis: StandardAgentOutput | undefined,
+    results: Map<TaskType, StandardAgentOutput>,
+  ): StationOutput {
     return {
       stationId: 7,
-      stationName: 'تحليل الجمهور المستهدف والتقرير النهائي',
+      stationName: "تحليل الجمهور المستهدف والتقرير النهائي",
       executionTime: this.getProcessingTime(audienceAnalysis),
-      status: 'completed',
+      status: "completed",
       timestamp: new Date().toISOString(),
       details: this.buildStationDetails(audienceAnalysis, {
         finalReport: this.generateFinalReport(results),
@@ -224,17 +257,21 @@ export class AnalysisService {
   private extractCharacters(analysisText: string): string[] {
     // Simple extraction - look for patterns indicating character names
     const characters: string[] = [];
-    const lines = analysisText.split('\n');
-    
+    const lines = analysisText.split("\n");
+
     for (const line of lines) {
-      if (line.includes('شخصية') || line.includes('الشخصيات') || line.includes('البطل')) {
+      if (
+        line.includes("شخصية") ||
+        line.includes("الشخصيات") ||
+        line.includes("البطل")
+      ) {
         const matches = line.match(/[\u0600-\u06FF\s]+/g);
         if (matches) {
-          characters.push(...matches.filter(m => m.trim().length > 2));
+          characters.push(...matches.filter((m) => m.trim().length > 2));
         }
       }
     }
-    
+
     return [...new Set(characters)].slice(0, 10);
   }
 
@@ -252,18 +289,18 @@ export class AnalysisService {
       .map((value) => value.trim())
       .filter((value) => value.length >= 3);
 
-    const relationshipType = text.includes('حب')
-      ? 'حب'
-      : text.includes('صراع')
-        ? 'صراع'
-        : text.includes('صداقة')
-          ? 'صداقة'
-          : 'غير محددة';
+    const relationshipType = text.includes("حب")
+      ? "حب"
+      : text.includes("صراع")
+        ? "صراع"
+        : text.includes("صداقة")
+          ? "صداقة"
+          : "غير محددة";
 
     return [
       {
-        character1: names[0] ?? 'الشخصية الأولى',
-        character2: names[1] ?? 'الشخصية الثانية',
+        character1: names[0] ?? "الشخصية الأولى",
+        character2: names[1] ?? "الشخصية الثانية",
         relationshipType,
         strength: 0.5,
       },
@@ -273,18 +310,26 @@ export class AnalysisService {
   /**
    * Generate comprehensive final report from all agent results
    */
-  private generateFinalReport(results: Map<TaskType, StandardAgentOutput>): string {
-    let report = '# التقرير التحليلي الشامل\n\n';
+  private generateFinalReport(
+    results: Map<TaskType, StandardAgentOutput>,
+  ): string {
+    let report = "# التقرير التحليلي الشامل\n\n";
 
     // Add summaries from each agent
     const agentNames = [
-      { type: TaskType.CHARACTER_DEEP_ANALYZER, title: '## تحليل الشخصيات' },
-      { type: TaskType.DIALOGUE_ADVANCED_ANALYZER, title: '## تحليل الحوار' },
-      { type: TaskType.VISUAL_CINEMATIC_ANALYZER, title: '## التحليل البصري' },
-      { type: TaskType.THEMES_MESSAGES_ANALYZER, title: '## الموضوعات والرسائل' },
-      { type: TaskType.CULTURAL_HISTORICAL_ANALYZER, title: '## السياق الثقافي' },
-      { type: TaskType.PRODUCIBILITY_ANALYZER, title: '## قابلية الإنتاج' },
-      { type: TaskType.TARGET_AUDIENCE_ANALYZER, title: '## الجمهور المستهدف' },
+      { type: TaskType.CHARACTER_DEEP_ANALYZER, title: "## تحليل الشخصيات" },
+      { type: TaskType.DIALOGUE_ADVANCED_ANALYZER, title: "## تحليل الحوار" },
+      { type: TaskType.VISUAL_CINEMATIC_ANALYZER, title: "## التحليل البصري" },
+      {
+        type: TaskType.THEMES_MESSAGES_ANALYZER,
+        title: "## الموضوعات والرسائل",
+      },
+      {
+        type: TaskType.CULTURAL_HISTORICAL_ANALYZER,
+        title: "## السياق الثقافي",
+      },
+      { type: TaskType.PRODUCIBILITY_ANALYZER, title: "## قابلية الإنتاج" },
+      { type: TaskType.TARGET_AUDIENCE_ANALYZER, title: "## الجمهور المستهدف" },
     ];
 
     for (const agent of agentNames) {
@@ -294,8 +339,8 @@ export class AnalysisService {
       }
     }
 
-    report += '## الخلاصة\n';
-    report += 'تم إجراء تحليل شامل باستخدام نظام الوكلاء المتعددين المتقدم.\n';
+    report += "## الخلاصة\n";
+    report += "تم إجراء تحليل شامل باستخدام نظام الوكلاء المتعددين المتقدم.\n";
 
     return report;
   }
@@ -322,10 +367,10 @@ export class AnalysisService {
     const reg = analysisStreamRegistry;
 
     reg.emit(analysisId, {
-      type: 'pipeline.started',
+      type: "pipeline.started",
       analysisId,
       projectName: args.projectName,
-      capabilities: { exports: ['json', 'docx', 'pdf'] },
+      capabilities: { exports: ["json", "docx", "pdf"] },
     });
 
     const results = new Map<TaskType, unknown>();
@@ -335,8 +380,17 @@ export class AnalysisService {
       const stationStart = Date.now();
       const at = new Date().toISOString();
       const stationName = this.stationNameFor(stationId);
-      reg.emit(analysisId, { type: 'station.started', stationId, name: stationName, at });
-      reg.emit(analysisId, { type: 'station.progress', stationId, progress: 0.1 });
+      reg.emit(analysisId, {
+        type: "station.started",
+        stationId,
+        name: stationName,
+        at,
+      });
+      reg.emit(analysisId, {
+        type: "station.progress",
+        stationId,
+        progress: 0.1,
+      });
 
       try {
         const agent = agentRegistry.getAgent(task);
@@ -344,13 +398,17 @@ export class AnalysisService {
           throw new Error(`Agent not registered for task ${task}`);
         }
 
-        reg.emit(analysisId, { type: 'station.progress', stationId, progress: 0.5 });
+        reg.emit(analysisId, {
+          type: "station.progress",
+          stationId,
+          progress: 0.5,
+        });
 
         const output = await agent.executeTask({
           input: args.fullText,
           context: {
             projectName: args.projectName,
-            language: args.language ?? 'ar',
+            language: args.language ?? "ar",
             previousResults: Object.fromEntries(results),
           },
           options: {
@@ -367,7 +425,7 @@ export class AnalysisService {
         const confidence = this.extractConfidence(output);
 
         reg.emit(analysisId, {
-          type: 'station.completed',
+          type: "station.completed",
           stationId,
           output: stationOutput,
           confidence,
@@ -375,15 +433,19 @@ export class AnalysisService {
         });
       } catch (err) {
         allOk = false;
-        const message = err instanceof Error ? err.message : 'فشل غير متوقع';
-        logger.error('Streaming station failed', { analysisId, stationId, message });
-        reg.emit(analysisId, { type: 'station.error', stationId, message });
+        const message = err instanceof Error ? err.message : "فشل غير متوقع";
+        logger.error("Streaming station failed", {
+          analysisId,
+          stationId,
+          message,
+        });
+        reg.emit(analysisId, { type: "station.error", stationId, message });
         reg.emit(analysisId, {
-          type: 'pipeline.warning',
+          type: "pipeline.warning",
           warning: {
             id: `${analysisId}:${stationId}:error`,
             stationId,
-            severity: 'error',
+            severity: "error",
             message,
             at: new Date().toISOString(),
           },
@@ -392,8 +454,8 @@ export class AnalysisService {
     }
 
     reg.emit(analysisId, {
-      type: 'pipeline.completed',
-      status: allOk ? 'completed' : 'failed',
+      type: "pipeline.completed",
+      status: allOk ? "completed" : "failed",
       durationMs: Date.now() - start,
     });
   }
@@ -421,14 +483,26 @@ export class AnalysisService {
     const reg = analysisStreamRegistry;
     const at = new Date().toISOString();
     const stationName = this.stationNameFor(args.stationId);
-    reg.emit(args.analysisId, { type: 'station.started', stationId: args.stationId, name: stationName, at });
-    reg.emit(args.analysisId, { type: 'station.progress', stationId: args.stationId, progress: 0.5 });
+    reg.emit(args.analysisId, {
+      type: "station.started",
+      stationId: args.stationId,
+      name: stationName,
+      at,
+    });
+    reg.emit(args.analysisId, {
+      type: "station.progress",
+      stationId: args.stationId,
+      progress: 0.5,
+    });
 
     const start = Date.now();
     try {
       const output = await agent.executeTask({
         input: args.fullText,
-        context: { projectName: args.projectName, language: args.language ?? 'ar' },
+        context: {
+          projectName: args.projectName,
+          language: args.language ?? "ar",
+        },
         options: {
           enableRAG: true,
           enableSelfCritique: true,
@@ -437,10 +511,14 @@ export class AnalysisService {
           enableHallucination: true,
         },
       });
-      const built = this.buildStationFor(args.stationId, output, new Map([[mapping.task, output]]));
+      const built = this.buildStationFor(
+        args.stationId,
+        output,
+        new Map([[mapping.task, output]]),
+      );
       const confidence = this.extractConfidence(output);
       reg.emit(args.analysisId, {
-        type: 'station.completed',
+        type: "station.completed",
         stationId: args.stationId,
         output: built,
         confidence,
@@ -448,70 +526,100 @@ export class AnalysisService {
       });
       return built;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'فشل غير متوقع';
-      reg.emit(args.analysisId, { type: 'station.error', stationId: args.stationId, message });
+      const message = err instanceof Error ? err.message : "فشل غير متوقع";
+      reg.emit(args.analysisId, {
+        type: "station.error",
+        stationId: args.stationId,
+        message,
+      });
       throw err;
     }
   }
 
   private stationNameFor(stationId: StationId): string {
     switch (stationId) {
-      case 1: return 'التحليل العميق للشخصيات';
-      case 2: return 'التحليل المتقدم للحوار';
-      case 3: return 'التحليل البصري والسينمائي';
-      case 4: return 'تحليل الموضوعات والرسائل';
-      case 5: return 'التحليل الثقافي والتاريخي';
-      case 6: return 'تحليل قابلية الإنتاج';
-      case 7: return 'تحليل الجمهور والتقرير النهائي';
+      case 1:
+        return "التحليل العميق للشخصيات";
+      case 2:
+        return "التحليل المتقدم للحوار";
+      case 3:
+        return "التحليل البصري والسينمائي";
+      case 4:
+        return "تحليل الموضوعات والرسائل";
+      case 5:
+        return "التحليل الثقافي والتاريخي";
+      case 6:
+        return "تحليل قابلية الإنتاج";
+      case 7:
+        return "تحليل الجمهور والتقرير النهائي";
     }
   }
 
   private buildStationFor(
     stationId: StationId,
     agentResult: unknown,
-    results: Map<TaskType, unknown>
+    results: Map<TaskType, unknown>,
   ): StationOutput | Station1Output {
     const typedAgentResult = this.asStandardAgentOutput(agentResult);
     switch (stationId) {
-      case 1: return this.runStation1(typedAgentResult);
-      case 2: return this.runStation2(typedAgentResult);
-      case 3: return this.runStation3(typedAgentResult);
-      case 4: return this.runStation4(typedAgentResult);
-      case 5: return this.runStation5(typedAgentResult);
-      case 6: return this.runStation6(typedAgentResult);
+      case 1:
+        return this.runStation1(typedAgentResult);
+      case 2:
+        return this.runStation2(typedAgentResult);
+      case 3:
+        return this.runStation3(typedAgentResult);
+      case 4:
+        return this.runStation4(typedAgentResult);
+      case 5:
+        return this.runStation5(typedAgentResult);
+      case 6:
+        return this.runStation6(typedAgentResult);
       case 7: {
-        return this.runStation7(typedAgentResult, this.toStandardAgentResultMap(results));
+        return this.runStation7(
+          typedAgentResult,
+          this.toStandardAgentResultMap(results),
+        );
       }
     }
   }
 
   private extractConfidence(agentResult: unknown): number | null {
-    if (agentResult && typeof agentResult === 'object' && 'confidence' in agentResult) {
-      const c = (agentResult).confidence;
-      if (typeof c === 'number' && Number.isFinite(c)) return c;
+    if (
+      agentResult &&
+      typeof agentResult === "object" &&
+      "confidence" in agentResult
+    ) {
+      const c = agentResult.confidence;
+      if (typeof c === "number" && Number.isFinite(c)) return c;
     }
     return null;
   }
 
-  private getProcessingTime(agentResult: StandardAgentOutput | undefined): number {
+  private getProcessingTime(
+    agentResult: StandardAgentOutput | undefined,
+  ): number {
     const value = agentResult?.metadata?.processingTime;
-    return typeof value === 'number' ? value : 0;
+    return typeof value === "number" ? value : 0;
   }
 
-  private asStandardAgentOutput(value: unknown): StandardAgentOutput | undefined {
-    if (!value || typeof value !== 'object') {
+  private asStandardAgentOutput(
+    value: unknown,
+  ): StandardAgentOutput | undefined {
+    if (!value || typeof value !== "object") {
       return undefined;
     }
 
     const candidate = value as Partial<StandardAgentOutput>;
-    return typeof candidate.text === 'string' &&
-      typeof candidate.confidence === 'number' &&
+    return typeof candidate.text === "string" &&
+      typeof candidate.confidence === "number" &&
       Array.isArray(candidate.notes)
-      ? candidate as StandardAgentOutput
+      ? (candidate as StandardAgentOutput)
       : undefined;
   }
 
-  private toStandardAgentResultMap(results: Map<TaskType, unknown>): Map<TaskType, StandardAgentOutput> {
+  private toStandardAgentResultMap(
+    results: Map<TaskType, unknown>,
+  ): Map<TaskType, StandardAgentOutput> {
     const typed = new Map<TaskType, StandardAgentOutput>();
     for (const [task, value] of results) {
       const output = this.asStandardAgentOutput(value);

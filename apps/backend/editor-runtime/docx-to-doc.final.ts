@@ -47,7 +47,7 @@ const toErrorMessage = (error: unknown): string =>
 async function convertDocxToDoc(
   inputPath: string,
   outputPath?: string,
-  overwrite: boolean = false
+  overwrite: boolean = false,
 ): Promise<void> {
   // Resolve absolute paths
   const absInputPath = path.resolve(inputPath);
@@ -64,7 +64,7 @@ async function convertDocxToDoc(
   // Check if output exists
   if (fs.existsSync(absOutputPath) && !overwrite) {
     throw new Error(
-      `Output file already exists: ${absOutputPath}\nUse --overwrite to replace it.`
+      `Output file already exists: ${absOutputPath}\nUse --overwrite to replace it.`,
     );
   }
 
@@ -168,7 +168,7 @@ Requirements:
 
   // Find output path (if provided and not --overwrite)
   const outputPath = args.find(
-    (arg, idx) => idx > 0 && arg !== "--overwrite" && !arg.startsWith("-")
+    (arg, idx) => idx > 0 && arg !== "--overwrite" && !arg.startsWith("-"),
   );
 
   try {

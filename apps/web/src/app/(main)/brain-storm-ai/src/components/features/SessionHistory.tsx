@@ -114,13 +114,7 @@ export function SessionHistory({
                       </p>
                     </div>
                     <span
-                      className={`shrink-0 px-2 py-0.5 text-xs rounded-full ${
-                        saved.session.status === "completed"
-                          ? "bg-green-500/15 text-green-300"
-                          : saved.session.status === "active"
-                            ? "bg-blue-500/15 text-blue-300"
-                            : "bg-white/8 text-white/70"
-                      }`}
+                      className={`shrink-0 px-2 py-0.5 text-xs rounded-full ${saved.session.status === "completed" ? "bg-green-500/15 text-green-300" : saved.session.status === "active" ? "bg-blue-500/15 text-blue-300" : "bg-white/8 text-white/70"}`}
                     >
                       {saved.session.status === "completed"
                         ? "مكتمل"
@@ -136,11 +130,7 @@ export function SessionHistory({
 
                   {activeFeedback ? (
                     <p
-                      className={`text-xs font-cairo text-right ${
-                        activeFeedback.type === "success"
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
+                      className={`text-xs font-cairo text-right ${activeFeedback.type === "success" ? "text-green-400" : "text-red-400"}`}
                     >
                       {activeFeedback.message}
                     </p>

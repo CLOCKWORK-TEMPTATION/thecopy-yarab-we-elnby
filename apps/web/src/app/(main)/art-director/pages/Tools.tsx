@@ -18,6 +18,10 @@ interface Plugin {
   version: string;
 }
 
+function isPluginsResponse(value: unknown): value is { plugins?: Plugin[] } {
+  return typeof value === "object" && value !== null && "plugins" in value;
+}
+
 function Tools() {
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [selectedTool, setSelectedTool] = useState<ToolId | null>(null);
@@ -32,8 +36,10 @@ function Tools() {
   useEffect(() => {
     fetch(artDirectorApiPath("/plugins"))
       .then((res) => res.json())
-      .then((data) => setPlugins(data.plugins ?? []))
-      .catch(console.error);
+      .then((data: unknown) =>
+        setPlugins(isPluginsResponse(data) ? (data.plugins ?? []) : [])
+      )
+      .catch(() => undefined);
   }, []);
 
   const handleExecute = async () => {

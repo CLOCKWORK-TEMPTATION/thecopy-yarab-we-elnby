@@ -344,7 +344,7 @@ export class VirtualSetEditor implements Plugin {
   }
 
   private analyzeLighting(
-    lights: LightingAdjustment[]
+    lights: LightingAdjustment[],
   ): Record<string, unknown> {
     const keyLight = lights.find((l) => l.type === "key");
     const fillLight = lights.find((l) => l.type === "fill");

@@ -1,10 +1,7 @@
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
-import {
-  safeCountMultipleTerms,
-  sumCounts,
-} from "../shared/safe-regexp";
+import { safeCountMultipleTerms, sumCounts } from "../shared/safe-regexp";
 import {
   StandardAgentInput,
   StandardAgentOutput,
@@ -26,7 +23,7 @@ export class CompletionAgent extends BaseAgent {
     super(
       "NarrativeContinuum AI",
       TaskType.COMPLETION,
-      COMPLETION_AGENT_CONFIG.systemPrompt ?? ""
+      COMPLETION_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -61,20 +58,20 @@ export class CompletionAgent extends BaseAgent {
   } {
     const ctx = this.toRecord(context);
     return {
-      originalText: (ctx?.['originalText'] as string) || "",
-      previousCompletions: (ctx?.['previousCompletions'] as string[]) || [],
-      completionScope: (ctx?.['completionScope'] as string) || "paragraph",
-      enhancements: (ctx?.['enhancements'] as string[]) || [],
+      originalText: (ctx?.["originalText"] as string) || "",
+      previousCompletions: (ctx?.["previousCompletions"] as string[]) || [],
+      completionScope: (ctx?.["completionScope"] as string) || "paragraph",
+      enhancements: (ctx?.["enhancements"] as string[]) || [],
     };
   }
 
   /**
    * Safely convert context to Record
    */
-  private toRecord(context: StandardAgentInput["context"]): Record<string, unknown> {
-    return typeof context === "object" && context !== null
-      ? (context)
-      : {};
+  private toRecord(
+    context: StandardAgentInput["context"],
+  ): Record<string, unknown> {
+    return typeof context === "object" && context !== null ? context : {};
   }
 
   /**
@@ -130,7 +127,7 @@ export class CompletionAgent extends BaseAgent {
    * Post-process the completion output
    */
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     await Promise.resolve();
     // Ensure the output is properly formatted
@@ -153,8 +150,7 @@ export class CompletionAgent extends BaseAgent {
       metadata: {
         ...output.metadata,
         completionQuality: qualityScore,
-        characterConsistency:
-          this.checkCharacterConsistency(processedText),
+        characterConsistency: this.checkCharacterConsistency(processedText),
         narrativeFlow: this.checkNarrativeFlow(processedText),
       },
     };
@@ -210,7 +206,9 @@ export class CompletionAgent extends BaseAgent {
     }
 
     // Check for descriptive elements
-    const hasDescription = DESCRIPTIVE_WORDS.some((word) => text.includes(word));
+    const hasDescription = DESCRIPTIVE_WORDS.some((word) =>
+      text.includes(word),
+    );
     if (hasDescription) score += 0.1;
 
     return Math.min(1, score);
@@ -252,7 +250,7 @@ export class CompletionAgent extends BaseAgent {
    */
   private generateCompletionNotes(
     output: StandardAgentOutput,
-    qualityScore: number
+    qualityScore: number,
   ): string[] {
     const notes: string[] = [];
 
@@ -314,14 +312,14 @@ export class CompletionAgent extends BaseAgent {
    * Generate fallback response specific to completion
    */
   protected override async getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context
         : {};
-    const scope = (contextObj)?.['completionScope'] as string || "paragraph";
+    const scope = (contextObj?.["completionScope"] as string) || "paragraph";
 
     return `تحليل موجز: النص يحتاج إلى استكمال ${this.translateScope(scope)} يتماشى مع السياق والأسلوب المقدم.
 

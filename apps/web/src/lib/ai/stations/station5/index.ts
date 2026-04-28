@@ -28,6 +28,19 @@ import {
 } from "./types";
 import { VisualCinematicAnalysisEngine } from "./visual-cinematic-analysis-engine";
 
+type Station5Options = NonNullable<Station5Input["options"]>;
+type Station5CoreOutput = Omit<
+  Station5Output,
+  "uncertaintyReport" | "metadata"
+>;
+
+interface Station5AnalysisContext {
+  input: Station5Input;
+  options: Station5Options;
+  agentsUsed: string[];
+  core: Station5CoreOutput;
+}
+
 export class Station5DynamicSymbolicStylistic extends BaseStation<
   Station5Input,
   Station5Output
@@ -61,7 +74,36 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
     const startTime = Date.now();
     const options = input.options ?? {};
     const agentsUsed: string[] = [];
+    const core = await this.runCoreAnalyses(input, agentsUsed);
+    const context: Station5AnalysisContext = {
+      input,
+      options,
+      agentsUsed,
+      core,
+    };
 
+    const uncertaintyReport = await this.buildUncertaintyReport(context);
+    const debateResults = await this.runOptionalDebate(context);
+    const constitutionalViolations =
+      this.countConstitutionalViolations(context);
+    const metadata = this.buildMetadata(
+      startTime,
+      agentsUsed,
+      constitutionalViolations,
+      debateResults
+    );
+
+    return {
+      ...core,
+      uncertaintyReport,
+      metadata,
+    };
+  }
+
+  private async runCoreAnalyses(
+    input: Station5Input,
+    agentsUsed: string[]
+  ): Promise<Station5CoreOutput> {
     // Dynamic Analysis
     const eventTimeline = await this.dynamicEngine.constructEventTimeline(
       input.conflictNetwork
@@ -123,96 +165,96 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
       await this.visualEngine.analyzeVisualCinematic(input.fullText);
     agentsUsed.push("VisualCinematicAnalysisEngine");
 
-    // Uncertainty Quantification
-    let uncertaintyReport: UncertaintyReport = {
-      overallConfidence: 0.8,
-      uncertainties: [],
+    return {
+      dynamicAnalysis,
+      symbolicAnalysis,
+      stylisticAnalysis,
+      tensionAnalysis,
+      advancedDialogueAnalysis,
+      visualCinematicAnalysis,
     };
+  }
 
-    if (options.enableUncertaintyQuantification) {
-      const analysisText = JSON.stringify({
-        dynamicAnalysis,
-        symbolicAnalysis,
-        stylisticAnalysis,
-        tensionAnalysis,
-        advancedDialogueAnalysis,
-        visualCinematicAnalysis,
-      });
-
-      const uncertaintyMetrics =
-        await this.uncertaintyQuantificationEngine.quantify(analysisText, {
-          originalText: input.fullText,
-          analysisType: "Dynamic, Symbolic, and Stylistic Analysis",
-        });
-
-      uncertaintyReport = {
-        overallConfidence: uncertaintyMetrics.confidence,
-        uncertainties: uncertaintyMetrics.sources.map((source) => ({
-          type: uncertaintyMetrics.type,
-          aspect: source.aspect,
-          note: source.reason,
-        })),
+  private async buildUncertaintyReport(
+    context: Station5AnalysisContext
+  ): Promise<UncertaintyReport> {
+    if (!context.options.enableUncertaintyQuantification) {
+      return {
+        overallConfidence: 0.8,
+        uncertainties: [],
       };
-
-      agentsUsed.push("UncertaintyQuantificationEngine");
     }
 
-    // Multi-Agent Debate
-    let debateResults: DebateResult | undefined;
-
-    if (options.enableMultiAgentDebate) {
-      const analysisText = JSON.stringify({
-        dynamicAnalysis,
-        symbolicAnalysis,
-        stylisticAnalysis,
-        tensionAnalysis,
-        advancedDialogueAnalysis,
-        visualCinematicAnalysis,
-      });
-
-      debateResults = await this.debateSystem.conductDebate(
-        input.fullText,
-        analysisText,
+    const uncertaintyMetrics =
+      await this.uncertaintyQuantificationEngine.quantify(
+        this.buildAnalysisText(context.core),
         {
+          originalText: context.input.fullText,
           analysisType: "Dynamic, Symbolic, and Stylistic Analysis",
         }
       );
 
-      agentsUsed.push("MultiAgentDebateSystem");
+    context.agentsUsed.push("UncertaintyQuantificationEngine");
+
+    return {
+      overallConfidence: uncertaintyMetrics.confidence,
+      uncertainties: uncertaintyMetrics.sources.map((source) => ({
+        component: source.aspect,
+        confidence: uncertaintyMetrics.confidence,
+        reason: source.reason,
+      })),
+    };
+  }
+
+  private async runOptionalDebate(
+    context: Station5AnalysisContext
+  ): Promise<DebateResult | undefined> {
+    if (!context.options.enableMultiAgentDebate) {
+      return undefined;
     }
 
-    // Constitutional AI Check
-    let constitutionalViolations = 0;
+    const debateResults = await this.debateSystem.conductDebate(
+      context.input.fullText,
+      this.buildAnalysisText(context.core),
+      {
+        analysisType: "Dynamic, Symbolic, and Stylistic Analysis",
+      }
+    );
 
-    if (options.enableConstitutionalAI) {
-      const analysisText = JSON.stringify({
-        dynamicAnalysis,
-        symbolicAnalysis,
-        stylisticAnalysis,
-        tensionAnalysis,
-        advancedDialogueAnalysis,
-        visualCinematicAnalysis,
-      });
+    context.agentsUsed.push("MultiAgentDebateSystem");
 
-      const constitutionalCheck = checkConstitutionalCompliance(
-        analysisText,
-        input.fullText,
-        this.geminiService
-      );
+    return debateResults;
+  }
 
-      constitutionalViolations = constitutionalCheck.violations.length;
-
-      agentsUsed.push("ConstitutionalAI");
+  private countConstitutionalViolations(
+    context: Station5AnalysisContext
+  ): number {
+    if (!context.options.enableConstitutionalAI) {
+      return 0;
     }
 
-    const analysisTime = Date.now() - startTime;
+    const constitutionalCheck = checkConstitutionalCompliance(
+      this.buildAnalysisText(context.core),
+      context.input.fullText,
+      this.geminiService
+    );
 
-    // Build metadata object conditionally
+    context.agentsUsed.push("ConstitutionalAI");
+
+    return constitutionalCheck.violations.length;
+  }
+
+  private buildMetadata(
+    startTime: number,
+    agentsUsed: string[],
+    constitutionalViolations: number,
+    debateResults: DebateResult | undefined
+  ): StationMetadata {
     const metadata: StationMetadata = {
       analysisTimestamp: new Date(),
       status: "Success",
       agentsUsed,
-      executionTime: analysisTime,
+      executionTime: Date.now() - startTime,
     };
 
     if (constitutionalViolations > 0) {
@@ -223,16 +265,11 @@ export class Station5DynamicSymbolicStylistic extends BaseStation<
       metadata.debateResults = debateResults;
     }
 
-    return {
-      dynamicAnalysis,
-      symbolicAnalysis,
-      stylisticAnalysis,
-      tensionAnalysis,
-      advancedDialogueAnalysis,
-      visualCinematicAnalysis,
-      uncertaintyReport,
-      metadata,
-    };
+    return metadata;
+  }
+
+  private buildAnalysisText(core: Station5CoreOutput): string {
+    return JSON.stringify(core);
   }
 
   protected extractRequiredData(input: Station5Input): Record<string, unknown> {

@@ -1,29 +1,24 @@
 /**
  * وكيل المناظرة - Agent Debator
- * 
+ *
  * @module agentDebator
  * @description
  * يعالج مشاركة الوكيل الفردي في المناظرات.
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
-import { logger } from '@/lib/logger';
-import { geminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 
-import { BaseAgent } from '../shared/BaseAgent';
+import { BaseAgent } from "../shared/BaseAgent";
 
-import {
-  DebateRole,
-  DebateArgument,
-  Refutation,
-} from './types';
-
+import { DebateRole, DebateArgument, Refutation } from "./types";
 
 /**
  * فئة وكيل المناظرة
- * 
+ *
  * @description
  * تغلّف BaseAgent للمشاركة في المناظرات.
  * توفر وظائف تقديم الحجج والرد والتصويت.
@@ -38,7 +33,7 @@ export class AgentDebator {
 
   /**
    * منشئ فئة وكيل المناظرة
-   * 
+   *
    * @param agent - الوكيل الأساسي
    * @param role - دور الوكيل في المناظرة
    */
@@ -49,7 +44,7 @@ export class AgentDebator {
 
   /**
    * الحصول على اسم الوكيل
-   * 
+   *
    * @returns اسم الوكيل
    */
   getAgentName(): string {
@@ -59,7 +54,7 @@ export class AgentDebator {
 
   /**
    * الحصول على دور الوكيل
-   * 
+   *
    * @returns دور الوكيل في المناظرة
    */
   getRole(): DebateRole {
@@ -68,10 +63,10 @@ export class AgentDebator {
 
   /**
    * تقديم الحجة الأولية
-   * 
+   *
    * @description
    * يقوم الوكيل بتقديم حجته حول الموضوع المطروح
-   * 
+   *
    * @param topic - موضوع المناظرة
    * @param context - السياق الإضافي (اختياري)
    * @param previousArguments - الحجج السابقة (اختياري)
@@ -80,7 +75,7 @@ export class AgentDebator {
   async presentArgument(
     topic: string,
     context?: string,
-    previousArguments?: DebateArgument[]
+    previousArguments?: DebateArgument[],
   ): Promise<DebateArgument> {
     const agentName = this.getAgentName();
     logger.info("تقديم حجة في المناظرة", { agentName, topic });
@@ -97,7 +92,7 @@ export class AgentDebator {
           enableRAG: true,
           enableSelfCritique: true,
         },
-        context: context ?? '',
+        context: context ?? "",
       });
 
       // تحليل وهيكلة الحجة
@@ -109,7 +104,7 @@ export class AgentDebator {
         reasoning: this.extractReasoning(result.text),
         evidence: this.extractEvidence(result.text),
         confidence: result.confidence,
-        referencesTo: previousArguments?.map(arg => arg.id) ?? [],
+        referencesTo: previousArguments?.map((arg) => arg.id) ?? [],
         timestamp: new Date(),
       };
 
@@ -118,7 +113,7 @@ export class AgentDebator {
     } catch (error) {
       logger.error("فشل في تقديم الحجة", {
         agentName,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف',
+        error: error instanceof Error ? error.message : "خطأ غير معروف",
       });
 
       // حجة احتياطية
@@ -127,7 +122,7 @@ export class AgentDebator {
         agentName,
         role: this.role,
         position: `عذراً، واجهت صعوبة في تقديم حجة كاملة حول: ${topic}`,
-        reasoning: 'خطأ في المعالجة',
+        reasoning: "خطأ في المعالجة",
         evidence: [],
         confidence: 0.3,
         timestamp: new Date(),
@@ -137,17 +132,17 @@ export class AgentDebator {
 
   /**
    * الرد على حجة موجودة
-   * 
+   *
    * @description
    * يقوم الوكيل بتحليل ونقد حجة موجودة
-   * 
+   *
    * @param targetArgument - الحجة المستهدفة
    * @param context - السياق الإضافي (اختياري)
    * @returns وعد بالرد على الحجة
    */
   async refuteArgument(
     targetArgument: DebateArgument,
-    context?: string
+    context?: string,
   ): Promise<Refutation> {
     const agentName = this.getAgentName();
     logger.debug("الرد على حجة", {
@@ -160,8 +155,12 @@ export class AgentDebator {
     try {
       const result = await this.agent.executeTask({
         input: prompt,
-        options: { temperature: 0.7, enableRAG: true, enableSelfCritique: true },
-        context: context ?? '',
+        options: {
+          temperature: 0.7,
+          enableRAG: true,
+          enableSelfCritique: true,
+        },
+        context: context ?? "",
       });
 
       return {
@@ -169,18 +168,21 @@ export class AgentDebator {
         refutingAgent: agentName,
         counterArgument: result.text,
         evidence: this.extractEvidence(result.text),
-        strength: this.calculateRefutationStrength(result.confidence, targetArgument.confidence),
+        strength: this.calculateRefutationStrength(
+          result.confidence,
+          targetArgument.confidence,
+        ),
       };
     } catch (error) {
       logger.error("فشل في الرد على الحجة", {
         agentName,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف',
+        error: error instanceof Error ? error.message : "خطأ غير معروف",
       });
 
       return {
         targetArgumentId: targetArgument.id,
         refutingAgent: agentName,
-        counterArgument: 'عذراً، واجهت صعوبة في تقديم رد مناسب',
+        counterArgument: "عذراً، واجهت صعوبة في تقديم رد مناسب",
         evidence: [],
         strength: 0.2,
       };
@@ -192,7 +194,7 @@ export class AgentDebator {
    */
   private buildRefutationPrompt(
     targetArgument: DebateArgument,
-    context?: string
+    context?: string,
   ): string {
     return `
 قم بتحليل ونقد الحجة التالية:
@@ -204,14 +206,14 @@ ${targetArgument.position}
 ${targetArgument.reasoning}
 
 **الأدلة:**
-${targetArgument.evidence.join('\n')}
+${targetArgument.evidence.join("\n")}
 
 قدم رداً منطقياً يتضمن:
 1. نقاط الضعف في الحجة
 2. حجج مضادة مدعومة بالأدلة
 3. تقييم موضوعي لقوة الحجة الأصلية
 
-${context ? `\n**السياق الإضافي:**\n${context}` : ''}
+${context ? `\n**السياق الإضافي:**\n${context}` : ""}
 `;
   }
 
@@ -227,10 +229,13 @@ ${context ? `\n**السياق الإضافي:**\n${context}` : ''}
    */
   async voteOnArguments(
     debateArguments: DebateArgument[],
-    topic: string
+    topic: string,
   ): Promise<Map<string, number>> {
     const agentName = this.getAgentName();
-    logger.debug("التصويت على الحجج", { agentName, argumentCount: debateArguments.length });
+    logger.debug("التصويت على الحجج", {
+      agentName,
+      argumentCount: debateArguments.length,
+    });
 
     const votes = new Map<string, number>();
     const prompt = this.buildVotingPrompt(debateArguments, topic);
@@ -246,10 +251,10 @@ ${context ? `\n**السياق الإضافي:**\n${context}` : ''}
     } catch (error) {
       logger.error("فشل في التصويت", {
         agentName,
-        error: error instanceof Error ? error.message : 'خطأ غير معروف',
+        error: error instanceof Error ? error.message : "خطأ غير معروف",
       });
 
-      debateArguments.forEach(arg => {
+      debateArguments.forEach((arg) => {
         votes.set(arg.id, arg.confidence * 0.7);
       });
 
@@ -260,17 +265,24 @@ ${context ? `\n**السياق الإضافي:**\n${context}` : ''}
   /**
    * بناء نص التصويت
    */
-  private buildVotingPrompt(debateArguments: DebateArgument[], topic: string): string {
+  private buildVotingPrompt(
+    debateArguments: DebateArgument[],
+    topic: string,
+  ): string {
     return `
 بناءً على الموضوع: "${topic}"
 
 قم بتقييم الحجج التالية وأعطِ كل واحدة درجة من 0 إلى 1:
 
-${debateArguments.map((arg, idx) => `
+${debateArguments
+  .map(
+    (arg, idx) => `
 **الحجة ${idx + 1}** (من ${arg.agentName}):
 ${arg.position}
 الثقة: ${arg.confidence}
-`).join('\n---\n')}
+`,
+  )
+  .join("\n---\n")}
 
 قدم تقييمك بناءً على:
 - القوة المنطقية
@@ -288,18 +300,20 @@ ${arg.position}
   private parseVoteResults(
     result: string,
     debateArguments: DebateArgument[],
-    votes: Map<string, number>
+    votes: Map<string, number>,
   ): void {
-    const lines = result.split('\n');
+    const lines = result.split("\n");
     debateArguments.forEach((arg, idx) => {
-      const scoreMatch = lines.find(line =>
-        line.includes(`${idx + 1}`) || (arg.agentName && line.includes(arg.agentName))
+      const scoreMatch = lines.find(
+        (line) =>
+          line.includes(`${idx + 1}`) ||
+          (arg.agentName && line.includes(arg.agentName)),
       );
 
       if (scoreMatch) {
         const match = /(\d+\.?\d*)/.exec(scoreMatch);
         if (match) {
-          const score = Math.min(1, Math.max(0, parseFloat(match[1] ?? '0.5')));
+          const score = Math.min(1, Math.max(0, parseFloat(match[1] ?? "0.5")));
           votes.set(arg.id, score);
         }
       }
@@ -312,10 +326,10 @@ ${arg.position}
 
   /**
    * بناء نص الحجة بناءً على الدور
-   * 
+   *
    * @description
    * يبني النص المناسب للحجة حسب دور الوكيل في المناظرة
-   * 
+   *
    * @param topic - موضوع المناظرة
    * @param context - السياق الإضافي
    * @param previousArguments - الحجج السابقة
@@ -324,7 +338,7 @@ ${arg.position}
   private buildArgumentPrompt(
     topic: string,
     context?: string,
-    previousArguments?: DebateArgument[]
+    previousArguments?: DebateArgument[],
   ): string {
     let prompt = `الموضوع: ${topic}\n\n`;
 
@@ -337,21 +351,22 @@ ${arg.position}
       previousArguments.forEach((arg, idx) => {
         prompt += `\n${idx + 1}. ${arg.agentName} (${arg.role}):\n${arg.position}\n`;
       });
-      prompt += '\n';
+      prompt += "\n";
     }
 
     switch (this.role) {
       case DebateRole.PROPOSER:
-        prompt += 'قدم حجة قوية ومدعومة بالأدلة لدعم موقفك من هذا الموضوع.';
+        prompt += "قدم حجة قوية ومدعومة بالأدلة لدعم موقفك من هذا الموضوع.";
         break;
       case DebateRole.OPPONENT:
-        prompt += 'قدم حجة مضادة مدعومة بالأدلة، مع تحليل نقدي للحجج السابقة.';
+        prompt += "قدم حجة مضادة مدعومة بالأدلة، مع تحليل نقدي للحجج السابقة.";
         break;
       case DebateRole.SYNTHESIZER:
-        prompt += 'حلل الحجج المقدمة واستخلص نقاط التوافق والاختلاف، ثم قدم رأياً موحداً.';
+        prompt +=
+          "حلل الحجج المقدمة واستخلص نقاط التوافق والاختلاف، ثم قدم رأياً موحداً.";
         break;
       default:
-        prompt += 'قدم تحليلاً متوازناً للموضوع مع عرض وجهات نظر متعددة.';
+        prompt += "قدم تحليلاً متوازناً للموضوع مع عرض وجهات نظر متعددة.";
     }
 
     return prompt;
@@ -359,10 +374,10 @@ ${arg.position}
 
   /**
    * استخراج التبرير من النص
-   * 
+   *
    * @description
    * يبحث عن أنماط التبرير في النص العربي
-   * 
+   *
    * @param text - النص المراد تحليله
    * @returns التبرير المستخرج
    */
@@ -375,11 +390,11 @@ ${arg.position}
       /حيث أن[^.]+\./g,
     ];
 
-    let reasoning = '';
+    let reasoning = "";
     for (const pattern of patterns) {
       const matches = text.match(pattern);
       if (matches) {
-        reasoning += matches.join(' ');
+        reasoning += matches.join(" ");
       }
     }
 
@@ -388,10 +403,10 @@ ${arg.position}
 
   /**
    * استخراج الأدلة من النص
-   * 
+   *
    * @description
    * يبحث عن النقاط المرقمة والأدلة في النص
-   * 
+   *
    * @param text - النص المراد تحليله
    * @returns مصفوفة الأدلة المستخرجة
    */
@@ -399,9 +414,9 @@ ${arg.position}
     const evidence: string[] = [];
 
     // البحث عن النقاط المرقمة أو القوائم
-    const lines = text.split('\n');
+    const lines = text.split("\n");
     for (const line of lines) {
-      if ((/^[-*•]\s/.exec(line)) || (/^\d+[.)]\s/.exec(line))) {
+      if (/^[-*•]\s/.exec(line) || /^\d+[.)]\s/.exec(line)) {
         evidence.push(line.trim());
       }
     }
@@ -409,10 +424,17 @@ ${arg.position}
     // إذا لم يتم العثور على أدلة منظمة، استخراج الجمل مع المؤشرات الرئيسية
     if (evidence.length === 0) {
       const sentences = text.match(/[^.!؟]+[.!؟]/g) ?? [];
-      const keyPhrases = ['مثل', 'على سبيل المثال', 'الدليل', 'يظهر', 'يوضح', 'تشير'];
+      const keyPhrases = [
+        "مثل",
+        "على سبيل المثال",
+        "الدليل",
+        "يظهر",
+        "يوضح",
+        "تشير",
+      ];
 
       for (const sentence of sentences) {
-        if (keyPhrases.some(phrase => sentence.includes(phrase))) {
+        if (keyPhrases.some((phrase) => sentence.includes(phrase))) {
           evidence.push(sentence.trim());
         }
       }
@@ -423,17 +445,17 @@ ${arg.position}
 
   /**
    * حساب قوة الرد
-   * 
+   *
    * @description
    * يحسب قوة الرد بناءً على ثقة الراد والحجة الأصلية
-   * 
+   *
    * @param refuterConfidence - ثقة الوكيل المردود
    * @param originalConfidence - ثقة الحجة الأصلية
    * @returns قوة الرد (0-1)
    */
   private calculateRefutationStrength(
     refuterConfidence: number,
-    originalConfidence: number
+    originalConfidence: number,
   ): number {
     // ثقة أعلى للراد + ثقة أقل للأصلي = رد أقوى
     return (refuterConfidence + (1 - originalConfidence)) / 2;
@@ -441,7 +463,7 @@ ${arg.position}
 
   /**
    * الحصول على سجل المناظرة
-   * 
+   *
    * @returns نسخة من سجل الحجج
    */
   getDebateHistory(): DebateArgument[] {
@@ -450,7 +472,7 @@ ${arg.position}
 
   /**
    * مسح سجل المناظرة
-   * 
+   *
    * @description
    * يمسح جميع الحجج المسجلة للوكيل
    */

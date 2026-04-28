@@ -6,7 +6,7 @@ import NewPage from "./page";
 
 // Mock dynamic imports to return a simple component
 vi.mock("next/dynamic", () => ({
-  default: (_fn: any, _options: any) => {
+  default: (_fn: unknown, _options: unknown) => {
     const Component = () => (
       <div data-testid="new-feature">New Feature Component</div>
     );

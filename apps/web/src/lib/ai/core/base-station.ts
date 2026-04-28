@@ -80,6 +80,60 @@ export interface SystemOutput {
   };
 }
 
+function asStationRecord(
+  result: StationResult
+): Record<string, unknown> | null {
+  return typeof result === "object" && result !== null
+    ? (result as Record<string, unknown>)
+    : null;
+}
+
+function extractMainConstitutionalTexts(
+  resultObj: Record<string, unknown> | null
+): string[] {
+  if (!resultObj) {
+    return [];
+  }
+
+  return ["logline", "storyStatement", "elevatorPitch", "executiveSummary"]
+    .map((key) => resultObj[key])
+    .filter((value): value is string => typeof value === "string");
+}
+
+function extractCharacterAnalysisTexts(
+  resultObj: Record<string, unknown> | null
+): string[] {
+  const characterAnalysis = resultObj?.["characterAnalysis"];
+  if (typeof characterAnalysis !== "object" || characterAnalysis === null) {
+    return [];
+  }
+
+  return Object.values(characterAnalysis).filter(
+    (analysis): analysis is string => typeof analysis === "string"
+  );
+}
+
+function extractPrimaryThemeTexts(
+  resultObj: Record<string, unknown> | null
+): string[] {
+  const themes = resultObj?.["themes"];
+  if (typeof themes !== "object" || themes === null || !("primary" in themes)) {
+    return [];
+  }
+
+  const primaryThemes = (themes as { primary?: { description?: string }[] })
+    .primary;
+  if (!Array.isArray(primaryThemes)) {
+    return [];
+  }
+
+  return primaryThemes
+    .map((theme) => theme?.description)
+    .filter(
+      (description): description is string => typeof description === "string"
+    );
+}
+
 export abstract class BaseSystem {
   protected geminiService: GeminiService;
   protected systemName: string;
@@ -202,7 +256,7 @@ export abstract class BaseSystem {
 
       // إضافة نتائج الفحص الدستوري إلى النتيجة
       const resultObj = result as Record<string, unknown>;
-      resultObj.constitutionalCheck = {
+      resultObj["constitutionalCheck"] = {
         checked: true,
         compliant: !hasViolations,
         violations: constitutionalResults.flatMap((r) =>
@@ -217,7 +271,7 @@ export abstract class BaseSystem {
 
       // إضافة معلومات الفشل إلى النتيجة
       const resultObj = result as Record<string, unknown>;
-      resultObj.constitutionalCheck = {
+      resultObj["constitutionalCheck"] = {
         checked: false,
         compliant: false,
         violations: [`فشل الفحص: ${(error as Error).message}`],
@@ -268,7 +322,7 @@ export abstract class BaseSystem {
 
       // إضافة نتائج قياس عدم اليقين إلى النتيجة
       const resultObj = result as Record<string, unknown>;
-      resultObj.uncertaintyQuantification = {
+      resultObj["uncertaintyQuantification"] = {
         quantified: true,
         overallConfidence,
         uncertaintyType,
@@ -281,7 +335,7 @@ export abstract class BaseSystem {
 
       // إضافة معلومات الفشل إلى النتيجة
       const resultObj = result as Record<string, unknown>;
-      resultObj.uncertaintyQuantification = {
+      resultObj["uncertaintyQuantification"] = {
         quantified: false,
         overallConfidence: 0.5,
         uncertaintyType: "epistemic",
@@ -343,62 +397,12 @@ export abstract class BaseSystem {
   protected extractTextsForConstitutionalCheck(
     result: StationResult
   ): string[] {
-    const texts: string[] = [];
-
-    // استخراج النصوص الرئيسية من نتيجة النظام
-    if (typeof result === "object" && result !== null) {
-      const resultObj = result as Record<string, unknown>;
-      if (typeof resultObj.logline === "string") texts.push(resultObj.logline);
-      if (typeof resultObj.storyStatement === "string")
-        texts.push(resultObj.storyStatement);
-      if (typeof resultObj.elevatorPitch === "string")
-        texts.push(resultObj.elevatorPitch);
-      if (typeof resultObj.executiveSummary === "string")
-        texts.push(resultObj.executiveSummary);
-    }
-
-    // استخراج النصوص من التحليلات الفرعية
-    if (
-      typeof result === "object" &&
-      result !== null &&
-      "characterAnalysis" in result
-    ) {
-      const characterAnalysis = result.characterAnalysis;
-      if (typeof characterAnalysis === "object" && characterAnalysis !== null) {
-        for (const [_character, analysis] of Object.entries(
-          characterAnalysis
-        )) {
-          if (typeof analysis === "string") texts.push(analysis);
-        }
-      }
-    }
-
-    if (typeof result === "object" && result !== null && "themes" in result) {
-      const themes = result.themes;
-      if (
-        typeof themes === "object" &&
-        themes !== null &&
-        "primary" in themes
-      ) {
-        const primaryThemes = (
-          themes as { primary?: { description?: string }[] }
-        ).primary;
-        if (Array.isArray(primaryThemes)) {
-          for (const theme of primaryThemes) {
-            if (
-              theme &&
-              typeof theme === "object" &&
-              "description" in theme &&
-              typeof theme.description === "string"
-            ) {
-              texts.push(theme.description);
-            }
-          }
-        }
-      }
-    }
-
-    return texts;
+    const resultObj = asStationRecord(result);
+    return [
+      ...extractMainConstitutionalTexts(resultObj),
+      ...extractCharacterAnalysisTexts(resultObj),
+      ...extractPrimaryThemeTexts(resultObj),
+    ];
   }
 
   /**

@@ -12,7 +12,7 @@ const writeQueues = new Map<string, Promise<void>>();
 
 function resolveStoreRoot(): string {
   return (
-    process.env['APP_STATE_STORE_DIR'] ??
+    process.env["APP_STATE_STORE_DIR"] ??
     path.join(process.cwd(), ".data", "app-state")
   );
 }
@@ -31,7 +31,7 @@ function createEmptyEnvelope(appId: string): AppStateEnvelope {
 }
 
 function sanitizePayload(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Record<string, unknown> {
   return JSON.parse(JSON.stringify(payload)) as Record<string, unknown>;
 }
@@ -46,7 +46,7 @@ async function ensureStoreFile(appId: string): Promise<string> {
     await writeFile(
       filePath,
       JSON.stringify(createEmptyEnvelope(appId), null, 2),
-      "utf8"
+      "utf8",
     );
   }
 
@@ -55,7 +55,7 @@ async function ensureStoreFile(appId: string): Promise<string> {
 
 async function writeEnvelope(
   appId: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<AppStateEnvelope> {
   const filePath = await ensureStoreFile(appId);
   const envelope: AppStateEnvelope = {
@@ -71,7 +71,7 @@ async function writeEnvelope(
 
 async function enqueueWrite<T>(
   appId: string,
-  work: () => Promise<T>
+  work: () => Promise<T>,
 ): Promise<T> {
   const key = resolveStorePath(appId);
   const previous = writeQueues.get(key) ?? Promise.resolve();
@@ -85,7 +85,7 @@ async function enqueueWrite<T>(
     key,
     next.catch(() => {
       // Preserve queue progression even if one write fails.
-    })
+    }),
   );
 
   await next;
@@ -117,7 +117,7 @@ export async function readAppState(appId: string): Promise<AppStateEnvelope> {
 
 export async function saveAppState(
   appId: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<AppStateEnvelope> {
   return enqueueWrite(appId, () => writeEnvelope(appId, payload));
 }

@@ -524,7 +524,7 @@ describe("Integration with Standard Pattern", () => {
     expect(result.confidence).toBeLessThanOrEqual(1);
     expect(result.notes).toBeDefined();
     expect(result.metadata).toBeDefined();
-    expect(result.metadata?.timestamp).toBeDefined();
+    expect(result.metadata?.["timestamp"]).toBeDefined();
 
     // Verify text-only output
     expect(result.text).not.toMatch(/\{.*:.*\}/);

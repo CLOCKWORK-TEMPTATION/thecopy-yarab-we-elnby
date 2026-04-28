@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import { sanitize } from "isomorphic-dompurify";
 import { jsPDF } from "jspdf";
 
 import {
@@ -21,7 +21,7 @@ export const exportAsPdf = async (request: ExportRequest): Promise<void> => {
   const styledHtml = buildFullHtmlDocument(request.html, request.title);
 
   // Sanitize the HTML before injecting it to prevent XSS vulnerabilities
-  const sanitizedHtml = DOMPurify.sanitize(styledHtml, {
+  const sanitizedHtml = sanitize(styledHtml, {
     WHOLE_DOCUMENT: true,
   });
 

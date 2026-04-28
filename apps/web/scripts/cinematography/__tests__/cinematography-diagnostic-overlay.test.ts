@@ -140,9 +140,9 @@ async function loadContainer(): Promise<ContainerModule> {
  * وأنه يصير فعالًا عند تفعيله.
  */
 function exerciseBusEnvFlag(bus: BusModule): void {
-  const previousFlag = process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
+  const previousFlag = process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"];
   try {
-    delete process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
+    delete process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"];
     bus.resetDiagnostics();
     assert.equal(bus.isDiagnosticsEnabled(), false);
 
@@ -155,7 +155,7 @@ function exerciseBusEnvFlag(bus: BusModule): void {
     assert.equal(events.length, 0, "expected no events while flag disabled");
     off();
 
-    process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS = "1";
+    process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"] = "1";
     assert.equal(bus.isDiagnosticsEnabled(), true);
     bus.resetDiagnostics();
 
@@ -174,9 +174,9 @@ function exerciseBusEnvFlag(bus: BusModule): void {
     off2();
   } finally {
     if (previousFlag === undefined) {
-      delete process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
+      delete process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"];
     } else {
-      process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS = previousFlag;
+      process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"] = previousFlag;
     }
   }
 }
@@ -325,11 +325,11 @@ export async function runDiagnosticOverlaySuite(): Promise<void> {
     exerciseOverlayPresentation(overlay);
 
     // الحاوية تتطلب العلم مفعّلًا لتلتقط الأحداث.
-    process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS = "1";
+    process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"] = "1";
     const container = await loadContainer();
     exerciseContainerHotkey(container, bus);
   } finally {
-    delete process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS;
+    delete process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"];
     restoreDom();
   }
 }

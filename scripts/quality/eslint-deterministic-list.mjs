@@ -32,6 +32,18 @@ const projectDefs = {
     discoverTargets(root) {
       const targets = [];
       const extensions = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs"]);
+      function hasLintableFiles(dir) {
+        for (const entry of readdirSync(dir)) {
+          const full = resolve(dir, entry);
+          const stats = statSync(full);
+          if (stats.isDirectory()) {
+            if (hasLintableFiles(full)) return true;
+            continue;
+          }
+          if (extensions.has(entry.slice(entry.lastIndexOf(".")))) return true;
+        }
+        return false;
+      }
       function pushIfExists(rel) {
         if (existsSync(resolve(root, rel))) targets.push(rel);
       }
@@ -40,7 +52,9 @@ const projectDefs = {
       for (const entry of readdirSync(src)) {
         const full = resolve(src, entry);
         if (statSync(full).isDirectory()) {
-          targets.push(`src/${entry}`);
+          if (hasLintableFiles(full)) {
+            targets.push(`src/${entry}`);
+          }
         } else if (extensions.has(entry.slice(entry.lastIndexOf(".")))) {
           targets.push(`src/${entry}`);
         }

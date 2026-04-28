@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
 
     if (
       !("config" in payload) ||
-      payload.config === undefined ||
-      payload.config === null
+      payload["config"] === undefined ||
+      payload["config"] === null
     ) {
       return NextResponse.json(
         { success: false, error: "الحقل config مطلوب" },
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
 
     if (
       !("input" in payload) ||
-      payload.input === undefined ||
-      payload.input === null
+      payload["input"] === undefined ||
+      payload["input"] === null
     ) {
       return NextResponse.json(
         { success: false, error: "الحقل input مطلوب" },

@@ -1,25 +1,25 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "3ea985c9a70cf65bd3fc81c32ec1239992f75126711a88eca06b44fdacf9c56f",
+    ".agent-code-memory/manifest.json": "93d5dc8fb1b321bbdd3b4f05ecb64a562071104a3d87efb8bdba87992a2e9707",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
-    "apps/backend/src/memory/api/routes.ts": "d5e2a9974786fd2fccc87a9a49dd74568e500d1eae45bc401a5e2231a9d74781",
-    "apps/backend/src/memory/context/context-assembly.service.ts": "e33462d8186bb9d6a007d02c7b8fb7f59442990a1e86ef2cf92c905bf94b06fb",
-    "apps/backend/src/memory/embeddings/generator.ts": "db6376ead8d64d7fc7d58c01bad15b513d0741b037af5ba299c6e2cbc7d0b29d",
-    "apps/backend/src/memory/embeddings/mrl-optimizer.ts": "c4c4b90cbd6dadaf6752fdb23d79979c4281a4cdb55b2c18b28adfb353c48fd3",
+    "apps/backend/src/memory/api/routes.ts": "ece31ecaeed9f32b96d33d4bc754fd825cb4fe1128ed01ec45dd4cd82d431ca9",
+    "apps/backend/src/memory/context/context-assembly.service.ts": "2decb6dbe1860fafb313851a85e7fe9d5816826ba701b3a4bb1b030376aa6093",
+    "apps/backend/src/memory/embeddings/generator.ts": "4594ef004b8c1b5b5945f57b43ca4194908047e538ea36d47aa391e6af1611a1",
+    "apps/backend/src/memory/embeddings/mrl-optimizer.ts": "022266f025a56bedcad0723adfd2a7066037e0c0dd9f5ed07d4b5f49241cfc53",
     "apps/backend/src/memory/index.ts": "ac5d646d2639c1d6c25150f907e421570f3b3f1237e10c3b12414d7b5aaae191",
-    "apps/backend/src/memory/indexer/git-watcher.ts": "d687e2d061e3273219f0f1392428af9984fde91ee67738bb9cfea341075515c5",
-    "apps/backend/src/memory/indexer/repository-crawler.ts": "e47ac1b24c64844139e8a84b2470147bba7ce9d27dc1d8f06387af6b83b2b82c",
-    "apps/backend/src/memory/indexer/weaviate-indexing.service.ts": "c7d8701da23bbbf5597b9d2a5eacb96659491cd08cfad196781ecd953c0f200f",
-    "apps/backend/src/memory/retrieval/context-builder.ts": "d627339a84e6c511ca2252cd53622367d1f777173d2c8d15908bcc5d495a9dca",
-    "apps/backend/src/memory/retrieval/weaviate-retrieval.service.ts": "917a362ec10e36bbb7d42d62561a5158cb12638a3b01aaa0c197055cb43f35cd",
-    "apps/backend/src/memory/types.ts": "96f9fe921582c9994e4975d1bc9dcbdcf883917debdbeb4ac321a14a5a673e84",
-    "apps/backend/src/memory/vector-store/client.ts": "2fc2f72732a63ccfb6abf3b945e801284971363ce240ce0aa3f2d06481fded25",
-    "apps/backend/src/memory/vector-store/schema.ts": "746b15d4663cd23bddcdd917f050eebe11d2126a9e33478229fbbdc3704cc9d4",
-    "apps/backend/src/services/rag/embeddings.service.ts": "1f54c058600cf3d032ba3099bad0984645196444e42cac537469d84417861bf9",
-    "apps/backend/src/services/rag/enhancedRAG.service.ts": "617875c00300b7f086abcaae96c2d283ba4f318e8cc5ac3bffe7eda6d249edf5",
+    "apps/backend/src/memory/indexer/git-watcher.ts": "cf2253361caac5c4c9599d343c3c1b2c4ef21da9983c77f881be10b45c249fb0",
+    "apps/backend/src/memory/indexer/repository-crawler.ts": "506e34f4a7ebb6a76eedcca5aa278a922e760f99fea17b9580e68ee346f52d41",
+    "apps/backend/src/memory/indexer/weaviate-indexing.service.ts": "c219344bb35021a14713e767ebfa30327e23f2ced0cddf263875b3c30b71a7b9",
+    "apps/backend/src/memory/retrieval/context-builder.ts": "36085aa083b8898c1e64fb118f88e48b378cdfad11632573fb8283a290ac5c29",
+    "apps/backend/src/memory/retrieval/weaviate-retrieval.service.ts": "383ea534db23ab6787fb90a3136ab9968c01894433d409d3cc56a86d22ec63a9",
+    "apps/backend/src/memory/types.ts": "d0f6c6fa7c01fba5a2442bc7a2261cefd5f5ebc0150c1d4dd4ec419cd52ce6be",
+    "apps/backend/src/memory/vector-store/client.ts": "8c0bf5b66160be7e21fc39f5254d17ee807269b91b06852a50c4524be96e515f",
+    "apps/backend/src/memory/vector-store/schema.ts": "d0a9655fede3e77f437134984d48c26c63c89a3682a0c23a6eb3679f1ee659db",
+    "apps/backend/src/services/rag/embeddings.service.ts": "ff329ac125392cca04ad36bf521ee414344bb21a646fb075ca9ff87c14de779f",
+    "apps/backend/src/services/rag/enhancedRAG.service.ts": "5e61a39d9e40bab50251644c1ec4fb69ced62251a98268be948114112a114269",
     "apps/web/package.json": "33f65688dfccf90b156918e7f89ee25142ae979690a79798c7709306b5b96960",
     "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "1f7e1d0bdadd45903d48823a3618d5ca12f928473a4ff60a139319b37877be9c",
     "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "66bccc7856bd869f81440052ef69ec15729da2dfce997bf9ffe16703700955f3",
@@ -29,14 +29,14 @@
     "apps/web/src/app/(main)/editor/src/rag/config.ts": "ce307baca79eca252a81a8cabdbc40543c24a1ad7fdda130273afbaca39e0eb5",
     "apps/web/src/app/(main)/editor/src/rag/embeddings.ts": "0a6077189f822abab3c28d075e470b7e07c78aaee73e874d1052eb05da33f26e",
     "apps/web/src/app/(main)/editor/src/rag/indexer.ts": "4e7ff745ab14e769dd7a1b6da4a4cc560c52ea38dc4875245879188b42f05a66",
-    "apps/web/src/app/(main)/editor/src/rag/query.ts": "c7440803ac23b00e577dbaf69f6f0da023fd515bcbff027cdc758896dc8cdb56",
+    "apps/web/src/app/(main)/editor/src/rag/query.ts": "9ef9d0facd5c9dd3b20effa13795ef15f809b1c94f50765f0a24241c38b34bdd",
     "apps/web/src/app/(main)/editor/src/rag/rag-system.md": "b9df904f344b41c63753c2530782f20c1df7fb54a0a4b9d35e6afc78d6fcbeb3",
     "apps/web/src/app/(main)/editor/src/rag/README.md": "a48abfe553f5adbd187e928182bc0116ace9b80cbc3c36f71c835d1f3405b3d7",
     "apps/web/src/app/(main)/editor/src/rag/types.ts": "51d176ddd3f1f05bf678e416f39c29e8e6e51abc89af181d9affee91259f7414",
-    "apps/web/src/lib/ai/rag/context-retriever.ts": "9835bab084f96ad5a80bc85311580bd711325e68be5f58b0b19d01209370fae5",
+    "apps/web/src/lib/ai/rag/context-retriever.ts": "6e13e4add9b25e7d6ccfee56cbb8530da47f1069dd1a8fb87c02d26f0b847b78",
     "apps/web/src/lib/ai/rag/index.ts": "92e16b2f69d4e5cef289b981cbf3f963ec3e3820858357de972a77cb6762f46a",
-    "apps/web/src/lib/ai/rag/text-chunking.ts": "720779f795cb915f61f05567d980f8f85adc528b7a61765f038ba02103037dcb",
-    "apps/web/src/lib/ai/stations/gemini-service.ts": "8710845b62f0e639cda6ae1af8549c0991eccb7661b635044e7596395b2c5dbc",
+    "apps/web/src/lib/ai/rag/text-chunking.ts": "8bd492bade9c34c6ba06c4d2d65475284f19c5a033b865b1b80b8192ea97c38b",
+    "apps/web/src/lib/ai/stations/gemini-service.ts": "a77152f0b324f6fa1c64e0a2e8e2015d76569007e832216a91079d870d9cf39f",
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "191196ad297d1de448d843d8b0373bf19abfd5a80b66c53229bd25645dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
@@ -64,23 +64,23 @@
     "scripts/agent/lib/code-memory/store.ts": "4fe1963e66b2a3a9a3cd107589a1f792a01fbcba9bf0bfceca672b863b5c72cf",
     "scripts/doctor.ps1": "f9e9e23f2867c90f78ecbea972f1777f36bff88b11e4b1fbe9dd1e9210d5a180",
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
-    "turbo.json": "cadd19b6bb50849c800dca320c425f56c942c366664193956989ab3868b6a785"
+    "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "no-drift",
+  "driftLevel": "hard-drift",
   "driftReasons": [
-    "لا يوجد drift مؤثر"
+    "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "719b5a27b19bd19d7f4e26e65be0076eb26f80d6",
+  "headCommit": "d52f7295012493726fecef85f17f66c6eb00529f",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-28T06:51:07.562Z",
+  "lastBootstrapTimestamp": "2026-04-28T20:32:52.952Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "4a6c30cbff43b80725370cd61172cd3626ab397412109b0a1051ca5410113a27",
-    "output/code-map/code-map.json": "50e822375d47252e9ab92f4ee645723dc935f9772847116c410899fe8a183bce",
-    "output/code-map/CODEMAP.md": "7574ca9790842e0c4db75a79c5e3fdcde6293aa903e35b0dda3cc7e047e481cf",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "de5bca1ee61f16b734c82182d8dd2f371776eef9dd3867cdbfb6d9f73fff2e30",
+    "output/code-map/code-map.json": "bfa17686b7c794632ab016748c4a94354f9e971de2ee8c3b630a9a802bcf0c99",
+    "output/code-map/CODEMAP.md": "713c1bcdcadf329e1e53c53ab3ed8ae11b6aa20f9b566b7c11fac2b4fe8a8c0d",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -92,8 +92,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "541a068298495f7e76bb4aa03bdead08ca5735efbc38288e946e0db7f94e0bed",
-    "output/session-state.md": "5704662ab746af9ce60d16a073410cfdadf28ccb79a06cbbbb8351f79ee67372"
+    "output/round-notes.md": "c668099454c09b5d229c58475aa584702afc3cfae225abbf68bf301bfa8443b7",
+    "output/session-state.md": "170415eb741c8c2c1c14178667719ddd989bb6644c23cf1ce05aa43d4ba0e5c8"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +103,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "135115c7561f1daa1fc8e91797c1de7d1bd662ce5b175d6a9d503667c69abfbe",
+  "repoFactsHash": "96390db65199c2ab5c3fd62bff663dfc8c446780e2a5715aaa74a41fd352c6ff",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -174,6 +174,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "26ae60a66203faa1eb2c1c234f18ab53965a421fbaab8fa2a00a6cb2bc9c5af4",
-  "workingTreeHash": "c4caaec8a85eacfa21ce8ac8fa410a844df577e34b1664d026c6c3ece31d3e3d"
+  "structuralHash": "7eabd38d43360e34e81686793ddc01009e7aeb7e33b1c5f2094a184f9795633a",
+  "workingTreeHash": "1e756403aeb274a937eba334152497b0976783be36bf6fbc719c28d6adec08a2"
 }

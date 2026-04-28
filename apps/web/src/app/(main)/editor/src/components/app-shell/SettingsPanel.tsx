@@ -164,11 +164,7 @@ export function SettingsPanel({
       <div className="space-y-1 text-[10px] text-[color:var(--mf-text-muted)]">
         <div className="flex items-center justify-between">
           <span
-            className={`h-2 w-2 rounded-full ${
-              hasFileImportBackend
-                ? "bg-[color:var(--mf-success)]"
-                : "bg-[color:var(--mf-warning)]"
-            }`}
+            className={`h-2 w-2 rounded-full ${hasFileImportBackend ? "bg-[color:var(--mf-success)]" : "bg-[color:var(--mf-warning)]"}`}
             aria-hidden="true"
           />
           <span>

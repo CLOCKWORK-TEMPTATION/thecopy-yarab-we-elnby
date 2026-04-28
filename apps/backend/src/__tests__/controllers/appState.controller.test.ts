@@ -11,11 +11,11 @@
  * - clearState: رفض معرّف غير صالح
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { AppStateController } from '@/controllers/appState.controller';
+import { AppStateController } from "@/controllers/appState.controller";
 
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
 // ─── Mock لخدمة App State ───
 type AsyncServiceMock = ReturnType<
@@ -33,10 +33,13 @@ const mockReadAppState: AsyncServiceMock = vi.fn();
 const mockSaveAppState: AsyncServiceMock = vi.fn();
 const mockClearAppState: AsyncServiceMock = vi.fn();
 
-vi.mock('@/services/app-state.service', () => ({
-  readAppState: (...args: unknown[]): Promise<unknown> => mockReadAppState(...args),
-  saveAppState: (...args: unknown[]): Promise<unknown> => mockSaveAppState(...args),
-  clearAppState: (...args: unknown[]): Promise<unknown> => mockClearAppState(...args),
+vi.mock("@/services/app-state.service", () => ({
+  readAppState: (...args: unknown[]): Promise<unknown> =>
+    mockReadAppState(...args),
+  saveAppState: (...args: unknown[]): Promise<unknown> =>
+    mockSaveAppState(...args),
+  clearAppState: (...args: unknown[]): Promise<unknown> =>
+    mockClearAppState(...args),
 }));
 
 // ─── مساعدات ───
@@ -72,7 +75,7 @@ function objectContainingMatcher(value: Record<string, unknown>): unknown {
 
 // ═══ اختبارات ═══
 
-describe('AppStateController', () => {
+describe("AppStateController", () => {
   let controller: AppStateController;
 
   beforeEach(() => {
@@ -82,14 +85,14 @@ describe('AppStateController', () => {
 
   // ─── getState ───
 
-  describe('getState', () => {
-    it('يجب أن يسترجع حالة تطبيق صالح', async () => {
+  describe("getState", () => {
+    it("يجب أن يسترجع حالة تطبيق صالح", async () => {
       mockReadAppState.mockResolvedValue({
-        data: { step: 3, analysis: 'complete' },
-        updatedAt: '2025-01-01T00:00:00Z',
+        data: { step: 3, analysis: "complete" },
+        updatedAt: "2025-01-01T00:00:00Z",
       });
 
-      const req = createReq({ params: { appId: 'analysis' } });
+      const req = createReq({ params: { appId: "analysis" } });
       const res = createRes();
 
       await controller.getState(req, res);
@@ -98,12 +101,12 @@ describe('AppStateController', () => {
         expect.objectContaining({
           success: true,
           data: objectContainingMatcher({ step: 3 }),
-        })
+        }),
       );
     });
 
-    it('يجب أن يرفض معرّف تطبيق غير صالح بـ 400', async () => {
-      const req = createReq({ params: { appId: 'invalid-app-xyz' } });
+    it("يجب أن يرفض معرّف تطبيق غير صالح بـ 400", async () => {
+      const req = createReq({ params: { appId: "invalid-app-xyz" } });
       const res = createRes();
 
       await controller.getState(req, res);
@@ -112,15 +115,15 @@ describe('AppStateController', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          code: 'INVALID_APP_ID',
-        })
+          code: "INVALID_APP_ID",
+        }),
       );
     });
 
-    it('يجب أن يُرجع null عند عدم وجود حالة محفوظة', async () => {
+    it("يجب أن يُرجع null عند عدم وجود حالة محفوظة", async () => {
       mockReadAppState.mockResolvedValue({ data: {}, updatedAt: null });
 
-      const req = createReq({ params: { appId: 'breakdown' } });
+      const req = createReq({ params: { appId: "breakdown" } });
       const res = createRes();
 
       await controller.getState(req, res);
@@ -129,14 +132,14 @@ describe('AppStateController', () => {
         expect.objectContaining({
           success: true,
           data: null,
-        })
+        }),
       );
     });
 
-    it('يجب أن يتعامل مع خطأ القراءة بـ 500', async () => {
-      mockReadAppState.mockRejectedValue(new Error('IO error'));
+    it("يجب أن يتعامل مع خطأ القراءة بـ 500", async () => {
+      mockReadAppState.mockRejectedValue(new Error("IO error"));
 
-      const req = createReq({ params: { appId: 'analysis' } });
+      const req = createReq({ params: { appId: "analysis" } });
       const res = createRes();
 
       await controller.getState(req, res);
@@ -147,30 +150,30 @@ describe('AppStateController', () => {
 
   // ─── setState ───
 
-  describe('setState', () => {
-    it('يجب أن يحفظ حالة بنجاح', async () => {
+  describe("setState", () => {
+    it("يجب أن يحفظ حالة بنجاح", async () => {
       mockSaveAppState.mockResolvedValue({
         data: { step: 5 },
-        updatedAt: '2025-06-01T00:00:00Z',
+        updatedAt: "2025-06-01T00:00:00Z",
       });
 
       const req = createReq({
-        params: { appId: 'analysis' },
+        params: { appId: "analysis" },
         body: { data: { step: 5 } },
       });
       const res = createRes();
 
       await controller.setState(req, res);
 
-      expect(mockSaveAppState).toHaveBeenCalledWith('analysis', { step: 5 });
+      expect(mockSaveAppState).toHaveBeenCalledWith("analysis", { step: 5 });
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true })
+        expect.objectContaining({ success: true }),
       );
     });
 
-    it('يجب أن يرفض بدون data بـ 400', async () => {
+    it("يجب أن يرفض بدون data بـ 400", async () => {
       const req = createReq({
-        params: { appId: 'analysis' },
+        params: { appId: "analysis" },
         body: {},
       });
       const res = createRes();
@@ -179,14 +182,14 @@ describe('AppStateController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_DATA' })
+        expect.objectContaining({ code: "INVALID_DATA" }),
       );
     });
 
-    it('يجب أن يرفض data من نوع غير object بـ 400', async () => {
+    it("يجب أن يرفض data من نوع غير object بـ 400", async () => {
       const req = createReq({
-        params: { appId: 'analysis' },
-        body: { data: 'not an object' },
+        params: { appId: "analysis" },
+        body: { data: "not an object" },
       });
       const res = createRes();
 
@@ -198,20 +201,20 @@ describe('AppStateController', () => {
 
   // ─── clearState ───
 
-  describe('clearState', () => {
-    it('يجب أن يمسح حالة تطبيق صالح', async () => {
+  describe("clearState", () => {
+    it("يجب أن يمسح حالة تطبيق صالح", async () => {
       mockClearAppState.mockResolvedValue(undefined);
 
-      const req = createReq({ params: { appId: 'breakdown' } });
+      const req = createReq({ params: { appId: "breakdown" } });
       const res = createRes();
 
       await controller.clearState(req, res);
 
-      expect(mockClearAppState).toHaveBeenCalledWith('breakdown');
+      expect(mockClearAppState).toHaveBeenCalledWith("breakdown");
     });
 
-    it('يجب أن يرفض معرّف غير صالح', async () => {
-      const req = createReq({ params: { appId: 'INVALID' } });
+    it("يجب أن يرفض معرّف غير صالح", async () => {
+      const req = createReq({ params: { appId: "INVALID" } });
       const res = createRes();
 
       await controller.clearState(req, res);

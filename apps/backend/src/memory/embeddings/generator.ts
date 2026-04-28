@@ -18,7 +18,8 @@ export class GeminiEmbeddingGenerator {
 
   constructor() {
     this.client = new GoogleGenAI({
-      apiKey: (process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENAI_API_KEY) ?? "",
+      apiKey:
+        process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENAI_API_KEY ?? "",
     });
   }
 
@@ -31,7 +32,7 @@ export class GeminiEmbeddingGenerator {
     options: {
       dimensionality?: 768 | 1536 | 3072;
       taskType?: TaskType;
-    } = {}
+    } = {},
   ): Promise<EmbeddingResult> {
     const content = this.buildCodePrompt(code, filePath);
 
@@ -57,7 +58,9 @@ export class GeminiEmbeddingGenerator {
       };
     } catch (error) {
       // Fallback to text-only model if multimodal fails
-      logger.warn("Gemini Embedding 2 failed, trying fallback model", { error });
+      logger.warn("Gemini Embedding 2 failed, trying fallback model", {
+        error,
+      });
       return this.generateWithFallback(content, options);
     }
   }
@@ -68,7 +71,7 @@ export class GeminiEmbeddingGenerator {
   async generateForDocumentation(
     text: string,
     metadata: { title?: string; section?: string },
-    options: { dimensionality?: 768 | 1536 | 3072 } = {}
+    options: { dimensionality?: 768 | 1536 | 3072 } = {},
   ): Promise<EmbeddingResult> {
     const content = this.buildDocPrompt(text, metadata);
 
@@ -93,7 +96,9 @@ export class GeminiEmbeddingGenerator {
         contentHash: this.hashContent(content),
       };
     } catch (error) {
-      logger.warn("Gemini Embedding 2 failed, trying fallback model", { error });
+      logger.warn("Gemini Embedding 2 failed, trying fallback model", {
+        error,
+      });
       return this.generateWithFallback(content, options);
     }
   }
@@ -103,7 +108,7 @@ export class GeminiEmbeddingGenerator {
    */
   async generateMultimodal(
     input: MultimodalInput,
-    options: { dimensionality?: 768 | 1536 | 3072 } = {}
+    options: { dimensionality?: 768 | 1536 | 3072 } = {},
   ): Promise<EmbeddingResult> {
     const parts: Part[] = [];
 
@@ -182,7 +187,7 @@ export class GeminiEmbeddingGenerator {
    */
   async generateBatch(
     contents: string[],
-    options: { dimensionality?: 768 | 1536 | 3072 } = {}
+    options: { dimensionality?: 768 | 1536 | 3072 } = {},
   ): Promise<EmbeddingResult[]> {
     try {
       const response = await this.client.models.embedContent({
@@ -202,11 +207,13 @@ export class GeminiEmbeddingGenerator {
             return [];
           }
 
-          return [{
-            embedding,
-            dimensionality: options.dimensionality ?? 1536,
-            contentHash: this.hashContent(content),
-          }];
+          return [
+            {
+              embedding,
+              dimensionality: options.dimensionality ?? 1536,
+              contentHash: this.hashContent(content),
+            },
+          ];
         }) ?? []
       );
     } catch (error) {
@@ -215,7 +222,11 @@ export class GeminiEmbeddingGenerator {
       const results: EmbeddingResult[] = [];
       for (const content of contents) {
         try {
-          const result = await this.generateForDocumentation(content, {}, options);
+          const result = await this.generateForDocumentation(
+            content,
+            {},
+            options,
+          );
           results.push(result);
         } catch (e) {
           logger.error("Failed to embed content", { error: e });
@@ -230,7 +241,7 @@ export class GeminiEmbeddingGenerator {
    */
   private async generateWithFallback(
     content: string,
-    options: { dimensionality?: 768 | 1536 | 3072 }
+    options: { dimensionality?: 768 | 1536 | 3072 },
   ): Promise<EmbeddingResult> {
     const response = await this.client.models.embedContent({
       model: this.fallbackModel,
@@ -266,7 +277,7 @@ ${code}
 
   private buildDocPrompt(
     text: string,
-    metadata: { title?: string; section?: string }
+    metadata: { title?: string; section?: string },
   ): string {
     let prompt = "";
     if (metadata.title) prompt += `Title: ${metadata.title}\n`;

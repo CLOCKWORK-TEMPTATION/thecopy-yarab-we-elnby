@@ -483,12 +483,16 @@ export function DOFCalculator({ className, onCalculate }: DOFCalculatorProps) {
                 {/* Focal Length */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="field-dof-calculator-1"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <ZoomIn className="h-4 w-4 text-amber-500" />
                       البعد البؤري
                     </label>
                     <div className="flex items-center gap-2">
                       <Input
+                        id="field-dof-calculator-1"
                         type="number"
                         value={focalLength}
                         onChange={(e) => setFocalLength(Number(e.target.value))}
@@ -515,7 +519,10 @@ export function DOFCalculator({ className, onCalculate }: DOFCalculatorProps) {
                 {/* Aperture */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="dof-aperture"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <Aperture className="h-4 w-4 text-amber-500" />
                       فتحة العدسة
                     </label>
@@ -524,6 +531,7 @@ export function DOFCalculator({ className, onCalculate }: DOFCalculatorProps) {
                     </span>
                   </div>
                   <Slider
+                    id="dof-aperture"
                     value={[aperture]}
                     min={1.4}
                     max={22}
@@ -539,12 +547,16 @@ export function DOFCalculator({ className, onCalculate }: DOFCalculatorProps) {
                 {/* Subject Distance */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="field-dof-calculator-2"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <Ruler className="h-4 w-4 text-amber-500" />
                       مسافة الهدف
                     </label>
                     <div className="flex items-center gap-2">
                       <Input
+                        id="field-dof-calculator-2"
                         type="number"
                         value={distance}
                         onChange={(e) => setDistance(Number(e.target.value))}

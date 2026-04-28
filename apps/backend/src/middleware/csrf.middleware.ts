@@ -7,57 +7,57 @@
  * - Validates that the cookie token matches the header token
  */
 
-import { randomBytes } from 'crypto';
+import { randomBytes } from "crypto";
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
-const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';
+const CSRF_COOKIE_NAME = "XSRF-TOKEN";
+const CSRF_HEADER_NAME = "X-XSRF-TOKEN";
 const CSRF_TOKEN_LENGTH = 32;
 
 /**
  * Generate a cryptographically secure random CSRF token
  */
 function generateCsrfToken(): string {
-  return randomBytes(CSRF_TOKEN_LENGTH).toString('hex');
+  return randomBytes(CSRF_TOKEN_LENGTH).toString("hex");
 }
 
 /**
  * Methods that require CSRF protection (state-changing operations)
  */
-const PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
+const PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 
 /**
  * Paths that are exempt from CSRF protection
  * Typically auth endpoints that need to establish the session first
  */
 const CSRF_EXEMPT_PATHS = [
-  '/api/auth/login',
-  '/api/auth/signup',
-  '/api/auth/refresh',
-  '/api/budget',
-  '/api/brainstorm',
-  '/api/styleist',
-  '/api/cineai',
-  '/api/file-extract',
-  '/api/files/extract',
-  '/api/text-extract',
-  '/api/suspicion-review',
-  '/api/final-review',
-  '/api/ai/context-enhance',
-  '/api/export/pdfa',
-  '/api/editor-runtime/health',
-  '/health',
-  '/health/live',
-  '/health/ready',
-  '/health/startup',
-  '/metrics',
+  "/api/auth/login",
+  "/api/auth/signup",
+  "/api/auth/refresh",
+  "/api/budget",
+  "/api/brainstorm",
+  "/api/styleist",
+  "/api/cineai",
+  "/api/file-extract",
+  "/api/files/extract",
+  "/api/text-extract",
+  "/api/suspicion-review",
+  "/api/final-review",
+  "/api/ai/context-enhance",
+  "/api/export/pdfa",
+  "/api/editor-runtime/health",
+  "/health",
+  "/health/live",
+  "/health/ready",
+  "/health/startup",
+  "/metrics",
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function getCookieValue(req: Request, name: string): string | undefined {
@@ -66,10 +66,12 @@ function getCookieValue(req: Request, name: string): string | undefined {
     return undefined;
   }
   const value = cookies[name];
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
-function getHeaderValue(value: string | string[] | undefined): string | undefined {
+function getHeaderValue(
+  value: string | string[] | undefined,
+): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
@@ -77,8 +79,8 @@ function getHeaderValue(value: string | string[] | undefined): string | undefine
  * Check if a path is exempt from CSRF protection
  */
 function isExemptPath(path: string): boolean {
-  return CSRF_EXEMPT_PATHS.some(exemptPath =>
-    path === exemptPath || path.startsWith(exemptPath + '/')
+  return CSRF_EXEMPT_PATHS.some(
+    (exemptPath) => path === exemptPath || path.startsWith(exemptPath + "/"),
   );
 }
 
@@ -100,7 +102,11 @@ function ensureCsrfCookie(req: Request, res: Response): void {
   }
 }
 
-export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
+export function csrfProtection(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const method = req.method;
   const path = req.path;
 
@@ -114,25 +120,37 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   }
 
   const cookieToken = getCookieValue(req, CSRF_COOKIE_NAME);
-  const headerToken = getHeaderValue(req.headers[CSRF_HEADER_NAME.toLowerCase()]);
+  const headerToken = getHeaderValue(
+    req.headers[CSRF_HEADER_NAME.toLowerCase()],
+  );
 
   if (!cookieToken || !headerToken) {
-    logger.warn('CSRF validation failed: Missing token', {
-      path, method, ip: req.ip,
-      hasCookie: !!cookieToken, hasHeader: !!headerToken,
+    logger.warn("CSRF validation failed: Missing token", {
+      path,
+      method,
+      ip: req.ip,
+      hasCookie: !!cookieToken,
+      hasHeader: !!headerToken,
     });
     res.status(403).json({
-      success: false, error: 'CSRF token missing', code: 'CSRF_TOKEN_MISSING',
+      success: false,
+      error: "CSRF token missing",
+      code: "CSRF_TOKEN_MISSING",
     });
     return;
   }
 
   if (!constantTimeCompare(cookieToken, headerToken)) {
-    logger.warn('CSRF validation failed: Token mismatch', {
-      path, method, ip: req.ip, userAgent: req.headers['user-agent'],
+    logger.warn("CSRF validation failed: Token mismatch", {
+      path,
+      method,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
     });
     res.status(403).json({
-      success: false, error: 'CSRF token invalid', code: 'CSRF_TOKEN_INVALID',
+      success: false,
+      error: "CSRF token invalid",
+      code: "CSRF_TOKEN_INVALID",
     });
     return;
   }
@@ -161,7 +179,11 @@ function constantTimeCompare(a: string, b: string): boolean {
  * Middleware to explicitly set/refresh CSRF token
  * Can be used on login or other authentication endpoints
  */
-export function setCsrfToken(_req: Request, res: Response, next: NextFunction): void {
+export function setCsrfToken(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   issueCsrfCookie(res);
   next();
 }
@@ -170,8 +192,8 @@ export function issueCsrfCookie(res: Response): string {
   const token = generateCsrfToken();
   res.cookie(CSRF_COOKIE_NAME, token, {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
     maxAge: 24 * 60 * 60 * 1000,
   });
   return token;

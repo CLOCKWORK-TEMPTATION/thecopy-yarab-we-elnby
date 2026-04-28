@@ -244,11 +244,7 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
               حالة الطلب
             </h2>
             <span
-              className={`px-3 py-1 text-xs rounded-full font-cairo ${
-                isCancelled
-                  ? "bg-white/6 text-white/55"
-                  : "bg-white/8 text-white"
-              }`}
+              className={`px-3 py-1 text-xs rounded-full font-cairo ${isCancelled ? "bg-white/6 text-white/55" : "bg-white/8 text-white"}`}
             >
               {getStatusLabel(order.status)}
             </span>
@@ -269,26 +265,18 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
                     className="flex-1 flex flex-col items-center"
                   >
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-cairo transition ${
-                        reached
-                          ? "bg-white/12 text-white border border-white/20"
-                          : "bg-white/4 text-white/45 border border-white/8"
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-cairo transition ${reached ? "bg-white/12 text-white border border-white/20" : "bg-white/4 text-white/45 border border-white/8"}`}
                     >
                       {index + 1}
                     </div>
                     <span
-                      className={`mt-2 text-xs font-cairo ${
-                        reached ? "text-white" : "text-white/45"
-                      }`}
+                      className={`mt-2 text-xs font-cairo ${reached ? "text-white" : "text-white/45"}`}
                     >
                       {step.label}
                     </span>
                     {index < STATUS_STEPS.length - 1 && (
                       <div
-                        className={`h-px w-full mt-[-20px] ${
-                          currentIndex > index ? "bg-white/20" : "bg-white/8"
-                        }`}
+                        className={`h-px w-full mt-[-20px] ${currentIndex > index ? "bg-white/20" : "bg-white/8"}`}
                       />
                     )}
                   </div>

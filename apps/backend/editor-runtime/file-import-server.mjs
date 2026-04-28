@@ -74,14 +74,14 @@ server.on("error", (error) => {
     const probe = await probeExistingBackendWithRetries();
     if (!probe.ok) {
       console.error(
-        `[file-import-backend] port ${PORT} is already in use and health check did not match this backend (${probe.reason}).`
+        `[file-import-backend] port ${PORT} is already in use and health check did not match this backend (${probe.reason}).`,
       );
       process.exit(1);
       return;
     }
 
     console.warn(
-      `[file-import-backend] detected running backend on http://${HOST}:${PORT}; reusing existing process.`
+      `[file-import-backend] detected running backend on http://${HOST}:${PORT}; reusing existing process.`,
     );
     process.exit(0);
   })();
@@ -94,7 +94,7 @@ server.listen(PORT, HOST, () => {
   console.log(`suspicion-review: http://${HOST}:${PORT}/api/suspicion-review`);
   console.log(`review endpoint:  http://${HOST}:${PORT}/api/final-review`);
   console.log(
-    `ai-context:       http://${HOST}:${PORT}/api/ai/context-enhance`
+    `ai-context:       http://${HOST}:${PORT}/api/ai/context-enhance`,
   );
   console.log(`health:           http://${HOST}:${PORT}/health`);
   if (FILE_IMPORT_PREFLIGHT_WARNINGS.length > 0) {

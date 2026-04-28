@@ -8,14 +8,14 @@
  * يدعم ملفات PDF و DOCX و TXT.
  */
 
-import { Job } from 'bullmq';
+import { Job } from "bullmq";
 
-import { logger } from '@/lib/logger';
-import { queueManager, QueueName } from '@/queues/queue.config';
+import { logger } from "@/lib/logger";
+import { queueManager, QueueName } from "@/queues/queue.config";
 
 /**
  * واجهة بيانات مهمة معالجة المستند
- * 
+ *
  * @description
  * تحدد هيكل البيانات المطلوبة لتنفيذ مهمة معالجة المستند
  */
@@ -25,7 +25,7 @@ export interface DocumentProcessingJobData {
   /** مسار الملف */
   filePath: string;
   /** نوع الملف */
-  fileType: 'pdf' | 'docx' | 'txt';
+  fileType: "pdf" | "docx" | "txt";
   /** معرّف المستخدم */
   userId: string;
   /** معرّف المشروع (اختياري) */
@@ -120,16 +120,16 @@ interface DialogueInfo {
 
 /**
  * معالجة مهمة المستند
- * 
+ *
  * @description
  * الوظيفة الرئيسية التي تعالج مهام استخراج النصوص والتحليل
- * 
+ *
  * @param job - كائن المهمة من BullMQ
  * @returns وعد بنتيجة المعالجة
  */
- 
+
 async function processDocument(
-  job: Job<DocumentProcessingJobData>
+  job: Job<DocumentProcessingJobData>,
 ): Promise<DocumentProcessingResult> {
   const startTime = Date.now();
   const { documentId, filePath, fileType, options = {} } = job.data;
@@ -214,15 +214,18 @@ async function processDocument(
 
 /**
  * استخراج النص من المستند
- * 
+ *
  * @description
  * يستخدم المكتبات المناسبة لاستخراج النص حسب نوع الملف
- * 
+ *
  * @param filePath - مسار الملف
  * @param fileType - نوع الملف
  * @returns وعد بالنص المستخرج
  */
-async function extractText(filePath: string, fileType: string): Promise<string> {
+async function extractText(
+  filePath: string,
+  fileType: string,
+): Promise<string> {
   // سيستخدم منطق تحليل المستندات الموجود
   // mammoth لـ DOCX، pdfjs-dist لـ PDF
   // تنفيذ مؤقت
@@ -234,10 +237,10 @@ async function extractText(filePath: string, fileType: string): Promise<string> 
 
 /**
  * استخراج المشاهد من النص
- * 
+ *
  * @description
  * يستخدم الذكاء الاصطناعي أو التعبيرات النمطية لاستخراج عناوين المشاهد
- * 
+ *
  * @param _text - النص المراد تحليله
  * @returns وعد بمصفوفة المشاهد
  */
@@ -247,18 +250,18 @@ async function extractScenes(_text: string): Promise<SceneInfo[]> {
   return [
     {
       number: 1,
-      heading: 'INT. LIVING ROOM - DAY',
-      description: 'Sample scene description',
+      heading: "INT. LIVING ROOM - DAY",
+      description: "Sample scene description",
     },
   ];
 }
 
 /**
  * استخراج الشخصيات من النص
- * 
+ *
  * @description
  * يستخدم الذكاء الاصطناعي أو مطابقة الأنماط لاستخراج أسماء الشخصيات
- * 
+ *
  * @param _text - النص المراد تحليله
  * @returns وعد بمصفوفة الشخصيات
  */
@@ -267,7 +270,7 @@ async function extractCharacters(_text: string): Promise<CharacterInfo[]> {
 
   return [
     {
-      name: 'JOHN',
+      name: "JOHN",
       firstAppearance: 1,
       totalLines: 0,
     },
@@ -276,10 +279,10 @@ async function extractCharacters(_text: string): Promise<CharacterInfo[]> {
 
 /**
  * استخراج الحوارات من النص
- * 
+ *
  * @description
  * يستخرج كتل الحوار من النص
- * 
+ *
  * @param _text - النص المراد تحليله
  * @returns وعد بمصفوفة الحوارات
  */
@@ -288,8 +291,8 @@ async function extractDialogue(_text: string): Promise<DialogueInfo[]> {
 
   return [
     {
-      character: 'JOHN',
-      line: 'Sample dialogue',
+      character: "JOHN",
+      line: "Sample dialogue",
       sceneNumber: 1,
     },
   ];
@@ -297,38 +300,38 @@ async function extractDialogue(_text: string): Promise<DialogueInfo[]> {
 
 /**
  * توليد ملخص باستخدام الذكاء الاصطناعي
- * 
+ *
  * @description
  * يستخدم Gemini AI لتوليد ملخص للمستند
- * 
+ *
  * @param _text - النص المراد تلخيصه
  * @returns وعد بالملخص المولّد
  */
 async function generateSummary(_text: string): Promise<string> {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  return 'AI-generated summary of the document';
+  return "AI-generated summary of the document";
 }
 
 /**
  * إضافة مهمة معالجة مستند إلى قائمة الانتظار
- * 
+ *
  * @description
  * يقوم بإنشاء مهمة جديدة وإضافتها إلى قائمة انتظار معالجة المستندات
- * 
+ *
  * @param data - بيانات المهمة
  * @returns وعد بمعرّف المهمة
  */
 export async function queueDocumentProcessing(
-  data: DocumentProcessingJobData
+  data: DocumentProcessingJobData,
 ): Promise<string> {
   const queue = queueManager.getQueue(QueueName.DOCUMENT_PROCESSING);
 
-  const job = await queue.add('document-processing', data, {
+  const job = await queue.add("document-processing", data, {
     priority: 1,
     attempts: 3,
     backoff: {
-      type: 'exponential',
+      type: "exponential",
       delay: 3000,
     },
   });
@@ -343,7 +346,7 @@ export async function queueDocumentProcessing(
 
 /**
  * تسجيل عامل معالجة المستندات
- * 
+ *
  * @description
  * يقوم بتسجيل العامل المسؤول عن معالجة مهام المستندات
  * يدعم معالجة مستندين بشكل متزامن مع حد أقصى 3 مهام في الثانية

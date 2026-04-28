@@ -48,8 +48,8 @@ export function safeSub(
   template: string,
   values: Record<string, string>
 ): string {
-  return template.replace(/\{(\w+)\}/g, (match, key) => {
-    return values[key] !== undefined ? values[key] : match;
+  return template.replace(/\{(\w+)\}/g, (match: string, key: string) => {
+    return values[key] ?? match;
   });
 }
 

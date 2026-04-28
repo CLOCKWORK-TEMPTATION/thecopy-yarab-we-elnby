@@ -26,7 +26,7 @@ interface LocationSearchResponseBody {
 const storePath = path.join(
   process.cwd(),
   ".tmp-tests",
-  "art-director-routes.test.json"
+  "art-director-routes.test.json",
 );
 
 function createTestApp(): express.Express {
@@ -37,14 +37,16 @@ function createTestApp(): express.Express {
 }
 
 beforeEach(async () => {
-  process.env['ART_DIRECTOR_STORE_PATH'] = storePath;
+  process.env["ART_DIRECTOR_STORE_PATH"] = storePath;
   await rm(path.dirname(storePath), { recursive: true, force: true });
   await resetStoreForTests();
 });
 
 describe("art-director routes", () => {
   it("يعيد قائمة الأدوات عبر المسار الرسمي للباك إند", async () => {
-    const response = await request(createTestApp()).get("/api/art-director/plugins");
+    const response = await request(createTestApp()).get(
+      "/api/art-director/plugins",
+    );
     const body = response.body as unknown as PluginsResponseBody;
 
     expect(response.status).toBe(200);
@@ -83,7 +85,7 @@ describe("art-director routes", () => {
         expect.objectContaining({
           nameAr: "استوديو النيل",
         }),
-      ])
+      ]),
     );
   });
 });

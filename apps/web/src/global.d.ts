@@ -1,8 +1,5 @@
-/// <reference types="node" />
-/// <reference types="react" />
-/// <reference types="react-dom" />
-
 import type { ThreeElements } from "@react-three/fiber";
+import type { ComponentType, CSSProperties, FC, ReactNode, Ref } from "react";
 
 declare module '*.json' {
   const content: unknown;
@@ -15,7 +12,6 @@ declare module '*.md' {
 }
 
 declare module '*.mdx' {
-  import { ComponentType } from 'react';
   const MDXComponent: ComponentType;
   export default MDXComponent;
 }
@@ -50,32 +46,39 @@ declare module '*.worker.js' {
   export default WebpackWorker;
 }
 
-// Global types
-interface Window {
-  gtag?: (...args: unknown[]) => void;
-  dataLayer?: unknown[];
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+  }
 }
 
 // Extend React namespace for custom props
-declare namespace React {
+declare module "react" {
   type CSSProperties = Record<`--${string}`, string | number | undefined>;
 }
 
 declare module "react" {
   namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
+    interface IntrinsicElements extends ThreeElements {
+      primitive: ThreeElements["primitive"];
+    }
   }
 }
 
 declare module "react/jsx-runtime" {
   namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
+    interface IntrinsicElements extends ThreeElements {
+      primitive: ThreeElements["primitive"];
+    }
   }
 }
 
 declare module "react/jsx-dev-runtime" {
   namespace JSX {
-    interface IntrinsicElements extends ThreeElements {}
+    interface IntrinsicElements extends ThreeElements {
+      primitive: ThreeElements["primitive"];
+    }
   }
 }
 
@@ -86,8 +89,8 @@ declare module 'sonner' {
     duration?: number;
     position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center';
     dismissible?: boolean;
-    icon?: React.ReactNode;
-    description?: React.ReactNode;
+    icon?: ReactNode;
+    description?: ReactNode;
     action?: {
       label: string;
       onClick: () => void;
@@ -100,36 +103,36 @@ declare module 'sonner' {
     onAutoClose?: (toast: { id: string | number }) => void;
     className?: string;
     descriptionClassName?: string;
-    style?: React.CSSProperties;
+    style?: CSSProperties;
   }
 
   export interface ToastT {
     id: string | number;
-    title?: string | React.ReactNode;
-    description?: React.ReactNode;
+    title?: string | ReactNode;
+    description?: ReactNode;
     duration?: number;
     delete?: boolean;
   }
 
-  export function toast(message: string | React.ReactNode, options?: ToastOptions): string | number;
+  export function toast(message: string | ReactNode, options?: ToastOptions): string | number;
   export namespace toast {
-    function success(message: string | React.ReactNode, options?: ToastOptions): string | number;
-    function error(message: string | React.ReactNode, options?: ToastOptions): string | number;
-    function warning(message: string | React.ReactNode, options?: ToastOptions): string | number;
-    function info(message: string | React.ReactNode, options?: ToastOptions): string | number;
+    function success(message: string | ReactNode, options?: ToastOptions): string | number;
+    function error(message: string | ReactNode, options?: ToastOptions): string | number;
+    function warning(message: string | ReactNode, options?: ToastOptions): string | number;
+    function info(message: string | ReactNode, options?: ToastOptions): string | number;
     function promise<T>(
       promise: Promise<T>,
       options: {
-        loading: string | React.ReactNode;
-        success: string | React.ReactNode | ((data: T) => string | React.ReactNode);
-        error: string | React.ReactNode | ((error: unknown) => string | React.ReactNode);
+        loading: string | ReactNode;
+        success: string | ReactNode | ((data: T) => string | ReactNode);
+        error: string | ReactNode | ((error: unknown) => string | ReactNode);
         duration?: number;
       }
     ): Promise<T>;
-    function custom(jsx: React.ReactNode, options?: ToastOptions): string | number;
-    function message(message: string | React.ReactNode, options?: ToastOptions): string | number;
+    function custom(jsx: ReactNode, options?: ToastOptions): string | number;
+    function message(message: string | ReactNode, options?: ToastOptions): string | number;
     function dismiss(id?: string | number): void;
-    function loading(message: string | React.ReactNode, options?: ToastOptions): string | number;
+    function loading(message: string | ReactNode, options?: ToastOptions): string | number;
   }
 
   export interface ToasterProps {
@@ -142,20 +145,20 @@ declare module 'sonner' {
     closeButton?: boolean;
     toastOptions?: ToastOptions;
     className?: string;
-    style?: React.CSSProperties;
+    style?: CSSProperties;
     offset?: string | number;
     dir?: 'ltr' | 'rtl' | 'auto';
     theme?: 'light' | 'dark' | 'system';
     icons?: {
-      success?: React.ReactNode;
-      info?: React.ReactNode;
-      warning?: React.ReactNode;
-      error?: React.ReactNode;
-      loading?: React.ReactNode;
+      success?: ReactNode;
+      info?: ReactNode;
+      warning?: ReactNode;
+      error?: ReactNode;
+      loading?: ReactNode;
     };
   }
 
-  export const Toaster: React.FC<ToasterProps>;
+  export const Toaster: FC<ToasterProps>;
 }
 
 // Tiptap Pro Pages Extension (dist files missing from registry package)
@@ -166,8 +169,6 @@ declare module '@tiptap-pro/extension-pages' {
 
 // React Window
 declare module 'react-window' {
-  import { ComponentType, CSSProperties, Ref } from 'react';
-
   export interface GridChildComponentProps<T = unknown> {
     columnIndex: number;
     rowIndex: number;

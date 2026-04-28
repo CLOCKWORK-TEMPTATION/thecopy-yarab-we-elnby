@@ -8,33 +8,33 @@
  * يدعم تحليل المشاهد والشخصيات واللقطات والمشاريع.
  */
 
-import { Job } from 'bullmq';
+import { Job } from "bullmq";
 
-import { logger } from '@/lib/logger';
-import { queueManager, QueueName } from '@/queues/queue.config';
+import { logger } from "@/lib/logger";
+import { queueManager, QueueName } from "@/queues/queue.config";
 
 /**
  * واجهة بيانات مهمة تحليل الذكاء الاصطناعي
- * 
+ *
  * @description
  * تحدد هيكل البيانات المطلوبة لتنفيذ مهمة التحليل
  */
 export interface AIAnalysisJobData {
   /** نوع الكيان المراد تحليله */
-  type: 'scene' | 'character' | 'shot' | 'project';
+  type: "scene" | "character" | "shot" | "project";
   /** معرّف الكيان */
   entityId: string;
   /** معرّف المستخدم صاحب الطلب */
   userId: string;
   /** نوع التحليل المطلوب */
-  analysisType: 'full' | 'quick' | 'detailed';
+  analysisType: "full" | "quick" | "detailed";
   /** خيارات إضافية للتحليل */
   options?: Record<string, unknown>;
 }
 
 /**
  * واجهة نتيجة تحليل الذكاء الاصطناعي
- * 
+ *
  * @description
  * تحدد هيكل النتيجة المُرجعة من مهمة التحليل
  */
@@ -97,15 +97,17 @@ interface ProjectAnalysisResult {
 
 /**
  * معالجة مهمة تحليل الذكاء الاصطناعي
- * 
+ *
  * @description
  * الوظيفة الرئيسية التي تعالج مهام التحليل وتوجهها للمعالج المناسب
- * 
+ *
  * @param job - كائن المهمة من BullMQ يحتوي على البيانات المطلوبة
  * @returns وعد بنتيجة التحليل
  * @throws خطأ إذا فشلت عملية التحليل
  */
-async function processAIAnalysis(job: Job<AIAnalysisJobData>): Promise<AIAnalysisResult> {
+async function processAIAnalysis(
+  job: Job<AIAnalysisJobData>,
+): Promise<AIAnalysisResult> {
   const startTime = Date.now();
   const { type, entityId, analysisType, options } = job.data;
 
@@ -120,24 +122,32 @@ async function processAIAnalysis(job: Job<AIAnalysisJobData>): Promise<AIAnalysi
   await job.updateProgress(10);
 
   try {
-    let analysisResult: SceneAnalysisResult | CharacterAnalysisResult | ShotAnalysisResult | ProjectAnalysisResult;
+    let analysisResult:
+      | SceneAnalysisResult
+      | CharacterAnalysisResult
+      | ShotAnalysisResult
+      | ProjectAnalysisResult;
 
     // توجيه للمعالج المناسب حسب نوع الكيان
     switch (type) {
-      case 'scene':
+      case "scene":
         analysisResult = await analyzeScene(entityId, analysisType, options);
         break;
-      case 'character':
-        analysisResult = await analyzeCharacter(entityId, analysisType, options);
+      case "character":
+        analysisResult = await analyzeCharacter(
+          entityId,
+          analysisType,
+          options,
+        );
         break;
-      case 'shot':
+      case "shot":
         analysisResult = await analyzeShot(entityId, analysisType, options);
         break;
-      case 'project':
+      case "project":
         analysisResult = await analyzeProject(entityId, analysisType, options);
         break;
       default:
-        throw new Error('نوع تحليل غير معروف');
+        throw new Error("نوع تحليل غير معروف");
     }
 
     await job.updateProgress(100);
@@ -167,23 +177,25 @@ async function processAIAnalysis(job: Job<AIAnalysisJobData>): Promise<AIAnalysi
 
 /**
  * الحصول على خدمة Gemini (تحميل كسول لتجنب التبعيات الدائرية)
- * 
+ *
  * @description
  * يقوم بتحميل خدمة Gemini بشكل ديناميكي عند الحاجة
- * 
+ *
  * @returns وعد بنسخة من خدمة Gemini
  */
-async function getGeminiService(): Promise<InstanceType<typeof import('@/services/gemini.service').GeminiService>> {
-  const { GeminiService } = await import('@/services/gemini.service');
+async function getGeminiService(): Promise<
+  InstanceType<typeof import("@/services/gemini.service").GeminiService>
+> {
+  const { GeminiService } = await import("@/services/gemini.service");
   return new GeminiService();
 }
 
 /**
  * تحليل مشهد
- * 
+ *
  * @description
  * يقوم بتحليل مشهد محدد باستخدام خدمة Gemini
- * 
+ *
  * @param sceneId - معرّف المشهد
  * @param analysisType - نوع التحليل المطلوب
  * @param options - خيارات إضافية تشمل نص المشهد
@@ -192,17 +204,17 @@ async function getGeminiService(): Promise<InstanceType<typeof import('@/service
 async function analyzeScene(
   sceneId: string,
   analysisType: string,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ): Promise<SceneAnalysisResult> {
   const gemini = await getGeminiService();
   const sceneText =
-    typeof options?.["text"] === 'string'
+    typeof options?.["text"] === "string"
       ? options["text"]
       : `Scene ${sceneId} content`;
 
   // جلب بيانات المشهد (مكان مخصص - استبدل باستعلام قاعدة البيانات الفعلي)
   // استخدام Gemini لتحليل المشهد
-  const analysis = await gemini.analyzeText(sceneText, 'structure');
+  const analysis = await gemini.analyzeText(sceneText, "structure");
 
   return {
     sceneId,
@@ -216,10 +228,10 @@ async function analyzeScene(
 
 /**
  * تحليل شخصية
- * 
+ *
  * @description
  * يقوم بتحليل شخصية محددة باستخدام خدمة Gemini
- * 
+ *
  * @param characterId - معرّف الشخصية
  * @param analysisType - نوع التحليل المطلوب
  * @param options - خيارات إضافية تشمل نص الشخصية
@@ -228,17 +240,17 @@ async function analyzeScene(
 async function analyzeCharacter(
   characterId: string,
   analysisType: string,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ): Promise<CharacterAnalysisResult> {
   const gemini = await getGeminiService();
   const characterText =
-    typeof options?.["text"] === 'string'
+    typeof options?.["text"] === "string"
       ? options["text"]
       : `Character ${characterId} information`;
 
   // جلب بيانات الشخصية (مكان مخصص - استبدل باستعلام قاعدة البيانات الفعلي)
   // استخدام Gemini لتحليل الشخصية
-  const analysis = await gemini.analyzeText(characterText, 'characters');
+  const analysis = await gemini.analyzeText(characterText, "characters");
 
   return {
     characterId,
@@ -252,10 +264,10 @@ async function analyzeCharacter(
 
 /**
  * تحليل لقطة
- * 
+ *
  * @description
  * يقوم بتحليل لقطة محددة باستخدام خدمة Gemini
- * 
+ *
  * @param shotId - معرّف اللقطة
  * @param analysisType - نوع التحليل المطلوب
  * @param options - خيارات إضافية تشمل نص اللقطة
@@ -264,11 +276,11 @@ async function analyzeCharacter(
 async function analyzeShot(
   shotId: string,
   analysisType: string,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ): Promise<ShotAnalysisResult> {
   const gemini = await getGeminiService();
   const shotText =
-    typeof options?.["text"] === 'string'
+    typeof options?.["text"] === "string"
       ? options["text"]
       : `Shot ${shotId} details`;
 
@@ -288,10 +300,10 @@ async function analyzeShot(
 
 /**
  * تحليل مشروع
- * 
+ *
  * @description
  * يقوم بتحليل مشروع كامل باستخدام خدمة Gemini
- * 
+ *
  * @param projectId - معرّف المشروع
  * @param analysisType - نوع التحليل المطلوب
  * @param options - خيارات إضافية تشمل نص المشروع
@@ -300,17 +312,17 @@ async function analyzeShot(
 async function analyzeProject(
   projectId: string,
   analysisType: string,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ): Promise<ProjectAnalysisResult> {
   const gemini = await getGeminiService();
   const projectText =
-    typeof options?.["text"] === 'string'
+    typeof options?.["text"] === "string"
       ? options["text"]
       : `Project ${projectId} overview`;
 
   // جلب بيانات المشروع (مكان مخصص - استبدل باستعلام قاعدة البيانات الفعلي)
   // استخدام Gemini لتحليل المشروع بالكامل
-  const analysis = await gemini.analyzeText(projectText, 'structure');
+  const analysis = await gemini.analyzeText(projectText, "structure");
 
   return {
     projectId,
@@ -324,21 +336,23 @@ async function analyzeProject(
 
 /**
  * إضافة مهمة تحليل ذكاء اصطناعي إلى قائمة الانتظار
- * 
+ *
  * @description
  * يقوم بإنشاء مهمة جديدة وإضافتها إلى قائمة انتظار التحليل
- * 
+ *
  * @param data - بيانات المهمة المطلوبة
  * @returns وعد بمعرّف المهمة المُنشأة
  */
-export async function queueAIAnalysis(data: AIAnalysisJobData): Promise<string> {
+export async function queueAIAnalysis(
+  data: AIAnalysisJobData,
+): Promise<string> {
   const queue = queueManager.getQueue(QueueName.AI_ANALYSIS);
 
-  const job = await queue.add('ai-analysis', data, {
-    priority: data.analysisType === 'quick' ? 1 : 2,
+  const job = await queue.add("ai-analysis", data, {
+    priority: data.analysisType === "quick" ? 1 : 2,
     attempts: 3,
     backoff: {
-      type: 'exponential',
+      type: "exponential",
       delay: 2000,
     },
   });
@@ -354,7 +368,7 @@ export async function queueAIAnalysis(data: AIAnalysisJobData): Promise<string> 
 
 /**
  * تسجيل عامل تحليل الذكاء الاصطناعي
- * 
+ *
  * @description
  * يقوم بتسجيل العامل المسؤول عن معالجة مهام التحليل
  * يدعم معالجة 3 مهام بشكل متزامن مع حد أقصى 5 مهام في الثانية

@@ -1,16 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import {
-  API_MODE,
-  API_VERSION,
-} from "./suspicion-review.constants.mjs";
+import { API_MODE, API_VERSION } from "./suspicion-review.constants.mjs";
 import { normalizeIncomingText } from "./suspicion-review.utils.mjs";
 
 export const resolveMockMode = () => {
   const raw = normalizeIncomingText(
     process.env.SUSPICION_REVIEW_MOCK_MODE ??
       process.env.AGENT_REVIEW_MOCK_MODE,
-    32
+    32,
   ).toLowerCase();
   return raw === "success" || raw === "error" ? raw : null;
 };

@@ -20,7 +20,7 @@ export class CreativeAgent extends BaseAgent {
     super(
       "CreativeVision AI",
       TaskType.CREATIVE,
-      CREATIVE_AGENT_CONFIG.systemPrompt ?? ""
+      CREATIVE_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -54,21 +54,21 @@ export class CreativeAgent extends BaseAgent {
   } {
     const ctx = this.toRecord(context);
     return {
-      originalText: (ctx['originalText'] as string) || "",
-      developmentFocus: (ctx['developmentFocus'] as string) || "general",
-      creativeConstraints: (ctx['constraints'] as string[]) || [],
-      targetAudience: (ctx['targetAudience'] as string) || "عام",
-      creativeGoals: (ctx['goals'] as string[]) || [],
+      originalText: (ctx["originalText"] as string) || "",
+      developmentFocus: (ctx["developmentFocus"] as string) || "general",
+      creativeConstraints: (ctx["constraints"] as string[]) || [],
+      targetAudience: (ctx["targetAudience"] as string) || "عام",
+      creativeGoals: (ctx["goals"] as string[]) || [],
     };
   }
 
   /**
    * Safely convert context to Record
    */
-  private toRecord(context: StandardAgentInput["context"]): Record<string, unknown> {
-    return typeof context === "object" && context !== null
-      ? (context)
-      : {};
+  private toRecord(
+    context: StandardAgentInput["context"],
+  ): Record<string, unknown> {
+    return typeof context === "object" && context !== null ? context : {};
   }
 
   /**
@@ -127,7 +127,7 @@ export class CreativeAgent extends BaseAgent {
    * Post-process the creative output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean and structure the output
     const processedText = this.cleanupCreativeText(output.text);
@@ -146,7 +146,7 @@ export class CreativeAgent extends BaseAgent {
     const enhancedNotes = this.generateCreativeNotes(
       output,
       creativityScore,
-      practicalityScore
+      practicalityScore,
     );
 
     return Promise.resolve({
@@ -345,7 +345,7 @@ export class CreativeAgent extends BaseAgent {
   private generateCreativeNotes(
     output: StandardAgentOutput,
     creativityScore: number,
-    practicalityScore: number
+    practicalityScore: number,
   ): string[] {
     const notes: string[] = [];
 
@@ -401,10 +401,11 @@ export class CreativeAgent extends BaseAgent {
    * Generate fallback response for creative tasks
    */
   protected override getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     const focus =
-      (typeof input.context === "object" && input.context["developmentFocus"]) ??
+      (typeof input.context === "object" &&
+        input.context["developmentFocus"]) ??
       "general";
 
     return Promise.resolve(`تحليل إبداعي:

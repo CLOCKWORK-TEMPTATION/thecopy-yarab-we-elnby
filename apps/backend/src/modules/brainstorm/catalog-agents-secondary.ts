@@ -162,8 +162,7 @@ export const BRAINSTORM_AGENTS_SECONDARY: readonly BrainstormAgentCatalogItem[] 
       name: "PhilosophyMiner AI",
       nameAr: "منقّب الفلسفة",
       role: "تحليل المواضيع والرسائل",
-      description:
-        "الوحدة 6 - منقب الفلسفة العميقة: محلل موضوعات ورسائل متطور",
+      description: "الوحدة 6 - منقب الفلسفة العميقة: محلل موضوعات ورسائل متطور",
       category: "advanced",
       icon: "book-open",
       capabilities: {
@@ -233,8 +232,7 @@ export const BRAINSTORM_AGENTS_SECONDARY: readonly BrainstormAgentCatalogItem[] 
       name: "AudienceCompass AI",
       nameAr: "بوصلة الجمهور",
       role: "تحليل الجمهور المستهدف",
-      description:
-        "الوحدة 9 - بوصلة الجمهور الذكية: محلل جمهور مستهدف متطور",
+      description: "الوحدة 9 - بوصلة الجمهور الذكية: محلل جمهور مستهدف متطور",
       category: "advanced",
       icon: "compass",
       capabilities: {
@@ -258,8 +256,7 @@ export const BRAINSTORM_AGENTS_SECONDARY: readonly BrainstormAgentCatalogItem[] 
       name: "AestheticsJudge AI",
       nameAr: "قاضي الجماليات",
       role: "تحليل الجودة الأدبية",
-      description:
-        "الوحدة 10 - قاضي الجماليات الأدبية: محلل جودة أدبية متطور",
+      description: "الوحدة 10 - قاضي الجماليات الأدبية: محلل جودة أدبية متطور",
       category: "advanced",
       icon: "trophy",
       capabilities: {

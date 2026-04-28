@@ -1,12 +1,11 @@
- 
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
-import { definedProps } from '@/utils/defined-props';
+import { definedProps } from "@/utils/defined-props";
 
-import type { Application, RequestHandler } from 'express';
+import type { Application, RequestHandler } from "express";
 
 type DynamicImport = <T>(modulePath: string) => Promise<T>;
 type RuntimeHandler = RequestHandler;
@@ -27,9 +26,17 @@ interface LoadedEditorRuntime {
   handleFinalReview: RuntimeHandler;
   handleContextEnhance: RuntimeHandler;
   handleExportPdfA: RuntimeHandler;
-  getGeminiContextHealth: () => { configured: boolean; enabled: boolean; model: string };
-  getPdfOcrAgentHealth: () => Promise<Record<string, unknown> & { configured?: boolean }>;
-  getFinalReviewRuntime: () => Record<string, unknown> & { configured?: boolean };
+  getGeminiContextHealth: () => {
+    configured: boolean;
+    enabled: boolean;
+    model: string;
+  };
+  getPdfOcrAgentHealth: () => Promise<
+    Record<string, unknown> & { configured?: boolean }
+  >;
+  getFinalReviewRuntime: () => Record<string, unknown> & {
+    configured?: boolean;
+  };
   antiwordPreflight: Record<string, unknown> & {
     antiwordPath?: string;
     antiwordHome?: string;
@@ -47,7 +54,7 @@ interface LoadedEditorRuntime {
 const dynamicImport: DynamicImport = async <T>(modulePath: string) =>
   import(modulePath) as Promise<T>;
 
-const runtimeRoot = resolve(process.cwd(), 'editor-runtime');
+const runtimeRoot = resolve(process.cwd(), "editor-runtime");
 let loadedRuntimePromise: Promise<LoadedEditorRuntime> | null = null;
 const googleModelHealthCache = new Map<
   string,
@@ -64,7 +71,7 @@ function buildRateLimiter(limit: number): RequestHandler {
   return rateLimit({
     windowMs: 15 * 60 * 1000,
     limit,
-    standardHeaders: 'draft-7',
+    standardHeaders: "draft-7",
     legacyHeaders: false,
     handler: (_req, res, _next, options) => {
       res.status(options.statusCode).json({
@@ -80,7 +87,7 @@ const reviewLimiter = buildRateLimiter(100);
 const aiLimiter = buildRateLimiter(200);
 
 function toTrimmedString(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : '';
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function getGoogleGenAiApiKey(): string {
@@ -92,7 +99,7 @@ function getGoogleGenAiApiKey(): string {
 
 async function checkGoogleModelAvailability(
   model: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<ModelAvailability> {
   const now = Date.now();
   const cached = googleModelHealthCache.get(model);
@@ -104,9 +111,9 @@ async function checkGoogleModelAvailability(
     return {
       available: false,
       checkedAt: new Date(now).toISOString(),
-      error: 'Google model name is empty.',
+      error: "Google model name is empty.",
       model,
-      provider: 'google-genai',
+      provider: "google-genai",
     };
   }
 
@@ -114,48 +121,54 @@ async function checkGoogleModelAvailability(
     return {
       available: false,
       checkedAt: new Date(now).toISOString(),
-      error: 'GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.',
+      error: "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.",
       model,
-      provider: 'google-genai',
+      provider: "google-genai",
     };
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), GOOGLE_MODEL_HEALTH_TIMEOUT_MS);
+  const timer = setTimeout(
+    () => controller.abort(),
+    GOOGLE_MODEL_HEALTH_TIMEOUT_MS,
+  );
 
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}?key=${encodeURIComponent(apiKey)}`,
       {
-        cache: 'no-store',
-        method: 'GET',
+        cache: "no-store",
+        method: "GET",
         signal: controller.signal,
-      }
+      },
     );
 
-    const payload = (await response.json().catch(() => null)) as
-      | {
-          error?: { message?: string };
-          supportedGenerationMethods?: string[];
-        }
-      | null;
-    const supportedGenerationMethods = Array.isArray(payload?.supportedGenerationMethods)
+    const payload = (await response.json().catch(() => null)) as {
+      error?: { message?: string };
+      supportedGenerationMethods?: string[];
+    } | null;
+    const supportedGenerationMethods = Array.isArray(
+      payload?.supportedGenerationMethods,
+    )
       ? payload.supportedGenerationMethods
       : [];
     const errorMessage = response.ok
-      ? supportedGenerationMethods.includes('generateContent')
+      ? supportedGenerationMethods.includes("generateContent")
         ? undefined
-        : 'Model does not advertise generateContent support.'
-      : payload?.error?.message ?? `Google model lookup failed with HTTP ${response.status}.`;
+        : "Model does not advertise generateContent support."
+      : (payload?.error?.message ??
+        `Google model lookup failed with HTTP ${response.status}.`);
     const result: ModelAvailability = {
-      available: response.ok && supportedGenerationMethods.includes('generateContent'),
+      available:
+        response.ok && supportedGenerationMethods.includes("generateContent"),
       checkedAt: new Date().toISOString(),
       model,
-      provider: 'google-genai',
+      provider: "google-genai",
       ...definedProps({
         error: errorMessage,
         statusCode: response.status,
-        supportsGenerateContent: supportedGenerationMethods.includes('generateContent'),
+        supportsGenerateContent:
+          supportedGenerationMethods.includes("generateContent"),
       }),
     };
 
@@ -169,9 +182,12 @@ async function checkGoogleModelAvailability(
     return {
       available: false,
       checkedAt: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown Google model lookup error.',
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown Google model lookup error.",
       model,
-      provider: 'google-genai',
+      provider: "google-genai",
     };
   } finally {
     clearTimeout(timer);
@@ -180,9 +196,9 @@ async function checkGoogleModelAvailability(
 
 async function resolveProviderModelAvailability(
   provider: string,
-  model: string
+  model: string,
 ): Promise<ModelAvailability> {
-  if (provider === 'google-genai') {
+  if (provider === "google-genai") {
     return checkGoogleModelAvailability(model, getGoogleGenAiApiKey());
   }
 
@@ -190,7 +206,7 @@ async function resolveProviderModelAvailability(
     available: Boolean(model),
     checkedAt: new Date().toISOString(),
     model,
-    provider: provider || 'unknown',
+    provider: provider || "unknown",
   };
 }
 
@@ -201,69 +217,78 @@ async function importRuntimeModule<T>(relativePath: string): Promise<T> {
 
 async function loadEditorRuntime(): Promise<LoadedEditorRuntime> {
   loadedRuntimePromise ??= (async () => {
-      const [
-        extractModule,
-        textExtractModule,
-        suspicionReviewModule,
-        finalReviewModule,
-        contextModule,
-        exportModule,
-        pdfOcrConfigModule,
-        finalReviewRuntimeModule,
-        docExtractorModule,
-        docxExtractorModule,
-      ] = await Promise.all([
-        importRuntimeModule<{ handleExtract: RuntimeHandler; ANTIWORD_PREFLIGHT: LoadedEditorRuntime['antiwordPreflight'] }>(
-          'controllers/extract-controller.mjs'
-        ),
-        importRuntimeModule<{ handleTextExtract: RuntimeHandler }>('controllers/text-extract-controller.mjs'),
-        importRuntimeModule<{ handleSuspicionReview: RuntimeHandler }>(
-          'controllers/suspicion-review-controller.mjs'
-        ),
-        importRuntimeModule<{ handleFinalReview: RuntimeHandler }>('controllers/final-review-controller.mjs'),
-        importRuntimeModule<{
-          handleContextEnhance: RuntimeHandler;
-          getGeminiContextHealth: LoadedEditorRuntime['getGeminiContextHealth'];
-        }>('ai-context-gemini.mjs'),
-        importRuntimeModule<{ handleExportPdfA: RuntimeHandler }>('controllers/export-controller.mjs'),
-        importRuntimeModule<{ getPdfOcrAgentHealth: LoadedEditorRuntime['getPdfOcrAgentHealth'] }>(
-          'pdf-ocr-agent-config.mjs'
-        ),
-        importRuntimeModule<{ getFinalReviewRuntime: LoadedEditorRuntime['getFinalReviewRuntime'] }>(
-          'final-review.mjs'
-        ),
-        importRuntimeModule<{
-          DEFAULT_ANTIWORD_PATH: string;
-          DEFAULT_ANTIWORD_HOME: string;
-        }>('services/doc-extractor.mjs'),
-        importRuntimeModule<{
-          DOCX_TO_DOC_SCRIPT_PATH: string;
-          DOCX_TO_DOC_SCRIPT_EXISTS: boolean;
-        }>('services/docx-extractor.mjs'),
-      ]);
+    const [
+      extractModule,
+      textExtractModule,
+      suspicionReviewModule,
+      finalReviewModule,
+      contextModule,
+      exportModule,
+      pdfOcrConfigModule,
+      finalReviewRuntimeModule,
+      docExtractorModule,
+      docxExtractorModule,
+    ] = await Promise.all([
+      importRuntimeModule<{
+        handleExtract: RuntimeHandler;
+        ANTIWORD_PREFLIGHT: LoadedEditorRuntime["antiwordPreflight"];
+      }>("controllers/extract-controller.mjs"),
+      importRuntimeModule<{ handleTextExtract: RuntimeHandler }>(
+        "controllers/text-extract-controller.mjs",
+      ),
+      importRuntimeModule<{ handleSuspicionReview: RuntimeHandler }>(
+        "controllers/suspicion-review-controller.mjs",
+      ),
+      importRuntimeModule<{ handleFinalReview: RuntimeHandler }>(
+        "controllers/final-review-controller.mjs",
+      ),
+      importRuntimeModule<{
+        handleContextEnhance: RuntimeHandler;
+        getGeminiContextHealth: LoadedEditorRuntime["getGeminiContextHealth"];
+      }>("ai-context-gemini.mjs"),
+      importRuntimeModule<{ handleExportPdfA: RuntimeHandler }>(
+        "controllers/export-controller.mjs",
+      ),
+      importRuntimeModule<{
+        getPdfOcrAgentHealth: LoadedEditorRuntime["getPdfOcrAgentHealth"];
+      }>("pdf-ocr-agent-config.mjs"),
+      importRuntimeModule<{
+        getFinalReviewRuntime: LoadedEditorRuntime["getFinalReviewRuntime"];
+      }>("final-review.mjs"),
+      importRuntimeModule<{
+        DEFAULT_ANTIWORD_PATH: string;
+        DEFAULT_ANTIWORD_HOME: string;
+      }>("services/doc-extractor.mjs"),
+      importRuntimeModule<{
+        DOCX_TO_DOC_SCRIPT_PATH: string;
+        DOCX_TO_DOC_SCRIPT_EXISTS: boolean;
+      }>("services/docx-extractor.mjs"),
+    ]);
 
-      return {
-        handleExtract: extractModule.handleExtract,
-        handleTextExtract: textExtractModule.handleTextExtract,
-        handleSuspicionReview: suspicionReviewModule.handleSuspicionReview,
-        handleFinalReview: finalReviewModule.handleFinalReview,
-        handleContextEnhance: contextModule.handleContextEnhance,
-        handleExportPdfA: exportModule.handleExportPdfA,
-        getGeminiContextHealth: contextModule.getGeminiContextHealth,
-        getPdfOcrAgentHealth: pdfOcrConfigModule.getPdfOcrAgentHealth,
-        getFinalReviewRuntime: finalReviewRuntimeModule.getFinalReviewRuntime,
-        antiwordPreflight: extractModule.ANTIWORD_PREFLIGHT,
-        defaultAntiwordPath: docExtractorModule.DEFAULT_ANTIWORD_PATH,
-        defaultAntiwordHome: docExtractorModule.DEFAULT_ANTIWORD_HOME,
-        docxConverterScriptPath: docxExtractorModule.DOCX_TO_DOC_SCRIPT_PATH,
-        docxConverterScriptExists: docxExtractorModule.DOCX_TO_DOC_SCRIPT_EXISTS,
-      };
-    })();
+    return {
+      handleExtract: extractModule.handleExtract,
+      handleTextExtract: textExtractModule.handleTextExtract,
+      handleSuspicionReview: suspicionReviewModule.handleSuspicionReview,
+      handleFinalReview: finalReviewModule.handleFinalReview,
+      handleContextEnhance: contextModule.handleContextEnhance,
+      handleExportPdfA: exportModule.handleExportPdfA,
+      getGeminiContextHealth: contextModule.getGeminiContextHealth,
+      getPdfOcrAgentHealth: pdfOcrConfigModule.getPdfOcrAgentHealth,
+      getFinalReviewRuntime: finalReviewRuntimeModule.getFinalReviewRuntime,
+      antiwordPreflight: extractModule.ANTIWORD_PREFLIGHT,
+      defaultAntiwordPath: docExtractorModule.DEFAULT_ANTIWORD_PATH,
+      defaultAntiwordHome: docExtractorModule.DEFAULT_ANTIWORD_HOME,
+      docxConverterScriptPath: docxExtractorModule.DOCX_TO_DOC_SCRIPT_PATH,
+      docxConverterScriptExists: docxExtractorModule.DOCX_TO_DOC_SCRIPT_EXISTS,
+    };
+  })();
 
   return loadedRuntimePromise;
 }
 
-export async function getEditorIntegrationHealth(): Promise<Record<string, unknown>> {
+export async function getEditorIntegrationHealth(): Promise<
+  Record<string, unknown>
+> {
   const runtime = await loadEditorRuntime();
   const [ocrAgent] = await Promise.all([runtime.getPdfOcrAgentHealth()]);
   const aiContextLayer = runtime.getGeminiContextHealth();
@@ -272,18 +297,19 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
   const finalReviewModel = toTrimmedString(finalReviewRuntime["resolvedModel"]);
   const ocrModel = toTrimmedString(ocrAgent["geminiOcrModel"]);
   const aiContextModel = toTrimmedString(aiContextLayer.model);
-  const [finalReviewModelCheck, ocrModelCheck, aiContextModelCheck] = await Promise.all([
-    resolveProviderModelAvailability(finalReviewProvider, finalReviewModel),
-    resolveProviderModelAvailability('google-genai', ocrModel),
-    aiContextLayer.enabled
-      ? resolveProviderModelAvailability('google-genai', aiContextModel)
-      : Promise.resolve<ModelAvailability>({
-          available: true,
-          checkedAt: new Date().toISOString(),
-          model: aiContextModel,
-          provider: 'google-genai',
-        }),
-  ]);
+  const [finalReviewModelCheck, ocrModelCheck, aiContextModelCheck] =
+    await Promise.all([
+      resolveProviderModelAvailability(finalReviewProvider, finalReviewModel),
+      resolveProviderModelAvailability("google-genai", ocrModel),
+      aiContextLayer.enabled
+        ? resolveProviderModelAvailability("google-genai", aiContextModel)
+        : Promise.resolve<ModelAvailability>({
+            available: true,
+            checkedAt: new Date().toISOString(),
+            model: aiContextModel,
+            provider: "google-genai",
+          }),
+    ]);
   const antiwordWarnings = Array.isArray(runtime.antiwordPreflight.warnings)
     ? runtime.antiwordPreflight.warnings
     : [];
@@ -291,12 +317,14 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
     runtime.antiwordPreflight.binaryAvailable === true &&
     runtime.antiwordPreflight.antiwordHomeExists === true;
   const finalReviewReady =
-    finalReviewRuntime.configured === true && finalReviewModelCheck.available === true;
-  const ocrReady = ocrAgent.configured === true && ocrModelCheck.available === true;
-  const aiContextReady =
-    aiContextLayer.enabled
-      ? aiContextLayer.configured === true && aiContextModelCheck.available === true
-      : true;
+    finalReviewRuntime.configured === true &&
+    finalReviewModelCheck.available === true;
+  const ocrReady =
+    ocrAgent.configured === true && ocrModelCheck.available === true;
+  const aiContextReady = aiContextLayer.enabled
+    ? aiContextLayer.configured === true &&
+      aiContextModelCheck.available === true
+    : true;
   const healthy =
     antiwordReady &&
     finalReviewReady &&
@@ -304,7 +332,7 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
     aiContextReady &&
     runtime.docxConverterScriptExists === true;
   const intakeLimitations: {
-    sourceType: 'doc' | 'docx' | 'pdf';
+    sourceType: "doc" | "docx" | "pdf";
     code: string;
     blocking: boolean;
     message: string;
@@ -312,42 +340,44 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
 
   if (!antiwordReady) {
     intakeLimitations.push({
-      sourceType: 'doc',
-      code: 'DOC_ANTIWORD_NOT_READY',
+      sourceType: "doc",
+      code: "DOC_ANTIWORD_NOT_READY",
       blocking: true,
       message:
-        'استيراد DOC غير جاهز لأن antiword أو ANTIWORDHOME غير متاحين بشكل صحيح.',
+        "استيراد DOC غير جاهز لأن antiword أو ANTIWORDHOME غير متاحين بشكل صحيح.",
     });
   }
 
   if (!runtime.docxConverterScriptExists) {
     intakeLimitations.push({
-      sourceType: 'docx',
-      code: 'DOCX_FALLBACK_CONVERTER_MISSING',
+      sourceType: "docx",
+      code: "DOCX_FALLBACK_CONVERTER_MISSING",
       blocking: true,
       message:
-        'المسار الاحتياطي لتحويل DOCX إلى DOC غير متاح لأن سكربت التحويل غير موجود.',
+        "المسار الاحتياطي لتحويل DOCX إلى DOC غير متاح لأن سكربت التحويل غير موجود.",
     });
   }
 
   if (!ocrReady) {
     intakeLimitations.push({
-      sourceType: 'pdf',
-      code: 'PDF_OCR_NOT_READY',
+      sourceType: "pdf",
+      code: "PDF_OCR_NOT_READY",
       blocking: true,
       message:
-        'استيراد PDF غير جاهز لأن طبقة OCR أو نموذجها غير متاحين بشكل صحيح.',
+        "استيراد PDF غير جاهز لأن طبقة OCR أو نموذجها غير متاحين بشكل صحيح.",
     });
   }
 
   return {
-    status: healthy ? 'ok' : 'degraded',
+    status: healthy ? "ok" : "degraded",
     ok: healthy,
-    service: 'backend-editor-runtime',
+    service: "backend-editor-runtime",
     officialBackend: true,
-    mode: 'embedded',
-    antiwordPath: runtime.antiwordPreflight.antiwordPath ?? runtime.defaultAntiwordPath,
-    antiwordHome: runtime.antiwordPreflight.antiwordHome ?? runtime.defaultAntiwordHome,
+    mode: "embedded",
+    antiwordPath:
+      runtime.antiwordPreflight.antiwordPath ?? runtime.defaultAntiwordPath,
+    antiwordHome:
+      runtime.antiwordPreflight.antiwordHome ?? runtime.defaultAntiwordHome,
     antiwordRuntimeSource: runtime.antiwordPreflight.runtimeSource,
     antiwordBinaryAvailable: runtime.antiwordPreflight.binaryAvailable,
     antiwordHomeExists: runtime.antiwordPreflight.antiwordHomeExists,
@@ -368,14 +398,14 @@ export async function getEditorIntegrationHealth(): Promise<Record<string, unkno
       ...aiContextLayer,
       modelCheck: aiContextModelCheck,
     },
-    pdfFirstVisibleSourceKinds: ['direct-extraction', 'ocr'],
+    pdfFirstVisibleSourceKinds: ["direct-extraction", "ocr"],
     intakeLimitations,
   };
 }
 
 export function registerEditorRuntimeRoutes(app: Application): void {
   const createLazyRuntimeHandler = (
-    pickHandler: (runtime: LoadedEditorRuntime) => RuntimeHandler
+    pickHandler: (runtime: LoadedEditorRuntime) => RuntimeHandler,
   ): RequestHandler => {
     return async (req, res, next) => {
       try {
@@ -388,22 +418,41 @@ export function registerEditorRuntimeRoutes(app: Application): void {
     };
   };
 
-  app.post('/api/file-extract', extractLimiter, createLazyRuntimeHandler(runtime => runtime.handleExtract));
-  app.post('/api/files/extract', extractLimiter, createLazyRuntimeHandler(runtime => runtime.handleExtract));
-  app.post('/api/text-extract', extractLimiter, createLazyRuntimeHandler(runtime => runtime.handleTextExtract));
   app.post(
-    '/api/suspicion-review',
+    "/api/file-extract",
+    extractLimiter,
+    createLazyRuntimeHandler((runtime) => runtime.handleExtract),
+  );
+  app.post(
+    "/api/files/extract",
+    extractLimiter,
+    createLazyRuntimeHandler((runtime) => runtime.handleExtract),
+  );
+  app.post(
+    "/api/text-extract",
+    extractLimiter,
+    createLazyRuntimeHandler((runtime) => runtime.handleTextExtract),
+  );
+  app.post(
+    "/api/suspicion-review",
     reviewLimiter,
-    createLazyRuntimeHandler(runtime => runtime.handleSuspicionReview)
+    createLazyRuntimeHandler((runtime) => runtime.handleSuspicionReview),
   );
-  app.post('/api/final-review', reviewLimiter, createLazyRuntimeHandler(runtime => runtime.handleFinalReview));
   app.post(
-    '/api/ai/context-enhance',
-    aiLimiter,
-    createLazyRuntimeHandler(runtime => runtime.handleContextEnhance)
+    "/api/final-review",
+    reviewLimiter,
+    createLazyRuntimeHandler((runtime) => runtime.handleFinalReview),
   );
-  app.post('/api/export/pdfa', createLazyRuntimeHandler(runtime => runtime.handleExportPdfA));
-  app.get('/api/editor-runtime/health', async (_req, res) => {
+  app.post(
+    "/api/ai/context-enhance",
+    aiLimiter,
+    createLazyRuntimeHandler((runtime) => runtime.handleContextEnhance),
+  );
+  app.post(
+    "/api/export/pdfa",
+    createLazyRuntimeHandler((runtime) => runtime.handleExportPdfA),
+  );
+  app.get("/api/editor-runtime/health", async (_req, res) => {
     const payload = await getEditorIntegrationHealth();
     res.status(payload["ok"] ? 200 : 503).json(payload);
   });

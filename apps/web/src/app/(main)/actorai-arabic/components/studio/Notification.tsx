@@ -1,5 +1,6 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import React from "react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface NotificationProps {
   notification: { type: string; message: string } | null;

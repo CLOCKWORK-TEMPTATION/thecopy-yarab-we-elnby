@@ -22,13 +22,12 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import {
-  AR_FEATURES,
-  GESTURE_CONTROLS,
-  SHOT_TYPES,
-} from "../../types/constants";
+import { AR_FEATURES, GESTURE_CONTROLS, SHOT_TYPES } from "../../lib/constants";
 
 import type {
+  AspectRatio,
+  ShotType,
+  TeleprompterPosition,
   TeleprompterSettings,
   BlockingMark,
   CameraEyeSettings,
@@ -36,7 +35,7 @@ import type {
   GestureControl,
 } from "../../types";
 
-interface ARTrainingProps {
+export interface ARTrainingProps {
   arMode:
     | "setup"
     | "teleprompter"
@@ -94,7 +93,17 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
     <Tabs
       defaultValue="setup"
       value={arMode}
-      onValueChange={(v) => setArMode(v as any)}
+      onValueChange={(v) =>
+        setArMode(
+          v as
+            | "setup"
+            | "teleprompter"
+            | "blocking"
+            | "camera"
+            | "partner"
+            | "gestures"
+        )
+      }
     >
       <TabsList className="grid w-full grid-cols-6 mb-6">
         <TabsTrigger value="setup">⚙️ الإعداد</TabsTrigger>
@@ -225,7 +234,7 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                   onValueChange={(value) =>
                     setTeleprompterSettings({
                       ...teleprompterSettings,
-                      position: value as any,
+                      position: value as TeleprompterPosition,
                     })
                   }
                 >
@@ -330,7 +339,7 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                   onValueChange={(value) =>
                     setCameraSettings({
                       ...cameraSettings,
-                      shotType: value as any,
+                      shotType: value as ShotType,
                     })
                   }
                 >
@@ -354,7 +363,7 @@ export const ARTraining: React.FC<ARTrainingProps> = ({
                   onValueChange={(value) =>
                     setCameraSettings({
                       ...cameraSettings,
-                      aspectRatio: value as any,
+                      aspectRatio: value as AspectRatio,
                     })
                   }
                 >

@@ -30,7 +30,7 @@ export class WorldBuilderAgent extends BaseAgent {
 4. بناء العالم المادي: الجغرافيا، البيئة، المواقع الرئيسية
 5. ضمان الاتساق الداخلي: المنطق، التبعات، التماسك الثقافي
 
-مخرجاتك يجب أن تكون نصية فقط، واضحة ومنظمة بدون أي JSON أو كتل كود.`
+مخرجاتك يجب أن تكون نصية فقط، واضحة ومنظمة بدون أي JSON أو كتل كود.`,
     );
 
     this.confidenceFloor = 0.85;
@@ -125,13 +125,23 @@ export class WorldBuilderAgent extends BaseAgent {
   }
 
   private buildWorldStationsSection(context: unknown): string {
-    if (typeof context !== "object" || !context || !((context as Record<string, unknown>)["previousStations"])) return "";
-    const prev = (context as Record<string, unknown>)["previousStations"] as Record<string, string>;
+    if (
+      typeof context !== "object" ||
+      !context ||
+      !(context as Record<string, unknown>)["previousStations"]
+    )
+      return "";
+    const prev = (context as Record<string, unknown>)[
+      "previousStations"
+    ] as Record<string, string>;
     let s = `## السياق من المحطات السابقة:\n`;
     if (prev["analysis"]) s += `\n### التحليل الأولي:\n${prev["analysis"]}\n`;
-    if (prev["thematicAnalysis"]) s += `\n### التحليل الموضوعي:\n${prev["thematicAnalysis"]}\n`;
-    if (prev["characterAnalysis"]) s += `\n### تحليل الشخصيات:\n${prev["characterAnalysis"]}\n`;
-    if (prev["culturalContext"]) s += `\n### السياق الثقافي:\n${prev["culturalContext"]}\n`;
+    if (prev["thematicAnalysis"])
+      s += `\n### التحليل الموضوعي:\n${prev["thematicAnalysis"]}\n`;
+    if (prev["characterAnalysis"])
+      s += `\n### تحليل الشخصيات:\n${prev["characterAnalysis"]}\n`;
+    if (prev["culturalContext"])
+      s += `\n### السياق الثقافي:\n${prev["culturalContext"]}\n`;
     return s;
   }
 
@@ -139,7 +149,7 @@ export class WorldBuilderAgent extends BaseAgent {
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
 
@@ -217,7 +227,15 @@ export class WorldBuilderAgent extends BaseAgent {
   }
 
   private assessDetail(text: string): number {
-    const markers = ["تفصيل", "وصف", "خصائص", "مميزات", "تاريخ", "ثقافة", "جغرافيا"];
+    const markers = [
+      "تفصيل",
+      "وصف",
+      "خصائص",
+      "مميزات",
+      "تاريخ",
+      "ثقافة",
+      "جغرافيا",
+    ];
     const count = this.safeCountMarkers(text, markers);
     return Math.min(1, 0.5 + (text.length / 2000) * 0.3 + count * 0.02);
   }
@@ -229,7 +247,10 @@ export class WorldBuilderAgent extends BaseAgent {
 
   private assessCoherence(text: string): number {
     const sections = text.split(/#{1,3}\s+/);
-    return Math.min(1, 0.6 + (sections.length >= 5 ? 0.3 : sections.length * 0.06));
+    return Math.min(
+      1,
+      0.6 + (sections.length >= 5 ? 0.3 : sections.length * 0.06),
+    );
   }
 
   /**
@@ -244,7 +265,7 @@ export class WorldBuilderAgent extends BaseAgent {
    * استجابة احتياطية في حالة الفشل
    */
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`# عالم درامي - نسخة أولية
 

@@ -57,7 +57,7 @@ export class WeaviateIndexingService {
       options.specificFiles && options.specificFiles.length > 0
         ? await repositoryCrawler.crawlSpecific(
             options.repoPath,
-            options.specificFiles
+            options.specificFiles,
           )
         : await repositoryCrawler.crawl({
             rootPath: options.repoPath,
@@ -82,7 +82,8 @@ export class WeaviateIndexingService {
       stats.chunksIndexed += fileStats.chunksIndexed;
 
       for (const [collection, count] of Object.entries(fileStats.collections)) {
-        stats.collections[collection] = (stats.collections[collection] ?? 0) + count;
+        stats.collections[collection] =
+          (stats.collections[collection] ?? 0) + count;
       }
     }
 
@@ -95,7 +96,7 @@ export class WeaviateIndexingService {
     options: {
       maxChunkSize?: number;
       coherenceThreshold?: number;
-    } = {}
+    } = {},
   ): Promise<{ documentHash: string; totalChunks: number; inserted: number }> {
     await this.ensureCollections();
 
@@ -107,15 +108,14 @@ export class WeaviateIndexingService {
         coherenceThreshold: options.coherenceThreshold,
       }),
     });
-    const semanticChunks = await chunker.chunkText(
-      normalizedDocument,
-      (text) => embeddingsService.getEmbedding(text)
+    const semanticChunks = await chunker.chunkText(normalizedDocument, (text) =>
+      embeddingsService.getEmbedding(text),
     );
 
     const collection = weaviateStore.getCollection("AdHocChunks");
     await collection.data.deleteMany(
       collection.filter.byProperty("documentHash").equal(documentHash),
-      { verbose: false }
+      { verbose: false },
     );
 
     if (semanticChunks.length === 0) {
@@ -127,7 +127,7 @@ export class WeaviateIndexingService {
     }
 
     const chunkEmbeddings = await embeddingsService.getEmbeddingsBatch(
-      semanticChunks.map((chunk) => chunk.text)
+      semanticChunks.map((chunk) => chunk.text),
     );
 
     const objects = semanticChunks.map((chunk, index) => ({
@@ -137,7 +137,7 @@ export class WeaviateIndexingService {
         source,
         documentHash,
         index,
-        semanticChunks.length
+        semanticChunks.length,
       ),
       vectors: {
         embedding: chunkEmbeddings[index],
@@ -165,9 +165,10 @@ export class WeaviateIndexingService {
     const embedding = await embeddingGenerator.generateForDocumentation(
       args.content,
       definedProps({
-        title: typeof metadata["title"] === "string" ? metadata["title"] : undefined,
+        title:
+          typeof metadata["title"] === "string" ? metadata["title"] : undefined,
       }),
-      { dimensionality: 1536 }
+      { dimensionality: 1536 },
     );
 
     const contentHash = embedding.contentHash;
@@ -179,7 +180,7 @@ export class WeaviateIndexingService {
 
       await collection.data.deleteMany(
         collection.filter.byProperty("contentHash").equal(contentHash),
-        { verbose: false }
+        { verbose: false },
       );
       await collection.data.insert({
         id,
@@ -200,7 +201,8 @@ export class WeaviateIndexingService {
               ? metadata["status"]
               : "proposed",
           date: new Date().toISOString(),
-          context: typeof metadata["context"] === "string" ? metadata["context"] : "",
+          context:
+            typeof metadata["context"] === "string" ? metadata["context"] : "",
           decision:
             typeof metadata["decision"] === "string"
               ? metadata["decision"]
@@ -235,7 +237,7 @@ export class WeaviateIndexingService {
 
     await collection.data.deleteMany(
       collection.filter.byProperty("contentHash").equal(contentHash),
-      { verbose: false }
+      { verbose: false },
     );
     await collection.data.insert({
       id,
@@ -245,9 +247,16 @@ export class WeaviateIndexingService {
           typeof metadata["filePath"] === "string"
             ? metadata["filePath"]
             : "manual-entry",
-        title: typeof metadata["title"] === "string" ? metadata["title"] : "Untitled",
-        section: typeof metadata["section"] === "string" ? metadata["section"] : "",
-        docType: typeof metadata["docType"] === "string" ? metadata["docType"] : "NOTE",
+        title:
+          typeof metadata["title"] === "string"
+            ? metadata["title"]
+            : "Untitled",
+        section:
+          typeof metadata["section"] === "string" ? metadata["section"] : "",
+        docType:
+          typeof metadata["docType"] === "string"
+            ? metadata["docType"]
+            : "NOTE",
         chunkIndex: 0,
         contentHash,
         lastModified: new Date().toISOString(),
@@ -298,9 +307,8 @@ export class WeaviateIndexingService {
   }
 
   private async indexCodeFile(file: FileInfo): Promise<number> {
-    const semanticChunks = await this.chunker.chunkText(
-      file.content,
-      (text) => embeddingsService.getEmbedding(text)
+    const semanticChunks = await this.chunker.chunkText(file.content, (text) =>
+      embeddingsService.getEmbedding(text),
     );
 
     if (semanticChunks.length === 0) {
@@ -310,16 +318,28 @@ export class WeaviateIndexingService {
     const collection = weaviateStore.getCollection("CodeChunks");
     await collection.data.deleteMany(
       collection.filter.byProperty("filePath").equal(file.relativePath),
-      { verbose: false }
+      { verbose: false },
     );
 
     const chunkEmbeddings = await embeddingsService.getEmbeddingsBatch(
-      semanticChunks.map((chunk) => chunk.text)
+      semanticChunks.map((chunk) => chunk.text),
     );
-    const imports = repositoryCrawler.extractImports(file.content, file.language);
-    const exports = repositoryCrawler.extractExports(file.content, file.language);
-    const functions = repositoryCrawler.extractFunctions(file.content, file.language);
-    const classes = repositoryCrawler.extractClasses(file.content, file.language);
+    const imports = repositoryCrawler.extractImports(
+      file.content,
+      file.language,
+    );
+    const exports = repositoryCrawler.extractExports(
+      file.content,
+      file.language,
+    );
+    const functions = repositoryCrawler.extractFunctions(
+      file.content,
+      file.language,
+    );
+    const classes = repositoryCrawler.extractClasses(
+      file.content,
+      file.language,
+    );
 
     const objects = semanticChunks.map((chunk, index) => {
       const lineRange = this.getLineRange(file.content, chunk);
@@ -359,9 +379,8 @@ export class WeaviateIndexingService {
     decision: number;
     architecture: number;
   }> {
-    const semanticChunks = await this.chunker.chunkText(
-      file.content,
-      (text) => embeddingsService.getEmbedding(text)
+    const semanticChunks = await this.chunker.chunkText(file.content, (text) =>
+      embeddingsService.getEmbedding(text),
     );
 
     let documentation = 0;
@@ -374,13 +393,13 @@ export class WeaviateIndexingService {
 
       await collection.data.deleteMany(
         collection.filter.byProperty("contentHash").equal(contentHash),
-        { verbose: false }
+        { verbose: false },
       );
 
       const embedding = await embeddingGenerator.generateForDocumentation(
         file.content,
         { title: this.extractTitle(file.content) },
-        { dimensionality: 1536 }
+        { dimensionality: 1536 },
       );
 
       await collection.data.insert({
@@ -411,11 +430,11 @@ export class WeaviateIndexingService {
 
       await collection.data.deleteMany(
         collection.filter.byProperty("filePath").equal(file.relativePath),
-        { verbose: false }
+        { verbose: false },
       );
 
       const chunkEmbeddings = await embeddingsService.getEmbeddingsBatch(
-        semanticChunks.map((chunk) => chunk.text)
+        semanticChunks.map((chunk) => chunk.text),
       );
 
       const objects = semanticChunks.map((chunk, index) => {
@@ -450,13 +469,13 @@ export class WeaviateIndexingService {
 
       await collection.data.deleteMany(
         collection.filter.byProperty("contentHash").equal(contentHash),
-        { verbose: false }
+        { verbose: false },
       );
 
       const embedding = await embeddingGenerator.generateForDocumentation(
         file.content,
         { title: this.extractTitle(file.content) },
-        { dimensionality: 1536 }
+        { dimensionality: 1536 },
       );
 
       await collection.data.insert({
@@ -487,7 +506,7 @@ export class WeaviateIndexingService {
     source: string,
     documentHash: string,
     chunkIndex: number,
-    totalChunks: number
+    totalChunks: number,
   ): AdHocChunkData {
     return {
       content: chunk.text,
@@ -512,7 +531,7 @@ export class WeaviateIndexingService {
   private buildChunkId(
     collection: string,
     contentHash: string,
-    chunkIndex: number
+    chunkIndex: number,
   ): string {
     return createHash("sha256")
       .update(`${collection}:${contentHash}:${chunkIndex}`)
@@ -539,7 +558,9 @@ export class WeaviateIndexingService {
   private isArchitectureDocument(file: FileInfo): boolean {
     return (
       /architecture/i.test(file.relativePath) ||
-      /```mermaid|flowchart|sequenceDiagram|graph\s+[A-Z]{2}/i.test(file.content)
+      /```mermaid|flowchart|sequenceDiagram|graph\s+[A-Z]{2}/i.test(
+        file.content,
+      )
     );
   }
 

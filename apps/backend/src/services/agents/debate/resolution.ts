@@ -7,22 +7,22 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { logger } from '@/lib/logger';
-import { geminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 
 import {
   calculateConfidenceAgreement,
   calculatePositionSimilarity,
   calculateEvidenceOverlap,
   extractBulletPoints,
-} from './resolution-helpers';
-import { DebateArgument, ConsensusResult, Vote } from './types';
+} from "./resolution-helpers";
+import { DebateArgument, ConsensusResult, Vote } from "./types";
 
 /**
  * حساب درجة التوافق بين الحجج
  */
 export async function calculateAgreementScore(
-  args: DebateArgument[]
+  args: DebateArgument[],
 ): Promise<number> {
   logger.debug("حساب درجة التوافق", { argumentCount: args.length });
 
@@ -47,7 +47,7 @@ export async function calculateAgreementScore(
     return Math.min(1, Math.max(0, agreementScore));
   } catch (error) {
     logger.error("فشل في حساب درجة التوافق", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
 
     const avgConfidence =
@@ -61,7 +61,7 @@ export async function calculateAgreementScore(
  */
 export async function identifyConsensusPoints(
   args: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<string[]> {
   logger.debug("تحديد نقاط التوافق");
 
@@ -77,9 +77,9 @@ ${args
 **الحجة ${idx + 1}** (${arg.agentName}):
 ${arg.position}
 الثقة: ${(arg.confidence * 100).toFixed(0)}%
-`
+`,
   )
-  .join('\n---\n')}
+  .join("\n---\n")}
 
 حدد **نقاط التوافق** التي يتفق عليها معظم المشاركين أو تظهر في أكثر من حجة.
 
@@ -96,7 +96,7 @@ ${arg.position}
     return points;
   } catch (error) {
     logger.error("فشل في تحديد نقاط التوافق", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
     return [];
   }
@@ -107,7 +107,7 @@ ${arg.position}
  */
 export async function identifyDisagreementPoints(
   args: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<string[]> {
   logger.debug("تحديد نقاط الاختلاف");
 
@@ -122,9 +122,9 @@ ${args
     (arg, idx) => `
 **الحجة ${idx + 1}** (${arg.agentName}):
 ${arg.position}
-`
+`,
   )
-  .join('\n---\n')}
+  .join("\n---\n")}
 
 حدد **نقاط الاختلاف** التي يختلف عليها المشاركون أو تظهر بها آراء متعارضة.
 
@@ -141,7 +141,7 @@ ${arg.position}
     return points;
   } catch (error) {
     logger.error("فشل في تحديد نقاط الاختلاف", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
     return [];
   }
@@ -153,12 +153,12 @@ ${arg.position}
 export async function resolveDisagreements(
   args: DebateArgument[],
   disagreementPoints: string[],
-  topic: string
+  topic: string,
 ): Promise<string> {
   logger.debug("حل الخلافات", { disagreementCount: disagreementPoints.length });
 
   if (disagreementPoints.length === 0) {
-    return 'لا توجد نقاط اختلاف كبيرة للحل';
+    return "لا توجد نقاط اختلاف كبيرة للحل";
   }
 
   try {
@@ -166,7 +166,7 @@ export async function resolveDisagreements(
 الموضوع: "${topic}"
 
 تم تحديد نقاط الاختلاف التالية:
-${disagreementPoints.map((point, idx) => `${idx + 1}. ${point}`).join('\n')}
+${disagreementPoints.map((point, idx) => `${idx + 1}. ${point}`).join("\n")}
 
 بناءً على الحجج الأصلية:
 ${args
@@ -174,9 +174,9 @@ ${args
     (arg, idx) => `
 ${idx + 1}. ${arg.agentName}:
 ${arg.position.substring(0, 400)}
-`
+`,
   )
-  .join('\n---\n')}
+  .join("\n---\n")}
 
 قم بتقديم **حل توفيقي** لكل نقطة اختلاف يجمع بين وجهات النظر المختلفة:
 `;
@@ -190,9 +190,9 @@ ${arg.position.substring(0, 400)}
     return response;
   } catch (error) {
     logger.error("فشل في حل الخلافات", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
-    return 'خطأ في توليد الحل التوفيقي';
+    return "خطأ في توليد الحل التوفيقي";
   }
 }
 
@@ -203,21 +203,21 @@ export async function generateFinalSynthesis(
   args: DebateArgument[],
   consensusPoints: string[],
   disagreementPoints: string[],
-  topic: string
+  topic: string,
 ): Promise<string> {
   logger.debug("توليد التوليف النهائي");
 
-  if (args.length === 0) return 'لا توجد حجج لتوليفها';
+  if (args.length === 0) return "لا توجد حجج لتوليفها";
 
   try {
     const prompt = `
 الموضوع: "${topic}"
 
 **نقاط التوافق:**
-${consensusPoints.length > 0 ? consensusPoints.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'لا توجد'}
+${consensusPoints.length > 0 ? consensusPoints.map((p, i) => `${i + 1}. ${p}`).join("\n") : "لا توجد"}
 
 **نقاط الاختلاف:**
-${disagreementPoints.length > 0 ? disagreementPoints.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'لا توجد'}
+${disagreementPoints.length > 0 ? disagreementPoints.map((p, i) => `${i + 1}. ${p}`).join("\n") : "لا توجد"}
 
 **الحجج الأصلية:**
 ${args
@@ -225,9 +225,9 @@ ${args
     (arg, idx) => `
 ${idx + 1}. **${arg.agentName}** (ثقة: ${(arg.confidence * 100).toFixed(0)}%):
 ${arg.position}
-`
+`,
   )
-  .join('\n---\n')}
+  .join("\n---\n")}
 
 قم بتوليف **موقف نهائي شامل** يتضمن:
 1. تلخيص نقاط التوافق
@@ -247,9 +247,9 @@ ${arg.position}
     return synthesis;
   } catch (error) {
     logger.error("فشل في توليد التوليف النهائي", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
-    return 'خطأ في توليف النتيجة النهائية';
+    return "خطأ في توليف النتيجة النهائية";
   }
 }
 
@@ -258,7 +258,7 @@ ${arg.position}
  */
 export async function buildConsensusResult(
   args: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<ConsensusResult> {
   logger.info("بناء نتيجة التوافق الكاملة");
 
@@ -271,25 +271,39 @@ export async function buildConsensusResult(
     ]);
 
     const finalSynthesis = await generateFinalSynthesis(
-      args, consensusPoints, disagreementPoints, topic
+      args,
+      consensusPoints,
+      disagreementPoints,
+      topic,
     );
 
     const achieved = agreementScore >= 0.75;
-    const participatingAgents = Array.from(new Set(args.map(arg => arg.agentName)));
+    const participatingAgents = Array.from(
+      new Set(args.map((arg) => arg.agentName)),
+    );
 
     return {
-      achieved, agreementScore, consensusPoints, disagreementPoints,
-      finalSynthesis, participatingAgents, confidence: agreementScore,
+      achieved,
+      agreementScore,
+      consensusPoints,
+      disagreementPoints,
+      finalSynthesis,
+      participatingAgents,
+      confidence: agreementScore,
     };
   } catch (error) {
     logger.error("فشل في بناء نتيجة التوافق", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
 
     return {
-      achieved: false, agreementScore: 0, consensusPoints: [],
-      disagreementPoints: ['خطأ في بناء نتيجة التوافق'],
-      finalSynthesis: '', participatingAgents: [], confidence: 0,
+      achieved: false,
+      agreementScore: 0,
+      consensusPoints: [],
+      disagreementPoints: ["خطأ في بناء نتيجة التوافق"],
+      finalSynthesis: "",
+      participatingAgents: [],
+      confidence: 0,
     };
   }
 }
@@ -297,14 +311,15 @@ export async function buildConsensusResult(
 /**
  * حساب الأصوات وتحديد الفائز
  */
-export function calculateVoteResults(
-  votes: Vote[]
-): { argumentScores: Map<string, number>; winnerId: string | null } {
+export function calculateVoteResults(votes: Vote[]): {
+  argumentScores: Map<string, number>;
+  winnerId: string | null;
+} {
   logger.debug("حساب نتائج التصويت", { voteCount: votes.length });
 
   const argumentScores = new Map<string, number>();
 
-  votes.forEach(vote => {
+  votes.forEach((vote) => {
     const currentScore = argumentScores.get(vote.argumentId) ?? 0;
     argumentScores.set(vote.argumentId, currentScore + vote.score);
   });

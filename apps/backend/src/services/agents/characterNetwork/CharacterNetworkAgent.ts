@@ -50,7 +50,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     super(
       "SocialGraph AI",
       TaskType.CHARACTER_NETWORK,
-      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt ?? ""
+      CHARACTER_NETWORK_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.82;
@@ -76,23 +76,45 @@ export class CharacterNetworkAgent extends BaseAgent {
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += getBaseInstructions();
     prompt += buildConditionalInstructions(
-      options.analyzeEvolution, options.identifyGroups,
-      options.mapPowerDynamics, options.trackInfluence
+      options.analyzeEvolution,
+      options.identifyGroups,
+      options.mapPowerDynamics,
+      options.trackInfluence,
     );
     prompt += getClosingInstructions();
     return prompt;
   }
 
-  private static readonly DEFAULT_RELATIONSHIP_TYPES = ["family", "romantic", "professional", "friendship", "adversarial"];
+  private static readonly DEFAULT_RELATIONSHIP_TYPES = [
+    "family",
+    "romantic",
+    "professional",
+    "friendship",
+    "adversarial",
+  ];
 
   private extractNetworkOptions(ctx: CharacterNetworkContext | undefined) {
-    const defaults = { originalText: "", characters: [] as CharacterSummary[], focusCharacters: [] as string[], relationshipTypes: CharacterNetworkAgent.DEFAULT_RELATIONSHIP_TYPES, analyzeEvolution: true, trackInfluence: true, identifyGroups: true, mapPowerDynamics: true };
+    const defaults = {
+      originalText: "",
+      characters: [] as CharacterSummary[],
+      focusCharacters: [] as string[],
+      relationshipTypes: CharacterNetworkAgent.DEFAULT_RELATIONSHIP_TYPES,
+      analyzeEvolution: true,
+      trackInfluence: true,
+      identifyGroups: true,
+      mapPowerDynamics: true,
+    };
     if (!ctx) return defaults;
-    return { ...defaults, ...Object.fromEntries(Object.entries(ctx).filter(([, v]) => v !== undefined)) };
+    return {
+      ...defaults,
+      ...Object.fromEntries(
+        Object.entries(ctx).filter(([, v]) => v !== undefined),
+      ),
+    };
   }
 
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     await Promise.resolve();
     const processedText = this.cleanupNetworkText(output.text);
@@ -120,7 +142,7 @@ export class CharacterNetworkAgent extends BaseAgent {
         networkComprehensiveness,
         relationshipDepth,
         structuralInsight,
-        evidenceQuality
+        evidenceQuality,
       ),
       metadata: {
         ...output.metadata,
@@ -151,38 +173,114 @@ export class CharacterNetworkAgent extends BaseAgent {
 
   private assessNetworkComprehensiveness(text: string): number {
     let score = 0.5;
-    const networkTerms = ["شبكة", "علاقة", "رابط", "اتصال", "تفاعل", "ارتباط", "شخصية"];
-    score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, networkTerms)) * 0.015);
-    const aspectsTerms = ["مركزي", "هامشي", "مجموعة", "تحالف", "نفوذ", "قوة", "تأثير"];
-    score += Math.min(0.15, sumCounts(safeCountMultipleTerms(text, aspectsTerms)) * 0.02);
+    const networkTerms = [
+      "شبكة",
+      "علاقة",
+      "رابط",
+      "اتصال",
+      "تفاعل",
+      "ارتباط",
+      "شخصية",
+    ];
+    score += Math.min(
+      0.25,
+      sumCounts(safeCountMultipleTerms(text, networkTerms)) * 0.015,
+    );
+    const aspectsTerms = [
+      "مركزي",
+      "هامشي",
+      "مجموعة",
+      "تحالف",
+      "نفوذ",
+      "قوة",
+      "تأثير",
+    ];
+    score += Math.min(
+      0.15,
+      sumCounts(safeCountMultipleTerms(text, aspectsTerms)) * 0.02,
+    );
     if (text.length > 1500) score += 0.1;
     return Math.min(1, score);
   }
 
   private assessRelationshipDepth(text: string): number {
     let score = 0.5;
-    const relTypes = ["عائلية", "رومانسية", "صداقة", "عدائية", "مهنية", "سلطوية"];
-    score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, relTypes)) * 0.04);
-    const dynamicTerms = ["يتطور", "يتغير", "يتحسن", "يتدهور", "قوي", "ضعيف", "متوازن"];
-    score += Math.min(0.15, sumCounts(safeCountMultipleTerms(text, dynamicTerms)) * 0.03);
-    if (text.includes("→") || text.includes("←") || text.includes("↔")) score += 0.1;
+    const relTypes = [
+      "عائلية",
+      "رومانسية",
+      "صداقة",
+      "عدائية",
+      "مهنية",
+      "سلطوية",
+    ];
+    score += Math.min(
+      0.25,
+      sumCounts(safeCountMultipleTerms(text, relTypes)) * 0.04,
+    );
+    const dynamicTerms = [
+      "يتطور",
+      "يتغير",
+      "يتحسن",
+      "يتدهور",
+      "قوي",
+      "ضعيف",
+      "متوازن",
+    ];
+    score += Math.min(
+      0.15,
+      sumCounts(safeCountMultipleTerms(text, dynamicTerms)) * 0.03,
+    );
+    if (text.includes("→") || text.includes("←") || text.includes("↔"))
+      score += 0.1;
     return Math.min(1, score);
   }
 
   private assessStructuralInsight(text: string): number {
     let score = 0.5;
-    const structuralTerms = ["بنية", "هيكل", "نمط", "هرمية", "دائرية", "مركزية", "موزعة", "متشابكة"];
-    score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, structuralTerms)) * 0.04);
-    const insightTerms = ["يكشف", "يوضح", "يعكس", "الوظيفة", "الأهمية", "التأثير"];
-    score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, insightTerms)) * 0.03);
+    const structuralTerms = [
+      "بنية",
+      "هيكل",
+      "نمط",
+      "هرمية",
+      "دائرية",
+      "مركزية",
+      "موزعة",
+      "متشابكة",
+    ];
+    score += Math.min(
+      0.25,
+      sumCounts(safeCountMultipleTerms(text, structuralTerms)) * 0.04,
+    );
+    const insightTerms = [
+      "يكشف",
+      "يوضح",
+      "يعكس",
+      "الوظيفة",
+      "الأهمية",
+      "التأثير",
+    ];
+    score += Math.min(
+      0.25,
+      sumCounts(safeCountMultipleTerms(text, insightTerms)) * 0.03,
+    );
 
     return Math.min(1, score);
   }
 
   private assessEvidenceQuality(text: string): number {
     let score = 0.6;
-    const evidenceMarkers = ["مثل", "كما في", "نرى", "يظهر", "في المشهد", "عندما"];
-    score += Math.min(0.25, sumCounts(safeCountMultipleTerms(text, evidenceMarkers)) * 0.025);
+    const evidenceMarkers = [
+      "مثل",
+      "كما في",
+      "نرى",
+      "يظهر",
+      "في المشهد",
+      "عندما",
+    ];
+    score += Math.min(
+      0.25,
+      sumCounts(safeCountMultipleTerms(text, evidenceMarkers)) * 0.025,
+    );
     if ((text.match(/["«]/g) ?? []).length >= 2) score += 0.15;
     return Math.min(1, score);
   }
@@ -200,7 +298,7 @@ export class CharacterNetworkAgent extends BaseAgent {
 
   private countRelationships(text: string): number {
     const relMarkers = text.match(
-      /علاقة|رابط|يربط|و\s*[أ-ي]{3,}|مع\s*[أ-ي]{3,}|→|←|↔/g
+      /علاقة|رابط|يربط|و\s*[أ-ي]{3,}|مع\s*[أ-ي]{3,}|→|←|↔/g,
     );
     return relMarkers ? Math.min(relMarkers.length, 20) : 0;
   }
@@ -215,7 +313,7 @@ export class CharacterNetworkAgent extends BaseAgent {
     comprehensiveness: number,
     depth: number,
     insight: number,
-    evidence: number
+    evidence: number,
   ): string[] {
     const notesList: string[] = [];
     const avg = (comprehensiveness + depth + insight + evidence) / 4;
@@ -224,14 +322,24 @@ export class CharacterNetworkAgent extends BaseAgent {
     else if (avg > 0.65) notesList.push("تحليل جيد");
     else notesList.push("يحتاج عمق أكبر");
 
-    this.addScoreNotes(notesList, { comprehensiveness, depth, insight, evidence });
+    this.addScoreNotes(notesList, {
+      comprehensiveness,
+      depth,
+      insight,
+      evidence,
+    });
     if (output.notes) notesList.push(...output.notes);
     return notesList;
   }
 
   private addScoreNotes(
     notesList: string[],
-    scores: { comprehensiveness: number; depth: number; insight: number; evidence: number }
+    scores: {
+      comprehensiveness: number;
+      depth: number;
+      insight: number;
+      evidence: number;
+    },
   ): void {
     if (scores.comprehensiveness > 0.8) notesList.push("شمولية عالية");
     else if (scores.comprehensiveness < 0.6) notesList.push("يحتاج تغطية أوسع");
@@ -243,12 +351,21 @@ export class CharacterNetworkAgent extends BaseAgent {
   }
 
   private translateRelationType(type: string): string {
-    const types: Record<string, string> = { family: "عائلية", romantic: "رومانسية", professional: "مهنية", adversarial: "عدائية", friendship: "صداقة", mentor: "إرشادية", rivalry: "تنافسية", alliance: "تحالفية" };
+    const types: Record<string, string> = {
+      family: "عائلية",
+      romantic: "رومانسية",
+      professional: "مهنية",
+      adversarial: "عدائية",
+      friendship: "صداقة",
+      mentor: "إرشادية",
+      rivalry: "تنافسية",
+      alliance: "تحالفية",
+    };
     return types[type] ?? type;
   }
 
   protected override async getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     return NETWORK_FALLBACK_RESPONSE;

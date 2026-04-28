@@ -62,7 +62,7 @@ export const printRunReport = (report: PipelineRunReport): void => {
       Duration: index === 0 ? "—" : `${latency}ms`,
       Notes: snapshot.metadata
         ? Object.entries(snapshot.metadata)
-            .map(([key, value]) => `${key}=${value}`)
+            .map(([key, value]) => `${key}=${String(value)}`)
             .join(", ")
             .slice(0, 60)
         : "",

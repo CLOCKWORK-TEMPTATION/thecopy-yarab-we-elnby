@@ -1,4 +1,4 @@
-import { platformGenAIService } from '@/services/platform-genai.service';
+import { platformGenAIService } from "@/services/platform-genai.service";
 
 interface DesignBrief {
   projectType: string;
@@ -40,16 +40,16 @@ interface OpenMeteoForecastResponse {
 }
 
 function getOptionalString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  return typeof value === "string" ? value : undefined;
 }
 
 function getRequiredText(value: unknown): string {
-  return typeof value === 'string' ? value : '';
+  return typeof value === "string" ? value : "";
 }
 
 function toDesignBrief(value: unknown): DesignBrief {
   const record =
-    value && typeof value === 'object'
+    value && typeof value === "object"
       ? (value as Record<string, unknown>)
       : {};
 
@@ -64,14 +64,16 @@ function toDesignBrief(value: unknown): DesignBrief {
 }
 
 function isDataUrl(input: string): boolean {
-  return input.startsWith('data:');
+  return input.startsWith("data:");
 }
 
-async function resolveImageSource(input: string): Promise<{ data: string; mimeType: string }> {
+async function resolveImageSource(
+  input: string,
+): Promise<{ data: string; mimeType: string }> {
   if (isDataUrl(input)) {
-    const [metadata, payload] = input.split(',', 2);
-    const mimeType = metadata?.match(/^data:(.*?);base64$/)?.[1] ?? 'image/png';
-    return { data: payload ?? '', mimeType };
+    const [metadata, payload] = input.split(",", 2);
+    const mimeType = metadata?.match(/^data:(.*?);base64$/)?.[1] ?? "image/png";
+    return { data: payload ?? "", mimeType };
   }
 
   const response = await fetch(input);
@@ -79,110 +81,117 @@ async function resolveImageSource(input: string): Promise<{ data: string; mimeTy
     throw new Error(`Failed to fetch source image: ${response.status}`);
   }
 
-  const mimeType = response.headers.get('content-type') ?? 'image/png';
+  const mimeType = response.headers.get("content-type") ?? "image/png";
   const buffer = Buffer.from(await response.arrayBuffer());
   return {
-    data: buffer.toString('base64'),
+    data: buffer.toString("base64"),
     mimeType,
   };
 }
 
- 
 async function loadWeather(location: string): Promise<WeatherInfo> {
   if (!location.trim()) {
     return {
       temp: 0,
-      condition: 'Unavailable',
-      location: '',
-      sources: ['Weather lookup skipped: empty location'],
+      condition: "Unavailable",
+      location: "",
+      sources: ["Weather lookup skipped: empty location"],
     };
   }
 
   try {
-    const geocodeUrl = new URL('https://geocoding-api.open-meteo.com/v1/search');
-    geocodeUrl.searchParams.set('name', location);
-    geocodeUrl.searchParams.set('count', '1');
-    geocodeUrl.searchParams.set('language', 'en');
-    geocodeUrl.searchParams.set('format', 'json');
+    const geocodeUrl = new URL(
+      "https://geocoding-api.open-meteo.com/v1/search",
+    );
+    geocodeUrl.searchParams.set("name", location);
+    geocodeUrl.searchParams.set("count", "1");
+    geocodeUrl.searchParams.set("language", "en");
+    geocodeUrl.searchParams.set("format", "json");
     const geocodeResponse = await fetch(geocodeUrl);
-    const geocodeJson = (await geocodeResponse.json()) as OpenMeteoGeocodeResponse;
+    const geocodeJson =
+      (await geocodeResponse.json()) as OpenMeteoGeocodeResponse;
     const place = geocodeJson?.results?.[0];
 
     if (
       !place ||
-      typeof place.latitude !== 'number' ||
-      typeof place.longitude !== 'number'
+      typeof place.latitude !== "number" ||
+      typeof place.longitude !== "number"
     ) {
       return {
         temp: 0,
-        condition: 'Unavailable',
+        condition: "Unavailable",
         location,
-        sources: ['Weather lookup failed: location not found'],
+        sources: ["Weather lookup failed: location not found"],
       };
     }
 
-    const forecastUrl = new URL('https://api.open-meteo.com/v1/forecast');
-    forecastUrl.searchParams.set('latitude', String(place.latitude));
-    forecastUrl.searchParams.set('longitude', String(place.longitude));
-    forecastUrl.searchParams.set('current', 'temperature_2m,weather_code');
-    forecastUrl.searchParams.set('temperature_unit', 'fahrenheit');
+    const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+    forecastUrl.searchParams.set("latitude", String(place.latitude));
+    forecastUrl.searchParams.set("longitude", String(place.longitude));
+    forecastUrl.searchParams.set("current", "temperature_2m,weather_code");
+    forecastUrl.searchParams.set("temperature_unit", "fahrenheit");
     const forecastResponse = await fetch(forecastUrl);
-    const forecastJson = (await forecastResponse.json()) as OpenMeteoForecastResponse;
+    const forecastJson =
+      (await forecastResponse.json()) as OpenMeteoForecastResponse;
 
     return {
       temp: Number(forecastJson?.current?.temperature_2m) || 0,
-      condition: `Weather code ${forecastJson?.current?.weather_code ?? 'unknown'}`,
-      location: `${place.name}${place.country ? `, ${place.country}` : ''}`,
+      condition: `Weather code ${forecastJson?.current?.weather_code ?? "unknown"}`,
+      location: `${place.name}${place.country ? `, ${place.country}` : ""}`,
       sources: [geocodeUrl.toString(), forecastUrl.toString()],
     };
   } catch {
     return {
       temp: 0,
-      condition: 'Unavailable',
+      condition: "Unavailable",
       location,
-      sources: ['Weather lookup failed'],
+      sources: ["Weather lookup failed"],
     };
   }
 }
 
 export class StyleistService {
-  async execute(request: StyleistActionRequest): Promise<Record<string, unknown>> {
+  async execute(
+    request: StyleistActionRequest,
+  ): Promise<Record<string, unknown>> {
     const data = request.data ?? {};
 
     switch (request.action) {
-      case 'generateDesign':
+      case "generateDesign":
         return this.generateDesign(toDesignBrief(data["brief"]));
-      case 'transcribeAudio':
+      case "transcribeAudio":
         return this.transcribeAudio(
           getOptionalString(data["audioBase64"]),
-          getOptionalString(data["mimeType"])
+          getOptionalString(data["mimeType"]),
         );
-      case 'analyzeVideo':
+      case "analyzeVideo":
         return this.analyzeVideo(
           getOptionalString(data["videoBase64"]),
-          getOptionalString(data["mimeType"])
+          getOptionalString(data["mimeType"]),
         );
-      case 'generateGarment':
+      case "generateGarment":
         return this.generateGarment(
           getOptionalString(data["prompt"]),
-          getOptionalString(data["size"])
+          getOptionalString(data["size"]),
         );
-      case 'generateVirtualFit':
+      case "generateVirtualFit":
         return this.generateVirtualFit(data);
-      case 'editGarment':
+      case "editGarment":
         return this.editGarment(
           getOptionalString(data["imageUrl"]),
-          getOptionalString(data["editPrompt"])
+          getOptionalString(data["editPrompt"]),
         );
-      case 'refineScreenplay':
+      case "refineScreenplay":
         return this.refineScreenplay(data["lines"]);
       default:
-        throw new Error('Unknown styleIST action');
+        throw new Error("Unknown styleIST action");
     }
   }
 
-  private async generateDesign(brief: DesignBrief): Promise<Record<string, unknown>> {
-    const weather = await loadWeather(brief?.filmingLocation || '');
+  private async generateDesign(
+    brief: DesignBrief,
+  ): Promise<Record<string, unknown>> {
+    const weather = await loadWeather(brief?.filmingLocation || "");
     const prompt = `You are an expert costume stylist for film and television.
 
 Return ONLY valid JSON with this shape:
@@ -213,21 +222,23 @@ Use professional Egyptian Arabic for content values. Reflect the character psych
 Brief:
 ${JSON.stringify({ ...brief, weather }, null, 2)}`;
 
-    const result = await platformGenAIService.generateJson<Record<string, unknown>>(prompt, {
+    const result = await platformGenAIService.generateJson<
+      Record<string, unknown>
+    >(prompt, {
       temperature: 0.45,
       maxOutputTokens: 8192,
     });
 
     const imagePrompt =
-      typeof result["imagePrompt"] === 'string' && result["imagePrompt"].trim()
+      typeof result["imagePrompt"] === "string" && result["imagePrompt"].trim()
         ? result["imagePrompt"]
         : `Cinematic costume concept art for ${brief.characterProfile}. Scene context: ${brief.sceneContext}.`;
 
     const conceptArtUrl = await platformGenAIService.generateImage(imagePrompt);
 
     return {
-      lookTitle: result["lookTitle"] ?? 'تصميم مخصص',
-      dramaticDescription: result["dramaticDescription"] ?? '',
+      lookTitle: result["lookTitle"] ?? "تصميم مخصص",
+      dramaticDescription: result["dramaticDescription"] ?? "",
       breakdown: result["breakdown"] ?? {},
       rationale: Array.isArray(result["rationale"]) ? result["rationale"] : [],
       productionNotes: result["productionNotes"] ?? {},
@@ -237,51 +248,62 @@ ${JSON.stringify({ ...brief, weather }, null, 2)}`;
     };
   }
 
-  private async transcribeAudio(audioBase64?: string, mimeType?: string): Promise<Record<string, unknown>> {
+  private async transcribeAudio(
+    audioBase64?: string,
+    mimeType?: string,
+  ): Promise<Record<string, unknown>> {
     if (!audioBase64 || !mimeType) {
-      throw new Error('Audio payload is required.');
+      throw new Error("Audio payload is required.");
     }
 
     const text = await platformGenAIService.generateTextFromMedia(
-      'Transcribe this audio accurately and focus on costume-design or creative notes.',
+      "Transcribe this audio accurately and focus on costume-design or creative notes.",
       { data: audioBase64, mimeType },
-      { temperature: 0.1, maxOutputTokens: 4096 }
+      { temperature: 0.1, maxOutputTokens: 4096 },
     );
 
     return { text };
   }
 
-  private async analyzeVideo(videoBase64?: string, mimeType?: string): Promise<Record<string, unknown>> {
+  private async analyzeVideo(
+    videoBase64?: string,
+    mimeType?: string,
+  ): Promise<Record<string, unknown>> {
     if (!videoBase64 || !mimeType) {
-      throw new Error('Video payload is required.');
+      throw new Error("Video payload is required.");
     }
 
     const analysis = await platformGenAIService.generateTextFromMedia(
-      'Analyze this video for costume design inspiration. Describe colors, textures, silhouettes, movement, and mood in Egyptian Arabic.',
+      "Analyze this video for costume design inspiration. Describe colors, textures, silhouettes, movement, and mood in Egyptian Arabic.",
       { data: videoBase64, mimeType },
-      { temperature: 0.35, maxOutputTokens: 4096 }
+      { temperature: 0.35, maxOutputTokens: 4096 },
     );
 
     return { analysis };
   }
 
-  private async generateGarment(prompt?: string, size?: string): Promise<Record<string, unknown>> {
+  private async generateGarment(
+    prompt?: string,
+    size?: string,
+  ): Promise<Record<string, unknown>> {
     if (!prompt?.trim()) {
-      throw new Error('Garment prompt is required.');
+      throw new Error("Garment prompt is required.");
     }
 
     const description = await platformGenAIService.generateText(
-      `Describe in Egyptian Arabic a production-ready garment based on this prompt: ${prompt}. Mention fabric, silhouette, and styling notes. Requested size tier: ${size ?? '2K'}.`,
-      { temperature: 0.5, maxOutputTokens: 2048 }
+      `Describe in Egyptian Arabic a production-ready garment based on this prompt: ${prompt}. Mention fabric, silhouette, and styling notes. Requested size tier: ${size ?? "2K"}.`,
+      { temperature: 0.5, maxOutputTokens: 2048 },
     );
     const imageUrl = await platformGenAIService.generateImage(
-      `${prompt}. Fashion product shot, transparent background, premium studio lighting.`
+      `${prompt}. Fashion product shot, transparent background, premium studio lighting.`,
     );
 
     return { description, imageUrl };
   }
 
-  private async generateVirtualFit(data?: Record<string, unknown>): Promise<Record<string, unknown>> {
+  private async generateVirtualFit(
+    data?: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
     const prompt = `You are a wardrobe fitting analyst. Based on this payload, estimate fit compatibility and movement safety.
 
 Return ONLY valid JSON:
@@ -301,17 +323,23 @@ ${JSON.stringify(data ?? {}, null, 2)}`;
     });
   }
 
-  private async editGarment(imageUrl?: string, editPrompt?: string): Promise<Record<string, unknown>> {
+  private async editGarment(
+    imageUrl?: string,
+    editPrompt?: string,
+  ): Promise<Record<string, unknown>> {
     if (!imageUrl || !editPrompt) {
-      throw new Error('Source image and edit prompt are required.');
+      throw new Error("Source image and edit prompt are required.");
     }
 
     const source = await resolveImageSource(imageUrl);
     const description = await platformGenAIService.generateText(
       `Describe in Egyptian Arabic the requested wardrobe edit and the intended visual result: ${editPrompt}`,
-      { temperature: 0.35, maxOutputTokens: 2048 }
+      { temperature: 0.35, maxOutputTokens: 2048 },
     );
-    const editedImageUrl = await platformGenAIService.editImage(editPrompt, source);
+    const editedImageUrl = await platformGenAIService.editImage(
+      editPrompt,
+      source,
+    );
 
     return {
       description,
@@ -319,7 +347,9 @@ ${JSON.stringify(data ?? {}, null, 2)}`;
     };
   }
 
-  private async refineScreenplay(lines?: unknown): Promise<Record<string, unknown>> {
+  private async refineScreenplay(
+    lines?: unknown,
+  ): Promise<Record<string, unknown>> {
     const prompt = `You are an Arabic screenplay formatter.
 
 Return ONLY valid JSON:

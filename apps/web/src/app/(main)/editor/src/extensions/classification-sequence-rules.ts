@@ -62,7 +62,7 @@ export interface ClassificationSequenceSuggestionFeatures {
 }
 
 export const suggestTypeFromClassificationSequence = (
-  prevType: ElementType | string,
+  prevType: string,
   features: ClassificationSequenceSuggestionFeatures
 ): ElementType | null => {
   if (prevType === "character") {

@@ -283,12 +283,18 @@ function ShotPlanningCard({
         <div className="grid gap-4 md:grid-cols-2">
           {/* نوع اللقطة */}
           <div className="space-y-2 text-right">
-            <label className="text-sm font-medium flex items-center justify-end gap-2">
+            <label
+              htmlFor="shot-planning-shot-type"
+              className="text-sm font-medium flex items-center justify-end gap-2"
+            >
               <Video className="w-4 h-4" />
               نوع اللقطة
             </label>
             <Select value={shotType} onValueChange={setShotType}>
-              <SelectTrigger data-testid="select-shot-type">
+              <SelectTrigger
+                id="shot-planning-shot-type"
+                data-testid="select-shot-type"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -305,12 +311,18 @@ function ShotPlanningCard({
 
           {/* زاوية الكاميرا */}
           <div className="space-y-2 text-right">
-            <label className="text-sm font-medium flex items-center justify-end gap-2">
+            <label
+              htmlFor="shot-planning-camera-angle"
+              className="text-sm font-medium flex items-center justify-end gap-2"
+            >
               <Maximize2 className="w-4 h-4" />
               زاوية الكاميرا
             </label>
             <Select value={cameraAngle} onValueChange={setCameraAngle}>
-              <SelectTrigger data-testid="select-camera-angle">
+              <SelectTrigger
+                id="shot-planning-camera-angle"
+                data-testid="select-camera-angle"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -325,12 +337,18 @@ function ShotPlanningCard({
 
           {/* حركة الكاميرا */}
           <div className="space-y-2 text-right">
-            <label className="text-sm font-medium flex items-center justify-end gap-2">
+            <label
+              htmlFor="shot-planning-camera-movement"
+              className="text-sm font-medium flex items-center justify-end gap-2"
+            >
               <Move className="w-4 h-4" />
               حركة الكاميرا
             </label>
             <Select value={cameraMovement} onValueChange={setCameraMovement}>
-              <SelectTrigger data-testid="select-camera-movement">
+              <SelectTrigger
+                id="shot-planning-camera-movement"
+                data-testid="select-camera-movement"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -346,12 +364,18 @@ function ShotPlanningCard({
 
           {/* الإضاءة */}
           <div className="space-y-2 text-right">
-            <label className="text-sm font-medium flex items-center justify-end gap-2">
+            <label
+              htmlFor="shot-planning-lighting"
+              className="text-sm font-medium flex items-center justify-end gap-2"
+            >
               <Sun className="w-4 h-4" />
               الإضاءة
             </label>
             <Select value={lighting} onValueChange={setLighting}>
-              <SelectTrigger data-testid="select-lighting">
+              <SelectTrigger
+                id="shot-planning-lighting"
+                data-testid="select-lighting"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

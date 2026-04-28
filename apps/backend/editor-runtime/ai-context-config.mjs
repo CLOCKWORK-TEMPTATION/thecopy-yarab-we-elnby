@@ -13,4 +13,9 @@ const resolveGeminiConfig = (env = process.env) => {
   return { apiKey, model, enabled };
 };
 
-export { DEFAULT_MODEL, MAX_LINES_PER_REQUEST, _REQUEST_TIMEOUT_MS, resolveGeminiConfig };
+export {
+  DEFAULT_MODEL,
+  MAX_LINES_PER_REQUEST,
+  _REQUEST_TIMEOUT_MS,
+  resolveGeminiConfig,
+};

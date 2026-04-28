@@ -9,7 +9,6 @@ import { isRedisEnabled } from "../config/redis-gate.js";
 import { getRedisConfig } from "../config/redis.config.js";
 import { db } from "../db/index.js";
 
-
 export interface HealthCheck {
   status: "healthy" | "degraded" | "unhealthy";
   required?: boolean;
@@ -64,7 +63,8 @@ export async function checkDatabase(): Promise<HealthCheck> {
     return {
       status: "unhealthy",
       required: true,
-      error: error instanceof Error ? error.message : "Database connection failed",
+      error:
+        error instanceof Error ? error.message : "Database connection failed",
     };
   }
 }
@@ -187,7 +187,9 @@ export function checkEnvironment(): HealthCheck {
       Boolean(process.env.GEMINI_API_KEY?.trim()) ||
       Boolean(process.env.GOOGLE_GENAI_API_KEY?.trim());
 
-    const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+    const missingVars = requiredEnvVars.filter(
+      (varName) => !process.env[varName],
+    );
     if (!hasGeminiProvider) {
       missingVars.push("GEMINI_API_KEY|GOOGLE_GENAI_API_KEY");
     }
@@ -207,7 +209,8 @@ export function checkEnvironment(): HealthCheck {
     logger.error("Environment health check failed", { error });
     return {
       status: "unhealthy",
-      error: error instanceof Error ? error.message : "Environment check failed",
+      error:
+        error instanceof Error ? error.message : "Environment check failed",
     };
   }
 }

@@ -31,7 +31,9 @@ describe("SceneGeneratorAgent Performance", () => {
       agentInternals().countCharacters(sampleText);
     }
     const end = performance.now();
-    logger.info(`Time taken for ${iterations} iterations (countCharacters): ${(end - start).toFixed(2)} ms`);
+    logger.info(
+      `Time taken for ${iterations} iterations (countCharacters): ${(end - start).toFixed(2)} ms`,
+    );
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -42,7 +44,9 @@ describe("SceneGeneratorAgent Performance", () => {
       await agentInternals().assessDialogueQuality(sampleText);
     }
     const end = performance.now();
-    logger.info(`Time taken for ${iterations} iterations (assessDialogueQuality): ${(end - start).toFixed(2)} ms`);
+    logger.info(
+      `Time taken for ${iterations} iterations (assessDialogueQuality): ${(end - start).toFixed(2)} ms`,
+    );
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -53,7 +57,9 @@ describe("SceneGeneratorAgent Performance", () => {
       await agentInternals().assessPacing(sampleText);
     }
     const end = performance.now();
-    logger.info(`Time taken for ${iterations} iterations (assessPacing): ${(end - start).toFixed(2)} ms`);
+    logger.info(
+      `Time taken for ${iterations} iterations (assessPacing): ${(end - start).toFixed(2)} ms`,
+    );
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 
@@ -64,7 +70,9 @@ describe("SceneGeneratorAgent Performance", () => {
       agentInternals().calculateDialoguePercentage(sampleText);
     }
     const end = performance.now();
-    logger.info(`Time taken for ${iterations} iterations (calculateDialoguePercentage): ${(end - start).toFixed(2)} ms`);
+    logger.info(
+      `Time taken for ${iterations} iterations (calculateDialoguePercentage): ${(end - start).toFixed(2)} ms`,
+    );
     expect(end - start).toBeGreaterThan(0);
   }, 30000);
 });

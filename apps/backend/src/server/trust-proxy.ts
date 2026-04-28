@@ -1,17 +1,17 @@
-import { env } from '@/config/env';
+import { env } from "@/config/env";
 
 export function resolveTrustProxySetting(): boolean | number | string {
-  const configuredValue = process.env['TRUST_PROXY']?.trim();
+  const configuredValue = process.env["TRUST_PROXY"]?.trim();
 
   if (!configuredValue) {
-    return env.NODE_ENV === 'production' ? 1 : false;
+    return env.NODE_ENV === "production" ? 1 : false;
   }
 
-  if (configuredValue === 'true') {
+  if (configuredValue === "true") {
     return true;
   }
 
-  if (configuredValue === 'false') {
+  if (configuredValue === "false") {
     return false;
   }
 

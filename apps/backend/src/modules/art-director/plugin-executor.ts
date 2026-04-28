@@ -4,7 +4,7 @@ type PluginConstructor<T extends Plugin> = new () => T;
 
 export async function runPlugin<T extends Plugin>(
   PluginClass: PluginConstructor<T>,
-  input: PluginInput
+  input: PluginInput,
 ): Promise<PluginOutput> {
   const plugin = new PluginClass();
   await plugin.initialize();

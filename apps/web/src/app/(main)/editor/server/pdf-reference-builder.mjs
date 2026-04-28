@@ -163,42 +163,6 @@ export const renderPdfPages = async ({ pdfPath, dpi }) => {
   return sorted.map((name) => join(renderRoot, name));
 };
 
-const _renderFirstPdfPage = async ({ pdfPath, dpi }) => {
-  const pdftoppmCommand = await ensurePdftoppmAvailable();
-  const renderRoot = await mkdtemp(join(tmpdir(), "mo7rer-pdf-vision-probe-"));
-  const prefix = join(renderRoot, "probe");
-
-  await execFileAsync(
-    pdftoppmCommand,
-    [
-      "-png",
-      "-singlefile",
-      "-f",
-      "1",
-      "-l",
-      "1",
-      "-r",
-      String(dpi),
-      resolve(pdfPath),
-      prefix,
-    ],
-    { timeout: 60_000, maxBuffer: 16 * 1024 * 1024 }
-  );
-
-  const files = await readdir(renderRoot);
-  const firstPng = files.find((name) => name.toLowerCase().endsWith(".png"));
-  if (!firstPng) {
-    throw new Error(
-      "[PDF_OCR_VISION_PREFLIGHT_RENDER_FAILED] Vision preflight failed: unable to render first page image."
-    );
-  }
-
-  return {
-    renderRoot,
-    imagePath: join(renderRoot, firstPng),
-  };
-};
-
 const applyPatchToPageText = (pageText, patch) => {
   const lines = normalizeText(pageText).split("\n");
   const lineIndex = Math.max(0, Number(patch.line) - 1);
@@ -241,8 +205,10 @@ export const buildPdfReference = async ({
   compare,
   judge,
   renderDpi = 300,
-  visionPreflightDone: _visionPreflightDone = false,
+  visionPreflightDone = false,
 }) => {
+  void visionPreflightDone;
+
   if (externalReferencePath) {
     const referenceText = await readFile(
       resolve(externalReferencePath),

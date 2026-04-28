@@ -1,6 +1,5 @@
 "use client";
 
-import { logger } from "@/lib/ai/utils/logger";
 /**
  * الصفحة: styleIST
  * الهوية: استوديو أزياء/ملابس سينمائية بطابع editorial داكن ولمسة ذهبية موحدة مع المنصة
@@ -20,6 +19,7 @@ import "./cinefit.css";
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { NoiseBackground } from "@/components/aceternity/noise-background";
+import { logger } from "@/lib/ai/utils/logger";
 
 const shellStyle: CSSProperties = {
   ["--page-accent" as string]: "var(--brand-bronze, #746842)",

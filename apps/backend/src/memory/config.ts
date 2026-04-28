@@ -33,7 +33,8 @@ export interface MemoryConfig {
 }
 
 export const defaultConfig: MemoryConfig = {
-  geminiApiKey: (process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENAI_API_KEY) ?? "",
+  geminiApiKey:
+    process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENAI_API_KEY ?? "",
   defaultEmbeddingModel: "gemini-embedding-2-preview",
   defaultDimensionality: 1536,
 

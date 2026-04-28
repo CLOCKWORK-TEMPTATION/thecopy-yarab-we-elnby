@@ -1,5 +1,5 @@
-import { MultiAgentDebateSystem } from "../constitutional/multi-agent-debate";
-import { getUncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
+import { MultiAgentDebateSystem } from "../../constitutional/multi-agent-debate";
+import { getUncertaintyQuantificationEngine } from "../../constitutional/uncertainty-quantification";
 
 import { DebateConductor } from "./debate-conductor";
 import { DiagnosticsGenerator } from "./diagnostics-generator";
@@ -7,7 +7,16 @@ import { PlotPredictor } from "./plot-predictor";
 import { TreatmentPlanner } from "./treatment-planner";
 import { UncertaintyQuantifier } from "./uncertainty-quantifier";
 
-import type { Station6Output } from "./types";
+import type { GeminiService } from "../gemini-service";
+import type { JsonRecord, Station6Output } from "./types";
+
+// شكل مدخلات المحطات السابقة المُمرَّر لمحطة 6 — متطابق مع باقي ملفات station6
+type PreviousStationsOutput = Partial<
+  Record<
+    "station1" | "station2" | "station3" | "station4" | "station5",
+    JsonRecord
+  >
+>;
 
 export class Station6Diagnostics {
   private diagnosticsGenerator: DiagnosticsGenerator;
@@ -16,7 +25,7 @@ export class Station6Diagnostics {
   private plotPredictor: PlotPredictor;
   private uncertaintyQuantifier: UncertaintyQuantifier;
 
-  constructor(private geminiService: GeminiService) {
+  constructor(geminiService: GeminiService) {
     this.diagnosticsGenerator = new DiagnosticsGenerator(geminiService);
     this.debateConductor = new DebateConductor(
       geminiService,

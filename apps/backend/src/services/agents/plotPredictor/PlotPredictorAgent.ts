@@ -25,7 +25,7 @@ export class PlotPredictorAgent extends BaseAgent {
 - عرض المسارات البديلة بوضوح مع شرح المنطق وراء كل تنبؤ
 - تزويد الكتاب والمبدعين ببصيرة ثاقبة ومبتكرة ومبنية على البيانات
 
-مخرجاتك يجب أن تكون نصية فقط، واضحة ومباشرة بدون أي JSON أو كتل كود.`
+مخرجاتك يجب أن تكون نصية فقط، واضحة ومباشرة بدون أي JSON أو كتل كود.`,
     );
 
     this.confidenceFloor = 0.78;
@@ -46,20 +46,22 @@ ${userInput}
     // إضافة السياق من المحطات السابقة
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const previousStations = (contextObj)["previousStations"] as Record<string, string> | undefined;
+    const previousStations = contextObj["previousStations"] as
+      | Record<string, string>
+      | undefined;
     if (previousStations) {
       prompt += `## السياق من المحطات السابقة:\n`;
 
-      if (previousStations['analysis']) {
-        prompt += `\n### التحليل الأولي:\n${previousStations['analysis']}\n`;
+      if (previousStations["analysis"]) {
+        prompt += `\n### التحليل الأولي:\n${previousStations["analysis"]}\n`;
       }
 
-      if (previousStations['characterAnalysis']) {
-        prompt += `\n### تحليل الشخصيات:\n${previousStations['characterAnalysis']}\n`;
+      if (previousStations["characterAnalysis"]) {
+        prompt += `\n### تحليل الشخصيات:\n${previousStations["characterAnalysis"]}\n`;
       }
 
-      if (previousStations['thematicAnalysis']) {
-        prompt += `\n### التحليل الموضوعي:\n${previousStations['thematicAnalysis']}\n`;
+      if (previousStations["thematicAnalysis"]) {
+        prompt += `\n### التحليل الموضوعي:\n${previousStations["thematicAnalysis"]}\n`;
       }
     }
 
@@ -90,7 +92,7 @@ ${userInput}
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
 
@@ -126,7 +128,7 @@ ${userInput}
    * استجابة احتياطية في حالة الفشل
    */
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`# تنبؤات الحبكة - وضع الطوارئ
 

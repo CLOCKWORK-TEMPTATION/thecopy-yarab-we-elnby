@@ -39,7 +39,9 @@ describe("ProducibilityAnalyzerAgent", () => {
       input: "حلل قابلية الإنتاج للمشروع",
     });
 
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("تحليل قابلية الإنتاج");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "تحليل قابلية الإنتاج",
+    );
     expect(result.text).toContain("تحليل إنتاجي");
     expect(result.confidence).toBe(0.78);
     expect(result.notes).toEqual(["تقدير إنتاجي متزن"]);

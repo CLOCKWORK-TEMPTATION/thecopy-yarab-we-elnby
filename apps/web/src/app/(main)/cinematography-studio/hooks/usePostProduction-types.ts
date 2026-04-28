@@ -1,6 +1,6 @@
 // Types for usePostProduction hook
 
-import type { FootageAnalysisSummary } from "../../../types";
+import type { FootageAnalysisSummary } from "../types";
 
 /**
  * نوع المشهد للتدريج اللوني

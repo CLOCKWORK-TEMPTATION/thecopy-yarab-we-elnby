@@ -88,118 +88,113 @@ function exportStationToFile(
 /**
  * Get full text output from station result
  */
+type StationTextBuilder = (
+  record: Record<string, unknown>,
+  data: unknown
+) => string;
+
+const formatUnknownList = (value: unknown): string => {
+  if (!Array.isArray(value)) {
+    return toText(value);
+  }
+
+  return value.map((item: unknown) => `- ${toText(item)}`).join("\n");
+};
+
+const buildStation1Text: StationTextBuilder = (record) => {
+  let text = "## الشخصيات الرئيسية:\n";
+  text += formatUnknownList(record["majorCharacters"]);
+  const narrativeStyleAnalysis = toRecord(record["narrativeStyleAnalysis"]);
+  text += "\n\n## التحليل السردي:\n";
+  text += `النغمة العامة: ${toText(narrativeStyleAnalysis["overallTone"])}\n`;
+  text += `تحليل الوتيرة: ${toText(narrativeStyleAnalysis["pacingAnalysis"])}\n`;
+  text += `أسلوب اللغة: ${toText(narrativeStyleAnalysis["languageStyle"])}\n`;
+  return text;
+};
+
+const buildStation2Text: StationTextBuilder = (record) => {
+  let text = "## بيان القصة:\n";
+  text += toText(record["storyStatement"]) + "\n\n";
+  text += "## النوع الهجين:\n";
+  text += toText(
+    isRecord(record["hybridGenre"])
+      ? record["hybridGenre"]["genre"]
+      : record["hybridGenre"]
+  );
+  return text;
+};
+
+const buildStation3Text: StationTextBuilder = (record) => {
+  const networkSummary = toRecord(record["networkSummary"]);
+  let text = "## ملخص الشبكة:\n";
+  text += `عدد الشخصيات: ${toText(networkSummary["charactersCount"])}\n`;
+  text += `عدد العلاقات: ${toText(networkSummary["relationshipsCount"])}\n`;
+  text += `عدد الصراعات: ${toText(networkSummary["conflictsCount"])}\n`;
+  if (record["conflictNetwork"]) {
+    text += "\n## شبكة الصراع:\n" + toText(record["conflictNetwork"]);
+  }
+  return text;
+};
+
+const buildStation4Text: StationTextBuilder = (record) => {
+  const efficiencyMetrics = toRecord(record["efficiencyMetrics"]);
+  const recommendations = toRecord(record["recommendations"]);
+  let text = "## مقاييس الكفاءة:\n";
+  text += `الدرجة الإجمالية: ${toText(efficiencyMetrics["overallEfficiencyScore"])}/100\n\n`;
+  if (recommendations["priorityActions"]) {
+    text += "## التوصيات ذات الأولوية:\n";
+    text += formatUnknownList(recommendations["priorityActions"]);
+  }
+  return text;
+};
+
+const buildStation5Text: StationTextBuilder = (record, data) =>
+  `## التحليل الديناميكي:\n${toText(record["dynamicAnalysisResults"] ?? data)}`;
+
+const buildStation6Text: StationTextBuilder = (record) => {
+  const diagnosticsReport = toRecord(record["diagnosticsReport"]);
+  let text = "## تقرير التشخيص:\n";
+  text += `درجة الصحة العامة: ${toText(diagnosticsReport["overallHealthScore"])}/100\n\n`;
+  if (diagnosticsReport["criticalIssues"]) {
+    text += "## المشاكل الحرجة:\n";
+    text += formatUnknownList(
+      Array.isArray(diagnosticsReport["criticalIssues"])
+        ? diagnosticsReport["criticalIssues"].map((issue: unknown) => {
+            const issueRecord = toRecord(issue);
+            return issueRecord["description"] ?? issue;
+          })
+        : diagnosticsReport["criticalIssues"]
+    );
+  }
+  return text;
+};
+
+const buildStation7Text: StationTextBuilder = (record, data) => {
+  const finalReport = toRecord(record["finalReport"]);
+  return `## التقرير النهائي:\n${toText(finalReport["executiveSummary"] ?? record["executiveSummary"] ?? data)}`;
+};
+
+const stationTextBuilders: Record<number, StationTextBuilder> = {
+  1: buildStation1Text,
+  2: buildStation2Text,
+  3: buildStation3Text,
+  4: buildStation4Text,
+  5: buildStation5Text,
+  6: buildStation6Text,
+  7: buildStation7Text,
+};
+
 function getStationFullText(id: number, data: unknown): string {
   if (!data) return "";
 
-  // If data is already a string, return it
   if (typeof data === "string") {
     return data;
   }
 
   const record = toRecord(data);
-
-  // Try to extract text from common structures
-  let text = "";
-
-  switch (id) {
-    case 1: {
-      text += "## الشخصيات الرئيسية:\n";
-      if (Array.isArray(record.majorCharacters)) {
-        text += record.majorCharacters
-          .map((character: unknown) => `- ${toText(character)}`)
-          .join("\n");
-      } else {
-        text += toText(record.majorCharacters);
-      }
-      const narrativeStyleAnalysis = toRecord(record.narrativeStyleAnalysis);
-      text += "\n\n## التحليل السردي:\n";
-      text += `النغمة العامة: ${toText(narrativeStyleAnalysis.overallTone)}\n`;
-      text += `تحليل الوتيرة: ${toText(narrativeStyleAnalysis.pacingAnalysis)}\n`;
-      text += `أسلوب اللغة: ${toText(narrativeStyleAnalysis.languageStyle)}\n`;
-      break;
-    }
-
-    case 2: {
-      text += "## بيان القصة:\n";
-      text += toText(record.storyStatement) + "\n\n";
-      text += "## النوع الهجين:\n";
-      text += toText(
-        isRecord(record.hybridGenre)
-          ? record.hybridGenre.genre
-          : record.hybridGenre
-      );
-      break;
-    }
-
-    case 3: {
-      const networkSummary = toRecord(record.networkSummary);
-      text += "## ملخص الشبكة:\n";
-      text += `عدد الشخصيات: ${toText(networkSummary.charactersCount)}\n`;
-      text += `عدد العلاقات: ${toText(networkSummary.relationshipsCount)}\n`;
-      text += `عدد الصراعات: ${toText(networkSummary.conflictsCount)}\n`;
-      if (record.conflictNetwork) {
-        text += "\n## شبكة الصراع:\n" + toText(record.conflictNetwork);
-      }
-      break;
-    }
-
-    case 4: {
-      const efficiencyMetrics = toRecord(record.efficiencyMetrics);
-      const recommendations = toRecord(record.recommendations);
-      text += "## مقاييس الكفاءة:\n";
-      text += `الدرجة الإجمالية: ${toText(efficiencyMetrics.overallEfficiencyScore)}/100\n\n`;
-      if (recommendations.priorityActions) {
-        text += "## التوصيات ذات الأولوية:\n";
-        if (Array.isArray(recommendations.priorityActions)) {
-          text += recommendations.priorityActions
-            .map((action: unknown) => `- ${toText(action)}`)
-            .join("\n");
-        } else {
-          text += toText(recommendations.priorityActions);
-        }
-      }
-      break;
-    }
-
-    case 5: {
-      text += "## التحليل الديناميكي:\n";
-      text += toText(record.dynamicAnalysisResults ?? data);
-      break;
-    }
-
-    case 6: {
-      const diagnosticsReport = toRecord(record.diagnosticsReport);
-      text += "## تقرير التشخيص:\n";
-      text += `درجة الصحة العامة: ${toText(diagnosticsReport.overallHealthScore)}/100\n\n`;
-      if (diagnosticsReport.criticalIssues) {
-        text += "## المشاكل الحرجة:\n";
-        if (Array.isArray(diagnosticsReport.criticalIssues)) {
-          text += diagnosticsReport.criticalIssues
-            .map((issue: unknown) => {
-              const issueRecord = toRecord(issue);
-              return `- ${toText(issueRecord.description ?? issue)}`;
-            })
-            .join("\n");
-        } else {
-          text += toText(diagnosticsReport.criticalIssues);
-        }
-      }
-      break;
-    }
-
-    case 7: {
-      const finalReport = toRecord(record.finalReport);
-      text += "## التقرير النهائي:\n";
-      text += toText(
-        finalReport.executiveSummary ?? record.executiveSummary ?? data
-      );
-      break;
-    }
-
-    default:
-      // Try to convert entire object to text
-      text = JSON.stringify(data, null, 2);
-  }
+  const text = (
+    stationTextBuilders[id] ?? (() => JSON.stringify(data, null, 2))
+  )(record, data);
 
   return text || toText(data);
 }

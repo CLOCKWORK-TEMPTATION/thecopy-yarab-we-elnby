@@ -48,7 +48,7 @@ export function NarrativeTimeline({
   const groupedScenes = scenes.reduce(
     (acc, scene) => {
       const branch = scene.branch ?? "main";
-      if (!acc[branch]) acc[branch] = [];
+      acc[branch] ??= [];
       acc[branch].push(scene);
       return acc;
     },
@@ -165,8 +165,15 @@ export function NarrativeTimeline({
 
                         {/* Scene card */}
                         <div
+                          role="button"
+                          tabIndex={0}
                           className="p-3 rounded-lg border border-[var(--color-surface)] hover:border-[var(--color-accent-weak)] bg-[var(--color-panel)] cursor-pointer transition-all"
                           onClick={() => onSceneClick?.(scene.id)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              onSceneClick?.(scene.id);
+                            }
+                          }}
                           draggable={mode === "nonlinear"}
                           onDragStart={() => setDraggedScene(scene)}
                           onDragEnd={() => setDraggedScene(null)}

@@ -58,7 +58,7 @@ export function PerformanceOptimizer() {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               const img = entry.target as HTMLImageElement;
-              const src = img.dataset.src;
+              const src = img.dataset["src"];
 
               if (src) {
                 img.src = src;

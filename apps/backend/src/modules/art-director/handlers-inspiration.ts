@@ -18,7 +18,7 @@ function extractStringArray(value: unknown): string[] {
 function buildAnalysisResponse(
   analysis: Record<string, unknown>,
   mood: string,
-  era: string
+  era: string,
 ) {
   const moodValue = asString(analysis["mood"]) || mood || "neutral";
   const palette = extractStringArray(analysis["colorPalette"]);
@@ -40,7 +40,7 @@ function buildAnalysisResponse(
 }
 
 export async function handleInspirationAnalyze(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const sceneDescription = asString(payload["sceneDescription"]);
   const mood = asString(payload["mood"]);
@@ -70,7 +70,7 @@ export async function handleInspirationAnalyze(
 }
 
 export async function handleInspirationPalette(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const mood = asString(payload["mood"]) || "neutral";
   const era = asString(payload["era"]) || "contemporary";
@@ -102,7 +102,7 @@ export async function handleInspirationPalette(
       name: `${mood}-accent`,
       nameAr: `إبراز ${buildMoodThemeLabel(mood)}`,
       colors: palette.map((color, index) =>
-        index % 2 === 0 ? color : "#F5F1E8"
+        index % 2 === 0 ? color : "#F5F1E8",
       ),
     },
   ];

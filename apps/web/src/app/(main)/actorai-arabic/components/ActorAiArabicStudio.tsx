@@ -6,11 +6,9 @@
  * يتضمن: تحليل النصوص، شريك المشهد، تمارين الصوت، التحليل البصري، وغيرها
  */
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 import { GESTURE_CONTROLS } from "../types/constants";
-
-import { VoiceCoach } from "./VoiceCoach";
 
 import {
   useStudioState,
@@ -79,7 +77,7 @@ export const ActorAiArabicStudio: React.FC = () => {
     chatMessages,
     userInput,
     setUserInput,
-    chatEndRef,
+    chatEndRef: _chatEndRef,
     startRehearsal,
     sendMessage,
     endRehearsal,
@@ -154,7 +152,7 @@ export const ActorAiArabicStudio: React.FC = () => {
   const [activeGestures, setActiveGestures] =
     useState<GestureControl[]>(GESTURE_CONTROLS);
   const [arSessionActive, setArSessionActive] = useState(false);
-  const [visionProConnected, setVisionProConnected] = useState(false);
+  const [visionProConnected, _setVisionProConnected] = useState(false);
 
   // ==================== عرض الإشعارات ====================
 
@@ -238,7 +236,8 @@ export const ActorAiArabicStudio: React.FC = () => {
       webcamAnalysisTime={webcamAnalysisTime}
       webcamAnalysisResult={webcamAnalysisResult}
       webcamPermission={webcamPermission}
-      webcamEngine={webcamEngine}
+      videoRef={webcamEngine.videoRef}
+      canvasRef={webcamEngine.canvasRef}
       requestWebcamPermission={requestWebcamPermission}
       stopWebcam={stopWebcam}
       startWebcamAnalysis={startWebcamAnalysis}

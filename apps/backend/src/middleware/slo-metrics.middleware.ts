@@ -9,28 +9,28 @@
  * - Database Availability (99.95% target)
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { Counter, Gauge } from 'prom-client';
+import { Request, Response, NextFunction } from "express";
+import { Counter, Gauge } from "prom-client";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { register } from './metrics.middleware';
+import { register } from "./metrics.middleware";
 
 // ===== SLO Configuration =====
 
 export const SLO_TARGETS = {
   api: {
-    availability: 0.999,        // 99.9%
-    latencyP95Ms: 500,          // 500ms
+    availability: 0.999, // 99.9%
+    latencyP95Ms: 500, // 500ms
   },
   auth: {
-    successRate: 0.995,         // 99.5%
+    successRate: 0.995, // 99.5%
   },
   gemini: {
-    successRate: 0.95,          // 95%
+    successRate: 0.95, // 95%
   },
   database: {
-    availability: 0.9995,       // 99.95%
+    availability: 0.9995, // 99.95%
   },
 } as const;
 
@@ -39,10 +39,10 @@ const MONTHLY_MINUTES = 30 * 24 * 60;
 
 export const ERROR_BUDGETS = {
   api: {
-    availability: (1 - SLO_TARGETS.api.availability) * MONTHLY_MINUTES,  // 43.2 minutes
+    availability: (1 - SLO_TARGETS.api.availability) * MONTHLY_MINUTES, // 43.2 minutes
   },
   auth: {
-    successRate: (1 - SLO_TARGETS.auth.successRate) * MONTHLY_MINUTES,   // 216 minutes
+    successRate: (1 - SLO_TARGETS.auth.successRate) * MONTHLY_MINUTES, // 216 minutes
   },
   gemini: {
     successRate: (1 - SLO_TARGETS.gemini.successRate) * MONTHLY_MINUTES, // 2,160 minutes
@@ -59,9 +59,9 @@ export const ERROR_BUDGETS = {
  * Indicates current compliance with SLO target
  */
 export const sloComplianceRatio = new Gauge({
-  name: 'the_copy_slo_compliance_ratio',
-  help: 'Current SLO compliance ratio (0-1)',
-  labelNames: ['service', 'sli'],
+  name: "the_copy_slo_compliance_ratio",
+  help: "Current SLO compliance ratio (0-1)",
+  labelNames: ["service", "sli"],
   registers: [register],
 });
 
@@ -70,9 +70,9 @@ export const sloComplianceRatio = new Gauge({
  * Indicates remaining error budget for the current period
  */
 export const sloErrorBudgetRemainingRatio = new Gauge({
-  name: 'the_copy_slo_error_budget_remaining_ratio',
-  help: 'Remaining error budget ratio (0-1)',
-  labelNames: ['service', 'sli'],
+  name: "the_copy_slo_error_budget_remaining_ratio",
+  help: "Remaining error budget ratio (0-1)",
+  labelNames: ["service", "sli"],
   registers: [register],
 });
 
@@ -81,9 +81,9 @@ export const sloErrorBudgetRemainingRatio = new Gauge({
  * Counts the number of SLO violations
  */
 export const sloViolationsTotal = new Counter({
-  name: 'the_copy_slo_violations_total',
-  help: 'Total number of SLO violations',
-  labelNames: ['service', 'sli', 'severity'],
+  name: "the_copy_slo_violations_total",
+  help: "Total number of SLO violations",
+  labelNames: ["service", "sli", "severity"],
   registers: [register],
 });
 
@@ -91,9 +91,9 @@ export const sloViolationsTotal = new Counter({
  * Auth login attempts counter for SLO tracking
  */
 export const sloAuthLoginsTotal = new Counter({
-  name: 'the_copy_slo_auth_logins_total',
-  help: 'Total number of authentication login attempts',
-  labelNames: ['status'],
+  name: "the_copy_slo_auth_logins_total",
+  help: "Total number of authentication login attempts",
+  labelNames: ["status"],
   registers: [register],
 });
 
@@ -101,9 +101,9 @@ export const sloAuthLoginsTotal = new Counter({
  * Database queries counter with status for SLO tracking
  */
 export const sloDbQueriesTotal = new Counter({
-  name: 'the_copy_slo_db_queries_total',
-  help: 'Total number of database queries with status',
-  labelNames: ['status', 'operation'],
+  name: "the_copy_slo_db_queries_total",
+  help: "Total number of database queries with status",
+  labelNames: ["status", "operation"],
   registers: [register],
 });
 
@@ -112,9 +112,9 @@ export const sloDbQueriesTotal = new Counter({
  * Measures how fast the error budget is being consumed
  */
 export const sloErrorBudgetBurnRate = new Gauge({
-  name: 'the_copy_slo_error_budget_burn_rate',
-  help: 'Error budget burn rate (errors per hour)',
-  labelNames: ['service'],
+  name: "the_copy_slo_error_budget_burn_rate",
+  help: "Error budget burn rate (errors per hour)",
+  labelNames: ["service"],
   registers: [register],
 });
 
@@ -122,9 +122,9 @@ export const sloErrorBudgetBurnRate = new Gauge({
  * SLO target gauge (for reference in dashboards)
  */
 export const sloTargetGauge = new Gauge({
-  name: 'the_copy_slo_target',
-  help: 'SLO target value',
-  labelNames: ['service', 'sli'],
+  name: "the_copy_slo_target",
+  help: "SLO target value",
+  labelNames: ["service", "sli"],
   registers: [register],
 });
 
@@ -139,24 +139,48 @@ interface SLOState {
 }
 
 const sloState: Record<string, SLOState> = {
-  api: { windowStart: Date.now(), totalRequests: 0, successfulRequests: 0, failedRequests: 0, latencies: [] },
-  auth: { windowStart: Date.now(), totalRequests: 0, successfulRequests: 0, failedRequests: 0, latencies: [] },
-  gemini: { windowStart: Date.now(), totalRequests: 0, successfulRequests: 0, failedRequests: 0, latencies: [] },
-  database: { windowStart: Date.now(), totalRequests: 0, successfulRequests: 0, failedRequests: 0, latencies: [] },
+  api: {
+    windowStart: Date.now(),
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    latencies: [],
+  },
+  auth: {
+    windowStart: Date.now(),
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    latencies: [],
+  },
+  gemini: {
+    windowStart: Date.now(),
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    latencies: [],
+  },
+  database: {
+    windowStart: Date.now(),
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    latencies: [],
+  },
 };
 
 // Window size for SLO calculation (5 minutes)
 const SLO_WINDOW_MS = 5 * 60 * 1000;
 
 const LONG_RUNNING_API_PATHS = new Set([
-  '/health/ready',
-  '/health/detailed',
-  '/api/export/pdfa',
-  '/api/file-extract',
-  '/api/files/extract',
-  '/api/text-extract',
-  '/api/final-review',
-  '/api/suspicion-review',
+  "/health/ready",
+  "/health/detailed",
+  "/api/export/pdfa",
+  "/api/file-extract",
+  "/api/files/extract",
+  "/api/text-extract",
+  "/api/final-review",
+  "/api/suspicion-review",
 ]);
 
 const LONG_RUNNING_API_LATENCY_TARGET_MS = 30_000;
@@ -174,11 +198,26 @@ function shouldTrackLatencySLO(path: string): boolean {
 // ===== Initialize SLO Targets =====
 
 function initializeSLOTargets() {
-  sloTargetGauge.set({ service: 'api', sli: 'availability' }, SLO_TARGETS.api.availability);
-  sloTargetGauge.set({ service: 'api', sli: 'latency_p95' }, SLO_TARGETS.api.latencyP95Ms);
-  sloTargetGauge.set({ service: 'auth', sli: 'success_rate' }, SLO_TARGETS.auth.successRate);
-  sloTargetGauge.set({ service: 'gemini', sli: 'success_rate' }, SLO_TARGETS.gemini.successRate);
-  sloTargetGauge.set({ service: 'database', sli: 'availability' }, SLO_TARGETS.database.availability);
+  sloTargetGauge.set(
+    { service: "api", sli: "availability" },
+    SLO_TARGETS.api.availability,
+  );
+  sloTargetGauge.set(
+    { service: "api", sli: "latency_p95" },
+    SLO_TARGETS.api.latencyP95Ms,
+  );
+  sloTargetGauge.set(
+    { service: "auth", sli: "success_rate" },
+    SLO_TARGETS.auth.successRate,
+  );
+  sloTargetGauge.set(
+    { service: "gemini", sli: "success_rate" },
+    SLO_TARGETS.gemini.successRate,
+  );
+  sloTargetGauge.set(
+    { service: "database", sli: "availability" },
+    SLO_TARGETS.database.availability,
+  );
 }
 
 initializeSLOTargets();
@@ -216,18 +255,29 @@ function calculateP95(latencies: number[]): number {
 /**
  * Update SLO compliance metrics
  */
-function updateComplianceMetrics(service: string, sli: string, compliance: number) {
+function updateComplianceMetrics(
+  service: string,
+  sli: string,
+  compliance: number,
+) {
   sloComplianceRatio.set({ service, sli }, compliance);
 
   // Check for SLO violation
-  const target = service === 'api' && sli === 'availability' ? SLO_TARGETS.api.availability :
-                 service === 'api' && sli === 'latency_p95' ? 1 : // Latency is inverted
-                 service === 'auth' ? SLO_TARGETS.auth.successRate :
-                 service === 'gemini' ? SLO_TARGETS.gemini.successRate :
-                 service === 'database' ? SLO_TARGETS.database.availability : 0;
+  const target =
+    service === "api" && sli === "availability"
+      ? SLO_TARGETS.api.availability
+      : service === "api" && sli === "latency_p95"
+        ? 1 // Latency is inverted
+        : service === "auth"
+          ? SLO_TARGETS.auth.successRate
+          : service === "gemini"
+            ? SLO_TARGETS.gemini.successRate
+            : service === "database"
+              ? SLO_TARGETS.database.availability
+              : 0;
 
   if (compliance < target) {
-    const severity = compliance < target * 0.9 ? 'critical' : 'warning';
+    const severity = compliance < target * 0.9 ? "critical" : "warning";
     sloViolationsTotal.inc({ service, sli, severity });
   }
 }
@@ -237,10 +287,14 @@ function updateComplianceMetrics(service: string, sli: string, compliance: numbe
 /**
  * Track API request for SLO
  */
-export function trackAPIRequest(statusCode: number, latencyMs: number, trackLatency = true) {
-  resetWindowIfNeeded('api');
+export function trackAPIRequest(
+  statusCode: number,
+  latencyMs: number,
+  trackLatency = true,
+) {
+  resetWindowIfNeeded("api");
 
-  const state = sloState['api']!;
+  const state = sloState["api"]!;
   state.totalRequests++;
 
   if (trackLatency) {
@@ -257,14 +311,17 @@ export function trackAPIRequest(statusCode: number, latencyMs: number, trackLate
   // Update availability compliance
   if (state.totalRequests > 0) {
     const availability = state.successfulRequests / state.totalRequests;
-    updateComplianceMetrics('api', 'availability', availability);
+    updateComplianceMetrics("api", "availability", availability);
   }
 
   // Update latency compliance for request/response endpoints.
   if (trackLatency) {
     const p95 = calculateP95(state.latencies);
-    const latencyCompliance = p95 <= SLO_TARGETS.api.latencyP95Ms ? 1 : SLO_TARGETS.api.latencyP95Ms / p95;
-    updateComplianceMetrics('api', 'latency_p95', latencyCompliance);
+    const latencyCompliance =
+      p95 <= SLO_TARGETS.api.latencyP95Ms
+        ? 1
+        : SLO_TARGETS.api.latencyP95Ms / p95;
+    updateComplianceMetrics("api", "latency_p95", latencyCompliance);
   }
 
   // Update error budget
@@ -272,12 +329,15 @@ export function trackAPIRequest(statusCode: number, latencyMs: number, trackLate
     const errorRate = state.failedRequests / state.totalRequests;
     const budgetUsed = errorRate / (1 - SLO_TARGETS.api.availability);
     const budgetRemaining = Math.max(0, 1 - budgetUsed);
-    sloErrorBudgetRemainingRatio.set({ service: 'api', sli: 'availability' }, budgetRemaining);
+    sloErrorBudgetRemainingRatio.set(
+      { service: "api", sli: "availability" },
+      budgetRemaining,
+    );
 
     // Calculate burn rate (errors per hour extrapolated)
     const windowHours = SLO_WINDOW_MS / (60 * 60 * 1000);
     const errorsPerHour = state.failedRequests / windowHours;
-    sloErrorBudgetBurnRate.set({ service: 'api' }, errorsPerHour);
+    sloErrorBudgetBurnRate.set({ service: "api" }, errorsPerHour);
   }
 }
 
@@ -285,29 +345,32 @@ export function trackAPIRequest(statusCode: number, latencyMs: number, trackLate
  * Track authentication attempt for SLO
  */
 export function trackAuthAttempt(success: boolean) {
-  resetWindowIfNeeded('auth');
+  resetWindowIfNeeded("auth");
 
-  const state = sloState['auth']!;
+  const state = sloState["auth"]!;
   state.totalRequests++;
 
   if (success) {
     state.successfulRequests++;
-    sloAuthLoginsTotal.inc({ status: 'success' });
+    sloAuthLoginsTotal.inc({ status: "success" });
   } else {
     state.failedRequests++;
-    sloAuthLoginsTotal.inc({ status: 'failure' });
+    sloAuthLoginsTotal.inc({ status: "failure" });
   }
 
   // Update compliance
   if (state.totalRequests > 0) {
     const successRate = state.successfulRequests / state.totalRequests;
-    updateComplianceMetrics('auth', 'success_rate', successRate);
+    updateComplianceMetrics("auth", "success_rate", successRate);
 
     // Update error budget
     const errorRate = state.failedRequests / state.totalRequests;
     const budgetUsed = errorRate / (1 - SLO_TARGETS.auth.successRate);
     const budgetRemaining = Math.max(0, 1 - budgetUsed);
-    sloErrorBudgetRemainingRatio.set({ service: 'auth', sli: 'success_rate' }, budgetRemaining);
+    sloErrorBudgetRemainingRatio.set(
+      { service: "auth", sli: "success_rate" },
+      budgetRemaining,
+    );
   }
 }
 
@@ -315,9 +378,9 @@ export function trackAuthAttempt(success: boolean) {
  * Track Gemini API call for SLO
  */
 export function trackGeminiCall(success: boolean) {
-  resetWindowIfNeeded('gemini');
+  resetWindowIfNeeded("gemini");
 
-  const state = sloState['gemini']!;
+  const state = sloState["gemini"]!;
   state.totalRequests++;
 
   if (success) {
@@ -329,13 +392,16 @@ export function trackGeminiCall(success: boolean) {
   // Update compliance
   if (state.totalRequests > 0) {
     const successRate = state.successfulRequests / state.totalRequests;
-    updateComplianceMetrics('gemini', 'success_rate', successRate);
+    updateComplianceMetrics("gemini", "success_rate", successRate);
 
     // Update error budget
     const errorRate = state.failedRequests / state.totalRequests;
     const budgetUsed = errorRate / (1 - SLO_TARGETS.gemini.successRate);
     const budgetRemaining = Math.max(0, 1 - budgetUsed);
-    sloErrorBudgetRemainingRatio.set({ service: 'gemini', sli: 'success_rate' }, budgetRemaining);
+    sloErrorBudgetRemainingRatio.set(
+      { service: "gemini", sli: "success_rate" },
+      budgetRemaining,
+    );
   }
 }
 
@@ -343,29 +409,38 @@ export function trackGeminiCall(success: boolean) {
  * Track database query for SLO
  */
 export function trackDatabaseQuery(success: boolean, operation?: string) {
-  resetWindowIfNeeded('database');
+  resetWindowIfNeeded("database");
 
-  const state = sloState['database']!;
+  const state = sloState["database"]!;
   state.totalRequests++;
 
   if (success) {
     state.successfulRequests++;
-    sloDbQueriesTotal.inc({ status: 'success', operation: operation ?? 'unknown' });
+    sloDbQueriesTotal.inc({
+      status: "success",
+      operation: operation ?? "unknown",
+    });
   } else {
     state.failedRequests++;
-    sloDbQueriesTotal.inc({ status: 'failure', operation: operation ?? 'unknown' });
+    sloDbQueriesTotal.inc({
+      status: "failure",
+      operation: operation ?? "unknown",
+    });
   }
 
   // Update compliance
   if (state.totalRequests > 0) {
     const availability = state.successfulRequests / state.totalRequests;
-    updateComplianceMetrics('database', 'availability', availability);
+    updateComplianceMetrics("database", "availability", availability);
 
     // Update error budget
     const errorRate = state.failedRequests / state.totalRequests;
     const budgetUsed = errorRate / (1 - SLO_TARGETS.database.availability);
     const budgetRemaining = Math.max(0, 1 - budgetUsed);
-    sloErrorBudgetRemainingRatio.set({ service: 'database', sli: 'availability' }, budgetRemaining);
+    sloErrorBudgetRemainingRatio.set(
+      { service: "database", sli: "availability" },
+      budgetRemaining,
+    );
   }
 }
 
@@ -374,10 +449,14 @@ export function trackDatabaseQuery(success: boolean, operation?: string) {
 /**
  * Middleware to track SLO metrics for HTTP requests
  */
-export function sloMetricsMiddleware(req: Request, res: Response, next: NextFunction) {
+export function sloMetricsMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const startTime = Date.now();
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const latencyMs = Date.now() - startTime;
     const statusCode = res.statusCode;
     const latencyTargetMs = getLatencyTargetMs(req.path);
@@ -388,7 +467,7 @@ export function sloMetricsMiddleware(req: Request, res: Response, next: NextFunc
 
     // Log SLO violation
     if (statusCode >= 500 || latencyMs > latencyTargetMs * 2) {
-      logger.warn('Potential SLO violation detected', {
+      logger.warn("Potential SLO violation detected", {
         path: req.path,
         method: req.method,
         statusCode,
@@ -404,42 +483,62 @@ export function sloMetricsMiddleware(req: Request, res: Response, next: NextFunc
 
 // ===== SLO Status Functions =====
 
-type BudgetStatus = 'healthy' | 'warning' | 'critical' | 'exhausted';
+type BudgetStatus = "healthy" | "warning" | "critical" | "exhausted";
 
 function getBudgetStatus(remaining: number): BudgetStatus {
-  if (remaining > 0.5) return 'healthy';
-  if (remaining > 0.25) return 'warning';
-  if (remaining > 0.1) return 'critical';
-  return 'exhausted';
+  if (remaining > 0.5) return "healthy";
+  if (remaining > 0.25) return "warning";
+  if (remaining > 0.1) return "critical";
+  return "exhausted";
 }
 
 function computeServiceSLO(state: SLOState, target: number) {
-  const compliance = state.totalRequests > 0
-    ? state.successfulRequests / state.totalRequests
-    : 1;
-  const errorRate = state.totalRequests > 0
-    ? state.failedRequests / state.totalRequests
-    : 0;
+  const compliance =
+    state.totalRequests > 0
+      ? state.successfulRequests / state.totalRequests
+      : 1;
+  const errorRate =
+    state.totalRequests > 0 ? state.failedRequests / state.totalRequests : 0;
   const budgetUsed = errorRate / (1 - target);
   const budgetRemaining = Math.max(0, 1 - budgetUsed);
-  return { compliance, target, budgetRemaining, status: getBudgetStatus(budgetRemaining) };
+  return {
+    compliance,
+    target,
+    budgetRemaining,
+    status: getBudgetStatus(budgetRemaining),
+  };
 }
 
 /**
  * Get current SLO status for all services
  */
 export function getSLOStatus() {
-  const status: Record<string, {
-    compliance: number;
-    target: number;
-    budgetRemaining: number;
-    status: BudgetStatus;
-  }> = {};
+  const status: Record<
+    string,
+    {
+      compliance: number;
+      target: number;
+      budgetRemaining: number;
+      status: BudgetStatus;
+    }
+  > = {};
 
-  status['api_availability'] = computeServiceSLO(sloState['api']!, SLO_TARGETS.api.availability);
-  status['auth_success_rate'] = computeServiceSLO(sloState['auth']!, SLO_TARGETS.auth.successRate);
-  status['gemini_success_rate'] = computeServiceSLO(sloState['gemini']!, SLO_TARGETS.gemini.successRate);
-  status['database_availability'] = computeServiceSLO(sloState['database']!, SLO_TARGETS.database.availability);
+  status["api_availability"] = computeServiceSLO(
+    sloState["api"]!,
+    SLO_TARGETS.api.availability,
+  );
+  status["auth_success_rate"] = computeServiceSLO(
+    sloState["auth"]!,
+    SLO_TARGETS.auth.successRate,
+  );
+  status["gemini_success_rate"] = computeServiceSLO(
+    sloState["gemini"]!,
+    SLO_TARGETS.gemini.successRate,
+  );
+  status["database_availability"] = computeServiceSLO(
+    sloState["database"]!,
+    SLO_TARGETS.database.availability,
+  );
 
   return status;
 }

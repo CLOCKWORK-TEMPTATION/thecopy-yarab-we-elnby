@@ -57,7 +57,9 @@ describe("CharacterNetworkAgent", () => {
   });
 
   it("should return the fallback contract with error metadata", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("network failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("network failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل الشبكة",

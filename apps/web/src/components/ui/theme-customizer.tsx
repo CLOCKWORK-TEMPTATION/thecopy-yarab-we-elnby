@@ -70,16 +70,6 @@ export function ThemeCustomizer() {
   const [config, setConfig] = React.useState<ThemeConfig>(defaultConfig);
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Load saved config
-  React.useEffect(() => {
-    const saved = localStorage.getItem("theme-config");
-    if (saved) {
-      const parsed = JSON.parse(saved) as ThemeConfig;
-      setConfig(parsed);
-      applyTheme(parsed);
-    }
-  }, []);
-
   // Apply theme changes
   const applyTheme = React.useCallback((newConfig: ThemeConfig) => {
     const root = document.documentElement;
@@ -123,6 +113,16 @@ export function ThemeCustomizer() {
     // Save to localStorage
     localStorage.setItem("theme-config", JSON.stringify(newConfig));
   }, []);
+
+  // Load saved config
+  React.useEffect(() => {
+    const saved = localStorage.getItem("theme-config");
+    if (saved) {
+      const parsed = JSON.parse(saved) as ThemeConfig;
+      setConfig(parsed);
+      applyTheme(parsed);
+    }
+  }, [applyTheme]);
 
   // Update config and apply
   const updateConfig = (updates: Partial<ThemeConfig>) => {

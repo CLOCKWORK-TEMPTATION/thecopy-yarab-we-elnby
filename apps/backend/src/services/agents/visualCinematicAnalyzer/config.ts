@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from '../core/enums';
-import { AIAgentConfig } from '../core/types';
+import { TaskCategory, TaskType } from "../core/enums";
+import { AIAgentConfig } from "../core/types";
 
 export const VISUAL_CINEMATIC_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.VISUAL_CINEMATIC_ANALYZER,
@@ -34,7 +34,8 @@ export const VISUAL_CINEMATIC_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   systemPrompt:
     "أنت 'CinemaVision AI'، محلل بصري سينمائي متطور. مهمتك هي تحليل العناصر السينمائية والبصرية في النص الدرامي. قم بتحليل: 1) الرمزية البصرية والاستعارات المرئية، 2) قابلية التصوير والتنفيذ الإخراجي، 3) الأجواء البصرية (Mood and Atmosphere)، 4) استخدام الضوء والظل والألوان المقترحة، 5) حركة الكاميرا المحتملة والتكوين البصري. يجب أن يكون تحليلك عملياً وقابلاً للتنفيذ من قبل المخرج.",
   fewShotExamples: [],
-  chainOfThoughtTemplate: "للتحليل البصري السينمائي، سأفحص العناصر المرئية والإمكانيات الإخراجية...",
+  chainOfThoughtTemplate:
+    "للتحليل البصري السينمائي، سأفحص العناصر المرئية والإمكانيات الإخراجية...",
   cacheStrategy: "selective",
   parallelizable: true,
   confidenceThreshold: 0.85,

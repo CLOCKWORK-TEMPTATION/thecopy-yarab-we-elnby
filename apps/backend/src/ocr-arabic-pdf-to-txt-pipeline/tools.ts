@@ -8,7 +8,15 @@
 import { execFileSync } from "node:child_process";
 import { open, writeFile, stat, readdir, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, extname, dirname, join, resolve, relative, isAbsolute } from "node:path";
+import {
+  basename,
+  extname,
+  dirname,
+  join,
+  resolve,
+  relative,
+  isAbsolute,
+} from "node:path";
 
 import { z } from "zod";
 
@@ -37,7 +45,7 @@ interface ClassifyPdfInput {
 }
 
 const ALLOWED_FILE_ROOTS = [process.cwd(), tmpdir()].map((root) =>
-  resolve(root)
+  resolve(root),
 );
 
 function isWithinAllowedRoot(targetPath: string): boolean {
@@ -61,7 +69,7 @@ function resolveToolPath(filePath: string): string {
 async function writeTextFileSafely(
   targetPath: string,
   content: string,
-  overwrite: boolean
+  overwrite: boolean,
 ): Promise<string> {
   if (overwrite) {
     await writeFile(targetPath, content, "utf-8");
@@ -121,7 +129,9 @@ export const readFileTool = defineTool<ReadFileInput>({
         }
 
         // ملفات نصية
-        const content = await handle.readFile({ encoding: encoding as BufferEncoding });
+        const content = await handle.readFile({
+          encoding: encoding as BufferEncoding,
+        });
         const lineCount = encoding === "utf-8" ? content.split("\n").length : 0;
 
         return JSON.stringify({
@@ -170,7 +180,7 @@ export const writeFileTool = defineTool<WriteFileInput>({
       const finalPath = await writeTextFileSafely(
         resolvedPath,
         content,
-        overwrite
+        overwrite,
       );
       const sizeKb = Math.round(Buffer.byteLength(content, "utf-8") / 1024);
 
@@ -305,7 +315,7 @@ export const classifyPdfTool = defineTool<ClassifyPdfInput>({
       // تحليل النص المستخرج
       const printableCount = rawText.replace(/\s/g, "").length;
       const arabicChars = [...rawText].filter(
-        (c) => c.charCodeAt(0) >= 0x0600 && c.charCodeAt(0) <= 0x06ff
+        (c) => c.charCodeAt(0) >= 0x0600 && c.charCodeAt(0) <= 0x06ff,
       ).length;
       const hasArabic =
         rawText.length > 0 && arabicChars / rawText.length > 0.05;
@@ -337,7 +347,7 @@ export const classifyPdfTool = defineTool<ClassifyPdfInput>({
 
       if (!process.env["MISTRAL_API_KEY"] && engine === "mistral") {
         notes.push(
-          "⚠ مفتاح MISTRAL_API_KEY غير متوفر — ستُستخدم طبقة احتياطية"
+          "⚠ مفتاح MISTRAL_API_KEY غير متوفر — ستُستخدم طبقة احتياطية",
         );
       }
 

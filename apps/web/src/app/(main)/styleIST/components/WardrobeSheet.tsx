@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -34,6 +35,10 @@ interface WardrobeModalProps {
   activeGarmentIds: string[];
   isLoading: boolean;
   projectId: string;
+}
+
+function isImageGenerationSize(value: string): value is ImageGenerationSize {
+  return value === "1K" || value === "2K" || value === "4K";
 }
 
 const WardrobeModal: React.FC<WardrobeModalProps> = ({
@@ -237,12 +242,14 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                           <button
                             onClick={() => handleGarmentClick(item)}
                             disabled={isLoading || isActive}
-                            className="w-full h-full border border-white/8 rounded-[22px] overflow-hidden transition-all duration-300 hover:border-[#d4b483] disabled:opacity-50 backdrop-blur-xl"
+                            className="relative w-full h-full border border-white/8 rounded-[22px] overflow-hidden transition-all duration-300 hover:border-[#d4b483] disabled:opacity-50 backdrop-blur-xl"
                           >
-                            <img
+                            <Image
                               src={item.url}
                               alt={item.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="160px"
+                              className="object-cover"
                             />
                             {isActive && (
                               <div className="absolute inset-0 bg-[#d4b483]/80 flex items-center justify-center">
@@ -291,7 +298,10 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                     <div className="mb-6">
                       {editingItem ? (
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-[10px] font-bold text-[#d4b483] uppercase tracking-widest">
+                          <label
+                            htmlFor="field-wardrobesheet-1"
+                            className="text-[10px] font-bold text-[#d4b483] uppercase tracking-widest"
+                          >
                             Editing Mode
                           </label>
                           <button
@@ -303,14 +313,20 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                         </div>
                       ) : (
                         <div className="flex justify-between items-end mb-2">
-                          <label className="text-[10px] font-bold text-white/55 uppercase tracking-widest">
+                          <label
+                            htmlFor="field-wardrobesheet-1"
+                            className="text-[10px] font-bold text-white/55 uppercase tracking-widest"
+                          >
                             Prompt
                           </label>
                           <select
+                            id="field-wardrobesheet-1"
                             value={imageSize}
-                            onChange={(e) =>
-                              setImageSize(e.target.value as any)
-                            }
+                            onChange={(event) => {
+                              if (isImageGenerationSize(event.target.value)) {
+                                setImageSize(event.target.value);
+                              }
+                            }}
                             className="bg-black/14 text-white text-[10px] border border-white/8 rounded-[18px] px-2 py-1 backdrop-blur-xl"
                           >
                             <option value="1K">1K Res</option>
@@ -359,10 +375,12 @@ const WardrobeModal: React.FC<WardrobeModalProps> = ({
                         <Spinner />
                       ) : generatedItem ? (
                         <div className="relative w-full h-full flex flex-col items-center justify-center p-4 group">
-                          <img
+                          <Image
                             src={generatedItem.url}
                             alt="Generated"
-                            className="max-h-[250px] object-contain drop-shadow-2xl"
+                            fill
+                            sizes="320px"
+                            className="object-contain drop-shadow-2xl"
                           />
                           <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                             <button

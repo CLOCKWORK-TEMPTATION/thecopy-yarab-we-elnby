@@ -2,62 +2,62 @@
  * Workflow System Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from "vitest";
 
-import { TaskType } from './core/enums';
-import { createWorkflow } from './core/workflow-builder';
-import { WorkflowExecutor } from './core/workflow-executor';
-import { getPresetWorkflow } from './core/workflow-presets';
+import { TaskType } from "./core/enums";
+import { createWorkflow } from "./core/workflow-builder";
+import { WorkflowExecutor } from "./core/workflow-executor";
+import { getPresetWorkflow } from "./core/workflow-presets";
 import {
   AgentStatus,
   WorkflowConfig,
   WorkflowContext,
   WorkflowExecutionPlan,
   WorkflowMetrics,
-} from './core/workflow-types';
+} from "./core/workflow-types";
 
 interface WorkflowExecutorInternals {
   buildExecutionPlan(config: WorkflowConfig): WorkflowExecutionPlan;
   calculateMetrics(context: WorkflowContext): WorkflowMetrics;
 }
 
-function executorInternals(executor: WorkflowExecutor): WorkflowExecutorInternals {
+function executorInternals(
+  executor: WorkflowExecutor,
+): WorkflowExecutorInternals {
   return executor as unknown as WorkflowExecutorInternals;
 }
 
-describe('Workflow Builder', () => {
-  it('should create a basic workflow', () => {
-    const workflow = createWorkflow('Test Workflow', 'Test description')
-      .addStep('test-agent', TaskType.CHARACTER_DEEP_ANALYZER)
+describe("Workflow Builder", () => {
+  it("should create a basic workflow", () => {
+    const workflow = createWorkflow("Test Workflow", "Test description")
+      .addStep("test-agent", TaskType.CHARACTER_DEEP_ANALYZER)
       .build();
 
-    expect(workflow.name).toBe('Test Workflow');
-    expect(workflow.description).toBe('Test description');
+    expect(workflow.name).toBe("Test Workflow");
+    expect(workflow.description).toBe("Test description");
     expect(workflow.steps).toHaveLength(1);
-    expect(workflow.steps[0].agentId).toBe('test-agent');
+    expect(workflow.steps[0].agentId).toBe("test-agent");
   });
 
-  it('should add dependent steps correctly', () => {
-    const workflow = createWorkflow('Dependent Workflow')
-      .addStep('agent1', TaskType.CHARACTER_DEEP_ANALYZER)
-      .addDependentStep(
-        'agent2',
-        TaskType.DIALOGUE_ADVANCED_ANALYZER,
-        [{ agentId: 'agent1', taskType: TaskType.CHARACTER_DEEP_ANALYZER }]
-      )
+  it("should add dependent steps correctly", () => {
+    const workflow = createWorkflow("Dependent Workflow")
+      .addStep("agent1", TaskType.CHARACTER_DEEP_ANALYZER)
+      .addDependentStep("agent2", TaskType.DIALOGUE_ADVANCED_ANALYZER, [
+        { agentId: "agent1", taskType: TaskType.CHARACTER_DEEP_ANALYZER },
+      ])
       .build();
 
     expect(workflow.steps).toHaveLength(2);
     expect(workflow.steps[1].dependencies).toHaveLength(1);
-    expect(workflow.steps[1].dependencies[0].agentId).toBe('agent1');
+    expect(workflow.steps[1].dependencies[0].agentId).toBe("agent1");
     expect(workflow.steps[1].dependencies[0].required).toBe(true);
   });
 
-  it('should add parallel steps', () => {
-    const workflow = createWorkflow('Parallel Workflow')
+  it("should add parallel steps", () => {
+    const workflow = createWorkflow("Parallel Workflow")
       .addParallelSteps([
-        { agentId: 'agent1', taskType: TaskType.CHARACTER_DEEP_ANALYZER },
-        { agentId: 'agent2', taskType: TaskType.DIALOGUE_ADVANCED_ANALYZER },
+        { agentId: "agent1", taskType: TaskType.CHARACTER_DEEP_ANALYZER },
+        { agentId: "agent2", taskType: TaskType.DIALOGUE_ADVANCED_ANALYZER },
       ])
       .build();
 
@@ -66,9 +66,9 @@ describe('Workflow Builder', () => {
     expect(workflow.steps[1].parallel).toBe(true);
   });
 
-  it('should configure concurrency and timeout', () => {
-    const workflow = createWorkflow('Configured Workflow')
-      .addStep('test-agent', TaskType.CHARACTER_DEEP_ANALYZER)
+  it("should configure concurrency and timeout", () => {
+    const workflow = createWorkflow("Configured Workflow")
+      .addStep("test-agent", TaskType.CHARACTER_DEEP_ANALYZER)
       .withConcurrency(10)
       .withTimeout(120000)
       .build();
@@ -77,37 +77,35 @@ describe('Workflow Builder', () => {
     expect(workflow.globalTimeout).toBe(120000);
   });
 
-  it('should set error handling strategy', () => {
-    const strictWorkflow = createWorkflow('Strict Workflow')
-      .addStep('test-agent', TaskType.CHARACTER_DEEP_ANALYZER)
-      .withErrorHandling('strict')
+  it("should set error handling strategy", () => {
+    const strictWorkflow = createWorkflow("Strict Workflow")
+      .addStep("test-agent", TaskType.CHARACTER_DEEP_ANALYZER)
+      .withErrorHandling("strict")
       .build();
 
-    const lenientWorkflow = createWorkflow('Lenient Workflow')
-      .addStep('test-agent', TaskType.CHARACTER_DEEP_ANALYZER)
-      .withErrorHandling('lenient')
+    const lenientWorkflow = createWorkflow("Lenient Workflow")
+      .addStep("test-agent", TaskType.CHARACTER_DEEP_ANALYZER)
+      .withErrorHandling("lenient")
       .build();
 
-    expect(strictWorkflow.errorHandling).toBe('strict');
-    expect(lenientWorkflow.errorHandling).toBe('lenient');
+    expect(strictWorkflow.errorHandling).toBe("strict");
+    expect(lenientWorkflow.errorHandling).toBe("lenient");
   });
 });
 
-describe('Workflow Executor', () => {
+describe("Workflow Executor", () => {
   let executor: WorkflowExecutor;
 
   beforeEach(() => {
     executor = new WorkflowExecutor();
   });
 
-  it('should build execution plan correctly', () => {
-    const workflow = createWorkflow('Test Plan')
-      .addStep('agent1', TaskType.CHARACTER_DEEP_ANALYZER)
-      .addDependentStep(
-        'agent2',
-        TaskType.DIALOGUE_ADVANCED_ANALYZER,
-        [{ agentId: 'agent1', taskType: TaskType.CHARACTER_DEEP_ANALYZER }]
-      )
+  it("should build execution plan correctly", () => {
+    const workflow = createWorkflow("Test Plan")
+      .addStep("agent1", TaskType.CHARACTER_DEEP_ANALYZER)
+      .addDependentStep("agent2", TaskType.DIALOGUE_ADVANCED_ANALYZER, [
+        { agentId: "agent1", taskType: TaskType.CHARACTER_DEEP_ANALYZER },
+      ])
       .build();
 
     const plan = executorInternals(executor).buildExecutionPlan(workflow);
@@ -116,15 +114,15 @@ describe('Workflow Executor', () => {
     expect(plan.stages.length).toBeGreaterThan(0);
   });
 
-  it('should detect circular dependencies', () => {
-    const workflow = createWorkflow('Circular Workflow')
-      .addStep('agent1', TaskType.CHARACTER_DEEP_ANALYZER)
+  it("should detect circular dependencies", () => {
+    const workflow = createWorkflow("Circular Workflow")
+      .addStep("agent1", TaskType.CHARACTER_DEEP_ANALYZER)
       .build();
 
     // Manually create circular dependency for testing
     workflow.steps[0].dependencies = [
       {
-        agentId: 'agent1',
+        agentId: "agent1",
         taskType: TaskType.CHARACTER_DEEP_ANALYZER,
         required: true,
       },
@@ -132,17 +130,17 @@ describe('Workflow Executor', () => {
 
     expect(() => {
       executorInternals(executor).buildExecutionPlan(workflow);
-    }).toThrow('Circular dependency');
+    }).toThrow("Circular dependency");
   });
 
-  it('should emit workflow events', () => {
+  it("should emit workflow events", () => {
     const events: string[] = [];
 
-    executor.on('step-started', (event) => {
+    executor.on("step-started", (event) => {
       events.push(`started:${event.stepId}`);
     });
 
-    executor.on('step-completed', (event) => {
+    executor.on("step-completed", (event) => {
       events.push(`completed:${event.stepId}`);
     });
 
@@ -151,39 +149,39 @@ describe('Workflow Executor', () => {
     expect(events).toBeDefined();
   });
 
-  it('should calculate metrics correctly', () => {
+  it("should calculate metrics correctly", () => {
     const context: WorkflowContext = {
-      workflowId: 'workflow-test',
-      input: { input: 'test' },
+      workflowId: "workflow-test",
+      input: { input: "test" },
       results: new Map([
         [
-          'step1',
+          "step1",
           {
-            agentId: 'agent1',
+            agentId: "agent1",
             taskType: TaskType.CHARACTER_DEEP_ANALYZER,
             status: AgentStatus.COMPLETED,
-            output: { confidence: 0.8, text: 'test', notes: [] },
-            startTime: new Date('2024-01-01T00:00:00'),
-            endTime: new Date('2024-01-01T00:00:10'),
+            output: { confidence: 0.8, text: "test", notes: [] },
+            startTime: new Date("2024-01-01T00:00:00"),
+            endTime: new Date("2024-01-01T00:00:10"),
             duration: 10000,
           },
         ],
         [
-          'step2',
+          "step2",
           {
-            agentId: 'agent2',
+            agentId: "agent2",
             taskType: TaskType.DIALOGUE_ADVANCED_ANALYZER,
             status: AgentStatus.COMPLETED,
-            output: { confidence: 0.9, text: 'test', notes: [] },
-            startTime: new Date('2024-01-01T00:00:10'),
-            endTime: new Date('2024-01-01T00:00:20'),
+            output: { confidence: 0.9, text: "test", notes: [] },
+            startTime: new Date("2024-01-01T00:00:10"),
+            endTime: new Date("2024-01-01T00:00:20"),
             duration: 10000,
           },
         ],
       ]),
       metadata: {
-        startedAt: new Date('2024-01-01T00:00:00'),
-        completedAt: new Date('2024-01-01T00:00:20'),
+        startedAt: new Date("2024-01-01T00:00:00"),
+        completedAt: new Date("2024-01-01T00:00:20"),
         totalSteps: 2,
         completedSteps: 2,
         failedSteps: 0,
@@ -201,69 +199,77 @@ describe('Workflow Executor', () => {
   });
 });
 
-describe('Workflow Presets', () => {
-  it('should load standard workflow', () => {
-    const workflow = getPresetWorkflow('standard');
+describe("Workflow Presets", () => {
+  it("should load standard workflow", () => {
+    const workflow = getPresetWorkflow("standard");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Standard 7-Agent Analysis');
+    expect(workflow.name).toBe("Standard 7-Agent Analysis");
     expect(workflow.steps.length).toBeGreaterThan(0);
   });
 
-  it('should load fast workflow', () => {
-    const workflow = getPresetWorkflow('fast');
+  it("should load fast workflow", () => {
+    const workflow = getPresetWorkflow("fast");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Fast Parallel Analysis');
+    expect(workflow.name).toBe("Fast Parallel Analysis");
     // Fast workflow should have parallel steps
     const parallelSteps = workflow.steps.filter((s) => s.parallel);
     expect(parallelSteps.length).toBeGreaterThan(0);
   });
 
-  it('should load character-focused workflow', () => {
-    const workflow = getPresetWorkflow('character');
+  it("should load character-focused workflow", () => {
+    const workflow = getPresetWorkflow("character");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Character-Focused Analysis');
+    expect(workflow.name).toBe("Character-Focused Analysis");
     // Should include character-related agents
     const hasCharacterAgent = workflow.steps.some(
-      (s) => s.taskType === TaskType.CHARACTER_DEEP_ANALYZER
+      (s) => s.taskType === TaskType.CHARACTER_DEEP_ANALYZER,
     );
     expect(hasCharacterAgent).toBe(true);
   });
 
-  it('should load creative workflow', () => {
-    const workflow = getPresetWorkflow('creative');
+  it("should load creative workflow", () => {
+    const workflow = getPresetWorkflow("creative");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Creative Development');
+    expect(workflow.name).toBe("Creative Development");
   });
 
-  it('should load advanced workflow', () => {
-    const workflow = getPresetWorkflow('advanced');
+  it("should load advanced workflow", () => {
+    const workflow = getPresetWorkflow("advanced");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Advanced Modules Analysis');
+    expect(workflow.name).toBe("Advanced Modules Analysis");
   });
 
-  it('should load quick workflow', () => {
-    const workflow = getPresetWorkflow('quick');
+  it("should load quick workflow", () => {
+    const workflow = getPresetWorkflow("quick");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Quick Analysis');
+    expect(workflow.name).toBe("Quick Analysis");
     expect(workflow.globalTimeout).toBeLessThan(180000); // Should be fast
   });
 
-  it('should load complete workflow', () => {
-    const workflow = getPresetWorkflow('complete');
+  it("should load complete workflow", () => {
+    const workflow = getPresetWorkflow("complete");
 
     expect(workflow).toBeDefined();
-    expect(workflow.name).toBe('Complete Analysis');
+    expect(workflow.name).toBe("Complete Analysis");
     expect(workflow.steps.length).toBeGreaterThan(10); // Should have many steps
   });
 
-  it('all presets should have valid configuration', () => {
-    const presets = ['standard', 'fast', 'character', 'creative', 'advanced', 'quick', 'complete'] as const;
+  it("all presets should have valid configuration", () => {
+    const presets = [
+      "standard",
+      "fast",
+      "character",
+      "creative",
+      "advanced",
+      "quick",
+      "complete",
+    ] as const;
 
     presets.forEach((preset) => {
       const workflow = getPresetWorkflow(preset);
@@ -274,7 +280,7 @@ describe('Workflow Presets', () => {
       expect(workflow.steps.length).toBeGreaterThan(0);
       expect(workflow.maxConcurrency).toBeGreaterThan(0);
       expect(workflow.globalTimeout).toBeGreaterThan(0);
-      expect(['strict', 'lenient']).toContain(workflow.errorHandling);
+      expect(["strict", "lenient"]).toContain(workflow.errorHandling);
 
       // All steps should have valid configuration
       workflow.steps.forEach((step) => {
@@ -287,28 +293,28 @@ describe('Workflow Presets', () => {
   });
 });
 
-describe('Workflow Integration', () => {
-  it('should maintain workflow configuration integrity', () => {
-    const workflow = createWorkflow('Integration Test')
-      .addStep('agent1', TaskType.CHARACTER_DEEP_ANALYZER, {
+describe("Workflow Integration", () => {
+  it("should maintain workflow configuration integrity", () => {
+    const workflow = createWorkflow("Integration Test")
+      .addStep("agent1", TaskType.CHARACTER_DEEP_ANALYZER, {
         timeout: 60000,
         retryPolicy: { maxRetries: 3, backoffMs: 1000 },
       })
       .addDependentStep(
-        'agent2',
+        "agent2",
         TaskType.DIALOGUE_ADVANCED_ANALYZER,
         [
           {
-            agentId: 'agent1',
+            agentId: "agent1",
             taskType: TaskType.CHARACTER_DEEP_ANALYZER,
             minConfidence: 0.7,
           },
         ],
-        { timeout: 30000 }
+        { timeout: 30000 },
       )
       .withConcurrency(5)
       .withTimeout(180000)
-      .withErrorHandling('lenient')
+      .withErrorHandling("lenient")
       .build();
 
     // Verify all configuration is preserved
@@ -317,18 +323,18 @@ describe('Workflow Integration', () => {
     expect(workflow.steps[1].dependencies[0].minConfidence).toBe(0.7);
     expect(workflow.maxConcurrency).toBe(5);
     expect(workflow.globalTimeout).toBe(180000);
-    expect(workflow.errorHandling).toBe('lenient');
+    expect(workflow.errorHandling).toBe("lenient");
   });
 
-  it('should handle complex dependency chains', () => {
-    const workflow = createWorkflow('Complex Dependencies')
-      .addStep('agent1', TaskType.CHARACTER_DEEP_ANALYZER)
-      .addDependentStep('agent2', TaskType.DIALOGUE_ADVANCED_ANALYZER, [
-        { agentId: 'agent1', taskType: TaskType.CHARACTER_DEEP_ANALYZER },
+  it("should handle complex dependency chains", () => {
+    const workflow = createWorkflow("Complex Dependencies")
+      .addStep("agent1", TaskType.CHARACTER_DEEP_ANALYZER)
+      .addDependentStep("agent2", TaskType.DIALOGUE_ADVANCED_ANALYZER, [
+        { agentId: "agent1", taskType: TaskType.CHARACTER_DEEP_ANALYZER },
       ])
-      .addDependentStep('agent3', TaskType.VISUAL_CINEMATIC_ANALYZER, [
-        { agentId: 'agent1', taskType: TaskType.CHARACTER_DEEP_ANALYZER },
-        { agentId: 'agent2', taskType: TaskType.DIALOGUE_ADVANCED_ANALYZER },
+      .addDependentStep("agent3", TaskType.VISUAL_CINEMATIC_ANALYZER, [
+        { agentId: "agent1", taskType: TaskType.CHARACTER_DEEP_ANALYZER },
+        { agentId: "agent2", taskType: TaskType.DIALOGUE_ADVANCED_ANALYZER },
       ])
       .build();
 

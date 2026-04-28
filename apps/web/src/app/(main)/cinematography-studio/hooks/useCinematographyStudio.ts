@@ -153,10 +153,10 @@ export function useCinematographyStudio() {
   const [state, dispatch] = useReducer(studioReducer, initialState);
   const hydratedFromStorage = useRef(false);
   const studioRenderCount = useRef(0);
-  studioRenderCount.current += 1;
 
   // نشر عدّاد إعادة التركيب لطبقة التشخيص.
   useEffect(() => {
+    studioRenderCount.current += 1;
     publishDiagnostics({
       slice: "renderCount",
       data: { studio: studioRenderCount.current },

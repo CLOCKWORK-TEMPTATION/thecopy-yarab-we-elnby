@@ -14,10 +14,10 @@ rules:
       exclude:
         - /apps/web/src/env.ts
         - /apps/web/src/env.test.ts
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
     patterns:
       - pattern-either:
           - pattern-inside: |
@@ -47,10 +47,10 @@ rules:
         - /packages/**/*.ts
         - /packages/**/*.tsx
       exclude:
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
     patterns:
       - pattern-either:
           - pattern: localStorage.setItem($KEY, $VALUE)
@@ -60,7 +60,7 @@ rules:
           regex: (?i).*(access[_-]?token|refresh[_-]?token|id[_-]?token|auth[_-]?token|bearer[_-]?token|jwt|session[_-]?token).*
     metadata:
       category: security
-      cwe: 'CWE-79'
+      cwe: "CWE-79"
       confidence: medium
       note: >-
         Pattern targets only specific auth token names (accessToken, jwt, sessionToken, etc.).
@@ -76,18 +76,18 @@ rules:
         - /apps/web/src/**/*.tsx
         - /packages/**/*.tsx
       exclude:
-        - '**/*.test.tsx'
-        - '**/*.test.ts'
-        - '**/*.spec.tsx'
-        - '**/*.spec.ts'
+        - "**/*.test.tsx"
+        - "**/*.test.ts"
+        - "**/*.spec.tsx"
+        - "**/*.spec.ts"
     patterns:
-      - pattern: '<$EL ... dangerouslySetInnerHTML={{ __html: $HTML }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(...) }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHTML(...) }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHtml(...) }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeAllowedHTML(...) }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeUserHTML(...) }} ... />'
-      - pattern-not: '<$EL ... dangerouslySetInnerHTML={{ __html: sanitization.html(...) }} ... />'
+      - pattern: "<$EL ... dangerouslySetInnerHTML={{ __html: $HTML }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(...) }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHTML(...) }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeHtml(...) }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeAllowedHTML(...) }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: sanitizeUserHTML(...) }} ... />"
+      - pattern-not: "<$EL ... dangerouslySetInnerHTML={{ __html: sanitization.html(...) }} ... />"
       - pattern-not-inside: |
           const $HTML = DOMPurify.sanitize(...);
           ...

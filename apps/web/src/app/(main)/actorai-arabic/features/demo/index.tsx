@@ -416,11 +416,7 @@ export function DemoView() {
                           className={`mb-4 ${msg.role === "user" ? "text-left" : "text-right"}`}
                         >
                           <div
-                            className={`inline-block p-4 rounded-lg max-w-[80%] ${
-                              msg.role === "user"
-                                ? "bg-white/8 text-white"
-                                : "bg-white/12 text-white"
-                            }`}
+                            className={`inline-block p-4 rounded-lg max-w-[80%] ${msg.role === "user" ? "bg-white/8 text-white" : "bg-white/12 text-white"}`}
                           >
                             <p className="font-medium mb-1 text-white">
                               {msg.role === "user"

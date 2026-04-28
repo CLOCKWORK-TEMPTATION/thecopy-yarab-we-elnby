@@ -404,11 +404,7 @@ export const DirectorsStudio: React.FC = () => {
               {FEATURES.map((feature) => (
                 <Card
                   key={feature.id}
-                  className={`group cursor-pointer transition-all duration-300 ${
-                    feature.status === "available"
-                      ? "card-interactive hover:shadow-xl"
-                      : "opacity-70"
-                  }`}
+                  className={`group cursor-pointer transition-all duration-300 ${feature.status === "available" ? "card-interactive hover:shadow-xl" : "opacity-70"}`}
                   onClick={() =>
                     feature.status === "available" &&
                     setActiveFeature(feature.id)
@@ -417,11 +413,7 @@ export const DirectorsStudio: React.FC = () => {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div
-                        className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} shadow-lg ${
-                          feature.status === "available"
-                            ? "group-hover:scale-110"
-                            : ""
-                        } transition-transform duration-300`}
+                        className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} shadow-lg ${feature.status === "available" ? "group-hover:scale-110" : ""} transition-transform duration-300`}
                       >
                         <feature.icon className="h-6 w-6 text-white" />
                       </div>

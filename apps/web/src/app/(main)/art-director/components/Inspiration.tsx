@@ -7,7 +7,7 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import { Palette, Sparkles, Image, Wand2 } from "lucide-react";
+import { Palette, Sparkles, Image as ImageIcon, Wand2 } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -94,7 +94,7 @@ function AnalysisResult({ result }: AnalysisResultProps) {
             marginBottom: "16px",
           }}
         >
-          <Image size={20} aria-hidden="true" /> نتائج التحليل
+          <ImageIcon size={20} aria-hidden="true" /> نتائج التحليل
         </h3>
 
         <div style={{ marginBottom: "16px" }}>

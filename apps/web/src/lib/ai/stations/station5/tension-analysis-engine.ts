@@ -1,12 +1,14 @@
-import { GeminiService, GeminiModel } from "../../gemini-service";
+import { GeminiModel, GeminiService } from "../gemini-service";
 
-import { TensionAnalysis } from "./types";
+import { Location, TensionAnalysis, TensionPeak, TensionValley } from "./types";
 import {
   safeSub,
   asJsonRecord,
   asArray,
+  asJsonRecords,
+  asNumber,
+  asString,
   asStringArray,
-  scaledTimestamp,
 } from "./utils";
 
 export class TensionAnalysisEngine {
@@ -18,7 +20,7 @@ export class TensionAnalysisEngine {
 
   async analyzeTension(
     fullText: string,
-    _network: any
+    _network: unknown
   ): Promise<TensionAnalysis> {
     const prompt = `
     Based on the provided narrative text and conflict network, analyze the tension curve throughout the story:
@@ -53,43 +55,23 @@ export class TensionAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
-      const recommendations = asJsonRecord(analysis.recommendations);
-
-      const peaks = asArray<any>(analysis.peaks).map((peak) => ({
-        ...peak,
-        timestamp: scaledTimestamp(peak.timestamp),
-      }));
-
-      const valleys = asArray<any>(analysis.valleys).map((valley) => ({
-        ...valley,
-        timestamp: scaledTimestamp(valley.timestamp),
-      }));
-
-      const addTension = asArray<any>(recommendations.add_tension).map(
-        (loc) => ({
-          ...loc,
-          timestamp: scaledTimestamp(loc.timestamp),
-        })
-      );
-
-      const reduceTension = asArray<any>(recommendations.reduce_tension).map(
-        (loc) => ({
-          ...loc,
-          timestamp: scaledTimestamp(loc.timestamp),
-        })
-      );
+      const analysis = asJsonRecord(JSON.parse(result.content ?? "{}"));
+      const recommendations = asJsonRecord(analysis["recommendations"]);
 
       return {
-        tensionCurve: asArray<number>(analysis.tension_curve),
-        peaks,
-        valleys,
+        tensionCurve: asArray<number>(analysis["tension_curve"]),
+        peaks: asJsonRecords(analysis["peaks"]).map(toTensionPeak),
+        valleys: asJsonRecords(analysis["valleys"]).map(toTensionValley),
         recommendations: {
-          addTension,
-          reduceTension,
-          redistributeTension: asStringArray(
-            recommendations.redistribute_tension
+          addTension: asJsonRecords(recommendations["add_tension"]).map(
+            toLocation
           ),
+          reduceTension: asJsonRecords(recommendations["reduce_tension"]).map(
+            toLocation
+          ),
+          redistributeTension: asStringArray(
+            recommendations["redistribute_tension"]
+          ).map((description) => ({ start: 0, end: 0, description })),
         },
       };
     } catch (error) {
@@ -110,4 +92,48 @@ export class TensionAnalysisEngine {
       },
     };
   }
+}
+
+function timestampRange(
+  record: Record<string, unknown>
+): Pick<Location, "start" | "end"> {
+  const timestamp = asNumber(record["timestamp"], 0);
+  const start = asNumber(record["start"], timestamp);
+  const end = asNumber(record["end"], start);
+
+  return { start, end };
+}
+
+function toLocation(record: Record<string, unknown>): Location {
+  const { start, end } = timestampRange(record);
+
+  return {
+    start,
+    end,
+    description: asString(record["description"], asString(record["location"])),
+  };
+}
+
+function toTensionPeak(record: Record<string, unknown>): TensionPeak {
+  return {
+    location: toLocation(record),
+    intensity: asNumber(record["intensity"], 0),
+    duration: asNumber(record["duration"], 0),
+    justification: asString(
+      record["justification"],
+      asString(record["description"])
+    ),
+  };
+}
+
+function toTensionValley(record: Record<string, unknown>): TensionValley {
+  return {
+    location: toLocation(record),
+    depth: asNumber(record["depth"], asNumber(record["intensity"], 0)),
+    duration: asNumber(record["duration"], 0),
+    justification: asString(
+      record["justification"],
+      asString(record["description"])
+    ),
+  };
 }

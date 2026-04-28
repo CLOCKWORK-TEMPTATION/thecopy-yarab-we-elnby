@@ -1,6 +1,6 @@
 // Types for useProduction hook
 
-import type { ShotAnalysis } from "../../types";
+import type { ShotAnalysis } from "../types";
 
 /**
  * حالة تحليل اللقطة

@@ -1,11 +1,11 @@
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappSessions } from '@/db/schema';
+import { db } from "@/db";
+import { breakappSessions } from "@/db/schema";
 
-import { ensureDatabase, toSessionView } from './_helpers';
+import { ensureDatabase, toSessionView } from "./_helpers";
 
-import type { BreakappSessionView } from '../service.types';
+import type { BreakappSessionView } from "../service.types";
 
 export async function createSession(input: {
   projectId: string;
@@ -23,12 +23,12 @@ export async function createSession(input: {
       lng: input.lng,
     })
     .returning();
-  if (!row) throw new Error('تعذر إنشاء الجلسة');
+  if (!row) throw new Error("تعذر إنشاء الجلسة");
   return toSessionView(row);
 }
 
 export async function getSession(
-  sessionId: string
+  sessionId: string,
 ): Promise<BreakappSessionView | null> {
   ensureDatabase();
   const rows = await db

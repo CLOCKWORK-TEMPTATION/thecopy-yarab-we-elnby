@@ -12,24 +12,24 @@
  * Uses Redis for distributed IP tracking in production
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
-import { captureMessage } from '@/config/sentry';
-import { logger } from '@/lib/logger';
-import { cacheService } from '@/services/cache.service';
+import { captureMessage } from "@/config/sentry";
+import { logger } from "@/lib/logger";
+import { cacheService } from "@/services/cache.service";
 
 // Security event types
 export enum SecurityEventType {
-  AUTH_FAILED = 'AUTH_FAILED',
-  AUTH_SUCCESS = 'AUTH_SUCCESS',
-  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  SUSPICIOUS_INPUT = 'SUSPICIOUS_INPUT',
-  CORS_VIOLATION = 'CORS_VIOLATION',
-  INVALID_TOKEN = 'INVALID_TOKEN',
-  SQL_INJECTION_ATTEMPT = 'SQL_INJECTION_ATTEMPT',
-  XSS_ATTEMPT = 'XSS_ATTEMPT',
-  PATH_TRAVERSAL_ATTEMPT = 'PATH_TRAVERSAL_ATTEMPT',
-  UNAUTHORIZED_ACCESS = 'UNAUTHORIZED_ACCESS',
+  AUTH_FAILED = "AUTH_FAILED",
+  AUTH_SUCCESS = "AUTH_SUCCESS",
+  RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
+  SUSPICIOUS_INPUT = "SUSPICIOUS_INPUT",
+  CORS_VIOLATION = "CORS_VIOLATION",
+  INVALID_TOKEN = "INVALID_TOKEN",
+  SQL_INJECTION_ATTEMPT = "SQL_INJECTION_ATTEMPT",
+  XSS_ATTEMPT = "XSS_ATTEMPT",
+  PATH_TRAVERSAL_ATTEMPT = "PATH_TRAVERSAL_ATTEMPT",
+  UNAUTHORIZED_ACCESS = "UNAUTHORIZED_ACCESS",
 }
 
 // IP tracking data structure
@@ -41,7 +41,7 @@ interface SuspiciousIPData {
 }
 
 // Cache key prefix for suspicious IPs
-const SUSPICIOUS_IP_PREFIX = 'security:suspicious_ip';
+const SUSPICIOUS_IP_PREFIX = "security:suspicious_ip";
 const IP_TRACKING_TTL = 24 * 60 * 60; // 24 hours in seconds
 
 // In-memory fallback for when Redis is unavailable
@@ -53,24 +53,31 @@ const suspiciousIPsFallback = new Map<string, SuspiciousIPData>();
 export function logSecurityEvent(
   type: SecurityEventType,
   req: Request,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): void {
-  const clientIP = req.ip ?? req.socket?.remoteAddress ?? 'unknown';
-  const userAgent = req.get?.('User-Agent') ?? 'unknown';
+  const clientIP = req.ip ?? req.socket?.remoteAddress ?? "unknown";
+  const userAgent = req.get?.("User-Agent") ?? "unknown";
 
   const securityEvent = {
     type,
     timestamp: new Date().toISOString(),
     ip: clientIP,
     userAgent,
-    path: req.path || 'unknown',
-    method: req.method || 'unknown',
-    userId: (req as unknown as Record<string, unknown>)['user'] ? ((req as unknown as Record<string, unknown>)['user'] as Record<string, unknown>)['id'] : null,
+    path: req.path || "unknown",
+    method: req.method || "unknown",
+    userId: (req as unknown as Record<string, unknown>)["user"]
+      ? (
+          (req as unknown as Record<string, unknown>)["user"] as Record<
+            string,
+            unknown
+          >
+        )["id"]
+      : null,
     ...details,
   };
 
   // Log to Winston logger
-  logger.warn('🚨 Security Event', securityEvent);
+  logger.warn("🚨 Security Event", securityEvent);
 
   // Track suspicious IP and check for ban (async, fire-and-forget)
   void (async () => {
@@ -79,25 +86,21 @@ export function logSecurityEvent(
 
       // Send to Sentry for critical events
       if (isCriticalEvent(type)) {
-        captureMessage(
-          `Security Event: ${type}`,
-          'warning',
-          securityEvent
-        );
+        captureMessage(`Security Event: ${type}`, "warning", securityEvent);
       }
 
       // Auto-ban logic for repeated violations
       const shouldBan = await shouldBanIP(clientIP);
       if (shouldBan) {
-        logger.error(`🔒 IP ${clientIP} flagged for automatic blocking due to repeated security violations`);
-        captureMessage(
-          `IP Auto-Ban Triggered: ${clientIP}`,
-          'error',
-          { ip: clientIP }
+        logger.error(
+          `🔒 IP ${clientIP} flagged for automatic blocking due to repeated security violations`,
         );
+        captureMessage(`IP Auto-Ban Triggered: ${clientIP}`, "error", {
+          ip: clientIP,
+        });
       }
     } catch (error) {
-      logger.error('Error in security event tracking:', error);
+      logger.error("Error in security event tracking:", error);
     }
   })();
 }
@@ -105,7 +108,10 @@ export function logSecurityEvent(
 /**
  * Track suspicious IP addresses using Redis (with in-memory fallback)
  */
-async function trackSuspiciousIP(ip: string, event: SecurityEventType): Promise<void> {
+async function trackSuspiciousIP(
+  ip: string,
+  event: SecurityEventType,
+): Promise<void> {
   const cacheKey = `${SUSPICIOUS_IP_PREFIX}:${ip}`;
   const now = new Date().toISOString();
 
@@ -134,7 +140,7 @@ async function trackSuspiciousIP(ip: string, event: SecurityEventType): Promise<
     }
   } catch (error) {
     // Fallback to in-memory tracking if Redis fails
-    logger.warn('Redis tracking failed, using in-memory fallback:', error);
+    logger.warn("Redis tracking failed, using in-memory fallback:", error);
 
     const existing = suspiciousIPsFallback.get(ip);
     if (existing) {
@@ -216,33 +222,36 @@ async function shouldBanIP(ip: string): Promise<boolean> {
 /**
  * Middleware to log all authentication attempts
  */
-export function logAuthAttempts(req: Request, res: Response, next: NextFunction) {
+export function logAuthAttempts(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const originalJson = res.json.bind(res);
 
   res.json = function (data: Record<string, unknown>) {
     // Check if this is an auth endpoint response
-    if (req.path.includes('/auth/')) {
-      if (data['success']) {
-        logSecurityEvent(
-          SecurityEventType.AUTH_SUCCESS,
-          req,
-          {
-            userId: (data['data'] as Record<string, unknown> | undefined)?.['id'],
-            // DO NOT log email - it's PII
-            // email is now sanitized by the logger middleware
-          }
-        );
+    if (req.path.includes("/auth/")) {
+      if (data["success"]) {
+        logSecurityEvent(SecurityEventType.AUTH_SUCCESS, req, {
+          userId: (data["data"] as Record<string, unknown> | undefined)?.["id"],
+          // DO NOT log email - it's PII
+          // email is now sanitized by the logger middleware
+        });
       } else if (res.statusCode === 401 || res.statusCode === 403) {
-        logSecurityEvent(
-          SecurityEventType.AUTH_FAILED,
-          req,
-          {
-            // DO NOT log email - it's PII
-            // Use userId if available, otherwise track by IP only
-            userId: (req as unknown as Record<string, unknown>)['user'] ? ((req as unknown as Record<string, unknown>)['user'] as Record<string, unknown>)['id'] : null,
-            reason: data['error'],
-          }
-        );
+        logSecurityEvent(SecurityEventType.AUTH_FAILED, req, {
+          // DO NOT log email - it's PII
+          // Use userId if available, otherwise track by IP only
+          userId: (req as unknown as Record<string, unknown>)["user"]
+            ? (
+                (req as unknown as Record<string, unknown>)["user"] as Record<
+                  string,
+                  unknown
+                >
+              )["id"]
+            : null,
+          reason: data["error"],
+        });
       }
     }
 
@@ -255,20 +264,20 @@ export function logAuthAttempts(req: Request, res: Response, next: NextFunction)
 /**
  * Middleware to detect and log rate limit violations
  */
-export function logRateLimitViolations(req: Request, res: Response, next: NextFunction) {
+export function logRateLimitViolations(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const originalSend = res.send.bind(res);
 
   res.send = function (data: unknown) {
     if (res.statusCode === 429) {
-      logSecurityEvent(
-        SecurityEventType.RATE_LIMIT_EXCEEDED,
-        req,
-        {
-          path: req.path,
-          limit: res.getHeader('X-RateLimit-Limit'),
-          remaining: res.getHeader('X-RateLimit-Remaining'),
-        }
-      );
+      logSecurityEvent(SecurityEventType.RATE_LIMIT_EXCEEDED, req, {
+        path: req.path,
+        limit: res.getHeader("X-RateLimit-Limit"),
+        remaining: res.getHeader("X-RateLimit-Remaining"),
+      });
     }
 
     return originalSend(data);

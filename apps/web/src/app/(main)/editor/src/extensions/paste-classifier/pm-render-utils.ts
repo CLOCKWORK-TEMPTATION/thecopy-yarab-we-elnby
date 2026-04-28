@@ -1,9 +1,11 @@
 import { Fragment, Slice } from "@tiptap/pm/model";
-import type { EditorView } from "@tiptap/pm/view";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
-import type { RenderClassifiedDraftsResult } from "./types";
+
 import { classifiedToNodes } from "./classified-to-nodes";
 import { computeDocumentSignature } from "./helpers";
+
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
+import type { RenderClassifiedDraftsResult } from "./types";
+import type { EditorView } from "@tiptap/pm/view";
 
 export const buildProgressiveNodeAttrs = (
   itemId: string
@@ -61,9 +63,7 @@ export const renderClassifiedDraftsToView = (
           : null;
       if (!elementId || !expectedTopLevelElementIds.has(elementId)) return;
 
-      if (firstMatch === null) {
-        firstMatch = offset;
-      }
+      firstMatch ??= offset;
       lastMatchEnd = offset + node.nodeSize;
     });
 

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const wafIpBodySchema = z
   .object({
@@ -17,8 +17,8 @@ export const telemetryBodySchema = z
 export const wafConfigUpdateSchema = z
   .object({
     enabled: z.boolean().optional(),
-    mode: z.enum(['block', 'monitor']).optional(),
-    logLevel: z.enum(['minimal', 'standard', 'verbose']).optional(),
+    mode: z.enum(["block", "monitor"]).optional(),
+    logLevel: z.enum(["minimal", "standard", "verbose"]).optional(),
     rules: z.record(z.string(), z.boolean()).optional(),
     whitelist: z
       .object({

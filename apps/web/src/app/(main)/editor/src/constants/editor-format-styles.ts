@@ -54,7 +54,7 @@ export const LOCKED_EDITOR_LINE_HEIGHT = "15pt";
  * @returns كائن أنماط CSS جاهز للتطبيق على عنصر DOM أو مكوّن React
  */
 export const getFormatStyles = (
-  formatType: EditorStyleFormatId | string,
+  formatType: string,
   selectedSize: string = LOCKED_EDITOR_FONT_SIZE,
   selectedFont = "AzarMehrMonospaced-San"
 ): CSSProperties => {

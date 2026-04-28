@@ -244,9 +244,7 @@ function classifyLine(text) {
   }
   if (text.match(/^[\.\(\[]/) || text.match(/^[A-Z\u0600-\u06FF\s\(\)]+$/)) {
     if (
-      text.match(
-        /^(المحقق|سلمى|المحقـق|سـلمى|الفريق|الضابط|الضابط \d|ضابط \d)/
-      )
+      text.match(/^(المحقق|سلمى|المحقـق|سـلمى|الفريق|الضابط|الضابط \d|ضابط \d)/)
     ) {
       return "character";
     }

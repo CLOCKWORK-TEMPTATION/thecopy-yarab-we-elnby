@@ -78,20 +78,18 @@ export const AgentReportsExporter: React.FC<AgentReportsExporterProps> = ({
         });
 
         // Append each supporting step as a Markdown section
-        if (taskResults) {
-          const completedSteps = Object.values(taskResults).filter((step) =>
-            step.text?.trim()
-          );
-          if (completedSteps.length > 0) {
-            sections.push("## النتائج الداعمة");
-            sections.push("-------------------------------------------");
+        const completedSteps = taskResults
+          ? Object.values(taskResults).filter((step) => step.text?.trim())
+          : [];
+        if (completedSteps.length > 0) {
+          sections.push("## النتائج الداعمة");
+          sections.push("-------------------------------------------");
+          sections.push("");
+          for (const step of completedSteps) {
+            sections.push(`## ${step.agentName}`);
             sections.push("");
-            for (const step of completedSteps) {
-              sections.push(`## ${step.agentName}`);
-              sections.push("");
-              sections.push(step.text);
-              sections.push("");
-            }
+            sections.push(step.text);
+            sections.push("");
           }
         }
 

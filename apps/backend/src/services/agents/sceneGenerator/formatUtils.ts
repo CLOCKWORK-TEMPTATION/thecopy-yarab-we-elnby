@@ -115,7 +115,7 @@ function extractSceneHeading(text: string): string | null {
       line.includes("EXT.") ||
       line.includes("داخلي") ||
       line.includes("خارجي") ||
-      line.includes("المشهد")
+      line.includes("المشهد"),
   );
   return heading ?? null;
 }
@@ -123,7 +123,7 @@ function extractSceneHeading(text: string): string | null {
 function extractDescription(text: string): string | null {
   const paragraphs = text.split("\n\n");
   const description = paragraphs.find(
-    (p) => p.length > 100 && !p.includes('"') && !p.includes(":")
+    (p) => p.length > 100 && !p.includes('"') && !p.includes(":"),
   );
   return description ?? null;
 }

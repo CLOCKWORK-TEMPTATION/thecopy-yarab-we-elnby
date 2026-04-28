@@ -68,13 +68,7 @@ const CharacterCard = memo(function CharacterCard({
           <div>
             <span className="font-semibold">حالة الاتساق:</span>{" "}
             <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                character.consistencyStatus === "good"
-                  ? "bg-[var(--app-accent)]/10 text-[var(--app-accent)]"
-                  : character.consistencyStatus === "warning"
-                    ? "bg-amber-500/10 text-amber-600"
-                    : "bg-red-500/10 text-red-600"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${character.consistencyStatus === "good" ? "bg-[var(--app-accent)]/10 text-[var(--app-accent)]" : character.consistencyStatus === "warning" ? "bg-amber-500/10 text-amber-600" : "bg-red-500/10 text-red-600"}`}
             >
               {character.consistencyStatus === "good"
                 ? "جيد"

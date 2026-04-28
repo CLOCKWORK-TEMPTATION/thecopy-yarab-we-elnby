@@ -93,7 +93,7 @@ export class LightingSimulator implements Plugin {
     switch (input.type) {
       case "simulate":
         return this.simulateLighting(
-          input.data as unknown as LightingSimulationInput
+          input.data as unknown as LightingSimulationInput,
         );
       case "calculate":
         return this.calculateEquipment(input.data as any);
@@ -108,7 +108,7 @@ export class LightingSimulator implements Plugin {
   }
 
   private async simulateLighting(
-    data: LightingSimulationInput
+    data: LightingSimulationInput,
   ): Promise<PluginOutput> {
     const { scene, style = "naturalistic" } = data;
 
@@ -126,7 +126,7 @@ export class LightingSimulator implements Plugin {
       // Exterior lighting setup
       if (
         ["dawn", "morning", "midday", "afternoon", "sunset"].includes(
-          scene.timeOfDay
+          scene.timeOfDay,
         )
       ) {
         // Daylight scenarios
@@ -267,7 +267,7 @@ export class LightingSimulator implements Plugin {
           type: "led-panel",
           quantity: 2,
           accessories: ["Softbox", "Barn doors"],
-        }
+        },
       );
     }
 
@@ -306,7 +306,7 @@ export class LightingSimulator implements Plugin {
         name: "Premium Setup",
         description: "Full ARRI setup with HMIs and SkyPanels",
         budgetLevel: "high",
-      }
+      },
     );
 
     const recommendation: LightingRecommendation = {
@@ -361,7 +361,7 @@ export class LightingSimulator implements Plugin {
 
   private generateNotes(
     scene: LightingSimulationInput["scene"],
-    style: string
+    style: string,
   ): string {
     const notes: string[] = [];
 
@@ -378,7 +378,7 @@ export class LightingSimulator implements Plugin {
 
   private generateNotesAr(
     scene: LightingSimulationInput["scene"],
-    style: string
+    style: string,
   ): string {
     const locations: Record<string, string> = {
       interior: "داخلي",

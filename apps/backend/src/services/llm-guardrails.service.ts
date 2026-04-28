@@ -1,6 +1,6 @@
-import { captureException as captureSentryException } from '@/config/sentry';
+import { captureException as captureSentryException } from "@/config/sentry";
 
-import { logger } from '../utils/logger';
+import { logger } from "../utils/logger";
 
 import {
   detectPromptInjections,
@@ -12,8 +12,12 @@ import {
   createWarningViolation,
   determineRiskLevel,
   shouldBlock,
-} from './llm-guardrails.detection';
-import { detectPII, isValidCreditCard, sanitizePII } from './llm-guardrails.pii';
+} from "./llm-guardrails.detection";
+import {
+  detectPII,
+  isValidCreditCard,
+  sanitizePII,
+} from "./llm-guardrails.pii";
 
 import type {
   GuardrailViolation,
@@ -21,14 +25,14 @@ import type {
   GuardrailMetrics,
   RiskLevel,
   CheckContext,
-} from './llm-guardrails.types';
+} from "./llm-guardrails.types";
 
 export type {
   GuardrailViolation,
   PIIDetection,
   GuardrailResult,
   GuardrailMetrics,
-} from './llm-guardrails.types';
+} from "./llm-guardrails.types";
 
 // ============================================
 // INTERNAL TYPES
@@ -72,18 +76,18 @@ export class LLMGuardrailsService {
     content: string,
     violations: GuardrailViolation[],
     riskLevel: RiskLevel,
-    context?: CheckContext
+    context?: CheckContext,
   ): void {
     this.metrics.blockedRequests++;
 
-    logger.warn('LLM Input blocked by guardrails', {
+    logger.warn("LLM Input blocked by guardrails", {
       userId: context?.userId,
       requestType: context?.requestType,
       violations: violations.length,
       riskLevel,
     });
 
-    captureSentryException(new Error('Input validation failed'), {
+    captureSentryException(new Error("Input validation failed"), {
       violations,
       input: content.substring(0, 500),
       riskLevel,
@@ -98,9 +102,17 @@ export class LLMGuardrailsService {
   }
 
   private reportOutputProcessing(report: OutputProcessingReport): void {
-    const { content, sanitizedContent, violations, warnings, riskLevel, piiDetected, context } = report;
+    const {
+      content,
+      sanitizedContent,
+      violations,
+      warnings,
+      riskLevel,
+      piiDetected,
+      context,
+    } = report;
 
-    logger.info('LLM Output processed by guardrails', {
+    logger.info("LLM Output processed by guardrails", {
       userId: context?.userId,
       requestType: context?.requestType,
       violations: violations.length,
@@ -110,7 +122,7 @@ export class LLMGuardrailsService {
     });
 
     if (violations.length > 0) {
-      captureSentryException(new Error('Output sanitization required'), {
+      captureSentryException(new Error("Output sanitization required"), {
         violations,
         warnings,
         originalLength: content.length,
@@ -137,8 +149,8 @@ export class LLMGuardrailsService {
 
     if (content.length > this.MAX_CONTENT_LENGTH) {
       violations.push({
-        type: 'other',
-        severity: 'high',
+        type: "other",
+        severity: "high",
         description: `Content too large (${content.length} characters, max ${this.MAX_CONTENT_LENGTH})`,
       });
     }
@@ -166,10 +178,10 @@ export class LLMGuardrailsService {
     const piiDetections = detectPII(content);
     if (piiDetections.length > 0) {
       violations.push({
-        type: 'pii',
-        severity: 'high',
+        type: "pii",
+        severity: "high",
         description: `Detected ${piiDetections.length} pieces of personal information`,
-        matches: piiDetections.map(p => p.value),
+        matches: piiDetections.map((p) => p.value),
       });
       sanitizedContent = sanitizePII(content, piiDetections);
     }
@@ -225,18 +237,25 @@ export class LLMGuardrailsService {
         (this.metrics.violationsBySeverity[violation.severity] ?? 0) + 1;
 
       if (violation.pattern) {
-        const existing = this.metrics.topPatterns.find(p => p.pattern === violation.pattern);
+        const existing = this.metrics.topPatterns.find(
+          (p) => p.pattern === violation.pattern,
+        );
         if (existing) {
           existing.count++;
         } else {
-          this.metrics.topPatterns.push({ pattern: violation.pattern, count: 1 });
+          this.metrics.topPatterns.push({
+            pattern: violation.pattern,
+            count: 1,
+          });
         }
       }
     }
 
     this.metrics.recentViolations.push(...violations);
     if (this.metrics.recentViolations.length > this.MAX_RECENT_VIOLATIONS) {
-      this.metrics.recentViolations = this.metrics.recentViolations.slice(-this.MAX_RECENT_VIOLATIONS);
+      this.metrics.recentViolations = this.metrics.recentViolations.slice(
+        -this.MAX_RECENT_VIOLATIONS,
+      );
     }
 
     this.metrics.topPatterns.sort((a, b) => b.count - a.count);
@@ -245,8 +264,12 @@ export class LLMGuardrailsService {
     }
   }
 
-  detectPII(content: string) { return detectPII(content); }
-  isValidCreditCard(value: string) { return isValidCreditCard(value); }
+  detectPII(content: string) {
+    return detectPII(content);
+  }
+  isValidCreditCard(value: string) {
+    return isValidCreditCard(value);
+  }
 
   getMetrics(): GuardrailMetrics {
     return { ...this.metrics };
@@ -266,21 +289,21 @@ export class LLMGuardrailsService {
   comprehensiveCheck(
     input: string,
     output: string,
-    context?: { userId?: string; requestType?: string }
+    context?: { userId?: string; requestType?: string },
   ): {
     input: GuardrailResult;
     output: GuardrailResult;
-    overallRisk: 'low' | 'medium' | 'high' | 'critical';
+    overallRisk: "low" | "medium" | "high" | "critical";
   } {
     const inputResult = this.checkInput(input, context);
     const outputResult = this.checkOutput(output, context);
 
     const risks = [inputResult.riskLevel, outputResult.riskLevel];
-    let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low';
+    let overallRisk: "low" | "medium" | "high" | "critical" = "low";
 
-    if (risks.includes('critical')) overallRisk = 'critical';
-    else if (risks.includes('high')) overallRisk = 'high';
-    else if (risks.includes('medium')) overallRisk = 'medium';
+    if (risks.includes("critical")) overallRisk = "critical";
+    else if (risks.includes("high")) overallRisk = "high";
+    else if (risks.includes("medium")) overallRisk = "medium";
 
     return { input: inputResult, output: outputResult, overallRisk };
   }

@@ -11,6 +11,8 @@ export interface PitchIndicatorProps {
 }
 
 export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
+  const isBalancedPitch = pitch.level === "medium";
+
   return (
     <Card className="bg-white/[0.04] border-white/8 rounded-[22px]">
       <CardHeader className="pb-2">
@@ -23,22 +25,22 @@ export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-3xl font-bold text-purple-400">
-              {Math.round(pitch.current)} Hz
+              {Math.round(pitch.value)} Hz
             </span>
             <Badge
-              variant={pitch.stability > 0.7 ? "default" : "destructive"}
+              variant={isBalancedPitch ? "default" : "destructive"}
               className={
-                pitch.stability > 0.7 ? "bg-green-500/20 text-green-300" : ""
+                isBalancedPitch ? "bg-green-500/20 text-green-300" : ""
               }
             >
-              {pitch.stability > 0.7 ? "مستقر" : "متذبذب"}
+              {pitch.label}
             </Badge>
           </div>
           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
               style={{
-                width: `${Math.min(100, (pitch.current / 500) * 100)}%`,
+                width: `${Math.min(100, (pitch.value / 500) * 100)}%`,
               }}
             />
           </div>
@@ -47,13 +49,13 @@ export const PitchIndicator: React.FC<PitchIndicatorProps> = ({ pitch }) => {
             <span>متوسط</span>
             <span>مرتفع</span>
           </div>
-          {pitch.warning && (
+          {!isBalancedPitch && (
             <Alert
               variant="destructive"
               className="bg-red-900/30 border-red-900"
             >
               <AlertDescription className="text-red-200">
-                {pitch.warning}
+                اضبط الطبقة الصوتية باتجاه النطاق المتوسط لتحسين الثبات.
               </AlertDescription>
             </Alert>
           )}

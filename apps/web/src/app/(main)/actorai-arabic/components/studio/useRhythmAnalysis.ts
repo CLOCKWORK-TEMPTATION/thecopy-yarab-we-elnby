@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 
 import { SAMPLE_SCRIPT } from "../../types/constants";
+
 import type { SceneRhythmAnalysis } from "../../types";
 
 export const useRhythmAnalysis = (

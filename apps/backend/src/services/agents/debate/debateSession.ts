@@ -4,13 +4,13 @@
  * المرحلة 3 - Multi-Agent Debate System
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { StandardAgentOutput } from '../shared/standardAgentPattern';
+import { StandardAgentOutput } from "../shared/standardAgentPattern";
 
-import { AgentDebator } from './agentDebator';
+import { AgentDebator } from "./agentDebator";
 import {
   DebateSession,
   DebateRound,
@@ -20,8 +20,7 @@ import {
   ConsensusResult,
   DebateMetrics,
   DebateRole,
-} from './types';
-
+} from "./types";
 
 /**
  * Default debate configuration
@@ -46,7 +45,7 @@ export class DebateRoundClass implements DebateRound {
   consensus?: ConsensusResult;
   startTime: Date;
   endTime?: Date;
-  status: 'active' | 'completed' | 'aborted' = 'active';
+  status: "active" | "completed" | "aborted" = "active";
 
   constructor(roundNumber: number) {
     this.roundNumber = roundNumber;
@@ -71,7 +70,7 @@ export class DebateRoundClass implements DebateRound {
    * Complete the round
    */
   complete(): void {
-    this.status = 'completed';
+    this.status = "completed";
     this.endTime = new Date();
   }
 
@@ -79,7 +78,7 @@ export class DebateRoundClass implements DebateRound {
    * Abort the round
    */
   abort(): void {
-    this.status = 'aborted';
+    this.status = "aborted";
     this.endTime = new Date();
   }
 
@@ -95,14 +94,14 @@ export class DebateRoundClass implements DebateRound {
    * Get arguments by agent name
    */
   getArgumentsByAgent(agentName: string): DebateArgument[] {
-    return this.arguments.filter(arg => arg.agentName === agentName);
+    return this.arguments.filter((arg) => arg.agentName === agentName);
   }
 
   /**
    * Get arguments by role
    */
   getArgumentsByRole(role: DebateRole): DebateArgument[] {
-    return this.arguments.filter(arg => arg.role === role);
+    return this.arguments.filter((arg) => arg.role === role);
   }
 }
 
@@ -115,7 +114,8 @@ export class DebateSessionClass implements DebateSession {
   participants: DebateParticipant[];
   rounds: DebateRound[] = [];
   config: DebateConfig;
-  status: 'initializing' | 'in_progress' | 'completed' | 'failed' = 'initializing';
+  status: "initializing" | "in_progress" | "completed" | "failed" =
+    "initializing";
   startTime: Date;
   endTime?: Date;
   finalResult?: StandardAgentOutput;
@@ -125,7 +125,7 @@ export class DebateSessionClass implements DebateSession {
   constructor(
     topic: string,
     participants: DebateParticipant[],
-    config?: Partial<DebateConfig>
+    config?: Partial<DebateConfig>,
   ) {
     this.id = uuidv4();
     this.topic = topic;
@@ -134,13 +134,15 @@ export class DebateSessionClass implements DebateSession {
     this.startTime = new Date();
 
     // Create AgentDebators for each participant
-    participants.forEach(participant => {
+    participants.forEach((participant) => {
       const agentName = participant.agent.getConfig().name;
       const debator = new AgentDebator(participant.agent, participant.role);
       this.debators.set(agentName, debator);
     });
 
-    logger.info(`[DebateSession] Created session ${this.id} for topic: ${topic}`);
+    logger.info(
+      `[DebateSession] Created session ${this.id} for topic: ${topic}`,
+    );
   }
 
   /**
@@ -148,18 +150,18 @@ export class DebateSessionClass implements DebateSession {
    */
   start(): Promise<void> {
     logger.info(`[DebateSession] Starting debate on: ${this.topic}`);
-    this.status = 'in_progress';
+    this.status = "in_progress";
 
     // Validate participants
     if (this.participants.length < (this.config.minParticipants ?? 2)) {
       throw new Error(
-        `عدد المشاركين (${this.participants.length}) أقل من الحد الأدنى (${this.config.minParticipants})`
+        `عدد المشاركين (${this.participants.length}) أقل من الحد الأدنى (${this.config.minParticipants})`,
       );
     }
 
     if (this.participants.length > (this.config.maxParticipants ?? 5)) {
       throw new Error(
-        `عدد المشاركين (${this.participants.length}) أكبر من الحد الأقصى (${this.config.maxParticipants})`
+        `عدد المشاركين (${this.participants.length}) أكبر من الحد الأقصى (${this.config.maxParticipants})`,
       );
     }
 
@@ -171,7 +173,7 @@ export class DebateSessionClass implements DebateSession {
    */
   async executeRound(
     roundNumber: number,
-    context?: string
+    context?: string,
   ): Promise<DebateRound> {
     logger.info(`[DebateSession] Executing round ${roundNumber}`);
 
@@ -186,7 +188,7 @@ export class DebateSessionClass implements DebateSession {
       await Promise.race([
         roundPromise,
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Round timeout')), timeout)
+          setTimeout(() => reject(new Error("Round timeout")), timeout),
         ),
       ]);
 
@@ -204,12 +206,12 @@ export class DebateSessionClass implements DebateSession {
    */
   private async runRound(
     round: DebateRoundClass,
-    context?: string
+    context?: string,
   ): Promise<void> {
     const previousArguments = this.getAllPreviousArguments();
 
     // Collect arguments from all participants in parallel
-    const argumentPromises = this.participants.map(async participant => {
+    const argumentPromises = this.participants.map(async (participant) => {
       const agentName = participant.agent.getConfig().name;
       const debator = this.debators.get(agentName);
 
@@ -222,11 +224,14 @@ export class DebateSessionClass implements DebateSession {
         const argument = await debator.presentArgument(
           this.topic,
           context,
-          previousArguments
+          previousArguments,
         );
         return argument;
       } catch (error) {
-        logger.error(`[DebateSession] Error getting argument from ${agentName}:`, error);
+        logger.error(
+          `[DebateSession] Error getting argument from ${agentName}:`,
+          error,
+        );
         return null;
       }
     });
@@ -234,7 +239,7 @@ export class DebateSessionClass implements DebateSession {
     const debateArguments = await Promise.all(argumentPromises);
 
     // Add valid arguments to round
-    debateArguments.forEach(arg => {
+    debateArguments.forEach((arg) => {
       if (arg) {
         round.addArgument(arg);
       }
@@ -248,7 +253,7 @@ export class DebateSessionClass implements DebateSession {
     const allArguments: DebateArgument[] = [];
 
     for (const round of this.rounds) {
-      if (round.status === 'completed') {
+      if (round.status === "completed") {
         allArguments.push(...round.arguments);
       }
     }
@@ -281,7 +286,7 @@ export class DebateSessionClass implements DebateSession {
    * Complete the debate session
    */
   complete(): void {
-    this.status = 'completed';
+    this.status = "completed";
     this.endTime = new Date();
     logger.info(`[DebateSession] Debate completed: ${this.id}`);
   }
@@ -290,9 +295,9 @@ export class DebateSessionClass implements DebateSession {
    * Fail the debate session
    */
   fail(reason?: string): void {
-    this.status = 'failed';
+    this.status = "failed";
     this.endTime = new Date();
-    logger.error(`[DebateSession] Debate failed: ${reason ?? 'Unknown error'}`);
+    logger.error(`[DebateSession] Debate failed: ${reason ?? "Unknown error"}`);
   }
 
   /**
@@ -304,13 +309,12 @@ export class DebateSessionClass implements DebateSession {
     const consensusAchieved = lastRound?.consensus?.achieved ?? false;
 
     let totalConfidence = 0;
-    allArguments.forEach(arg => {
+    allArguments.forEach((arg) => {
       totalConfidence += arg.confidence;
     });
 
-    const averageConfidence = allArguments.length > 0
-      ? totalConfidence / allArguments.length
-      : 0;
+    const averageConfidence =
+      allArguments.length > 0 ? totalConfidence / allArguments.length : 0;
 
     const processingTime = this.endTime
       ? this.endTime.getTime() - this.startTime.getTime()
@@ -321,7 +325,7 @@ export class DebateSessionClass implements DebateSession {
       consensusAchieved,
       averageConfidence,
       allArguments.length,
-      this.rounds.length
+      this.rounds.length,
     );
 
     return {
@@ -343,7 +347,7 @@ export class DebateSessionClass implements DebateSession {
     consensusAchieved: boolean,
     averageConfidence: number,
     totalArguments: number,
-    totalRounds: number
+    totalRounds: number,
   ): number {
     let score = 0;
 
@@ -362,7 +366,7 @@ export class DebateSessionClass implements DebateSession {
 
     // Efficiency - fewer rounds = better (10%)
     const maxRounds = this.config.maxRounds ?? 3;
-    const efficiency = 1 - (totalRounds / maxRounds);
+    const efficiency = 1 - totalRounds / maxRounds;
     score += efficiency * 0.1;
 
     return Math.min(1, Math.max(0, score));
@@ -380,7 +384,7 @@ export class DebateSessionClass implements DebateSession {
     summary += `**عدد الجولات:** ${metrics.totalRounds}\n`;
     summary += `**عدد المشاركين:** ${metrics.participantCount}\n`;
     summary += `**إجمالي الحجج:** ${metrics.totalArguments}\n`;
-    summary += `**التوافق:** ${metrics.consensusAchieved ? 'تم التوصل إلى توافق' : 'لم يتم التوصل إلى توافق'}\n`;
+    summary += `**التوافق:** ${metrics.consensusAchieved ? "تم التوصل إلى توافق" : "لم يتم التوصل إلى توافق"}\n`;
     summary += `**متوسط الثقة:** ${(metrics.averageConfidence * 100).toFixed(1)}%\n`;
     summary += `**درجة الجودة:** ${(metrics.qualityScore * 100).toFixed(1)}%\n\n`;
 

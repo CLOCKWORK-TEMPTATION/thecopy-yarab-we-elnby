@@ -39,7 +39,7 @@ const resolveOpenAiCompatibleMaxTokens = (target, maxTokens) => {
 
 const createOpenAiCompatibleChatModel = (
   target,
-  { temperature = 0, maxTokens = undefined, timeoutMs = undefined } = {}
+  { temperature = 0, maxTokens = undefined, timeoutMs = undefined } = {},
 ) => ({
   async invoke(messages) {
     const response = await fetch(`${target.baseUrl}/chat/completions`, {
@@ -93,7 +93,7 @@ const createOpenAiCompatibleChatModel = (
  */
 export const createReviewModel = async (
   target,
-  { temperature = 0, maxTokens = undefined, timeoutMs = undefined } = {}
+  { temperature = 0, maxTokens = undefined, timeoutMs = undefined } = {},
 ) => {
   if (!target?.valid) {
     throw new Error(target?.error || "Review target is not valid.");
@@ -101,7 +101,7 @@ export const createReviewModel = async (
 
   if (!target?.credential?.valid) {
     throw new Error(
-      target?.credential?.message || "Provider credential is not valid."
+      target?.credential?.message || "Provider credential is not valid.",
     );
   }
 

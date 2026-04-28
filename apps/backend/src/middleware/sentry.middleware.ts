@@ -4,11 +4,16 @@
  * Avoid loading Sentry packages unless a DSN is configured.
  */
 
-import { createRequire } from 'node:module';
+import { createRequire } from "node:module";
 
-import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import type {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler,
+} from "express";
 
-type SentryModule = typeof import('@sentry/node');
+type SentryModule = typeof import("@sentry/node");
 
 const loadModule = createRequire(__filename);
 let sentryModule: SentryModule | null = null;
@@ -19,7 +24,7 @@ function isSentryEnabled(): boolean {
 }
 
 function getSentryModule(): SentryModule {
-  sentryModule ??= loadModule('@sentry/node') as SentryModule;
+  sentryModule ??= loadModule("@sentry/node") as SentryModule;
   return sentryModule;
 }
 
@@ -35,8 +40,12 @@ function getSentryErrorHandler(): ErrorRequestHandler {
 // Note: لا حاجة لـ sentryRequestHandler/sentryTracingHandler يدويين في @sentry/node v8+.
 // التتبع يتم تلقائياً عبر OpenTelemetry-based instrumentation عند استدعاء Sentry.init().
 // نُبقي فقط على expressErrorHandler الرسمي للالتقاط النهائي للأخطاء.
-export const sentryErrorHandler: ErrorRequestHandler = (error, req, res, next) =>
-  getSentryErrorHandler()(error, req, res, next);
+export const sentryErrorHandler: ErrorRequestHandler = (
+  error,
+  req,
+  res,
+  next,
+) => getSentryErrorHandler()(error, req, res, next);
 
 export function trackError(req: Request, res: Response, next: NextFunction) {
   if (!isSentryEnabled()) {
@@ -60,7 +69,7 @@ export function trackError(req: Request, res: Response, next: NextFunction) {
     if (res.statusCode >= 400) {
       Sentry.addBreadcrumb({
         message: `HTTP ${res.statusCode} on ${req.method} ${req.path}`,
-        level: res.statusCode >= 500 ? 'error' : 'warning',
+        level: res.statusCode >= 500 ? "error" : "warning",
         data: {
           method: req.method,
           url: req.url,
@@ -76,7 +85,11 @@ export function trackError(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-export function trackPerformance(req: Request, res: Response, next: NextFunction) {
+export function trackPerformance(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (!isSentryEnabled()) {
     next();
     return;
@@ -85,13 +98,13 @@ export function trackPerformance(req: Request, res: Response, next: NextFunction
   const Sentry = getSentryModule();
   const startTime = Date.now();
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - startTime;
 
     if (duration > 1000) {
       Sentry.addBreadcrumb({
         message: `Slow request: ${req.method} ${req.path}`,
-        level: 'warning',
+        level: "warning",
         data: {
           duration,
           method: req.method,
@@ -101,8 +114,8 @@ export function trackPerformance(req: Request, res: Response, next: NextFunction
       });
     }
 
-    Sentry.metrics.distribution('http.request.duration', duration, {
-      unit: 'millisecond',
+    Sentry.metrics.distribution("http.request.duration", duration, {
+      unit: "millisecond",
     });
   });
 

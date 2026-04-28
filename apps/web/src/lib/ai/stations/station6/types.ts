@@ -1,3 +1,13 @@
+// =============================================================================
+// أنواع مساعدة مشتركة لمحطة 6 — JsonRecord و DebateResult
+// JsonRecord: شكل عام لكائنات JSON المرتجعة من خدمات النماذج
+// DebateResult: مُعاد تصديره من نظام النقاش متعدد الوكلاء
+// =============================================================================
+import type { DebateResult } from "../../constitutional/multi-agent-debate";
+
+export type JsonRecord = Record<string, unknown>;
+export type { DebateResult };
+
 export interface DiagnosticIssue {
   type: "critical" | "major" | "minor";
   category:

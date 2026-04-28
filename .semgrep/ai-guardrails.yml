@@ -38,11 +38,11 @@ rules:
         - /apps/web/src/app/api/breakdown/_lib/**
         - /packages/shared/src/ai/gemini-service.ts
         - /packages/prompt-engineering/src/lib/gemini-service.ts
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
-        - '**/scripts/**'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
+        - "**/scripts/**"
     pattern-either:
       - patterns:
           - pattern: $SERVICE.generateContent(...)
@@ -103,10 +103,10 @@ rules:
         - /apps/web/src/app/api/breakdown/_lib/**
         - /apps/web/src/app/(main)/breakdown/infrastructure/agents/runner.ts
         - /apps/web/src/app/(main)/breakdown/services/castAgent/aiAgent.ts
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
     pattern-either:
       - patterns:
           - pattern-inside: |
@@ -179,12 +179,12 @@ rules:
         - /apps/web/src/app/(main)/editor/src/ocr-arabic-pdf-to-txt-pipeline/**
         - /packages/shared/src/ai/gemini-service.ts
         - /packages/prompt-engineering/src/lib/gemini-service.ts
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
-        - '**/scripts/**'
-        - '**/skill-scripts/**'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
+        - "**/scripts/**"
+        - "**/skill-scripts/**"
     pattern-either:
       - patterns:
           - pattern-inside: |

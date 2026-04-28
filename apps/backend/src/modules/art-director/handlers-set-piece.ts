@@ -19,7 +19,7 @@ import { readStore, updateStore, type StoredSetPiece } from "./store";
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 export async function handleSetReusabilityAnalyze(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const setName = asString(payload["setName"]);
   const category = mapSetCategory(asString(payload["category"]));
@@ -59,13 +59,20 @@ interface StoredSetPieceInput {
 }
 
 function buildStoredSetPiece(input: StoredSetPieceInput): StoredSetPiece {
-  const { rawPiece, name, nameAr, payload, category, dimensions, estimatedValue } = input;
+  const {
+    rawPiece,
+    name,
+    nameAr,
+    payload,
+    category,
+    dimensions,
+    estimatedValue,
+  } = input;
   return {
     id: asString(rawPiece["id"]) || randomUUID(),
     name: asString(rawPiece["name"]) || name,
     nameAr: asString(rawPiece["nameAr"]) || nameAr || name,
-    category:
-      asString(payload["category"]) || mapLocationTypeLabel(category),
+    category: asString(payload["category"]) || mapLocationTypeLabel(category),
     condition:
       asString(rawPiece["condition"]) ||
       asString(payload["condition"]) ||
@@ -78,7 +85,7 @@ function buildStoredSetPiece(input: StoredSetPieceInput): StoredSetPiece {
 }
 
 export async function handleSetPieceAdd(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const nameAr = asString(payload["nameAr"]);
   const name = asString(payload["name"]) || nameAr;
@@ -133,7 +140,7 @@ export async function handleSetPieceAdd(
 }
 
 export async function handleSetInventory(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const category = asString(payload["category"]);
   const store = await readStore();
@@ -149,18 +156,16 @@ export async function handleSustainabilityReport(): Promise<ArtDirectorHandlerRe
   const store = await readStore();
   const totalPieces = store.setPieces.length;
   const reusablePieces = store.setPieces.filter(
-    (piece) => piece.reusabilityScore >= 70
+    (piece) => piece.reusabilityScore >= 70,
   ).length;
   const reusablePercentage =
-    totalPieces === 0
-      ? 0
-      : Math.round((reusablePieces / totalPieces) * 100);
+    totalPieces === 0 ? 0 : Math.round((reusablePieces / totalPieces) * 100);
   const estimatedSavings = Math.round(
     store.setPieces.reduce(
       (sum, piece) =>
         sum + piece.estimatedValue * (piece.reusabilityScore / 100),
-      0
-    )
+      0,
+    ),
   );
 
   return success({

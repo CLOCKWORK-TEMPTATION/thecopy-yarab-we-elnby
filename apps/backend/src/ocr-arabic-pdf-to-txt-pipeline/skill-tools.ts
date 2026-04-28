@@ -64,7 +64,7 @@ const SCRIPTS_DIR = resolve(__dirname, "skill-scripts");
 async function runScript(
   scriptName: string,
   args: string[],
-  timeoutMs = 300_000
+  timeoutMs = 300_000,
 ): Promise<{ stdout: string; stderr: string }> {
   const scriptPath = resolve(SCRIPTS_DIR, scriptName);
 
@@ -87,7 +87,7 @@ async function runScript(
         MISTRAL_API_KEY: process.env["MISTRAL_API_KEY"] ?? "",
         OPENAI_API_KEY: process.env["OPENAI_API_KEY"] ?? "",
       },
-    }
+    },
   );
 
   return { stdout: stdout.trim(), stderr: stderr.trim() };
@@ -175,7 +175,7 @@ export const skillOcrMistral = defineTool<SkillOcrMistralInput>({
       const { stdout, stderr } = await runScript(
         "ocr-mistral.ts",
         args,
-        600_000 // 10 دقائق — ملفات كبيرة قد تستغرق وقتاً
+        600_000, // 10 دقائق — ملفات كبيرة قد تستغرق وقتاً
       );
 
       if (stderr) {
@@ -212,7 +212,7 @@ export const skillWriteOutput = defineTool<SkillWriteOutputInput>({
       .enum(["txt", "txt-raw", "md"])
       .default("md")
       .describe(
-        "صيغة المخرج: txt (legacy بفواصل صفحات) أو txt-raw (قبل التنسيق) أو md (Markdown)"
+        "صيغة المخرج: txt (legacy بفواصل صفحات) أو txt-raw (قبل التنسيق) أو md (Markdown)",
       ),
     output: z.string().describe("المسار المطلق لملف المخرج"),
   }),

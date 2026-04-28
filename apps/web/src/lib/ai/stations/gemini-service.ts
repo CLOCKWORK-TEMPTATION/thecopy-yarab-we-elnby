@@ -1,6 +1,7 @@
 import "server-only";
 import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
 
+import { getApiKey } from "../../../env";
 import { logger } from "../utils/logger";
 
 export enum GeminiModel {
@@ -49,6 +50,15 @@ export interface GeminiResponse<T> {
     cached: boolean;
     retryCount: number;
   };
+}
+
+interface FallbackRequestContext<T> {
+  request: GeminiRequest<T>;
+  fallbackModel: GeminiModel;
+  primaryModel: GeminiModel;
+  cacheKey: string;
+  retryCount: number;
+  attempt: number;
 }
 
 interface CacheEntry<T> {
@@ -150,41 +160,16 @@ export class GeminiService {
         retryCount++;
 
         if (attempt === this.config.maxRetries) {
-          if (
-            this.config.fallbackModel &&
-            this.config.fallbackModel !== primaryModel
-          ) {
-            logger.warn(
-              "[GeminiService] Primary model exhausted retries. Trying fallback model.",
-              {
-                primaryModel,
-                fallbackModel: this.config.fallbackModel,
-                attempt,
-              }
-            );
-
-            try {
-              const fallbackResponse = await this.performRequest<T>(
-                {
-                  ...request,
-                  model: this.config.fallbackModel,
-                },
-                0
-              );
-
-              fallbackResponse.metadata.retryCount = retryCount;
-
-              if (this.config.enableCaching) {
-                this.saveToCache(cacheKey, fallbackResponse);
-              }
-
-              return fallbackResponse;
-            } catch (fallbackError) {
-              return this.handleError<T>(fallbackError, {
-                ...request,
-                model: this.config.fallbackModel,
-              });
-            }
+          const fallbackModel = this.config.fallbackModel;
+          if (fallbackModel && fallbackModel !== primaryModel) {
+            return this.performFallbackRequest({
+              request,
+              fallbackModel,
+              primaryModel,
+              cacheKey,
+              retryCount,
+              attempt,
+            });
           }
 
           return this.handleError<T>(primaryError, {
@@ -209,6 +194,47 @@ export class GeminiService {
     }
 
     throw new Error("Unexpected: exceeded retry loop without resolution");
+  }
+
+  private async performFallbackRequest<T>({
+    request,
+    fallbackModel,
+    primaryModel,
+    cacheKey,
+    retryCount,
+    attempt,
+  }: FallbackRequestContext<T>): Promise<GeminiResponse<T>> {
+    logger.warn(
+      "[GeminiService] Primary model exhausted retries. Trying fallback model.",
+      {
+        primaryModel,
+        fallbackModel,
+        attempt,
+      }
+    );
+
+    try {
+      const fallbackResponse = await this.performRequest<T>(
+        {
+          ...request,
+          model: fallbackModel,
+        },
+        0
+      );
+
+      fallbackResponse.metadata.retryCount = retryCount;
+
+      if (this.config.enableCaching) {
+        this.saveToCache(cacheKey, fallbackResponse);
+      }
+
+      return fallbackResponse;
+    } catch (fallbackError) {
+      return this.handleError<T>(fallbackError, {
+        ...request,
+        model: fallbackModel,
+      });
+    }
   }
 
   private async performRequest<T>(
@@ -546,11 +572,7 @@ export function getGeminiService(config?: GeminiConfig): GeminiService {
       // Try to get API key from environment (server-side only)
       let apiKey: string;
       try {
-        // Dynamic import to avoid issues if env.ts is not available
-        const envModule = require("../../../env") as {
-          getApiKey: () => string;
-        };
-        apiKey = envModule.getApiKey();
+        apiKey = getApiKey();
       } catch {
         // Fallback: try to get from process.env directly
         apiKey =

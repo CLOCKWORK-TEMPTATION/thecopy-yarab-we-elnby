@@ -297,36 +297,6 @@ export default function Sets() {
   const [error, setError] = useState<string | null>(null);
   const { showAddForm, formData } = state.sets;
 
-  const handleAddPiece = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await fetchArtDirectorJson<ApiResponse>("/sets/add-piece", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (data.success) {
-        updateSetsState({
-          showAddForm: false,
-          formData: DEFAULT_FORM_DATA,
-        });
-        await loadInventory();
-        await loadSustainabilityReport();
-      } else {
-        setError(data.error ?? "فشل في إضافة القطعة");
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "حدث خطأ أثناء الإضافة";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [formData, updateSetsState]);
-
   const loadInventory = useCallback(async () => {
     setError(null);
 
@@ -377,6 +347,36 @@ export default function Sets() {
       setLoading(false);
     }
   }, []);
+
+  const handleAddPiece = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await fetchArtDirectorJson<ApiResponse>("/sets/add-piece", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (data.success) {
+        updateSetsState({
+          showAddForm: false,
+          formData: DEFAULT_FORM_DATA,
+        });
+        await loadInventory();
+        await loadSustainabilityReport();
+      } else {
+        setError(data.error ?? "فشل في إضافة القطعة");
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "حدث خطأ أثناء الإضافة";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, loadInventory, loadSustainabilityReport, updateSetsState]);
 
   const handleFormChange = useCallback(
     (data: Partial<SetPieceFormData>) => {

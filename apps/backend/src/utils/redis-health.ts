@@ -2,13 +2,13 @@
  * Redis Health Check Utility
  */
 
-import { createClient } from 'redis';
+import { createClient } from "redis";
 
-import { getRedisConfig } from '@/config/redis.config';
+import { getRedisConfig } from "@/config/redis.config";
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
-import type { RedisClientType } from 'redis';
+import type { RedisClientType } from "redis";
 
 let redisClient: RedisClientType | null = null;
 
@@ -19,30 +19,29 @@ function getRedisEndpointMetadata(): { host: string; port: number } {
     try {
       const parsed = new URL(redisUrl);
       return {
-        host: parsed.hostname || 'localhost',
-        port: Number.parseInt(parsed.port || '6379', 10),
+        host: parsed.hostname || "localhost",
+        port: Number.parseInt(parsed.port || "6379", 10),
       };
     } catch {
-      logger.warn('[Redis] Failed to parse REDIS_URL for status metadata');
+      logger.warn("[Redis] Failed to parse REDIS_URL for status metadata");
     }
   }
 
   return {
-    host: process.env.REDIS_HOST ?? 'localhost',
-    port: Number.parseInt(process.env.REDIS_PORT ?? '6379', 10),
+    host: process.env.REDIS_HOST ?? "localhost",
+    port: Number.parseInt(process.env.REDIS_PORT ?? "6379", 10),
   };
 }
 
-async function disconnectHealthClient(client: RedisClientType | null): Promise<void> {
+async function disconnectHealthClient(
+  client: RedisClientType | null,
+): Promise<void> {
   if (!client) {
     return;
   }
 
   try {
-    const isOpen =
-      typeof (client).isOpen === 'boolean'
-        ? (client).isOpen
-        : true;
+    const isOpen = typeof client.isOpen === "boolean" ? client.isOpen : true;
 
     if (!isOpen) {
       return;
@@ -50,7 +49,7 @@ async function disconnectHealthClient(client: RedisClientType | null): Promise<v
 
     await client.disconnect();
   } catch (error) {
-    logger.warn('[Redis] Failed to close health check client:', error);
+    logger.warn("[Redis] Failed to close health check client:", error);
   }
 }
 
@@ -70,15 +69,15 @@ export async function checkRedisHealth(): Promise<boolean> {
           reconnectStrategy: () => false,
         },
       });
-      
+
       await redisClient.connect();
     }
 
     await redisClient.ping();
-    logger.info('[Redis] Health check passed');
+    logger.info("[Redis] Health check passed");
     return true;
   } catch (error) {
-    logger.warn('[Redis] Health check failed:', error);
+    logger.warn("[Redis] Health check failed:", error);
 
     const clientToDispose = redisClient;
     redisClient = null;
@@ -94,9 +93,9 @@ export async function checkRedisHealth(): Promise<boolean> {
 export async function getRedisStatus() {
   const isHealthy = await checkRedisHealth();
   const endpoint = getRedisEndpointMetadata();
-  
+
   return {
-    status: isHealthy ? 'connected' : 'disconnected',
+    status: isHealthy ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
     host: endpoint.host,
     port: endpoint.port,
@@ -116,8 +115,8 @@ export async function closeRedisConnection() {
 
   try {
     const isOpen =
-      typeof (clientToDispose).isOpen === 'boolean'
-        ? (clientToDispose).isOpen
+      typeof clientToDispose.isOpen === "boolean"
+        ? clientToDispose.isOpen
         : true;
 
     if (!isOpen) {
@@ -126,6 +125,6 @@ export async function closeRedisConnection() {
 
     await clientToDispose.quit();
   } catch (error) {
-    logger.warn('[Redis] Failed to quit health check client:', error);
+    logger.warn("[Redis] Failed to quit health check client:", error);
   }
 }

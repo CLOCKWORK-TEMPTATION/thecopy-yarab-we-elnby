@@ -7,9 +7,9 @@
  * - computeDocumentSignature: بصمة فريدة لمستند المحرر الحالي.
  */
 
-import type { EditorView } from "@tiptap/pm/view";
-
 import { simpleHash } from "./hash";
+
+import type { EditorView } from "@tiptap/pm/view";
 
 /**
  * توحيد نهايات الأسطر لـ \n فقط (CRLF/CR → LF).

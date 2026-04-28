@@ -2,9 +2,7 @@ import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, extname, join } from "node:path";
-import {
-  resolveAntiwordRuntime,
-} from "./services/antiword-runtime.mjs";
+import { resolveAntiwordRuntime } from "./services/antiword-runtime.mjs";
 
 const DOC_CONVERTER_TIMEOUT_MS = 30_000;
 const DOC_CONVERTER_MAX_BUFFER = 64 * 1024 * 1024;
@@ -81,7 +79,7 @@ const runAntiword = async (antiwordPath, args, antiwordHome) =>
         }
 
         resolve({ stdout: stdoutBuffer, stderr: stderrBuffer });
-      }
+      },
     );
   });
 
@@ -109,7 +107,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
     const { stdout, stderr } = await runAntiword(
       runtime.antiwordPath,
       args,
-      runtime.antiwordHome
+      runtime.antiwordHome,
     );
 
     const stderrText = decodeUtf8Buffer(stderr).trim();

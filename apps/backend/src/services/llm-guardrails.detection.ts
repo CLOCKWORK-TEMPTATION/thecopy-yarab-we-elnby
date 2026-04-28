@@ -10,9 +10,9 @@ import {
   REPEATED_SUSPICIOUS_TOKENS,
   MAX_PATTERN_CHECK_LENGTH,
   PROMPT_INJECTION_METRIC_PATTERN,
-} from './llm-guardrails.patterns';
+} from "./llm-guardrails.patterns";
 
-import type { GuardrailViolation, RiskLevel } from './llm-guardrails.types';
+import type { GuardrailViolation, RiskLevel } from "./llm-guardrails.types";
 
 export function detectPromptInjections(content: string): GuardrailViolation[] {
   const contentToCheck = content.substring(0, MAX_PATTERN_CHECK_LENGTH);
@@ -24,8 +24,8 @@ export function detectPromptInjections(content: string): GuardrailViolation[] {
       const matches = contentToCheck.match(pattern);
       if (matches) {
         violations.push({
-          type: 'prompt_injection',
-          severity: 'critical',
+          type: "prompt_injection",
+          severity: "critical",
           description: `Prompt injection detected: ${pattern.source}`,
           pattern: PROMPT_INJECTION_METRIC_PATTERN,
           matches,
@@ -45,7 +45,9 @@ export function detectSuspiciousPatterns(content: string): string[] {
   for (const pattern of SUSPICIOUS_PATTERNS) {
     const matches = content.match(pattern);
     if (matches && matches.length > 0) {
-      warnings.push(`Suspicious patterns detected: ${matches.length} matches for ${pattern.source}`);
+      warnings.push(
+        `Suspicious patterns detected: ${matches.length} matches for ${pattern.source}`,
+      );
     }
   }
 
@@ -59,7 +61,7 @@ export function detectSuspiciousPatterns(content: string): string[] {
     }, {});
 
   const noisyToken = Object.entries(repeatedTokens).find(
-    ([token, count]) => count >= 20 && REPEATED_SUSPICIOUS_TOKENS.has(token)
+    ([token, count]) => count >= 20 && REPEATED_SUSPICIOUS_TOKENS.has(token),
   );
   if (noisyToken) {
     warnings.push(`Repeated pattern detected for token: ${noisyToken[0]}`);
@@ -75,9 +77,9 @@ export function detectHarmfulContent(content: string): GuardrailViolation[] {
     const matches = content.match(pattern);
     if (matches) {
       violations.push({
-        type: 'harmful_content',
-        severity: 'medium',
-        description: 'Potentially harmful content detected',
+        type: "harmful_content",
+        severity: "medium",
+        description: "Potentially harmful content detected",
         pattern: pattern.source,
         matches,
       });
@@ -88,7 +90,10 @@ export function detectHarmfulContent(content: string): GuardrailViolation[] {
 }
 
 export function detectHallucinationIndicators(content: string): string | null {
-  const hallucinationPattern = new RegExp(HALLUCINATION_INDICATORS.join('|'), 'gi');
+  const hallucinationPattern = new RegExp(
+    HALLUCINATION_INDICATORS.join("|"),
+    "gi",
+  );
   const matches = content.match(hallucinationPattern);
   return matches
     ? `Potential hallucination indicators detected: ${matches.length}`
@@ -98,7 +103,7 @@ export function detectHallucinationIndicators(content: string): string | null {
 export function detectFactualClaims(content: string): string | null {
   for (const pattern of FACTUAL_CLAIM_PATTERNS) {
     if (pattern.test(content)) {
-      return 'Potential factual claims require verification';
+      return "Potential factual claims require verification";
     }
   }
   return null;
@@ -106,25 +111,27 @@ export function detectFactualClaims(content: string): string | null {
 
 export function detectExternalReferences(content: string): string | null {
   return EXTERNAL_REFERENCE_PATTERN.test(content)
-    ? 'External references detected and should be verified'
+    ? "External references detected and should be verified"
     : null;
 }
 
-export function createWarningViolation(description: string): GuardrailViolation {
-  return { type: 'other', severity: 'medium', description };
+export function createWarningViolation(
+  description: string,
+): GuardrailViolation {
+  return { type: "other", severity: "medium", description };
 }
 
 export function determineRiskLevel(
   violations: GuardrailViolation[],
-  warnings: string[]
+  warnings: string[],
 ): RiskLevel {
-  const severities = violations.map(v => v.severity);
-  if (severities.includes('critical')) return 'critical';
-  if (severities.includes('high')) return 'high';
-  if (severities.includes('medium') || warnings.length > 0) return 'medium';
-  return 'low';
+  const severities = violations.map((v) => v.severity);
+  if (severities.includes("critical")) return "critical";
+  if (severities.includes("high")) return "high";
+  if (severities.includes("medium") || warnings.length > 0) return "medium";
+  return "low";
 }
 
 export function shouldBlock(riskLevel: RiskLevel): boolean {
-  return riskLevel === 'critical' || riskLevel === 'high';
+  return riskLevel === "critical" || riskLevel === "high";
 }

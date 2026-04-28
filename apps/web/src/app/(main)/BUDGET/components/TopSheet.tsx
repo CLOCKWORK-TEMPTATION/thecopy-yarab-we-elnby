@@ -51,18 +51,12 @@ const PercentageInput: React.FC<PercentageInputProps> = ({
         min="0"
         max="100"
         step="0.1"
-        className={`w-16 p-1 border rounded text-right focus:ring-2 focus:ring-indigo-500 outline-none text-sm ${
-          theme === "dark"
-            ? "bg-black/22 border-white/8 text-white"
-            : "border-white/8"
-        }`}
+        className={`w-16 p-1 border rounded text-right focus:ring-2 focus:ring-indigo-500 outline-none text-sm ${theme === "dark" ? "bg-black/22 border-white/8 text-white" : "border-white/8"}`}
         value={localVal}
         onChange={handleChange}
       />
       <span
-        className={`text-xs ${
-          theme === "dark" ? "text-white/55" : "text-white/45"
-        }`}
+        className={`text-xs ${theme === "dark" ? "text-white/55" : "text-white/45"}`}
       >
         %
       </span>
@@ -112,11 +106,7 @@ export const TopSheet: React.FC<TopSheetProps> = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={`rounded-xl shadow-lg overflow-hidden border ${
-        theme === "dark"
-          ? "bg-black/18 border-white/8"
-          : "bg-white/[0.04] border-white/8"
-      }`}
+      className={`rounded-xl shadow-lg overflow-hidden border ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
     >
       <div className="bg-gradient-to-r from-black/18 to-black/22 text-white p-6">
         <h2 className="text-xl font-bold uppercase tracking-wide flex items-center gap-2">
@@ -131,46 +121,34 @@ export const TopSheet: React.FC<TopSheetProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead
-            className={`${
-              theme === "dark" ? "bg-black/22" : "bg-white/[0.04]"
-            } text-white/55 uppercase text-xs`}
+            className={`${theme === "dark" ? "bg-black/22" : "bg-white/[0.04]"} text-white/55 uppercase text-xs`}
           >
             <tr>
               <th
-                className={`px-6 py-3 text-left ${
-                  theme === "dark" ? "text-white/68" : "text-white/55"
-                }`}
+                className={`px-6 py-3 text-left ${theme === "dark" ? "text-white/68" : "text-white/55"}`}
               >
                 Account
               </th>
               <th
-                className={`px-6 py-3 text-left ${
-                  theme === "dark" ? "text-white/68" : "text-white/55"
-                }`}
+                className={`px-6 py-3 text-left ${theme === "dark" ? "text-white/68" : "text-white/55"}`}
               >
                 Description
               </th>
               <th
-                className={`px-6 py-3 text-right ${
-                  theme === "dark" ? "text-white/68" : "text-white/55"
-                }`}
+                className={`px-6 py-3 text-right ${theme === "dark" ? "text-white/68" : "text-white/55"}`}
               >
                 Total
               </th>
             </tr>
           </thead>
           <tbody
-            className={`divide-y ${
-              theme === "dark" ? "divide-white/8" : "divide-white/8"
-            }`}
+            className={`divide-y ${theme === "dark" ? "divide-white/8" : "divide-white/8"}`}
           >
             {budget.sections.map((section) => (
               <React.Fragment key={section.id}>
                 <motion.tr
                   variants={itemVariants}
-                  className={`${
-                    theme === "dark" ? "bg-black/22" : "bg-white/[0.04]"
-                  } font-semibold`}
+                  className={`${theme === "dark" ? "bg-black/22" : "bg-white/[0.04]"} font-semibold`}
                 >
                   <td className="px-6 py-3 text-indigo-400" colSpan={3}>
                     <div className="flex items-center gap-2">
@@ -195,23 +173,17 @@ export const TopSheet: React.FC<TopSheetProps> = ({
                     className="transition-colors cursor-pointer"
                   >
                     <td
-                      className={`px-6 py-2 font-medium ${
-                        theme === "dark" ? "text-white/55" : "text-white/45"
-                      }`}
+                      className={`px-6 py-2 font-medium ${theme === "dark" ? "text-white/55" : "text-white/45"}`}
                     >
                       {cat.code}
                     </td>
                     <td
-                      className={`px-6 py-2 ${
-                        theme === "dark" ? "text-white/68" : "text-white/68"
-                      }`}
+                      className={`px-6 py-2 ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                     >
                       {cat.name}
                     </td>
                     <td
-                      className={`px-6 py-2 text-right font-medium ${
-                        theme === "dark" ? "text-white" : "text-white"
-                      }`}
+                      className={`px-6 py-2 text-right font-medium ${theme === "dark" ? "text-white" : "text-white"}`}
                     >
                       {formatCurrency(cat.total)}
                     </td>
@@ -224,24 +196,16 @@ export const TopSheet: React.FC<TopSheetProps> = ({
             {/* Subtotal */}
             <motion.tr
               variants={itemVariants}
-              className={`${
-                theme === "dark" ? "bg-blue-900/20" : "bg-blue-50"
-              } border-t-2 ${
-                theme === "dark" ? "border-blue-500" : "border-blue-300"
-              }`}
+              className={`${theme === "dark" ? "bg-blue-900/20" : "bg-blue-50"} border-t-2 ${theme === "dark" ? "border-blue-500" : "border-blue-300"}`}
             >
               <td
-                className={`px-6 py-3 font-bold ${
-                  theme === "dark" ? "text-blue-300" : "text-blue-800"
-                }`}
+                className={`px-6 py-3 font-bold ${theme === "dark" ? "text-blue-300" : "text-blue-800"}`}
                 colSpan={2}
               >
                 SUBTOTAL
               </td>
               <td
-                className={`px-6 py-3 text-right font-bold ${
-                  theme === "dark" ? "text-blue-300" : "text-blue-800"
-                }`}
+                className={`px-6 py-3 text-right font-bold ${theme === "dark" ? "text-blue-300" : "text-blue-800"}`}
               >
                 {formatCurrency(subTotal)}
               </td>
@@ -250,14 +214,10 @@ export const TopSheet: React.FC<TopSheetProps> = ({
             {/* Risk & Security Section */}
             <motion.tr
               variants={itemVariants}
-              className={`${
-                theme === "dark" ? "bg-orange-900/20" : "bg-orange-50"
-              }`}
+              className={`${theme === "dark" ? "bg-orange-900/20" : "bg-orange-50"}`}
             >
               <td
-                className={`px-6 py-3 font-bold ${
-                  theme === "dark" ? "text-orange-300" : "text-orange-700"
-                }`}
+                className={`px-6 py-3 font-bold ${theme === "dark" ? "text-orange-300" : "text-orange-700"}`}
                 colSpan={3}
               >
                 <div className="flex items-center gap-2">
@@ -278,16 +238,12 @@ export const TopSheet: React.FC<TopSheetProps> = ({
               className="transition-colors"
             >
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-white/68" : "text-white/68"
-                }`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
               >
                 Bond Fee
               </td>
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-white/55" : "text-white/45"
-                } text-xs`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-white/55" : "text-white/45"} text-xs`}
               >
                 <PercentageInput
                   value={risk.bondFee.percent}
@@ -296,9 +252,7 @@ export const TopSheet: React.FC<TopSheetProps> = ({
                 />
               </td>
               <td
-                className={`px-6 py-2 text-right font-medium ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`px-6 py-2 text-right font-medium ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 {formatCurrency(risk.bondFee.total)}
               </td>
@@ -315,16 +269,12 @@ export const TopSheet: React.FC<TopSheetProps> = ({
               className="transition-colors"
             >
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-white/68" : "text-white/68"
-                }`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
               >
                 Contingency
               </td>
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-white/55" : "text-white/45"
-                } text-xs`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-white/55" : "text-white/45"} text-xs`}
               >
                 <PercentageInput
                   value={risk.contingency.percent}
@@ -335,9 +285,7 @@ export const TopSheet: React.FC<TopSheetProps> = ({
                 />
               </td>
               <td
-                className={`px-6 py-2 text-right font-medium ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`px-6 py-2 text-right font-medium ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 {formatCurrency(risk.contingency.total)}
               </td>
@@ -354,16 +302,12 @@ export const TopSheet: React.FC<TopSheetProps> = ({
               className="transition-colors"
             >
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-green-400" : "text-green-700"
-                } font-medium`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-green-400" : "text-green-700"} font-medium`}
               >
                 Credits / Rebates
               </td>
               <td
-                className={`px-6 py-2 ${
-                  theme === "dark" ? "text-white/55" : "text-white/45"
-                } text-xs`}
+                className={`px-6 py-2 ${theme === "dark" ? "text-white/55" : "text-white/45"} text-xs`}
               >
                 <div className="flex items-center gap-1">
                   <PercentageInput
@@ -372,18 +316,14 @@ export const TopSheet: React.FC<TopSheetProps> = ({
                     theme={theme}
                   />
                   <span
-                    className={`text-xs ${
-                      theme === "dark" ? "text-white/55" : "text-white/45"
-                    }`}
+                    className={`text-xs ${theme === "dark" ? "text-white/55" : "text-white/45"}`}
                   >
                     Credit
                   </span>
                 </div>
               </td>
               <td
-                className={`px-6 py-2 text-right font-medium ${
-                  theme === "dark" ? "text-green-400" : "text-green-700"
-                }`}
+                className={`px-6 py-2 text-right font-medium ${theme === "dark" ? "text-green-400" : "text-green-700"}`}
               >
                 {formatCurrency(risk.credits.total)}
               </td>

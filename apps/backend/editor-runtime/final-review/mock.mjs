@@ -16,7 +16,7 @@ import { determineCoverageStatus } from "./coverage.mjs";
 export const resolveFinalReviewMockMode = () => {
   const value = normalizeIncomingText(
     process.env.FINAL_REVIEW_MOCK_MODE,
-    32
+    32,
   ).toLowerCase();
   if (value === "success" || value === "error") return value;
   return null;
@@ -45,16 +45,16 @@ export const computeFinalReviewMaxTokens = (request, boostFactor = 1) =>
       Math.ceil(
         (BASE_OUTPUT_TOKENS +
           request.suspiciousLines.length * TOKENS_PER_SUSPICIOUS_LINE) *
-          boostFactor
-      )
-    )
+          boostFactor,
+      ),
+    ),
   );
 
 export const buildFinalReviewMockResponse = (
   request,
   mockMode,
   startTime,
-  modelId
+  modelId,
 ) => {
   const requestId = randomUUID();
 
@@ -79,7 +79,7 @@ export const buildFinalReviewMockResponse = (
 
   const commands = request.requiredItemIds.map((itemId) => {
     const line = request.suspiciousLines.find(
-      (entry) => entry.itemId === itemId
+      (entry) => entry.itemId === itemId,
     );
     return {
       op: "relabel",

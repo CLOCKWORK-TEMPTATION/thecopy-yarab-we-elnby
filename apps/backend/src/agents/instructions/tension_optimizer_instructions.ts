@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const tensionOptimizerInstructions = `
 تحسين منحنى التوتر الدرامي:
@@ -45,6 +45,6 @@ export const tensionOptimizerAgentConfig: AIAgentConfig = {
     "تحليل مستويات التوتر",
     "تحديد نقاط التحسين",
     "اقتراح تقنيات التكثيف",
-    "تصميم منحنى توتر محسن"
-  ]
+    "تصميم منحنى توتر محسن",
+  ],
 };

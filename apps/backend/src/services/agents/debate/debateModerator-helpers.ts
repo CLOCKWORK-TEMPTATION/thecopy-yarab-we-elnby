@@ -3,26 +3,30 @@
  * Extracted from debateModerator.ts to reduce file size and function complexity
  */
 
-import { logger } from '@/lib/logger';
-import { geminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 
-import { DebateArgument } from './types';
+import { DebateArgument } from "./types";
 
 /**
  * Analyze arguments to find consensus and disagreement points
  */
 export async function analyzeDebateArguments(
   debateArguments: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<{ consensusPoints: string[]; disagreementPoints: string[] }> {
   const prompt = `
 قم بتحليل الحجج التالية في مناظرة حول: "${topic}"
 
-${debateArguments.map((arg, idx) => `
+${debateArguments
+  .map(
+    (arg, idx) => `
 **الحجة ${idx + 1}** (${arg.agentName}):
 ${arg.position}
 الثقة: ${arg.confidence}
-`).join('\n---\n')}
+`,
+  )
+  .join("\n---\n")}
 
 حدد:
 1. **نقاط التوافق**: النقاط التي يتفق عليها معظم المشاركين
@@ -40,11 +44,11 @@ ${arg.position}
     return parseAnalysisResponse(response);
   } catch (error) {
     logger.error("فشل في تحليل الحجج", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
     return {
       consensusPoints: [],
-      disagreementPoints: ['خطأ في التحليل'],
+      disagreementPoints: ["خطأ في التحليل"],
     };
   }
 }
@@ -52,34 +56,35 @@ ${arg.position}
 /**
  * Parse analysis response into consensus and disagreement points
  */
-function parseAnalysisResponse(
-  response: string
-): { consensusPoints: string[]; disagreementPoints: string[] } {
-  const lines = response.split('\n');
+function parseAnalysisResponse(response: string): {
+  consensusPoints: string[];
+  disagreementPoints: string[];
+} {
+  const lines = response.split("\n");
   const consensusPoints: string[] = [];
   const disagreementPoints: string[] = [];
 
-  let currentSection: 'consensus' | 'disagreement' | null = null;
+  let currentSection: "consensus" | "disagreement" | null = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.includes('توافق') || trimmed.includes('اتفاق')) {
-      currentSection = 'consensus';
+    if (trimmed.includes("توافق") || trimmed.includes("اتفاق")) {
+      currentSection = "consensus";
       continue;
     }
 
-    if (trimmed.includes('اختلاف') || trimmed.includes('جدل')) {
-      currentSection = 'disagreement';
+    if (trimmed.includes("اختلاف") || trimmed.includes("جدل")) {
+      currentSection = "disagreement";
       continue;
     }
 
-    if ((/^[-*•]\s/.exec(trimmed)) || (/^\d+[.)]\s/.exec(trimmed))) {
-      const point = trimmed.replace(/^[-*•]\s/, '').replace(/^\d+[.)]\s/, '');
+    if (/^[-*•]\s/.exec(trimmed) || /^\d+[.)]\s/.exec(trimmed)) {
+      const point = trimmed.replace(/^[-*•]\s/, "").replace(/^\d+[.)]\s/, "");
 
-      if (currentSection === 'consensus') {
+      if (currentSection === "consensus") {
         consensusPoints.push(point);
-      } else if (currentSection === 'disagreement') {
+      } else if (currentSection === "disagreement") {
         disagreementPoints.push(point);
       }
     }
@@ -92,23 +97,28 @@ function parseAnalysisResponse(
  * Calculate agreement score between arguments
  */
 export async function calculateArgumentAgreementScore(
-  debateArguments: DebateArgument[]
+  debateArguments: DebateArgument[],
 ): Promise<number> {
   if (debateArguments.length === 0) return 0;
 
   const confidenceAgreement = calculateConfidenceAgreement(debateArguments);
   const positionAgreement = await calculatePositionAgreement(debateArguments);
 
-  return (confidenceAgreement * 0.3) + (positionAgreement * 0.7);
+  return confidenceAgreement * 0.3 + positionAgreement * 0.7;
 }
 
 /**
  * Calculate confidence-based agreement
  */
-function calculateConfidenceAgreement(debateArguments: DebateArgument[]): number {
-  const confidences = debateArguments.map(arg => arg.confidence);
-  const avgConfidence = confidences.reduce((a, b) => a + b, 0) / confidences.length;
-  const variance = confidences.reduce((sum, c) => sum + Math.pow(c - avgConfidence, 2), 0) / confidences.length;
+function calculateConfidenceAgreement(
+  debateArguments: DebateArgument[],
+): number {
+  const confidences = debateArguments.map((arg) => arg.confidence);
+  const avgConfidence =
+    confidences.reduce((a, b) => a + b, 0) / confidences.length;
+  const variance =
+    confidences.reduce((sum, c) => sum + Math.pow(c - avgConfidence, 2), 0) /
+    confidences.length;
   return 1 - Math.min(1, variance);
 }
 
@@ -116,7 +126,7 @@ function calculateConfidenceAgreement(debateArguments: DebateArgument[]): number
  * Calculate position-based agreement using AI
  */
 async function calculatePositionAgreement(
-  debateArguments: DebateArgument[]
+  debateArguments: DebateArgument[],
 ): Promise<number> {
   let positionAgreement = 0.5;
 
@@ -124,9 +134,13 @@ async function calculatePositionAgreement(
     const prompt = `
 على مقياس من 0 إلى 1، ما مدى تشابه المواقف التالية؟
 
-${debateArguments.map((arg, idx) => `
+${debateArguments
+  .map(
+    (arg, idx) => `
 ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 200)}
-`).join('\n')}
+`,
+  )
+  .join("\n")}
 
 أعطِ فقط رقماً بين 0 و 1 (حيث 1 = تطابق تام، 0 = تعارض تام):
 `;
@@ -142,7 +156,7 @@ ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 200)}
     }
   } catch (error) {
     logger.error("فشل في حساب تشابه المواقف", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
   }
 
@@ -155,21 +169,26 @@ ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 200)}
 export async function generateConsensusSynthesis(
   debateArguments: DebateArgument[],
   consensusPoints: string[],
-  topic: string
+  topic: string,
 ): Promise<string> {
   const prompt = `
 بناءً على المناظرة حول: "${topic}"
 
 **نقاط التوافق:**
-${consensusPoints.map((point, idx) => `${idx + 1}. ${point}`).join('\n')}
+${consensusPoints.map((point, idx) => `${idx + 1}. ${point}`).join("\n")}
 
 **الحجج الأصلية:**
 
-${debateArguments.slice(0, 3).map((arg, idx) => `
+${debateArguments
+  .slice(0, 3)
+  .map(
+    (arg, idx) => `
 
 ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 300)}
 
-`).join('\n')}
+`,
+  )
+  .join("\n")}
 
 قم بتوليف موقف نهائي موحد يجمع نقاط التوافق ويقدم رأياً متماسكاً وشاملاً.
 `;
@@ -181,9 +200,9 @@ ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 300)}
     });
   } catch (error) {
     logger.error("فشل في توليد التوليف", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
-    return 'خطأ في توليد التوليف النهائي';
+    return "خطأ في توليد التوليف النهائي";
   }
 }
 
@@ -192,14 +211,16 @@ ${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 300)}
  */
 export async function synthesizeWithoutConsensus(
   debateArguments: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<string> {
   const prompt = `
 لم يتم التوصل إلى توافق كامل في المناظرة حول: "${topic}"
 
 قم بتوليف الآراء المختلفة التالية في رؤية شاملة تعرض جميع وجهات النظر:
 
-${debateArguments.map((arg, idx) => `
+${debateArguments
+  .map(
+    (arg, idx) => `
 
 **${idx + 1}. ${arg.agentName}:**
 
@@ -207,7 +228,9 @@ ${arg.position}
 
 (الثقة: ${arg.confidence})
 
-`).join('\n---\n')}
+`,
+  )
+  .join("\n---\n")}
 
 قدم توليفاً يشمل:
 1. عرض موضوعي لجميع وجهات النظر
@@ -222,8 +245,8 @@ ${arg.position}
     });
   } catch (error) {
     logger.error("فشل في توليف النتيجة بدون توافق", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
-    return 'خطأ في توليف النتيجة النهائية';
+    return "خطأ في توليف النتيجة النهائية";
   }
 }

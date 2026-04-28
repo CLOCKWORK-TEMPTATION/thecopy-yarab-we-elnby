@@ -20,6 +20,10 @@ interface Plugin {
   category: string;
 }
 
+function isPluginsResponse(value: unknown): value is { plugins?: Plugin[] } {
+  return typeof value === "object" && value !== null && "plugins" in value;
+}
+
 const quickActions = [
   {
     path: "/inspiration",
@@ -65,8 +69,8 @@ function Dashboard() {
   useEffect(() => {
     fetch(artDirectorApiPath("/plugins"))
       .then((res) => res.json())
-      .then((data) => {
-        setPlugins(data.plugins ?? []);
+      .then((data: unknown) => {
+        setPlugins(isPluginsResponse(data) ? (data.plugins ?? []) : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));

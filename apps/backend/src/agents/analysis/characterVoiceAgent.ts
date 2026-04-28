@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 /**
  * @const {AIAgentConfig} CHARACTER_VOICE_AGENT_CONFIG
@@ -11,35 +11,36 @@ import type { AIAgentConfig } from '../../types/types';
  * across different dialogues.
  */
 export const CHARACTER_VOICE_AGENT_CONFIG: AIAgentConfig = {
-    id: TaskType.CHARACTER_VOICE,
-    name: "PersonaSynth AI",
-    description: "وكيل تركيب الشخصيات الصوتية: محرك متطور لمحاكاة الأصوات الشخصية يستخدام تقنيات التعلم العميق مع نماذج GPT المتخصصة في تحليل وتقليد الأنماط اللغوية، مزود بذاكرة شخصية طويلة المدى وخوارزميات الاتساق الصوتي لضمان أن كل شخصية تحتفظ ببصمتها اللغوية الفريدة عبر الحوارات المختلفة.",
-    category: TaskCategory.CREATIVE,
-    capabilities: {
-      multiModal: false,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: true,
-      selfReflection: true,
-      ragEnabled: true,
-      vectorSearch: true,
-      agentOrchestration: false,
-      metacognitive: false,
-      adaptiveLearning: true,
-      complexityScore: 0.85,
-      accuracyLevel: 0.88,
-      processingSpeed: 'fast',
-      resourceIntensity: 'medium',
-      languageModeling: true,
-      patternRecognition: true,
-      creativeGeneration: true,
-      analyticalReasoning: false,
-      emotionalIntelligence: true
-    },
-    collaboratesWith: [TaskType.DIALOGUE_FORENSICS, TaskType.SCENE_GENERATOR],
-    dependsOn: [TaskType.STYLE_FINGERPRINT],
-    enhances: [TaskType.SCENE_GENERATOR],
-    systemPrompt: `You are PersonaSynth AI, a sophisticated Character Voice Synthesis Expert. Your primary function is to generate dialogue and internal monologues that are perfectly aligned with a character's unique voice, personality, and psychological profile.
+  id: TaskType.CHARACTER_VOICE,
+  name: "PersonaSynth AI",
+  description:
+    "وكيل تركيب الشخصيات الصوتية: محرك متطور لمحاكاة الأصوات الشخصية يستخدام تقنيات التعلم العميق مع نماذج GPT المتخصصة في تحليل وتقليد الأنماط اللغوية، مزود بذاكرة شخصية طويلة المدى وخوارزميات الاتساق الصوتي لضمان أن كل شخصية تحتفظ ببصمتها اللغوية الفريدة عبر الحوارات المختلفة.",
+  category: TaskCategory.CREATIVE,
+  capabilities: {
+    multiModal: false,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: true,
+    selfReflection: true,
+    ragEnabled: true,
+    vectorSearch: true,
+    agentOrchestration: false,
+    metacognitive: false,
+    adaptiveLearning: true,
+    complexityScore: 0.85,
+    accuracyLevel: 0.88,
+    processingSpeed: "fast",
+    resourceIntensity: "medium",
+    languageModeling: true,
+    patternRecognition: true,
+    creativeGeneration: true,
+    analyticalReasoning: false,
+    emotionalIntelligence: true,
+  },
+  collaboratesWith: [TaskType.DIALOGUE_FORENSICS, TaskType.SCENE_GENERATOR],
+  dependsOn: [TaskType.STYLE_FINGERPRINT],
+  enhances: [TaskType.SCENE_GENERATOR],
+  systemPrompt: `You are PersonaSynth AI, a sophisticated Character Voice Synthesis Expert. Your primary function is to generate dialogue and internal monologues that are perfectly aligned with a character's unique voice, personality, and psychological profile.
 
 Core Directives:
 1.  **Deep Analysis:** Analyze the provided character sheet, background, and any existing dialogue to build a deep "voice fingerprint." This includes vocabulary, sentence structure, rhythm, tone, subtext, and emotional patterns.
@@ -55,12 +56,12 @@ Input:
 
 Output:
 - Generate dialogue or monologue for the specified character that is rich, nuanced, and perfectly captures their unique voice. The output should be only the dialogue text itself, ready for integration.`,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "لمحاكاة صوت الشخصية، سأحلل خصائصها اللغوية...",
-    cacheStrategy: 'aggressive',
-    parallelizable: false,
-    batchProcessing: true,
-    validationRules: ["اتساق الصوت الشخصي", "الطبيعية في الحوار"],
-    outputSchema: {},
-    confidenceThreshold: 0.85
+  fewShotExamples: [],
+  chainOfThoughtTemplate: "لمحاكاة صوت الشخصية، سأحلل خصائصها اللغوية...",
+  cacheStrategy: "aggressive",
+  parallelizable: false,
+  batchProcessing: true,
+  validationRules: ["اتساق الصوت الشخصي", "الطبيعية في الحوار"],
+  outputSchema: {},
+  confidenceThreshold: 0.85,
 };

@@ -7,24 +7,24 @@
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { StandardAgentOutput } from '../shared/standardAgentPattern';
+import { StandardAgentOutput } from "../shared/standardAgentPattern";
 
 import {
   analyzeDebateArguments,
   calculateArgumentAgreementScore,
   generateConsensusSynthesis,
   synthesizeWithoutConsensus,
-} from './debateModerator-helpers';
-import { DebateSessionClass } from './debateSession';
+} from "./debateModerator-helpers";
+import { DebateSessionClass } from "./debateSession";
 import {
   DebateSession,
   DebateConfig,
   DebateParticipant,
   ConsensusResult,
   Vote,
-} from './types';
+} from "./types";
 
 /**
  * فئة منسق المناظرة
@@ -38,7 +38,7 @@ export class DebateModerator {
   constructor(
     topic: string,
     participants: DebateParticipant[],
-    config?: Partial<DebateConfig>
+    config?: Partial<DebateConfig>,
   ) {
     this.session = new DebateSessionClass(topic, participants, config);
   }
@@ -81,7 +81,10 @@ export class DebateModerator {
           round.consensus = consensus;
         }
 
-        if (consensus.achieved && consensus.agreementScore >= consensusThreshold) {
+        if (
+          consensus.achieved &&
+          consensus.agreementScore >= consensusThreshold
+        ) {
           logger.info("تم التوصل إلى توافق", {
             round: currentRound,
             agreementScore: consensus.agreementScore,
@@ -99,14 +102,14 @@ export class DebateModerator {
   private handleDebateError(error: unknown): StandardAgentOutput {
     logger.error("فشلت المناظرة", {
       topic: this.session.topic,
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
-    this.session.fail(error instanceof Error ? error.message : 'Unknown error');
+    this.session.fail(error instanceof Error ? error.message : "Unknown error");
 
     return {
-      text: `عذراً، حدث خطأ أثناء المناظرة: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`,
+      text: `عذراً، حدث خطأ أثناء المناظرة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
       confidence: 0.3,
-      notes: ['فشل في إتمام المناظرة'],
+      notes: ["فشل في إتمام المناظرة"],
       metadata: { debateRounds: this.session.rounds.length },
     };
   }
@@ -120,39 +123,59 @@ export class DebateModerator {
 
     if (allArguments.length === 0) {
       return {
-        achieved: false, agreementScore: 0, consensusPoints: [],
-        disagreementPoints: ['لا توجد حجج كافية للتحليل'],
-        finalSynthesis: '', participatingAgents: [], confidence: 0,
+        achieved: false,
+        agreementScore: 0,
+        consensusPoints: [],
+        disagreementPoints: ["لا توجد حجج كافية للتحليل"],
+        finalSynthesis: "",
+        participatingAgents: [],
+        confidence: 0,
       };
     }
 
     try {
-      const analysis = await analyzeDebateArguments(allArguments, this.session.topic);
-      const agreementScore = await calculateArgumentAgreementScore(allArguments);
+      const analysis = await analyzeDebateArguments(
+        allArguments,
+        this.session.topic,
+      );
+      const agreementScore =
+        await calculateArgumentAgreementScore(allArguments);
       const consensusThreshold = this.session.config.consensusThreshold ?? 0.75;
       const achieved = agreementScore >= consensusThreshold;
-      const participatingAgents = Array.from(new Set(allArguments.map(arg => arg.agentName)));
+      const participatingAgents = Array.from(
+        new Set(allArguments.map((arg) => arg.agentName)),
+      );
 
-      let finalSynthesis = '';
+      let finalSynthesis = "";
       if (achieved) {
         finalSynthesis = await generateConsensusSynthesis(
-          allArguments, analysis.consensusPoints, this.session.topic
+          allArguments,
+          analysis.consensusPoints,
+          this.session.topic,
         );
       }
 
       return {
-        achieved, agreementScore, consensusPoints: analysis.consensusPoints,
-        disagreementPoints: analysis.disagreementPoints, finalSynthesis,
-        participatingAgents, confidence: agreementScore,
+        achieved,
+        agreementScore,
+        consensusPoints: analysis.consensusPoints,
+        disagreementPoints: analysis.disagreementPoints,
+        finalSynthesis,
+        participatingAgents,
+        confidence: agreementScore,
       };
     } catch (error) {
       logger.error("فشل في بناء التوافق", {
-        error: error instanceof Error ? error.message : 'خطأ غير معروف',
+        error: error instanceof Error ? error.message : "خطأ غير معروف",
       });
       return {
-        achieved: false, agreementScore: 0, consensusPoints: [],
-        disagreementPoints: ['خطأ في تحليل التوافق'],
-        finalSynthesis: '', participatingAgents: [], confidence: 0,
+        achieved: false,
+        agreementScore: 0,
+        consensusPoints: [],
+        disagreementPoints: ["خطأ في تحليل التوافق"],
+        finalSynthesis: "",
+        participatingAgents: [],
+        confidence: 0,
       };
     }
   }
@@ -167,19 +190,24 @@ export class DebateModerator {
     const lastRound = this.session.getCurrentRound();
     const consensus = lastRound?.consensus;
 
-    let finalText = '';
+    let finalText = "";
     let confidence = 0;
     const notes: string[] = [];
 
     if (consensus?.achieved) {
       finalText = consensus.finalSynthesis;
       confidence = consensus.confidence;
-      notes.push(`تم التوصل إلى توافق بنسبة ${(consensus.agreementScore * 100).toFixed(1)}%`);
+      notes.push(
+        `تم التوصل إلى توافق بنسبة ${(consensus.agreementScore * 100).toFixed(1)}%`,
+      );
     } else {
       const allArguments = this.session.getAllArguments();
-      finalText = await synthesizeWithoutConsensus(allArguments, this.session.topic);
+      finalText = await synthesizeWithoutConsensus(
+        allArguments,
+        this.session.topic,
+      );
       confidence = metrics.averageConfidence * 0.8;
-      notes.push('لم يتم التوصل إلى توافق كامل - هذا توليف للآراء المختلفة');
+      notes.push("لم يتم التوصل إلى توافق كامل - هذا توليف للآراء المختلفة");
     }
 
     notes.push(`عدد الجولات: ${metrics.totalRounds}`);
@@ -187,7 +215,9 @@ export class DebateModerator {
     notes.push(`جودة المناظرة: ${(metrics.qualityScore * 100).toFixed(1)}%`);
 
     return {
-      text: finalText, confidence, notes,
+      text: finalText,
+      confidence,
+      notes,
       metadata: {
         debateRounds: metrics.totalRounds,
         consensusAchieved: metrics.consensusAchieved,

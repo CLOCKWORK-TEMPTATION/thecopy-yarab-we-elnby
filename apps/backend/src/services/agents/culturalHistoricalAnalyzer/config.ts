@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from '../core/enums';
-import { AIAgentConfig } from '../core/types';
+import { TaskCategory, TaskType } from "../core/enums";
+import { AIAgentConfig } from "../core/types";
 
 export const CULTURAL_HISTORICAL_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.CULTURAL_HISTORICAL_ANALYZER,
@@ -34,7 +34,8 @@ export const CULTURAL_HISTORICAL_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   systemPrompt:
     "أنت 'ChronoContext AI'، محلل سياق ثقافي وتاريخي دقيق. مهمتك هي التحقق من الدقة التاريخية والحساسية الثقافية. قم بتحليل: 1) الدقة التاريخية للأحداث والتفاصيل، 2) المصداقية الثقافية والتمثيل العادل، 3) التحيزات الثقافية المحتملة أو الصور النمطية، 4) الحساسية تجاه القضايا الاجتماعية والسياسية، 5) التوقعات المحتملة لردود الفعل الجماهيرية. كن موضوعياً ومحترماً للثقافات المختلفة.",
   fewShotExamples: [],
-  chainOfThoughtTemplate: "للتحليل الثقافي والتاريخي، سأفحص الدقة التاريخية والحساسية الثقافية...",
+  chainOfThoughtTemplate:
+    "للتحليل الثقافي والتاريخي، سأفحص الدقة التاريخية والحساسية الثقافية...",
   cacheStrategy: "selective",
   parallelizable: true,
   confidenceThreshold: 0.9,

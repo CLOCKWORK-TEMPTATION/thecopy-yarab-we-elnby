@@ -2,12 +2,15 @@
  * Workflow Executor - Executes multi-agent workflows with dependency management
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { agentRegistry } from '../registry';
+import { agentRegistry } from "../registry";
 
-import { StandardAgentInput, StandardAgentOutput } from './types';
-import { calculateWorkflowMetrics, buildExecutionPlan } from './workflow-metrics-helpers';
+import { StandardAgentInput, StandardAgentOutput } from "./types";
+import {
+  calculateWorkflowMetrics,
+  buildExecutionPlan,
+} from "./workflow-metrics-helpers";
 import {
   WorkflowConfig,
   WorkflowContext,
@@ -19,12 +22,15 @@ import {
   AgentExecutionResult,
   WorkflowMetrics,
   WorkflowEvent,
-} from './workflow-types';
+} from "./workflow-types";
 
 export class WorkflowExecutor {
   private listeners = new Map<string, ((event: WorkflowEvent) => void)[]>();
 
-  private createContext(config: WorkflowConfig, input: StandardAgentInput): WorkflowContext {
+  private createContext(
+    config: WorkflowConfig,
+    input: StandardAgentInput,
+  ): WorkflowContext {
     return {
       workflowId: config.id,
       input,
@@ -39,12 +45,19 @@ export class WorkflowExecutor {
     };
   }
 
-  private buildResult(status: WorkflowStatus, context: WorkflowContext): {
+  private buildResult(
+    status: WorkflowStatus,
+    context: WorkflowContext,
+  ): {
     status: WorkflowStatus;
     results: Map<string, AgentExecutionResult>;
     metrics: WorkflowMetrics;
   } {
-    return { status, results: context.results, metrics: this.calculateMetrics(context) };
+    return {
+      status,
+      results: context.results,
+      metrics: this.calculateMetrics(context),
+    };
   }
 
   /**
@@ -52,7 +65,7 @@ export class WorkflowExecutor {
    */
   async execute(
     config: WorkflowConfig,
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<{
     status: WorkflowStatus;
     results: Map<string, AgentExecutionResult>;
@@ -69,12 +82,22 @@ export class WorkflowExecutor {
       context.metadata.completedAt = new Date();
 
       logger.info(`[Workflow] Completed workflow: ${config.name}`);
-      this.emit({ type: 'workflow-completed', workflowId: config.id, timestamp: new Date(), data: { metrics: this.calculateMetrics(context) } });
+      this.emit({
+        type: "workflow-completed",
+        workflowId: config.id,
+        timestamp: new Date(),
+        data: { metrics: this.calculateMetrics(context) },
+      });
 
       return this.buildResult(WorkflowStatus.COMPLETED, context);
     } catch (error) {
-      logger.error('[Workflow] Failed to execute workflow:', error);
-      this.emit({ type: 'workflow-failed', workflowId: config.id, timestamp: new Date(), data: { error } });
+      logger.error("[Workflow] Failed to execute workflow:", error);
+      this.emit({
+        type: "workflow-failed",
+        workflowId: config.id,
+        timestamp: new Date(),
+        data: { error },
+      });
 
       return this.buildResult(WorkflowStatus.FAILED, context);
     }
@@ -93,14 +116,16 @@ export class WorkflowExecutor {
   private async executeStage(
     stage: WorkflowStage,
     config: WorkflowConfig,
-    context: WorkflowContext
+    context: WorkflowContext,
   ): Promise<void> {
-    logger.info(`[Workflow] Executing stage ${stage.stageNumber} with ${stage.steps.length} steps`);
+    logger.info(
+      `[Workflow] Executing stage ${stage.stageNumber} with ${stage.steps.length} steps`,
+    );
 
     if (stage.canRunInParallel) {
       // Execute steps in parallel
       const promises = stage.steps.map((step) =>
-        this.executeStep(step, config, context)
+        this.executeStep(step, config, context),
       );
       await Promise.all(promises);
     } else {
@@ -117,12 +142,17 @@ export class WorkflowExecutor {
   private async executeStep(
     step: WorkflowStep,
     config: WorkflowConfig,
-    context: WorkflowContext
+    context: WorkflowContext,
   ): Promise<void> {
     const startTime = new Date();
 
     logger.info(`[Workflow] Executing step: ${step.id} (${step.agentId})`);
-    this.emit({ type: 'step-started', workflowId: config.id, stepId: step.id, timestamp: startTime });
+    this.emit({
+      type: "step-started",
+      workflowId: config.id,
+      stepId: step.id,
+      timestamp: startTime,
+    });
 
     try {
       if (!this.checkDependencies(step, context)) {
@@ -130,7 +160,11 @@ export class WorkflowExecutor {
         return;
       }
 
-      const { output, retryCount } = await this.runStepWithRetries(step, config, context);
+      const { output, retryCount } = await this.runStepWithRetries(
+        step,
+        config,
+        context,
+      );
       const endTime = new Date();
 
       this.recordStepSuccess({
@@ -145,7 +179,7 @@ export class WorkflowExecutor {
     } catch (error) {
       this.recordStepFailure(step, config, context, error, startTime);
 
-      if (config.errorHandling === 'strict' && !step.skipOnError) {
+      if (config.errorHandling === "strict" && !step.skipOnError) {
         throw error;
       }
     }
@@ -155,13 +189,20 @@ export class WorkflowExecutor {
    * Handle unmet dependencies for a step
    */
   private handleUnmetDependencies(
-    step: WorkflowStep, context: WorkflowContext, startTime: Date
+    step: WorkflowStep,
+    context: WorkflowContext,
+    startTime: Date,
   ): void {
     if (step.skipOnError) {
-      logger.warn(`[Workflow] Skipping step ${step.id} due to unmet dependencies`);
+      logger.warn(
+        `[Workflow] Skipping step ${step.id} due to unmet dependencies`,
+      );
       context.results.set(step.id, {
-        agentId: step.agentId, taskType: step.taskType,
-        status: AgentStatus.SKIPPED, startTime, endTime: new Date(),
+        agentId: step.agentId,
+        taskType: step.taskType,
+        status: AgentStatus.SKIPPED,
+        startTime,
+        endTime: new Date(),
       });
       return;
     }
@@ -171,9 +212,11 @@ export class WorkflowExecutor {
   /**
    * Run a step with retry logic
    */
-   
+
   private async runStepWithRetries(
-    step: WorkflowStep, config: WorkflowConfig, context: WorkflowContext
+    step: WorkflowStep,
+    config: WorkflowConfig,
+    context: WorkflowContext,
   ): Promise<{ output: StandardAgentOutput; retryCount: number }> {
     const agent = agentRegistry.getAgent(step.taskType);
     if (!agent) {
@@ -189,7 +232,7 @@ export class WorkflowExecutor {
       try {
         output = await this.executeWithTimeout(
           () => agent.executeTask(context.input),
-          step.timeout ?? config.globalTimeout ?? 60000
+          step.timeout ?? config.globalTimeout ?? 60000,
         );
         break;
       } catch (error) {
@@ -203,7 +246,7 @@ export class WorkflowExecutor {
     }
 
     if (!output) {
-      throw lastError ?? new Error('Step failed without output');
+      throw lastError ?? new Error("Step failed without output");
     }
     return { output, retryCount };
   }
@@ -220,39 +263,67 @@ export class WorkflowExecutor {
     endTime: Date;
     retryCount: number;
   }): void {
-    const { step, config, context, output, startTime, endTime, retryCount } = result;
+    const { step, config, context, output, startTime, endTime, retryCount } =
+      result;
     context.results.set(step.id, {
-      agentId: step.agentId, taskType: step.taskType,
-      status: AgentStatus.COMPLETED, output, startTime, endTime,
-      duration: endTime.getTime() - startTime.getTime(), retryCount,
+      agentId: step.agentId,
+      taskType: step.taskType,
+      status: AgentStatus.COMPLETED,
+      output,
+      startTime,
+      endTime,
+      duration: endTime.getTime() - startTime.getTime(),
+      retryCount,
     });
     context.metadata.completedSteps++;
-    this.emit({ type: 'step-completed', workflowId: config.id, stepId: step.id, timestamp: endTime, data: { output } });
+    this.emit({
+      type: "step-completed",
+      workflowId: config.id,
+      stepId: step.id,
+      timestamp: endTime,
+      data: { output },
+    });
   }
 
   /**
    * Record a failed step result
    */
   private recordStepFailure(
-    step: WorkflowStep, config: WorkflowConfig, context: WorkflowContext,
-    error: unknown, startTime: Date
+    step: WorkflowStep,
+    config: WorkflowConfig,
+    context: WorkflowContext,
+    error: unknown,
+    startTime: Date,
   ): void {
     logger.error(`[Workflow] Step ${step.id} failed:`, error);
     context.results.set(step.id, {
-      agentId: step.agentId, taskType: step.taskType,
-      status: AgentStatus.FAILED, error: error as Error, startTime, endTime: new Date(),
+      agentId: step.agentId,
+      taskType: step.taskType,
+      status: AgentStatus.FAILED,
+      error: error as Error,
+      startTime,
+      endTime: new Date(),
     });
     context.metadata.failedSteps++;
-    this.emit({ type: 'step-failed', workflowId: config.id, stepId: step.id, timestamp: new Date(), data: { error } });
+    this.emit({
+      type: "step-failed",
+      workflowId: config.id,
+      stepId: step.id,
+      timestamp: new Date(),
+      data: { error },
+    });
   }
 
   /**
    * Check if step dependencies are met
    */
-  private checkDependencies(step: WorkflowStep, context: WorkflowContext): boolean {
+  private checkDependencies(
+    step: WorkflowStep,
+    context: WorkflowContext,
+  ): boolean {
     return step.dependencies.every((dep: AgentDependency) => {
       const depResult = Array.from(context.results.values()).find(
-        (r) => r.agentId === dep.agentId && r.taskType === dep.taskType
+        (r) => r.agentId === dep.agentId && r.taskType === dep.taskType,
       );
 
       if (depResult?.status !== AgentStatus.COMPLETED) {
@@ -272,12 +343,12 @@ export class WorkflowExecutor {
    */
   private async executeWithTimeout<T>(
     fn: () => Promise<T>,
-    timeoutMs: number
+    timeoutMs: number,
   ): Promise<T> {
     return Promise.race([
       fn(),
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error('Execution timeout')), timeoutMs)
+        setTimeout(() => reject(new Error("Execution timeout")), timeoutMs),
       ),
     ]);
   }

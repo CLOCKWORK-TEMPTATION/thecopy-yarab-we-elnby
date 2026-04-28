@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { z } from 'zod';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { z } from "zod";
 
 interface MockControllerRequest {
   body: unknown;
@@ -22,7 +22,7 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
@@ -30,8 +30,8 @@ class MockProjectsController {
     return res.json({
       success: true,
       data: [
-        { id: 'project-1', title: 'Project 1', userId: 'user-123' },
-        { id: 'project-2', title: 'Project 2', userId: 'user-123' },
+        { id: "project-1", title: "Project 1", userId: "user-123" },
+        { id: "project-2", title: "Project 2", userId: "user-123" },
       ],
     });
   }
@@ -40,7 +40,7 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
@@ -49,14 +49,14 @@ class MockProjectsController {
     if (!id) {
       return res.status(400).json({
         success: false,
-        error: 'معرف المشروع مطلوب',
+        error: "معرف المشروع مطلوب",
       });
     }
 
     // Mock successful response
     return res.json({
       success: true,
-      data: { id, title: 'Test Project', userId: 'user-123' },
+      data: { id, title: "Test Project", userId: "user-123" },
     });
   }
 
@@ -64,14 +64,14 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
     try {
       // Mock validation
       const schema = z.object({
-        title: z.string().min(1, 'عنوان المشروع مطلوب'),
+        title: z.string().min(1, "عنوان المشروع مطلوب"),
         scriptContent: z.string().optional(),
       });
 
@@ -80,21 +80,21 @@ class MockProjectsController {
       // Mock successful creation
       return res.status(201).json({
         success: true,
-        message: 'تم إنشاء المشروع بنجاح',
-        data: { id: 'new-project', ...validatedData, userId: 'user-123' },
+        message: "تم إنشاء المشروع بنجاح",
+        data: { id: "new-project", ...validatedData, userId: "user-123" },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
-          error: 'بيانات غير صالحة',
+          error: "بيانات غير صالحة",
           details: error.issues,
         });
       }
 
       return res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء إنشاء المشروع',
+        error: "حدث خطأ أثناء إنشاء المشروع",
       });
     }
   }
@@ -103,7 +103,7 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
@@ -112,7 +112,7 @@ class MockProjectsController {
     if (!id) {
       return res.status(400).json({
         success: false,
-        error: 'معرف المشروع مطلوب',
+        error: "معرف المشروع مطلوب",
       });
     }
 
@@ -126,21 +126,21 @@ class MockProjectsController {
 
       return res.json({
         success: true,
-        message: 'تم تحديث المشروع بنجاح',
+        message: "تم تحديث المشروع بنجاح",
         data: { id, ...validatedData },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
-          error: 'بيانات غير صالحة',
+          error: "بيانات غير صالحة",
           details: error.issues,
         });
       }
 
       return res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء تحديث المشروع',
+        error: "حدث خطأ أثناء تحديث المشروع",
       });
     }
   }
@@ -149,7 +149,7 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
@@ -158,13 +158,13 @@ class MockProjectsController {
     if (!id) {
       return res.status(400).json({
         success: false,
-        error: 'معرف المشروع مطلوب',
+        error: "معرف المشروع مطلوب",
       });
     }
 
     return res.json({
       success: true,
-      message: 'تم حذف المشروع بنجاح',
+      message: "تم حذف المشروع بنجاح",
     });
   }
 
@@ -172,7 +172,7 @@ class MockProjectsController {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
     }
 
@@ -181,16 +181,16 @@ class MockProjectsController {
     if (!id) {
       return res.status(400).json({
         success: false,
-        error: 'معرف المشروع مطلوب',
+        error: "معرف المشروع مطلوب",
       });
     }
 
     // Mock analysis result
     return res.json({
       success: true,
-      message: 'تم تحليل السيناريو بنجاح',
+      message: "تم تحليل السيناريو بنجاح",
       data: {
-        analysis: { analysis: 'completed', stations: [] },
+        analysis: { analysis: "completed", stations: [] },
         projectId: id,
       },
     });
@@ -202,8 +202,8 @@ const projectsController = new MockProjectsController();
 
 let mockRequest: MockControllerRequest;
 let mockResponse: MockControllerResponse;
-let mockJson: MockControllerResponse['json'];
-let mockStatus: MockControllerResponse['status'];
+let mockJson: MockControllerResponse["json"];
+let mockStatus: MockControllerResponse["status"];
 
 beforeEach(() => {
   mockResponse = {
@@ -216,302 +216,251 @@ beforeEach(() => {
   mockRequest = {
     params: {},
     body: {},
-    user: { id: 'user-123' },
+    user: { id: "user-123" },
   };
   vi.clearAllMocks();
 });
 
-  describe('getProjects', () => {
-    it('should return projects for authorized user', () => {
-      projectsController.getProjects(
-        mockRequest,
-        mockResponse
-      );
+describe("getProjects", () => {
+  it("should return projects for authorized user", () => {
+    projectsController.getProjects(mockRequest, mockResponse);
 
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        data: [
-          { id: 'project-1', title: 'Project 1', userId: 'user-123' },
-          { id: 'project-2', title: 'Project 2', userId: 'user-123' },
-        ],
-      });
-    });
-
-    it('should return 401 for unauthorized user', () => {
-      mockRequest.user = undefined;
-
-      projectsController.getProjects(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(401);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'غير مصرح',
-      });
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      data: [
+        { id: "project-1", title: "Project 1", userId: "user-123" },
+        { id: "project-2", title: "Project 2", userId: "user-123" },
+      ],
     });
   });
 
-  describe('getProject', () => {
-    it('should return project for authorized user', () => {
-      mockRequest.params = { id: 'project-1' };
+  it("should return 401 for unauthorized user", () => {
+    mockRequest.user = undefined;
 
-      projectsController.getProject(
-        mockRequest,
-        mockResponse
-      );
+    projectsController.getProjects(mockRequest, mockResponse);
 
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        data: { id: 'project-1', title: 'Test Project', userId: 'user-123' },
-      });
+    expect(mockStatus).toHaveBeenCalledWith(401);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "غير مصرح",
     });
+  });
+});
 
-    it('should return 401 for unauthorized user', () => {
-      mockRequest.user = undefined;
-      mockRequest.params = { id: 'project-1' };
+describe("getProject", () => {
+  it("should return project for authorized user", () => {
+    mockRequest.params = { id: "project-1" };
 
-      projectsController.getProject(
-        mockRequest,
-        mockResponse
-      );
+    projectsController.getProject(mockRequest, mockResponse);
 
-      expect(mockStatus).toHaveBeenCalledWith(401);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'غير مصرح',
-      });
-    });
-
-    it('should return 400 when project ID is missing', () => {
-      mockRequest.params = {};
-
-      projectsController.getProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'معرف المشروع مطلوب',
-      });
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      data: { id: "project-1", title: "Test Project", userId: "user-123" },
     });
   });
 
-  describe('createProject', () => {
-    it('should create project with valid data', () => {
-      const projectData = {
-        title: 'New Project',
-        scriptContent: 'Script content here',
-      };
+  it("should return 401 for unauthorized user", () => {
+    mockRequest.user = undefined;
+    mockRequest.params = { id: "project-1" };
 
-      mockRequest.body = projectData;
+    projectsController.getProject(mockRequest, mockResponse);
 
-      projectsController.createProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(201);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        message: 'تم إنشاء المشروع بنجاح',
-        data: expect.objectContaining(projectData) as unknown,
-      });
-    });
-
-    it('should validate project data', () => {
-      const invalidData = {
-        title: '', // Empty title
-      };
-
-      mockRequest.body = invalidData;
-
-      projectsController.createProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'بيانات غير صالحة',
-        details: expect.any(Array) as unknown,
-      });
+    expect(mockStatus).toHaveBeenCalledWith(401);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "غير مصرح",
     });
   });
 
-  describe('updateProject', () => {
-    it('should update project with valid data', () => {
-      const updateData = {
-        title: 'Updated Project Title',
-        scriptContent: 'Updated script content',
-      };
+  it("should return 400 when project ID is missing", () => {
+    mockRequest.params = {};
 
-      mockRequest.params = { id: 'project-1' };
-      mockRequest.body = updateData;
+    projectsController.getProject(mockRequest, mockResponse);
 
-      projectsController.updateProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        message: 'تم تحديث المشروع بنجاح',
-        data: expect.objectContaining(updateData) as unknown,
-      });
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "معرف المشروع مطلوب",
     });
+  });
+});
 
-    it('should return 401 for unauthorized user', () => {
-      mockRequest.user = undefined;
-      mockRequest.params = { id: 'project-1' };
-      mockRequest.body = { title: 'Updated Title' };
+describe("createProject", () => {
+  it("should create project with valid data", () => {
+    const projectData = {
+      title: "New Project",
+      scriptContent: "Script content here",
+    };
 
-      projectsController.updateProject(
-        mockRequest,
-        mockResponse
-      );
+    mockRequest.body = projectData;
 
-      expect(mockStatus).toHaveBeenCalledWith(401);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'غير مصرح',
-      });
-    });
+    projectsController.createProject(mockRequest, mockResponse);
 
-    it('should return 400 when project ID is missing', () => {
-      mockRequest.params = {};
-      mockRequest.body = { title: 'Updated Title' };
-
-      projectsController.updateProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'معرف المشروع مطلوب',
-      });
-    });
-
-    it('should validate update data', () => {
-      mockRequest.params = { id: 'project-1' };
-      mockRequest.body = {
-        title: '', // Invalid: empty title
-      };
-
-      projectsController.updateProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'بيانات غير صالحة',
-        details: expect.any(Array) as unknown,
-      });
+    expect(mockStatus).toHaveBeenCalledWith(201);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      message: "تم إنشاء المشروع بنجاح",
+      data: expect.objectContaining(projectData) as unknown,
     });
   });
 
-  describe('deleteProject', () => {
-    it('should delete project successfully', () => {
-      mockRequest.params = { id: 'project-1' };
+  it("should validate project data", () => {
+    const invalidData = {
+      title: "", // Empty title
+    };
 
-      projectsController.deleteProject(
-        mockRequest,
-        mockResponse
-      );
+    mockRequest.body = invalidData;
 
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        message: 'تم حذف المشروع بنجاح',
-      });
+    projectsController.createProject(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "بيانات غير صالحة",
+      details: expect.any(Array) as unknown,
     });
+  });
+});
 
-    it('should return 401 for unauthorized user', () => {
-      mockRequest.user = undefined;
-      mockRequest.params = { id: 'project-1' };
+describe("updateProject", () => {
+  it("should update project with valid data", () => {
+    const updateData = {
+      title: "Updated Project Title",
+      scriptContent: "Updated script content",
+    };
 
-      projectsController.deleteProject(
-        mockRequest,
-        mockResponse
-      );
+    mockRequest.params = { id: "project-1" };
+    mockRequest.body = updateData;
 
-      expect(mockStatus).toHaveBeenCalledWith(401);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'غير مصرح',
-      });
-    });
+    projectsController.updateProject(mockRequest, mockResponse);
 
-    it('should return 400 when project ID is missing', () => {
-      mockRequest.params = {};
-
-      projectsController.deleteProject(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'معرف المشروع مطلوب',
-      });
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      message: "تم تحديث المشروع بنجاح",
+      data: expect.objectContaining(updateData) as unknown,
     });
   });
 
-  describe('analyzeScript', () => {
-    it('should analyze script successfully', () => {
-      mockRequest.params = { id: 'project-1' };
+  it("should return 401 for unauthorized user", () => {
+    mockRequest.user = undefined;
+    mockRequest.params = { id: "project-1" };
+    mockRequest.body = { title: "Updated Title" };
 
-      projectsController.analyzeScript(
-        mockRequest,
-        mockResponse
-      );
+    projectsController.updateProject(mockRequest, mockResponse);
 
-      expect(mockJson).toHaveBeenCalledWith({
-        success: true,
-        message: 'تم تحليل السيناريو بنجاح',
-        data: {
-          analysis: { analysis: 'completed', stations: [] },
-          projectId: 'project-1',
-        },
-      });
-    });
-
-    it('should return 401 for unauthorized user', () => {
-      mockRequest.user = undefined;
-      mockRequest.params = { id: 'project-1' };
-
-      projectsController.analyzeScript(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(401);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'غير مصرح',
-      });
-    });
-
-    it('should return 400 when project ID is missing', () => {
-      mockRequest.params = {};
-
-      projectsController.analyzeScript(
-        mockRequest,
-        mockResponse
-      );
-
-      expect(mockStatus).toHaveBeenCalledWith(400);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        error: 'معرف المشروع مطلوب',
-      });
+    expect(mockStatus).toHaveBeenCalledWith(401);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "غير مصرح",
     });
   });
+
+  it("should return 400 when project ID is missing", () => {
+    mockRequest.params = {};
+    mockRequest.body = { title: "Updated Title" };
+
+    projectsController.updateProject(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "معرف المشروع مطلوب",
+    });
+  });
+
+  it("should validate update data", () => {
+    mockRequest.params = { id: "project-1" };
+    mockRequest.body = {
+      title: "", // Invalid: empty title
+    };
+
+    projectsController.updateProject(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "بيانات غير صالحة",
+      details: expect.any(Array) as unknown,
+    });
+  });
+});
+
+describe("deleteProject", () => {
+  it("should delete project successfully", () => {
+    mockRequest.params = { id: "project-1" };
+
+    projectsController.deleteProject(mockRequest, mockResponse);
+
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      message: "تم حذف المشروع بنجاح",
+    });
+  });
+
+  it("should return 401 for unauthorized user", () => {
+    mockRequest.user = undefined;
+    mockRequest.params = { id: "project-1" };
+
+    projectsController.deleteProject(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(401);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "غير مصرح",
+    });
+  });
+
+  it("should return 400 when project ID is missing", () => {
+    mockRequest.params = {};
+
+    projectsController.deleteProject(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "معرف المشروع مطلوب",
+    });
+  });
+});
+
+describe("analyzeScript", () => {
+  it("should analyze script successfully", () => {
+    mockRequest.params = { id: "project-1" };
+
+    projectsController.analyzeScript(mockRequest, mockResponse);
+
+    expect(mockJson).toHaveBeenCalledWith({
+      success: true,
+      message: "تم تحليل السيناريو بنجاح",
+      data: {
+        analysis: { analysis: "completed", stations: [] },
+        projectId: "project-1",
+      },
+    });
+  });
+
+  it("should return 401 for unauthorized user", () => {
+    mockRequest.user = undefined;
+    mockRequest.params = { id: "project-1" };
+
+    projectsController.analyzeScript(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(401);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "غير مصرح",
+    });
+  });
+
+  it("should return 400 when project ID is missing", () => {
+    mockRequest.params = {};
+
+    projectsController.analyzeScript(mockRequest, mockResponse);
+
+    expect(mockStatus).toHaveBeenCalledWith(400);
+    expect(mockJson).toHaveBeenCalledWith({
+      success: false,
+      error: "معرف المشروع مطلوب",
+    });
+  });
+});

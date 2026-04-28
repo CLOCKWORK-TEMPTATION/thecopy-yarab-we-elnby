@@ -63,16 +63,10 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={`p-6 rounded-xl shadow-lg border mb-8 ${
-        theme === "dark"
-          ? "bg-black/18 border-white/8"
-          : "bg-white/[0.04] border-white/8"
-      }`}
+      className={`p-6 rounded-xl shadow-lg border mb-8 ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
     >
       <h3
-        className={`text-lg font-bold mb-6 flex items-center gap-2 ${
-          theme === "dark" ? "text-white" : "text-white"
-        }`}
+        className={`text-lg font-bold mb-6 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
       >
         <TrendingUp size={20} className="text-indigo-500" />
         AI-Powered Budget Analysis
@@ -81,24 +75,16 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
       {/* Production Summary */}
       <motion.div
         variants={itemVariants}
-        className={`mb-8 p-6 rounded-[22px] border ${
-          theme === "dark"
-            ? "bg-black/22 border-white/8"
-            : "bg-white/[0.04] border-white/8"
-        }`}
+        className={`mb-8 p-6 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
       >
         <h4
-          className={`text-lg font-semibold mb-3 flex items-center gap-2 ${
-            theme === "dark" ? "text-white" : "text-white"
-          }`}
+          className={`text-lg font-semibold mb-3 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
         >
           <Zap size={18} className="text-yellow-500" />
           Production Summary
         </h4>
         <p
-          className={`leading-relaxed ${
-            theme === "dark" ? "text-white/68" : "text-white/68"
-          }`}
+          className={`leading-relaxed ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
         >
           {analysis.summary}
         </p>
@@ -108,24 +94,16 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
         {/* Key Metrics */}
         <motion.div
           variants={itemVariants}
-          className={`p-4 rounded-[22px] border text-center ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-[22px] border text-center ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <Calendar className="mx-auto mb-2 text-blue-500" size={24} />
           <div
-            className={`text-2xl font-bold ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             {analysis.shootingSchedule?.totalDays || 0}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Total Shooting Days
           </div>
@@ -133,24 +111,16 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
 
         <motion.div
           variants={itemVariants}
-          className={`p-4 rounded-[22px] border text-center ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-[22px] border text-center ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <DollarSign className="mx-auto mb-2 text-green-500" size={24} />
           <div
-            className={`text-2xl font-bold ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             {formatCurrency(costPerDay)}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Cost per Day
           </div>
@@ -158,24 +128,16 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
 
         <motion.div
           variants={itemVariants}
-          className={`p-4 rounded-[22px] border text-center ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-[22px] border text-center ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <Target className="mx-auto mb-2 text-purple-500" size={24} />
           <div
-            className={`text-2xl font-bold ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             {stats.efficiency}%
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Budget Efficiency
           </div>
@@ -183,24 +145,16 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
 
         <motion.div
           variants={itemVariants}
-          className={`p-4 rounded-[22px] border text-center ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-[22px] border text-center ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <Award className="mx-auto mb-2 text-yellow-500" size={24} />
           <div
-            className={`text-2xl font-bold ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             {stats.activeItems}/{stats.totalItems}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Active Items
           </div>
@@ -211,16 +165,10 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
         {/* Recommendations */}
         <motion.div
           variants={itemVariants}
-          className={`p-6 rounded-[22px] border ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-6 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <h4
-            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             <Lightbulb size={18} className="text-green-500" />
             AI Recommendations
@@ -232,15 +180,11 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`flex items-start gap-2 p-3 rounded-[22px] ${
-                  theme === "dark" ? "bg-black/28" : "bg-white/[0.04]"
-                }`}
+                className={`flex items-start gap-2 p-3 rounded-[22px] ${theme === "dark" ? "bg-black/28" : "bg-white/[0.04]"}`}
               >
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                 <p
-                  className={`text-sm ${
-                    theme === "dark" ? "text-white/68" : "text-white/68"
-                  }`}
+                  className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                 >
                   {rec}
                 </p>
@@ -252,16 +196,10 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
         {/* Risk Factors */}
         <motion.div
           variants={itemVariants}
-          className={`p-6 rounded-[22px] border ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-6 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <h4
-            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             <AlertTriangle size={18} className="text-orange-500" />
             Risk Factors
@@ -273,15 +211,11 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`flex items-start gap-2 p-3 rounded-[22px] ${
-                  theme === "dark" ? "bg-black/28" : "bg-orange-50"
-                }`}
+                className={`flex items-start gap-2 p-3 rounded-[22px] ${theme === "dark" ? "bg-black/28" : "bg-orange-50"}`}
               >
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
                 <p
-                  className={`text-sm ${
-                    theme === "dark" ? "text-white/68" : "text-white/68"
-                  }`}
+                  className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                 >
                   {risk}
                 </p>
@@ -294,16 +228,10 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
       {/* Cost Optimization */}
       <motion.div
         variants={itemVariants}
-        className={`mt-8 p-6 rounded-[22px] border ${
-          theme === "dark"
-            ? "bg-black/22 border-white/8"
-            : "bg-white/[0.04] border-white/8"
-        }`}
+        className={`mt-8 p-6 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
       >
         <h4
-          className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-            theme === "dark" ? "text-white" : "text-white"
-          }`}
+          className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
         >
           <Target size={18} className="text-blue-500" />
           Cost Optimization Opportunities
@@ -315,16 +243,10 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className={`p-4 rounded-[22px] border ${
-                theme === "dark"
-                  ? "bg-black/28 border-white/8"
-                  : "bg-blue-50 border-blue-200"
-              }`}
+              className={`p-4 rounded-[22px] border ${theme === "dark" ? "bg-black/28 border-white/8" : "bg-blue-50 border-blue-200"}`}
             >
               <p
-                className={`text-sm ${
-                  theme === "dark" ? "text-white/68" : "text-white/68"
-                }`}
+                className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
               >
                 {opt}
               </p>
@@ -337,77 +259,53 @@ export const BudgetAnalytics: React.FC<BudgetAnalyticsProps> = ({
       {analysis.shootingSchedule && (
         <motion.div
           variants={itemVariants}
-          className={`mt-8 p-6 rounded-[22px] border ${
-            theme === "dark"
-              ? "bg-black/22 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`mt-8 p-6 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <h4
-            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-lg font-semibold mb-4 flex items-center gap-2 ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             <Clock size={18} className="text-purple-500" />
             Estimated Shooting Schedule
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
-              className={`p-4 rounded-lg text-center ${
-                theme === "dark" ? "bg-black/28" : "bg-white/6"
-              }`}
+              className={`p-4 rounded-lg text-center ${theme === "dark" ? "bg-black/28" : "bg-white/6"}`}
             >
               <div
-                className={`text-2xl font-bold ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 {analysis.shootingSchedule.phases.preProduction}
               </div>
               <div
-                className={`text-sm ${
-                  theme === "dark" ? "text-white/55" : "text-white/55"
-                }`}
+                className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
               >
                 Pre-Production Days
               </div>
             </div>
             <div
-              className={`p-4 rounded-lg text-center ${
-                theme === "dark" ? "bg-black/28" : "bg-white/6"
-              }`}
+              className={`p-4 rounded-lg text-center ${theme === "dark" ? "bg-black/28" : "bg-white/6"}`}
             >
               <div
-                className={`text-2xl font-bold ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 {analysis.shootingSchedule.phases.production}
               </div>
               <div
-                className={`text-sm ${
-                  theme === "dark" ? "text-white/55" : "text-white/55"
-                }`}
+                className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
               >
                 Production Days
               </div>
             </div>
             <div
-              className={`p-4 rounded-lg text-center ${
-                theme === "dark" ? "bg-black/28" : "bg-white/6"
-              }`}
+              className={`p-4 rounded-lg text-center ${theme === "dark" ? "bg-black/28" : "bg-white/6"}`}
             >
               <div
-                className={`text-2xl font-bold ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 {analysis.shootingSchedule.phases.postProduction}
               </div>
               <div
-                className={`text-sm ${
-                  theme === "dark" ? "text-white/55" : "text-white/55"
-                }`}
+                className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
               >
                 Post-Production Days
               </div>

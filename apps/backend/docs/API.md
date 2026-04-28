@@ -39,21 +39,21 @@
 
 ## نظرة عامة
 
-| الخاصية | القيمة |
-|---|---|
-| الإطار | Express.js 5.1.0 + TypeScript |
-| المنفذ الافتراضي | `3001` (مع fallback تلقائي للمنفذ التالي) |
-| Base URL | `http://localhost:3001` |
-| تنسيق البيانات | `application/json` |
-| الترميز | `UTF-8` |
-| المصادقة | JWT عبر Cookie HttpOnly (`accessToken`) أو Bearer Token |
-| حد الطلبات — عام | 100 طلب / 15 دقيقة لكل مسار `/api/` |
-| حد الطلبات — مصادقة | 5 طلبات / 15 دقيقة على `/api/auth/login` و `/api/auth/signup` |
-| حد الطلبات — AI | 20 طلب / ساعة على `/api/analysis/` و `/api/projects/:id/analyze` |
-| حجم الجسم الأقصى | 10 MB |
-| الـ WebSocket | Socket.io على نفس المنفذ |
-| SSE | Server-Sent Events عبر خدمة SSE الداخلية |
-| MCP Server | منفذ منفصل (افتراضي: `3000`) عبر `MCP_PORT` |
+| الخاصية             | القيمة                                                           |
+| ------------------- | ---------------------------------------------------------------- |
+| الإطار              | Express.js 5.1.0 + TypeScript                                    |
+| المنفذ الافتراضي    | `3001` (مع fallback تلقائي للمنفذ التالي)                        |
+| Base URL            | `http://localhost:3001`                                          |
+| تنسيق البيانات      | `application/json`                                               |
+| الترميز             | `UTF-8`                                                          |
+| المصادقة            | JWT عبر Cookie HttpOnly (`accessToken`) أو Bearer Token          |
+| حد الطلبات — عام    | 100 طلب / 15 دقيقة لكل مسار `/api/`                              |
+| حد الطلبات — مصادقة | 5 طلبات / 15 دقيقة على `/api/auth/login` و `/api/auth/signup`    |
+| حد الطلبات — AI     | 20 طلب / ساعة على `/api/analysis/` و `/api/projects/:id/analyze` |
+| حجم الجسم الأقصى    | 10 MB                                                            |
+| الـ WebSocket       | Socket.io على نفس المنفذ                                         |
+| SSE                 | Server-Sent Events عبر خدمة SSE الداخلية                         |
+| MCP Server          | منفذ منفصل (افتراضي: `3000`) عبر `MCP_PORT`                      |
 
 ---
 
@@ -61,25 +61,25 @@
 
 تُطبَّق هذه الـ middleware على كل الطلبات بالترتيب التالي:
 
-| الترتيب | الـ Middleware | الملف | الوظيفة |
-|---|---|---|---|
-| 1 | `trackError` / `trackPerformance` | `middleware/sentry.middleware.ts` | تتبع الأخطاء والأداء عبر Sentry |
-| 2 | `metricsMiddleware` | `middleware/metrics.middleware.ts` | تجميع مقاييس Prometheus |
-| 3 | `sloMetricsMiddleware` | `middleware/slo-metrics.middleware.ts` | قياس SLO (الإتاحة، الكمون، الميزانية) |
-| 4 | `wafMiddleware` | `middleware/waf.middleware.ts` | جدار الحماية (WAF) — يمنع الهجمات المعروفة |
-| 5 | `logAuthAttempts` | `middleware/security-logger.middleware.ts` | تسجيل محاولات المصادقة |
-| 6 | `logRateLimitViolations` | `middleware/security-logger.middleware.ts` | تسجيل تجاوزات حد الطلبات |
-| 7 | `cookieParser` | (مكتبة خارجية) | تحليل الكوكيز — ضروري قبل CSRF |
-| 8 | `csrfProtection` | `middleware/csrf.middleware.ts` | حماية CSRF بنمط Double Submit Cookie |
-| 9 | CSRF Origin/Referer Check | `server.ts` (مدمج) | تحقق إضافي من Origin/Referer |
-| 10 | CORS | `middleware/index.ts` | سياسة Origin مع whitelist صارمة |
-| 11 | Helmet | `middleware/index.ts` | ترويسات أمان HTTP (CSP، HSTS، إلخ) |
-| 12 | `compression` | (مكتبة خارجية) | ضغط gzip للاستجابات |
-| 13 | `express.json` | (مدمج) | تحليل JSON (حد 10 MB) |
-| 14 | `express.urlencoded` | (مدمج) | تحليل البيانات المشفرة (حد 10 MB) |
-| 15 | `sanitizeRequestLogs` | `middleware/log-sanitization.middleware.ts` | تعقيم السجلات من البيانات الحساسة (PII) |
-| 16 | Rate Limiters | `middleware/index.ts` | حدود الطلبات حسب النوع |
-| 17 | `authMiddleware` | `middleware/auth.middleware.ts` | التحقق من JWT على المسارات المحمية |
+| الترتيب | الـ Middleware                    | الملف                                       | الوظيفة                                    |
+| ------- | --------------------------------- | ------------------------------------------- | ------------------------------------------ |
+| 1       | `trackError` / `trackPerformance` | `middleware/sentry.middleware.ts`           | تتبع الأخطاء والأداء عبر Sentry            |
+| 2       | `metricsMiddleware`               | `middleware/metrics.middleware.ts`          | تجميع مقاييس Prometheus                    |
+| 3       | `sloMetricsMiddleware`            | `middleware/slo-metrics.middleware.ts`      | قياس SLO (الإتاحة، الكمون، الميزانية)      |
+| 4       | `wafMiddleware`                   | `middleware/waf.middleware.ts`              | جدار الحماية (WAF) — يمنع الهجمات المعروفة |
+| 5       | `logAuthAttempts`                 | `middleware/security-logger.middleware.ts`  | تسجيل محاولات المصادقة                     |
+| 6       | `logRateLimitViolations`          | `middleware/security-logger.middleware.ts`  | تسجيل تجاوزات حد الطلبات                   |
+| 7       | `cookieParser`                    | (مكتبة خارجية)                              | تحليل الكوكيز — ضروري قبل CSRF             |
+| 8       | `csrfProtection`                  | `middleware/csrf.middleware.ts`             | حماية CSRF بنمط Double Submit Cookie       |
+| 9       | CSRF Origin/Referer Check         | `server.ts` (مدمج)                          | تحقق إضافي من Origin/Referer               |
+| 10      | CORS                              | `middleware/index.ts`                       | سياسة Origin مع whitelist صارمة            |
+| 11      | Helmet                            | `middleware/index.ts`                       | ترويسات أمان HTTP (CSP، HSTS، إلخ)         |
+| 12      | `compression`                     | (مكتبة خارجية)                              | ضغط gzip للاستجابات                        |
+| 13      | `express.json`                    | (مدمج)                                      | تحليل JSON (حد 10 MB)                      |
+| 14      | `express.urlencoded`              | (مدمج)                                      | تحليل البيانات المشفرة (حد 10 MB)          |
+| 15      | `sanitizeRequestLogs`             | `middleware/log-sanitization.middleware.ts` | تعقيم السجلات من البيانات الحساسة (PII)    |
+| 16      | Rate Limiters                     | `middleware/index.ts`                       | حدود الطلبات حسب النوع                     |
+| 17      | `authMiddleware`                  | `middleware/auth.middleware.ts`             | التحقق من JWT على المسارات المحمية         |
 
 ### ملاحظات الأمان
 
@@ -124,18 +124,18 @@
 
 ### رموز HTTP المستخدمة
 
-| الرمز | المعنى |
-|---|---|
-| 200 | نجاح |
-| 201 | تم الإنشاء |
-| 400 | بيانات غير صالحة |
-| 401 | غير مصرح (يجب تسجيل الدخول) |
-| 403 | محظور (غير مصرح بالوصول) |
-| 404 | غير موجود |
-| 409 | تعارض (مثلاً: البريد مستخدم) |
-| 429 | تجاوز حد الطلبات |
-| 500 | خطأ داخلي |
-| 503 | الخدمة غير متاحة |
+| الرمز | المعنى                       |
+| ----- | ---------------------------- |
+| 200   | نجاح                         |
+| 201   | تم الإنشاء                   |
+| 400   | بيانات غير صالحة             |
+| 401   | غير مصرح (يجب تسجيل الدخول)  |
+| 403   | محظور (غير مصرح بالوصول)     |
+| 404   | غير موجود                    |
+| 409   | تعارض (مثلاً: البريد مستخدم) |
+| 429   | تجاوز حد الطلبات             |
+| 500   | خطأ داخلي                    |
+| 503   | الخدمة غير متاحة             |
 
 ---
 
@@ -150,12 +150,12 @@
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `email` | `string` | نعم | بريد إلكتروني صالح |
-| `password` | `string` | نعم | 12 حرفاً على الأقل، حرف كبير + حرف صغير + رقم + رمز خاص |
-| `firstName` | `string` | لا | الاسم الأول |
-| `lastName` | `string` | لا | الاسم الأخير |
+| الحقل       | النوع    | مطلوب | الوصف                                                   |
+| ----------- | -------- | ----- | ------------------------------------------------------- |
+| `email`     | `string` | نعم   | بريد إلكتروني صالح                                      |
+| `password`  | `string` | نعم   | 12 حرفاً على الأقل، حرف كبير + حرف صغير + رقم + رمز خاص |
+| `firstName` | `string` | لا    | الاسم الأول                                             |
+| `lastName`  | `string` | لا    | الاسم الأخير                                            |
 
 **المخرجات (201):**
 
@@ -201,10 +201,10 @@ curl -X POST http://localhost:3001/api/auth/signup \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `email` | `string` | نعم |
-| `password` | `string` | نعم |
+| الحقل      | النوع    | مطلوب |
+| ---------- | -------- | ----- |
+| `email`    | `string` | نعم   |
+| `password` | `string` | نعم   |
 
 **المخرجات (200):**
 
@@ -321,13 +321,13 @@ curl http://localhost:3001/api/auth/me \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `email` | `string` | نعم | البريد الإلكتروني |
-| `authVerifier` | `string` | نعم | المُحقِّق المشتق من كلمة المرور (لا ترسل كلمة المرور الأصلية) |
-| `kdfSalt` | `string` | نعم | ملح اشتقاق المفتاح (يُخزَّن على الخادم ويُعاد للعميل) |
-| `recoveryArtifact` | `string` | لا | مادة الاسترداد المشفرة |
-| `recoveryIv` | `string` | لا | IV الخاص بمادة الاسترداد |
+| الحقل              | النوع    | مطلوب | الوصف                                                         |
+| ------------------ | -------- | ----- | ------------------------------------------------------------- |
+| `email`            | `string` | نعم   | البريد الإلكتروني                                             |
+| `authVerifier`     | `string` | نعم   | المُحقِّق المشتق من كلمة المرور (لا ترسل كلمة المرور الأصلية) |
+| `kdfSalt`          | `string` | نعم   | ملح اشتقاق المفتاح (يُخزَّن على الخادم ويُعاد للعميل)         |
+| `recoveryArtifact` | `string` | لا    | مادة الاسترداد المشفرة                                        |
+| `recoveryIv`       | `string` | لا    | IV الخاص بمادة الاسترداد                                      |
 
 **المخرجات (201):**
 
@@ -365,9 +365,9 @@ curl -X POST http://localhost:3001/api/auth/zk-signup \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `email` | `string` | نعم |
+| الحقل   | النوع    | مطلوب |
+| ------- | -------- | ----- |
+| `email` | `string` | نعم   |
 
 **المخرجات (200):**
 
@@ -396,10 +396,10 @@ curl -X POST http://localhost:3001/api/auth/zk-login-init \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `email` | `string` | نعم |
-| `authVerifier` | `string` | نعم |
+| الحقل          | النوع    | مطلوب |
+| -------------- | -------- | ----- |
+| `email`        | `string` | نعم   |
+| `authVerifier` | `string` | نعم   |
 
 **المخرجات (200):**
 
@@ -518,9 +518,9 @@ curl http://localhost:3001/api/projects \
 
 **المعاملات:**
 
-| المعامل | النوع | الوصف |
-|---|---|---|
-| `id` | `string` (UUID) | معرّف المشروع |
+| المعامل | النوع           | الوصف         |
+| ------- | --------------- | ------------- |
+| `id`    | `string` (UUID) | معرّف المشروع |
 
 **مثال curl:**
 
@@ -539,10 +539,10 @@ curl http://localhost:3001/api/projects/550e8400-e29b-41d4-a716-446655440000 \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `title` | `string` | نعم | يجب ألا يكون فارغاً |
-| `scriptContent` | `string` | لا | نص السيناريو |
+| الحقل           | النوع    | مطلوب | التحقق              |
+| --------------- | -------- | ----- | ------------------- |
+| `title`         | `string` | نعم   | يجب ألا يكون فارغاً |
+| `scriptContent` | `string` | لا    | نص السيناريو        |
 
 **المخرجات (201):**
 
@@ -581,10 +581,10 @@ curl -X POST http://localhost:3001/api/projects \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `title` | `string` | لا |
-| `scriptContent` | `string` | لا |
+| الحقل           | النوع    | مطلوب |
+| --------------- | -------- | ----- |
+| `title`         | `string` | لا    |
+| `scriptContent` | `string` | لا    |
 
 **مثال curl:**
 
@@ -662,8 +662,8 @@ curl -X POST http://localhost:3001/api/projects/550e8400-e29b-41d4-a716-44665544
 
 **المعاملات:**
 
-| المعامل | النوع | الوصف |
-|---|---|---|
+| المعامل     | النوع           | الوصف         |
+| ----------- | --------------- | ------------- |
 | `projectId` | `string` (UUID) | معرّف المشروع |
 
 **مثال curl:**
@@ -697,17 +697,17 @@ curl http://localhost:3001/api/scenes/scene-uuid \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `projectId` | `string` | نعم | معرّف مشروع موجود |
-| `sceneNumber` | `number` (int) | نعم | عدد صحيح موجب |
-| `title` | `string` | نعم | غير فارغ |
-| `location` | `string` | نعم | الموقع (داخلي/خارجي) |
-| `timeOfDay` | `string` | نعم | وقت اليوم (نهار/ليل...) |
-| `characters` | `string[]` | نعم | مصفوفة شخصيات (واحدة على الأقل) |
-| `description` | `string` | لا | وصف المشهد |
-| `shotCount` | `number` | لا | افتراضي: `0` |
-| `status` | `string` | لا | افتراضي: `"planned"` |
+| الحقل         | النوع          | مطلوب | التحقق                          |
+| ------------- | -------------- | ----- | ------------------------------- |
+| `projectId`   | `string`       | نعم   | معرّف مشروع موجود               |
+| `sceneNumber` | `number` (int) | نعم   | عدد صحيح موجب                   |
+| `title`       | `string`       | نعم   | غير فارغ                        |
+| `location`    | `string`       | نعم   | الموقع (داخلي/خارجي)            |
+| `timeOfDay`   | `string`       | نعم   | وقت اليوم (نهار/ليل...)         |
+| `characters`  | `string[]`     | نعم   | مصفوفة شخصيات (واحدة على الأقل) |
+| `description` | `string`       | لا    | وصف المشهد                      |
+| `shotCount`   | `number`       | لا    | افتراضي: `0`                    |
+| `status`      | `string`       | لا    | افتراضي: `"planned"`            |
 
 **المخرجات (201):**
 
@@ -823,14 +823,14 @@ curl http://localhost:3001/api/characters/char-uuid \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `projectId` | `string` | نعم | معرّف مشروع موجود |
-| `name` | `string` | نعم | غير فارغ |
-| `appearances` | `number` (int) | لا | عدد غير سالب، افتراضي: `0` |
-| `consistencyStatus` | `string` | لا | افتراضي: `"good"` |
-| `lastSeen` | `string` | لا | آخر ظهور (نص حر) |
-| `notes` | `string` | لا | ملاحظات |
+| الحقل               | النوع          | مطلوب | التحقق                     |
+| ------------------- | -------------- | ----- | -------------------------- |
+| `projectId`         | `string`       | نعم   | معرّف مشروع موجود          |
+| `name`              | `string`       | نعم   | غير فارغ                   |
+| `appearances`       | `number` (int) | لا    | عدد غير سالب، افتراضي: `0` |
+| `consistencyStatus` | `string`       | لا    | افتراضي: `"good"`          |
+| `lastSeen`          | `string`       | لا    | آخر ظهور (نص حر)           |
+| `notes`             | `string`       | لا    | ملاحظات                    |
 
 **المخرجات (201):**
 
@@ -940,15 +940,15 @@ curl http://localhost:3001/api/shots/shot-uuid \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `sceneId` | `string` | نعم | معرّف مشهد موجود |
-| `shotNumber` | `number` (int) | نعم | عدد صحيح موجب |
-| `shotType` | `string` | نعم | نوع اللقطة (مثال: `"close-up"`) |
-| `cameraAngle` | `string` | نعم | زاوية الكاميرا |
-| `cameraMovement` | `string` | نعم | حركة الكاميرا |
-| `lighting` | `string` | نعم | الإضاءة |
-| `aiSuggestion` | `string` | لا | اقتراح الذكاء الاصطناعي |
+| الحقل            | النوع          | مطلوب | التحقق                          |
+| ---------------- | -------------- | ----- | ------------------------------- |
+| `sceneId`        | `string`       | نعم   | معرّف مشهد موجود                |
+| `shotNumber`     | `number` (int) | نعم   | عدد صحيح موجب                   |
+| `shotType`       | `string`       | نعم   | نوع اللقطة (مثال: `"close-up"`) |
+| `cameraAngle`    | `string`       | نعم   | زاوية الكاميرا                  |
+| `cameraMovement` | `string`       | نعم   | حركة الكاميرا                   |
+| `lighting`       | `string`       | نعم   | الإضاءة                         |
+| `aiSuggestion`   | `string`       | لا    | اقتراح الذكاء الاصطناعي         |
 
 **المخرجات (201):**
 
@@ -1030,10 +1030,10 @@ curl -X DELETE http://localhost:3001/api/shots/shot-uuid \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `sceneDescription` | `string` | نعم |
-| `shotType` | `string` | نعم |
+| الحقل              | النوع    | مطلوب |
+| ------------------ | -------- | ----- |
+| `sceneDescription` | `string` | نعم   |
+| `shotType`         | `string` | نعم   |
 
 **المخرجات (200):**
 
@@ -1076,14 +1076,14 @@ curl -X POST http://localhost:3001/api/shots/suggestion \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `ciphertext` | `string` (base64) | نعم | النص المشفر |
-| `iv` | `string` | نعم | Initialization Vector |
-| `authTag` | `string` | نعم | وسم المصادقة (AES-GCM) |
-| `wrappedDEK` | `string` | نعم | مفتاح تشفير البيانات الملفوف |
-| `wrappedDEKiv` | `string` | نعم | IV الخاص بـ wrappedDEK |
-| `version` | `number` | نعم | رقم إصدار التشفير |
+| الحقل          | النوع             | مطلوب | الوصف                        |
+| -------------- | ----------------- | ----- | ---------------------------- |
+| `ciphertext`   | `string` (base64) | نعم   | النص المشفر                  |
+| `iv`           | `string`          | نعم   | Initialization Vector        |
+| `authTag`      | `string`          | نعم   | وسم المصادقة (AES-GCM)       |
+| `wrappedDEK`   | `string`          | نعم   | مفتاح تشفير البيانات الملفوف |
+| `wrappedDEKiv` | `string`          | نعم   | IV الخاص بـ wrappedDEK       |
+| `version`      | `number`          | نعم   | رقم إصدار التشفير            |
 
 **المخرجات (201):**
 
@@ -1243,10 +1243,10 @@ curl -X DELETE http://localhost:3001/api/docs/doc-uuid \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `message` | `string` | نعم | غير فارغ |
-| `context` | `any` | لا | سياق إضافي للمحادثة |
+| الحقل     | النوع    | مطلوب | التحقق              |
+| --------- | -------- | ----- | ------------------- |
+| `message` | `string` | نعم   | غير فارغ            |
+| `context` | `any`    | لا    | سياق إضافي للمحادثة |
 
 **المخرجات (200):**
 
@@ -1281,10 +1281,10 @@ curl -X POST http://localhost:3001/api/ai/chat \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `sceneDescription` | `string` | نعم |
-| `shotType` | `string` | نعم |
+| الحقل              | النوع    | مطلوب |
+| ------------------ | -------- | ----- |
+| `sceneDescription` | `string` | نعم   |
+| `shotType`         | `string` | نعم   |
 
 **المخرجات (200):**
 
@@ -1319,22 +1319,22 @@ curl -X POST http://localhost:3001/api/ai/shot-suggestion \
 
 **المحطات السبع:**
 
-| المحطة | الاسم | الوظيفة |
-|---|---|---|
-| S1 | التحليل التأسيسي | تحليل البنية الأساسية للنص |
-| S2 | التحليل المفاهيمي | استخراج الثيمات والمفاهيم |
-| S3 | شبكة الصراعات | تحليل العلاقات والصراعات |
-| S4 | مقاييس الفعالية | قياس فعالية النص الدرامي |
-| S5 | الديناميكية والرمزية | تحليل الرموز والديناميكية |
-| S6 | الفريق الأحمر | التحليل النقدي متعدد الوكلاء |
-| S7 | التقرير النهائي | إنشاء التقرير الشامل |
+| المحطة | الاسم                | الوظيفة                      |
+| ------ | -------------------- | ---------------------------- |
+| S1     | التحليل التأسيسي     | تحليل البنية الأساسية للنص   |
+| S2     | التحليل المفاهيمي    | استخراج الثيمات والمفاهيم    |
+| S3     | شبكة الصراعات        | تحليل العلاقات والصراعات     |
+| S4     | مقاييس الفعالية      | قياس فعالية النص الدرامي     |
+| S5     | الديناميكية والرمزية | تحليل الرموز والديناميكية    |
+| S6     | الفريق الأحمر        | التحليل النقدي متعدد الوكلاء |
+| S7     | التقرير النهائي      | إنشاء التقرير الشامل         |
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `text` | `string` | نعم | النص المراد تحليله |
-| `async` | `boolean` | لا | إذا `true` يُضيف المهمة لقائمة الانتظار ويُرجع `jobId` |
+| الحقل   | النوع     | مطلوب | الوصف                                                  |
+| ------- | --------- | ----- | ------------------------------------------------------ |
+| `text`  | `string`  | نعم   | النص المراد تحليله                                     |
+| `async` | `boolean` | لا    | إذا `true` يُضيف المهمة لقائمة الانتظار ويُرجع `jobId` |
 
 **المخرجات المتزامنة (200):**
 
@@ -1396,8 +1396,16 @@ curl -X POST http://localhost:3001/api/analysis/seven-stations \
 ```json
 {
   "stations": [
-    { "id": "S1", "name": "التحليل التأسيسي", "description": "تحليل البنية الأساسية للنص" },
-    { "id": "S7", "name": "التقرير النهائي", "description": "إنشاء التقرير الشامل" }
+    {
+      "id": "S1",
+      "name": "التحليل التأسيسي",
+      "description": "تحليل البنية الأساسية للنص"
+    },
+    {
+      "id": "S7",
+      "name": "التقرير النهائي",
+      "description": "إنشاء التقرير الشامل"
+    }
   ],
   "totalStations": 7,
   "executionOrder": "تسلسلي (1→7)",
@@ -1427,7 +1435,7 @@ curl http://localhost:3001/api/analysis/stations-info \
 ```json
 {
   "success": true,
-  "data": [ { "taskType": "...", "dimensions": [], "thresholds": {} } ],
+  "data": [{ "taskType": "...", "dimensions": [], "thresholds": {} }],
   "count": 5,
   "timestamp": "2026-03-30T12:00:00.000Z"
 }
@@ -1450,8 +1458,8 @@ curl http://localhost:3001/api/critique/config \
 
 **المعاملات:**
 
-| المعامل | النوع | الوصف |
-|---|---|---|
+| المعامل    | النوع                    | الوصف      |
+| ---------- | ------------------------ | ---------- |
 | `taskType` | `string` (TaskType enum) | نوع المهمة |
 
 **مثال curl:**
@@ -1502,14 +1510,14 @@ curl http://localhost:3001/api/critique/dimensions/SCENE_ANALYSIS \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `output` | `string` | نعم | المخرج المراد نقده |
-| `task` | `string` | نعم | وصف المهمة |
-| `context` | `object` | نعم | سياق النقد |
-| `context.taskType` | `string` (TaskType) | نعم | نوع المهمة |
-| `context.originalText` | `string` | نعم | النص الأصلي |
-| `customConfig` | `object` | لا | تكوين مخصص اختياري |
+| الحقل                  | النوع               | مطلوب | الوصف              |
+| ---------------------- | ------------------- | ----- | ------------------ |
+| `output`               | `string`            | نعم   | المخرج المراد نقده |
+| `task`                 | `string`            | نعم   | وصف المهمة         |
+| `context`              | `object`            | نعم   | سياق النقد         |
+| `context.taskType`     | `string` (TaskType) | نعم   | نوع المهمة         |
+| `context.originalText` | `string`            | نعم   | النص الأصلي        |
+| `customConfig`         | `object`            | لا    | تكوين مخصص اختياري |
 
 **المخرجات (200):**
 
@@ -1584,10 +1592,10 @@ curl http://localhost:3001/api/breakdown/health
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | التحقق |
-|---|---|---|---|
-| `scriptContent` | `string` | نعم | نص السيناريو (غير فارغ) |
-| `title` | `string` | لا | عنوان المشروع |
+| الحقل           | النوع    | مطلوب | التحقق                  |
+| --------------- | -------- | ----- | ----------------------- |
+| `scriptContent` | `string` | نعم   | نص السيناريو (غير فارغ) |
+| `title`         | `string` | لا    | عنوان المشروع           |
 
 **المخرجات (201):**
 
@@ -1623,16 +1631,16 @@ curl -X POST http://localhost:3001/api/breakdown/projects/bootstrap \
 
 **المعاملات:**
 
-| المعامل | النوع | الوصف |
-|---|---|---|
+| المعامل     | النوع    | الوصف         |
+| ----------- | -------- | ------------- |
 | `projectId` | `string` | معرّف المشروع |
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
+| الحقل           | النوع    | مطلوب                             |
+| --------------- | -------- | --------------------------------- |
 | `scriptContent` | `string` | لا (يستخدم محتوى المشروع الموجود) |
-| `title` | `string` | لا |
+| `title`         | `string` | لا                                |
 
 **مثال curl:**
 
@@ -1733,9 +1741,9 @@ curl -X POST http://localhost:3001/api/breakdown/scenes/scene-uuid/reanalyze \
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | القيم | الافتراضي |
-|---|---|---|---|
-| `format` | `string` | `json` \| `csv` | `json` |
+| المعامل  | النوع    | القيم           | الافتراضي |
+| -------- | -------- | --------------- | --------- |
+| `format` | `string` | `json` \| `csv` | `json`    |
 
 **مثال curl:**
 
@@ -1755,10 +1763,10 @@ curl "http://localhost:3001/api/breakdown/reports/report-uuid/export?format=json
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `message` | `string` | نعم |
-| `context` | `object` | لا |
+| الحقل     | النوع    | مطلوب |
+| --------- | -------- | ----- |
+| `message` | `string` | نعم   |
+| `context` | `object` | لا    |
 
 **مثال curl:**
 
@@ -1782,14 +1790,14 @@ curl -X POST http://localhost:3001/api/breakdown/chat \
 
 **المعاملات:**
 
-| المعامل | النوع | الوصف |
-|---|---|---|
+| المعامل | النوع    | الوصف        |
+| ------- | -------- | ------------ |
 | `jobId` | `string` | معرّف المهمة |
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | الافتراضي | الوصف |
-|---|---|---|---|
+| المعامل | النوع    | الافتراضي     | الوصف                                                                                          |
+| ------- | -------- | ------------- | ---------------------------------------------------------------------------------------------- |
 | `queue` | `string` | `ai-analysis` | اسم الطابور (`ai-analysis`, `document-processing`, `notifications`, `export`, `cache-warming`) |
 
 **المخرجات (200):**
@@ -1865,8 +1873,8 @@ curl http://localhost:3001/api/queue/stats \
 
 **المعاملات:**
 
-| المعامل | القيم المقبولة |
-|---|---|
+| المعامل     | القيم المقبولة                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------- |
 | `queueName` | `ai-analysis` \| `document-processing` \| `notifications` \| `export` \| `cache-warming` |
 
 **مثال curl:**
@@ -1916,8 +1924,8 @@ curl -X POST "http://localhost:3001/api/queue/jobs/job-id-123/retry?queue=ai-ana
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | الافتراضي | الوصف |
-|---|---|---|---|
+| المعامل | النوع    | الافتراضي            | الوصف                      |
+| ------- | -------- | -------------------- | -------------------------- |
 | `grace` | `number` | `86400000` (24 ساعة) | فترة الاحتفاظ بالمهام (ms) |
 
 **مثال curl:**
@@ -1969,10 +1977,10 @@ curl http://localhost:3001/api/metrics/latest \
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `start` | `string` (ISO 8601) | نعم | بداية النطاق |
-| `end` | `string` (ISO 8601) | نعم | نهاية النطاق |
+| المعامل | النوع               | مطلوب | الوصف        |
+| ------- | ------------------- | ----- | ------------ |
+| `start` | `string` (ISO 8601) | نعم   | بداية النطاق |
+| `end`   | `string` (ISO 8601) | نعم   | نهاية النطاق |
 
 **مثال curl:**
 
@@ -2206,9 +2214,9 @@ curl http://localhost:3001/api/waf/stats \
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | الافتراضي |
-|---|---|---|
-| `limit` | `number` | `100` |
+| المعامل | النوع    | الافتراضي |
+| ------- | -------- | --------- |
+| `limit` | `number` | `100`     |
 
 **مثال curl:**
 
@@ -2268,10 +2276,10 @@ curl http://localhost:3001/api/waf/blocked-ips \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `ip` | `string` | نعم |
-| `reason` | `string` | لا |
+| الحقل    | النوع    | مطلوب |
+| -------- | -------- | ----- |
+| `ip`     | `string` | نعم   |
+| `reason` | `string` | لا    |
 
 **مثال curl:**
 
@@ -2293,9 +2301,9 @@ curl -X POST http://localhost:3001/api/waf/block-ip \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب |
-|---|---|---|
-| `ip` | `string` | نعم |
+| الحقل | النوع    | مطلوب |
+| ----- | -------- | ----- |
+| `ip`  | `string` | نعم   |
 
 **مثال curl:**
 
@@ -2345,12 +2353,12 @@ curl http://localhost:3001/api/memory/health \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `query` | `string` | نعم | استعلام البحث |
-| `agentId` | `string` | نعم | معرّف الوكيل الطالب |
-| `maxResults` | `number` | لا | أقصى عدد نتائج |
-| `collections` | `string[]` | لا | مجموعات البحث |
+| الحقل         | النوع      | مطلوب | الوصف               |
+| ------------- | ---------- | ----- | ------------------- |
+| `query`       | `string`   | نعم   | استعلام البحث       |
+| `agentId`     | `string`   | نعم   | معرّف الوكيل الطالب |
+| `maxResults`  | `number`   | لا    | أقصى عدد نتائج      |
+| `collections` | `string[]` | لا    | مجموعات البحث       |
 
 **المخرجات (200):**
 
@@ -2382,11 +2390,11 @@ curl -X POST http://localhost:3001/api/memory/context \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `query` | `string` | نعم | نص البحث |
-| `collection` | `string` | لا | المجموعة (`CodeChunks` \| `Documentation` \| `Decisions` \| `Architecture`) |
-| `topK` | `number` | لا | عدد النتائج، افتراضي: `10` |
+| الحقل        | النوع    | مطلوب | الوصف                                                                       |
+| ------------ | -------- | ----- | --------------------------------------------------------------------------- |
+| `query`      | `string` | نعم   | نص البحث                                                                    |
+| `collection` | `string` | لا    | المجموعة (`CodeChunks` \| `Documentation` \| `Decisions` \| `Architecture`) |
+| `topK`       | `number` | لا    | عدد النتائج، افتراضي: `10`                                                  |
 
 **المخرجات (200):**
 
@@ -2424,12 +2432,12 @@ curl -X POST http://localhost:3001/api/memory/search \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | الوصف |
-|---|---|---|---|
-| `repoPath` | `string` | لا | مسار المستودع (افتراضي: `process.cwd()`) |
-| `specificFiles` | `string[]` | لا | ملفات محددة للفهرسة |
-| `reset` | `boolean` | لا | حذف المجموعات الموجودة أولاً |
-| `dimensionality` | `number` | لا | أبعاد التضمين: `768` \| `1536` \| `3072` (افتراضي: `1536`) |
+| الحقل            | النوع      | مطلوب | الوصف                                                      |
+| ---------------- | ---------- | ----- | ---------------------------------------------------------- |
+| `repoPath`       | `string`   | لا    | مسار المستودع (افتراضي: `process.cwd()`)                   |
+| `specificFiles`  | `string[]` | لا    | ملفات محددة للفهرسة                                        |
+| `reset`          | `boolean`  | لا    | حذف المجموعات الموجودة أولاً                               |
+| `dimensionality` | `number`   | لا    | أبعاد التضمين: `768` \| `1536` \| `3072` (افتراضي: `1536`) |
 
 **المخرجات (200):**
 
@@ -2490,23 +2498,23 @@ curl http://localhost:3001/api/memory/stats \
 
 **المدخلات (body):**
 
-| الحقل | النوع | مطلوب | القيم |
-|---|---|---|---|
-| `type` | `string` | نعم | `decision` \| `documentation` |
-| `content` | `string` | نعم | المحتوى |
-| `metadata` | `object` | لا | بيانات وصفية إضافية |
-| `tags` | `string[]` | لا | وسوم |
+| الحقل      | النوع      | مطلوب | القيم                         |
+| ---------- | ---------- | ----- | ----------------------------- |
+| `type`     | `string`   | نعم   | `decision` \| `documentation` |
+| `content`  | `string`   | نعم   | المحتوى                       |
+| `metadata` | `object`   | لا    | بيانات وصفية إضافية           |
+| `tags`     | `string[]` | لا    | وسوم                          |
 
 **للنوع `decision` — metadata:**
 
-| الحقل | الوصف |
-|---|---|
-| `decisionId` | معرّف ADR (افتراضي: `ADR-{timestamp}`) |
-| `title` | عنوان القرار |
-| `status` | الحالة (`proposed`, `accepted`, `deprecated`) |
-| `context` | سياق القرار |
-| `decision` | نص القرار |
-| `consequences` | العواقب |
+| الحقل          | الوصف                                         |
+| -------------- | --------------------------------------------- |
+| `decisionId`   | معرّف ADR (افتراضي: `ADR-{timestamp}`)        |
+| `title`        | عنوان القرار                                  |
+| `status`       | الحالة (`proposed`, `accepted`, `deprecated`) |
+| `context`      | سياق القرار                                   |
+| `decision`     | نص القرار                                     |
+| `consequences` | العواقب                                       |
 
 **مثال curl:**
 
@@ -2534,12 +2542,12 @@ curl -X POST http://localhost:3001/api/memory/remember \
 
 **معاملات الاستعلام:**
 
-| المعامل | النوع | الافتراضي | الوصف |
-|---|---|---|---|
-| `documentCount` | `number` | `1000` | العدد المتوقع للمستندات |
-| `queryFrequency` | `string` | `medium` | تكرار الاستعلامات (`high` \| `medium` \| `low`) |
+| المعامل                | النوع    | الافتراضي  | الوصف                                                  |
+| ---------------------- | -------- | ---------- | ------------------------------------------------------ |
+| `documentCount`        | `number` | `1000`     | العدد المتوقع للمستندات                                |
+| `queryFrequency`       | `string` | `medium`   | تكرار الاستعلامات (`high` \| `medium` \| `low`)        |
 | `precisionRequirement` | `string` | `standard` | متطلبات الدقة (`critical` \| `standard` \| `flexible`) |
-| `storageBudgetMB` | `number` | - | ميزانية التخزين |
+| `storageBudgetMB`      | `number` | -          | ميزانية التخزين                                        |
 
 **المخرجات (200):**
 
@@ -2748,11 +2756,11 @@ curl http://localhost:3001/api/gemini/cost-summary \
 
 #### أداة `add`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `add` |
-| الوصف | جمع عددين (Addition Tool) |
-| المدخلات | `a: number`, `b: number` |
+| الخاصية  | القيمة                                   |
+| -------- | ---------------------------------------- |
+| الاسم    | `add`                                    |
+| الوصف    | جمع عددين (Addition Tool)                |
+| المدخلات | `a: number`, `b: number`                 |
 | المخرجات | `{ result: number }` (نص + بيانات منظمة) |
 
 **مثال طلب MCP:**
@@ -2786,12 +2794,12 @@ curl -X POST http://localhost:3000/mcp \
 
 #### مورد `greeting`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `greeting` |
-| القالب | `greeting://{name}` |
-| الوصف | مولّد تحية ديناميكي |
-| الإرجاع | `Hello, {name}!` |
+| الخاصية | القيمة              |
+| ------- | ------------------- |
+| الاسم   | `greeting`          |
+| القالب  | `greeting://{name}` |
+| الوصف   | مولّد تحية ديناميكي |
+| الإرجاع | `Hello, {name}!`    |
 
 ---
 
@@ -2801,56 +2809,56 @@ curl -X POST http://localhost:3000/mcp \
 
 ### الغرف (Rooms)
 
-| الغرفة | النمط | الوصف |
-|---|---|---|
-| غرفة المستخدم | `user:{userId}` | أحداث خاصة بالمستخدم |
-| غرفة المشروع | `project:{projectId}` | أحداث خاصة بالمشروع |
-| غرفة الطابور | `queue:{queueName}` | أحداث خاصة بطابور انتظار |
+| الغرفة        | النمط                 | الوصف                    |
+| ------------- | --------------------- | ------------------------ |
+| غرفة المستخدم | `user:{userId}`       | أحداث خاصة بالمستخدم     |
+| غرفة المشروع  | `project:{projectId}` | أحداث خاصة بالمشروع      |
+| غرفة الطابور  | `queue:{queueName}`   | أحداث خاصة بطابور انتظار |
 
 ### الأحداث الصادرة (Server → Client)
 
-| الحدث | الوصف | بيانات الحدث |
-|---|---|---|
-| `connected` | تأكيد الاتصال | `{ socketId, message, timestamp }` |
-| `authenticated` | تأكيد المصادقة | `{ message, userId, timestamp }` |
-| `unauthorized` | فشل المصادقة / انقضاء المهلة | `{ message }` |
-| `disconnected` | انقطاع الاتصال | `{ message, timestamp }` |
-| `job:progress` | تقدم مهمة | `{ jobId, queueName, progress, userId?, timestamp, eventType }` |
-| `job:started` | بدء مهمة | `{ jobId, queueName, userId?, timestamp, eventType }` |
-| `job:completed` | اكتمال مهمة | `{ jobId, queueName, result, userId?, timestamp, eventType }` |
-| `job:failed` | فشل مهمة | `{ jobId, queueName, error, userId?, timestamp, eventType }` |
-| `system:info` | رسالة معلومات | `{ message, timestamp }` |
-| `system:error` | رسالة خطأ | `{ message }` |
+| الحدث           | الوصف                        | بيانات الحدث                                                    |
+| --------------- | ---------------------------- | --------------------------------------------------------------- |
+| `connected`     | تأكيد الاتصال                | `{ socketId, message, timestamp }`                              |
+| `authenticated` | تأكيد المصادقة               | `{ message, userId, timestamp }`                                |
+| `unauthorized`  | فشل المصادقة / انقضاء المهلة | `{ message }`                                                   |
+| `disconnected`  | انقطاع الاتصال               | `{ message, timestamp }`                                        |
+| `job:progress`  | تقدم مهمة                    | `{ jobId, queueName, progress, userId?, timestamp, eventType }` |
+| `job:started`   | بدء مهمة                     | `{ jobId, queueName, userId?, timestamp, eventType }`           |
+| `job:completed` | اكتمال مهمة                  | `{ jobId, queueName, result, userId?, timestamp, eventType }`   |
+| `job:failed`    | فشل مهمة                     | `{ jobId, queueName, error, userId?, timestamp, eventType }`    |
+| `system:info`   | رسالة معلومات                | `{ message, timestamp }`                                        |
+| `system:error`  | رسالة خطأ                    | `{ message }`                                                   |
 
 ### الأحداث الواردة (Client → Server)
 
-| الحدث | الوصف | البيانات المطلوبة |
-|---|---|---|
-| `authenticate` | مصادقة العميل | `{ token?: string, userId?: string }` |
-| `subscribe` | الاشتراك في غرفة | `{ room: string }` |
-| `unsubscribe` | إلغاء الاشتراك من غرفة | `{ room: string }` |
-| `disconnect` | قطع الاتصال | — |
-| `error` | خطأ من العميل | — |
+| الحدث          | الوصف                  | البيانات المطلوبة                     |
+| -------------- | ---------------------- | ------------------------------------- |
+| `authenticate` | مصادقة العميل          | `{ token?: string, userId?: string }` |
+| `subscribe`    | الاشتراك في غرفة       | `{ room: string }`                    |
+| `unsubscribe`  | إلغاء الاشتراك من غرفة | `{ room: string }`                    |
+| `disconnect`   | قطع الاتصال            | —                                     |
+| `error`        | خطأ من العميل          | —                                     |
 
 ### مثال اتصال JavaScript
 
 ```javascript
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
-const socket = io('http://localhost:3001', {
-  auth: { token: 'your-jwt-token' },
+const socket = io("http://localhost:3001", {
+  auth: { token: "your-jwt-token" },
   withCredentials: true,
 });
 
-socket.on('connected', (data) => {
-  console.log('متصل:', data.socketId);
+socket.on("connected", (data) => {
+  console.log("متصل:", data.socketId);
 });
 
-socket.on('job:progress', (data) => {
+socket.on("job:progress", (data) => {
   console.log(`تقدم المهمة ${data.jobId}: ${data.progress}%`);
 });
 
-socket.emit('subscribe', { room: 'queue:ai-analysis' });
+socket.emit("subscribe", { room: "queue:ai-analysis" });
 ```
 
 ---
@@ -2870,16 +2878,16 @@ data: <json-payload>
 
 ### أنواع الأحداث
 
-| نوع الحدث | الوصف | بيانات الحمولة |
-|---|---|---|
-| `connected` | تأكيد اتصال SSE | `{ timestamp, eventType, message }` |
-| `disconnected` | قطع الاتصال | `{ timestamp, eventType, message }` |
-| `job:progress` | تقدم مهمة | `{ jobId, progress, timestamp, eventType }` |
-| `job:started` | بدء مهمة | `{ jobId, timestamp, eventType }` |
-| `job:completed` | اكتمال مهمة | `{ jobId, result, timestamp, eventType }` |
-| `job:failed` | فشل مهمة | `{ jobId, error, timestamp, eventType }` |
-| `system:info` | رسالة معلومات | `{ message, timestamp, level: 'info' }` |
-| `system:error` | رسالة خطأ | `{ message, timestamp }` |
+| نوع الحدث       | الوصف           | بيانات الحمولة                              |
+| --------------- | --------------- | ------------------------------------------- |
+| `connected`     | تأكيد اتصال SSE | `{ timestamp, eventType, message }`         |
+| `disconnected`  | قطع الاتصال     | `{ timestamp, eventType, message }`         |
+| `job:progress`  | تقدم مهمة       | `{ jobId, progress, timestamp, eventType }` |
+| `job:started`   | بدء مهمة        | `{ jobId, timestamp, eventType }`           |
+| `job:completed` | اكتمال مهمة     | `{ jobId, result, timestamp, eventType }`   |
+| `job:failed`    | فشل مهمة        | `{ jobId, error, timestamp, eventType }`    |
+| `system:info`   | رسالة معلومات   | `{ message, timestamp, level: 'info' }`     |
+| `system:error`  | رسالة خطأ       | `{ message, timestamp }`                    |
 
 ### Keep-Alive
 
@@ -2893,18 +2901,18 @@ data: <json-payload>
 ### مثال اتصال JavaScript
 
 ```javascript
-const eventSource = new EventSource('http://localhost:3001/api/events', {
+const eventSource = new EventSource("http://localhost:3001/api/events", {
   withCredentials: true,
 });
 
-eventSource.addEventListener('job:completed', (event) => {
+eventSource.addEventListener("job:completed", (event) => {
   const data = JSON.parse(event.data);
-  console.log('اكتملت المهمة:', data.jobId);
+  console.log("اكتملت المهمة:", data.jobId);
 });
 
-eventSource.addEventListener('connected', (event) => {
+eventSource.addEventListener("connected", (event) => {
   const data = JSON.parse(event.data);
-  console.log('SSE متصل:', data.message);
+  console.log("SSE متصل:", data.message);
 });
 ```
 
@@ -2916,25 +2924,25 @@ eventSource.addEventListener('connected', (event) => {
 
 ### إعدادات قوائم الانتظار العامة
 
-| الإعداد | القيمة |
-|---|---|
-| عدد المحاولات | 3 محاولات |
+| الإعداد            | القيمة                        |
+| ------------------ | ----------------------------- |
+| عدد المحاولات      | 3 محاولات                     |
 | استراتيجية الإعادة | Exponential Backoff (2 ثانية) |
-| الاحتفاظ بالمكتملة | 24 ساعة (أو 1000 مهمة) |
-| الاحتفاظ بالفاشلة | 7 أيام (أو 5000 مهمة) |
-| التشغيل التلقائي | نعم (`autorun: true`) |
+| الاحتفاظ بالمكتملة | 24 ساعة (أو 1000 مهمة)        |
+| الاحتفاظ بالفاشلة  | 7 أيام (أو 5000 مهمة)         |
+| التشغيل التلقائي   | نعم (`autorun: true`)         |
 
 ### الطوابير المتاحة
 
 #### 1. طابور `ai-analysis`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `ai-analysis` |
-| الملف | `queues/jobs/ai-analysis.job.ts` |
+| الخاصية | القيمة                                                        |
+| ------- | ------------------------------------------------------------- |
+| الاسم   | `ai-analysis`                                                 |
+| الملف   | `queues/jobs/ai-analysis.job.ts`                              |
 | الوظيفة | تحليل المشاهد والشخصيات واللقطات والمشاريع باستخدام Gemini AI |
-| التزامن | 3 مهام متزامنة |
-| الحد | 5 مهام / ثانية |
+| التزامن | 3 مهام متزامنة                                                |
+| الحد    | 5 مهام / ثانية                                                |
 
 **بيانات المهمة (AIAnalysisJobData):**
 
@@ -2954,7 +2962,11 @@ eventSource.addEventListener('connected', (event) => {
 {
   entityId: string;
   entityType: string;
-  analysis: { raw: string; analyzedAt: string; analysisType: string };
+  analysis: {
+    raw: string;
+    analyzedAt: string;
+    analysisType: string;
+  }
   generatedAt: Date;
   processingTime: number; // ms
 }
@@ -2966,13 +2978,13 @@ eventSource.addEventListener('connected', (event) => {
 
 #### 2. طابور `document-processing`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `document-processing` |
-| الملف | `queues/jobs/document-processing.job.ts` |
+| الخاصية | القيمة                                       |
+| ------- | -------------------------------------------- |
+| الاسم   | `document-processing`                        |
+| الملف   | `queues/jobs/document-processing.job.ts`     |
 | الوظيفة | استخراج النصوص وتحليل ملفات PDF / DOCX / TXT |
-| التزامن | 2 مهام متزامنة |
-| الحد | 3 مهام / ثانية |
+| التزامن | 2 مهام متزامنة                               |
+| الحد    | 3 مهام / ثانية                               |
 
 **بيانات المهمة (DocumentProcessingJobData):**
 
@@ -3011,14 +3023,14 @@ eventSource.addEventListener('connected', (event) => {
 
 #### 3. طابور `cache-warming`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `cache-warming` |
-| الملف | `queues/jobs/cache-warming.job.ts` |
-| الوظيفة | تسخين cache Gemini مسبقاً للكيانات المتكررة |
-| التزامن | 1 مهمة (لتجنب تجاوز حد Gemini API) |
-| الحد | 1 مهمة / 5 ثوانٍ |
-| المحاولات | 2 فقط |
+| الخاصية   | القيمة                                      |
+| --------- | ------------------------------------------- |
+| الاسم     | `cache-warming`                             |
+| الملف     | `queues/jobs/cache-warming.job.ts`          |
+| الوظيفة   | تسخين cache Gemini مسبقاً للكيانات المتكررة |
+| التزامن   | 1 مهمة (لتجنب تجاوز حد Gemini API)          |
+| الحد      | 1 مهمة / 5 ثوانٍ                            |
+| المحاولات | 2 فقط                                       |
 
 **بيانات المهمة (CacheWarmingJobData):**
 
@@ -3048,21 +3060,21 @@ eventSource.addEventListener('connected', (event) => {
 
 #### 4. طابور `notifications`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `notifications` |
-| الملف | `queues/queue.config.ts` (مُعرَّف، Worker غير مُسجَّل بعد) |
-| الوظيفة | إرسال إشعارات (مخطط للمستقبل) |
+| الخاصية | القيمة                                                     |
+| ------- | ---------------------------------------------------------- |
+| الاسم   | `notifications`                                            |
+| الملف   | `queues/queue.config.ts` (مُعرَّف، Worker غير مُسجَّل بعد) |
+| الوظيفة | إرسال إشعارات (مخطط للمستقبل)                              |
 
 ---
 
 #### 5. طابور `export`
 
-| الخاصية | القيمة |
-|---|---|
-| الاسم | `export` |
-| الملف | `queues/queue.config.ts` (مُعرَّف، Worker غير مُسجَّل بعد) |
-| الوظيفة | تصدير التقارير والمستندات (مخطط للمستقبل) |
+| الخاصية | القيمة                                                     |
+| ------- | ---------------------------------------------------------- |
+| الاسم   | `export`                                                   |
+| الملف   | `queues/queue.config.ts` (مُعرَّف، Worker غير مُسجَّل بعد) |
+| الوظيفة | تصدير التقارير والمستندات (مخطط للمستقبل)                  |
 
 ---
 
@@ -3070,36 +3082,36 @@ eventSource.addEventListener('connected', (event) => {
 
 ### متغيرات البيئة الضرورية
 
-| المتغير | الوصف | مطلوب |
-|---|---|---|
-| `PORT` | منفذ الخادم (افتراضي: 3001) | لا |
-| `NODE_ENV` | البيئة (`development`, `production`) | نعم |
-| `DATABASE_URL` | رابط قاعدة البيانات (PostgreSQL) | نعم |
-| `REDIS_URL` | رابط Redis (أو `REDIS_HOST`/`PORT`/`PASSWORD`) | نعم |
-| `JWT_SECRET` | سر توقيع JWT | نعم |
-| `GEMINI_API_KEY` / `GOOGLE_GENAI_API_KEY` | مفتاح Gemini API | نعم |
-| `CORS_ORIGIN` | Origins المسموح بها (مفصولة بفواصل) | نعم |
-| `MCP_PORT` | منفذ MCP Server (افتراضي: 3000) | لا |
-| `WEAVIATE_URL` | رابط Weaviate (افتراضي: `http://localhost:8080`) | لا |
-| `RATE_LIMIT_WINDOW_MS` | نافذة حد الطلبات (افتراضي: 900000 ms) | لا |
-| `RATE_LIMIT_MAX_REQUESTS` | أقصى طلبات (افتراضي: 100) | لا |
+| المتغير                                   | الوصف                                            | مطلوب |
+| ----------------------------------------- | ------------------------------------------------ | ----- |
+| `PORT`                                    | منفذ الخادم (افتراضي: 3001)                      | لا    |
+| `NODE_ENV`                                | البيئة (`development`, `production`)             | نعم   |
+| `DATABASE_URL`                            | رابط قاعدة البيانات (PostgreSQL)                 | نعم   |
+| `REDIS_URL`                               | رابط Redis (أو `REDIS_HOST`/`PORT`/`PASSWORD`)   | نعم   |
+| `JWT_SECRET`                              | سر توقيع JWT                                     | نعم   |
+| `GEMINI_API_KEY` / `GOOGLE_GENAI_API_KEY` | مفتاح Gemini API                                 | نعم   |
+| `CORS_ORIGIN`                             | Origins المسموح بها (مفصولة بفواصل)              | نعم   |
+| `MCP_PORT`                                | منفذ MCP Server (افتراضي: 3000)                  | لا    |
+| `WEAVIATE_URL`                            | رابط Weaviate (افتراضي: `http://localhost:8080`) | لا    |
+| `RATE_LIMIT_WINDOW_MS`                    | نافذة حد الطلبات (افتراضي: 900000 ms)            | لا    |
+| `RATE_LIMIT_MAX_REQUESTS`                 | أقصى طلبات (افتراضي: 100)                        | لا    |
 
 ### رموز خطأ CSRF
 
-| الرمز | السبب |
-|---|---|
-| `CSRF_MISSING_ORIGIN` | طلب متصفح بدون Origin/Referer |
-| `CSRF_ORIGIN_MISMATCH` | Origin غير مسموح به |
-| `CSRF_REFERER_MISMATCH` | Referer غير مسموح به |
-| `CSRF_INVALID_REFERER` | Referer URL غير صالح |
+| الرمز                   | السبب                         |
+| ----------------------- | ----------------------------- |
+| `CSRF_MISSING_ORIGIN`   | طلب متصفح بدون Origin/Referer |
+| `CSRF_ORIGIN_MISMATCH`  | Origin غير مسموح به           |
+| `CSRF_REFERER_MISMATCH` | Referer غير مسموح به          |
+| `CSRF_INVALID_REFERER`  | Referer URL غير صالح          |
 
 ### حالات مهام BullMQ
 
-| الحالة | الوصف |
-|---|---|
-| `waiting` | في انتظار التنفيذ |
-| `active` | قيد التنفيذ |
-| `completed` | اكتملت بنجاح |
-| `failed` | فشلت |
-| `delayed` | مؤجلة |
-| `paused` | موقوفة |
+| الحالة      | الوصف             |
+| ----------- | ----------------- |
+| `waiting`   | في انتظار التنفيذ |
+| `active`    | قيد التنفيذ       |
+| `completed` | اكتملت بنجاح      |
+| `failed`    | فشلت              |
+| `delayed`   | مؤجلة             |
+| `paused`    | موقوفة            |

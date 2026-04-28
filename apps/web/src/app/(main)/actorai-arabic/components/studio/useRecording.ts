@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+
 import type { Recording } from "../../types";
 
 export const useRecording = () => {
@@ -36,6 +37,12 @@ export const useRecording = () => {
     setRecordingTime(0);
   }, []);
 
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }, []);
+
   const stopRecording = useCallback(() => {
     setIsRecording(false);
     const newRecording: Recording = {
@@ -46,13 +53,7 @@ export const useRecording = () => {
       score: Math.floor(Math.random() * 20) + 80,
     };
     setRecordings((prev) => [newRecording, ...prev]);
-  }, [recordingTime]);
-
-  const formatTime = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  }, []);
+  }, [formatTime, recordingTime]);
 
   return {
     isRecording,

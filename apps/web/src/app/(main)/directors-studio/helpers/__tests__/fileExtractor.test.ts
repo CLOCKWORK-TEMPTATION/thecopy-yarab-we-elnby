@@ -14,6 +14,23 @@ import {
   ExtractionErrorType,
 } from "../fileExtractor";
 
+function expectExtractionDisabled(error: unknown) {
+  expect(error).toBeInstanceOf(FileExtractionError);
+  expect((error as FileExtractionError).type).toBe(
+    ExtractionErrorType.EXTRACTION_DISABLED
+  );
+}
+
+async function captureError(action: () => void | Promise<void>) {
+  try {
+    await action();
+  } catch (error) {
+    return error;
+  }
+
+  throw new Error("Should have thrown");
+}
+
 describe("fileExtractor (gutted implementation)", () => {
   describe("extractTextFromFile", () => {
     it("should throw EXTRACTION_DISABLED error", async () => {
@@ -25,20 +42,14 @@ describe("fileExtractor (gutted implementation)", () => {
       await expect(extractTextFromFile(file)).rejects.toThrow(/معطّل/);
     });
 
-    it("should throw with correct error type", () => {
+    it("should throw with correct error type", async () => {
       const file = new File(["content"], "script.pdf", {
         type: "application/pdf",
       });
 
-      try {
-        extractTextFromFile(file);
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(FileExtractionError);
-        expect((error as FileExtractionError).type).toBe(
-          ExtractionErrorType.EXTRACTION_DISABLED
-        );
-      }
+      const error = await captureError(() => extractTextFromFile(file));
+      expect(error).toBeDefined();
+      expectExtractionDisabled(error);
     });
   });
 
@@ -49,15 +60,9 @@ describe("fileExtractor (gutted implementation)", () => {
     });
 
     it("should throw with correct error type", () => {
-      try {
-        getSupportedFileTypes();
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(FileExtractionError);
-        expect((error as FileExtractionError).type).toBe(
-          ExtractionErrorType.EXTRACTION_DISABLED
-        );
-      }
+      const error = await captureError(() => getSupportedFileTypes());
+      expect(error).toBeDefined();
+      expectExtractionDisabled(error);
     });
   });
 
@@ -74,15 +79,9 @@ describe("fileExtractor (gutted implementation)", () => {
         type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
 
-      try {
-        validateFile(file);
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error).toBeInstanceOf(FileExtractionError);
-        expect((error as FileExtractionError).type).toBe(
-          ExtractionErrorType.EXTRACTION_DISABLED
-        );
-      }
+      const error = await captureError(() => validateFile(file));
+      expect(error).toBeDefined();
+      expectExtractionDisabled(error);
     });
   });
 

@@ -20,8 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { NOTE_TYPE_COLOR, NOTE_TYPE_LABELS } from "./constants";
 import { formatTime, getScoreColor, getSeverityContainerClass } from "./utils";
+
 import type { NoteType, Take } from "./types";
 
 interface NotesPanelProps {

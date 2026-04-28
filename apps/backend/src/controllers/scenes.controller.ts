@@ -1,17 +1,17 @@
-import { eq, and, inArray } from 'drizzle-orm';
-import { Response } from 'express';
-import { z } from 'zod';
+import { eq, and, inArray } from "drizzle-orm";
+import { Response } from "express";
+import { z } from "zod";
 
-import { db } from '@/db';
-import { scenes, projects } from '@/db/schema';
-import { logger } from '@/lib/logger';
-import { getParamAsString } from '@/middleware/auth.middleware';
+import { db } from "@/db";
+import { scenes, projects } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { getParamAsString } from "@/middleware/auth.middleware";
 
-import type { AuthRequest } from '@/middleware/auth.middleware';
+import type { AuthRequest } from "@/middleware/auth.middleware";
 
 function requireAuth(req: AuthRequest, res: Response): boolean {
   if (!req.user) {
-    res.status(401).json({ success: false, error: 'غير مصرح' });
+    res.status(401).json({ success: false, error: "غير مصرح" });
     return false;
   }
   return true;
@@ -19,7 +19,13 @@ function requireAuth(req: AuthRequest, res: Response): boolean {
 
 function handleZodError(error: unknown, res: Response): boolean {
   if (error instanceof z.ZodError) {
-    res.status(400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
+    res
+      .status(400)
+      .json({
+        success: false,
+        error: "بيانات غير صالحة",
+        details: error.issues,
+      });
     return true;
   }
   return false;
@@ -34,15 +40,15 @@ async function verifyProjectOwnership(projectId: string, userId: string) {
 }
 
 const createSceneSchema = z.object({
-  projectId: z.string().min(1, 'معرف المشروع مطلوب'),
-  sceneNumber: z.number().int().positive('رقم المشهد يجب أن يكون موجباً'),
-  title: z.string().min(1, 'عنوان المشهد مطلوب'),
-  location: z.string().min(1, 'الموقع مطلوب'),
-  timeOfDay: z.string().min(1, 'وقت اليوم مطلوب'),
-  characters: z.array(z.string()).min(1, 'يجب إضافة شخصية واحدة على الأقل'),
+  projectId: z.string().min(1, "معرف المشروع مطلوب"),
+  sceneNumber: z.number().int().positive("رقم المشهد يجب أن يكون موجباً"),
+  title: z.string().min(1, "عنوان المشهد مطلوب"),
+  location: z.string().min(1, "الموقع مطلوب"),
+  timeOfDay: z.string().min(1, "وقت اليوم مطلوب"),
+  characters: z.array(z.string()).min(1, "يجب إضافة شخصية واحدة على الأقل"),
   description: z.string().optional(),
   shotCount: z.number().int().nonnegative().default(0),
-  status: z.string().default('planned'),
+  status: z.string().default("planned"),
 });
 
 const updateSceneSchema = z.object({
@@ -58,14 +64,14 @@ const updateSceneSchema = z.object({
 
 /**
  * متحكم المشاهد
- * 
+ *
  * @description
  * يدير عمليات CRUD للمشاهد ويتحقق من ملكية المستخدم للمشروع المرتبط
  */
 export class ScenesController {
   /**
    * جلب جميع مشاهد مشروع معين
-   * 
+   *
    * @description
    * يتحقق من ملكية المستخدم للمشروع ويُرجع المشاهد مُرتبة حسب رقم المشهد
    */
@@ -74,7 +80,7 @@ export class ScenesController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -84,7 +90,7 @@ export class ScenesController {
       if (!projectId) {
         res.status(400).json({
           success: false,
-          error: 'معرف المشروع مطلوب',
+          error: "معرف المشروع مطلوب",
         });
         return;
       }
@@ -92,12 +98,14 @@ export class ScenesController {
       const [project] = await db
         .select()
         .from(projects)
-        .where(and(eq(projects.id, projectId), eq(projects.userId, req.user.id)));
+        .where(
+          and(eq(projects.id, projectId), eq(projects.userId, req.user.id)),
+        );
 
       if (!project) {
         res.status(404).json({
           success: false,
-          error: 'المشروع غير موجود',
+          error: "المشروع غير موجود",
         });
         return;
       }
@@ -113,17 +121,17 @@ export class ScenesController {
         data: projectScenes,
       });
     } catch (error) {
-      logger.error('Get scenes error:', error);
+      logger.error("Get scenes error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء جلب المشاهد',
+        error: "حدث خطأ أثناء جلب المشاهد",
       });
     }
   }
 
   /**
    * جلب مشهد محدد بالمعرّف
-   * 
+   *
    * @description
    * يستخدم JOIN مُحسّن للتحقق من الملكية وجلب المشهد في استعلام واحد
    */
@@ -132,7 +140,7 @@ export class ScenesController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -142,7 +150,7 @@ export class ScenesController {
       if (!id) {
         res.status(400).json({
           success: false,
-          error: 'معرف المشهد مطلوب',
+          error: "معرف المشهد مطلوب",
         });
         return;
       }
@@ -159,7 +167,7 @@ export class ScenesController {
       if (!result) {
         res.status(404).json({
           success: false,
-          error: 'المشهد غير موجود أو غير مصرح للوصول له',
+          error: "المشهد غير موجود أو غير مصرح للوصول له",
         });
         return;
       }
@@ -169,17 +177,17 @@ export class ScenesController {
         data: result.scene,
       });
     } catch (error) {
-      logger.error('Get scene error:', error);
+      logger.error("Get scene error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء جلب المشهد',
+        error: "حدث خطأ أثناء جلب المشهد",
       });
     }
   }
 
   /**
    * إنشاء مشهد جديد
-   * 
+   *
    * @description
    * يتحقق من صلاحية البيانات وملكية المستخدم للمشروع
    */
@@ -188,30 +196,47 @@ export class ScenesController {
       if (!requireAuth(req, res)) return;
 
       const validatedData = createSceneSchema.parse(req.body);
-      const project = await verifyProjectOwnership(validatedData.projectId, req.user!.id);
+      const project = await verifyProjectOwnership(
+        validatedData.projectId,
+        req.user!.id,
+      );
       if (!project) {
-        res.status(404).json({ success: false, error: 'المشروع غير موجود' });
+        res.status(404).json({ success: false, error: "المشروع غير موجود" });
         return;
       }
 
-      const [newScene] = await db.insert(scenes).values(validatedData).returning();
+      const [newScene] = await db
+        .insert(scenes)
+        .values(validatedData)
+        .returning();
       if (!newScene) {
-        res.status(500).json({ success: false, error: 'فشل إنشاء المشهد' });
+        res.status(500).json({ success: false, error: "فشل إنشاء المشهد" });
         return;
       }
 
-      res.status(201).json({ success: true, message: 'تم إنشاء المشهد بنجاح', data: newScene });
-      logger.info('Scene created successfully', { sceneId: newScene.id, projectId: validatedData.projectId });
+      res
+        .status(201)
+        .json({
+          success: true,
+          message: "تم إنشاء المشهد بنجاح",
+          data: newScene,
+        });
+      logger.info("Scene created successfully", {
+        sceneId: newScene.id,
+        projectId: validatedData.projectId,
+      });
     } catch (error) {
       if (handleZodError(error, res)) return;
-      logger.error('Create scene error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء إنشاء المشهد' });
+      logger.error("Create scene error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء إنشاء المشهد" });
     }
   }
 
   /**
    * تحديث مشهد موجود
-   * 
+   *
    * @description
    * يستخدم JOIN مُحسّن للتحقق من الملكية والتحديث
    */
@@ -221,7 +246,7 @@ export class ScenesController {
 
       const id = getParamAsString(req.params["id"]);
       if (!id) {
-        res.status(400).json({ success: false, error: 'معرف المشهد مطلوب' });
+        res.status(400).json({ success: false, error: "معرف المشهد مطلوب" });
         return;
       }
 
@@ -233,26 +258,39 @@ export class ScenesController {
       const [updatedScene] = await db
         .update(scenes)
         .set(validatedData)
-        .where(and(eq(scenes.id, id), inArray(scenes.projectId, ownedProjectIds)))
+        .where(
+          and(eq(scenes.id, id), inArray(scenes.projectId, ownedProjectIds)),
+        )
         .returning();
 
       if (!updatedScene) {
-        res.status(404).json({ success: false, error: 'المشهد غير موجود أو غير مصرح لتعديله' });
+        res
+          .status(404)
+          .json({
+            success: false,
+            error: "المشهد غير موجود أو غير مصرح لتعديله",
+          });
         return;
       }
 
-      res.json({ success: true, message: 'تم تحديث المشهد بنجاح', data: updatedScene });
-      logger.info('Scene updated successfully');
+      res.json({
+        success: true,
+        message: "تم تحديث المشهد بنجاح",
+        data: updatedScene,
+      });
+      logger.info("Scene updated successfully");
     } catch (error) {
       if (handleZodError(error, res)) return;
-      logger.error('Update scene error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحديث المشهد' });
+      logger.error("Update scene error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء تحديث المشهد" });
     }
   }
 
   /**
    * حذف مشهد
-   * 
+   *
    * @description
    * يستخدم JOIN مُحسّن للتحقق من الملكية قبل الحذف
    */
@@ -261,7 +299,7 @@ export class ScenesController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -271,7 +309,7 @@ export class ScenesController {
       if (!id) {
         res.status(400).json({
           success: false,
-          error: 'معرف المشهد مطلوب',
+          error: "معرف المشهد مطلوب",
         });
         return;
       }
@@ -288,7 +326,7 @@ export class ScenesController {
       if (!result) {
         res.status(404).json({
           success: false,
-          error: 'المشهد غير موجود أو غير مصرح لحذفه',
+          error: "المشهد غير موجود أو غير مصرح لحذفه",
         });
         return;
       }
@@ -297,15 +335,15 @@ export class ScenesController {
 
       res.json({
         success: true,
-        message: 'تم حذف المشهد بنجاح',
+        message: "تم حذف المشهد بنجاح",
       });
 
-      logger.info('Scene deleted successfully', { sceneId: id });
+      logger.info("Scene deleted successfully", { sceneId: id });
     } catch (error) {
-      logger.error('Delete scene error:', error);
+      logger.error("Delete scene error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء حذف المشهد',
+        error: "حدث خطأ أثناء حذف المشهد",
       });
     }
   }

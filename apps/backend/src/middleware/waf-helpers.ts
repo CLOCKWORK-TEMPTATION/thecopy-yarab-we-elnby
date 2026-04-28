@@ -47,10 +47,7 @@ function prepareValueForInspection(value: string, maxLength: number): string {
 /**
  * Extract value from request location using a lookup map
  */
-export function extractValue(
-  req: Request,
-  location: RequestLocation
-): string {
+export function extractValue(req: Request, location: RequestLocation): string {
   const extractor = VALUE_EXTRACTORS[location];
   return extractor ? extractor(req) : "";
 }
@@ -62,7 +59,7 @@ export function extractValue(
 export function safeRegexTestSync(
   pattern: RegExp,
   text: string,
-  maxLength = 10000
+  maxLength = 10000,
 ): boolean {
   const input = prepareValueForInspection(text, maxLength);
 
@@ -81,7 +78,7 @@ export function safeRegexTestSync(
  */
 export function checkRule(
   req: Request,
-  rule: WAFRule
+  rule: WAFRule,
 ): { matched: boolean; value: string } {
   if (!rule.enabled) {
     return { matched: false, value: "" };
@@ -100,7 +97,7 @@ export function checkRule(
 function checkRuleForLocation(
   req: Request,
   rule: WAFRule,
-  location: "body" | "query" | "path" | "headers"
+  location: "body" | "query" | "path" | "headers",
 ): { matched: boolean; value: string } | null {
   let value = extractValue(req, location);
   if (!value) return null;

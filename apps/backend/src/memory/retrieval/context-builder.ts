@@ -23,9 +23,13 @@ export class ContextBuilder {
   async quickSearch(
     query: string,
     collection?: string,
-    topK = 5
+    topK = 5,
   ): Promise<ContextResult[]> {
-    const hits = await weaviateRetrievalService.quickSearch(query, collection, topK);
+    const hits = await weaviateRetrievalService.quickSearch(
+      query,
+      collection,
+      topK,
+    );
     return hits.map((hit) => ({
       content: hit.text,
       source: hit.source,

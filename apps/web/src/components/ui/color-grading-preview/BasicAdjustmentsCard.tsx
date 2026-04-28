@@ -35,7 +35,10 @@ export function BasicAdjustmentsCard({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-zinc-400 flex items-center gap-1">
+            <label
+              htmlFor="basic-adjustment-temperature"
+              className="text-xs text-zinc-400 flex items-center gap-1"
+            >
               <Thermometer className="h-3 w-3" />
               حرارة اللون
             </label>
@@ -48,6 +51,7 @@ export function BasicAdjustmentsCard({
           <div className="relative">
             <div className="absolute inset-0 rounded bg-gradient-to-r from-blue-500 via-white to-orange-500 opacity-30" />
             <Slider
+              id="basic-adjustment-temperature"
               value={[grade.temperature]}
               min={-100}
               max={100}
@@ -60,7 +64,10 @@ export function BasicAdjustmentsCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-zinc-400 flex items-center gap-1">
+            <label
+              htmlFor="basic-adjustment-contrast"
+              className="text-xs text-zinc-400 flex items-center gap-1"
+            >
               <Contrast className="h-3 w-3" />
               التباين
             </label>
@@ -69,6 +76,7 @@ export function BasicAdjustmentsCard({
             </span>
           </div>
           <Slider
+            id="basic-adjustment-contrast"
             value={[grade.contrast]}
             min={50}
             max={200}
@@ -80,7 +88,10 @@ export function BasicAdjustmentsCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-zinc-400 flex items-center gap-1">
+            <label
+              htmlFor="basic-adjustment-saturation"
+              className="text-xs text-zinc-400 flex items-center gap-1"
+            >
               <Droplets className="h-3 w-3" />
               التشبع
             </label>
@@ -89,6 +100,7 @@ export function BasicAdjustmentsCard({
             </span>
           </div>
           <Slider
+            id="basic-adjustment-saturation"
             value={[grade.saturation]}
             min={0}
             max={200}
@@ -100,7 +112,10 @@ export function BasicAdjustmentsCard({
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs text-zinc-400 flex items-center gap-1">
+            <label
+              htmlFor="basic-adjustment-exposure"
+              className="text-xs text-zinc-400 flex items-center gap-1"
+            >
               <Sun className="h-3 w-3" />
               التعريض
             </label>
@@ -112,6 +127,7 @@ export function BasicAdjustmentsCard({
             </span>
           </div>
           <Slider
+            id="basic-adjustment-exposure"
             value={[grade.exposure]}
             min={-2}
             max={2}
@@ -125,12 +141,18 @@ export function BasicAdjustmentsCard({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-zinc-400">الإضاءات</label>
+              <label
+                htmlFor="basic-adjustment-highlights"
+                className="text-xs text-zinc-400"
+              >
+                الإضاءات
+              </label>
               <span className="text-xs font-mono text-amber-500">
                 {grade.highlights}
               </span>
             </div>
             <Slider
+              id="basic-adjustment-highlights"
               value={[grade.highlights]}
               min={-100}
               max={100}
@@ -141,12 +163,18 @@ export function BasicAdjustmentsCard({
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-xs text-zinc-400">الظلال</label>
+              <label
+                htmlFor="basic-adjustment-shadows"
+                className="text-xs text-zinc-400"
+              >
+                الظلال
+              </label>
               <span className="text-xs font-mono text-amber-500">
                 {grade.shadows}
               </span>
             </div>
             <Slider
+              id="basic-adjustment-shadows"
               value={[grade.shadows]}
               min={-100}
               max={100}

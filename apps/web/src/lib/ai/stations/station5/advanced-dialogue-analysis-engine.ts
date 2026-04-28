@@ -1,7 +1,20 @@
-import { GeminiService, GeminiModel } from "../../gemini-service";
+import { GeminiModel, GeminiService } from "../gemini-service";
 
-import { AdvancedDialogueAnalysis } from "./types";
-import { safeSub, asJsonRecord, asArray, scaledTimestamp } from "./utils";
+import {
+  AdvancedDialogueAnalysis,
+  EmotionalBeat,
+  Location,
+  PowerDynamic,
+  SubtextAnalysis,
+} from "./types";
+import {
+  safeSub,
+  asJsonRecord,
+  asJsonRecords,
+  asNumber,
+  asString,
+  asStringArray,
+} from "./utils";
 
 export class AdvancedDialogueAnalysisEngine {
   private geminiService: GeminiService;
@@ -52,29 +65,26 @@ export class AdvancedDialogueAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
-      const advancedMetrics = asJsonRecord(analysis.advanced_metrics);
-
-      const emotionalBeats = asArray<any>(analysis.emotional_beats).map(
-        (beat) => ({
-          ...beat,
-          timestamp: scaledTimestamp(beat.timestamp),
-        })
-      );
+      const analysis = asJsonRecord(JSON.parse(result.content ?? "{}"));
+      const advancedMetrics = asJsonRecord(analysis["advanced_metrics"]);
 
       const characterVoiceConsistency = new Map<string, number>();
-      const data = asJsonRecord(advancedMetrics.character_voice_consistency);
+      const data = asJsonRecord(advancedMetrics["character_voice_consistency"]);
       for (const [char, consistency] of Object.entries(data)) {
-        characterVoiceConsistency.set(char, Number(consistency) || 0);
+        characterVoiceConsistency.set(char, asNumber(consistency, 0));
       }
 
       return {
-        subtext: asArray<any>(analysis.subtext),
-        powerDynamics: asArray<any>(analysis.power_dynamics),
-        emotionalBeats,
+        subtext: asJsonRecords(analysis["subtext"]).map(toSubtextAnalysis),
+        powerDynamics: asJsonRecords(analysis["power_dynamics"]).map(
+          toPowerDynamic
+        ),
+        emotionalBeats: asJsonRecords(analysis["emotional_beats"]).map(
+          toEmotionalBeat
+        ),
         advancedMetrics: {
-          subtextDepth: Number(advancedMetrics.subtext_depth) || 5,
-          emotionalRange: Number(advancedMetrics.emotional_range) || 5,
+          subtextDepth: asNumber(advancedMetrics["subtext_depth"], 5),
+          emotionalRange: asNumber(advancedMetrics["emotional_range"], 5),
           characterVoiceConsistency,
         },
       };
@@ -96,4 +106,69 @@ export class AdvancedDialogueAnalysisEngine {
       },
     };
   }
+}
+
+function toLocation(record: Record<string, unknown>): Location {
+  const timestamp = asNumber(record["timestamp"], 0);
+  const start = asNumber(record["start"], timestamp);
+  const end = asNumber(record["end"], start);
+
+  return {
+    start,
+    end,
+    description: asString(record["location"], asString(record["description"])),
+  };
+}
+
+function toSubtextAnalysis(record: Record<string, unknown>): SubtextAnalysis {
+  return {
+    location: toLocation(record),
+    surfaceText: asString(
+      record["surfaceText"],
+      asString(record["explicit_text"])
+    ),
+    subtext: asString(record["subtext"], asString(record["implied_meaning"])),
+    speaker: asString(record["speaker"], "unknown"),
+    listener: asString(record["listener"], "unknown"),
+    intention: asString(record["intention"], "unknown"),
+  };
+}
+
+function toPowerDynamic(record: Record<string, unknown>): PowerDynamic {
+  const dynamic = asString(
+    record["dynamic"],
+    asString(record["relationship_type"])
+  );
+
+  return {
+    characters: asStringArray(record["characters"]),
+    dynamic: isPowerDynamicValue(dynamic) ? dynamic : "equal",
+    evidence: asStringArray(record["evidence"]),
+    significance: asNumber(
+      record["significance"],
+      asNumber(record["power_balance"], 0)
+    ),
+  };
+}
+
+function toEmotionalBeat(record: Record<string, unknown>): EmotionalBeat {
+  return {
+    location: toLocation(record),
+    emotion: asString(record["emotion"], "neutral"),
+    intensity: asNumber(record["intensity"], 0),
+    character: asString(
+      record["character"],
+      asStringArray(record["characters"])[0] ?? "unknown"
+    ),
+    trigger: asString(record["trigger"]),
+  };
+}
+
+function isPowerDynamicValue(value: string): value is PowerDynamic["dynamic"] {
+  return (
+    value === "dominant" ||
+    value === "submissive" ||
+    value === "equal" ||
+    value === "conflictual"
+  );
 }

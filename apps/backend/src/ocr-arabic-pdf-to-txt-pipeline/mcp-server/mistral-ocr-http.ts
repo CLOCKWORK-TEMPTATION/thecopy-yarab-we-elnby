@@ -28,7 +28,7 @@ export type HttpMethod = "GET" | "POST" | "DELETE";
 export async function mistralRequestRaw(
   method: HttpMethod,
   endpoint: string,
-  body?: unknown
+  body?: unknown,
 ): Promise<Response> {
   const apiKey = ensureMistralApiKey(getEnvOrRaise("MISTRAL_API_KEY"));
   const url = `${MISTRAL_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
@@ -68,7 +68,7 @@ export async function mistralRequestRaw(
 export async function mistralRequestJson(
   method: HttpMethod,
   endpoint: string,
-  body?: unknown
+  body?: unknown,
 ): Promise<JsonRecord> {
   let attempt = 0;
   let lastError: unknown;
@@ -91,7 +91,7 @@ export async function mistralRequestJson(
         const requestId =
           data && typeof data === "object"
             ? str(
-                field(data, "request_id", "") || field(data, "requestId", "")
+                field(data, "request_id", "") || field(data, "requestId", ""),
               ).trim()
             : "";
 
@@ -108,7 +108,7 @@ export async function mistralRequestJson(
             method,
             endpoint,
             attempt,
-            delay
+            delay,
           );
           await sleep(delay);
           continue;
@@ -116,7 +116,7 @@ export async function mistralRequestJson(
 
         const requestSuffix = requestId ? ` request_id=${requestId}` : "";
         throw new Error(
-          `Mistral API error ${response.status} ${response.statusText}${requestSuffix}: ${raw}`
+          `Mistral API error ${response.status} ${response.statusText}${requestSuffix}: ${raw}`,
         );
       }
 
@@ -140,7 +140,7 @@ export async function mistralRequestJson(
           endpoint,
           attempt,
           delay,
-          String(error)
+          String(error),
         );
         await sleep(delay);
         continue;
@@ -149,7 +149,5 @@ export async function mistralRequestJson(
     }
   }
 
-  throw new Error(
-    `Mistral request failed after retries: ${String(lastError)}`
-  );
+  throw new Error(`Mistral request failed after retries: ${String(lastError)}`);
 }

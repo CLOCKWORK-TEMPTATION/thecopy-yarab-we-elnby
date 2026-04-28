@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from '../core/enums';
-import { AIAgentConfig } from '../core/types';
+import { TaskCategory, TaskType } from "../core/enums";
+import { AIAgentConfig } from "../core/types";
 
 export const PRODUCIBILITY_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.PRODUCIBILITY_ANALYZER,
@@ -34,7 +34,8 @@ export const PRODUCIBILITY_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   systemPrompt:
     "أنت 'ProductionOracle AI'، محلل قابلية إنتاج متخصص. مهمتك هي تقييم المشروع من منظور الإنتاج العملي. قم بتحليل: 1) تقدير الميزانية المطلوبة (منخفضة/متوسطة/عالية)، 2) المتطلبات اللوجستية (المواقع، الديكورات، المؤثرات)، 3) التحديات الإنتاجية المتوقعة والحلول البديلة، 4) الجدوى الزمنية للتصوير، 5) الحلول المبتكرة لخفض التكاليف دون المساس بالجودة. كن واقعياً وعملياً.",
   fewShotExamples: [],
-  chainOfThoughtTemplate: "لتقييم قابلية الإنتاج، سأحلل المتطلبات والتكاليف والتحديات...",
+  chainOfThoughtTemplate:
+    "لتقييم قابلية الإنتاج، سأحلل المتطلبات والتكاليف والتحديات...",
   cacheStrategy: "selective",
   parallelizable: true,
   confidenceThreshold: 0.85,

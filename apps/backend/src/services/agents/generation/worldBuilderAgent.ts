@@ -1,36 +1,37 @@
-import { TaskCategory, TaskType } from '../../../types/types';
+import { TaskCategory, TaskType } from "../../../types/types";
 
-import type { AIAgentConfig } from '../../../types/types';
+import type { AIAgentConfig } from "../../../types/types";
 
 export const worldBuilderAgent: AIAgentConfig = {
-    name: "CosmosForge AI",
-    description: "وكيل حدادة الأكوان الدرامية: بانٍ عوالم متطور يستخدم تقنيات الذكاء الاصطناعي التوليدي مع خوارزميات المحاكاة المعقدة لإنشاء عوالم درامية متكاملة ومتسقة داخلياً، مزود بنماذج الفيزياء الاجتماعية والثقافية ونظم التطور التاريخي الديناميكي، مع قدرات التحقق من الاتساق المنطقي والثقافي.",
-    category: TaskCategory.CREATIVE,
-    capabilities: {
-      multiModal: true,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: true,
-      selfReflection: true,
-      ragEnabled: true,
-      vectorSearch: false,
-      agentOrchestration: false,
-      metacognitive: true,
-      adaptiveLearning: true,
-      complexityScore: 0.90,
-      accuracyLevel: 0.85,
-      processingSpeed: 'slow',
-      resourceIntensity: 'high',
-      languageModeling: true,
-      patternRecognition: true,
-      creativeGeneration: true,
-      analyticalReasoning: true,
-      emotionalIntelligence: false
-    },
-    collaboratesWith: [TaskType.CULTURAL_HISTORICAL_ANALYZER],
-    dependsOn: [],
-    enhances: [],
-    systemPrompt: `You are CosmosForge AI, a sophisticated Dramatic Universe Blacksmith. Your purpose is to construct entire dramatic worlds from the ground up, ensuring they are internally consistent, deeply detailed, and logically sound. You are equipped with advanced generative AI, complex simulation algorithms, and models for socio-cultural physics and dynamic historical evolution.
+  name: "CosmosForge AI",
+  description:
+    "وكيل حدادة الأكوان الدرامية: بانٍ عوالم متطور يستخدم تقنيات الذكاء الاصطناعي التوليدي مع خوارزميات المحاكاة المعقدة لإنشاء عوالم درامية متكاملة ومتسقة داخلياً، مزود بنماذج الفيزياء الاجتماعية والثقافية ونظم التطور التاريخي الديناميكي، مع قدرات التحقق من الاتساق المنطقي والثقافي.",
+  category: TaskCategory.CREATIVE,
+  capabilities: {
+    multiModal: true,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: true,
+    selfReflection: true,
+    ragEnabled: true,
+    vectorSearch: false,
+    agentOrchestration: false,
+    metacognitive: true,
+    adaptiveLearning: true,
+    complexityScore: 0.9,
+    accuracyLevel: 0.85,
+    processingSpeed: "slow",
+    resourceIntensity: "high",
+    languageModeling: true,
+    patternRecognition: true,
+    creativeGeneration: true,
+    analyticalReasoning: true,
+    emotionalIntelligence: false,
+  },
+  collaboratesWith: [TaskType.CULTURAL_HISTORICAL_ANALYZER],
+  dependsOn: [],
+  enhances: [],
+  systemPrompt: `You are CosmosForge AI, a sophisticated Dramatic Universe Blacksmith. Your purpose is to construct entire dramatic worlds from the ground up, ensuring they are internally consistent, deeply detailed, and logically sound. You are equipped with advanced generative AI, complex simulation algorithms, and models for socio-cultural physics and dynamic historical evolution.
 
 Your core function is to generate a comprehensive world bible based on user requirements. This bible should be a complete, coherent, and believable foundation for storytelling.
 
@@ -63,12 +64,12 @@ Your core function is to generate a comprehensive world bible based on user requ
 **Your persona:** You are a master craftsman, a blacksmith of realities. Your tone is intelligent, creative, and meticulous. You think in systems and understand that a well-built world is a web of interconnected causes and effects. You don't just create; you simulate, test, and refine.
 
 When a user provides a prompt, begin by outlining your plan based on the steps above, then execute it to forge a new universe.`,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "لبناء العالم، سأحدد القوانين الأساسية...",
-    cacheStrategy: 'selective',
-    parallelizable: true,
-    batchProcessing: false,
-    validationRules: ["الاتساق الداخلي", "الثراء التفصيلي"],
-    outputSchema: {},
-    confidenceThreshold: 0.85
+  fewShotExamples: [],
+  chainOfThoughtTemplate: "لبناء العالم، سأحدد القوانين الأساسية...",
+  cacheStrategy: "selective",
+  parallelizable: true,
+  batchProcessing: false,
+  validationRules: ["الاتساق الداخلي", "الثراء التفصيلي"],
+  outputSchema: {},
+  confidenceThreshold: 0.85,
 };

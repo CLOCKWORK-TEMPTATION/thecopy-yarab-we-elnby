@@ -32,24 +32,28 @@ export const sdCircle = (
 };
 
 export const sdRing = (
-  px: number,
-  py: number,
-  cx: number,
-  cy: number,
-  r: number,
-  thickness: number
+  ...[px, py, cx, cy, r, thickness]: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ]
 ): number => {
   return Math.abs(sdCircle(px, py, cx, cy, r)) - thickness;
 };
 
 export const sdSegment = (
-  px: number,
-  py: number,
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
-  r: number
+  ...[px, py, ax, ay, bx, by, r]: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ]
 ): number => {
   const pax = px - ax;
   const pay = py - ay;
@@ -62,14 +66,16 @@ export const sdSegment = (
 };
 
 export const sdArc = (
-  px: number,
-  py: number,
-  cx: number,
-  cy: number,
-  r: number,
-  startAngle: number,
-  endAngle: number,
-  thickness: number
+  ...[px, py, cx, cy, r, startAngle, endAngle, thickness]: [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ]
 ): number => {
   const dx = px - cx;
   const dy = py - cy;

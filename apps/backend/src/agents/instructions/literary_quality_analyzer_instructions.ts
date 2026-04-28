@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const literaryQualityAnalyzerInstructions = `
 تحليل الجودة الأدبية:
@@ -48,6 +48,6 @@ export const literaryQualityAnalyzerAgentConfig: AIAgentConfig = {
     "تقييم الأصالة والإبداع",
     "تحليل التماسك الفني",
     "قياس عمق المضمون",
-    "تقييم جودة التعبير"
-  ]
+    "تقييم جودة التعبير",
+  ],
 };

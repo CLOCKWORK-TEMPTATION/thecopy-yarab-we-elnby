@@ -246,7 +246,7 @@ export default function ProjectManager() {
         variant: "destructive",
       });
     }
-  }, [projectToDelete, deleteProject, currentProject, toast]);
+  }, [projectToDelete, deleteProject, currentProject, clearProject, toast]);
 
   const projectsList = Array.isArray(projects) ? projects : [];
 

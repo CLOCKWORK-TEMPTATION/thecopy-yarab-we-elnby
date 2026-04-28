@@ -1,39 +1,42 @@
-import './bootstrap/runtime-alias';
+import "./bootstrap/runtime-alias";
 
-import { createServer } from 'http';
+import { createServer } from "http";
 
-import cookieParser from 'cookie-parser';
-import express, { Application } from 'express';
+import cookieParser from "cookie-parser";
+import express, { Application } from "express";
 
-import { initializeSentry } from '@/config/sentry';
-import { initTracing } from '@/config/tracing';
-import { AnalysisController } from '@/controllers/analysis.controller';
-import { HealthController } from '@/controllers/health.controller';
-import { logger } from '@/lib/logger';
-import { setupMiddleware } from '@/middleware';
-import { cspMiddleware, securityHeadersMiddleware } from '@/middleware/csp.middleware';
-import { csrfProtection } from '@/middleware/csrf.middleware';
-import { metricsMiddleware } from '@/middleware/metrics.middleware';
+import { initializeSentry } from "@/config/sentry";
+import { initTracing } from "@/config/tracing";
+import { AnalysisController } from "@/controllers/analysis.controller";
+import { HealthController } from "@/controllers/health.controller";
+import { logger } from "@/lib/logger";
+import { setupMiddleware } from "@/middleware";
+import {
+  cspMiddleware,
+  securityHeadersMiddleware,
+} from "@/middleware/csp.middleware";
+import { csrfProtection } from "@/middleware/csrf.middleware";
+import { metricsMiddleware } from "@/middleware/metrics.middleware";
 import {
   logAuthAttempts,
   logRateLimitViolations,
-} from '@/middleware/security-logger.middleware';
-import { trackError, trackPerformance } from '@/middleware/sentry.middleware';
-import { sloMetricsMiddleware } from '@/middleware/slo-metrics.middleware';
-import { wafMiddleware } from '@/middleware/waf.middleware';
-import { breakappGateway } from '@/modules/breakapp/gateway';
-import { websocketService } from '@/services/websocket.service';
+} from "@/middleware/security-logger.middleware";
+import { trackError, trackPerformance } from "@/middleware/sentry.middleware";
+import { sloMetricsMiddleware } from "@/middleware/slo-metrics.middleware";
+import { wafMiddleware } from "@/middleware/waf.middleware";
+import { breakappGateway } from "@/modules/breakapp/gateway";
+import { websocketService } from "@/services/websocket.service";
 
 import {
   bootstrapServer,
   isServerEntryProcess,
   shutdownGracefully,
-} from './server/bootstrap';
-import { csrfOriginRefererValidator } from './server/csrf-origin-validator';
-import { registerAllRoutes } from './server/route-registrars';
-import { resolveTrustProxySetting } from './server/trust-proxy';
+} from "./server/bootstrap";
+import { csrfOriginRefererValidator } from "./server/csrf-origin-validator";
+import { registerAllRoutes } from "./server/route-registrars";
+import { resolveTrustProxySetting } from "./server/trust-proxy";
 
-import type { Server } from 'http';
+import type { Server } from "http";
 
 // Initialize OpenTelemetry tracing before application setup.
 initTracing();
@@ -42,7 +45,7 @@ initTracing();
 initializeSentry();
 
 const app: Application = express();
-app.set('trust proxy', resolveTrustProxySetting());
+app.set("trust proxy", resolveTrustProxySetting());
 
 // Create HTTP server for WebSocket integration
 const httpServer: Server = createServer(app);
@@ -93,13 +96,13 @@ setupMiddleware(app);
 // Initialize WebSocket service
 try {
   websocketService.initialize(httpServer);
-  logger.info('WebSocket service initialized');
+  logger.info("WebSocket service initialized");
   const io = websocketService.getIO();
   if (io) {
     breakappGateway.attach(io);
   }
 } catch (error) {
-  logger.error('Failed to initialize WebSocket service:', error);
+  logger.error("Failed to initialize WebSocket service:", error);
 }
 
 // Register all API routes (health, auth, analysis, projects, AI, breakdown, queue,
@@ -110,12 +113,12 @@ if (isServerEntryProcess()) {
   void bootstrapServer(app, httpServer);
 }
 
-process.on('SIGTERM', () => {
-  void shutdownGracefully('SIGTERM');
+process.on("SIGTERM", () => {
+  void shutdownGracefully("SIGTERM");
 });
 
-process.on('SIGINT', () => {
-  void shutdownGracefully('SIGINT');
+process.on("SIGINT", () => {
+  void shutdownGracefully("SIGINT");
 });
 
 export { app, httpServer };

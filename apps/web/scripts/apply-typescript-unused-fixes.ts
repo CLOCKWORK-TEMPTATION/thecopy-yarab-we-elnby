@@ -15,7 +15,9 @@ interface FileEdit {
 }
 
 function loadTsConfig(configPath: string) {
-  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+  const configFile = ts.readConfigFile(configPath, (fileName) =>
+    ts.sys.readFile(fileName)
+  );
   if (configFile.error) {
     throw new Error(
       ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n")
@@ -45,11 +47,11 @@ function createLanguageService(
     getCurrentDirectory: () => currentDirectory,
     getCompilationSettings: () => parsed.options,
     getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
-    fileExists: ts.sys.fileExists,
-    readFile: ts.sys.readFile,
-    readDirectory: ts.sys.readDirectory,
-    directoryExists: ts.sys.directoryExists,
-    getDirectories: ts.sys.getDirectories,
+    fileExists: (fileName) => ts.sys.fileExists(fileName),
+    readFile: (fileName) => ts.sys.readFile(fileName),
+    readDirectory: (...args) => ts.sys.readDirectory(...args),
+    directoryExists: (directoryName) => ts.sys.directoryExists(directoryName),
+    getDirectories: (directoryName) => ts.sys.getDirectories(directoryName),
   };
 
   return ts.createLanguageService(serviceHost, ts.createDocumentRegistry());

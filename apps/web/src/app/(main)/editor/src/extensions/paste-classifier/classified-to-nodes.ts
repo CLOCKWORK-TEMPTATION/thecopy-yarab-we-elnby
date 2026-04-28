@@ -1,7 +1,10 @@
 import { Node as PmNode, Schema } from "@tiptap/pm/model";
+
 import { ensureCharacterTrailingColon } from "../character";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
+
 import { buildProgressiveNodeAttrs } from "./pm-render-utils";
+
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 
 const createNodeForType = (
   item: ClassifiedDraftWithId,

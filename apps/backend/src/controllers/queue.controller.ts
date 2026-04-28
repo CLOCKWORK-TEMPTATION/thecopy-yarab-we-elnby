@@ -1,13 +1,13 @@
 /**
  * Queue Status Controller
- * 
+ *
  * Provides endpoints to check job status and queue statistics
  */
 
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 
-import { logger } from '@/lib/logger';
-import { queueManager, QueueName } from '@/queues/queue.config';
+import { logger } from "@/lib/logger";
+import { queueManager, QueueName } from "@/queues/queue.config";
 
 export class QueueController {
   /**
@@ -24,11 +24,15 @@ export class QueueController {
   /**
    * Build the job status response payload from a job instance
    */
-  private async buildJobPayload(job: Awaited<ReturnType<ReturnType<typeof queueManager.getQueue>['getJob']>>) {
+  private async buildJobPayload(
+    job: Awaited<
+      ReturnType<ReturnType<typeof queueManager.getQueue>["getJob"]>
+    >,
+  ) {
     if (!job) return null;
 
     const state = await job.getState();
-    const result: unknown = state === 'completed' ? job.returnvalue : null;
+    const result: unknown = state === "completed" ? job.returnvalue : null;
     const data: unknown = job.data;
 
     return {
@@ -37,7 +41,7 @@ export class QueueController {
       state,
       progress: job.progress,
       result,
-      error: state === 'failed' ? job.failedReason : null,
+      error: state === "failed" ? job.failedReason : null,
       data,
       timestamp: job.timestamp,
       processedOn: job.processedOn,
@@ -52,17 +56,18 @@ export class QueueController {
    */
   async getJobStatus(req: Request, res: Response): Promise<void> {
     try {
-      const jobId = typeof req.params["jobId"] === 'string' ? req.params["jobId"] : '';
+      const jobId =
+        typeof req.params["jobId"] === "string" ? req.params["jobId"] : "";
 
       if (!jobId) {
-        res.status(400).json({ success: false, error: 'معرف المهمة مطلوب' });
+        res.status(400).json({ success: false, error: "معرف المهمة مطلوب" });
         return;
       }
 
       const queueName = (req.query["queue"] as string) || QueueName.AI_ANALYSIS;
 
       if (!this.isValidQueueName(queueName)) {
-        res.status(400).json({ success: false, error: 'اسم الطابور غير صالح' });
+        res.status(400).json({ success: false, error: "اسم الطابور غير صالح" });
         return;
       }
 
@@ -70,15 +75,17 @@ export class QueueController {
       const job = await queue.getJob(jobId);
 
       if (!job) {
-        res.status(404).json({ success: false, error: 'المهمة غير موجودة' });
+        res.status(404).json({ success: false, error: "المهمة غير موجودة" });
         return;
       }
 
       const jobPayload = await this.buildJobPayload(job);
       res.json({ success: true, job: jobPayload });
     } catch (error) {
-      logger.error('Failed to get job status:', error);
-      res.status(500).json({ success: false, error: 'فشل في الحصول على حالة المهمة' });
+      logger.error("Failed to get job status:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "فشل في الحصول على حالة المهمة" });
     }
   }
 
@@ -96,10 +103,10 @@ export class QueueController {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      logger.error('Failed to get queue stats:', error);
+      logger.error("Failed to get queue stats:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في الحصول على إحصائيات الطوابير',
+        error: "فشل في الحصول على إحصائيات الطوابير",
       });
     }
   }
@@ -115,7 +122,7 @@ export class QueueController {
       if (!Object.values(QueueName).includes(queueName as QueueName)) {
         res.status(400).json({
           success: false,
-          error: 'اسم الطابور غير صالح',
+          error: "اسم الطابور غير صالح",
         });
         return;
       }
@@ -128,10 +135,10 @@ export class QueueController {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      logger.error('Failed to get queue stats:', error);
+      logger.error("Failed to get queue stats:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في الحصول على إحصائيات الطابور',
+        error: "فشل في الحصول على إحصائيات الطابور",
       });
     }
   }
@@ -142,12 +149,13 @@ export class QueueController {
    */
   async retryJob(req: Request, res: Response): Promise<void> {
     try {
-      const jobId = typeof req.params["jobId"] === 'string' ? req.params["jobId"] : '';
+      const jobId =
+        typeof req.params["jobId"] === "string" ? req.params["jobId"] : "";
 
       if (!jobId) {
         res.status(400).json({
           success: false,
-          error: 'معرف المهمة مطلوب',
+          error: "معرف المهمة مطلوب",
         });
         return;
       }
@@ -158,7 +166,7 @@ export class QueueController {
       if (!this.isValidQueueName(queueName)) {
         res.status(400).json({
           success: false,
-          error: 'اسم الطابور غير صالح',
+          error: "اسم الطابور غير صالح",
         });
         return;
       }
@@ -169,7 +177,7 @@ export class QueueController {
       if (!job) {
         res.status(404).json({
           success: false,
-          error: 'المهمة غير موجودة',
+          error: "المهمة غير موجودة",
         });
         return;
       }
@@ -178,14 +186,14 @@ export class QueueController {
 
       res.json({
         success: true,
-        message: 'تم إعادة محاولة المهمة',
+        message: "تم إعادة محاولة المهمة",
         jobId: job.id,
       });
     } catch (error) {
-      logger.error('Failed to retry job:', error);
+      logger.error("Failed to retry job:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في إعادة محاولة المهمة',
+        error: "فشل في إعادة محاولة المهمة",
       });
     }
   }
@@ -202,7 +210,7 @@ export class QueueController {
       if (!Object.values(QueueName).includes(queueName as QueueName)) {
         res.status(400).json({
           success: false,
-          error: 'اسم الطابور غير صالح',
+          error: "اسم الطابور غير صالح",
         });
         return;
       }
@@ -211,13 +219,13 @@ export class QueueController {
 
       res.json({
         success: true,
-        message: 'تم تنظيف الطابور',
+        message: "تم تنظيف الطابور",
       });
     } catch (error) {
-      logger.error('Failed to clean queue:', error);
+      logger.error("Failed to clean queue:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في تنظيف الطابور',
+        error: "فشل في تنظيف الطابور",
       });
     }
   }

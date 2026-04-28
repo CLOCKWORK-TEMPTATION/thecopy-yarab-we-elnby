@@ -1,5 +1,3 @@
-import { logger } from "@/lib/ai/utils/logger";
-
 /**
  * Encrypted Document Service
  * خدمة المستندات المشفرة
@@ -7,6 +5,7 @@ import { logger } from "@/lib/ai/utils/logger";
  * هذه الخدمة تدير حفظ وتحميل المستندات المشفرة
  */
 
+import { logger } from "@/lib/ai/utils/logger";
 import {
   encryptDocument,
   decryptDocument,

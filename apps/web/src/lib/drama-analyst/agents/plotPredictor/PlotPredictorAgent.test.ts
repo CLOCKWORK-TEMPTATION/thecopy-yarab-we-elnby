@@ -136,9 +136,9 @@ describe("PlotPredictorAgent", () => {
       expect(result.confidence).toBeDefined();
 
       // If confidence is low, notes should indicate additional processing
-      if (result.confidence < 0.95) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(
+        true
+      );
     });
 
     it("should handle uncertainty in predictions", async () => {
@@ -243,9 +243,7 @@ describe("PlotPredictorAgent", () => {
 
       expect(result).toBeDefined();
       expect(result.notes).toBeDefined();
-      if (result.confidence < 0.75) {
-        expect(result.notes.length).toBeGreaterThan(0);
-      }
+      expect(result.confidence >= 0.75 || result.notes.length > 0).toBe(true);
     });
   });
 

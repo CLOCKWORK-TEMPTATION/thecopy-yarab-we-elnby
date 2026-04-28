@@ -55,11 +55,7 @@ const CustomTooltip = ({
   if (active && payload?.length) {
     return (
       <div
-        className={`p-3 rounded-[22px] shadow-lg border ${
-          theme === "dark"
-            ? "bg-black/18 border-white/8 text-white"
-            : "bg-white/[0.04] border-white/8"
-        }`}
+        className={`p-3 rounded-[22px] shadow-lg border ${theme === "dark" ? "bg-black/18 border-white/8 text-white" : "bg-white/[0.04] border-white/8"}`}
       >
         <p className="font-semibold">{label}</p>
         {payload.map((entry: TooltipEntry, index: number) => (
@@ -170,9 +166,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       className="p-6"
     >
       <h3
-        className={`text-lg font-bold mb-6 ${
-          theme === "dark" ? "text-white" : "text-white"
-        }`}
+        className={`text-lg font-bold mb-6 ${theme === "dark" ? "text-white" : "text-white"}`}
       >
         Budget Visualization & Analytics
       </h3>
@@ -181,16 +175,10 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
         {/* Pie Chart */}
         <motion.div
           variants={chartVariants}
-          className={`p-6 rounded-xl border ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          } shadow-md`}
+          className={`p-6 rounded-xl border ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"} shadow-md`}
         >
           <h4
-            className={`text-lg font-semibold mb-4 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-lg font-semibold mb-4 ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             Budget Distribution by Section
           </h4>
@@ -231,16 +219,10 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
         {/* Bar Chart - Top Categories */}
         <motion.div
           variants={chartVariants}
-          className={`p-6 rounded-xl border ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          } shadow-md`}
+          className={`p-6 rounded-xl border ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"} shadow-md`}
         >
           <h4
-            className={`text-lg font-semibold mb-4 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-lg font-semibold mb-4 ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             Top 15 Categories by Cost
           </h4>
@@ -272,16 +254,10 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
       {/* Historical Comparison */}
       <motion.div
         variants={chartVariants}
-        className={`p-6 rounded-xl border mb-8 ${
-          theme === "dark"
-            ? "bg-black/18 border-white/8"
-            : "bg-white/[0.04] border-white/8"
-        } shadow-md`}
+        className={`p-6 rounded-xl border mb-8 ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"} shadow-md`}
       >
         <h4
-          className={`text-lg font-semibold mb-4 ${
-            theme === "dark" ? "text-white" : "text-white"
-          }`}
+          className={`text-lg font-semibold mb-4 ${theme === "dark" ? "text-white" : "text-white"}`}
         >
           Budget Evolution by Phase
         </h4>
@@ -347,51 +323,33 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
         <div
-          className={`p-4 rounded-xl border text-center ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-xl border text-center ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <div
-            className={`text-2xl font-bold ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
           >
             {formatCurrency(budget.grandTotal)}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Total Budget
           </div>
         </div>
         <div
-          className={`p-4 rounded-xl border text-center ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-xl border text-center ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <div className={`text-2xl font-bold text-indigo-600`}>
             {budget.sections.length}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Sections
           </div>
         </div>
         <div
-          className={`p-4 rounded-xl border text-center ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-xl border text-center ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <div className={`text-2xl font-bold text-purple-600`}>
             {budget.sections.reduce(
@@ -400,19 +358,13 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
             )}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Categories
           </div>
         </div>
         <div
-          className={`p-4 rounded-xl border text-center ${
-            theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          }`}
+          className={`p-4 rounded-xl border text-center ${theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
         >
           <div className={`text-2xl font-bold text-green-600`}>
             {budget.sections.reduce(
@@ -427,9 +379,7 @@ export const EnhancedChart: React.FC<EnhancedChartProps> = ({
             )}
           </div>
           <div
-            className={`text-sm ${
-              theme === "dark" ? "text-white/55" : "text-white/55"
-            }`}
+            className={`text-sm ${theme === "dark" ? "text-white/55" : "text-white/55"}`}
           >
             Active Items
           </div>

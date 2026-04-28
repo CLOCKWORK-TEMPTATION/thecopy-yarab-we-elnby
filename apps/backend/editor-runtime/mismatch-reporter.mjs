@@ -48,6 +48,6 @@ export const writeMismatchReport = async (filePath, payload) => {
   await writeFile(
     filePath,
     `${JSON.stringify(serialized, null, 2)}\n`,
-    "utf-8"
+    "utf-8",
   );
 };

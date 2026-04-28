@@ -7,7 +7,9 @@ export function assessIntegration(text: string): number {
   let score = 0.6;
 
   const integrationTerms = ["تكامل", "دمج", "ربط", "توحيد", "تركيب", "تنسيق"];
-  const hasIntegrationTerms = integrationTerms.some((term) => text.includes(term));
+  const hasIntegrationTerms = integrationTerms.some((term) =>
+    text.includes(term),
+  );
   if (hasIntegrationTerms) score += 0.2;
 
   if (
@@ -35,7 +37,9 @@ export function assessBalance(text: string): number {
   const creativeCount = (text.match(/إبداع/g) ?? []).length;
 
   if (analysisCount > 0 && creativeCount > 0) {
-    const ratio = Math.min(analysisCount, creativeCount) / Math.max(analysisCount, creativeCount);
+    const ratio =
+      Math.min(analysisCount, creativeCount) /
+      Math.max(analysisCount, creativeCount);
     score += ratio * 0.3;
   }
 
@@ -84,7 +88,10 @@ export function detectSynthesisType(text: string): string {
   if (text.includes("إبداع") && !text.includes("تحليل")) {
     return "إبداع مدمج";
   }
-  if (text.includes("تركيب") || (text.includes("تحليل") && text.includes("إبداع"))) {
+  if (
+    text.includes("تركيب") ||
+    (text.includes("تحليل") && text.includes("إبداع"))
+  ) {
     return "تركيب شامل";
   }
   return "تكامل عام";
@@ -102,8 +109,15 @@ export function cleanupSynthesis(text: string): string {
 }
 
 const SYNTHESIS_HEADERS = [
-  "ملخص تنفيذي", "التركيب", "التكامل", "التوازن", "التماسك",
-  "التحليل المدمج", "الإبداع المدمج", "الرؤية الشاملة", "التوصيات",
+  "ملخص تنفيذي",
+  "التركيب",
+  "التكامل",
+  "التوازن",
+  "التماسك",
+  "التحليل المدمج",
+  "الإبداع المدمج",
+  "الرؤية الشاملة",
+  "التوصيات",
 ];
 
 function isSynthesisSectionHeader(line: string): boolean {
@@ -113,11 +127,10 @@ function isSynthesisSectionHeader(line: string): boolean {
 function isLineASectionHeader(line: string, nextLine: string): boolean {
   return (
     isSynthesisSectionHeader(line) ||
-    (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
+    (!!/^\d+\./.exec(line) && !!nextLine && !/^\d+\./.exec(nextLine))
   );
 }
 
- 
 function formatSynthesisSections(text: string): string {
   const lines = text.split("\n");
   const formatted: string[] = [];
@@ -174,15 +187,17 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 interface IntegrationNotesInput {
-  outputConfidence: number,
-  outputNotes: string[] | undefined,
-  integrationScore: number,
-  balanceScore: number,
-  coherenceScore: number,
-  qualityScore: number,
+  outputConfidence: number;
+  outputNotes: string[] | undefined;
+  integrationScore: number;
+  balanceScore: number;
+  coherenceScore: number;
+  qualityScore: number;
 }
 
-export function generateIntegrationNotes(input: IntegrationNotesInput): string[] {
+export function generateIntegrationNotes(
+  input: IntegrationNotesInput,
+): string[] {
   const notes: string[] = [];
   const {
     outputConfidence,

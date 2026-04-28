@@ -1,11 +1,14 @@
 import React from "react";
+
 import { RhythmAnalysis } from "./index";
+
+import type { SceneRhythmAnalysis } from "../../types";
 
 interface RhythmAnalysisPageProps {
   rhythmScriptText: string;
   setRhythmScriptText: (text: string) => void;
   analyzingRhythm: boolean;
-  rhythmAnalysis: any;
+  rhythmAnalysis: SceneRhythmAnalysis | null;
   useRhythmSampleScript: () => void;
   analyzeSceneRhythm: () => void;
   getTempoLabel: (tempo: string) => string;

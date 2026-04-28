@@ -36,24 +36,28 @@ export async function searchCode(
       }) => {
         const p = result.payload ?? {};
         const metadata: SearchResult["chunk"]["metadata"] = {
-          filePath: stringifyUnknown(p.filePath),
-          fileName: stringifyUnknown(p.fileName),
-          fileType: stringifyUnknown(p.fileType),
-          chunkIndex: Number(p.chunkIndex ?? 0),
-          totalChunks: Number(p.totalChunks ?? 0),
-          language: stringifyUnknown(p.language),
-          ...(typeof p.functionName === "string" && {
-            functionName: p.functionName,
+          filePath: stringifyUnknown(p["filePath"]),
+          fileName: stringifyUnknown(p["fileName"]),
+          fileType: stringifyUnknown(p["fileType"]),
+          chunkIndex: Number(p["chunkIndex"] ?? 0),
+          totalChunks: Number(p["totalChunks"] ?? 0),
+          language: stringifyUnknown(p["language"]),
+          ...(typeof p["functionName"] === "string" && {
+            functionName: p["functionName"],
           }),
-          ...(typeof p.className === "string" && { className: p.className }),
-          ...(typeof p.section === "string" && { section: p.section }),
-          ...(typeof p.startLine === "number" && { startLine: p.startLine }),
-          ...(typeof p.endLine === "number" && { endLine: p.endLine }),
+          ...(typeof p["className"] === "string" && {
+            className: p["className"],
+          }),
+          ...(typeof p["section"] === "string" && { section: p["section"] }),
+          ...(typeof p["startLine"] === "number" && {
+            startLine: p["startLine"],
+          }),
+          ...(typeof p["endLine"] === "number" && { endLine: p["endLine"] }),
         };
 
         return {
           chunk: {
-            content: stringifyUnknown(p.content),
+            content: stringifyUnknown(p["content"]),
             metadata,
           },
           score: result.score || 0,

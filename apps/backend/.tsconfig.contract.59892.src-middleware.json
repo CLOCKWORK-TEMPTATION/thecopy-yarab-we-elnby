@@ -15,8 +15,5 @@
     "src/middleware/**/*.ts",
     "src/middleware/**/*.tsx"
   ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "exclude": ["node_modules", "dist"]
 }

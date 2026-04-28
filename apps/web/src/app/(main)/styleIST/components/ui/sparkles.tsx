@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 "use client";
-import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { Particles, initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { motion, useAnimation } from "framer-motion";
 import { useId, useEffect, useState } from "react";

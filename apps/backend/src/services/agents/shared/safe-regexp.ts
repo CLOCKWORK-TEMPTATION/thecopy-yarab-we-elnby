@@ -3,7 +3,7 @@
  * دوال آمنة للتعامل مع التعبيرات النمطية لتجنب ReDoS attacks
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 /**
  * Count occurrences of a term safely
@@ -11,15 +11,15 @@ import { logger } from '@/lib/logger';
  */
 export function safeCountOccurrences(text: string, term: string): number {
   if (!text || !term) return 0;
-  
+
   try {
     // Escape special regex characters
-    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapedTerm, 'gi');
+    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedTerm, "gi");
     const matches = text.match(regex);
     return matches ? matches.length : 0;
   } catch (error) {
-    logger.error('Error in safeCountOccurrences', { error });
+    logger.error("Error in safeCountOccurrences", { error });
     return 0;
   }
 }
@@ -30,7 +30,7 @@ export function safeCountOccurrences(text: string, term: string): number {
  */
 export function safeCountMultipleTerms(
   text: string,
-  terms: string[]
+  terms: string[],
 ): Record<string, number> {
   if (!text || !terms || terms.length === 0) return {};
 
@@ -57,14 +57,13 @@ export function sumCounts(counts: Record<string, number>): number {
  */
 export function safeMatch(text: string, pattern: string | RegExp): boolean {
   if (!text) return false;
-  
+
   try {
-    const regex = typeof pattern === 'string' 
-      ? new RegExp(pattern, 'i') 
-      : pattern;
+    const regex =
+      typeof pattern === "string" ? new RegExp(pattern, "i") : pattern;
     return regex.test(text);
   } catch (error) {
-    logger.error('Error in safeMatch', { error });
+    logger.error("Error in safeMatch", { error });
     return false;
   }
 }
@@ -76,32 +75,33 @@ export function safeMatch(text: string, pattern: string | RegExp): boolean {
 export function safeExtractMatches(
   text: string,
   pattern: string | RegExp,
-  maxMatches = 100
+  maxMatches = 100,
 ): string[] {
   if (!text) return [];
-  
+
   try {
-    const regex = typeof pattern === 'string' 
-      ? new RegExp(pattern, 'gi') 
-      : new RegExp(pattern.source, 'gi');
-    
+    const regex =
+      typeof pattern === "string"
+        ? new RegExp(pattern, "gi")
+        : new RegExp(pattern.source, "gi");
+
     const matches: string[] = [];
     let match;
     let count = 0;
-    
+
     while ((match = regex.exec(text)) !== null && count < maxMatches) {
       matches.push(match[0]);
       count++;
-      
+
       // Prevent infinite loops
       if (regex.lastIndex === match.index) {
         regex.lastIndex++;
       }
     }
-    
+
     return matches;
   } catch (error) {
-    logger.error('Error in safeExtractMatches', { error });
+    logger.error("Error in safeExtractMatches", { error });
     return [];
   }
 }

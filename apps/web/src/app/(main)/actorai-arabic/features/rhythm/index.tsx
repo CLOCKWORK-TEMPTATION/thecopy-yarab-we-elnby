@@ -270,13 +270,7 @@ export function SceneRhythmView() {
                     {rhythmAnalysis.monotonyAlerts.map((alert, idx) => (
                       <div
                         key={idx}
-                        className={`p-4 rounded-lg border-2 ${
-                          alert.severity === "low"
-                            ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-100"
-                            : alert.severity === "medium"
-                              ? "bg-orange-500/20 border-orange-400/50 text-orange-100"
-                              : "bg-red-500/20 border-red-400/50 text-red-100"
-                        }`}
+                        className={`p-4 rounded-lg border-2 ${alert.severity === "low" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-100" : alert.severity === "medium" ? "bg-orange-500/20 border-orange-400/50 text-orange-100" : "bg-red-500/20 border-red-400/50 text-red-100"}`}
                       >
                         <h5 className="font-semibold mb-1">
                           {alert.description}

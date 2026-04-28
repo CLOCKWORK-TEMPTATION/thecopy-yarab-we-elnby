@@ -427,7 +427,7 @@ stunt work, visual effects, and a large cast.`);
     const newSaved: SavedBudget = {
       id: Date.now().toString(),
       name: budgetName,
-      budget: JSON.parse(JSON.stringify(budget)),
+      budget: structuredClone(budget),
       script: scriptText,
       date: new Date().toISOString(),
       tags: ["manual-save"],
@@ -472,7 +472,7 @@ stunt work, visual effects, and a large cast.`);
     const newSaved: SavedBudget = {
       id: Date.now().toString(),
       name: newName,
-      budget: JSON.parse(JSON.stringify(budget)),
+      budget: structuredClone(budget),
       script: scriptText,
       date: new Date().toISOString(),
       tags: ["duplicate"],

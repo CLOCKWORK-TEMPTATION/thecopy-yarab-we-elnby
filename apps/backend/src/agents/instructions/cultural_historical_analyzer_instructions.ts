@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const culturalHistoricalAnalyzerInstructions = `
 التحليل الثقافي والتاريخي:
@@ -45,6 +45,6 @@ export const culturalHistoricalAnalyzerAgentConfig: AIAgentConfig = {
     "تحليل السياق التاريخي",
     "تقييم التمثيل الثقافي",
     "فحص البيئة الاجتماعية",
-    "تقييم الحساسية الثقافية"
-  ]
+    "تقييم الحساسية الثقافية",
+  ],
 };

@@ -31,7 +31,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     super(
       "SceneCraft AI",
       TaskType.SCENE_GENERATOR,
-      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
+      SCENE_GENERATOR_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -49,7 +49,7 @@ export class SceneGeneratorAgent extends BaseAgent {
    * Post-process the scene output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean and format the scene
     const processedText = cleanupSceneText(output.text);
@@ -79,7 +79,7 @@ export class SceneGeneratorAgent extends BaseAgent {
         dramaticTension,
         dialogueQuality,
         visualClarity,
-        pacing
+        pacing,
       ),
       metadata: {
         ...output.metadata,
@@ -126,7 +126,7 @@ export class SceneGeneratorAgent extends BaseAgent {
    * Generate fallback response
    */
   protected override getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     const contextObj = asJsonRecord(input.context);
     const sceneType = asString(contextObj["sceneType"], "dramatic");

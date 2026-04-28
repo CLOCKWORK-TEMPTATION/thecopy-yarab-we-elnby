@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 const backendRoot = process.cwd();
 const tscPath = path.resolve(
   backendRoot,
-  "../../node_modules/typescript/lib/tsc.js"
+  "../../node_modules/typescript/lib/tsc.js",
 );
 
 const groups = [
@@ -16,14 +16,12 @@ const groups = [
       "src/config/env.ts",
       "src/config/sentry.ts",
       "src/config/tracing.ts",
-      "src/utils/logger.ts"
+      "src/utils/logger.ts",
     ],
   },
   {
     name: "core-db",
-    files: [
-      "src/db/index.ts",
-    ],
+    files: ["src/db/index.ts"],
   },
   {
     name: "core-middleware",
@@ -93,17 +91,14 @@ const groups = [
   },
   {
     name: "memory-editor",
-    files: [
-      "src/memory/index.ts",
-      "src/editor/runtime.ts",
-    ],
+    files: ["src/memory/index.ts", "src/editor/runtime.ts"],
   },
 ];
 
 function runGroup(group) {
   const tempConfigPath = path.join(
     backendRoot,
-    `.tsconfig.typecheck.${group.name}.json`
+    `.tsconfig.typecheck.${group.name}.json`,
   );
 
   const config = {
@@ -119,17 +114,27 @@ function runGroup(group) {
     exclude: ["node_modules", "dist"],
   };
 
-  fs.writeFileSync(tempConfigPath, `${JSON.stringify(config, null, 2)}${os.EOL}`);
+  fs.writeFileSync(
+    tempConfigPath,
+    `${JSON.stringify(config, null, 2)}${os.EOL}`,
+  );
 
   console.log(`\n[type-check] ${group.name}`);
   const result = spawnSync(
     process.execPath,
-    ["--max-old-space-size=12288", tscPath, "-p", tempConfigPath, "--pretty", "false"],
+    [
+      "--max-old-space-size=12288",
+      tscPath,
+      "-p",
+      tempConfigPath,
+      "--pretty",
+      "false",
+    ],
     {
       cwd: backendRoot,
       stdio: "inherit",
       env: process.env,
-    }
+    },
   );
 
   fs.rmSync(tempConfigPath, { force: true });

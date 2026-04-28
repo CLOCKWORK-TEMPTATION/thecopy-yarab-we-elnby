@@ -53,14 +53,14 @@ export class SceneGeneratorAgent extends BaseAgent {
 
     // Extract relevant context
     const contextObj = asJsonRecord(context);
-    const originalText = asString(contextObj.originalText);
-    const sceneType = asString(contextObj.sceneType, "dramatic");
-    const characters = asUnknownArray(contextObj.characters);
-    const setting = asString(contextObj.setting);
-    const emotionalTone = asString(contextObj.emotionalTone, "neutral");
-    const conflictLevel = asString(contextObj.conflictLevel, "medium");
-    const sceneObjectives = asStringArray(contextObj.objectives);
-    const previousScenes = asUnknownArray(contextObj.previousScenes);
+    const originalText = asString(contextObj["originalText"]);
+    const sceneType = asString(contextObj["sceneType"], "dramatic");
+    const characters = asUnknownArray(contextObj["characters"]);
+    const setting = asString(contextObj["setting"]);
+    const emotionalTone = asString(contextObj["emotionalTone"], "neutral");
+    const conflictLevel = asString(contextObj["conflictLevel"], "medium");
+    const sceneObjectives = asStringArray(contextObj["objectives"]);
+    const previousScenes = asUnknownArray(contextObj["previousScenes"]);
 
     // Build structured prompt
     let prompt = `مهمة توليد المشهد الدرامي\n\n`;
@@ -186,7 +186,7 @@ export class SceneGeneratorAgent extends BaseAgent {
     input: StandardAgentInput
   ): Promise<string> {
     const sceneType = asString(
-      asJsonRecord(input.context).sceneType,
+      asJsonRecord(input.context)["sceneType"],
       "dramatic"
     );
 

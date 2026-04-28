@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const styleFingerprintInstructions = `
 تحليل بصمة الأسلوب الأدبي:
@@ -57,6 +57,6 @@ export const styleFingerprintAgentConfig: AIAgentConfig = {
     "تحليل البصمة اللغوية",
     "تقييم الأسلوب السردي",
     "تحديد الموضوعات المميزة",
-    "تقييم التفرد الأسلوبي"
-  ]
+    "تقييم التفرد الأسلوبي",
+  ],
 };

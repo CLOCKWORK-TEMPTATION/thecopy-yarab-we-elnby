@@ -8,16 +8,16 @@
  * - تسجيل أصوات schema-hint داخل traceCollector.
  */
 
-import { convertHindiToArabic } from "../arabic-patterns";
-import { parseBulletLine } from "../line-repair";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
 
-import type { ClassifiedDraft, ElementType } from "../classification-types";
+import { convertHindiToArabic } from "../arabic-patterns";
+import { parseBulletLine } from "../line-repair";
 
 import { ENGINE_ELEMENT_MAP } from "./constants";
 import { normalizeClassifierConfidence } from "./utils/draft-builders";
 
+import type { ClassifiedDraft, ElementType } from "../classification-types";
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import type { SchemaElementInput } from "./types";
 
 /**

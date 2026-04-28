@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const PRODUCIBILITY_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.PRODUCIBILITY_ANALYZER,

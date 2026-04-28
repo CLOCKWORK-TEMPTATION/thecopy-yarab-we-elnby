@@ -136,11 +136,11 @@ export class AutomaticDocumentationGenerator implements Plugin {
     switch (input.type) {
       case "generate-book":
         return this.generateProductionBook(
-          input.data as unknown as GenerateBookInput
+          input.data as unknown as GenerateBookInput,
         );
       case "generate-style-guide":
         return this.generateStyleGuide(
-          input.data as unknown as GenerateStyleGuideInput
+          input.data as unknown as GenerateStyleGuideInput,
         );
       case "log-decision":
         return this.logDecision(input.data as unknown as Partial<DecisionLog>);
@@ -150,11 +150,11 @@ export class AutomaticDocumentationGenerator implements Plugin {
         return this.getStyleGuide(input.data as { guideId: string });
       case "get-decisions":
         return this.getDecisions(
-          input.data as { productionId: string; category?: string }
+          input.data as { productionId: string; category?: string },
         );
       case "export-book":
         return this.exportBook(
-          input.data as { bookId: string; format: string }
+          input.data as { bookId: string; format: string },
         );
       case "update-section":
         return this.updateBookSection(
@@ -162,7 +162,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
             bookId: string;
             sectionId: string;
             content: Partial<BookSection>;
-          }
+          },
         );
       default:
         return {
@@ -173,7 +173,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
   }
 
   private async generateProductionBook(
-    data: GenerateBookInput
+    data: GenerateBookInput,
   ): Promise<PluginOutput> {
     if (!data.productionId || !data["title"] || !data.includeSections) {
       return {
@@ -189,7 +189,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
       const section = this.generateSection(
         sectionType,
         data.projectData,
-        order
+        order,
       );
       if (section) {
         sections.push(section);
@@ -227,7 +227,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
   private generateSection(
     type: string,
     projectData: Record<string, unknown>,
-    order: number
+    order: number,
   ): BookSection | null {
     const sectionTemplates: Record<string, { title: string; titleAr: string }> =
       {
@@ -268,7 +268,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
 
   private generateSectionContent(
     type: string,
-    projectData: Record<string, unknown>
+    projectData: Record<string, unknown>,
   ): { en: string; ar: string } {
     switch (type) {
       case "overview":
@@ -327,7 +327,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
   }
 
   private async generateStyleGuide(
-    data: GenerateStyleGuideInput
+    data: GenerateStyleGuideInput,
   ): Promise<PluginOutput> {
     if (!data.productionId || !data["title"]) {
       return {
@@ -440,7 +440,7 @@ export class AutomaticDocumentationGenerator implements Plugin {
     category?: string;
   }): Promise<PluginOutput> {
     let decisions = Array.from(this.decisionLogs.values()).filter(
-      (d) => d.productionId === data.productionId
+      (d) => d.productionId === data.productionId,
     );
 
     if (data.category) {

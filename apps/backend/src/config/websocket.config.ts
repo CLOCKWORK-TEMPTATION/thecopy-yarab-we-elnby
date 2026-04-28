@@ -4,9 +4,9 @@
  * Configuration for Socket.IO server
  */
 
-import { ServerOptions } from 'socket.io';
+import { ServerOptions } from "socket.io";
 
-import { env } from './env';
+import { env } from "./env";
 
 /**
  * Socket.IO Server Options
@@ -14,8 +14,8 @@ import { env } from './env';
 export const socketIOOptions: Partial<ServerOptions> = {
   // CORS configuration
   cors: {
-    origin: env.CORS_ORIGIN || 'http://localhost:5000',
-    methods: ['GET', 'POST'],
+    origin: env.CORS_ORIGIN || "http://localhost:5000",
+    methods: ["GET", "POST"],
     credentials: true,
   },
 
@@ -25,7 +25,7 @@ export const socketIOOptions: Partial<ServerOptions> = {
   connectTimeout: 45000, // 45 seconds
 
   // Upgrade settings
-  transports: ['websocket', 'polling'],
+  transports: ["websocket", "polling"],
   allowUpgrades: true,
 
   // Performance settings
@@ -43,27 +43,27 @@ export const socketIOOptions: Partial<ServerOptions> = {
 export const WEBSOCKET_CONFIG = {
   // Event names
   EVENTS: {
-    CONNECTION: 'connection',
-    DISCONNECT: 'disconnect',
-    ERROR: 'error',
-    PING: 'ping',
-    PONG: 'pong',
+    CONNECTION: "connection",
+    DISCONNECT: "disconnect",
+    ERROR: "error",
+    PING: "ping",
+    PONG: "pong",
   },
 
   // Room prefixes
   ROOMS: {
-    USER: 'user',
-    PROJECT: 'project',
-    QUEUE: 'queue',
-    GLOBAL: 'global',
+    USER: "user",
+    PROJECT: "project",
+    QUEUE: "queue",
+    GLOBAL: "global",
   },
 
   // Namespaces
   NAMESPACES: {
-    ROOT: '/',
-    JOBS: '/jobs',
-    ANALYSIS: '/analysis',
-    ADMIN: '/admin',
+    ROOT: "/",
+    JOBS: "/jobs",
+    ANALYSIS: "/analysis",
+    ADMIN: "/admin",
   },
 
   // Timeouts
@@ -83,8 +83,8 @@ export const WEBSOCKET_CONFIG = {
  * Environment-specific configuration
  */
 export const getWebSocketConfig = (): Partial<ServerOptions> => {
-  const isDevelopment = env.NODE_ENV === 'development';
-  const isProduction = env.NODE_ENV === 'production';
+  const isDevelopment = env.NODE_ENV === "development";
+  const isProduction = env.NODE_ENV === "production";
 
   return {
     ...socketIOOptions,
@@ -97,7 +97,7 @@ export const getWebSocketConfig = (): Partial<ServerOptions> => {
     }),
     // Production optimizations
     ...(isProduction && {
-      transports: ['websocket'] as const, // Prefer websocket in production
+      transports: ["websocket"] as const, // Prefer websocket in production
       perMessageDeflate: {
         threshold: 1024, // Only compress messages larger than 1KB
       },

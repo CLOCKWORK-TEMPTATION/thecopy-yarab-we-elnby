@@ -42,7 +42,7 @@ export const handleContextEnhance = async (req, res) => {
       "Access-Control-Allow-Origin": "*",
     });
     res.write(
-      `event: done\ndata: ${JSON.stringify({ totalCorrections: 0, reason: "disabled" })}\n\n`
+      `event: done\ndata: ${JSON.stringify({ totalCorrections: 0, reason: "disabled" })}\n\n`,
     );
     res.end();
     return;
@@ -56,7 +56,7 @@ export const handleContextEnhance = async (req, res) => {
       "Access-Control-Allow-Origin": "*",
     });
     res.write(
-      `event: error\ndata: ${JSON.stringify({ message: "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY not configured." })}\n\n`
+      `event: error\ndata: ${JSON.stringify({ message: "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY not configured." })}\n\n`,
     );
     res.end();
     return;
@@ -111,7 +111,7 @@ export const handleContextEnhance = async (req, res) => {
         model: geminiConfig.model,
         lineCount: classifiedLines.length,
       },
-      "gemini-context-enhance-start"
+      "gemini-context-enhance-start",
     );
 
     // Streaming call
@@ -155,11 +155,11 @@ export const handleContextEnhance = async (req, res) => {
         totalCorrections,
         latencyMs,
       },
-      "gemini-context-enhance-complete"
+      "gemini-context-enhance-complete",
     );
 
     res.write(
-      `event: done\ndata: ${JSON.stringify({ totalCorrections, latencyMs })}\n\n`
+      `event: done\ndata: ${JSON.stringify({ totalCorrections, latencyMs })}\n\n`,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

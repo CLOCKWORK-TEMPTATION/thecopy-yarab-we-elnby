@@ -6,7 +6,7 @@ import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { log , APP_NAME } from "./ocr-logger.js";
+import { log, APP_NAME } from "./ocr-logger.js";
 import { OCRPreprocessor } from "./ocr-preprocessor.js";
 import {
   CRITICAL_OCR_REPLACEMENTS,
@@ -23,7 +23,6 @@ import {
   retryDelayMs,
   str,
 } from "./text-helpers.js";
-
 
 import type { JsonRecord, LLMConfig } from "./types.js";
 
@@ -64,18 +63,19 @@ export class LLMPostProcessor {
 8. أخرج Markdown فقط`;
 
   private static readonly KIMI_BASE_URL = (
-    process.env['KIMI_BASE_URL'] ?? "https://api.moonshot.ai/v1"
+    process.env["KIMI_BASE_URL"] ?? "https://api.moonshot.ai/v1"
   ).replace(/\/+$/u, "");
   private static readonly KIMI_HTTP_TIMEOUT_MS = Math.max(
     30_000,
-    Number.parseInt(process.env['KIMI_HTTP_TIMEOUT_MS'] ?? "180000", 10) || 180_000
+    Number.parseInt(process.env["KIMI_HTTP_TIMEOUT_MS"] ?? "180000", 10) ||
+      180_000,
   );
   private static readonly KIMI_HTTP_MAX_RETRIES = Math.max(
     0,
     Math.min(
-      Number.parseInt(process.env['KIMI_HTTP_MAX_RETRIES'] ?? "3", 10) || 3,
-      5
-    )
+      Number.parseInt(process.env["KIMI_HTTP_MAX_RETRIES"] ?? "3", 10) || 3,
+      5,
+    ),
   );
   private static readonly DEFAULT_KIMI_MODEL = "kimi-k2.5";
 
@@ -109,19 +109,19 @@ export class LLMPostProcessor {
   async postprocess(
     markdownText: string,
     referenceText?: string,
-    feedback = ""
+    feedback = "",
   ): Promise<string> {
     const effectiveReference = referenceText ?? (await this.getReferenceText());
     const preprocessed = this.preprocessor.preprocess(markdownText);
 
     const userPrompt = LLMPostProcessor.USER_TEMPLATE.replace(
       "{reference_text}",
-      effectiveReference || "N/A"
+      effectiveReference || "N/A",
     )
       .replace("{markdown_text}", preprocessed.text)
       .replace(
         "{preprocess_notes}",
-        preprocessed.detectedIssues.join("\n") || "لا توجد ملاحظات"
+        preprocessed.detectedIssues.join("\n") || "لا توجد ملاحظات",
       )
       .replace("{feedback}", feedback || "N/A");
 
@@ -144,7 +144,7 @@ export class LLMPostProcessor {
     validated = this.applyCriticalReplacements(validated);
     validated = this.normalizeSceneHeadersForValidation(validated);
 
-    if ((/^-\s+/m.exec(validated)) && !(/^•\s+/m.exec(validated))) {
+    if (/^-\s+/m.exec(validated) && !/^•\s+/m.exec(validated)) {
       validated = validated.replace(/^-\s+/gm, "• ");
     }
 
@@ -160,10 +160,7 @@ export class LLMPostProcessor {
       if (!out.includes(replacement.wrong)) {
         continue;
       }
-      out = out.replace(
-        replacement.pattern,
-        replacement.correct
-      );
+      out = out.replace(replacement.pattern, replacement.correct);
     }
 
     out = out.replace(/\bام إم\b/g, "إم إم");
@@ -206,7 +203,7 @@ export class LLMPostProcessor {
     while (attempt <= LLMPostProcessor.KIMI_HTTP_MAX_RETRIES) {
       try {
         const timeoutState = createTimeoutState(
-          LLMPostProcessor.KIMI_HTTP_TIMEOUT_MS
+          LLMPostProcessor.KIMI_HTTP_TIMEOUT_MS,
         );
         let response: Response;
         try {
@@ -256,7 +253,7 @@ export class LLMPostProcessor {
           const requestId = str(
             field(dataObject, "request_id", "") ||
               field(dataObject, "requestId", "") ||
-              field(dataObject, "id", "")
+              field(dataObject, "id", ""),
           ).trim();
 
           if (
@@ -270,7 +267,7 @@ export class LLMPostProcessor {
               "Kimi Chat returned %s. retry=%s delayMs=%s",
               response.status,
               attempt,
-              delay
+              delay,
             );
             await sleep(delay);
             continue;
@@ -278,7 +275,7 @@ export class LLMPostProcessor {
 
           const requestSuffix = requestId ? ` request_id=${requestId}` : "";
           throw new Error(
-            `فشل استدعاء Kimi Chat: ${response.status} ${response.statusText}${requestSuffix} - ${raw}`
+            `فشل استدعاء Kimi Chat: ${response.status} ${response.statusText}${requestSuffix} - ${raw}`,
           );
         }
 
@@ -300,7 +297,7 @@ export class LLMPostProcessor {
             "Kimi Chat request failed. retry=%s delayMs=%s error=%s",
             attempt,
             delay,
-            String(error)
+            String(error),
           );
           await sleep(delay);
           continue;
@@ -384,7 +381,7 @@ export class QualityChecker {
     const m = s1.length;
     const n = s2.length;
     const dp: number[][] = Array.from({ length: m + 1 }, () =>
-      Array.from({ length: n + 1 }, () => 0)
+      Array.from({ length: n + 1 }, () => 0),
     );
 
     for (let i = 0; i <= m; i += 1) dp[i][0] = i;
@@ -398,7 +395,7 @@ export class QualityChecker {
           dp[i][j] = Math.min(
             dp[i - 1][j] + 1,
             dp[i][j - 1] + 1,
-            dp[i - 1][j - 1] + 1
+            dp[i - 1][j - 1] + 1,
           );
         }
       }

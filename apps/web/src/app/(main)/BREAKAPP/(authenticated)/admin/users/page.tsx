@@ -118,10 +118,14 @@ export default function AdminUsersPage() {
         </div>
 
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <label className="block text-sm font-medium text-white mb-2 font-cairo">
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
             المشروع
           </label>
           <select
+            id="field-page-1"
             value={selectedProjectId}
             onChange={handleProjectChange}
             disabled={loadingProjects || projects.length === 0}

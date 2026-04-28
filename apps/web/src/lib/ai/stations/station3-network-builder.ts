@@ -23,16 +23,6 @@ import {
 } from "./station3-network-impl";
 
 import type { Station1Output } from "./station1-text-analysis";
-
-// Re-export everything that was public in the original file
-export * from "./station3-types";
-export {
-  ConflictNetworkImpl,
-  NetworkDiagnostics,
-} from "./station3-network-impl";
-export { inferFromKeywords } from "./station3-inference-engines";
-export { NetworkAnalyzer } from "./station3-network-analyzer";
-
 import type {
   Character,
   Conflict,
@@ -45,6 +35,15 @@ import type {
   Station3Input,
   Station3Output,
 } from "./station3-types";
+
+// Re-export everything that was public in the original file
+export * from "./station3-types";
+export {
+  ConflictNetworkImpl,
+  NetworkDiagnostics,
+} from "./station3-network-impl";
+export { inferFromKeywords } from "./station3-inference-engines";
+export { NetworkAnalyzer } from "./station3-network-analyzer";
 
 // ---------------------------------------------------------------------------
 // Station3NetworkBuilder

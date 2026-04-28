@@ -1,8 +1,8 @@
-import { createRequire } from 'node:module';
+import { createRequire } from "node:module";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { APM_CONFIG } from './sentry';
+import { APM_CONFIG } from "./sentry";
 
 const loadRuntimeModule = createRequire(__filename);
 
@@ -12,7 +12,9 @@ function isSentryEnabled(): boolean {
 
 function getSentryMetrics() {
   if (!isSentryEnabled()) return null;
-  const Sentry = loadRuntimeModule('@sentry/node') as typeof import('@sentry/node');
+  const Sentry = loadRuntimeModule(
+    "@sentry/node",
+  ) as typeof import("@sentry/node");
   return Sentry.metrics;
 }
 
@@ -60,25 +62,27 @@ export function recordRequest(duration: number, isError = false) {
 
   const sentryMetrics = getSentryMetrics();
   if (sentryMetrics) {
-    sentryMetrics.gauge('requests.total', metrics.requests.total);
+    sentryMetrics.gauge("requests.total", metrics.requests.total);
     if (isError) {
-      sentryMetrics.gauge('requests.errors', metrics.requests.errors);
+      sentryMetrics.gauge("requests.errors", metrics.requests.errors);
     }
-    sentryMetrics.distribution('requests.latency', duration, { unit: 'millisecond' });
+    sentryMetrics.distribution("requests.latency", duration, {
+      unit: "millisecond",
+    });
   }
 }
 
 export function recordOperation(
   operation: string,
   duration: number,
-  isError = false
+  isError = false,
 ) {
   metrics.operations[operation] ??= {
-      count: 0,
-      errors: 0,
-      totalDuration: 0,
-      latencies: [],
-    };
+    count: 0,
+    errors: 0,
+    totalDuration: 0,
+    latencies: [],
+  };
 
   const op = metrics.operations[operation];
   op.count++;
@@ -97,8 +101,10 @@ function buildSummary() {
     totalErrors: metrics.requests.errors,
     errorRate:
       metrics.requests.total > 0
-        ? ((metrics.requests.errors / metrics.requests.total) * 100).toFixed(2) + '%'
-        : '0%',
+        ? ((metrics.requests.errors / metrics.requests.total) * 100).toFixed(
+            2,
+          ) + "%"
+        : "0%",
     uptime: Date.now() - metrics.lastReset.getTime(),
   };
 }
@@ -111,7 +117,8 @@ function buildLatencies(requestLatencies: number[]) {
     avg:
       requestLatencies.length > 0
         ? Math.round(
-            requestLatencies.reduce((a, b) => a + b, 0) / requestLatencies.length
+            requestLatencies.reduce((a, b) => a + b, 0) /
+              requestLatencies.length,
           )
         : 0,
   };
@@ -130,15 +137,18 @@ export function getPerformanceDashboard() {
               metrics.requests.total /
               ((Date.now() - metrics.lastReset.getTime()) / 1000)
             ).toFixed(2)
-          : '0',
+          : "0",
     },
     operations: Object.entries(metrics.operations).map(([name, data]) => ({
       name,
       count: data.count,
       errors: data.errors,
       errorRate:
-        data.count > 0 ? ((data.errors / data.count) * 100).toFixed(2) + '%' : '0%',
-      avgDuration: data.count > 0 ? Math.round(data.totalDuration / data.count) : 0,
+        data.count > 0
+          ? ((data.errors / data.count) * 100).toFixed(2) + "%"
+          : "0%",
+      avgDuration:
+        data.count > 0 ? Math.round(data.totalDuration / data.count) : 0,
       p95: Math.round(percentile(data.latencies, 95)),
     })),
     thresholds: APM_CONFIG.thresholds,
@@ -158,5 +168,5 @@ export function resetPerformanceMetrics() {
   metrics.requests = { total: 0, errors: 0, latencies: [] };
   metrics.operations = {};
   metrics.lastReset = new Date();
-  logger.info('Performance metrics reset');
+  logger.info("Performance metrics reset");
 }

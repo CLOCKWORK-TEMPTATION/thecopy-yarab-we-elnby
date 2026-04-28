@@ -14,9 +14,15 @@
  * هذه الدالة استخراج نقي بدون تعديل سلوكي.
  */
 
+import {
+  applyPreRenderActions,
+  collectTracesFromMap,
+} from "@editor/suspicion-engine/adapters/from-classifier";
+import { createDefaultSuspicionEngine } from "@editor/suspicion-engine/engine";
+import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
+
 import { ContextMemoryManager } from "../context-memory-manager";
 import { agentReviewLogger } from "../paste-classifier-config";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import { pipelineRecorder } from "../pipeline-recorder";
 import { retroactiveCorrectionPass } from "../retroactive-corrector";
 import {
@@ -29,15 +35,6 @@ import {
   type SequenceOptimizationResult,
 } from "../structural-sequence-optimizer";
 
-import {
-  applyPreRenderActions,
-  collectTracesFromMap,
-} from "@editor/suspicion-engine/adapters/from-classifier";
-import { createDefaultSuspicionEngine } from "@editor/suspicion-engine/engine";
-import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
-
-import type { DocumentContextGraph } from "../document-context-graph";
-
 import { PIPELINE_FLAGS } from "./constants";
 import { recordStageVotes, toRepairRecords } from "./trace-helpers";
 import {
@@ -45,6 +42,8 @@ import {
   pickSuspicionPolicyProfile,
 } from "./utils/source-mapping";
 
+import type { DocumentContextGraph } from "../document-context-graph";
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import type {
   ClassifiedDraftPipelineState,
   ClassifyLinesContext,

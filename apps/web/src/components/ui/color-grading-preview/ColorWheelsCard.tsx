@@ -25,7 +25,9 @@ export function ColorWheelsCard({ grade, onUpdate }: ColorWheelsCardProps) {
         <div className="grid grid-cols-3 gap-3">
           {COLOR_WHEELS.map(({ key, label }) => (
             <div key={key} className="text-center">
-              <div
+              <button
+                type="button"
+                aria-label={`تعديل لون ${label}`}
                 className="w-12 h-12 mx-auto rounded-full border-2 border-zinc-700 relative cursor-pointer"
                 style={{
                   background:
@@ -51,7 +53,7 @@ export function ColorWheelsCard({ grade, onUpdate }: ColorWheelsCardProps) {
                     `,
                   }}
                 />
-              </div>
+              </button>
               <span className="text-xs text-zinc-500 mt-1 block">{label}</span>
             </div>
           ))}

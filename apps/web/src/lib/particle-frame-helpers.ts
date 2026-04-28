@@ -113,14 +113,23 @@ export const calculateParticleColor = (
 /**
  * Apply particle effect using lookup strategy.
  */
-export const applyParticleEffect = (
-  effect: ParticleEffect,
-  position: ParticlePosition,
-  intersection: THREE.Vector3,
-  velocity: ParticleVelocity,
-  config: EffectConfig,
-  time: number
-): ParticleVelocity => {
+interface ApplyParticleEffectInput {
+  config: EffectConfig;
+  effect: ParticleEffect;
+  intersection: THREE.Vector3;
+  position: ParticlePosition;
+  time: number;
+  velocity: ParticleVelocity;
+}
+
+export const applyParticleEffect = ({
+  config,
+  effect,
+  intersection,
+  position,
+  time,
+  velocity,
+}: ApplyParticleEffectInput): ParticleVelocity => {
   const intersectionPoint = {
     x: intersection.x,
     y: intersection.y,

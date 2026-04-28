@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm';
-import { authenticator } from 'otplib';
-import * as QRCode from 'qrcode';
+import { eq } from "drizzle-orm";
+import { authenticator } from "otplib";
+import * as QRCode from "qrcode";
 
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from "@/db";
+import { users } from "@/db/schema";
 
 // Configure authenticator options
 authenticator.options = {
@@ -24,7 +24,7 @@ export interface MFAVerifyResult {
 }
 
 export class MFAService {
-  private readonly APP_NAME = 'TheCopy';
+  private readonly APP_NAME = "TheCopy";
 
   /**
    * Enable MFA for a user - generates secret and QR code
@@ -33,14 +33,18 @@ export class MFAService {
    */
   async enableMFA(userId: string): Promise<MFASetupResult> {
     // Get user to check if MFA is already enabled
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
-      throw new Error('المستخدم غير موجود');
+      throw new Error("المستخدم غير موجود");
     }
 
     if (user.mfaEnabled) {
-      throw new Error('المصادقة الثنائية مفعلة بالفعل');
+      throw new Error("المصادقة الثنائية مفعلة بالفعل");
     }
 
     // Generate new secret
@@ -76,14 +80,18 @@ export class MFAService {
    * @returns Verification result
    */
   async verifyMFA(userId: string, token: string): Promise<MFAVerifyResult> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
-      throw new Error('المستخدم غير موجود');
+      throw new Error("المستخدم غير موجود");
     }
 
     if (!user.mfaSecret) {
-      throw new Error('لم يتم إعداد المصادقة الثنائية');
+      throw new Error("لم يتم إعداد المصادقة الثنائية");
     }
 
     // Verify the token
@@ -95,7 +103,7 @@ export class MFAService {
     if (!isValid) {
       return {
         success: false,
-        message: 'رمز التحقق غير صحيح',
+        message: "رمز التحقق غير صحيح",
       };
     }
 
@@ -112,7 +120,7 @@ export class MFAService {
 
     return {
       success: true,
-      message: 'تم التحقق بنجاح',
+      message: "تم التحقق بنجاح",
     };
   }
 
@@ -121,14 +129,18 @@ export class MFAService {
    * @param userId - The user's ID
    */
   async disableMFA(userId: string): Promise<void> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
-      throw new Error('المستخدم غير موجود');
+      throw new Error("المستخدم غير موجود");
     }
 
     if (!user.mfaEnabled) {
-      throw new Error('المصادقة الثنائية غير مفعلة');
+      throw new Error("المصادقة الثنائية غير مفعلة");
     }
 
     // Clear MFA data
@@ -148,10 +160,14 @@ export class MFAService {
    * @returns Whether MFA is enabled
    */
   async isMFAEnabled(userId: string): Promise<boolean> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
-      throw new Error('المستخدم غير موجود');
+      throw new Error("المستخدم غير موجود");
     }
 
     return user.mfaEnabled;
@@ -164,7 +180,11 @@ export class MFAService {
    * @returns Whether the token is valid
    */
   async validateToken(userId: string, token: string): Promise<boolean> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user?.mfaSecret || !user.mfaEnabled) {
       return false;

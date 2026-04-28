@@ -3,11 +3,14 @@
  * @description بناء برومبتات توليد الميزانية وتحليل السيناريو.
  */
 
-import type { BudgetDocument } from './budget-types';
+import type { BudgetDocument } from "./budget-types";
 
 // ─── برومبت توليد الميزانية ───────────────────────────────────────
 
-export function buildBudgetPrompt(scenario: string, template: BudgetDocument): string {
+export function buildBudgetPrompt(
+  scenario: string,
+  template: BudgetDocument,
+): string {
   return `You are a senior film line producer. Analyze the screenplay and return ONLY valid JSON that matches the provided budget structure.
 
 Requirements:

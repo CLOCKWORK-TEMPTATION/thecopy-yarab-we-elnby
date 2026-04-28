@@ -19,10 +19,12 @@ const {
 vi.mock("@/services/rag/embeddings.service", () => ({
   embeddingsService: {
     getEmbedding: vi.fn((text: string) =>
-      Array.from({ length: 4 }, (_, index) => text.length + index)
+      Array.from({ length: 4 }, (_, index) => text.length + index),
     ),
     getEmbeddingsBatch: vi.fn((texts: string[]) =>
-      texts.map((text) => Array.from({ length: 4 }, (_, index) => text.length + index))
+      texts.map((text) =>
+        Array.from({ length: 4 }, (_, index) => text.length + index),
+      ),
     ),
   },
 }));
@@ -84,7 +86,7 @@ describe("WeaviateIndexingService", () => {
 
   it("should index an ad hoc document through batch insert", async () => {
     const result = await weaviateIndexingService.indexAdHocDocument(
-      "هذه فقرة أولى. وهذه فقرة ثانية مرتبطة بها. وهذه فقرة ثالثة طويلة بما يكفي."
+      "هذه فقرة أولى. وهذه فقرة ثانية مرتبطة بها. وهذه فقرة ثالثة طويلة بما يكفي.",
     );
 
     expect(result.documentHash).toBeTruthy();
@@ -98,7 +100,7 @@ describe("WeaviateIndexingService", () => {
             documentHash: result.documentHash,
           }),
         }),
-      ])
+      ]),
     );
   });
 

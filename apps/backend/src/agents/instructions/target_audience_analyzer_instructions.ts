@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const targetAudienceAnalyzerInstructions = `
 تحليل الجمهور المستهدف:
@@ -46,6 +46,6 @@ export const targetAudienceAnalyzerAgentConfig: AIAgentConfig = {
     "تحليل الخصائص الديموغرافية",
     "تقييم ملاءمة المحتوى",
     "التنبؤ بمستوى التفاعل",
-    "تقييم الجاذبية عبر الفئات"
-  ]
+    "تقييم الجاذبية عبر الفئات",
+  ],
 };

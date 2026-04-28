@@ -10,6 +10,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import {
+  exportToJSON,
+  exportToMarkdown,
+  copyToClipboard,
+} from "../../../lib/export";
 import { ExportControls } from "../ExportControls";
 import { FinalResult } from "../FinalResult";
 import { PhaseProgress } from "../PhaseProgress";
@@ -22,12 +27,6 @@ vi.mock("../../../lib/export", () => ({
   exportToMarkdown: vi.fn(),
   copyToClipboard: vi.fn(),
 }));
-
-import {
-  exportToJSON,
-  exportToMarkdown,
-  copyToClipboard,
-} from "../../../lib/export";
 
 const mockExportToJSON = vi.mocked(exportToJSON);
 const mockExportToMarkdown = vi.mocked(exportToMarkdown);
@@ -213,6 +212,7 @@ describe("Brain Storm AI Integration Tests", () => {
 
       // يجب أن يكون هناك عنصر متحرك للتحميل
       // هذا قد يحتاج إلى اختبار أكثر تحديداً
+      expect(screen.getByText("التحليل الأولي")).toBeInTheDocument();
     });
   });
 
@@ -275,7 +275,7 @@ describe("Brain Storm AI Integration Tests", () => {
       const jsonButton = screen.getByRole("button", { name: /JSON/i });
       fireEvent.click(jsonButton);
 
-      await screen.findByText("فشل في التصدير");
+      expect(await screen.findByText("فشل في التصدير")).toBeInTheDocument();
     });
 
     it("ينفذ نسخ إلى الحافظة", async () => {

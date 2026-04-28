@@ -4,7 +4,7 @@
 import { PALETTES, THEME_RELATIONS, VR_INTERACTIONS } from "./constants";
 
 export function getPaletteForTheme(theme: string): string[] {
-  return PALETTES[theme.toLowerCase()] ?? PALETTES.default;
+  return PALETTES[theme.toLowerCase()] ?? PALETTES["default"];
 }
 
 export function suggestComplementaryColors(palette: string[]): string[] {

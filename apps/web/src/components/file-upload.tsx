@@ -246,11 +246,7 @@ export default function FileUpload({
     <div className={`space-y-4 ${className}`}>
       {/* Upload Area */}
       <Card
-        className={`border-2 border-dashed transition-colors ${
-          isDragging
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
-        }`}
+        className={`border-2 border-dashed transition-colors ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

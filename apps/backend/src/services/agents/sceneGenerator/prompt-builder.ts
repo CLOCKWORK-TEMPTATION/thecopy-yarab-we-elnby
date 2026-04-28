@@ -1,16 +1,10 @@
-
 import { formatCharacter, summarizeScene } from "./formatUtils";
 import {
   translateConflictLevel,
   translateEmotionalTone,
   translateSceneType,
 } from "./translationHelpers";
-import {
-  asJsonRecord,
-  asString,
-  asStringArray,
-  asUnknownArray,
-} from "./types";
+import { asJsonRecord, asString, asStringArray, asUnknownArray } from "./types";
 
 import type { StandardAgentInput } from "../shared/standardAgentPattern";
 
@@ -21,7 +15,7 @@ function buildOriginalTextSection(text: string): string {
 function buildSpecsSection(
   sceneType: string,
   tone: string,
-  conflict: string
+  conflict: string,
 ): string {
   let section = `مواصفات المشهد:\n`;
   section += `- نوع المشهد: ${translateSceneType(sceneType)}\n`;

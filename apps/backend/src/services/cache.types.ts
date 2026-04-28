@@ -3,7 +3,7 @@
  * @description أنواع وواجهات خدمة الكاش متعددة الطبقات.
  */
 
-import { createClient } from 'redis';
+import { createClient } from "redis";
 
 export interface CacheEntry<T> {
   data: T;
@@ -12,7 +12,7 @@ export interface CacheEntry<T> {
 }
 
 export interface RedisHealthStatus {
-  status: 'connected' | 'disconnected' | 'error';
+  status: "connected" | "disconnected" | "error";
   lastCheck: number;
   consecutiveFailures: number;
 }
@@ -41,7 +41,9 @@ export interface RedisRetryOptions {
   attempt: number;
 }
 
-export type CacheRedisConfig = NonNullable<Parameters<typeof createClient>[0]> & {
+export type CacheRedisConfig = NonNullable<
+  Parameters<typeof createClient>[0]
+> & {
   host?: string;
   port?: number;
   password?: string;

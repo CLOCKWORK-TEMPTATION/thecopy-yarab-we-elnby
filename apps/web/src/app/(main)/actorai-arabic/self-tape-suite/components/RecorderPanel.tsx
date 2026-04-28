@@ -11,8 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { EMPTY_CAPTIONS_TRACK } from "./constants";
 import { formatRecordedAt, formatTime, getScoreColor } from "./utils";
+
 import type { Take } from "./types";
 
 interface RecorderPanelProps {

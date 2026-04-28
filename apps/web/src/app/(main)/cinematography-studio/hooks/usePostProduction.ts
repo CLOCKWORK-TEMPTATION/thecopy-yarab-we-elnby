@@ -376,7 +376,7 @@ export function usePostProduction(mood: VisualMood = "noir") {
     return Object.values(analysisStatus).every(
       (status) => status === "complete"
     );
-  }, [footage.analysisStatus]);
+  }, [footage]);
 
   const temperatureValue = useMemo(
     () => [colorGrading.temperature],

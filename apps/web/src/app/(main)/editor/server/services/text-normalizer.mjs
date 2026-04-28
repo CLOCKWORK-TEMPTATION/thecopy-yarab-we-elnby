@@ -18,8 +18,7 @@ export const stripAsciiControlChars = (value, options = {}) => {
   const text = String(value ?? "");
   let cleaned = "";
 
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i];
+  for (const ch of text) {
     const code = ch.charCodeAt(0);
     const isAsciiControl = code <= 0x1f || code === 0x7f;
 

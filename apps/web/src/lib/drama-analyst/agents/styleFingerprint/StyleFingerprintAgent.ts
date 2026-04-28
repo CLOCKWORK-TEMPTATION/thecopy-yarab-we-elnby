@@ -62,7 +62,7 @@ export class StyleFingerprintAgent extends BaseAgent {
     }
 
     prompt += `مستوى العمق: ${this.translateDepth(analysisDepth)}\n`;
-    prompt += `مجالات التركيز: ${focusAreas.map(this.translateFocusArea).join("، ")}\n\n`;
+    prompt += `مجالات التركيز: ${focusAreas.map((area) => this.translateFocusArea(area)).join("، ")}\n\n`;
 
     if (compareWithText) {
       prompt += `نص للمقارنة:\n${compareWithText.substring(0, 1000)}...\n\n`;

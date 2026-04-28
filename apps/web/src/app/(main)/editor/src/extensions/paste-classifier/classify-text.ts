@@ -5,11 +5,10 @@
  * تستدعي classifyLines ثم تطبّق agentReview الاختياري.
  */
 
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
-
 import { applyAgentReview } from "./agent-review";
 import { classifyLines } from "./classify-lines";
 
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import type { ClassifyLinesContext } from "./types";
 
 /**

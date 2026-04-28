@@ -1,12 +1,15 @@
-import { env } from '@/config/env';
-import { logger } from '@/lib/logger';
-import { createRoomName, RealtimeEventType, WebSocketRoom } from '@/types/realtime.types';
-import { trackWebSocketAuth } from '@/utils/connectivity-telemetry';
+import { env } from "@/config/env";
+import { logger } from "@/lib/logger";
+import {
+  createRoomName,
+  RealtimeEventType,
+  WebSocketRoom,
+} from "@/types/realtime.types";
+import { trackWebSocketAuth } from "@/utils/connectivity-telemetry";
 
-import { authService } from './auth.service';
+import { authService } from "./auth.service";
 
-
-import type { AuthenticatedSocket } from './websocket-types';
+import type { AuthenticatedSocket } from "./websocket-types";
 
 /**
  * Set authentication expiry on socket
@@ -15,7 +18,7 @@ export function setAuthExpiry(
   socket: AuthenticatedSocket,
   expSeconds?: number,
 ): void {
-  if (typeof expSeconds === 'number') {
+  if (typeof expSeconds === "number") {
     socket.authExpiresAtMs = expSeconds * 1000;
     return;
   }
@@ -31,7 +34,7 @@ export function setAuthExpiry(
  */
 export function handleAuthentication(
   socket: AuthenticatedSocket,
-  data: { token?: string; userId?: string }
+  data: { token?: string; userId?: string },
 ): void {
   if (data.token) {
     try {
@@ -43,10 +46,10 @@ export function handleAuthentication(
       const userRoom = createRoomName(WebSocketRoom.USER, verified.userId);
       void socket.join(userRoom);
 
-      trackWebSocketAuth('ws:auth:event_success', {
+      trackWebSocketAuth("ws:auth:event_success", {
         socketId: socket.id,
         userId: verified.userId,
-        authMethod: 'event',
+        authMethod: "event",
       });
 
       if (socket.authExpiresAtMs) {
@@ -54,61 +57,62 @@ export function handleAuthentication(
       }
 
       socket.emit(RealtimeEventType.AUTHENTICATED, {
-        message: 'Authenticated successfully',
+        message: "Authenticated successfully",
         userId: verified.userId,
         timestamp: new Date().toISOString(),
       });
       return;
     } catch {
-      trackWebSocketAuth('ws:auth:denied', {
+      trackWebSocketAuth("ws:auth:denied", {
         socketId: socket.id,
-        reason: 'invalid_token',
+        reason: "invalid_token",
       });
-      socket.emit('auth_error', {
-        reason: 'invalid_token',
-        message: 'Authentication failed. Please sign in again.',
+      socket.emit("auth_error", {
+        reason: "invalid_token",
+        message: "Authentication failed. Please sign in again.",
       });
       socket.disconnect(true);
       return;
     }
   }
 
-  const remoteAddress = socket.handshake.address || socket.conn.remoteAddress || '';
+  const remoteAddress =
+    socket.handshake.address || socket.conn.remoteAddress || "";
   const isLoopback =
-    remoteAddress.includes('127.0.0.1') ||
-    remoteAddress.includes('::1') ||
-    remoteAddress.includes('localhost');
+    remoteAddress.includes("127.0.0.1") ||
+    remoteAddress.includes("::1") ||
+    remoteAddress.includes("localhost");
 
-  if (env.NODE_ENV === 'development' && data.userId && isLoopback) {
+  if (env.NODE_ENV === "development" && data.userId && isLoopback) {
     socket.userId = data.userId;
     socket.authenticated = true;
-    trackWebSocketAuth('ws:auth:dev_fallback', {
+    trackWebSocketAuth("ws:auth:dev_fallback", {
       socketId: socket.id,
       userId: data.userId,
-      authMethod: 'dev-fallback',
-      reason: 'dev_localhost_fallback',
+      authMethod: "dev-fallback",
+      reason: "dev_localhost_fallback",
     });
 
     // Join user-specific room
     const userRoom = createRoomName(WebSocketRoom.USER, data.userId);
     void socket.join(userRoom);
 
-    logger.warn('[WebSocket] Development fallback auth used');
+    logger.warn("[WebSocket] Development fallback auth used");
 
     socket.emit(RealtimeEventType.AUTHENTICATED, {
-      message: 'Authenticated successfully',
+      message: "Authenticated successfully",
       userId: data.userId,
       timestamp: new Date().toISOString(),
     });
   } else {
-    logger.warn('[WebSocket] Authentication failed');
-    trackWebSocketAuth('ws:auth:denied', {
+    logger.warn("[WebSocket] Authentication failed");
+    trackWebSocketAuth("ws:auth:denied", {
       socketId: socket.id,
-      reason: 'missing_token',
+      reason: "missing_token",
     });
-    socket.emit('auth_error', {
-      reason: 'missing_token',
-      message: 'Authentication required.',
+    socket.emit("auth_error", {
+      reason: "missing_token",
+      message: "Authentication required.",
     });
     socket.disconnect(true);
   }
@@ -117,11 +121,14 @@ export function handleAuthentication(
 /**
  * Handle token refresh
  */
-export function handleTokenRefresh(socket: AuthenticatedSocket, data: { token?: string }): void {
+export function handleTokenRefresh(
+  socket: AuthenticatedSocket,
+  data: { token?: string },
+): void {
   if (!data?.token) {
-    socket.emit('auth_error', {
-      reason: 'missing_token',
-      message: 'Authentication required.',
+    socket.emit("auth_error", {
+      reason: "missing_token",
+      message: "Authentication required.",
     });
     return;
   }
@@ -136,15 +143,15 @@ export function handleTokenRefresh(socket: AuthenticatedSocket, data: { token?: 
       scheduleSessionExpiry(socket, socket.authExpiresAtMs);
     }
 
-    socket.emit('token:refreshed', {
+    socket.emit("token:refreshed", {
       userId: verified.userId,
-      message: 'Token refreshed successfully',
+      message: "Token refreshed successfully",
       timestamp: new Date().toISOString(),
     });
   } catch {
-    socket.emit('auth_error', {
-      reason: 'invalid_token',
-      message: 'Authentication failed. Please sign in again.',
+    socket.emit("auth_error", {
+      reason: "invalid_token",
+      message: "Authentication failed. Please sign in again.",
     });
   }
 }
@@ -152,14 +159,17 @@ export function handleTokenRefresh(socket: AuthenticatedSocket, data: { token?: 
 /**
  * Schedule session expiry
  */
-export function scheduleSessionExpiry(socket: AuthenticatedSocket, expiresAtMs: number): void {
+export function scheduleSessionExpiry(
+  socket: AuthenticatedSocket,
+  expiresAtMs: number,
+): void {
   const timeoutMs = Math.max(expiresAtMs - Date.now(), 1000);
   clearSessionExpiry(socket.id);
 
   const timer = setTimeout(() => {
-    socket.emit('auth_error', {
-      reason: 'session_expired',
-      message: 'Session expired. Please sign in again.',
+    socket.emit("auth_error", {
+      reason: "session_expired",
+      message: "Session expired. Please sign in again.",
     });
     socket.disconnect(true);
   }, timeoutMs);

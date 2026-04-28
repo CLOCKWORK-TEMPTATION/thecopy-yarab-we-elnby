@@ -8,6 +8,8 @@ import type {
   CastAnalysisResult,
 } from "../../domain/models";
 
+export type { CastMember, ExtendedCastMember, CastAnalysisResult };
+
 export type SortField = "name" | "role" | "age" | "gender" | "dialogueCount";
 
 export type FilterRole =

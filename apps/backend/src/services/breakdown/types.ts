@@ -1,13 +1,13 @@
-export type SceneType = 'INT' | 'EXT';
+export type SceneType = "INT" | "EXT";
 
 export type TimeOfDay =
-  | 'DAY'
-  | 'NIGHT'
-  | 'DAWN'
-  | 'DUSK'
-  | 'MORNING'
-  | 'EVENING'
-  | 'UNKNOWN';
+  | "DAY"
+  | "NIGHT"
+  | "DAWN"
+  | "DUSK"
+  | "MORNING"
+  | "EVENING"
+  | "UNKNOWN";
 
 export interface SceneHeader {
   sceneNumber: number;
@@ -133,7 +133,7 @@ export interface BreakdownSceneAnalysis {
   stats: SceneStats;
   warnings: string[];
   summary: string;
-  source: 'ai' | 'fallback';
+  source: "ai" | "fallback";
 }
 
 export interface ShootingScheduleItem {
@@ -171,7 +171,7 @@ export interface BreakdownReport {
   title: string;
   generatedAt: string;
   updatedAt: string;
-  source: 'backend-breakdown';
+  source: "backend-breakdown";
   summary: string;
   warnings: string[];
   sceneCount: number;

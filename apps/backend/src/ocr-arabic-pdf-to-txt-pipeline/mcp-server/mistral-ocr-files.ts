@@ -20,7 +20,7 @@ export async function uploadPdfForOcr(pdfPath: string): Promise<string> {
   form.append(
     "file",
     new Blob([pdfBytes], { type: "application/pdf" }),
-    path.basename(pdfPath)
+    path.basename(pdfPath),
   );
 
   const upload = await mistralRequestJson("POST", "/files", form);
@@ -107,16 +107,13 @@ export async function deleteMistralFile(fileId: string): Promise<void> {
     return;
   }
   try {
-    await mistralRequestJson(
-      "DELETE",
-      `/files/${encodeURIComponent(fileId)}`
-    );
+    await mistralRequestJson("DELETE", `/files/${encodeURIComponent(fileId)}`);
   } catch (cleanupError) {
     log(
       "WARN",
       "تعذر حذف ملف OCR المؤقت من Mistral (%s): %s",
       fileId,
-      String(cleanupError)
+      String(cleanupError),
     );
   }
 }

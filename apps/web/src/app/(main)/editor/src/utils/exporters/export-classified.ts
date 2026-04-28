@@ -43,9 +43,7 @@ const normalizeText = (text: string): string => {
 export const generateClassifiedText = (blocks: ScreenplayBlock[]): string => {
   const lines: string[] = [];
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
-    if (!block) continue;
+  for (const block of blocks) {
     const text = normalizeText(block.text);
     if (!text) continue;
 

@@ -46,7 +46,7 @@ export class DialogueForensicsAgent extends BaseAgent {
     super(
       "DialogueForensics AI",
       TaskType.DIALOGUE_FORENSICS,
-      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt ?? ""
+      DIALOGUE_FORENSICS_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.83;
@@ -63,7 +63,11 @@ export class DialogueForensicsAgent extends BaseAgent {
     let prompt = `مهمة تشريح وتحليل الحوار الدرامي\n\n`;
     prompt += this.buildDialogueContextSection(ctx);
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
-    prompt += this.buildDialogueInstructions(analyzePatterns, identifyProblems, provideRecommendations);
+    prompt += this.buildDialogueInstructions(
+      analyzePatterns,
+      identifyProblems,
+      provideRecommendations,
+    );
 
     return prompt;
   }
@@ -71,12 +75,18 @@ export class DialogueForensicsAgent extends BaseAgent {
   /**
    * Build context section for dialogue forensics prompt
    */
-  private buildDialogueContextSection(ctx: DialogueForensicsContext | undefined): string {
+  private buildDialogueContextSection(
+    ctx: DialogueForensicsContext | undefined,
+  ): string {
     let section = "";
     const originalText = ctx?.originalText ?? "";
     const characters = ctx?.characters ?? [];
     const dialogueSamples = ctx?.dialogueSamples ?? [];
-    const focusAreas = ctx?.focusAreas ?? ["authenticity", "subtext", "character-voice"];
+    const focusAreas = ctx?.focusAreas ?? [
+      "authenticity",
+      "subtext",
+      "character-voice",
+    ];
 
     if (originalText) {
       section += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
@@ -91,12 +101,14 @@ export class DialogueForensicsAgent extends BaseAgent {
   /**
    * Format characters list for dialogue prompt
    */
-  private formatDialogueCharacters(characters: (string | DialogueCharacter)[]): string {
+  private formatDialogueCharacters(
+    characters: (string | DialogueCharacter)[],
+  ): string {
     if (characters.length === 0) return "";
     let result = `الشخصيات في الحوار:\n`;
     characters.slice(0, 6).forEach((char, idx) => {
       const charName =
-        typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+        typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
       result += `${idx + 1}. ${charName}\n`;
     });
     return result + "\n";
@@ -126,7 +138,11 @@ export class DialogueForensicsAgent extends BaseAgent {
     instructions += `تحديد المشاكل: ${identifyProblems ? "نعم" : "لا"}\n`;
     instructions += `تقديم توصيات: ${provideRecommendations ? "نعم" : "لا"}\n\n`;
     instructions += this.getBaseDialogueInstructions();
-    instructions += this.getOptionalDialogueSections(analyzePatterns, identifyProblems, provideRecommendations);
+    instructions += this.getOptionalDialogueSections(
+      analyzePatterns,
+      identifyProblems,
+      provideRecommendations,
+    );
     instructions += this.getDialogueClosingInstructions();
     return instructions;
   }
@@ -211,7 +227,7 @@ export class DialogueForensicsAgent extends BaseAgent {
   }
 
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     const processedText = cleanupDialogueText(output.text);
 
@@ -237,7 +253,7 @@ export class DialogueForensicsAgent extends BaseAgent {
         authenticity,
         characterization,
         functionality,
-        technicalQuality
+        technicalQuality,
       ),
       metadata: {
         ...output.metadata,
@@ -256,7 +272,7 @@ export class DialogueForensicsAgent extends BaseAgent {
   }
 
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`نظرة عامة:
 الحوار في النص يحتاج إلى تقييم شامل للأصالة والوظيفة الدرامية.

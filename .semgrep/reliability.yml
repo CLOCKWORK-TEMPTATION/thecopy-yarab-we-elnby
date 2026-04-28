@@ -12,11 +12,11 @@ rules:
         - /packages/**/*.ts
         - /packages/**/*.tsx
       exclude:
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
-        - '**/scripts/**'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
+        - "**/scripts/**"
     patterns:
       - pattern: process.env.$VAR
       - metavariable-regex:
@@ -51,13 +51,13 @@ rules:
         - /apps/backend/src/services/cache.service.ts
         - /apps/backend/src/ocr-arabic-pdf-to-txt-pipeline/**
         - /packages/shared/src/cache/redis.ts
-        - '**/*.test.ts'
-        - '**/*.spec.ts'
-        - '**/*.example.ts'
-        - '**/scripts/**'
-        - '**/skill-scripts/**'
-        - '**/mcp-server/**'
-        - '**/ocr-arabic-pdf-to-txt-pipeline/**'
+        - "**/*.test.ts"
+        - "**/*.spec.ts"
+        - "**/*.example.ts"
+        - "**/scripts/**"
+        - "**/skill-scripts/**"
+        - "**/mcp-server/**"
+        - "**/ocr-arabic-pdf-to-txt-pipeline/**"
     pattern-either:
       - pattern: console.log(...)
       - pattern: console.error(...)
@@ -104,15 +104,15 @@ rules:
         - /apps/web/src/lib/web-vitals.ts
         - /apps/web/src/components/**
         - /apps/web/src/hooks/**
-        - '**/*.test.ts'
-        - '**/*.test.tsx'
-        - '**/*.spec.ts'
-        - '**/*.spec.tsx'
-        - '**/*.example.ts'
-        - '**/*.example.tsx'
-        - '**/scripts/**'
-        - '**/skill-scripts/**'
-        - '**/mcp-server/**'
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/*.spec.tsx"
+        - "**/*.example.ts"
+        - "**/*.example.tsx"
+        - "**/scripts/**"
+        - "**/skill-scripts/**"
+        - "**/mcp-server/**"
     pattern-either:
       - pattern: console.log(...)
       - pattern: console.error(...)

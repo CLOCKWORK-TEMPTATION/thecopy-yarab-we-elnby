@@ -6,7 +6,7 @@ declare module "mammoth" {
 
   export function extractRawText(input: {
     path?: string;
-    buffer?: Uint8Array | ArrayBuffer | unknown;
+    buffer?: unknown;
     arrayBuffer?: ArrayBuffer;
   }): Promise<ExtractRawTextResult>;
 

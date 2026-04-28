@@ -11,38 +11,40 @@
  * لضمان بقاء الحالة عبر إعادة التشغيل وعدم تضاربها مع تخزين الويب المحلي.
  */
 
-import { Request, Response } from 'express';
-import { z } from 'zod';
+import { Request, Response } from "express";
+import { z } from "zod";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 import {
   clearAppState,
   readAppState,
   saveAppState,
-} from '@/services/app-state.service';
+} from "@/services/app-state.service";
 
 /** معرّفات التطبيقات المسموح بها */
 const VALID_APP_IDS = new Set([
-  'BREAKAPP',
-  'BUDGET',
-  'actorai-arabic',
-  'actorai-arabic-self-tape',
-  'analysis',
-  'art-director',
-  'arabic-creative-writing-studio',
-  'arabic-prompt-engineering-studio',
-  'brain-storm-ai',
-  'breakdown',
-  'cinematography-studio',
-  'development',
-  'directors-studio',
-  'editor',
-  'styleIST',
+  "BREAKAPP",
+  "BUDGET",
+  "actorai-arabic",
+  "actorai-arabic-self-tape",
+  "analysis",
+  "art-director",
+  "arabic-creative-writing-studio",
+  "arabic-prompt-engineering-studio",
+  "brain-storm-ai",
+  "breakdown",
+  "cinematography-studio",
+  "development",
+  "directors-studio",
+  "editor",
+  "styleIST",
 ]);
 
-const appStateBodySchema = z.object({
-  data: z.record(z.string(), z.unknown()),
-}).passthrough();
+const appStateBodySchema = z
+  .object({
+    data: z.record(z.string(), z.unknown()),
+  })
+  .passthrough();
 
 /**
  * التحقق من صحة معرّف التطبيق
@@ -52,11 +54,10 @@ function isValidAppId(appId: string): boolean {
 }
 
 function getAppIdParam(req: Request): string | null {
-  return typeof req.params["appId"] === 'string' ? req.params["appId"] : null;
+  return typeof req.params["appId"] === "string" ? req.params["appId"] : null;
 }
 
 export class AppStateController {
-
   /**
    * GET /api/app-state/:appId
    * استرجاع حالة التطبيق المحفوظة
@@ -69,7 +70,7 @@ export class AppStateController {
         res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
-          code: 'INVALID_APP_ID',
+          code: "INVALID_APP_ID",
         });
         return;
       }
@@ -92,13 +93,13 @@ export class AppStateController {
         updatedAt: stored.updatedAt,
       });
 
-      logger.debug('تم استرجاع حالة التطبيق', { appId });
+      logger.debug("تم استرجاع حالة التطبيق", { appId });
     } catch (error) {
-      logger.error('فشل في استرجاع حالة التطبيق:', error);
+      logger.error("فشل في استرجاع حالة التطبيق:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في استرجاع حالة التطبيق',
-        code: 'STATE_FETCH_FAILED',
+        error: "فشل في استرجاع حالة التطبيق",
+        code: "STATE_FETCH_FAILED",
       });
     }
   }
@@ -115,7 +116,7 @@ export class AppStateController {
         res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
-          code: 'INVALID_APP_ID',
+          code: "INVALID_APP_ID",
         });
         return;
       }
@@ -124,8 +125,8 @@ export class AppStateController {
       if (!validation.success) {
         res.status(400).json({
           success: false,
-          error: 'البيانات مطلوبة ويجب أن تكون كائناً',
-          code: 'INVALID_DATA',
+          error: "البيانات مطلوبة ويجب أن تكون كائناً",
+          code: "INVALID_DATA",
         });
         return;
       }
@@ -139,13 +140,16 @@ export class AppStateController {
         updatedAt: newState.updatedAt,
       });
 
-      logger.debug('تم حفظ حالة التطبيق', { appId, updatedAt: newState.updatedAt });
+      logger.debug("تم حفظ حالة التطبيق", {
+        appId,
+        updatedAt: newState.updatedAt,
+      });
     } catch (error) {
-      logger.error('فشل في حفظ حالة التطبيق:', error);
+      logger.error("فشل في حفظ حالة التطبيق:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في حفظ حالة التطبيق',
-        code: 'STATE_SAVE_FAILED',
+        error: "فشل في حفظ حالة التطبيق",
+        code: "STATE_SAVE_FAILED",
       });
     }
   }
@@ -162,7 +166,7 @@ export class AppStateController {
         res.status(400).json({
           success: false,
           error: `معرّف التطبيق غير صالح: ${appId}`,
-          code: 'INVALID_APP_ID',
+          code: "INVALID_APP_ID",
         });
         return;
       }
@@ -175,13 +179,13 @@ export class AppStateController {
         updatedAt: envelope.updatedAt,
       });
 
-      logger.debug('تم مسح حالة التطبيق', { appId });
+      logger.debug("تم مسح حالة التطبيق", { appId });
     } catch (error) {
-      logger.error('فشل في مسح حالة التطبيق:', error);
+      logger.error("فشل في مسح حالة التطبيق:", error);
       res.status(500).json({
         success: false,
-        error: 'فشل في مسح حالة التطبيق',
-        code: 'STATE_CLEAR_FAILED',
+        error: "فشل في مسح حالة التطبيق",
+        code: "STATE_CLEAR_FAILED",
       });
     }
   }

@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { platformGenAIService } from '@/services/platform-genai.service';
+import { platformGenAIService } from "@/services/platform-genai.service";
 
 // عقد المدخلات والمخرجات الصارم لخدمة CineAI.
 // تم استبدال `Record<string, any>` بـ schemas محكمة عبر zod مع type-guards.
@@ -89,7 +89,9 @@ function extractJsonCandidate(text: string): unknown {
     }
   }
 
-  throw new Error("The AI provider returned an invalid shot validation payload.");
+  throw new Error(
+    "The AI provider returned an invalid shot validation payload.",
+  );
 }
 
 function parseShotValidationPayload(text: string): ShotValidationResult {
@@ -97,7 +99,7 @@ function parseShotValidationPayload(text: string): ShotValidationResult {
   const result = shotValidationResultSchema.safeParse(candidate);
   if (!result.success) {
     throw new Error(
-      `Shot validation payload failed schema validation: ${result.error.message}`
+      `Shot validation payload failed schema validation: ${result.error.message}`,
     );
   }
   return result.data;
@@ -131,7 +133,7 @@ export class CineAIService {
           data: input.imageBase64!,
           mimeType: input.mimeType!,
         },
-        { temperature: 0.25, maxOutputTokens: 4096 }
+        { temperature: 0.25, maxOutputTokens: 4096 },
       );
 
       return parseShotValidationPayload(text);
@@ -165,16 +167,18 @@ ${JSON.stringify(input ?? {}, null, 2)}`;
     const validated = shotValidationResultSchema.safeParse(raw);
     if (!validated.success) {
       throw new Error(
-        `Shot validation prompt response failed schema validation: ${validated.error.message}`
+        `Shot validation prompt response failed schema validation: ${validated.error.message}`,
       );
     }
     return validated.data;
   }
 
   // توليد لوحة ألوان سينمائية مبنية على نوع المشهد والمزاج
-  async generateColorPalette(input: ColorGradingInput): Promise<ColorPaletteResult> {
+  async generateColorPalette(
+    input: ColorGradingInput,
+  ): Promise<ColorPaletteResult> {
     if (!input.sceneType?.trim()) {
-      throw new Error('Scene type is required.');
+      throw new Error("Scene type is required.");
     }
 
     const prompt = `You are a cinematic color grading expert.
@@ -200,7 +204,7 @@ ${JSON.stringify(input, null, 2)}`;
     const validated = colorPaletteResultSchema.safeParse(raw);
     if (!validated.success) {
       throw new Error(
-        `Color palette response failed schema validation: ${validated.error.message}`
+        `Color palette response failed schema validation: ${validated.error.message}`,
       );
     }
     return validated.data;

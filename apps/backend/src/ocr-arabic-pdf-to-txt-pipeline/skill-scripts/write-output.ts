@@ -12,7 +12,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { format as formatLogLine } from "node:util";
 
-
 function writeStdout(...args: unknown[]): void {
   process.stdout.write(formatLogLine(...args) + "\n");
 }
@@ -59,7 +58,7 @@ function parseArgs(): { input: string; format: OutputFormat; output: string } {
 
   if (!input || !output) {
     writeStderr(
-      "الاستخدام: npx tsx write-output.ts --input <json> --format <txt|txt-raw|md> --output <ملف>"
+      "الاستخدام: npx tsx write-output.ts --input <json> --format <txt|txt-raw|md> --output <ملف>",
     );
     process.exit(1);
   }
@@ -193,7 +192,7 @@ function main(): void {
       pages: data.pages.length,
       output_path: output,
       size_kb: sizeKb,
-    })
+    }),
   );
 }
 

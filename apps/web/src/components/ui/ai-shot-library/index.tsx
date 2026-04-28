@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import Image from "next/image";
+import { useState, useMemo } from "react";
 
 import {
   Dialog,
@@ -106,12 +107,15 @@ export function AIShotLibrary({
           <DialogHeader>
             <DialogTitle>{previewShot?.title}</DialogTitle>
           </DialogHeader>
-          <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+          <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
             {previewShot && (
-              <img
+              <Image
                 src={previewShot.thumbnail}
                 alt={previewShot.title}
-                className="w-full h-full object-cover"
+                fill
+                sizes="896px"
+                unoptimized
+                className="object-cover"
               />
             )}
           </div>

@@ -6,10 +6,10 @@ export const determineCoverageStatus = (commands, request) => {
   const resolvedItemIds = commands.map((c) => c.itemId);
   const resolvedSet = new Set(resolvedItemIds);
   const missingItemIds = request.requiredItemIds.filter(
-    (id) => !resolvedSet.has(id)
+    (id) => !resolvedSet.has(id),
   );
   const unresolvedForcedItemIds = request.forcedItemIds.filter(
-    (id) => !resolvedSet.has(id)
+    (id) => !resolvedSet.has(id),
   );
 
   let status;

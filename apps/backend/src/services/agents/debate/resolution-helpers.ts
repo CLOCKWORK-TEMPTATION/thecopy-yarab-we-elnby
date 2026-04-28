@@ -3,16 +3,16 @@
  * Extracted from resolution.ts to reduce file size
  */
 
-import { logger } from '@/lib/logger';
-import { geminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 
-import { DebateArgument } from './types';
+import { DebateArgument } from "./types";
 
 /**
  * حساب التوافق بناءً على تباين الثقة
  */
 export function calculateConfidenceAgreement(args: DebateArgument[]): number {
-  const confidences = args.map(arg => arg.confidence);
+  const confidences = args.map((arg) => arg.confidence);
   const avgConfidence =
     confidences.reduce((a, b) => a + b, 0) / confidences.length;
 
@@ -27,7 +27,7 @@ export function calculateConfidenceAgreement(args: DebateArgument[]): number {
  * حساب تشابه المواقف باستخدام الذكاء الاصطناعي
  */
 export async function calculatePositionSimilarity(
-  args: DebateArgument[]
+  args: DebateArgument[],
 ): Promise<number> {
   try {
     const prompt = `
@@ -38,9 +38,9 @@ ${args
     (arg, idx) => `
 ${idx + 1}. ${arg.agentName}:
 ${arg.position.substring(0, 300)}
-`
+`,
   )
-  .join('\n')}
+  .join("\n")}
 
 أعطِ فقط رقماً واحداً بين 0 و 1:
 - 1 = تطابق تام
@@ -65,7 +65,7 @@ ${arg.position.substring(0, 300)}
     return 0.5;
   } catch (error) {
     logger.error("فشل في حساب تشابه المواقف", {
-      error: error instanceof Error ? error.message : 'خطأ غير معروف',
+      error: error instanceof Error ? error.message : "خطأ غير معروف",
     });
     return 0.5;
   }
@@ -79,7 +79,7 @@ export function calculateEvidenceOverlap(args: DebateArgument[]): number {
     return 1;
   }
 
-  const allEvidence = args.flatMap(arg => arg.evidence);
+  const allEvidence = args.flatMap((arg) => arg.evidence);
 
   if (allEvidence.length === 0) {
     return 0.5;
@@ -99,8 +99,8 @@ export function calculateEvidenceOverlap(args: DebateArgument[]): number {
       const evidence1 = leftArgument.evidence;
       const evidence2 = rightArgument.evidence;
 
-      evidence1.forEach(e1 => {
-        evidence2.forEach(e2 => {
+      evidence1.forEach((e1) => {
+        evidence2.forEach((e2) => {
           totalComparisons++;
           if (areSimilar(e1, e2)) {
             overlapCount++;
@@ -124,17 +124,14 @@ function areSimilar(str1: string, str2: string): boolean {
   const normalized1 = str1.toLowerCase().trim();
   const normalized2 = str2.toLowerCase().trim();
 
-  if (
-    normalized1.includes(normalized2) ||
-    normalized2.includes(normalized1)
-  ) {
+  if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
     return true;
   }
 
   const words1 = normalized1.split(/\s+/);
   const words2 = normalized2.split(/\s+/);
 
-  const commonWords = words1.filter(w => words2.includes(w));
+  const commonWords = words1.filter((w) => words2.includes(w));
 
   return commonWords.length / Math.max(words1.length, words2.length) > 0.5;
 }
@@ -144,15 +141,15 @@ function areSimilar(str1: string, str2: string): boolean {
  */
 export function extractBulletPoints(text: string): string[] {
   const points: string[] = [];
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if ((/^[-*•]\s/.exec(trimmed)) || (/^\d+[.)]\s/.exec(trimmed))) {
+    if (/^[-*•]\s/.exec(trimmed) || /^\d+[.)]\s/.exec(trimmed)) {
       const point = trimmed
-        .replace(/^[-*•]\s/, '')
-        .replace(/^\d+[.)]\s/, '')
+        .replace(/^[-*•]\s/, "")
+        .replace(/^\d+[.)]\s/, "")
         .trim();
 
       if (point.length > 0) {

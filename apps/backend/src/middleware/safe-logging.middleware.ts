@@ -1,59 +1,63 @@
 /**
  * Safe Logging Middleware
  * منع تسريب المحتوى الحساس في Logs
- * 
+ *
  * المبادئ:
  * 1. لا logging للـ request/response bodies
  * 2. لا logging لأي محتوى نصي من السيناريوهات
  * 3. فقط metadata للأخطاء (بدون stack traces تحتوي محتوى)
  */
 
-import { logger } from '../utils/logger';
+import { logger } from "../utils/logger";
 
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from "express";
 
 /**
  * Sensitive fields to sanitize
  */
 const SENSITIVE_FIELDS = [
-  'password',
-  'passwordHash',
-  'authVerifier',
-  'apiKey',
-  'token',
-  'refreshToken',
-  'mfaSecret',
-  'kek',
-  'dek',
-  'wrappedDEK',
-  'ciphertext',
-  'content',
-  'scriptContent',
-  'text',
-  'description',
-  'notes',
-  'title',
+  "password",
+  "passwordHash",
+  "authVerifier",
+  "apiKey",
+  "token",
+  "refreshToken",
+  "mfaSecret",
+  "kek",
+  "dek",
+  "wrappedDEK",
+  "ciphertext",
+  "content",
+  "scriptContent",
+  "text",
+  "description",
+  "notes",
+  "title",
 ];
 
 /**
  * Paths that should not log bodies
  */
 const NO_BODY_LOG_PATHS = [
-  '/api/docs',
-  '/api/auth/zk-signup',
-  '/api/auth/zk-login',
-  '/api/projects',
+  "/api/docs",
+  "/api/auth/zk-signup",
+  "/api/auth/zk-login",
+  "/api/projects",
 ];
 
-const BLOCKED_PROPERTY_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+const BLOCKED_PROPERTY_KEYS = new Set([
+  "__proto__",
+  "prototype",
+  "constructor",
+]);
 
 function sanitizeLogKey(key: string): string {
   if (BLOCKED_PROPERTY_KEYS.has(key)) {
-    return '_blocked_property';
+    return "_blocked_property";
   }
 
-  const normalized = key.replace(/[^\w.-]/g, '_').slice(0, 128);
-  return normalized || '_empty';
+  const normalized = key.replace(/[^\w.-]/g, "_").slice(0, 128);
+  return normalized || "_empty";
 }
 
 /**
@@ -68,14 +72,14 @@ function sanitizeObject(obj: unknown): unknown {
     return obj.map(sanitizeObject);
   }
 
-  if (typeof obj === 'object') {
+  if (typeof obj === "object") {
     const sanitizedEntries = Object.entries(obj).map(([key, value]) => {
       const safeKey = sanitizeLogKey(key);
       // استبدال الحقول الحساسة
       if (SENSITIVE_FIELDS.includes(key)) {
-        return [safeKey, '[REDACTED]'] as const;
+        return [safeKey, "[REDACTED]"] as const;
       }
-      if (typeof value === 'object' && value !== null) {
+      if (typeof value === "object" && value !== null) {
         return [safeKey, sanitizeObject(value)] as const;
       }
       return [safeKey, value] as const;
@@ -100,7 +104,7 @@ function isSensitivePath(path: string): boolean {
 export function safeRequestLoggingMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const startTime = Date.now();
 
@@ -109,10 +113,10 @@ export function safeRequestLoggingMiddleware(
     method: req.method,
     path: req.path,
     ip: req.ip,
-    userAgent: req.get('user-agent'),
+    userAgent: req.get("user-agent"),
   };
 
-  logger.info('Request received', requestInfo);
+  logger.info("Request received", requestInfo);
 
   // Override res.json to intercept response
   const originalJson = res.json.bind(res);
@@ -129,14 +133,15 @@ export function safeRequestLoggingMiddleware(
 
     if (res.statusCode >= 400) {
       // Log errors with sanitized info
-      logger.error('Request failed', {
+      logger.error("Request failed", {
         ...responseInfo,
-        error: typeof body === 'object' && body !== null
-          ? (body as { error?: string }).error
-          : undefined,
+        error:
+          typeof body === "object" && body !== null
+            ? (body as { error?: string }).error
+            : undefined,
       });
     } else {
-      logger.info('Request completed', responseInfo);
+      logger.info("Request completed", responseInfo);
     }
 
     return originalJson(body);
@@ -152,7 +157,7 @@ export function sanitizeErrorMiddleware(
   error: Error,
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ) {
   // Log error without sensitive data
   const errorInfo = {
@@ -163,12 +168,12 @@ export function sanitizeErrorMiddleware(
     status: res.statusCode || 500,
   };
 
-  logger.error('Error occurred', errorInfo);
+  logger.error("Error occurred", errorInfo);
 
   // لا نرسل stack trace للعميل
   res.status(res.statusCode || 500).json({
     success: false,
-    error: error.message || 'حدث خطأ في الخادم',
+    error: error.message || "حدث خطأ في الخادم",
   });
 }
 
@@ -179,18 +184,18 @@ export function sanitizeErrorMiddleware(
 export function bodySanitizationMiddleware(
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
-  if (process.env.NODE_ENV === 'development' && req.body) {
+  if (process.env.NODE_ENV === "development" && req.body) {
     // في development، نسمح بـ logging محدود
     if (!isSensitivePath(req.path)) {
       const sanitizedBody = sanitizeObject(req.body);
-      logger.debug('Request body (sanitized)', {
+      logger.debug("Request body (sanitized)", {
         path: req.path,
         body: sanitizedBody,
       });
     } else {
-      logger.debug('Request body redacted (sensitive path)', {
+      logger.debug("Request body redacted (sensitive path)", {
         path: req.path,
       });
     }
@@ -203,7 +208,7 @@ export function bodySanitizationMiddleware(
  * منع console.log في الإنتاج
  */
 export function preventConsoleLogsInProduction() {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // Override console methods
     const noop = (..._args: unknown[]): void => {
       return undefined;
@@ -227,29 +232,29 @@ export function preventConsoleLogsInProduction() {
  */
 export function logAnalyticsEvent(
   event: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ) {
   // فقط أحداث UI عامة
   const allowedEvents = [
-    'page_view',
-    'document_opened',
-    'document_saved',
-    'document_deleted',
-    'export_started',
-    'export_completed',
-    'search_performed',
-    'error_occurred',
+    "page_view",
+    "document_opened",
+    "document_saved",
+    "document_deleted",
+    "export_started",
+    "export_completed",
+    "search_performed",
+    "error_occurred",
   ];
 
   if (!allowedEvents.includes(event)) {
-    logger.warn('Attempted to log non-allowed analytics event', { event });
+    logger.warn("Attempted to log non-allowed analytics event", { event });
     return;
   }
 
   // تنظيف metadata
   const sanitizedMetadata = sanitizeObject(metadata);
 
-  logger.info('Analytics event', {
+  logger.info("Analytics event", {
     event,
     metadata: sanitizedMetadata,
     timestamp: new Date().toISOString(),

@@ -6,15 +6,15 @@
  */
 
 import { logger } from "@/lib/logger";
-import { sseService } from '@/services/sse.service';
-import { websocketService } from '@/services/websocket.service';
+import { sseService } from "@/services/sse.service";
+import { websocketService } from "@/services/websocket.service";
 import {
   RealtimeEventType,
   createRealtimeEvent,
   JobProgressPayload,
   AnalysisProgressPayload,
   SystemEventPayload,
-} from '@/types/realtime.types';
+} from "@/types/realtime.types";
 
 interface ExampleRealtimeJob {
   id?: string;
@@ -37,33 +37,36 @@ export function broadcastJobProgress(
   jobId: string,
   queueName: string,
   progress: number,
-  userId?: string
+  userId?: string,
 ): void {
   // Method 1: Using helper method (recommended)
   websocketService.emitJobProgress({
     jobId,
     queueName,
     progress,
-    status: 'active',
+    status: "active",
     message: `Job ${progress}% complete`,
     ...(userId && { userId }),
   });
 
   // Method 2: Using generic broadcast with custom event
-  const event = createRealtimeEvent<JobProgressPayload>(RealtimeEventType.JOB_PROGRESS, {
-    jobId,
-    queueName,
-    progress,
-    status: 'active',
-    message: `Processing: ${progress}%`,
-    ...(userId && { userId }),
-  });
+  const event = createRealtimeEvent<JobProgressPayload>(
+    RealtimeEventType.JOB_PROGRESS,
+    {
+      jobId,
+      queueName,
+      progress,
+      status: "active",
+      message: `Processing: ${progress}%`,
+      ...(userId && { userId }),
+    },
+  );
 
   // Broadcast via WebSocket
-  websocketService.toUser(userId ?? 'anonymous', event);
+  websocketService.toUser(userId ?? "anonymous", event);
 
   // Broadcast via SSE
-  sseService.sendToUser(userId ?? 'anonymous', event);
+  sseService.sendToUser(userId ?? "anonymous", event);
 }
 
 /**
@@ -76,7 +79,7 @@ export function streamAnalysisProgress(
   analysisId: string,
   currentStation: number,
   progress: number,
-  logs: string[]
+  logs: string[],
 ): void {
   const event = createRealtimeEvent<AnalysisProgressPayload>(
     RealtimeEventType.ANALYSIS_PROGRESS,
@@ -88,7 +91,7 @@ export function streamAnalysisProgress(
       stationName: `Station ${currentStation}`,
       progress,
       logs,
-    }
+    },
   );
 
   // Send to analysis room
@@ -113,14 +116,17 @@ export function streamAnalysisProgress(
  *
  * Add this code to your BullMQ job processor to emit real-time updates
  */
-export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): Promise<{ success: boolean; data: string }> {
-  const userId = typeof job.data['userId'] === 'string' ? job.data['userId'] : undefined;
-  const jobId = String(job.id ?? '');
+export async function exampleJobProcessorWithRealtime(
+  job: ExampleRealtimeJob,
+): Promise<{ success: boolean; data: string }> {
+  const userId =
+    typeof job.data["userId"] === "string" ? job.data["userId"] : undefined;
+  const jobId = String(job.id ?? "");
 
   // Emit job started
   websocketService.emitJobStarted({
     jobId,
-    queueName: 'ai-analysis',
+    queueName: "ai-analysis",
     jobName: job.name,
     data: job.data,
     ...(userId ? { userId } : {}),
@@ -135,9 +141,9 @@ export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): 
       // Emit progress via WebSocket & SSE
       websocketService.emitJobProgress({
         jobId,
-        queueName: 'ai-analysis',
+        queueName: "ai-analysis",
         progress: i,
-        status: 'active',
+        status: "active",
         message: `Processing... ${i}%`,
         currentStep: `Step ${i / 10}`,
         totalSteps: 10,
@@ -149,12 +155,12 @@ export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): 
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    const result = { success: true, data: 'Job completed successfully' };
+    const result = { success: true, data: "Job completed successfully" };
 
     // Emit job completed
     websocketService.emitJobCompleted({
       jobId,
-      queueName: 'ai-analysis',
+      queueName: "ai-analysis",
       result,
       duration: Date.now() - job.timestamp,
       ...(userId ? { userId } : {}),
@@ -162,12 +168,13 @@ export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): 
 
     return result;
   } catch (error: unknown) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    const normalizedError =
+      error instanceof Error ? error : new Error(String(error));
 
     // Emit job failed
     websocketService.emitJobFailed({
       jobId,
-      queueName: 'ai-analysis',
+      queueName: "ai-analysis",
       error: normalizedError.message,
       attemptsMade: job.attemptsMade,
       attemptsMax: job.opts.attempts ?? 3,
@@ -184,12 +191,18 @@ export async function exampleJobProcessorWithRealtime(job: ExampleRealtimeJob): 
  *
  * Use rooms to group related clients (e.g., project members)
  */
-export function broadcastToProjectRoom(projectId: string, message: string): void {
-  const event = createRealtimeEvent<SystemEventPayload>(RealtimeEventType.SYSTEM_INFO, {
-    level: 'info' as const,
-    message,
-    details: { projectId },
-  });
+export function broadcastToProjectRoom(
+  projectId: string,
+  message: string,
+): void {
+  const event = createRealtimeEvent<SystemEventPayload>(
+    RealtimeEventType.SYSTEM_INFO,
+    {
+      level: "info" as const,
+      message,
+      details: { projectId },
+    },
+  );
 
   // Broadcast to all clients subscribed to this project
   websocketService.toProject(projectId, event);
@@ -326,17 +339,20 @@ analysisEventSource.addEventListener('analysis:progress', (event) => {
  * Use these functions to test the real-time communication
  */
 export function testRealtimeSystem(): void {
-  logger.info('Testing real-time system...');
+  logger.info("Testing real-time system...");
 
   // Test 1: Broadcast a test event
-  const testEvent = createRealtimeEvent<SystemEventPayload>(RealtimeEventType.SYSTEM_INFO, {
-    level: 'info' as const,
-    message: 'Real-time system test',
-    details: {
-      timestamp: new Date().toISOString(),
-      test: true,
+  const testEvent = createRealtimeEvent<SystemEventPayload>(
+    RealtimeEventType.SYSTEM_INFO,
+    {
+      level: "info" as const,
+      message: "Real-time system test",
+      details: {
+        timestamp: new Date().toISOString(),
+        test: true,
+      },
     },
-  });
+  );
 
   websocketService.broadcast(testEvent);
   sseService.broadcast(testEvent);
@@ -347,10 +363,10 @@ export function testRealtimeSystem(): void {
     progress += 10;
 
     websocketService.emitJobProgress({
-      jobId: 'test-job-123',
-      queueName: 'test-queue',
+      jobId: "test-job-123",
+      queueName: "test-queue",
       progress,
-      status: 'active',
+      status: "active",
       message: `Test progress: ${progress}%`,
     });
 
@@ -358,8 +374,8 @@ export function testRealtimeSystem(): void {
       clearInterval(interval);
 
       websocketService.emitJobCompleted({
-        jobId: 'test-job-123',
-        queueName: 'test-queue',
+        jobId: "test-job-123",
+        queueName: "test-queue",
         result: { success: true },
         duration: 10000,
       });
@@ -371,7 +387,7 @@ export function testRealtimeSystem(): void {
     const wsStats = websocketService.getStats();
     const sseStats = sseService.getStats();
 
-    logger.info('WebSocket Stats:', wsStats);
-    logger.info('SSE Stats:', sseStats);
+    logger.info("WebSocket Stats:", wsStats);
+    logger.info("SSE Stats:", sseStats);
   }, 15000);
 }

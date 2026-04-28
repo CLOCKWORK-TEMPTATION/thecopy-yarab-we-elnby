@@ -159,7 +159,7 @@ function registerSuccessPathTests(): void {
 
       expect(result).toBeDefined();
       expect(result.text).toBeTruthy();
-      expect(result.metadata?.worldLength).toBeGreaterThan(0);
+      expect(result.metadata?.["worldLength"]).toBeGreaterThan(0);
     });
   });
 }
@@ -331,8 +331,8 @@ function registerPostProcessingAndQualityAssessmentTests(): void {
 
       const result = await agent.executeTask(input);
 
-      expect(result.metadata?.worldLength).toBeDefined();
-      expect(result.metadata?.sectionsCount).toBeDefined();
+      expect(result.metadata?.["worldLength"]).toBeDefined();
+      expect(result.metadata?.["sectionsCount"]).toBeDefined();
     });
 
     it("should adjust confidence based on world quality", async () => {

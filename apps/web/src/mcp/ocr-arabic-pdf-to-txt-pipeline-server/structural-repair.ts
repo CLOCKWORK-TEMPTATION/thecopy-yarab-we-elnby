@@ -60,16 +60,20 @@ function splitByAnchors(lines: string[], anchors: string[]): string[] {
       changed = false;
       for (const anchor of anchors) {
         const index = pending.indexOf(anchor);
-        if (index > 0) {
-          const left = pending.slice(0, index).trim();
-          const right = pending.slice(index).trim();
-          if (left && right) {
-            out.push(left);
-            pending = right;
-            changed = true;
-            break;
-          }
+        if (index <= 0) {
+          continue;
         }
+
+        const left = pending.slice(0, index).trim();
+        const right = pending.slice(index).trim();
+        if (!left || !right) {
+          continue;
+        }
+
+        out.push(left);
+        pending = right;
+        changed = true;
+        break;
       }
     }
     if (pending.trim()) {

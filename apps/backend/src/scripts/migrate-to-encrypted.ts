@@ -3,15 +3,15 @@
  * Encrypt Existing Data Migration
  */
 
-import * as crypto from 'crypto';
-import { format as formatLogLine } from 'node:util';
-import * as readline from 'readline';
+import * as crypto from "crypto";
+import { format as formatLogLine } from "node:util";
+import * as readline from "readline";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { db } from '../db';
-import { projects } from '../db/schema';
-import { encryptedDocuments } from '../db/zkSchema';
+import { db } from "../db";
+import { projects } from "../db/schema";
+import { encryptedDocuments } from "../db/zkSchema";
 
 function writeStdout(...args: unknown[]): void {
   process.stdout.write(formatLogLine(...args) + "\n");
@@ -22,7 +22,7 @@ function writeStderr(...args: unknown[]): void {
 }
 
 const MIGRATION_VERSION = 1;
-const ALGORITHM = 'aes-256-gcm';
+const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
 const SALT_LENGTH = 16;
 const KEY_LENGTH = 32;
@@ -40,36 +40,36 @@ function confirm(question: string): Promise<boolean> {
   return new Promise((resolve) => {
     rl.question(`${question} (yes/no): `, (answer) => {
       rl.close();
-      resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
+      resolve(answer.toLowerCase() === "yes" || answer.toLowerCase() === "y");
     });
   });
 }
 
 function deriveKey(password: string, salt: Buffer): Buffer {
-  return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256');
+  return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, "sha256");
 }
 
 function encrypt(
   content: string,
-  key: Buffer
+  key: Buffer,
 ): { ciphertext: string; iv: string; authTag: string } {
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
-  let encrypted = cipher.update(content, 'utf8', 'base64');
-  encrypted += cipher.final('base64');
+  let encrypted = cipher.update(content, "utf8", "base64");
+  encrypted += cipher.final("base64");
 
   const authTag = cipher.getAuthTag();
 
   return {
     ciphertext: encrypted,
-    iv: iv.toString('base64'),
-    authTag: authTag.toString('base64'),
+    iv: iv.toString("base64"),
+    authTag: authTag.toString("base64"),
   };
 }
 
 async function createBackup() {
-  logger.info('📦 Creating backup...');
+  logger.info("📦 Creating backup...");
 
   try {
     const allProjects = await db.select().from(projects);
@@ -80,7 +80,7 @@ async function createBackup() {
       projects: allProjects,
     };
 
-    const fs = await import('fs/promises');
+    const fs = await import("fs/promises");
     const backupPath = `./backup-projects-${Date.now()}.json`;
 
     await fs.writeFile(backupPath, JSON.stringify(backupData, null, 2));
@@ -88,14 +88,14 @@ async function createBackup() {
     logger.info(`✅ Backup created: ${backupPath}`);
     return backupPath;
   } catch (error) {
-    logger.error('❌ Backup failed:', error);
+    logger.error("❌ Backup failed:", error);
     throw error;
   }
 }
 
 async function migrateProject(
   project: typeof projects.$inferSelect,
-  masterKey: Buffer
+  masterKey: Buffer,
 ) {
   if (!project.scriptContent) {
     writeStdout(`⏭️  Skipping project ${project.id} (no content)`);
@@ -103,13 +103,16 @@ async function migrateProject(
   }
 
   try {
-    const { ciphertext, iv, authTag } = encrypt(project.scriptContent, masterKey);
+    const { ciphertext, iv, authTag } = encrypt(
+      project.scriptContent,
+      masterKey,
+    );
 
     const dek = crypto.randomBytes(KEY_LENGTH);
     const dekIv = crypto.randomBytes(IV_LENGTH);
     const dekCipher = crypto.createCipheriv(ALGORITHM, masterKey, dekIv);
     const wrappedDEK =
-      dekCipher.update(dek, undefined, 'base64') + dekCipher.final('base64');
+      dekCipher.update(dek, undefined, "base64") + dekCipher.final("base64");
     await db.insert(encryptedDocuments).values({
       id: project.id,
       userId: project.userId,
@@ -117,7 +120,7 @@ async function migrateProject(
       iv,
       authTag,
       wrappedDEK,
-      wrappedDEKiv: dekIv.toString('base64'),
+      wrappedDEKiv: dekIv.toString("base64"),
       version: 1,
       ciphertextSize: ciphertext.length,
       createdAt: project.createdAt,
@@ -132,15 +135,15 @@ async function migrateProject(
 }
 
 async function main() {
-  writeStdout('🔐 Zero-Knowledge Migration Script');
-  writeStdout('==================================\n');
+  writeStdout("🔐 Zero-Knowledge Migration Script");
+  writeStdout("==================================\n");
 
-  writeStdout('⚠️  WARNING: This will encrypt all existing projects.');
-  writeStdout('⚠️  Make sure you have a backup before proceeding.\n');
+  writeStdout("⚠️  WARNING: This will encrypt all existing projects.");
+  writeStdout("⚠️  Make sure you have a backup before proceeding.\n");
 
-  const shouldContinue = await confirm('Do you want to continue?');
+  const shouldContinue = await confirm("Do you want to continue?");
   if (!shouldContinue) {
-    writeStdout('Migration cancelled.');
+    writeStdout("Migration cancelled.");
     process.exit(0);
   }
 
@@ -148,21 +151,21 @@ async function main() {
 
   const rl = createInterface();
   const masterPassword = await new Promise<string>((resolve) => {
-    rl.question('Enter master encryption password: ', (answer) => {
+    rl.question("Enter master encryption password: ", (answer) => {
       rl.close();
       resolve(answer);
     });
   });
 
   if (!masterPassword || masterPassword.length < 12) {
-    writeStderr('❌ Password must be at least 12 characters');
+    writeStderr("❌ Password must be at least 12 characters");
     process.exit(1);
   }
 
   const salt = crypto.randomBytes(SALT_LENGTH);
   const masterKey = deriveKey(masterPassword, salt);
 
-  writeStdout('\n🔄 Starting migration...\n');
+  writeStdout("\n🔄 Starting migration...\n");
 
   try {
     const allProjects = await db.select().from(projects);
@@ -180,19 +183,19 @@ async function main() {
       }
     }
 
-    writeStdout('\n📊 Migration Summary:');
+    writeStdout("\n📊 Migration Summary:");
     writeStdout(`   ✅ Successful: ${successCount}`);
     writeStdout(`   ❌ Failed: ${errorCount}`);
     writeStdout(`   💾 Backup: ${backupPath}`);
   } catch (error) {
-    writeStderr('\n❌ Migration failed:', error);
+    writeStderr("\n❌ Migration failed:", error);
     process.exit(1);
   }
 }
 
 if (require.main === module) {
   main().catch((error) => {
-    writeStderr('Fatal error:', error);
+    writeStderr("Fatal error:", error);
     process.exit(1);
   });
 }

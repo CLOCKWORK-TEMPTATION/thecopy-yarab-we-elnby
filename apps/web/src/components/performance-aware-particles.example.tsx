@@ -108,7 +108,7 @@ export function PerformanceAwareParticles({
     }
 
     return () => {
-      if (systemRef.current && systemRef.current.isHealthy?.()) {
+      if (systemRef.current?.isHealthy?.()) {
         systemRef.current.dispose();
         systemRef.current = null;
       }
@@ -235,6 +235,8 @@ function PerformanceDebugPanel({
     >
       {/* Header */}
       <div
+        role="button"
+        tabIndex={0}
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -245,6 +247,11 @@ function PerformanceDebugPanel({
           cursor: "pointer",
         }}
         onClick={() => setIsCollapsed(!isCollapsed)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            setIsCollapsed((current) => !current);
+          }
+        }}
       >
         <span style={{ fontWeight: "bold" }}>Performance Monitor</span>
         <span>{isCollapsed ? "▶" : "▼"}</span>

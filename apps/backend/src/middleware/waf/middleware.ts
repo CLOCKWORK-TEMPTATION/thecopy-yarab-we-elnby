@@ -19,7 +19,7 @@ import { getWafConfig } from "./state";
 export function wafMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   const wafConfig = getWafConfig();
 
@@ -36,10 +36,7 @@ export function wafMiddleware(
   };
 
   // Check whitelist first (bypass all checks)
-  if (
-    wafConfig.whitelist.ips.includes(ctx.ip) ||
-    isPathWhitelisted(ctx.path)
-  ) {
+  if (wafConfig.whitelist.ips.includes(ctx.ip) || isPathWhitelisted(ctx.path)) {
     return next();
   }
 
@@ -50,7 +47,7 @@ export function wafMiddleware(
     return sendBlockResponse(
       res,
       blockResult.statusCode ?? 403,
-      blockResult.message
+      blockResult.message,
     );
   }
 

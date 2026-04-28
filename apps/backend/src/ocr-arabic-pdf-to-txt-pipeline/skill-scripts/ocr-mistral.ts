@@ -17,7 +17,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { format as formatLogLine } from "node:util";
 
-
 function writeStdout(...args: unknown[]): void {
   process.stdout.write(formatLogLine(...args) + "\n");
 }
@@ -112,7 +111,7 @@ function parseArgs(): {
 
   if (!input || !output) {
     writeStderr(
-      "الاستخدام: npx tsx ocr-mistral.ts --input <pdf> --output <json> [--pages 0-9|all]"
+      "الاستخدام: npx tsx ocr-mistral.ts --input <pdf> --output <json> [--pages 0-9|all]",
     );
     process.exit(1);
   }
@@ -186,7 +185,7 @@ function buildNormalizedResult(
   inputPath: string,
   response: MistralOcrResponseRaw,
   docSizeBytes: number,
-  elapsedSeconds: number
+  elapsedSeconds: number,
 ): OcrResult {
   const pagesRaw = Array.isArray(response.pages) ? response.pages : [];
   const usageInfo =
@@ -224,7 +223,7 @@ function buildNormalizedResult(
 async function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
-  timeoutMessage: string
+  timeoutMessage: string,
 ): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
@@ -260,7 +259,7 @@ function resolveHardLockedModel(raw: string | undefined): string {
   const normalized = raw.trim();
   if (normalized !== CANONICAL_MISTRAL_OCR_MODEL) {
     throw new Error(
-      `MISTRAL_OCR_MODEL must be ${CANONICAL_MISTRAL_OCR_MODEL}. القيمة الحالية: ${normalized}`
+      `MISTRAL_OCR_MODEL must be ${CANONICAL_MISTRAL_OCR_MODEL}. القيمة الحالية: ${normalized}`,
     );
   }
   return CANONICAL_MISTRAL_OCR_MODEL;
@@ -273,7 +272,7 @@ async function runOcr(): Promise<void> {
   const timeoutMs = Math.max(
     1_000,
     Number.parseInt(process.env["MISTRAL_OCR_TIMEOUT_MS"] ?? "600000", 10) ||
-      600_000
+      600_000,
   );
 
   let apiKey = "";
@@ -326,7 +325,7 @@ async function runOcr(): Promise<void> {
     const response = await withTimeout(
       client.ocr.process(ocrParams),
       timeoutMs,
-      `انتهت مهلة استدعاء OCR بعد ${timeoutMs}ms`
+      `انتهت مهلة استدعاء OCR بعد ${timeoutMs}ms`,
     );
     const elapsed = (Date.now() - startTime) / 1000;
 
@@ -334,13 +333,13 @@ async function runOcr(): Promise<void> {
       input,
       response,
       docSizeBytes,
-      elapsed
+      elapsed,
     );
 
     // كتابة النتيجة
     writeFileSync(output, JSON.stringify(result, null, 2), "utf-8");
     writeStderr(
-      `تمت المعالجة: ${result.total_pages} صفحة في ${elapsed.toFixed(1)} ثانية`
+      `تمت المعالجة: ${result.total_pages} صفحة في ${elapsed.toFixed(1)} ثانية`,
     );
     writeStderr(`المخرج: ${output}`);
 
@@ -352,7 +351,7 @@ async function runOcr(): Promise<void> {
         model: result.model,
         time_seconds: result.processing_time_seconds,
         output_path: output,
-      })
+      }),
     );
   } catch (error: unknown) {
     const elapsed = (Date.now() - startTime) / 1000;
@@ -375,7 +374,7 @@ async function runOcr(): Promise<void> {
         success: false,
         error: errorMessage,
         status_code: statusCode ?? null,
-      })
+      }),
     );
     process.exit(1);
   }

@@ -79,6 +79,7 @@ export function Toolbar({
             filters={filters}
             onFiltersChange={onFiltersChange}
             isOpen={filterPanelOpen}
+            onOpen={() => setFilterPanelOpen(true)}
             onClose={() => setFilterPanelOpen(false)}
           />
 

@@ -95,7 +95,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
         return this.logTime(input.data as unknown as LogTimeInput);
       case "complete-task":
         return this.completeTask(
-          input.data as { taskId: string; actualHours: number; notes?: string }
+          input.data as { taskId: string; actualHours: number; notes?: string },
         );
       case "report-delay":
         return this.reportDelay(input.data as unknown as Partial<Delay>);
@@ -105,13 +105,13 @@ export class PerformanceProductivityAnalyzer implements Plugin {
         return this.resolveBlocker(input.data as { blockerId: string });
       case "analyze":
         return this.analyzePerformance(
-          input.data as unknown as AnalyzePerformanceInput
+          input.data as unknown as AnalyzePerformanceInput,
         );
       case "department-report":
         return this.getDepartmentReport(input.data as { department: string });
       case "efficiency-trends":
         return this.getEfficiencyTrends(
-          input.data as { productionId: string; period: string }
+          input.data as { productionId: string; period: string },
         );
       case "recommendations":
         return this.getRecommendations(input.data as { productionId: string });
@@ -162,7 +162,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     notes?: string;
   }): Promise<PluginOutput> {
     const entries = Array.from(this.timeEntries.values()).filter(
-      (e) => e.taskId === data.taskId
+      (e) => e.taskId === data.taskId,
     );
 
     if (entries.length === 0) {
@@ -295,7 +295,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   }
 
   private async analyzePerformance(
-    data: AnalyzePerformanceInput
+    data: AnalyzePerformanceInput,
   ): Promise<PluginOutput> {
     let entries = Array.from(this.timeEntries.values());
 
@@ -315,11 +315,11 @@ export class PerformanceProductivityAnalyzer implements Plugin {
 
     const totalPlannedHours = entries.reduce(
       (sum, e) => sum + e.plannedHours,
-      0
+      0,
     );
     const totalActualHours = entries.reduce((sum, e) => sum + e.actualHours, 0);
     const completedTasks = entries.filter(
-      (e) => e["status"] === "completed" || e["status"] === "delayed"
+      (e) => e["status"] === "completed" || e["status"] === "delayed",
     );
     const delayedTasks = entries.filter((e) => e["status"] === "delayed");
     const blockedTasks = entries.filter((e) => e["status"] === "blocked");
@@ -352,7 +352,8 @@ export class PerformanceProductivityAnalyzer implements Plugin {
           completed: completedTasks.length,
           delayed: delayedTasks.length,
           blocked: blockedTasks.length,
-          inProgress: entries.filter((e) => e["status"] === "in-progress").length,
+          inProgress: entries.filter((e) => e["status"] === "in-progress")
+            .length,
           planned: entries.filter((e) => e["status"] === "planned").length,
         },
         efficiencyRating:
@@ -371,13 +372,13 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     department: string;
   }): Promise<PluginOutput> {
     const entries = Array.from(this.timeEntries.values()).filter(
-      (e) => e.department === data.department
+      (e) => e.department === data.department,
     );
 
     const totalPlanned = entries.reduce((sum, e) => sum + e.plannedHours, 0);
     const totalActual = entries.reduce((sum, e) => sum + e.actualHours, 0);
     const completed = entries.filter(
-      (e) => e["status"] === "completed" || e["status"] === "delayed"
+      (e) => e["status"] === "completed" || e["status"] === "delayed",
     );
 
     const assigneeStats: Record<
@@ -432,7 +433,8 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     const groupedByDay: Record<string, TimeEntry[]> = {};
     for (const entry of entries) {
       const dateKey =
-        entry.startTime.toISOString().split("T")[0] ?? entry.startTime.toISOString();
+        entry.startTime.toISOString().split("T")[0] ??
+        entry.startTime.toISOString();
       if (!groupedByDay[dateKey]) groupedByDay[dateKey] = [];
       groupedByDay[dateKey]!.push(entry);
     }
@@ -457,7 +459,8 @@ export class PerformanceProductivityAnalyzer implements Plugin {
         averageEfficiency:
           trends.length > 0
             ? Math.round(
-                trends.reduce((sum, t) => sum + t.efficiency, 0) / trends.length
+                trends.reduce((sum, t) => sum + t.efficiency, 0) /
+                  trends.length,
               )
             : 0,
       },
@@ -484,7 +487,7 @@ export class PerformanceProductivityAnalyzer implements Plugin {
     }
 
     const topDelayCategory = Object.entries(delayCategories).sort(
-      ([, a], [, b]) => b - a
+      ([, a], [, b]) => b - a,
     )[0];
 
     if (topDelayCategory) {

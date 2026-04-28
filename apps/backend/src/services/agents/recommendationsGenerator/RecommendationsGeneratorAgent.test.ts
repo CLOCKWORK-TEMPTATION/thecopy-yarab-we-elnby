@@ -75,7 +75,9 @@ describe("RecommendationsGeneratorAgent", () => {
 
     expect(
       result.notes?.some((note) => note.includes("يمكن تعزيز الجانب العملي")) ||
-        result.notes?.some((note) => note.includes("يمكن إضافة أمثلة أكثر تحديداً"))
+        result.notes?.some((note) =>
+          note.includes("يمكن إضافة أمثلة أكثر تحديداً"),
+        ),
     ).toBe(true);
   });
 });

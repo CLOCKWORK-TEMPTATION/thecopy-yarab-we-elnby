@@ -1,10 +1,11 @@
-import React from "react";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 import { SelfTapeSuite } from "../self-tape-suite/components/SelfTapeSuite";
 import { act, fireEvent, renderWithApp, screen } from "../test-utils";
 
 const trackStop = vi.fn();
+const getUserMediaMock = vi.fn();
+const anchorClickMock = vi.fn();
 const mockStream = {
   getTracks: () => [{ stop: trackStop }, { stop: trackStop }],
 } as unknown as MediaStream;
@@ -59,7 +60,7 @@ async function createRecordedTake() {
 
   fireEvent.click(screen.getByRole("button", { name: /التسجيل/ }));
   await flushMicrotasks();
-  expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+  expect(getUserMediaMock).toHaveBeenCalled();
 
   fireEvent.click(screen.getByRole("button", { name: /بدء التسجيل/ }));
   await flushMicrotasks();
@@ -78,11 +79,14 @@ describe("SelfTapeSuite", () => {
     vi.useFakeTimers();
     localStorage.clear();
     trackStop.mockClear();
+    getUserMediaMock.mockReset();
+    getUserMediaMock.mockResolvedValue(mockStream);
+    anchorClickMock.mockClear();
 
     Object.defineProperty(navigator, "mediaDevices", {
       configurable: true,
       value: {
-        getUserMedia: vi.fn().mockResolvedValue(mockStream),
+        getUserMedia: getUserMediaMock,
       },
     });
 
@@ -97,9 +101,9 @@ describe("SelfTapeSuite", () => {
     });
 
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {
-      /* empty */
-    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+      anchorClickMock
+    );
 
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
@@ -143,6 +147,6 @@ describe("SelfTapeSuite", () => {
     await advanceTimers(120);
     expect(screen.getByText(/تم تنزيل Take 1/)).toBeInTheDocument();
 
-    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
+    expect(anchorClickMock).toHaveBeenCalled();
   });
 });

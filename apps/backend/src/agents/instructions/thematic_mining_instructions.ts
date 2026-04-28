@@ -1,4 +1,3 @@
-
 export const THEMATIC_MINING_INSTRUCTIONS = `
 **العملية:** طبق "نموذج التنقيب عن الموضوعات المتقدم".
 

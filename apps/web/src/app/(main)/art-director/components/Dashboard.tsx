@@ -280,8 +280,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [summary, setSummary] = useState<DashboardSummary>(EMPTY_SUMMARY);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
-  const loadSummary = useCallback(async () => {
-    setSummaryError(null);
+  const loadSummary = useCallback(async (clearError = true) => {
+    if (clearError) {
+      setSummaryError(null);
+    }
 
     try {
       const response = await fetchArtDirectorJson<
@@ -305,7 +307,11 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   }, []);
 
   useEffect(() => {
-    void loadSummary();
+    const timer = window.setTimeout(() => {
+      void loadSummary(false);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadSummary]);
 
   const formattedDate = useMemo(() => formatArabicDate(), []);

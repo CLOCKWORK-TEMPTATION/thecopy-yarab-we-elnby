@@ -78,7 +78,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
       prompt += "\n";
     }
 
-    prompt += `أنواع الصراعات المطلوب تحليلها: ${conflictTypes.map(this.translateConflictType).join("، ")}\n`;
+    prompt += `أنواع الصراعات المطلوب تحليلها: ${conflictTypes.map((type) => this.translateConflictType(type)).join("، ")}\n`;
     prompt += `تحليل التطور: ${analyzeEvolution ? "نعم" : "لا"}\n`;
     prompt += `تتبع الشدة: ${trackIntensity ? "نعم" : "لا"}\n`;
     prompt += `تحديد الحل: ${identifyResolution ? "نعم" : "لا"}\n\n`;

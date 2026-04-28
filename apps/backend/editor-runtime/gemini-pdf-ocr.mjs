@@ -17,7 +17,7 @@ const withTimeout = (promise, ms) =>
   new Promise((resolve, reject) => {
     const timer = setTimeout(
       () => reject(new Error(`Gemini OCR timed out after ${ms}ms.`)),
-      ms
+      ms,
     );
 
     promise.then(
@@ -28,13 +28,15 @@ const withTimeout = (promise, ms) =>
       (error) => {
         clearTimeout(timer);
         reject(error);
-      }
+      },
     );
   });
 
 const toSafePdfFilename = (filename) => {
   const candidate = basename(filename || "document.pdf");
-  return candidate.toLowerCase().endsWith(".pdf") ? candidate : `${candidate}.pdf`;
+  return candidate.toLowerCase().endsWith(".pdf")
+    ? candidate
+    : `${candidate}.pdf`;
 };
 
 const extractPdfTextLayer = async (pdfPath) => {
@@ -45,7 +47,7 @@ const extractPdfTextLayer = async (pdfPath) => {
       {
         timeout: PDFTOTEXT_TIMEOUT_MS,
         maxBuffer: MAX_STDIO_BUFFER,
-      }
+      },
     );
 
     return normalizeText(stdout);
@@ -136,7 +138,7 @@ export const runGeminiPdfOcr = async ({ buffer, filename, config }) => {
     for (let index = 0; index < pageImages.length; index += 1) {
       const pageText = await withTimeout(
         ocrSinglePage(model, pageImages[index], index + 1),
-        config.timeoutMs
+        config.timeoutMs,
       );
       if (pageText) {
         pageTexts.push(pageText);
@@ -173,7 +175,9 @@ export const runGeminiPdfOcr = async ({ buffer, filename, config }) => {
     };
   } finally {
     if (renderRoot) {
-      await rm(renderRoot, { recursive: true, force: true }).catch(() => undefined);
+      await rm(renderRoot, { recursive: true, force: true }).catch(
+        () => undefined,
+      );
     }
     await rm(tempRoot, { recursive: true, force: true }).catch(() => undefined);
   }

@@ -15,28 +15,16 @@ const interactionsByType: Record<string, string[]> = {
     "annotations",
     "voice-notes",
   ],
-  interactive: [
-    "grab-objects",
-    "scale-models",
-    "rotate-view",
-    "paint-sculpt",
-  ],
-  sculpting: [
-    "brush-tools",
-    "clay-manipulation",
-    "mirror-mode",
-    "undo-redo",
-  ],
+  interactive: ["grab-objects", "scale-models", "rotate-view", "paint-sculpt"],
+  sculpting: ["brush-tools", "clay-manipulation", "mirror-mode", "undo-redo"],
 };
 
-export function getInteractionsForType(
-  type: VRExperience["type"]
-): string[] {
+export function getInteractionsForType(type: VRExperience["type"]): string[] {
   return interactionsByType[type] ?? [];
 }
 
 export function calculateExperienceDuration(
-  type: VRExperience["type"]
+  type: VRExperience["type"],
 ): number {
   switch (type) {
     case "walkthrough":

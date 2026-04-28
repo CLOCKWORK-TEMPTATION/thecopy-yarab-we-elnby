@@ -172,11 +172,15 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                 {step === 1 && (
                   <>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-1"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Era & Visual Texture
                       </label>
                       <input
+                        id="field-startscreen-1"
                         type="text"
                         value={brief.projectType}
                         onChange={(e) =>
@@ -184,18 +188,21 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                         }
                         className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
                         placeholder="e.g. Victorian Gothic, Gritty 70s, Cyberpunk..."
-                        autoFocus
                       />
                       <p className="mt-2 text-[10px] text-white/45 font-mono">
                         Defines the silhouette rules and fabric availability.
                       </p>
                     </div>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-2"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Atmosphere & Lighting
                       </label>
                       <textarea
+                        id="field-startscreen-2"
                         value={brief.sceneContext}
                         onChange={(e) =>
                           setBrief({ ...brief, sceneContext: e.target.value })
@@ -210,11 +217,15 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                 {step === 2 && (
                   <>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-3"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Archetype & Social Class
                       </label>
                       <input
+                        id="field-startscreen-3"
                         type="text"
                         value={brief.characterProfile}
                         onChange={(e) =>
@@ -225,18 +236,21 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                         }
                         className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
                         placeholder="e.g. 'The Fallen Aristocrat', 'Blue Collar Hero'..."
-                        autoFocus
                       />
                       <p className="mt-2 text-[10px] text-white/45 font-mono">
                         Dictates the wear-and-tear and quality of garments.
                       </p>
                     </div>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-4"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Visual Subtext (The Mask)
                       </label>
                       <textarea
+                        id="field-startscreen-4"
                         value={brief.psychologicalState}
                         onChange={(e) =>
                           setBrief({
@@ -254,11 +268,15 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                 {step === 3 && (
                   <>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-5"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Filming Location (Weather Check)
                       </label>
                       <input
+                        id="field-startscreen-5"
                         type="text"
                         value={brief.filmingLocation}
                         onChange={(e) =>
@@ -269,7 +287,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                         }
                         className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
                         placeholder="e.g. Cairo, Egypt (July)"
-                        autoFocus
                       />
                       <p className="mt-2 text-[10px] text-white/45 font-mono">
                         We will check real weather data to suggest fabric
@@ -277,11 +294,15 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                       </p>
                     </div>
                     <div className="group">
-                      <label className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors">
+                      <label
+                        htmlFor="field-startscreen-6"
+                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+                      >
                         <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
                         Movement & Stunt Requirements
                       </label>
                       <textarea
+                        id="field-startscreen-6"
                         value={brief.productionConstraints}
                         onChange={(e) =>
                           setBrief({
@@ -388,7 +409,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
 
           {step > 1 && (
             <button
-              onClick={() => setStep((step - 1) as any)}
+              onClick={() => setStep(step === 3 ? 2 : 1)}
               className="w-full mt-3 py-3 text-[10px] font-bold text-white/55 uppercase tracking-widest hover:text-white transition-colors text-center border border-transparent hover:border-white/8 rounded-[18px]"
             >
               Previous Phase

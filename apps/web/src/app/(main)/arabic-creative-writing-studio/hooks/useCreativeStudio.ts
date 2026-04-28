@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { GeminiService } from "@/ai/gemini-service";
 import {
   ACTIVE_WEEKLY_CHALLENGE,
   FEATURED_DAILY_PROMPT,
@@ -20,7 +21,6 @@ import type {
   StudioView,
   NotificationState,
 } from "../types/studio";
-import type { GeminiService } from "@/ai/gemini-service";
 import type { ExportFormat } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
 import type {
   CreativeProject,
@@ -52,7 +52,6 @@ function buildSettings(initialSettings?: Partial<AppSettings>): AppSettings {
 
 interface UseCreativeStudioProps {
   initialSettings?: Partial<AppSettings>;
-  geminiService: GeminiService | null;
   showNotification: (type: NotificationState["type"], message: string) => void;
   analysisBlockedReason: string;
   exportProjectFn: (
@@ -63,7 +62,6 @@ interface UseCreativeStudioProps {
 
 export function useCreativeStudio({
   initialSettings,
-  geminiService,
   showNotification,
   analysisBlockedReason,
   exportProjectFn,
@@ -80,6 +78,11 @@ export function useCreativeStudio({
     useState<FeaturedWeeklyChallenge | null>(null);
   const [settings, setSettings] = useState<AppSettings>(() =>
     buildSettings(initialSettings)
+  );
+  const geminiApiKey = settings.geminiApiKey?.trim() ?? "";
+  const geminiService = useMemo(
+    () => (geminiApiKey ? new GeminiService(geminiApiKey) : null),
+    [geminiApiKey]
   );
   const [isRemoteStateReady, setIsRemoteStateReady] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);

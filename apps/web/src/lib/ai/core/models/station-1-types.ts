@@ -1,5 +1,13 @@
 // Station 1 Types
 
+import type {
+  Character,
+  CharacterAnalysis,
+  DialogueAnalysis,
+  StationMetadata,
+  UncertaintyReport,
+} from "./common-types";
+
 export interface Station1Output {
   // البيانات الأساسية
   logline: string; // 2-3 جمل تلخص القصة

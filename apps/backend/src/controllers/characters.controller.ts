@@ -1,19 +1,19 @@
-import { eq, and } from 'drizzle-orm';
-import { Response } from 'express';
-import { z } from 'zod';
+import { eq, and } from "drizzle-orm";
+import { Response } from "express";
+import { z } from "zod";
 
-import { db } from '@/db';
-import { characters, projects } from '@/db/schema';
-import { logger } from '@/lib/logger';
-import { getParamAsString } from '@/middleware/auth.middleware';
+import { db } from "@/db";
+import { characters, projects } from "@/db/schema";
+import { logger } from "@/lib/logger";
+import { getParamAsString } from "@/middleware/auth.middleware";
 
-import type { AuthRequest } from '@/middleware/auth.middleware';
+import type { AuthRequest } from "@/middleware/auth.middleware";
 
 const createCharacterSchema = z.object({
-  projectId: z.string().min(1, 'معرف المشروع مطلوب'),
-  name: z.string().min(1, 'اسم الشخصية مطلوب'),
+  projectId: z.string().min(1, "معرف المشروع مطلوب"),
+  name: z.string().min(1, "اسم الشخصية مطلوب"),
   appearances: z.number().int().nonnegative().default(0),
-  consistencyStatus: z.string().default('good'),
+  consistencyStatus: z.string().default("good"),
   lastSeen: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -28,13 +28,17 @@ const updateCharacterSchema = z.object({
 
 function requireAuth(req: AuthRequest, res: Response): boolean {
   if (!req.user) {
-    res.status(401).json({ success: false, error: 'غير مصرح' });
+    res.status(401).json({ success: false, error: "غير مصرح" });
     return false;
   }
   return true;
 }
 
-function requireParam(res: Response, value: string | undefined, errorMsg: string): value is string {
+function requireParam(
+  res: Response,
+  value: string | undefined,
+  errorMsg: string,
+): value is string {
   if (!value) {
     res.status(400).json({ success: false, error: errorMsg });
     return false;
@@ -45,7 +49,7 @@ function requireParam(res: Response, value: string | undefined, errorMsg: string
 async function verifyProjectOwnership(projectId: string, userId: string) {
   const [project] = await selectRows<typeof projects.$inferSelect>(
     projects,
-    and(eq(projects.id, projectId), eq(projects.userId, userId))
+    and(eq(projects.id, projectId), eq(projects.userId, userId)),
   );
   return project;
 }
@@ -53,7 +57,7 @@ async function verifyProjectOwnership(projectId: string, userId: string) {
 async function findCharacterById(id: string) {
   const [character] = await selectRows<typeof characters.$inferSelect>(
     characters,
-    eq(characters.id, id)
+    eq(characters.id, id),
   );
   return character;
 }
@@ -64,24 +68,27 @@ function getRows<T>(value: unknown): T[] | null {
 
 function hasMethod<T extends string>(
   value: unknown,
-  method: T
+  method: T,
 ): value is Record<T, (...args: unknown[]) => unknown> {
   const candidate = value as Record<string, unknown> | null;
   return (
     !!candidate &&
-    typeof candidate === 'object' &&
+    typeof candidate === "object" &&
     method in candidate &&
-    typeof candidate[method] === 'function'
+    typeof candidate[method] === "function"
   );
 }
 
-async function resolveWhereRows<T>(query: unknown, condition: unknown): Promise<T[]> {
+async function resolveWhereRows<T>(
+  query: unknown,
+  condition: unknown,
+): Promise<T[]> {
   const directRows = getRows<T>(query);
   if (directRows) {
     return directRows;
   }
 
-  if (!hasMethod(query, 'where')) {
+  if (!hasMethod(query, "where")) {
     return [];
   }
 
@@ -97,7 +104,7 @@ async function selectRows<T>(table: unknown, condition: unknown): Promise<T[]> {
     return directRows;
   }
 
-  if (!hasMethod(selection, 'from')) {
+  if (!hasMethod(selection, "from")) {
     return [];
   }
 
@@ -116,7 +123,7 @@ export class CharactersController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -126,45 +133,44 @@ export class CharactersController {
       if (!projectId) {
         res.status(400).json({
           success: false,
-          error: 'معرف المشروع مطلوب',
+          error: "معرف المشروع مطلوب",
         });
         return;
       }
 
       const [project] = await selectRows<typeof projects.$inferSelect>(
         projects,
-        and(eq(projects.id, projectId), eq(projects.userId, req.user.id))
+        and(eq(projects.id, projectId), eq(projects.userId, req.user.id)),
       );
 
       if (!project) {
         res.status(404).json({
           success: false,
-          error: 'المشروع غير موجود',
+          error: "المشروع غير موجود",
         });
         return;
       }
 
-      const projectCharacters = await selectRows<typeof characters.$inferSelect>(
-        characters,
-        eq(characters.projectId, projectId)
-      );
+      const projectCharacters = await selectRows<
+        typeof characters.$inferSelect
+      >(characters, eq(characters.projectId, projectId));
 
       res.json({
         success: true,
         data: projectCharacters,
       });
     } catch (error) {
-      logger.error('Get characters error:', error);
+      logger.error("Get characters error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء جلب الشخصيات',
+        error: "حدث خطأ أثناء جلب الشخصيات",
       });
     }
   }
 
   /**
    * جلب شخصية محددة بالمعرّف
-   * 
+   *
    * @description
    * يتحقق من ملكية المستخدم للمشروع المرتبط بالشخصية
    */
@@ -173,30 +179,37 @@ export class CharactersController {
       if (!requireAuth(req, res)) return;
 
       const id = getParamAsString(req.params["id"]);
-      if (!requireParam(res, id, 'معرف الشخصية مطلوب')) return;
+      if (!requireParam(res, id, "معرف الشخصية مطلوب")) return;
 
       const character = await findCharacterById(id);
       if (!character?.projectId) {
-        res.status(404).json({ success: false, error: 'الشخصية غير موجودة' });
+        res.status(404).json({ success: false, error: "الشخصية غير موجودة" });
         return;
       }
 
-      const project = await verifyProjectOwnership(character.projectId, req.user!.id);
+      const project = await verifyProjectOwnership(
+        character.projectId,
+        req.user!.id,
+      );
       if (!project) {
-        res.status(403).json({ success: false, error: 'غير مصرح للوصول لهذه الشخصية' });
+        res
+          .status(403)
+          .json({ success: false, error: "غير مصرح للوصول لهذه الشخصية" });
         return;
       }
 
       res.json({ success: true, data: character });
     } catch (error) {
-      logger.error('Get character error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء جلب الشخصية' });
+      logger.error("Get character error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء جلب الشخصية" });
     }
   }
 
   /**
    * إنشاء شخصية جديدة
-   * 
+   *
    * @description
    * يتحقق من صلاحية البيانات المُدخلة وملكية المستخدم للمشروع
    */
@@ -205,33 +218,56 @@ export class CharactersController {
       if (!requireAuth(req, res)) return;
 
       const validatedData = createCharacterSchema.parse(req.body);
-      const project = await verifyProjectOwnership(validatedData.projectId, req.user!.id);
+      const project = await verifyProjectOwnership(
+        validatedData.projectId,
+        req.user!.id,
+      );
       if (!project) {
-        res.status(404).json({ success: false, error: 'المشروع غير موجود' });
+        res.status(404).json({ success: false, error: "المشروع غير موجود" });
         return;
       }
 
-      const [newCharacter] = await db.insert(characters).values(validatedData).returning();
+      const [newCharacter] = await db
+        .insert(characters)
+        .values(validatedData)
+        .returning();
       if (!newCharacter) {
-        res.status(500).json({ success: false, error: 'فشل إنشاء الشخصية' });
+        res.status(500).json({ success: false, error: "فشل إنشاء الشخصية" });
         return;
       }
 
-      res.status(201).json({ success: true, message: 'تم إنشاء الشخصية بنجاح', data: newCharacter });
-      logger.info('Character created successfully', { characterId: newCharacter.id, projectId: validatedData.projectId });
+      res
+        .status(201)
+        .json({
+          success: true,
+          message: "تم إنشاء الشخصية بنجاح",
+          data: newCharacter,
+        });
+      logger.info("Character created successfully", {
+        characterId: newCharacter.id,
+        projectId: validatedData.projectId,
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: "بيانات غير صالحة",
+            details: error.issues,
+          });
         return;
       }
-      logger.error('Create character error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء إنشاء الشخصية' });
+      logger.error("Create character error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء إنشاء الشخصية" });
     }
   }
 
   /**
    * تحديث شخصية موجودة
-   * 
+   *
    * @description
    * يتحقق من وجود الشخصية وملكية المستخدم للمشروع قبل التحديث
    */
@@ -240,37 +276,58 @@ export class CharactersController {
       if (!requireAuth(req, res)) return;
 
       const id = getParamAsString(req.params["id"]);
-      if (!requireParam(res, id, 'معرف الشخصية مطلوب')) return;
+      if (!requireParam(res, id, "معرف الشخصية مطلوب")) return;
 
       const validatedData = updateCharacterSchema.parse(req.body);
       const existingCharacter = await findCharacterById(id);
       if (!existingCharacter?.projectId) {
-        res.status(404).json({ success: false, error: 'الشخصية غير موجودة' });
+        res.status(404).json({ success: false, error: "الشخصية غير موجودة" });
         return;
       }
 
-      const project = await verifyProjectOwnership(existingCharacter.projectId, req.user!.id);
+      const project = await verifyProjectOwnership(
+        existingCharacter.projectId,
+        req.user!.id,
+      );
       if (!project) {
-        res.status(403).json({ success: false, error: 'غير مصرح لتعديل هذه الشخصية' });
+        res
+          .status(403)
+          .json({ success: false, error: "غير مصرح لتعديل هذه الشخصية" });
         return;
       }
 
-      const [updatedCharacter] = await db.update(characters).set(validatedData).where(eq(characters.id, id)).returning();
-      res.json({ success: true, message: 'تم تحديث الشخصية بنجاح', data: updatedCharacter });
-      logger.info('Character updated successfully', { characterId: id });
+      const [updatedCharacter] = await db
+        .update(characters)
+        .set(validatedData)
+        .where(eq(characters.id, id))
+        .returning();
+      res.json({
+        success: true,
+        message: "تم تحديث الشخصية بنجاح",
+        data: updatedCharacter,
+      });
+      logger.info("Character updated successfully", { characterId: id });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ success: false, error: 'بيانات غير صالحة', details: error.issues });
+        res
+          .status(400)
+          .json({
+            success: false,
+            error: "بيانات غير صالحة",
+            details: error.issues,
+          });
         return;
       }
-      logger.error('Update character error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء تحديث الشخصية' });
+      logger.error("Update character error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء تحديث الشخصية" });
     }
   }
 
   /**
    * حذف شخصية
-   * 
+   *
    * @description
    * يتحقق من وجود الشخصية وملكية المستخدم للمشروع قبل الحذف
    */
@@ -279,26 +336,33 @@ export class CharactersController {
       if (!requireAuth(req, res)) return;
 
       const id = getParamAsString(req.params["id"]);
-      if (!requireParam(res, id, 'معرف الشخصية مطلوب')) return;
+      if (!requireParam(res, id, "معرف الشخصية مطلوب")) return;
 
       const existingCharacter = await findCharacterById(id);
       if (!existingCharacter?.projectId) {
-        res.status(404).json({ success: false, error: 'الشخصية غير موجودة' });
+        res.status(404).json({ success: false, error: "الشخصية غير موجودة" });
         return;
       }
 
-      const project = await verifyProjectOwnership(existingCharacter.projectId, req.user!.id);
+      const project = await verifyProjectOwnership(
+        existingCharacter.projectId,
+        req.user!.id,
+      );
       if (!project) {
-        res.status(403).json({ success: false, error: 'غير مصرح لحذف هذه الشخصية' });
+        res
+          .status(403)
+          .json({ success: false, error: "غير مصرح لحذف هذه الشخصية" });
         return;
       }
 
       await db.delete(characters).where(eq(characters.id, id));
-      res.json({ success: true, message: 'تم حذف الشخصية بنجاح' });
-      logger.info('Character deleted successfully', { characterId: id });
+      res.json({ success: true, message: "تم حذف الشخصية بنجاح" });
+      logger.info("Character deleted successfully", { characterId: id });
     } catch (error) {
-      logger.error('Delete character error:', error);
-      res.status(500).json({ success: false, error: 'حدث خطأ أثناء حذف الشخصية' });
+      logger.error("Delete character error:", error);
+      res
+        .status(500)
+        .json({ success: false, error: "حدث خطأ أثناء حذف الشخصية" });
     }
   }
 }

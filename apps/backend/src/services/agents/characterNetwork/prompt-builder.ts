@@ -3,7 +3,6 @@
  * Extracted to reduce buildPrompt complexity
  */
 
-
 /**
  * Build original text section
  */
@@ -15,13 +14,15 @@ export function buildOriginalTextSection(originalText: string): string {
 /**
  * Build characters list section
  */
-export function buildCharactersSection(characters: (string | { name?: string; role?: string })[]): string {
+export function buildCharactersSection(
+  characters: (string | { name?: string; role?: string })[],
+): string {
   if (characters.length === 0) return "";
 
   let section = `الشخصيات في الشبكة:\n`;
   characters.slice(0, 8).forEach((char, idx: number) => {
     const charName =
-      typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+      typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
     const charRole =
       typeof char === "object" && char.role ? ` - ${char.role}` : "";
     section += `${idx + 1}. ${charName}${charRole}\n`;
@@ -50,7 +51,9 @@ interface AnalysisOptionsSectionInput {
   translateFn: (type: string) => string;
 }
 
-export function buildAnalysisOptionsSection(input: AnalysisOptionsSectionInput): string {
+export function buildAnalysisOptionsSection(
+  input: AnalysisOptionsSectionInput,
+): string {
   const {
     analyzeEvolution,
     identifyGroups,
@@ -74,7 +77,7 @@ export function buildConditionalInstructions(
   analyzeEvolution: boolean,
   identifyGroups: boolean,
   mapPowerDynamics: boolean,
-  trackInfluence: boolean
+  trackInfluence: boolean,
 ): string {
   let instructions = "";
 

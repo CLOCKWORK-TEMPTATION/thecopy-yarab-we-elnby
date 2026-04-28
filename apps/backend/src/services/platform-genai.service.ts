@@ -1,6 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from "@google/genai";
 
-import { env } from '@/config/env';
+import { env } from "@/config/env";
 
 interface JsonGenerationOptions {
   model?: string;
@@ -38,10 +38,13 @@ interface EditableImageModel {
 }
 
 /** Tri-state: not-configured | configured-failing | ready */
-export type AIProviderTriState = 'not-configured' | 'configured-failing' | 'ready';
+export type AIProviderTriState =
+  | "not-configured"
+  | "configured-failing"
+  | "ready";
 
 export interface AIProviderHealthStatus {
-  status: 'healthy' | 'unhealthy';
+  status: "healthy" | "unhealthy";
   triState: AIProviderTriState;
   responseTime: number;
   message?: string;
@@ -49,51 +52,54 @@ export interface AIProviderHealthStatus {
   details?: Record<string, unknown>;
 }
 
-const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash';
-const DEFAULT_IMAGE_EDIT_MODEL = 'gemini-2.5-flash-image-preview';
-const DEFAULT_IMAGE_GENERATION_MODEL = 'imagen-3.0-generate-002';
+const DEFAULT_TEXT_MODEL = "gemini-2.5-flash";
+const DEFAULT_IMAGE_EDIT_MODEL = "gemini-2.5-flash-image-preview";
+const DEFAULT_IMAGE_GENERATION_MODEL = "imagen-3.0-generate-002";
 
 function isTextGenerationResult(value: unknown): value is TextGenerationResult {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function extractText(result: unknown): string {
   if (!isTextGenerationResult(result)) {
-    return '';
+    return "";
   }
 
-  if (typeof result.text === 'string') {
+  if (typeof result.text === "string") {
     return result.text;
   }
 
-  if (typeof result.response?.text === 'function') {
+  if (typeof result.response?.text === "function") {
     return result.response.text();
   }
 
-  if (typeof result.response?.text === 'string') {
+  if (typeof result.response?.text === "string") {
     return result.response.text;
   }
 
-  return '';
+  return "";
 }
 
 function normalizeProviderError(error: unknown): Error {
   const message = error instanceof Error ? error.message : String(error);
 
-  if (message.includes('API key expired')) {
+  if (message.includes("API key expired")) {
     return new Error(
-      'GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.'
+      "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
     );
   }
 
-  if (message.includes('API_KEY_INVALID') || message.includes('API key not valid')) {
+  if (
+    message.includes("API_KEY_INVALID") ||
+    message.includes("API key not valid")
+  ) {
     return new Error(
-      'GOOGLE_GENAI_API_KEY is invalid. Fix the AI provider credential before using AI-backed routes.'
+      "GOOGLE_GENAI_API_KEY is invalid. Fix the AI provider credential before using AI-backed routes.",
     );
   }
 
-  if (message.includes('quota') || message.includes('RESOURCE_EXHAUSTED')) {
-    return new Error('The AI provider quota is exhausted.');
+  if (message.includes("quota") || message.includes("RESOURCE_EXHAUSTED")) {
+    return new Error("The AI provider quota is exhausted.");
   }
 
   return new Error(message);
@@ -101,8 +107,10 @@ function normalizeProviderError(error: unknown): Error {
 
 export class PlatformGenAIService {
   private client: GoogleGenAI | null = null;
-  private healthCache: { expiresAt: number; result: AIProviderHealthStatus } | null =
-    null;
+  private healthCache: {
+    expiresAt: number;
+    result: AIProviderHealthStatus;
+  } | null = null;
   private healthProbeInFlight: Promise<AIProviderHealthStatus> | null = null;
 
   private getClient(): GoogleGenAI {
@@ -116,7 +124,7 @@ export class PlatformGenAIService {
     const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_GENAI_API_KEY;
     if (!apiKey) {
       throw new Error(
-        'GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured. The AI provider is required for this operation.'
+        "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured. The AI provider is required for this operation.",
       );
     }
 
@@ -126,7 +134,7 @@ export class PlatformGenAIService {
 
   async generateJson<T>(
     prompt: string,
-    options: JsonGenerationOptions = {}
+    options: JsonGenerationOptions = {},
   ): Promise<T> {
     try {
       const client = this.getClient();
@@ -134,7 +142,7 @@ export class PlatformGenAIService {
         model: options.model ?? DEFAULT_TEXT_MODEL,
         contents: prompt,
         config: {
-          responseMimeType: 'application/json',
+          responseMimeType: "application/json",
           temperature: options.temperature ?? 0.3,
           maxOutputTokens: options.maxOutputTokens ?? 8192,
         },
@@ -142,18 +150,18 @@ export class PlatformGenAIService {
 
       const text = extractText(result).trim();
       if (!text) {
-        throw new Error('The AI provider returned an empty JSON payload.');
+        throw new Error("The AI provider returned an empty JSON payload.");
       }
 
       try {
         return JSON.parse(text) as T;
       } catch {
-        const start = text.indexOf('{');
-        const end = text.lastIndexOf('}');
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
         if (start >= 0 && end > start) {
           return JSON.parse(text.slice(start, end + 1)) as T;
         }
-        throw new Error('The AI provider returned an invalid JSON payload.');
+        throw new Error("The AI provider returned an invalid JSON payload.");
       }
     } catch (error) {
       throw normalizeProviderError(error);
@@ -162,7 +170,7 @@ export class PlatformGenAIService {
 
   async generateText(
     prompt: string,
-    options: TextGenerationOptions = {}
+    options: TextGenerationOptions = {},
   ): Promise<string> {
     try {
       const client = this.getClient();
@@ -177,7 +185,7 @@ export class PlatformGenAIService {
 
       const text = extractText(result).trim();
       if (!text) {
-        throw new Error('The AI provider returned an empty response.');
+        throw new Error("The AI provider returned an empty response.");
       }
 
       return text;
@@ -189,7 +197,7 @@ export class PlatformGenAIService {
   async generateTextFromMedia(
     prompt: string,
     media: InlineMedia,
-    options: TextGenerationOptions = {}
+    options: TextGenerationOptions = {},
   ): Promise<string> {
     try {
       const client = this.getClient();
@@ -197,7 +205,7 @@ export class PlatformGenAIService {
         model: options.model ?? DEFAULT_TEXT_MODEL,
         contents: [
           {
-            role: 'user',
+            role: "user",
             parts: [
               { text: prompt },
               {
@@ -217,7 +225,7 @@ export class PlatformGenAIService {
 
       const text = extractText(result).trim();
       if (!text) {
-        throw new Error('The AI provider returned an empty media response.');
+        throw new Error("The AI provider returned an empty media response.");
       }
 
       return text;
@@ -226,10 +234,9 @@ export class PlatformGenAIService {
     }
   }
 
-   
   async generateImage(
     prompt: string,
-    options: { model?: string } = {}
+    options: { model?: string } = {},
   ): Promise<string> {
     try {
       const client = this.getClient();
@@ -238,7 +245,7 @@ export class PlatformGenAIService {
         prompt,
         config: {
           numberOfImages: 1,
-          outputMimeType: 'image/png',
+          outputMimeType: "image/png",
         },
       });
 
@@ -248,7 +255,7 @@ export class PlatformGenAIService {
       const bytes = image?.imageBytes ?? image?.data;
 
       if (!bytes) {
-        throw new Error('The AI provider did not return an image payload.');
+        throw new Error("The AI provider did not return an image payload.");
       }
 
       return `data:image/png;base64,${bytes}`;
@@ -256,11 +263,11 @@ export class PlatformGenAIService {
       throw normalizeProviderError(error);
     }
   }
-   
+
   async editImage(
     prompt: string,
     sourceImage: InlineMedia,
-    options: { model?: string } = {}
+    options: { model?: string } = {},
   ): Promise<string> {
     try {
       const client = this.getClient();
@@ -276,7 +283,7 @@ export class PlatformGenAIService {
         ],
         config: {
           numberOfImages: 1,
-          outputMimeType: 'image/png',
+          outputMimeType: "image/png",
         },
       });
 
@@ -284,7 +291,9 @@ export class PlatformGenAIService {
       const bytes = image?.imageBytes ?? image?.data;
 
       if (!bytes) {
-        throw new Error('The AI provider did not return an edited image payload.');
+        throw new Error(
+          "The AI provider did not return an edited image payload.",
+        );
       }
 
       return `data:image/png;base64,${bytes}`;
@@ -293,10 +302,16 @@ export class PlatformGenAIService {
     }
   }
 
-  async probeHealth(options: { force?: boolean } = {}): Promise<AIProviderHealthStatus> {
+  async probeHealth(
+    options: { force?: boolean } = {},
+  ): Promise<AIProviderHealthStatus> {
     const now = Date.now();
 
-    if (!options.force && this.healthCache && this.healthCache.expiresAt > now) {
+    if (
+      !options.force &&
+      this.healthCache &&
+      this.healthCache.expiresAt > now
+    ) {
       return this.healthCache.result;
     }
 
@@ -306,7 +321,7 @@ export class PlatformGenAIService {
 
     const probe = this.runHealthProbe()
       .then((result) => {
-        const ttl = result.status === 'healthy' ? 5 * 60 * 1000 : 60 * 1000;
+        const ttl = result.status === "healthy" ? 5 * 60 * 1000 : 60 * 1000;
         this.healthCache = {
           expiresAt: Date.now() + ttl,
           result,
@@ -324,9 +339,9 @@ export class PlatformGenAIService {
   private async runHealthProbe(): Promise<AIProviderHealthStatus> {
     const startedAt = Date.now();
     const hasKey = Boolean(env.GOOGLE_GENAI_API_KEY ?? env.GEMINI_API_KEY);
-    const details = { provider: 'google-genai', credentialsConfigured: hasKey };
+    const details = { provider: "google-genai", credentialsConfigured: hasKey };
     const buildProbeResult = (
-      result: Omit<AIProviderHealthStatus, 'details'>
+      result: Omit<AIProviderHealthStatus, "details">,
     ): AIProviderHealthStatus => ({
       ...result,
       details,
@@ -334,30 +349,36 @@ export class PlatformGenAIService {
 
     if (!hasKey) {
       return buildProbeResult({
-        status: 'unhealthy',
-        triState: 'not-configured',
+        status: "unhealthy",
+        triState: "not-configured",
         responseTime: 0,
-        error: 'GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.',
+        error: "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.",
       });
     }
 
     try {
       await Promise.race([
-        this.generateText('Reply with OK only.', { temperature: 0, maxOutputTokens: 8 }),
+        this.generateText("Reply with OK only.", {
+          temperature: 0,
+          maxOutputTokens: 8,
+        }),
         new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('AI probe timed out (10 s).')), 10000);
+          setTimeout(
+            () => reject(new Error("AI probe timed out (10 s).")),
+            10000,
+          );
         }),
       ]);
       return buildProbeResult({
-        status: 'healthy',
-        triState: 'ready',
+        status: "healthy",
+        triState: "ready",
         responseTime: Date.now() - startedAt,
-        message: 'AI provider responded to readiness probe.',
+        message: "AI provider responded to readiness probe.",
       });
     } catch (error) {
       return buildProbeResult({
-        status: 'unhealthy',
-        triState: 'configured-failing',
+        status: "unhealthy",
+        triState: "configured-failing",
         responseTime: Date.now() - startedAt,
         error: normalizeProviderError(error).message,
       });

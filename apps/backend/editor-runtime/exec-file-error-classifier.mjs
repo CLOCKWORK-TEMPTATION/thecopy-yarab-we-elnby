@@ -74,7 +74,7 @@ export const classifyExecError = (
   context,
   timeoutMs,
   stdout,
-  stderr
+  stderr,
 ) => {
   const normalizedStdout = toExecBuffer(stdout);
   const normalizedStderr = toExecBuffer(stderr);

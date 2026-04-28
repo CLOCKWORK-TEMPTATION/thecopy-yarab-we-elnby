@@ -5,7 +5,7 @@ import type {
   TreatmentPlan,
   PlotPredictions,
 } from "./types";
-import type { UncertaintyQuantificationEngine } from "../constitutional/uncertainty-quantification";
+import type { UncertaintyQuantificationEngine } from "../../constitutional/uncertainty-quantification";
 
 export class UncertaintyQuantifier {
   constructor(private uncertaintyEngine: UncertaintyQuantificationEngine) {}

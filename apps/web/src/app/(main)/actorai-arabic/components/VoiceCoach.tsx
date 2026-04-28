@@ -28,6 +28,14 @@ export const VoiceCoach: React.FC = () => {
     stopListening,
     reset,
   } = useVoiceAnalytics();
+  const overallScore = Math.round(
+    (Math.min(metrics.pitch.value / 4, 100) +
+      Math.min(Math.max(metrics.volume.value + 60, 0) * 2, 100) +
+      metrics.articulation.score +
+      (metrics.speechRate.level === "normal" ? 100 : 65) +
+      (metrics.pauses.isEffective ? 100 : 60)) /
+      5
+  );
 
   if (!isSupported) {
     return (
@@ -54,11 +62,7 @@ export const VoiceCoach: React.FC = () => {
           <div className="flex-1 space-y-4">
             <div className="flex items-center gap-3">
               <div
-                className={`w-3 h-3 rounded-full ${
-                  isListening
-                    ? "bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.6)]"
-                    : "bg-white/20"
-                }`}
+                className={`w-3 h-3 rounded-full ${isListening ? "bg-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.6)]" : "bg-white/20"}`}
               />
               <h2 className="text-2xl font-bold text-white">
                 المدرب الصوتي الذكي
@@ -130,15 +134,13 @@ export const VoiceCoach: React.FC = () => {
                   strokeWidth="8"
                   fill="transparent"
                   strokeDasharray={351.8}
-                  strokeDashoffset={
-                    351.8 - (351.8 * metrics.overallScore) / 100
-                  }
+                  strokeDashoffset={351.8 - (351.8 * overallScore) / 100}
                   className="text-white transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                 />
               </svg>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
                 <span className="text-4xl font-bold text-white drop-shadow-md">
-                  {Math.round(metrics.overallScore)}
+                  {overallScore}
                 </span>
                 <span className="text-xs text-white/50">%</span>
               </div>

@@ -61,26 +61,29 @@ export function exportBreakdownToMarkdown(
 
   // تحويل البيانات لأقسام Markdown
   for (const [key, value] of Object.entries(data)) {
-    if (value && typeof value === "object") {
-      md += `## ${formatSectionTitle(key)}\n\n`;
-
-      if (Array.isArray(value)) {
-        for (const item of value) {
-          if (typeof item === "object" && item !== null) {
-            const obj = item as Record<string, unknown>;
-            for (const [k, v] of Object.entries(obj)) {
-              md += `- **${k}:** ${stringifyUnknown(v)}\n`;
-            }
-            md += `\n`;
-          } else {
-            md += `- ${stringifyUnknown(item)}\n`;
-          }
-        }
-      } else {
-        md += `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\`\n`;
-      }
-      md += `\n`;
+    if (!value || typeof value !== "object") {
+      continue;
     }
+
+    md += `## ${formatSectionTitle(key)}\n\n`;
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item !== "object" || item === null) {
+          md += `- ${stringifyUnknown(item)}\n`;
+          continue;
+        }
+
+        const obj = item as Record<string, unknown>;
+        for (const [k, v] of Object.entries(obj)) {
+          md += `- **${k}:** ${stringifyUnknown(v)}\n`;
+        }
+        md += `\n`;
+      }
+    } else {
+      md += `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\`\n`;
+    }
+    md += `\n`;
   }
 
   const safeTitle = scriptTitle.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, "_");

@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const rhythmMappingInstructions = `
 تحليل وخريطة إيقاع السرد:
@@ -49,6 +49,6 @@ export const rhythmMappingAgentConfig: AIAgentConfig = {
     "تحليل الإيقاع السردي",
     "رسم خريطة التوزيع الزمني",
     "تحديد نقاط التسارع والتباطؤ",
-    "تقييم التوازن الإيقاعي"
-  ]
+    "تقييم التوازن الإيقاعي",
+  ],
 };

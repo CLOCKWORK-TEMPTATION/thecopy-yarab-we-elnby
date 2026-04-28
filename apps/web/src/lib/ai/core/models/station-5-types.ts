@@ -1,5 +1,31 @@
 // Station 5 Types
 
+import type {
+  StationInput,
+  TimelineEvent,
+  EvolutionAnalysis,
+  CharacterEvolution,
+  ConflictProgression,
+  Motif,
+  ToneAssessment,
+  LanguageMetrics,
+  PacingAnalysis,
+  DescriptiveMetrics,
+  TensionPeak,
+  TensionValley,
+  Location,
+  SubtextAnalysis,
+  PowerDynamic,
+  EmotionalBeat,
+  VisualMoment,
+  StationMetadata,
+  UncertaintyReport,
+} from "./common-types";
+import type { Station1Output } from "./station-1-types";
+import type { Station2Output } from "./station-2-types";
+import type { Station3Output } from "./station-3-types";
+import type { Station4Output } from "./station-4-types";
+
 export interface Station5Input extends StationInput {
   previousAnalysis: {
     station1: Station1Output;

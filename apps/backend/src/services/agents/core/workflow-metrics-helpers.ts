@@ -8,7 +8,7 @@ import {
   WorkflowStage,
   AgentStatus,
   WorkflowMetrics,
-} from './workflow-types';
+} from "./workflow-types";
 
 /**
  * Calculate median of an array of numbers
@@ -37,7 +37,9 @@ function roundMetric(value: number, decimals = 6): number {
 /**
  * Build execution plan from workflow config
  */
-export function buildExecutionPlan(config: WorkflowConfig): WorkflowExecutionPlan {
+export function buildExecutionPlan(
+  config: WorkflowConfig,
+): WorkflowExecutionPlan {
   const stages: WorkflowStage[] = [];
   const processedSteps = new Set<string>();
   let stageNumber = 0;
@@ -47,13 +49,13 @@ export function buildExecutionPlan(config: WorkflowConfig): WorkflowExecutionPla
       if (processedSteps.has(step.id)) return false;
       return step.dependencies.every((dep) =>
         Array.from(processedSteps).some((id) =>
-          config.steps.find((s) => s.id === id && s.agentId === dep.agentId)
-        )
+          config.steps.find((s) => s.id === id && s.agentId === dep.agentId),
+        ),
       );
     });
 
     if (availableSteps.length === 0) {
-      throw new Error('Circular dependency detected in workflow');
+      throw new Error("Circular dependency detected in workflow");
     }
 
     const parallelSteps = availableSteps.filter((s) => s.parallel);
@@ -88,9 +90,13 @@ export function buildExecutionPlan(config: WorkflowConfig): WorkflowExecutionPla
 /**
  * Calculate workflow metrics from execution context
  */
-export function calculateWorkflowMetrics(context: WorkflowContext): WorkflowMetrics {
+export function calculateWorkflowMetrics(
+  context: WorkflowContext,
+): WorkflowMetrics {
   const results = Array.from(context.results.values());
-  const completedResults = results.filter((r) => r.status === AgentStatus.COMPLETED);
+  const completedResults = results.filter(
+    (r) => r.status === AgentStatus.COMPLETED,
+  );
 
   const confidences = completedResults
     .map((r) => r.output?.confidence ?? 0)
@@ -102,27 +108,34 @@ export function calculateWorkflowMetrics(context: WorkflowContext): WorkflowMetr
 
   const totalTime =
     context.metadata.completedAt && context.metadata.startedAt
-      ? context.metadata.completedAt.getTime() - context.metadata.startedAt.getTime()
+      ? context.metadata.completedAt.getTime() -
+        context.metadata.startedAt.getTime()
       : 0;
 
   return {
     totalExecutionTime: roundMetric(totalTime, 0),
     avgAgentExecutionTime:
       executionTimes.length > 0
-        ? roundMetric(executionTimes.reduce((a, b) => a + b, 0) / executionTimes.length)
+        ? roundMetric(
+            executionTimes.reduce((a, b) => a + b, 0) / executionTimes.length,
+          )
         : 0,
     parallelizationEfficiency:
       executionTimes.length > 0
         ? roundMetric(totalTime / executionTimes.reduce((a, b) => a + b, 0))
         : 0,
     successRate:
-      results.length > 0 ? roundMetric(completedResults.length / results.length) : 0,
+      results.length > 0
+        ? roundMetric(completedResults.length / results.length)
+        : 0,
     confidenceDistribution: {
       min: confidences.length > 0 ? roundMetric(Math.min(...confidences)) : 0,
       max: confidences.length > 0 ? roundMetric(Math.max(...confidences)) : 0,
       avg:
         confidences.length > 0
-          ? roundMetric(confidences.reduce((a, b) => a + b, 0) / confidences.length)
+          ? roundMetric(
+              confidences.reduce((a, b) => a + b, 0) / confidences.length,
+            )
           : 0,
       median: confidences.length > 0 ? roundMetric(median(confidences)) : 0,
     },

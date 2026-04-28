@@ -157,6 +157,7 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const analysisFrameRef = useRef<number | null>(null);
+  const collectFrameRef = useRef<(() => void) | null>(null);
   const sampleBufferRef = useRef<WebcamFrameSample[]>([]);
   const previousFrameRef = useRef<Uint8ClampedArray | null>(null);
   const lastSampleTimeRef = useRef(0);
@@ -165,6 +166,13 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     if (analysisFrameRef.current) {
       cancelAnimationFrame(analysisFrameRef.current);
       analysisFrameRef.current = null;
+    }
+  }, []);
+
+  const scheduleCollectionFrame = useCallback(() => {
+    const collectFrame = collectFrameRef.current;
+    if (collectFrame) {
+      analysisFrameRef.current = requestAnimationFrame(collectFrame);
     }
   }, []);
 
@@ -227,7 +235,7 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
 
   const collectFrame = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) {
-      analysisFrameRef.current = requestAnimationFrame(collectFrame);
+      scheduleCollectionFrame();
       return;
     }
 
@@ -246,8 +254,12 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
       }
     }
 
-    analysisFrameRef.current = requestAnimationFrame(collectFrame);
-  }, []);
+    scheduleCollectionFrame();
+  }, [scheduleCollectionFrame]);
+
+  useEffect(() => {
+    collectFrameRef.current = collectFrame;
+  }, [collectFrame]);
 
   const startAnalysis = useCallback((): {
     success: boolean;
@@ -264,9 +276,9 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     setAnalysisTime(0);
     setAnalysisResult(null);
     stopSampling();
-    analysisFrameRef.current = requestAnimationFrame(collectFrame);
+    scheduleCollectionFrame();
     return { success: true };
-  }, [collectFrame, isActive, stopSampling]);
+  }, [isActive, scheduleCollectionFrame, stopSampling]);
 
   const stopAnalysis = useCallback((): WebcamAnalysisResult | null => {
     setIsAnalyzing(false);

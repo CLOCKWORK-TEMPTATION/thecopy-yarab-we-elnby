@@ -22,13 +22,16 @@ function cloneBudgetTemplate(template: BudgetDocument): BudgetDocument {
   return JSON.parse(JSON.stringify(template)) as BudgetDocument;
 }
 
-function buildEstimateFactors(insights: ScenarioInsights): BudgetEstimateFactors {
+function buildEstimateFactors(
+  insights: ScenarioInsights,
+): BudgetEstimateFactors {
   return {
     shootingWeeks: Math.max(1, Math.ceil(insights.shootingDays / 5)),
     prepWeeks: Math.max(1, Math.ceil(insights.preProductionDays / 5)),
     postWeeks: Math.max(1, Math.ceil(insights.postProductionDays / 5)),
     actionPremium: 1 + insights.actionLevel * 0.18 + insights.vfxLevel * 0.08,
-    transportFactor: 1 + insights.vehicleCount * 0.15 + insights.locationCount * 0.08,
+    transportFactor:
+      1 + insights.vehicleCount * 0.15 + insights.locationCount * 0.08,
   };
 }
 
@@ -61,7 +64,7 @@ function setLineItem(
   code: string,
   amount: number,
   rate: number,
-  notes?: string
+  notes?: string,
 ): void {
   for (const section of budget.sections) {
     for (const category of section.categories) {
@@ -81,7 +84,7 @@ function setLineItem(
 
 function hydrateBudgetMetadata(
   budget: BudgetDocument,
-  insights: ScenarioInsights
+  insights: ScenarioInsights,
 ): void {
   budget.metadata = {
     ...budget.metadata,
@@ -96,168 +99,177 @@ function hydrateBudgetMetadata(
 function applyTalentEstimates(
   budget: BudgetDocument,
   insights: ScenarioInsights,
-  factors: BudgetEstimateFactors
+  factors: BudgetEstimateFactors,
 ): void {
   setLineItem(
     budget,
     "11-01",
     1,
     Math.round(6500 + insights.sceneCount * 180 + insights.actionLevel * 900),
-    "Fallback estimate based on screenplay complexity."
+    "Fallback estimate based on screenplay complexity.",
   );
   setLineItem(
     budget,
     "11-02",
     1,
     Math.round(3500 + (insights.genre === "Action" ? 1500 : 1000)),
-    "Rights and development reserve."
+    "Rights and development reserve.",
   );
   setLineItem(
     budget,
     "14-01",
     insights.leadCastCount * insights.shootingDays,
     Math.round(950 * factors.actionPremium + insights.nightShootCount * 60),
-    "Principal cast days inferred from scenario."
+    "Principal cast days inferred from scenario.",
   );
   setLineItem(
     budget,
     "14-02",
-    insights.supportingCastCount * Math.max(2, Math.ceil(insights.shootingDays * 0.7)),
+    insights.supportingCastCount *
+      Math.max(2, Math.ceil(insights.shootingDays * 0.7)),
     Math.round(320 + insights.crowdLevel * 45),
-    "Supporting cast and featured extras."
+    "Supporting cast and featured extras.",
   );
 }
 
 function applyManagementEstimates(
   budget: BudgetDocument,
   insights: ScenarioInsights,
-  factors: BudgetEstimateFactors
+  factors: BudgetEstimateFactors,
 ): void {
   setLineItem(
     budget,
     "20-01",
     factors.prepWeeks + factors.shootingWeeks,
     Math.round(2600 + insights.locationCount * 120),
-    "Line production coverage across prep and shoot."
+    "Line production coverage across prep and shoot.",
   );
   setLineItem(
     budget,
     "20-02",
     factors.prepWeeks + factors.shootingWeeks,
     Math.round(1800 + insights.actionLevel * 80),
-    "Production management across all field days."
+    "Production management across all field days.",
   );
   setLineItem(
     budget,
     "20-03",
-    Math.max(2, insights.locationCount + insights.crowdLevel) * factors.shootingWeeks,
+    Math.max(2, insights.locationCount + insights.crowdLevel) *
+      factors.shootingWeeks,
     850,
-    "Production assistants scaled by logistics complexity."
+    "Production assistants scaled by logistics complexity.",
   );
 }
 
 function applyLocationEstimates(
   budget: BudgetDocument,
   insights: ScenarioInsights,
-  factors: BudgetEstimateFactors
+  factors: BudgetEstimateFactors,
 ): void {
   setLineItem(
     budget,
     "30-01",
     insights.shootingDays,
     Math.round(2200 * factors.actionPremium + insights.vfxLevel * 240),
-    "Camera package adjusted for action and coverage needs."
+    "Camera package adjusted for action and coverage needs.",
   );
   setLineItem(
     budget,
     "29-01",
     insights.shootingDays,
     Math.round(1650 + insights.nightShootCount * 180 + insights.vfxLevel * 90),
-    "Lighting package scaled for night work and effects."
+    "Lighting package scaled for night work and effects.",
   );
   setLineItem(
     budget,
     "25-01",
     insights.shootingDays,
     Math.round(1150 + insights.stuntMoments * 120),
-    "Grip package scaled by movement and stunt load."
+    "Grip package scaled by movement and stunt load.",
   );
   setLineItem(
     budget,
     "34-01",
-    insights.locationCount * Math.max(1, Math.ceil(insights.shootingDays / insights.locationCount)),
+    insights.locationCount *
+      Math.max(1, Math.ceil(insights.shootingDays / insights.locationCount)),
     Math.round(780 + insights.actionLevel * 70),
-    "Location fees across inferred locations."
+    "Location fees across inferred locations.",
   );
   setLineItem(
     budget,
     "34-02",
     1,
     Math.round(900 + insights.locationCount * 220 + insights.actionLevel * 450),
-    "Permits, police lockups, and street usage."
+    "Permits, police lockups, and street usage.",
   );
   setLineItem(
     budget,
     "34-03",
     insights.shootingDays,
     Math.round(900 * factors.transportFactor),
-    "Transportation and company moves."
+    "Transportation and company moves.",
   );
 }
 
 function applyPostProductionEstimates(
   budget: BudgetDocument,
   insights: ScenarioInsights,
-  factors: BudgetEstimateFactors
+  factors: BudgetEstimateFactors,
 ): void {
   setLineItem(
     budget,
     "45-01",
     factors.postWeeks,
     Math.round(2450 + insights.vfxLevel * 220),
-    "Editorial time for production scale."
+    "Editorial time for production scale.",
   );
-  setLineItem(budget, "45-02", factors.postWeeks, 1250, "Assistant editorial support.");
+  setLineItem(
+    budget,
+    "45-02",
+    factors.postWeeks,
+    1250,
+    "Assistant editorial support.",
+  );
   setLineItem(
     budget,
     "48-01",
     1,
     Math.round(4200 + insights.actionLevel * 950 + insights.vfxLevel * 550),
-    "Sound design reserve."
+    "Sound design reserve.",
   );
   setLineItem(
     budget,
     "48-02",
     1,
     Math.round(2600 + insights.actionLevel * 320),
-    "Final mix reserve."
+    "Final mix reserve.",
   );
 }
 
 function applyBusinessEstimates(
   budget: BudgetDocument,
   factors: BudgetEstimateFactors,
-  insights: ScenarioInsights
+  insights: ScenarioInsights,
 ): void {
   setLineItem(
     budget,
     "56-01",
     1,
     Math.round(1800 + insights.locationCount * 140),
-    "Legal paperwork, chain of title, and release work."
+    "Legal paperwork, chain of title, and release work.",
   );
   setLineItem(
     budget,
     "56-02",
     1,
     Math.round(1500 + factors.shootingWeeks * 160),
-    "Production accounting support."
+    "Production accounting support.",
   );
 }
 
 function finalizeInsuranceReserve(
   budget: BudgetDocument,
-  insights: ScenarioInsights
+  insights: ScenarioInsights,
 ): BudgetDocument {
   recalculateBudget(budget);
   setLineItem(
@@ -265,9 +277,10 @@ function finalizeInsuranceReserve(
     "58-01",
     1,
     Math.round(
-      budget.grandTotal * (0.045 + insights.actionLevel * 0.008 + insights.stuntMoments * 0.004)
+      budget.grandTotal *
+        (0.045 + insights.actionLevel * 0.008 + insights.stuntMoments * 0.004),
     ),
-    "Insurance reserve derived from the first-pass subtotal."
+    "Insurance reserve derived from the first-pass subtotal.",
   );
   return recalculateBudget(budget);
 }
@@ -275,7 +288,7 @@ function finalizeInsuranceReserve(
 function buildFallbackBudget(
   scenario: string,
   title: string | undefined,
-  template: BudgetDocument
+  template: BudgetDocument,
 ): BudgetDocument {
   const budget = cloneBudgetTemplate(template);
   const insights = buildScenarioInsights(scenario, title);
@@ -296,7 +309,7 @@ export function buildFallbackBudgetRuntime(
   scenario: string,
   title: string | undefined,
   template: BudgetDocument,
-  fallbackReason?: string
+  fallbackReason?: string,
 ): BudgetRuntimeResult {
   const generatedAt = new Date().toISOString();
   const meta: BudgetRuntimeMeta = {

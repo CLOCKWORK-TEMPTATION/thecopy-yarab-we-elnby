@@ -11,7 +11,7 @@ const vendoredRoot = join(repoRoot, ".tools", "antiword-app");
 const vendoredBinPath = join(
   vendoredRoot,
   "bin",
-  isWindows ? "antiword.exe" : "antiword"
+  isWindows ? "antiword.exe" : "antiword",
 );
 const vendoredHomePath = join(vendoredRoot, "Resources");
 
@@ -26,7 +26,8 @@ const systemDefaultAntiwordHome = isWindows
 
 const resolveDefaultAntiwordPath = () => {
   if (existsSync(vendoredBinPath)) return vendoredBinPath;
-  if (isWindows && existsSync(legacyWindowsBinPath)) return legacyWindowsBinPath;
+  if (isWindows && existsSync(legacyWindowsBinPath))
+    return legacyWindowsBinPath;
   return systemDefaultAntiwordPath;
 };
 
@@ -47,7 +48,8 @@ const inferRuntimeSource = (antiwordPath, antiwordHome) => {
   }
   if (
     isWindows &&
-    (antiwordPath === legacyWindowsBinPath || antiwordHome === legacyWindowsHomePath)
+    (antiwordPath === legacyWindowsBinPath ||
+      antiwordHome === legacyWindowsHomePath)
   ) {
     return "windows-legacy";
   }

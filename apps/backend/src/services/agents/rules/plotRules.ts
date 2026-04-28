@@ -3,26 +3,30 @@
  * Domain-specific rules for plot and narrative structure analysis
  */
 
-import { Rule } from '../shared/constitutionalRules';
+import { Rule } from "../shared/constitutionalRules";
 
 export const plotRules: Rule[] = [
   {
-    id: 'plot-causal-links',
-    name: 'الروابط السببية',
-    description: 'يجب التحقق من الروابط السببية المنطقية بين الأحداث',
-    category: 'plot',
-    severity: 'critical',
-    priority: 'high',
+    id: "plot-causal-links",
+    name: "الروابط السببية",
+    description: "يجب التحقق من الروابط السببية المنطقية بين الأحداث",
+    category: "plot",
+    severity: "critical",
+    priority: "high",
     enabled: true,
     parameters: [
       {
-        name: 'requireCausality',
-        type: 'boolean',
+        name: "requireCausality",
+        type: "boolean",
         value: true,
-        description: 'يتطلب تحليل العلاقات السببية',
+        description: "يتطلب تحليل العلاقات السببية",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       const causalIndicators = [
         /بسبب/gi,
         /نتيجة/gi,
@@ -32,32 +36,38 @@ export const plotRules: Rule[] = [
         /يترتب/gi,
       ];
 
-      const hasCausalAnalysis = causalIndicators.some(pattern => pattern.test(text));
+      const hasCausalAnalysis = causalIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       return hasCausalAnalysis || !params?.requireCausality;
     },
     suggest: (_text: string) => {
-      return 'وضح كيف تؤدي الأحداث إلى بعضها البعض بشكل منطقي';
+      return "وضح كيف تؤدي الأحداث إلى بعضها البعض بشكل منطقي";
     },
   },
 
   {
-    id: 'plot-no-holes',
-    name: 'عدم وجود ثغرات',
-    description: 'تحديد أي ثغرات منطقية أو أحداث غير مبررة',
-    category: 'plot',
-    severity: 'major',
-    priority: 'high',
+    id: "plot-no-holes",
+    name: "عدم وجود ثغرات",
+    description: "تحديد أي ثغرات منطقية أو أحداث غير مبررة",
+    category: "plot",
+    severity: "major",
+    priority: "high",
     enabled: true,
     parameters: [
       {
-        name: 'identifyPlotHoles',
-        type: 'boolean',
+        name: "identifyPlotHoles",
+        type: "boolean",
         value: true,
-        description: 'تحديد الثغرات في الحبكة',
+        description: "تحديد الثغرات في الحبكة",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       // Look for mentions of plot holes or inconsistencies
       const plotHoleIndicators = [
         /ثغرة/gi,
@@ -66,7 +76,9 @@ export const plotRules: Rule[] = [
         /بدون.*تفسير/gi,
       ];
 
-      const mentionsPlotHoles = plotHoleIndicators.some(pattern => pattern.test(text));
+      const mentionsPlotHoles = plotHoleIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       // If plot holes are mentioned, that's good (identifying them)
       // If we require identification and none are mentioned, we check if analysis is comprehensive
@@ -79,33 +91,37 @@ export const plotRules: Rule[] = [
           /واضح/gi,
         ];
 
-        return thoroughnessIndicators.some(pattern => pattern.test(text));
+        return thoroughnessIndicators.some((pattern) => pattern.test(text));
       }
 
       return true;
     },
     suggest: (_text: string) => {
-      return 'ابحث عن أي ثغرات أو تناقضات في الحبكة وأشر إليها';
+      return "ابحث عن أي ثغرات أو تناقضات في الحبكة وأشر إليها";
     },
   },
 
   {
-    id: 'plot-pacing-consistency',
-    name: 'اتساق الإيقاع',
-    description: 'تحليل إيقاع السرد وتناسقه',
-    category: 'plot',
-    severity: 'minor',
-    priority: 'medium',
+    id: "plot-pacing-consistency",
+    name: "اتساق الإيقاع",
+    description: "تحليل إيقاع السرد وتناسقه",
+    category: "plot",
+    severity: "minor",
+    priority: "medium",
     enabled: true,
     parameters: [
       {
-        name: 'analyzePacing',
-        type: 'boolean',
+        name: "analyzePacing",
+        type: "boolean",
         value: true,
-        description: 'تحليل إيقاع السرد',
+        description: "تحليل إيقاع السرد",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       const pacingIndicators = [
         /إيقاع/gi,
         /سرعة.*السرد/gi,
@@ -114,32 +130,38 @@ export const plotRules: Rule[] = [
         /وتيرة/gi,
       ];
 
-      const analyzesPacing = pacingIndicators.some(pattern => pattern.test(text));
+      const analyzesPacing = pacingIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       return analyzesPacing || !params?.analyzePacing;
     },
     suggest: (_text: string) => {
-      return 'ناقش إيقاع السرد: هل هو سريع؟ بطيء؟ متنوع؟';
+      return "ناقش إيقاع السرد: هل هو سريع؟ بطيء؟ متنوع؟";
     },
   },
 
   {
-    id: 'plot-structure-recognition',
-    name: 'التعرف على البنية',
-    description: 'التعرف على البنية السردية والهيكل الدرامي',
-    category: 'plot',
-    severity: 'minor',
-    priority: 'medium',
+    id: "plot-structure-recognition",
+    name: "التعرف على البنية",
+    description: "التعرف على البنية السردية والهيكل الدرامي",
+    category: "plot",
+    severity: "minor",
+    priority: "medium",
     enabled: true,
     parameters: [
       {
-        name: 'requireStructureAnalysis',
-        type: 'boolean',
+        name: "requireStructureAnalysis",
+        type: "boolean",
         value: true,
-        description: 'يتطلب تحليل البنية السردية',
+        description: "يتطلب تحليل البنية السردية",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       const structureIndicators = [
         /بنية/gi,
         /هيكل/gi,
@@ -148,32 +170,38 @@ export const plotRules: Rule[] = [
         /تصاعد.*ذروة/gi,
       ];
 
-      const recognizesStructure = structureIndicators.some(pattern => pattern.test(text));
+      const recognizesStructure = structureIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       return recognizesStructure || !params?.requireStructureAnalysis;
     },
     suggest: (_text: string) => {
-      return 'حدد البنية السردية: المقدمة، التصاعد، الذروة، الحل';
+      return "حدد البنية السردية: المقدمة، التصاعد، الذروة، الحل";
     },
   },
 
   {
-    id: 'plot-foreshadowing-analysis',
-    name: 'تحليل التلميحات المسبقة',
-    description: 'التعرف على التلميحات والإرهاصات في السرد',
-    category: 'plot',
-    severity: 'minor',
-    priority: 'low',
+    id: "plot-foreshadowing-analysis",
+    name: "تحليل التلميحات المسبقة",
+    description: "التعرف على التلميحات والإرهاصات في السرد",
+    category: "plot",
+    severity: "minor",
+    priority: "low",
     enabled: true,
     parameters: [
       {
-        name: 'identifyForeshadowing',
-        type: 'boolean',
+        name: "identifyForeshadowing",
+        type: "boolean",
         value: false,
-        description: 'تحديد التلميحات المسبقة',
+        description: "تحديد التلميحات المسبقة",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       const foreshadowingIndicators = [
         /تلميح/gi,
         /إرهاص/gi,
@@ -181,34 +209,38 @@ export const plotRules: Rule[] = [
         /تنبؤ/gi,
       ];
 
-      const identifiesForeshadowing = foreshadowingIndicators.some(pattern =>
-        pattern.test(text)
+      const identifiesForeshadowing = foreshadowingIndicators.some((pattern) =>
+        pattern.test(text),
       );
 
       return identifiesForeshadowing || !params?.identifyForeshadowing;
     },
     suggest: (_text: string) => {
-      return 'ابحث عن التلميحات المسبقة التي تشير إلى أحداث لاحقة';
+      return "ابحث عن التلميحات المسبقة التي تشير إلى أحداث لاحقة";
     },
   },
 
   {
-    id: 'plot-subplots-integration',
-    name: 'تكامل الحبكات الفرعية',
-    description: 'تحليل كيفية تكامل الحبكات الفرعية مع الحبكة الرئيسية',
-    category: 'plot',
-    severity: 'minor',
-    priority: 'medium',
+    id: "plot-subplots-integration",
+    name: "تكامل الحبكات الفرعية",
+    description: "تحليل كيفية تكامل الحبكات الفرعية مع الحبكة الرئيسية",
+    category: "plot",
+    severity: "minor",
+    priority: "medium",
     enabled: true,
     parameters: [
       {
-        name: 'analyzeSubplots',
-        type: 'boolean',
+        name: "analyzeSubplots",
+        type: "boolean",
         value: true,
-        description: 'تحليل الحبكات الفرعية',
+        description: "تحليل الحبكات الفرعية",
       },
     ],
-    check: (text: string, context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       // Check if there are subplots mentioned in context
       const ctx = context as Record<string, unknown> | undefined;
       const hasSubplots = ctx?.hasSubplots ?? false;
@@ -224,32 +256,38 @@ export const plotRules: Rule[] = [
         /متوازي/gi,
       ];
 
-      const analyzesSubplots = subplotIndicators.some(pattern => pattern.test(text));
+      const analyzesSubplots = subplotIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       return analyzesSubplots || !params?.analyzeSubplots;
     },
     suggest: (_text: string) => {
-      return 'ناقش كيف تتكامل الحبكات الفرعية مع الحبكة الرئيسية';
+      return "ناقش كيف تتكامل الحبكات الفرعية مع الحبكة الرئيسية";
     },
   },
 
   {
-    id: 'plot-tension-arc',
-    name: 'قوس التوتر',
-    description: 'تحليل تصاعد وهبوط التوتر الدرامي',
-    category: 'plot',
-    severity: 'minor',
-    priority: 'medium',
+    id: "plot-tension-arc",
+    name: "قوس التوتر",
+    description: "تحليل تصاعد وهبوط التوتر الدرامي",
+    category: "plot",
+    severity: "minor",
+    priority: "medium",
     enabled: true,
     parameters: [
       {
-        name: 'requireTensionAnalysis',
-        type: 'boolean',
+        name: "requireTensionAnalysis",
+        type: "boolean",
         value: true,
-        description: 'يتطلب تحليل قوس التوتر',
+        description: "يتطلب تحليل قوس التوتر",
       },
     ],
-    check: (text: string, _context?: unknown, params?: Record<string, unknown>) => {
+    check: (
+      text: string,
+      _context?: unknown,
+      params?: Record<string, unknown>,
+    ) => {
       const tensionIndicators = [
         /توتر/gi,
         /تشويق/gi,
@@ -258,12 +296,14 @@ export const plotRules: Rule[] = [
         /تراجع/gi,
       ];
 
-      const analyzesTension = tensionIndicators.some(pattern => pattern.test(text));
+      const analyzesTension = tensionIndicators.some((pattern) =>
+        pattern.test(text),
+      );
 
       return analyzesTension || !params?.requireTensionAnalysis;
     },
     suggest: (_text: string) => {
-      return 'وصف كيف يتصاعد التوتر الدرامي ويتطور عبر السرد';
+      return "وصف كيف يتصاعد التوتر الدرامي ويتطور عبر السرد";
     },
   },
 ];

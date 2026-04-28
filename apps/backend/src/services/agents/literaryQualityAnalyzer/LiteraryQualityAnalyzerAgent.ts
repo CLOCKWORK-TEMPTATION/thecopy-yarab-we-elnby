@@ -20,7 +20,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     super(
       "AestheticsJudge AI",
       TaskType.LITERARY_QUALITY_ANALYZER,
-      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
+      LITERARY_QUALITY_ANALYZER_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor (high due to critical nature)
@@ -59,7 +59,8 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
       originalText: (ctx["originalText"] as string) || "",
       styleAnalysis: (ctx["styleAnalysis"] as string) || "",
       thematicAnalysis: (ctx["thematicAnalysis"] as string) || "",
-      previousStations: (ctx["previousStations"] as Record<string, string>) || {},
+      previousStations:
+        (ctx["previousStations"] as Record<string, string>) || {},
     };
   }
 
@@ -139,7 +140,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
    * Post-process the literary quality output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
@@ -203,20 +204,44 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
    */
   /** Linguistic analysis indicator terms */
   private static readonly LINGUISTIC_TERMS = [
-    "استعارة", "تشبيه", "كناية", "بلاغة", "أسلوب",
-    "إيقاع", "جملة", "تركيب", "صورة بيانية", "سجع", "جناس",
+    "استعارة",
+    "تشبيه",
+    "كناية",
+    "بلاغة",
+    "أسلوب",
+    "إيقاع",
+    "جملة",
+    "تركيب",
+    "صورة بيانية",
+    "سجع",
+    "جناس",
   ];
 
   /** Critical rigor indicator terms */
   private static readonly CRITICAL_TERMS = [
-    "تقييم", "تحليل", "نقد", "ملاحظة", "قوة",
-    "ضعف", "مقارنة", "معيار", "موضوعي", "دليل",
+    "تقييم",
+    "تحليل",
+    "نقد",
+    "ملاحظة",
+    "قوة",
+    "ضعف",
+    "مقارنة",
+    "معيار",
+    "موضوعي",
+    "دليل",
   ];
 
   /** Comprehensiveness indicator terms (five pillars) */
   private static readonly PILLAR_TERMS = [
-    "لغوي", "بلاغي", "أصالة", "ابتكار", "تماسك",
-    "سردي", "عاطفي", "فني", "معايير",
+    "لغوي",
+    "بلاغي",
+    "أصالة",
+    "ابتكار",
+    "تماسك",
+    "سردي",
+    "عاطفي",
+    "فني",
+    "معايير",
   ];
 
   private assessEvaluationQuality(text: string): {
@@ -225,10 +250,20 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     comprehensiveness: number;
     overallScore: number;
   } {
-    const linguisticDepth = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.LINGUISTIC_TERMS);
-    const criticalRigor = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.CRITICAL_TERMS);
-    const comprehensiveness = this.calculateCoverage(text, LiteraryQualityAnalyzerAgent.PILLAR_TERMS);
-    const overallScore = (linguisticDepth + criticalRigor + comprehensiveness) / 3;
+    const linguisticDepth = this.calculateCoverage(
+      text,
+      LiteraryQualityAnalyzerAgent.LINGUISTIC_TERMS,
+    );
+    const criticalRigor = this.calculateCoverage(
+      text,
+      LiteraryQualityAnalyzerAgent.CRITICAL_TERMS,
+    );
+    const comprehensiveness = this.calculateCoverage(
+      text,
+      LiteraryQualityAnalyzerAgent.PILLAR_TERMS,
+    );
+    const overallScore =
+      (linguisticDepth + criticalRigor + comprehensiveness) / 3;
 
     return { linguisticDepth, criticalRigor, comprehensiveness, overallScore };
   }
@@ -263,7 +298,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     ];
 
     return clicheIndicators.some((indicator) =>
-      text.toLowerCase().includes(indicator)
+      text.toLowerCase().includes(indicator),
     );
   }
 
@@ -277,7 +312,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
       criticalRigor: number;
       comprehensiveness: number;
       overallScore: number;
-    }
+    },
   ): string[] {
     const notes: string[] = [];
 
@@ -326,7 +361,7 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
    * Generate fallback response specific to literary quality analysis
    */
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`التقييم الأدبي الأولي:
 

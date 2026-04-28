@@ -1,11 +1,11 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 const { Pool } = pg;
 
-const DATABASE_URL = process.env['DATABASE_URL'];
+const DATABASE_URL = process.env["DATABASE_URL"];
 
 export const pool = DATABASE_URL
   ? new Pool({
@@ -24,20 +24,22 @@ export let databaseAvailable = false;
 
 export async function initializeDatabase(): Promise<void> {
   if (!DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set. PostgreSQL is required — set DATABASE_URL in .env');
+    throw new Error(
+      "DATABASE_URL is not set. PostgreSQL is required — set DATABASE_URL in .env",
+    );
   }
 
   try {
     const client = await pool.connect();
-    await client.query('SELECT 1');
+    await client.query("SELECT 1");
     client.release();
     databaseAvailable = true;
-    logger.info('Database connection established successfully');
+    logger.info("Database connection established successfully");
   } catch (error) {
     databaseAvailable = false;
     throw new Error(
       `Database connection failed: ${error instanceof Error ? error.message : String(error)}. ` +
-      'Ensure PostgreSQL is running (pnpm run infra:up) and DATABASE_URL is correct.'
+        "Ensure PostgreSQL is running (pnpm run infra:up) and DATABASE_URL is correct.",
     );
   }
 }
@@ -46,9 +48,9 @@ export async function closeDatabase(): Promise<void> {
   if (pool) {
     try {
       await pool.end();
-      logger.info('Database connection pool closed');
+      logger.info("Database connection pool closed");
     } catch (error) {
-      logger.error({ err: error }, 'Error closing database pool');
+      logger.error({ err: error }, "Error closing database pool");
     }
   }
 }

@@ -2,7 +2,9 @@ import { buildScenarioInsights } from "./budget-fallback-insights";
 
 import type { BudgetAnalysis } from "./budget-types";
 
-function buildAnalysisCollections(insights: ReturnType<typeof buildScenarioInsights>): Pick<
+function buildAnalysisCollections(
+  insights: ReturnType<typeof buildScenarioInsights>,
+): Pick<
   BudgetAnalysis,
   "recommendations" | "riskFactors" | "costOptimization"
 > {
@@ -43,7 +45,7 @@ function buildAnalysisCollections(insights: ReturnType<typeof buildScenarioInsig
 
 export function buildFallbackAnalysis(
   scenario: string,
-  title: string | undefined
+  title: string | undefined,
 ): BudgetAnalysis {
   const insights = buildScenarioInsights(scenario, title);
   const collections = buildAnalysisCollections(insights);

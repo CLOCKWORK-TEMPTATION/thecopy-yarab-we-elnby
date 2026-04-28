@@ -8,23 +8,23 @@ export interface GeminiServiceResult {
 }
 
 export interface GeminiError {
-  type: 'api' | 'network' | 'schema' | 'unknown';
+  type: "api" | "network" | "schema" | "unknown";
   message: string;
   originalError?: unknown;
 }
 
 export interface GeminiApiError extends GeminiError {
-  type: 'api';
+  type: "api";
   statusCode?: number;
   errorCode?: string;
 }
 
 export interface GeminiNetworkError extends GeminiError {
-  type: 'network';
+  type: "network";
 }
 
 export interface GeminiSchemaError extends GeminiError {
-  type: 'schema';
+  type: "schema";
 }
 
 export function hasCandidates(response: GenerateContentResponse): boolean {
@@ -39,14 +39,16 @@ export function hasValidContent(response: GenerateContentResponse): boolean {
   );
 }
 
-export function extractTextFromCandidates(response: GenerateContentResponse): string {
-  if (!hasValidContent(response)) return '';
-  
+export function extractTextFromCandidates(
+  response: GenerateContentResponse,
+): string {
+  if (!hasValidContent(response)) return "";
+
   const parts = response.candidates![0].content.parts;
   return parts
-    .filter((part: Part) => 'text' in part && part.text)
+    .filter((part: Part) => "text" in part && part.text)
     .map((part: Part) => (part as { text: string }).text)
-    .join('');
+    .join("");
 }
 
 export function safeRegexMatch(text: string, pattern: RegExp): boolean {
@@ -57,31 +59,35 @@ export function safeRegexMatch(text: string, pattern: RegExp): boolean {
   }
 }
 
-export function safeRegexMatchGroup(text: string, pattern: RegExp, groupIndex = 1): string | null {
+export function safeRegexMatchGroup(
+  text: string,
+  pattern: RegExp,
+  groupIndex = 1,
+): string | null {
   try {
     const match = text.match(pattern);
     const group = match?.[groupIndex];
-    return typeof group === 'string' && group.length > 0 ? group : null;
+    return typeof group === "string" && group.length > 0 ? group : null;
   } catch {
     return null;
   }
 }
 
 export function isNetworkError(error: unknown): boolean {
-  if (error && typeof error === 'object') {
+  if (error && typeof error === "object") {
     const err = error as { code?: string; message?: string };
     return !!(
-      err.code?.includes('NETWORK') ??
-      (err.code?.includes('TIMEOUT') ??
-      err.message?.toLowerCase().includes('network')) ??
-      err.message?.toLowerCase().includes('timeout')
+      err.code?.includes("NETWORK") ??
+      err.code?.includes("TIMEOUT") ??
+      err.message?.toLowerCase().includes("network") ??
+      err.message?.toLowerCase().includes("timeout")
     );
   }
   return false;
 }
 
 export function isApiError(error: unknown): boolean {
-  if (error && typeof error === 'object') {
+  if (error && typeof error === "object") {
     const err = error as { status?: number; statusCode?: number };
     return !!(err.status ?? err.statusCode);
   }

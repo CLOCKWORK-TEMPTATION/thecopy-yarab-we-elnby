@@ -5,6 +5,11 @@ import { logger } from "../utils/logger";
 
 import { TextChunk, ContextMap } from "./text-chunking";
 
+function startsWithUppercase(word: string): boolean {
+  const firstCharacter = word.charAt(0);
+  return word.length > 2 && firstCharacter === firstCharacter.toUpperCase();
+}
+
 export interface RetrievalOptions {
   maxChunks?: number;
   minRelevanceScore?: number;
@@ -188,9 +193,7 @@ export class ContextRetriever {
       logger.error("Error extracting entities:", error);
       // fallback: استخراج بسيط يعتمد على الأحرف الكبيرة
       const words = content.split(/\s+/);
-      return words
-        .filter((word) => word.length > 2 && word[0] === word[0]?.toUpperCase())
-        .slice(0, 10); // تحديد العدد لتجنب القوائم الطويلة
+      return words.filter((word) => startsWithUppercase(word)).slice(0, 10); // تحديد العدد لتجنب القوائم الطويلة
     }
   }
 
@@ -231,7 +234,7 @@ export class ContextRetriever {
     for (const chunk of chunks) {
       const words = chunk.content.split(/\s+/);
       const entities = words
-        .filter((word) => word.length > 2 && word[0] === word[0]?.toUpperCase())
+        .filter((word) => startsWithUppercase(word))
         .slice(0, 10); // تحديد العدد
 
       // إضافة علاقات بين كل زوج من الكيانات في نفس الجزء
@@ -321,8 +324,6 @@ let contextRetrieverInstance: ContextRetriever | null = null;
 export function getContextRetriever(
   geminiService: GeminiService
 ): ContextRetriever {
-  if (!contextRetrieverInstance) {
-    contextRetrieverInstance = new ContextRetriever(geminiService);
-  }
+  contextRetrieverInstance ??= new ContextRetriever(geminiService);
   return contextRetrieverInstance;
 }

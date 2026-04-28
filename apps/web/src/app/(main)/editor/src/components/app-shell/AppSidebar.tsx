@@ -224,28 +224,18 @@ export function AppSidebar({
                   data-open={isOpen ? "true" : "false"}
                   onClick={() => onToggleSection(section.id)}
                   containerClassName="rounded-xl w-full"
-                  className={`app-sidebar-section group flex w-full items-center gap-3 rounded-xl bg-transparent p-3 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--mf-accent)]/60 focus-visible:outline-none ${
-                    isOpen
-                      ? "text-[color:var(--mf-text-strong)]"
-                      : "text-[color:var(--mf-text-muted)] hover:text-[color:var(--mf-text-strong)]"
-                  }`}
+                  className={`app-sidebar-section group flex w-full items-center gap-3 rounded-xl bg-transparent p-3 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[color:var(--mf-accent)]/60 focus-visible:outline-none ${isOpen ? "text-[color:var(--mf-text-strong)]" : "text-[color:var(--mf-text-muted)] hover:text-[color:var(--mf-text-strong)]"}`}
                   duration={2}
                 >
                   <SIcon
-                    className={`size-[18px] transition-colors ${
-                      isOpen
-                        ? "text-[color:var(--mf-text-strong)]"
-                        : "text-[color:var(--mf-text-muted)] group-hover:text-[color:var(--mf-text-strong)]"
-                    }`}
+                    className={`size-[18px] transition-colors ${isOpen ? "text-[color:var(--mf-text-strong)]" : "text-[color:var(--mf-text-muted)] group-hover:text-[color:var(--mf-text-strong)]"}`}
                   />
                   <span className="flex-1 text-right text-sm font-medium">
                     {section.label}
                   </span>
                   {section.items.length > 0 && (
                     <span
-                      className={`text-[color:var(--mf-text-faint)] transition-transform duration-300 ${
-                        isOpen ? "-rotate-90" : ""
-                      }`}
+                      className={`text-[color:var(--mf-text-faint)] transition-transform duration-300 ${isOpen ? "-rotate-90" : ""}`}
                     >
                       {hasItems ? "‹" : "·"}
                     </span>

@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 
+import type { ViewType } from "../../types";
+
 interface HomePageProps {
-  onNavigate: (view: any) => void;
+  onNavigate: (view: ViewType) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => (

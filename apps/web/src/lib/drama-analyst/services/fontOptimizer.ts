@@ -24,10 +24,10 @@ export const FONT_CONFIGS: Record<string, FontConfig> = {
 
 // للتوافق مع الاستخدامات القديمة - جميعها تشير إلى Cairo
 export const LEGACY_FONT_CONFIGS = {
-  amiri: FONT_CONFIGS.cairo,
-  tajawal: FONT_CONFIGS.cairo,
-  literata: FONT_CONFIGS.cairo,
-  sourceCodePro: FONT_CONFIGS.cairo,
+  amiri: FONT_CONFIGS["cairo"],
+  tajawal: FONT_CONFIGS["cairo"],
+  literata: FONT_CONFIGS["cairo"],
+  sourceCodePro: FONT_CONFIGS["cairo"],
 };
 
 /**

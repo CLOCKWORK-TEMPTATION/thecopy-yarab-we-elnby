@@ -8,13 +8,11 @@ import { logger } from "@/lib/logger";
 
 import { router } from "./api/routes";
 import { pluginManager } from "./core/PluginManager";
-
-// Import plugins
 import { budgetOptimizer } from "./plugins/budget-optimizer";
 import { cinemaSkillsTrainer } from "./plugins/cinema-skills-trainer";
 import { creativeInspiration } from "./plugins/creative-inspiration";
 import { documentationGenerator } from "./plugins/documentation-generator";
-import { immersiveConceptArt } from "./plugins/immersive-concept-art";
+import { immersiveConceptArtStudio } from "./plugins/immersive-concept-art";
 import { lightingSimulator } from "./plugins/lighting-simulator";
 import { locationCoordinator } from "./plugins/location-coordinator";
 import { mrPrevizStudio } from "./plugins/mr-previz-studio";
@@ -66,7 +64,7 @@ async function bootstrap(): Promise<void> {
   pluginManager.registerPlugin(mrPrevizStudio);
   pluginManager.registerPlugin(virtualSetEditor);
   pluginManager.registerPlugin(cinemaSkillsTrainer);
-  pluginManager.registerPlugin(immersiveConceptArt);
+  pluginManager.registerPlugin(immersiveConceptArtStudio);
   pluginManager.registerPlugin(virtualProductionEngine);
 
   // Initialize all plugins
@@ -160,12 +158,16 @@ async function bootstrap(): Promise<void> {
   });
 
   // Graceful shutdown
-  process.on("SIGINT", async () => {
-    logger.info("\n[CineArchitect] Shutting down...");
-    await pluginManager.shutdownAll();
-    logger.info("[CineArchitect] Goodbye! مع السلامة");
-    process.exit(0);
+  process.on("SIGINT", () => {
+    void shutdownGracefully();
   });
+}
+
+async function shutdownGracefully(): Promise<void> {
+  logger.info("\n[CineArchitect] Shutting down...");
+  await pluginManager.shutdownAll();
+  logger.info("[CineArchitect] Goodbye! مع السلامة");
+  process.exit(0);
 }
 
 // Run the application

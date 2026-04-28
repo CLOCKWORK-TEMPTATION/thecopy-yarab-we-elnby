@@ -21,16 +21,16 @@ import { updateStore, type RawEntity } from "./store";
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function filterEntitiesWithId(
-  items: RawEntity[]
+  items: RawEntity[],
 ): (RawEntity & { id: string })[] {
   return items.filter(
     (item): item is RawEntity & { id: string } =>
-      isRecord(item) && typeof item["id"] === "string"
+      isRecord(item) && typeof item["id"] === "string",
   );
 }
 
 export async function handlePrevizCreateScene(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const name = asString(payload["name"]);
   const description = asString(payload["description"]);
@@ -67,7 +67,7 @@ export async function handlePrevizCreateScene(
     await updateStore((store) => {
       store.previzScenes = uniqueById<RawEntity & { id: string }>(
         filterEntitiesWithId(store.previzScenes),
-        storedScene
+        storedScene,
       );
     });
   }
@@ -76,7 +76,7 @@ export async function handlePrevizCreateScene(
 }
 
 export async function handleVirtualSetCreate(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const name = asString(payload["name"]);
   const description = asString(payload["description"]);
@@ -108,7 +108,7 @@ export async function handleVirtualSetCreate(
     await updateStore((store) => {
       store.virtualSets = uniqueById<RawEntity & { id: string }>(
         filterEntitiesWithId(store.virtualSets),
-        storedSet
+        storedSet,
       );
     });
   }
@@ -117,7 +117,7 @@ export async function handleVirtualSetCreate(
 }
 
 export async function handleTrainingScenarios(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const category = asString(payload["category"]);
   const difficulty = asString(payload["difficulty"]);
@@ -126,8 +126,7 @@ export async function handleTrainingScenarios(
     type: "list-scenarios",
     data: {
       category: category && category !== "all" ? category : undefined,
-      difficulty:
-        difficulty && difficulty !== "all" ? difficulty : undefined,
+      difficulty: difficulty && difficulty !== "all" ? difficulty : undefined,
     },
   });
 
@@ -139,7 +138,7 @@ export async function handleTrainingScenarios(
 }
 
 export async function handleConceptArtCreate(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const name = asString(payload["name"]);
   const description = asString(payload["description"]);
@@ -169,7 +168,7 @@ export async function handleConceptArtCreate(
     await updateStore((store) => {
       store.conceptProjects = uniqueById<RawEntity & { id: string }>(
         filterEntitiesWithId(store.conceptProjects),
-        storedProject
+        storedProject,
       );
     });
   }
@@ -180,7 +179,7 @@ export async function handleConceptArtCreate(
 async function runLedWallSetup(
   productionId: string,
   name: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) {
   return runPlugin(VirtualProductionEngine, {
     type: "setup-led-wall",
@@ -199,7 +198,7 @@ async function runLedWallSetup(
 async function runCameraConfig(
   productionId: string,
   name: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ) {
   const isBroadcast =
     asString(payload["cameraType"]).toLowerCase() === "broadcast";
@@ -216,7 +215,7 @@ async function runCameraConfig(
 }
 
 export async function handleVirtualProductionCreate(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const name = asString(payload["name"]);
   const description = asString(payload["description"]);
@@ -246,13 +245,24 @@ export async function handleVirtualProductionCreate(
   const storedProduction: RawEntity & { id: string } = {
     ...production,
     id: productionId || randomUUID(),
-    requestedSetup: { ledWallWidth: asNumber(payload["ledWallWidth"]), ledWallHeight: asNumber(payload["ledWallHeight"]), cameraType: asString(payload["cameraType"]) },
+    requestedSetup: {
+      ledWallWidth: asNumber(payload["ledWallWidth"]),
+      ledWallHeight: asNumber(payload["ledWallHeight"]),
+      cameraType: asString(payload["cameraType"]),
+    },
   };
   await updateStore((s) => {
-    s.virtualProductions = uniqueById<RawEntity & { id: string }>(filterEntitiesWithId(s.virtualProductions), storedProduction);
+    s.virtualProductions = uniqueById<RawEntity & { id: string }>(
+      filterEntitiesWithId(s.virtualProductions),
+      storedProduction,
+    );
   });
 
   return success({
-    data: { production: createResult.data, ledWall: ledResult.success ? ledResult.data : undefined, camera: cameraResult.success ? cameraResult.data : undefined },
+    data: {
+      production: createResult.data,
+      ledWall: ledResult.success ? ledResult.data : undefined,
+      camera: cameraResult.success ? cameraResult.data : undefined,
+    },
   });
 }

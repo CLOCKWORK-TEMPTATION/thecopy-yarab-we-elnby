@@ -24,6 +24,6 @@ export interface PromptEngineeringSnapshot {
   promptHistory: PersistedPromptHistoryEntry[];
   comparePrompt1: string;
   comparePrompt2: string;
-  comparisonResult: any | null;
+  comparisonResult: unknown;
   suggestions: string[];
 }

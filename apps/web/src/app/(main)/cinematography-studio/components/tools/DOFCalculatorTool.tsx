@@ -22,7 +22,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-import SliderNumberInput from "../controls/SliderNumberInput";
+import { SliderNumberInput } from "../controls/SliderNumberInput";
 import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
 interface SensorPreset {
@@ -35,7 +35,7 @@ interface SensorPreset {
   circleOfConfusion: number;
 }
 
-interface DOFResult {
+export interface DOFResult {
   nearLimit: number;
   farLimit: number;
   totalDOF: number;

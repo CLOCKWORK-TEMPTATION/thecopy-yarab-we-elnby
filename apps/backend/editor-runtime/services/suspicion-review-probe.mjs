@@ -11,18 +11,31 @@
  * هذا مسبار حقيقي يثبت أن خط الأنابيب يعمل فعلاً.
  */
 
-import { runKarankPipeline, countSuspicionCases } from "./karank-operations.mjs";
-import { attemptSuspicionReview, attemptFinalReview } from "./review-attempts.mjs";
-import { resolveSuspicionReviewEndpoint, resolveFinalReviewEndpoint } from "./endpoint-resolvers.mjs";
-import { determineFailureStage, determineFailureCode, determineFailureMessage } from "./failure-determiners.mjs";
+import {
+  runKarankPipeline,
+  countSuspicionCases,
+} from "./karank-operations.mjs";
+import {
+  attemptSuspicionReview,
+  attemptFinalReview,
+} from "./review-attempts.mjs";
+import {
+  resolveSuspicionReviewEndpoint,
+  resolveFinalReviewEndpoint,
+} from "./endpoint-resolvers.mjs";
+import {
+  determineFailureStage,
+  determineFailureCode,
+  determineFailureMessage,
+} from "./failure-determiners.mjs";
 import {
   EXPECTED_SUSPICION_CASES,
   EXPECTED_FINAL_REVIEW_CANDIDATES,
   PROBE_VERSION,
   logger,
-} from "./suspicion-probe-constants.mjs";/**
+} from "./suspicion-probe-constants.mjs"; /**
  * @description المسبار العملياتي الرئيسي
- * 
+ *
  * تشغيل كامل: كرنك + طلب مراجعة الشك + طلب المراجعة النهائية
  */
 export async function probeOperationalReadiness(env = process.env) {
@@ -76,12 +89,14 @@ export async function probeOperationalReadiness(env = process.env) {
   const suspicionReview = await attemptSuspicionReview(
     karank.result,
     suspicionStats.casesCount,
-    env
+    env,
   );
 
   if (!suspicionReview.reached && suspicionReview.error) {
-    if (suspicionReview.error.code !== "SUSPICION_MODEL_DISABLED" && 
-        suspicionReview.error.code !== "GEMINI_API_KEY_MISSING") {
+    if (
+      suspicionReview.error.code !== "SUSPICION_MODEL_DISABLED" &&
+      suspicionReview.error.code !== "GEMINI_API_KEY_MISSING"
+    ) {
       errors.push({
         stage: "suspicion-review",
         code: suspicionReview.error.code,
@@ -97,14 +112,13 @@ export async function probeOperationalReadiness(env = process.env) {
   }
 
   // 4. محاولة المراجعة النهائية
-  const finalReview = await attemptFinalReview(
-    suspicionStats.details,
-    env
-  );
+  const finalReview = await attemptFinalReview(suspicionStats.details, env);
 
   if (!finalReview.reached && finalReview.error) {
-    if (finalReview.error.code !== "FINAL_REVIEW_DISABLED" && 
-        finalReview.error.code !== "API_KEY_MISSING") {
+    if (
+      finalReview.error.code !== "FINAL_REVIEW_DISABLED" &&
+      finalReview.error.code !== "API_KEY_MISSING"
+    ) {
       errors.push({
         stage: "final-review",
         code: finalReview.error.code,
@@ -120,9 +134,21 @@ export async function probeOperationalReadiness(env = process.env) {
   }
 
   // 5. تحديد حالة الفشل (إن وُجد)
-  const failureStage = determineFailureStage(karank, suspicionReview, finalReview);
-  const failureCode = determineFailureCode(karank, suspicionReview, finalReview);
-  const failureMessage = determineFailureMessage(karank, suspicionReview, finalReview);
+  const failureStage = determineFailureStage(
+    karank,
+    suspicionReview,
+    finalReview,
+  );
+  const failureCode = determineFailureCode(
+    karank,
+    suspicionReview,
+    finalReview,
+  );
+  const failureMessage = determineFailureMessage(
+    karank,
+    suspicionReview,
+    finalReview,
+  );
 
   const settled = errors.length === 0;
 
@@ -160,7 +186,6 @@ export async function probeOperationalReadiness(env = process.env) {
     errors,
   };
 }
-
 
 export default {
   probeOperationalReadiness,

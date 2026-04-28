@@ -13,6 +13,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mock لـ backend-proxy ───
 const mockProxyToBackend = vi.fn<(...args: unknown[]) => Promise<Response>>();
+const isProxyOptions = (
+  value: unknown
+): value is { method?: unknown; body?: unknown } =>
+  typeof value === "object" && value !== null;
+
 vi.mock("@/lib/server/backend-proxy", () => ({
   proxyToBackend: (...args: unknown[]) => mockProxyToBackend(...args),
   buildProxyErrorResponse: vi.fn((_error: unknown, message: string) => {
@@ -114,14 +119,18 @@ describe("POST /api/workflow/execute-custom", () => {
 
     await POST(req);
 
-    expect(mockProxyToBackend).toHaveBeenCalledWith(
-      req,
-      "/api/workflow/execute-custom",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.any(String),
-      })
-    );
+    expect(mockProxyToBackend).toHaveBeenCalledTimes(1);
+    const call = mockProxyToBackend.mock.calls[0];
+    expect(call?.[0]).toBe(req);
+    expect(call?.[1]).toBe("/api/workflow/execute-custom");
+
+    const proxyOptions = call?.[2];
+    expect(isProxyOptions(proxyOptions)).toBe(true);
+    if (!isProxyOptions(proxyOptions)) {
+      throw new Error("Proxy options are missing");
+    }
+    expect(proxyOptions.method).toBe("POST");
+    expect(typeof proxyOptions.body).toBe("string");
   });
 
   it("يجب أن يمرر config: null كمفقود ويرفض بـ 400", async () => {

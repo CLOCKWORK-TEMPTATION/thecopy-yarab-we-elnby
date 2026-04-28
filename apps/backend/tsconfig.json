@@ -49,9 +49,5 @@
     "examples/**/*",
     "mcp-server.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "db-performance-analysis"
-  ]
+  "exclude": ["node_modules", "dist", "db-performance-analysis"]
 }

@@ -47,28 +47,18 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           animate="visible"
           exit="exit"
           transition={{ type: "spring", damping: 25 }}
-          className={`max-w-4xl w-full rounded-xl shadow-2xl overflow-hidden ${
-            theme === "dark"
-              ? "bg-black/18 border border-white/8"
-              : "bg-white/[0.04]"
-          }`}
+          className={`max-w-4xl w-full rounded-xl shadow-2xl overflow-hidden ${theme === "dark" ? "bg-black/18 border border-white/8" : "bg-white/[0.04]"}`}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center p-6 border-b border-white/8 dark:border-white/8">
             <h2
-              className={`text-2xl font-bold ${
-                theme === "dark" ? "text-white" : "text-white"
-              }`}
+              className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
             >
               Choose Budget Template
             </h2>
             <button
               onClick={onClose}
-              className={`p-2 rounded-lg transition-colors ${
-                theme === "dark"
-                  ? "text-white/55 hover:text-white hover:bg-black/22"
-                  : "text-white/55 hover:text-white hover:bg-white/8/6"
-              }`}
+              className={`p-2 rounded-lg transition-colors ${theme === "dark" ? "text-white/55 hover:text-white hover:bg-black/22" : "text-white/55 hover:text-white hover:bg-white/8/6"}`}
             >
               <X size={20} />
             </button>
@@ -82,34 +72,18 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onSelect(template.id)}
-                  className={`p-6 rounded-xl border cursor-pointer transition-all ${
-                    theme === "dark"
-                      ? "bg-black/22 border-white/8 hover:bg-black/28"
-                      : "bg-white/[0.04] border-white/8 hover:bg-white/[0.04]"
-                  } shadow-md hover:shadow-lg`}
+                  className={`p-6 rounded-xl border cursor-pointer transition-all ${theme === "dark" ? "bg-black/22 border-white/8 hover:bg-black/28" : "bg-white/[0.04] border-white/8 hover:bg-white/[0.04]"} shadow-md hover:shadow-lg`}
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="text-4xl">{template.icon}</div>
                     <div>
                       <h3
-                        className={`text-xl font-semibold ${
-                          theme === "dark" ? "text-white" : "text-white"
-                        }`}
+                        className={`text-xl font-semibold ${theme === "dark" ? "text-white" : "text-white"}`}
                       >
                         {template.name}
                       </h3>
                       <span
-                        className={`text-sm px-2 py-1 rounded-full ${
-                          template.category === "feature"
-                            ? "bg-blue-100 text-blue-800"
-                            : template.category === "short"
-                              ? "bg-green-100 text-green-800"
-                              : template.category === "documentary"
-                                ? "bg-purple-100 text-purple-800"
-                                : template.category === "commercial"
-                                  ? "bg-orange-100 text-orange-800"
-                                  : "bg-pink-100 text-pink-800"
-                        }`}
+                        className={`text-sm px-2 py-1 rounded-full ${template.category === "feature" ? "bg-blue-100 text-blue-800" : template.category === "short" ? "bg-green-100 text-green-800" : template.category === "documentary" ? "bg-purple-100 text-purple-800" : template.category === "commercial" ? "bg-orange-100 text-orange-800" : "bg-pink-100 text-pink-800"}`}
                       >
                         {template.category.replace("-", " ").toUpperCase()}
                       </span>
@@ -117,9 +91,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   </div>
 
                   <p
-                    className={`text-sm mb-4 ${
-                      theme === "dark" ? "text-white/68" : "text-white/55"
-                    }`}
+                    className={`text-sm mb-4 ${theme === "dark" ? "text-white/68" : "text-white/55"}`}
                   >
                     {template.description}
                   </p>

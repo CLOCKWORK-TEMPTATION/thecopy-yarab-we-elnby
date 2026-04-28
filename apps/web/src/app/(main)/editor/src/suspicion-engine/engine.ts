@@ -1,12 +1,8 @@
 import { buildSuspicionCase } from "@editor/suspicion-engine/aggregation/suspicion-case-builder";
 import { createWeightPolicy } from "@editor/suspicion-engine/config";
-
-// ── Context detectors ──
 import { detectCharacterFlow } from "@editor/suspicion-engine/detectors/context/character-flow.detector";
 import { detectOrphanDialogue } from "@editor/suspicion-engine/detectors/context/orphan-dialogue.detector";
 import { detectSequenceViolation } from "@editor/suspicion-engine/detectors/context/sequence-violation.detector";
-
-// ── Gate-break detectors ──
 import { detectContractBasmalaUniqueness } from "@editor/suspicion-engine/detectors/contract/contract-basmala-uniqueness.detector";
 import { detectContractCharacterShape } from "@editor/suspicion-engine/detectors/contract/contract-character-shape.detector";
 import { detectContractParentheticalPosition } from "@editor/suspicion-engine/detectors/contract/contract-parenthetical-position.detector";
@@ -22,18 +18,10 @@ import { detectViterbiConflict } from "@editor/suspicion-engine/detectors/cross-
 import { detectActionGateBreak } from "@editor/suspicion-engine/detectors/gate-break/action-gate.detector";
 import { detectCharacterGateBreak } from "@editor/suspicion-engine/detectors/gate-break/character-gate.detector";
 import { detectDialogueGateBreak } from "@editor/suspicion-engine/detectors/gate-break/dialogue-gate.detector";
-
-// ── Corruption detectors ──
-
-// ── Cross-pass detectors ──
-
-// ── Source detectors ──
 import { detectImportProfile } from "@editor/suspicion-engine/detectors/source/import-profile.detector";
 import { detectQualityRisk } from "@editor/suspicion-engine/detectors/source/quality-risk.detector";
 import { detectSchemaSeedConflict } from "@editor/suspicion-engine/detectors/source/schema-seed-conflict.detector";
 import { detectSourceHintMismatch } from "@editor/suspicion-engine/detectors/source/source-hint-mismatch.detector";
-
-// ── Contract detectors (مبنية على عقد arabic-screenplay-classifier) ──
 import { assembleSuspicionFeatures } from "@editor/suspicion-engine/features/feature-assembler";
 import { localDeterministicResolver } from "@editor/suspicion-engine/resolvers/local-deterministic-resolver";
 import { localRepairResolver } from "@editor/suspicion-engine/resolvers/local-repair-resolver";

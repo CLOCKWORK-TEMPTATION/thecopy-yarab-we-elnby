@@ -59,7 +59,7 @@ export function useScreenplayEditor(documentId?: string) {
     }, settings.autoSaveInterval);
 
     return () => clearTimeout(timer);
-  }, [content, isDirty, documentId, settings.autoSaveInterval]);
+  }, [content, isDirty, documentId, settings.autoSaveInterval, saveDocument]);
 
   /**
    * Load document on mount
@@ -70,7 +70,7 @@ export function useScreenplayEditor(documentId?: string) {
         logger.error("فشل تحميل المستند", error);
       });
     }
-  }, [documentId]);
+  }, [documentId, loadDocument]);
 
   /**
    * Process text and classify lines
@@ -304,7 +304,7 @@ export function useScreenplayStats() {
 
   useEffect(() => {
     calculateStats();
-  }, []);
+  }, [calculateStats]);
 
   return stats;
 }

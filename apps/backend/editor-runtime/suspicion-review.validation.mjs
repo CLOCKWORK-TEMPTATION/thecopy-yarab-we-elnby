@@ -23,7 +23,7 @@ export class SuspicionReviewValidationError extends Error {
 export const validateSuspicionReviewRequestBody = (body) => {
   if (!isObjectRecord(body)) {
     throw new SuspicionReviewValidationError(
-      "Invalid suspicion-review request body: must be a JSON object."
+      "Invalid suspicion-review request body: must be a JSON object.",
     );
   }
 
@@ -44,13 +44,13 @@ export const validateSuspicionReviewRequestBody = (body) => {
 
   if (!isIntegerNumber(body.totalReviewed)) {
     throw new SuspicionReviewValidationError(
-      "Invalid totalReviewed: must be a non-negative integer."
+      "Invalid totalReviewed: must be a non-negative integer.",
     );
   }
 
   if (!Array.isArray(body.reviewLines)) {
     throw new SuspicionReviewValidationError(
-      "Invalid reviewLines: must be an array."
+      "Invalid reviewLines: must be an array.",
     );
   }
 
@@ -58,14 +58,14 @@ export const validateSuspicionReviewRequestBody = (body) => {
   const reviewLines = body.reviewLines.map((entry, index) => {
     if (!isObjectRecord(entry)) {
       throw new SuspicionReviewValidationError(
-        `Invalid review line at index ${index}: must be an object.`
+        `Invalid review line at index ${index}: must be an object.`,
       );
     }
 
     const itemId = normalizeIncomingText(entry.itemId, 120);
     if (!itemId) {
       throw new SuspicionReviewValidationError(
-        `Invalid itemId at review line ${index}.`
+        `Invalid itemId at review line ${index}.`,
       );
     }
     if (seenItemIds.has(itemId)) {
@@ -76,25 +76,27 @@ export const validateSuspicionReviewRequestBody = (body) => {
     const text = normalizeIncomingText(entry.text, MAX_TEXT_LENGTH);
     if (!text) {
       throw new SuspicionReviewValidationError(
-        `Empty text at review line ${index}.`
+        `Empty text at review line ${index}.`,
       );
     }
 
     const assignedType = normalizeIncomingText(entry.assignedType, 64);
     if (!ALLOWED_LINE_TYPES.has(assignedType)) {
       throw new SuspicionReviewValidationError(
-        `Invalid assignedType "${assignedType}" at review line ${index}.`
+        `Invalid assignedType "${assignedType}" at review line ${index}.`,
       );
     }
 
     const routingBand = normalizeIncomingText(entry.routingBand, 32);
     if (!ALLOWED_INPUT_BANDS.has(routingBand)) {
       throw new SuspicionReviewValidationError(
-        `Invalid routingBand "${routingBand}" at review line ${index}.`
+        `Invalid routingBand "${routingBand}" at review line ${index}.`,
       );
     }
 
-    const lineIndex = isIntegerNumber(entry.lineIndex) ? entry.lineIndex : index;
+    const lineIndex = isIntegerNumber(entry.lineIndex)
+      ? entry.lineIndex
+      : index;
     const originalConfidence =
       typeof entry.originalConfidence === "number" &&
       Number.isFinite(entry.originalConfidence)
@@ -138,7 +140,8 @@ export const validateSuspicionReviewRequestBody = (body) => {
                 ? line.assignedType.trim()
                 : undefined,
             confidence:
-              typeof line.confidence === "number" && Number.isFinite(line.confidence)
+              typeof line.confidence === "number" &&
+              Number.isFinite(line.confidence)
                 ? Math.max(0, Math.min(1, line.confidence))
                 : undefined,
             offset:
@@ -150,8 +153,14 @@ export const validateSuspicionReviewRequestBody = (body) => {
 
     const sourceHints = isObjectRecord(entry.sourceHints)
       ? {
-          importSource: normalizeIncomingText(entry.sourceHints.importSource, 64),
-          sourceMethod: normalizeIncomingText(entry.sourceHints.sourceMethod, 128),
+          importSource: normalizeIncomingText(
+            entry.sourceHints.importSource,
+            64,
+          ),
+          sourceMethod: normalizeIncomingText(
+            entry.sourceHints.sourceMethod,
+            128,
+          ),
           engineSuggestedType:
             typeof entry.sourceHints.engineSuggestedType === "string" &&
             ALLOWED_LINE_TYPES.has(entry.sourceHints.engineSuggestedType.trim())

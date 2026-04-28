@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 interface MockEnv {
   GEMINI_API_KEY: string | undefined;
@@ -9,65 +9,68 @@ type MockGenAiMethod = ReturnType<
   typeof vi.fn<(apiKey: string, payload: unknown) => Promise<unknown>>
 >;
 
-const { mockEnv, mockGenerateContent, mockGenerateImages, mockEditImage } = vi.hoisted<{
-  mockEnv: MockEnv;
-  mockGenerateContent: ReturnType<
-    typeof vi.fn<(apiKey: string, payload: unknown) => Promise<{ text: string }>>
-  >;
-  mockGenerateImages: MockGenAiMethod;
-  mockEditImage: MockGenAiMethod;
-}>(() => ({
-  mockEnv: {
-    GEMINI_API_KEY: 'valid-gemini-key',
-    GOOGLE_GENAI_API_KEY: 'expired-google-key',
-  },
-  mockGenerateContent: vi.fn<
-    (apiKey: string, payload: unknown) => Promise<{ text: string }>
-  >(),
-  mockGenerateImages: vi.fn<
-    (apiKey: string, payload: unknown) => Promise<unknown>
-  >(),
-  mockEditImage: vi.fn<
-    (apiKey: string, payload: unknown) => Promise<unknown>
-  >(),
-}));
+const { mockEnv, mockGenerateContent, mockGenerateImages, mockEditImage } =
+  vi.hoisted<{
+    mockEnv: MockEnv;
+    mockGenerateContent: ReturnType<
+      typeof vi.fn<
+        (apiKey: string, payload: unknown) => Promise<{ text: string }>
+      >
+    >;
+    mockGenerateImages: MockGenAiMethod;
+    mockEditImage: MockGenAiMethod;
+  }>(() => ({
+    mockEnv: {
+      GEMINI_API_KEY: "valid-gemini-key",
+      GOOGLE_GENAI_API_KEY: "expired-google-key",
+    },
+    mockGenerateContent:
+      vi.fn<(apiKey: string, payload: unknown) => Promise<{ text: string }>>(),
+    mockGenerateImages:
+      vi.fn<(apiKey: string, payload: unknown) => Promise<unknown>>(),
+    mockEditImage:
+      vi.fn<(apiKey: string, payload: unknown) => Promise<unknown>>(),
+  }));
 
-vi.mock('@google/genai', () => ({
+vi.mock("@google/genai", () => ({
   GoogleGenAI: vi.fn(function mockGoogleGenAI({ apiKey }: { apiKey: string }) {
     return {
       models: {
-        generateContent: (payload: unknown): unknown => mockGenerateContent(apiKey, payload),
-        generateImages: (payload: unknown): unknown => mockGenerateImages(apiKey, payload),
-        editImage: (payload: unknown): unknown => mockEditImage(apiKey, payload),
+        generateContent: (payload: unknown): unknown =>
+          mockGenerateContent(apiKey, payload),
+        generateImages: (payload: unknown): unknown =>
+          mockGenerateImages(apiKey, payload),
+        editImage: (payload: unknown): unknown =>
+          mockEditImage(apiKey, payload),
       },
     };
   }),
 }));
 
-vi.mock('@/config/env', () => ({
+vi.mock("@/config/env", () => ({
   env: mockEnv,
 }));
 
-import { PlatformGenAIService } from './platform-genai.service';
+import { PlatformGenAIService } from "./platform-genai.service";
 
 function objectContainingMatcher(value: Record<string, unknown>): unknown {
   return expect.objectContaining(value);
 }
 
-describe('PlatformGenAIService', () => {
+describe("PlatformGenAIService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockEnv.GEMINI_API_KEY = 'valid-gemini-key';
-    mockEnv.GOOGLE_GENAI_API_KEY = 'expired-google-key';
+    mockEnv.GEMINI_API_KEY = "valid-gemini-key";
+    mockEnv.GOOGLE_GENAI_API_KEY = "expired-google-key";
   });
 
-  it('prefers GEMINI_API_KEY when both aliases are present', async () => {
+  it("prefers GEMINI_API_KEY when both aliases are present", async () => {
     mockGenerateContent.mockImplementation((apiKey: string) => {
-      if (apiKey !== 'valid-gemini-key') {
-        throw new Error('API key expired');
+      if (apiKey !== "valid-gemini-key") {
+        throw new Error("API key expired");
       }
 
-      return Promise.resolve({ text: 'OK' });
+      return Promise.resolve({ text: "OK" });
     });
 
     const service = new PlatformGenAIService();
@@ -75,20 +78,20 @@ describe('PlatformGenAIService', () => {
     const status = await service.probeHealth({ force: true });
 
     expect(status).toMatchObject({
-      status: 'healthy',
+      status: "healthy",
       details: objectContainingMatcher({
         credentialsConfigured: true,
       }),
     });
     expect(mockGenerateContent).toHaveBeenCalledWith(
-      'valid-gemini-key',
+      "valid-gemini-key",
       expect.objectContaining({
-        model: 'gemini-2.5-flash',
-      })
+        model: "gemini-2.5-flash",
+      }),
     );
   });
 
-  it('returns shared details when no AI credentials are configured', async () => {
+  it("returns shared details when no AI credentials are configured", async () => {
     mockEnv.GEMINI_API_KEY = undefined;
     mockEnv.GOOGLE_GENAI_API_KEY = undefined;
 
@@ -97,31 +100,31 @@ describe('PlatformGenAIService', () => {
     const status = await service.probeHealth({ force: true });
 
     expect(status).toMatchObject({
-      status: 'unhealthy',
-      triState: 'not-configured',
-      error: 'GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.',
+      status: "unhealthy",
+      triState: "not-configured",
+      error: "GEMINI_API_KEY or GOOGLE_GENAI_API_KEY is not configured.",
       details: {
-        provider: 'google-genai',
+        provider: "google-genai",
         credentialsConfigured: false,
       },
     });
     expect(mockGenerateContent).not.toHaveBeenCalled();
   });
 
-  it('keeps the shared details payload when configured probes fail', async () => {
-    mockGenerateContent.mockRejectedValue(new Error('API key expired'));
+  it("keeps the shared details payload when configured probes fail", async () => {
+    mockGenerateContent.mockRejectedValue(new Error("API key expired"));
 
     const service = new PlatformGenAIService();
 
     const status = await service.probeHealth({ force: true });
 
     expect(status).toMatchObject({
-      status: 'unhealthy',
-      triState: 'configured-failing',
+      status: "unhealthy",
+      triState: "configured-failing",
       error:
-        'GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.',
+        "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
       details: {
-        provider: 'google-genai',
+        provider: "google-genai",
         credentialsConfigured: true,
       },
     });

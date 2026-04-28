@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 
 import { sanitization } from "./sanitizationService";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 describe("SanitizationService", () => {
   describe("sanitizeHTML", () => {
     // يجب إزالة علامات script الضارة
@@ -147,13 +150,25 @@ describe("SanitizationService", () => {
       };
 
       const result = sanitization.aiRequest(request);
+      const files = result["files"];
+      const parameters = result["parameters"];
 
-      expect(result.agent).toBe("&lt;script&gt;alert(1)&lt;&#x2F;script&gt;");
-      expect(result.files[0].name).toBe("______malicious.txt");
-      expect(result.files[0].content).toBe(
+      expect(result["agent"]).toBe(
         "&lt;script&gt;alert(1)&lt;&#x2F;script&gt;"
       );
-      expect(result.parameters.content).toBe(
+      expect(Array.isArray(files)).toBe(true);
+      if (!Array.isArray(files) || !isRecord(files[0])) {
+        throw new Error("Sanitized files payload is invalid");
+      }
+      expect(files[0]["name"]).toBe("______malicious.txt");
+      expect(files[0]["content"]).toBe(
+        "&lt;script&gt;alert(1)&lt;&#x2F;script&gt;"
+      );
+      expect(isRecord(parameters)).toBe(true);
+      if (!isRecord(parameters)) {
+        throw new Error("Sanitized parameters payload is invalid");
+      }
+      expect(parameters["content"]).toBe(
         "&lt;iframe src=&quot;javascript:alert(1)&quot;&gt;&lt;&#x2F;iframe&gt;"
       );
     });

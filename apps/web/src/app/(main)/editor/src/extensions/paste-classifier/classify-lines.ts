@@ -12,6 +12,8 @@
  * paste-classifier.ts؛ لم تُغيَّر أي ثقة أو عتبة أو منطق ترتيب.
  */
 
+import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
+
 import { isActionLine } from "../action";
 import { convertHindiToArabic, detectDialect } from "../arabic-patterns";
 import { isStandaloneBasmalaLine } from "../basmala";
@@ -64,13 +66,9 @@ import {
 } from "../self-reflection-pass";
 import { isTransitionLine } from "../transition";
 
-import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
-
-import type { ClassifiedDraft, ElementType } from "../classification-types";
-
+import { buildContext, hasTemporalSceneSignal } from "./classification-context";
 import { applyClassifyLinesPostPasses } from "./classify-lines-post-passes";
 import { PIPELINE_FLAGS } from "./constants";
-import { buildContext, hasTemporalSceneSignal } from "./classification-context";
 import {
   buildSchemaSeedQueues,
   consumeSchemaSeedTypeForLine,
@@ -79,6 +77,7 @@ import {
 } from "./schema-seed";
 import { buildDraftForType } from "./utils/draft-builders";
 
+import type { ClassifiedDraft, ElementType } from "../classification-types";
 import type { ClassifyLinesContext } from "./types";
 
 /**
@@ -463,7 +462,7 @@ export const classifyLines = (
 
     if (hybridResult.type === "scene_header_1") {
       const parts = splitSceneHeaderLine(normalizedForClassification);
-      if (parts && parts.header2) {
+      if (parts?.header2) {
         push({
           type: "scene_header_1",
           text: parts.header1,

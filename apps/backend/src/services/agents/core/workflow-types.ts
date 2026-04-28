@@ -3,31 +3,31 @@
  * Based on GEMINI-3-PRO-REVIEW recommendations
  */
 
-import { TaskType } from './enums';
-import { StandardAgentInput, StandardAgentOutput } from './types';
+import { TaskType } from "./enums";
+import { StandardAgentInput, StandardAgentOutput } from "./types";
 
 /**
  * Agent Status in Workflow
  */
 export enum AgentStatus {
-  PENDING = 'pending',
-  RUNNING = 'running',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  SKIPPED = 'skipped',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  RUNNING = "running",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  SKIPPED = "skipped",
+  CANCELLED = "cancelled",
 }
 
 /**
  * Workflow Execution Status
  */
 export enum WorkflowStatus {
-  INITIALIZED = 'initialized',
-  RUNNING = 'running',
-  PAUSED = 'paused',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
+  INITIALIZED = "initialized",
+  RUNNING = "running",
+  PAUSED = "paused",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CANCELLED = "cancelled",
 }
 
 /**
@@ -38,7 +38,7 @@ export interface AgentDependency {
   taskType: TaskType;
   required: boolean;
   minConfidence?: number;
-  fallbackBehavior?: 'skip' | 'retry' | 'fail';
+  fallbackBehavior?: "skip" | "retry" | "fail";
 }
 
 /**
@@ -83,7 +83,7 @@ export interface WorkflowConfig {
   steps: WorkflowStep[];
   maxConcurrency?: number;
   globalTimeout?: number;
-  errorHandling?: 'strict' | 'lenient';
+  errorHandling?: "strict" | "lenient";
 }
 
 /**
@@ -129,7 +129,12 @@ export interface WorkflowStage {
  * Workflow Event
  */
 export interface WorkflowEvent {
-  type: 'step-started' | 'step-completed' | 'step-failed' | 'workflow-completed' | 'workflow-failed';
+  type:
+    | "step-started"
+    | "step-completed"
+    | "step-failed"
+    | "workflow-completed"
+    | "workflow-failed";
   workflowId: string;
   stepId?: string;
   timestamp: Date;

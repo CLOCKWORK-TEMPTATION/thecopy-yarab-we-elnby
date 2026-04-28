@@ -29,7 +29,7 @@ export class MistralOCRService {
   constructor(config: MistralOCRConfig) {
     if (config.model !== DEFAULT_MISTRAL_OCR_MODEL) {
       throw new Error(
-        `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${config.model}`
+        `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${config.model}`,
       );
     }
     this.config = config;
@@ -42,7 +42,7 @@ export class MistralOCRService {
 
   async processDocumentUrl(
     documentUrl: string,
-    documentName?: string
+    documentName?: string,
   ): Promise<string> {
     this.lastDocumentAnnotation = undefined;
 
@@ -85,7 +85,7 @@ export class MistralOCRService {
           log(
             "WARN",
             "تعذر/فشل Batch OCR (%s). fallback إلى OCR المباشر.",
-            String(error)
+            String(error),
           );
         }
       }
@@ -100,7 +100,7 @@ export class MistralOCRService {
 
   private async runBatchOcr(
     documentUrl: string,
-    documentName: string
+    documentName: string,
   ): Promise<string> {
     this.lastDocumentAnnotation = undefined;
 
@@ -110,7 +110,7 @@ export class MistralOCRService {
       this.config,
       documentUrl,
       documentName,
-      commonKwargs
+      commonKwargs,
     );
     this.lastDocumentAnnotation = result.annotation;
     return result.markdown;

@@ -8,12 +8,17 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { projectId, script } = body;
+    const body: unknown = await request.json();
+    const payload = isRecord(body) ? body : {};
+    const projectId = payload["projectId"];
+    const script = payload["script"];
 
-    if (!projectId) {
+    if (typeof projectId !== "string" || projectId.trim().length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: "معرف المشروع مطلوب" }),
         { status: 400, headers: { "Content-Type": "application/json" } }

@@ -1,17 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   loadRemoteAppState,
   persistRemoteAppState,
 } from "@/lib/app-state-client";
+
 import {
   buildExportFileName,
   inferExtensionFromMimeType,
   writeStoredSelfTapeTakes,
 } from "../../lib/self-tape";
+
 import { SAMPLE_SCRIPT } from "./constants";
-import { delay, formatTime, loadInitialTakes, toPersistedTake } from "./utils";
+import { delay, loadInitialTakes, toPersistedTake } from "./utils";
+
 import type {
   ActiveTool,
   ComparisonView,

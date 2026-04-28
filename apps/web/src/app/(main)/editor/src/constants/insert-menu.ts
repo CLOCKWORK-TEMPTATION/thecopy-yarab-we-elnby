@@ -13,7 +13,6 @@ import type { EditorStyleFormatId } from "./editor-format-styles";
  * سلوك الإدراج: إما إدراج قالب نصي (`'insert-template'`) أو فتح واجهة فوتو مونتاج (`'photo-montage'`).
  */
 export type InsertBehavior = "insert-template" | "photo-montage";
-export type { EditorStyleFormatId } from "./editor-format-styles";
 
 /**
  * واجهة تصف عنصراً واحداً في قائمة الإدراج.

@@ -1,5 +1,10 @@
 // frontend/src/lib/ai/rag/text-chunking.ts
 
+function startsWithUppercase(word: string): boolean {
+  const firstCharacter = word.charAt(0);
+  return word.length > 2 && firstCharacter === firstCharacter.toUpperCase();
+}
+
 export interface TextChunk {
   id: string;
   content: string;
@@ -260,7 +265,7 @@ export class TextChunker {
       // استخراج كيانات بسيطة (أسماء شخصيات تبدأ بحرف كبير)
       const words = chunk.content.split(/\s+/);
       for (const word of words) {
-        if (word.length > 2 && word[0] === word[0]?.toUpperCase()) {
+        if (startsWithUppercase(word)) {
           const count = contextMap.entities.get(word) ?? 0;
           contextMap.entities.set(word, count + 1);
         }
@@ -290,8 +295,6 @@ export class TextChunker {
 let textChunkerInstance: TextChunker | null = null;
 
 export function getTextChunker(): TextChunker {
-  if (!textChunkerInstance) {
-    textChunkerInstance = new TextChunker();
-  }
+  textChunkerInstance ??= new TextChunker();
   return textChunkerInstance;
 }

@@ -6,7 +6,7 @@ const log = (tag, data) => {
   const ts = new Date().toISOString();
   console.warn(
     `[${ts}] [vision-judge] ${tag}`,
-    data != null ? JSON.stringify(data) : ""
+    data != null ? JSON.stringify(data) : "",
   );
 };
 
@@ -40,7 +40,7 @@ const resolveKimiJudgeRuntime = (model) => {
   const isK2_5 = parsedModel ? isKimiK25Model(parsedModel) : false;
   const thinkingRaw = toOptionalTrimmedString(
     process.env.KIMI_THINKING_MODE,
-    32
+    32,
   ).toLowerCase();
   const thinkingType =
     thinkingRaw === "enabled" || thinkingRaw === "disabled"
@@ -212,7 +212,7 @@ const requestKimiJudge = async ({
       const raw = await response.text();
       if (!response.ok) {
         const error = new Error(
-          `kimi-judge failed: ${response.status} ${response.statusText} ${raw}`
+          `kimi-judge failed: ${response.status} ${response.statusText} ${raw}`,
         );
         if (isRetryableStatus(response.status) && attempt < maxRetries) {
           attempt += 1;
@@ -226,7 +226,7 @@ const requestKimiJudge = async ({
       const choices = Array.isArray(root?.choices) ? root.choices : [];
       const firstChoice = choices[0] ?? {};
       const content = extractAssistantMessageText(
-        firstChoice?.message?.content
+        firstChoice?.message?.content,
       );
       const parsed = parseJsonObject(content, "kimi-judge-content");
       const decisions = Array.isArray(parsed?.decisions)
@@ -255,7 +255,7 @@ const requestKimiJudge = async ({
     error: toErrorMessage(lastError),
   });
   throw new Error(
-    `kimi-judge failed after retries: ${toErrorMessage(lastError)}`
+    `kimi-judge failed after retries: ${toErrorMessage(lastError)}`,
   );
 };
 
@@ -267,7 +267,7 @@ export const runVisionJudgePreflight = async ({
 }) => {
   if (typeof imagePath !== "string" || !imagePath.trim()) {
     throw new Error(
-      "[PDF_OCR_VISION_JUDGE_PREFLIGHT_INVALID_INPUT] Vision judge preflight failed: first-page image path is required."
+      "[PDF_OCR_VISION_JUDGE_PREFLIGHT_INVALID_INPUT] Vision judge preflight failed: first-page image path is required.",
     );
   }
 
@@ -288,7 +288,7 @@ export const runVisionJudgePreflight = async ({
       `[PDF_OCR_VISION_JUDGE_PREFLIGHT_FAILED] Vision judge preflight failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
-      { cause: error }
+      { cause: error },
     );
   }
 };
@@ -305,7 +305,7 @@ const processJudgePage = async ({ page, apiKey, model, timeoutMs }) => {
   // Sort by confidence descending — send only the top N to Kimi to avoid
   // hanging on enormous payloads (1000+ patches would make the prompt huge).
   const sorted = [...allPatches].sort(
-    (a, b) => (b.confidence ?? 0) - (a.confidence ?? 0)
+    (a, b) => (b.confidence ?? 0) - (a.confidence ?? 0),
   );
   const patchesToJudge = sorted.slice(0, MAX_PATCHES_PER_JUDGE_REQUEST);
   const autoRejected = sorted.slice(MAX_PATCHES_PER_JUDGE_REQUEST);
@@ -347,7 +347,7 @@ const processJudgePage = async ({ page, apiKey, model, timeoutMs }) => {
               ? item.confidence
               : 0,
         },
-      ])
+      ]),
   );
 
   const approved = [];
@@ -422,13 +422,13 @@ export const runVisionJudge = async ({
 
   const pagesWithPatches = comparePages.filter(
     (page) =>
-      Array.isArray(page.proposedPatches) && page.proposedPatches.length > 0
+      Array.isArray(page.proposedPatches) && page.proposedPatches.length > 0,
   );
 
   const pageResults = await runParallelBatches(
     pagesWithPatches,
     JUDGE_CONCURRENCY,
-    (page) => processJudgePage({ page, apiKey, model, timeoutMs })
+    (page) => processJudgePage({ page, apiKey, model, timeoutMs }),
   );
 
   const approvedPatches = [];

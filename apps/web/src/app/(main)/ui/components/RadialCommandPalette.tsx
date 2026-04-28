@@ -1,6 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -52,6 +58,7 @@ export function RadialCommandPalette({
 }: RadialCommandPaletteProps) {
   const notifications = useNotifications();
   const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const isMobile = useIsMobile();
   const debouncedSearch = useDebounce(search, 180);
   const filteredCommands = useMemo(() => {
@@ -73,6 +80,12 @@ export function RadialCommandPalette({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen || isMobile) return;
+    const id = window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [isOpen, isMobile]);
 
   const handleCommandClick = useCallback(
     (cmd: Command) => {
@@ -180,11 +193,11 @@ export function RadialCommandPalette({
               <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-surface)]">
                 <Search className="w-5 h-5 text-[var(--color-muted)]" />
                 <Input
+                  ref={searchInputRef}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="ابحث عن أمر..."
                   className="flex-1 bg-transparent border-none focus-visible:ring-0 text-[var(--color-text)] placeholder:text-[var(--color-muted)]"
-                  autoFocus
                   dir="rtl"
                 />
                 <button

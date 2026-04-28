@@ -38,12 +38,15 @@ const launchBrowser = async (puppeteer) => {
     return await puppeteer.launch(resolvePuppeteerLaunchOptions());
   } catch (error) {
     const explicitDisable = process.env.PUPPETEER_DISABLE_SANDBOX === "true";
-    const allowFallback = process.env.PUPPETEER_ALLOW_SANDBOX_FALLBACK !== "false";
+    const allowFallback =
+      process.env.PUPPETEER_ALLOW_SANDBOX_FALLBACK !== "false";
     if (!explicitDisable && allowFallback && isSandboxLaunchFailure(error)) {
       console.warn(
-        "[export/pdfa] Chromium sandbox unavailable; retrying with container-level isolation fallback."
+        "[export/pdfa] Chromium sandbox unavailable; retrying with container-level isolation fallback.",
       );
-      return puppeteer.launch(resolvePuppeteerLaunchOptionsForSandboxMode(true));
+      return puppeteer.launch(
+        resolvePuppeteerLaunchOptionsForSandboxMode(true),
+      );
     }
     throw error;
   }

@@ -5,6 +5,8 @@ import {
   Camera,
   CameraOff,
   Image as ImageIcon,
+  RefreshCcw,
+  ScanLine,
   Send,
   Thermometer,
   Trash2,
@@ -208,13 +210,17 @@ const ProductionTools: React.FC<ProductionToolsProps> = ({ mood = "noir" }) => {
                   muted
                   playsInline
                   className="h-full w-full object-cover"
-                />
+                >
+                  <track kind="captions" />
+                </video>
               ) : previewType === "video" && previewUrl ? (
                 <video
                   src={previewUrl}
                   controls
                   className="h-full w-full object-cover"
-                />
+                >
+                  <track kind="captions" />
+                </video>
               ) : previewType === "image" && previewUrl ? (
                 <Image
                   src={previewUrl}

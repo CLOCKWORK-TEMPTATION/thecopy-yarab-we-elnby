@@ -19,6 +19,7 @@ const ImageWithFallback = React.forwardRef<
       fallbackSrc = "/images/fallback.jpg",
       fallbackClassName,
       onError,
+      onLoad,
       className,
       alt,
       ...props
@@ -54,22 +55,20 @@ const ImageWithFallback = React.forwardRef<
           // سيتم التعامل مع هذا كما لو أن الصورة تحملت بنجاح
         }
         // استدعي onLoad الأصلي إذا كان موجوداً
-        if (props.onLoad) {
-          props.onLoad(event);
-        }
+        onLoad?.(event);
       },
-      [isUsingFallback, props.onLoad]
+      [isUsingFallback, onLoad]
     );
 
     return (
       <Image
+        {...props}
         ref={ref}
         src={currentSrc}
         alt={alt}
         className={resolvedClassName}
         onError={handleError}
         onLoad={handleLoad}
-        {...props}
       />
     );
   }

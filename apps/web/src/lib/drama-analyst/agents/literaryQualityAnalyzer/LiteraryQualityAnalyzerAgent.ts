@@ -36,11 +36,11 @@ export class LiteraryQualityAnalyzerAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj?.originalText as string) || "";
-    const styleAnalysis = (contextObj?.styleAnalysis as string) || "";
-    const thematicAnalysis = (contextObj?.thematicAnalysis as string) || "";
+    const originalText = (contextObj?.["originalText"] as string) || "";
+    const styleAnalysis = (contextObj?.["styleAnalysis"] as string) || "";
+    const thematicAnalysis = (contextObj?.["thematicAnalysis"] as string) || "";
     const previousStations =
-      (contextObj?.previousStations as Record<string, string>) || {};
+      (contextObj?.["previousStations"] as Record<string, string>) || {};
 
     // Build structured prompt
     let prompt = `${LITERARY_QUALITY_ANALYZER_INSTRUCTIONS}\n\n`;

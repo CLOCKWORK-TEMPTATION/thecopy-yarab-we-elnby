@@ -51,9 +51,7 @@ export interface StationOutput {
  * Input: Full text
  * Output: Plain text listing characters and style analysis
  */
-export interface Station1Input extends StationInput {
-  // Uses base context
-}
+export type Station1Input = StationInput;
 
 export interface Station1Output extends StationOutput {
   stationId: "station-1";

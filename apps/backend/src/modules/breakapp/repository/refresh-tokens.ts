@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm';
+import { eq } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappRefreshTokens } from '@/db/schema';
+import { db } from "@/db";
+import { breakappRefreshTokens } from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
+import { ensureDatabase } from "./_helpers";
 
 export async function insertRefreshToken(input: {
   userId: string;
@@ -20,16 +20,13 @@ export async function insertRefreshToken(input: {
   });
 }
 
-export async function findRefreshToken(tokenHash: string): Promise<
-  | {
-      id: string;
-      userId: string;
-      projectId: string;
-      expiresAt: Date;
-      revokedAt: Date | null;
-    }
-  | null
-> {
+export async function findRefreshToken(tokenHash: string): Promise<{
+  id: string;
+  userId: string;
+  projectId: string;
+  expiresAt: Date;
+  revokedAt: Date | null;
+} | null> {
   ensureDatabase();
   const rows = await db
     .select({

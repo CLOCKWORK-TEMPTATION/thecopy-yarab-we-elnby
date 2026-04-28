@@ -19,7 +19,7 @@ interface AdaptiveRewritingContext {
   rewritingGoals?: string[];
   targetAudience?: string;
   targetTone?: string;
-  targetLength?: "shorter" | "same" | "longer" | "double" | "half" | string;
+  targetLength?: string;
   preserveElements?: string[];
   improvementFocus?: string[]; // e.g., ['pacing', 'dialogue', 'clarity']
   styleGuide?: string;

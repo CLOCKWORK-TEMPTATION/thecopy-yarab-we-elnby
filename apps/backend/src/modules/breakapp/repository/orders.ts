@@ -1,15 +1,15 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappOrderItems, breakappOrders } from '@/db/schema';
+import { db } from "@/db";
+import { breakappOrderItems, breakappOrders } from "@/db/schema";
 
-import { ensureDatabase, loadItemsForOrders } from './_helpers';
+import { ensureDatabase, loadItemsForOrders } from "./_helpers";
 
 import type {
   BreakappOrderItemInput,
   BreakappOrderView,
   OrderStatus,
-} from '../service.types';
+} from "../service.types";
 
 export async function createOrderWithItems(input: {
   sessionId: string;
@@ -27,7 +27,7 @@ export async function createOrderWithItems(input: {
         vendorId: input.vendorId,
       })
       .returning();
-    if (!orderRow) throw new Error('تعذر إنشاء الطلب');
+    if (!orderRow) throw new Error("تعذر إنشاء الطلب");
 
     const itemRows = input.items.map((item) => ({
       orderId: orderRow.id,
@@ -54,7 +54,7 @@ export async function createOrderWithItems(input: {
 }
 
 export async function loadOrderItems(
-  orderId: string
+  orderId: string,
 ): Promise<{ menuItemId: string; quantity: number }[]> {
   ensureDatabase();
   const rows = await db
@@ -68,7 +68,7 @@ export async function loadOrderItems(
 }
 
 export async function getOrder(
-  orderId: string
+  orderId: string,
 ): Promise<BreakappOrderView | null> {
   ensureDatabase();
   const rows = await db
@@ -91,7 +91,7 @@ export async function getOrder(
 }
 
 export async function listOrdersForUser(
-  userId: string
+  userId: string,
 ): Promise<BreakappOrderView[]> {
   ensureDatabase();
   const rows = await db
@@ -145,7 +145,7 @@ export async function listOrdersForSession(input: {
 
 export async function listOrdersForVendor(
   vendorId: string,
-  status?: OrderStatus
+  status?: OrderStatus,
 ): Promise<BreakappOrderView[]> {
   ensureDatabase();
   const conditions = [eq(breakappOrders.vendorId, vendorId)];
@@ -172,7 +172,7 @@ export async function listOrdersForVendor(
 
 export async function updateOrderStatus(
   orderId: string,
-  status: OrderStatus
+  status: OrderStatus,
 ): Promise<boolean> {
   ensureDatabase();
   const rows = await db

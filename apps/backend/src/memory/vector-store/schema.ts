@@ -1,4 +1,3 @@
- 
 /**
  * Weaviate Schema Definitions
  * تعريفات مخططات Weaviate

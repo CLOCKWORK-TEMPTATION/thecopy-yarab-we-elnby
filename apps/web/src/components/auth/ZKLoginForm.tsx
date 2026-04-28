@@ -4,6 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
+import {
+  base64ToUint8Array,
+  deriveAuthVerifier,
+  deriveKEK,
+  getKeyManager,
+  uint8ArrayToBase64,
+} from "@/lib/crypto";
 
 /**
  * نموذج تسجيل الدخول Zero-Knowledge
@@ -15,14 +22,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 3. إرسال authVerifier للتحقق
  * 4. اشتقاق KEK وحفظه في الذاكرة
  */
-
-import {
-  deriveKEK,
-  deriveAuthVerifier,
-  uint8ArrayToBase64,
-  base64ToUint8Array,
-  getKeyManager,
-} from "@/lib/crypto";
 
 export function ZKLoginForm() {
   const router = useRouter();
@@ -121,10 +120,14 @@ export function ZKLoginForm() {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label
+            htmlFor="field-zkloginform-1"
+            className="block text-sm font-medium mb-1"
+          >
             البريد الإلكتروني
           </label>
           <input
+            id="field-zkloginform-1"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -135,8 +138,14 @@ export function ZKLoginForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">كلمة المرور</label>
+          <label
+            htmlFor="field-zkloginform-2"
+            className="block text-sm font-medium mb-1"
+          >
+            كلمة المرور
+          </label>
           <input
+            id="field-zkloginform-2"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

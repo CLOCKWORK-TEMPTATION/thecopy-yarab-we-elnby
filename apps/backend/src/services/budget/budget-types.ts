@@ -53,7 +53,7 @@ export interface BudgetAnalysis {
   };
 }
 
-export type BudgetRuntimeSource = 'ai' | 'fallback';
+export type BudgetRuntimeSource = "ai" | "fallback";
 
 export interface BudgetRuntimeMeta {
   source: BudgetRuntimeSource;

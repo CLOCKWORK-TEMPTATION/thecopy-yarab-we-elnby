@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const recommendationsGeneratorInstructions = `
 توليد التوصيات للتحسين والتطوير:
@@ -44,6 +44,6 @@ export const recommendationsGeneratorAgentConfig: AIAgentConfig = {
     "توليد توصيات شاملة",
     "ترتيب الأولويات",
     "تقييم قابلية التنفيذ",
-    "التخطيط المرحلي للتحسينات"
-  ]
+    "التخطيط المرحلي للتحسينات",
+  ],
 };

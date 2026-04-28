@@ -1,6 +1,5 @@
 import { createHash } from "crypto";
 
-
 import { logger } from "@/lib/logger";
 
 import { embeddingGenerator } from "../../memory/embeddings/generator";
@@ -43,7 +42,7 @@ export class EmbeddingsService {
       const result = await embeddingGenerator.generateForDocumentation(
         text,
         { title: "Unified Memory Query" },
-        { dimensionality: 1536 }
+        { dimensionality: 1536 },
       );
 
       const embedding = result.embedding;
@@ -53,7 +52,7 @@ export class EmbeddingsService {
         await cacheService.set(
           `embedding:${cacheKey}`,
           JSON.stringify(embedding),
-          CACHE_TTL
+          CACHE_TTL,
         );
       } catch (error) {
         logger.warn("Failed to cache embedding", { error });

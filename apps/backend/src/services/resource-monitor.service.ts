@@ -4,12 +4,12 @@
  * Monitors system resources and detects backpressure, rate limits, and bottlenecks
  */
 
-import os from 'os';
+import os from "os";
 
-import { Gauge, Counter, Histogram } from 'prom-client';
+import { Gauge, Counter, Histogram } from "prom-client";
 
-import { logger } from '@/lib/logger';
-import { register } from '@/middleware/metrics.middleware';
+import { logger } from "@/lib/logger";
+import { register } from "@/middleware/metrics.middleware";
 
 // ===== Resource Monitoring Metrics =====
 
@@ -17,8 +17,8 @@ import { register } from '@/middleware/metrics.middleware';
  * System CPU usage percentage
  */
 export const systemCpuUsage = new Gauge({
-  name: 'the_copy_system_cpu_usage_percent',
-  help: 'System CPU usage percentage',
+  name: "the_copy_system_cpu_usage_percent",
+  help: "System CPU usage percentage",
   registers: [register],
 });
 
@@ -26,9 +26,9 @@ export const systemCpuUsage = new Gauge({
  * System memory usage
  */
 export const systemMemoryUsage = new Gauge({
-  name: 'the_copy_system_memory_usage_bytes',
-  help: 'System memory usage in bytes',
-  labelNames: ['type'],
+  name: "the_copy_system_memory_usage_bytes",
+  help: "System memory usage in bytes",
+  labelNames: ["type"],
   registers: [register],
 });
 
@@ -36,8 +36,8 @@ export const systemMemoryUsage = new Gauge({
  * Node.js event loop lag
  */
 export const eventLoopLag = new Histogram({
-  name: 'the_copy_event_loop_lag_ms',
-  help: 'Node.js event loop lag in milliseconds',
+  name: "the_copy_event_loop_lag_ms",
+  help: "Node.js event loop lag in milliseconds",
   buckets: [1, 5, 10, 25, 50, 100, 250, 500, 1000],
   registers: [register],
 });
@@ -46,9 +46,9 @@ export const eventLoopLag = new Histogram({
  * Active connections gauge
  */
 export const activeConnectionsGauge = new Gauge({
-  name: 'the_copy_active_connections',
-  help: 'Number of active connections',
-  labelNames: ['type'],
+  name: "the_copy_active_connections",
+  help: "Number of active connections",
+  labelNames: ["type"],
   registers: [register],
 });
 
@@ -56,8 +56,8 @@ export const activeConnectionsGauge = new Gauge({
  * Request queue size (backpressure indicator)
  */
 export const requestQueueSize = new Gauge({
-  name: 'the_copy_request_queue_size',
-  help: 'Number of requests in queue (backpressure indicator)',
+  name: "the_copy_request_queue_size",
+  help: "Number of requests in queue (backpressure indicator)",
   registers: [register],
 });
 
@@ -65,9 +65,9 @@ export const requestQueueSize = new Gauge({
  * Rate limit hits counter
  */
 export const rateLimitHits = new Counter({
-  name: 'the_copy_rate_limit_hits_total',
-  help: 'Total number of rate limit hits',
-  labelNames: ['endpoint', 'user'],
+  name: "the_copy_rate_limit_hits_total",
+  help: "Total number of rate limit hits",
+  labelNames: ["endpoint", "user"],
   registers: [register],
 });
 
@@ -75,9 +75,9 @@ export const rateLimitHits = new Counter({
  * Backpressure events counter
  */
 export const backpressureEvents = new Counter({
-  name: 'the_copy_backpressure_events_total',
-  help: 'Total number of backpressure events',
-  labelNames: ['type'],
+  name: "the_copy_backpressure_events_total",
+  help: "Total number of backpressure events",
+  labelNames: ["type"],
   registers: [register],
 });
 
@@ -85,9 +85,9 @@ export const backpressureEvents = new Counter({
  * Resource threshold breaches counter
  */
 export const resourceThresholdBreaches = new Counter({
-  name: 'the_copy_resource_threshold_breaches_total',
-  help: 'Total number of resource threshold breaches',
-  labelNames: ['resource', 'threshold'],
+  name: "the_copy_resource_threshold_breaches_total",
+  help: "Total number of resource threshold breaches",
+  labelNames: ["resource", "threshold"],
   registers: [register],
 });
 
@@ -95,8 +95,8 @@ export const resourceThresholdBreaches = new Counter({
  * Concurrent requests gauge
  */
 export const concurrentRequests = new Gauge({
-  name: 'the_copy_concurrent_requests',
-  help: 'Current number of concurrent requests being processed',
+  name: "the_copy_concurrent_requests",
+  help: "Current number of concurrent requests being processed",
   registers: [register],
 });
 
@@ -113,7 +113,7 @@ interface PromGaugeInternals {
  */
 function readGaugeCurrentValue(gauge: Gauge<string>): number {
   const view = gauge as unknown as PromGaugeInternals;
-  return view.hashMap?.['']?.value ?? 0;
+  return view.hashMap?.[""]?.value ?? 0;
 }
 
 /**
@@ -179,12 +179,18 @@ export class ResourceMonitorService {
       eventLoopLag.observe(Math.max(0, lag));
 
       if (lag > this.thresholds.eventLoopLag.critical) {
-        logger.error('Critical event loop lag detected', { lag });
-        backpressureEvents.inc({ type: 'event_loop_lag_critical' });
-        resourceThresholdBreaches.inc({ resource: 'event_loop', threshold: 'critical' });
+        logger.error("Critical event loop lag detected", { lag });
+        backpressureEvents.inc({ type: "event_loop_lag_critical" });
+        resourceThresholdBreaches.inc({
+          resource: "event_loop",
+          threshold: "critical",
+        });
       } else if (lag > this.thresholds.eventLoopLag.warning) {
-        logger.warn('Event loop lag warning', { lag });
-        resourceThresholdBreaches.inc({ resource: 'event_loop', threshold: 'warning' });
+        logger.warn("Event loop lag warning", { lag });
+        resourceThresholdBreaches.inc({
+          resource: "event_loop",
+          threshold: "warning",
+        });
       }
 
       lastCheck = Date.now();
@@ -201,12 +207,18 @@ export class ResourceMonitorService {
       systemCpuUsage.set(cpuUsage);
 
       if (cpuUsage > this.thresholds.cpu.critical) {
-        logger.error('Critical CPU usage', { cpuUsage });
-        backpressureEvents.inc({ type: 'cpu_critical' });
-        resourceThresholdBreaches.inc({ resource: 'cpu', threshold: 'critical' });
+        logger.error("Critical CPU usage", { cpuUsage });
+        backpressureEvents.inc({ type: "cpu_critical" });
+        resourceThresholdBreaches.inc({
+          resource: "cpu",
+          threshold: "critical",
+        });
       } else if (cpuUsage > this.thresholds.cpu.warning) {
-        logger.warn('High CPU usage', { cpuUsage });
-        resourceThresholdBreaches.inc({ resource: 'cpu', threshold: 'warning' });
+        logger.warn("High CPU usage", { cpuUsage });
+        resourceThresholdBreaches.inc({
+          resource: "cpu",
+          threshold: "warning",
+        });
       }
 
       // Memory Usage
@@ -215,36 +227,50 @@ export class ResourceMonitorService {
       const usedMemory = totalMemory - freeMemory;
       const memoryPercent = (usedMemory / totalMemory) * 100;
 
-      systemMemoryUsage.set({ type: 'used' }, usedMemory);
-      systemMemoryUsage.set({ type: 'free' }, freeMemory);
-      systemMemoryUsage.set({ type: 'total' }, totalMemory);
+      systemMemoryUsage.set({ type: "used" }, usedMemory);
+      systemMemoryUsage.set({ type: "free" }, freeMemory);
+      systemMemoryUsage.set({ type: "total" }, totalMemory);
 
       if (memoryPercent > this.thresholds.memory.critical) {
-        logger.error('Critical memory usage', { memoryPercent, usedMemory, totalMemory });
-        backpressureEvents.inc({ type: 'memory_critical' });
-        resourceThresholdBreaches.inc({ resource: 'memory', threshold: 'critical' });
+        logger.error("Critical memory usage", {
+          memoryPercent,
+          usedMemory,
+          totalMemory,
+        });
+        backpressureEvents.inc({ type: "memory_critical" });
+        resourceThresholdBreaches.inc({
+          resource: "memory",
+          threshold: "critical",
+        });
       } else if (memoryPercent > this.thresholds.memory.warning) {
-        logger.warn('High memory usage', { memoryPercent, usedMemory, totalMemory });
-        resourceThresholdBreaches.inc({ resource: 'memory', threshold: 'warning' });
+        logger.warn("High memory usage", {
+          memoryPercent,
+          usedMemory,
+          totalMemory,
+        });
+        resourceThresholdBreaches.inc({
+          resource: "memory",
+          threshold: "warning",
+        });
       }
 
       // Process Memory
       const processMemory = process.memoryUsage();
-      systemMemoryUsage.set({ type: 'heap_used' }, processMemory.heapUsed);
-      systemMemoryUsage.set({ type: 'heap_total' }, processMemory.heapTotal);
-      systemMemoryUsage.set({ type: 'external' }, processMemory.external);
-      systemMemoryUsage.set({ type: 'rss' }, processMemory.rss);
+      systemMemoryUsage.set({ type: "heap_used" }, processMemory.heapUsed);
+      systemMemoryUsage.set({ type: "heap_total" }, processMemory.heapTotal);
+      systemMemoryUsage.set({ type: "external" }, processMemory.external);
+      systemMemoryUsage.set({ type: "rss" }, processMemory.rss);
     } catch (error) {
-      logger.error('Failed to update system metrics:', error);
+      logger.error("Failed to update system metrics:", error);
     }
   }
 
   /**
    * Track rate limit hit
    */
-  trackRateLimitHit(endpoint: string, user = 'anonymous'): void {
+  trackRateLimitHit(endpoint: string, user = "anonymous"): void {
     rateLimitHits.inc({ endpoint, user });
-    logger.warn('Rate limit hit', { endpoint, user });
+    logger.warn("Rate limit hit", { endpoint, user });
   }
 
   /**
@@ -252,7 +278,7 @@ export class ResourceMonitorService {
    */
   trackBackpressure(type: string, details?: Record<string, unknown>): void {
     backpressureEvents.inc({ type });
-    logger.warn('Backpressure event', { type, ...details });
+    logger.warn("Backpressure event", { type, ...details });
   }
 
   /**
@@ -263,10 +289,18 @@ export class ResourceMonitorService {
 
     const current = readGaugeCurrentValue(concurrentRequests);
     if (current > this.thresholds.concurrentRequests.critical) {
-      this.trackBackpressure('concurrent_requests_critical', { count: current });
-      resourceThresholdBreaches.inc({ resource: 'concurrent_requests', threshold: 'critical' });
+      this.trackBackpressure("concurrent_requests_critical", {
+        count: current,
+      });
+      resourceThresholdBreaches.inc({
+        resource: "concurrent_requests",
+        threshold: "critical",
+      });
     } else if (current > this.thresholds.concurrentRequests.warning) {
-      resourceThresholdBreaches.inc({ resource: 'concurrent_requests', threshold: 'warning' });
+      resourceThresholdBreaches.inc({
+        resource: "concurrent_requests",
+        threshold: "warning",
+      });
     }
   }
 
@@ -284,7 +318,7 @@ export class ResourceMonitorService {
     requestQueueSize.set(size);
 
     if (size > 50) {
-      this.trackBackpressure('request_queue_high', { size });
+      this.trackBackpressure("request_queue_high", { size });
     }
   }
 
@@ -292,14 +326,14 @@ export class ResourceMonitorService {
    * Get current resource status
    */
   async getResourceStatus(): Promise<{
-    cpu: { usage: number; status: 'ok' | 'warning' | 'critical' };
+    cpu: { usage: number; status: "ok" | "warning" | "critical" };
     memory: {
       used: number;
       total: number;
       percent: number;
-      status: 'ok' | 'warning' | 'critical';
+      status: "ok" | "warning" | "critical";
     };
-    eventLoop: { lag: number; status: 'ok' | 'warning' | 'critical' };
+    eventLoop: { lag: number; status: "ok" | "warning" | "critical" };
     connections: number;
     concurrentRequests: number;
     backpressureEvents: number;
@@ -311,15 +345,15 @@ export class ResourceMonitorService {
     const memoryPercent = (usedMemory / totalMemory) * 100;
 
     const getCpuStatus = (usage: number) => {
-      if (usage > this.thresholds.cpu.critical) return 'critical';
-      if (usage > this.thresholds.cpu.warning) return 'warning';
-      return 'ok';
+      if (usage > this.thresholds.cpu.critical) return "critical";
+      if (usage > this.thresholds.cpu.warning) return "warning";
+      return "ok";
     };
 
     const getMemoryStatus = (percent: number) => {
-      if (percent > this.thresholds.memory.critical) return 'critical';
-      if (percent > this.thresholds.memory.warning) return 'warning';
-      return 'ok';
+      if (percent > this.thresholds.memory.critical) return "critical";
+      if (percent > this.thresholds.memory.warning) return "warning";
+      return "ok";
     };
 
     // Get metrics from registry
@@ -328,13 +362,13 @@ export class ResourceMonitorService {
     let concurrentReqs = 0;
 
     for (const metric of metrics) {
-      if (metric.name === 'the_copy_backpressure_events_total') {
+      if (metric.name === "the_copy_backpressure_events_total") {
         backpressureCount = (metric.values ?? []).reduce(
           (sum, val) => sum + (val.value ?? 0),
-          0
+          0,
         );
       }
-      if (metric.name === 'the_copy_concurrent_requests') {
+      if (metric.name === "the_copy_concurrent_requests") {
         concurrentReqs = metric.values?.[0]?.value ?? 0;
       }
     }
@@ -352,7 +386,7 @@ export class ResourceMonitorService {
       },
       eventLoop: {
         lag: 0, // Would need to track this separately
-        status: 'ok',
+        status: "ok",
       },
       connections: 0, // Would be tracked by HTTP middleware
       concurrentRequests: concurrentReqs,
@@ -365,7 +399,7 @@ export class ResourceMonitorService {
    */
   startMonitoring(intervalMs = 5000): void {
     if (this.monitorInterval) {
-      logger.warn('Resource monitoring already started');
+      logger.warn("Resource monitoring already started");
       return;
     }
 
@@ -380,7 +414,7 @@ export class ResourceMonitorService {
     // Start event loop monitoring
     this.startEventLoopMonitoring();
 
-    logger.info('Resource monitoring started', { intervalMs });
+    logger.info("Resource monitoring started", { intervalMs });
   }
 
   /**
@@ -397,7 +431,7 @@ export class ResourceMonitorService {
       this.eventLoopMonitor = null;
     }
 
-    logger.info('Resource monitoring stopped');
+    logger.info("Resource monitoring stopped");
   }
 
   /**

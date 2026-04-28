@@ -5,13 +5,13 @@
  * Access the docs at: http://localhost:3001/api-docs
  */
 
-import { swaggerSchemas, swaggerResponses } from './swagger-schemas';
+import { swaggerSchemas, swaggerResponses } from "./swagger-schemas";
 
 export const swaggerDefinition = {
-  openapi: '3.0.0',
+  openapi: "3.0.0",
   info: {
-    title: 'The Copy API',
-    version: '1.0.0',
+    title: "The Copy API",
+    version: "1.0.0",
     description: `
 # The Copy API Documentation
 
@@ -45,67 +45,67 @@ Get a token by calling the \`/api/auth/login\` endpoint.
 For issues or questions, visit: https://github.com/mohamedaminradyofficial/the-copy
     `,
     contact: {
-      name: 'The Copy Team',
-      url: 'https://github.com/mohamedaminradyofficial/the-copy',
+      name: "The Copy Team",
+      url: "https://github.com/mohamedaminradyofficial/the-copy",
     },
     license: {
-      name: 'MIT',
-      url: 'https://opensource.org/licenses/MIT',
+      name: "MIT",
+      url: "https://opensource.org/licenses/MIT",
     },
   },
   servers: [
     {
-      url: 'http://localhost:3001',
-      description: 'Development server',
+      url: "http://localhost:3001",
+      description: "Development server",
     },
     {
-      url: 'https://api.the-copy.com',
-      description: 'Production server (when deployed)',
+      url: "https://api.the-copy.com",
+      description: "Production server (when deployed)",
     },
   ],
   tags: [
     {
-      name: 'Health',
-      description: 'Health check and system status endpoints',
+      name: "Health",
+      description: "Health check and system status endpoints",
     },
     {
-      name: 'Authentication',
-      description: 'User authentication and authorization',
+      name: "Authentication",
+      description: "User authentication and authorization",
     },
     {
-      name: 'Analysis',
-      description: 'AI-powered script analysis endpoints',
+      name: "Analysis",
+      description: "AI-powered script analysis endpoints",
     },
     {
-      name: 'Projects',
-      description: 'Project management for Directors Studio',
+      name: "Projects",
+      description: "Project management for Directors Studio",
     },
     {
-      name: 'Scenes',
-      description: 'Scene management and breakdown',
+      name: "Scenes",
+      description: "Scene management and breakdown",
     },
     {
-      name: 'Characters',
-      description: 'Character tracking and continuity',
+      name: "Characters",
+      description: "Character tracking and continuity",
     },
     {
-      name: 'Shots',
-      description: 'Cinematography shot planning',
+      name: "Shots",
+      description: "Cinematography shot planning",
     },
   ],
   components: {
     securitySchemes: {
       bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Enter your JWT token in the format: Bearer {token}',
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Enter your JWT token in the format: Bearer {token}",
       },
       cookieAuth: {
-        type: 'apiKey',
-        in: 'cookie',
-        name: 'token',
-        description: 'JWT token stored in cookie',
+        type: "apiKey",
+        in: "cookie",
+        name: "token",
+        description: "JWT token stored in cookie",
       },
     },
     schemas: swaggerSchemas,
@@ -123,9 +123,5 @@ For issues or questions, visit: https://github.com/mohamedaminradyofficial/the-c
 
 export const swaggerOptions = {
   swaggerDefinition,
-  apis: [
-    './src/routes/*.ts',
-    './src/controllers/*.ts',
-    './src/server.ts',
-  ],
+  apis: ["./src/routes/*.ts", "./src/controllers/*.ts", "./src/server.ts"],
 };

@@ -1,6 +1,6 @@
 // Utils for useProduction hook
 
-import type { ShotAnalysis } from "../../types";
+import type { ShotAnalysis } from "../types";
 
 /**
  * حد المهلة لمسار التحليل البعيد (ms).

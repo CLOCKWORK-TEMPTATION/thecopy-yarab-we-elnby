@@ -1,4 +1,3 @@
- 
 // Virtual Production Engine Constants
 // ثوابت وقواعد بيانات محرك الإنتاج الافتراضي
 
@@ -32,11 +31,23 @@ export const illusionLibrary: OpticalIllusion[] = [
     description: "Seamlessly blend live action with digital backgrounds",
     setup: {
       lightingMatch: true,
-      specialEquipment: ["Green screen", "Motion control rig", "Reference markers"],
+      specialEquipment: [
+        "Green screen",
+        "Motion control rig",
+        "Reference markers",
+      ],
     },
     cameraRequirements: [
-      { parameter: "tracking-markers", value: "minimum 8 visible", critical: true },
-      { parameter: "exposure", value: "match painted elements", critical: true },
+      {
+        parameter: "tracking-markers",
+        value: "minimum 8 visible",
+        critical: true,
+      },
+      {
+        parameter: "exposure",
+        value: "match painted elements",
+        critical: true,
+      },
     ],
   },
   {
@@ -51,8 +62,16 @@ export const illusionLibrary: OpticalIllusion[] = [
       specialEquipment: ["High-speed camera", "Micro-lighting", "Scale models"],
     },
     cameraRequirements: [
-      { parameter: "frame-rate", value: "96-120fps for 1:8 scale", critical: true },
-      { parameter: "depth-of-field", value: "scaled proportionally", critical: true },
+      {
+        parameter: "frame-rate",
+        value: "96-120fps for 1:8 scale",
+        critical: true,
+      },
+      {
+        parameter: "depth-of-field",
+        value: "scaled proportionally",
+        critical: true,
+      },
     ],
   },
 ];
@@ -86,7 +105,10 @@ export const CALIBRATION_STEPS: Record<string, string[]> = {
   ],
 };
 
-export const VFX_DEFAULTS: Record<VisualEffect["type"], Record<string, unknown>> = {
+export const VFX_DEFAULTS: Record<
+  VisualEffect["type"],
+  Record<string, unknown>
+> = {
   particle: { count: 10000, lifetime: 5, size: 0.1, gravity: -9.8 },
   fluid: { resolution: 256, viscosity: 0.1, density: 1.0 },
   destruction: { pieces: 500, force: 100, debris: true },
@@ -104,6 +126,14 @@ export const OUTPUT_FORMATS = {
 export const EXPORT_FORMATS = {
   mp4: { codec: "H.264", container: "MP4", use: "Review and sharing" },
   prores: { codec: "ProRes 4444", container: "MOV", use: "Editorial" },
-  "exr-sequence": { codec: "OpenEXR", container: "Image sequence", use: "VFX and grading" },
-  usd: { codec: "USD/USDZ", container: "Scene description", use: "Pipeline integration" },
+  "exr-sequence": {
+    codec: "OpenEXR",
+    container: "Image sequence",
+    use: "VFX and grading",
+  },
+  usd: {
+    codec: "USD/USDZ",
+    container: "Scene description",
+    use: "Pipeline integration",
+  },
 } as const;

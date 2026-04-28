@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
+import {
+  deleteAPIConfig,
+  listAPIConfigs,
+  saveAPIConfig,
+  testAPIConnection,
+  type APIProviderConfig,
+} from "@/lib/crypto";
 
 /**
  * إعدادات BYO-API
@@ -13,14 +20,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 2. التخزين المحلي المشفر فقط
  * 3. الاتصال المباشر بمزود الخدمة
  */
-
-import {
-  saveAPIConfig,
-  listAPIConfigs,
-  deleteAPIConfig,
-  testAPIConnection,
-  type APIProviderConfig,
-} from "@/lib/crypto";
 
 export function BYOAPISettings() {
   const [providers, setProviders] = useState<
@@ -197,10 +196,14 @@ export function BYOAPISettings() {
 
           <form onSubmit={handleSave} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="field-byoapisettings-1"
+                className="block text-sm font-medium mb-1"
+              >
                 اسم المزود
               </label>
               <input
+                id="field-byoapisettings-1"
                 type="text"
                 value={formData.providerName}
                 onChange={(e) =>
@@ -213,10 +216,14 @@ export function BYOAPISettings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="field-byoapisettings-2"
+                className="block text-sm font-medium mb-1"
+              >
                 Endpoint URL
               </label>
               <input
+                id="field-byoapisettings-2"
                 type="url"
                 value={formData.endpointUrl}
                 onChange={(e) =>
@@ -230,8 +237,14 @@ export function BYOAPISettings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">API Key</label>
+              <label
+                htmlFor="field-byoapisettings-3"
+                className="block text-sm font-medium mb-1"
+              >
+                API Key
+              </label>
               <input
+                id="field-byoapisettings-3"
                 type="password"
                 value={formData.apiKey}
                 onChange={(e) =>
@@ -246,11 +259,7 @@ export function BYOAPISettings() {
 
             {testResult && (
               <div
-                className={`p-3 rounded ${
-                  testResult.success
-                    ? "bg-green-50 border border-green-300 text-green-700"
-                    : "bg-red-50 border border-red-300 text-red-700"
-                }`}
+                className={`p-3 rounded ${testResult.success ? "bg-green-50 border border-green-300 text-green-700" : "bg-red-50 border border-red-300 text-red-700"}`}
               >
                 {testResult.message}
               </div>

@@ -3,7 +3,7 @@
 import type {
   ExtendedCastMember,
   CastAnalysisResult,
-} from "../../domain/models";
+} from "../../../domain/models";
 
 /**
  * Calculate age range distribution
@@ -14,7 +14,7 @@ export function calculateAgeRanges(
   const ranges: Record<string, number> = {};
 
   members.forEach((member) => {
-    const age = member.ageRange || "Unknown";
+    const age = member.ageRange ?? "Unknown";
     ranges[age] = (ranges[age] ?? 0) + 1;
   });
 

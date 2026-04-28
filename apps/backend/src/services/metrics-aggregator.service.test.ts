@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const { registerMock, redisRegistryMock, queueMock, resourceMock, loggerMock } = vi.hoisted(
-  () => ({
+const { registerMock, redisRegistryMock, queueMock, resourceMock, loggerMock } =
+  vi.hoisted(() => ({
     registerMock: { getMetricsAsJSON: vi.fn() },
     redisRegistryMock: { getMetricsAsJSON: vi.fn() },
     queueMock: { getAllStats: vi.fn() },
@@ -12,16 +12,22 @@ const { registerMock, redisRegistryMock, queueMock, resourceMock, loggerMock } =
       warn: vi.fn(),
       debug: vi.fn(),
     },
-  })
-);
+  }));
 
-vi.mock('@/middleware/metrics.middleware', () => ({ register: registerMock }));
-vi.mock('./redis-metrics.service', () => ({ redisMetricsRegistry: redisRegistryMock }));
-vi.mock('@/queues/queue.config', () => ({ queueManager: queueMock }));
-vi.mock('./resource-monitor.service', () => ({ resourceMonitor: resourceMock }));
-vi.mock('@/lib/logger', () => ({ logger: loggerMock }));
+vi.mock("@/middleware/metrics.middleware", () => ({ register: registerMock }));
+vi.mock("./redis-metrics.service", () => ({
+  redisMetricsRegistry: redisRegistryMock,
+}));
+vi.mock("@/queues/queue.config", () => ({ queueManager: queueMock }));
+vi.mock("./resource-monitor.service", () => ({
+  resourceMonitor: resourceMock,
+}));
+vi.mock("@/lib/logger", () => ({ logger: loggerMock }));
 
-import { MetricsAggregatorService, metricsAggregator } from './metrics-aggregator.service';
+import {
+  MetricsAggregatorService,
+  metricsAggregator,
+} from "./metrics-aggregator.service";
 
 interface SnapshotsBackdoor {
   maxSnapshots: number;
@@ -30,55 +36,67 @@ interface SnapshotsBackdoor {
 
 const mockPrometheusMetrics = [
   {
-    name: 'the_copy_db_queries_total',
-    type: 'counter',
+    name: "the_copy_db_queries_total",
+    type: "counter",
     values: [
-      { value: 100, labels: { table: 'users' } },
-      { value: 50, labels: { table: 'projects' } },
+      { value: 100, labels: { table: "users" } },
+      { value: 50, labels: { table: "projects" } },
     ],
   },
   {
-    name: 'the_copy_http_requests_total',
-    type: 'counter',
+    name: "the_copy_http_requests_total",
+    type: "counter",
     values: [
-      { value: 500, labels: { route: '/api/projects', status_code: '200' } },
-      { value: 20, labels: { route: '/api/auth', status_code: '401' } },
+      { value: 500, labels: { route: "/api/projects", status_code: "200" } },
+      { value: 20, labels: { route: "/api/auth", status_code: "401" } },
     ],
   },
   {
-    name: 'the_copy_gemini_requests_total',
-    type: 'counter',
+    name: "the_copy_gemini_requests_total",
+    type: "counter",
     values: [
-      { value: 100, labels: { status: 'success' } },
-      { value: 5, labels: { status: 'error' } },
+      { value: 100, labels: { status: "success" } },
+      { value: 5, labels: { status: "error" } },
     ],
   },
   {
-    name: 'the_copy_gemini_cache_hits_total',
-    type: 'counter',
+    name: "the_copy_gemini_cache_hits_total",
+    type: "counter",
     values: [{ value: 80 }],
   },
   {
-    name: 'the_copy_gemini_cache_misses_total',
-    type: 'counter',
+    name: "the_copy_gemini_cache_misses_total",
+    type: "counter",
     values: [{ value: 20 }],
   },
 ];
 
 const mockRedisMetrics = [
-  { name: 'the_copy_redis_cache_hits_total', type: 'counter', values: [{ value: 1000 }] },
-  { name: 'the_copy_redis_cache_misses_total', type: 'counter', values: [{ value: 200 }] },
   {
-    name: 'the_copy_redis_memory_usage_bytes',
-    type: 'gauge',
+    name: "the_copy_redis_cache_hits_total",
+    type: "counter",
+    values: [{ value: 1000 }],
+  },
+  {
+    name: "the_copy_redis_cache_misses_total",
+    type: "counter",
+    values: [{ value: 200 }],
+  },
+  {
+    name: "the_copy_redis_memory_usage_bytes",
+    type: "gauge",
     values: [{ value: 1048576 }],
   },
-  { name: 'the_copy_redis_connected_clients', type: 'gauge', values: [{ value: 5 }] },
+  {
+    name: "the_copy_redis_connected_clients",
+    type: "gauge",
+    values: [{ value: 5 }],
+  },
 ];
 
 const mockQueueStats = [
   {
-    name: 'analysis',
+    name: "analysis",
     waiting: 10,
     active: 5,
     completed: 100,
@@ -87,7 +105,7 @@ const mockQueueStats = [
     total: 120,
   },
   {
-    name: 'notifications',
+    name: "notifications",
     waiting: 0,
     active: 1,
     completed: 50,
@@ -98,9 +116,9 @@ const mockQueueStats = [
 ];
 
 const mockResourceStatus = {
-  cpu: { usage: 45, status: 'normal' },
-  memory: { used: 512000000, total: 1024000000, percent: 50, status: 'normal' },
-  eventLoop: { lag: 5, status: 'normal' },
+  cpu: { usage: 45, status: "normal" },
+  memory: { used: 512000000, total: 1024000000, percent: 50, status: "normal" },
+  eventLoop: { lag: 5, status: "normal" },
   concurrentRequests: 10,
   backpressureEvents: 0,
 };
@@ -121,27 +139,27 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('MetricsAggregatorService > takeSnapshot', () => {
-  it('should take a complete metrics snapshot', async () => {
+describe("MetricsAggregatorService > takeSnapshot", () => {
+  it("should take a complete metrics snapshot", async () => {
     const snapshot = await service.takeSnapshot();
 
-    expect(snapshot).toHaveProperty('timestamp');
-    expect(snapshot).toHaveProperty('database');
-    expect(snapshot).toHaveProperty('redis');
-    expect(snapshot).toHaveProperty('queue');
-    expect(snapshot).toHaveProperty('api');
-    expect(snapshot).toHaveProperty('resources');
-    expect(snapshot).toHaveProperty('gemini');
+    expect(snapshot).toHaveProperty("timestamp");
+    expect(snapshot).toHaveProperty("database");
+    expect(snapshot).toHaveProperty("redis");
+    expect(snapshot).toHaveProperty("queue");
+    expect(snapshot).toHaveProperty("api");
+    expect(snapshot).toHaveProperty("resources");
+    expect(snapshot).toHaveProperty("gemini");
   });
 
-  it('should aggregate database metrics correctly', async () => {
+  it("should aggregate database metrics correctly", async () => {
     const snapshot = await service.takeSnapshot();
     expect(snapshot.database.totalQueries).toBe(150);
-    expect(snapshot.database.byTable).toHaveProperty('users');
-    expect(snapshot.database.byTable).toHaveProperty('projects');
+    expect(snapshot.database.byTable).toHaveProperty("users");
+    expect(snapshot.database.byTable).toHaveProperty("projects");
   });
 
-  it('should aggregate Redis metrics correctly', async () => {
+  it("should aggregate Redis metrics correctly", async () => {
     const snapshot = await service.takeSnapshot();
     expect(snapshot.redis.hits).toBe(1000);
     expect(snapshot.redis.misses).toBe(200);
@@ -150,45 +168,45 @@ describe('MetricsAggregatorService > takeSnapshot', () => {
     expect(snapshot.redis.connectedClients).toBe(5);
   });
 
-  it('should aggregate queue metrics correctly', async () => {
+  it("should aggregate queue metrics correctly", async () => {
     const snapshot = await service.takeSnapshot();
     expect(snapshot.queue.totalJobs).toBe(172);
     expect(snapshot.queue.activeJobs).toBe(6);
     expect(snapshot.queue.completedJobs).toBe(150);
     expect(snapshot.queue.failedJobs).toBe(4);
-    expect(snapshot.queue.byQueue).toHaveProperty('analysis');
-    expect(snapshot.queue.byQueue).toHaveProperty('notifications');
+    expect(snapshot.queue.byQueue).toHaveProperty("analysis");
+    expect(snapshot.queue.byQueue).toHaveProperty("notifications");
   });
 
-  it('should aggregate API metrics correctly', async () => {
+  it("should aggregate API metrics correctly", async () => {
     const snapshot = await service.takeSnapshot();
     expect(snapshot.api.totalRequests).toBe(520);
-    expect(snapshot.api.byEndpoint).toHaveProperty('/api/projects');
-    expect(snapshot.api.byEndpoint).toHaveProperty('/api/auth');
-    expect(snapshot.api.byEndpoint['/api/auth'].errors).toBe(20);
+    expect(snapshot.api.byEndpoint).toHaveProperty("/api/projects");
+    expect(snapshot.api.byEndpoint).toHaveProperty("/api/auth");
+    expect(snapshot.api.byEndpoint["/api/auth"].errors).toBe(20);
   });
 
-  it('should aggregate Gemini metrics correctly', async () => {
+  it("should aggregate Gemini metrics correctly", async () => {
     const snapshot = await service.takeSnapshot();
     expect(snapshot.gemini.totalRequests).toBe(105);
     expect(snapshot.gemini.cacheHitRatio).toBeCloseTo(80 / 100, 2);
     expect(snapshot.gemini.errorRate).toBeCloseTo(5 / 105, 3);
   });
 
-  it('should handle errors gracefully', async () => {
-    registerMock.getMetricsAsJSON.mockRejectedValue(new Error('Metrics error'));
+  it("should handle errors gracefully", async () => {
+    registerMock.getMetricsAsJSON.mockRejectedValue(new Error("Metrics error"));
 
-    await expect(service.takeSnapshot()).rejects.toThrow('Metrics error');
+    await expect(service.takeSnapshot()).rejects.toThrow("Metrics error");
     expect(loggerMock.error).toHaveBeenCalled();
   });
 });
 
-describe('MetricsAggregatorService > getLatestSnapshot', () => {
-  it('should return null when no snapshots exist', () => {
+describe("MetricsAggregatorService > getLatestSnapshot", () => {
+  it("should return null when no snapshots exist", () => {
     expect(service.getLatestSnapshot()).toBeNull();
   });
 
-  it('should return the latest snapshot', async () => {
+  it("should return the latest snapshot", async () => {
     await service.takeSnapshot();
     await service.takeSnapshot();
 
@@ -199,8 +217,8 @@ describe('MetricsAggregatorService > getLatestSnapshot', () => {
   });
 });
 
-describe('MetricsAggregatorService > getSnapshotsInRange', () => {
-  it('should return snapshots within time range', async () => {
+describe("MetricsAggregatorService > getSnapshotsInRange", () => {
+  it("should return snapshots within time range", async () => {
     const startTime = new Date();
     await service.takeSnapshot();
     await new Promise((resolve) => setTimeout(resolve, 10));
@@ -210,7 +228,7 @@ describe('MetricsAggregatorService > getSnapshotsInRange', () => {
     expect(service.getSnapshotsInRange(startTime, endTime).length).toBe(2);
   });
 
-  it('should return empty array for range with no snapshots', async () => {
+  it("should return empty array for range with no snapshots", async () => {
     await service.takeSnapshot();
 
     const futureStart = new Date(Date.now() + 1000000);
@@ -220,37 +238,42 @@ describe('MetricsAggregatorService > getSnapshotsInRange', () => {
   });
 });
 
-describe('MetricsAggregatorService > generatePerformanceReport', () => {
-  it('should generate performance report from snapshots', async () => {
+describe("MetricsAggregatorService > generatePerformanceReport", () => {
+  it("should generate performance report from snapshots", async () => {
     const startTime = new Date();
     await service.takeSnapshot();
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
 
-    expect(report).toHaveProperty('period');
-    expect(report).toHaveProperty('summary');
-    expect(report).toHaveProperty('recommendations');
-    expect(report).toHaveProperty('alerts');
+    expect(report).toHaveProperty("period");
+    expect(report).toHaveProperty("summary");
+    expect(report).toHaveProperty("recommendations");
+    expect(report).toHaveProperty("alerts");
     expect(report.period.start).toBeDefined();
     expect(report.period.end).toBeDefined();
-    expect(report.summary.systemHealth).toBe('healthy');
+    expect(report.summary.systemHealth).toBe("healthy");
   });
 
-  it('should throw error when no snapshots in range', async () => {
+  it("should throw error when no snapshots in range", async () => {
     const pastStart = new Date(Date.now() - 2000000);
     const pastEnd = new Date(Date.now() - 1000000);
 
-    await expect(service.generatePerformanceReport(pastStart, pastEnd)).rejects.toThrow(
-      'No metrics data available for the specified time range'
-    );
+    await expect(
+      service.generatePerformanceReport(pastStart, pastEnd),
+    ).rejects.toThrow("No metrics data available for the specified time range");
   });
 
-  it('should detect critical system health', async () => {
+  it("should detect critical system health", async () => {
     resourceMock.getResourceStatus.mockResolvedValue({
-      cpu: { usage: 95, status: 'critical' },
-      memory: { used: 900000000, total: 1024000000, percent: 88, status: 'warning' },
-      eventLoop: { lag: 50, status: 'warning' },
+      cpu: { usage: 95, status: "critical" },
+      memory: {
+        used: 900000000,
+        total: 1024000000,
+        percent: 88,
+        status: "warning",
+      },
+      eventLoop: { lag: 50, status: "warning" },
       concurrentRequests: 100,
       backpressureEvents: 5,
     });
@@ -260,14 +283,19 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
-    expect(report.summary.systemHealth).toBe('critical');
+    expect(report.summary.systemHealth).toBe("critical");
   });
 
-  it('should detect degraded system health', async () => {
+  it("should detect degraded system health", async () => {
     resourceMock.getResourceStatus.mockResolvedValue({
-      cpu: { usage: 75, status: 'warning' },
-      memory: { used: 700000000, total: 1024000000, percent: 68, status: 'normal' },
-      eventLoop: { lag: 20, status: 'normal' },
+      cpu: { usage: 75, status: "warning" },
+      memory: {
+        used: 700000000,
+        total: 1024000000,
+        percent: 68,
+        status: "normal",
+      },
+      eventLoop: { lag: 20, status: "normal" },
       concurrentRequests: 50,
       backpressureEvents: 1,
     });
@@ -277,15 +305,31 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
-    expect(report.summary.systemHealth).toBe('degraded');
+    expect(report.summary.systemHealth).toBe("degraded");
   });
 
-  it('should generate recommendations for low cache hit ratio', async () => {
+  it("should generate recommendations for low cache hit ratio", async () => {
     redisRegistryMock.getMetricsAsJSON.mockResolvedValue([
-      { name: 'the_copy_redis_cache_hits_total', type: 'counter', values: [{ value: 100 }] },
-      { name: 'the_copy_redis_cache_misses_total', type: 'counter', values: [{ value: 100 }] },
-      { name: 'the_copy_redis_memory_usage_bytes', type: 'gauge', values: [{ value: 1048576 }] },
-      { name: 'the_copy_redis_connected_clients', type: 'gauge', values: [{ value: 5 }] },
+      {
+        name: "the_copy_redis_cache_hits_total",
+        type: "counter",
+        values: [{ value: 100 }],
+      },
+      {
+        name: "the_copy_redis_cache_misses_total",
+        type: "counter",
+        values: [{ value: 100 }],
+      },
+      {
+        name: "the_copy_redis_memory_usage_bytes",
+        type: "gauge",
+        values: [{ value: 1048576 }],
+      },
+      {
+        name: "the_copy_redis_connected_clients",
+        type: "gauge",
+        values: [{ value: 5 }],
+      },
     ]);
 
     const startTime = new Date();
@@ -295,17 +339,22 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const report = await service.generatePerformanceReport(startTime, endTime);
 
     const hasCacheRecommendation = report.recommendations.some((r) =>
-      r.toLowerCase().includes('cache')
+      r.toLowerCase().includes("cache"),
     );
     expect(hasCacheRecommendation).toBe(true);
-    expect(report.alerts.some((a) => a.metric === 'redis.hitRatio')).toBe(true);
+    expect(report.alerts.some((a) => a.metric === "redis.hitRatio")).toBe(true);
   });
 
-  it('should generate alerts for high CPU usage', async () => {
+  it("should generate alerts for high CPU usage", async () => {
     resourceMock.getResourceStatus.mockResolvedValue({
-      cpu: { usage: 85, status: 'warning' },
-      memory: { used: 512000000, total: 1024000000, percent: 50, status: 'normal' },
-      eventLoop: { lag: 5, status: 'normal' },
+      cpu: { usage: 85, status: "warning" },
+      memory: {
+        used: 512000000,
+        total: 1024000000,
+        percent: 50,
+        status: "normal",
+      },
+      eventLoop: { lag: 5, status: "normal" },
       concurrentRequests: 10,
       backpressureEvents: 0,
     });
@@ -315,14 +364,21 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
-    expect(report.alerts.some((a) => a.metric === 'resources.cpu.usage')).toBe(true);
+    expect(report.alerts.some((a) => a.metric === "resources.cpu.usage")).toBe(
+      true,
+    );
   });
 
-  it('should generate alerts for high memory usage', async () => {
+  it("should generate alerts for high memory usage", async () => {
     resourceMock.getResourceStatus.mockResolvedValue({
-      cpu: { usage: 45, status: 'normal' },
-      memory: { used: 900000000, total: 1024000000, percent: 88, status: 'warning' },
-      eventLoop: { lag: 5, status: 'normal' },
+      cpu: { usage: 45, status: "normal" },
+      memory: {
+        used: 900000000,
+        total: 1024000000,
+        percent: 88,
+        status: "warning",
+      },
+      eventLoop: { lag: 5, status: "normal" },
       concurrentRequests: 10,
       backpressureEvents: 0,
     });
@@ -332,13 +388,15 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
-    expect(report.alerts.some((a) => a.metric === 'resources.memory.percent')).toBe(true);
+    expect(
+      report.alerts.some((a) => a.metric === "resources.memory.percent"),
+    ).toBe(true);
   });
 
-  it('should generate alerts for high queue failure rate', async () => {
+  it("should generate alerts for high queue failure rate", async () => {
     queueMock.getAllStats.mockResolvedValue([
       {
-        name: 'analysis',
+        name: "analysis",
         waiting: 10,
         active: 5,
         completed: 50,
@@ -353,12 +411,14 @@ describe('MetricsAggregatorService > generatePerformanceReport', () => {
     const endTime = new Date();
 
     const report = await service.generatePerformanceReport(startTime, endTime);
-    expect(report.alerts.some((a) => a.metric === 'queue.failedJobs')).toBe(true);
+    expect(report.alerts.some((a) => a.metric === "queue.failedJobs")).toBe(
+      true,
+    );
   });
 });
 
-describe('MetricsAggregatorService > snapshot storage', () => {
-  it('should limit stored snapshots to maxSnapshots', async () => {
+describe("MetricsAggregatorService > snapshot storage", () => {
+  it("should limit stored snapshots to maxSnapshots", async () => {
     const testService = new MetricsAggregatorService();
     const internals = testService as unknown as SnapshotsBackdoor;
     internals.maxSnapshots = 3;
@@ -373,8 +433,8 @@ describe('MetricsAggregatorService > snapshot storage', () => {
   });
 });
 
-describe('MetricsAggregatorService > singleton export', () => {
-  it('should export a singleton instance', () => {
+describe("MetricsAggregatorService > singleton export", () => {
+  it("should export a singleton instance", () => {
     expect(metricsAggregator).toBeDefined();
     expect(metricsAggregator).toBeInstanceOf(MetricsAggregatorService);
   });

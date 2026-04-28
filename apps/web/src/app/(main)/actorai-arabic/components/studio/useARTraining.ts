@@ -1,12 +1,14 @@
 import { useState } from "react";
+
+import { GESTURE_CONTROLS } from "../../types/constants";
+
 import type {
   TeleprompterSettings,
   BlockingMark,
-  CameraSettings,
+  CameraEyeSettings as CameraSettings,
   HolographicPartner,
   GestureControl,
 } from "../../types";
-import { GESTURE_CONTROLS } from "../types/constants";
 
 export const useARTraining = () => {
   const [arMode, setArMode] = useState<

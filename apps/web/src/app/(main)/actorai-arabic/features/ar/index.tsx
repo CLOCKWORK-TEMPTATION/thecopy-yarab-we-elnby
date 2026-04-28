@@ -123,11 +123,7 @@ export function ARTrainingView() {
           return (
             <Card
               key={feature.id}
-              className={`cursor-pointer transition-all hover:shadow-lg ${
-                arMode === featureMode
-                  ? "ring-2 ring-purple-400 bg-black/18 border-white/20"
-                  : "bg-black/14 border-white/8"
-              } border`}
+              className={`cursor-pointer transition-all hover:shadow-lg ${arMode === featureMode ? "ring-2 ring-purple-400 bg-black/18 border-white/20" : "bg-black/14 border-white/8"} border`}
               onClick={() => setArMode(featureMode)}
             >
               <CardContent className="p-4 text-center">
@@ -482,11 +478,7 @@ export function ARTrainingView() {
                   {activeGestures.map((gesture, idx) => (
                     <div
                       key={`${gesture.type}-${idx}`}
-                      className={`flex items-center justify-between p-3 border rounded-[22px] ${
-                        gesture.enabled
-                          ? "bg-green-600/20 border-green-500/30"
-                          : "bg-black/18 border-white/8"
-                      }`}
+                      className={`flex items-center justify-between p-3 border rounded-[22px] ${gesture.enabled ? "bg-green-600/20 border-green-500/30" : "bg-black/18 border-white/8"}`}
                     >
                       <span className="text-sm text-white/85">
                         {gesture.action}

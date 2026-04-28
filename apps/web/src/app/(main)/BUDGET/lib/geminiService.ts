@@ -378,19 +378,19 @@ export class GeminiService {
 
     const budgetObj = budget as Record<string, unknown>;
 
-    if (!Array.isArray(budgetObj.sections)) {
+    if (!Array.isArray(budgetObj["sections"])) {
       errors.push("أقسام الميزانية ليست مصفوفة");
     } else {
-      (budgetObj.sections as Record<string, unknown>[]).forEach(
+      (budgetObj["sections"] as Record<string, unknown>[]).forEach(
         (section: Record<string, unknown>, sectionIndex: number) => {
-          if (!section.categories || !Array.isArray(section.categories)) {
+          if (!section["categories"] || !Array.isArray(section["categories"])) {
             errors.push(`القسم ${sectionIndex}: الفئات ليست مصفوفة`);
           }
         }
       );
     }
 
-    if (typeof budgetObj.grandTotal !== "number") {
+    if (typeof budgetObj["grandTotal"] !== "number") {
       errors.push("المجموع الكلي ليس رقماً");
     }
 

@@ -10,7 +10,7 @@ export class CulturalHistoricalAnalyzerAgent extends BaseAgent {
     super(
       "CulturalHistoricalAnalyzer AI",
       TaskType.CULTURAL_HISTORICAL_ANALYZER,
-      CULTURAL_HISTORICAL_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
+      CULTURAL_HISTORICAL_ANALYZER_AGENT_CONFIG.systemPrompt ?? "",
     );
     this.confidenceFloor = 0.75;
   }
@@ -20,4 +20,5 @@ export class CulturalHistoricalAnalyzerAgent extends BaseAgent {
   }
 }
 
-export const culturalHistoricalAnalyzerAgent = new CulturalHistoricalAnalyzerAgent();
+export const culturalHistoricalAnalyzerAgent =
+  new CulturalHistoricalAnalyzerAgent();

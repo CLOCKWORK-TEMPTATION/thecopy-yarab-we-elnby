@@ -2,11 +2,11 @@
 
 import type {
   PerformanceEvaluation,
+  PerformanceMetrics,
   TrainingScenario,
-  SkillWeights,
 } from "../types";
 
-export const skillWeights: SkillWeights = {
+export const skillWeights: Required<PerformanceMetrics> = {
   accuracy: 0.25,
   timing: 0.2,
   technique: 0.3,
@@ -15,7 +15,7 @@ export const skillWeights: SkillWeights = {
 };
 
 export function calculateOverallScore(
-  metrics: Partial<Record<keyof SkillWeights, number>>
+  metrics: Partial<PerformanceMetrics>
 ): number {
   const weights = skillWeights;
   return Math.round(

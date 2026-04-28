@@ -57,9 +57,9 @@ export class WeaviateMemoryStore {
     return { ...this.runtimeStatus };
   }
 
-  private mark(
-    patch: { [K in keyof WeaviateRuntimeStatus]?: WeaviateRuntimeStatus[K] | undefined },
-  ): void {
+  private mark(patch: {
+    [K in keyof WeaviateRuntimeStatus]?: WeaviateRuntimeStatus[K] | undefined;
+  }): void {
     const nextStatus: WeaviateRuntimeStatus = {
       ...this.runtimeStatus,
       lastCheckedAt: new Date().toISOString(),
@@ -94,11 +94,11 @@ export class WeaviateMemoryStore {
             () =>
               reject(
                 new Error(
-                  `Weaviate startup timeout after ${env.WEAVIATE_STARTUP_TIMEOUT_MS}ms`
-                )
+                  `Weaviate startup timeout after ${env.WEAVIATE_STARTUP_TIMEOUT_MS}ms`,
+                ),
               ),
-            env.WEAVIATE_STARTUP_TIMEOUT_MS
-          )
+            env.WEAVIATE_STARTUP_TIMEOUT_MS,
+          ),
         ),
       ]);
 
@@ -199,7 +199,7 @@ export class WeaviateMemoryStore {
    */
   async ensureCollection(
     name: string,
-    schema: WeaviateCollectionSchema
+    schema: WeaviateCollectionSchema,
   ): Promise<void> {
     const client = await this.connect();
 
@@ -212,7 +212,7 @@ export class WeaviateMemoryStore {
       // Collection doesn't exist, create it
       logger.info(`Creating collection ${name}`);
       await client.collections.create(
-        schema as Parameters<WeaviateClient["collections"]["create"]>[0]
+        schema as Parameters<WeaviateClient["collections"]["create"]>[0],
       );
       logger.info(`Collection ${name} created`);
     }
@@ -253,7 +253,7 @@ export class WeaviateMemoryStore {
 
   async insertMany<T extends Properties | undefined = Properties>(
     name: string,
-    objects: Record<string, unknown>[]
+    objects: Record<string, unknown>[],
   ) {
     if (objects.length === 0) {
       return { hasErrors: false, errors: {} };
@@ -263,11 +263,7 @@ export class WeaviateMemoryStore {
     return collection.data.insertMany(objects);
   }
 
-  async deleteMany(
-    name: string,
-    filter: unknown,
-    verbose = false
-  ) {
+  async deleteMany(name: string, filter: unknown, verbose = false) {
     const collection = this.getCollection(name);
     return collection.data.deleteMany(filter as never, { verbose });
   }

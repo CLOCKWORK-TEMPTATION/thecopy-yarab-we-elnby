@@ -25,14 +25,11 @@ export type {
 export { BRAINSTORM_PHASES } from "./catalog-types";
 
 const BRAINSTORM_AGENT_CATALOG: readonly BrainstormAgentCatalogItem[] =
-  Object.freeze([
-    ...BRAINSTORM_AGENTS_PRIMARY,
-    ...BRAINSTORM_AGENTS_SECONDARY,
-  ]);
+  Object.freeze([...BRAINSTORM_AGENTS_PRIMARY, ...BRAINSTORM_AGENTS_SECONDARY]);
 
 export function getBrainstormAgents(): BrainstormAgentCatalogItem[] {
   return BRAINSTORM_AGENT_CATALOG.filter((agent) =>
-    agentRegistry.hasAgent(agent.id)
+    agentRegistry.hasAgent(agent.id),
   );
 }
 
@@ -43,7 +40,7 @@ function isTaskTypeId(agentId: string): agentId is TaskType {
 }
 
 export function getBrainstormAgentById(
-  agentId: string
+  agentId: string,
 ): BrainstormAgentCatalogItem | undefined {
   if (!isTaskTypeId(agentId)) {
     return undefined;
@@ -57,10 +54,10 @@ export function getBrainstormPhases(): readonly BrainstormPhaseCatalogItem[] {
 }
 
 export function getBrainstormAgentsForPhase(
-  phase: BrainstormPhase
+  phase: BrainstormPhase,
 ): BrainstormAgentCatalogItem[] {
   return getBrainstormAgents().filter((agent) =>
-    agent.phaseRelevance.includes(phase)
+    agent.phaseRelevance.includes(phase),
   );
 }
 

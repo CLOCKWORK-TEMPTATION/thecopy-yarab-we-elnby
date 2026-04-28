@@ -45,6 +45,33 @@ const isValidClipboardPayload = (
   return true;
 };
 
+async function readCustomClipboardPayload(item: ClipboardItem): Promise<{
+  blocks?: ScreenplayBlock[];
+  text?: string;
+} | null> {
+  if (!item.types.includes(FILMLANE_CLIPBOARD_MIME)) return null;
+
+  const payloadBlob = await item.getType(FILMLANE_CLIPBOARD_MIME);
+  const payloadText = await payloadBlob.text();
+  const parsed = JSON.parse(payloadText) as unknown;
+  if (!isValidClipboardPayload(parsed)) return null;
+  if (parsed.hash !== hashText(parsed.plainText)) return null;
+
+  if (parsed.blocks && parsed.blocks.length > 0) {
+    return { blocks: parsed.blocks };
+  }
+
+  return parsed.plainText.trim() ? { text: parsed.plainText } : null;
+}
+
+async function readPlainClipboardText(item: ClipboardItem) {
+  if (!item.types.includes("text/plain")) return null;
+
+  const plainBlob = await item.getType("text/plain");
+  const text = await plainBlob.text();
+  return text.trim() ? text : null;
+}
+
 /**
  * @description نسخ النص المحدد أو المستند كاملاً إلى الحافظة
  */
@@ -210,34 +237,20 @@ export const pasteFromClipboard = async (
       let textToImport: string | null = null;
 
       for (const item of items) {
-        if (item.types.includes(FILMLANE_CLIPBOARD_MIME)) {
-          const payloadBlob = await item.getType(FILMLANE_CLIPBOARD_MIME);
-          const payloadText = await payloadBlob.text();
-          const parsed = JSON.parse(payloadText) as unknown;
-          if (
-            isValidClipboardPayload(parsed) &&
-            parsed.hash === hashText(parsed.plainText)
-          ) {
-            if (parsed.blocks && parsed.blocks.length > 0) {
-              blocksToImport = parsed.blocks;
-              break;
-            }
-
-            if (parsed.plainText.trim()) {
-              textToImport = parsed.plainText;
-              break;
-            }
-          }
+        const customPayload = await readCustomClipboardPayload(item);
+        if (customPayload?.blocks) {
+          blocksToImport = customPayload.blocks;
+          break;
+        }
+        if (customPayload?.text) {
+          textToImport = customPayload.text;
+          break;
         }
 
-        if (item.types.includes("text/plain")) {
-          const plainBlob = await item.getType("text/plain");
-          const text = await plainBlob.text();
-          if (text.trim()) {
-            textToImport = text;
-            break;
-          }
-        }
+        const plainText = await readPlainClipboardText(item);
+        if (!plainText) continue;
+        textToImport = plainText;
+        break;
       }
 
       if (blocksToImport) {

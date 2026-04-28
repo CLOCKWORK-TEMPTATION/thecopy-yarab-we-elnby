@@ -24,24 +24,30 @@ const { state, collectClauses, toRowKey } = vi.hoisted(() => {
   };
 
   const toRowKey = (columnName: string): string =>
-    columnName.replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase());
+    columnName.replace(/_([a-z])/g, (_match, char: string) =>
+      char.toUpperCase(),
+    );
 
   const collectClauses = (
     node: unknown,
-    acc: { column: string; value: unknown }[] = []
+    acc: { column: string; value: unknown }[] = [],
   ) => {
     if (!node || typeof node !== "object") {
       return acc;
     }
 
     const queryNode = node as { queryChunks?: unknown[] };
-    const chunks = Array.isArray(queryNode.queryChunks) ? queryNode.queryChunks : [];
+    const chunks = Array.isArray(queryNode.queryChunks)
+      ? queryNode.queryChunks
+      : [];
 
     for (let index = 0; index < chunks.length; index += 1) {
       const current = chunks[index] as
         | { name?: string; queryChunks?: unknown[] }
         | undefined;
-      const maybeSeparator = chunks[index + 1] as { value?: string[] } | undefined;
+      const maybeSeparator = chunks[index + 1] as
+        | { value?: string[] }
+        | undefined;
       const maybeParam = chunks[index + 2] as { value?: unknown } | undefined;
 
       if (
@@ -82,8 +88,10 @@ vi.mock("@/memory", async () => {
   const express = await import("express");
 
   return {
-    memoryHealthHandler: (_req: unknown, res: { json: (body: unknown) => void }) =>
-      res.json({ success: true, status: "disabled" }),
+    memoryHealthHandler: (
+      _req: unknown,
+      res: { json: (body: unknown) => void },
+    ) => res.json({ success: true, status: "disabled" }),
     memoryRoutes: express.Router(),
     weaviateStore: {
       bootstrap: vi.fn().mockResolvedValue(undefined),
@@ -99,41 +107,49 @@ vi.mock("@/memory", async () => {
 
 vi.mock("@/services/auth.service", () => ({
   authService: {
-    signup: vi.fn((email: string, password: string, firstName?: string, lastName?: string) => {
-      const existingUser = state.users.find((user) => user.email === email);
-      if (existingUser) {
-        throw new Error("المستخدم موجود بالفعل");
-      }
+    signup: vi.fn(
+      (
+        email: string,
+        password: string,
+        firstName?: string,
+        lastName?: string,
+      ) => {
+        const existingUser = state.users.find((user) => user.email === email);
+        if (existingUser) {
+          throw new Error("المستخدم موجود بالفعل");
+        }
 
-      const user = {
-        id: `user-${state.userSeq++}`,
-        email,
-        password,
-        firstName,
-        lastName,
-      };
+        const user = {
+          id: `user-${state.userSeq++}`,
+          email,
+          password,
+          firstName,
+          lastName,
+        };
 
-      state.users.push(user);
+        state.users.push(user);
 
-      const accessToken = `token-${user.id}`;
-      const refreshToken = `refresh-${user.id}`;
-      state.tokens.set(accessToken, user.id);
+        const accessToken = `token-${user.id}`;
+        const refreshToken = `refresh-${user.id}`;
+        state.tokens.set(accessToken, user.id);
 
-      return {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-      };
-    }),
+        return {
+          accessToken,
+          refreshToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        };
+      },
+    ),
 
     login: vi.fn((email: string, password: string) => {
       const user = state.users.find(
-        (candidate) => candidate.email === email && candidate.password === password
+        (candidate) =>
+          candidate.email === email && candidate.password === password,
       );
 
       if (!user) {
@@ -203,7 +219,7 @@ vi.mock("@/db", async () => {
       clauses.every(({ column, value }) => {
         const rowKey = toRowKey(column);
         return project[rowKey as keyof typeof project] === value;
-      })
+      }),
     );
   };
 
@@ -228,12 +244,12 @@ vi.mock("@/db", async () => {
             orderBy: () =>
               [...rows].sort(
                 (left, right) =>
-                  right.updatedAt.getTime() - left.updatedAt.getTime()
+                  right.updatedAt.getTime() - left.updatedAt.getTime(),
               ),
             limit: (limit: number) => rows.slice(0, limit),
             then: (
               resolve: (value: typeof rows) => unknown,
-              reject?: (reason: unknown) => unknown
+              reject?: (reason: unknown) => unknown,
             ) => Promise.resolve([...rows]).then(resolve, reject),
           });
 
@@ -291,7 +307,7 @@ const request = supertest(app);
 
 function extractCookieValue(
   cookies: string[] | undefined,
-  cookieName: string
+  cookieName: string,
 ): string | undefined {
   return cookies
     ?.find((cookie) => cookie.startsWith(`${cookieName}=`))
@@ -300,18 +316,26 @@ function extractCookieValue(
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 function responseBody(response: { body: unknown }): Record<string, unknown> {
   return asRecord(response.body);
 }
 
-function nestedRecord(source: Record<string, unknown>, field: string): Record<string, unknown> {
+function nestedRecord(
+  source: Record<string, unknown>,
+  field: string,
+): Record<string, unknown> {
   return asRecord(source[field]);
 }
 
-function stringField(source: Record<string, unknown>, field: string): string | undefined {
+function stringField(
+  source: Record<string, unknown>,
+  field: string,
+): string | undefined {
   const value = source[field];
   return typeof value === "string" ? value : undefined;
 }
@@ -347,8 +371,7 @@ describe("Controllers Integration Tests", () => {
     const signupData = nestedRecord(signupBody, "data");
     token = stringField(signupData, "token") ?? "";
     authCookies = signupResponse.headers["set-cookie"] ?? [];
-    csrfToken =
-      extractCookieValue(authCookies, "XSRF-TOKEN") ?? "";
+    csrfToken = extractCookieValue(authCookies, "XSRF-TOKEN") ?? "";
 
     if (!token || !csrfToken) {
       throw new Error("Authentication setup failed");

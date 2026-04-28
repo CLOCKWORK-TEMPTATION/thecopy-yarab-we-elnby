@@ -1,14 +1,14 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { logger } from '@/lib/logger';
-import { breakdownService } from '@/services/breakdown/service';
+import { logger } from "@/lib/logger";
+import { breakdownService } from "@/services/breakdown/service";
 
-import type { AuthRequest } from '@/middleware/auth.middleware';
-import type { Request, Response } from 'express';
+import type { AuthRequest } from "@/middleware/auth.middleware";
+import type { Request, Response } from "express";
 
 const bootstrapSchema = z.object({
   title: z.string().optional(),
-  scriptContent: z.string().min(1, 'نص السيناريو مطلوب'),
+  scriptContent: z.string().min(1, "نص السيناريو مطلوب"),
 });
 
 const parseSchema = z.object({
@@ -17,13 +17,13 @@ const parseSchema = z.object({
 });
 
 const chatSchema = z.object({
-  message: z.string().min(1, 'رسالة المحادثة مطلوبة'),
+  message: z.string().min(1, "رسالة المحادثة مطلوبة"),
   context: z.record(z.unknown()).optional(),
 });
 
 function getParam(req: Request, key: string): string {
   const value = req.params[key];
-  return typeof value === 'string' ? value : '';
+  return typeof value === "string" ? value : "";
 }
 
 export class BreakdownController {
@@ -31,7 +31,7 @@ export class BreakdownController {
     if (!req.user?.id) {
       res.status(401).json({
         success: false,
-        error: 'غير مصرح',
+        error: "غير مصرح",
       });
       return null;
     }
@@ -43,8 +43,8 @@ export class BreakdownController {
     res.json({
       success: true,
       data: {
-        service: 'breakdown',
-        status: 'ok',
+        service: "breakdown",
+        status: "ok",
         timestamp: new Date().toISOString(),
       },
     });
@@ -61,7 +61,7 @@ export class BreakdownController {
       const result = await breakdownService.createProjectAndParse(
         body.scriptContent,
         body.title,
-        userId
+        userId,
       );
 
       res.status(201).json({
@@ -69,7 +69,7 @@ export class BreakdownController {
         data: result,
       });
     } catch (error) {
-      this.handleError(res, error, 'bootstrapProject');
+      this.handleError(res, error, "bootstrapProject");
     }
   }
 
@@ -80,13 +80,13 @@ export class BreakdownController {
         return;
       }
 
-      const projectId = getParam(req, 'projectId');
+      const projectId = getParam(req, "projectId");
       const body = parseSchema.parse(req.body ?? {});
       const parsed = await breakdownService.parseProject(
         projectId,
         userId,
         body.scriptContent,
-        body.title
+        body.title,
       );
 
       res.json({
@@ -94,7 +94,7 @@ export class BreakdownController {
         data: parsed,
       });
     } catch (error) {
-      this.handleError(res, error, 'parseProject');
+      this.handleError(res, error, "parseProject");
     }
   }
 
@@ -105,7 +105,7 @@ export class BreakdownController {
         return;
       }
 
-      const projectId = getParam(req, 'projectId');
+      const projectId = getParam(req, "projectId");
       const report = await breakdownService.analyzeProject(projectId, userId);
 
       res.json({
@@ -113,7 +113,7 @@ export class BreakdownController {
         data: report,
       });
     } catch (error) {
-      this.handleError(res, error, 'analyzeProject');
+      this.handleError(res, error, "analyzeProject");
     }
   }
 
@@ -124,13 +124,13 @@ export class BreakdownController {
         return;
       }
 
-      const projectId = getParam(req, 'projectId');
+      const projectId = getParam(req, "projectId");
       const report = await breakdownService.getProjectReport(projectId, userId);
 
       if (!report) {
         res.status(404).json({
           success: false,
-          error: 'لم يتم العثور على تقرير بريك دون للمشروع',
+          error: "لم يتم العثور على تقرير بريك دون للمشروع",
         });
         return;
       }
@@ -140,7 +140,7 @@ export class BreakdownController {
         data: report,
       });
     } catch (error) {
-      this.handleError(res, error, 'getProjectReport');
+      this.handleError(res, error, "getProjectReport");
     }
   }
 
@@ -151,15 +151,18 @@ export class BreakdownController {
         return;
       }
 
-      const projectId = getParam(req, 'projectId');
-      const schedule = await breakdownService.getProjectSchedule(projectId, userId);
+      const projectId = getParam(req, "projectId");
+      const schedule = await breakdownService.getProjectSchedule(
+        projectId,
+        userId,
+      );
 
       res.json({
         success: true,
         data: schedule,
       });
     } catch (error) {
-      this.handleError(res, error, 'getProjectSchedule');
+      this.handleError(res, error, "getProjectSchedule");
     }
   }
 
@@ -170,13 +173,13 @@ export class BreakdownController {
         return;
       }
 
-      const sceneId = getParam(req, 'sceneId');
+      const sceneId = getParam(req, "sceneId");
       const scene = await breakdownService.getSceneBreakdown(sceneId, userId);
 
       if (!scene) {
         res.status(404).json({
           success: false,
-          error: 'تفكيك المشهد غير موجود',
+          error: "تفكيك المشهد غير موجود",
         });
         return;
       }
@@ -186,7 +189,7 @@ export class BreakdownController {
         data: scene,
       });
     } catch (error) {
-      this.handleError(res, error, 'getSceneBreakdown');
+      this.handleError(res, error, "getSceneBreakdown");
     }
   }
 
@@ -197,7 +200,7 @@ export class BreakdownController {
         return;
       }
 
-      const sceneId = getParam(req, 'sceneId');
+      const sceneId = getParam(req, "sceneId");
       const scene = await breakdownService.reanalyzeScene(sceneId, userId);
 
       res.json({
@@ -205,7 +208,7 @@ export class BreakdownController {
         data: scene,
       });
     } catch (error) {
-      this.handleError(res, error, 'reanalyzeScene');
+      this.handleError(res, error, "reanalyzeScene");
     }
   }
 
@@ -216,19 +219,23 @@ export class BreakdownController {
         return;
       }
 
-      const reportId = getParam(req, 'reportId');
+      const reportId = getParam(req, "reportId");
       const format =
-        req.query["format"] === 'csv' || req.query["format"] === 'json'
+        req.query["format"] === "csv" || req.query["format"] === "json"
           ? req.query["format"]
-          : 'json';
-      const result = await breakdownService.exportReport(reportId, userId, format);
+          : "json";
+      const result = await breakdownService.exportReport(
+        reportId,
+        userId,
+        format,
+      );
 
       res.json({
         success: true,
         data: result,
       });
     } catch (error) {
-      this.handleError(res, error, 'exportReport');
+      this.handleError(res, error, "exportReport");
     }
   }
 
@@ -247,7 +254,7 @@ export class BreakdownController {
         data: result,
       });
     } catch (error) {
-      this.handleError(res, error, 'chat');
+      this.handleError(res, error, "chat");
     }
   }
 
@@ -255,7 +262,7 @@ export class BreakdownController {
     if (error instanceof z.ZodError) {
       res.status(400).json({
         success: false,
-        error: 'بيانات الطلب غير صالحة',
+        error: "بيانات الطلب غير صالحة",
         details: error.issues,
       });
       return;
@@ -264,7 +271,7 @@ export class BreakdownController {
     if (error instanceof Error) {
       const message = error.message;
 
-      if (message.includes('غير موجود')) {
+      if (message.includes("غير موجود")) {
         res.status(404).json({
           success: false,
           error: message,
@@ -273,9 +280,9 @@ export class BreakdownController {
       }
 
       if (
-        message.includes('مطلوب') ||
-        message.includes('لا يوجد') ||
-        message.includes('تعذر')
+        message.includes("مطلوب") ||
+        message.includes("لا يوجد") ||
+        message.includes("تعذر")
       ) {
         res.status(400).json({
           success: false,
@@ -288,7 +295,7 @@ export class BreakdownController {
     logger.error(`BreakdownController.${context}`, error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
+      error: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
     });
   }
 }

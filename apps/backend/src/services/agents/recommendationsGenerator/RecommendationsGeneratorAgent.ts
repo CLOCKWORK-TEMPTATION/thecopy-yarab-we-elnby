@@ -20,7 +20,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     super(
       "WisdomSynthesizer AI",
       TaskType.RECOMMENDATIONS_GENERATOR,
-      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt ?? ""
+      RECOMMENDATIONS_GENERATOR_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -37,8 +37,10 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
       typeof context === "object" && context !== null ? context : {};
     const typedCtx = contextObj;
     const originalText = (typedCtx["originalText"] as string) || "";
-    const analysisResults = (typedCtx["analysisResults"] as Record<string, string>) || {};
-    const previousStations = (typedCtx["previousStations"] as Record<string, string>) || {};
+    const analysisResults =
+      (typedCtx["analysisResults"] as Record<string, string>) || {};
+    const previousStations =
+      (typedCtx["previousStations"] as Record<string, string>) || {};
     const focusAreas = (typedCtx["focusAreas"] as string[]) || [];
     const priorityLevel = (typedCtx["priorityLevel"] as string) || "balanced";
 
@@ -93,16 +95,20 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     if (Object.keys(results).length === 0) return "";
     let section = `نتائج التحليلات السابقة:\n`;
     for (const [type, result] of Object.entries(results)) {
-      if (result) section += `\n--- ${type} ---\n${String(result).substring(0, 500)}...\n`;
+      if (result)
+        section += `\n--- ${type} ---\n${String(result).substring(0, 500)}...\n`;
     }
     return section + "\n";
   }
 
-  private buildPreviousStationsSection(stations: Record<string, string>): string {
+  private buildPreviousStationsSection(
+    stations: Record<string, string>,
+  ): string {
     if (Object.keys(stations).length === 0) return "";
     let section = `سياق المحطات السابقة:\n`;
     for (const [station, analysis] of Object.entries(stations)) {
-      if (analysis) section += `- ${station}: ${String(analysis).substring(0, 300)}...\n`;
+      if (analysis)
+        section += `- ${station}: ${String(analysis).substring(0, 300)}...\n`;
     }
     return section + "\n";
   }
@@ -110,7 +116,9 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   private buildFocusAreasSection(areas: string[]): string {
     if (areas.length === 0) return "";
     let section = `مجالات التركيز المطلوبة:\n`;
-    areas.forEach((area, index) => { section += `${index + 1}. ${area}\n`; });
+    areas.forEach((area, index) => {
+      section += `${index + 1}. ${area}\n`;
+    });
     return section + "\n";
   }
 
@@ -118,7 +126,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
    * Post-process the recommendations output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean up text formatting
     const processedText = this.cleanupText(output.text);
@@ -179,17 +187,44 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   }
 
   private static readonly ACTION_TERMS = [
-    "يجب", "ينبغي", "يُنصح", "يمكن", "اقتراح",
-    "تعديل", "إضافة", "حذف", "تحسين", "تطوير",
+    "يجب",
+    "ينبغي",
+    "يُنصح",
+    "يمكن",
+    "اقتراح",
+    "تعديل",
+    "إضافة",
+    "حذف",
+    "تحسين",
+    "تطوير",
   ];
   private static readonly SPECIFIC_TERMS = [
-    "مثال", "تحديداً", "بالتحديد", "مشهد", "شخصية", "حوار", "سطر", "فقرة",
+    "مثال",
+    "تحديداً",
+    "بالتحديد",
+    "مشهد",
+    "شخصية",
+    "حوار",
+    "سطر",
+    "فقرة",
   ];
   private static readonly COMPREHENSIVE_TERMS = [
-    "البنية", "الشخصيات", "الحوار", "الإيقاع", "الموضوع", "الصراع", "التطور",
+    "البنية",
+    "الشخصيات",
+    "الحوار",
+    "الإيقاع",
+    "الموضوع",
+    "الصراع",
+    "التطور",
   ];
   private static readonly CREATIVE_TERMS = [
-    "بديل", "سيناريو", "مسار", "إبداعي", "مبتكر", "جديد", "مختلف",
+    "بديل",
+    "سيناريو",
+    "مسار",
+    "إبداعي",
+    "مبتكر",
+    "جديد",
+    "مختلف",
   ];
 
   /**
@@ -202,13 +237,32 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     creativeSolutions: number;
     overallScore: number;
   } {
-    const actionability = this.calculateCoverage(text, RecommendationsGeneratorAgent.ACTION_TERMS);
-    const specificity = this.calculateCoverage(text, RecommendationsGeneratorAgent.SPECIFIC_TERMS);
-    const comprehensiveness = this.calculateCoverage(text, RecommendationsGeneratorAgent.COMPREHENSIVE_TERMS);
-    const creativeSolutions = this.calculateCoverage(text, RecommendationsGeneratorAgent.CREATIVE_TERMS);
-    const overallScore = (actionability + specificity + comprehensiveness + creativeSolutions) / 4;
+    const actionability = this.calculateCoverage(
+      text,
+      RecommendationsGeneratorAgent.ACTION_TERMS,
+    );
+    const specificity = this.calculateCoverage(
+      text,
+      RecommendationsGeneratorAgent.SPECIFIC_TERMS,
+    );
+    const comprehensiveness = this.calculateCoverage(
+      text,
+      RecommendationsGeneratorAgent.COMPREHENSIVE_TERMS,
+    );
+    const creativeSolutions = this.calculateCoverage(
+      text,
+      RecommendationsGeneratorAgent.CREATIVE_TERMS,
+    );
+    const overallScore =
+      (actionability + specificity + comprehensiveness + creativeSolutions) / 4;
 
-    return { actionability, specificity, comprehensiveness, creativeSolutions, overallScore };
+    return {
+      actionability,
+      specificity,
+      comprehensiveness,
+      creativeSolutions,
+      overallScore,
+    };
   }
 
   /**
@@ -266,7 +320,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
       comprehensiveness: number;
       creativeSolutions: number;
       overallScore: number;
-    }
+    },
   ): string[] {
     const notes: string[] = [];
     notes.push(this.assessConfidenceNote(output.confidence));
@@ -282,12 +336,18 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     return "ثقة متوسطة - يُنصح بمراجعة إضافية";
   }
 
-  private addMetricNotes(notes: string[], m: {
-    actionability: number; specificity: number;
-    comprehensiveness: number; creativeSolutions: number;
-  }): void {
+  private addMetricNotes(
+    notes: string[],
+    m: {
+      actionability: number;
+      specificity: number;
+      comprehensiveness: number;
+      creativeSolutions: number;
+    },
+  ): void {
     if (m.actionability > 0.7) notes.push("توصيات عملية وقابلة للتنفيذ");
-    else if (m.actionability < 0.4) notes.push("يمكن تعزيز الجانب العملي للتوصيات");
+    else if (m.actionability < 0.4)
+      notes.push("يمكن تعزيز الجانب العملي للتوصيات");
     if (m.specificity > 0.7) notes.push("توصيات محددة ومفصلة");
     else if (m.specificity < 0.4) notes.push("يمكن إضافة أمثلة أكثر تحديداً");
     if (m.comprehensiveness > 0.8) notes.push("تغطية شاملة لجوانب العمل");
@@ -304,7 +364,7 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
    * Generate fallback response specific to recommendations
    */
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`التوصيات والتحسينات المقترحة:
 
@@ -338,4 +398,5 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
 }
 
 // Export singleton instance
-export const recommendationsGeneratorAgent = new RecommendationsGeneratorAgent();
+export const recommendationsGeneratorAgent =
+  new RecommendationsGeneratorAgent();

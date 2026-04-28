@@ -3,7 +3,7 @@
  * @description أنواع TypeScript لمكون AppHeader
  */
 
-import type { ProgressiveSurfaceState } from "../editor";
+import type { ProgressiveSurfaceState } from "../../editor/editor-area.types";
 import type { LucideIcon } from "lucide-react";
 
 /**

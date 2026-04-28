@@ -1,4 +1,3 @@
-
 export const WORLD_BUILDER_INSTRUCTIONS = `
 **العملية:** طبق "نموذج بناء العالم الدرامي المتقدم".
 

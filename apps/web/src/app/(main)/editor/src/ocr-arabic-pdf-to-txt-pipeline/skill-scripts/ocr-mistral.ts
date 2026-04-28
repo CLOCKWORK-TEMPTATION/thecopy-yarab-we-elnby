@@ -209,7 +209,7 @@ function buildNormalizedResult(
         ? response.model
         : "mistral-ocr-latest",
     total_pages: pagesRaw.length,
-    doc_size_bytes: toNumberOrNull(usageInfo?.doc_size_bytes, docSizeBytes),
+    doc_size_bytes: toNumberOrNull(usageInfo?.["doc_size_bytes"], docSizeBytes),
     processing_time_seconds: Math.round(elapsedSeconds * 100) / 100,
     pages: [],
   };
@@ -251,7 +251,7 @@ async function withTimeout<T>(
 function getStatusCode(error: unknown): number | null {
   if (!error || typeof error !== "object") return null;
   const e = error as Record<string, unknown>;
-  const candidates = [e.statusCode, e.status, e.code];
+  const candidates = [e["statusCode"], e["status"], e["code"]];
   for (const value of candidates) {
     const asNumber = Number(value);
     if (Number.isInteger(asNumber)) {

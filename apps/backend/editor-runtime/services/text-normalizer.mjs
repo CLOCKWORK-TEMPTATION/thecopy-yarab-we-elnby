@@ -48,7 +48,7 @@ export const normalizeText = (value) =>
       .replace(/\r/g, "\n"),
     {
       preserveNewlines: true,
-    }
+    },
   )
     .replace(/\n{3,}/g, "\n\n")
     .trim();

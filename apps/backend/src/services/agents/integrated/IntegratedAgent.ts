@@ -1,4 +1,3 @@
- 
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
@@ -43,7 +42,7 @@ export class IntegratedAgent extends BaseAgent {
     super(
       "SynthesisOrchestrator AI",
       TaskType.INTEGRATED,
-      INTEGRATED_AGENT_CONFIG.systemPrompt ?? ""
+      INTEGRATED_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -68,7 +67,9 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Build context section for integrated prompt
    */
-  private buildIntegratedContextSection(ctx: IntegratedContext | undefined): string {
+  private buildIntegratedContextSection(
+    ctx: IntegratedContext | undefined,
+  ): string {
     let section = "";
     section += this.buildIntegratedTextSection(ctx);
     section += this.buildIntegratedParametersSection(ctx);
@@ -78,7 +79,9 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Build text and results sections
    */
-  private buildIntegratedTextSection(ctx: IntegratedContext | undefined): string {
+  private buildIntegratedTextSection(
+    ctx: IntegratedContext | undefined,
+  ): string {
     let section = "";
     const originalText = ctx?.originalText ?? "";
     const analysisResults = ctx?.analysisResults ?? null;
@@ -99,7 +102,9 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Build integration parameters section
    */
-  private buildIntegratedParametersSection(ctx: IntegratedContext | undefined): string {
+  private buildIntegratedParametersSection(
+    ctx: IntegratedContext | undefined,
+  ): string {
     const targetOutput = ctx?.targetOutput ?? "synthesis";
     const synthesisDepth = ctx?.synthesisDepth ?? "moderate";
     const integrationStrategy = ctx?.integrationStrategy ?? "sequential";
@@ -163,7 +168,7 @@ export class IntegratedAgent extends BaseAgent {
    * Post-process the integrated output
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // Clean up the synthesis text
     const processedText = this.cleanupSynthesis(output.text);
@@ -191,7 +196,7 @@ export class IntegratedAgent extends BaseAgent {
         integrationScore,
         balanceScore,
         coherenceScore,
-        qualityScore
+        qualityScore,
       ),
       metadata: {
         ...output.metadata,
@@ -259,7 +264,7 @@ export class IntegratedAgent extends BaseAgent {
   private isLineASectionHeader(line: string, nextLine: string): boolean {
     return (
       this.isSynthesisSectionHeader(line) ||
-      (!!(/^\d+\./.exec(line)) && !!nextLine && !(/^\d+\./.exec(nextLine)))
+      (!!/^\d+\./.exec(line) && !!nextLine && !/^\d+\./.exec(nextLine))
     );
   }
 
@@ -301,7 +306,7 @@ export class IntegratedAgent extends BaseAgent {
     integrationScore: number,
     balanceScore: number,
     coherenceScore: number,
-    qualityScore: number
+    qualityScore: number,
   ): string[] {
     const notes: string[] = [];
 
@@ -393,16 +398,23 @@ export class IntegratedAgent extends BaseAgent {
   /**
    * Summarize results
    */
-  private summarizeResults(results: string | IntegratedResults, type: "analysis" | "creative"): string {
+  private summarizeResults(
+    results: string | IntegratedResults,
+    type: "analysis" | "creative",
+  ): string {
     if (typeof results === "string") {
       return results.length > 500 ? results.substring(0, 500) + "..." : results;
     }
 
-    const summary = type === "analysis"
-      ? this.summarizeAnalysisResults(results)
-      : this.summarizeCreativeResults(results);
+    const summary =
+      type === "analysis"
+        ? this.summarizeAnalysisResults(results)
+        : this.summarizeCreativeResults(results);
 
-    return summary.join("\n") || `نتائج ${type === "analysis" ? "التحليل" : "الإبداع"} متوفرة`;
+    return (
+      summary.join("\n") ||
+      `نتائج ${type === "analysis" ? "التحليل" : "الإبداع"} متوفرة`
+    );
   }
 
   /**
@@ -440,7 +452,7 @@ export class IntegratedAgent extends BaseAgent {
    * Generate fallback response
    */
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`تكامل تركيبى - منسق التحليل والإبداع:
 تم إجراء تكامل أولي بين نتائج التحليل والإبداع.

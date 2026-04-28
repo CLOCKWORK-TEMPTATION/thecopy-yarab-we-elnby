@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-vi.mock('prom-client', () => {
+vi.mock("prom-client", () => {
   const mockCounter = class {
     inc = vi.fn();
   };
@@ -10,7 +10,7 @@ vi.mock('prom-client', () => {
   return { Counter: mockCounter, Gauge: mockGauge };
 });
 
-vi.mock('@/middleware/metrics.middleware', () => ({
+vi.mock("@/middleware/metrics.middleware", () => ({
   register: {},
 }));
 
@@ -25,11 +25,14 @@ const { cacheMock, loggerMock, notifMock } = vi.hoisted(() => ({
   notifMock: { sendAlert: vi.fn().mockResolvedValue(undefined) },
 }));
 
-vi.mock('./cache.service', () => ({ cacheService: cacheMock }));
-vi.mock('@/lib/logger', () => ({ logger: loggerMock }));
-vi.mock('./notification.service', () => ({ notificationService: notifMock }));
+vi.mock("./cache.service", () => ({ cacheService: cacheMock }));
+vi.mock("@/lib/logger", () => ({ logger: loggerMock }));
+vi.mock("./notification.service", () => ({ notificationService: notifMock }));
 
-import { GeminiCostTrackerService, geminiCostTracker } from './gemini-cost-tracker.service';
+import {
+  GeminiCostTrackerService,
+  geminiCostTracker,
+} from "./gemini-cost-tracker.service";
 
 let service: GeminiCostTrackerService;
 
@@ -42,26 +45,26 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('GeminiCostTrackerService > constructor', () => {
-  it('should initialize with default configuration', () => {
+describe("GeminiCostTrackerService > constructor", () => {
+  it("should initialize with default configuration", () => {
     expect(service).toBeDefined();
     expect(loggerMock.info).toHaveBeenCalledWith(
-      'Gemini Cost Tracker initialized',
+      "Gemini Cost Tracker initialized",
       expect.objectContaining({
         dailyLimit: 10.0,
         monthlyBudget: 300.0,
         warningThreshold: 0.8,
-      })
+      }),
     );
   });
 });
 
-describe('GeminiCostTrackerService > trackUsage', () => {
-  it('should track token usage and calculate cost', async () => {
+describe("GeminiCostTrackerService > trackUsage", () => {
+  it("should track token usage and calculate cost", async () => {
     cacheMock.get.mockResolvedValue(null);
     cacheMock.set.mockResolvedValue(undefined);
 
-    const result = await service.trackUsage(1000, 500, 'characters');
+    const result = await service.trackUsage(1000, 500, "characters");
 
     expect(result).toEqual({
       inputTokens: 1000,
@@ -75,24 +78,24 @@ describe('GeminiCostTrackerService > trackUsage', () => {
     expect(result.cost).toBeCloseTo(expectedCost, 6);
   });
 
-  it('should log usage information', async () => {
+  it("should log usage information", async () => {
     cacheMock.get.mockResolvedValue(null);
     cacheMock.set.mockResolvedValue(undefined);
 
-    await service.trackUsage(1000, 500, 'themes');
+    await service.trackUsage(1000, 500, "themes");
 
     expect(loggerMock.info).toHaveBeenCalledWith(
-      'Gemini API usage tracked',
+      "Gemini API usage tracked",
       expect.objectContaining({
         inputTokens: 1000,
         outputTokens: 500,
         totalTokens: 1500,
-        analysisType: 'themes',
-      })
+        analysisType: "themes",
+      }),
     );
   });
 
-  it('should update existing daily usage', async () => {
+  it("should update existing daily usage", async () => {
     const existingUsage = {
       tokens: { input: 500, output: 200, total: 700 },
       cost: 0.0001,
@@ -109,8 +112,8 @@ describe('GeminiCostTrackerService > trackUsage', () => {
   });
 });
 
-describe('GeminiCostTrackerService > getDailyUsage', () => {
-  it('should return daily usage from cache', async () => {
+describe("GeminiCostTrackerService > getDailyUsage", () => {
+  it("should return daily usage from cache", async () => {
     const mockUsage = {
       tokens: { input: 1000, output: 500, total: 1500 },
       cost: 0.00025,
@@ -123,14 +126,14 @@ describe('GeminiCostTrackerService > getDailyUsage', () => {
     expect(await service.getDailyUsage()).toEqual(mockUsage);
   });
 
-  it('should return null if no daily usage', async () => {
+  it("should return null if no daily usage", async () => {
     cacheMock.get.mockResolvedValue(null);
     expect(await service.getDailyUsage()).toBeNull();
   });
 });
 
-describe('GeminiCostTrackerService > getMonthlyUsage', () => {
-  it('should return monthly usage from cache', async () => {
+describe("GeminiCostTrackerService > getMonthlyUsage", () => {
+  it("should return monthly usage from cache", async () => {
     const mockUsage = {
       tokens: { input: 50000, output: 25000, total: 75000 },
       cost: 0.012,
@@ -143,14 +146,14 @@ describe('GeminiCostTrackerService > getMonthlyUsage', () => {
     expect(await service.getMonthlyUsage()).toEqual(mockUsage);
   });
 
-  it('should return null if no monthly usage', async () => {
+  it("should return null if no monthly usage", async () => {
     cacheMock.get.mockResolvedValue(null);
     expect(await service.getMonthlyUsage()).toBeNull();
   });
 });
 
-describe('GeminiCostTrackerService > getCostSummary', () => {
-  it('should return complete cost summary', async () => {
+describe("GeminiCostTrackerService > getCostSummary", () => {
+  it("should return complete cost summary", async () => {
     const dailyUsage = {
       tokens: { input: 1000, output: 500, total: 1500 },
       cost: 0.5,
@@ -164,7 +167,9 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
       lastUpdated: Date.now(),
     };
 
-    cacheMock.get.mockResolvedValueOnce(dailyUsage).mockResolvedValueOnce(monthlyUsage);
+    cacheMock.get
+      .mockResolvedValueOnce(dailyUsage)
+      .mockResolvedValueOnce(monthlyUsage);
 
     const result = await service.getCostSummary();
 
@@ -187,7 +192,7 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
     });
   });
 
-  it('should return empty summary if no usage data', async () => {
+  it("should return empty summary if no usage data", async () => {
     cacheMock.get.mockResolvedValue(null);
 
     const result = await service.getCostSummary();
@@ -198,7 +203,7 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
     expect(result.monthly.tokens).toBe(0);
   });
 
-  it('should indicate limit reached when daily cost exceeds limit', async () => {
+  it("should indicate limit reached when daily cost exceeds limit", async () => {
     const dailyUsage = {
       tokens: { input: 1000000, output: 500000, total: 1500000 },
       cost: 15.0,
@@ -214,7 +219,7 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
     expect(result.daily.percentOfLimit).toBe(150);
   });
 
-  it('should indicate quota warning when monthly cost exceeds 80%', async () => {
+  it("should indicate quota warning when monthly cost exceeds 80%", async () => {
     const monthlyUsage = {
       tokens: { input: 10000000, output: 5000000, total: 15000000 },
       cost: 250.0,
@@ -222,7 +227,9 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
       lastUpdated: Date.now(),
     };
 
-    cacheMock.get.mockResolvedValueOnce(null).mockResolvedValueOnce(monthlyUsage);
+    cacheMock.get
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(monthlyUsage);
 
     const result = await service.getCostSummary();
 
@@ -230,34 +237,42 @@ describe('GeminiCostTrackerService > getCostSummary', () => {
   });
 });
 
-describe('GeminiCostTrackerService > resetUsage', () => {
-  it('should reset daily usage', async () => {
+describe("GeminiCostTrackerService > resetUsage", () => {
+  it("should reset daily usage", async () => {
     cacheMock.delete.mockResolvedValue(true);
-    await service.resetUsage('daily');
-    expect(loggerMock.info).toHaveBeenCalledWith('Usage data reset', { period: 'daily' });
+    await service.resetUsage("daily");
+    expect(loggerMock.info).toHaveBeenCalledWith("Usage data reset", {
+      period: "daily",
+    });
   });
 
-  it('should reset monthly usage', async () => {
+  it("should reset monthly usage", async () => {
     cacheMock.delete.mockResolvedValue(true);
-    await service.resetUsage('monthly');
-    expect(loggerMock.info).toHaveBeenCalledWith('Usage data reset', { period: 'monthly' });
+    await service.resetUsage("monthly");
+    expect(loggerMock.info).toHaveBeenCalledWith("Usage data reset", {
+      period: "monthly",
+    });
   });
 
-  it('should reset all usage by default', async () => {
+  it("should reset all usage by default", async () => {
     cacheMock.delete.mockResolvedValue(true);
     await service.resetUsage();
-    expect(loggerMock.info).toHaveBeenCalledWith('Usage data reset', { period: 'all' });
+    expect(loggerMock.info).toHaveBeenCalledWith("Usage data reset", {
+      period: "all",
+    });
   });
 
-  it('should handle cache delete errors gracefully', async () => {
-    cacheMock.delete.mockRejectedValue(new Error('Cache error'));
-    await service.resetUsage('all');
-    expect(loggerMock.info).toHaveBeenCalledWith('Usage data reset', { period: 'all' });
+  it("should handle cache delete errors gracefully", async () => {
+    cacheMock.delete.mockRejectedValue(new Error("Cache error"));
+    await service.resetUsage("all");
+    expect(loggerMock.info).toHaveBeenCalledWith("Usage data reset", {
+      period: "all",
+    });
   });
 });
 
-describe('GeminiCostTrackerService > cost alerts', () => {
-  it('should trigger daily limit alert when limit is exceeded', async () => {
+describe("GeminiCostTrackerService > cost alerts", () => {
+  it("should trigger daily limit alert when limit is exceeded", async () => {
     const highCostUsage = {
       tokens: { input: 5000000, output: 2500000, total: 7500000 },
       cost: 9.5,
@@ -275,12 +290,13 @@ describe('GeminiCostTrackerService > cost alerts', () => {
 
     const errorCalls = loggerMock.error.mock.calls;
     const hasLimitAlert = errorCalls.some(
-      (call) => typeof call[0] === 'string' && call[0].includes('GEMINI COST ALERT')
+      (call) =>
+        typeof call[0] === "string" && call[0].includes("GEMINI COST ALERT"),
     );
     expect(hasLimitAlert).toBe(true);
   });
 
-  it('should not send duplicate daily alerts', async () => {
+  it("should not send duplicate daily alerts", async () => {
     const existingAlert = {
       tokens: { input: 0, output: 0, total: 0 },
       cost: 10.5,
@@ -302,30 +318,34 @@ describe('GeminiCostTrackerService > cost alerts', () => {
     await service.trackUsage(100000, 50000);
 
     const criticalCalls = loggerMock.error.mock.calls.filter(
-      (call) => typeof call[0] === 'string' && call[0].includes('Daily limit exceeded')
+      (call) =>
+        typeof call[0] === "string" && call[0].includes("Daily limit exceeded"),
     );
     expect(criticalCalls.length).toBe(0);
   });
 });
 
-describe('GeminiCostTrackerService > cache fallback', () => {
-  it('should fall back to memory store when cache unavailable', async () => {
-    cacheMock.get.mockRejectedValue(new Error('Cache unavailable'));
-    cacheMock.set.mockRejectedValue(new Error('Cache unavailable'));
+describe("GeminiCostTrackerService > cache fallback", () => {
+  it("should fall back to memory store when cache unavailable", async () => {
+    cacheMock.get.mockRejectedValue(new Error("Cache unavailable"));
+    cacheMock.set.mockRejectedValue(new Error("Cache unavailable"));
 
     await expect(service.trackUsage(1000, 500)).resolves.toBeDefined();
 
-    const debugMessages = loggerMock.debug.mock.calls.map((call): unknown => call[0]);
+    const debugMessages = loggerMock.debug.mock.calls.map(
+      (call): unknown => call[0],
+    );
     expect(
       debugMessages.some(
-        (message) => typeof message === 'string' && message.includes('Cache unavailable')
-      )
+        (message) =>
+          typeof message === "string" && message.includes("Cache unavailable"),
+      ),
     ).toBe(true);
   });
 });
 
-describe('GeminiCostTrackerService > singleton export', () => {
-  it('should export a singleton instance', () => {
+describe("GeminiCostTrackerService > singleton export", () => {
+  it("should export a singleton instance", () => {
     expect(geminiCostTracker).toBeDefined();
     expect(geminiCostTracker).toBeInstanceOf(GeminiCostTrackerService);
   });

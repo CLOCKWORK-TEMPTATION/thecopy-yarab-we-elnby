@@ -44,12 +44,10 @@ describe("readAnalysisReportFromStorage", () => {
 
     const result = readAnalysisReportFromStorage(storage);
 
-    expect(result.success).toBe(true);
-
-    if (result.success) {
-      expect(result.data.projectId).toBe("project-1");
-      expect(result.data.elementsByCategory.الشخصيات).toBe(2);
-    }
+    expect(result).toEqual({
+      success: true,
+      data: validReport,
+    });
   });
 
   it("يحفظ معرفي المشروع والتقرير مع اللقطة الكاملة", () => {

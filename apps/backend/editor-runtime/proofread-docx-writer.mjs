@@ -34,17 +34,17 @@ try {
     info: (obj, msg) =>
       console.warn(
         `[proofread-docx] INFO: ${msg || ""}`,
-        typeof obj === "string" ? obj : ""
+        typeof obj === "string" ? obj : "",
       ),
     warn: (obj, msg) =>
       console.warn(
         `[proofread-docx] WARN: ${msg || ""}`,
-        typeof obj === "string" ? obj : ""
+        typeof obj === "string" ? obj : "",
       ),
     error: (obj, msg) =>
       console.error(
         `[proofread-docx] ERROR: ${msg || ""}`,
-        typeof obj === "string" ? obj : ""
+        typeof obj === "string" ? obj : "",
       ),
   };
 }
@@ -153,7 +153,7 @@ const buildRawDocx = (text, _filename) => {
         ],
         bidirectional: true,
         alignment: AlignmentType.RIGHT,
-      })
+      }),
     );
   }
 
@@ -200,7 +200,7 @@ const buildFormattedDocx = (text, _filename) => {
           heading: HeadingLevel.HEADING_1,
           bidirectional: true,
           alignment: AlignmentType.CENTER,
-        })
+        }),
       );
       continue;
     }
@@ -221,7 +221,7 @@ const buildFormattedDocx = (text, _filename) => {
           bidirectional: true,
           alignment: AlignmentType.RIGHT,
           spacing: { before: 240, after: 60 },
-        })
+        }),
       );
       continue;
     }
@@ -243,7 +243,7 @@ const buildFormattedDocx = (text, _filename) => {
           bidirectional: true,
           alignment: AlignmentType.RIGHT,
           spacing: { before: 60, after: 120 },
-        })
+        }),
       );
       continue;
     }
@@ -263,7 +263,7 @@ const buildFormattedDocx = (text, _filename) => {
           bidirectional: true,
           alignment: AlignmentType.CENTER,
           spacing: { before: 120, after: 120 },
-        })
+        }),
       );
       continue;
     }
@@ -289,7 +289,7 @@ const buildFormattedDocx = (text, _filename) => {
           ],
           bidirectional: true,
           alignment: AlignmentType.RIGHT,
-        })
+        }),
       );
       continue;
     }
@@ -309,7 +309,7 @@ const buildFormattedDocx = (text, _filename) => {
           ],
           bidirectional: true,
           alignment: AlignmentType.RIGHT,
-        })
+        }),
       );
       continue;
     }
@@ -327,7 +327,7 @@ const buildFormattedDocx = (text, _filename) => {
         ],
         bidirectional: true,
         alignment: AlignmentType.RIGHT,
-      })
+      }),
     );
   }
 
@@ -394,7 +394,7 @@ export const saveProofreadDocx = async (text, originalFilename) => {
         formattedSize: formattedBuffer.length,
         textLength: text.length,
       },
-      "proofread-docx-saved"
+      "proofread-docx-saved",
     );
 
     return { rawPath, formattedPath };
@@ -404,7 +404,7 @@ export const saveProofreadDocx = async (text, originalFilename) => {
         error: error instanceof Error ? error.message : String(error),
         baseName,
       },
-      "proofread-docx-failed"
+      "proofread-docx-failed",
     );
     return { rawPath: "", formattedPath: "" };
   }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   mockGenerateContent,
@@ -18,7 +18,7 @@ const {
   mockTrackUsage: vi.fn(),
 }));
 
-vi.mock('@google/generative-ai', () => ({
+vi.mock("@google/generative-ai", () => ({
   GoogleGenerativeAI: class MockGoogleGenerativeAI {
     getGenerativeModel() {
       return {
@@ -28,52 +28,52 @@ vi.mock('@google/generative-ai', () => ({
   },
 }));
 
-vi.mock('@/config/env', () => ({
+vi.mock("@/config/env", () => ({
   env: {
-    GOOGLE_GENAI_API_KEY: 'test-api-key',
+    GOOGLE_GENAI_API_KEY: "test-api-key",
   },
 }));
 
-vi.mock('./cache.service', () => ({
+vi.mock("./cache.service", () => ({
   cacheService: {
     getStats: vi.fn().mockReturnValue({ hitRate: 50 }),
   },
 }));
 
-vi.mock('@/middleware/metrics.middleware', () => ({
+vi.mock("@/middleware/metrics.middleware", () => ({
   trackGeminiRequest: mockTrackGeminiRequest,
   trackGeminiCache: mockTrackGeminiCache,
 }));
 
-vi.mock('./gemini-cache.strategy', () => ({
+vi.mock("./gemini-cache.strategy", () => ({
   GEMINI_CACHE_PREFIX: {
-    analysis: 'analysis',
-    character: 'character',
-    screenplay: 'screenplay',
-    chat: 'chat',
-    'shot-suggestion': 'shot-suggestion',
+    analysis: "analysis",
+    character: "character",
+    screenplay: "screenplay",
+    chat: "chat",
+    "shot-suggestion": "shot-suggestion",
   },
-  generateGeminiCacheKey: vi.fn().mockReturnValue('test-cache-key'),
+  generateGeminiCacheKey: vi.fn().mockReturnValue("test-cache-key"),
   getGeminiCacheTTL: vi.fn().mockReturnValue(3600),
   getAdaptiveTTL: vi.fn().mockReturnValue(3600),
   cachedGeminiCall: mockCachedGeminiCall,
 }));
 
-vi.mock('./gemini-cost-tracker.service', () => ({
+vi.mock("./gemini-cost-tracker.service", () => ({
   geminiCostTracker: {
     trackUsage: mockTrackUsage,
     getCostSummary: vi.fn(),
   },
 }));
 
-vi.mock('./llm-guardrails.service', () => ({
+vi.mock("./llm-guardrails.service", () => ({
   llmGuardrails: {
     checkInput: mockCheckInput,
     checkOutput: mockCheckOutput,
   },
 }));
 
-vi.mock('@/utils/logger', () => ({
+vi.mock("@/utils/logger", () => ({
   logger: {
     debug: vi.fn(),
     warn: vi.fn(),
@@ -81,21 +81,23 @@ vi.mock('@/utils/logger', () => ({
   },
 }));
 
-import { trackGeminiCache, trackGeminiRequest } from '@/middleware/metrics.middleware';
+import {
+  trackGeminiCache,
+  trackGeminiRequest,
+} from "@/middleware/metrics.middleware";
 
-import { cachedGeminiCall } from './gemini-cache.strategy';
-import { GeminiService } from './gemini.service';
-
+import { cachedGeminiCall } from "./gemini-cache.strategy";
+import { GeminiService } from "./gemini.service";
 
 const allowedGuardrailResult = {
   isAllowed: true,
   violations: [],
-  riskLevel: 'low',
+  riskLevel: "low",
   sanitizedContent: null,
   warnings: [],
 };
 
-describe('GeminiService', () => {
+describe("GeminiService", () => {
   let geminiService: GeminiService;
 
   beforeEach(() => {
@@ -105,12 +107,12 @@ describe('GeminiService', () => {
     mockCheckOutput.mockReturnValue(allowedGuardrailResult);
 
     vi.mocked(cachedGeminiCall).mockImplementation(
-      async (_key, _ttl, producer) => producer()
+      async (_key, _ttl, producer) => producer(),
     );
 
     mockGenerateContent.mockResolvedValue({
       response: {
-        text: () => 'نتيجة افتراضية',
+        text: () => "نتيجة افتراضية",
         usageMetadata: {
           promptTokenCount: 10,
           candidatesTokenCount: 20,
@@ -121,124 +123,148 @@ describe('GeminiService', () => {
     geminiService = new GeminiService();
   });
 
-  it('ينشئ الخدمة بمفتاح صالح', () => {
+  it("ينشئ الخدمة بمفتاح صالح", () => {
     expect(geminiService).toBeDefined();
   });
 
-  it('يحلل النص ويستخدم فئة القياس الصحيحة للشخصيات', async () => {
-    const result = await geminiService.analyzeText('نص للتحليل', 'characters');
+  it("يحلل النص ويستخدم فئة القياس الصحيحة للشخصيات", async () => {
+    const result = await geminiService.analyzeText("نص للتحليل", "characters");
 
-    expect(result).toBe('نتيجة افتراضية');
-    expect(trackGeminiRequest).toHaveBeenCalledWith('character', expect.any(Number), true);
+    expect(result).toBe("نتيجة افتراضية");
+    expect(trackGeminiRequest).toHaveBeenCalledWith(
+      "character",
+      expect.any(Number),
+      true,
+    );
     expect(trackGeminiCache).toHaveBeenCalledWith(true);
     expect(mockCheckInput).toHaveBeenCalledWith(
-      expect.stringContaining('حلل الشخصيات'),
-      expect.objectContaining({ requestType: 'analyze-characters' })
+      expect.stringContaining("حلل الشخصيات"),
+      expect.objectContaining({ requestType: "analyze-characters" }),
     );
   });
 
-  it('يستخدم فئة التحليل العامة للموضوعات والبنية', async () => {
-    await geminiService.analyzeText('نص للتحليل', 'themes');
-    await geminiService.analyzeText('نص للتحليل', 'structure');
+  it("يستخدم فئة التحليل العامة للموضوعات والبنية", async () => {
+    await geminiService.analyzeText("نص للتحليل", "themes");
+    await geminiService.analyzeText("نص للتحليل", "structure");
 
     expect(trackGeminiRequest).toHaveBeenNthCalledWith(
       1,
-      'analysis',
+      "analysis",
       expect.any(Number),
-      true
+      true,
     );
     expect(trackGeminiRequest).toHaveBeenNthCalledWith(
       2,
-      'analysis',
+      "analysis",
       expect.any(Number),
-      true
+      true,
     );
   });
 
-  it('يعيد رسالة الرفض الأمنية كما هي عند حظر الإدخال', async () => {
+  it("يعيد رسالة الرفض الأمنية كما هي عند حظر الإدخال", async () => {
     mockCheckInput.mockReturnValue({
       isAllowed: false,
-      violations: ['محتوى محظور'],
-      riskLevel: 'high',
+      violations: ["محتوى محظور"],
+      riskLevel: "high",
       sanitizedContent: null,
       warnings: [],
     });
 
-    await expect(geminiService.analyzeText('محتوى ضار', 'characters')).rejects.toThrow(
-      'تم رفض المدخلات بواسطة نظام الحماية'
+    await expect(
+      geminiService.analyzeText("محتوى ضار", "characters"),
+    ).rejects.toThrow("تم رفض المدخلات بواسطة نظام الحماية");
+    expect(trackGeminiRequest).toHaveBeenCalledWith(
+      "character",
+      expect.any(Number),
+      false,
     );
-    expect(trackGeminiRequest).toHaveBeenCalledWith('character', expect.any(Number), false);
     expect(trackGeminiCache).toHaveBeenCalledWith(false);
   });
 
-  it('يعيد الخطأ الوظيفي العام عند فشل الطلب', async () => {
-    mockGenerateContent.mockRejectedValueOnce(new Error('API Error'));
+  it("يعيد الخطأ الوظيفي العام عند فشل الطلب", async () => {
+    mockGenerateContent.mockRejectedValueOnce(new Error("API Error"));
 
-    await expect(geminiService.analyzeText('نص للتحليل', 'structure')).rejects.toThrow(
-      'فشل في تحليل النص باستخدام الذكاء الاصطناعي'
+    await expect(
+      geminiService.analyzeText("نص للتحليل", "structure"),
+    ).rejects.toThrow("فشل في تحليل النص باستخدام الذكاء الاصطناعي");
+    expect(trackGeminiRequest).toHaveBeenCalledWith(
+      "analysis",
+      expect.any(Number),
+      false,
     );
-    expect(trackGeminiRequest).toHaveBeenCalledWith('analysis', expect.any(Number), false);
   });
 
-  it('يعيد المخرجات المنقحة عند توفرها من الحواجز', async () => {
+  it("يعيد المخرجات المنقحة عند توفرها من الحواجز", async () => {
     mockCheckOutput.mockReturnValue({
       isAllowed: true,
       violations: [],
-      riskLevel: 'low',
-      sanitizedContent: 'محتوى نظيف ومعدل',
+      riskLevel: "low",
+      sanitizedContent: "محتوى نظيف ومعدل",
       warnings: [],
     });
 
-    const result = await geminiService.analyzeText('نص', 'characters');
+    const result = await geminiService.analyzeText("نص", "characters");
 
-    expect(result).toBe('محتوى نظيف ومعدل');
+    expect(result).toBe("محتوى نظيف ومعدل");
   });
 
-  it('يتتبع استهلاك التوكنات عند توفر بيانات الاستخدام', async () => {
-    await geminiService.analyzeText('نص', 'characters');
+  it("يتتبع استهلاك التوكنات عند توفر بيانات الاستخدام", async () => {
+    await geminiService.analyzeText("نص", "characters");
 
-    expect(mockTrackUsage).toHaveBeenCalledWith(10, 20, 'character');
+    expect(mockTrackUsage).toHaveBeenCalledWith(10, 20, "character");
   });
 
-  it('يبني موجه مراجعة السيناريو الصحيح', async () => {
-    await geminiService.reviewScreenplay('نص السيناريو');
+  it("يبني موجه مراجعة السيناريو الصحيح", async () => {
+    await geminiService.reviewScreenplay("نص السيناريو");
 
     expect(mockGenerateContent).toHaveBeenCalledWith(
-      expect.stringContaining('أنت خبير في كتابة السيناريوهات العربية')
-    );
-    expect(trackGeminiRequest).toHaveBeenCalledWith('screenplay', expect.any(Number), true);
-  });
-
-  it('يضمّن السياق في محادثة الذكاء الاصطناعي', async () => {
-    await geminiService.chatWithAI('ما اسم المشروع؟', { projectName: 'مشروع تجريبي' });
-
-    expect(mockGenerateContent).toHaveBeenCalledWith(
-      expect.stringContaining('"projectName":"مشروع تجريبي"')
-    );
-    expect(trackGeminiRequest).toHaveBeenCalledWith('chat', expect.any(Number), true);
-  });
-
-  it('ينشئ اقتراح لقطة باستخدام فئة القياس الصحيحة', async () => {
-    await geminiService.getShotSuggestion('مشهد في الصحراء', 'wide');
-
-    expect(mockGenerateContent).toHaveBeenCalledWith(
-      expect.stringContaining('نوع اللقطة "wide"')
+      expect.stringContaining("أنت خبير في كتابة السيناريوهات العربية"),
     );
     expect(trackGeminiRequest).toHaveBeenCalledWith(
-      'shot-suggestion',
+      "screenplay",
       expect.any(Number),
-      true
+      true,
     );
   });
 
-  it('يبني موجهات مختلفة لكل نوع تحليل ويتراجع إلى الشخصيات افتراضياً', () => {
+  it("يضمّن السياق في محادثة الذكاء الاصطناعي", async () => {
+    await geminiService.chatWithAI("ما اسم المشروع؟", {
+      projectName: "مشروع تجريبي",
+    });
+
+    expect(mockGenerateContent).toHaveBeenCalledWith(
+      expect.stringContaining('"projectName":"مشروع تجريبي"'),
+    );
+    expect(trackGeminiRequest).toHaveBeenCalledWith(
+      "chat",
+      expect.any(Number),
+      true,
+    );
+  });
+
+  it("ينشئ اقتراح لقطة باستخدام فئة القياس الصحيحة", async () => {
+    await geminiService.getShotSuggestion("مشهد في الصحراء", "wide");
+
+    expect(mockGenerateContent).toHaveBeenCalledWith(
+      expect.stringContaining('نوع اللقطة "wide"'),
+    );
+    expect(trackGeminiRequest).toHaveBeenCalledWith(
+      "shot-suggestion",
+      expect.any(Number),
+      true,
+    );
+  });
+
+  it("يبني موجهات مختلفة لكل نوع تحليل ويتراجع إلى الشخصيات افتراضياً", () => {
     const service = geminiService as unknown as {
       buildPrompt: (text: string, analysisType: string) => string;
     };
 
-    expect(service.buildPrompt('نص', 'characters')).toContain('حلل الشخصيات');
-    expect(service.buildPrompt('نص', 'themes')).toContain('حلل المواضيع');
-    expect(service.buildPrompt('نص', 'structure')).toContain('حلل البنية الدرامية');
-    expect(service.buildPrompt('نص', 'unknown')).toContain('حلل الشخصيات');
+    expect(service.buildPrompt("نص", "characters")).toContain("حلل الشخصيات");
+    expect(service.buildPrompt("نص", "themes")).toContain("حلل المواضيع");
+    expect(service.buildPrompt("نص", "structure")).toContain(
+      "حلل البنية الدرامية",
+    );
+    expect(service.buildPrompt("نص", "unknown")).toContain("حلل الشخصيات");
   });
 });

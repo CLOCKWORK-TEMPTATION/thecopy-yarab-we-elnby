@@ -1,16 +1,16 @@
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappMenuItems, breakappVendors } from '@/db/schema';
+import { db } from "@/db";
+import { breakappMenuItems, breakappVendors } from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
-import { getVendorOwnedByUser } from './vendors';
+import { ensureDatabase } from "./_helpers";
+import { getVendorOwnedByUser } from "./vendors";
 
-import type { BreakappMenuItemView } from '../service.types';
+import type { BreakappMenuItemView } from "../service.types";
 
 export async function listMenuItemsForVendor(
   vendorId: string,
-  onlyAvailable: boolean
+  onlyAvailable: boolean,
 ): Promise<BreakappMenuItemView[]> {
   ensureDatabase();
   const conditions = [
@@ -34,7 +34,7 @@ export async function listMenuItemsForVendor(
     .from(breakappMenuItems)
     .leftJoin(
       breakappVendors,
-      eq(breakappVendors.id, breakappMenuItems.vendorId)
+      eq(breakappVendors.id, breakappMenuItems.vendorId),
     )
     .where(and(...conditions))
     .orderBy(asc(breakappMenuItems.name));
@@ -46,13 +46,11 @@ export async function listMenuItemsForVendor(
     description: row.description,
     price: row.price,
     available: row.available,
-    vendor: { name: row.vendorName ?? '' },
+    vendor: { name: row.vendorName ?? "" },
   }));
 }
 
-export async function getMenuItems(
-  menuItemIds: string[]
-): Promise<
+export async function getMenuItems(menuItemIds: string[]): Promise<
   {
     id: string;
     vendorId: string;
@@ -73,8 +71,8 @@ export async function getMenuItems(
     .where(
       and(
         inArray(breakappMenuItems.id, menuItemIds),
-        isNull(breakappMenuItems.deletedAt)
-      )
+        isNull(breakappMenuItems.deletedAt),
+      ),
     );
   return rows;
 }
@@ -97,7 +95,7 @@ export async function createMenuItem(input: {
       available: input.available,
     })
     .returning({ id: breakappMenuItems.id });
-  if (!row) throw new Error('تعذر إنشاء عنصر القائمة');
+  if (!row) throw new Error("تعذر إنشاء عنصر القائمة");
   return row;
 }
 
@@ -109,14 +107,15 @@ export async function updateMenuItem(
     description?: string | null;
     price?: number | null;
     available?: boolean;
-  }
+  },
 ): Promise<boolean> {
   ensureDatabase();
   const values: Record<string, unknown> = {};
-  if (patch.name !== undefined) values['name'] = patch.name;
-  if (patch.description !== undefined) values['description'] = patch.description;
-  if (patch.price !== undefined) values['price'] = patch.price;
-  if (patch.available !== undefined) values['available'] = patch.available;
+  if (patch.name !== undefined) values["name"] = patch.name;
+  if (patch.description !== undefined)
+    values["description"] = patch.description;
+  if (patch.price !== undefined) values["price"] = patch.price;
+  if (patch.available !== undefined) values["available"] = patch.available;
 
   if (Object.keys(values).length === 0) {
     return true;
@@ -132,8 +131,8 @@ export async function updateMenuItem(
       and(
         eq(breakappMenuItems.id, menuItemId),
         eq(breakappMenuItems.vendorId, vendor.id),
-        isNull(breakappMenuItems.deletedAt)
-      )
+        isNull(breakappMenuItems.deletedAt),
+      ),
     )
     .returning({ id: breakappMenuItems.id });
   return rows.length > 0;
@@ -141,7 +140,7 @@ export async function updateMenuItem(
 
 export async function softDeleteMenuItem(
   menuItemId: string,
-  ownerUserId: string
+  ownerUserId: string,
 ): Promise<boolean> {
   ensureDatabase();
   const vendor = await getVendorOwnedByUser(ownerUserId);
@@ -153,8 +152,8 @@ export async function softDeleteMenuItem(
       and(
         eq(breakappMenuItems.id, menuItemId),
         eq(breakappMenuItems.vendorId, vendor.id),
-        isNull(breakappMenuItems.deletedAt)
-      )
+        isNull(breakappMenuItems.deletedAt),
+      ),
     )
     .returning({ id: breakappMenuItems.id });
   return rows.length > 0;

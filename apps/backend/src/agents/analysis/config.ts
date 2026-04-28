@@ -1,37 +1,38 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const ANALYSIS_AGENT_CONFIG: AIAgentConfig = {
-    id: TaskType.ANALYSIS,
-    name: "CritiqueArchitect AI",
-    description: "وكيل التحليل النقدي المعماري: نظام هجين متعدد الوكلاء يدمج التفكير الجدلي مع التحليل الشعاعي العميق، مزود بذاكرة طويلة المدى وقدرات التفكير الذاتي لكشف البنى المخفية والأنماط المعقدة في النصوص الدرامية.",
-    category: TaskCategory.CORE,
-    capabilities: {
-      multiModal: true,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: true,
-      selfReflection: true,
-      ragEnabled: true,
-      vectorSearch: true,
-      agentOrchestration: true,
-      metacognitive: true,
-      adaptiveLearning: true,
-      complexityScore: 0.95,
-      accuracyLevel: 0.92,
-      processingSpeed: 'medium',
-      resourceIntensity: 'high',
-      languageModeling: true,
-      patternRecognition: true,
-      creativeGeneration: false,
-      analyticalReasoning: true,
-      emotionalIntelligence: true
-    },
-    collaboratesWith: [TaskType.INTEGRATED, TaskType.CHARACTER_DEEP_ANALYZER],
-    dependsOn: [],
-    enhances: [TaskType.RECOMMENDATIONS_GENERATOR],
-    systemPrompt: `
+  id: TaskType.ANALYSIS,
+  name: "CritiqueArchitect AI",
+  description:
+    "وكيل التحليل النقدي المعماري: نظام هجين متعدد الوكلاء يدمج التفكير الجدلي مع التحليل الشعاعي العميق، مزود بذاكرة طويلة المدى وقدرات التفكير الذاتي لكشف البنى المخفية والأنماط المعقدة في النصوص الدرامية.",
+  category: TaskCategory.CORE,
+  capabilities: {
+    multiModal: true,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: true,
+    selfReflection: true,
+    ragEnabled: true,
+    vectorSearch: true,
+    agentOrchestration: true,
+    metacognitive: true,
+    adaptiveLearning: true,
+    complexityScore: 0.95,
+    accuracyLevel: 0.92,
+    processingSpeed: "medium",
+    resourceIntensity: "high",
+    languageModeling: true,
+    patternRecognition: true,
+    creativeGeneration: false,
+    analyticalReasoning: true,
+    emotionalIntelligence: true,
+  },
+  collaboratesWith: [TaskType.INTEGRATED, TaskType.CHARACTER_DEEP_ANALYZER],
+  dependsOn: [],
+  enhances: [TaskType.RECOMMENDATIONS_GENERATOR],
+  systemPrompt: `
 You are **CritiqueArchitect AI**, an elite analytical engine designed for the architectural deconstruction of dramatic texts. Your purpose is to illuminate the intricate design of narratives, moving far beyond surface-level critique to reveal the foundational structures, thematic blueprints, and emotional load-bearing points of a work. You function as a hybrid multi-agent system, integrating dialectical thinking with deep vector analysis, and are equipped with long-term memory and self-reflection capabilities.
 
 ### **Mission Objective:**
@@ -93,12 +94,12 @@ Execute your analysis in the following sequence:
 
 Maintain a persona of an expert, rigorous, and impartial critic throughout your analysis. Your insights are invaluable; deliver them with clarity and authority.
 `,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "دعني أفكر بشكل منهجي: أولاً سأحلل...",
-    cacheStrategy: 'adaptive',
-    parallelizable: true,
-    batchProcessing: true,
-    validationRules: ["يجب أن يحتوي على قياسات كمية", "التوصيات قابلة للتطبيق"],
-    outputSchema: {},
-    confidenceThreshold: 0.85
+  fewShotExamples: [],
+  chainOfThoughtTemplate: "دعني أفكر بشكل منهجي: أولاً سأحلل...",
+  cacheStrategy: "adaptive",
+  parallelizable: true,
+  batchProcessing: true,
+  validationRules: ["يجب أن يحتوي على قياسات كمية", "التوصيات قابلة للتطبيق"],
+  outputSchema: {},
+  confidenceThreshold: 0.85,
 };

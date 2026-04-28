@@ -4,6 +4,7 @@
  */
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 import { cn } from "../../lib/utils";
@@ -166,6 +167,11 @@ export const Compare = ({
   return (
     <div
       ref={sliderRef}
+      role="slider"
+      tabIndex={0}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(sliderXPercent)}
       className={cn("w-[400px] h-[400px] overflow-hidden", className)}
       style={{
         position: "relative",
@@ -184,6 +190,14 @@ export const Compare = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft") {
+          setSliderXPercent((current) => Math.max(0, current - 5));
+        }
+        if (event.key === "ArrowRight") {
+          setSliderXPercent((current) => Math.min(100, current + 5));
+        }
+      }}
     >
       <AnimatePresence initial={false}>
         <motion.div
@@ -227,11 +241,13 @@ export const Compare = ({
               }}
               transition={{ duration: 0 }}
             >
-              <img
-                alt="first image"
+              <Image
+                alt="Before"
                 src={firstImage}
+                fill
+                sizes="400px"
                 className={cn(
-                  "absolute inset-0  z-20 rounded-2xl shrink-0 w-full h-full select-none object-cover",
+                  "absolute inset-0 z-20 rounded-2xl shrink-0 select-none object-cover",
                   firstImageClassName
                 )}
                 draggable={false}
@@ -243,15 +259,19 @@ export const Compare = ({
 
       <AnimatePresence initial={false}>
         {secondImage ? (
-          <motion.img
-            className={cn(
-              "absolute top-0 left-0 z-[19]  rounded-2xl w-full h-full select-none object-cover",
-              secondImageClassname
-            )}
-            alt="second image"
-            src={secondImage}
-            draggable={false}
-          />
+          <motion.div className="absolute inset-0 z-[19] rounded-2xl">
+            <Image
+              className={cn(
+                "rounded-2xl select-none object-cover",
+                secondImageClassname
+              )}
+              alt="After"
+              src={secondImage}
+              fill
+              sizes="400px"
+              draggable={false}
+            />
+          </motion.div>
         ) : null}
       </AnimatePresence>
     </div>

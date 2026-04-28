@@ -42,7 +42,10 @@ export const ALLOWED_LINE_TYPES = new Set([
 ]);
 
 // نطاقات التوجيه المسموحة
-export const ALLOWED_ROUTING_BANDS = new Set(["agent-candidate", "agent-forced"]);
+export const ALLOWED_ROUTING_BANDS = new Set([
+  "agent-candidate",
+  "agent-forced",
+]);
 
 // قناة المراجعة النهائية
 export const FINAL_REVIEW_CHANNEL = "final-review";

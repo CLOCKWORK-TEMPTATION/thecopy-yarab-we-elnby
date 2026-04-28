@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const integratedInstructions = `
 التحليل المتكامل للنص الأدبي:
@@ -39,6 +39,6 @@ export const integratedAgentConfig: AIAgentConfig = {
     "التحليل الشامل",
     "التكامل بين النتائج",
     "التقييم المتوازن",
-    "التخطيط للتطوير"
-  ]
+    "التخطيط للتطوير",
+  ],
 };

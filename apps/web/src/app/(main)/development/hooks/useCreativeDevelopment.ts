@@ -7,7 +7,7 @@
  * @module development/hooks/useCreativeDevelopment
  */
 
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 
 import { toText } from "@/ai/gemini-core";
 import { useToast } from "@/hooks/use-toast";
@@ -23,10 +23,15 @@ import {
   COMPLETION_ENHANCEMENT_OPTIONS,
   MIN_TEXT_LENGTH,
   initialState,
+  type CreativeDevelopmentState,
   type UnlockStatus,
 } from "./creative-development-types";
 
 export type { UnlockStatus };
+
+type AdvancedSettingsUpdate = Partial<
+  CreativeDevelopmentState["advancedSettings"]
+>;
 
 // ============================================
 // الهوك الرئيسي
@@ -46,23 +51,21 @@ export function useCreativeDevelopment() {
     initialState
   );
   const { toast } = useToast();
+  const initialTextInputRef = useRef(state.textInput);
+  const initialAnalysisReportRef = useRef(state.analysisReport);
 
   // ============================================
   // تحميل البيانات المحفوظة
   // ============================================
 
-  const loadSavedAnalysisData = useCallback(() => {
+  useEffect(() => {
     loadSavedAnalysisDataImpl(
       dispatch,
-      state.textInput,
-      state.analysisReport,
+      initialTextInputRef.current,
+      initialAnalysisReportRef.current,
       toast
     );
-  }, [toast, state.textInput, state.analysisReport]);
-
-  useEffect(() => {
-    loadSavedAnalysisData();
-  }, []);
+  }, [toast]);
 
   // ============================================
   // تحديث حالة اكتمال التحليل
@@ -131,7 +134,7 @@ export function useCreativeDevelopment() {
   }, []);
 
   const updateAdvancedSettings = useCallback(
-    (settings: Partial<typeof state.advancedSettings>) => {
+    (settings: AdvancedSettingsUpdate) => {
       dispatch({ type: "SET_ADVANCED_SETTINGS", payload: settings });
     },
     []

@@ -90,11 +90,7 @@ const ScenarioNavigator: React.FC<ScenarioNavigatorProps> = ({
                   onClick={() => setActiveScenarioId(scenario.id)}
                   className={`
                     w-full text-right p-4 rounded-[22px] border transition-all relative
-                    ${
-                      activeScenarioId === scenario.id
-                        ? "bg-blue-600/10 border-blue-500 shadow-lg shadow-blue-900/20"
-                        : "bg-white/6 border-white/8 hover:border-white/8 text-white/55"
-                    }
+                    ${activeScenarioId === scenario.id ? "bg-blue-600/10 border-blue-500 shadow-lg shadow-blue-900/20" : "bg-white/6 border-white/8 hover:border-white/8 text-white/55"}
                   `}
                 >
                   {scenario.recommended && (

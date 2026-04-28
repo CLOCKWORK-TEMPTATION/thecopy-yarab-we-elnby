@@ -44,7 +44,7 @@ export function ProductionBookCard({
         </div>
         <div style={{ marginBottom: "16px" }}>
           <h4 style={{ marginBottom: "12px" }}>الأقسام:</h4>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }} role="list">
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {book.sections.map((section, index) => (
               <li
                 key={index}

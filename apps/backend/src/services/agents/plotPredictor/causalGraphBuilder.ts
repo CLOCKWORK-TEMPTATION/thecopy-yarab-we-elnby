@@ -84,7 +84,9 @@ ${text}
     try {
       const events = await geminiService.generateJson<unknown>(prompt);
       return Array.isArray(events)
-        ? events.filter((event): event is string => typeof event === "string").slice(0, 20)
+        ? events
+            .filter((event): event is string => typeof event === "string")
+            .slice(0, 20)
         : [];
     } catch (error) {
       logger.error("[Causal Graph] Error extracting events:", error);
@@ -152,7 +154,7 @@ ${text}
    */
   private async buildEdges(
     nodes: PlotNode[],
-    text: string
+    text: string,
   ): Promise<PlotEdge[]> {
     const edges: PlotEdge[] = [];
 
@@ -171,7 +173,7 @@ ${text}
         const relation = await this.detectCausalRelation(
           nodeI.event,
           nodeJ.event,
-          text
+          text,
         );
 
         if (relation) {
@@ -195,7 +197,7 @@ ${text}
   private async detectCausalRelation(
     event1: string,
     event2: string,
-    context: string
+    context: string,
   ): Promise<{
     type: "direct" | "indirect" | "consequence";
     strength: number;
@@ -247,7 +249,7 @@ ${text}
    */
   private async analyzeCausality(
     nodes: PlotNode[],
-    edges: PlotEdge[]
+    edges: PlotEdge[],
   ): Promise<CausalRelation[]> {
     const promises = edges.map(async (edge) => {
       const fromNode = nodes.find((n) => n.id === edge.from);
@@ -257,7 +259,7 @@ ${text}
         const explanation = await this.explainCausality(
           fromNode.event,
           toNode.event,
-          edge.causationType
+          edge.causationType,
         );
 
         return {
@@ -272,7 +274,9 @@ ${text}
     });
 
     const results = await Promise.all(promises);
-    return results.filter((result): result is CausalRelation => result !== null);
+    return results.filter(
+      (result): result is CausalRelation => result !== null,
+    );
   }
 
   /**
@@ -282,7 +286,7 @@ ${text}
   private async explainCausality(
     cause: string,
     effect: string,
-    type: string
+    type: string,
   ): Promise<string> {
     const prompt = `
 اشرح العلاقة السببية التالية بجملة أو جملتين:

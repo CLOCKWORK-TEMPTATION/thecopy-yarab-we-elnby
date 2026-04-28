@@ -159,23 +159,23 @@ export class CreativeAgent extends BaseAgent {
     let structured = "";
 
     // Add creative analysis section
-    if (sections.analysis) {
-      structured += `تحليل إبداعي:\n${sections.analysis}\n\n`;
+    if (sections["analysis"]) {
+      structured += `تحليل إبداعي:\n${sections["analysis"]}\n\n`;
     }
 
     // Add development proposals
-    if (sections.proposals) {
-      structured += `مقترحات التطوير:\n${sections.proposals}\n\n`;
+    if (sections["proposals"]) {
+      structured += `مقترحات التطوير:\n${sections["proposals"]}\n\n`;
     }
 
     // Add practical examples
-    if (sections.examples) {
-      structured += `أمثلة تطبيقية:\n${sections.examples}\n\n`;
+    if (sections["examples"]) {
+      structured += `أمثلة تطبيقية:\n${sections["examples"]}\n\n`;
     }
 
     // Add expected impact
-    if (sections.impact) {
-      structured += `التأثير المتوقع:\n${sections.impact}\n\n`;
+    if (sections["impact"]) {
+      structured += `التأثير المتوقع:\n${sections["impact"]}\n\n`;
     }
 
     // If no clear sections, return cleaned original
@@ -216,8 +216,8 @@ export class CreativeAgent extends BaseAgent {
     if (Object.keys(sections).length === 0) {
       const paragraphs = text.split("\n\n").filter((p) => p.trim());
       if (paragraphs.length >= 2 && paragraphs[0]) {
-        sections.analysis = paragraphs[0];
-        sections.proposals = paragraphs.slice(1).join("\n\n");
+        sections["analysis"] = paragraphs[0];
+        sections["proposals"] = paragraphs.slice(1).join("\n\n");
       }
     }
 

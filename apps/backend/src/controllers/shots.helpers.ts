@@ -1,23 +1,27 @@
-import { eq, and } from 'drizzle-orm';
-import { Response } from 'express';
+import { eq, and } from "drizzle-orm";
+import { Response } from "express";
 
-import { db } from '@/db';
-import { shots, scenes, projects } from '@/db/schema';
+import { db } from "@/db";
+import { shots, scenes, projects } from "@/db/schema";
 
-import type { AuthRequest } from '@/middleware/auth.middleware';
+import type { AuthRequest } from "@/middleware/auth.middleware";
 
 export function requireAuth(req: AuthRequest, res: Response): boolean {
   if (!req.user) {
     res.status(401).json({
       success: false,
-      error: 'غير مصرح',
+      error: "غير مصرح",
     });
     return false;
   }
   return true;
 }
 
-export function requireParam(res: Response, value: string | undefined, errorMsg: string): value is string {
+export function requireParam(
+  res: Response,
+  value: string | undefined,
+  errorMsg: string,
+): value is string {
   if (!value) {
     res.status(400).json({
       success: false,

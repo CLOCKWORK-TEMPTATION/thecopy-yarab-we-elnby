@@ -275,7 +275,7 @@ const buildUserPrompt = (classifiedLines) => {
   const formatted = classifiedLines
     .map(
       (line, index) =>
-        `[${index}] (${line.assignedType}, ???=${line.confidence}%) ${line.text}`
+        `[${index}] (${line.assignedType}, ???=${line.confidence}%) ${line.text}`,
     )
     .join("\n");
 

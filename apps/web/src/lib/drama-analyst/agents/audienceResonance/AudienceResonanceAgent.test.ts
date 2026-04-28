@@ -197,9 +197,7 @@ describe("AudienceResonanceAgent", () => {
       expect(result).toBeDefined();
       expect(result.confidence).toBeDefined();
 
-      if (result.confidence < 0.9) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence >= 0.9 || result.notes !== undefined).toBe(true);
     });
 
     it("should handle uncertainty in audience predictions", async () => {
@@ -274,9 +272,10 @@ describe("AudienceResonanceAgent", () => {
       expect(result).toBeDefined();
       expect(result.text).toBeTruthy();
 
-      if (result.metadata?.hallucinationDetected) {
-        expect(result.notes).toContain("تصحيح هلوسة");
-      }
+      expect(
+        !result.metadata?.hallucinationDetected ||
+          result.notes.includes("تصحيح هلوسة")
+      ).toBe(true);
     });
 
     it("should verify claims against provided context", async () => {
@@ -328,9 +327,9 @@ describe("AudienceResonanceAgent", () => {
       const result = await agent.executeTask(input);
 
       expect(result).toBeDefined();
-      expect(result.metadata?.comprehensiveness).toBeDefined();
-      expect(result.metadata?.comprehensiveness).toBeGreaterThanOrEqual(0);
-      expect(result.metadata?.comprehensiveness).toBeLessThanOrEqual(1);
+      expect(result.metadata?.["comprehensiveness"]).toBeDefined();
+      expect(result.metadata?.["comprehensiveness"]).toBeGreaterThanOrEqual(0);
+      expect(result.metadata?.["comprehensiveness"]).toBeLessThanOrEqual(1);
     });
 
     it("should assess insight depth", async () => {
@@ -345,9 +344,9 @@ describe("AudienceResonanceAgent", () => {
       const result = await agent.executeTask(input);
 
       expect(result).toBeDefined();
-      expect(result.metadata?.insightDepth).toBeDefined();
-      expect(result.metadata?.insightDepth).toBeGreaterThanOrEqual(0);
-      expect(result.metadata?.insightDepth).toBeLessThanOrEqual(1);
+      expect(result.metadata?.["insightDepth"]).toBeDefined();
+      expect(result.metadata?.["insightDepth"]).toBeGreaterThanOrEqual(0);
+      expect(result.metadata?.["insightDepth"]).toBeLessThanOrEqual(1);
     });
 
     it("should assess actionability of recommendations", async () => {
@@ -369,9 +368,9 @@ describe("AudienceResonanceAgent", () => {
       const result = await agent.executeTask(input);
 
       expect(result).toBeDefined();
-      expect(result.metadata?.actionability).toBeDefined();
-      expect(result.metadata?.actionability).toBeGreaterThanOrEqual(0);
-      expect(result.metadata?.actionability).toBeLessThanOrEqual(1);
+      expect(result.metadata?.["actionability"]).toBeDefined();
+      expect(result.metadata?.["actionability"]).toBeGreaterThanOrEqual(0);
+      expect(result.metadata?.["actionability"]).toBeLessThanOrEqual(1);
     });
 
     it("should generate appropriate notes based on quality metrics", async () => {

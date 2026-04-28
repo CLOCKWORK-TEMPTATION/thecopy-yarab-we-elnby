@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const visualCinematicAnalyzerInstructions = `
 تحليل الجوانب البصرية والسينمائية للنص:
@@ -84,6 +84,6 @@ export const visualCinematicAnalyzerAgentConfig: AIAgentConfig = {
     "تفسير التعليمات الإخراجية",
     "تحليل الأجواء البصرية",
     "اكتشاف الرمزية المرئية",
-    "تقييم قابلية التصوير"
-  ]
+    "تقييم قابلية التصوير",
+  ],
 };

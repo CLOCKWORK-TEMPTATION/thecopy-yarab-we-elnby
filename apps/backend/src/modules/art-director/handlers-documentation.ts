@@ -1,6 +1,19 @@
 import { randomUUID } from "node:crypto";
 
-import { success, failure, asString, asNumber, asRecord, isRecord, slugify, buildProductionId, uniqueById, extractNestedRecord, summarizeBook, summarizeStyleGuide } from "./handlers-shared";
+import {
+  success,
+  failure,
+  asString,
+  asNumber,
+  asRecord,
+  isRecord,
+  slugify,
+  buildProductionId,
+  uniqueById,
+  extractNestedRecord,
+  summarizeBook,
+  summarizeStyleGuide,
+} from "./handlers-shared";
 import { runPlugin } from "./plugin-executor";
 import { AutomaticDocumentationGenerator } from "./plugins/documentation-generator";
 import {
@@ -26,7 +39,9 @@ function extractStringArray(value: unknown): string[] {
 export async function handleDocumentationState(): Promise<ArtDirectorHandlerResponse> {
   const store = await readStore();
   const lastBook = store.productionBooks.find((b) => b.id === store.lastBookId);
-  const lastGuide = store.styleGuides.find((g) => g.id === store.lastStyleGuideId);
+  const lastGuide = store.styleGuides.find(
+    (g) => g.id === store.lastStyleGuideId,
+  );
 
   return success({
     data: {
@@ -54,7 +69,7 @@ function buildStoredBook(
   raw: Record<string, unknown>,
   name: string,
   nameAr: string,
-  productionId: string
+  productionId: string,
 ): StoredProductionBook {
   const now = new Date().toISOString();
   return {
@@ -70,7 +85,7 @@ function buildStoredBook(
 }
 
 export async function handleDocumentationGenerate(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const projectNameAr = asString(payload["projectNameAr"]);
   const projectName = asString(payload["projectName"]) || projectNameAr;
@@ -88,8 +103,20 @@ export async function handleDocumentationGenerate(
       productionId,
       title: projectName,
       titleAr: projectNameAr || projectName,
-      includeSections: ["overview", "locations", "props", "schedule", "technical"],
-      projectData: { name: projectName, director, productionCompany, artDirector: "CineArchitect", status: "Ready for review" },
+      includeSections: [
+        "overview",
+        "locations",
+        "props",
+        "schedule",
+        "technical",
+      ],
+      projectData: {
+        name: projectName,
+        director,
+        productionCompany,
+        artDirector: "CineArchitect",
+        status: "Ready for review",
+      },
     },
   });
 
@@ -102,10 +129,18 @@ export async function handleDocumentationGenerate(
     return failure("تعذر قراءة كتاب الإنتاج الناتج", 500);
   }
 
-  const storedBook = buildStoredBook(rawBook, projectName, projectNameAr, productionId);
+  const storedBook = buildStoredBook(
+    rawBook,
+    projectName,
+    projectNameAr,
+    productionId,
+  );
 
   await updateStore((store) => {
-    store.productionBooks = uniqueById<StoredProductionBook>(store.productionBooks, storedBook);
+    store.productionBooks = uniqueById<StoredProductionBook>(
+      store.productionBooks,
+      storedBook,
+    );
     store.lastProductionId = productionId;
     store.lastBookId = storedBook.id;
   });
@@ -116,7 +151,7 @@ export async function handleDocumentationGenerate(
 function buildStoredStyleGuide(
   raw: Record<string, unknown>,
   productionId: string,
-  name: string
+  name: string,
 ): StoredStyleGuide {
   return {
     id: asString(raw["id"]) || randomUUID(),
@@ -155,7 +190,7 @@ const DEFAULT_MOOD_DESCRIPTIONS = [
 ];
 
 export async function handleDocumentationStyleGuide(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const projectName = asString(payload["projectName"]) || "مشروع جديد";
   const productionId = buildProductionId(projectName);
@@ -179,7 +214,11 @@ export async function handleDocumentationStyleGuide(
     return failure("تعذر قراءة دليل الأسلوب الناتج", 500);
   }
 
-  const storedGuide = buildStoredStyleGuide(rawGuide, productionId, projectName);
+  const storedGuide = buildStoredStyleGuide(
+    rawGuide,
+    productionId,
+    projectName,
+  );
   await updateStore((s) => {
     s.styleGuides = uniqueById<StoredStyleGuide>(s.styleGuides, storedGuide);
     s.lastProductionId = productionId;
@@ -193,7 +232,7 @@ function buildStoredDecision(
   raw: Record<string, unknown>,
   title: string,
   productionId: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): StoredDecision {
   const rationale = asString(payload["rationale"]);
   return {
@@ -212,7 +251,7 @@ function buildStoredDecision(
 }
 
 export async function handleDocumentationDecision(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const title = asString(payload["title"]);
   const description = asString(payload["description"]);
@@ -221,7 +260,9 @@ export async function handleDocumentationDecision(
     return failure("عنوان القرار ووصفه مطلوبان");
   }
 
-  const productionId = buildProductionId(asString(payload["projectName"]) || "art-director-default");
+  const productionId = buildProductionId(
+    asString(payload["projectName"]) || "art-director-default",
+  );
   const result = await runPlugin(AutomaticDocumentationGenerator, {
     type: "log-decision",
     data: {
@@ -244,7 +285,12 @@ export async function handleDocumentationDecision(
     return failure("تعذر قراءة القرار الموثق", 500);
   }
 
-  const storedDecision = buildStoredDecision(rawDecision, title, productionId, payload);
+  const storedDecision = buildStoredDecision(
+    rawDecision,
+    title,
+    productionId,
+    payload,
+  );
   await updateStore((s) => {
     s.decisions = uniqueById<StoredDecision>(s.decisions, storedDecision);
     s.lastProductionId = productionId;
@@ -257,12 +303,24 @@ const VALID_FORMATS = new Set(["json", "markdown", "md"]);
 
 function renderBookMarkdown(book: StoredProductionBook): string {
   const sorted = book.sections.sort((a, b) => a.order - b.order);
-  const body = sorted.flatMap((s) => [`## ${s.titleAr}`, "", s.contentAr || s.content, ""]);
-  return [`# ${book.titleAr}`, "", `الاسم الإنجليزي: ${book.title}`, `تاريخ الإنشاء: ${book.createdAt}`, "", ...body].join("\n");
+  const body = sorted.flatMap((s) => [
+    `## ${s.titleAr}`,
+    "",
+    s.contentAr || s.content,
+    "",
+  ]);
+  return [
+    `# ${book.titleAr}`,
+    "",
+    `الاسم الإنجليزي: ${book.title}`,
+    `تاريخ الإنشاء: ${book.createdAt}`,
+    "",
+    ...body,
+  ].join("\n");
 }
 
 export async function handleDocumentationExport(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const format = asString(payload["format"]) || "markdown";
   const normalized = VALID_FORMATS.has(format) ? format : "markdown";
@@ -275,13 +333,17 @@ export async function handleDocumentationExport(
   }
 
   const isJson = normalized === "json";
-  const content = isJson ? JSON.stringify(book, null, 2) : renderBookMarkdown(book);
+  const content = isJson
+    ? JSON.stringify(book, null, 2)
+    : renderBookMarkdown(book);
 
   return success({
     data: {
       content,
       filename: `${slugify(book.title || book.titleAr)}.${isJson ? "json" : "md"}`,
-      mimeType: isJson ? "application/json;charset=utf-8" : "text/markdown;charset=utf-8",
+      mimeType: isJson
+        ? "application/json;charset=utf-8"
+        : "text/markdown;charset=utf-8",
       format: normalized,
     },
   });

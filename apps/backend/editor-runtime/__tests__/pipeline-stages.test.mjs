@@ -5,18 +5,12 @@
 
 import { test } from "node:test";
 import { ok, strictEqual } from "node:assert";
-import {
-  KARANK_HEALTH_REFERENCE_TEXT,
-} from "../services/karank-readiness.mjs";
-import {
-  runReferenceImportPipeline,
-} from "../services/import-pipeline.mjs";
+import { KARANK_HEALTH_REFERENCE_TEXT } from "../services/karank-readiness.mjs";
+import { runReferenceImportPipeline } from "../services/import-pipeline.mjs";
 
 test("pipeline-stages: runReferenceImportPipeline يعيد النص المرجعي بنجاح", async (t) => {
   // تشغيل خط الاستيراد مع النص المرجعي الصحي
-  const result = await runReferenceImportPipeline(
-    KARANK_HEALTH_REFERENCE_TEXT
-  );
+  const result = await runReferenceImportPipeline(KARANK_HEALTH_REFERENCE_TEXT);
 
   // التحقق من أن النتيجة موجودة
   ok(result, "يجب أن تكون النتيجة موجودة");
@@ -28,57 +22,47 @@ test("pipeline-stages: runReferenceImportPipeline يعيد النص المرجع
 
   // التحقق من أن schemaElements هو مصفوفة بطول > 0
   ok(Array.isArray(result.schemaElements), "schemaElements يجب أن يكون مصفوفة");
-  ok(
-    result.schemaElements.length > 0,
-    "schemaElements يجب أن يكون به عناصر"
-  );
+  ok(result.schemaElements.length > 0, "schemaElements يجب أن يكون به عناصر");
 
   // التحقق من هيكل العناصر الأولى
   const firstElement = result.schemaElements[0];
   ok(
     firstElement && typeof firstElement.element === "string",
-    "كل عنصر يجب أن يكون له خاصية element من نوع string"
+    "كل عنصر يجب أن يكون له خاصية element من نوع string",
   );
   ok(
     firstElement && typeof firstElement.value === "string",
-    "كل عنصر يجب أن يكون له خاصية value من نوع string"
+    "كل عنصر يجب أن يكون له خاصية value من نوع string",
   );
 
   // التحقق من أن method موجود وصحيح
   ok(result.method, "يجب أن تكون هناك قيمة method");
   ok(
     result.method === "native-text" || result.method === "karank-engine-bridge",
-    `method يجب أن يكون native-text أو karank-engine-bridge، لكن كان ${result.method}`
+    `method يجب أن يكون native-text أو karank-engine-bridge، لكن كان ${result.method}`,
   );
 });
 
 test("pipeline-stages: يحقق مرحلة karank-visible عند استخدام karank-engine-bridge", async (t) => {
   // تشغيل خط الاستيراد
-  const result = await runReferenceImportPipeline(
-    KARANK_HEALTH_REFERENCE_TEXT
-  );
+  const result = await runReferenceImportPipeline(KARANK_HEALTH_REFERENCE_TEXT);
 
   // إذا كان الكرنك متاحًا، يجب أن تكون المرحلة karank-visible
   if (result.method === "karank-engine-bridge") {
     ok(result.schemaElements, "يجب أن تكون schemaElements موجودة");
     ok(
       result.schemaElements.length > 0,
-      "إذا استخدمنا karank-engine-bridge، يجب أن نحصل على عناصر البنية"
+      "إذا استخدمنا karank-engine-bridge، يجب أن نحصل على عناصر البنية",
     );
 
     // التحقق من أن rawExtractedText موجود
-    ok(
-      result.rawExtractedText || result.text,
-      "يجب أن يكون هناك نص مستخرج"
-    );
+    ok(result.rawExtractedText || result.text, "يجب أن يكون هناك نص مستخرج");
   }
 });
 
 test("pipeline-stages: يحتوي على attempts تاريخ صحيح", async (t) => {
   // تشغيل خط الاستيراد
-  const result = await runReferenceImportPipeline(
-    KARANK_HEALTH_REFERENCE_TEXT
-  );
+  const result = await runReferenceImportPipeline(KARANK_HEALTH_REFERENCE_TEXT);
 
   // التحقق من أن attempts موجود ويحتوي على المحاولات
   ok(Array.isArray(result.attempts), "attempts يجب أن يكون مصفوفة");
@@ -91,9 +75,7 @@ test("pipeline-stages: يحتوي على attempts تاريخ صحيح", async (t
 
 test("pipeline-stages: يعيد تحذيرات كمصفوفة", async (t) => {
   // تشغيل خط الاستيراد
-  const result = await runReferenceImportPipeline(
-    KARANK_HEALTH_REFERENCE_TEXT
-  );
+  const result = await runReferenceImportPipeline(KARANK_HEALTH_REFERENCE_TEXT);
 
   // التحقق من أن warnings موجود وهو مصفوفة
   ok(Array.isArray(result.warnings), "warnings يجب أن يكون مصفوفة");
@@ -102,15 +84,10 @@ test("pipeline-stages: يعيد تحذيرات كمصفوفة", async (t) => {
 
 test("pipeline-stages: يحتوي على metadata مهمة", async (t) => {
   // تشغيل خط الاستيراد
-  const result = await runReferenceImportPipeline(
-    KARANK_HEALTH_REFERENCE_TEXT
-  );
+  const result = await runReferenceImportPipeline(KARANK_HEALTH_REFERENCE_TEXT);
 
   // التحقق من أن usedOcr موجود ونوعه boolean
-  ok(
-    typeof result.usedOcr === "boolean",
-    "usedOcr يجب أن يكون boolean"
-  );
+  ok(typeof result.usedOcr === "boolean", "usedOcr يجب أن يكون boolean");
 
   // التحقق من أن method موجود
   ok(typeof result.method === "string", "method يجب أن يكون string");

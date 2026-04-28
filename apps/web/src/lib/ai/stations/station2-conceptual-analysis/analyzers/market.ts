@@ -48,9 +48,9 @@ JSON صارم:
   try {
     const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
     return {
-      primaryAudience: asString(parsed.primaryAudience, "جمهور عام"),
-      demographics: asStringArray(parsed.demographics),
-      psychographics: asStringArray(parsed.psychographics),
+      primaryAudience: asString(parsed["primaryAudience"], "جمهور عام"),
+      demographics: asStringArray(parsed["demographics"]),
+      psychographics: asStringArray(parsed["psychographics"]),
     };
   } catch (error) {
     console.error("[Station2] Failed to parse target audience:", error);
@@ -111,9 +111,9 @@ JSON صارم:
   try {
     const parsed = asJsonRecord(JSON.parse(toText(result.content)) as unknown);
     return {
-      producibility: asNumber(parsed.producibility, 5),
-      commercialPotential: asNumber(parsed.commercialPotential, 5),
-      uniqueness: asNumber(parsed.uniqueness, 5),
+      producibility: asNumber(parsed["producibility"], 5),
+      commercialPotential: asNumber(parsed["commercialPotential"], 5),
+      uniqueness: asNumber(parsed["uniqueness"], 5),
     };
   } catch (error) {
     console.error("[Station2] Failed to parse market analysis:", error);

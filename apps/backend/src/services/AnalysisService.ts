@@ -1,6 +1,6 @@
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import type { Script } from '../types/types';
+import type { Script } from "../types/types";
 
 export interface CharacterDialogueStat {
   name: string;
@@ -19,7 +19,7 @@ export interface AIWritingAssistantLike {
   generateText: (
     prompt: string,
     context: string,
-    options?: Record<string, unknown>
+    options?: Record<string, unknown>,
   ) => Promise<{ text?: string }>;
 }
 
@@ -42,7 +42,10 @@ export class AnalysisService {
    * for AI generation contexts.
    * @returns {Promise<AnalysisResult>} Aggregated quantitative and qualitative analysis details.
    */
-  async analyze(script: Script, rawTextOverride?: string): Promise<AnalysisResult> {
+  async analyze(
+    script: Script,
+    rawTextOverride?: string,
+  ): Promise<AnalysisResult> {
     const totalScenes = script.scenes.length;
     const characterDialogueCounts = Object.values(script.characters)
       .map<CharacterDialogueStat>((character) => ({
@@ -52,21 +55,25 @@ export class AnalysisService {
       .sort((a, b) => b.dialogueLines - a.dialogueLines);
 
     const totalDialogueLines = script.dialogueLines.length;
-    const totalActionLines = script.scenes.reduce((sum, scene) => sum + scene.actionLines.length, 0);
-    const dialogueToActionRatio = totalActionLines === 0
-      ? totalDialogueLines
-      : totalDialogueLines / totalActionLines;
+    const totalActionLines = script.scenes.reduce(
+      (sum, scene) => sum + scene.actionLines.length,
+      0,
+    );
+    const dialogueToActionRatio =
+      totalActionLines === 0
+        ? totalDialogueLines
+        : totalDialogueLines / totalActionLines;
 
-    const narrativeSource = (rawTextOverride ?? script.rawText ?? '').trim();
+    const narrativeSource = (rawTextOverride ?? script.rawText ?? "").trim();
 
     const [synopsis, logline] = await Promise.all([
       this.generateAiInsight(
-        'استنادًا إلى هذا السيناريو، قم بتوليد ملخص من فقرة واحدة (Synopsis).',
-        narrativeSource
+        "استنادًا إلى هذا السيناريو، قم بتوليد ملخص من فقرة واحدة (Synopsis).",
+        narrativeSource,
       ),
       this.generateAiInsight(
-        'استنادًا إلى هذا السيناريو، اقترح عنوانًا جذابًا (Logline).',
-        narrativeSource
+        "استنادًا إلى هذا السيناريو، اقترح عنوانًا جذابًا (Logline).",
+        narrativeSource,
       ),
     ]);
 
@@ -79,17 +86,22 @@ export class AnalysisService {
     };
   }
 
-  private async generateAiInsight(prompt: string, context: string): Promise<string> {
+  private async generateAiInsight(
+    prompt: string,
+    context: string,
+  ): Promise<string> {
     if (!context) {
-      return 'لم يتم توفير نص كافٍ لتحليل الذكاء الاصطناعي.';
+      return "لم يتم توفير نص كافٍ لتحليل الذكاء الاصطناعي.";
     }
 
     try {
-      const response = await this.aiAssistant.generateText(prompt, context, { mode: 'analysis' });
-      return response.text ?? 'تعذر توليد الاستجابة بواسطة الذكاء الاصطناعي.';
+      const response = await this.aiAssistant.generateText(prompt, context, {
+        mode: "analysis",
+      });
+      return response.text ?? "تعذر توليد الاستجابة بواسطة الذكاء الاصطناعي.";
     } catch (error) {
-      logger.error('AI insight generation failed:', error);
-      return 'حدث خطأ أثناء توليد الاستجابة من الذكاء الاصطناعي.';
+      logger.error("AI insight generation failed:", error);
+      return "حدث خطأ أثناء توليد الاستجابة من الذكاء الاصطناعي.";
     }
   }
 }

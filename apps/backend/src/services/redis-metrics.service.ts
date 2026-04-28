@@ -8,10 +8,10 @@
  * - Memory usage
  */
 
-import { Counter, Histogram, Gauge, Registry } from 'prom-client';
-import { RedisClientType } from 'redis';
+import { Counter, Histogram, Gauge, Registry } from "prom-client";
+import { RedisClientType } from "redis";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // Redis metrics registry
 export const redisMetricsRegistry = new Registry();
@@ -22,9 +22,9 @@ export const redisMetricsRegistry = new Registry();
  * Redis cache hit counter
  */
 export const redisCacheHits = new Counter({
-  name: 'the_copy_redis_cache_hits_total',
-  help: 'Total number of Redis cache hits',
-  labelNames: ['cache_key_prefix'],
+  name: "the_copy_redis_cache_hits_total",
+  help: "Total number of Redis cache hits",
+  labelNames: ["cache_key_prefix"],
   registers: [redisMetricsRegistry],
 });
 
@@ -32,9 +32,9 @@ export const redisCacheHits = new Counter({
  * Redis cache miss counter
  */
 export const redisCacheMisses = new Counter({
-  name: 'the_copy_redis_cache_misses_total',
-  help: 'Total number of Redis cache misses',
-  labelNames: ['cache_key_prefix'],
+  name: "the_copy_redis_cache_misses_total",
+  help: "Total number of Redis cache misses",
+  labelNames: ["cache_key_prefix"],
   registers: [redisMetricsRegistry],
 });
 
@@ -42,9 +42,9 @@ export const redisCacheMisses = new Counter({
  * Redis operation latency histogram
  */
 export const redisOperationLatency = new Histogram({
-  name: 'the_copy_redis_operation_latency_ms',
-  help: 'Redis operation latency in milliseconds',
-  labelNames: ['operation', 'status'],
+  name: "the_copy_redis_operation_latency_ms",
+  help: "Redis operation latency in milliseconds",
+  labelNames: ["operation", "status"],
   buckets: [1, 5, 10, 25, 50, 100, 250, 500, 1000],
   registers: [redisMetricsRegistry],
 });
@@ -53,8 +53,8 @@ export const redisOperationLatency = new Histogram({
  * Redis connection pool size
  */
 export const redisConnectionPoolSize = new Gauge({
-  name: 'the_copy_redis_connection_pool_size',
-  help: 'Current Redis connection pool size',
+  name: "the_copy_redis_connection_pool_size",
+  help: "Current Redis connection pool size",
   registers: [redisMetricsRegistry],
 });
 
@@ -62,8 +62,8 @@ export const redisConnectionPoolSize = new Gauge({
  * Redis memory usage in bytes
  */
 export const redisMemoryUsage = new Gauge({
-  name: 'the_copy_redis_memory_usage_bytes',
-  help: 'Redis memory usage in bytes',
+  name: "the_copy_redis_memory_usage_bytes",
+  help: "Redis memory usage in bytes",
   registers: [redisMetricsRegistry],
 });
 
@@ -71,8 +71,8 @@ export const redisMemoryUsage = new Gauge({
  * Redis connected clients
  */
 export const redisConnectedClients = new Gauge({
-  name: 'the_copy_redis_connected_clients',
-  help: 'Number of connected Redis clients',
+  name: "the_copy_redis_connected_clients",
+  help: "Number of connected Redis clients",
   registers: [redisMetricsRegistry],
 });
 
@@ -80,9 +80,9 @@ export const redisConnectedClients = new Gauge({
  * Redis keys count by pattern
  */
 export const redisKeysCount = new Gauge({
-  name: 'the_copy_redis_keys_count',
-  help: 'Number of Redis keys by pattern',
-  labelNames: ['pattern'],
+  name: "the_copy_redis_keys_count",
+  help: "Number of Redis keys by pattern",
+  labelNames: ["pattern"],
   registers: [redisMetricsRegistry],
 });
 
@@ -114,25 +114,22 @@ export class RedisMetricsService {
   /**
    * Track Redis operation with latency
    */
-  async trackOperation<T>(
-    operation: string,
-    fn: () => Promise<T>
-  ): Promise<T> {
+  async trackOperation<T>(operation: string, fn: () => Promise<T>): Promise<T> {
     const startTime = Date.now();
-    let status = 'success';
+    let status = "success";
 
     try {
       const result = await fn();
       return result;
     } catch (error) {
-      status = 'error';
+      status = "error";
       throw error;
     } finally {
       const duration = Date.now() - startTime;
       redisOperationLatency.observe({ operation, status }, duration);
 
       if (duration > 100) {
-        logger.warn('Slow Redis operation detected', {
+        logger.warn("Slow Redis operation detected", {
           operation,
           duration,
           status,
@@ -156,11 +153,17 @@ export class RedisMetricsService {
     let misses = 0;
 
     for (const metric of metrics) {
-      if (metric.name === 'the_copy_redis_cache_hits_total') {
-        hits = (metric.values ?? []).reduce((sum, val) => sum + (val.value ?? 0), 0);
+      if (metric.name === "the_copy_redis_cache_hits_total") {
+        hits = (metric.values ?? []).reduce(
+          (sum, val) => sum + (val.value ?? 0),
+          0,
+        );
       }
-      if (metric.name === 'the_copy_redis_cache_misses_total') {
-        misses = (metric.values ?? []).reduce((sum, val) => sum + (val.value ?? 0), 0);
+      if (metric.name === "the_copy_redis_cache_misses_total") {
+        misses = (metric.values ?? []).reduce(
+          (sum, val) => sum + (val.value ?? 0),
+          0,
+        );
       }
     }
 
@@ -181,12 +184,12 @@ export class RedisMetricsService {
   async updateServerMetrics(): Promise<void> {
     try {
       const info = await this.redis.info();
-      const lines = info.split('\r\n');
+      const lines = info.split("\r\n");
       const metrics: Record<string, string> = {};
 
       for (const line of lines) {
-        if (line && !line.startsWith('#')) {
-          const [key, value] = line.split(':');
+        if (line && !line.startsWith("#")) {
+          const [key, value] = line.split(":");
           if (key && value) {
             metrics[key] = value.trim();
           }
@@ -204,7 +207,7 @@ export class RedisMetricsService {
       }
 
       // Get keys count for different patterns
-      const patterns = ['gemini:*', 'user:*', 'project:*', 'analysis:*'];
+      const patterns = ["gemini:*", "user:*", "project:*", "analysis:*"];
       for (const pattern of patterns) {
         try {
           const keys = await this.redis.keys(pattern);
@@ -214,7 +217,7 @@ export class RedisMetricsService {
         }
       }
     } catch (error) {
-      logger.error('Failed to update Redis server metrics:', error);
+      logger.error("Failed to update Redis server metrics:", error);
     }
   }
 
@@ -223,7 +226,7 @@ export class RedisMetricsService {
    */
   startMetricsCollection(intervalMs = 30000): void {
     if (this.metricsUpdateInterval) {
-      logger.warn('Redis metrics collection already started');
+      logger.warn("Redis metrics collection already started");
       return;
     }
 
@@ -235,7 +238,7 @@ export class RedisMetricsService {
       void this.updateServerMetrics();
     }, intervalMs);
 
-    logger.info('Redis metrics collection started', { intervalMs });
+    logger.info("Redis metrics collection started", { intervalMs });
   }
 
   /**
@@ -245,7 +248,7 @@ export class RedisMetricsService {
     if (this.metricsUpdateInterval) {
       clearInterval(this.metricsUpdateInterval);
       this.metricsUpdateInterval = null;
-      logger.info('Redis metrics collection stopped');
+      logger.info("Redis metrics collection stopped");
     }
   }
 
@@ -275,12 +278,12 @@ export class RedisMetricsService {
 
     // Get Redis INFO
     const info = await this.redis.info();
-    const lines = info.split('\r\n');
+    const lines = info.split("\r\n");
     const serverMetrics: Record<string, string> = {};
 
     for (const line of lines) {
-      if (line && !line.startsWith('#')) {
-        const [key, value] = line.split(':');
+      if (line && !line.startsWith("#")) {
+        const [key, value] = line.split(":");
         if (key && value) {
           serverMetrics[key] = value.trim();
         }
@@ -297,7 +300,7 @@ export class RedisMetricsService {
     };
 
     for (const metric of metrics) {
-      if (metric.name === 'the_copy_redis_operation_latency_ms') {
+      if (metric.name === "the_copy_redis_operation_latency_ms") {
         // Calculate percentiles from histogram buckets
         // This is a simplified calculation
         const values = metric.values || [];
@@ -317,9 +320,9 @@ export class RedisMetricsService {
     return {
       cache: cacheStats,
       server: {
-        memoryUsage: parseInt(serverMetrics["used_memory"] ?? '0'),
-        connectedClients: parseInt(serverMetrics["connected_clients"] ?? '0'),
-        uptime: parseInt(serverMetrics["uptime_in_seconds"] ?? '0'),
+        memoryUsage: parseInt(serverMetrics["used_memory"] ?? "0"),
+        connectedClients: parseInt(serverMetrics["connected_clients"] ?? "0"),
+        uptime: parseInt(serverMetrics["uptime_in_seconds"] ?? "0"),
       },
       latency: latencyMetrics,
     };
@@ -336,10 +339,13 @@ export function trackRedisGet(keyPrefix: string, hit: boolean): void {
   }
 }
 
-export function trackRedisLatency(operation: string, duration: number, success: boolean): void {
+export function trackRedisLatency(
+  operation: string,
+  duration: number,
+  success: boolean,
+): void {
   redisOperationLatency.observe(
-    { operation, status: success ? 'success' : 'error' },
-    duration
+    { operation, status: success ? "success" : "error" },
+    duration,
   );
 }
-

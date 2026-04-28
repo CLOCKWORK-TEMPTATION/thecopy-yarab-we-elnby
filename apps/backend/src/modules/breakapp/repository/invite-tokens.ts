@@ -1,9 +1,9 @@
-import { db } from '@/db';
-import { breakappInviteTokens } from '@/db/schema';
+import { db } from "@/db";
+import { breakappInviteTokens } from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
+import { ensureDatabase } from "./_helpers";
 
-import type { BreakappRole } from '../service.types';
+import type { BreakappRole } from "../service.types";
 
 export async function createInviteToken(input: {
   projectId: string;
@@ -28,7 +28,7 @@ export async function createInviteToken(input: {
       expiresAt: breakappInviteTokens.expiresAt,
     });
   if (!row) {
-    throw new Error('تعذر إنشاء رمز الدعوة');
+    throw new Error("تعذر إنشاء رمز الدعوة");
   }
   return row;
 }

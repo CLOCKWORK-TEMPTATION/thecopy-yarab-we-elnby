@@ -1,4 +1,5 @@
 import React from "react";
+
 import { VoiceCoach } from "../VoiceCoach";
 
 export const VoiceCoachPage: React.FC = () => (

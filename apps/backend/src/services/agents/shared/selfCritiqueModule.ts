@@ -1,13 +1,13 @@
 /**
  * وحدة النقد الذاتي - Self-Critique Module
- * 
+ *
  * @module selfCritiqueModule
  * @description
  * وحدة متخصصة في تحسين مخرجات الوكلاء من خلال دورات النقد الذاتي.
  * يمكن استخدامها من أي وكيل لتحسين جودة النتائج بشكل تكراري.
- * 
+ *
  * مبنية على أبحاث Self-Refine و Constitutional AI
- * 
+ *
  * @example
  * ```typescript
  * const result = await selfCritiqueModule.applySelfCritique(
@@ -25,7 +25,7 @@ import { SelfCritiqueResult } from "@core/types";
 
 /**
  * فئة وحدة النقد الذاتي
- * 
+ *
  * @description
  * توفر آليات لتحسين المخرجات من خلال:
  * 1. توليد نقد للمخرج الحالي
@@ -36,11 +36,11 @@ import { SelfCritiqueResult } from "@core/types";
 export class SelfCritiqueModule {
   /**
    * تطبيق النقد الذاتي على مخرج
-   * 
+   *
    * @description
    * يقوم بتشغيل دورات متكررة من النقد والتحسين حتى الوصول
    * إلى نتيجة مرضية أو استنفاد عدد التكرارات المسموح
-   * 
+   *
    * @param output - النص المراد تحسينه
    * @param task - وصف المهمة الأصلية
    * @param context - سياق إضافي للمساعدة في التحسين
@@ -51,18 +51,20 @@ export class SelfCritiqueModule {
     output: string,
     task: string,
     context: Record<string, unknown>,
-    maxIterations = 3
+    maxIterations = 3,
   ): Promise<SelfCritiqueResult> {
     logger.info("بدء عملية النقد الذاتي", {
       maxIterations,
       outputLength: output.length,
     });
 
-    const { currentOutput, critiques, iteration } = await this.runCritiqueIterations(
-      output, task, context, maxIterations
-    );
+    const { currentOutput, critiques, iteration } =
+      await this.runCritiqueIterations(output, task, context, maxIterations);
 
-    const improvementScore = await this.calculateImprovement(output, currentOutput);
+    const improvementScore = await this.calculateImprovement(
+      output,
+      currentOutput,
+    );
 
     logger.info("اكتملت عملية النقد الذاتي", {
       improvementPercentage: (improvementScore * 100).toFixed(1),
@@ -87,8 +89,12 @@ export class SelfCritiqueModule {
     output: string,
     task: string,
     context: Record<string, unknown>,
-    maxIterations: number
-  ): Promise<{ currentOutput: string; critiques: string[]; iteration: number }> {
+    maxIterations: number,
+  ): Promise<{
+    currentOutput: string;
+    critiques: string[];
+    iteration: number;
+  }> {
     let currentOutput = output;
     const critiques: string[] = [];
     let iteration = 0;
@@ -97,16 +103,31 @@ export class SelfCritiqueModule {
       iteration = i + 1;
       logger.debug("تكرار النقد الذاتي", { iteration, maxIterations });
 
-      const critique = await this.generateCritique(currentOutput, task, context);
+      const critique = await this.generateCritique(
+        currentOutput,
+        task,
+        context,
+      );
       critiques.push(critique);
 
-      const shouldImprove = await this.needsImprovement(currentOutput, critique);
+      const shouldImprove = await this.needsImprovement(
+        currentOutput,
+        critique,
+      );
       if (!shouldImprove) {
-        logger.info("المخرج جيد بما فيه الكفاية", { iteration, totalIterations: maxIterations });
+        logger.info("المخرج جيد بما فيه الكفاية", {
+          iteration,
+          totalIterations: maxIterations,
+        });
         break;
       }
 
-      currentOutput = await this.refineOutput(currentOutput, critique, task, context);
+      currentOutput = await this.refineOutput(
+        currentOutput,
+        critique,
+        task,
+        context,
+      );
     }
 
     return { currentOutput, critiques, iteration };
@@ -114,11 +135,11 @@ export class SelfCritiqueModule {
 
   /**
    * توليد نقد للمخرج
-   * 
+   *
    * @description
    * يستخدم نموذج اللغة لتوليد تقييم نقدي شامل للمخرج
    * يشمل نقاط القوة والضعف والتحسينات المقترحة
-   * 
+   *
    * @param output - النص المراد نقده
    * @param task - وصف المهمة الأصلية
    * @param context - السياق الإضافي
@@ -127,7 +148,7 @@ export class SelfCritiqueModule {
   private async generateCritique(
     output: string,
     task: string,
-    context: Record<string, unknown>
+    context: Record<string, unknown>,
   ): Promise<string> {
     const critiquePrompt = `
 أنت ناقد محترف متخصص في المحتوى الدرامي.
@@ -164,17 +185,17 @@ ${output}
 
   /**
    * فحص إذا كان المخرج يحتاج تحسين
-   * 
+   *
    * @description
    * يحلل النقد لتحديد ما إذا كان المخرج يحتاج إلى تحسين إضافي
-   * 
+   *
    * @param output - النص الحالي
    * @param critique - النقد المولّد
    * @returns وعد بقيمة منطقية تشير إلى الحاجة للتحسين
    */
   private async needsImprovement(
     output: string,
-    critique: string
+    critique: string,
   ): Promise<boolean> {
     const checkPrompt = `
 بناءً على النقد التالي:
@@ -201,10 +222,10 @@ ${critique}
 
   /**
    * تحسين المخرج بناءً على النقد
-   * 
+   *
    * @description
    * يولّد نسخة محسّنة من المخرج بناءً على النقد والملاحظات
-   * 
+   *
    * @param output - النص الحالي
    * @param critique - النقد المولّد
    * @param task - وصف المهمة الأصلية
@@ -215,7 +236,7 @@ ${critique}
     output: string,
     critique: string,
     task: string,
-    context: Record<string, unknown>
+    context: Record<string, unknown>,
   ): Promise<string> {
     const refinementPrompt = `
 المهمة الأصلية:
@@ -252,17 +273,17 @@ ${critique}
 
   /**
    * حساب درجة التحسين
-   * 
+   *
    * @description
    * يقيس مدى التحسين بين النص الأصلي والمحسّن على مقياس من 0 إلى 1
-   * 
+   *
    * @param original - النص الأصلي
    * @param refined - النص المحسّن
    * @returns وعد بدرجة التحسين (0-1)
    */
   private async calculateImprovement(
     original: string,
-    refined: string
+    refined: string,
   ): Promise<number> {
     // مقارنة بسيطة - يمكن تحسينها بمقاييس أكثر تطوراً
     if (original === refined) return 0;

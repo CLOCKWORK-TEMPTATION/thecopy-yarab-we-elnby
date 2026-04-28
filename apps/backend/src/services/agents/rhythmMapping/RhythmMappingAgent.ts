@@ -1,4 +1,3 @@
- 
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
@@ -37,7 +36,7 @@ export class RhythmMappingAgent extends BaseAgent {
     super(
       "RhythmMapper AI",
       TaskType.RHYTHM_MAPPING,
-      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt ?? ""
+      RHYTHM_MAPPING_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.8;
@@ -68,15 +67,24 @@ export class RhythmMappingAgent extends BaseAgent {
     if (scenes.length === 0) return "";
     let section = `تفصيل المشاهد:\n`;
     scenes.slice(0, 6).forEach((scene, idx) => {
-      const desc = typeof scene === "string" ? scene : (scene.description ?? `مشهد ${idx + 1}`);
-      const len = typeof scene === "object" && scene.length ? ` (${scene.length} كلمة)` : "";
+      const desc =
+        typeof scene === "string"
+          ? scene
+          : (scene.description ?? `مشهد ${idx + 1}`);
+      const len =
+        typeof scene === "object" && scene.length
+          ? ` (${scene.length} كلمة)`
+          : "";
       section += `${idx + 1}. ${desc}${len}\n`;
     });
     return section + "\n";
   }
 
-   
-  private buildAnalysisInfo(ctx: RhythmMappingContext | undefined, genre: string, focusAspects: string[]): string {
+  private buildAnalysisInfo(
+    ctx: RhythmMappingContext | undefined,
+    genre: string,
+    focusAspects: string[],
+  ): string {
     let section = `معلومات التحليل:\n`;
     section += `- النوع الأدبي: ${genre}\n`;
     section += `- جوانب التركيز: ${focusAspects.map((aspect) => this.translateAspect(aspect)).join("، ")}\n`;
@@ -87,8 +95,10 @@ export class RhythmMappingAgent extends BaseAgent {
     return section;
   }
 
-   
-  private buildRhythmInstructions(ctx: RhythmMappingContext | undefined, genre: string): string {
+  private buildRhythmInstructions(
+    ctx: RhythmMappingContext | undefined,
+    genre: string,
+  ): string {
     const identifyPatterns = ctx?.identifyPatterns ?? true;
     const analyzeVariation = ctx?.analyzeVariation ?? true;
     const compareGenreNorms = ctx?.compareGenreNorms ?? false;
@@ -127,17 +137,25 @@ export class RhythmMappingAgent extends BaseAgent {
    - الاستمرارية والتماسك الإيقاعي
    - السلاسة الزمنية والمكانية
 
-${identifyPatterns ? `6. **الأنماط الإيقاعية**:
+${
+  identifyPatterns
+    ? `6. **الأنماط الإيقاعية**:
    - الدورات المتكررة (إن وجدت)
    - البنى الإيقاعية (مثل: بطيء-سريع-بطيء)
    - التناوب والتبادل
-   - التوازي والتماثل` : ""}
+   - التوازي والتماثل`
+    : ""
+}
 
-${analyzeVariation ? `7. **التنوع والديناميكية**:
+${
+  analyzeVariation
+    ? `7. **التنوع والديناميكية**:
    - مدى تنوع الإيقاع
    - تجنب الرتابة والملل
    - التباين بين الأقسام
-   - المفاجآت الإيقاعية` : ""}
+   - المفاجآت الإيقاعية`
+    : ""
+}
 
 8. **البنية الإيقاعية الكلية**:
    - القوس الإيقاعي للنص بأكمله
@@ -145,17 +163,25 @@ ${analyzeVariation ? `7. **التنوع والديناميكية**:
    - نقاط التحول الإيقاعية الكبرى
    - التصاعد والهبوط العام
 
-${compareGenreNorms ? `9. **المقارنة بمعايير النوع**:
+${
+  compareGenreNorms
+    ? `9. **المقارنة بمعايير النوع**:
    - كيف يقارن الإيقاع بما هو معتاد في نوع ${genre}
    - الانحرافات الإيجابية أو السلبية
-   - مدى تلبية توقعات القراء` : ""}
+   - مدى تلبية توقعات القراء`
+    : ""
+}
 
-${provideOptimization ? `10. **التحسينات المقترحة**:
+${
+  provideOptimization
+    ? `10. **التحسينات المقترحة**:
    - مواضع تحتاج تسريع
    - مواضع تحتاج إبطاء
    - فرص لتحسين التدفق
    - اقتراحات لزيادة التنوع
-   - تعديلات على البنية الإيقاعية` : ""}
+   - تعديلات على البنية الإيقاعية`
+    : ""
+}
 
 11. **الرسم البياني الوصفي**:
     وصف نصي لمنحنى الإيقاع عبر النص:
@@ -174,14 +200,13 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
   }
 
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     const processedText = this.cleanupRhythmText(output.text);
 
     const analysisComprehensiveness =
       this.assessAnalysisComprehensiveness(processedText);
-    const technicalPrecision =
-      this.assessTechnicalPrecision(processedText);
+    const technicalPrecision = this.assessTechnicalPrecision(processedText);
     const practicalInsight = this.assessPracticalInsight(processedText);
     const evidenceQuality = this.assessEvidenceQuality(processedText);
 
@@ -202,7 +227,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
         analysisComprehensiveness,
         technicalPrecision,
         practicalInsight,
-        evidenceQuality
+        evidenceQuality,
       ),
       metadata: {
         ...output.metadata,
@@ -354,12 +379,18 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     comprehensiveness: number,
     precision: number,
     insight: number,
-    evidence: number
+    evidence: number,
   ): string[] {
     const notes: string[] = [];
     const avg = (comprehensiveness + precision + insight + evidence) / 4;
     notes.push(this.overallRhythmNote(avg));
-    this.addRhythmStrengthNotes(notes, comprehensiveness, precision, insight, evidence);
+    this.addRhythmStrengthNotes(
+      notes,
+      comprehensiveness,
+      precision,
+      insight,
+      evidence,
+    );
     this.addRhythmWeaknessNotes(notes, comprehensiveness, precision, insight);
     if (output.notes) notes.push(...output.notes);
     return notes;
@@ -371,14 +402,25 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
     return "يحتاج عمق أكبر";
   }
 
-  private addRhythmStrengthNotes(notes: string[], c: number, p: number, i: number, e: number): void {
+  private addRhythmStrengthNotes(
+    notes: string[],
+    c: number,
+    p: number,
+    i: number,
+    e: number,
+  ): void {
     if (c > 0.8) notes.push("شمولية عالية");
     if (p > 0.75) notes.push("دقة تقنية جيدة");
     if (i > 0.75) notes.push("رؤى عملية ثاقبة");
     if (e > 0.75) notes.push("أدلة نصية جيدة");
   }
 
-  private addRhythmWeaknessNotes(notes: string[], c: number, p: number, i: number): void {
+  private addRhythmWeaknessNotes(
+    notes: string[],
+    c: number,
+    p: number,
+    i: number,
+  ): void {
     if (c < 0.6) notes.push("يحتاج تغطية أوسع");
     if (p < 0.5) notes.push("يحتاج دقة تقنية أكبر");
     if (i < 0.6) notes.push("يحتاج مزيد من التوصيات");
@@ -398,7 +440,7 @@ ${provideOptimization ? `10. **التحسينات المقترحة**:
   }
 
   protected override getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     return Promise.resolve(`نظرة عامة على الإيقاع:
 النص يتبع إيقاعاً متوسط السرعة مع تنوع معتدل بين المشاهد السريعة والبطيئة.

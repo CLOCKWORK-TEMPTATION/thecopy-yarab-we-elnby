@@ -6,7 +6,8 @@ const prettier = require("eslint-config-prettier");
 const globals = require("globals");
 const tseslint = require("typescript-eslint");
 
-const typecheckProject = process.env.ESLINT_CONTRACT_TSCONFIG ?? "./tsconfig.check.json";
+const typecheckProject =
+  process.env.ESLINT_CONTRACT_TSCONFIG ?? "./tsconfig.check.json";
 
 const mechanicalContractRules = {
   "@typescript-eslint/no-explicit-any": "error",
@@ -20,7 +21,7 @@ const mechanicalContractRules = {
   "@typescript-eslint/no-unsafe-call": "error",
   "@typescript-eslint/no-unsafe-member-access": "error",
   "@typescript-eslint/no-unsafe-return": "error",
-  "complexity": ["error", { max: 20 }],
+  complexity: ["error", { max: 20 }],
   "import/no-unresolved": "error",
   "max-depth": ["error", 4],
   "max-lines": [
@@ -140,17 +141,14 @@ module.exports = tseslint.config(
         "error",
         {
           selector: "ExportDefaultDeclaration",
-          message: "Default exports are not allowed. Use named exports instead.",
+          message:
+            "Default exports are not allowed. Use named exports instead.",
         },
       ],
     },
   },
   {
-    files: [
-      "**/*.{test,spec}.ts",
-      "**/__tests__/**/*.ts",
-      "src/test/**/*.ts",
-    ],
+    files: ["**/*.{test,spec}.ts", "**/__tests__/**/*.ts", "src/test/**/*.ts"],
     plugins: {
       vitest,
     },

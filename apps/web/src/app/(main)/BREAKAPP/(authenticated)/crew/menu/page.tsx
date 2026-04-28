@@ -299,10 +299,14 @@ export default function CrewMenuPage() {
 
         {/* إدخال معرّف الجلسة */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <label className="block text-sm font-medium text-white mb-2 font-cairo">
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
             معرّف الجلسة (من المخرج)
           </label>
           <input
+            id="field-page-1"
             type="text"
             value={sessionId}
             onChange={handleSessionIdChange}
@@ -326,11 +330,7 @@ export default function CrewMenuPage() {
                 <button
                   key={vendor.id}
                   onClick={() => fetchMenu(vendor.id)}
-                  className={`p-4 border rounded-[22px] text-right hover:bg-white/8 transition-all ${
-                    selectedVendor === vendor.id
-                      ? "border-white/20 bg-white/8"
-                      : "border-white/8"
-                  }`}
+                  className={`p-4 border rounded-[22px] text-right hover:bg-white/8 transition-all ${selectedVendor === vendor.id ? "border-white/20 bg-white/8" : "border-white/8"}`}
                 >
                   <h3 className="font-semibold text-white font-cairo">
                     {vendor.name}

@@ -1,4 +1,4 @@
-import { GeminiService, GeminiModel } from "../../gemini-service";
+import { GeminiModel, GeminiService } from "../gemini-service";
 
 import { SymbolicAnalysis, Symbol, Motif } from "./types";
 import {
@@ -56,16 +56,16 @@ export class SymbolicAnalysisEngine {
       const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
 
       return {
-        keySymbols: asArray<Symbol>(analysis.keySymbols),
-        recurringMotifs: asArray<Motif>(analysis.recurring_motifs),
+        keySymbols: asArray<Symbol>(analysis["keySymbols"]),
+        recurringMotifs: asArray<Motif>(analysis["recurring_motifs"]),
         centralThemesHintedBySymbols: asStringArray(
-          analysis.central_themes_hinted_by_symbols
+          analysis["central_themes_hinted_by_symbols"]
         ),
         symbolicNetworks: asArray<SymbolicAnalysis["symbolicNetworks"][number]>(
-          analysis.symbolic_networks
+          analysis["symbolic_networks"]
         ),
-        depthScore: asNumber(analysis.depth_score, 5),
-        consistencyScore: asNumber(analysis.consistency_score, 5),
+        depthScore: asNumber(analysis["depth_score"], 5),
+        consistencyScore: asNumber(analysis["consistency_score"], 5),
       };
     } catch (error) {
       console.error("Error in symbolic analysis:", error);

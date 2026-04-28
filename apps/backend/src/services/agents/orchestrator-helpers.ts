@@ -3,12 +3,12 @@
  * Extracted from orchestrator.ts to reduce file size
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { TaskType } from './core/enums';
-import { StandardAgentInput, StandardAgentOutput } from './core/types';
-import { agentRegistry } from './registry';
-import { BaseAgent } from './shared/BaseAgent';
+import { TaskType } from "./core/enums";
+import { StandardAgentInput, StandardAgentOutput } from "./core/types";
+import { agentRegistry } from "./registry";
+import { BaseAgent } from "./shared/BaseAgent";
 
 /**
  * Execute agents in parallel
@@ -17,7 +17,7 @@ export async function executeAgentsInParallel(
   fullText: string,
   taskTypes: TaskType[],
   context: Record<string, unknown> | undefined,
-  results: Map<TaskType, StandardAgentOutput>
+  results: Map<TaskType, StandardAgentOutput>,
 ): Promise<void> {
   const promises = taskTypes.map(async (taskType) => {
     const agent = agentRegistry.getAgent(taskType);
@@ -44,9 +44,11 @@ export async function executeAgentsInParallel(
     } catch (error) {
       logger.error(`Agent execution failed for ${taskType}:`, error);
       results.set(taskType, {
-        text: 'فشل في تنفيذ التحليل',
+        text: "فشل في تنفيذ التحليل",
         confidence: 0,
-        notes: [`خطأ: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`],
+        notes: [
+          `خطأ: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
+        ],
       });
     }
   });
@@ -61,7 +63,7 @@ export async function executeAgentsSequentially(
   fullText: string,
   taskTypes: TaskType[],
   context: Record<string, unknown> | undefined,
-  results: Map<TaskType, StandardAgentOutput>
+  results: Map<TaskType, StandardAgentOutput>,
 ): Promise<void> {
   for (const taskType of taskTypes) {
     const agent = agentRegistry.getAgent(taskType);
@@ -90,14 +92,16 @@ export async function executeAgentsSequentially(
       results.set(taskType, output);
 
       logger.info(
-        `Agent ${taskType} completed with confidence: ${output.confidence}`
+        `Agent ${taskType} completed with confidence: ${output.confidence}`,
       );
     } catch (error) {
       logger.error(`Agent execution failed for ${taskType}:`, error);
       results.set(taskType, {
-        text: 'فشل في تنفيذ التحليل',
+        text: "فشل في تنفيذ التحليل",
         confidence: 0,
-        notes: [`خطأ: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`],
+        notes: [
+          `خطأ: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
+        ],
       });
     }
   }
@@ -109,7 +113,7 @@ export async function executeAgentsSequentially(
 export function getDebateAgents(taskTypes?: TaskType[]): BaseAgent[] {
   if (taskTypes && taskTypes.length > 0) {
     return taskTypes
-      .map(taskType => agentRegistry.getAgent(taskType))
+      .map((taskType) => agentRegistry.getAgent(taskType))
       .filter((agent): agent is BaseAgent => agent !== undefined);
   }
 
@@ -121,7 +125,7 @@ export function getDebateAgents(taskTypes?: TaskType[]): BaseAgent[] {
  * Get recommended agent task types for a project type
  */
 export function getRecommendedAgentTypes(
-  projectType: 'film' | 'series' | 'stage'
+  projectType: "film" | "series" | "stage",
 ): TaskType[] {
   const commonAgents = [
     TaskType.CHARACTER_DEEP_ANALYZER,
@@ -130,24 +134,21 @@ export function getRecommendedAgentTypes(
   ];
 
   switch (projectType) {
-    case 'film':
+    case "film":
       return [
         ...commonAgents,
         TaskType.VISUAL_CINEMATIC_ANALYZER,
         TaskType.PRODUCIBILITY_ANALYZER,
         TaskType.TARGET_AUDIENCE_ANALYZER,
       ];
-    case 'series':
+    case "series":
       return [
         ...commonAgents,
         TaskType.CULTURAL_HISTORICAL_ANALYZER,
         TaskType.TARGET_AUDIENCE_ANALYZER,
       ];
-    case 'stage':
-      return [
-        ...commonAgents,
-        TaskType.CULTURAL_HISTORICAL_ANALYZER,
-      ];
+    case "stage":
+      return [...commonAgents, TaskType.CULTURAL_HISTORICAL_ANALYZER];
     default:
       return commonAgents;
   }

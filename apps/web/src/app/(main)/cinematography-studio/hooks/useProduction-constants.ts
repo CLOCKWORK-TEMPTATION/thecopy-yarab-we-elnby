@@ -5,7 +5,7 @@ import type {
   AssistantState,
   TechnicalSettings,
 } from "./useProduction-types";
-import type { VisualMood } from "../../types";
+import type { VisualMood } from "../types";
 
 /**
  * الحالة الابتدائية للتحليل

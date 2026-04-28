@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const producibilityAnalyzerInstructions = `
 تحليل قابلية الإنتاج والتنفيذ:
@@ -46,6 +46,6 @@ export const producibilityAnalyzerAgentConfig: AIAgentConfig = {
     "تقييم التعقيد التقني",
     "تقدير متطلبات الإنتاج",
     "تحليل التكاليف المحتملة",
-    "اقتراح حلول الإنتاج"
-  ]
+    "اقتراح حلول الإنتاج",
+  ],
 };

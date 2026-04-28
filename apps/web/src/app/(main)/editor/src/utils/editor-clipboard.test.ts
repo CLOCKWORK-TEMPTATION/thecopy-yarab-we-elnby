@@ -6,6 +6,14 @@ import {
 
 import type { Editor } from "@tiptap/core";
 
+interface MockCallTracker {
+  mock: {
+    calls: unknown[][];
+  };
+}
+
+const editorChainMocks = new WeakMap<Editor, MockCallTracker>();
+
 const setClipboard = (clipboard: Partial<Clipboard>): void => {
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
@@ -23,7 +31,13 @@ const createEditor = (options?: {
   const selectedText = options?.selectedText ?? "كلمة محددة";
   const deleteResult = options?.deleteResult ?? true;
 
-  return {
+  const chainMock = vi.fn(() => ({
+    focus: vi.fn().mockReturnThis(),
+    deleteSelection: vi.fn().mockReturnThis(),
+    run: vi.fn(() => deleteResult),
+  }));
+
+  const editor = {
     state: {
       selection: {
         empty: emptySelection,
@@ -36,12 +50,11 @@ const createEditor = (options?: {
     },
     getText: vi.fn(() => options?.text ?? "نص كامل"),
     getHTML: vi.fn(() => '<div data-type="action">نص كامل</div>'),
-    chain: vi.fn(() => ({
-      focus: vi.fn().mockReturnThis(),
-      deleteSelection: vi.fn().mockReturnThis(),
-      run: vi.fn(() => deleteResult),
-    })),
+    chain: chainMock,
   } as unknown as Editor;
+
+  editorChainMocks.set(editor, chainMock);
+  return editor;
 };
 
 describe("editor clipboard helpers", () => {
@@ -74,7 +87,12 @@ describe("editor clipboard helpers", () => {
 
     expect(result.ok).toBe(true);
     expect(result.status).toBe("success");
-    expect(editor.chain).toHaveBeenCalled();
+    const chainMock = editorChainMocks.get(editor);
+    expect(chainMock).toBeDefined();
+    if (!chainMock) {
+      throw new Error("Editor chain mock was not registered");
+    }
+    expect(chainMock.mock.calls.length).toBeGreaterThan(0);
   });
 
   it("pastes plain text through the import callback", async () => {

@@ -383,7 +383,7 @@ export class TerminologyTranslator implements Plugin {
 
   private searchTermsInternal(
     query: string,
-    language: "en" | "ar"
+    language: "en" | "ar",
   ): CinemaTerm[] {
     const queryLower = query.toLowerCase();
 

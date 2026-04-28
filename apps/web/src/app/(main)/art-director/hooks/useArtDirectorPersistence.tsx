@@ -37,7 +37,7 @@ export interface ArtDirectorInspirationState {
   sceneDescription: string;
   mood: string;
   era: string;
-  result: unknown | null;
+  result: unknown;
   palettes: unknown[];
 }
 

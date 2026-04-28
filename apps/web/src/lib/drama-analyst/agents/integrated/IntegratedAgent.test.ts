@@ -270,12 +270,7 @@ describe("IntegratedAgent", () => {
         new Error("Test error")
       );
 
-      try {
-        await agent.executeTask(input);
-      } catch (error) {
-        // Should be caught by BaseAgent
-        expect(error).toBeDefined();
-      }
+      await expect(agent.executeTask(input)).rejects.toBeDefined();
     });
   });
 
@@ -369,10 +364,7 @@ describe("IntegratedAgent", () => {
       const result = await agent.executeTask(input);
       expect(result).toBeDefined();
       expect(result.metadata).toBeDefined();
-      // Should have balance assessment in metadata
-      if (result.metadata) {
-        expect(result.metadata.balanceQuality).toBeDefined();
-      }
+      expect(result.metadata?.["balanceQuality"]).toBeDefined();
     });
   });
 

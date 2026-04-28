@@ -76,7 +76,7 @@ function argString(parsed: ParsedArgs, name: string, fallback: string): string {
 
 function argOptionalString(
   parsed: ParsedArgs,
-  name: string
+  name: string,
 ): string | undefined {
   const v = parsed[name];
   if (typeof v === "string" && v.trim()) {
@@ -107,41 +107,39 @@ function buildLlmConfig(args: ParsedArgs): LLMConfig {
       1,
       toNumberInt(
         argOptionalString(args, "llm-max-iterations"),
-        DEFAULT_LLM_MAX_ITERATIONS
-      )
+        DEFAULT_LLM_MAX_ITERATIONS,
+      ),
     ),
     targetMatch: clamp(
       toNumberFloat(
         argOptionalString(args, "llm-target-match"),
-        DEFAULT_LLM_TARGET_MATCH
+        DEFAULT_LLM_TARGET_MATCH,
       ),
       0,
-      100
+      100,
     ),
     diffPreviewLines: Math.max(
       1,
       toNumberInt(
         argOptionalString(args, "llm-diff-preview-lines"),
-        DEFAULT_DIFF_PREVIEW_LINES
-      )
+        DEFAULT_DIFF_PREVIEW_LINES,
+      ),
     ),
   };
 }
 
 function readMistralTableFormat(
-  args: ParsedArgs
+  args: ParsedArgs,
 ): MistralOCRConfig["tableFormat"] {
   const tableRaw = (
     argOptionalString(args, "mistral-table-format") ??
-    process.env['MISTRAL_OCR_TABLE_FORMAT'] ??
+    process.env["MISTRAL_OCR_TABLE_FORMAT"] ??
     ""
   )
     .trim()
     .toLowerCase();
   const tableFormat =
-    tableRaw === "markdown" || tableRaw === "html"
-      ? (tableRaw)
-      : undefined;
+    tableRaw === "markdown" || tableRaw === "html" ? tableRaw : undefined;
   return tableFormat;
 }
 
@@ -150,8 +148,8 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
     model: argString(
       args,
       "mistral-ocr-model",
-      (process.env['MISTRAL_OCR_MODEL'] ?? DEFAULT_MISTRAL_OCR_MODEL).trim() ||
-        DEFAULT_MISTRAL_OCR_MODEL
+      (process.env["MISTRAL_OCR_MODEL"] ?? DEFAULT_MISTRAL_OCR_MODEL).trim() ||
+        DEFAULT_MISTRAL_OCR_MODEL,
     ),
     useDocumentInput: !argBool(args, "mistral-disable-document-input"),
     useBatchOCR: argBool(args, "mistral-use-batch"),
@@ -159,27 +157,30 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
       5,
       toNumberInt(
         argOptionalString(args, "mistral-batch-timeout-sec") ??
-          process.env['MISTRAL_BATCH_TIMEOUT_SEC'],
-        300
-      )
+          process.env["MISTRAL_BATCH_TIMEOUT_SEC"],
+        300,
+      ),
     ),
     batchPollIntervalSec: Math.max(
       0.5,
       toNumberFloat(
         argOptionalString(args, "mistral-batch-poll-interval-sec") ??
-          process.env['MISTRAL_BATCH_POLL_INTERVAL_SEC'],
-        3
-      )
+          process.env["MISTRAL_BATCH_POLL_INTERVAL_SEC"],
+        3,
+      ),
     ),
     annotationSchemaPath:
       argOptionalString(args, "mistral-annotation-schema") ??
-      (process.env['MISTRAL_ANNOTATION_SCHEMA_PATH']?.trim() ?? undefined),
+      process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ??
+      undefined,
     annotationPrompt:
       argOptionalString(args, "mistral-annotation-prompt") ??
-      (process.env['MISTRAL_ANNOTATION_PROMPT']?.trim() ?? undefined),
+      process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() ??
+      undefined,
     annotationOutputPath:
       argOptionalString(args, "mistral-annotation-output") ??
-      (process.env['MISTRAL_ANNOTATION_OUTPUT_PATH']?.trim() ?? undefined),
+      process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ??
+      undefined,
     annotationStrict: !argBool(args, "mistral-annotation-non-strict"),
     tableFormat: readMistralTableFormat(args),
     extractHeader: argBool(args, "mistral-extract-header"),
@@ -188,7 +189,7 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
   };
   if (mistral.model !== DEFAULT_MISTRAL_OCR_MODEL) {
     throw new Error(
-      `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${mistral.model}`
+      `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${mistral.model}`,
     );
   }
   return mistral;
@@ -200,31 +201,31 @@ function buildPreOcrConfig(args: ParsedArgs): PreOCRConfig {
     lang: argString(
       args,
       "pre-ocr-lang",
-      (process.env['PRE_OCR_LANG'] ?? DEFAULT_PRE_OCR_LANG).trim() ||
-        DEFAULT_PRE_OCR_LANG
+      (process.env["PRE_OCR_LANG"] ?? DEFAULT_PRE_OCR_LANG).trim() ||
+        DEFAULT_PRE_OCR_LANG,
     ),
     matchThreshold: clamp(
       toNumberFloat(
         argOptionalString(args, "pre-ocr-match-threshold"),
-        DEFAULT_MATCH_THRESHOLD
+        DEFAULT_MATCH_THRESHOLD,
       ),
       0,
-      1
+      1,
     ),
     fullpageFallbackRatio: clamp(
       toNumberFloat(
         argOptionalString(args, "pre-ocr-fullpage-fallback-ratio"),
-        DEFAULT_FULLPAGE_FALLBACK_RATIO
+        DEFAULT_FULLPAGE_FALLBACK_RATIO,
       ),
       0,
-      1
+      1,
     ),
     regionPaddingPx: Math.max(
       0,
       toNumberInt(
         argOptionalString(args, "pre-ocr-region-padding-px"),
-        DEFAULT_REGION_PADDING_PX
-      )
+        DEFAULT_REGION_PADDING_PX,
+      ),
     ),
   };
 }

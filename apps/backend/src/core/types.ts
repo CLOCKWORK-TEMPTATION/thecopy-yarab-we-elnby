@@ -1,4 +1,9 @@
-export { TaskType, TaskCategory, AgentType, TaskStatus } from "../services/agents/core/enums";
+export {
+  TaskType,
+  TaskCategory,
+  AgentType,
+  TaskStatus,
+} from "../services/agents/core/enums";
 export type {
   AIAgentCapabilities,
   AIAgentConfig,

@@ -39,7 +39,9 @@ describe("ThemesMessagesAnalyzerAgent", () => {
       input: "حلل الموضوعات والرسائل",
     });
 
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("تحليل الموضوعات والرسائل");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "تحليل الموضوعات والرسائل",
+    );
     expect(result.text).toContain("تحليل الموضوعات");
     expect(result.confidence).toBe(0.77);
     expect(result.metadata?.timestamp).toBeDefined();

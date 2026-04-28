@@ -1,7 +1,7 @@
 "use client";
 
 import { Play, Clock, Heart, MoreHorizontal } from "lucide-react";
-import React from "react";
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
@@ -44,10 +44,13 @@ export function ShotCard({
         }}
       >
         <div className="relative w-24 h-16 rounded overflow-hidden flex-shrink-0">
-          <img
+          <Image
             src={shot.thumbnail}
             alt={shot.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="96px"
+            unoptimized
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
             <Play className="w-6 h-6 text-white" />
@@ -103,10 +106,13 @@ export function ShotCard({
       }}
     >
       <div className="relative aspect-video">
-        <img
+        <Image
           src={shot.thumbnail}
           alt={shot.title}
-          className="w-full h-full object-cover"
+          fill
+          sizes="320px"
+          unoptimized
+          className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

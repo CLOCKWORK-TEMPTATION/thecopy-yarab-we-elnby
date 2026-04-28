@@ -1,10 +1,16 @@
-import { estimateScenePageCount, validateSceneHeader } from './utils';
+import { estimateScenePageCount, validateSceneHeader } from "./utils";
 
-import type { ParsedScene, ParsedScreenplay, SceneHeader, SceneType, TimeOfDay } from './types';
+import type {
+  ParsedScene,
+  ParsedScreenplay,
+  SceneHeader,
+  SceneType,
+  TimeOfDay,
+} from "./types";
 
-const ENGLISH_SCENE_HEADING_PATTERN =
-  /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s+/i;
-const ARABIC_SCENE_HEADING_PATTERN = /^(?:مشهد(?:\s+(?:داخلي|خارجي))?|م)(?:\s|\.|$)/i;
+const ENGLISH_SCENE_HEADING_PATTERN = /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s+/i;
+const ARABIC_SCENE_HEADING_PATTERN =
+  /^(?:مشهد(?:\s+(?:داخلي|خارجي))?|م)(?:\s|\.|$)/i;
 const LOCATION_PREFIX_PATTERN = /^(?:موقع|مكان|المكان|المنطقة)\s*:\s*/;
 const HEADER_METADATA_PATTERN =
   /^(?:داخلي|خارجي|ليل|نهار|صباح|مساء|فجر|مغرب|day|night|dawn|dusk|morning|evening|location|موقع|مكان|INT|EXT)/i;
@@ -15,7 +21,7 @@ const CHARACTER_PATTERN = /^.{1,40}\s*:\s*$/;
 const ACTION_PREFIX_PATTERN = /^[-–—(]/;
 
 function normalizeLine(line: string): string {
-  return line.replace(/\u00A0/g, ' ').trim();
+  return line.replace(/\u00A0/g, " ").trim();
 }
 
 function looksLikeSceneHeading(line: string): boolean {
@@ -44,7 +50,10 @@ function isNonHeaderLine(trimmed: string): boolean {
   );
 }
 
-function isStructuredContinuation(trimmed: string, currentHeader: string): boolean {
+function isStructuredContinuation(
+  trimmed: string,
+  currentHeader: string,
+): boolean {
   const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
   const currentLooksStructured =
     /^(?:مشهد|م)\s*\d+/i.test(currentHeader) ||
@@ -60,7 +69,10 @@ function isStructuredContinuation(trimmed: string, currentHeader: string): boole
   );
 }
 
-function looksLikeHeaderContinuation(line: string, currentHeader: string): boolean {
+function looksLikeHeaderContinuation(
+  line: string,
+  currentHeader: string,
+): boolean {
   const trimmed = normalizeLine(line);
 
   if (!trimmed || looksLikeSceneHeading(trimmed)) {
@@ -80,38 +92,38 @@ function looksLikeHeaderContinuation(line: string, currentHeader: string): boole
 
 function inferSceneType(header: string): SceneType {
   if (/(?:^|\s)(?:EXT|خارجي)/i.test(header)) {
-    return 'EXT';
+    return "EXT";
   }
 
-  return 'INT';
+  return "INT";
 }
 
 function inferTimeOfDay(header: string): TimeOfDay {
   if (/(?:ليل|night)/i.test(header)) {
-    return 'NIGHT';
+    return "NIGHT";
   }
 
   if (/(?:فجر|dawn|شروق)/i.test(header)) {
-    return 'DAWN';
+    return "DAWN";
   }
 
   if (/(?:غروب|dusk|مغرب)/i.test(header)) {
-    return 'DUSK';
+    return "DUSK";
   }
 
   if (/(?:صباح|morning)/i.test(header)) {
-    return 'MORNING';
+    return "MORNING";
   }
 
   if (/(?:مساء|evening)/i.test(header)) {
-    return 'EVENING';
+    return "EVENING";
   }
 
   if (/(?:نهار|day)/i.test(header)) {
-    return 'DAY';
+    return "DAY";
   }
 
-  return 'UNKNOWN';
+  return "UNKNOWN";
 }
 
 function inferStoryDay(header: string): number {
@@ -145,25 +157,34 @@ function inferSceneNumber(header: string, fallback: number): number {
 function inferLocation(header: string): string {
   const normalizedHeader = normalizeLine(header);
 
-  const englishMatch = /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s*([^-|]+)/i.exec(normalizedHeader);
+  const englishMatch = /^(?:INT|EXT|INT\/EXT|I\/E|EST)\.?\s*([^-|]+)/i.exec(
+    normalizedHeader,
+  );
   if (englishMatch?.[1]) {
     return englishMatch[1].trim();
   }
 
-  const arabicMatch = /^(?:مشهد(?:\s+(?:داخلي|خارجي))?\.?\s*)?(.+?)(?:\s*[-–—]\s*(?:ليل|نهار|فجر|مغرب|day|night|dawn|dusk|morning|evening).*)?$/i.exec(normalizedHeader);
+  const arabicMatch =
+    /^(?:مشهد(?:\s+(?:داخلي|خارجي))?\.?\s*)?(.+?)(?:\s*[-–—]\s*(?:ليل|نهار|فجر|مغرب|day|night|dawn|dusk|morning|evening).*)?$/i.exec(
+      normalizedHeader,
+    );
   if (arabicMatch?.[1]) {
     const candidate = arabicMatch[1]
-      .replace(/^(?:داخلي|خارجي)\.?\s*/i, '')
+      .replace(/^(?:داخلي|خارجي)\.?\s*/i, "")
       .trim();
     if (candidate) {
       return candidate;
     }
   }
 
-  return 'موقع غير محدد';
+  return "موقع غير محدد";
 }
 
-function buildHeaderData(header: string, content: string, sceneNumber: number): SceneHeader {
+function buildHeaderData(
+  header: string,
+  content: string,
+  sceneNumber: number,
+): SceneHeader {
   const sceneHeader: SceneHeader = {
     sceneNumber: inferSceneNumber(header, sceneNumber),
     sceneType: inferSceneType(header),
@@ -175,7 +196,7 @@ function buildHeaderData(header: string, content: string, sceneNumber: number): 
   };
 
   const errors = validateSceneHeader(sceneHeader);
-  if (errors.length > 0 && sceneHeader.location === 'موقع غير محدد') {
+  if (errors.length > 0 && sceneHeader.location === "موقع غير محدد") {
     sceneHeader.location = `مشهد ${sceneHeader.sceneNumber}`;
   }
 
@@ -185,10 +206,10 @@ function buildHeaderData(header: string, content: string, sceneNumber: number): 
 function buildScene(
   headerLines: string[],
   contentLines: string[],
-  fallbackSceneNumber: number
+  fallbackSceneNumber: number,
 ): ParsedScene | null {
-  const header = headerLines.map(normalizeLine).filter(Boolean).join(' | ');
-  const content = contentLines.join('\n').trim();
+  const header = headerLines.map(normalizeLine).filter(Boolean).join(" | ");
+  const content = contentLines.join("\n").trim();
 
   if (!header || !content) {
     return null;
@@ -209,7 +230,7 @@ function flushScene(
   headerLines: string[],
   contentLines: string[],
   scenes: ParsedScene[],
-  warnings: string[]
+  warnings: string[],
 ): void {
   const scene = buildScene(headerLines, contentLines, scenes.length + 1);
   if (scene) {
@@ -238,9 +259,12 @@ function processHeadingLine(context: HeadingProcessContext): number {
   state.started = true;
 
   const nextLine = lines[index + 1];
-  const normalizedNextLine = nextLine ? normalizeLine(nextLine) : '';
+  const normalizedNextLine = nextLine ? normalizeLine(nextLine) : "";
 
-  if (normalizedNextLine && looksLikeHeaderContinuation(normalizedNextLine, trimmed)) {
+  if (
+    normalizedNextLine &&
+    looksLikeHeaderContinuation(normalizedNextLine, trimmed)
+  ) {
     state.headerLines.push(normalizedNextLine);
     return index + 1;
   }
@@ -250,19 +274,30 @@ function processHeadingLine(context: HeadingProcessContext): number {
 
 export function parseScreenplay(
   scriptText: string,
-  title = 'مشروع تفكيك سينمائي'
+  title = "مشروع تفكيك سينمائي",
 ): ParsedScreenplay {
   const lines = scriptText.split(/\r?\n/);
   const scenes: ParsedScene[] = [];
   const warnings: string[] = [];
-  const state = { headerLines: [] as string[], contentLines: [] as string[], started: false };
+  const state = {
+    headerLines: [] as string[],
+    contentLines: [] as string[],
+    started: false,
+  };
 
   for (let index = 0; index < lines.length; index += 1) {
-    const rawLine = lines[index] ?? '';
+    const rawLine = lines[index] ?? "";
     const trimmed = normalizeLine(rawLine);
 
     if (looksLikeSceneHeading(trimmed)) {
-      index = processHeadingLine({ trimmed, lines, index, state, scenes, warnings });
+      index = processHeadingLine({
+        trimmed,
+        lines,
+        index,
+        state,
+        scenes,
+        warnings,
+      });
       continue;
     }
 
@@ -278,7 +313,10 @@ export function parseScreenplay(
   return {
     title,
     scenes,
-    totalPages: scenes.reduce((sum, scene) => sum + scene.headerData.pageCount, 0),
+    totalPages: scenes.reduce(
+      (sum, scene) => sum + scene.headerData.pageCount,
+      0,
+    ),
     warnings,
   };
 }

@@ -23,7 +23,7 @@ export class MRLOptimizer {
    */
   getOptimalDimension(
     contentType: "code" | "documentation" | "decision" | "architecture",
-    priority: "precision" | "balanced" | "storage" = "balanced"
+    priority: "precision" | "balanced" | "storage" = "balanced",
   ): DimensionSize {
     if (priority === "precision") return this.config.highPrecisionTasks;
     if (priority === "storage") return this.config.storageOptimized;
@@ -47,7 +47,7 @@ export class MRLOptimizer {
    */
   truncateEmbedding(
     embedding: number[],
-    targetDimension: DimensionSize
+    targetDimension: DimensionSize,
   ): number[] {
     if (embedding.length <= targetDimension) {
       return embedding;
@@ -61,7 +61,7 @@ export class MRLOptimizer {
   calculateStorageSavings(
     originalDimension: 3072,
     targetDimension: DimensionSize,
-    documentCount: number
+    documentCount: number,
   ): { savedBytes: number; percentage: number } {
     const bytesPerFloat = 4;
     const originalSize = originalDimension * bytesPerFloat * documentCount;
@@ -83,7 +83,12 @@ export class MRLOptimizer {
     precisionRequirement: "critical" | "standard" | "flexible";
     storageBudgetMB?: number;
   }): DimensionSize {
-    const { expectedDocumentCount, queryFrequency, precisionRequirement, storageBudgetMB } = context;
+    const {
+      expectedDocumentCount,
+      queryFrequency,
+      precisionRequirement,
+      storageBudgetMB,
+    } = context;
 
     // Calculate storage for each dimension
     const storage3072 = this.calculateStorage(3072, expectedDocumentCount);
@@ -91,7 +96,10 @@ export class MRLOptimizer {
 
     // If storage budget is tight
     if (storageBudgetMB && storage3072 > storageBudgetMB) {
-      if (storage1536 <= storageBudgetMB && precisionRequirement !== "critical") {
+      if (
+        storage1536 <= storageBudgetMB &&
+        precisionRequirement !== "critical"
+      ) {
         return 1536;
       }
       return 768;
@@ -112,7 +120,8 @@ export class MRLOptimizer {
   private calculateStorage(dimension: number, documentCount: number): number {
     const bytesPerFloat = 4;
     const metadataOverhead = 200;
-    const totalBytes = (dimension * bytesPerFloat + metadataOverhead) * documentCount;
+    const totalBytes =
+      (dimension * bytesPerFloat + metadataOverhead) * documentCount;
     return totalBytes / (1024 * 1024);
   }
 }

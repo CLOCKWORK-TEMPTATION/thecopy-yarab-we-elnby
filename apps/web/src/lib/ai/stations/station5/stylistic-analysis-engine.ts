@@ -1,4 +1,4 @@
-import { GeminiService, GeminiModel } from "../../gemini-service";
+import { GeminiModel, GeminiService } from "../gemini-service";
 
 import { StylisticAnalysis } from "./types";
 import {
@@ -53,63 +53,68 @@ export class StylisticAnalysisEngine {
       });
 
       const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
-      const toneAssessment = asJsonRecord(analysis.overall_tone_assessment);
-      const languageComplexity = asJsonRecord(analysis.language_complexity);
-      const pacingImpression = asJsonRecord(analysis.pacing_impression);
-      const descriptiveRichness = asJsonRecord(analysis.descriptive_richness);
+      const toneAssessment = asJsonRecord(analysis["overall_tone_assessment"]);
+      const languageComplexity = asJsonRecord(analysis["language_complexity"]);
+      const pacingImpression = asJsonRecord(analysis["pacing_impression"]);
+      const descriptiveRichness = asJsonRecord(
+        analysis["descriptive_richness"]
+      );
 
       return {
         toneAssessment: {
           primaryTone:
-            typeof toneAssessment.primary_tone === "string"
-              ? toneAssessment.primary_tone
+            typeof toneAssessment["primary_tone"] === "string"
+              ? toneAssessment["primary_tone"]
               : "Unknown",
-          secondaryTones: asStringArray(toneAssessment.secondary_tones),
-          toneConsistency: asNumber(toneAssessment.tone_consistency, 5),
+          secondaryTones: asStringArray(toneAssessment["secondary_tones"]),
+          toneConsistency: asNumber(toneAssessment["tone_consistency"], 5),
           explanation:
-            typeof toneAssessment.explanation === "string"
-              ? toneAssessment.explanation
+            typeof toneAssessment["explanation"] === "string"
+              ? toneAssessment["explanation"]
               : "Analysis failed",
         },
         languageComplexity: {
           level:
-            languageComplexity.level === "simple" ||
-            languageComplexity.level === "moderate" ||
-            languageComplexity.level === "complex" ||
-            languageComplexity.level === "highly_complex"
-              ? languageComplexity.level
+            languageComplexity["level"] === "simple" ||
+            languageComplexity["level"] === "moderate" ||
+            languageComplexity["level"] === "complex" ||
+            languageComplexity["level"] === "highly_complex"
+              ? languageComplexity["level"]
               : "moderate",
-          readabilityScore: asNumber(languageComplexity.readability_score, 5),
+          readabilityScore: asNumber(
+            languageComplexity["readability_score"],
+            5
+          ),
           vocabularyRichness: asNumber(
-            languageComplexity.vocabulary_richness,
+            languageComplexity["vocabulary_richness"],
             5
           ),
         },
         pacingAnalysis: {
           overallPacing:
-            pacingImpression.overall_pacing === "very_slow" ||
-            pacingImpression.overall_pacing === "slow" ||
-            pacingImpression.overall_pacing === "balanced" ||
-            pacingImpression.overall_pacing === "fast" ||
-            pacingImpression.overall_pacing === "very_fast"
-              ? pacingImpression.overall_pacing
+            pacingImpression["overall_pacing"] === "very_slow" ||
+            pacingImpression["overall_pacing"] === "slow" ||
+            pacingImpression["overall_pacing"] === "balanced" ||
+            pacingImpression["overall_pacing"] === "fast" ||
+            pacingImpression["overall_pacing"] === "very_fast"
+              ? pacingImpression["overall_pacing"]
               : "balanced",
-          pacingVariation: asNumber(pacingImpression.pacing_variation, 5),
+          pacingVariation: asNumber(pacingImpression["pacing_variation"], 5),
           sceneLengthDistribution: asArray<number>(
-            pacingImpression.scene_length_distribution
+            pacingImpression["scene_length_distribution"]
           ),
         },
         descriptiveRichness: {
           visualDetailLevel: asNumber(
-            descriptiveRichness.visual_detail_level,
+            descriptiveRichness["visual_detail_level"],
             5
           ),
           sensoryEngagement: asNumber(
-            descriptiveRichness.sensory_engagement,
+            descriptiveRichness["sensory_engagement"],
             5
           ),
           atmosphericQuality: asNumber(
-            descriptiveRichness.atmospheric_quality,
+            descriptiveRichness["atmospheric_quality"],
             5
           ),
         },

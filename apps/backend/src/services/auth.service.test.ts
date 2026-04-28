@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const { dbMock } = vi.hoisted(() => ({
   dbMock: {
@@ -10,13 +10,13 @@ const { dbMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../db', () => ({ db: dbMock }));
-vi.mock('bcrypt');
-vi.mock('jsonwebtoken');
+vi.mock("../db", () => ({ db: dbMock }));
+vi.mock("bcrypt");
+vi.mock("jsonwebtoken");
 
-import { AuthService } from './auth.service';
+import { AuthService } from "./auth.service";
 
-const TEST_PASSWORD = 'StrongPass123!';
+const TEST_PASSWORD = "StrongPass123!";
 
 let authService: AuthService;
 
@@ -25,15 +25,15 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('AuthService > signup', () => {
-  it('should successfully create a new user', async () => {
-    const email = 'user@example.com';
+describe("AuthService > signup", () => {
+  it("should successfully create a new user", async () => {
+    const email = "user@example.com";
     const password = TEST_PASSWORD;
-    const firstName = 'Test';
-    const lastName = 'User';
-    const userId = 'test-user-123';
-    const hashedPassword = 'mock-hashed-password';
-    const token = 'mock-jwt-token';
+    const firstName = "Test";
+    const lastName = "User";
+    const userId = "test-user-123";
+    const hashedPassword = "mock-hashed-password";
+    const token = "mock-jwt-token";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -63,7 +63,12 @@ describe('AuthService > signup', () => {
 
     vi.mocked(jwt.sign).mockReturnValue(token as never);
 
-    const result = await authService.signup(email, password, firstName, lastName);
+    const result = await authService.signup(
+      email,
+      password,
+      firstName,
+      lastName,
+    );
 
     expect(result).toEqual(
       expect.objectContaining({
@@ -75,35 +80,35 @@ describe('AuthService > signup', () => {
           firstName,
           lastName,
         }) as unknown,
-      })
+      }),
     );
-    expect(result.user).not.toHaveProperty('passwordHash');
+    expect(result.user).not.toHaveProperty("passwordHash");
     expect(bcrypt.hash).toHaveBeenCalledWith(password, 10);
   });
 
-  it('should throw error if user already exists', async () => {
-    const email = 'existing@example.com';
+  it("should throw error if user already exists", async () => {
+    const email = "existing@example.com";
     const password = TEST_PASSWORD;
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([{ id: 'existing-user', email }]),
+          limit: vi.fn().mockResolvedValue([{ id: "existing-user", email }]),
         }),
       }),
     });
 
     await expect(authService.signup(email, password)).rejects.toThrow(
-      'المستخدم موجود بالفعل'
+      "المستخدم موجود بالفعل",
     );
   });
 
-  it('should handle optional firstName and lastName', async () => {
-    const email = 'test@example.com';
+  it("should handle optional firstName and lastName", async () => {
+    const email = "test@example.com";
     const password = TEST_PASSWORD;
-    const userId = 'user-123';
-    const hashedPassword = 'hashed-password';
-    const token = 'jwt-token';
+    const userId = "user-123";
+    const hashedPassword = "hashed-password";
+    const token = "jwt-token";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -140,13 +145,13 @@ describe('AuthService > signup', () => {
   });
 });
 
-describe('AuthService > login', () => {
-  it('should successfully login with valid credentials', async () => {
-    const email = 'test@example.com';
+describe("AuthService > login", () => {
+  it("should successfully login with valid credentials", async () => {
+    const email = "test@example.com";
     const password = TEST_PASSWORD;
-    const userId = 'user-123';
-    const hashedPassword = 'hashed-password';
-    const token = 'jwt-token';
+    const userId = "user-123";
+    const hashedPassword = "hashed-password";
+    const token = "jwt-token";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -156,8 +161,8 @@ describe('AuthService > login', () => {
               id: userId,
               email,
               passwordHash: hashedPassword,
-              firstName: 'Test',
-              lastName: 'User',
+              firstName: "Test",
+              lastName: "User",
             },
           ]),
         }),
@@ -174,14 +179,14 @@ describe('AuthService > login', () => {
         accessToken: token,
         refreshToken: expect.any(String) as unknown,
         user: expect.objectContaining({ id: userId, email }) as unknown,
-      })
+      }),
     );
-    expect(result.user).not.toHaveProperty('passwordHash');
+    expect(result.user).not.toHaveProperty("passwordHash");
     expect(bcrypt.compare).toHaveBeenCalledWith(password, hashedPassword);
   });
 
-  it('should throw error if user not found', async () => {
-    const email = 'nonexistent@example.com';
+  it("should throw error if user not found", async () => {
+    const email = "nonexistent@example.com";
     const password = TEST_PASSWORD;
 
     dbMock.select.mockReturnValue({
@@ -193,21 +198,23 @@ describe('AuthService > login', () => {
     });
 
     await expect(authService.login(email, password)).rejects.toThrow(
-      'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+      "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     );
   });
 
-  it('should throw error if password is invalid', async () => {
-    const email = 'test@example.com';
-    const password = 'wrong_' + TEST_PASSWORD;
-    const hashedPassword = 'hashed-password';
+  it("should throw error if password is invalid", async () => {
+    const email = "test@example.com";
+    const password = "wrong_" + TEST_PASSWORD;
+    const hashedPassword = "hashed-password";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([
-            { id: 'user-123', email, passwordHash: hashedPassword },
-          ]),
+          limit: vi
+            .fn()
+            .mockResolvedValue([
+              { id: "user-123", email, passwordHash: hashedPassword },
+            ]),
         }),
       }),
     });
@@ -215,20 +222,20 @@ describe('AuthService > login', () => {
     vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
     await expect(authService.login(email, password)).rejects.toThrow(
-      'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+      "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     );
   });
 });
 
-describe('AuthService > getUserById', () => {
-  it('should return user by id without password hash', async () => {
-    const userId = 'user-123';
+describe("AuthService > getUserById", () => {
+  it("should return user by id without password hash", async () => {
+    const userId = "user-123";
     const mockUser = {
       id: userId,
-      email: 'test@example.com',
-      passwordHash: 'hashed-password',
-      firstName: 'Test',
-      lastName: 'User',
+      email: "test@example.com",
+      passwordHash: "hashed-password",
+      firstName: "Test",
+      lastName: "User",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -244,12 +251,12 @@ describe('AuthService > getUserById', () => {
     const result = await authService.getUserById(userId);
 
     expect(result).toEqual(
-      expect.objectContaining({ id: userId, email: 'test@example.com' })
+      expect.objectContaining({ id: userId, email: "test@example.com" }),
     );
-    expect(result).not.toHaveProperty('passwordHash');
+    expect(result).not.toHaveProperty("passwordHash");
   });
 
-  it('should return null if user not found', async () => {
+  it("should return null if user not found", async () => {
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
@@ -258,52 +265,60 @@ describe('AuthService > getUserById', () => {
       }),
     });
 
-    expect(await authService.getUserById('nonexistent-user')).toBeNull();
+    expect(await authService.getUserById("nonexistent-user")).toBeNull();
   });
 });
 
-describe('AuthService > verifyToken', () => {
-  it('should successfully verify valid token', () => {
-    const token = 'valid-jwt-token';
-    const userId = 'user-123';
+describe("AuthService > verifyToken", () => {
+  it("should successfully verify valid token", () => {
+    const token = "valid-jwt-token";
+    const userId = "user-123";
 
     vi.mocked(jwt.verify).mockReturnValue({ userId } as never);
 
     const result = authService.verifyToken(token);
 
     expect(result).toEqual({ userId, sub: userId });
-    expect(jwt.verify).toHaveBeenCalledWith(token, expect.any(String), undefined);
+    expect(jwt.verify).toHaveBeenCalledWith(
+      token,
+      expect.any(String),
+      undefined,
+    );
   });
 
-  it('should throw error for invalid token', () => {
+  it("should throw error for invalid token", () => {
     vi.mocked(jwt.verify).mockImplementation(() => {
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     });
 
-    expect(() => authService.verifyToken('invalid-token')).toThrow('رمز التحقق غير صالح');
+    expect(() => authService.verifyToken("invalid-token")).toThrow(
+      "رمز التحقق غير صالح",
+    );
   });
 
-  it('should throw error for expired token', () => {
+  it("should throw error for expired token", () => {
     vi.mocked(jwt.verify).mockImplementation(() => {
-      throw new Error('jwt expired');
+      throw new Error("jwt expired");
     });
 
-    expect(() => authService.verifyToken('expired-token')).toThrow('رمز التحقق غير صالح');
+    expect(() => authService.verifyToken("expired-token")).toThrow(
+      "رمز التحقق غير صالح",
+    );
   });
 });
 
-describe('AuthService > refreshAccessToken', () => {
-  it('should rotate refresh tokens and issue a new access token', async () => {
-    const refreshToken = 'stored-refresh-token';
-    const userId = 'user-123';
-    const accessToken = 'rotated-access-token';
+describe("AuthService > refreshAccessToken", () => {
+  it("should rotate refresh tokens and issue a new access token", async () => {
+    const refreshToken = "stored-refresh-token";
+    const userId = "user-123";
+    const accessToken = "rotated-access-token";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
           limit: vi.fn().mockResolvedValue([
             {
-              id: 'refresh-token-row',
+              id: "refresh-token-row",
               userId,
               token: refreshToken,
               expiresAt: new Date(Date.now() + 60_000),
@@ -329,17 +344,17 @@ describe('AuthService > refreshAccessToken', () => {
       expect.objectContaining({
         accessToken,
         refreshToken: expect.any(String) as unknown,
-      })
+      }),
     );
     expect(dbMock.delete).toHaveBeenCalled();
   });
 });
 
-describe('AuthService > signup - edge cases', () => {
-  it('should throw error when user creation returns empty array', async () => {
-    const email = 'test@example.com';
+describe("AuthService > signup - edge cases", () => {
+  it("should throw error when user creation returns empty array", async () => {
+    const email = "test@example.com";
     const password = TEST_PASSWORD;
-    const hashedPassword = 'hashed-password';
+    const hashedPassword = "hashed-password";
 
     dbMock.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -357,6 +372,8 @@ describe('AuthService > signup - edge cases', () => {
       }),
     });
 
-    await expect(authService.signup(email, password)).rejects.toThrow('فشل إنشاء المستخدم');
+    await expect(authService.signup(email, password)).rejects.toThrow(
+      "فشل إنشاء المستخدم",
+    );
   });
 });

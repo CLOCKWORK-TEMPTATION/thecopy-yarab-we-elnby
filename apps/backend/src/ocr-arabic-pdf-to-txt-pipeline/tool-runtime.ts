@@ -13,7 +13,7 @@ export interface LocalTool<Input extends object> {
 }
 
 export function defineTool<Input extends object>(
-  definition: LocalTool<Input>
+  definition: LocalTool<Input>,
 ): AgentTool & LocalTool<Input> {
   return definition;
 }

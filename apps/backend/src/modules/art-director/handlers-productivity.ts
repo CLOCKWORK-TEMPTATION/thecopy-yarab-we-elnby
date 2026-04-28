@@ -21,11 +21,15 @@ import {
 
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
-const PIE_COLORS = { completed: "#4ade80", inProgress: "#fbbf24", delayed: "#ef4444" };
+const PIE_COLORS = {
+  completed: "#4ade80",
+  inProgress: "#fbbf24",
+  delayed: "#ef4444",
+};
 const CHART_COLORS = ["#e94560", "#4ade80", "#fbbf24", "#60a5fa", "#a78bfa"];
 
 function buildHoursByDepartment(
-  entries: StoredTimeEntry[]
+  entries: StoredTimeEntry[],
 ): Record<string, number> {
   return entries.reduce<Record<string, number>>((acc, entry) => {
     acc[entry.department] = (acc[entry.department] ?? 0) + entry.actualHours;
@@ -43,7 +47,7 @@ function buildChartData(hoursByDepartment: Record<string, number>) {
 
 function buildPieData(store: ArtDirectorStore) {
   const completed = store.timeEntries.filter(
-    (entry) => entry.status === "completed"
+    (entry) => entry.status === "completed",
   ).length;
   const delayed = store.delays.length;
   const inProgress = Math.max(store.timeEntries.length - completed, 0);
@@ -52,9 +56,21 @@ function buildPieData(store: ArtDirectorStore) {
   if (total === 0) return [];
 
   return [
-    { name: "مكتمل", value: Math.round((completed / total) * 100), color: PIE_COLORS.completed },
-    { name: "قيد التنفيذ", value: Math.round((inProgress / total) * 100), color: PIE_COLORS.inProgress },
-    { name: "متأخر", value: Math.round((delayed / total) * 100), color: PIE_COLORS.delayed },
+    {
+      name: "مكتمل",
+      value: Math.round((completed / total) * 100),
+      color: PIE_COLORS.completed,
+    },
+    {
+      name: "قيد التنفيذ",
+      value: Math.round((inProgress / total) * 100),
+      color: PIE_COLORS.inProgress,
+    },
+    {
+      name: "متأخر",
+      value: Math.round((delayed / total) * 100),
+      color: PIE_COLORS.delayed,
+    },
   ];
 }
 
@@ -71,7 +87,7 @@ export async function handleProductivitySummary(): Promise<ArtDirectorHandlerRes
 }
 
 export async function handleProductivityAnalyze(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const department = asString(payload["department"]);
   const period = asString(payload["period"]) || "weekly";
@@ -81,9 +97,7 @@ export async function handleProductivityAnalyze(
     : store.timeEntries;
   const totalHours = entries.reduce((sum, e) => sum + e.actualHours, 0);
   const delayHours = store.delays.reduce((sum, d) => sum + d.hoursLost, 0);
-  const completedCount = entries.filter(
-    (e) => e.status === "completed"
-  ).length;
+  const completedCount = entries.filter((e) => e.status === "completed").length;
 
   return success({
     data: {
@@ -105,7 +119,7 @@ function buildStoredTimeEntry(
   taskId: string,
   task: string,
   category: string,
-  hours: number
+  hours: number,
 ): StoredTimeEntry {
   return {
     id: asString(rawEntry["id"]) || randomUUID(),
@@ -122,7 +136,7 @@ function buildStoredTimeEntry(
 }
 
 export async function handleProductivityLogTime(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const task = asString(payload["task"]);
   const hours = asNumber(payload["hours"]);
@@ -137,8 +151,20 @@ export async function handleProductivityLogTime(
   }
 
   const taskId = slugify(`${task}-${Date.now()}`);
-  const logData = { taskId, taskName: task, department: category, assignee: "Art Director", plannedHours: hours, actualHours: hours, status: "completed", notes: "" };
-  const result = await runPlugin(PerformanceProductivityAnalyzer, { type: "log-time", data: logData });
+  const logData = {
+    taskId,
+    taskName: task,
+    department: category,
+    assignee: "Art Director",
+    plannedHours: hours,
+    actualHours: hours,
+    status: "completed",
+    notes: "",
+  };
+  const result = await runPlugin(PerformanceProductivityAnalyzer, {
+    type: "log-time",
+    data: logData,
+  });
 
   if (!result.success) {
     return failure(result.error ?? "تعذر تسجيل الوقت");
@@ -149,12 +175,18 @@ export async function handleProductivityLogTime(
     return failure("تعذر قراءة بيانات الوقت المسجل", 500);
   }
 
-  const storedEntry = buildStoredTimeEntry(rawEntry, taskId, task, category, hours);
+  const storedEntry = buildStoredTimeEntry(
+    rawEntry,
+    taskId,
+    task,
+    category,
+    hours,
+  );
 
   await updateStore((store) => {
     store.timeEntries = uniqueById<StoredTimeEntry>(
       store.timeEntries,
-      storedEntry
+      storedEntry,
     );
   });
 
@@ -171,7 +203,7 @@ const DELAY_CATEGORY_MAP: Record<string, string> = {
 function buildStoredDelay(
   rawDelay: Record<string, unknown>,
   reason: string,
-  hoursLost: number
+  hoursLost: number,
 ): StoredDelay {
   return {
     id: asString(rawDelay["id"]) || randomUUID(),
@@ -185,7 +217,7 @@ function buildStoredDelay(
 }
 
 export async function handleProductivityDelay(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const reason = asString(payload["reason"]);
   const hoursLost = asNumber(payload["hoursLost"]);
@@ -236,33 +268,30 @@ export async function handleProductivityRecommendations(): Promise<ArtDirectorHa
 
   if (store.timeEntries.length === 0) {
     recommendations.push(
-      "ابدأ بتسجيل الوقت الفعلي للمهام حتى تظهر توصيات مبنية على بيانات حقيقية."
+      "ابدأ بتسجيل الوقت الفعلي للمهام حتى تظهر توصيات مبنية على بيانات حقيقية.",
     );
   }
 
-  const totalDelayHours = store.delays.reduce(
-    (sum, d) => sum + d.hoursLost,
-    0
-  );
+  const totalDelayHours = store.delays.reduce((sum, d) => sum + d.hoursLost, 0);
   if (totalDelayHours > 0) {
     recommendations.push(
-      `يوجد ${totalDelayHours} ساعة مهدرة؛ راجع أسباب التأخير الأعلى تكرارًا هذا الأسبوع.`
+      `يوجد ${totalDelayHours} ساعة مهدرة؛ راجع أسباب التأخير الأعلى تكرارًا هذا الأسبوع.`,
     );
   }
 
   const byDepartment = buildHoursByDepartment(store.timeEntries);
   const mostLoaded = Object.entries(byDepartment).sort(
-    (a, b) => b[1] - a[1]
+    (a, b) => b[1] - a[1],
   )[0];
   if (mostLoaded) {
     recommendations.push(
-      `القسم الأكثر ضغطًا حاليًا هو ${mostLoaded[0]}؛ فكّر في توزيع الحمل أو تفويض المهام المتكررة.`
+      `القسم الأكثر ضغطًا حاليًا هو ${mostLoaded[0]}؛ فكّر في توزيع الحمل أو تفويض المهام المتكررة.`,
     );
   }
 
   if (recommendations.length === 0) {
     recommendations.push(
-      "الإيقاع الحالي جيد؛ استمر في تسجيل الوقت ومراجعة الانحرافات أسبوعيًا."
+      "الإيقاع الحالي جيد؛ استمر في تسجيل الوقت ومراجعة الانحرافات أسبوعيًا.",
     );
   }
 

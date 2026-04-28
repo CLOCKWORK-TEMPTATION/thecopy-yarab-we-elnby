@@ -1,5 +1,15 @@
 // Station 4 Types
 
+import type {
+  StationInput,
+  ActPacing,
+  StationMetadata,
+  UncertaintyReport,
+} from "./common-types";
+import type { Station1Output } from "./station-1-types";
+import type { Station2Output } from "./station-2-types";
+import type { Station3Output } from "./station-3-types";
+
 export interface Station4Input extends StationInput {
   previousAnalysis: {
     station1: Station1Output;

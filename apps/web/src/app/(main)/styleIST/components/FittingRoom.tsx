@@ -280,10 +280,14 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
             <div className="p-4 space-y-6 overflow-y-auto custom-scrollbar">
               {/* Fabric Selector */}
               <div>
-                <label className="block text-[10px] font-bold text-[#d4b483] uppercase mb-2">
+                <label
+                  htmlFor="field-fittingroom-1"
+                  className="block text-[10px] font-bold text-[#d4b483] uppercase mb-2"
+                >
                   Material Physics
                 </label>
                 <select
+                  id="field-fittingroom-1"
                   value={selectedFabric}
                   onChange={(e) =>
                     setSelectedFabric(e.target.value as FabricType)
@@ -300,9 +304,9 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
 
               {/* Hazards */}
               <div>
-                <label className="block text-[10px] font-bold text-[#d4b483] uppercase mb-2">
+                <div className="block text-[10px] font-bold text-[#d4b483] uppercase mb-2">
                   Scene Hazards
-                </label>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {["fire", "water", "stunt"].map((h) => (
                     <button
@@ -355,11 +359,19 @@ const EngineeringWorkspace: React.FC<FittingRoomProps> = ({
       {/* Tech Pack Modal */}
       {showTechPackModal && techPack && (
         <div
+          role="button"
+          tabIndex={0}
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-xl"
           onClick={() => setShowTechPackModal(false)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setShowTechPackModal(false);
+            }
+          }}
         >
           <CardSpotlight className="rounded-[22px] overflow-hidden">
             <div
+              role="presentation"
               className="bg-white text-black p-0 w-full max-w-md shadow-2xl rounded-[22px] overflow-hidden border border-white/8"
               onClick={(e) => e.stopPropagation()}
             >

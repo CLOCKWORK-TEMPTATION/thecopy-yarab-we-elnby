@@ -1,5 +1,14 @@
 // Station 2 Types
 
+import type {
+  StationInput,
+  Theme,
+  AudienceProfile,
+  StationMetadata,
+  UncertaintyReport,
+} from "./common-types";
+import type { Station1Output } from "./station-1-types";
+
 export interface Station2Input extends StationInput {
   previousAnalysis: Station1Output;
 }

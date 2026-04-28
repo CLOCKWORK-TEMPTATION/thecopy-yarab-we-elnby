@@ -9,6 +9,14 @@
  * - mergeSuspicionReviewCandidates: دمج candidates محلية مع استجابة النموذج.
  */
 
+import { buildContextLines } from "@editor/final-review/payload-builder";
+
+import { REVIEWABLE_AGENT_TYPES } from "../../paste-classifier-config";
+import { shouldKeepSuspicionModelDecisionForFinalReview } from "../../suspicion-review-routing";
+import { simpleHash } from "../utils/hash";
+import { computeLineQuality } from "../utils/line-quality";
+
+import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 import type {
   ImportSource,
   SuspicionCase,
@@ -21,15 +29,6 @@ import type {
   SuspicionReviewResponsePayload,
   SuspicionReviewReviewedLine,
 } from "@editor/types/suspicion-review";
-
-import { buildContextLines } from "@editor/final-review/payload-builder";
-
-import { REVIEWABLE_AGENT_TYPES } from "../../paste-classifier-config";
-import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
-import { shouldKeepSuspicionModelDecisionForFinalReview } from "../../suspicion-review-routing";
-
-import { simpleHash } from "../utils/hash";
-import { computeLineQuality } from "../utils/line-quality";
 
 /**
  * بناء سطور سياق ±3 أسطر حول lineIndex المستهدف (تُستثنى offset=0).

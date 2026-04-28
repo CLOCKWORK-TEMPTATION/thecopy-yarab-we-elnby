@@ -1,4 +1,4 @@
-import { Palette, Sparkles, Image, Wand2 } from "lucide-react";
+import { Palette, Sparkles, Image as ImageIcon, Wand2 } from "lucide-react";
 import { useState } from "react";
 
 import "./Inspiration.css";
@@ -92,8 +92,9 @@ function Inspiration() {
           </h2>
 
           <div className="form-group">
-            <label>وصف المشهد</label>
+            <label htmlFor="field-inspiration-1">وصف المشهد</label>
             <textarea
+              id="field-inspiration-1"
               className="input"
               placeholder="صف المشهد بالتفصيل... مثال: مشهد رومانسي في مقهى قديم بباريس في الثلاثينيات"
               value={sceneDescription}
@@ -103,8 +104,9 @@ function Inspiration() {
 
           <div className="form-row">
             <div className="form-group">
-              <label>المزاج العام</label>
+              <label htmlFor="field-inspiration-2">المزاج العام</label>
               <select
+                id="field-inspiration-2"
                 className="input"
                 value={mood}
                 onChange={(e) => setMood(e.target.value)}
@@ -120,8 +122,9 @@ function Inspiration() {
             </div>
 
             <div className="form-group">
-              <label>الحقبة الزمنية</label>
+              <label htmlFor="field-inspiration-3">الحقبة الزمنية</label>
               <select
+                id="field-inspiration-3"
                 className="input"
                 value={era}
                 onChange={(e) => setEra(e.target.value)}
@@ -163,7 +166,7 @@ function Inspiration() {
           {result && (
             <div className="result-card card fade-in">
               <h3>
-                <Image size={20} /> نتائج التحليل
+                <ImageIcon size={20} aria-hidden="true" /> نتائج التحليل
               </h3>
 
               <div className="result-theme">

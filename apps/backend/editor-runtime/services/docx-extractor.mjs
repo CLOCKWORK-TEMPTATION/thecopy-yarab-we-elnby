@@ -24,7 +24,7 @@ const DOCX_TO_DOC_CONVERTER_TIMEOUT_MS = 90_000;
 const DOC_CONVERTER_MAX_BUFFER = 64 * 1024 * 1024;
 
 export const DOCX_TO_DOC_SCRIPT_PATH = fileURLToPath(
-  new URL("../docx-to-doc.final.ts", import.meta.url)
+  new URL("../docx-to-doc.final.ts", import.meta.url),
 );
 export const DOCX_TO_DOC_SCRIPT_EXISTS = existsSync(DOCX_TO_DOC_SCRIPT_PATH);
 
@@ -86,14 +86,14 @@ const runDocxToDocConverter = async (inputDocxPath, outputDocPath) =>
               "docx-to-doc.final.ts",
               DOCX_TO_DOC_CONVERTER_TIMEOUT_MS,
               stdoutBuffer,
-              stderrBuffer
-            )
+              stderrBuffer,
+            ),
           );
           return;
         }
 
         resolve({ stdout: stdoutBuffer, stderr: stderrBuffer });
-      }
+      },
     );
   });
 
@@ -107,7 +107,7 @@ export const convertDocxBufferToTextWithMammoth = async (buffer, filename) => {
 
   if (!text) {
     throw new Error(
-      `تعذر استخراج نص DOCX مباشرةً من الملف: ${filename || "document.docx"}`
+      `تعذر استخراج نص DOCX مباشرةً من الملف: ${filename || "document.docx"}`,
     );
   }
 
@@ -134,7 +134,7 @@ export const convertDocxBufferToDocThenExtract = async (buffer, filename) => {
     await writeFile(sourceDocxPath, buffer);
     const { stdout, stderr } = await runDocxToDocConverter(
       sourceDocxPath,
-      convertedDocPath
+      convertedDocPath,
     );
 
     const converterStdout = decodeUtf8Buffer(stdout).trim();
@@ -144,14 +144,14 @@ export const convertDocxBufferToDocThenExtract = async (buffer, filename) => {
 
     if (!existsSync(convertedDocPath)) {
       throw new Error(
-        `تم تشغيل محول DOCX لكن ملف DOC الناتج غير موجود: ${convertedDocPath}`
+        `تم تشغيل محول DOCX لكن ملف DOC الناتج غير موجود: ${convertedDocPath}`,
       );
     }
 
     const convertedDocBuffer = await readFile(convertedDocPath);
     const extractedDoc = await convertDocBufferToText(
       convertedDocBuffer,
-      basename(convertedDocPath)
+      basename(convertedDocPath),
     );
 
     return {
@@ -164,11 +164,11 @@ export const convertDocxBufferToDocThenExtract = async (buffer, filename) => {
     if (error instanceof ExecFileClassifiedError) {
       const stdoutText = normalizeIncomingText(
         error.classifiedError?.stdoutPreview,
-        400
+        400,
       );
       const stderrText = normalizeIncomingText(
         error.classifiedError?.stderrPreview,
-        400
+        400,
       );
       if (stdoutText) warnings.push(stdoutText);
       if (stderrText) warnings.push(stderrText);
@@ -183,7 +183,7 @@ export const convertDocxBufferToDocThenExtract = async (buffer, filename) => {
             ...error.classifiedError,
             converterScript: DOCX_TO_DOC_SCRIPT_PATH,
           },
-        }
+        },
       );
     }
 
@@ -193,7 +193,7 @@ export const convertDocxBufferToDocThenExtract = async (buffer, filename) => {
       }${warnings.length > 0 ? ` | logs: ${warnings.join(" | ")}` : ""}`,
       {
         cause: error,
-      }
+      },
     );
   } finally {
     if (tempDirPath) {

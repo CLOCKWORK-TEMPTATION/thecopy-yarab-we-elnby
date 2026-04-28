@@ -67,13 +67,15 @@ describe("WorldBuilderAgent", () => {
       },
     });
 
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("الهوية والصراع");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "الهوية والصراع",
+    );
     expect(result.text).not.toContain("```json");
     expect(Array.isArray(result.notes)).toBe(true);
     expect(
       result.notes.some((note) => note.includes("عالم متكامل")) ||
         result.notes.some((note) => note.includes("عالم جيد")) ||
-        result.notes.some((note) => note.includes("عالم أولي"))
+        result.notes.some((note) => note.includes("عالم أولي")),
     ).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
     expect(result.metadata?.worldQuality).toBeDefined();

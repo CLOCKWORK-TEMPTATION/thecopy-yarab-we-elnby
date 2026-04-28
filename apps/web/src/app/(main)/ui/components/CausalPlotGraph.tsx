@@ -38,6 +38,12 @@ interface CausalPlotGraphProps {
   onRunStations?: () => void;
 }
 
+type PlotFilter = NonNullable<CausalPlotGraphProps["filter"]>;
+
+function isPlotFilter(value: string): value is PlotFilter {
+  return ["all", "conflict", "reveal", "twist"].includes(value);
+}
+
 const nodeColors = {
   scene: "var(--color-accent)",
   character: "var(--state-final)",
@@ -128,7 +134,11 @@ export function CausalPlotGraph({
           <div className="flex items-center gap-2">
             <Select
               value={currentFilter}
-              onValueChange={(v: any) => setCurrentFilter(v)}
+              onValueChange={(value) => {
+                if (isPlotFilter(value)) {
+                  setCurrentFilter(value);
+                }
+              }}
             >
               <SelectTrigger className="w-[140px] bg-[var(--color-surface)] border-[var(--color-surface)] text-[var(--color-text)]">
                 <Filter className="w-4 h-4 ml-2" />

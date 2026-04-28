@@ -10,7 +10,7 @@ export class ThemesMessagesAnalyzerAgent extends BaseAgent {
     super(
       "ThemesMessagesAnalyzer AI",
       TaskType.THEMES_MESSAGES_ANALYZER,
-      THEMES_MESSAGES_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
+      THEMES_MESSAGES_ANALYZER_AGENT_CONFIG.systemPrompt ?? "",
     );
     this.confidenceFloor = 0.75;
   }

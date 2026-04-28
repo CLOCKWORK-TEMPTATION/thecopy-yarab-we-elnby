@@ -11,7 +11,7 @@ const log = (tag, data) => {
   const ts = new Date().toISOString();
   console.warn(
     `[${ts}] [pdf-ref] ${tag}`,
-    data != null ? JSON.stringify(data) : ""
+    data != null ? JSON.stringify(data) : "",
   );
 };
 
@@ -82,7 +82,7 @@ export const probePdftoppmDependency = async () => {
       errorCode: "PDF_OCR_PDF_RENDERER_UNUSABLE",
       errorMessage: buildUnusableRendererMessage(
         command,
-        toErrorMessage(error)
+        toErrorMessage(error),
       ),
     };
   }
@@ -107,7 +107,7 @@ const parseOcrPages = (raw) => {
         page &&
         typeof page === "object" &&
         typeof page.index === "number" &&
-        typeof page.markdown === "string"
+        typeof page.markdown === "string",
     )
     .sort((a, b) => a.index - b.index)
     .map((page) => ({
@@ -130,7 +130,7 @@ const sortPngPages = (files, prefixBaseName) =>
       (name) =>
         name.startsWith(prefixBaseName) &&
         name.toLowerCase().endsWith(".png") &&
-        /-\d+\.png$/u.test(name)
+        /-\d+\.png$/u.test(name),
     )
     .sort((a, b) => {
       const ai = Number(a.match(/-(\d+)\.png$/u)?.[1] ?? "0");
@@ -148,14 +148,14 @@ export const renderPdfPages = async ({ pdfPath, dpi }) => {
   await execFileAsync(
     pdftoppmCommand,
     ["-png", "-r", String(dpi), resolve(pdfPath), prefix],
-    { timeout: 180_000, maxBuffer: 16 * 1024 * 1024 }
+    { timeout: 180_000, maxBuffer: 16 * 1024 * 1024 },
   );
 
   const files = await readdir(renderRoot);
   const sorted = sortPngPages(files, basename(prefix));
   if (sorted.length === 0) {
     throw new Error(
-      "[PDF_OCR_PDF_RENDERER_EMPTY_OUTPUT] PDF vision renderer produced no page images."
+      "[PDF_OCR_PDF_RENDERER_EMPTY_OUTPUT] PDF vision renderer produced no page images.",
     );
   }
 
@@ -182,14 +182,14 @@ const _renderFirstPdfPage = async ({ pdfPath, dpi }) => {
       resolve(pdfPath),
       prefix,
     ],
-    { timeout: 60_000, maxBuffer: 16 * 1024 * 1024 }
+    { timeout: 60_000, maxBuffer: 16 * 1024 * 1024 },
   );
 
   const files = await readdir(renderRoot);
   const firstPng = files.find((name) => name.toLowerCase().endsWith(".png"));
   if (!firstPng) {
     throw new Error(
-      "[PDF_OCR_VISION_PREFLIGHT_RENDER_FAILED] Vision preflight failed: unable to render first page image."
+      "[PDF_OCR_VISION_PREFLIGHT_RENDER_FAILED] Vision preflight failed: unable to render first page image.",
     );
   }
 
@@ -246,7 +246,7 @@ export const buildPdfReference = async ({
   if (externalReferencePath) {
     const referenceText = await readFile(
       resolve(externalReferencePath),
-      "utf-8"
+      "utf-8",
     );
     return {
       referenceMode: "external",
@@ -268,7 +268,7 @@ export const buildPdfReference = async ({
   const ocrPages = parseOcrPages(ocrJsonRaw);
   if (ocrPages.length === 0) {
     throw new Error(
-      "Cannot build pdf-vision reference: OCR pages are missing."
+      "Cannot build pdf-vision reference: OCR pages are missing.",
     );
   }
   log("ocr-pages-parsed", { count: ocrPages.length });
@@ -341,7 +341,7 @@ export const buildPdfReference = async ({
     referenceMode: "pdf-vision",
     referenceText,
     pageLineBoundaries: buildPageLineBoundaries(
-      patchedPages.sort((a, b) => a.page - b.page)
+      patchedPages.sort((a, b) => a.page - b.page),
     ),
     compareReport: {
       renderedPages: pageImages.length,

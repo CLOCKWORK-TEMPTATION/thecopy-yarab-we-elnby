@@ -29,8 +29,6 @@ describe("2️⃣ XSS Prevention", () => {
 
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
     expect(response.headers["x-frame-options"]).toBeDefined();
-    expect(
-      stringField(responseBody(response), "status"),
-    ).toBe("ok");
+    expect(stringField(responseBody(response), "status")).toBe("ok");
   });
 });

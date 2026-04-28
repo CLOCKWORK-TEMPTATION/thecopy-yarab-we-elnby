@@ -8,11 +8,11 @@
  * - getRange: رفض بدون start/end بـ 400
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { MetricsController } from '@/controllers/metrics.controller';
+import { MetricsController } from "@/controllers/metrics.controller";
 
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
 type MockFn = ReturnType<typeof vi.fn>;
 type MockResponse = Partial<Response> & {
@@ -22,33 +22,36 @@ type MockResponse = Partial<Response> & {
 
 // ─── Mock للخدمات ───
 const mockTakeSnapshot = vi.fn<(...args: unknown[]) => Promise<unknown>>();
-vi.mock('@/services/metrics-aggregator.service', () => ({
+vi.mock("@/services/metrics-aggregator.service", () => ({
   metricsAggregator: {
-    takeSnapshot: (...args: unknown[]): Promise<unknown> => mockTakeSnapshot(...args),
+    takeSnapshot: (...args: unknown[]): Promise<unknown> =>
+      mockTakeSnapshot(...args),
     getHistory: vi.fn().mockReturnValue([]),
   },
 }));
 
-vi.mock('@/services/resource-monitor.service', () => ({
+vi.mock("@/services/resource-monitor.service", () => ({
   resourceMonitor: {
     getSystemMetrics: vi.fn().mockReturnValue({}),
     trackRateLimitHit: vi.fn(),
   },
 }));
 
-vi.mock('@/services/cache-metrics.service', () => ({
+vi.mock("@/services/cache-metrics.service", () => ({
   cacheMetricsService: {
     getCacheStats: vi.fn().mockReturnValue({}),
   },
 }));
 
-vi.mock('@/controllers/metrics.helpers.js', () => ({
+vi.mock("@/controllers/metrics.helpers.js", () => ({
   getSnapshotData: vi.fn().mockResolvedValue({ cpu: 50, memory: 60 }),
   parseDateRange: vi.fn((start: unknown, end: unknown) => {
-    if (!start || !end) return { error: 'missing' };
+    if (!start || !end) return { error: "missing" };
     return { start: new Date(start as string), end: new Date(end as string) };
   }),
-  defaultDateRange: vi.fn().mockReturnValue({ start: new Date(), end: new Date() }),
+  defaultDateRange: vi
+    .fn()
+    .mockReturnValue({ start: new Date(), end: new Date() }),
   buildDashboardSummary: vi.fn().mockReturnValue({}),
   buildHealthData: vi.fn().mockReturnValue({}),
   buildApmAlerts: vi.fn().mockReturnValue([]),
@@ -87,7 +90,7 @@ function anyObjectMatcher(): unknown {
 
 // ═══ اختبارات ═══
 
-describe('MetricsController', () => {
+describe("MetricsController", () => {
   let controller: MetricsController;
 
   beforeEach(() => {
@@ -95,8 +98,8 @@ describe('MetricsController', () => {
     controller = new MetricsController();
   });
 
-  describe('getSnapshot', () => {
-    it('يجب أن يُرجع لقطة المقاييس بنجاح', async () => {
+  describe("getSnapshot", () => {
+    it("يجب أن يُرجع لقطة المقاييس بنجاح", async () => {
       mockTakeSnapshot.mockResolvedValue({
         timestamp: Date.now(),
         api: { totalRequests: 100 },
@@ -108,12 +111,12 @@ describe('MetricsController', () => {
       await controller.getSnapshot(req, asResponse(res));
 
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, data: anyObjectMatcher() })
+        expect.objectContaining({ success: true, data: anyObjectMatcher() }),
       );
     });
 
-    it('يجب أن يتعامل مع خطأ بـ 500', async () => {
-      mockTakeSnapshot.mockRejectedValue(new Error('Metrics error'));
+    it("يجب أن يتعامل مع خطأ بـ 500", async () => {
+      mockTakeSnapshot.mockRejectedValue(new Error("Metrics error"));
 
       const req = createReq();
       const res = createRes();
@@ -124,21 +127,21 @@ describe('MetricsController', () => {
     });
   });
 
-  describe('getLatest', () => {
-    it('يجب أن يُرجع آخر المقاييس', async () => {
+  describe("getLatest", () => {
+    it("يجب أن يُرجع آخر المقاييس", async () => {
       const req = createReq();
       const res = createRes();
 
       await controller.getLatest(req, asResponse(res));
 
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true })
+        expect.objectContaining({ success: true }),
       );
     });
   });
 
-  describe('getRange', () => {
-    it('يجب أن يرفض بدون start/end بـ 400', () => {
+  describe("getRange", () => {
+    it("يجب أن يرفض بدون start/end بـ 400", () => {
       const req = createReq({ query: {} });
       const res = createRes();
 

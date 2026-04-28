@@ -7,7 +7,7 @@
 
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 import { GeminiService } from "@/ai/gemini-service";
 import { exportProjectDocument } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
@@ -80,9 +80,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
   const [notification, setNotification] = useState<NotificationState | null>(
     null
   );
-  const [geminiService, setGeminiService] = useState<GeminiService | null>(
-    null
-  );
 
   const showNotification = useCallback(
     (type: NotificationState["type"], message: string) => {
@@ -115,23 +112,18 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     updateSettings,
   } = useCreativeStudio({
     initialSettings,
-    geminiService,
     showNotification,
     analysisBlockedReason:
       "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.",
     exportProjectFn: exportProjectDocument,
   });
 
-  const geminiApiKey = settings.geminiApiKey?.trim() ?? "";
-  const isGeminiConfigured = geminiApiKey.length > 0;
-
-  useEffect(() => {
-    if (isGeminiConfigured) {
-      setGeminiService(new GeminiService(geminiApiKey));
-    } else {
-      setGeminiService(null);
-    }
-  }, [geminiApiKey, isGeminiConfigured, settings.geminiModel]);
+  const activeGeminiApiKey = settings.geminiApiKey?.trim() ?? "";
+  const isGeminiConfigured = activeGeminiApiKey.length > 0;
+  const geminiService = useMemo(
+    () => (isGeminiConfigured ? new GeminiService(activeGeminiApiKey) : null),
+    [activeGeminiApiKey, isGeminiConfigured]
+  );
 
   const renderMainContent = () => {
     switch (currentView) {

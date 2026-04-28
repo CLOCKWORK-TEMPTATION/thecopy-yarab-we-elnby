@@ -7,7 +7,7 @@
  * @see https://web.dev/performance-budgets-101/
  */
 
-export default {
+const performanceBudgetConfig = {
   // Resource Size Budgets (in KB)
   resourceSizes: {
     // JavaScript budgets
@@ -176,3 +176,5 @@ export default {
     ],
   },
 };
+
+export default performanceBudgetConfig;

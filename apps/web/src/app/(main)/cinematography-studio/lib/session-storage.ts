@@ -68,13 +68,13 @@ function sanitizeAnalysis(value: unknown): ShotAnalysis | null {
     return null;
   }
   const candidate = value as Record<string, unknown>;
-  const score = asNumber(candidate.score);
-  const exposure = asNumber(candidate.exposure);
+  const score = asNumber(candidate["score"]);
+  const exposure = asNumber(candidate["exposure"]);
   if (score === undefined || exposure === undefined) {
     return null;
   }
 
-  const issuesRaw = candidate.issues;
+  const issuesRaw = candidate["issues"];
   const issues = Array.isArray(issuesRaw)
     ? issuesRaw.filter((entry): entry is string => typeof entry === "string")
     : [];
@@ -82,8 +82,8 @@ function sanitizeAnalysis(value: unknown): ShotAnalysis | null {
   return {
     score,
     exposure,
-    dynamicRange: asString(candidate.dynamicRange) ?? "غير متاح",
-    grainLevel: asString(candidate.grainLevel) ?? "غير متاح",
+    dynamicRange: asString(candidate["dynamicRange"]) ?? "غير متاح",
+    grainLevel: asString(candidate["grainLevel"]) ?? "غير متاح",
     issues,
   };
 }
@@ -95,38 +95,38 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
   const candidate = value as Record<string, unknown>;
   const result: PersistedStudioSession = {};
 
-  const phase = asString(candidate.phase);
+  const phase = asString(candidate["phase"]);
   if (phase && (VALID_PHASES as readonly string[]).includes(phase)) {
     result.phase = phase as Phase;
   }
 
-  const view = asString(candidate.view);
+  const view = asString(candidate["view"]);
   if (view && (VALID_VIEWS as readonly string[]).includes(view)) {
     result.view = view as ViewMode;
   }
 
-  const mood = asString(candidate.mood);
+  const mood = asString(candidate["mood"]);
   if (mood && (VALID_MOODS as readonly string[]).includes(mood)) {
     result.mood = mood as VisualMood;
   }
 
-  if (candidate.activeTool === null) {
+  if (candidate["activeTool"] === null) {
     result.activeTool = null;
   } else {
-    const tool = asString(candidate.activeTool);
+    const tool = asString(candidate["activeTool"]);
     if (tool) {
       result.activeTool = tool;
     }
   }
 
   if (
-    candidate.technicalSettings &&
-    typeof candidate.technicalSettings === "object"
+    candidate["technicalSettings"] &&
+    typeof candidate["technicalSettings"] === "object"
   ) {
-    const techRaw = candidate.technicalSettings as Record<string, unknown>;
-    const focusPeaking = asBoolean(techRaw.focusPeaking);
-    const falseColor = asBoolean(techRaw.falseColor);
-    const colorTemp = asNumber(techRaw.colorTemp);
+    const techRaw = candidate["technicalSettings"] as Record<string, unknown>;
+    const focusPeaking = asBoolean(techRaw["focusPeaking"]);
+    const falseColor = asBoolean(techRaw["falseColor"]);
+    const colorTemp = asNumber(techRaw["colorTemp"]);
     if (
       focusPeaking !== undefined &&
       falseColor !== undefined &&
@@ -138,12 +138,15 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
     }
   }
 
-  result.lastAnalysis = sanitizeAnalysis(candidate.lastAnalysis);
+  result.lastAnalysis = sanitizeAnalysis(candidate["lastAnalysis"]);
 
-  if (candidate.lastAssistant && typeof candidate.lastAssistant === "object") {
-    const assistantRaw = candidate.lastAssistant as Record<string, unknown>;
-    const question = asString(assistantRaw.question);
-    const answer = asString(assistantRaw.answer);
+  if (
+    candidate["lastAssistant"] &&
+    typeof candidate["lastAssistant"] === "object"
+  ) {
+    const assistantRaw = candidate["lastAssistant"] as Record<string, unknown>;
+    const question = asString(assistantRaw["question"]);
+    const answer = asString(assistantRaw["answer"]);
     if (question || answer) {
       result.lastAssistant = {
         question: question ?? null,
@@ -154,7 +157,7 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
     }
   }
 
-  const savedAt = asString(candidate.savedAt);
+  const savedAt = asString(candidate["savedAt"]);
   if (savedAt) {
     result.savedAt = savedAt;
   }

@@ -173,16 +173,19 @@ export function exportLocalStorage(): Record<string, OldScreenplayFormat> {
     const keys = Object.keys(localStorage);
 
     for (const key of keys) {
-      if (key.startsWith("screenplay_") || key.startsWith("screenplay-")) {
-        const rawData = localStorage.getItem(key);
+      if (!key.startsWith("screenplay_") && !key.startsWith("screenplay-")) {
+        continue;
+      }
 
-        if (rawData) {
-          try {
-            exportedData[key] = JSON.parse(rawData) as OldScreenplayFormat;
-          } catch (error) {
-            logger.error(`Failed to parse key: ${key}`, error);
-          }
-        }
+      const rawData = localStorage.getItem(key);
+      if (!rawData) {
+        continue;
+      }
+
+      try {
+        exportedData[key] = JSON.parse(rawData) as OldScreenplayFormat;
+      } catch (error) {
+        logger.error(`Failed to parse key: ${key}`, error);
       }
     }
 

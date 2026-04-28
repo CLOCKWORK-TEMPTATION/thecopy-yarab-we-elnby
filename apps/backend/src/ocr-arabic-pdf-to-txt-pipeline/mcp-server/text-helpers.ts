@@ -42,7 +42,8 @@ export const CRITICAL_OCR_REPLACEMENTS: readonly NamedReplacement[] = [
 
 const MISTRAL_HTTP_RETRY_BASE_MS = Math.max(
   100,
-  Number.parseInt(process.env['MISTRAL_HTTP_RETRY_BASE_MS'] ?? "500", 10) || 500
+  Number.parseInt(process.env["MISTRAL_HTTP_RETRY_BASE_MS"] ?? "500", 10) ||
+    500,
 );
 
 export function clamp(value: number, min: number, max: number): number {
@@ -97,7 +98,7 @@ export function getEnvOrRaise(key: string, message?: string): string {
   const value = (process.env[key] ?? "").trim();
   if (!value) {
     throw new Error(
-      message ?? `متغير ${key} غير موجود. أضف المفتاح في البيئة أو في ملف .env`
+      message ?? `متغير ${key} غير موجود. أضف المفتاح في البيئة أو في ملف .env`,
     );
   }
   return value;
@@ -131,7 +132,7 @@ export function isRetryableHttpStatus(status: number): boolean {
 
 export function isRetryableRequestError(
   error: unknown,
-  didTimeout?: () => boolean
+  didTimeout?: () => boolean,
 ): boolean {
   if (didTimeout?.()) {
     return true;
@@ -210,7 +211,7 @@ export function str(value: unknown): string {
     case "symbol":
       return String(value);
     case "object":
-      return value === null ? "" : JSON.stringify(value) ?? "";
+      return value === null ? "" : (JSON.stringify(value) ?? "");
     default:
       return "";
   }
@@ -226,7 +227,7 @@ export function toNumberInt(raw: string | undefined, fallback: number): number {
 
 export function toNumberFloat(
   raw: string | undefined,
-  fallback: number
+  fallback: number,
 ): number {
   if (!raw) {
     return fallback;
@@ -253,19 +254,19 @@ const SCENE_HEADER_VARIANTS_PATTERN =
 
 export const SCENE_HEADER_LINE_PATTERN = new RegExp(
   `^\\s*(?:#+\\s*)?(?:[٠١٢٣٤٥٦٧٨٩0-9]+\\s+)?${SCENE_HEADER_VARIANTS_PATTERN}\\s*([٠١٢٣٤٥٦٧٨٩0-9]+)\\b\\s*(.*)$`,
-  "iu"
+  "iu",
 );
 
 export function normalizeHindiDigitsToWestern(text: string): string {
   return text.replace(
     /[٠١٢٣٤٥٦٧٨٩]/g,
-    (digit) => HINDI_TO_ARABIC_DIGITS[digit] ?? digit
+    (digit) => HINDI_TO_ARABIC_DIGITS[digit] ?? digit,
   );
 }
 
 export function normalizeSceneHeadersRobust(
   text: string,
-  onNormalized?: (sceneHeader: string) => void
+  onNormalized?: (sceneHeader: string) => void,
 ): string {
   const lines = text.split(/\r?\n/);
   const out: string[] = [];

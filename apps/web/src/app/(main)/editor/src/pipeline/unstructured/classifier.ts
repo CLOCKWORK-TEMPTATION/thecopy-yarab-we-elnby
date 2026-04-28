@@ -22,14 +22,23 @@ function normSpaces(s: string): string {
   return (s ?? "").replace(/[ \t]{2,}/g, " ").trim();
 }
 
-function mkItem(
-  i: number,
-  type: UnstructuredItemType,
-  raw: string,
-  normalized: string,
-  confidence: number,
-  evidence: Evidence[]
-): UnstructuredItem {
+interface MkItemInput {
+  i: number;
+  type: UnstructuredItemType;
+  raw: string;
+  normalized: string;
+  confidence: number;
+  evidence: Evidence[];
+}
+
+function mkItem({
+  i,
+  type,
+  raw,
+  normalized,
+  confidence,
+  evidence,
+}: MkItemInput): UnstructuredItem {
   return { i, type, raw, normalized, confidence, evidence };
 }
 
@@ -45,7 +54,16 @@ export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
     conf: number,
     ev: Evidence[]
   ): void => {
-    items.push(mkItem(idx++, type, raw, normalized, conf, ev));
+    items.push(
+      mkItem({
+        i: idx++,
+        type,
+        raw,
+        normalized,
+        confidence: conf,
+        evidence: ev,
+      })
+    );
   };
 
   let pendingHeader3 = false;

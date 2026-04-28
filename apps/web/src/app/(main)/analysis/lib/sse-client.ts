@@ -17,6 +17,10 @@ export interface OpenSseOptions {
   onOpen?: () => void;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 export function openSse(opts: OpenSseOptions): SseHandle {
   if (typeof window === "undefined" || typeof EventSource === "undefined") {
     return { close: () => undefined };
@@ -36,12 +40,20 @@ export function openSse(opts: OpenSseOptions): SseHandle {
     "station.error",
   ];
 
-  const handlers = new Map<string, (e: MessageEvent) => void>();
+  const eventTypes = new Set<string>(eventNames);
+  const isStreamEvent = (value: unknown): value is StreamEvent =>
+    isRecord(value) &&
+    typeof value["type"] === "string" &&
+    eventTypes.has(value["type"]);
+
+  const handlers = new Map<string, (e: MessageEvent<string>) => void>();
   for (const name of eventNames) {
-    const h = (e: MessageEvent) => {
+    const h = (e: MessageEvent<string>) => {
       try {
-        const payload = JSON.parse(e.data) as StreamEvent;
-        opts.onEvent(payload);
+        const payload: unknown = JSON.parse(e.data);
+        if (isStreamEvent(payload)) {
+          opts.onEvent(payload);
+        }
       } catch {
         // ignore malformed payloads
       }

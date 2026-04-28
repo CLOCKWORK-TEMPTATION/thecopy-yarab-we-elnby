@@ -1,10 +1,15 @@
+import { runCastAgent } from "./local";
+import {
+  calculateAgeRanges,
+  generateCastInsights,
+  generateCastWarnings,
+} from "./utils/insights";
+
 import type {
   ExtendedCastMember,
   CastAnalysisOptions,
   CastAnalysisResult,
 } from "../../domain/models";
-
-import { runCastAgent } from "./local";
 
 // Re-export utility functions
 export { normalizeArabic, editDistance, isSameCharacter } from "./utils/text";
@@ -22,11 +27,6 @@ export {
   generateCastingCall,
 } from "./utils/export";
 export { normalizeCastMember } from "./utils/validation";
-import {
-  calculateAgeRanges,
-  generateCastInsights,
-  generateCastWarnings,
-} from "./utils/insights";
 
 // Types are now re-exported from utils modules above
 

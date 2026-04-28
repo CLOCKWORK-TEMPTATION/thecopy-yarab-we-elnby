@@ -248,12 +248,10 @@ export const reflectOnChunk = (
           prevPrev ? prevPrev.type : null,
           prev.type
         );
-        if (seqValid) {
-          const evidence = quickEvidenceCheck(line, prev.type);
-          if (evidence > 0) {
-            classified[i] = correctedDraft(draft, prev.type, 3);
-            corrections++;
-          }
+        const evidence = seqValid ? quickEvidenceCheck(line, prev.type) : 0;
+        if (evidence > 0) {
+          classified[i] = correctedDraft(draft, prev.type, 3);
+          corrections++;
         }
       }
     }

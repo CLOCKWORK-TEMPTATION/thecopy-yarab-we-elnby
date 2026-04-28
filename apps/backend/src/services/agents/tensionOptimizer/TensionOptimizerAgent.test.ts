@@ -60,7 +60,9 @@ describe("TensionOptimizerAgent", () => {
   });
 
   it("should return fallback metadata on failure", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("tension failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("tension failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل التوتر",

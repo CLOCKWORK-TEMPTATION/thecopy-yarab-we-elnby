@@ -20,7 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+
 import { formatTime } from "./utils";
+
 import type { ExportSettings, Take } from "./types";
 
 interface ExportPanelProps {

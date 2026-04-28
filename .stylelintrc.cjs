@@ -5,6 +5,6 @@ module.exports = {
     "color-function-notation": "modern",
     "hue-degree-notation": "degree",
     "font-family-name-quotes": "never",
-    "function-disallowed-list": []
-  }
+    "function-disallowed-list": [],
+  },
 };

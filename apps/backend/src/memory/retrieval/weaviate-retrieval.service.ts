@@ -1,7 +1,6 @@
 /* eslint-disable complexity -- experimental memory retrieval module */
 import { Filters } from "weaviate-client";
 
-
 import { logger } from "@/lib/logger";
 import { embeddingsService } from "@/services/rag/embeddings.service";
 import { definedProps } from "@/utils/defined-props";
@@ -111,7 +110,7 @@ interface WeaviateCollectionForRetrieval {
         filters: unknown;
         returnMetadata: string[];
         returnProperties: string[];
-      }
+      },
     ): Promise<{ objects: WeaviateQueryObject[] }>;
   };
   filter: {
@@ -132,8 +131,8 @@ export class WeaviateRetrievalService {
     const collectionRequests = this.resolveCollections(request, topK);
     const searchResults = await Promise.all(
       collectionRequests.map((collectionRequest) =>
-        this.searchCollection(queryEmbedding, collectionRequest)
-      )
+        this.searchCollection(queryEmbedding, collectionRequest),
+      ),
     );
 
     return this.rankResults(searchResults.flat(), request);
@@ -155,7 +154,7 @@ export class WeaviateRetrievalService {
   async quickSearch(
     query: string,
     collection?: string,
-    topK = 5
+    topK = 5,
   ): Promise<RetrievalHit[]> {
     return this.retrieve({
       query,
@@ -171,22 +170,23 @@ export class WeaviateRetrievalService {
 
   private async searchCollection(
     queryEmbedding: number[],
-    request: RetrievalCollectionRequest
+    request: RetrievalCollectionRequest,
   ): Promise<RetrievalHit[]> {
     try {
       const collection = weaviateStore.getCollection(
-        request.name
+        request.name,
       ) as unknown as WeaviateCollectionForRetrieval;
       const response = await collection.query.nearVector(queryEmbedding, {
         limit: request.limit ?? this.defaultTopK,
         filters: this.buildFilters(collection, request.filters),
         returnMetadata: ["certainty"],
-        returnProperties:
-          DEFAULT_COLLECTION_PROPERTIES[request.name] ?? ["content"],
+        returnProperties: DEFAULT_COLLECTION_PROPERTIES[request.name] ?? [
+          "content",
+        ],
       });
 
       return response.objects.map((object, index) =>
-        this.toRetrievalHit(request.name, object, index)
+        this.toRetrievalHit(request.name, object, index),
       );
     } catch (error) {
       logger.error(`Error searching ${request.name}`, { error });
@@ -196,7 +196,7 @@ export class WeaviateRetrievalService {
 
   private buildFilters(
     collection: WeaviateCollectionForRetrieval,
-    filters?: RetrievalFilter[]
+    filters?: RetrievalFilter[],
   ): unknown {
     if (!filters || filters.length === 0) {
       return undefined;
@@ -205,7 +205,7 @@ export class WeaviateRetrievalService {
     const values: unknown[] = filters.map((filter) =>
       collection.filter
         .byProperty(filter.property as never)
-        .equal(filter.value as never)
+        .equal(filter.value as never),
     );
 
     const combinedFilter: unknown = Filters.and(...(values as never[]));
@@ -214,7 +214,7 @@ export class WeaviateRetrievalService {
 
   private rankResults(
     results: RetrievalHit[],
-    request: UnifiedRetrievalRequest
+    request: UnifiedRetrievalRequest,
   ): RetrievalHit[] {
     const recencyBias = request.recencyBias ?? 0.3;
     const now = Date.now();
@@ -232,7 +232,8 @@ export class WeaviateRetrievalService {
         const recencyScore = Math.max(0, 1 - age / maxAge);
 
         let finalScore =
-          result.relevanceScore * (1 - recencyBias) + recencyScore * recencyBias;
+          result.relevanceScore * (1 - recencyBias) +
+          recencyScore * recencyBias;
 
         if (queryDirectory && result.source.includes(queryDirectory)) {
           finalScore *= 1.15;
@@ -252,7 +253,7 @@ export class WeaviateRetrievalService {
 
   private resolveCollections(
     request: UnifiedRetrievalRequest,
-    topK: number
+    topK: number,
   ): RetrievalCollectionRequest[] {
     if (request.collections && request.collections.length > 0) {
       return request.collections.map((collection) => ({
@@ -269,7 +270,7 @@ export class WeaviateRetrievalService {
   }
 
   private resolveContextCollections(
-    query: ContextQuery
+    query: ContextQuery,
   ): RetrievalCollectionRequest[] {
     const contentTypes = query.contentType;
     const topK = query.topK ?? this.defaultTopK;
@@ -304,7 +305,7 @@ export class WeaviateRetrievalService {
   private toRetrievalHit(
     collectionName: string,
     object: WeaviateQueryObject,
-    index: number
+    index: number,
   ): RetrievalHit {
     const properties = object.properties ?? {};
     const content =
@@ -328,7 +329,9 @@ export class WeaviateRetrievalService {
       type: COLLECTION_TYPE_MAP[collectionName] ?? "documentation",
       collection: collectionName,
       chunkIndex:
-        typeof properties["chunkIndex"] === "number" ? properties["chunkIndex"] : index,
+        typeof properties["chunkIndex"] === "number"
+          ? properties["chunkIndex"]
+          : index,
       metadata: properties,
       relevanceScore: object.metadata?.certainty ?? 0,
       rank: index + 1,
@@ -375,7 +378,9 @@ export class WeaviateRetrievalService {
   private getDirectory(filePath: string): string {
     const normalized = filePath.replace(/\//g, "\\");
     const separatorIndex = normalized.lastIndexOf("\\");
-    return separatorIndex >= 0 ? normalized.slice(0, separatorIndex) : normalized;
+    return separatorIndex >= 0
+      ? normalized.slice(0, separatorIndex)
+      : normalized;
   }
 }
 

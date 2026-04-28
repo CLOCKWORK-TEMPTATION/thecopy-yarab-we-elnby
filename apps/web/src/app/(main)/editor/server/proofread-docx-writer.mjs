@@ -129,7 +129,7 @@ const classifyLineSimple = (line) => {
 
 // ─── توليد DOCX خام ───────────────────────────────────────────
 
-const buildRawDocx = (text, _filename) => {
+const buildRawDocx = (text) => {
   const lines = text.split(/\r?\n/);
   const paragraphs = [];
 
@@ -173,7 +173,7 @@ const buildRawDocx = (text, _filename) => {
 
 // ─── توليد DOCX مُنسّق ───────────────────────────────────────
 
-const buildFormattedDocx = (text, _filename) => {
+const buildFormattedDocx = (text) => {
   const lines = text.split(/\r?\n/);
   const paragraphs = [];
 
@@ -374,8 +374,8 @@ export const saveProofreadDocx = async (text, originalFilename) => {
   try {
     await mkdir(OUTPUT_DIR, { recursive: true });
 
-    const rawDoc = buildRawDocx(text, originalFilename);
-    const formattedDoc = buildFormattedDocx(text, originalFilename);
+    const rawDoc = buildRawDocx(text);
+    const formattedDoc = buildFormattedDocx(text);
 
     const rawBuffer = await Packer.toBuffer(rawDoc);
     const formattedBuffer = await Packer.toBuffer(formattedDoc);

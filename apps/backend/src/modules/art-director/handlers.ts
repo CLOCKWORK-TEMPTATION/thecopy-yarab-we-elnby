@@ -5,7 +5,10 @@ import {
   handleDocumentationDecision,
   handleDocumentationExport,
 } from "./handlers-documentation";
-import { handleInspirationAnalyze, handleInspirationPalette } from "./handlers-inspiration";
+import {
+  handleInspirationAnalyze,
+  handleInspirationPalette,
+} from "./handlers-inspiration";
 import { handleLocationSearch, handleLocationAdd } from "./handlers-location";
 import {
   handleProductivitySummary,
@@ -65,12 +68,12 @@ import type { PluginInfo } from "./types";
 export type { ArtDirectorHandlerResponse };
 
 type PluginMetadataFactory = new () => {
-    id: string;
-    name: string;
-    nameAr: string;
-    version: string;
-    category: string;
-  };
+  id: string;
+  name: string;
+  nameAr: string;
+  version: string;
+  category: string;
+};
 
 const PLUGIN_METADATA_FACTORIES: PluginMetadataFactory[] = [
   VisualConsistencyAnalyzer,
@@ -105,7 +108,7 @@ function getPluginCatalog(): PluginInfo[] {
 }
 
 function computeDashboardSummary(
-  store: ArtDirectorStore
+  store: ArtDirectorStore,
 ): Record<string, unknown> {
   const uniqueProjects = new Set<string>();
 
@@ -125,9 +128,8 @@ function computeDashboardSummary(
     projectsActive: uniqueProjects.size,
     locationsCount: store.locations.length,
     setsCount: store.setPieces.length,
-    completedTasks: store.timeEntries.filter(
-      (e) => e.status === "completed"
-    ).length,
+    completedTasks: store.timeEntries.filter((e) => e.status === "completed")
+      .length,
     pluginsCount: getPluginCatalog().length,
     lastUpdated: store.updatedAt,
   };
@@ -153,12 +155,14 @@ async function handleDashboardSummary(): Promise<ArtDirectorHandlerResponse> {
   return success({ summary: computeDashboardSummary(store) });
 }
 
-type OptionalRouteResponse = Promise<ArtDirectorHandlerResponse> |
-  ArtDirectorHandlerResponse | undefined;
+type OptionalRouteResponse =
+  | Promise<ArtDirectorHandlerResponse>
+  | ArtDirectorHandlerResponse
+  | undefined;
 
 function handleGetRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "health":
@@ -179,7 +183,7 @@ function handleGetRoute(
 }
 function handleAnalyzePostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "analyze/visual-consistency":
@@ -196,7 +200,7 @@ function handleAnalyzePostRoute(
 }
 function handleProductionPostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "translate/cinema-terms":
@@ -217,7 +221,7 @@ function handleProductionPostRoute(
 }
 function handleInspirationLocationPostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "inspiration/analyze":
@@ -234,7 +238,7 @@ function handleInspirationLocationPostRoute(
 }
 function handleSetProductivityPostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "sets/reusability":
@@ -257,7 +261,7 @@ function handleSetProductivityPostRoute(
 }
 function handleDocumentationXrPostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   switch (routePath) {
     case "documentation/generate":
@@ -278,7 +282,7 @@ function handleDocumentationXrPostRoute(
 }
 function handlePostRoute(
   routePath: string,
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): OptionalRouteResponse {
   return (
     handleAnalyzePostRoute(routePath, payload) ??

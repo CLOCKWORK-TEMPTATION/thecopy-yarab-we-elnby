@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { getCurrentUser } from "@/lib/api";
 
 export function useAuth() {
-  const [user, setUser] = useState<unknown | null>(null);
+  const [user, setUser] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

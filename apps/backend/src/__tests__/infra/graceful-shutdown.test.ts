@@ -8,11 +8,11 @@
  * - ترتيب تسلسل الإيقاف
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mock لقاعدة البيانات ───
 const mockPoolEnd = vi.fn();
-vi.mock('pg', () => ({
+vi.mock("pg", () => ({
   default: {
     Pool: vi.fn(function MockPool() {
       return {
@@ -24,30 +24,30 @@ vi.mock('pg', () => ({
   },
 }));
 
-vi.mock('drizzle-orm/node-postgres', () => ({
+vi.mock("drizzle-orm/node-postgres", () => ({
   drizzle: vi.fn(() => ({})),
 }));
 
 // ═══ اختبارات closeDatabase ═══
 
-describe('closeDatabase', () => {
+describe("closeDatabase", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('يجب أن يغلق pool الاتصال بنجاح', async () => {
+  it("يجب أن يغلق pool الاتصال بنجاح", async () => {
     mockPoolEnd.mockResolvedValue(undefined);
 
-    const { closeDatabase } = await import('@/db/index');
+    const { closeDatabase } = await import("@/db/index");
     await closeDatabase();
 
     expect(mockPoolEnd).toHaveBeenCalled();
   });
 
-  it('يجب أن يتعامل مع خطأ الإغلاق بدون انهيار', async () => {
-    mockPoolEnd.mockRejectedValue(new Error('Pool close error'));
+  it("يجب أن يتعامل مع خطأ الإغلاق بدون انهيار", async () => {
+    mockPoolEnd.mockRejectedValue(new Error("Pool close error"));
 
-    const { closeDatabase } = await import('@/db/index');
+    const { closeDatabase } = await import("@/db/index");
 
     // يجب أن لا يرمي خطأ
     await expect(closeDatabase()).resolves.toBeUndefined();
@@ -56,8 +56,8 @@ describe('closeDatabase', () => {
 
 // ═══ اختبارات نمط shutdownQueues ═══
 
-describe('نمط shutdownQueues', () => {
-  it('يجب أن يكون نمط الإيقاف: استدعاء close ثم تسجيل نجاح', async () => {
+describe("نمط shutdownQueues", () => {
+  it("يجب أن يكون نمط الإيقاف: استدعاء close ثم تسجيل نجاح", async () => {
     // محاكاة بنية queueManager.close()
     const mockClose = vi.fn().mockResolvedValue(undefined);
     const queueManager = { close: mockClose };
@@ -68,8 +68,10 @@ describe('نمط shutdownQueues', () => {
     expect(mockClose).toHaveBeenCalledOnce();
   });
 
-  it('يجب أن يتعامل مع فشل close بدون انهيار', async () => {
-    const mockClose = vi.fn().mockRejectedValue(new Error('Queue close failed'));
+  it("يجب أن يتعامل مع فشل close بدون انهيار", async () => {
+    const mockClose = vi
+      .fn()
+      .mockRejectedValue(new Error("Queue close failed"));
     const queueManager = { close: mockClose };
 
     // محاكاة نمط server.ts: try/catch حول shutdownQueues
@@ -87,40 +89,40 @@ describe('نمط shutdownQueues', () => {
 
 // ═══ اختبارات تسلسل الإيقاف ═══
 
-describe('تسلسل الإيقاف', () => {
-  it('يجب أن تكون closeDatabase دالة async قابلة للاستدعاء', async () => {
+describe("تسلسل الإيقاف", () => {
+  it("يجب أن تكون closeDatabase دالة async قابلة للاستدعاء", async () => {
     mockPoolEnd.mockResolvedValue(undefined);
 
-    const { closeDatabase } = await import('@/db/index');
+    const { closeDatabase } = await import("@/db/index");
 
-    expect(typeof closeDatabase).toBe('function');
+    expect(typeof closeDatabase).toBe("function");
     // تأكيد أنها ترجع Promise
     const result = closeDatabase();
     expect(result).toBeInstanceOf(Promise);
     await result;
   });
 
-  it('يجب أن يتحمل فشل خدمات متعددة دون إيقاف التسلسل', async () => {
+  it("يجب أن يتحمل فشل خدمات متعددة دون إيقاف التسلسل", async () => {
     // محاكاة سيناريو فشل متعدد
     const errors: string[] = [];
 
     // خدمة 1: فشل
     try {
-      throw new Error('SSE shutdown failed');
+      throw new Error("SSE shutdown failed");
     } catch (error) {
       errors.push((error as Error).message);
     }
 
     // خدمة 2: فشل
     try {
-      throw new Error('WebSocket shutdown failed');
+      throw new Error("WebSocket shutdown failed");
     } catch (error) {
       errors.push((error as Error).message);
     }
 
     // خدمة 3: نجاح
     mockPoolEnd.mockResolvedValue(undefined);
-    const { closeDatabase } = await import('@/db/index');
+    const { closeDatabase } = await import("@/db/index");
     await closeDatabase();
 
     // التسلسل يجب أن يستمر رغم الأخطاء السابقة

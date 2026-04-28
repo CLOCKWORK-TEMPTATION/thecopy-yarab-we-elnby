@@ -139,13 +139,13 @@ async function startRuntimeServer(): Promise<RuntimeServer> {
     NODE_OPTIONS: "",
   };
 
-  delete childEnv.VITEST;
-  delete childEnv.VITEST_MODE;
-  delete childEnv.VITEST_POOL_ID;
-  delete childEnv.VITEST_WORKER_ID;
-  delete childEnv.npm_lifecycle_script;
-  delete childEnv.npm_command;
-  delete childEnv.PNPM_SCRIPT_SRC_DIR;
+  delete childEnv["VITEST"];
+  delete childEnv["VITEST_MODE"];
+  delete childEnv["VITEST_POOL_ID"];
+  delete childEnv["VITEST_WORKER_ID"];
+  delete childEnv["npm_lifecycle_script"];
+  delete childEnv["npm_command"];
+  delete childEnv["PNPM_SCRIPT_SRC_DIR"];
 
   const child = spawn(process.execPath, [distServerPath], {
     cwd: backendDir,

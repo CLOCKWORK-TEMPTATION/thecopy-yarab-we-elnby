@@ -7,10 +7,10 @@
  */
 
 import { traceCollector } from "@editor/suspicion-engine/trace/trace-collector";
-import type { LineRepairRecord } from "@editor/suspicion-engine/adapters/from-classifier";
-import type { PassStage } from "@editor/suspicion-engine/types";
 
 import type { ClassifiedDraft } from "../classification-types";
+import type { LineRepairRecord } from "@editor/suspicion-engine/adapters/from-classifier";
+import type { PassStage } from "@editor/suspicion-engine/types";
 
 /**
  * تحويل خريطة الإصلاحات الحية إلى مصفوفة سجلات قابلة للتمرير

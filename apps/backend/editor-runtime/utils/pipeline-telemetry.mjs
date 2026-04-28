@@ -65,7 +65,7 @@ const emit = (event) => {
 
   console.warn(
     `${PREFIX} ${tag} [${event.importOpId}]${versionTag} ${normalizedStage} ${event.status}${duration}${error}`,
-    event.metadata ?? ""
+    event.metadata ?? "",
   );
 };
 
@@ -79,7 +79,7 @@ export const recordStageStart = (
   importOpId,
   stage,
   sourceType,
-  metadata = undefined
+  metadata = undefined,
 ) => {
   const normalizedStage = normalizeStage(stage);
   const now = Date.now();
@@ -108,7 +108,7 @@ export const recordStageComplete = (
   importOpId,
   stage,
   sourceType,
-  metadata = undefined
+  metadata = undefined,
 ) => {
   const normalizedStage = normalizeStage(stage);
   const now = Date.now();
@@ -144,7 +144,7 @@ export const recordStageFailure = (
   stage,
   sourceType,
   error,
-  metadata = undefined
+  metadata = undefined,
 ) => {
   const normalizedStage = normalizeStage(stage);
   const now = Date.now();

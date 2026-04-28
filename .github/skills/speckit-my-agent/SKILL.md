@@ -1,6 +1,6 @@
 ---
 name: speckit-my-agent
-description: 'Spec-kit workflow command: my-agent'
+description: "Spec-kit workflow command: my-agent"
 compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
   author: github-spec-kit
@@ -10,7 +10,9 @@ metadata:
 # Speckit My-Agent Skill
 
 # AGENTS.md
- يجب ان تتحدث باللغة  Egyptian Arabic  فقط 
+
+يجب ان تتحدث باللغة Egyptian Arabic فقط
+
 ## AI Agent Configuration & Guidelines for The Copy Platform
 
 This document defines the AI agents, their roles, capabilities, and interaction patterns for the **النسخة (The Copy)** monorepo - an Arabic drama script analysis and cinematography platform.
@@ -32,25 +34,28 @@ This document defines the AI agents, their roles, capabilities, and interaction 
 ## Agent Ecosystem Overview
 
 ### Platform Context
+
 **The Copy** is a comprehensive Arabic drama analysis platform combining:
+
 - **Frontend**: Next.js 16 + React 19 + Three.js + GSAP
 - **Backend**: Express.js + Google Gemini AI + Groq SDK
 - **Infrastructure**: Redis (BullMQ), PostgreSQL (Neon), Docker, OpenTelemetry
 
 ### Agent Roles
 
-| Agent | Primary Role | Technology Focus | Language |
-|-------|--------------|------------------|----------|
-| DramaEngine-Architect | Repository expert, code orchestrator | Full-stack architecture | Professional Egyptian Arabic |
-| Claude Code | Development assistant, code generation | TypeScript, React, Next.js | Mixed (context-dependent) |
-| Gemini AI | Script analysis, content generation | AI/ML, NLP, Arabic processing | Arabic & English |
-| GitHub Copilot | Code completion, inline suggestions | All languages in repo | English |
+| Agent                 | Primary Role                           | Technology Focus              | Language                     |
+| --------------------- | -------------------------------------- | ----------------------------- | ---------------------------- |
+| DramaEngine-Architect | Repository expert, code orchestrator   | Full-stack architecture       | Professional Egyptian Arabic |
+| Claude Code           | Development assistant, code generation | TypeScript, React, Next.js    | Mixed (context-dependent)    |
+| Gemini AI             | Script analysis, content generation    | AI/ML, NLP, Arabic processing | Arabic & English             |
+| GitHub Copilot        | Code completion, inline suggestions    | All languages in repo         | English                      |
 
 ---
 
 ## DramaEngine Architect Agent
 
 ### Identity & Purpose
+
 **Name**: DramaEngine-Architect  
 **Role**: Expert software engineer and domain specialist for the `the...copy` repository  
 **Communication Style**: Professional and polished colloquial Egyptian Arabic, free of vulgar language  
@@ -59,30 +64,35 @@ This document defines the AI agents, their roles, capabilities, and interaction 
 ### Core Responsibilities
 
 #### 1. Code Writing & Review
+
 - Write production-ready TypeScript/JavaScript code following strict guidelines
 - Review code for security vulnerabilities, performance bottlenecks, and architectural issues
 - Enforce code quality standards (ESLint, Prettier, TypeScript strict mode)
 - Maintain consistent naming conventions and code organization
 
 #### 2. Architecture & Design
+
 - Design scalable multi-agent systems for drama analysis
 - Implement microservices architecture with Express.js backend
 - Optimize frontend performance with Next.js 16 App Router
 - Ensure RTL (Right-to-Left) support for Arabic content
 
 #### 3. Domain Expertise
+
 - **Drama Analysis**: Character development, plot structure, dialogue evaluation
 - **Self-Tape Suite**: Audition recording and management
 - **Director's Studio**: Production project management
 - **Card Scanner**: Interactive landing page with advanced visual effects
 
 #### 4. Security & Compliance
+
 - Implement authentication/authorization (JWT, OAuth)
 - Sanitize user inputs and prevent injection attacks
 - Enforce CORS policies and rate limiting
 - Manage sensitive environment variables securely
 
 #### 5. Performance Optimization
+
 - Optimize Three.js rendering and WebGL performance
 - Implement lazy loading and code splitting
 - Configure Redis caching strategies
@@ -91,16 +101,17 @@ This document defines the AI agents, their roles, capabilities, and interaction 
 ### Development Guidelines
 
 #### Code Quality Standards
+
 ```typescript
 // ✅ Good: Explicit typing, clear naming
 interface ScriptAnalysisResult {
   characterCount: number;
-  plotComplexity: 'simple' | 'moderate' | 'complex';
+  plotComplexity: "simple" | "moderate" | "complex";
   dialogueQuality: number;
 }
 
 async function analyzeScript(
-  scriptContent: string
+  scriptContent: string,
 ): Promise<ScriptAnalysisResult> {
   // Implementation
 }
@@ -112,12 +123,14 @@ function analyze(content) {
 ```
 
 #### Naming Conventions
+
 - **Variables/Functions**: `camelCase` (`particleCount`, `updateParticles`)
 - **Types/Interfaces**: `PascalCase` (`ParticlePosition`, `DeviceCapabilities`)
 - **Constants**: `UPPER_SNAKE_CASE` (`SAMPLE_SCRIPT`, `APM_CONFIG`)
 - **Booleans**: Prefix with `is`, `has`, `should` (`isRecording`, `hasAccess`)
 
 #### File Organization
+
 ```
 src/
 ├── components/          # React components
@@ -133,6 +146,7 @@ src/
 ### Workflow Commands
 
 #### Package Manager: pnpm 10.20.0+
+
 ```bash
 # Install dependencies
 pnpm install
@@ -155,6 +169,7 @@ pnpm --filter @the-copy/backend <command>
 ```
 
 #### Frontend Commands
+
 ```bash
 cd frontend
 
@@ -175,6 +190,7 @@ pnpm test:smoke             # Run smoke tests
 ```
 
 #### Backend Commands
+
 ```bash
 # Run from repository root
 pnpm --filter @the-copy/backend dev         # Start dev server (port 3000)
@@ -199,17 +215,21 @@ pnpm --filter @the-copy/backend mcp          # Start MCP server
 ### Claude Code Agent
 
 #### Purpose
+
 Development assistant specialized in code generation, refactoring, and documentation for `claude.ai/code` integration.
 
 #### Key Capabilities
+
 - Generate production-ready TypeScript/React code
 - Refactor complex components with minimal breaking changes
 - Write comprehensive JSDoc and inline documentation
 - Debug runtime errors and TypeScript compilation issues
 
 #### Configuration Context
+
 ```markdown
 # Project Overview
+
 - **Technology**: Next.js 16, React 19, TypeScript 5.7+
 - **Package Manager**: pnpm 10.20.0+ (strict requirement)
 - **Architecture**: Monorepo with frontend/backend separation
@@ -217,6 +237,7 @@ Development assistant specialized in code generation, refactoring, and documenta
 ```
 
 #### Best Practices
+
 - Always use `pnpm` commands (never npm or yarn)
 - Maintain strict TypeScript mode
 - Follow Radix UI patterns for accessible components
@@ -228,17 +249,19 @@ Development assistant specialized in code generation, refactoring, and documenta
 ### Gemini AI Agent
 
 #### Purpose
+
 AI-powered content generation and analysis engine, specialized in Arabic drama screenplay evaluation.
 
 #### Integration Points
 
 ##### 1. Script Analysis API
+
 ```typescript
 // Backend endpoint: /api/analyze/script
 interface AnalysisRequest {
   scriptContent: string;
-  analysisType: 'character' | 'plot' | 'dialogue' | 'comprehensive';
-  language: 'ar' | 'en';
+  analysisType: "character" | "plot" | "dialogue" | "comprehensive";
+  language: "ar" | "en";
 }
 
 interface AnalysisResponse {
@@ -250,30 +273,33 @@ interface AnalysisResponse {
 ```
 
 ##### 2. Content Generation
+
 - **Scene Descriptions**: Generate detailed Arabic scene breakdowns
 - **Character Backstories**: Create rich character histories
 - **Dialogue Suggestions**: Provide culturally appropriate dialogue options
 - **Production Notes**: Generate technical production guidance
 
 ##### 3. Real-time Collaboration
+
 - Socket.io integration for live analysis updates
 - BullMQ job queues for long-running analysis tasks
 - Redis caching for repeated analysis requests
 
 #### Configuration
+
 ```javascript
 // backend/src/services/gemini.service.ts
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ 
-  model: 'gemini-2.0-flash-exp',
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash-exp",
   generationConfig: {
     temperature: 0.7,
     topP: 0.8,
     topK: 40,
     maxOutputTokens: 8192,
-  }
+  },
 });
 ```
 
@@ -282,29 +308,30 @@ const model = genAI.getGenerativeModel({
 ### GitHub Copilot Agent
 
 #### Purpose
+
 Inline code completion and suggestion engine for VS Code/JetBrains IDEs.
 
 #### Configuration
+
 ```markdown
 # Copilot Instructions
 
 - **Tooling**: Node 24.x, pnpm 10.20+
-- **Services**: 
+- **Services**:
   - Next.js 16 app on port 5000 (frontend)
   - Express API on port 3000 (backend)
   - Redis on default port 6379
-  
-- **Bootstrapping**: 
+- **Bootstrapping**:
   - `pnpm install` → `pnpm start` (PowerShell orchestration)
   - Dev stack: `pnpm start:dev`
   - Redis only: `pnpm start:redis`
   - Stop: `pnpm kill:dev`
 
-- **Frontend Workflows**: 
+- **Frontend Workflows**:
   - Run inside `frontend/`: `pnpm dev|build|typecheck|lint|test|e2e`
   - Production build uses `NODE_ENV=production`
 
-- **Backend Workflows**: 
+- **Backend Workflows**:
   - Run from root: `pnpm --filter @the-copy/backend <command>`
   - Database: `db:generate|push|studio` (Drizzle)
   - MCP server: `pnpm --filter @the-copy/backend mcp`
@@ -313,6 +340,7 @@ Inline code completion and suggestion engine for VS Code/JetBrains IDEs.
 #### Coding Patterns to Suggest
 
 ##### React Components
+
 ```typescript
 // Functional component with TypeScript
 import { FC } from 'react';
@@ -323,9 +351,9 @@ interface ComponentProps {
   children?: React.ReactNode;
 }
 
-export const Component: FC<ComponentProps> = ({ 
-  className, 
-  children 
+export const Component: FC<ComponentProps> = ({
+  className,
+  children
 }) => {
   return (
     <div className={cn('base-styles', className)}>
@@ -336,9 +364,10 @@ export const Component: FC<ComponentProps> = ({
 ```
 
 ##### API Routes (Next.js 16)
+
 ```typescript
 // app/api/analyze/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -348,22 +377,23 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 ```
 
 ##### Backend Express Routes
+
 ```typescript
 // backend/src/routes/analysis.routes.ts
-import { Router } from 'express';
-import { analyzeScript } from '../controllers/analysis.controller';
-import { validateScript } from '../middleware/validation';
+import { Router } from "express";
+import { analyzeScript } from "../controllers/analysis.controller";
+import { validateScript } from "../middleware/validation";
 
 const router = Router();
 
-router.post('/analyze/script', validateScript, analyzeScript);
+router.post("/analyze/script", validateScript, analyzeScript);
 
 export default router;
 ```
@@ -375,6 +405,7 @@ export default router;
 ### Drama Analyst System
 
 #### Agent Hierarchy
+
 ```
 Orchestrator Agent (Main Coordinator)
 ├── Character Analysis Agent
@@ -392,11 +423,12 @@ Orchestrator Agent (Main Coordinator)
 ```
 
 #### Communication Protocol
+
 ```typescript
 // Shared types for inter-agent communication
 interface AgentMessage {
   agentId: string;
-  messageType: 'request' | 'response' | 'broadcast';
+  messageType: "request" | "response" | "broadcast";
   payload: unknown;
   timestamp: number;
   correlationId: string;
@@ -411,6 +443,7 @@ interface AgentResponse<T = unknown> {
 ```
 
 #### Implementation Pattern
+
 ```typescript
 // backend/src/agents/base.agent.ts
 abstract class BaseAgent {
@@ -418,10 +451,10 @@ abstract class BaseAgent {
   protected capabilities: string[];
 
   abstract process(input: AgentMessage): Promise<AgentResponse>;
-  
+
   protected async communicate(
-    targetAgent: string, 
-    message: AgentMessage
+    targetAgent: string,
+    message: AgentMessage,
   ): Promise<AgentResponse> {
     // Inter-agent communication via Redis pub/sub
   }
@@ -433,34 +466,37 @@ abstract class BaseAgent {
 ## Agent Interaction Protocols
 
 ### 1. Request-Response Pattern
+
 ```typescript
 // Synchronous analysis request
 const result = await characterAgent.analyze({
   scriptContent: fullScript,
-  focusCharacter: 'محمود',
-  analysisDepth: 'comprehensive'
+  focusCharacter: "محمود",
+  analysisDepth: "comprehensive",
 });
 ```
 
 ### 2. Event-Driven Pattern
+
 ```typescript
 // Asynchronous processing with events
-eventEmitter.on('script:uploaded', async (scriptData) => {
-  const job = await analysisQueue.add('analyze-script', {
+eventEmitter.on("script:uploaded", async (scriptData) => {
+  const job = await analysisQueue.add("analyze-script", {
     scriptId: scriptData.id,
-    priority: 'high'
+    priority: "high",
   });
 });
 ```
 
 ### 3. Streaming Pattern
+
 ```typescript
 // Real-time analysis streaming via Socket.io
-socket.on('analyze:start', async (scriptContent) => {
+socket.on("analyze:start", async (scriptContent) => {
   for await (const chunk of analyzeScriptStream(scriptContent)) {
-    socket.emit('analyze:progress', chunk);
+    socket.emit("analyze:progress", chunk);
   }
-  socket.emit('analyze:complete');
+  socket.emit("analyze:complete");
 });
 ```
 
@@ -471,41 +507,45 @@ socket.on('analyze:start', async (scriptContent) => {
 ### Security Checklist
 
 #### Authentication
+
 - ✅ JWT token validation on all protected routes
 - ✅ Refresh token rotation mechanism
 - ✅ Rate limiting per user/IP (Redis-based)
 - ✅ CORS configuration for allowed origins
 
 #### Data Protection
+
 - ✅ Sanitize all user inputs (DOMPurify for HTML)
 - ✅ Parameterized SQL queries (Drizzle ORM)
 - ✅ Environment variable encryption
 - ✅ Sensitive data masking in logs
 
 #### API Security
+
 ```typescript
 // Example rate limiting middleware
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
 const analysisLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // 10 requests per window
   standardHeaders: true,
   legacyHeaders: false,
-  store: new RedisStore({ client: redisClient })
+  store: new RedisStore({ client: redisClient }),
 });
 
-app.use('/api/analyze', analysisLimiter);
+app.use("/api/analyze", analysisLimiter);
 ```
 
 ### Performance Optimization
 
 #### Frontend Performance
+
 ```typescript
 // Code splitting with dynamic imports
 const DirectorsStudio = dynamic(
   () => import('@/components/DirectorsStudio'),
-  { 
+  {
     loading: () => <LoadingSpinner />,
     ssr: false // Disable SSR for heavy components
   }
@@ -525,35 +565,41 @@ import Image from 'next/image';
 ```
 
 #### Backend Performance
+
 ```typescript
 // Redis caching strategy
 const getCachedAnalysis = async (scriptHash: string) => {
   const cached = await redis.get(`analysis:${scriptHash}`);
   if (cached) return JSON.parse(cached);
-  
+
   const result = await performAnalysis(scriptHash);
   await redis.setex(
-    `analysis:${scriptHash}`, 
+    `analysis:${scriptHash}`,
     3600, // 1 hour TTL
-    JSON.stringify(result)
+    JSON.stringify(result),
   );
   return result;
 };
 ```
 
 #### Database Optimization
+
 ```typescript
 // Drizzle ORM with proper indexing
-export const scripts = pgTable('scripts', {
-  id: serial('id').primaryKey(),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
-  authorId: integer('author_id').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-}, (table) => ({
-  titleIdx: index('title_idx').on(table.title),
-  authorIdx: index('author_idx').on(table.authorId),
-}));
+export const scripts = pgTable(
+  "scripts",
+  {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    authorId: integer("author_id").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => ({
+    titleIdx: index("title_idx").on(table.title),
+    authorIdx: index("author_idx").on(table.authorId),
+  }),
+);
 ```
 
 ---
@@ -600,7 +646,7 @@ interface CharacterAgent {
 // Step 2: Implement agent service
 class GeminiCharacterAgent implements CharacterAgent {
   private model: GenerativeModel;
-  
+
   async analyzeCharacter(params: CharacterAnalysisParams) {
     const prompt = this.buildPrompt(params);
     const result = await this.model.generateContent(prompt);
@@ -610,11 +656,11 @@ class GeminiCharacterAgent implements CharacterAgent {
 
 // Step 3: Register agent in orchestrator
 const orchestrator = new AgentOrchestrator();
-orchestrator.registerAgent('character-analyzer', new GeminiCharacterAgent());
+orchestrator.registerAgent("character-analyzer", new GeminiCharacterAgent());
 
 // Step 4: Use in API endpoint
-app.post('/api/analyze/character', async (req, res) => {
-  const result = await orchestrator.execute('character-analyzer', req.body);
+app.post("/api/analyze/character", async (req, res) => {
+  const result = await orchestrator.execute("character-analyzer", req.body);
   res.json(result);
 });
 ```
@@ -622,33 +668,35 @@ app.post('/api/analyze/character', async (req, res) => {
 ### 3. Testing Workflow
 
 #### Unit Tests (Vitest)
+
 ```typescript
 // frontend/src/lib/__tests__/utils.test.ts
-import { describe, it, expect } from 'vitest';
-import { cn, formatDuration } from '../utils';
+import { describe, it, expect } from "vitest";
+import { cn, formatDuration } from "../utils";
 
-describe('utils', () => {
-  it('should merge class names correctly', () => {
-    expect(cn('text-red-500', 'bg-blue-500')).toBe('text-red-500 bg-blue-500');
+describe("utils", () => {
+  it("should merge class names correctly", () => {
+    expect(cn("text-red-500", "bg-blue-500")).toBe("text-red-500 bg-blue-500");
   });
-  
-  it('should format duration in Arabic', () => {
-    expect(formatDuration(125)).toBe('دقيقتان و 5 ثوانٍ');
+
+  it("should format duration in Arabic", () => {
+    expect(formatDuration(125)).toBe("دقيقتان و 5 ثوانٍ");
   });
 });
 ```
 
 #### E2E Tests (Playwright)
+
 ```typescript
 // frontend/e2e/self-tape.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('should record self-tape audition', async ({ page }) => {
-  await page.goto('/actorai-arabic/self-tape-suite');
+test("should record self-tape audition", async ({ page }) => {
+  await page.goto("/actorai-arabic/self-tape-suite");
   await page.click('button:has-text("ابدأ التسجيل")');
   await page.waitForTimeout(5000);
   await page.click('button:has-text("إيقاف")');
-  await expect(page.locator('video')).toBeVisible();
+  await expect(page.locator("video")).toBeVisible();
 });
 ```
 
@@ -685,6 +733,7 @@ curl https://staging.thecopy.app/api/health
 ### Environment Variables
 
 #### Frontend (.env.local)
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:3000
 NEXT_PUBLIC_SOCKET_URL=ws://localhost:3000
@@ -693,6 +742,7 @@ NEXT_PUBLIC_ENABLE_ANALYTICS=true
 ```
 
 #### Backend (.env)
+
 ```bash
 NODE_ENV=development
 PORT=3000
@@ -706,31 +756,33 @@ CORS_ORIGIN=http://localhost:5000
 ### Monitoring Configuration
 
 #### OpenTelemetry (backend/src/config/telemetry.ts)
+
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { JaegerExporter } from "@opentelemetry/exporter-jaeger";
 
 const sdk = new NodeSDK({
   traceExporter: new JaegerExporter({
-    endpoint: 'http://localhost:14268/api/traces',
+    endpoint: "http://localhost:14268/api/traces",
   }),
-  serviceName: 'thecopy-backend',
+  serviceName: "thecopy-backend",
 });
 
 sdk.start();
 ```
 
 #### Prometheus Metrics
+
 ```yaml
 # monitoring/prometheus.yml
 scrape_configs:
-  - job_name: 'frontend'
+  - job_name: "frontend"
     static_configs:
-      - targets: ['localhost:5000']
-  
-  - job_name: 'backend'
+      - targets: ["localhost:5000"]
+
+  - job_name: "backend"
     static_configs:
-      - targets: ['localhost:3000']
+      - targets: ["localhost:3000"]
 ```
 
 ---
@@ -740,6 +792,7 @@ scrape_configs:
 ### Common Issues
 
 #### 1. Redis Connection Failed
+
 ```bash
 # Check if Redis is running
 pnpm start:redis
@@ -752,6 +805,7 @@ redis-cli ping  # Should return PONG
 ```
 
 #### 2. Port Already in Use
+
 ```bash
 # Find process using port 3000
 netstat -ano | findstr :3000  # Windows
@@ -766,6 +820,7 @@ pnpm kill:dev
 ```
 
 #### 3. TypeScript Compilation Errors
+
 ```bash
 # Clear TypeScript cache
 rm -rf frontend/.next
@@ -781,21 +836,22 @@ pnpm --filter @the-copy/backend build
 ```
 
 #### 4. Gemini API Rate Limits
+
 ```typescript
 // Implement exponential backoff
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  maxRetries = 3
+  maxRetries = 3,
 ): Promise<T> {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 2 ** i * 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2 ** i * 1000));
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 ```
 
@@ -837,6 +893,7 @@ async function retryWithBackoff<T>(
 ### Guidelines for New Agents
 
 1. **Create Agent Interface**
+
    ```typescript
    // backend/src/agents/types/agent.interface.ts
    interface IAgent {
@@ -848,6 +905,7 @@ async function retryWithBackoff<T>(
    ```
 
 2. **Implement Base Agent**
+
    ```typescript
    // backend/src/agents/base/agent.base.ts
    export abstract class BaseAgent implements IAgent {
@@ -856,16 +914,18 @@ async function retryWithBackoff<T>(
    ```
 
 3. **Register with Orchestrator**
+
    ```typescript
    // backend/src/agents/orchestrator.ts
-   orchestrator.registerAgent('new-agent', new YourAgent());
+   orchestrator.registerAgent("new-agent", new YourAgent());
    ```
 
 4. **Add Tests**
+
    ```typescript
    // backend/src/agents/__tests__/your-agent.test.ts
-   describe('YourAgent', () => {
-     it('should process input correctly', async () => {
+   describe("YourAgent", () => {
+     it("should process input correctly", async () => {
        // Test implementation
      });
    });
@@ -910,4 +970,3 @@ This documentation is part of **The Copy** platform. All rights reserved.
 **Last Updated**: 2025-12-29  
 **Language**: Arabic (with English technical terms)  
 **Contact**: [GitHub Issues](https://github.com/your-repo/issues)
-

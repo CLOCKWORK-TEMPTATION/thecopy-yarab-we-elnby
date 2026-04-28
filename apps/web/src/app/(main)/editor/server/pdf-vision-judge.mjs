@@ -414,7 +414,6 @@ export const runVisionJudge = async ({
   model,
   comparePages,
   timeoutMs = DEFAULT_TIMEOUT_MS,
-  skipPreflight: _skipPreflight = false,
 }) => {
   if (!Array.isArray(comparePages) || comparePages.length === 0) {
     throw new Error("vision judge requires compare pages.");

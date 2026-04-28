@@ -3,7 +3,10 @@
 // ─────────────────────────────────────────────────────────
 
 import { randomUUID } from "crypto";
-import { invokeWithFallback, resolveProviderErrorInfo } from "../langchain-fallback-chain.mjs";
+import {
+  invokeWithFallback,
+  resolveProviderErrorInfo,
+} from "../langchain-fallback-chain.mjs";
 import { updateReviewRuntimeSnapshot } from "../provider-api-runtime.mjs";
 import {
   FINAL_REVIEW_CHANNEL,
@@ -16,7 +19,10 @@ import {
 import { resolveFinalReviewRuntime } from "./config.mjs";
 import { validateFinalReviewRequestBody } from "./validation.mjs";
 import { buildFinalReviewMessages } from "./messaging.mjs";
-import { parseFinalReviewResponse, normalizeCommandsAgainstRequest } from "./response.mjs";
+import {
+  parseFinalReviewResponse,
+  normalizeCommandsAgainstRequest,
+} from "./response.mjs";
 import { determineCoverageStatus } from "./coverage.mjs";
 import {
   resolveFinalReviewMockMode,
@@ -54,7 +60,7 @@ export const requestFinalReview = async (body) => {
       request,
       mockMode,
       startTime,
-      reviewModel
+      reviewModel,
     );
     updateReviewRuntimeSnapshot(FINAL_REVIEW_CHANNEL, {
       lastStatus: response.status,
@@ -154,7 +160,7 @@ export const requestFinalReview = async (body) => {
             model: invocation.model,
             maxTokens,
           },
-          "final review response reached max tokens without parseable commands"
+          "final review response reached max tokens without parseable commands",
         );
         continue;
       }
@@ -209,7 +215,7 @@ export const requestFinalReview = async (body) => {
           retryCount: invocation.retryCount,
           latencyMs: response.latencyMs,
         },
-        "final review completed"
+        "final review completed",
       );
 
       return response;
@@ -223,7 +229,7 @@ export const requestFinalReview = async (body) => {
         usedFallback: Boolean(
           config.fallback?.usable &&
           error?.specifier &&
-          config.fallback.specifier === error.specifier
+          config.fallback.specifier === error.specifier,
         ),
         fallbackReason:
           config.fallback?.usable &&
@@ -251,7 +257,7 @@ export const requestFinalReview = async (body) => {
           status: providerInfo.status,
           temporary: providerInfo.temporary,
         },
-        "final review failed"
+        "final review failed",
       );
 
       return {

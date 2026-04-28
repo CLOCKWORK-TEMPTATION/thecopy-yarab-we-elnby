@@ -26,7 +26,10 @@ import {
   normalizeReviewedLines,
   parseResponseJson,
 } from "./suspicion-review.parsing.mjs";
-import { buildMockResponse, resolveMockMode } from "./suspicion-review.mock.mjs";
+import {
+  buildMockResponse,
+  resolveMockMode,
+} from "./suspicion-review.mock.mjs";
 import {
   SuspicionReviewValidationError,
   validateSuspicionReviewRequestBody,

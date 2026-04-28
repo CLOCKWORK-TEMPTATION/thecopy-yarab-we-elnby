@@ -43,14 +43,18 @@ describe("DialogueAdvancedAnalyzerAgent", () => {
     });
 
     expect(mockExecuteStandardPattern).toHaveBeenCalledTimes(1);
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("مواجهة بين البطل وخصمه");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "مواجهة بين البطل وخصمه",
+    );
     expect(result.text).toContain("تحليل الحوار");
     expect(result.confidence).toBe(0.76);
     expect(result.metadata?.timestamp).toBeDefined();
   });
 
   it("should return the fallback response with error metadata on failure", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("dialogue failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("dialogue failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل الحوار",

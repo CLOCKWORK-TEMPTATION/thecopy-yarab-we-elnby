@@ -7,12 +7,37 @@ import { definedProps } from "@/utils/defined-props";
 import { Plugin, PluginInput, PluginOutput } from "../../types";
 import { v4 as uuidv4 } from "uuid";
 
-import type { ConceptArtProject, ArtStyle, Model3D, Environment3D, Character3D, MoodBoard, VRExperience, EnvironmentLighting, AtmosphereSettings, RigInfo, Material3D } from "./types";
+import type {
+  ConceptArtProject,
+  ArtStyle,
+  Model3D,
+  Environment3D,
+  Character3D,
+  MoodBoard,
+  VRExperience,
+  EnvironmentLighting,
+  AtmosphereSettings,
+  RigInfo,
+  Material3D,
+} from "./types";
 import { meshVertices, rigBones, defaultMaterial } from "./constants/models";
-import { generateColorPalette, suggestComplementaryColors, suggestRelatedThemes, generateStyleGuide } from "./utils/palettes";
+import {
+  generateColorPalette,
+  suggestComplementaryColors,
+  suggestRelatedThemes,
+  generateStyleGuide,
+} from "./utils/palettes";
 import { getEnvironmentPreset } from "./utils/environment-presets";
-import { getInteractionsForType, calculateExperienceDuration, supportedVRDevices } from "./utils/vr-interactions";
-import { getFormatCompatibility, qualitySettings, QualityLevel } from "./utils/export-formats";
+import {
+  getInteractionsForType,
+  calculateExperienceDuration,
+  supportedVRDevices,
+} from "./utils/vr-interactions";
+import {
+  getFormatCompatibility,
+  qualitySettings,
+  QualityLevel,
+} from "./utils/export-formats";
 
 const projects: Map<string, ConceptArtProject> = new Map();
 const vrSculptingTips = [
@@ -20,11 +45,28 @@ const vrSculptingTips = [
   "Switch to flatten for hard surfaces",
   "Mirror mode for symmetrical models",
 ];
-const defaultCapabilities = { modeling: true, sculpting: true, texturing: true, lighting: true, vrPreview: true, collaboration: true };
+const defaultCapabilities = {
+  modeling: true,
+  sculpting: true,
+  texturing: true,
+  lighting: true,
+  vrPreview: true,
+  collaboration: true,
+};
 const createExpressions = () => [
   { id: uuidv4(), name: "neutral", intensity: 1, blendShapeWeights: {} },
-  { id: uuidv4(), name: "happy", intensity: 0, blendShapeWeights: { smile: 1, brow_up: 0.3 } },
-  { id: uuidv4(), name: "sad", intensity: 0, blendShapeWeights: { frown: 1, brow_down: 0.5 } },
+  {
+    id: uuidv4(),
+    name: "happy",
+    intensity: 0,
+    blendShapeWeights: { smile: 1, brow_up: 0.3 },
+  },
+  {
+    id: uuidv4(),
+    name: "sad",
+    intensity: 0,
+    blendShapeWeights: { frown: 1, brow_down: 0.5 },
+  },
 ];
 const createLOD = (vertexCount: number) => [
   { level: 0, vertices: vertexCount, distance: 0 },
@@ -38,11 +80,14 @@ export class ImmersiveConceptArt implements Plugin {
   nameAr = "استوديو الفن المفاهيمي الغامر";
   version = "1.0.0";
   description = "Integrated 3D engine with VR support for pre-visualization";
-  descriptionAr = "محرك ثلاثي الأبعاد مدمج مع دعم الواقع الافتراضي للتصور المسبق";
+  descriptionAr =
+    "محرك ثلاثي الأبعاد مدمج مع دعم الواقع الافتراضي للتصور المسبق";
   category = "xr-immersive" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized with 3D modeling and VR capabilities`);
+    console.log(
+      `[${this.name}] Initialized with 3D modeling and VR capabilities`,
+    );
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {

@@ -1,4 +1,5 @@
 import {
+  Conflict,
   ConflictNetwork,
   NetworkSnapshot,
 } from "../../core/models/base-entities";

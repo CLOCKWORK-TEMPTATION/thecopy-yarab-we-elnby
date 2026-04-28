@@ -1,6 +1,14 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Recording, ScriptAnalysis, ScenePartner } from "./index";
+
+import type {
+  AnalysisResult,
+  ChatMessage,
+  Recording as PerformanceRecording,
+} from "../../types";
 
 interface DemoPageProps {
   scriptText: string;
@@ -8,11 +16,11 @@ interface DemoPageProps {
   selectedMethodology: string;
   setSelectedMethodology: (method: string) => void;
   analyzing: boolean;
-  analysisResult: any;
+  analysisResult: AnalysisResult | null;
   useSampleScript: () => void;
   analyzeScript: () => void;
   rehearsing: boolean;
-  chatMessages: any[];
+  chatMessages: ChatMessage[];
   userInput: string;
   setUserInput: (input: string) => void;
   startRehearsal: () => void;
@@ -20,7 +28,7 @@ interface DemoPageProps {
   endRehearsal: () => void;
   isRecording: boolean;
   recordingTime: number;
-  recordings: any[];
+  recordings: PerformanceRecording[];
   startRecording: () => void;
   stopRecording: () => void;
   formatTime: (seconds: number) => string;

@@ -1,4 +1,3 @@
- 
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
@@ -41,12 +40,11 @@ export class TensionOptimizerAgent extends BaseAgent {
     super(
       "TensionMaster AI",
       TaskType.TENSION_OPTIMIZER,
-      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt ?? ""
+      TENSION_OPTIMIZER_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.81;
   }
-
 
   private extractTensionContext(context: unknown): TensionOptimizerContext {
     const ctx = context as TensionOptimizerContext;
@@ -62,7 +60,6 @@ export class TensionOptimizerAgent extends BaseAgent {
       analyzeRelease: ctx?.analyzeRelease ?? true,
     };
   }
-
 
   protected buildPrompt(input: StandardAgentInput): string {
     const { input: taskInput, context } = input;
@@ -88,7 +85,7 @@ export class TensionOptimizerAgent extends BaseAgent {
     prompt += buildConditionalInstructions(
       ctx.identifyPeaks ?? true,
       ctx.analyzeRelease ?? true,
-      ctx.provideRecommendations ?? true
+      ctx.provideRecommendations ?? true,
     );
     prompt += getMiddleInstructions();
     prompt += getClosingInstructions();
@@ -97,7 +94,7 @@ export class TensionOptimizerAgent extends BaseAgent {
   }
 
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // الحساب synchronous — نحتفظ بـ Promise.resolve للحفاظ على signature غير المحجوب
     const processedText = this.cleanupTensionText(output.text);
@@ -126,7 +123,7 @@ export class TensionOptimizerAgent extends BaseAgent {
         analysisDepth,
         techniqueIdentification,
         practicalValue,
-        insightfulness
+        insightfulness,
       ),
       metadata: {
         ...output.metadata,
@@ -300,14 +297,15 @@ export class TensionOptimizerAgent extends BaseAgent {
     depth: number,
     techniques: number,
     practical: number,
-    insight: number
+    insight: number,
   ): string[] {
     const notes: string[] = [];
     const avg = (depth + techniques + practical + insight) / 4;
     notes.push(this.overallTensionNote(avg));
     this.addTensionStrengths(notes, depth, techniques, practical, insight);
     this.addTensionWeaknesses(notes, depth, techniques, practical);
-    if (output.notes && Array.isArray(output.notes)) notes.push(...output.notes);
+    if (output.notes && Array.isArray(output.notes))
+      notes.push(...output.notes);
     return notes;
   }
 
@@ -317,14 +315,25 @@ export class TensionOptimizerAgent extends BaseAgent {
     return "يحتاج عمق أكبر";
   }
 
-  private addTensionStrengths(notes: string[], d: number, t: number, p: number, i: number): void {
+  private addTensionStrengths(
+    notes: string[],
+    d: number,
+    t: number,
+    p: number,
+    i: number,
+  ): void {
     if (d > 0.8) notes.push("عمق تحليلي عالي");
     if (t > 0.75) notes.push("تحديد تقنيات شامل");
     if (p > 0.75) notes.push("توصيات عملية");
     if (i > 0.75) notes.push("رؤى ثاقبة");
   }
 
-  private addTensionWeaknesses(notes: string[], d: number, t: number, p: number): void {
+  private addTensionWeaknesses(
+    notes: string[],
+    d: number,
+    t: number,
+    p: number,
+  ): void {
     if (d < 0.5) notes.push("يحتاج تحليل أعمق");
     if (t < 0.5) notes.push("يحتاج تحديد تقنيات أوضح");
     if (p < 0.6) notes.push("يحتاج مزيد من التوصيات");
@@ -367,7 +376,7 @@ export class TensionOptimizerAgent extends BaseAgent {
 
   // النص ثابت — لا حاجة لـ async، نحتفظ بـ Promise.resolve للتوافق مع override
   protected override async getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     return `تقييم التوتر الحالي:

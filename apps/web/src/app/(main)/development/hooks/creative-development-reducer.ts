@@ -3,6 +3,8 @@
  * دالة خالصة بلا آثار جانبية — تقبل الحالة الحالية والإجراء وتُعيد الحالة الجديدة.
  */
 
+import { CreativeTaskType } from "../types";
+
 import {
   type ActionType,
   type CreativeDevelopmentState,
@@ -34,7 +36,7 @@ export function creativeDevelopmentReducer(
             ? ""
             : state.completionScope,
         selectedCompletionEnhancements:
-          action.payload !== "completion"
+          action.payload !== CreativeTaskType.COMPLETION
             ? []
             : state.selectedCompletionEnhancements,
       };

@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const dialogueAdvancedAnalyzerInstructions = `
 التحليل المتقدم للحوار:
@@ -46,6 +46,6 @@ export const dialogueAdvancedAnalyzerAgentConfig: AIAgentConfig = {
     "تحليل الطبيعية والواقعية",
     "تقييم التمييز بين الأصوات",
     "تحليل الوظائف الدرامية",
-    "قياس الإيقاع والتدفق"
-  ]
+    "قياس الإيقاع والتدفق",
+  ],
 };

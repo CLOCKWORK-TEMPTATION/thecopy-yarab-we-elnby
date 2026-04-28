@@ -10,8 +10,7 @@
  *    تدريجياً عبر progressiveUpdater.
  */
 
-import type { EditorView } from "@tiptap/pm/view";
-
+import { fetchUnifiedTextExtract } from "../../utils/file-import";
 import { progressiveUpdater } from "../ai-progressive-updater";
 import {
   agentReviewLogger,
@@ -22,8 +21,6 @@ import {
   type ClassifiedDraftWithId,
 } from "../paste-classifier-helpers";
 import { pipelineRecorder } from "../pipeline-recorder";
-
-import { fetchUnifiedTextExtract } from "../../utils/file-import";
 
 import { applyAgentReview } from "./agent-review";
 import { classifyLines } from "./classify-lines";
@@ -56,6 +53,7 @@ import type {
   ApplyPasteClassifierFlowOptions,
   ClassifiedDraftPipelineState,
 } from "./types";
+import type { EditorView } from "@tiptap/pm/view";
 
 /**
  * تطبيق طبقة المراجعة النهائية بعد العرض الفوري.

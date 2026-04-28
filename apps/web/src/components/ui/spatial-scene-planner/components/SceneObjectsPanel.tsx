@@ -16,7 +16,6 @@ import {
   EyeOff,
   Trash2,
 } from "lucide-react";
-import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -166,6 +165,8 @@ export function SceneObjectsPanel({
             return (
               <div
                 key={obj.id}
+                role="button"
+                tabIndex={0}
                 className={cn(
                   "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors",
                   selectedObject === obj.id
@@ -173,6 +174,11 @@ export function SceneObjectsPanel({
                     : "hover:bg-muted"
                 )}
                 onClick={() => setSelectedObject(obj.id)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  setSelectedObject(obj.id);
+                }}
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center"

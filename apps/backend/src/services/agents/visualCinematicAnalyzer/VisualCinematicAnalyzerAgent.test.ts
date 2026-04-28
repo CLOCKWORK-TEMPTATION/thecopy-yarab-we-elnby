@@ -39,7 +39,9 @@ describe("VisualCinematicAnalyzerAgent", () => {
       input: "حلل الجانب البصري والسينمائي",
     });
 
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("تحليل بصري وسينمائي");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "تحليل بصري وسينمائي",
+    );
     expect(result.text).toContain("تحليل بصري");
     expect(result.confidence).toBe(0.79);
     expect(result.metadata?.timestamp).toBeDefined();

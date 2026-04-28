@@ -1,4 +1,4 @@
-import { platformGenAIService } from '@/services/platform-genai.service';
+import { platformGenAIService } from "@/services/platform-genai.service";
 
 interface AgentProposal {
   agentId: string;
@@ -27,9 +27,9 @@ function computeConsensus(proposals: AgentProposal[]): boolean {
   const normalizedTexts = proposals.map((proposal) =>
     proposal.proposal
       .toLowerCase()
-      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/[^\p{L}\p{N}\s]/gu, " ")
       .split(/\s+/)
-      .filter(Boolean)
+      .filter(Boolean),
   );
 
   const similarities: number[] = [];
@@ -53,7 +53,7 @@ export class BrainstormService {
     agentId: string,
     task: string,
     context: Record<string, unknown>,
-    previousProposals: AgentProposal[]
+    previousProposals: AgentProposal[],
   ): Promise<AgentProposal> {
     const prompt = `You are the specialist agent "${agentId}" inside a multi-agent brainstorming debate.
 
@@ -81,7 +81,7 @@ Return ONLY valid JSON with this exact shape:
 
     return {
       agentId,
-      proposal: response.proposal ?? 'No proposal generated.',
+      proposal: response.proposal ?? "No proposal generated.",
       supportingEvidence: Array.isArray(response.supportingEvidence)
         ? response.supportingEvidence
         : [],
@@ -92,7 +92,7 @@ Return ONLY valid JSON with this exact shape:
   private async judge(
     task: string,
     context: Record<string, unknown>,
-    proposals: AgentProposal[]
+    proposals: AgentProposal[],
   ): Promise<{ decision: string; reasoning: string }> {
     const prompt = `You are the neutral judge in a multi-agent brainstorming debate.
 
@@ -111,23 +111,21 @@ Return ONLY valid JSON:
   "reasoning": "string"
 }`;
 
-    return platformGenAIService.generateJson<{ decision: string; reasoning: string }>(
-      prompt,
-      { temperature: 0.3, maxOutputTokens: 4096 }
-    );
+    return platformGenAIService.generateJson<{
+      decision: string;
+      reasoning: string;
+    }>(prompt, { temperature: 0.3, maxOutputTokens: 4096 });
   }
 
   async conductDebate(
     task: string,
     context: Record<string, unknown>,
-    agentIds: string[]
+    agentIds: string[],
   ): Promise<BrainstormDebateResult> {
     const proposals: AgentProposal[] = [];
 
     for (const agentId of agentIds) {
-      proposals.push(
-        await this.generateProposal(agentId, task, context, [])
-      );
+      proposals.push(await this.generateProposal(agentId, task, context, []));
     }
 
     const consensus = computeConsensus(proposals);
@@ -135,10 +133,10 @@ Return ONLY valid JSON:
 
     return {
       proposals,
-      finalDecision: judged.decision || '',
+      finalDecision: judged.decision || "",
       consensus,
       debateRounds: 1,
-      judgeReasoning: judged.reasoning || '',
+      judgeReasoning: judged.reasoning || "",
     };
   }
 }

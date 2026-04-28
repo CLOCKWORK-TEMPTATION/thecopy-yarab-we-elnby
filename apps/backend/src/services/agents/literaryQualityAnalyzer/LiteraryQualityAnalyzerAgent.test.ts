@@ -51,7 +51,10 @@ describe("LiteraryQualityAnalyzerAgent", () => {
 
     expect(result.text).not.toContain("```");
     expect(result.metadata?.literaryEvaluationQuality).toBeDefined();
-    const metrics = result.metadata?.literaryEvaluationQuality as Record<string, number>;
+    const metrics = result.metadata?.literaryEvaluationQuality as Record<
+      string,
+      number
+    >;
     expect(metrics.linguisticDepth).toBeGreaterThan(0);
     expect(result.metadata?.criticalRigor).toBeGreaterThanOrEqual(0);
     expect(result.confidence).toBeGreaterThan(0);
@@ -72,7 +75,7 @@ describe("LiteraryQualityAnalyzerAgent", () => {
 
     expect(
       result.notes?.some((note) => note.includes("ثقة متوسطة")) ||
-        result.notes?.some((note) => note.includes("يمكن تعزيز التحليل"))
+        result.notes?.some((note) => note.includes("يمكن تعزيز التحليل")),
     ).toBe(true);
   });
 });

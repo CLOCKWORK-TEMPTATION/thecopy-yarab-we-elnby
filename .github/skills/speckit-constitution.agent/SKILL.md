@@ -1,6 +1,7 @@
 ---
 name: speckit-constitution.agent
-description: Create or update the project constitution from interactive or provided
+description:
+  Create or update the project constitution from interactive or provided
   principle inputs, ensuring all dependent templates stay in sync.
 compatibility: Requires spec-kit project structure with .specify/ directory
 metadata:
@@ -28,7 +29,7 @@ Follow this execution flow:
 
 1. Load the existing constitution at `.specify/memory/constitution.md`.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
-   **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
+     **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
 
 2. Collect/derive values for placeholders:
    - If user input (conversation) supplies a value, use it.

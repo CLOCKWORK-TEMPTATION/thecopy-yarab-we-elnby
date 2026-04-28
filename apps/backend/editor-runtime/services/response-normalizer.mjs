@@ -54,10 +54,10 @@ export const normalizeExtractionResponseData = (result, fileType) => {
     Array.isArray(result.pipelineFootprint.checkedDirectories) &&
     Array.isArray(result.pipelineFootprint.checkedFiles) &&
     result.pipelineFootprint.checkedDirectories.every((entry) =>
-      isNonEmptyString(entry)
+      isNonEmptyString(entry),
     ) &&
     result.pipelineFootprint.checkedFiles.every((entry) =>
-      isNonEmptyString(entry)
+      isNonEmptyString(entry),
     )
       ? {
           checkedDirectories: result.pipelineFootprint.checkedDirectories,
@@ -85,7 +85,7 @@ export const normalizeExtractionResponseData = (result, fileType) => {
     firstVisibleSourceKind: deriveFirstVisibleSourceKind(
       fileType,
       usedOcr,
-      method
+      method,
     ),
     warnings,
     attempts,
@@ -110,7 +110,7 @@ export const normalizeExtractionResponseData = (result, fileType) => {
             (block) =>
               isObjectRecord(block) &&
               isNonEmptyString(block.formatId) &&
-              typeof block.text === "string"
+              typeof block.text === "string",
           )
           .map((block) => ({
             formatId: block.formatId.trim(),
@@ -153,7 +153,7 @@ export const normalizeExtractionResponseData = (result, fileType) => {
               typeof entry.token === "string" &&
               typeof entry.expected === "string" &&
               typeof entry.actual === "string" &&
-              (entry.severity === "critical" || entry.severity === "normal")
+              (entry.severity === "critical" || entry.severity === "normal"),
           )
           .slice(0, 10_000)
       : undefined,
@@ -165,7 +165,7 @@ export const normalizeExtractionResponseData = (result, fileType) => {
             (el) =>
               isObjectRecord(el) &&
               typeof el.element === "string" &&
-              typeof el.value === "string"
+              typeof el.value === "string",
           )
           .map((el) => ({ element: el.element, value: el.value }))
       : undefined,
@@ -179,7 +179,7 @@ export const normalizeExtractionResponseData = (result, fileType) => {
       firstVisibleSourceKind: deriveFirstVisibleSourceKind(
         fileType,
         usedOcr,
-        method
+        method,
       ),
       processingTimeMs:
         typeof result.processingTimeMs === "number" &&

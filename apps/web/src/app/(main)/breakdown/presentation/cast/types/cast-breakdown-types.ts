@@ -2,7 +2,7 @@ import type {
   CastMember,
   ExtendedCastMember,
   CastAnalysisResult,
-} from "../../domain/models";
+} from "../../../domain/models";
 
 export type { CastMember, ExtendedCastMember, CastAnalysisResult };
 

@@ -3,18 +3,18 @@
  * يوفر واجهة موحدة لتحميل واستخدام تعليمات الوكلاء من ملفات JSON
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { instructionsLoader, type InstructionSet } from './instructions-loader';
+import { instructionsLoader, type InstructionSet } from "./instructions-loader";
 
 export class AgentInstructionsService {
   private static instance: AgentInstructionsService;
   private readonly loader: typeof instructionsLoader;
-  
+
   private constructor(loader: typeof instructionsLoader = instructionsLoader) {
     this.loader = loader;
   }
-  
+
   static getInstance(): AgentInstructionsService {
     if (!AgentInstructionsService.instance) {
       AgentInstructionsService.instance = new AgentInstructionsService();

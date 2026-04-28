@@ -67,17 +67,25 @@ describe("AdaptiveRewritingAgent", () => {
     expect(result.text).not.toContain("```json");
     expect(result.text).not.toContain("```");
     expect(Array.isArray(result.notes)).toBe(true);
-    expect(result.notes.some((note) => note.includes("جودة إعادة الكتابة"))).toBe(true);
+    expect(
+      result.notes.some((note) => note.includes("جودة إعادة الكتابة")),
+    ).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
     expect(result.metadata?.rewritingMetrics).toBeDefined();
     expect(result.metadata?.stats).toBeDefined();
-    expect((result.metadata?.stats as { charCount: number }).charCount).toBe(result.text.length);
-    expect((result.metadata?.stats as { improvementCount: number }).improvementCount).toBeGreaterThan(0);
+    expect((result.metadata?.stats as { charCount: number }).charCount).toBe(
+      result.text.length,
+    );
+    expect(
+      (result.metadata?.stats as { improvementCount: number }).improvementCount,
+    ).toBeGreaterThan(0);
     expect(result.confidence).toBeGreaterThan(0);
   });
 
   it("should return the fallback contract with error metadata", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("rewriting failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("rewriting failed"),
+    );
 
     const result = await agent.executeTask({
       input: "أعد الكتابة",

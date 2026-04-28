@@ -132,10 +132,14 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
             لغة الواجهة
           </h2>
-          <label className="block text-sm font-medium text-white mb-2 font-cairo">
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
             اختر اللغة (محلي فقط)
           </label>
           <select
+            id="field-page-1"
             value={language}
             onChange={handleLanguageChange}
             className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo"

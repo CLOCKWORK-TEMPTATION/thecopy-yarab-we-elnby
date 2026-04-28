@@ -1,4 +1,4 @@
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 import { TaskType } from "@core/types";
 
 import type { AIAgentConfig, AgentConfigMapping } from "@core/types";
@@ -124,7 +124,7 @@ const AGENT_CONFIG_MAP: Partial<Record<TaskType, AgentConfigMapping>> = {
  * Reduced cyclomatic complexity from 28 to 3
  */
 export const loadAgentConfig = async (
-  taskType: TaskType
+  taskType: TaskType,
 ): Promise<AIAgentConfig> => {
   const mapping = AGENT_CONFIG_MAP[taskType];
 
@@ -132,7 +132,10 @@ export const loadAgentConfig = async (
     throw new Error(`Unknown task type: ${taskType}`);
   }
 
-  const agentModule = await import(/* @vite-ignore */ mapping.path) as Record<string, unknown>;
+  const agentModule = (await import(/* @vite-ignore */ mapping.path)) as Record<
+    string,
+    unknown
+  >;
   const config = agentModule[mapping.configName];
   if (!isAIAgentConfig(config)) {
     throw new Error(`Invalid agent config export: ${mapping.configName}`);
@@ -169,14 +172,14 @@ export const AGENT_CONFIGS = Object.freeze<AIAgentConfig[]>([]);
 /**
  * Re-export orchestrator and types for external use
  */
-export { multiAgentOrchestrator } from './orchestrator';
-export { TaskType } from './core/enums';
-export type { OrchestrationInput, OrchestrationOutput } from './orchestrator';
+export { multiAgentOrchestrator } from "./orchestrator";
+export { TaskType } from "./core/enums";
+export type { OrchestrationInput, OrchestrationOutput } from "./orchestrator";
 
 function isAIAgentConfig(value: unknown): value is AIAgentConfig {
   return (
-    typeof value === "object"
-    && value !== null
-    && typeof (value as { id?: unknown }).id === "string"
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { id?: unknown }).id === "string"
   );
 }

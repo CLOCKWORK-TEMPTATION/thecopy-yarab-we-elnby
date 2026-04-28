@@ -1,36 +1,53 @@
 /**
- * @file apps/web/src/hooks/use-editor-state.ts
- * @description State management hook for the App component.
+ * @file use-editor-state.ts
+ * @description Hook يجمع state values فقط (بدون refs) لتجنّب pessimistic
+ *   flagging من قبل `react-hooks/refs` rule. الـ refs تُنشأ في App.tsx مباشرة.
  */
 
-import { useRef, useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
+import { useEditorCompactMode, useIsMobile } from "../hooks";
+import { type EditorDiagnosticEvent } from "../lib/app/constants";
 import {
   readActiveProjectTitle,
   readTypingSystemSettings,
 } from "../lib/app/utils";
 
-import { useEditorCompactMode } from "./use-editor-compact-mode";
-import { getIsMobile } from "./use-is-mobile";
-
 import type {
   DocumentStats,
   ProgressiveSurfaceState,
 } from "../components/editor";
-import type { EditorArea } from "../components/editor/EditorArea";
+import type { ElementType } from "../extensions/classification-types";
 import type { TypingSystemSettings } from "../types";
-import type { EditorDiagnosticEvent, ElementType } from "../types/app";
 
-export function useEditorState() {
-  const editorMountRef = useRef<HTMLDivElement | null>(null);
-  const editorAreaRef = useRef<EditorArea | null>(null);
-  const handleMenuActionRef = useRef<
-    ((actionId: string) => Promise<void>) | null
-  >(null);
-  const liveTypingWorkflowTimeoutRef = useRef<number | null>(null);
-  const applyingTypingWorkflowRef = useRef(false);
-  const lastLiveWorkflowTextRef = useRef("");
+export interface EditorAppStateValues {
+  stats: DocumentStats;
+  setStats: Dispatch<SetStateAction<DocumentStats>>;
+  currentFormat: ElementType | null;
+  setCurrentFormat: Dispatch<SetStateAction<ElementType | null>>;
+  activeMenu: string | null;
+  setActiveMenu: Dispatch<SetStateAction<string | null>>;
+  openSidebarItem: string | null;
+  setOpenSidebarItem: Dispatch<SetStateAction<string | null>>;
+  documentText: string;
+  setDocumentText: Dispatch<SetStateAction<string>>;
+  isMobile: boolean;
+  isCompact: boolean;
+  typingSystemSettings: TypingSystemSettings;
+  setTypingSystemSettings: Dispatch<SetStateAction<TypingSystemSettings>>;
+  showPipelineMonitor: boolean;
+  setShowPipelineMonitor: Dispatch<SetStateAction<boolean>>;
+  progressiveSurfaceState: ProgressiveSurfaceState | null;
+  setProgressiveSurfaceState: Dispatch<
+    SetStateAction<ProgressiveSurfaceState | null>
+  >;
+  activeProjectTitle: string | null;
+  setActiveProjectTitle: Dispatch<SetStateAction<string | null>>;
+  diagnosticEvents: EditorDiagnosticEvent[];
+  setDiagnosticEvents: Dispatch<SetStateAction<EditorDiagnosticEvent[]>>;
+}
 
+export const useEditorState = (): EditorAppStateValues => {
   const [stats, setStats] = useState<DocumentStats>({
     pages: 1,
     words: 0,
@@ -41,7 +58,7 @@ export function useEditorState() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [openSidebarItem, setOpenSidebarItem] = useState<string | null>(null);
   const [documentText, setDocumentText] = useState("");
-  const [isMobile, setIsMobile] = useState<boolean>(() => getIsMobile());
+  const isMobile = useIsMobile();
   const isCompact = useEditorCompactMode();
   const [typingSystemSettings, setTypingSystemSettings] =
     useState<TypingSystemSettings>(() => readTypingSystemSettings());
@@ -56,12 +73,6 @@ export function useEditorState() {
   >([]);
 
   return {
-    editorMountRef,
-    editorAreaRef,
-    handleMenuActionRef,
-    liveTypingWorkflowTimeoutRef,
-    applyingTypingWorkflowRef,
-    lastLiveWorkflowTextRef,
     stats,
     setStats,
     currentFormat,
@@ -73,7 +84,6 @@ export function useEditorState() {
     documentText,
     setDocumentText,
     isMobile,
-    setIsMobile,
     isCompact,
     typingSystemSettings,
     setTypingSystemSettings,
@@ -86,4 +96,4 @@ export function useEditorState() {
     diagnosticEvents,
     setDiagnosticEvents,
   };
-}
+};

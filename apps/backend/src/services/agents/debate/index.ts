@@ -5,12 +5,12 @@
  */
 
 // Types
-export * from './types';
+export * from "./types";
 
 // Core Classes
-export { AgentDebator } from './agentDebator';
-export { DebateSessionClass, DebateRoundClass } from './debateSession';
-export { DebateModerator } from './debateModerator';
+export { AgentDebator } from "./agentDebator";
+export { DebateSessionClass, DebateRoundClass } from "./debateSession";
+export { DebateModerator } from "./debateModerator";
 
 // Protocols
 export {
@@ -19,7 +19,7 @@ export {
   refuteArguments,
   synthesizeConsensus,
   voteOnBestResponse,
-} from './protocols';
+} from "./protocols";
 
 // Selection
 export {
@@ -30,7 +30,7 @@ export {
   selectAgentsByTaskTypes,
   selectMostConfidentAgents,
   createParticipantsWithRoles,
-} from './selection';
+} from "./selection";
 
 // Resolution
 export {
@@ -41,4 +41,4 @@ export {
   generateFinalSynthesis,
   buildConsensusResult,
   calculateVoteResults,
-} from './resolution';
+} from "./resolution";

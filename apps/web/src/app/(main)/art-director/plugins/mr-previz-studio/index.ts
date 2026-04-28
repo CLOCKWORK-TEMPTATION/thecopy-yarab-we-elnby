@@ -30,6 +30,7 @@ import type {
   VirtualCamera,
   CameraMovement,
   Vector3D,
+  XRLighting,
 } from "./types";
 
 export class MRPrevizStudio implements Plugin {
@@ -226,7 +227,7 @@ export class MRPrevizStudio implements Plugin {
 
   private configureLighting(data: {
     sceneId: string;
-    lighting: Partial<any>;
+    lighting: Partial<XRLighting>;
   }): PluginOutput {
     const scene = getScene(data.sceneId);
     if (!scene) {

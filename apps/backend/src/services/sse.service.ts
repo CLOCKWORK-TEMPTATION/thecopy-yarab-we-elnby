@@ -4,14 +4,14 @@
  * Real-time streaming service for long-running operations
  */
 
-import { Response } from 'express';
+import { Response } from "express";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 import {
   RealtimeEvent,
   RealtimeEventType,
   RealtimePayload,
-} from '@/types/realtime.types';
+} from "@/types/realtime.types";
 
 /**
  * SSE Client connection info
@@ -36,22 +36,22 @@ class SSEService {
   /**
    * Initialize SSE connection for a client
    */
-   
+
   initializeConnection(
     clientId: string,
     response: Response,
     userId?: string,
-    lastEventId?: string
+    lastEventId?: string,
   ): void {
     // Set SSE headers
-    response.setHeader('Content-Type', 'text/event-stream');
-    response.setHeader('Cache-Control', 'no-cache');
-    response.setHeader('Connection', 'keep-alive');
-    response.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+    response.setHeader("Content-Type", "text/event-stream");
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("Connection", "keep-alive");
+    response.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
 
     // Enable CORS if needed
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Credentials', 'true');
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Credentials", "true");
 
     // Create client object
     const client: SSEClient = {
@@ -74,7 +74,7 @@ class SSEService {
       this.clientsByUserId.get(userId)!.add(clientId);
     }
 
-    logger.info('[SSE] Client connected');
+    logger.info("[SSE] Client connected");
 
     // Send initial connection event
     this.sendToClient(clientId, {
@@ -82,28 +82,28 @@ class SSEService {
       payload: {
         timestamp: new Date().toISOString(),
         eventType: RealtimeEventType.CONNECTED,
-        message: 'SSE connection established',
+        message: "SSE connection established",
       },
     });
 
     // Keep-alive ping every 30 seconds
     const keepAliveInterval = setInterval(() => {
       if (this.clients.has(clientId)) {
-        this.sendComment(clientId, 'keep-alive');
+        this.sendComment(clientId, "keep-alive");
       } else {
         clearInterval(keepAliveInterval);
       }
     }, 30000);
 
     // Handle client disconnect
-    response.on('close', () => {
+    response.on("close", () => {
       clearInterval(keepAliveInterval);
       this.handleDisconnection(clientId);
     });
 
     // Handle errors
-    response.on('error', (error) => {
-      logger.error('[SSE] Client stream error', error);
+    response.on("error", (error) => {
+      logger.error("[SSE] Client stream error", error);
       clearInterval(keepAliveInterval);
       this.handleDisconnection(clientId);
     });
@@ -116,7 +116,7 @@ class SSEService {
     const client = this.clients.get(clientId);
     if (!client) return;
 
-    logger.info('[SSE] Client disconnected');
+    logger.info("[SSE] Client disconnected");
 
     // Remove from user mapping
     if (client.userId) {
@@ -150,7 +150,7 @@ class SSEService {
   subscribeToRoom(clientId: string, room: string): void {
     const client = this.clients.get(clientId);
     if (!client) {
-      logger.warn('[SSE] Cannot subscribe: client not found');
+      logger.warn("[SSE] Cannot subscribe: client not found");
       return;
     }
 
@@ -161,7 +161,7 @@ class SSEService {
     }
     this.clientsByRoom.get(room)!.add(clientId);
 
-    logger.info('[SSE] Client subscribed to room');
+    logger.info("[SSE] Client subscribed to room");
 
     // Send confirmation
     this.sendToClient(clientId, {
@@ -169,7 +169,7 @@ class SSEService {
       payload: {
         timestamp: new Date().toISOString(),
         eventType: RealtimeEventType.SYSTEM_INFO,
-        level: 'info',
+        level: "info",
         message: `Subscribed to room: ${room}`,
       },
     });
@@ -192,7 +192,7 @@ class SSEService {
       }
     }
 
-    logger.info('[SSE] Client unsubscribed from room');
+    logger.info("[SSE] Client unsubscribed from room");
   }
 
   /**
@@ -201,11 +201,11 @@ class SSEService {
   sendToClient<T extends RealtimePayload>(
     clientId: string,
     event: RealtimeEvent<T>,
-    id?: string
+    id?: string,
   ): boolean {
     const client = this.clients.get(clientId);
     if (!client) {
-      logger.warn('[SSE] Cannot send event: client not found');
+      logger.warn("[SSE] Cannot send event: client not found");
       return false;
     }
 
@@ -214,7 +214,7 @@ class SSEService {
       client.response.write(eventData);
       return true;
     } catch (error) {
-      logger.error('[SSE] Error sending to client', error);
+      logger.error("[SSE] Error sending to client", error);
       this.handleDisconnection(clientId);
       return false;
     }
@@ -226,7 +226,7 @@ class SSEService {
   sendToRoom<T extends RealtimePayload>(
     room: string,
     event: RealtimeEvent<T>,
-    id?: string
+    id?: string,
   ): number {
     const clients = this.clientsByRoom.get(room);
     if (!clients || clients.size === 0) {
@@ -240,7 +240,9 @@ class SSEService {
       }
     });
 
-    logger.debug(`[SSE] Sent event to ${successCount}/${clients.size} clients in room: ${room}`);
+    logger.debug(
+      `[SSE] Sent event to ${successCount}/${clients.size} clients in room: ${room}`,
+    );
     return successCount;
   }
 
@@ -250,7 +252,7 @@ class SSEService {
   sendToUser<T extends RealtimePayload>(
     userId: string,
     event: RealtimeEvent<T>,
-    id?: string
+    id?: string,
   ): number {
     const clients = this.clientsByUserId.get(userId);
     if (!clients || clients.size === 0) {
@@ -264,14 +266,19 @@ class SSEService {
       }
     });
 
-    logger.debug(`[SSE] Sent event to ${successCount}/${clients.size} clients for user: ${userId}`);
+    logger.debug(
+      `[SSE] Sent event to ${successCount}/${clients.size} clients for user: ${userId}`,
+    );
     return successCount;
   }
 
   /**
    * Broadcast event to all connected clients
    */
-  broadcast<T extends RealtimePayload>(event: RealtimeEvent<T>, id?: string): number {
+  broadcast<T extends RealtimePayload>(
+    event: RealtimeEvent<T>,
+    id?: string,
+  ): number {
     let successCount = 0;
     this.clients.forEach((_client, clientId) => {
       if (this.sendToClient(clientId, event, id)) {
@@ -279,7 +286,9 @@ class SSEService {
       }
     });
 
-    logger.debug(`[SSE] Broadcasted event to ${successCount}/${this.clients.size} clients`);
+    logger.debug(
+      `[SSE] Broadcasted event to ${successCount}/${this.clients.size} clients`,
+    );
     return successCount;
   }
 
@@ -303,9 +312,9 @@ class SSEService {
    */
   private formatSSEMessage<T extends RealtimePayload>(
     event: RealtimeEvent<T>,
-    id?: string
+    id?: string,
   ): string {
-    let message = '';
+    let message = "";
 
     // Add event ID if provided
     if (id) {
@@ -352,18 +361,22 @@ class SSEService {
     users: { userId: string; clients: number }[];
   } {
     const authenticatedCount = Array.from(this.clients.values()).filter(
-      (client) => client.userId
+      (client) => client.userId,
     ).length;
 
-    const rooms = Array.from(this.clientsByRoom.entries()).map(([name, clients]) => ({
-      name,
-      clients: clients.size,
-    }));
+    const rooms = Array.from(this.clientsByRoom.entries()).map(
+      ([name, clients]) => ({
+        name,
+        clients: clients.size,
+      }),
+    );
 
-    const users = Array.from(this.clientsByUserId.entries()).map(([userId, clients]) => ({
-      userId,
-      clients: clients.size,
-    }));
+    const users = Array.from(this.clientsByUserId.entries()).map(
+      ([userId, clients]) => ({
+        userId,
+        clients: clients.size,
+      }),
+    );
 
     return {
       totalClients: this.clients.size,
@@ -388,7 +401,7 @@ class SSEService {
    * Shutdown SSE service (disconnect all clients)
    */
   shutdown(): void {
-    logger.info('[SSE] Shutting down service...');
+    logger.info("[SSE] Shutting down service...");
 
     this.clients.forEach((client, clientId) => {
       try {
@@ -398,7 +411,7 @@ class SSEService {
           payload: {
             timestamp: new Date().toISOString(),
             eventType: RealtimeEventType.DISCONNECTED,
-            message: 'Server shutting down',
+            message: "Server shutting down",
           },
         });
         client.response.end();
@@ -411,7 +424,7 @@ class SSEService {
     this.clientsByUserId.clear();
     this.clientsByRoom.clear();
 
-    logger.info('[SSE] Service shut down successfully');
+    logger.info("[SSE] Service shut down successfully");
   }
 }
 

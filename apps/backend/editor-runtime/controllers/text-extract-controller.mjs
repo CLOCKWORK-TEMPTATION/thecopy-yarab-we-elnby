@@ -27,7 +27,7 @@ const withTimeout = (promise, ms) =>
       (error) => {
         clearTimeout(timer);
         reject(error);
-      }
+      },
     );
   });
 
@@ -67,10 +67,10 @@ const buildElementId = (elementType, text, index) => {
 const buildSchemaElements = (schemaElements) =>
   schemaElements.map((element, index) => {
     const elementType = toNonEmptyString(
-      element?.elementType ?? element?.element ?? element?.type
+      element?.elementType ?? element?.element ?? element?.type,
     );
     const text = toNonEmptyString(
-      element?.text ?? element?.value ?? element?.content
+      element?.text ?? element?.value ?? element?.content,
     );
     const fallbackType = elementType || "unknown";
     const fallbackText = text || `element-${index + 1}`;
@@ -114,7 +114,8 @@ const assessVisibleTextValidity = (rawText, sourceText) => {
     return "valid";
   }
 
-  const ratio = normalizedRawText.length / Math.max(normalizedSourceText.length, 1);
+  const ratio =
+    normalizedRawText.length / Math.max(normalizedSourceText.length, 1);
   if (ratio < 0.35) {
     return "invalid-degraded";
   }
@@ -144,7 +145,11 @@ export const handleTextExtract = async (req, res) => {
     try {
       parsedBody = JSON.parse(bodyText);
     } catch {
-      sendJson(res, 400, createErrorPayload("Invalid JSON body.", "INVALID_JSON"));
+      sendJson(
+        res,
+        400,
+        createErrorPayload("Invalid JSON body.", "INVALID_JSON"),
+      );
       return;
     }
 
@@ -155,8 +160,8 @@ export const handleTextExtract = async (req, res) => {
         400,
         createErrorPayload(
           "الحقل content (أو text) مطلوب ويجب أن يكون نصاً.",
-          "MISSING_CONTENT"
-        )
+          "MISSING_CONTENT",
+        ),
       );
       return;
     }
@@ -179,7 +184,7 @@ export const handleTextExtract = async (req, res) => {
       sendJson(
         res,
         400,
-        createErrorPayload("النص فارغ بعد التطبيع.", "EMPTY_TEXT")
+        createErrorPayload("النص فارغ بعد التطبيع.", "EMPTY_TEXT"),
       );
       return;
     }
@@ -192,7 +197,7 @@ export const handleTextExtract = async (req, res) => {
     const timeoutMs = parsedBody.options?.timeoutMs ?? REQUEST_TIMEOUT_MS;
     const engineResult = await withTimeout(
       karankBridge.parseText(text),
-      Math.min(timeoutMs, REQUEST_TIMEOUT_MS)
+      Math.min(timeoutMs, REQUEST_TIMEOUT_MS),
     );
 
     const schemaText =
@@ -204,7 +209,7 @@ export const handleTextExtract = async (req, res) => {
     if (!Array.isArray(rawSchemaElements) || rawSchemaElements.length === 0) {
       throw new KarankExtractionError(
         "فشل الكرنك في إنتاج عناصر بنيوية صالحة لهذا النص.",
-        "KARANK_EMPTY_RESULT"
+        "KARANK_EMPTY_RESULT",
       );
     }
 
@@ -213,7 +218,7 @@ export const handleTextExtract = async (req, res) => {
     if (visibleTextValidity !== "valid") {
       throw new KarankExtractionError(
         "النص المرئي العائد من الكرنك غير صالح للاستبدال المباشر.",
-        "KARANK_INVALID_VISIBLE_TEXT"
+        "KARANK_INVALID_VISIBLE_TEXT",
       );
     }
 
@@ -269,7 +274,7 @@ export const handleTextExtract = async (req, res) => {
       sendJson(
         res,
         error.statusCode,
-        createErrorPayload(error.message, error.code)
+        createErrorPayload(error.message, error.code),
       );
       return;
     }
@@ -284,8 +289,8 @@ export const handleTextExtract = async (req, res) => {
         504,
         createErrorPayload(
           error instanceof Error ? error.message : "Karank request timed out.",
-          "KARANK_TIMEOUT"
-        )
+          "KARANK_TIMEOUT",
+        ),
       );
       return;
     }
@@ -301,7 +306,10 @@ export const handleTextExtract = async (req, res) => {
     sendJson(
       res,
       500,
-      createErrorPayload(`تعذر الاتصال بمحرك التحليل. ${message}`, "EXTRACTION_FAILED")
+      createErrorPayload(
+        `تعذر الاتصال بمحرك التحليل. ${message}`,
+        "EXTRACTION_FAILED",
+      ),
     );
   }
 };

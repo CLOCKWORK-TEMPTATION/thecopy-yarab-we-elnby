@@ -81,10 +81,7 @@ export const DottedGlowBackground = ({
     const root = document.documentElement;
     if (root.classList.contains("dark")) return true;
     if (root.classList.contains("light")) return false;
-    return (
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   };
   // Keep resolved colors in sync with theme changes and prop updates
   useEffect(() => {
@@ -210,8 +207,7 @@ export const DottedGlowBackground = ({
       ctx.save();
       ctx.fillStyle = resolvedColor;
       const time = (now / 1000) * Math.max(speedScale, 0);
-      for (let i = 0; i < dots.length; i++) {
-        const d = dots[i]!;
+      for (const d of dots) {
         // Linear triangle wave 0..1..0 for linear glow/dim
         const mod = (time * d.speed + d.phase) % 2;
         const lin = mod < 1 ? mod : 2 - mod; // 0..1..0

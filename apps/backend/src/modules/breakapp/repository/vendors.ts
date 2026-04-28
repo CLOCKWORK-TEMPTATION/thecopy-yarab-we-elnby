@@ -1,14 +1,14 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappVendors } from '@/db/schema';
+import { db } from "@/db";
+import { breakappVendors } from "@/db/schema";
 
-import { ensureDatabase, mapVendorRow } from './_helpers';
+import { ensureDatabase, mapVendorRow } from "./_helpers";
 
 import type {
   BreakappNearbyVendor,
   BreakappVendorView,
-} from '../service.types';
+} from "../service.types";
 
 export async function listVendors(): Promise<BreakappVendorView[]> {
   ensureDatabase();
@@ -28,7 +28,7 @@ export async function listVendors(): Promise<BreakappVendorView[]> {
 }
 
 export async function getVendorById(
-  vendorId: string
+  vendorId: string,
 ): Promise<BreakappVendorView | null> {
   ensureDatabase();
   const rows = await db
@@ -42,7 +42,7 @@ export async function getVendorById(
     })
     .from(breakappVendors)
     .where(
-      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt))
+      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt)),
     )
     .limit(1);
   const row = rows[0];
@@ -78,8 +78,8 @@ export async function findNearbyVendors(input: {
     .where(
       and(
         isNull(breakappVendors.deletedAt),
-        sql`${breakappVendors.lat} IS NOT NULL AND ${breakappVendors.lng} IS NOT NULL`
-      )
+        sql`${breakappVendors.lat} IS NOT NULL AND ${breakappVendors.lng} IS NOT NULL`,
+      ),
     );
 
   return rows
@@ -89,7 +89,8 @@ export async function findNearbyVendors(input: {
     }))
     .filter(
       (vendor) =>
-        Number.isFinite(vendor.distance) && vendor.distance <= input.radiusMeters
+        Number.isFinite(vendor.distance) &&
+        vendor.distance <= input.radiusMeters,
     )
     .sort((left, right) => left.distance - right.distance);
 }
@@ -120,7 +121,7 @@ export async function createVendor(input: {
       ownerUserId: breakappVendors.ownerUserId,
     });
   if (!row) {
-    throw new Error('تعذر إنشاء المورد');
+    throw new Error("تعذر إنشاء المورد");
   }
   return mapVendorRow(row);
 }
@@ -133,15 +134,16 @@ export async function updateVendor(
     lat?: number | null;
     lng?: number | null;
     ownerUserId?: string | null;
-  }
+  },
 ): Promise<BreakappVendorView | null> {
   ensureDatabase();
   const values: Record<string, unknown> = {};
-  if (patch.name !== undefined) values['name'] = patch.name;
-  if (patch.isMobile !== undefined) values['isMobile'] = patch.isMobile;
-  if (patch.lat !== undefined) values['lat'] = patch.lat;
-  if (patch.lng !== undefined) values['lng'] = patch.lng;
-  if (patch.ownerUserId !== undefined) values['ownerUserId'] = patch.ownerUserId;
+  if (patch.name !== undefined) values["name"] = patch.name;
+  if (patch.isMobile !== undefined) values["isMobile"] = patch.isMobile;
+  if (patch.lat !== undefined) values["lat"] = patch.lat;
+  if (patch.lng !== undefined) values["lng"] = patch.lng;
+  if (patch.ownerUserId !== undefined)
+    values["ownerUserId"] = patch.ownerUserId;
 
   if (Object.keys(values).length === 0) {
     return getVendorById(vendorId);
@@ -151,7 +153,7 @@ export async function updateVendor(
     .update(breakappVendors)
     .set(values)
     .where(
-      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt))
+      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt)),
     )
     .returning({
       id: breakappVendors.id,
@@ -170,14 +172,14 @@ export async function softDeleteVendor(vendorId: string): Promise<boolean> {
     .update(breakappVendors)
     .set({ deletedAt: new Date() })
     .where(
-      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt))
+      and(eq(breakappVendors.id, vendorId), isNull(breakappVendors.deletedAt)),
     )
     .returning({ id: breakappVendors.id });
   return rows.length > 0;
 }
 
 export async function getVendorOwnedByUser(
-  userId: string
+  userId: string,
 ): Promise<BreakappVendorView | null> {
   ensureDatabase();
   const rows = await db
@@ -193,8 +195,8 @@ export async function getVendorOwnedByUser(
     .where(
       and(
         eq(breakappVendors.ownerUserId, userId),
-        isNull(breakappVendors.deletedAt)
-      )
+        isNull(breakappVendors.deletedAt),
+      ),
     )
     .limit(1);
   const row = rows[0];

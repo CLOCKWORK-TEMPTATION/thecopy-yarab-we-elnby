@@ -201,14 +201,18 @@ export function looksLikeMergedActionDialogue(text: string): boolean {
   return startsLikeAction && normalized.length >= 50;
 }
 
+interface PushIssueInput {
+  code: ValidatorIssueCode;
+  severity: ValidatorSeverity;
+  score: number;
+  reason: string;
+  suggestedType?: ElementType;
+}
+
 function pushIssue(
   bucket: ValidatorIssue[],
   ref: PipelineLineRef,
-  code: ValidatorIssueCode,
-  severity: ValidatorSeverity,
-  score: number,
-  reason: string,
-  suggestedType?: ElementType
+  issue: PushIssueInput
 ): void {
   bucket.push({
     lineIndex: ref.lineIndex,
@@ -216,11 +220,13 @@ function pushIssue(
     ...(ref.pageLineIndex !== undefined
       ? { pageLineIndex: ref.pageLineIndex }
       : {}),
-    code,
-    severity,
-    score,
-    reason,
-    ...(suggestedType !== undefined ? { suggestedType } : {}),
+    code: issue.code,
+    severity: issue.severity,
+    score: issue.score,
+    reason: issue.reason,
+    ...(issue.suggestedType !== undefined
+      ? { suggestedType: issue.suggestedType }
+      : {}),
   });
 }
 
@@ -257,67 +263,61 @@ export function validateRawScreenplayLines(
     const signals = computeLineQualitySignals(normalized);
 
     if (!normalized) {
-      pushIssue(issues, ref, "empty-line", "low", 5, "سطر فارغ بعد التطبيع");
+      pushIssue(issues, ref, {
+        code: "empty-line",
+        severity: "low",
+        score: 5,
+        reason: "سطر فارغ بعد التطبيع",
+      });
       continue;
     }
 
     if (looksLikePageNumberArtifact(normalized)) {
-      pushIssue(
-        issues,
-        ref,
-        "page-number-artifact",
-        "medium",
-        28,
-        "يبدو رقم صفحة/ترقيمًا دخيلًا"
-      );
+      pushIssue(issues, ref, {
+        code: "page-number-artifact",
+        severity: "medium",
+        score: 28,
+        reason: "يبدو رقم صفحة/ترقيمًا دخيلًا",
+      });
     }
 
     if (
       looksLikeHeaderFooterArtifact(normalized, options.knownHeaderFooterLines)
     ) {
-      pushIssue(
-        issues,
-        ref,
-        "header-footer-artifact",
-        "medium",
-        25,
-        "يبدو هيدر/فوتر متكررًا"
-      );
+      pushIssue(issues, ref, {
+        code: "header-footer-artifact",
+        severity: "medium",
+        score: 25,
+        reason: "يبدو هيدر/فوتر متكررًا",
+      });
     }
 
     if (signals.symbolNoiseRatio >= 0.18 && signals.length >= 8) {
-      pushIssue(
-        issues,
-        ref,
-        "garbled-symbol-ratio",
-        signals.symbolNoiseRatio >= 0.28 ? "high" : "medium",
-        Math.min(80, Math.round(signals.symbolNoiseRatio * 220)),
-        `نسبة رموز/أحرف غير متوقعة مرتفعة (${signals.symbolNoiseRatio.toFixed(
-          2
-        )})`
-      );
+      pushIssue(issues, ref, {
+        code: "garbled-symbol-ratio",
+        severity: signals.symbolNoiseRatio >= 0.28 ? "high" : "medium",
+        score: Math.min(80, Math.round(signals.symbolNoiseRatio * 220)),
+        reason: `نسبة رموز/أحرف غير متوقعة مرتفعة (${signals.symbolNoiseRatio.toFixed(2)})`,
+      });
     }
 
     if (signals.brokenArabicSpacingHits > 0) {
-      pushIssue(
-        issues,
-        ref,
-        "broken-arabic-tokenization",
-        "high",
-        60,
-        "تفكيك عربي غير منطقي (غالبًا OCR فصل الحروف/الكلمات بشكل خاطئ)"
-      );
+      pushIssue(issues, ref, {
+        code: "broken-arabic-tokenization",
+        severity: "high",
+        score: 60,
+        reason:
+          "تفكيك عربي غير منطقي (غالبًا OCR فصل الحروف/الكلمات بشكل خاطئ)",
+      });
     }
 
     if (signals.repeatedPunctuationRuns > 0 && signals.length <= 14) {
-      pushIssue(
-        issues,
-        ref,
-        "repeated-punctuation-noise",
-        "medium",
-        24,
-        "علامات ترقيم متكررة بشكل ضوضائي في سطر قصير"
-      );
+      pushIssue(issues, ref, {
+        code: "repeated-punctuation-noise",
+        severity: "medium",
+        score: 24,
+        reason: "علامات ترقيم متكررة بشكل ضوضائي في سطر قصير",
+      });
     }
 
     if (
@@ -326,14 +326,12 @@ export function validateRawScreenplayLines(
       signals.length <= 3 &&
       signals.arabicCharCount > 0
     ) {
-      pushIssue(
-        issues,
-        ref,
-        "very-short-fragment",
-        "low",
-        12,
-        "شظية قصيرة جدًا قد تكون نتيجة قص/فصل OCR"
-      );
+      pushIssue(issues, ref, {
+        code: "very-short-fragment",
+        severity: "low",
+        score: 12,
+        reason: "شظية قصيرة جدًا قد تكون نتيجة قص/فصل OCR",
+      });
     }
 
     if (
@@ -342,50 +340,44 @@ export function validateRawScreenplayLines(
       signals.latinCharCount >= 4 &&
       signals.latinCharCount > signals.arabicCharCount
     ) {
-      pushIssue(
-        issues,
-        ref,
-        "latin-heavy-in-arabic-context",
-        "medium",
-        22,
-        "هيمنة أحرف لاتينية في سطر عربي محتمل (قد تكون قراءة OCR خاطئة)"
-      );
+      pushIssue(issues, ref, {
+        code: "latin-heavy-in-arabic-context",
+        severity: "medium",
+        score: 22,
+        reason:
+          "هيمنة أحرف لاتينية في سطر عربي محتمل (قد تكون قراءة OCR خاطئة)",
+      });
     }
 
     if (SPEAKER_NAME_WITHOUT_COLON_RE.test(normalized)) {
-      pushIssue(
-        issues,
-        ref,
-        "suspicious-dialogue-cue-missing-colon",
-        "medium",
-        32,
-        "اسم شخصية/صيغة حوار متوقعة بدون ':' — قد يكون فقدان علامات أثناء الاستخراج",
-        "character"
-      );
+      pushIssue(issues, ref, {
+        code: "suspicious-dialogue-cue-missing-colon",
+        severity: "medium",
+        score: 32,
+        reason:
+          "اسم شخصية/صيغة حوار متوقعة بدون ':' — قد يكون فقدان علامات أثناء الاستخراج",
+        suggestedType: "character",
+      });
     }
 
     if (looksLikeMergedSpeakerDialogueAction(normalized)) {
-      pushIssue(
-        issues,
-        ref,
-        "merged-speaker-dialogue-action",
-        "high",
-        72,
-        "يبدو أن الحوار والوصف مدموجان في سطر واحد",
-        "dialogue"
-      );
+      pushIssue(issues, ref, {
+        code: "merged-speaker-dialogue-action",
+        severity: "high",
+        score: 72,
+        reason: "يبدو أن الحوار والوصف مدموجان في سطر واحد",
+        suggestedType: "dialogue",
+      });
     }
 
     if (looksLikeMergedActionDialogue(normalized)) {
-      pushIssue(
-        issues,
-        ref,
-        "merged-action-dialogue",
-        "high",
-        70,
-        "يبدو أن سطر أكشن يحتوي اسم شخصية/حوار مدموجًا داخله",
-        "action"
-      );
+      pushIssue(issues, ref, {
+        code: "merged-action-dialogue",
+        severity: "high",
+        score: 70,
+        reason: "يبدو أن سطر أكشن يحتوي اسم شخصية/حوار مدموجًا داخله",
+        suggestedType: "action",
+      });
     }
 
     // تعزيز بالسياق التصنيفي إن توفر
@@ -395,29 +387,27 @@ export function validateRawScreenplayLines(
         classified.assignedType === "action" &&
         looksLikeMergedActionDialogue(normalized)
       ) {
-        pushIssue(
-          issues,
-          ref,
-          "merged-action-dialogue",
-          "high",
-          78,
-          "التصنيف Action + وجود اسم شخصية/نقطتين داخليًا يشير لدمج OCR",
-          "action"
-        );
+        pushIssue(issues, ref, {
+          code: "merged-action-dialogue",
+          severity: "high",
+          score: 78,
+          reason:
+            "التصنيف Action + وجود اسم شخصية/نقطتين داخليًا يشير لدمج OCR",
+          suggestedType: "action",
+        });
       }
       if (
         classified.assignedType === "dialogue" &&
         ACTION_VERB_AFTER_THEN_RE.test(normalized) &&
         normalized.length >= 50
       ) {
-        pushIssue(
-          issues,
-          ref,
-          "merged-speaker-dialogue-action",
-          "high",
-          68,
-          "التصنيف Dialogue لكن السطر يحتوي امتدادًا وصفيًا قويًا (ثم/وهي + فعل)"
-        );
+        pushIssue(issues, ref, {
+          code: "merged-speaker-dialogue-action",
+          severity: "high",
+          score: 68,
+          reason:
+            "التصنيف Dialogue لكن السطر يحتوي امتدادًا وصفيًا قويًا (ثم/وهي + فعل)",
+        });
       }
     }
   }

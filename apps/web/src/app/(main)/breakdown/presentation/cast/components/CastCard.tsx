@@ -78,11 +78,7 @@ const CastCard: React.FC<CastCardProps> = ({
     <div
       className={`
         group relative flex flex-col gap-3 p-5 rounded-[22px] border transition-all duration-300
-        ${
-          isLead
-            ? "bg-gradient-to-br from-indigo-900/30 to-black/18 border-indigo-500/40 hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-900/20"
-            : "bg-white/6 bg-opacity-40 border-white/8 hover:border-white/8"
-        }
+        ${isLead ? "bg-gradient-to-br from-indigo-900/30 to-black/18 border-indigo-500/40 hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-900/20" : "bg-white/6 bg-opacity-40 border-white/8 hover:border-white/8"}
       `}
     >
       {/* Header: Name & Badge */}
@@ -111,11 +107,7 @@ const CastCard: React.FC<CastCardProps> = ({
               )}
             </h4>
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                isLead
-                  ? "text-indigo-300 border-indigo-500/30 bg-indigo-500/10"
-                  : "text-white/55 border-white/8 bg-white/8/50"
-              }`}
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${isLead ? "text-indigo-300 border-indigo-500/30 bg-indigo-500/10" : "text-white/55 border-white/8 bg-white/8/50"}`}
             >
               {member.roleCategory || member.role || "ROLE"}
             </span>
@@ -169,11 +161,7 @@ const CastCard: React.FC<CastCardProps> = ({
       <div className="flex items-center gap-2 flex-wrap">
         {member.genderAnalysis && (
           <div
-            className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border ${
-              member.genderAnalysis.conflict
-                ? "bg-yellow-900/30 border-yellow-500/30 text-yellow-300"
-                : "bg-emerald-900/30 border-emerald-500/30 text-emerald-300"
-            }`}
+            className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border ${member.genderAnalysis.conflict ? "bg-yellow-900/30 border-yellow-500/30 text-yellow-300" : "bg-emerald-900/30 border-emerald-500/30 text-emerald-300"}`}
           >
             <Shield className="w-3 h-3" />
             {member.genderAnalysis.gender} (

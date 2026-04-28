@@ -421,7 +421,10 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                 {/* Focal Length */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="lens-simulator-focal-length"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <ZoomIn className="h-4 w-4 text-amber-500" />
                       البعد البؤري
                     </label>
@@ -430,6 +433,7 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                     </span>
                   </div>
                   <Slider
+                    id="lens-simulator-focal-length"
                     value={[focalLength]}
                     min={14}
                     max={200}
@@ -454,7 +458,10 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                 {/* Aperture */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="lens-simulator-aperture"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <Aperture className="h-4 w-4 text-amber-500" />
                       فتحة العدسة
                     </label>
@@ -463,6 +470,7 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                     </span>
                   </div>
                   <Slider
+                    id="lens-simulator-aperture"
                     value={[aperture]}
                     min={1.4}
                     max={22}
@@ -483,7 +491,10 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                 {/* Distortion */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300 flex items-center gap-2">
+                    <label
+                      htmlFor="lens-simulator-distortion"
+                      className="text-sm text-zinc-300 flex items-center gap-2"
+                    >
                       <Move className="h-4 w-4 text-amber-500" />
                       التشوه
                     </label>
@@ -492,6 +503,7 @@ export function LensSimulator({ className, onLensChange }: LensSimulatorProps) {
                     </span>
                   </div>
                   <Slider
+                    id="lens-simulator-distortion"
                     value={[distortion]}
                     min={0}
                     max={20}

@@ -28,58 +28,58 @@ import { FinalReviewValidationError } from "./errors.mjs";
 export const validateFinalReviewRequestBody = (body) => {
   if (!isObjectRecord(body)) {
     throw new FinalReviewValidationError(
-      "Invalid final-review request body: must be a JSON object."
+      "Invalid final-review request body: must be a JSON object.",
     );
   }
 
   // packetVersion
   const packetVersion = normalizeIncomingText(
     body.packetVersion,
-    MAX_PACKET_VERSION_LENGTH
+    MAX_PACKET_VERSION_LENGTH,
   );
   if (!isNonEmptyString(packetVersion)) {
     throw new FinalReviewValidationError(
-      "Missing or invalid packetVersion: must be a non-empty string (max 64 chars)."
+      "Missing or invalid packetVersion: must be a non-empty string (max 64 chars).",
     );
   }
 
   // schemaVersion
   const schemaVersion = normalizeIncomingText(
     body.schemaVersion,
-    MAX_SCHEMA_VERSION_LENGTH
+    MAX_SCHEMA_VERSION_LENGTH,
   );
   if (!isNonEmptyString(schemaVersion)) {
     throw new FinalReviewValidationError(
-      "Missing or invalid schemaVersion: must be a non-empty string (max 64 chars)."
+      "Missing or invalid schemaVersion: must be a non-empty string (max 64 chars).",
     );
   }
 
   // sessionId
   const sessionId = normalizeIncomingText(
     body.sessionId,
-    MAX_SESSION_ID_LENGTH
+    MAX_SESSION_ID_LENGTH,
   );
   if (!isNonEmptyString(sessionId)) {
     throw new FinalReviewValidationError(
-      "Missing or invalid sessionId: must be a non-empty string (max 120 chars)."
+      "Missing or invalid sessionId: must be a non-empty string (max 120 chars).",
     );
   }
 
   // importOpId
   const importOpId = normalizeIncomingText(
     body.importOpId,
-    MAX_IMPORT_OP_ID_LENGTH
+    MAX_IMPORT_OP_ID_LENGTH,
   );
   if (!isNonEmptyString(importOpId)) {
     throw new FinalReviewValidationError(
-      "Missing or invalid importOpId: must be a non-empty string (max 120 chars)."
+      "Missing or invalid importOpId: must be a non-empty string (max 120 chars).",
     );
   }
 
   // totalReviewed
   if (!isIntegerNumber(body.totalReviewed)) {
     throw new FinalReviewValidationError(
-      "Invalid totalReviewed: must be a non-negative integer."
+      "Invalid totalReviewed: must be a non-negative integer.",
     );
   }
   const totalReviewed = body.totalReviewed;
@@ -87,7 +87,7 @@ export const validateFinalReviewRequestBody = (body) => {
   // suspiciousLines
   if (!Array.isArray(body.suspiciousLines)) {
     throw new FinalReviewValidationError(
-      "Invalid suspiciousLines: must be an array."
+      "Invalid suspiciousLines: must be an array.",
     );
   }
 
@@ -95,7 +95,7 @@ export const validateFinalReviewRequestBody = (body) => {
   const suspiciousLines = body.suspiciousLines.map((entry, index) => {
     if (!isObjectRecord(entry)) {
       throw new FinalReviewValidationError(
-        `Invalid suspicious line at index ${index}: must be an object.`
+        `Invalid suspicious line at index ${index}: must be an object.`,
       );
     }
 
@@ -103,12 +103,12 @@ export const validateFinalReviewRequestBody = (body) => {
     const itemId = normalizeIncomingText(entry.itemId, MAX_ITEM_ID_LENGTH);
     if (!isNonEmptyString(itemId)) {
       throw new FinalReviewValidationError(
-        `Invalid itemId at suspicious line ${index}: must be a non-empty string.`
+        `Invalid itemId at suspicious line ${index}: must be a non-empty string.`,
       );
     }
     if (seenItemIds.has(itemId)) {
       throw new FinalReviewValidationError(
-        `Duplicate itemId "${itemId}" at suspicious line ${index}.`
+        `Duplicate itemId "${itemId}" at suspicious line ${index}.`,
       );
     }
     seenItemIds.add(itemId);
@@ -122,7 +122,7 @@ export const validateFinalReviewRequestBody = (body) => {
       suspicionScore > 100
     ) {
       throw new FinalReviewValidationError(
-        `Invalid suspicionScore at suspicious line ${index} (itemId="${itemId}"): must be a number 0-100.`
+        `Invalid suspicionScore at suspicious line ${index} (itemId="${itemId}"): must be a number 0-100.`,
       );
     }
 
@@ -130,7 +130,7 @@ export const validateFinalReviewRequestBody = (body) => {
     const assignedType = normalizeIncomingText(entry.assignedType, 64);
     if (!ALLOWED_LINE_TYPES.has(assignedType)) {
       throw new FinalReviewValidationError(
-        `Invalid assignedType "${assignedType}" at suspicious line ${index} (itemId="${itemId}").`
+        `Invalid assignedType "${assignedType}" at suspicious line ${index} (itemId="${itemId}").`,
       );
     }
 
@@ -138,7 +138,7 @@ export const validateFinalReviewRequestBody = (body) => {
     const routingBand = normalizeIncomingText(entry.routingBand, 32);
     if (!ALLOWED_ROUTING_BANDS.has(routingBand)) {
       throw new FinalReviewValidationError(
-        `Invalid routingBand "${routingBand}" at suspicious line ${index} (itemId="${itemId}"): must be "agent-candidate" or "agent-forced".`
+        `Invalid routingBand "${routingBand}" at suspicious line ${index} (itemId="${itemId}"): must be "agent-candidate" or "agent-forced".`,
       );
     }
 
@@ -146,7 +146,7 @@ export const validateFinalReviewRequestBody = (body) => {
     const text = normalizeIncomingText(entry.text, MAX_TEXT_LENGTH);
     if (!isNonEmptyString(text)) {
       throw new FinalReviewValidationError(
-        `Empty text at suspicious line ${index} (itemId="${itemId}").`
+        `Empty text at suspicious line ${index} (itemId="${itemId}").`,
       );
     }
 
@@ -234,7 +234,7 @@ export const validateFinalReviewRequestBody = (body) => {
       const id = body.requiredItemIds[i];
       if (!isNonEmptyString(id)) {
         throw new FinalReviewValidationError(
-          `Invalid requiredItemIds entry at index ${i}: must be a non-empty string.`
+          `Invalid requiredItemIds entry at index ${i}: must be a non-empty string.`,
         );
       }
       requiredItemIds.push(id);
@@ -252,7 +252,7 @@ export const validateFinalReviewRequestBody = (body) => {
       const id = body.forcedItemIds[i];
       if (!isNonEmptyString(id)) {
         throw new FinalReviewValidationError(
-          `Invalid forcedItemIds entry at index ${i}: must be a non-empty string.`
+          `Invalid forcedItemIds entry at index ${i}: must be a non-empty string.`,
         );
       }
       forcedItemIds.push(id);
@@ -263,7 +263,7 @@ export const validateFinalReviewRequestBody = (body) => {
       ...new Set(
         suspiciousLines
           .filter((l) => l.routingBand === "agent-forced")
-          .map((l) => l.itemId)
+          .map((l) => l.itemId),
       ),
     ];
   }
@@ -273,7 +273,7 @@ export const validateFinalReviewRequestBody = (body) => {
   for (const id of forcedItemIds) {
     if (!requiredSet.has(id)) {
       throw new FinalReviewValidationError(
-        `forcedItemIds must be a subset of requiredItemIds: "${id}" is not in requiredItemIds.`
+        `forcedItemIds must be a subset of requiredItemIds: "${id}" is not in requiredItemIds.`,
       );
     }
   }
@@ -282,7 +282,7 @@ export const validateFinalReviewRequestBody = (body) => {
   for (const id of requiredItemIds) {
     if (!seenItemIds.has(id)) {
       throw new FinalReviewValidationError(
-        `requiredItemIds contains unknown itemId: "${id}" not found in suspiciousLines.`
+        `requiredItemIds contains unknown itemId: "${id}" not found in suspiciousLines.`,
       );
     }
   }
@@ -314,7 +314,7 @@ export const validateFinalReviewRequestBody = (body) => {
   const reviewPacketText =
     normalizeIncomingText(
       body.reviewPacketText,
-      MAX_REVIEW_PACKET_TEXT_LENGTH
+      MAX_REVIEW_PACKET_TEXT_LENGTH,
     ) || undefined;
 
   return {

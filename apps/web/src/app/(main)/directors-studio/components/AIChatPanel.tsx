@@ -99,11 +99,7 @@ const MessageItem = memo(function MessageItem({
           className={`flex flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}
         >
           <div
-            className={`p-4 rounded-md ${
-              isUser
-                ? "bg-[var(--app-accent)] text-white"
-                : "bg-[var(--app-surface)] text-[var(--app-text)]"
-            }`}
+            className={`p-4 rounded-md ${isUser ? "bg-[var(--app-accent)] text-white" : "bg-[var(--app-surface)] text-[var(--app-text)]"}`}
           >
             <p className="text-sm leading-relaxed">{message.content}</p>
           </div>

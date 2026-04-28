@@ -3,7 +3,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
+import type { VoiceMetrics } from "../../hooks/useVoiceAnalytics";
 
 export interface ArticulationIndicatorProps {
   articulation: VoiceMetrics["articulation"];
@@ -90,25 +90,9 @@ export const ArticulationIndicator: React.FC<ArticulationIndicatorProps> = ({
               <span className="text-sm text-white/70">التقييم العام</span>
               <Badge className={`${getColor()} border-0`}>{getLabel()}</Badge>
             </div>
-            {articulation.issues.length > 0 ? (
-              <div className="bg-white/5 rounded-lg p-2 mt-1">
-                <span className="text-xs text-white/55 block mb-1">
-                  ملاحظات:
-                </span>
-                <ul className="list-disc list-inside text-xs text-white/80 space-y-1">
-                  {articulation.issues.slice(0, 2).map((issue, idx) => (
-                    <li key={idx} className="truncate" title={issue}>
-                      {issue}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="bg-green-500/10 text-green-300 text-xs p-2 rounded-lg mt-1 flex items-center gap-1">
-                <span className="text-sm">✨</span>
-                مخارج الحروف واضحة وممتازة
-              </div>
-            )}
+            <div className="bg-white/5 rounded-lg p-2 mt-1 text-xs text-white/80">
+              {articulation.label}
+            </div>
           </div>
         </div>
       </CardContent>

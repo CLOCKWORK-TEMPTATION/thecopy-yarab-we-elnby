@@ -26,70 +26,79 @@ import type { ContextQuery } from "../types";
 
 const router = Router();
 
-const memorySearchBodySchema = z.object({
-  query: z.string().min(1),
-  collection: z.string().optional(),
-  topK: z.number().int().positive().optional(),
-}).passthrough();
+const memorySearchBodySchema = z
+  .object({
+    query: z.string().min(1),
+    collection: z.string().optional(),
+    topK: z.number().int().positive().optional(),
+  })
+  .passthrough();
 
-const memoryIndexBodySchema = z.object({
-  repoPath: z.string().optional(),
-  specificFiles: z.array(z.string()).optional(),
-  reset: z.boolean().optional(),
-  dimensionality: z.union([z.literal(768), z.literal(1536), z.literal(3072)]).optional(),
-}).passthrough();
+const memoryIndexBodySchema = z
+  .object({
+    repoPath: z.string().optional(),
+    specificFiles: z.array(z.string()).optional(),
+    reset: z.boolean().optional(),
+    dimensionality: z
+      .union([z.literal(768), z.literal(1536), z.literal(3072)])
+      .optional(),
+  })
+  .passthrough();
 
-const contextQueryBodySchema = z.object({
-  query: z.string().min(1),
-  agentId: z.string().min(1),
-  conversationId: z.string().optional(),
-  filePath: z.string().optional(),
-  contentType: z
-    .array(z.enum(["code", "documentation", "decision", "architecture", "ad-hoc"]))
-    .optional(),
-  profile: z.enum(["analysis", "completion", "summarization", "code"]).optional(),
-  topK: z.number().int().positive().optional(),
-  recencyBias: z.number().optional(),
-}).passthrough();
+const contextQueryBodySchema = z
+  .object({
+    query: z.string().min(1),
+    agentId: z.string().min(1),
+    conversationId: z.string().optional(),
+    filePath: z.string().optional(),
+    contentType: z
+      .array(
+        z.enum(["code", "documentation", "decision", "architecture", "ad-hoc"]),
+      )
+      .optional(),
+    profile: z
+      .enum(["analysis", "completion", "summarization", "code"])
+      .optional(),
+    topK: z.number().int().positive().optional(),
+    recencyBias: z.number().optional(),
+  })
+  .passthrough();
 
-const memoryRememberBodySchema = z.object({
-  type: z.enum(["decision", "documentation"]),
-  content: z.string().min(1),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-  tags: z.array(z.string()).optional(),
-}).passthrough();
+const memoryRememberBodySchema = z
+  .object({
+    type: z.enum(["decision", "documentation"]),
+    content: z.string().min(1),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    tags: z.array(z.string()).optional(),
+  })
+  .passthrough();
 
 /**
  * GET /api/memory/health
  * التحقق من صحة النظام
  */
-export const memoryHealthHandler = async (
-  _req: Request,
-  res: Response
-) => {
+export const memoryHealthHandler = async (_req: Request, res: Response) => {
   try {
     const statusBefore = weaviateStore.getStatus();
     const weaviateHealthy = statusBefore.enabled
       ? await weaviateStore.healthCheck()
       : true;
     const statusAfter = weaviateStore.getStatus();
-    const status =
-      !statusAfter.enabled
-        ? "disabled"
-        : weaviateHealthy
-          ? "healthy"
-          : statusAfter.required
-            ? "unhealthy"
-            : "degraded";
+    const status = !statusAfter.enabled
+      ? "disabled"
+      : weaviateHealthy
+        ? "healthy"
+        : statusAfter.required
+          ? "unhealthy"
+          : "degraded";
 
     res.status(status === "unhealthy" ? 503 : 200).json({
       status,
-      weaviate:
-        !statusAfter.enabled
-          ? "disabled"
-          : weaviateHealthy
-            ? "connected"
-            : "disconnected",
+      weaviate: !statusAfter.enabled
+        ? "disabled"
+        : weaviateHealthy
+          ? "connected"
+          : "disconnected",
       required: statusAfter.required,
       details: statusAfter,
       gemini:
@@ -332,13 +341,16 @@ router.post("/remember", async (req, res): Promise<void> => {
  * توصية بُعد MRL
  */
 router.get("/mrl/recommend", (req, res) => {
-  const { documentCount, queryFrequency, precisionRequirement, storageBudgetMB } =
-    req.query;
+  const {
+    documentCount,
+    queryFrequency,
+    precisionRequirement,
+    storageBudgetMB,
+  } = req.query;
 
   const recommendation = mrlOptimizer.suggestDimension({
     expectedDocumentCount: parseInt(documentCount as string) || 1000,
-    queryFrequency:
-      (queryFrequency as "high" | "medium" | "low") || "medium",
+    queryFrequency: (queryFrequency as "high" | "medium" | "low") || "medium",
     precisionRequirement:
       (precisionRequirement as "critical" | "standard" | "flexible") ||
       "standard",
@@ -352,7 +364,7 @@ router.get("/mrl/recommend", (req, res) => {
   const savings = mrlOptimizer.calculateStorageSavings(
     3072,
     recommendation,
-    parseInt(documentCount as string) || 1000
+    parseInt(documentCount as string) || 1000,
   );
 
   res.json({
@@ -366,7 +378,7 @@ router.get("/mrl/recommend", (req, res) => {
       dimension3072: mrlOptimizer.calculateStorageSavings(
         3072,
         3072,
-        parseInt(documentCount as string) || 1000
+        parseInt(documentCount as string) || 1000,
       ),
       recommended: savings,
     },

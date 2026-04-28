@@ -13,7 +13,7 @@ const ENGINE_PATH = resolve(
   __dirname,
   "karank_engine",
   "engine",
-  "ts_bridge.py"
+  "ts_bridge.py",
 );
 const MIN_PYTHON_MAJOR = 3;
 const MIN_PYTHON_MINOR = 10;
@@ -33,11 +33,11 @@ const resolveTimeoutFromEnv = (name, fallbackMs) => {
 const PING_TIMEOUT_MS = resolveTimeoutFromEnv("KARANK_PING_TIMEOUT_MS", 10_000);
 const REQUEST_TIMEOUT_MS = resolveTimeoutFromEnv(
   "KARANK_REQUEST_TIMEOUT_MS",
-  30_000
+  30_000,
 );
 const DOCX_REQUEST_TIMEOUT_MS = Math.max(
   REQUEST_TIMEOUT_MS,
-  resolveTimeoutFromEnv("KARANK_DOCX_REQUEST_TIMEOUT_MS", 120_000)
+  resolveTimeoutFromEnv("KARANK_DOCX_REQUEST_TIMEOUT_MS", 120_000),
 );
 const SHUTDOWN_TIMEOUT_MS = 5_000;
 
@@ -132,11 +132,15 @@ const getPythonCandidates = () => {
 };
 
 const probePythonCandidate = (candidate) => {
-  const result = spawnSync(candidate.command, [...candidate.args, "--version"], {
-    encoding: "utf-8",
-    timeout: 5_000,
-    windowsHide: true,
-  });
+  const result = spawnSync(
+    candidate.command,
+    [...candidate.args, "--version"],
+    {
+      encoding: "utf-8",
+      timeout: 5_000,
+      windowsHide: true,
+    },
+  );
 
   if (result.error) {
     return {
@@ -198,7 +202,7 @@ const checkPython = () => {
       "يمكنك ضبط KARANK_PYTHON_BIN على المسار الصحيح لـ python.exe أو استخدام KARANK_PYTHON_VERSION مع py على ويندوز.",
     ]
       .filter(Boolean)
-      .join(" ")
+      .join(" "),
   );
 };
 
@@ -208,7 +212,7 @@ const checkPython = () => {
 const checkEngineFiles = () => {
   if (!existsSync(ENGINE_PATH)) {
     throw new Error(
-      `ملف المحرك غير موجود: ${ENGINE_PATH}. تأكد من نسخ ملفات المحرك إلى server/karank_engine/engine/.`
+      `ملف المحرك غير موجود: ${ENGINE_PATH}. تأكد من نسخ ملفات المحرك إلى server/karank_engine/engine/.`,
     );
   }
 };
@@ -227,7 +231,7 @@ const restartAfterTimeout = (requestId, timeoutMs) => {
   }
 
   console.warn(
-    `[karank-bridge] انتهت مهلة ${requestId} بعد ${timeoutMs}ms، إعادة تشغيل المحرك.`
+    `[karank-bridge] انتهت مهلة ${requestId} بعد ${timeoutMs}ms، إعادة تشغيل المحرك.`,
   );
   state = "dead";
   proc.kill();
@@ -264,11 +268,15 @@ const spawnProcess = () => {
   state = "starting";
 
   const pythonRuntime = checkPython();
-  proc = spawn(pythonRuntime.command, [...pythonRuntime.args, "-u", ENGINE_PATH], {
-    stdio: ["pipe", "pipe", "pipe"],
-    windowsHide: true,
-    env: { ...process.env, PYTHONUTF8: "1" },
-  });
+  proc = spawn(
+    pythonRuntime.command,
+    [...pythonRuntime.args, "-u", ENGINE_PATH],
+    {
+      stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
+      env: { ...process.env, PYTHONUTF8: "1" },
+    },
+  );
 
   rl = createInterface({ input: proc.stdout });
   rl.on("line", handleLine);
@@ -381,7 +389,7 @@ const ensureReady = async () => {
         rl = null;
         throw new Error(
           `تعذر تشغيل المحرك بعد محاولتين. ${retryError.message}`,
-          { cause: retryError }
+          { cause: retryError },
         );
       }
     } else {
@@ -446,7 +454,7 @@ export const getEngineFilesInfo = () => ({
  */
 export const parseDocx = async (
   docxPath,
-  timeoutMs = DOCX_REQUEST_TIMEOUT_MS
+  timeoutMs = DOCX_REQUEST_TIMEOUT_MS,
 ) => {
   await ensureReady();
   const id = nextId();
@@ -456,7 +464,7 @@ export const parseDocx = async (
       action: "parseDocx",
       path: docxPath,
     },
-    timeoutMs
+    timeoutMs,
   );
 
   if (!response?.ok) {
@@ -480,7 +488,7 @@ export const destroy = async () => {
     const id = nextId();
     proc.stdin.write(
       JSON.stringify({ id, action: "shutdown" }) + "\n",
-      "utf-8"
+      "utf-8",
     );
 
     await new Promise((resolve) => {

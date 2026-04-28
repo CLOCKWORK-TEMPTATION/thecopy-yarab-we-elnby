@@ -70,7 +70,7 @@ const StoredBookSchema = z.object({
       contentAr: z.string(),
       images: z.array(z.string()),
       order: z.number(),
-    })
+    }),
   ),
   metadata: z.record(z.unknown()),
 });
@@ -161,7 +161,7 @@ export function createEmptyStore(): ArtDirectorStore {
 
 export function resolveStorePath(): string {
   return (
-    process.env['ART_DIRECTOR_STORE_PATH'] ??
+    process.env["ART_DIRECTOR_STORE_PATH"] ??
     path.join(process.cwd(), ".data", "art-director", "store.json")
   );
 }
@@ -175,7 +175,7 @@ async function ensureStoreFile(filePath: string): Promise<void> {
     await writeFile(
       filePath,
       JSON.stringify(createEmptyStore(), null, 2),
-      "utf8"
+      "utf8",
     );
   }
 }
@@ -193,7 +193,10 @@ async function readStoreFile(filePath: string): Promise<string> {
   }
 }
 
-async function writeStoreFile(filePath: string, content: string): Promise<void> {
+async function writeStoreFile(
+  filePath: string,
+  content: string,
+): Promise<void> {
   try {
     await writeFile(filePath, content, "utf8");
   } catch (error) {
@@ -236,13 +239,13 @@ export async function saveStore(store: ArtDirectorStore): Promise<void> {
         updatedAt: new Date().toISOString(),
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 }
 
 export async function updateStore<T>(
-  updater: (store: ArtDirectorStore) => Promise<T> | T
+  updater: (store: ArtDirectorStore) => Promise<T> | T,
 ): Promise<T> {
   let result!: T;
 

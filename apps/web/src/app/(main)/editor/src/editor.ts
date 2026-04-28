@@ -22,12 +22,12 @@
  *   - `App.tsx` — يستورد `SCREENPLAY_ELEMENTS` لربط الاختصارات وعرض التسميات.
  */
 import { Editor, Extension } from "@tiptap/core";
-import Bold from "@tiptap/extension-bold";
-import Document from "@tiptap/extension-document";
-import Italic from "@tiptap/extension-italic";
-import Text from "@tiptap/extension-text";
-import TextAlign from "@tiptap/extension-text-align";
-import Underline from "@tiptap/extension-underline";
+import { Bold } from "@tiptap/extension-bold";
+import { Document } from "@tiptap/extension-document";
+import { Italic } from "@tiptap/extension-italic";
+import { Text } from "@tiptap/extension-text";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Underline } from "@tiptap/extension-underline";
 import { history, redo, undo } from "@tiptap/pm/history";
 import { keymap } from "@tiptap/pm/keymap";
 import { Pages } from "@tiptap-pro/extension-pages";
@@ -191,10 +191,10 @@ interface ScreenplayPagesOptions {
   footer: string;
 }
 
-const ScreenplayPages = Pages.extend<
+const ScreenplayPages = Pages as unknown as Extension<
   ScreenplayPagesOptions,
   Record<string, unknown>
->({});
+>;
 
 const ScreenplayHistory = Extension.create({
   name: "screenplayHistory",

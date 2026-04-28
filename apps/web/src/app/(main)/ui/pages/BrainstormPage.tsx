@@ -91,7 +91,7 @@ export function BrainstormPage() {
   const groupedIdeas = ideas.reduce(
     (acc, idea) => {
       const group = idea.group ?? "عام";
-      if (!acc[group]) acc[group] = [];
+      acc[group] ??= [];
       acc[group].push(idea);
       return acc;
     },
@@ -278,11 +278,7 @@ function IdeaCardComponent({
               variant="ghost"
               size="sm"
               onClick={() => onTogglePin(idea.id)}
-              className={`p-1 h-auto ${
-                idea.isPinned
-                  ? "text-[var(--color-accent)]"
-                  : "text-[var(--color-muted)]"
-              } hover:bg-[var(--color-surface)]`}
+              className={`p-1 h-auto ${idea.isPinned ? "text-[var(--color-accent)]" : "text-[var(--color-muted)]"} hover:bg-[var(--color-surface)]`}
             >
               <Pin className="w-4 h-4" />
             </Button>

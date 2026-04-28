@@ -66,14 +66,12 @@ describe("4️⃣ JWT & Authentication Security", () => {
   });
 
   it("should use httpOnly cookies for session tokens", async () => {
-    const signupResponse = await request(app)
-      .post("/api/auth/signup")
-      .send({
-        email: "user@example.com",
-        password: TEST_PASSWORD,
-        firstName: "Test",
-        lastName: "User",
-      });
+    const signupResponse = await request(app).post("/api/auth/signup").send({
+      email: "user@example.com",
+      password: TEST_PASSWORD,
+      firstName: "Test",
+      lastName: "User",
+    });
     expect(signupResponse.status).toBeLessThan(500);
     const cookies = signupResponse.headers["set-cookie"];
     assertSessionCookieSecurity(cookies);
@@ -97,14 +95,12 @@ describe("4️⃣ JWT & Authentication Security", () => {
   });
 
   it("should not expose sensitive information in JWT tokens", async () => {
-    const signupResponse = await request(app)
-      .post("/api/auth/signup")
-      .send({
-        email: "user@example.com",
-        password: TEST_PASSWORD,
-        firstName: "JWT",
-        lastName: "Test",
-      });
+    const signupResponse = await request(app).post("/api/auth/signup").send({
+      email: "user@example.com",
+      password: TEST_PASSWORD,
+      firstName: "JWT",
+      lastName: "Test",
+    });
     expect(signupResponse.status).toBeLessThan(500);
     assertJwtPayloadIsSanitized(signupResponse);
   });

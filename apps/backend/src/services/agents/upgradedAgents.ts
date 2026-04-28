@@ -5,7 +5,7 @@
  * إخراج نصي فقط - لا JSON
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 import { TaskType } from "@core/types";
 
 import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
@@ -62,9 +62,11 @@ export const integratedAgent = new IntegratedAgent();
 // المجموعة الأولى - الوكلاء السبعة الجديدة
 export const platformAdapterAgent = new PlatformAdapterAgent();
 export const characterDeepAnalyzerAgent = new CharacterDeepAnalyzerAgent();
-export const dialogueAdvancedAnalyzerAgent = new DialogueAdvancedAnalyzerAgent();
+export const dialogueAdvancedAnalyzerAgent =
+  new DialogueAdvancedAnalyzerAgent();
 export const themesMessagesAnalyzerAgent = new ThemesMessagesAnalyzerAgent();
-export const culturalHistoricalAnalyzerAgent = new CulturalHistoricalAnalyzerAgent();
+export const culturalHistoricalAnalyzerAgent =
+  new CulturalHistoricalAnalyzerAgent();
 export const visualCinematicAnalyzerAgent = new VisualCinematicAnalyzerAgent();
 export const producibilityAnalyzerAgent = new ProducibilityAnalyzerAgent();
 
@@ -72,7 +74,8 @@ export const producibilityAnalyzerAgent = new ProducibilityAnalyzerAgent();
 export const audienceResonanceAgent = new AudienceResonanceAgent();
 export const targetAudienceAnalyzerAgent = new TargetAudienceAnalyzerAgent();
 export const literaryQualityAnalyzerAgent = new LiteraryQualityAnalyzerAgent();
-export const recommendationsGeneratorAgent = new RecommendationsGeneratorAgent();
+export const recommendationsGeneratorAgent =
+  new RecommendationsGeneratorAgent();
 
 /**
  * Agent registry - maps task types to agent instances
@@ -95,7 +98,7 @@ export const UPGRADED_AGENTS = new Map<TaskType, BaseAgent>([
   [TaskType.WORLD_BUILDER, worldBuilderAgent],
   [TaskType.ANALYSIS, analysisAgent],
   [TaskType.INTEGRATED, integratedAgent],
-  
+
   // الوكلاء السبعة الجديدة (المجموعة الأولى)
   [TaskType.PLATFORM_ADAPTER, platformAdapterAgent],
   [TaskType.CHARACTER_DEEP_ANALYZER, characterDeepAnalyzerAgent],
@@ -104,7 +107,7 @@ export const UPGRADED_AGENTS = new Map<TaskType, BaseAgent>([
   [TaskType.CULTURAL_HISTORICAL_ANALYZER, culturalHistoricalAnalyzerAgent],
   [TaskType.VISUAL_CINEMATIC_ANALYZER, visualCinematicAnalyzerAgent],
   [TaskType.PRODUCIBILITY_ANALYZER, producibilityAnalyzerAgent],
-  
+
   // الوكلاء الأربعة المتبقية (مرقّاة سابقاً)
   [TaskType.AUDIENCE_RESONANCE, audienceResonanceAgent],
   [TaskType.TARGET_AUDIENCE_ANALYZER, targetAudienceAnalyzerAgent],
@@ -120,7 +123,7 @@ export const UPGRADED_AGENTS = new Map<TaskType, BaseAgent>([
  */
 export async function executeAgentTask(
   taskType: TaskType,
-  input: StandardAgentInput
+  input: StandardAgentInput,
 ): Promise<StandardAgentOutput> {
   const agent = UPGRADED_AGENTS.get(taskType);
 
@@ -196,10 +199,10 @@ export const AGENTS_TO_UPGRADE: TaskType[] = [
  * Batch execute multiple agent tasks
  */
 export async function batchExecuteAgentTasks(
-  tasks: { taskType: TaskType; input: StandardAgentInput }[]
+  tasks: { taskType: TaskType; input: StandardAgentInput }[],
 ): Promise<StandardAgentOutput[]> {
   const results = await Promise.allSettled(
-    tasks.map(({ taskType, input }) => executeAgentTask(taskType, input))
+    tasks.map(({ taskType, input }) => executeAgentTask(taskType, input)),
   );
 
   return results.map((result, index) => {
@@ -209,7 +212,8 @@ export async function batchExecuteAgentTasks(
       const task = tasks[index];
       const taskType = task?.taskType ?? "unknown";
       const reason = result.reason as unknown;
-      const reasonMessage = reason instanceof Error ? reason.message : "خطأ غير معروف";
+      const reasonMessage =
+        reason instanceof Error ? reason.message : "خطأ غير معروف";
       return {
         text: `فشل تنفيذ المهمة ${taskType}`,
         confidence: 0.0,

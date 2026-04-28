@@ -53,7 +53,10 @@ function discoverChunks() {
     const full = join(backendRoot, topLevel);
     if (existsSync(full) && statSync(full).isDirectory()) {
       const hasTs = readdirSync(full).some(
-        (f) => f.endsWith(".ts") || f.endsWith(".tsx") || statSync(join(full, f)).isDirectory()
+        (f) =>
+          f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          statSync(join(full, f)).isDirectory(),
       );
       if (hasTs) chunks.push(topLevel);
     }
@@ -110,7 +113,9 @@ for (const target of chunks) {
 }
 
 if (aggregateCode !== 0) {
-  console.error(`\n[lint-chunked] فشل lint في مجموعة أو أكثر (exit ${aggregateCode})`);
+  console.error(
+    `\n[lint-chunked] فشل lint في مجموعة أو أكثر (exit ${aggregateCode})`,
+  );
 } else {
   console.log("\n[lint-chunked] جميع المجموعات نظيفة");
 }

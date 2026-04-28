@@ -1,18 +1,18 @@
-import { inArray } from 'drizzle-orm';
+import { inArray } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappOrderItems } from '@/db/schema';
+import { db } from "@/db";
+import { breakappOrderItems } from "@/db/schema";
 
 import type {
   BreakappVendorView,
   BreakappSessionView,
   SessionStatus,
-} from '../service.types';
+} from "../service.types";
 
 export function ensureDatabase(): void {
   if (!db) {
     throw new Error(
-      'Database is not available. DATABASE_URL must be set for BREAKAPP to function.'
+      "Database is not available. DATABASE_URL must be set for BREAKAPP to function.",
     );
   }
 }
@@ -54,13 +54,13 @@ export function toSessionView(row: {
     lng: row.lng,
     startsAt: row.startsAt.toISOString(),
     endsAt: row.endsAt ? row.endsAt.toISOString() : null,
-    status: (row.status as SessionStatus) ?? 'active',
+    status: (row.status as SessionStatus) ?? "active",
     createdAt: row.createdAt.toISOString(),
   };
 }
 
 export async function loadItemsForOrders(
-  orderIds: string[]
+  orderIds: string[],
 ): Promise<Map<string, { menuItemId: string; quantity: number }[]>> {
   const map = new Map<string, { menuItemId: string; quantity: number }[]>();
   if (orderIds.length === 0) return map;

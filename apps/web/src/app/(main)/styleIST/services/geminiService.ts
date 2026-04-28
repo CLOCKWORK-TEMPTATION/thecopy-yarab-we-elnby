@@ -62,12 +62,12 @@ function getRecord(value: unknown): Record<string, unknown> | null {
 function getBreakdown(value: unknown): ProfessionalDesignResult["breakdown"] {
   const record = getRecord(value);
   return {
-    basics: getStringValue(record?.basics),
-    layers: getStringValue(record?.layers),
-    shoes: getStringValue(record?.shoes),
-    accessories: getStringValue(record?.accessories),
-    materials: getStringValue(record?.materials),
-    colorPalette: getStringValue(record?.colorPalette),
+    basics: getStringValue(record?.["basics"]),
+    layers: getStringValue(record?.["layers"]),
+    shoes: getStringValue(record?.["shoes"]),
+    accessories: getStringValue(record?.["accessories"]),
+    materials: getStringValue(record?.["materials"]),
+    colorPalette: getStringValue(record?.["colorPalette"]),
   };
 }
 
@@ -76,21 +76,21 @@ function getProductionNotes(
 ): ProfessionalDesignResult["productionNotes"] {
   const record = getRecord(value);
   return {
-    copies: getStringValue(record?.copies, DEFAULT_PRODUCTION_NOTES.copies),
+    copies: getStringValue(record?.["copies"], DEFAULT_PRODUCTION_NOTES.copies),
     distressing: getStringValue(
-      record?.distressing,
+      record?.["distressing"],
       DEFAULT_PRODUCTION_NOTES.distressing
     ),
     cameraWarnings: getStringValue(
-      record?.cameraWarnings,
+      record?.["cameraWarnings"],
       DEFAULT_PRODUCTION_NOTES.cameraWarnings
     ),
     weatherAlt: getStringValue(
-      record?.weatherAlt,
+      record?.["weatherAlt"],
       DEFAULT_PRODUCTION_NOTES.weatherAlt
     ),
     budgetAlt: getStringValue(
-      record?.budgetAlt,
+      record?.["budgetAlt"],
       DEFAULT_PRODUCTION_NOTES.budgetAlt
     ),
   };
@@ -98,11 +98,11 @@ function getProductionNotes(
 
 function getWeather(value: unknown): ProfessionalDesignResult["realWeather"] {
   const record = getRecord(value);
-  const sources = getStringArray(record?.sources);
+  const sources = getStringArray(record?.["sources"]);
   return {
-    temp: getNumberValue(record?.temp, DEFAULT_WEATHER.temp),
-    condition: getStringValue(record?.condition, DEFAULT_WEATHER.condition),
-    location: getStringValue(record?.location, DEFAULT_WEATHER.location),
+    temp: getNumberValue(record?.["temp"], DEFAULT_WEATHER.temp),
+    condition: getStringValue(record?.["condition"], DEFAULT_WEATHER.condition),
+    location: getStringValue(record?.["location"], DEFAULT_WEATHER.location),
     ...(sources.length > 0 ? { sources } : {}),
   };
 }
@@ -133,22 +133,22 @@ export const generateProfessionalDesign = async (
   brief: DesignBrief
 ): Promise<ProfessionalDesignResult> => {
   const result = await callGeminiAPI("generateDesign", { brief });
-  const conceptArtUrl = getStringValue(result.conceptArtUrl);
+  const conceptArtUrl = getStringValue(result["conceptArtUrl"]);
   if (!conceptArtUrl) {
     throw new Error("Design generation did not return concept art.");
   }
 
   return {
-    lookTitle: getStringValue(result.lookTitle, "تصميم مخصص"),
-    dramaticDescription: getStringValue(result.dramaticDescription),
-    breakdown: getBreakdown(result.breakdown ?? DEFAULT_BREAKDOWN),
-    rationale: getStringArray(result.rationale),
+    lookTitle: getStringValue(result["lookTitle"], "تصميم مخصص"),
+    dramaticDescription: getStringValue(result["dramaticDescription"]),
+    breakdown: getBreakdown(result["breakdown"] ?? DEFAULT_BREAKDOWN),
+    rationale: getStringArray(result["rationale"]),
     productionNotes: getProductionNotes(
-      result.productionNotes ?? DEFAULT_PRODUCTION_NOTES
+      result["productionNotes"] ?? DEFAULT_PRODUCTION_NOTES
     ),
-    imagePrompt: getStringValue(result.imagePrompt),
+    imagePrompt: getStringValue(result["imagePrompt"]),
     conceptArtUrl,
-    realWeather: getWeather(result.realWeather ?? DEFAULT_WEATHER),
+    realWeather: getWeather(result["realWeather"] ?? DEFAULT_WEATHER),
   };
 };
 
@@ -163,7 +163,7 @@ export const transcribeAudio = async (
     audioBase64: base64,
     mimeType: audioBlob.type || "audio/webm",
   });
-  return getStringValue(result.text);
+  return getStringValue(result["text"]);
 };
 
 /**
@@ -175,7 +175,7 @@ export const analyzeVideoContent = async (videoFile: File): Promise<string> => {
     videoBase64: base64,
     mimeType: videoFile.type,
   });
-  return getStringValue(result.analysis);
+  return getStringValue(result["analysis"]);
 };
 
 /**
@@ -186,7 +186,7 @@ export const generateGarmentAsset = async (
   size: ImageGenerationSize = "1K"
 ): Promise<{ url: string; name: string }> => {
   const result = await callGeminiAPI("generateGarment", { prompt, size });
-  const imageUrl = getStringValue(result.imageUrl);
+  const imageUrl = getStringValue(result["imageUrl"]);
   if (!imageUrl) {
     throw new Error("Garment generation did not return an image.");
   }
@@ -211,10 +211,12 @@ export const generateVirtualFit = async (
   });
 
   return {
-    compatibilityScore: getNumberValue(result.compatibilityScore),
-    safetyIssues: getStringArray(result.safetyIssues),
-    fabricNotes: getStringValue(result.fabricNotes ?? result.fitDescription),
-    movementPrediction: getStringValue(result.movementPrediction),
+    compatibilityScore: getNumberValue(result["compatibilityScore"]),
+    safetyIssues: getStringArray(result["safetyIssues"]),
+    fabricNotes: getStringValue(
+      result["fabricNotes"] ?? result["fitDescription"]
+    ),
+    movementPrediction: getStringValue(result["movementPrediction"]),
   };
 };
 
@@ -230,8 +232,11 @@ export const generateStressTestVideo = async (
     config,
   });
   return {
-    videoUrl: getStringValue(result.videoUrl),
-    report: getStringValue(result.report, "لم يتم إنشاء تقرير اختبار الإجهاد"),
+    videoUrl: getStringValue(result["videoUrl"]),
+    report: getStringValue(
+      result["report"],
+      "لم يتم إنشاء تقرير اختبار الإجهاد"
+    ),
   };
 };
 
@@ -247,7 +252,7 @@ export const editGarmentImage = async (
       ? imageFileOrUrl
       : await fileToBase64(imageFileOrUrl);
   const result = await callGeminiAPI("editGarment", { imageUrl, editPrompt });
-  const editedImageUrl = getStringValue(result.imageUrl);
+  const editedImageUrl = getStringValue(result["imageUrl"]);
   if (!editedImageUrl) {
     throw new Error("Garment editing did not return an image.");
   }

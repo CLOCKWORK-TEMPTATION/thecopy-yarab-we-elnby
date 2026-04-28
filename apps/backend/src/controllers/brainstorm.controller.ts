@@ -32,7 +32,7 @@ const brainstormCatalogResponseSchema = z.object({
       enhances: z.array(z.string()),
       complexityScore: z.number(),
       phaseRelevance: z.array(z.number()),
-    })
+    }),
   ),
   phases: z.array(
     z.object({
@@ -41,7 +41,7 @@ const brainstormCatalogResponseSchema = z.object({
       nameEn: z.string(),
       description: z.string(),
       primaryAction: z.enum(["analyze", "generate", "debate", "decide"]),
-    })
+    }),
   ),
   stats: z.object({
     total: z.number(),
@@ -56,18 +56,23 @@ const brainstormCatalogResponseSchema = z.object({
 const brainstormRequestSchema = z.object({
   task: z.string().trim().min(1, "المهمة مطلوبة"),
   context: z.record(z.unknown()).default({}),
-  agentIds: z.array(z.string().trim().min(1)).min(1, "يجب اختيار وكيل واحد على الأقل"),
+  agentIds: z
+    .array(z.string().trim().min(1))
+    .min(1, "يجب اختيار وكيل واحد على الأقل"),
 });
 
 type BrainstormRequestPayload = z.infer<typeof brainstormRequestSchema>;
 
-function buildDebateContext(payload: BrainstormRequestPayload): Record<string, unknown> {
+function buildDebateContext(
+  payload: BrainstormRequestPayload,
+): Record<string, unknown> {
   const context = payload.context ?? {};
 
   return {
     ...context,
     originalText:
-      typeof context["originalText"] === "string" && context["originalText"].trim().length > 0
+      typeof context["originalText"] === "string" &&
+      context["originalText"].trim().length > 0
         ? context["originalText"]
         : payload.task,
     brief:
@@ -75,15 +80,14 @@ function buildDebateContext(payload: BrainstormRequestPayload): Record<string, u
         ? context["brief"]
         : payload.task,
     sessionId:
-      typeof context["sessionId"] === "string" && context["sessionId"].trim().length > 0
+      typeof context["sessionId"] === "string" &&
+      context["sessionId"].trim().length > 0
         ? context["sessionId"]
         : `session-${Date.now()}`,
   };
 }
 
-async function executeDebate(
-  payload: BrainstormRequestPayload
-): Promise<{
+async function executeDebate(payload: BrainstormRequestPayload): Promise<{
   result: Awaited<ReturnType<typeof brainstormService.conductDebate>>;
   meta: {
     selectedAgents: { id: string; nameAr: string }[];
@@ -92,7 +96,7 @@ async function executeDebate(
   const result = await brainstormService.conductDebate(
     payload.task,
     buildDebateContext(payload),
-    payload.agentIds
+    payload.agentIds,
   );
 
   return {
@@ -164,7 +168,9 @@ export class BrainstormController {
         error instanceof Error ? error.message : "Failed to conduct debate";
       res
         .status(
-          message.includes("API_KEY") || message.includes("not configured") ? 503 : 500
+          message.includes("API_KEY") || message.includes("not configured")
+            ? 503
+            : 500,
         )
         .json({
           success: false,

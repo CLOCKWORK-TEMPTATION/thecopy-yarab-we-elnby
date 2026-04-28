@@ -81,7 +81,7 @@ export class SetReusabilityOptimizer implements Plugin {
   async initialize(): Promise<void> {
     this.initializeTransformations();
     console.log(
-      `[${this.name}] Initialized with ${this.styleTransformations.size} transformation templates`
+      `[${this.name}] Initialized with ${this.styleTransformations.size} transformation templates`,
     );
   }
 
@@ -177,15 +177,15 @@ export class SetReusabilityOptimizer implements Plugin {
         return this.addSetPiece(input.data as unknown as Partial<SetPiece>);
       case "analyze":
         return this.analyzeReusability(
-          input.data as unknown as AnalyzeSetInput
+          input.data as unknown as AnalyzeSetInput,
         );
       case "find-reusable":
         return this.findReusablePieces(
-          input.data as unknown as FindReusableInput
+          input.data as unknown as FindReusableInput,
         );
       case "suggest-modifications":
         return this.suggestModifications(
-          input.data as { pieceId: string; targetStyle: string }
+          input.data as { pieceId: string; targetStyle: string },
         );
       case "calculate-savings":
         return this.calculateSavings(
@@ -193,15 +193,15 @@ export class SetReusabilityOptimizer implements Plugin {
             pieceId: string;
             modifications: string[];
             newBuildCost: number;
-          }
+          },
         );
       case "inventory":
         return this.getInventory(
-          input.data as { category?: string; minCondition?: string }
+          input.data as { category?: string; minCondition?: string },
         );
       case "sustainability-report":
         return this.generateSustainabilityReport(
-          input.data as { productionId: string }
+          input.data as { productionId: string },
         );
       default:
         return {
@@ -264,7 +264,7 @@ export class SetReusabilityOptimizer implements Plugin {
     const neutralMaterials = ["wood", "mdf", "plywood", "fabric"];
     const materialScore =
       (data.materials || []).filter((m) =>
-        neutralMaterials.some((nm) => m.toLowerCase().includes(nm))
+        neutralMaterials.some((nm) => m.toLowerCase().includes(nm)),
       ).length * 5;
     score += Math.min(materialScore, 15);
 
@@ -277,13 +277,13 @@ export class SetReusabilityOptimizer implements Plugin {
   }
 
   private async analyzeReusability(
-    data: AnalyzeSetInput
+    data: AnalyzeSetInput,
   ): Promise<PluginOutput> {
     const analysis = {
       name: data.name,
       category: data.category,
       reusabilityScore: this.calculateReusabilityScore(
-        data as Partial<SetPiece>
+        data as Partial<SetPiece>,
       ),
       potentialStyles: [] as string[],
       recommendations: [] as string[],
@@ -302,10 +302,10 @@ export class SetReusabilityOptimizer implements Plugin {
       data.currentCondition === "good"
     ) {
       analysis.recommendations.push(
-        "This piece has high reuse potential with minimal modifications"
+        "This piece has high reuse potential with minimal modifications",
       );
       analysis.recommendationsAr.push(
-        "هذه القطعة لديها إمكانية إعادة استخدام عالية مع تعديلات طفيفة"
+        "هذه القطعة لديها إمكانية إعادة استخدام عالية مع تعديلات طفيفة",
       );
     }
 
@@ -339,7 +339,7 @@ export class SetReusabilityOptimizer implements Plugin {
   }
 
   private async findReusablePieces(
-    data: FindReusableInput
+    data: FindReusableInput,
   ): Promise<PluginOutput> {
     let pieces = Array.from(this.inventory.values());
 
@@ -351,7 +351,7 @@ export class SetReusabilityOptimizer implements Plugin {
       const conditionOrder = ["poor", "fair", "good", "excellent"];
       const minIndex = conditionOrder.indexOf(data.minCondition);
       pieces = pieces.filter(
-        (p) => conditionOrder.indexOf(p.condition) >= minIndex
+        (p) => conditionOrder.indexOf(p.condition) >= minIndex,
       );
     }
 
@@ -365,14 +365,14 @@ export class SetReusabilityOptimizer implements Plugin {
 
       const totalCost = modifications.reduce(
         (sum, m) => sum + m.estimatedCost,
-        0
+        0,
       );
 
       if (data.maxBudget && totalCost > data.maxBudget) continue;
 
       const totalTime = modifications.reduce(
         (sum, m) => sum + m.estimatedTime,
-        0
+        0,
       );
       const newBuildCost = piece.estimatedValue * 2;
 
@@ -498,7 +498,7 @@ export class SetReusabilityOptimizer implements Plugin {
       const conditionOrder = ["poor", "fair", "good", "excellent"];
       const minIndex = conditionOrder.indexOf(data.minCondition);
       pieces = pieces.filter(
-        (p) => conditionOrder.indexOf(p.condition) >= minIndex
+        (p) => conditionOrder.indexOf(p.condition) >= minIndex,
       );
     }
 
@@ -534,7 +534,7 @@ export class SetReusabilityOptimizer implements Plugin {
             : 0,
         highlyReusable: pieces.filter((p) => p.reusabilityScore >= 70).length,
         moderatelyReusable: pieces.filter(
-          (p) => p.reusabilityScore >= 40 && p.reusabilityScore < 70
+          (p) => p.reusabilityScore >= 40 && p.reusabilityScore < 70,
         ).length,
         lowReusability: pieces.filter((p) => p.reusabilityScore < 40).length,
       },

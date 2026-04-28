@@ -198,13 +198,62 @@ export const SHOT_TYPES = [
  * @description تعريفات الإيماءات وإجراءاتها المرتبطة
  */
 export const GESTURE_CONTROLS: GestureControl[] = [
-  { type: "eye", action: "النظر للأعلى = تمرير النص", enabled: true },
-  { type: "eye", action: "الرمش المزدوج = إيقاف/تشغيل", enabled: true },
-  { type: "hand", action: "رفع اليد = إيقاف الشريك", enabled: true },
-  { type: "hand", action: "إشارة OK = استمرار", enabled: true },
-  { type: "head", action: "إيماءة الرأس = الموافقة", enabled: true },
-  { type: "voice", action: "'توقف' = إيقاف المشهد", enabled: true },
-  { type: "voice", action: "'أعد' = إعادة السطر", enabled: true },
+  {
+    id: "eye-scroll",
+    name: "تمرير العين",
+    icon: "👁️",
+    type: "eye",
+    action: "النظر للأعلى = تمرير النص",
+    enabled: true,
+  },
+  {
+    id: "eye-blink",
+    name: "الرمش",
+    icon: "👀",
+    type: "eye",
+    action: "الرمش المزدوج = إيقاف/تشغيل",
+    enabled: true,
+  },
+  {
+    id: "hand-stop",
+    name: "إيقاف اليد",
+    icon: "✋",
+    type: "hand",
+    action: "رفع اليد = إيقاف الشريك",
+    enabled: true,
+  },
+  {
+    id: "hand-ok",
+    name: "إشارة OK",
+    icon: "👌",
+    type: "hand",
+    action: "إشارة OK = استمرار",
+    enabled: true,
+  },
+  {
+    id: "head-nod",
+    name: "إيماءة الرأس",
+    icon: "🙆",
+    type: "head",
+    action: "إيماءة الرأس = الموافقة",
+    enabled: true,
+  },
+  {
+    id: "voice-stop",
+    name: "صوت التوقف",
+    icon: "🛑",
+    type: "voice",
+    action: "'توقف' = إيقاف المشهد",
+    enabled: true,
+  },
+  {
+    id: "voice-repeat",
+    name: "صوت الإعادة",
+    icon: "🔁",
+    type: "voice",
+    action: "'أعد' = إعادة السطر",
+    enabled: true,
+  },
 ];
 
 // ==================== القيم الافتراضية ====================

@@ -49,7 +49,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     super(
       "ConflictAnalyzer AI",
       TaskType.CONFLICT_DYNAMICS,
-      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt ?? ""
+      CONFLICT_DYNAMICS_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.82;
@@ -66,7 +66,11 @@ export class ConflictDynamicsAgent extends BaseAgent {
     let prompt = `مهمة تحليل ديناميكيات الصراع الدرامي\n\n`;
     prompt += this.buildConflictContextSection(ctx);
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
-    prompt += this.buildConflictInstructions(analyzeEvolution, trackIntensity, identifyResolution);
+    prompt += this.buildConflictInstructions(
+      analyzeEvolution,
+      trackIntensity,
+      identifyResolution,
+    );
 
     return prompt;
   }
@@ -74,7 +78,9 @@ export class ConflictDynamicsAgent extends BaseAgent {
   /**
    * Build context section for conflict analysis prompt
    */
-  private buildConflictContextSection(ctx: ConflictDynamicsContext | undefined): string {
+  private buildConflictContextSection(
+    ctx: ConflictDynamicsContext | undefined,
+  ): string {
     let section = "";
     const originalText = ctx?.originalText ?? "";
     const characters = ctx?.characters ?? [];
@@ -96,12 +102,14 @@ export class ConflictDynamicsAgent extends BaseAgent {
   /**
    * Format characters list for prompt
    */
-  private formatCharactersList(characters: (string | ConflictCharacter)[]): string {
+  private formatCharactersList(
+    characters: (string | ConflictCharacter)[],
+  ): string {
     if (characters.length === 0) return "";
     let result = `الشخصيات الرئيسية:\n`;
     characters.slice(0, 5).forEach((char, idx) => {
       const charName =
-        typeof char === "string" ? char : char.name ?? `شخصية ${idx + 1}`;
+        typeof char === "string" ? char : (char.name ?? `شخصية ${idx + 1}`);
       result += `${idx + 1}. ${charName}\n`;
     });
     return result + "\n";
@@ -110,12 +118,16 @@ export class ConflictDynamicsAgent extends BaseAgent {
   /**
    * Format plot points list for prompt
    */
-  private formatPlotPointsList(plotPoints: (string | ConflictPlotPoint)[]): string {
+  private formatPlotPointsList(
+    plotPoints: (string | ConflictPlotPoint)[],
+  ): string {
     if (plotPoints.length === 0) return "";
     let result = `نقاط الحبكة الرئيسية:\n`;
     plotPoints.slice(0, 4).forEach((point, idx) => {
       const pointText =
-        typeof point === "string" ? point : point.description ?? `نقطة ${idx + 1}`;
+        typeof point === "string"
+          ? point
+          : (point.description ?? `نقطة ${idx + 1}`);
       result += `${idx + 1}. ${pointText}\n`;
     });
     return result + "\n";
@@ -187,13 +199,12 @@ export class ConflictDynamicsAgent extends BaseAgent {
   }
 
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     await Promise.resolve();
     const processedText = cleanupConflictText(output.text);
 
-    const conflictIdentification =
-      assessConflictIdentification(processedText);
+    const conflictIdentification = assessConflictIdentification(processedText);
     const analysisDepth = assessAnalysisDepth(processedText);
     const evidenceQuality = assessEvidenceQuality(processedText);
     const insightfulness = assessInsightfulness(processedText);
@@ -215,7 +226,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
         conflictIdentification,
         analysisDepth,
         evidenceQuality,
-        insightfulness
+        insightfulness,
       ),
       metadata: {
         ...output.metadata,
@@ -238,7 +249,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
     identification: number,
     depth: number,
     evidence: number,
-    insight: number
+    insight: number,
   ): string[] {
     const notes: string[] = [];
 
@@ -288,7 +299,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
       highMsg: string;
       low?: number;
       lowMsg?: string;
-    }[]
+    }[],
   ): void {
     for (const check of checks) {
       if (check.value > check.high) notes.push(check.highMsg);
@@ -316,7 +327,7 @@ export class ConflictDynamicsAgent extends BaseAgent {
   }
 
   protected override async getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     return `نظرة عامة:

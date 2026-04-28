@@ -37,18 +37,18 @@ export class CompletionAgent extends BaseAgent {
     const contextObj: Record<string, unknown> =
       typeof context === "object" && context !== null ? context : {};
     const originalText =
-      typeof contextObj.originalText === "string"
-        ? contextObj.originalText
+      typeof contextObj["originalText"] === "string"
+        ? contextObj["originalText"]
         : "";
-    const previousCompletions = Array.isArray(contextObj.previousCompletions)
-      ? (contextObj.previousCompletions as string[])
+    const previousCompletions = Array.isArray(contextObj["previousCompletions"])
+      ? (contextObj["previousCompletions"] as string[])
       : [];
     const completionScope =
-      typeof contextObj.completionScope === "string"
-        ? contextObj.completionScope
+      typeof contextObj["completionScope"] === "string"
+        ? contextObj["completionScope"]
         : "paragraph";
-    const enhancements = Array.isArray(contextObj.enhancements)
-      ? (contextObj.enhancements as string[])
+    const enhancements = Array.isArray(contextObj["enhancements"])
+      ? (contextObj["enhancements"] as string[])
       : [];
 
     // Build structured prompt

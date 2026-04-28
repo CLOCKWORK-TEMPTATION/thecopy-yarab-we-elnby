@@ -9,11 +9,11 @@
  * - Adaptive caching based on hit rates
  */
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { cacheService } from './cache.service';
+import { cacheService } from "./cache.service";
 
 /**
  * Cache TTL configuration by analysis type (in seconds)
@@ -44,7 +44,7 @@ export const GEMINI_CACHE_TTL = {
   chat: 1800,
 
   // Shot suggestions - cache for 1 hour (creative but stable)
-  'shot-suggestion': 3600,
+  "shot-suggestion": 3600,
 
   // Default fallback - 30 minutes
   default: 1800,
@@ -54,14 +54,14 @@ export const GEMINI_CACHE_TTL = {
  * Cache key prefixes for different Gemini operations
  */
 export const GEMINI_CACHE_PREFIX = {
-  analysis: 'gemini:analysis',
-  screenplay: 'gemini:screenplay',
-  scene: 'gemini:scene',
-  character: 'gemini:character',
-  shot: 'gemini:shot',
-  project: 'gemini:project',
-  chat: 'gemini:chat',
-  'shot-suggestion': 'gemini:shot-suggestion',
+  analysis: "gemini:analysis",
+  screenplay: "gemini:screenplay",
+  scene: "gemini:scene",
+  character: "gemini:character",
+  shot: "gemini:shot",
+  project: "gemini:project",
+  chat: "gemini:chat",
+  "shot-suggestion": "gemini:shot-suggestion",
 } as const;
 
 /**
@@ -78,55 +78,63 @@ export function generateGeminiCacheKey(
     context?: unknown;
     sceneDescription?: string;
     shotType?: string;
-  }
+  },
 ): string {
   const keyPrefix = GEMINI_CACHE_PREFIX[prefix];
 
   // For entity-based queries (scene, character, shot, project)
   if (params.entityId) {
     const optionsHash = params.options
-      ? crypto.createHash('sha256').update(JSON.stringify(params.options)).digest('hex').substring(0, 8)
-      : '';
+      ? crypto
+          .createHash("sha256")
+          .update(JSON.stringify(params.options))
+          .digest("hex")
+          .substring(0, 8)
+      : "";
 
-    return `${keyPrefix}:${params.entityId}:${params.analysisType ?? 'default'}${optionsHash ? `:${optionsHash}` : ''}`;
+    return `${keyPrefix}:${params.entityId}:${params.analysisType ?? "default"}${optionsHash ? `:${optionsHash}` : ""}`;
   }
 
   // For text-based analysis
   if (params.text) {
     // Generate deterministic hash of text
     const textHash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(params.text)
-      .digest('hex')
+      .digest("hex")
       .substring(0, 16);
 
-    return `${keyPrefix}:${params.analysisType ?? 'default'}:${textHash}`;
+    return `${keyPrefix}:${params.analysisType ?? "default"}:${textHash}`;
   }
 
   // For chat messages
   if (params.message) {
     const messageHash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(params.message)
-      .digest('hex')
+      .digest("hex")
       .substring(0, 16);
 
     const contextHash = params.context
-      ? crypto.createHash('sha256').update(JSON.stringify(params.context)).digest('hex').substring(0, 8)
-      : '';
+      ? crypto
+          .createHash("sha256")
+          .update(JSON.stringify(params.context))
+          .digest("hex")
+          .substring(0, 8)
+      : "";
 
-    return `${keyPrefix}:${messageHash}${contextHash ? `:${contextHash}` : ''}`;
+    return `${keyPrefix}:${messageHash}${contextHash ? `:${contextHash}` : ""}`;
   }
 
   // For shot suggestions
   if (params.sceneDescription) {
     const sceneHash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(params.sceneDescription)
-      .digest('hex')
+      .digest("hex")
       .substring(0, 16);
 
-    return `${keyPrefix}:${params.shotType ?? 'default'}:${sceneHash}`;
+    return `${keyPrefix}:${params.shotType ?? "default"}:${sceneHash}`;
   }
 
   // Fallback to generic key
@@ -155,7 +163,7 @@ export async function cachedGeminiCall<T>(
   options?: {
     staleWhileRevalidate?: boolean;
     staleTTL?: number;
-  }
+  },
 ): Promise<T> {
   // Try to get from cache
   const cached = await cacheService.get<T>(cacheKey);
@@ -215,11 +223,15 @@ export async function cachedGeminiCall<T>(
  */
 export async function warmGeminiCache(
   entities: {
-    type: 'scene' | 'character' | 'shot' | 'project';
+    type: "scene" | "character" | "shot" | "project";
     id: string;
     analysisType: string;
   }[],
-  processor: (entity: { type: string; id: string; analysisType: string }) => Promise<unknown>
+  processor: (entity: {
+    type: string;
+    id: string;
+    analysisType: string;
+  }) => Promise<unknown>,
 ): Promise<void> {
   logger.info(`Warming cache for ${entities.length} entities`);
 
@@ -254,7 +266,7 @@ export async function warmGeminiCache(
         } catch (error) {
           logger.error(`Failed to warm cache for ${cacheKey}:`, error);
         }
-      })
+      }),
     );
 
     // Delay between batches
@@ -263,7 +275,7 @@ export async function warmGeminiCache(
     }
   }
 
-  logger.info('Cache warming completed');
+  logger.info("Cache warming completed");
 }
 
 /**
@@ -271,7 +283,7 @@ export async function warmGeminiCache(
  */
 export async function invalidateGeminiCache(
   type: keyof typeof GEMINI_CACHE_PREFIX,
-  entityId: string
+  entityId: string,
 ): Promise<void> {
   const pattern = `${GEMINI_CACHE_PREFIX[type]}:${entityId}`;
   await cacheService.clear(pattern);
@@ -301,7 +313,10 @@ export function getGeminiCacheStats(): {
  * Adaptive TTL: Adjust TTL based on cache hit rate
  * If hit rate is high, increase TTL. If low, decrease TTL.
  */
-export function getAdaptiveTTL(baseAnalysisType: string, hitRate: number): number {
+export function getAdaptiveTTL(
+  baseAnalysisType: string,
+  hitRate: number,
+): number {
   const baseTTL = getGeminiCacheTTL(baseAnalysisType);
 
   // If hit rate > 80%, increase TTL by 50%
@@ -333,7 +348,7 @@ export function getAdaptiveTTL(baseAnalysisType: string, hitRate: number): numbe
 export async function analyzeWithCache<T>(
   key: string,
   ttl: number,
-  fetchFn: () => Promise<T>
+  fetchFn: () => Promise<T>,
 ): Promise<{ data: T; cached: boolean }> {
   try {
     // Try to get from cache
@@ -359,7 +374,10 @@ export async function analyzeWithCache<T>(
       cached: false,
     };
   } catch (error) {
-    logger.error(`Cache operation error for ${key}, falling back to direct fetch:`, error);
+    logger.error(
+      `Cache operation error for ${key}, falling back to direct fetch:`,
+      error,
+    );
     // In case of cache error, fall back to direct fetch
     const data = await fetchFn();
     return { data, cached: false };
@@ -373,11 +391,10 @@ export async function analyzeWithCache<T>(
 export async function analyzeTextWithCache<T>(
   text: string,
   analysisType: string,
-  analyzeFn: () => Promise<T>
+  analyzeFn: () => Promise<T>,
 ): Promise<{ data: T; cached: boolean }> {
-  const cacheKey = generateGeminiCacheKey('analysis', { text, analysisType });
+  const cacheKey = generateGeminiCacheKey("analysis", { text, analysisType });
   const ttl = getGeminiCacheTTL(analysisType);
 
   return analyzeWithCache(cacheKey, ttl, analyzeFn);
 }
-

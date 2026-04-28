@@ -1,5 +1,17 @@
 // Station 7 Types
 
+import type {
+  StationInput,
+  ScoreMatrix,
+  StationMetadata,
+} from "./common-types";
+import type { Station1Output } from "./station-1-types";
+import type { Station2Output } from "./station-2-types";
+import type { Station3Output } from "./station-3-types";
+import type { Station4Output } from "./station-4-types";
+import type { Station5Output } from "./station-5-types";
+import type { Station6Output } from "./station-6-types";
+
 export interface Station7Input extends StationInput {
   previousAnalysis: {
     station1: Station1Output;

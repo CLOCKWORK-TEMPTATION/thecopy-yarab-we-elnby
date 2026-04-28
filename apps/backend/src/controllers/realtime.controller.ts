@@ -4,13 +4,13 @@
  * Handles SSE connections and real-time event endpoints
  */
 
-import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 
-import { logger } from '@/lib/logger';
-import { sseService } from '@/services/sse.service';
-import { websocketService } from '@/services/websocket.service';
-import { RealtimeEventType } from '@/types/realtime.types';
+import { logger } from "@/lib/logger";
+import { sseService } from "@/services/sse.service";
+import { websocketService } from "@/services/websocket.service";
+import { RealtimeEventType } from "@/types/realtime.types";
 
 export class RealtimeController {
   /**
@@ -19,8 +19,10 @@ export class RealtimeController {
    */
   connectSSE(req: Request, res: Response): void {
     const clientId = uuidv4();
-    const userId = (req.user as Record<string, unknown>)?.userId as string | undefined;
-    const lastEventId = req.headers['last-event-id'] as string | undefined;
+    const userId = (req.user as Record<string, unknown>)?.userId as
+      | string
+      | undefined;
+    const lastEventId = req.headers["last-event-id"] as string | undefined;
 
     // Initialize SSE connection
     sseService.initializeConnection(clientId, res, userId, lastEventId);
@@ -46,10 +48,10 @@ export class RealtimeController {
         },
       });
     } catch {
-      logger.error('[Realtime] Failed to get stats');
+      logger.error("[Realtime] Failed to get stats");
       res.status(500).json({
         success: false,
-        error: 'فشل في الحصول على إحصائيات الاتصالات الحية',
+        error: "فشل في الحصول على إحصائيات الاتصالات الحية",
       });
     }
   }
@@ -64,11 +66,11 @@ export class RealtimeController {
 
     const health = {
       websocket: {
-        status: wsIO ? 'operational' : 'not_initialized',
+        status: wsIO ? "operational" : "not_initialized",
         initialized: !!wsIO,
       },
       sse: {
-        status: 'operational',
+        status: "operational",
         clients: sseStats.totalClients,
       },
       timestamp: new Date().toISOString(),
@@ -97,7 +99,7 @@ export class RealtimeController {
         ...typedPayload,
         timestamp: new Date().toISOString(),
         eventType: (eventType as string) || RealtimeEventType.SYSTEM_INFO,
-        message: (typedPayload?.message as string) || 'Test event',
+        message: (typedPayload?.message as string) || "Test event",
       },
     };
   }
@@ -106,32 +108,37 @@ export class RealtimeController {
    * Broadcast a test event to the appropriate target(s)
    */
   private broadcastTestEvent(
-    testEvent: ReturnType<RealtimeController['buildTestEvent']>,
-    target: string | undefined
+    testEvent: ReturnType<RealtimeController["buildTestEvent"]>,
+    target: string | undefined,
   ) {
-    if (target === 'websocket' || !target) {
+    if (target === "websocket" || !target) {
       websocketService.broadcast(testEvent);
     }
-    if (target === 'sse' || !target) {
+    if (target === "sse" || !target) {
       sseService.broadcast(testEvent);
     }
   }
 
   sendTestEvent(req: Request, res: Response): void {
     try {
-      const testEvent = this.buildTestEvent(req.body as Record<string, unknown>);
-      this.broadcastTestEvent(testEvent, (req.body as Record<string, unknown>).target as string | undefined);
+      const testEvent = this.buildTestEvent(
+        req.body as Record<string, unknown>,
+      );
+      this.broadcastTestEvent(
+        testEvent,
+        (req.body as Record<string, unknown>).target as string | undefined,
+      );
 
       res.json({
         success: true,
-        message: 'Test event sent successfully',
+        message: "Test event sent successfully",
         event: testEvent,
       });
     } catch {
-      logger.error('[Realtime] Failed to send test event');
+      logger.error("[Realtime] Failed to send test event");
       res.status(500).json({
         success: false,
-        error: 'فشل في إرسال الحدث التجريبي',
+        error: "فشل في إرسال الحدث التجريبي",
       });
     }
   }
@@ -141,7 +148,8 @@ export class RealtimeController {
    * GET /api/realtime/analysis/:analysisId/stream
    */
   streamAnalysisLogs(req: Request, res: Response): void {
-    const analysisId = typeof req.params.analysisId === 'string' ? req.params.analysisId : '';
+    const analysisId =
+      typeof req.params.analysisId === "string" ? req.params.analysisId : "";
     const clientId = uuidv4();
     const userId = (req.user as { userId?: string })?.userId;
 
@@ -162,7 +170,7 @@ export class RealtimeController {
         eventType: RealtimeEventType.ANALYSIS_STARTED,
         projectId: analysisId,
         analysisId,
-        message: 'Analysis log streaming started',
+        message: "Analysis log streaming started",
       },
     });
   }
@@ -172,7 +180,8 @@ export class RealtimeController {
    * GET /api/realtime/jobs/:jobId/stream
    */
   streamJobProgress(req: Request, res: Response): void {
-    const jobId = typeof req.params["jobId"] === 'string' ? req.params["jobId"] : '';
+    const jobId =
+      typeof req.params["jobId"] === "string" ? req.params["jobId"] : "";
     const clientId = uuidv4();
     const userId = (req.user as { userId?: string })?.userId;
 
@@ -192,9 +201,9 @@ export class RealtimeController {
         timestamp: new Date().toISOString(),
         eventType: RealtimeEventType.JOB_STARTED,
         jobId,
-        queueName: 'unknown',
+        queueName: "unknown",
         jobName: jobId,
-        message: 'Job progress streaming started',
+        message: "Job progress streaming started",
       },
     });
   }

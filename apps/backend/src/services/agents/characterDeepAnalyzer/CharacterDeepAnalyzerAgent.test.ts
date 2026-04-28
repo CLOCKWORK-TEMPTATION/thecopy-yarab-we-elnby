@@ -54,7 +54,9 @@ describe("CharacterDeepAnalyzerAgent", () => {
   });
 
   it("should return the fallback contract with error metadata", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("character failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("character failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل الشخصية",

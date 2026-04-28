@@ -57,7 +57,8 @@ class BackendService {
         const errorText = await response.text();
         const errorData = decodeRecord(errorText);
         throw new Error(
-          errorData.message ?? `HTTP ${response.status}: ${response.statusText}`
+          errorData["message"] ??
+            `HTTP ${response.status}: ${response.statusText}`
         );
       }
 

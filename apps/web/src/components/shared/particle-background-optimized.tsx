@@ -255,14 +255,14 @@ export default function OptimizedParticleAnimation() {
             // Apply effect based on mouse interaction
             if (intersectionPoint) {
               try {
-                velocity = applyParticleEffect(
-                  currentEffect,
-                  position,
-                  intersectionPoint,
-                  velocity,
+                velocity = applyParticleEffect({
                   config,
-                  time
-                );
+                  effect: currentEffect,
+                  intersection: intersectionPoint,
+                  position,
+                  time,
+                  velocity,
+                });
               } catch (error) {
                 console.warn("خطأ في تأثير الجسيم:", error);
               }

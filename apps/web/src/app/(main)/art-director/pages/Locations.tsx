@@ -127,8 +127,9 @@ function Locations() {
           <h3>إضافة موقع جديد</h3>
           <div className="form-grid">
             <div className="form-group">
-              <label>اسم الموقع (عربي)</label>
+              <label htmlFor="field-locations-1">اسم الموقع (عربي)</label>
               <input
+                id="field-locations-1"
                 type="text"
                 className="input"
                 placeholder="مثال: قصر البارون"
@@ -139,8 +140,9 @@ function Locations() {
               />
             </div>
             <div className="form-group">
-              <label>اسم الموقع (إنجليزي)</label>
+              <label htmlFor="field-locations-2">اسم الموقع (إنجليزي)</label>
               <input
+                id="field-locations-2"
                 type="text"
                 className="input"
                 placeholder="Example: Baron Palace"
@@ -151,8 +153,9 @@ function Locations() {
               />
             </div>
             <div className="form-group">
-              <label>النوع</label>
+              <label htmlFor="field-locations-3">النوع</label>
               <select
+                id="field-locations-3"
                 className="input"
                 value={formData.type}
                 onChange={(e) =>
@@ -166,8 +169,9 @@ function Locations() {
               </select>
             </div>
             <div className="form-group">
-              <label>العنوان</label>
+              <label htmlFor="field-locations-4">العنوان</label>
               <input
+                id="field-locations-4"
                 type="text"
                 className="input"
                 placeholder="العنوان الكامل"
@@ -178,8 +182,11 @@ function Locations() {
               />
             </div>
             <div className="form-group full-width">
-              <label>المميزات (مفصولة بفواصل)</label>
+              <label htmlFor="field-locations-5">
+                المميزات (مفصولة بفواصل)
+              </label>
               <input
+                id="field-locations-5"
                 type="text"
                 className="input"
                 placeholder="مثال: إضاءة طبيعية, مساحة واسعة, موقف سيارات"

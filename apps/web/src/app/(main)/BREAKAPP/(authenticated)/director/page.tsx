@@ -192,10 +192,14 @@ export default function DirectorDashboard() {
 
         {/* إدخال معرّف المشروع */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <label className="block text-sm font-medium text-white mb-2 font-cairo">
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
             معرّف المشروع
           </label>
           <input
+            id="field-page-1"
             type="text"
             value={projectId}
             onChange={handleProjectIdChange}

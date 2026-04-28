@@ -50,7 +50,7 @@ export function isIPBlacklisted(ip: string): boolean {
 
 export function isPathWhitelisted(path: string): boolean {
   return getWafConfig().whitelist.paths.some(
-    (p) => path === p || path.startsWith(p + "/")
+    (p) => path === p || path.startsWith(p + "/"),
   );
 }
 
@@ -58,7 +58,7 @@ export function isUserAgentBlacklisted(userAgent: string): boolean {
   if (!userAgent) return false;
   const ua = userAgent.toLowerCase();
   return getWafConfig().blacklist.userAgents.some((blocked) =>
-    ua.includes(blocked.toLowerCase())
+    ua.includes(blocked.toLowerCase()),
   );
 }
 
@@ -72,7 +72,7 @@ function stringifyRequestValue(value: unknown): string {
     case "symbol":
       return String(value);
     case "object":
-      return value === null ? "" : JSON.stringify(value) ?? "";
+      return value === null ? "" : (JSON.stringify(value) ?? "");
     default:
       return "";
   }
@@ -145,7 +145,7 @@ const MAX_WAF_CHECK_LENGTH = 10000;
 export function safeRegexTestSync(
   pattern: RegExp,
   text: string,
-  maxLength: number = MAX_WAF_CHECK_LENGTH
+  maxLength: number = MAX_WAF_CHECK_LENGTH,
 ): boolean {
   const samples = [text];
 
@@ -158,7 +158,7 @@ export function safeRegexTestSync(
       0,
       samples.length,
       text.substring(0, maxLength),
-      text.substring(Math.max(0, text.length - maxLength))
+      text.substring(Math.max(0, text.length - maxLength)),
     );
   }
 
@@ -213,7 +213,7 @@ function extractMatchValue(pattern: RegExp, value: string): string {
  */
 export function checkRule(
   req: Request,
-  rule: WAFRule
+  rule: WAFRule,
 ): { matched: boolean; value: string } {
   if (!rule.enabled) {
     return { matched: false, value: "" };
@@ -250,9 +250,10 @@ export function checkRule(
 /**
  * Check rate limiting for IP
  */
-export function checkRateLimit(
-  ip: string
-): { allowed: boolean; remaining: number } {
+export function checkRateLimit(ip: string): {
+  allowed: boolean;
+  remaining: number;
+} {
   const wafConfig = getWafConfig();
   const now = Date.now();
   let record = rateLimitStore.get(ip);
@@ -296,7 +297,7 @@ export function checkRateLimit(
 export function sendBlockResponse(
   res: Response,
   statusCode = 403,
-  message = "طلب محظور بواسطة جدار الحماية"
+  message = "طلب محظور بواسطة جدار الحماية",
 ): void {
   res.status(statusCode).json({
     success: false,

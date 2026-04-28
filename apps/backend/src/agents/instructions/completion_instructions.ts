@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const completionInstructions = `
 التكملة المقترحة (مع مراعاة التحسينات المطلوبة ونطاق الاستكمال):
@@ -23,6 +23,6 @@ export const completionAgentConfig: AIAgentConfig = {
     "إكمال النصوص الأدبية",
     "تحليل السياق والخلفية",
     "دمج التحسينات المطلوبة",
-    "مراعاة نطاق الاستكمال"
-  ]
+    "مراعاة نطاق الاستكمال",
+  ],
 };

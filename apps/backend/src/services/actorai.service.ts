@@ -38,7 +38,10 @@ interface StoredActorAiRecord {
 }
 
 function resolveStoreRoot(): string {
-  return process.env['ACTORAI_STORE_DIR'] ?? path.join(process.cwd(), ".data", "actorai");
+  return (
+    process.env["ACTORAI_STORE_DIR"] ??
+    path.join(process.cwd(), ".data", "actorai")
+  );
 }
 
 function resolveStorePath(kind: ActorAiRecordKind): string {
@@ -61,7 +64,12 @@ function normalizeMetadata(metadata: unknown): Record<string, unknown> {
   return {};
 }
 
-function normalizeAnalyticsRecord(record: Omit<AnalyticsRecord, "metadata" | "category"> & { metadata: unknown; category: string }): AnalyticsRecord {
+function normalizeAnalyticsRecord(
+  record: Omit<AnalyticsRecord, "metadata" | "category"> & {
+    metadata: unknown;
+    category: string;
+  },
+): AnalyticsRecord {
   return {
     ...record,
     category: record.category as AnalyticsCategory,
@@ -69,7 +77,9 @@ function normalizeAnalyticsRecord(record: Omit<AnalyticsRecord, "metadata" | "ca
   };
 }
 
-async function readExistingRecords(kind: ActorAiRecordKind): Promise<StoredActorAiRecord[]> {
+async function readExistingRecords(
+  kind: ActorAiRecordKind,
+): Promise<StoredActorAiRecord[]> {
   const filePath = resolveStorePath(kind);
 
   try {
@@ -83,7 +93,7 @@ async function readExistingRecords(kind: ActorAiRecordKind): Promise<StoredActor
 
 async function persistRecord(
   kind: ActorAiRecordKind,
-  payload: unknown
+  payload: unknown,
 ): Promise<StoredActorAiRecord> {
   const filePath = resolveStorePath(kind);
   await mkdir(path.dirname(filePath), { recursive: true });
@@ -116,11 +126,10 @@ function toRecordKind(category: AnalyticsCategory): ActorAiRecordKind {
 }
 
 export class ActorAiService {
-   
   private async saveAnalytics(
     category: AnalyticsCategory,
     data: unknown,
-    userId?: string
+    userId?: string,
   ): Promise<SaveAnalyticsResult> {
     try {
       const payload =
@@ -170,14 +179,17 @@ export class ActorAiService {
         reason: error instanceof Error ? error.message : "unknown_error",
       });
 
-      logger.warn("Primary actor AI analytics persistence failed, using file fallback", {
-        category,
-        error,
-      });
+      logger.warn(
+        "Primary actor AI analytics persistence failed, using file fallback",
+        {
+          category,
+          error,
+        },
+      );
 
       const fallbackRecord = await persistRecord(toRecordKind(category), {
         userId: userId ?? null,
-        ...(sanitizePayload(data)),
+        ...sanitizePayload(data),
       });
 
       logger.info("Persisted actor AI analytics data", {
@@ -196,15 +208,24 @@ export class ActorAiService {
     }
   }
 
-  async saveVoiceAnalytics(data: unknown, userId?: string): Promise<SaveAnalyticsResult> {
+  async saveVoiceAnalytics(
+    data: unknown,
+    userId?: string,
+  ): Promise<SaveAnalyticsResult> {
     return this.saveAnalytics("voice", data, userId);
   }
 
-  async saveWebcamAnalysis(data: unknown, userId?: string): Promise<SaveAnalyticsResult> {
+  async saveWebcamAnalysis(
+    data: unknown,
+    userId?: string,
+  ): Promise<SaveAnalyticsResult> {
     return this.saveAnalytics("webcam", data, userId);
   }
 
-  async saveMemorizationStats(data: unknown, userId?: string): Promise<SaveAnalyticsResult> {
+  async saveMemorizationStats(
+    data: unknown,
+    userId?: string,
+  ): Promise<SaveAnalyticsResult> {
     return this.saveAnalytics("memorization", data, userId);
   }
 
@@ -229,7 +250,12 @@ export class ActorAiService {
     category?: AnalyticsCategory;
     limit?: number;
     offset?: number;
-  }): Promise<{ records: AnalyticsRecord[]; total: number; limit: number; offset: number }> {
+  }): Promise<{
+    records: AnalyticsRecord[];
+    total: number;
+    limit: number;
+    offset: number;
+  }> {
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
     const offset = Math.max(options.offset ?? 0, 0);
 

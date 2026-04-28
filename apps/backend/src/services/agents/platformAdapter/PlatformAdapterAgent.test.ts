@@ -13,7 +13,8 @@ vi.mock("../shared/standardAgentPattern", () => ({
 }));
 
 function firstStandardPatternPrompt(): string {
-  const calls = mockExecuteStandardPattern.mock.calls as readonly (readonly unknown[])[];
+  const calls = mockExecuteStandardPattern.mock
+    .calls as readonly (readonly unknown[])[];
   const prompt = calls[0]?.[0];
   if (typeof prompt !== "string") {
     throw new Error("Standard pattern prompt was not captured");
@@ -76,12 +77,16 @@ describe("PlatformAdapterAgent", () => {
     expect(result.text).not.toContain("```json");
     expect(result.text).not.toContain("```");
     expect(Array.isArray(result.notes)).toBe(true);
-    expect(result.notes.some((note) => note.includes("عالي الجودة"))).toBe(true);
+    expect(result.notes.some((note) => note.includes("عالي الجودة"))).toBe(
+      true,
+    );
     expect(result.metadata?.timestamp).toBeDefined();
   });
 
   it("should return the fallback contract with error metadata", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("platform failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("platform failed"),
+    );
 
     const result = await agent.executeTask({
       input: "كيّف المحتوى",

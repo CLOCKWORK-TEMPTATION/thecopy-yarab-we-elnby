@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import Image from "next/image";
 import React from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -37,9 +38,12 @@ const OutfitStack: React.FC<OutfitStackProps> = ({
                 {index + 1}
               </span>
               {layer.garment && (
-                <img
+                <Image
                   src={layer.garment.url}
                   alt={layer.garment.name}
+                  width={48}
+                  height={48}
+                  unoptimized
                   className="flex-shrink-0 w-12 h-12 object-cover rounded-md mr-3"
                 />
               )}

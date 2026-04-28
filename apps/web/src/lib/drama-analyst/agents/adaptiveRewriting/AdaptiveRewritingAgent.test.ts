@@ -160,9 +160,9 @@ describe("AdaptiveRewritingAgent", () => {
       expect(result).toBeDefined();
       expect(result.confidence).toBeDefined();
 
-      if (result.confidence < 0.95) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(
+        true
+      );
     });
 
     it("should handle uncertainty in rewriting decisions", async () => {
@@ -227,9 +227,9 @@ describe("AdaptiveRewritingAgent", () => {
 
       expect(result).toBeDefined();
       expect(result.text).toBeTruthy();
-      if (result.confidence >= 0.85) {
-        expect(result.notes).toContain("عالي");
-      }
+      expect(result.confidence < 0.85 || result.notes.includes("عالي")).toBe(
+        true
+      );
     });
   });
 

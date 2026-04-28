@@ -214,12 +214,7 @@ describe("AnalysisAgent", () => {
         new Error("Test error")
       );
 
-      try {
-        await agent.executeTask(input);
-      } catch (error) {
-        // يجب أن يتم التقاطه بواسطة BaseAgent
-        expect(error).toBeDefined();
-      }
+      await expect(agent.executeTask(input)).rejects.toBeDefined();
     });
   });
 

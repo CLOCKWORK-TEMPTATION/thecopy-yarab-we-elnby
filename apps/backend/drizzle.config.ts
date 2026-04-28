@@ -1,14 +1,14 @@
-import type { Config } from 'drizzle-kit';
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { parse as parseEnv } from 'dotenv';
+import type { Config } from "drizzle-kit";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { parse as parseEnv } from "dotenv";
 
 function collectEnvCandidates(startPath: string, limit = 5): string[] {
   const candidates: string[] = [];
   let current = resolve(startPath);
 
   for (let index = 0; index < limit; index += 1) {
-    candidates.push(resolve(current, '.env'));
+    candidates.push(resolve(current, ".env"));
     const parent = dirname(current);
     if (parent === current) {
       break;
@@ -20,20 +20,23 @@ function collectEnvCandidates(startPath: string, limit = 5): string[] {
 }
 
 function stripWrappingQuotes(value: string): string {
-  return value.replace(/^['"]|['"]$/g, '');
+  return value.replace(/^['"]|['"]$/g, "");
 }
 
 function isPlaceholderEnvValue(key: string, value?: string | null): boolean {
-  const trimmed = stripWrappingQuotes(value?.trim() ?? '');
+  const trimmed = stripWrappingQuotes(value?.trim() ?? "");
   if (!trimmed) {
     return true;
   }
 
-  if (trimmed.includes('CHANGE_THIS')) {
+  if (trimmed.includes("CHANGE_THIS")) {
     return true;
   }
 
-  if (key === 'DATABASE_URL' && /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)) {
+  if (
+    key === "DATABASE_URL" &&
+    /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)
+  ) {
     return true;
   }
 
@@ -51,7 +54,10 @@ function applyEnvFile(filePath: string): void {
       continue;
     }
 
-    if (existingValue === undefined || isPlaceholderEnvValue(key, existingValue)) {
+    if (
+      existingValue === undefined ||
+      isPlaceholderEnvValue(key, existingValue)
+    ) {
       process.env[key] = value;
     }
   }
@@ -74,17 +80,17 @@ for (const candidate of envCandidates) {
 }
 
 if (!process.env["DATABASE_URL"]) {
-  throw new Error('DATABASE_URL is not set');
+  throw new Error("DATABASE_URL is not set");
 }
 
 export const drizzleSchemaPaths = [
-  resolve(__dirname, 'src', 'db', 'schema.ts').replace(/\\/g, '/'),
+  resolve(__dirname, "src", "db", "schema.ts").replace(/\\/g, "/"),
 ];
 
 export default {
   schema: drizzleSchemaPaths,
-  out: './drizzle',
-  dialect: 'postgresql',
+  out: "./drizzle",
+  dialect: "postgresql",
   dbCredentials: {
     url: process.env["DATABASE_URL"],
   },

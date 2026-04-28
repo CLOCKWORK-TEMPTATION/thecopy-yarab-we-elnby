@@ -13,7 +13,6 @@ import { ensureTrailingNewline } from "./text-helpers.js";
 
 import type { NormalizationOptions } from "./types.js";
 
-
 export class MarkdownNormalizer {
   private readonly noiseOnlyLine = /^[\s\-•▪*·.]+$/u;
   private readonly bulletPrefixPattern =
@@ -27,8 +26,6 @@ export class MarkdownNormalizer {
   private readonly nonWordPattern = /[^\w\u0600-\u06FF\s]/gu;
   private readonly whitespacePattern = /\s+/gu;
   private readonly sentenceEndPattern = /[.!?؟…»"]\s*$/u;
-
-
 
   private readonly continuationPrefixRe = /^(?:\.{3}|…|،|(?:و|ثم)\s+)/u;
 
@@ -104,9 +101,15 @@ export class MarkdownNormalizer {
     if (mode === "none") return text;
 
     if (mode === "arabic") {
-      return text.replace(toArabicDigitRegex, (m) => westernToArabicDigitMap[m] ?? m);
+      return text.replace(
+        toArabicDigitRegex,
+        (m) => westernToArabicDigitMap[m] ?? m,
+      );
     } else if (mode === "western") {
-      return text.replace(toWesternDigitRegex, (m) => arabicToWesternDigitMap[m] ?? m);
+      return text.replace(
+        toWesternDigitRegex,
+        (m) => arabicToWesternDigitMap[m] ?? m,
+      );
     }
 
     return text;
@@ -411,10 +414,10 @@ export class MarkdownNormalizer {
       }
 
       const isHeaderLine = [...this.headerKeywords].some((kw) =>
-        line.includes(kw)
+        line.includes(kw),
       );
       const isPrevHeader = [...this.headerKeywords].some((kw) =>
-        prev.includes(kw)
+        prev.includes(kw),
       );
       const isStructuralLine = this.isStructuralBoundary(line);
       const isPrevStructural = this.isStructuralBoundary(prev);

@@ -12,9 +12,13 @@
  * ملاحظة: لا نُعرّض الأسرار من خلال هذه الوحدة — فقط عمليات sign/verify.
  */
 
-import jwt, { type Secret, type SignOptions, type VerifyOptions } from 'jsonwebtoken';
+import jwt, {
+  type Secret,
+  type SignOptions,
+  type VerifyOptions,
+} from "jsonwebtoken";
 
-import { env } from '@/config/env';
+import { env } from "@/config/env";
 
 /**
  * السر النشط المستخدم للتوقيع
@@ -31,13 +35,19 @@ function getPreviousSecrets(): string[] {
   if (!raw) {
     return [];
   }
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /**
  * توقيع payload باستخدام السر النشط
  */
-export function signJwt(payload: string | object | Buffer, options?: SignOptions): string {
+export function signJwt(
+  payload: string | object | Buffer,
+  options?: SignOptions,
+): string {
   return jwt.sign(payload, getActiveSecret(), options);
 }
 
@@ -47,7 +57,10 @@ export function signJwt(payload: string | object | Buffer, options?: SignOptions
  * ترمي الدالة بنفس أخطاء jsonwebtoken إذا فشلت جميع المحاولات،
  * مع الحفاظ على نوع الخطأ الذي صدر من السر النشط.
  */
-export function verifyJwt<T = unknown>(token: string, options?: VerifyOptions): T {
+export function verifyJwt<T = unknown>(
+  token: string,
+  options?: VerifyOptions,
+): T {
   let primaryError: unknown;
 
   try {

@@ -44,7 +44,7 @@ export function ConfidenceMeter({
   value,
   showTooltip = true,
 }: ConfidenceMeterProps) {
-  const displayValue = value !== undefined ? value : levelValues[level];
+  const displayValue = value ?? levelValues[level];
   const color = levelColors[level];
 
   return (

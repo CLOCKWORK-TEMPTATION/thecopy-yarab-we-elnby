@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const characterVoiceInstructions = `
 تحليل صوت الشخصية والأسلوب الحواري:
@@ -34,6 +34,6 @@ export const characterVoiceAgentConfig: AIAgentConfig = {
     "تحليل نبرة الشخصيات",
     "تقييم اتساق الصوت",
     "تمييز الأصوات المختلفة",
-    "تحسين الحوار"
-  ]
+    "تحسين الحوار",
+  ],
 };

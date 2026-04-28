@@ -79,8 +79,12 @@ describe("TargetAudienceAnalyzerAgent", () => {
     });
 
     expect(
-      result.notes?.some((note) => note.includes("يمكن تعزيز التحليل الديموغرافي")) ||
-        result.notes?.some((note) => note.includes("يمكن تعميق التحليل النفسي"))
+      result.notes?.some((note) =>
+        note.includes("يمكن تعزيز التحليل الديموغرافي"),
+      ) ||
+        result.notes?.some((note) =>
+          note.includes("يمكن تعميق التحليل النفسي"),
+        ),
     ).toBe(true);
   });
 });

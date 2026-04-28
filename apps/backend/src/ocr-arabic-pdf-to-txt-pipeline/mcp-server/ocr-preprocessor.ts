@@ -35,10 +35,7 @@ export class OCRPreprocessor {
     for (const pattern of OCRPreprocessor.NAME_PATTERNS) {
       if (processed.includes(pattern.reversed)) {
         issues.push(`انعكاس: ${pattern.reversed} ← ${pattern.correct}`);
-        processed = processed.replace(
-          pattern.pattern,
-          pattern.correct
-        );
+        processed = processed.replace(pattern.pattern, pattern.correct);
       }
     }
 
@@ -83,7 +80,7 @@ export class OCRPreprocessor {
 
     if (/^[٠١٢٣٤٥٦٧٨٩0-9]+$/u.test(sceneLine)) {
       const nextNonEmptyIndex = lines.findIndex(
-        (line, index) => index > sceneLineIndex && line.trim().length > 0
+        (line, index) => index > sceneLineIndex && line.trim().length > 0,
       );
       if (nextNonEmptyIndex >= 0) {
         sceneLineIndex = nextNonEmptyIndex;
@@ -101,7 +98,7 @@ export class OCRPreprocessor {
     }
 
     const sceneNumber = normalizeHindiDigitsToWestern(
-      sceneMatch[1] ?? ""
+      sceneMatch[1] ?? "",
     ).trim();
     if (!sceneNumber) {
       return text;
@@ -138,10 +135,7 @@ export class OCRPreprocessor {
       if (!out.includes(replacement.wrong)) {
         continue;
       }
-      out = out.replace(
-        replacement.pattern,
-        replacement.correct
-      );
+      out = out.replace(replacement.pattern, replacement.correct);
       issues.push(`تصحيح حرج: ${replacement.label}`);
     }
     return out;

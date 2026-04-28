@@ -5,10 +5,10 @@
  * Implements a simple interface to abstract the provider details.
  */
 
-import axios from 'axios';
-import nodemailer from 'nodemailer';
+import axios from "axios";
+import nodemailer from "nodemailer";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 interface EmailConfig {
   host: string;
@@ -50,7 +50,7 @@ interface SlackPayload {
 export class NotificationService {
   private emailTransporter: nodemailer.Transporter | null = null;
   private slackWebhookUrl: string | null = null;
-  private emailFrom = 'noreply@the-copy.com';
+  private emailFrom = "noreply@the-copy.com";
 
   constructor() {
     this.initializeEmail();
@@ -61,27 +61,36 @@ export class NotificationService {
    * Initialize Email Transporter
    */
   private initializeEmail(): void {
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    if (
+      process.env.SMTP_HOST &&
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS
+    ) {
       try {
         const config: EmailConfig = {
           host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT ?? '587'),
-          secure: process.env.SMTP_SECURE === 'true',
+          port: parseInt(process.env.SMTP_PORT ?? "587"),
+          secure: process.env.SMTP_SECURE === "true",
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
           },
-          from: process.env.SMTP_FROM ?? 'noreply@the-copy.com',
+          from: process.env.SMTP_FROM ?? "noreply@the-copy.com",
         };
 
         this.emailTransporter = nodemailer.createTransport(config);
         this.emailFrom = config.from;
-        logger.info('📧 Notification Service: Email initialized');
+        logger.info("📧 Notification Service: Email initialized");
       } catch (error) {
-        logger.error('❌ Notification Service: Failed to initialize email', error);
+        logger.error(
+          "❌ Notification Service: Failed to initialize email",
+          error,
+        );
       }
     } else {
-      logger.warn('⚠️ Notification Service: SMTP credentials missing, email notifications disabled');
+      logger.warn(
+        "⚠️ Notification Service: SMTP credentials missing, email notifications disabled",
+      );
     }
   }
 
@@ -91,29 +100,35 @@ export class NotificationService {
   private initializeSlack(): void {
     if (process.env.SLACK_WEBHOOK_URL) {
       this.slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-      logger.info('💬 Notification Service: Slack initialized');
+      logger.info("💬 Notification Service: Slack initialized");
     } else {
-      logger.warn('⚠️ Notification Service: SLACK_WEBHOOK_URL missing, slack notifications disabled');
+      logger.warn(
+        "⚠️ Notification Service: SLACK_WEBHOOK_URL missing, slack notifications disabled",
+      );
     }
   }
 
   /**
    * Send Email Notification
    */
-  async sendEmail(to: string | string[], subject: string, htmlBody: string): Promise<boolean> {
+  async sendEmail(
+    to: string | string[],
+    subject: string,
+    htmlBody: string,
+  ): Promise<boolean> {
     if (!this.emailTransporter) return false;
 
     try {
       const info = (await this.emailTransporter.sendMail({
         from: this.emailFrom,
-        to: Array.isArray(to) ? to.join(',') : to,
+        to: Array.isArray(to) ? to.join(",") : to,
         subject,
         html: htmlBody,
       })) as { messageId: string };
       logger.info(`📧 Email sent: ${info.messageId}`);
       return true;
     } catch (error) {
-      logger.error('❌ Failed to send email', error);
+      logger.error("❌ Failed to send email", error);
       return false;
     }
   }
@@ -131,9 +146,9 @@ export class NotificationService {
 
       if (options) {
         const attachment: SlackAttachment = {
-          color: options.color ?? '#36a64f',
+          color: options.color ?? "#36a64f",
           text: message,
-          footer: 'The Copy - Notification Service',
+          footer: "The Copy - Notification Service",
           ts: Math.floor(Date.now() / 1000),
         };
         if (options.title !== undefined) {
@@ -146,10 +161,10 @@ export class NotificationService {
       }
 
       await axios.post(this.slackWebhookUrl, payload);
-      logger.info('💬 Slack notification sent');
+      logger.info("💬 Slack notification sent");
       return true;
     } catch (error) {
-      logger.error('❌ Failed to send slack notification', error);
+      logger.error("❌ Failed to send slack notification", error);
       return false;
     }
   }
@@ -158,18 +173,26 @@ export class NotificationService {
    * Send Alert (Both Email and Slack if available)
    */
   async sendAlert(
-    level: 'INFO' | 'WARNING' | 'CRITICAL',
+    level: "INFO" | "WARNING" | "CRITICAL",
     title: string,
     message: string,
-    data?: Record<string, unknown>
+    data?: Record<string, unknown>,
   ): Promise<void> {
     const timestamp = new Date().toISOString();
-    const formattedData = data ? JSON.stringify(data, null, 2) : '';
+    const formattedData = data ? JSON.stringify(data, null, 2) : "";
 
     const color =
-      level === 'CRITICAL' ? '#ff0000' : level === 'WARNING' ? '#ffcc00' : '#36a64f';
+      level === "CRITICAL"
+        ? "#ff0000"
+        : level === "WARNING"
+          ? "#ffcc00"
+          : "#36a64f";
     const fields: SlackField[] = data
-      ? Object.entries(data).map(([k, v]) => ({ title: k, value: String(v), short: true }))
+      ? Object.entries(data).map(([k, v]) => ({
+          title: k,
+          value: String(v),
+          short: true,
+        }))
       : [];
 
     await this.sendSlack(message, {
@@ -178,18 +201,23 @@ export class NotificationService {
       fields,
     });
 
-    if (level !== 'INFO') {
-      const emailRecipients = process.env.ALERT_EMAIL_RECIPIENTS ?? 'admin@the-copy.com';
+    if (level !== "INFO") {
+      const emailRecipients =
+        process.env.ALERT_EMAIL_RECIPIENTS ?? "admin@the-copy.com";
       const htmlBody = `
         <h2>[${level}] ${title}</h2>
         <p><strong>Time:</strong> ${timestamp}</p>
         <p>${message}</p>
-        ${formattedData ? `<pre>${formattedData}</pre>` : ''}
+        ${formattedData ? `<pre>${formattedData}</pre>` : ""}
         <hr/>
         <p>Sent by The Copy Notification Service</p>
       `;
 
-      await this.sendEmail(emailRecipients.split(','), `[ALERT] ${title}`, htmlBody);
+      await this.sendEmail(
+        emailRecipients.split(","),
+        `[ALERT] ${title}`,
+        htmlBody,
+      );
     }
   }
 }

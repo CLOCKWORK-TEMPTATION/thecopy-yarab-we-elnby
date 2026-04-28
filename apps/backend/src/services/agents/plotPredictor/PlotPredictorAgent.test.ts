@@ -53,12 +53,14 @@ describe("PlotPredictorAgent", () => {
       },
     });
 
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("تحليل أولي");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "تحليل أولي",
+    );
     expect(result.text).not.toContain("```json");
     expect(Array.isArray(result.notes)).toBe(true);
     expect(
       result.notes.some((note) => note.includes("متوسطة الثقة")) ||
-        result.notes.some((note) => note.includes("استكشافية"))
+        result.notes.some((note) => note.includes("استكشافية")),
     ).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
   });
@@ -79,7 +81,9 @@ describe("PlotPredictorAgent", () => {
   });
 
   it("should surface fallback metadata on failure", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("prediction failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("prediction failed"),
+    );
 
     const result = await agent.executeTask({
       input: "تنبأ بالحبكة",

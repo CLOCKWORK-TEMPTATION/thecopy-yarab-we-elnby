@@ -12,10 +12,10 @@ export type ToolSet = Record<
 export interface StepFinishEvent {
   text?: string;
   toolCalls?: ({
-      toolName: string;
-      input?: unknown;
-      args?: unknown;
-    } & Record<string, unknown>)[];
+    toolName: string;
+    input?: unknown;
+    args?: unknown;
+  } & Record<string, unknown>)[];
 }
 
 export interface OcrAgentGenerateResult {
@@ -36,13 +36,15 @@ export interface ToolLoopAgentSettings {
   onStepFinish?: (event: StepFinishEvent) => void;
 }
 
-export type ToolLoopAgentConstructor = new (settings: ToolLoopAgentSettings) => OcrAgent;
+export type ToolLoopAgentConstructor = new (
+  settings: ToolLoopAgentSettings,
+) => OcrAgent;
 
 export type StdioClientTransportConstructor = new (options: {
-    command: string;
-    args?: string[];
-    env?: NodeJS.ProcessEnv;
-  }) => MCPTransport;
+  command: string;
+  args?: string[];
+  env?: NodeJS.ProcessEnv;
+}) => MCPTransport;
 
 export const StdioClientTransport: StdioClientTransportConstructor;
 export const ToolLoopAgent: ToolLoopAgentConstructor;

@@ -5,7 +5,6 @@
  */
 
 import { Play, Pause, SkipForward, Plus, Camera } from "lucide-react";
-import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

@@ -28,7 +28,7 @@ const isOriginAllowed = (origin) => {
   }
 
   return DEFAULT_ALLOWED_ORIGIN_PATTERNS.some((pattern) =>
-    pattern.test(origin)
+    pattern.test(origin),
   );
 };
 

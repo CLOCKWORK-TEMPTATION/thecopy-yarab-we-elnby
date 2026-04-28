@@ -56,27 +56,30 @@ export class PlotLogic {
     const record = asJsonRecord(data);
 
     return {
-      currentTrajectory: asArray<PlotPoint>(record.currentTrajectory).slice(
+      currentTrajectory: asArray<PlotPoint>(record["currentTrajectory"]).slice(
         0,
         10
       ),
       trajectoryConfidence: Math.min(
-        Math.max(asNumber(record.trajectoryConfidence, 0.5), 0),
+        Math.max(asNumber(record["trajectoryConfidence"], 0.5), 0),
         1
       ),
       likelyDevelopments: asArray<PlotDevelopment>(
-        record.likelyDevelopments
+        record["likelyDevelopments"]
       ).slice(0, 8),
-      alternativePaths: asArray<PlotPath>(record.alternativePaths).slice(0, 5),
+      alternativePaths: asArray<PlotPath>(record["alternativePaths"]).slice(
+        0,
+        5
+      ),
       criticalDecisionPoints: asArray<
         PlotPredictions["criticalDecisionPoints"][number]
-      >(record.criticalDecisionPoints).slice(0, 8),
+      >(record["criticalDecisionPoints"]).slice(0, 8),
       narrativeMomentum: Math.min(
-        Math.max(asNumber(record.narrativeMomentum, 5), 0),
+        Math.max(asNumber(record["narrativeMomentum"], 5), 0),
         10
       ),
       predictabilityScore: Math.min(
-        Math.max(asNumber(record.predictabilityScore, 5), 0),
+        Math.max(asNumber(record["predictabilityScore"], 5), 0),
         10
       ),
     };

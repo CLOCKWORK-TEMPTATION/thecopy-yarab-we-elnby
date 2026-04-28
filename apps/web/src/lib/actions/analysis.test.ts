@@ -13,15 +13,15 @@ const SAMPLE_TEXT =
   "قالت سلمى: لن أترك المدينة. رد آدم بأن الخطر يقترب، وأن القرار القادم سيغيّر مصير العائلة كلها.";
 
 describe("runFullPipeline", () => {
-  const originalBackendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const originalBackendUrl = process.env["NEXT_PUBLIC_BACKEND_URL"];
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_BACKEND_URL = "http://localhost:3001";
+    process.env["NEXT_PUBLIC_BACKEND_URL"] = "http://localhost:3001";
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    process.env.NEXT_PUBLIC_BACKEND_URL = originalBackendUrl;
+    process.env["NEXT_PUBLIC_BACKEND_URL"] = originalBackendUrl;
   });
 
   it("يعيد نتيجة صالحة من الباك إند الرسمي", async () => {
@@ -86,9 +86,9 @@ describe("runFullPipeline", () => {
   });
 
   it("يفعّل المسار الاحتياطي عندما لا يوجد عنوان خادم", async () => {
-    delete process.env.NEXT_PUBLIC_BACKEND_URL;
-    delete process.env.NEXT_PUBLIC_API_URL;
-    delete process.env.BACKEND_URL;
+    delete process.env["NEXT_PUBLIC_BACKEND_URL"];
+    delete process.env["NEXT_PUBLIC_API_URL"];
+    delete process.env["BACKEND_URL"];
 
     // إعادة تعريف الـ mock بدون عناوين
     vi.doMock("@/env", () => ({

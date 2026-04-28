@@ -5,16 +5,16 @@
  * newly registered workflow routes (/api/workflow/...).
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('Route isolation', () => {
-  it('brainstorm route path does not overlap with workflow routes', () => {
+describe("Route isolation", () => {
+  it("brainstorm route path does not overlap with workflow routes", () => {
     // Verify the paths are distinct
-    const brainstormPath = '/api/brainstorm';
+    const brainstormPath = "/api/brainstorm";
     const workflowPaths = [
-      '/api/workflow/presets',
-      '/api/workflow/execute',
-      '/api/workflow/execute-custom',
+      "/api/workflow/presets",
+      "/api/workflow/execute",
+      "/api/workflow/execute-custom",
     ];
 
     for (const wfPath of workflowPaths) {
@@ -24,20 +24,20 @@ describe('Route isolation', () => {
     }
   });
 
-  it('workflow routes all share the /api/workflow prefix', () => {
+  it("workflow routes all share the /api/workflow prefix", () => {
     const workflowPaths = [
-      '/api/workflow/presets',
-      '/api/workflow/execute',
-      '/api/workflow/execute-custom',
+      "/api/workflow/presets",
+      "/api/workflow/execute",
+      "/api/workflow/execute-custom",
     ];
 
     for (const wfPath of workflowPaths) {
-      expect(wfPath.startsWith('/api/workflow')).toBe(true);
+      expect(wfPath.startsWith("/api/workflow")).toBe(true);
     }
   });
 
-  it('brainstorm path does not start with /api/workflow', () => {
-    const brainstormPath = '/api/brainstorm';
-    expect(brainstormPath.startsWith('/api/workflow')).toBe(false);
+  it("brainstorm path does not start with /api/workflow", () => {
+    const brainstormPath = "/api/brainstorm";
+    expect(brainstormPath.startsWith("/api/workflow")).toBe(false);
   });
 });

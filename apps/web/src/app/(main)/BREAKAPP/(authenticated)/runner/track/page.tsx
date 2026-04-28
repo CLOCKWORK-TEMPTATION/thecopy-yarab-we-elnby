@@ -246,11 +246,7 @@ export default function RunnerTrackPage() {
                 حالة الاتصال:
               </span>
               <span
-                className={`mr-2 px-2 py-1 text-xs rounded-full ${
-                  connected
-                    ? "bg-white/8 text-white"
-                    : "bg-white/6 text-white/55"
-                }`}
+                className={`mr-2 px-2 py-1 text-xs rounded-full ${connected ? "bg-white/8 text-white" : "bg-white/6 text-white/55"}`}
               >
                 {connected ? "متصل" : "غير متصل"}
               </span>
@@ -260,11 +256,15 @@ export default function RunnerTrackPage() {
 
         {/* إدخال معرّف الجلسة */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <label className="block text-sm font-medium text-white mb-2 font-cairo">
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
             معرّف الجلسة
           </label>
           <div className="flex gap-2">
             <input
+              id="field-page-1"
               type="text"
               value={sessionId}
               onChange={handleSessionIdChange}
@@ -325,11 +325,7 @@ export default function RunnerTrackPage() {
           <button
             onClick={isTracking ? stopTracking : startTracking}
             disabled={!connected}
-            className={`w-full px-6 py-3 text-white rounded-[22px] font-semibold font-cairo transition ${
-              isTracking
-                ? "bg-white/8 hover:bg-white/12"
-                : "bg-white/8 hover:bg-white/12"
-            } disabled:bg-white/4 disabled:cursor-not-allowed`}
+            className={`w-full px-6 py-3 text-white rounded-[22px] font-semibold font-cairo transition ${isTracking ? "bg-white/8 hover:bg-white/12" : "bg-white/8 hover:bg-white/12"} disabled:bg-white/4 disabled:cursor-not-allowed`}
           >
             {isTracking ? "إيقاف التتبع" : "بدء التتبع"}
           </button>
@@ -362,13 +358,7 @@ export default function RunnerTrackPage() {
                       </p>
                     </div>
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        task.status === "completed"
-                          ? "bg-white/8 text-white"
-                          : task.status === "in-progress"
-                            ? "bg-white/8 text-white"
-                            : "bg-white/6 text-white/55"
-                      }`}
+                      className={`px-2 py-1 text-xs rounded-full ${task.status === "completed" ? "bg-white/8 text-white" : task.status === "in-progress" ? "bg-white/8 text-white" : "bg-white/6 text-white/55"}`}
                     >
                       {task.status === "completed"
                         ? "مكتمل"

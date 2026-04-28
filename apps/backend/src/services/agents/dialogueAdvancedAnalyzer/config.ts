@@ -1,5 +1,5 @@
-import { TaskCategory, TaskType } from '../core/enums';
-import { AIAgentConfig } from '../core/types';
+import { TaskCategory, TaskType } from "../core/enums";
+import { AIAgentConfig } from "../core/types";
 
 export const DIALOGUE_ADVANCED_ANALYZER_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.DIALOGUE_ADVANCED_ANALYZER,

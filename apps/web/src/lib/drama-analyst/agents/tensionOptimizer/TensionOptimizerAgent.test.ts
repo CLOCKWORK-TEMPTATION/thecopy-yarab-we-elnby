@@ -175,9 +175,9 @@ describe("TensionOptimizerAgent", () => {
       expect(result).toBeDefined();
       expect(result.confidence).toBeDefined();
 
-      if (result.confidence < 0.95) {
-        expect(result.notes).toBeDefined();
-      }
+      expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(
+        true
+      );
     });
 
     it("should handle uncertainty in tension analysis", async () => {

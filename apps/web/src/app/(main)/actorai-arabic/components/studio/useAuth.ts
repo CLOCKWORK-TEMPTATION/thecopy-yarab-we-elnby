@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 
-import type { User } from "../../types";
+import type { User, ViewType } from "../../types";
 
 export const useAuth = (
   setUser: (user: User | null) => void,
@@ -10,7 +10,7 @@ export const useAuth = (
     type: "success" | "error" | "info",
     message: string
   ) => void,
-  navigate: (view: any) => void
+  navigate: (view: ViewType) => void
 ) => {
   const handleLogin = useCallback(
     (email: string, password: string) => {

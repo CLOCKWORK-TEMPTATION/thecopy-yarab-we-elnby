@@ -2,14 +2,14 @@
  * Workflow Builder - Fluent API for building multi-agent workflows
  */
 
-import { definedProps } from '@/utils/defined-props';
+import { definedProps } from "@/utils/defined-props";
 
-import { TaskType } from './enums';
+import { TaskType } from "./enums";
 import {
   WorkflowConfig,
   WorkflowStep,
   AgentDependency,
-} from './workflow-types';
+} from "./workflow-types";
 
 export class WorkflowBuilder {
   private config: Partial<WorkflowConfig>;
@@ -21,7 +21,7 @@ export class WorkflowBuilder {
       name,
       maxConcurrency: 5,
       globalTimeout: 300000, // 5 minutes
-      errorHandling: 'lenient',
+      errorHandling: "lenient",
       ...definedProps({ description }),
     };
   }
@@ -41,7 +41,7 @@ export class WorkflowBuilder {
         maxRetries: number;
         backoffMs: number;
       };
-    }
+    },
   ): this {
     const step: WorkflowStep = {
       id: `step-${this.stepCounter++}`,
@@ -69,18 +69,22 @@ export class WorkflowBuilder {
   addDependentStep(
     agentId: string,
     taskType: TaskType,
-    dependsOn: { agentId: string; taskType: TaskType; minConfidence?: number }[],
+    dependsOn: {
+      agentId: string;
+      taskType: TaskType;
+      minConfidence?: number;
+    }[],
     options?: {
       parallel?: boolean;
       timeout?: number;
-    }
+    },
   ): this {
     const dependencies: AgentDependency[] = dependsOn.map((dep) => ({
       agentId: dep.agentId,
       taskType: dep.taskType,
       required: true,
       minConfidence: dep.minConfidence ?? 0.7,
-      fallbackBehavior: 'fail',
+      fallbackBehavior: "fail",
     }));
 
     return this.addStep(agentId, taskType, {
@@ -95,9 +99,7 @@ export class WorkflowBuilder {
   /**
    * Add parallel steps
    */
-  addParallelSteps(
-    steps: { agentId: string; taskType: TaskType }[]
-  ): this {
+  addParallelSteps(steps: { agentId: string; taskType: TaskType }[]): this {
     steps.forEach((step) => {
       this.addStep(step.agentId, step.taskType, { parallel: true });
     });
@@ -123,7 +125,7 @@ export class WorkflowBuilder {
   /**
    * Set error handling strategy
    */
-  withErrorHandling(strategy: 'strict' | 'lenient'): this {
+  withErrorHandling(strategy: "strict" | "lenient"): this {
     this.config.errorHandling = strategy;
     return this;
   }
@@ -149,6 +151,9 @@ export class WorkflowBuilder {
 /**
  * Helper function to create workflow builder
  */
-export function createWorkflow(name: string, description?: string): WorkflowBuilder {
+export function createWorkflow(
+  name: string,
+  description?: string,
+): WorkflowBuilder {
   return new WorkflowBuilder(name, description);
 }

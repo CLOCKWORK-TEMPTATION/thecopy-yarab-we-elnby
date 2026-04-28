@@ -1,5 +1,5 @@
 import type { DebateResult, DiagnosticsReport, JsonRecord } from "./types";
-import type { MultiAgentDebateSystem } from "../constitutional/multi-agent-debate";
+import type { MultiAgentDebateSystem } from "../../constitutional/multi-agent-debate";
 import type { GeminiService } from "../gemini-service";
 
 type PreviousStationsOutput = Partial<
@@ -11,7 +11,7 @@ type PreviousStationsOutput = Partial<
 
 export class DebateConductor {
   constructor(
-    private geminiService: GeminiService,
+    _geminiService: GeminiService,
     private debateSystem: MultiAgentDebateSystem
   ) {}
 

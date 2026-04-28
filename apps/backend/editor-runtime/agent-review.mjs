@@ -82,7 +82,7 @@ export const buildAnthropicMessageParams = (request, maxTokens) => ({
 const resolveAgentReviewMockMode = () => {
   const rawValue = normalizeIncomingText(
     process.env.AGENT_REVIEW_MOCK_MODE,
-    32
+    32,
   ).toLowerCase();
   if (rawValue === "success" || rawValue === "error") {
     return rawValue;
@@ -94,7 +94,7 @@ const buildCompatibilityFailureResponse = (
   request,
   startTime,
   reviewModel,
-  message
+  message,
 ) => {
   const coverage = determineCoverage([], request, {
     ignoreForcedCoverage: true,
@@ -118,7 +118,7 @@ const buildAgentReviewMockResponse = (
   request,
   mode,
   startTime,
-  reviewModel
+  reviewModel,
 ) => {
   const requestId = randomUUID();
 
@@ -235,7 +235,7 @@ const buildSuccessfulInvocationResponse = (
   startTime,
   invocation,
   commands,
-  coverage
+  coverage,
 ) => ({
   apiVersion: API_VERSION,
   mode: API_MODE,
@@ -262,7 +262,9 @@ const updateRuntimeForSuccessfulInvocation = (response, invocation) => {
     activeModel: invocation.model,
     activeSpecifier: invocation.requestedSpecifier,
     usedFallback: invocation.usedFallback,
-    fallbackReason: invocation.usedFallback ? "temporary-primary-failure" : null,
+    fallbackReason: invocation.usedFallback
+      ? "temporary-primary-failure"
+      : null,
     lastStatus: response.status,
     lastErrorClass: null,
     lastErrorMessage: null,
@@ -273,7 +275,12 @@ const updateRuntimeForSuccessfulInvocation = (response, invocation) => {
   });
 };
 
-const buildFailedInvocationResponse = (request, startTime, reviewModel, error) => {
+const buildFailedInvocationResponse = (
+  request,
+  startTime,
+  reviewModel,
+  error,
+) => {
   const providerInfo = resolveProviderErrorInfo(error);
   const coverage = determineCoverage([], request);
   return {
@@ -291,7 +298,12 @@ const buildFailedInvocationResponse = (request, startTime, reviewModel, error) =
   };
 };
 
-const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) => {
+const updateRuntimeForFailedInvocation = (
+  response,
+  error,
+  config,
+  reviewModel,
+) => {
   const providerInfo = resolveProviderErrorInfo(error);
   updateReviewRuntimeSnapshot(AGENT_REVIEW_CHANNEL, {
     activeProvider: error?.provider ?? config.resolvedProvider,
@@ -299,8 +311,8 @@ const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) 
     activeSpecifier: error?.specifier ?? config.resolvedSpecifier,
     usedFallback: Boolean(
       config.fallback?.usable &&
-        error?.specifier &&
-        config.fallback.specifier === error.specifier
+      error?.specifier &&
+      config.fallback.specifier === error.specifier,
     ),
     fallbackReason:
       config.fallback?.usable &&
@@ -320,7 +332,12 @@ const updateRuntimeForFailedInvocation = (response, error, config, reviewModel) 
   });
 };
 
-const requestReviewFromProvider = async (request, startTime, config, reviewModel) => {
+const requestReviewFromProvider = async (
+  request,
+  startTime,
+  config,
+  reviewModel,
+) => {
   const messages = buildAgentReviewMessages(request);
 
   for (const boostFactor of [1, 2]) {
@@ -354,7 +371,7 @@ const requestReviewFromProvider = async (request, startTime, config, reviewModel
         startTime,
         invocation,
         commands,
-        coverage
+        coverage,
       );
       updateRuntimeForSuccessfulInvocation(response, invocation);
       return response;
@@ -363,7 +380,7 @@ const requestReviewFromProvider = async (request, startTime, config, reviewModel
         request,
         startTime,
         reviewModel,
-        error
+        error,
       );
       updateRuntimeForFailedInvocation(response, error, config, reviewModel);
       return response;
@@ -374,7 +391,7 @@ const requestReviewFromProvider = async (request, startTime, config, reviewModel
     request,
     startTime,
     reviewModel,
-    "Agent review returned no parseable commands."
+    "Agent review returned no parseable commands.",
   );
 };
 
@@ -392,7 +409,7 @@ export const requestReview = async (body) => {
       request,
       mockMode,
       startTime,
-      reviewModel
+      reviewModel,
     );
     updateRuntimeForMockReview(response, mockMode);
     return response;
@@ -408,7 +425,7 @@ export const requestReview = async (body) => {
       request,
       startTime,
       reviewModel,
-      configError
+      configError,
     );
     updateRuntimeForConfigFailure(response, configError);
     return response;

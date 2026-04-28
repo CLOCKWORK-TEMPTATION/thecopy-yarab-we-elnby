@@ -109,10 +109,10 @@ beforeEach(() => {
   controller = new HealthController();
   vi.clearAllMocks();
 
-  originalRedisEnabled = process.env['REDIS_ENABLED'];
+  originalRedisEnabled = process.env["REDIS_ENABLED"];
   originalRedisHost = process.env.REDIS_HOST;
 
-  process.env['REDIS_ENABLED'] = "false";
+  process.env["REDIS_ENABLED"] = "false";
   delete process.env.REDIS_HOST;
 
   mockDbExecute.mockResolvedValue(undefined);
@@ -151,9 +151,9 @@ beforeEach(() => {
 
 afterEach(() => {
   if (originalRedisEnabled === undefined) {
-    delete process.env['REDIS_ENABLED'];
+    delete process.env["REDIS_ENABLED"];
   } else {
-    process.env['REDIS_ENABLED'] = originalRedisEnabled;
+    process.env["REDIS_ENABLED"] = originalRedisEnabled;
   }
 
   if (originalRedisHost === undefined) {
@@ -163,133 +163,133 @@ afterEach(() => {
   }
 });
 
-  it("returns not_ready when the AI provider probe fails", async () => {
-    mockProbeHealth.mockResolvedValueOnce({
+it("returns not_ready when the AI provider probe fails", async () => {
+  mockProbeHealth.mockResolvedValueOnce({
+    status: "unhealthy",
+    responseTime: 9,
+    error:
+      "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
+    details: {
+      provider: "google-genai",
+      credentialsConfigured: true,
+    },
+  });
+
+  const res = createMockResponse();
+
+  await controller.getReadiness({} as Request, res);
+
+  expect(res.status).toHaveBeenCalledWith(503);
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: "not_ready",
+      checks: objectContainingMatcher({
+        external_services: objectContainingMatcher({
+          status: "unhealthy",
+          error:
+            "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
+        }),
+      }),
+    }),
+  );
+});
+
+it("reports unhealthy disk usage from real filesystem statistics instead of a mock value", async () => {
+  mockStatfs.mockResolvedValueOnce({
+    blocks: 100,
+    bavail: 5,
+    bsize: 4096,
+  });
+
+  const res = createMockResponse();
+
+  await controller.getDetailedHealth({} as Request, res);
+
+  expect(res.status).toHaveBeenCalledWith(503);
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
       status: "unhealthy",
-      responseTime: 9,
-      error:
-        "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
-      details: {
-        provider: "google-genai",
-        credentialsConfigured: true,
-      },
+      checks: objectContainingMatcher({
+        disk: objectContainingMatcher({
+          status: "unhealthy",
+          error: "Disk usage (95%) exceeds limit (90%).",
+          details: objectContainingMatcher({
+            totalBytes: 409600,
+            usedBytes: 389120,
+            availableBytes: 20480,
+          }),
+        }),
+      }),
+    }),
+  );
+});
+
+it("returns degraded health when optional weaviate is unavailable", async () => {
+  mockWeaviateGetStatus
+    .mockReturnValueOnce({
+      enabled: true,
+      required: false,
+      state: "connecting",
+      host: "http://localhost:8080",
+    })
+    .mockReturnValueOnce({
+      enabled: true,
+      required: false,
+      state: "failed",
+      host: "http://localhost:8080",
+      lastError: "connection refused",
     });
+  mockWeaviateHealthCheck.mockResolvedValueOnce(false);
 
-    const res = createMockResponse();
+  const res = createMockResponse();
 
-    await controller.getReadiness({} as Request, res);
+  await controller.getHealth({} as Request, res);
 
-    expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "not_ready",
-        checks: objectContainingMatcher({
-          external_services: objectContainingMatcher({
-            status: "unhealthy",
-            error:
-              "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
-          }),
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: "degraded",
+      checks: objectContainingMatcher({
+        weaviate: objectContainingMatcher({
+          status: "degraded",
+          required: false,
         }),
-      })
-    );
-  });
+      }),
+    }),
+  );
+});
 
-  it("reports unhealthy disk usage from real filesystem statistics instead of a mock value", async () => {
-    mockStatfs.mockResolvedValueOnce({
-      blocks: 100,
-      bavail: 5,
-      bsize: 4096,
+it("returns not_ready when required weaviate is unavailable", async () => {
+  mockWeaviateGetStatus
+    .mockReturnValueOnce({
+      enabled: true,
+      required: true,
+      state: "connecting",
+      host: "http://localhost:8080",
+    })
+    .mockReturnValueOnce({
+      enabled: true,
+      required: true,
+      state: "failed",
+      host: "http://localhost:8080",
+      lastError: "connection refused",
     });
+  mockWeaviateHealthCheck.mockResolvedValueOnce(false);
 
-    const res = createMockResponse();
+  const res = createMockResponse();
 
-    await controller.getDetailedHealth({} as Request, res);
+  await controller.getReadiness({} as Request, res);
 
-    expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "unhealthy",
-        checks: objectContainingMatcher({
-          disk: objectContainingMatcher({
-            status: "unhealthy",
-            error: "Disk usage (95%) exceeds limit (90%).",
-            details: objectContainingMatcher({
-              totalBytes: 409600,
-              usedBytes: 389120,
-              availableBytes: 20480,
-            }),
-          }),
+  expect(res.status).toHaveBeenCalledWith(503);
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: "not_ready",
+      checks: objectContainingMatcher({
+        weaviate: objectContainingMatcher({
+          status: "unhealthy",
+          required: true,
         }),
-      })
-    );
-  });
-
-  it("returns degraded health when optional weaviate is unavailable", async () => {
-    mockWeaviateGetStatus
-      .mockReturnValueOnce({
-        enabled: true,
-        required: false,
-        state: "connecting",
-        host: "http://localhost:8080",
-      })
-      .mockReturnValueOnce({
-        enabled: true,
-        required: false,
-        state: "failed",
-        host: "http://localhost:8080",
-        lastError: "connection refused",
-      });
-    mockWeaviateHealthCheck.mockResolvedValueOnce(false);
-
-    const res = createMockResponse();
-
-    await controller.getHealth({} as Request, res);
-
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "degraded",
-        checks: objectContainingMatcher({
-          weaviate: objectContainingMatcher({
-            status: "degraded",
-            required: false,
-          }),
-        }),
-      })
-    );
-  });
-
-  it("returns not_ready when required weaviate is unavailable", async () => {
-    mockWeaviateGetStatus
-      .mockReturnValueOnce({
-        enabled: true,
-        required: true,
-        state: "connecting",
-        host: "http://localhost:8080",
-      })
-      .mockReturnValueOnce({
-        enabled: true,
-        required: true,
-        state: "failed",
-        host: "http://localhost:8080",
-        lastError: "connection refused",
-      });
-    mockWeaviateHealthCheck.mockResolvedValueOnce(false);
-
-    const res = createMockResponse();
-
-    await controller.getReadiness({} as Request, res);
-
-    expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "not_ready",
-        checks: objectContainingMatcher({
-          weaviate: objectContainingMatcher({
-            status: "unhealthy",
-            required: true,
-          }),
-        }),
-      })
-    );
-  });
+      }),
+    }),
+  );
+});

@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 import { runVisionProofread } from "../pdf-vision-proofread.mjs";
@@ -7,21 +7,18 @@ import {
   buildPdfReference,
   renderPdfPages,
 } from "../pdf-reference-builder.mjs";
-import { stripOcrArtifactLines } from "../ocr-text-cleanup.mjs";
 import { writeMismatchReport } from "../mismatch-reporter.mjs";
 import { saveProofreadDocx } from "../proofread-docx-writer.mjs";
 import {
   execFileAsync,
   toChildProcessEnv,
   parseJsonObject,
-  readFileIfExists,
   buildCriticalTokenList,
   buildRunFileKey,
 } from "./utils.mjs";
 
 const MAX_STDIO_BUFFER = 64 * 1024 * 1024;
 const CLASSIFY_TIMEOUT_MS = 30_000;
-const WRITE_OUTPUT_TIMEOUT_MS = 60_000;
 const PIPELINE_OPEN_AGENT_BOOT_TIMEOUT_MS = 10_000;
 const CANONICAL_MISTRAL_OCR_MODEL = "mistral-ocr-latest";
 const CANONICAL_MISTRAL_OCR_ENDPOINT = "https://api.mistral.ai/v1/ocr";

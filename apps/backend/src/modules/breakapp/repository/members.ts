@@ -1,11 +1,11 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from "drizzle-orm";
 
-import { db } from '@/db';
-import { breakappProjectMembers } from '@/db/schema';
+import { db } from "@/db";
+import { breakappProjectMembers } from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
+import { ensureDatabase } from "./_helpers";
 
-import type { BreakappRole } from '../service.types';
+import type { BreakappRole } from "../service.types";
 
 export async function addProjectMember(input: {
   projectId: string;
@@ -46,7 +46,7 @@ export async function listUsers(): Promise<
 
 export async function getUserRoleInProject(
   projectId: string,
-  userId: string
+  userId: string,
 ): Promise<BreakappRole | null> {
   ensureDatabase();
   const rows = await db
@@ -55,8 +55,8 @@ export async function getUserRoleInProject(
     .where(
       and(
         eq(breakappProjectMembers.projectId, projectId),
-        eq(breakappProjectMembers.userId, userId)
-      )
+        eq(breakappProjectMembers.userId, userId),
+      ),
     )
     .limit(1);
   const row = rows[0];

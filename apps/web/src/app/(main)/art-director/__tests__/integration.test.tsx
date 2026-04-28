@@ -12,6 +12,9 @@ import Locations from "../components/Locations";
 import Sets from "../components/Sets";
 import Tools from "../components/Tools";
 import { ArtDirectorPersistenceProvider } from "../hooks/useArtDirectorPersistence";
+import { artDirectorApiPath, fetchArtDirectorJson } from "../lib/api-client";
+
+import type { ReactElement } from "react";
 
 vi.mock("@/lib/app-state-client", () => ({
   loadRemoteAppState: vi.fn(),
@@ -27,10 +30,6 @@ vi.mock("../lib/api-client", async (importOriginal) => {
     fetchArtDirectorJson: vi.fn(),
   };
 });
-
-import { artDirectorApiPath, fetchArtDirectorJson } from "../lib/api-client";
-
-import type { ReactElement } from "react";
 
 const mockFetchArtDirectorJson = vi.mocked(fetchArtDirectorJson);
 const mockLoadRemoteAppState = vi.mocked(loadRemoteAppState);
@@ -274,13 +273,15 @@ describe("Art Director Integration Tests", () => {
     await user.click(screen.getByRole("button", { name: "إضافة" }));
 
     expect(await screen.findByText("موقع جديد")).toBeInTheDocument();
-    expect(mockFetchArtDirectorJson).toHaveBeenCalledWith(
-      "/locations/add",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.stringContaining("New Location"),
-      })
+    const addLocationCall = mockFetchArtDirectorJson.mock.calls.find(
+      ([path]) => path === "/locations/add"
     );
+    const requestInit = addLocationCall?.[1];
+    const requestBody =
+      typeof requestInit?.body === "string" ? requestInit.body : "";
+
+    expect(requestInit?.method).toBe("POST");
+    expect(requestBody).toContain("New Location");
   });
 
   it("يضيف قطعة ديكور ويعرضها في المخزون", async () => {

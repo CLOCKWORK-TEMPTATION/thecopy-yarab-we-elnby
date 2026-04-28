@@ -109,6 +109,12 @@ export type GestureType = "eye" | "hand" | "head" | "voice";
  * @description تعريف إيماءة تحكم واحدة
  */
 export interface GestureControl {
+  /** المعرف الفريد */
+  id: string;
+  /** اسم الإيماءة */
+  name: string;
+  /** أيقونة الإيماءة */
+  icon: string;
   /** نوع الإيماءة */
   type: GestureType;
   /** الإجراء المرتبط */

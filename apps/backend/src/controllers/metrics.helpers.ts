@@ -10,10 +10,10 @@ import {
   getPerformanceDashboard,
   resetPerformanceMetrics,
   APM_CONFIG,
-} from '@/config/sentry';
-import { cacheMetricsService } from '@/services/cache-metrics.service';
-import { metricsAggregator } from '@/services/metrics-aggregator.service';
-import { resourceMonitor } from '@/services/resource-monitor.service';
+} from "@/config/sentry";
+import { cacheMetricsService } from "@/services/cache-metrics.service";
+import { metricsAggregator } from "@/services/metrics-aggregator.service";
+import { resourceMonitor } from "@/services/resource-monitor.service";
 
 // Re-export APM items so the controller can import from one place
 export { getPerformanceDashboard, resetPerformanceMetrics, APM_CONFIG };
@@ -24,28 +24,27 @@ export { getPerformanceDashboard, resetPerformanceMetrics, APM_CONFIG };
  */
 export function determineHealthStatus(
   resources: { cpu: { status: string }; memory: { status: string } },
-  snapshot: { api: { errorRate: number } } | null
-): 'healthy' | 'degraded' | 'critical' {
+  snapshot: { api: { errorRate: number } } | null,
+): "healthy" | "degraded" | "critical" {
   if (
-    resources.cpu.status === 'critical' ||
-    resources.memory.status === 'critical'
+    resources.cpu.status === "critical" ||
+    resources.memory.status === "critical"
   ) {
-    return 'critical';
+    return "critical";
   }
 
   const resourceDegraded =
-    resources.cpu.status === 'warning' ||
-    resources.memory.status === 'warning';
+    resources.cpu.status === "warning" || resources.memory.status === "warning";
 
   if (snapshot && snapshot.api.errorRate > 0.1) {
-    return 'critical';
+    return "critical";
   }
 
   if (snapshot && snapshot.api.errorRate > 0.05) {
-    return 'degraded';
+    return "degraded";
   }
 
-  return resourceDegraded ? 'degraded' : 'healthy';
+  return resourceDegraded ? "degraded" : "healthy";
 }
 
 /**
@@ -99,14 +98,14 @@ export async function buildDashboardSummary() {
  * Get a snapshot property, falling back to a new snapshot when none exists.
  * Eliminates repeated pattern across multiple endpoints.
  */
-export async function getSnapshotData<K extends string>(
-  key?: K
-) {
+export async function getSnapshotData<K extends string>(key?: K) {
   const snapshot = metricsAggregator.getLatestSnapshot();
 
   if (!snapshot) {
     const newSnapshot = await metricsAggregator.takeSnapshot();
-    return key ? (newSnapshot as unknown as Record<string, unknown>)[key] : newSnapshot;
+    return key
+      ? (newSnapshot as unknown as Record<string, unknown>)[key]
+      : newSnapshot;
   }
 
   return key ? (snapshot as unknown as Record<string, unknown>)[key] : snapshot;
@@ -118,17 +117,20 @@ export async function getSnapshotData<K extends string>(
  */
 export function parseDateRange(
   start: unknown,
-  end: unknown
-): { startTime: Date; endTime: Date } | { error: 'missing' } | { error: 'invalid' } {
+  end: unknown,
+):
+  | { startTime: Date; endTime: Date }
+  | { error: "missing" }
+  | { error: "invalid" } {
   if (!start || !end) {
-    return { error: 'missing' };
+    return { error: "missing" };
   }
 
   const startTime = new Date(start as string);
   const endTime = new Date(end as string);
 
   if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-    return { error: 'invalid' };
+    return { error: "invalid" };
   }
 
   return { startTime, endTime };
@@ -157,12 +159,14 @@ export async function buildHealthData() {
     isUnderPressure,
     timestamp: new Date().toISOString(),
     resources,
-    metrics: snapshot ? {
-      errorRate: snapshot.api.errorRate,
-      avgResponseTime: snapshot.api.avgResponseTime,
-      cacheHitRatio: snapshot.redis.hitRatio,
-      activeJobs: snapshot.queue.activeJobs,
-    } : null,
+    metrics: snapshot
+      ? {
+          errorRate: snapshot.api.errorRate,
+          avgResponseTime: snapshot.api.avgResponseTime,
+          cacheHitRatio: snapshot.redis.hitRatio,
+          activeJobs: snapshot.queue.activeJobs,
+        }
+      : null,
   };
 }
 
@@ -185,9 +189,11 @@ export function buildApmAlerts() {
       p95Latency: dashboard.latencies.p95,
       errorRate: dashboard.summary.errorRate,
     },
-    status: dashboard.alerts.p95AboveThreshold || dashboard.alerts.errorRateAboveThreshold
-      ? 'warning' as const
-      : 'ok' as const,
+    status:
+      dashboard.alerts.p95AboveThreshold ||
+      dashboard.alerts.errorRateAboveThreshold
+        ? ("warning" as const)
+        : ("ok" as const),
   };
 }
 

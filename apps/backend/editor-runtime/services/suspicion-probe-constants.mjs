@@ -13,9 +13,12 @@ export const PROBE_VERSION = "2.0.0";
 
 // مسجل بسيط بدون pino
 export const createSimpleLogger = () => ({
-  info: (msg, meta) => console.log(`[PROBE:INFO] ${msg}`, meta ? JSON.stringify(meta) : ""),
-  warn: (msg, meta) => console.warn(`[PROBE:WARN] ${msg}`, meta ? JSON.stringify(meta) : ""),
-  error: (msg, meta) => console.error(`[PROBE:ERROR] ${msg}`, meta ? JSON.stringify(meta) : ""),
+  info: (msg, meta) =>
+    console.log(`[PROBE:INFO] ${msg}`, meta ? JSON.stringify(meta) : ""),
+  warn: (msg, meta) =>
+    console.warn(`[PROBE:WARN] ${msg}`, meta ? JSON.stringify(meta) : ""),
+  error: (msg, meta) =>
+    console.error(`[PROBE:ERROR] ${msg}`, meta ? JSON.stringify(meta) : ""),
 });
 
 export const logger = createSimpleLogger();
@@ -30,6 +33,7 @@ export const EXPECTED_SUSPICION_CASES = {
  * @description مرشحي المراجعة النهائية المتوقعون
  */
 export const EXPECTED_FINAL_REVIEW_CANDIDATES = {
-  minimum: FIXTURE_METADATA.statistics.expectedMinimumFinalReviewCandidates || 1,
+  minimum:
+    FIXTURE_METADATA.statistics.expectedMinimumFinalReviewCandidates || 1,
   detailed: FIXTURE_METADATA.expectedFinalReviewCandidates || [],
 };

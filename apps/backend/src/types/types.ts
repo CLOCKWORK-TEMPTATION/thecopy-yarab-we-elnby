@@ -1,56 +1,56 @@
 // Types المطلوبة من كل الوكلاء
 export enum TaskType {
-  ANALYSIS = 'analysis',
-  GENERATION = 'generation',
-  TRANSFORMATION = 'transformation',
-  EVALUATION = 'evaluation',
+  ANALYSIS = "analysis",
+  GENERATION = "generation",
+  TRANSFORMATION = "transformation",
+  EVALUATION = "evaluation",
   // Agent-specific types
-  DIALOGUE_FORENSICS = 'dialogue_forensics',
-  SCENE_GENERATOR = 'scene_generator',
-  STYLE_FINGERPRINT = 'style_fingerprint',
-  CHARACTER_DEEP_ANALYZER = 'character_deep_analyzer',
-  CHARACTER_NETWORK = 'character_network',
-  INTEGRATED = 'integrated',
-  RECOMMENDATIONS_GENERATOR = 'recommendations_generator',
-  CONFLICT_DYNAMICS = 'conflict_dynamics',
-  TENSION_OPTIMIZER = 'tension_optimizer',
-  CULTURAL_HISTORICAL_ANALYZER = 'cultural_historical_analyzer',
-  WORLD_BUILDER = 'world_builder',
-  TARGET_AUDIENCE_ANALYZER = 'target_audience_analyzer',
-  DIALOGUE_ADVANCED_ANALYZER = 'dialogue_advanced_analyzer',
-  CHARACTER_VOICE = 'character_voice',
-  LITERARY_QUALITY_ANALYZER = 'literary_quality_analyzer',
-  THEMES_MESSAGES_ANALYZER = 'themes_messages_analyzer',
-  PLOT_PREDICTOR = 'plot_predictor',
-  COMPLETION = 'completion',
-  PRODUCIBILITY_ANALYZER = 'producibility_analyzer',
-  VISUAL_CINEMATIC_ANALYZER = 'visual_cinematic_analyzer',
-  RHYTHM_MAPPING = 'rhythm_mapping',
-  AUDIENCE_RESONANCE = 'audience_resonance',
-  THEMATIC_MINING = 'thematic_mining',
-  AUDIENCE_ANALYSIS = 'audience_analysis',
-  CHARACTER_ANALYSIS = 'character_analysis',
-  TEXT_COMPLETION = 'text_completion',
-  COMPREHENSIVE_ANALYSIS = 'comprehensive_analysis',
-  PLATFORM_ADAPTER = 'platform_adapter'
+  DIALOGUE_FORENSICS = "dialogue_forensics",
+  SCENE_GENERATOR = "scene_generator",
+  STYLE_FINGERPRINT = "style_fingerprint",
+  CHARACTER_DEEP_ANALYZER = "character_deep_analyzer",
+  CHARACTER_NETWORK = "character_network",
+  INTEGRATED = "integrated",
+  RECOMMENDATIONS_GENERATOR = "recommendations_generator",
+  CONFLICT_DYNAMICS = "conflict_dynamics",
+  TENSION_OPTIMIZER = "tension_optimizer",
+  CULTURAL_HISTORICAL_ANALYZER = "cultural_historical_analyzer",
+  WORLD_BUILDER = "world_builder",
+  TARGET_AUDIENCE_ANALYZER = "target_audience_analyzer",
+  DIALOGUE_ADVANCED_ANALYZER = "dialogue_advanced_analyzer",
+  CHARACTER_VOICE = "character_voice",
+  LITERARY_QUALITY_ANALYZER = "literary_quality_analyzer",
+  THEMES_MESSAGES_ANALYZER = "themes_messages_analyzer",
+  PLOT_PREDICTOR = "plot_predictor",
+  COMPLETION = "completion",
+  PRODUCIBILITY_ANALYZER = "producibility_analyzer",
+  VISUAL_CINEMATIC_ANALYZER = "visual_cinematic_analyzer",
+  RHYTHM_MAPPING = "rhythm_mapping",
+  AUDIENCE_RESONANCE = "audience_resonance",
+  THEMATIC_MINING = "thematic_mining",
+  AUDIENCE_ANALYSIS = "audience_analysis",
+  CHARACTER_ANALYSIS = "character_analysis",
+  TEXT_COMPLETION = "text_completion",
+  COMPREHENSIVE_ANALYSIS = "comprehensive_analysis",
+  PLATFORM_ADAPTER = "platform_adapter",
 }
 
 export enum TaskCategory {
-  SCRIPT_ANALYSIS = 'script_analysis',
-  CHARACTER_ANALYSIS = 'character_analysis',
-  DIALOGUE_ANALYSIS = 'dialogue_analysis',
-  SCENE_GENERATION = 'scene_generation',
-  CREATIVE_WRITING = 'creative_writing',
+  SCRIPT_ANALYSIS = "script_analysis",
+  CHARACTER_ANALYSIS = "character_analysis",
+  DIALOGUE_ANALYSIS = "dialogue_analysis",
+  SCENE_GENERATION = "scene_generation",
+  CREATIVE_WRITING = "creative_writing",
   // Additional categories
-  ANALYSIS = 'analysis',
-  ADVANCED_MODULES = 'advanced_modules',
-  CORE = 'core',
-  PREDICTIVE = 'predictive',
-  CREATIVE = 'creative',
-  EVALUATION = 'evaluation',
-  GENERATION = 'generation',
-  INTEGRATION = 'integration',
-  TRANSFORMATION = 'transformation'
+  ANALYSIS = "analysis",
+  ADVANCED_MODULES = "advanced_modules",
+  CORE = "core",
+  PREDICTIVE = "predictive",
+  CREATIVE = "creative",
+  EVALUATION = "evaluation",
+  GENERATION = "generation",
+  INTEGRATION = "integration",
+  TRANSFORMATION = "transformation",
 }
 
 export interface AgentCapabilities {
@@ -66,8 +66,8 @@ export interface AgentCapabilities {
   adaptiveLearning?: boolean;
   complexityScore?: number;
   accuracyLevel?: number;
-  processingSpeed?: 'fast' | 'medium' | 'slow';
-  resourceIntensity?: 'low' | 'medium' | 'high';
+  processingSpeed?: "fast" | "medium" | "slow";
+  resourceIntensity?: "low" | "medium" | "high";
   languageModeling?: boolean;
   patternRecognition?: boolean;
   creativeGeneration?: boolean;
@@ -99,7 +99,7 @@ export interface AIAgentConfig {
   instructions?: string;
   fewShotExamples?: unknown[];
   chainOfThoughtTemplate?: string;
-  cacheStrategy?: 'none' | 'adaptive' | 'selective' | 'aggressive';
+  cacheStrategy?: "none" | "adaptive" | "selective" | "aggressive";
   parallelizable?: boolean;
   batchProcessing?: boolean;
   expectedOutput?: string;
@@ -163,5 +163,5 @@ export interface DialogueLine {
   text: string;
   lineNumber: number;
   sceneId: string;
-  type: 'dialogue' | 'parenthetical';
+  type: "dialogue" | "parenthetical";
 }

@@ -4,6 +4,32 @@ import type {
   CastAnalysisResult,
 } from "../types/cast-breakdown-types";
 
+type CastExportMember = CastMember | ExtendedCastMember;
+
+function isExtendedCastMember(
+  member: CastExportMember
+): member is ExtendedCastMember {
+  return "roleCategory" in member;
+}
+
+function getRole(member: CastExportMember): string {
+  return isExtendedCastMember(member) ? member.roleCategory : member.role;
+}
+
+function getAge(member: CastExportMember): string {
+  return isExtendedCastMember(member) ? member.ageRange : member.age;
+}
+
+function getVisualDescription(member: CastExportMember): string {
+  return isExtendedCastMember(member)
+    ? member.visualDescription
+    : member.description;
+}
+
+function escapeCsv(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 export function exportCastToCSV(
   members: CastMember[] | ExtendedCastMember[]
 ): string {
@@ -17,15 +43,14 @@ export function exportCastToCSV(
     "Motivation",
   ];
   const rows = members.map((member) => {
-    const extended = member as ExtendedCastMember;
     return [
       member.name,
-      extended.nameArabic ?? "",
-      extended.roleCategory || member.role,
-      extended.ageRange || member.age,
+      isExtendedCastMember(member) ? (member.nameArabic ?? "") : "",
+      getRole(member),
+      getAge(member),
       member.gender,
-      `"${(extended.visualDescription || member.description || "").replace(/"/g, '""')}"`,
-      `"${(member.motivation || "").replace(/"/g, '""')}"`,
+      escapeCsv(getVisualDescription(member)),
+      escapeCsv(member.motivation),
     ];
   });
   return [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
@@ -41,23 +66,17 @@ export function generateCastingCall(
   let documentText = "CASTING CALL DOCUMENT\n";
   documentText += `${"=".repeat(50)}\n\n`;
 
-  const leads = members.filter(
-    (m) =>
-      (m as ExtendedCastMember).roleCategory === "Lead" || m.role === "Lead"
-  );
+  const leads = members.filter((member) => getRole(member) === "Lead");
   const supporting = members.filter(
-    (m) =>
-      (m as ExtendedCastMember).roleCategory === "Supporting" ||
-      m.role === "Supporting"
+    (member) => getRole(member) === "Supporting"
   );
 
   if (leads.length > 0) {
     documentText += "LEAD ROLES\n";
     documentText += `${"-".repeat(30)}\n`;
     leads.forEach((member) => {
-      const extended = member as ExtendedCastMember;
-      documentText += `\n${member.name.toUpperCase()} (${member.gender}, ${extended.ageRange || member.age})\n`;
-      documentText += `Description: ${extended.visualDescription || member.description || "N/A"}\n`;
+      documentText += `\n${member.name.toUpperCase()} (${member.gender}, ${getAge(member)})\n`;
+      documentText += `Description: ${getVisualDescription(member) || "N/A"}\n`;
       documentText += `In this scene: ${member.motivation || "N/A"}\n`;
     });
   }
@@ -66,9 +85,8 @@ export function generateCastingCall(
     documentText += "\n\nSUPPORTING ROLES\n";
     documentText += `${"-".repeat(30)}\n`;
     supporting.forEach((member) => {
-      const extended = member as ExtendedCastMember;
-      documentText += `\n${member.name} (${member.gender}, ${extended.ageRange || member.age})\n`;
-      documentText += `${extended.visualDescription || member.description || "N/A"}\n`;
+      documentText += `\n${member.name} (${member.gender}, ${getAge(member)})\n`;
+      documentText += `${getVisualDescription(member) || "N/A"}\n`;
     });
   }
 

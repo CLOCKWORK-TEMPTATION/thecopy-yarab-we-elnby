@@ -5,10 +5,10 @@
  * Works with both Redis and memory cache layers
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { cacheService } from './cache.service';
-import { getGeminiCacheStats } from './gemini-cache.strategy';
+import { cacheService } from "./cache.service";
+import { getGeminiCacheStats } from "./gemini-cache.strategy";
 
 export interface CacheMetricsSnapshot {
   timestamp: Date;
@@ -77,10 +77,13 @@ class CacheMetricsService {
     const geminiStats = getGeminiCacheStats();
 
     const totalRequests = stats.metrics.hits.total + stats.metrics.misses;
-    const hitRate = totalRequests > 0 ? (stats.metrics.hits.total / totalRequests) * 100 : 0;
+    const hitRate =
+      totalRequests > 0 ? (stats.metrics.hits.total / totalRequests) * 100 : 0;
 
-    const l1HitRate = totalRequests > 0 ? (stats.metrics.hits.l1 / totalRequests) * 100 : 0;
-    const l2HitRate = totalRequests > 0 ? (stats.metrics.hits.l2 / totalRequests) * 100 : 0;
+    const l1HitRate =
+      totalRequests > 0 ? (stats.metrics.hits.l1 / totalRequests) * 100 : 0;
+    const l2HitRate =
+      totalRequests > 0 ? (stats.metrics.hits.l2 / totalRequests) * 100 : 0;
 
     const snapshot: CacheMetricsSnapshot = {
       timestamp: new Date(),
@@ -107,8 +110,8 @@ class CacheMetricsService {
         totalMisses: geminiStats.totalMisses,
       },
       performance: {
-        avgGetLatency: this.calculateAvgLatency('get'),
-        avgSetLatency: this.calculateAvgLatency('set'),
+        avgGetLatency: this.calculateAvgLatency("get"),
+        avgSetLatency: this.calculateAvgLatency("set"),
         errors: stats.metrics.errors,
       },
     };
@@ -128,7 +131,9 @@ class CacheMetricsService {
    * Get latest snapshot
    */
   getLatestSnapshot(): CacheMetricsSnapshot | null {
-    return this.snapshots.length === 0 ? null : this.snapshots[this.snapshots.length - 1] ?? null;
+    return this.snapshots.length === 0
+      ? null
+      : (this.snapshots[this.snapshots.length - 1] ?? null);
   }
 
   /**
@@ -137,7 +142,7 @@ class CacheMetricsService {
   getSnapshotsInRange(startTime: Date, endTime: Date): CacheMetricsSnapshot[] {
     return this.snapshots.filter(
       (snapshot) =>
-        snapshot.timestamp >= startTime && snapshot.timestamp <= endTime
+        snapshot.timestamp >= startTime && snapshot.timestamp <= endTime,
     );
   }
 
@@ -146,7 +151,7 @@ class CacheMetricsService {
    */
   generatePerformanceReport(
     startTime: Date,
-    endTime: Date
+    endTime: Date,
   ): CachePerformanceReport {
     const snapshots = this.getSnapshotsInRange(startTime, endTime);
 
@@ -164,16 +169,16 @@ class CacheMetricsService {
 
     const totalRequests = snapshots.reduce(
       (sum, s) => sum + s.overall.totalRequests,
-      0
+      0,
     );
     const totalErrors = snapshots.reduce(
       (sum, s) => sum + s.performance.errors,
-      0
+      0,
     );
 
     // Calculate Redis uptime percentage
     const redisConnectedSnapshots = snapshots.filter(
-      (s) => s.redis.status === 'ready' || s.redis.status === 'connected'
+      (s) => s.redis.status === "ready" || s.redis.status === "connected",
     );
     const redisUptime =
       snapshots.length > 0
@@ -199,7 +204,7 @@ class CacheMetricsService {
   /**
    * Track latency for cache operations
    */
-  trackLatency(operation: 'get' | 'set', latency: number): void {
+  trackLatency(operation: "get" | "set", latency: number): void {
     this.latencyTracking[operation].push(latency);
 
     // Keep only last MAX_LATENCY_SAMPLES
@@ -211,7 +216,7 @@ class CacheMetricsService {
   /**
    * Calculate average latency for an operation
    */
-  private calculateAvgLatency(operation: 'get' | 'set'): number {
+  private calculateAvgLatency(operation: "get" | "set"): number {
     const samples = this.latencyTracking[operation];
     if (samples.length === 0) {
       return 0;
@@ -225,7 +230,7 @@ class CacheMetricsService {
    * Get cache health status
    */
   getHealthStatus(): {
-    status: 'healthy' | 'degraded' | 'critical';
+    status: "healthy" | "degraded" | "critical";
     issues: string[];
     recommendations: string[];
   } {
@@ -233,49 +238,62 @@ class CacheMetricsService {
     const issues: string[] = [];
     const recommendations: string[] = [];
 
-    let status: 'healthy' | 'degraded' | 'critical' = 'healthy';
+    let status: "healthy" | "degraded" | "critical" = "healthy";
 
     // Check hit rate
     if (snapshot.overall.hitRate < 30) {
-      status = 'critical';
-      issues.push('Hit rate is critically low (< 30%)');
-      recommendations.push('Review cache TTL settings and cache warming strategies');
+      status = "critical";
+      issues.push("Hit rate is critically low (< 30%)");
+      recommendations.push(
+        "Review cache TTL settings and cache warming strategies",
+      );
     } else if (snapshot.overall.hitRate < 50) {
-      status = 'degraded';
-      issues.push('Hit rate is below optimal (< 50%)');
-      recommendations.push('Consider adjusting cache TTL or warming frequently accessed data');
+      status = "degraded";
+      issues.push("Hit rate is below optimal (< 50%)");
+      recommendations.push(
+        "Consider adjusting cache TTL or warming frequently accessed data",
+      );
     }
 
     // Check Redis connection
-    if (snapshot.redis.status !== 'ready' && snapshot.redis.status !== 'connected') {
-      if (status !== 'critical') {
-        status = 'degraded';
+    if (
+      snapshot.redis.status !== "ready" &&
+      snapshot.redis.status !== "connected"
+    ) {
+      if (status !== "critical") {
+        status = "degraded";
       }
-      issues.push('Redis connection is not healthy');
-      recommendations.push('Check Redis server status and connection settings');
+      issues.push("Redis connection is not healthy");
+      recommendations.push("Check Redis server status and connection settings");
     }
 
     // Check consecutive failures
     if (snapshot.redis.connectionHealth.consecutiveFailures > 5) {
-      status = 'critical';
-      issues.push('Redis has consecutive connection failures');
-      recommendations.push('Investigate Redis server issues or network connectivity');
+      status = "critical";
+      issues.push("Redis has consecutive connection failures");
+      recommendations.push(
+        "Investigate Redis server issues or network connectivity",
+      );
     }
 
     // Check memory utilization
     if (snapshot.memory.utilizationPercent > 90) {
-      if (status !== 'critical') {
-        status = 'degraded';
+      if (status !== "critical") {
+        status = "degraded";
       }
-      issues.push('Memory cache is near capacity');
-      recommendations.push('Consider increasing MAX_MEMORY_CACHE_SIZE or implementing more aggressive eviction');
+      issues.push("Memory cache is near capacity");
+      recommendations.push(
+        "Consider increasing MAX_MEMORY_CACHE_SIZE or implementing more aggressive eviction",
+      );
     }
 
     // Check error rate
     if (snapshot.performance.errors > 100) {
-      status = 'critical';
-      issues.push('High number of cache errors detected');
-      recommendations.push('Review logs for error patterns and resolve underlying issues');
+      status = "critical";
+      issues.push("High number of cache errors detected");
+      recommendations.push(
+        "Review logs for error patterns and resolve underlying issues",
+      );
     }
 
     return { status, issues, recommendations };
@@ -291,7 +309,7 @@ class CacheMetricsService {
       set: [],
     };
     cacheService.resetMetrics();
-    logger.info('Cache metrics reset');
+    logger.info("Cache metrics reset");
   }
 
   /**
@@ -308,7 +326,7 @@ class CacheMetricsService {
       deletes: number;
       errors: number;
       redisConnectionHealth: {
-        status: 'connected' | 'disconnected' | 'error';
+        status: "connected" | "disconnected" | "error";
         lastCheck: number;
         consecutiveFailures: number;
       };

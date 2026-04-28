@@ -1,4 +1,3 @@
- 
 // CineArchitect AI - Cinema Skills Trainer Types
 // أنواع المدرب الافتراضي للمهارات السينمائية
 

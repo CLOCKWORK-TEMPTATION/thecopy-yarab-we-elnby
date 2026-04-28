@@ -128,8 +128,8 @@ export async function executeTaskImpl(
         const directData = (await directResponse
           .json()
           .catch(() => null)) as Record<string, unknown> | null;
-        if (directData?.success && directData.result) {
-          rawPayload = directData.result as Record<string, unknown>;
+        if (directData?.["success"] && directData["result"]) {
+          rawPayload = directData["result"] as Record<string, unknown>;
         }
       }
     } catch {

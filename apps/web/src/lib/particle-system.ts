@@ -218,8 +218,8 @@ export class OptimizedParticleSystem {
   private updateParticles(): void {
     if (!this.particles) return;
 
-    const positionAttr = this.particles.geometry.attributes.position;
-    const alphaAttr = this.particles.geometry.attributes.alpha;
+    const positionAttr = this.particles.geometry.attributes["position"];
+    const alphaAttr = this.particles.geometry.attributes["alpha"];
 
     if (!positionAttr || !alphaAttr) return;
 

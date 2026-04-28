@@ -10,9 +10,10 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 
-import { agentReviewLogger } from "../paste-classifier-config";
-
-import { PASTE_CLASSIFIER_ERROR_EVENT } from "../paste-classifier-config";
+import {
+  agentReviewLogger,
+  PASTE_CLASSIFIER_ERROR_EVENT,
+} from "../paste-classifier-config";
 
 import { applyPasteClassifierFlowToView } from "./paste-flow";
 
@@ -51,7 +52,7 @@ export const PasteClassifier = Extension.create<PasteClassifierOptions>({
               const message =
                 error instanceof Error ? error.message : String(error);
               agentReviewLogger.error("paste-failed-fatal", {
-                error,
+                error: message,
                 message,
               });
 

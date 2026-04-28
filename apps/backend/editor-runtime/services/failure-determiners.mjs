@@ -7,10 +7,16 @@
  */
 export function determineFailureStage(karank, suspicion, finalReview) {
   if (!karank.success) return "karank-pipeline";
-  if (!suspicion.reached && suspicion.error?.code !== "SUSPICION_MODEL_DISABLED") {
+  if (
+    !suspicion.reached &&
+    suspicion.error?.code !== "SUSPICION_MODEL_DISABLED"
+  ) {
     return "suspicion-review";
   }
-  if (!finalReview.reached && finalReview.error?.code !== "FINAL_REVIEW_DISABLED") {
+  if (
+    !finalReview.reached &&
+    finalReview.error?.code !== "FINAL_REVIEW_DISABLED"
+  ) {
     return "final-review";
   }
   return null;
@@ -21,10 +27,16 @@ export function determineFailureStage(karank, suspicion, finalReview) {
  */
 export function determineFailureCode(karank, suspicion, finalReview) {
   if (!karank.success) return karank.error.code;
-  if (!suspicion.reached && suspicion.error?.code !== "SUSPICION_MODEL_DISABLED") {
+  if (
+    !suspicion.reached &&
+    suspicion.error?.code !== "SUSPICION_MODEL_DISABLED"
+  ) {
     return suspicion.error.code;
   }
-  if (!finalReview.reached && finalReview.error?.code !== "FINAL_REVIEW_DISABLED") {
+  if (
+    !finalReview.reached &&
+    finalReview.error?.code !== "FINAL_REVIEW_DISABLED"
+  ) {
     return finalReview.error.code;
   }
   return null;
@@ -35,10 +47,16 @@ export function determineFailureCode(karank, suspicion, finalReview) {
  */
 export function determineFailureMessage(karank, suspicion, finalReview) {
   if (!karank.success) return karank.error.message;
-  if (!suspicion.reached && suspicion.error?.code !== "SUSPICION_MODEL_DISABLED") {
+  if (
+    !suspicion.reached &&
+    suspicion.error?.code !== "SUSPICION_MODEL_DISABLED"
+  ) {
     return suspicion.error.message;
   }
-  if (!finalReview.reached && finalReview.error?.code !== "FINAL_REVIEW_DISABLED") {
+  if (
+    !finalReview.reached &&
+    finalReview.error?.code !== "FINAL_REVIEW_DISABLED"
+  ) {
     return finalReview.error.message;
   }
   return null;

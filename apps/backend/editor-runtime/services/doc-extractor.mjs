@@ -55,11 +55,11 @@ export const runAntiwordPreflight = () => {
     const code = typeof error?.code === "string" ? error.code : "";
     if (code === "ENOENT") {
       warnings.push(
-        `antiword binary غير موجود على المسار الحالي: ${runtime.antiwordPath}`
+        `antiword binary غير موجود على المسار الحالي: ${runtime.antiwordPath}`,
       );
     } else if (code === "EACCES") {
       warnings.push(
-        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`
+        `antiword binary موجود لكنه غير قابل للتنفيذ: ${runtime.antiwordPath}`,
       );
     } else {
       // antiword قد يرجع exit code غير صفري مع -h رغم وجوده.
@@ -70,7 +70,7 @@ export const runAntiwordPreflight = () => {
   const antiwordHomeExists = existsSync(runtime.antiwordHome);
   if (!antiwordHomeExists) {
     warnings.push(
-      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`
+      `ANTIWORDHOME غير موجود أو غير صحيح: ${runtime.antiwordHome}`,
     );
   }
 
@@ -109,14 +109,14 @@ const runAntiword = async (antiwordPath, args, antiwordHome) =>
               "antiword",
               DOC_CONVERTER_TIMEOUT_MS,
               stdoutBuffer,
-              stderrBuffer
-            )
+              stderrBuffer,
+            ),
           );
           return;
         }
 
         resolve({ stdout: stdoutBuffer, stderr: stderrBuffer });
-      }
+      },
     );
   });
 
@@ -140,7 +140,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
     const { stdout, stderr } = await runAntiword(
       runtime.antiwordPath,
       ["-m", "UTF-8.txt", "-w", "0", tempFilePath],
-      runtime.antiwordHome
+      runtime.antiwordHome,
     );
 
     const stderrText = decodeUtf8Buffer(stderr).trim();
@@ -164,7 +164,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
     if (error instanceof ExecFileClassifiedError) {
       const stderrText = normalizeIncomingText(
         error.classifiedError?.stderrPreview,
-        400
+        400,
       );
       if (stderrText) warnings.push(stderrText);
       throw new ExecFileClassifiedError(
@@ -177,7 +177,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
             antiwordPath: runtime.antiwordPath,
             antiwordHome: runtime.antiwordHome,
           },
-        }
+        },
       );
     }
     throw new Error(
@@ -186,7 +186,7 @@ export const convertDocBufferToText = async (buffer, filename) => {
       }`,
       {
         cause: error,
-      }
+      },
     );
   } finally {
     if (tempDirPath) {

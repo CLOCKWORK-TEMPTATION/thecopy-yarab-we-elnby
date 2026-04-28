@@ -1,18 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockHealthCheck, mockGetStatus } = vi.hoisted(() => ({
   mockHealthCheck: vi.fn(),
   mockGetStatus: vi.fn(),
 }));
 
-vi.mock('../retrieval/context-builder', () => ({
+vi.mock("../retrieval/context-builder", () => ({
   contextBuilder: {
     buildContext: vi.fn(),
     quickSearch: vi.fn(),
   },
 }));
 
-vi.mock('../vector-store/client', () => ({
+vi.mock("../vector-store/client", () => ({
   weaviateStore: {
     healthCheck: mockHealthCheck,
     getStatus: mockGetStatus,
@@ -23,34 +23,34 @@ vi.mock('../vector-store/client', () => ({
   },
 }));
 
-vi.mock('../embeddings/generator', () => ({
+vi.mock("../embeddings/generator", () => ({
   embeddingGenerator: {
     generateForDocumentation: vi.fn(),
   },
 }));
 
-vi.mock('../indexer/repository-crawler', () => ({
+vi.mock("../indexer/repository-crawler", () => ({
   repositoryCrawler: {
     crawl: vi.fn(),
     crawlSpecific: vi.fn(),
   },
 }));
 
-vi.mock('../indexer/weaviate-indexing.service', () => ({
+vi.mock("../indexer/weaviate-indexing.service", () => ({
   weaviateIndexingService: {
     indexRepository: vi.fn(),
     storeMemoryEntry: vi.fn(),
   },
 }));
 
-vi.mock('../embeddings/mrl-optimizer', () => ({
+vi.mock("../embeddings/mrl-optimizer", () => ({
   mrlOptimizer: {
     suggestDimension: vi.fn(),
     calculateStorageSavings: vi.fn(),
   },
 }));
 
-vi.mock('../vector-store/schema', () => ({
+vi.mock("../vector-store/schema", () => ({
   CodeChunksSchema: {},
   DocumentationSchema: {},
   DecisionsSchema: {},
@@ -58,7 +58,7 @@ vi.mock('../vector-store/schema', () => ({
   AdHocChunksSchema: {},
 }));
 
-import { memoryHealthHandler } from './routes';
+import { memoryHealthHandler } from "./routes";
 
 function createResponseMock() {
   return {
@@ -67,28 +67,28 @@ function createResponseMock() {
   };
 }
 
-describe('memoryHealthHandler', () => {
+describe("memoryHealthHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.GOOGLE_GENAI_API_KEY;
     delete process.env.GEMINI_API_KEY;
   });
 
-  it('يعتبر اعتماد مزود الذكاء الاصطناعي مضبوطًا عند وجود المفتاح البديل فقط', async () => {
-    process.env.GEMINI_API_KEY = 'fallback-key';
+  it("يعتبر اعتماد مزود الذكاء الاصطناعي مضبوطًا عند وجود المفتاح البديل فقط", async () => {
+    process.env.GEMINI_API_KEY = "fallback-key";
 
     mockGetStatus
       .mockReturnValueOnce({
         enabled: true,
         required: false,
-        state: 'connected',
-        host: 'http://localhost:8080',
+        state: "connected",
+        host: "http://localhost:8080",
       })
       .mockReturnValueOnce({
         enabled: true,
         required: false,
-        state: 'connected',
-        host: 'http://localhost:8080',
+        state: "connected",
+        host: "http://localhost:8080",
       });
     mockHealthCheck.mockResolvedValue(true);
 
@@ -99,23 +99,23 @@ describe('memoryHealthHandler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'healthy',
-        gemini: 'configured',
-      })
+        status: "healthy",
+        gemini: "configured",
+      }),
     );
   });
 
-  it('يرجع حالة معطلة عندما يكون نظام الذاكرة متوقفًا', async () => {
+  it("يرجع حالة معطلة عندما يكون نظام الذاكرة متوقفًا", async () => {
     mockGetStatus
       .mockReturnValueOnce({
         enabled: false,
         required: false,
-        state: 'disabled',
+        state: "disabled",
       })
       .mockReturnValueOnce({
         enabled: false,
         required: false,
-        state: 'disabled',
+        state: "disabled",
       });
 
     const response = createResponseMock();
@@ -126,27 +126,27 @@ describe('memoryHealthHandler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'disabled',
-        weaviate: 'disabled',
+        status: "disabled",
+        weaviate: "disabled",
         required: false,
-      })
+      }),
     );
   });
 
-  it('يرجع حالة غير صحية عند سقوط المخزن الإلزامي', async () => {
+  it("يرجع حالة غير صحية عند سقوط المخزن الإلزامي", async () => {
     mockGetStatus
       .mockReturnValueOnce({
         enabled: true,
         required: true,
-        state: 'connecting',
-        host: 'http://localhost:8080',
+        state: "connecting",
+        host: "http://localhost:8080",
       })
       .mockReturnValueOnce({
         enabled: true,
         required: true,
-        state: 'failed',
-        host: 'http://localhost:8080',
-        lastError: 'connection refused',
+        state: "failed",
+        host: "http://localhost:8080",
+        lastError: "connection refused",
       });
     mockHealthCheck.mockResolvedValue(false);
 
@@ -157,10 +157,10 @@ describe('memoryHealthHandler', () => {
     expect(response.status).toHaveBeenCalledWith(503);
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'unhealthy',
-        weaviate: 'disconnected',
+        status: "unhealthy",
+        weaviate: "disconnected",
         required: true,
-      })
+      }),
     );
   });
 });

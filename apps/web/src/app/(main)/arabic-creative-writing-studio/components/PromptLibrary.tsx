@@ -347,10 +347,14 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
         <CardSpotlight className="overflow-hidden rounded-[28px] border border-white/8 bg-black/18 p-6 backdrop-blur-xl mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-white/62 mb-2">
+              <label
+                htmlFor="field-promptlibrary-1"
+                className="block text-sm font-medium text-white/62 mb-2"
+              >
                 🔍 البحث
               </label>
               <Input
+                id="field-promptlibrary-1"
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -360,7 +364,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/62 mb-2">
+              <label
+                htmlFor="prompt-library-genre"
+                className="block text-sm font-medium text-white/62 mb-2"
+              >
                 📂 النوع الأدبي
               </label>
               <Select
@@ -369,7 +376,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                   setSelectedGenre(value as CreativeGenre | "all")
                 }
               >
-                <SelectTrigger className="bg-black/20 border-white/10">
+                <SelectTrigger
+                  id="prompt-library-genre"
+                  className="bg-black/20 border-white/10"
+                >
                   <SelectValue placeholder="جميع الأنواع" />
                 </SelectTrigger>
                 <SelectContent>
@@ -384,7 +394,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/62 mb-2">
+              <label
+                htmlFor="prompt-library-technique"
+                className="block text-sm font-medium text-white/62 mb-2"
+              >
                 🎯 التقنية
               </label>
               <Select
@@ -393,7 +406,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                   setSelectedTechnique(value as WritingTechnique | "all")
                 }
               >
-                <SelectTrigger className="bg-black/20 border-white/10">
+                <SelectTrigger
+                  id="prompt-library-technique"
+                  className="bg-black/20 border-white/10"
+                >
                   <SelectValue placeholder="جميع التقنيات" />
                 </SelectTrigger>
                 <SelectContent>
@@ -408,7 +424,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/62 mb-2">
+              <label
+                htmlFor="prompt-library-difficulty"
+                className="block text-sm font-medium text-white/62 mb-2"
+              >
                 📊 المستوى
               </label>
               <Select
@@ -417,7 +436,10 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
                   setSelectedDifficulty(value as DifficultyLevel | "all")
                 }
               >
-                <SelectTrigger className="bg-black/20 border-white/10">
+                <SelectTrigger
+                  id="prompt-library-difficulty"
+                  className="bg-black/20 border-white/10"
+                >
                   <SelectValue placeholder="جميع المستويات" />
                 </SelectTrigger>
                 <SelectContent>

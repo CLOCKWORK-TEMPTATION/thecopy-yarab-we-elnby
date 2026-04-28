@@ -19,6 +19,8 @@ export const TechPackView: React.FC<TechPackViewProps> = ({
   data,
   fabricName,
 }) => {
+  const referenceId = React.useId().replace(/:/g, "").toUpperCase();
+
   return (
     <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] p-4 backdrop-blur-xl border border-white/8 shadow-lg">
       <div className="bg-white/[0.04] rounded-[22px] p-4 font-mono text-xs">
@@ -29,7 +31,7 @@ export const TechPackView: React.FC<TechPackViewProps> = ({
               TECH PACK
             </h3>
             <span className="text-[10px] text-white/55">
-              REF: {Math.floor(Math.random() * 10000)}
+              REF: {referenceId}
             </span>
           </div>
           <div className="text-right">

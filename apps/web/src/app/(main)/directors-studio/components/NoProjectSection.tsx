@@ -309,11 +309,7 @@ export function NoProjectSection() {
                     <button
                       key={project.id}
                       type="button"
-                      className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-right transition-colors ${
-                        isSelected
-                          ? "border-emerald-500/70 bg-emerald-500/10 text-white"
-                          : "border-white/10 bg-white/5 text-white/80 hover:border-white/20"
-                      }`}
+                      className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-right transition-colors ${isSelected ? "border-emerald-500/70 bg-emerald-500/10 text-white" : "border-white/10 bg-white/5 text-white/80 hover:border-white/20"}`}
                       onClick={() => selectProject(project)}
                       data-testid={`button-select-existing-project-${project.id}`}
                     >

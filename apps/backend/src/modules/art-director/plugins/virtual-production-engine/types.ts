@@ -1,4 +1,3 @@
- 
 // Virtual Production Engine Types
 // أنواع محرك الإنتاج الافتراضي
 
@@ -79,7 +78,13 @@ export interface TrackingSession {
 export interface VisualEffect {
   id: string;
   name: string;
-  type: "particle" | "fluid" | "destruction" | "weather" | "creature" | "environment";
+  type:
+    | "particle"
+    | "fluid"
+    | "destruction"
+    | "weather"
+    | "creature"
+    | "environment";
   realTime: boolean;
   gpuAccelerated: boolean;
   parameters: Record<string, unknown>;
@@ -88,7 +93,12 @@ export interface VisualEffect {
 export interface OpticalIllusion {
   id: string;
   name: string;
-  type: "forced-perspective" | "matte-painting" | "miniature" | "projection" | "practical-effect";
+  type:
+    | "forced-perspective"
+    | "matte-painting"
+    | "miniature"
+    | "projection"
+    | "practical-effect";
   description: string;
   setup: IllusionSetup;
   cameraRequirements: CameraRequirement[];

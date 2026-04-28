@@ -7,50 +7,65 @@
  * tracing was disabled.
  */
 
-import { createRequire } from 'node:module';
+import { createRequire } from "node:module";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import type { NodeSDK } from '@opentelemetry/sdk-node';
+import type { NodeSDK } from "@opentelemetry/sdk-node";
 
-const TRACING_ENABLED = process.env['TRACING_ENABLED'] === 'true';
+const TRACING_ENABLED = process.env["TRACING_ENABLED"] === "true";
 const OTEL_EXPORTER_OTLP_ENDPOINT =
-  process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ?? 'http://localhost:4318/v1/traces';
-const SERVICE_NAME = process.env['SERVICE_NAME'] ?? 'thecopy-backend';
-const SERVICE_VERSION = process.env.npm_package_version ?? '1.0.0';
-const ENVIRONMENT = process.env.NODE_ENV ?? 'development';
-const OTEL_LOG_LEVEL = process.env['OTEL_LOG_LEVEL'] ?? 'info';
+  process.env["OTEL_EXPORTER_OTLP_ENDPOINT"] ??
+  "http://localhost:4318/v1/traces";
+const SERVICE_NAME = process.env["SERVICE_NAME"] ?? "thecopy-backend";
+const SERVICE_VERSION = process.env.npm_package_version ?? "1.0.0";
+const ENVIRONMENT = process.env.NODE_ENV ?? "development";
+const OTEL_LOG_LEVEL = process.env["OTEL_LOG_LEVEL"] ?? "info";
 const loadRuntimeModule = createRequire(__filename);
 
 function loadOtelModules() {
-  const { NodeSDK } = loadRuntimeModule('@opentelemetry/sdk-node') as typeof import('@opentelemetry/sdk-node');
-  const { defaultResource, resourceFromAttributes } =
-    loadRuntimeModule('@opentelemetry/resources') as typeof import('@opentelemetry/resources');
+  const { NodeSDK } = loadRuntimeModule(
+    "@opentelemetry/sdk-node",
+  ) as typeof import("@opentelemetry/sdk-node");
+  const { defaultResource, resourceFromAttributes } = loadRuntimeModule(
+    "@opentelemetry/resources",
+  ) as typeof import("@opentelemetry/resources");
   const { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } =
-    loadRuntimeModule('@opentelemetry/semantic-conventions') as typeof import('@opentelemetry/semantic-conventions');
-  const { OTLPTraceExporter } =
-    loadRuntimeModule('@opentelemetry/exporter-trace-otlp-http') as typeof import('@opentelemetry/exporter-trace-otlp-http');
-  const { getNodeAutoInstrumentations } =
-    loadRuntimeModule('@opentelemetry/auto-instrumentations-node') as typeof import('@opentelemetry/auto-instrumentations-node');
-  const { diag, DiagConsoleLogger, DiagLogLevel } =
-    loadRuntimeModule('@opentelemetry/api') as typeof import('@opentelemetry/api');
+    loadRuntimeModule(
+      "@opentelemetry/semantic-conventions",
+    ) as typeof import("@opentelemetry/semantic-conventions");
+  const { OTLPTraceExporter } = loadRuntimeModule(
+    "@opentelemetry/exporter-trace-otlp-http",
+  ) as typeof import("@opentelemetry/exporter-trace-otlp-http");
+  const { getNodeAutoInstrumentations } = loadRuntimeModule(
+    "@opentelemetry/auto-instrumentations-node",
+  ) as typeof import("@opentelemetry/auto-instrumentations-node");
+  const { diag, DiagConsoleLogger, DiagLogLevel } = loadRuntimeModule(
+    "@opentelemetry/api",
+  ) as typeof import("@opentelemetry/api");
 
   return {
-    NodeSDK, defaultResource, resourceFromAttributes,
-    SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION,
-    OTLPTraceExporter, getNodeAutoInstrumentations,
-    diag, DiagConsoleLogger, DiagLogLevel,
+    NodeSDK,
+    defaultResource,
+    resourceFromAttributes,
+    SEMRESATTRS_SERVICE_NAME,
+    SEMRESATTRS_SERVICE_VERSION,
+    OTLPTraceExporter,
+    getNodeAutoInstrumentations,
+    diag,
+    DiagConsoleLogger,
+    DiagLogLevel,
   };
 }
 
 function configureOtelDiag(
-  diag: ReturnType<typeof loadOtelModules>['diag'],
-  DiagConsoleLogger: ReturnType<typeof loadOtelModules>['DiagConsoleLogger'],
-  DiagLogLevel: ReturnType<typeof loadOtelModules>['DiagLogLevel'],
+  diag: ReturnType<typeof loadOtelModules>["diag"],
+  DiagConsoleLogger: ReturnType<typeof loadOtelModules>["DiagConsoleLogger"],
+  DiagLogLevel: ReturnType<typeof loadOtelModules>["DiagLogLevel"],
 ) {
-  if (OTEL_LOG_LEVEL === 'debug') {
+  if (OTEL_LOG_LEVEL === "debug") {
     diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
-  } else if (OTEL_LOG_LEVEL === 'verbose') {
+  } else if (OTEL_LOG_LEVEL === "verbose") {
     diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.VERBOSE);
   }
 }
@@ -60,8 +75,8 @@ function createTracingResource(modules: ReturnType<typeof loadOtelModules>) {
     modules.resourceFromAttributes({
       [modules.SEMRESATTRS_SERVICE_NAME]: SERVICE_NAME,
       [modules.SEMRESATTRS_SERVICE_VERSION]: SERVICE_VERSION,
-      'deployment.environment': ENVIRONMENT,
-    })
+      "deployment.environment": ENVIRONMENT,
+    }),
   );
 }
 
@@ -71,7 +86,11 @@ export function initTracing(): NodeSDK | null {
   }
 
   const modules = loadOtelModules();
-  configureOtelDiag(modules.diag, modules.DiagConsoleLogger, modules.DiagLogLevel);
+  configureOtelDiag(
+    modules.diag,
+    modules.DiagConsoleLogger,
+    modules.DiagLogLevel,
+  );
 
   const traceExporter = new modules.OTLPTraceExporter({
     url: OTEL_EXPORTER_OTLP_ENDPOINT,
@@ -84,29 +103,31 @@ export function initTracing(): NodeSDK | null {
     traceExporter,
     instrumentations: [
       modules.getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-http': {
+        "@opentelemetry/instrumentation-http": {
           enabled: true,
           ignoreIncomingRequestHook: (request) => {
-            const url = request.url ?? '';
-            return url.includes('/health') || url.includes('/metrics');
+            const url = request.url ?? "";
+            return url.includes("/health") || url.includes("/metrics");
           },
         },
-        '@opentelemetry/instrumentation-express': { enabled: true },
-        '@opentelemetry/instrumentation-pg': { enabled: true },
-        '@opentelemetry/instrumentation-redis': { enabled: true },
-        '@opentelemetry/instrumentation-mongodb': { enabled: true },
-        '@opentelemetry/instrumentation-net': { enabled: false },
-        '@opentelemetry/instrumentation-fs': { enabled: false },
+        "@opentelemetry/instrumentation-express": { enabled: true },
+        "@opentelemetry/instrumentation-pg": { enabled: true },
+        "@opentelemetry/instrumentation-redis": { enabled: true },
+        "@opentelemetry/instrumentation-mongodb": { enabled: true },
+        "@opentelemetry/instrumentation-net": { enabled: false },
+        "@opentelemetry/instrumentation-fs": { enabled: false },
       }),
     ],
   });
 
   sdk.start();
 
-  process.on('SIGTERM', () => {
+  process.on("SIGTERM", () => {
     sdk
       .shutdown()
-      .catch((error: unknown) => logger.error('OpenTelemetry shutdown failed', error))
+      .catch((error: unknown) =>
+        logger.error("OpenTelemetry shutdown failed", error),
+      )
       .finally(() => process.exit(0));
   });
 

@@ -25,12 +25,15 @@ export class VirtualProductionEngine implements Plugin {
   name = "Virtual Production Engine & Pre-visualization";
   nameAr = "محرك الإنتاج الافتراضي والتصور المسبق";
   version = "1.0.0";
-  description = "Interactive visual tool with virtual camera and optical illusion calculator";
+  description =
+    "Interactive visual tool with virtual camera and optical illusion calculator";
   descriptionAr = "أداة بصرية تفاعلية مع كاميرا افتراضية وحاسبة الخداع البصري";
   category = "xr-immersive" as const;
 
   async initialize(): Promise<void> {
-    console.log(`[${this.name}] Initialized with LED wall and camera tracking support`);
+    console.log(
+      `[${this.name}] Initialized with LED wall and camera tracking support`,
+    );
   }
 
   async execute(input: PluginInput): Promise<PluginOutput> {

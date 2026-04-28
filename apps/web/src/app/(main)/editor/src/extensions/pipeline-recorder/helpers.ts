@@ -1,6 +1,11 @@
 import { logger } from "@/lib/logger";
 
-import type { PipelineSnapshot, SnapshotLine, StageDiff } from "./types";
+import type {
+  LineChange,
+  PipelineSnapshot,
+  SnapshotLine,
+  StageDiff,
+} from "./types";
 
 export const isPipelineConsoleDebugEnabled = (): boolean => {
   if (typeof window === "undefined") return false;
@@ -31,7 +36,7 @@ export const computeDiff = (
   from: PipelineSnapshot,
   to: PipelineSnapshot
 ): StageDiff => {
-  const changes: StageDiff["changes"] = [];
+  const changes: LineChange[] = [];
   const length = Math.max(from.lines.length, to.lines.length);
 
   for (let index = 0; index < length; index++) {

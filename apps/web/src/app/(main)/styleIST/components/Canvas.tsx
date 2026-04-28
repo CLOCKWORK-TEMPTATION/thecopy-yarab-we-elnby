@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import React from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -50,7 +51,9 @@ const Canvas: React.FC<CanvasProps> = ({
           autoPlay
           loop
           className="max-w-full max-h-full rounded-[16px] shadow-2xl border border-white/8"
-        />
+        >
+          <track kind="captions" />
+        </video>
       </CardSpotlight>
     );
   }
@@ -101,11 +104,14 @@ const Canvas: React.FC<CanvasProps> = ({
       {/* Image Display or Placeholder */}
       <div className="relative w-full h-full flex items-center justify-center">
         {displayImageUrl ? (
-          <img
+          <Image
             key={displayImageUrl} // Use key to force re-render
             src={displayImageUrl}
             alt="Virtual try-on model"
-            className="max-w-full max-h-full object-contain transition-opacity duration-500 animate-fade-in rounded-lg shadow-md"
+            fill
+            sizes="100vw"
+            unoptimized
+            className="object-contain transition-opacity duration-500 animate-fade-in rounded-lg shadow-md"
           />
         ) : (
           <div className="w-[400px] h-[600px] bg-white/6 border border-white/8 rounded-[16px] flex flex-col items-center justify-center">

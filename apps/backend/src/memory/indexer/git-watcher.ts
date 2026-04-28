@@ -32,7 +32,9 @@ export class GitWatcher extends EventEmitter {
       }
 
       this.lastCheckedCommit = await this.getCurrentCommit();
-      logger.info(`GitWatcher initialized at commit ${this.lastCheckedCommit?.slice(0, 7)}`);
+      logger.info(
+        `GitWatcher initialized at commit ${this.lastCheckedCommit?.slice(0, 7)}`,
+      );
     } catch (error) {
       logger.error("Failed to initialize GitWatcher", { error });
       throw error;
@@ -89,7 +91,7 @@ export class GitWatcher extends EventEmitter {
     }
 
     logger.info(
-      `Commit changed: ${this.lastCheckedCommit?.slice(0, 7)} → ${currentCommit.slice(0, 7)}`
+      `Commit changed: ${this.lastCheckedCommit?.slice(0, 7)} → ${currentCommit.slice(0, 7)}`,
     );
 
     const events: GitChangeEvent[] = [];
@@ -107,7 +109,11 @@ export class GitWatcher extends EventEmitter {
 
       for (const commit of log.all) {
         // Get files changed in this commit
-        const showResult = await this.git.show(["--name-status", "--pretty=format:", commit.hash]);
+        const showResult = await this.git.show([
+          "--name-status",
+          "--pretty=format:",
+          commit.hash,
+        ]);
         const lines = showResult.split("\n").filter((l) => l.trim());
 
         for (const line of lines) {
@@ -203,9 +209,12 @@ export class GitWatcher extends EventEmitter {
       const [branch, commit, remote] = await Promise.all([
         this.getCurrentBranch(),
         this.getCurrentCommit(),
-        this.git.getRemotes(true).then((remotes) =>
-          remotes.find((remote) => remote.name === "origin")?.refs?.fetch
-        ),
+        this.git
+          .getRemotes(true)
+          .then(
+            (remotes) =>
+              remotes.find((remote) => remote.name === "origin")?.refs?.fetch,
+          ),
       ]);
 
       const log = await this.git.log({ maxCount: 1 });

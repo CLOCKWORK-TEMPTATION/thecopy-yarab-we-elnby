@@ -2,12 +2,7 @@
 // CineArchitect AI - AI Resource & Budget Optimizer
 // محسّن الموارد والميزانية الذكي
 
-import {
-  Plugin,
-  PluginInput,
-  PluginOutput,
-  Budget,
-} from "../../types";
+import { Plugin, PluginInput, PluginOutput, Budget } from "../../types";
 
 interface BudgetOptimizationInput {
   totalBudget: number;
@@ -83,7 +78,7 @@ export class BudgetOptimizer implements Plugin {
     switch (input.type) {
       case "optimize":
         return this.optimizeBudget(
-          input.data as unknown as BudgetOptimizationInput
+          input.data as unknown as BudgetOptimizationInput,
         );
       case "analyze":
         return this.analyzeBudget(input.data as any);
@@ -100,7 +95,7 @@ export class BudgetOptimizer implements Plugin {
   }
 
   private async optimizeBudget(
-    data: BudgetOptimizationInput
+    data: BudgetOptimizationInput,
   ): Promise<PluginOutput> {
     const { totalBudget, currency, categories, constraints } = data;
 
@@ -119,14 +114,14 @@ export class BudgetOptimizer implements Plugin {
     // Check if total requested exceeds budget
     if (totalRequested > totalBudget) {
       warnings.push(
-        `Requested budget (${totalRequested.toLocaleString()} ${currency}) exceeds available budget (${totalBudget.toLocaleString()} ${currency})`
+        `Requested budget (${totalRequested.toLocaleString()} ${currency}) exceeds available budget (${totalBudget.toLocaleString()} ${currency})`,
       );
     }
 
     // Sort categories by priority
     const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
     const sortedCategories = [...categories].sort(
-      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]
+      (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
     );
 
     let remainingBudget = totalBudget;
@@ -152,14 +147,14 @@ export class BudgetOptimizer implements Plugin {
         const reduction = category.flexibility * 0.2;
         allocated = Math.min(
           category.requested * (1 - reduction),
-          remainingBudget
+          remainingBudget,
         );
       } else {
         // Low priority gets what's left
         const reduction = category.flexibility * 0.35;
         allocated = Math.min(
           category.requested * (1 - reduction),
-          remainingBudget
+          remainingBudget,
         );
       }
 
@@ -265,11 +260,11 @@ export class BudgetOptimizer implements Plugin {
     for (const cat of budget.categories) {
       if (cat.spent > cat.allocated) {
         analysis.alerts.push(
-          `${cat.name} is over budget by ${(cat.spent - cat.allocated).toLocaleString()} ${budget.currency}`
+          `${cat.name} is over budget by ${(cat.spent - cat.allocated).toLocaleString()} ${budget.currency}`,
         );
       } else if (cat.spent > cat.allocated * 0.9) {
         analysis.alerts.push(
-          `${cat.name} is approaching budget limit (${((cat.spent / cat.allocated) * 100).toFixed(1)}% used)`
+          `${cat.name} is approaching budget limit (${((cat.spent / cat.allocated) * 100).toFixed(1)}% used)`,
         );
       }
     }
@@ -345,11 +340,11 @@ export class BudgetOptimizer implements Plugin {
       const overBy = projectedTotal - budget.total;
       forecast.recommendations.push(
         `At current rate, you will exceed budget by ${overBy.toLocaleString()} ${budget.currency}`,
-        `Reduce daily spending to ${(budget.remaining / daysRemaining).toLocaleString()} ${budget.currency} to stay on track`
+        `Reduce daily spending to ${(budget.remaining / daysRemaining).toLocaleString()} ${budget.currency} to stay on track`,
       );
     } else {
       forecast.recommendations.push(
-        `On track to finish under budget by ${(budget.total - projectedTotal).toLocaleString()} ${budget.currency}`
+        `On track to finish under budget by ${(budget.total - projectedTotal).toLocaleString()} ${budget.currency}`,
       );
     }
 

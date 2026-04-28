@@ -14,12 +14,12 @@
  * ولكن لا يبث لغرفة الجلسة. هذا الـ gateway يكمّل تلك النقطة الناقصة.
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import * as repo from './repository';
-import { breakappService } from './service';
+import * as repo from "./repository";
+import { breakappService } from "./service";
 
-import type { Server as SocketIOServer, Socket } from 'socket.io';
+import type { Server as SocketIOServer, Socket } from "socket.io";
 
 interface BreakappSocketEntry {
   sessionId?: string;
@@ -46,37 +46,39 @@ class BreakappGateway {
 
   attach(io: SocketIOServer): void {
     if (this.io) {
-      logger.warn('[BreakappGateway] already attached');
+      logger.warn("[BreakappGateway] already attached");
       return;
     }
     this.io = io;
 
-    io.on('connection', (socket: Socket) => {
-      socket.on('disconnect', () => {
+    io.on("connection", (socket: Socket) => {
+      socket.on("disconnect", () => {
         this.socketEntries.delete(socket.id);
       });
 
       socket.on(
-        'breakapp:session:join',
+        "breakapp:session:join",
         async (data: { sessionId?: string; role?: string }) => {
           if (!data?.sessionId) return;
-          const session = await repo.getSession(data.sessionId).catch(() => null);
+          const session = await repo
+            .getSession(data.sessionId)
+            .catch(() => null);
           if (!session) return;
           const room = sessionRoom(data.sessionId);
           await socket.join(room);
           const entry = this.getEntry(socket);
           entry.sessionId = data.sessionId;
           if (data.role) entry.role = data.role;
-          socket.emit('breakapp:session:joined', {
+          socket.emit("breakapp:session:joined", {
             sessionId: data.sessionId,
             room,
             timestamp: new Date().toISOString(),
           });
-        }
+        },
       );
 
       socket.on(
-        'breakapp:runner:location',
+        "breakapp:runner:location",
         async (data: {
           runnerId?: string;
           sessionId?: string;
@@ -86,8 +88,8 @@ class BreakappGateway {
         }) => {
           if (
             !data?.runnerId ||
-            typeof data.lat !== 'number' ||
-            typeof data.lng !== 'number'
+            typeof data.lat !== "number" ||
+            typeof data.lng !== "number"
           ) {
             return;
           }
@@ -101,29 +103,31 @@ class BreakappGateway {
           });
 
           if (data.sessionId && this.io) {
-            this.io.to(sessionRoom(data.sessionId)).emit('runner:location:update', {
-              runnerId: data.runnerId,
-              lat: data.lat,
-              lng: data.lng,
-              accuracy: data.accuracy ?? null,
-              timestamp: new Date().toISOString(),
-            });
+            this.io
+              .to(sessionRoom(data.sessionId))
+              .emit("runner:location:update", {
+                runnerId: data.runnerId,
+                lat: data.lat,
+                lng: data.lng,
+                accuracy: data.accuracy ?? null,
+                timestamp: new Date().toISOString(),
+              });
           }
-        }
+        },
       );
     });
 
-    logger.info('[BreakappGateway] attached to Socket.IO server');
+    logger.info("[BreakappGateway] attached to Socket.IO server");
   }
 
   emitSessionStarted(sessionId: string, projectId: string): void {
     if (!this.io) return;
-    this.io.to(sessionRoom(sessionId)).emit('session:started', {
+    this.io.to(sessionRoom(sessionId)).emit("session:started", {
       sessionId,
       projectId,
       timestamp: new Date().toISOString(),
     });
-    this.io.emit('session:started', {
+    this.io.emit("session:started", {
       sessionId,
       projectId,
       timestamp: new Date().toISOString(),
@@ -132,12 +136,12 @@ class BreakappGateway {
 
   emitSessionEnded(sessionId: string, projectId: string): void {
     if (!this.io) return;
-    this.io.to(sessionRoom(sessionId)).emit('session:ended', {
+    this.io.to(sessionRoom(sessionId)).emit("session:ended", {
       sessionId,
       projectId,
       timestamp: new Date().toISOString(),
     });
-    this.io.emit('session:ended', {
+    this.io.emit("session:ended", {
       sessionId,
       projectId,
       timestamp: new Date().toISOString(),
@@ -159,9 +163,11 @@ class BreakappGateway {
       timestamp: new Date().toISOString(),
     };
     if (payload.sessionId) {
-      this.io.to(sessionRoom(payload.sessionId)).emit('order:status:update', body);
+      this.io
+        .to(sessionRoom(payload.sessionId))
+        .emit("order:status:update", body);
     }
-    this.io.emit('order:status:update', body);
+    this.io.emit("order:status:update", body);
   }
 
   emitTaskNew(payload: {
@@ -172,9 +178,9 @@ class BreakappGateway {
     sessionId: string;
   }): void {
     if (!this.io) return;
-    this.io.emit('task:new', {
+    this.io.emit("task:new", {
       ...payload,
-      status: 'pending',
+      status: "pending",
       timestamp: new Date().toISOString(),
     });
   }

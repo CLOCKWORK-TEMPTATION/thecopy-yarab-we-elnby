@@ -20,11 +20,11 @@ export const agentIdToTaskTypeMap: Record<AgentId, TaskType> = {
 };
 
 export const taskTypeToAgentIdMap: Record<TaskType, AgentId> = Object.entries(
-  agentIdToTaskTypeMap
+  agentIdToTaskTypeMap,
 ).reduce(
   (acc, [agentId, taskType]) => {
     acc[taskType] = agentId;
     return acc;
   },
-  {} as Record<TaskType, AgentId>
+  {} as Record<TaskType, AgentId>,
 );

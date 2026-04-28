@@ -15,7 +15,7 @@ const PROJECT_ROOT = resolve(__dirname, "..");
 const DEFAULT_AGENT_ROOT = resolve(
   PROJECT_ROOT,
   "src",
-  "ocr-arabic-pdf-to-txt-pipeline"
+  "ocr-arabic-pdf-to-txt-pipeline",
 );
 const baseConfigSchema = z.object({
   enabled: z.boolean(),
@@ -137,41 +137,43 @@ const resolveRawConfig = () => {
       process.env.GOOGLE_GENAI_API_KEY?.trim() ||
       "",
     geminiOcrModel:
-      process.env.PDF_OCR_AGENT_GEMINI_MODEL?.trim() || "gemini-3.1-pro-preview",
+      process.env.PDF_OCR_AGENT_GEMINI_MODEL?.trim() ||
+      "gemini-3.1-pro-preview",
     visionCompareModel: process.env.PDF_VISION_COMPARE_MODEL?.trim() || "",
     visionJudgeModel: process.env.PDF_VISION_JUDGE_MODEL?.trim() || "",
     visionProofreadModel:
-      process.env.PDF_VISION_PROOFREAD_MODEL?.trim() || "gemini-3.1-pro-preview",
+      process.env.PDF_VISION_PROOFREAD_MODEL?.trim() ||
+      "gemini-3.1-pro-preview",
     visionCompareTimeoutMs: toNumber(
       process.env.PDF_VISION_COMPARE_TIMEOUT_MS,
-      180_000
+      180_000,
     ),
     visionJudgeTimeoutMs: toNumber(
       process.env.PDF_VISION_JUDGE_TIMEOUT_MS,
-      180_000
+      180_000,
     ),
     visionProofreadTimeoutMs: toNumber(
       process.env.PDF_VISION_PROOFREAD_TIMEOUT_MS,
-      180_000
+      180_000,
     ),
     visionRenderDpi: toNumber(process.env.PDF_VISION_RENDER_DPI, 300),
     externalReferencePath:
       process.env.PDF_OCR_EXTERNAL_REFERENCE_PATH?.trim() || "",
     openAgentVerifyFootprint: toEnabledFlag(
-      process.env.OPEN_PDF_AGENT_VERIFY_FOOTPRINT ?? "false"
+      process.env.OPEN_PDF_AGENT_VERIFY_FOOTPRINT ?? "false",
     ),
     openAgentEnableMcpStage: toEnabledFlag(
-      process.env.OPEN_PDF_AGENT_ENABLE_MCP_STAGE ?? "true"
+      process.env.OPEN_PDF_AGENT_ENABLE_MCP_STAGE ?? "true",
     ),
     enableClassification: toEnabledFlag(
-      process.env.PDF_OCR_AGENT_CLASSIFY_ENABLED
+      process.env.PDF_OCR_AGENT_CLASSIFY_ENABLED,
     ),
     enableEnhancement: toEnabledFlag(process.env.PDF_OCR_AGENT_ENHANCE_ENABLED),
     enableVisionProofread: toEnabledFlag(
-      process.env.PDF_OCR_ENABLE_VISION_PROOFREAD ?? "true"
+      process.env.PDF_OCR_ENABLE_VISION_PROOFREAD ?? "true",
     ),
     enableVisionQA: toEnabledFlag(
-      process.env.PDF_OCR_ENABLE_VISION_QA ?? "false"
+      process.env.PDF_OCR_ENABLE_VISION_QA ?? "false",
     ),
   };
 };
@@ -206,21 +208,21 @@ export const getPdfOcrAgentConfig = () => {
   if (!legacyConfigured && !geminiDirectConfigured) {
     throw configError(
       "PDF_OCR_CFG_MISSING_PROVIDER",
-      "PDF OCR agent misconfigured: configure either the legacy Mistral stack or GEMINI_API_KEY / GOOGLE_GENAI_API_KEY for the embedded Gemini OCR path."
+      "PDF OCR agent misconfigured: configure either the legacy Mistral stack or GEMINI_API_KEY / GOOGLE_GENAI_API_KEY for the embedded Gemini OCR path.",
     );
   }
 
   if (geminiDirectConfigured && /\s/iu.test(parsed.geminiApiKey)) {
     throw configError(
       "PDF_OCR_CFG_INVALID_GEMINI_API_KEY",
-      "PDF OCR agent misconfigured: GEMINI_API_KEY / GOOGLE_GENAI_API_KEY must not contain whitespace."
+      "PDF OCR agent misconfigured: GEMINI_API_KEY / GOOGLE_GENAI_API_KEY must not contain whitespace.",
     );
   }
 
   if (legacyConfigured && !existsSync(parsed.agentRoot)) {
     throw configError(
       "PDF_OCR_CFG_MISSING_AGENT_ROOT",
-      `PDF OCR agent misconfigured: agent root does not exist (${parsed.agentRoot}).`
+      `PDF OCR agent misconfigured: agent root does not exist (${parsed.agentRoot}).`,
     );
   }
 
@@ -236,7 +238,7 @@ export const getPdfOcrAgentConfig = () => {
       if (!existsSync(scriptPath)) {
         throw configError(
           "PDF_OCR_CFG_MISSING_SCRIPT_PATH",
-          `PDF OCR agent misconfigured: ${label} does not exist (${scriptPath}).`
+          `PDF OCR agent misconfigured: ${label} does not exist (${scriptPath}).`,
         );
       }
     }

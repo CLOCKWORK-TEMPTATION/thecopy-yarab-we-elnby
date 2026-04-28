@@ -106,13 +106,7 @@ const SceneCard = memo(function SceneCard({
           <div>
             <span className="font-semibold">الحالة:</span>{" "}
             <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                scene.status === "completed"
-                  ? "bg-[var(--app-accent)]/10 text-[var(--app-accent)]"
-                  : scene.status === "in-progress"
-                    ? "bg-amber-500/10 text-amber-600"
-                    : "bg-[var(--app-surface-alt,var(--app-surface))] text-[var(--app-text-muted)]"
-              }`}
+              className={`px-2 py-1 rounded-full text-xs ${scene.status === "completed" ? "bg-[var(--app-accent)]/10 text-[var(--app-accent)]" : scene.status === "in-progress" ? "bg-amber-500/10 text-amber-600" : "bg-[var(--app-surface-alt,var(--app-surface))] text-[var(--app-text-muted)]"}`}
             >
               {scene.status === "planned"
                 ? "مخطط"

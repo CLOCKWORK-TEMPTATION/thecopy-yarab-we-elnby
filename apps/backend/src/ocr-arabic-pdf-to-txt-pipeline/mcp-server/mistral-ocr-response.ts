@@ -52,7 +52,7 @@ export function readDocumentAnnotation(response: unknown): unknown {
   const raw = field<string | object | null>(
     response,
     "document_annotation",
-    null
+    null,
   );
   if (raw === null || raw === undefined) {
     return undefined;

@@ -39,13 +39,15 @@ export function createMockRequest(overrides: Partial<Request> = {}): Request {
     body: {},
     query: {},
     headers: {
-      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
     cookies: {},
     ip: "192.168.1.100",
     socket: { remoteAddress: "192.168.1.100" },
     get: vi.fn((header: string) => {
-      if (header === "User-Agent") return overrides.headers?.["user-agent"] ?? "Mozilla/5.0";
+      if (header === "User-Agent")
+        return overrides.headers?.["user-agent"] ?? "Mozilla/5.0";
       return undefined;
     }),
     ...overrides,

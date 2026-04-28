@@ -97,17 +97,24 @@ export interface EnhancedCritiqueResult {
   /** النتيجة الإجمالية */
   overallScore: number;
   /** المستوى الإجمالي */
-  overallLevel: "excellent" | "good" | "satisfactory" | "needs_improvement" | "poor";
+  overallLevel:
+    | "excellent"
+    | "good"
+    | "satisfactory"
+    | "needs_improvement"
+    | "poor";
   /** درجة التحسين */
   improvementScore: number;
   /** ملاحظات النقد */
   critiqueNotes: string[];
   /** خطة التحسين */
-  improvementPlan?: {
-    priority: "high" | "medium" | "low";
-    actions: string[];
-    expectedImpact?: string;
-  }[] | undefined;
+  improvementPlan?:
+    | {
+        priority: "high" | "medium" | "low";
+        actions: string[];
+        expectedImpact?: string;
+      }[]
+    | undefined;
 }
 
 /**
@@ -173,5 +180,5 @@ export enum CritiqueStyle {
   /** أكاديمي */
   ACADEMIC = "academic",
   /** إبداعي */
-  CREATIVE = "creative"
+  CREATIVE = "creative",
 }

@@ -33,8 +33,8 @@ function parseStoredProject(stored: string): Project | null {
   }
 
   if (
-    parsed.scriptContent !== null &&
-    typeof parsed.scriptContent !== "string"
+    parsed["scriptContent"] !== null &&
+    typeof parsed["scriptContent"] !== "string"
   ) {
     return null;
   }

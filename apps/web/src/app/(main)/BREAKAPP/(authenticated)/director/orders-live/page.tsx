@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 import { BatchResults } from "./components/BatchResults";
 import { OrderFilters } from "./components/OrderFilters";
 import { OrderList } from "./components/OrderList";

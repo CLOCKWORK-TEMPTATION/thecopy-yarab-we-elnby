@@ -2,11 +2,13 @@
 
 import {
   Camera,
+  CameraOff,
   CheckCircle2,
   Clapperboard,
   Film,
   Image as ImageIcon,
   Palette,
+  RefreshCcw,
   Send,
   Trash2,
   Upload,
@@ -306,13 +308,17 @@ const PostProductionTools: React.FC<PostProductionToolsProps> = ({ mood }) => {
                   muted
                   playsInline
                   className="h-full w-full object-cover"
-                />
+                >
+                  <track kind="captions" />
+                </video>
               ) : previewType === "video" && previewUrl ? (
                 <video
                   src={previewUrl}
                   controls
                   className="h-full w-full object-cover"
-                />
+                >
+                  <track kind="captions" />
+                </video>
               ) : previewType === "image" && previewUrl ? (
                 <Image
                   src={previewUrl}

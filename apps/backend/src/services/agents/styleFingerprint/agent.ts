@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const STYLE_FINGERPRINT_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.STYLE_FINGERPRINT,

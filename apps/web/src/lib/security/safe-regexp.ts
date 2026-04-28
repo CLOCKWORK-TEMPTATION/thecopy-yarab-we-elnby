@@ -54,7 +54,8 @@ export function createSafeRegExp(
     const regex = new RegExp(escapedPattern, flags);
     return regex;
   } catch (error) {
-    throw new Error(`Invalid RegExp pattern: ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid RegExp pattern: ${message}`);
   }
 }
 

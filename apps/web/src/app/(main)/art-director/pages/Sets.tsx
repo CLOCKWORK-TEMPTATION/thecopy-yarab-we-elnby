@@ -161,8 +161,9 @@ function Sets() {
           <h3>إضافة قطعة ديكور</h3>
           <div className="form-grid">
             <div className="form-group">
-              <label>الاسم (عربي)</label>
+              <label htmlFor="field-sets-1">الاسم (عربي)</label>
               <input
+                id="field-sets-1"
                 type="text"
                 className="input"
                 placeholder="مثال: كنبة كلاسيكية"
@@ -173,8 +174,9 @@ function Sets() {
               />
             </div>
             <div className="form-group">
-              <label>الاسم (إنجليزي)</label>
+              <label htmlFor="field-sets-2">الاسم (إنجليزي)</label>
               <input
+                id="field-sets-2"
                 type="text"
                 className="input"
                 placeholder="Example: Classic Sofa"
@@ -185,8 +187,9 @@ function Sets() {
               />
             </div>
             <div className="form-group">
-              <label>الفئة</label>
+              <label htmlFor="field-sets-3">الفئة</label>
               <select
+                id="field-sets-3"
                 className="input"
                 value={formData.category}
                 onChange={(e) =>
@@ -201,8 +204,9 @@ function Sets() {
               </select>
             </div>
             <div className="form-group">
-              <label>الحالة</label>
+              <label htmlFor="field-sets-4">الحالة</label>
               <select
+                id="field-sets-4"
                 className="input"
                 value={formData.condition}
                 onChange={(e) =>
@@ -216,8 +220,9 @@ function Sets() {
               </select>
             </div>
             <div className="form-group full-width">
-              <label>الأبعاد</label>
+              <label htmlFor="field-sets-5">الأبعاد</label>
               <input
+                id="field-sets-5"
                 type="text"
                 className="input"
                 placeholder="مثال: 200×80×90 سم"

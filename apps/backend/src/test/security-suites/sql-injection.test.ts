@@ -25,9 +25,7 @@ describe("1️⃣ SQL Injection Protection", () => {
   });
 
   it("should not elevate protected route access through injected query strings", async () => {
-    const response = await request(app).get(
-      "/api/protected?id=1%20OR%201=1",
-    );
+    const response = await request(app).get("/api/protected?id=1%20OR%201=1");
 
     expect(response.status).toBe(401);
     expect(responseBody(response)).toMatchObject({

@@ -98,7 +98,9 @@ describe("AudienceResonanceAgent", () => {
   });
 
   it("should return the fallback contract with error metadata", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("resonance failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("resonance failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل الصدى",

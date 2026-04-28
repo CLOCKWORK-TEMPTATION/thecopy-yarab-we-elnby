@@ -12,18 +12,18 @@
  * /snapshot endpoint when a session has expired.
  */
 
-import { randomUUID } from 'crypto';
+import { randomUUID } from "crypto";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 export type StationId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type StationStatus =
-  | 'idle'
-  | 'queued'
-  | 'running'
-  | 'completed'
-  | 'failed';
+  | "idle"
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed";
 
 export interface StationState {
   id: StationId;
@@ -41,7 +41,7 @@ export interface PipelineWarning {
   id: string;
   stationId: StationId | null;
   message: string;
-  severity: 'info' | 'warn' | 'error';
+  severity: "info" | "warn" | "error";
   at: string;
 }
 
@@ -49,7 +49,7 @@ export interface StreamSessionSnapshot {
   analysisId: string;
   projectId: string | null;
   projectName: string;
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "idle" | "running" | "completed" | "failed" | "cancelled";
   startedAt: string;
   completedAt: string | null;
   textLength: number;
@@ -60,15 +60,30 @@ export interface StreamSessionSnapshot {
 }
 
 export type StreamEvent =
-  | { type: 'pipeline.started'; analysisId: string; projectName: string; capabilities: { exports: string[] } }
-  | { type: 'pipeline.warning'; warning: PipelineWarning }
-  | { type: 'pipeline.completed'; status: 'completed' | 'failed'; durationMs: number }
-  | { type: 'station.started'; stationId: StationId; name: string; at: string }
-  | { type: 'station.progress'; stationId: StationId; progress: number }
-  | { type: 'station.token'; stationId: StationId; token: string }
-  | { type: 'station.completed'; stationId: StationId; output: unknown; confidence: number | null; durationMs: number }
-  | { type: 'station.error'; stationId: StationId; message: string }
-  | { type: 'snapshot'; snapshot: StreamSessionSnapshot };
+  | {
+      type: "pipeline.started";
+      analysisId: string;
+      projectName: string;
+      capabilities: { exports: string[] };
+    }
+  | { type: "pipeline.warning"; warning: PipelineWarning }
+  | {
+      type: "pipeline.completed";
+      status: "completed" | "failed";
+      durationMs: number;
+    }
+  | { type: "station.started"; stationId: StationId; name: string; at: string }
+  | { type: "station.progress"; stationId: StationId; progress: number }
+  | { type: "station.token"; stationId: StationId; token: string }
+  | {
+      type: "station.completed";
+      stationId: StationId;
+      output: unknown;
+      confidence: number | null;
+      durationMs: number;
+    }
+  | { type: "station.error"; stationId: StationId; message: string }
+  | { type: "snapshot"; snapshot: StreamSessionSnapshot };
 
 export interface SerializedEvent {
   id: number;
@@ -77,13 +92,13 @@ export interface SerializedEvent {
 }
 
 const STATION_NAMES: Record<StationId, string> = {
-  1: 'التحليل العميق للشخصيات',
-  2: 'التحليل المتقدم للحوار',
-  3: 'التحليل البصري والسينمائي',
-  4: 'تحليل الموضوعات والرسائل',
-  5: 'التحليل الثقافي والتاريخي',
-  6: 'تحليل قابلية الإنتاج',
-  7: 'تحليل الجمهور والتقرير النهائي',
+  1: "التحليل العميق للشخصيات",
+  2: "التحليل المتقدم للحوار",
+  3: "التحليل البصري والسينمائي",
+  4: "تحليل الموضوعات والرسائل",
+  5: "التحليل الثقافي والتاريخي",
+  6: "تحليل قابلية الإنتاج",
+  7: "تحليل الجمهور والتقرير النهائي",
 };
 
 const MAX_BUFFER = 1024;
@@ -101,13 +116,18 @@ interface InternalSession {
 class AnalysisStreamRegistry {
   private sessions = new Map<string, InternalSession>();
 
-  create(input: { projectName: string; projectId: string | null; textLength: number; ownerId: string }): InternalSession {
+  create(input: {
+    projectName: string;
+    projectId: string | null;
+    textLength: number;
+    ownerId: string;
+  }): InternalSession {
     const analysisId = randomUUID();
     const now = new Date().toISOString();
     const stations: StationState[] = STATION_IDS.map((id) => ({
       id,
       name: STATION_NAMES[id],
-      status: 'idle',
+      status: "idle",
       progress: 0,
       startedAt: null,
       completedAt: null,
@@ -121,7 +141,7 @@ class AnalysisStreamRegistry {
         analysisId,
         projectId: input.projectId,
         projectName: input.projectName,
-        status: 'idle',
+        status: "idle",
         startedAt: now,
         completedAt: null,
         textLength: input.textLength,
@@ -172,7 +192,7 @@ class AnalysisStreamRegistry {
       try {
         writer(chunk);
       } catch (err) {
-        logger.warn('SSE writer threw on emit', { analysisId, err });
+        logger.warn("SSE writer threw on emit", { analysisId, err });
       }
     }
   }
@@ -180,14 +200,17 @@ class AnalysisStreamRegistry {
   attach(
     analysisId: string,
     writer: (chunk: string) => void,
-    lastEventId: number | null
-  ): { ok: true; replay: SerializedEvent[] } | { ok: false; reason: 'not-found' } {
+    lastEventId: number | null,
+  ):
+    | { ok: true; replay: SerializedEvent[] }
+    | { ok: false; reason: "not-found" } {
     const session = this.get(analysisId);
-    if (!session) return { ok: false, reason: 'not-found' };
+    if (!session) return { ok: false, reason: "not-found" };
 
-    const replay = lastEventId == null
-      ? session.buffer.slice()
-      : session.buffer.filter((e) => e.id > lastEventId);
+    const replay =
+      lastEventId == null
+        ? session.buffer.slice()
+        : session.buffer.filter((e) => e.id > lastEventId);
 
     session.writers.add(writer);
     return { ok: true, replay };
@@ -211,35 +234,35 @@ class AnalysisStreamRegistry {
   private applyToSnapshot(session: InternalSession, event: StreamEvent): void {
     const snap = session.snapshot;
     switch (event.type) {
-      case 'pipeline.started':
-        snap.status = 'running';
+      case "pipeline.started":
+        snap.status = "running";
         break;
-      case 'pipeline.completed':
+      case "pipeline.completed":
         snap.status = event.status;
         snap.completedAt = new Date().toISOString();
         break;
-      case 'pipeline.warning':
+      case "pipeline.warning":
         snap.warnings.push(event.warning);
         break;
-      case 'station.started': {
+      case "station.started": {
         const s = snap.stations.find((x) => x.id === event.stationId);
         if (s) {
-          s.status = 'running';
+          s.status = "running";
           s.startedAt = event.at;
           s.progress = 0;
           s.error = null;
         }
         break;
       }
-      case 'station.progress': {
+      case "station.progress": {
         const s = snap.stations.find((x) => x.id === event.stationId);
         if (s) s.progress = Math.max(0, Math.min(1, event.progress));
         break;
       }
-      case 'station.completed': {
+      case "station.completed": {
         const s = snap.stations.find((x) => x.id === event.stationId);
         if (s) {
-          s.status = 'completed';
+          s.status = "completed";
           s.progress = 1;
           s.completedAt = new Date().toISOString();
           s.output = event.output;
@@ -247,25 +270,31 @@ class AnalysisStreamRegistry {
         }
         break;
       }
-      case 'station.error': {
+      case "station.error": {
         const s = snap.stations.find((x) => x.id === event.stationId);
         if (s) {
-          s.status = 'failed';
+          s.status = "failed";
           s.error = event.message;
           s.completedAt = new Date().toISOString();
         }
         break;
       }
-      case 'snapshot':
-      case 'station.token':
+      case "snapshot":
+      case "station.token":
         break;
     }
 
     // Derive finalReport when station 7 completes
     const station7 = snap.stations.find((x) => x.id === 7);
-    if (station7?.status === 'completed' && station7.output && typeof station7.output === 'object') {
-      const details = (station7.output as { details?: { finalReport?: unknown } }).details;
-      if (details && typeof details.finalReport === 'string') {
+    if (
+      station7?.status === "completed" &&
+      station7.output &&
+      typeof station7.output === "object"
+    ) {
+      const details = (
+        station7.output as { details?: { finalReport?: unknown } }
+      ).details;
+      if (details && typeof details.finalReport === "string") {
         snap.finalReport = details.finalReport;
       }
     }

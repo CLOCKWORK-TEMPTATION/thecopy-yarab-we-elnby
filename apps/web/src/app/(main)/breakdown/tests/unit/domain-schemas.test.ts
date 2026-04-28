@@ -11,16 +11,17 @@ describe("domain schemas", () => {
     const result = validateSceneBreakdown({});
 
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.cast).toEqual([]);
-      expect(result.data.props).toEqual([]);
-      expect(result.data.setDressing).toEqual([]);
-      expect(result.data.sound).toEqual([]);
-      expect(result.data.equipment).toEqual([]);
-      expect(result.data.continuity).toEqual([]);
-      expect(result.data.elements).toEqual([]);
-      expect(result.data.stats.cast).toBe(0);
+    if (!result.success) {
+      throw new Error("Expected scene breakdown validation to succeed.");
     }
+    expect(result.data.cast).toEqual([]);
+    expect(result.data.props).toEqual([]);
+    expect(result.data.setDressing).toEqual([]);
+    expect(result.data.sound).toEqual([]);
+    expect(result.data.equipment).toEqual([]);
+    expect(result.data.continuity).toEqual([]);
+    expect(result.data.elements).toEqual([]);
+    expect(result.data.stats.cast).toBe(0);
   });
 
   it("يرفض استجابة تقسيم غير صالحة", () => {

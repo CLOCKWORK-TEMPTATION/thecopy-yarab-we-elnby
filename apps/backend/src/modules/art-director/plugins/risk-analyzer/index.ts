@@ -139,7 +139,7 @@ export class RiskAnalyzer implements Plugin {
 
     // Add location-based risks
     const hasOutdoorLocations = data.project.locations.some(
-      (l) => l.type === "outdoor"
+      (l) => l.type === "outdoor",
     );
     if (hasOutdoorLocations) {
       const weatherRisk = this.createRisk("weather_delay", data);
@@ -254,8 +254,7 @@ export class RiskAnalyzer implements Plugin {
   }
 
   private createRisk(templateKey: string, _data: RiskAnalysisInput): Risk {
-    const template =
-      RISK_TEMPLATES[templateKey] ??
+    const template = RISK_TEMPLATES[templateKey] ??
       RISK_TEMPLATES["location_access"] ?? {
         type: "logistical" as const,
         description: "Generic production risk",
@@ -311,12 +310,12 @@ export class RiskAnalyzer implements Plugin {
     };
 
     const mitInfo = mitigations[risk.type] || mitigations["logistical"];
-    const resolvedMitigation =
-      mitInfo ?? {
-        action: "Secure all permits in advance and maintain location relationships",
-        actionAr: "تأمين جميع التصاريح مسبقاً والحفاظ على علاقات المواقع",
-        responsible: "Location Manager",
-      };
+    const resolvedMitigation = mitInfo ?? {
+      action:
+        "Secure all permits in advance and maintain location relationships",
+      actionAr: "تأمين جميع التصاريح مسبقاً والحفاظ على علاقات المواقع",
+      responsible: "Location Manager",
+    };
 
     return {
       riskId: risk.id,
@@ -370,16 +369,15 @@ export class RiskAnalyzer implements Plugin {
     };
 
     const contInfo = contingencies[risk.type] || contingencies["technical"];
-    const resolvedContingency =
-      contInfo ?? {
-        trigger: "Primary equipment failure",
-        actions: [
-          "Deploy backup equipment",
-          "Contact rental house",
-          "Adjust shooting order",
-        ],
-        resources: ["Backup equipment", "Rental contacts", "Technical support"],
-      };
+    const resolvedContingency = contInfo ?? {
+      trigger: "Primary equipment failure",
+      actions: [
+        "Deploy backup equipment",
+        "Contact rental house",
+        "Adjust shooting order",
+      ],
+      resources: ["Backup equipment", "Rental contacts", "Technical support"],
+    };
 
     return {
       riskId: risk.id,
@@ -391,38 +389,38 @@ export class RiskAnalyzer implements Plugin {
 
   private generateRecommendations(
     risks: Risk[],
-    data: RiskAnalysisInput
+    data: RiskAnalysisInput,
   ): string[] {
     const recommendations: string[] = [];
 
     const highRisks = risks.filter((r) => r.score > 0.5);
     if (highRisks.length > 0) {
       recommendations.push(
-        `Address ${highRisks.length} high-priority risks before production begins`
+        `Address ${highRisks.length} high-priority risks before production begins`,
       );
     }
 
     if (data.project.locations.some((l) => l.type === "outdoor")) {
       recommendations.push(
-        "Prepare weather contingency plans for all outdoor locations"
+        "Prepare weather contingency plans for all outdoor locations",
       );
     }
 
     if (data.production?.hasStunts) {
       recommendations.push(
-        "Ensure stunt coordinator and safety team are present for all stunt sequences"
+        "Ensure stunt coordinator and safety team are present for all stunt sequences",
       );
     }
 
     if (data.project.duration > 30) {
       recommendations.push(
-        "Schedule regular risk assessment reviews throughout production"
+        "Schedule regular risk assessment reviews throughout production",
       );
     }
 
     recommendations.push("Maintain comprehensive production insurance");
     recommendations.push(
-      "Implement daily backup procedures for all footage and data"
+      "Implement daily backup procedures for all footage and data",
     );
 
     return recommendations;

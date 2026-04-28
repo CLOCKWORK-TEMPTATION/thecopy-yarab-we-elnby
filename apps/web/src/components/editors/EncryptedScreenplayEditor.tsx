@@ -69,35 +69,19 @@ export function EncryptedScreenplayEditor({
     }
   }, [router]);
 
-  // تحميل المستند عند التهيئة
-  useEffect(() => {
-    if (currentDocId) {
-      handleLoad(currentDocId).catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "خطأ في التحميل");
-      });
-    }
-  }, [currentDocId]);
-
-  // تحميل قائمة المستندات
-  useEffect(() => {
-    loadDocumentsList().catch((err: unknown) => {
-      setError(err instanceof Error ? err.message : "خطأ في تحميل المستندات");
-    });
-  }, []);
-
-  const loadDocumentsList = async () => {
+  const loadDocumentsList = useCallback(async () => {
     const result = await listEncryptedDocuments();
     if (result.success && result.documents) {
       setDocuments(result.documents);
     }
-  };
+  }, []);
 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
     setError(null);
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setIsSaving(true);
     setError(null);
 
@@ -122,62 +106,84 @@ export function EncryptedScreenplayEditor({
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [content, currentDocId, loadDocumentsList, onSave, userId]);
 
-  const handleLoad = async (docIdToLoad: string) => {
-    setIsLoading(true);
-    setError(null);
+  const handleLoad = useCallback(
+    async (docIdToLoad: string) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const result = await loadEncryptedDocument({
-        docId: docIdToLoad,
-        userId,
-      });
+      try {
+        const result = await loadEncryptedDocument({
+          docId: docIdToLoad,
+          userId,
+        });
 
-      if (result.success && result.content) {
-        setContent(result.content);
-        setCurrentDocId(docIdToLoad);
-        onLoad?.(result.content);
-      } else {
-        setError(result.error ?? "فشل التحميل");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "خطأ في التحميل");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (docIdToDelete: string) => {
-    if (
-      !confirm(
-        "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء."
-      )
-    ) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await deleteEncryptedDocument(docIdToDelete);
-
-      if (result.success) {
-        if (currentDocId === docIdToDelete) {
-          setContent("");
-          setCurrentDocId(undefined);
+        if (result.success && result.content) {
+          setContent(result.content);
+          setCurrentDocId(docIdToLoad);
+          onLoad?.(result.content);
+        } else {
+          setError(result.error ?? "فشل التحميل");
         }
-        await loadDocumentsList();
-      } else {
-        setError(result.error ?? "فشل الحذف");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "خطأ في التحميل");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "خطأ في الحذف");
-    } finally {
-      setIsLoading(false);
+    },
+    [onLoad, userId]
+  );
+
+  const handleDelete = useCallback(
+    async (docIdToDelete: string) => {
+      if (
+        !confirm(
+          "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء."
+        )
+      ) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await deleteEncryptedDocument(docIdToDelete);
+
+        if (result.success) {
+          if (currentDocId === docIdToDelete) {
+            setContent("");
+            setCurrentDocId(undefined);
+          }
+          await loadDocumentsList();
+        } else {
+          setError(result.error ?? "فشل الحذف");
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "خطأ في الحذف");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentDocId, loadDocumentsList]
+  );
+
+  // تحميل المستند عند التهيئة
+  useEffect(() => {
+    if (currentDocId) {
+      handleLoad(currentDocId).catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "خطأ في التحميل");
+      });
     }
-  };
+  }, [currentDocId, handleLoad]);
+
+  // تحميل قائمة المستندات
+  useEffect(() => {
+    loadDocumentsList().catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "خطأ في تحميل المستندات");
+    });
+  }, [loadDocumentsList]);
 
   return (
     <>

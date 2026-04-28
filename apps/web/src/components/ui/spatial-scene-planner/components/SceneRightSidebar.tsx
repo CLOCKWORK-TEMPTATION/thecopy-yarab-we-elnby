@@ -81,10 +81,13 @@ export function SceneRightSidebar({
         {/* Focal Length */}
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm">البعد البؤري</label>
+            <label htmlFor="scene-camera-focal-length" className="text-sm">
+              البعد البؤري
+            </label>
             <span className="text-sm font-mono">{camera.focalLength}mm</span>
           </div>
           <Slider
+            id="scene-camera-focal-length"
             value={[camera.focalLength]}
             min={14}
             max={200}
@@ -99,10 +102,13 @@ export function SceneRightSidebar({
         {/* Aperture */}
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm">فتحة العدسة</label>
+            <label htmlFor="scene-camera-aperture" className="text-sm">
+              فتحة العدسة
+            </label>
             <span className="text-sm font-mono">f/{camera.aperture}</span>
           </div>
           <Slider
+            id="scene-camera-aperture"
             value={[camera.aperture]}
             min={1.4}
             max={22}
@@ -120,10 +126,14 @@ export function SceneRightSidebar({
           <div className="grid grid-cols-3 gap-2">
             {(["x", "y", "z"] as const).map((axis) => (
               <div key={axis} className="space-y-1">
-                <label className="text-xs text-muted-foreground uppercase">
+                <label
+                  htmlFor={`scene-camera-position-${axis}`}
+                  className="text-xs text-muted-foreground uppercase"
+                >
                   {axis}
                 </label>
                 <input
+                  id={`scene-camera-position-${axis}`}
                   type="number"
                   value={camera.position[axis]}
                   onChange={(e) =>
@@ -154,8 +164,14 @@ export function SceneRightSidebar({
           <div className="space-y-4">
             {/* Name */}
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">الاسم</label>
+              <label
+                htmlFor="field-scenerightsidebar-1"
+                className="text-xs text-muted-foreground"
+              >
+                الاسم
+              </label>
               <input
+                id="field-scenerightsidebar-1"
                 type="text"
                 value={selectedObj.name}
                 onChange={(e) =>
@@ -172,10 +188,14 @@ export function SceneRightSidebar({
               <div className="grid grid-cols-3 gap-2">
                 {(["x", "y", "z"] as const).map((axis) => (
                   <div key={axis} className="space-y-1">
-                    <label className="text-xs text-muted-foreground uppercase">
+                    <label
+                      htmlFor={`scene-object-position-${axis}`}
+                      className="text-xs text-muted-foreground uppercase"
+                    >
                       {axis}
                     </label>
                     <input
+                      id={`scene-object-position-${axis}`}
                       type="number"
                       value={selectedObj.position[axis]}
                       onChange={(e) =>
@@ -196,12 +216,15 @@ export function SceneRightSidebar({
             {/* Scale */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm">الحجم</label>
+                <label htmlFor="scene-object-scale" className="text-sm">
+                  الحجم
+                </label>
                 <span className="text-sm font-mono">
                   {selectedObj.scale.toFixed(1)}x
                 </span>
               </div>
               <Slider
+                id="scene-object-scale"
                 value={[selectedObj.scale]}
                 min={0.5}
                 max={3}
@@ -215,16 +238,12 @@ export function SceneRightSidebar({
 
             {/* Color */}
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">اللون</label>
+              <div className="text-xs text-muted-foreground">اللون</div>
               <div className="flex gap-2">
                 {OBJECT_COLORS.map((color) => (
                   <button
                     key={color}
-                    className={`w-8 h-8 rounded-full transition-all ${
-                      selectedObj.color === color
-                        ? "ring-2 ring-brand ring-offset-2"
-                        : ""
-                    }`}
+                    className={`w-8 h-8 rounded-full transition-all ${selectedObj.color === color ? "ring-2 ring-brand ring-offset-2" : ""}`}
                     style={{ backgroundColor: color }}
                     onClick={() => updateObject(selectedObj.id, { color })}
                   />

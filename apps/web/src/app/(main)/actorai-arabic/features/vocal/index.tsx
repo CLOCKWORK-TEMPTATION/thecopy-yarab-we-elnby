@@ -92,9 +92,7 @@ export function VocalExercisesView() {
         {VOCAL_EXERCISES.map((exercise) => (
           <Card
             key={exercise.id}
-            className={`hover:shadow-lg transition-shadow bg-white/[0.04] border-white/8 ${
-              activeExercise === exercise.id ? "ring-2 ring-purple-500" : ""
-            }`}
+            className={`hover:shadow-lg transition-shadow bg-white/[0.04] border-white/8 ${activeExercise === exercise.id ? "ring-2 ring-purple-500" : ""}`}
           >
             <CardHeader>
               <div className="flex justify-between items-start">

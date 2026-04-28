@@ -13,6 +13,15 @@ import {
 const PDFA_ENDPOINT = resolvePdfaExportEndpoint();
 const EDITOR_RUNTIME_HEALTH_ENDPOINT = resolveEditorRuntimeHealthEndpoint();
 
+const isErrorPayload = (value: unknown): value is { error: string } => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "error" in value &&
+    typeof value.error === "string"
+  );
+};
+
 /**
  * يتحقق من توفر خادم التصدير قبل الإرسال.
  */
@@ -58,10 +67,11 @@ export const exportAsPdfA = async (request: ExportRequest): Promise<void> => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
+    const errorData: unknown = await response.json().catch(() => null);
     throw new Error(
-      (errorData as { error?: string })?.error ??
-        `فشل تصدير PDF/A (${response.status})`
+      isErrorPayload(errorData)
+        ? errorData.error
+        : `فشل تصدير PDF/A (${response.status})`
     );
   }
 

@@ -49,7 +49,7 @@ export class CreativeInspirationAssistant implements Plugin {
     this.initializeStyleDatabase();
     this.initializeColorPalettes();
     console.log(
-      `[${this.name}] Initialized with ${this.styleDatabase.size} style categories`
+      `[${this.name}] Initialized with ${this.styleDatabase.size} style categories`,
     );
   }
 
@@ -149,11 +149,11 @@ export class CreativeInspirationAssistant implements Plugin {
         return this.analyzeScene(input.data as unknown as AnalyzeSceneInput);
       case "generate-moodboard":
         return this.generateMoodBoard(
-          input.data as unknown as AnalyzeSceneInput
+          input.data as unknown as AnalyzeSceneInput,
         );
       case "suggest-palette":
         return this.suggestColorPalette(
-          input.data as { mood: string; era?: string }
+          input.data as { mood: string; era?: string },
         );
       case "get-references":
         return this.getStyleReferences(input.data as { style: string });
@@ -192,7 +192,7 @@ export class CreativeInspirationAssistant implements Plugin {
       suggestionsAr: this.generateSuggestionsAr(
         detectedMood,
         style,
-        detectedEra
+        detectedEra,
       ),
     };
 
@@ -312,7 +312,7 @@ export class CreativeInspirationAssistant implements Plugin {
   private generateMoodBoardItems(
     mood: string,
     style: string,
-    colors: string[]
+    colors: string[],
   ): MoodBoardItem[] {
     const items: MoodBoardItem[] = [];
 
@@ -345,7 +345,7 @@ export class CreativeInspirationAssistant implements Plugin {
   private generateSuggestions(
     mood: string,
     style: string,
-    era: string
+    era: string,
   ): string[] {
     return [
       `Consider using ${mood} lighting to enhance the atmosphere`,
@@ -359,7 +359,7 @@ export class CreativeInspirationAssistant implements Plugin {
   private generateSuggestionsAr(
     mood: string,
     style: string,
-    era: string
+    era: string,
   ): string[] {
     return [
       `فكر في استخدام إضاءة ${mood} لتعزيز الأجواء`,
@@ -371,7 +371,7 @@ export class CreativeInspirationAssistant implements Plugin {
   }
 
   private async generateMoodBoard(
-    data: AnalyzeSceneInput
+    data: AnalyzeSceneInput,
   ): Promise<PluginOutput> {
     const analysisResult = await this.analyzeScene(data);
     if (!analysisResult.success) return analysisResult;
@@ -398,7 +398,7 @@ export class CreativeInspirationAssistant implements Plugin {
   }): Promise<PluginOutput> {
     const palette = this.selectColorPalette(
       data.mood,
-      data.era || "contemporary"
+      data.era || "contemporary",
     );
 
     return {

@@ -115,8 +115,12 @@ function inferLocations(scenario: string): string[] {
   }
 
   const heuristicHits = [
-    /desert/iu.test(scenario) || scenario.includes('صحراء') ? "Desert Exterior" : "",
-    /warehouse/iu.test(scenario) || scenario.includes('مخزن') ? "Warehouse Interior" : "",
+    /desert/iu.test(scenario) || scenario.includes("صحراء")
+      ? "Desert Exterior"
+      : "",
+    /warehouse/iu.test(scenario) || scenario.includes("مخزن")
+      ? "Warehouse Interior"
+      : "",
     /street|highway|strip/iu.test(scenario) || /شارع|طريق/u.test(scenario)
       ? "Street Location"
       : "",
@@ -128,7 +132,11 @@ function inferLocations(scenario: string): string[] {
   return uniqueStrings(heuristicHits).slice(0, 4);
 }
 
-function inferGenre(scenario: string, actionLevel: number, vfxLevel: number): string {
+function inferGenre(
+  scenario: string,
+  actionLevel: number,
+  vfxLevel: number,
+): string {
   if (actionLevel >= 2) {
     return "Action";
   }
@@ -150,15 +158,17 @@ function inferGenre(scenario: string, actionLevel: number, vfxLevel: number): st
 
 function inferCastCount(scenario: string): number {
   const uppercaseCues = uniqueStrings(
-    [...scenario.matchAll(/(?:^|\n)\s*([A-Z][A-Z0-9 ]{2,24})\s*(?:\(|$)/gm)].map(
-      (match) => match[1] ?? ""
-    )
-  ).filter((name) => !["INT", "EXT", "DAY", "NIGHT", "SCENE"].includes(name.trim()));
+    [
+      ...scenario.matchAll(/(?:^|\n)\s*([A-Z][A-Z0-9 ]{2,24})\s*(?:\(|$)/gm),
+    ].map((match) => match[1] ?? ""),
+  ).filter(
+    (name) => !["INT", "EXT", "DAY", "NIGHT", "SCENE"].includes(name.trim()),
+  );
 
   const dialogueCues = uniqueStrings(
     [...scenario.matchAll(/(?:^|\n)\s*([\p{L}]{2,30})\s*:/gu)].map(
-      (match) => match[1] ?? ""
-    )
+      (match) => match[1] ?? "",
+    ),
   );
 
   return clamp(uppercaseCues.length || dialogueCues.length || 2, 2, 12);
@@ -175,11 +185,15 @@ function inferExplicitShootingDays(scenario: string): number | null {
 
 export function buildScenarioInsights(
   scenario: string,
-  title?: string
+  title?: string,
 ): ScenarioInsights {
   const sceneCount = Math.max(
     1,
-    [...scenario.matchAll(/(?:^|\n)\s*(?:scene\b|مشهد\b|int\.|ext\.|داخلي|خارجي)/gim)].length
+    [
+      ...scenario.matchAll(
+        /(?:^|\n)\s*(?:scene\b|مشهد\b|int\.|ext\.|داخلي|خارجي)/gim,
+      ),
+    ].length,
   );
   const actionLevel = clamp(countMatches(ACTION_KEYWORDS, scenario), 0, 4);
   const vfxLevel = clamp(countMatches(VFX_KEYWORDS, scenario), 0, 3);
@@ -188,25 +202,33 @@ export function buildScenarioInsights(
   const crowdLevel = clamp(countMatches(CROWD_KEYWORDS, scenario), 0, 4);
   const stuntMoments = clamp(actionLevel + vehicleCount, 0, 6);
   const locations = inferLocations(scenario);
-  const locationCount = Math.max(1, locations.length || Math.ceil(sceneCount / 2));
+  const locationCount = Math.max(
+    1,
+    locations.length || Math.ceil(sceneCount / 2),
+  );
   const castCount = inferCastCount(scenario);
   const explicitDays = inferExplicitShootingDays(scenario);
-  const shootingDays = explicitDays ?? clamp(
-        sceneCount +
-          locationCount +
-          actionLevel * 2 +
-          vfxLevel +
-          nightShootCount +
-          crowdLevel,
-        3,
-        32
-      );
+  const shootingDays =
+    explicitDays ??
+    clamp(
+      sceneCount +
+        locationCount +
+        actionLevel * 2 +
+        vfxLevel +
+        nightShootCount +
+        crowdLevel,
+      3,
+      32,
+    );
 
   return {
     canonicalTitle: inferTitle(title, scenario),
     sceneCount,
     shootingDays,
-    preProductionDays: Math.max(3, Math.ceil(shootingDays * 0.6) + locationCount),
+    preProductionDays: Math.max(
+      3,
+      Math.ceil(shootingDays * 0.6) + locationCount,
+    ),
     postProductionDays: Math.max(5, Math.ceil(shootingDays * 0.75) + vfxLevel),
     locations,
     locationCount,

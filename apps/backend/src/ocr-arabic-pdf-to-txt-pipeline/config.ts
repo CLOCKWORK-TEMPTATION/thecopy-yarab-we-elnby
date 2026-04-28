@@ -12,7 +12,6 @@ import { config as dotenvConfig } from "dotenv";
 
 import type { AgentConfig } from "./types";
 
-
 function writeStderr(...args: unknown[]): void {
   process.stderr.write(formatLogLine(...args) + "\n");
 }

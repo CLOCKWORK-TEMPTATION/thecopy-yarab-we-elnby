@@ -151,29 +151,29 @@ export const sanitizeAIRequest = (request: unknown): UnknownRecord => {
   const sanitized = { ...request };
 
   // Sanitize agent name
-  if (sanitized.agent && typeof sanitized.agent === "string") {
-    sanitized.agent = sanitizeText(sanitized.agent);
+  if (sanitized["agent"] && typeof sanitized["agent"] === "string") {
+    sanitized["agent"] = sanitizeText(sanitized["agent"]);
   }
 
   // Sanitize parameters
-  if (isRecord(sanitized.parameters)) {
-    sanitized.parameters = sanitizeObject(sanitized.parameters);
+  if (isRecord(sanitized["parameters"])) {
+    sanitized["parameters"] = sanitizeObject(sanitized["parameters"]);
   }
 
   // Sanitize files
-  const files = sanitized.files;
+  const files = sanitized["files"];
   if (Array.isArray(files)) {
-    sanitized.files = (files as unknown[]).map((file: unknown) => {
+    sanitized["files"] = (files as unknown[]).map((file: unknown) => {
       if (isRecord(file)) {
         return {
           ...file,
           name: sanitizeFileName(
-            typeof file.name === "string" ? file.name : ""
+            typeof file["name"] === "string" ? file["name"] : ""
           ),
           content:
-            typeof file.content === "string"
-              ? sanitizeText(file.content)
-              : file.content,
+            typeof file["content"] === "string"
+              ? sanitizeText(file["content"])
+              : file["content"],
         };
       }
       return file;
@@ -194,13 +194,13 @@ export const sanitizeAIResponse = (response: unknown): unknown => {
   const sanitized = { ...response };
 
   // Sanitize raw content
-  if (sanitized.raw && typeof sanitized.raw === "string") {
-    sanitized.raw = sanitizeHTML(sanitized.raw);
+  if (sanitized["raw"] && typeof sanitized["raw"] === "string") {
+    sanitized["raw"] = sanitizeHTML(sanitized["raw"]);
   }
 
   // Sanitize parsed content if it exists
-  if (isRecord(sanitized.parsed)) {
-    sanitized.parsed = sanitizeObject(sanitized.parsed);
+  if (isRecord(sanitized["parsed"])) {
+    sanitized["parsed"] = sanitizeObject(sanitized["parsed"]);
   }
 
   return sanitized;

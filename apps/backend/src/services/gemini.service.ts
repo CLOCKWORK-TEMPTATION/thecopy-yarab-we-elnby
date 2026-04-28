@@ -2,26 +2,29 @@ import {
   GoogleGenerativeAI,
   type GenerateContentResult,
   type GenerativeModel,
-} from '@google/generative-ai';
+} from "@google/generative-ai";
 
-import { env } from '@/config/env';
-import { logger } from '@/lib/logger';
-import { trackGeminiRequest, trackGeminiCache } from '@/middleware/metrics.middleware';
+import { env } from "@/config/env";
+import { logger } from "@/lib/logger";
+import {
+  trackGeminiRequest,
+  trackGeminiCache,
+} from "@/middleware/metrics.middleware";
 
-import { cacheService } from './cache.service';
+import { cacheService } from "./cache.service";
 import {
   generateGeminiCacheKey,
   getGeminiCacheTTL,
   cachedGeminiCall,
   getAdaptiveTTL,
   GEMINI_CACHE_PREFIX,
-} from './gemini-cache.strategy';
-import { geminiCostTracker } from './gemini-cost-tracker.service';
-import { llmGuardrails } from './llm-guardrails.service';
+} from "./gemini-cache.strategy";
+import { geminiCostTracker } from "./gemini-cost-tracker.service";
+import { llmGuardrails } from "./llm-guardrails.service";
 
 /**
  * نوع فئات ذاكرة التخزين المؤقت المدعومة
- * 
+ *
  * @description
  * يحدد الفئات الصالحة لمفاتيح ذاكرة التخزين المؤقت في Gemini API
  */
@@ -29,7 +32,7 @@ type GeminiCacheCategory = keyof typeof GEMINI_CACHE_PREFIX;
 
 /**
  * إعدادات طلب Gemini API
- * 
+ *
  * @description
  * يحدد كافة المعاملات المطلوبة لتنفيذ طلب Gemini مع التخزين المؤقت والقياسات
  */
@@ -54,12 +57,14 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: GenerativeModel;
   private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
-  private readonly DEFAULT_MODEL = 'gemini-2.5-flash';
+  private readonly DEFAULT_MODEL = "gemini-2.5-flash";
 
   constructor() {
     const apiKey = env.GEMINI_API_KEY ?? env.GOOGLE_GENAI_API_KEY;
     if (!apiKey || apiKey.trim().length === 0) {
-      throw new Error('GEMINI_API_KEY أو GOOGLE_GENAI_API_KEY غير محدد في البيئة');
+      throw new Error(
+        "GEMINI_API_KEY أو GOOGLE_GENAI_API_KEY غير محدد في البيئة",
+      );
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: this.DEFAULT_MODEL });
@@ -70,7 +75,7 @@ export class GeminiService {
    */
   private async trackTokenUsage(
     apiResult: GenerateContentResult | null,
-    analysisType: string
+    analysisType: string,
   ): Promise<void> {
     try {
       const usageMetadata = apiResult?.response?.usageMetadata;
@@ -79,69 +84,73 @@ export class GeminiService {
         const inputTokens = usageMetadata.promptTokenCount ?? 0;
         const outputTokens = usageMetadata.candidatesTokenCount ?? 0;
 
-        await geminiCostTracker.trackUsage(inputTokens, outputTokens, analysisType);
+        await geminiCostTracker.trackUsage(
+          inputTokens,
+          outputTokens,
+          analysisType,
+        );
       } else {
-        logger.debug('No usage metadata in Gemini response', { analysisType });
+        logger.debug("No usage metadata in Gemini response", { analysisType });
       }
     } catch (error) {
-      logger.error('Failed to track token usage', { error, analysisType });
+      logger.error("Failed to track token usage", { error, analysisType });
     }
   }
 
   /**
    * Apply guardrails to input and output with comprehensive validation
    */
-   
+
   private applyGuardrails(
     input: string,
     output: string,
     requestType: string,
-    userId?: string
+    userId?: string,
   ): { sanitizedInput: string; sanitizedOutput: string; warnings: string[] } {
     const warnings: string[] = [];
-    
+
     // Validate input
     const inputValidation = llmGuardrails.checkInput(input, {
       ...(userId && { userId }),
-      requestType
+      requestType,
     });
 
     if (!inputValidation.isAllowed) {
-      logger.warn('Input blocked by guardrails', {
+      logger.warn("Input blocked by guardrails", {
         requestType,
         violations: inputValidation.violations,
-        riskLevel: inputValidation.riskLevel
+        riskLevel: inputValidation.riskLevel,
       });
-      throw new Error('تم رفض المدخلات بواسطة نظام الحماية');
+      throw new Error("تم رفض المدخلات بواسطة نظام الحماية");
     }
 
     // Validate output
     const outputValidation = llmGuardrails.checkOutput(output, {
       ...(userId && { userId }),
-      requestType
+      requestType,
     });
 
     if (!outputValidation.isAllowed) {
-      logger.warn('Output blocked by guardrails', {
+      logger.warn("Output blocked by guardrails", {
         requestType,
         violations: outputValidation.violations,
-        riskLevel: outputValidation.riskLevel
+        riskLevel: outputValidation.riskLevel,
       });
-      throw new Error('تم رفض المخرجات بواسطة نظام الحماية');
+      throw new Error("تم رفض المخرجات بواسطة نظام الحماية");
     }
 
     // Collect warnings
     if (inputValidation.warnings && inputValidation.warnings.length > 0) {
-      warnings.push(...inputValidation.warnings.map(w => `Input: ${w}`));
+      warnings.push(...inputValidation.warnings.map((w) => `Input: ${w}`));
     }
     if (outputValidation.warnings && outputValidation.warnings.length > 0) {
-      warnings.push(...outputValidation.warnings.map(w => `Output: ${w}`));
+      warnings.push(...outputValidation.warnings.map((w) => `Output: ${w}`));
     }
 
     return {
       sanitizedInput: inputValidation.sanitizedContent ?? input,
       sanitizedOutput: outputValidation.sanitizedContent ?? output,
-      warnings
+      warnings,
     };
   }
 
@@ -149,9 +158,19 @@ export class GeminiService {
    * Execute a Gemini API request with caching, guardrails, metrics tracking, and error handling.
    * This is the core method that consolidates common logic from all public API methods.
    */
-   
-  private async executeGeminiRequest(config: GeminiRequestConfig): Promise<string> {
-    const { requestType, prompt, originalInput, cacheKeyParams, cacheCategory, useAdaptiveTTL, errorMessage } = config;
+
+  private async executeGeminiRequest(
+    config: GeminiRequestConfig,
+  ): Promise<string> {
+    const {
+      requestType,
+      prompt,
+      originalInput,
+      cacheKeyParams,
+      cacheCategory,
+      useAdaptiveTTL,
+      errorMessage,
+    } = config;
     const startTime = Date.now();
 
     try {
@@ -163,7 +182,9 @@ export class GeminiService {
       if (useAdaptiveTTL) {
         const stats = cacheService.getStats();
         ttl = getAdaptiveTTL(cacheCategory, stats.hitRate);
-        logger.debug(`Using adaptive TTL: ${ttl}s (hit rate: ${stats.hitRate}%)`);
+        logger.debug(
+          `Using adaptive TTL: ${ttl}s (hit rate: ${stats.hitRate}%)`,
+        );
       } else {
         ttl = getGeminiCacheTTL(cacheCategory);
       }
@@ -176,16 +197,16 @@ export class GeminiService {
         ttl,
         async () => {
           // Apply guardrails to input
-          this.applyGuardrails(prompt, '', requestType, 'system');
+          this.applyGuardrails(prompt, "", requestType, "system");
 
           // Execute with timeout to prevent hanging requests
           apiResult = await Promise.race<GenerateContentResult>([
             this.model.generateContent(prompt),
             new Promise<GenerateContentResult>((_, reject) =>
               setTimeout(
-                () => reject(new Error('Gemini request timeout')),
-                this.REQUEST_TIMEOUT
-              )
+                () => reject(new Error("Gemini request timeout")),
+                this.REQUEST_TIMEOUT,
+              ),
             ),
           ]);
 
@@ -194,7 +215,7 @@ export class GeminiService {
         {
           staleWhileRevalidate: true,
           staleTTL: ttl * 2,
-        }
+        },
       );
 
       // Apply guardrails to output
@@ -202,11 +223,11 @@ export class GeminiService {
         originalInput,
         result,
         requestType,
-        'system'
+        "system",
       );
 
       if (warnings.length > 0) {
-        logger.warn('Guardrails warnings', { warnings, type: requestType });
+        logger.warn("Guardrails warnings", { warnings, type: requestType });
       }
 
       // Track token usage and cost
@@ -229,8 +250,8 @@ export class GeminiService {
       logger.error(`${requestType} failed:`, error);
       if (
         error instanceof Error &&
-        (error.message === 'تم رفض المدخلات بواسطة نظام الحماية' ||
-          error.message === 'تم رفض المخرجات بواسطة نظام الحماية')
+        (error.message === "تم رفض المدخلات بواسطة نظام الحماية" ||
+          error.message === "تم رفض المخرجات بواسطة نظام الحماية")
       ) {
         throw error;
       }
@@ -241,15 +262,16 @@ export class GeminiService {
   async analyzeText(text: string, analysisType: string): Promise<string> {
     // Map analysis type to valid cache category
     const validCategories: Record<string, GeminiCacheCategory> = {
-      'characters': 'character',
-      'themes': 'analysis',
-      'structure': 'analysis',
-      'quick': 'analysis',
-      'detailed': 'analysis',
-      'full': 'analysis',
-      'default': 'analysis',
+      characters: "character",
+      themes: "analysis",
+      structure: "analysis",
+      quick: "analysis",
+      detailed: "analysis",
+      full: "analysis",
+      default: "analysis",
     };
-    const cacheCategory: GeminiCacheCategory = validCategories[analysisType] ?? 'analysis';
+    const cacheCategory: GeminiCacheCategory =
+      validCategories[analysisType] ?? "analysis";
 
     return this.executeGeminiRequest({
       requestType: `analyze-${analysisType}`,
@@ -258,7 +280,7 @@ export class GeminiService {
       cacheKeyParams: { text, analysisType },
       cacheCategory,
       useAdaptiveTTL: true,
-      errorMessage: 'فشل في تحليل النص باستخدام الذكاء الاصطناعي',
+      errorMessage: "فشل في تحليل النص باستخدام الذكاء الاصطناعي",
     });
   }
 
@@ -266,18 +288,24 @@ export class GeminiService {
    * Generate text from prompt through the centralized Gemini wrapper.
    * إنشاء نص من prompt عبر الخدمة المركزية
    */
-  async generateText(prompt: string, _options?: { temperature?: number; maxTokens?: number }): Promise<string> {
+  async generateText(
+    prompt: string,
+    _options?: { temperature?: number; maxTokens?: number },
+  ): Promise<string> {
     try {
       const result = await this.model.generateContent(prompt);
 
       return result.response.text();
     } catch (error) {
-      logger.error('Error in generateText:', error);
+      logger.error("Error in generateText:", error);
       throw error;
     }
   }
 
-  async generateJson<T>(prompt: string, options?: { temperature?: number; maxTokens?: number }): Promise<T> {
+  async generateJson<T>(
+    prompt: string,
+    options?: { temperature?: number; maxTokens?: number },
+  ): Promise<T> {
     const text = await this.generateText(prompt, options);
     const trimmed = text.trim();
     const fenced = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
@@ -298,12 +326,12 @@ export class GeminiService {
 ${text}`;
 
     return this.executeGeminiRequest({
-      requestType: 'screenplay-review',
+      requestType: "screenplay-review",
       prompt,
       originalInput: text,
       cacheKeyParams: { text },
-      cacheCategory: 'screenplay',
-      errorMessage: 'فشل في مراجعة السيناريو',
+      cacheCategory: "screenplay",
+      errorMessage: "فشل في مراجعة السيناريو",
     });
   }
 
@@ -319,16 +347,19 @@ ${text}`;
 السؤال: ${message}`;
 
     return this.executeGeminiRequest({
-      requestType: 'ai-chat',
+      requestType: "ai-chat",
       prompt,
       originalInput: message,
       cacheKeyParams: { message, context },
-      cacheCategory: 'chat',
-      errorMessage: 'فشل في التواصل مع الذكاء الاصطناعي',
+      cacheCategory: "chat",
+      errorMessage: "فشل في التواصل مع الذكاء الاصطناعي",
     });
   }
 
-  async getShotSuggestion(sceneDescription: string, shotType: string): Promise<string> {
+  async getShotSuggestion(
+    sceneDescription: string,
+    shotType: string,
+  ): Promise<string> {
     const prompt = `أنت خبير في إخراج الأفلام العربية. قدم اقتراحًا مفصلًا لنوع اللقطة "${shotType}" للمشهد التالي:
 
 وصف المشهد: ${sceneDescription}
@@ -341,12 +372,12 @@ ${text}`;
 5. المدة التقديرية`;
 
     return this.executeGeminiRequest({
-      requestType: 'shot-suggestion',
+      requestType: "shot-suggestion",
       prompt,
       originalInput: sceneDescription,
       cacheKeyParams: { sceneDescription, shotType },
-      cacheCategory: 'shot-suggestion',
-      errorMessage: 'فشل في توليد اقتراحات اللقطة',
+      cacheCategory: "shot-suggestion",
+      errorMessage: "فشل في توليد اقتراحات اللقطة",
     });
   }
 
@@ -358,14 +389,14 @@ ${text}`;
 3. تطور كل شخصية
 
 النص: ${text}`,
-      
+
       themes: `حلل المواضيع والأفكار في النص التالي:
 1. الموضوع الرئيسي
 2. المواضيع الفرعية
 3. الرسائل المضمنة
 
 النص: ${text}`,
-  
+
       structure: `حلل البنية الدرامية للنص التالي:
 1. البداية والعقدة والحل
 2. نقاط التحول
@@ -417,7 +448,7 @@ export const geminiService = new Proxy({} as GeminiService, {
     const service = resolveGeminiService();
     const value: unknown = Reflect.get(service, property, service);
 
-    if (typeof value === 'function') {
+    if (typeof value === "function") {
       return (value as (...args: unknown[]) => unknown).bind(service);
     }
     return value;

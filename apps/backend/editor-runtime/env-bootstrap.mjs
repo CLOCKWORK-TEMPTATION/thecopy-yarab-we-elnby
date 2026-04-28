@@ -36,7 +36,10 @@ const isPlaceholderEnvValue = (key, value) => {
     return true;
   }
 
-  if (key === "DATABASE_URL" && /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)) {
+  if (
+    key === "DATABASE_URL" &&
+    /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)
+  ) {
     return true;
   }
 
@@ -54,7 +57,10 @@ const applyEnvFile = (path, env = process.env) => {
       continue;
     }
 
-    if (existingValue === undefined || isPlaceholderEnvValue(key, existingValue)) {
+    if (
+      existingValue === undefined ||
+      isPlaceholderEnvValue(key, existingValue)
+    ) {
       env[key] = value;
     }
   }

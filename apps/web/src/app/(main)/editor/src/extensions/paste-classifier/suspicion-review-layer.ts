@@ -10,23 +10,16 @@
  */
 
 import { buildFinalReviewSuspiciousLinePayload } from "@editor/final-review/payload-builder";
+
 import {
   agentReviewLogger,
   SUSPICION_REVIEW_ENDPOINT,
 } from "../paste-classifier-config";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import {
   isModelReviewSuspicionBand,
   summarizeSuspicionReviewDispatchBands,
   type SuspicionReviewDispatchSummary,
 } from "../suspicion-review-routing";
-import type { SuspicionCase } from "@editor/suspicion-engine/types";
-import type { FinalReviewSuspiciousLinePayload } from "@editor/types/final-review";
-import type {
-  SuspicionReviewLinePayload,
-  SuspicionReviewRequestPayload,
-  SuspicionReviewResponsePayload,
-} from "@editor/types/suspicion-review";
 
 import { PIPELINE_FLAGS } from "./constants";
 import { ProgressivePipelineStageError } from "./errors";
@@ -36,6 +29,15 @@ import {
 } from "./final-review/payload-builders";
 import { promoteHighSeveritySuspicionCases } from "./final-review/routing";
 import { simpleHash } from "./utils/hash";
+
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
+import type { SuspicionCase } from "@editor/suspicion-engine/types";
+import type { FinalReviewSuspiciousLinePayload } from "@editor/types/final-review";
+import type {
+  SuspicionReviewLinePayload,
+  SuspicionReviewRequestPayload,
+  SuspicionReviewResponsePayload,
+} from "@editor/types/suspicion-review";
 
 /**
  * نتيجة تشغيل طبقة الاشتباه بالنموذج.

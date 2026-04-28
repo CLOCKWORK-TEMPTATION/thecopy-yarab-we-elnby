@@ -7,22 +7,22 @@
  * - Disk space availability
  */
 
-import { execSync } from 'child_process';
-import * as os from 'os';
+import { execSync } from "child_process";
+import * as os from "os";
 
-import { pool } from '@/db';
+import { pool } from "@/db";
 
-import { logger } from './logger';
-import { checkRedisHealth } from './redis-health';
+import { logger } from "./logger";
+import { checkRedisHealth } from "./redis-health";
 
 export interface HealthCheckResult {
-  status: 'healthy' | 'unhealthy' | 'degraded';
+  status: "healthy" | "unhealthy" | "degraded";
   message?: string;
   metadata?: Record<string, unknown>;
 }
 
 export interface ReadinessCheckResult {
-  status: 'ready' | 'not_ready';
+  status: "ready" | "not_ready";
   checks: {
     database: HealthCheckResult;
     redis: HealthCheckResult;
@@ -38,14 +38,14 @@ export async function checkDatabaseHealth(): Promise<HealthCheckResult> {
   try {
     if (!pool) {
       return {
-        status: 'unhealthy',
-        message: 'Database pool not initialized',
+        status: "unhealthy",
+        message: "Database pool not initialized",
       };
     }
 
     // Execute a simple query to verify connection
     const startTime = Date.now();
-    await pool.query('SELECT 1');
+    await pool.query("SELECT 1");
     const responseTime = Date.now() - startTime;
 
     // Get connection pool stats
@@ -54,8 +54,8 @@ export async function checkDatabaseHealth(): Promise<HealthCheckResult> {
     const activeConnections = totalConnections - idleConnections;
 
     return {
-      status: 'healthy',
-      message: 'Database connection successful',
+      status: "healthy",
+      message: "Database connection successful",
       metadata: {
         responseTime: `${responseTime}ms`,
         totalConnections,
@@ -64,10 +64,11 @@ export async function checkDatabaseHealth(): Promise<HealthCheckResult> {
       },
     };
   } catch (error) {
-    logger.error('Database health check failed:', error);
+    logger.error("Database health check failed:", error);
     return {
-      status: 'unhealthy',
-      message: error instanceof Error ? error.message : 'Database connection failed',
+      status: "unhealthy",
+      message:
+        error instanceof Error ? error.message : "Database connection failed",
     };
   }
 }
@@ -80,18 +81,21 @@ export async function checkRedisConnectivity(): Promise<HealthCheckResult> {
     const isHealthy = await checkRedisHealth();
 
     return {
-      status: isHealthy ? 'healthy' : 'unhealthy',
-      message: isHealthy ? 'Redis connection successful' : 'Redis connection failed',
+      status: isHealthy ? "healthy" : "unhealthy",
+      message: isHealthy
+        ? "Redis connection successful"
+        : "Redis connection failed",
       metadata: {
-        host: process.env.REDIS_HOST ?? 'localhost',
-        port: parseInt(process.env.REDIS_PORT ?? '6379'),
+        host: process.env.REDIS_HOST ?? "localhost",
+        port: parseInt(process.env.REDIS_PORT ?? "6379"),
       },
     };
   } catch (error) {
-    logger.error('Redis health check failed:', error);
+    logger.error("Redis health check failed:", error);
     return {
-      status: 'unhealthy',
-      message: error instanceof Error ? error.message : 'Redis connection failed',
+      status: "unhealthy",
+      message:
+        error instanceof Error ? error.message : "Redis connection failed",
     };
   }
 }
@@ -121,13 +125,13 @@ function getMemoryBasedDiskUsage(): DiskUsage {
  * Get disk usage from df command (Linux/macOS)
  */
 function getUnixDiskUsage(): DiskUsage {
-  const dfOutput = execSync('df -k / | tail -1').toString();
+  const dfOutput = execSync("df -k / | tail -1").toString();
   const parts = dfOutput.split(/\s+/);
 
-  const total = parseInt(parts[1] ?? '0') * 1024;
-  const used = parseInt(parts[2] ?? '0') * 1024;
-  const available = parseInt(parts[3] ?? '0') * 1024;
-  const percentage = parseInt(parts[4] ?? '0');
+  const total = parseInt(parts[1] ?? "0") * 1024;
+  const used = parseInt(parts[2] ?? "0") * 1024;
+  const available = parseInt(parts[3] ?? "0") * 1024;
+  const percentage = parseInt(parts[4] ?? "0");
 
   return { total, free: available, used, percentage };
 }
@@ -135,14 +139,23 @@ function getUnixDiskUsage(): DiskUsage {
 /**
  * Determine health status from free disk percentage
  */
-function getDiskHealthStatus(freePercentage: number): { status: 'healthy' | 'degraded' | 'unhealthy'; message: string } {
+function getDiskHealthStatus(freePercentage: number): {
+  status: "healthy" | "degraded" | "unhealthy";
+  message: string;
+} {
   if (freePercentage < 5) {
-    return { status: 'unhealthy', message: 'Critical: Less than 5% disk space available' };
+    return {
+      status: "unhealthy",
+      message: "Critical: Less than 5% disk space available",
+    };
   }
   if (freePercentage < 10) {
-    return { status: 'degraded', message: 'Warning: Less than 10% disk space available' };
+    return {
+      status: "degraded",
+      message: "Warning: Less than 10% disk space available",
+    };
   }
-  return { status: 'healthy', message: 'Disk space is adequate' };
+  return { status: "healthy", message: "Disk space is adequate" };
 }
 
 /**
@@ -153,7 +166,7 @@ export function checkDiskSpace(): HealthCheckResult {
   try {
     let diskUsage: DiskUsage;
 
-    if (process.platform === 'linux' || process.platform === 'darwin') {
+    if (process.platform === "linux" || process.platform === "darwin") {
       try {
         diskUsage = getUnixDiskUsage();
       } catch {
@@ -164,9 +177,9 @@ export function checkDiskSpace(): HealthCheckResult {
     }
 
     const freePercentage = 100 - diskUsage.percentage;
-    const totalGB = (diskUsage.total / (1024 ** 3)).toFixed(2);
-    const freeGB = (diskUsage.free / (1024 ** 3)).toFixed(2);
-    const usedGB = (diskUsage.used / (1024 ** 3)).toFixed(2);
+    const totalGB = (diskUsage.total / 1024 ** 3).toFixed(2);
+    const freeGB = (diskUsage.free / 1024 ** 3).toFixed(2);
+    const usedGB = (diskUsage.used / 1024 ** 3).toFixed(2);
 
     const { status, message } = getDiskHealthStatus(freePercentage);
 
@@ -182,10 +195,11 @@ export function checkDiskSpace(): HealthCheckResult {
       },
     };
   } catch (error) {
-    logger.error('Disk space check failed:', error);
+    logger.error("Disk space check failed:", error);
     return {
-      status: 'unhealthy',
-      message: error instanceof Error ? error.message : 'Failed to check disk space',
+      status: "unhealthy",
+      message:
+        error instanceof Error ? error.message : "Failed to check disk space",
     };
   }
 }
@@ -203,12 +217,12 @@ export async function performReadinessCheck(): Promise<ReadinessCheckResult> {
 
   // Determine overall readiness status
   const isReady =
-    database.status === 'healthy' &&
-    (redis.status === 'healthy' || redis.status === 'degraded') &&
-    diskSpace.status !== 'unhealthy';
+    database.status === "healthy" &&
+    (redis.status === "healthy" || redis.status === "degraded") &&
+    diskSpace.status !== "unhealthy";
 
   return {
-    status: isReady ? 'ready' : 'not_ready',
+    status: isReady ? "ready" : "not_ready",
     checks: {
       database,
       redis,

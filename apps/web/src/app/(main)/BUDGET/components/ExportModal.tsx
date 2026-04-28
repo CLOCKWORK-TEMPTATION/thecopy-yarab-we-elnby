@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import {
   X,
   Download,
@@ -93,7 +93,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       "Rate",
       "Total",
     ];
-    const rows: any[][] = [];
+    const rows: (string | number)[][] = [];
 
     budget.sections.forEach((section) => {
       section.categories.forEach((category) => {
@@ -274,28 +274,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           animate="visible"
           exit="exit"
           transition={{ type: "spring", damping: 25 }}
-          className={`max-w-2xl w-full rounded-xl shadow-2xl overflow-hidden ${
-            theme === "dark"
-              ? "bg-black/18 border border-white/8"
-              : "bg-white/[0.04]"
-          }`}
+          className={`max-w-2xl w-full rounded-xl shadow-2xl overflow-hidden ${theme === "dark" ? "bg-black/18 border border-white/8" : "bg-white/[0.04]"}`}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center p-6 border-b border-white/8 dark:border-white/8">
             <h2
-              className={`text-2xl font-bold ${
-                theme === "dark" ? "text-white" : "text-white"
-              }`}
+              className={`text-2xl font-bold ${theme === "dark" ? "text-white" : "text-white"}`}
             >
               Export Budget
             </h2>
             <button
               onClick={onClose}
-              className={`p-2 rounded-lg transition-colors ${
-                theme === "dark"
-                  ? "text-white/55 hover:text-white hover:bg-black/22"
-                  : "text-white/55 hover:text-white hover:bg-white/8/6"
-              }`}
+              className={`p-2 rounded-lg transition-colors ${theme === "dark" ? "text-white/55 hover:text-white hover:bg-black/22" : "text-white/55 hover:text-white hover:bg-white/8/6"}`}
             >
               <X size={20} />
             </button>
@@ -305,9 +295,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             {/* Format Selection */}
             <div className="mb-6">
               <h3
-                className={`text-lg font-semibold mb-3 ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-lg font-semibold mb-3 ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 Export Format
               </h3>
@@ -316,13 +304,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClick={() =>
                     setExportOptions({ ...exportOptions, format: "csv" })
                   }
-                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                    exportOptions.format === "csv"
-                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                      : theme === "dark"
-                        ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28"
-                        : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"
-                  }`}
+                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${exportOptions.format === "csv" ? "border-indigo-500 bg-indigo-50 text-indigo-700" : theme === "dark" ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28" : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"}`}
                 >
                   <FileSpreadsheet size={24} />
                   <span className="text-sm font-medium">CSV</span>
@@ -332,13 +314,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClick={() =>
                     setExportOptions({ ...exportOptions, format: "excel" })
                   }
-                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                    exportOptions.format === "excel"
-                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                      : theme === "dark"
-                        ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28"
-                        : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"
-                  }`}
+                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${exportOptions.format === "excel" ? "border-indigo-500 bg-indigo-50 text-indigo-700" : theme === "dark" ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28" : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"}`}
                 >
                   <FileSpreadsheet size={24} />
                   <span className="text-sm font-medium">Excel</span>
@@ -348,13 +324,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClick={() =>
                     setExportOptions({ ...exportOptions, format: "json" })
                   }
-                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                    exportOptions.format === "json"
-                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                      : theme === "dark"
-                        ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28"
-                        : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"
-                  }`}
+                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${exportOptions.format === "json" ? "border-indigo-500 bg-indigo-50 text-indigo-700" : theme === "dark" ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28" : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"}`}
                 >
                   <FileJson size={24} />
                   <span className="text-sm font-medium">JSON</span>
@@ -364,13 +334,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClick={() =>
                     setExportOptions({ ...exportOptions, format: "pdf" })
                   }
-                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                    exportOptions.format === "pdf"
-                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                      : theme === "dark"
-                        ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28"
-                        : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"
-                  }`}
+                  className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${exportOptions.format === "pdf" ? "border-indigo-500 bg-indigo-50 text-indigo-700" : theme === "dark" ? "border-white/8 bg-black/22 text-white/68 hover:bg-black/28" : "border-white/8 bg-white/[0.04] text-white/55 hover:bg-white/8/6"}`}
                 >
                   <FileImage size={24} />
                   <span className="text-sm font-medium">PDF</span>
@@ -381,9 +345,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             {/* Options */}
             <div className="mb-6">
               <h3
-                className={`text-lg font-semibold mb-3 ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-lg font-semibold mb-3 ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 Export Options
               </h3>
@@ -401,9 +363,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                   />
                   <span
-                    className={`text-sm ${
-                      theme === "dark" ? "text-white/68" : "text-white/68"
-                    }`}
+                    className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                   >
                     Include items with zero values
                   </span>
@@ -422,9 +382,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                     className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                   />
                   <span
-                    className={`text-sm ${
-                      theme === "dark" ? "text-white/68" : "text-white/68"
-                    }`}
+                    className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                   >
                     Include detailed breakdown
                   </span>
@@ -444,9 +402,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                       className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                     />
                     <span
-                      className={`text-sm ${
-                        theme === "dark" ? "text-white/68" : "text-white/68"
-                      }`}
+                      className={`text-sm ${theme === "dark" ? "text-white/68" : "text-white/68"}`}
                     >
                       Include charts and visualizations
                     </span>
@@ -458,18 +414,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             {/* Preview */}
             <div className="mb-6">
               <h3
-                className={`text-lg font-semibold mb-3 ${
-                  theme === "dark" ? "text-white" : "text-white"
-                }`}
+                className={`text-lg font-semibold mb-3 ${theme === "dark" ? "text-white" : "text-white"}`}
               >
                 Export Preview
               </h3>
               <div
-                className={`p-4 rounded-[22px] border ${
-                  theme === "dark"
-                    ? "bg-black/22 border-white/8"
-                    : "bg-white/[0.04] border-white/8"
-                }`}
+                className={`p-4 rounded-[22px] border ${theme === "dark" ? "bg-black/22 border-white/8" : "bg-white/[0.04] border-white/8"}`}
               >
                 <div className="text-sm space-y-1">
                   <div>
@@ -494,11 +444,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <div className="flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  theme === "dark"
-                    ? "border-white/8 text-white/68 hover:bg-black/22"
-                    : "border-white/8 text-white/68 hover:bg-white/[0.04]"
-                }`}
+                className={`px-4 py-2 rounded-lg border transition-colors ${theme === "dark" ? "border-white/8 text-white/68 hover:bg-black/22" : "border-white/8 text-white/68 hover:bg-white/[0.04]"}`}
               >
                 Cancel
               </button>

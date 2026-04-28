@@ -41,10 +41,14 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
       <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
         <div className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-white mb-2 font-cairo">
+            <label
+              htmlFor="field-orderfilters-1"
+              className="block text-sm font-medium text-white mb-2 font-cairo"
+            >
               معرّف الجلسة الحاليّة
             </label>
             <input
+              id="field-orderfilters-1"
               type="text"
               value={sessionDraft}
               onChange={handleSessionDraftChange}
@@ -76,10 +80,14 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
         </h2>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs text-white/55 mb-2 font-cairo">
+            <label
+              htmlFor="field-orderfilters-2"
+              className="block text-xs text-white/55 mb-2 font-cairo"
+            >
               الحالة
             </label>
             <select
+              id="field-orderfilters-2"
               value={statusFilter}
               onChange={handleStatusFilterChange}
               className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white font-cairo"
@@ -92,10 +100,14 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
             </select>
           </div>
           <div>
-            <label className="block text-xs text-white/55 mb-2 font-cairo">
+            <label
+              htmlFor="field-orderfilters-3"
+              className="block text-xs text-white/55 mb-2 font-cairo"
+            >
               المورد
             </label>
             <select
+              id="field-orderfilters-3"
               value={vendorFilter}
               onChange={handleVendorFilterChange}
               className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white font-cairo"
@@ -109,10 +121,14 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
             </select>
           </div>
           <div>
-            <label className="block text-xs text-white/55 mb-2 font-cairo">
+            <label
+              htmlFor="field-orderfilters-4"
+              className="block text-xs text-white/55 mb-2 font-cairo"
+            >
               الترتيب الزمني
             </label>
             <select
+              id="field-orderfilters-4"
               value={timeSort}
               onChange={handleTimeSortChange}
               className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white font-cairo"

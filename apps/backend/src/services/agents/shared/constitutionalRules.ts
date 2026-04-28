@@ -3,14 +3,14 @@
  * Advanced rules system with parameters, priorities, and dynamic learning
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-export type RuleSeverity = 'critical' | 'major' | 'minor' | 'warning';
-export type RulePriority = 'high' | 'medium' | 'low';
+export type RuleSeverity = "critical" | "major" | "minor" | "warning";
+export type RulePriority = "high" | "medium" | "low";
 
 export interface RuleParameter {
   name: string;
-  type: 'number' | 'string' | 'boolean' | 'array';
+  type: "number" | "string" | "boolean" | "array";
   value: unknown;
   description: string;
 }
@@ -23,7 +23,11 @@ export interface Rule {
   severity: RuleSeverity;
   priority: RulePriority;
   parameters: RuleParameter[];
-  check: (text: string, context?: unknown, params?: Record<string, unknown>) => boolean | Promise<boolean>;
+  check: (
+    text: string,
+    context?: unknown,
+    params?: Record<string, unknown>,
+  ) => boolean | Promise<boolean>;
   suggest?: (text: string, context?: unknown) => string | Promise<string>;
   enabled: boolean;
 }
@@ -63,7 +67,7 @@ export class ConstitutionalRulesEngine {
    * Register multiple rules
    */
   registerRules(rules: Rule[]): void {
-    rules.forEach(rule => this.registerRule(rule));
+    rules.forEach((rule) => this.registerRule(rule));
   }
 
   /**
@@ -85,7 +89,7 @@ export class ConstitutionalRulesEngine {
    */
   getRulesByCategory(category: string): Rule[] {
     return Array.from(this.rules.values()).filter(
-      rule => rule.category === category
+      (rule) => rule.category === category,
     );
   }
 
@@ -105,7 +109,7 @@ export class ConstitutionalRulesEngine {
   updateRuleParameters(id: string, parameters: Record<string, unknown>): void {
     const rule = this.rules.get(id);
     if (rule) {
-      rule.parameters.forEach(param => {
+      rule.parameters.forEach((param) => {
         if (param.name in parameters) {
           param.value = parameters[param.name];
         }
@@ -125,20 +129,17 @@ export class ConstitutionalRulesEngine {
    */
   private hasException(ruleId: string, context: unknown): boolean {
     return this.exceptions.some(
-      exc => exc.ruleId === ruleId && exc.condition(context)
+      (exc) => exc.ruleId === ruleId && exc.condition(context),
     );
   }
 
   /**
    * Check text against all enabled rules
    */
-  async checkRules(
-    text: string,
-    context?: unknown
-  ): Promise<RuleViolation[]> {
+  async checkRules(text: string, context?: unknown): Promise<RuleViolation[]> {
     // Get enabled rules sorted by priority
     const enabledRules = Array.from(this.rules.values())
-      .filter(rule => rule.enabled)
+      .filter((rule) => rule.enabled)
       .sort((a, b) => this.comparePriority(a.priority, b.priority));
 
     const evaluationPromises = enabledRules.map(async (rule) => {
@@ -150,7 +151,7 @@ export class ConstitutionalRulesEngine {
       try {
         // Build parameters object from rule parameters
         const params: Record<string, unknown> = {};
-        rule.parameters.forEach(param => {
+        rule.parameters.forEach((param) => {
           params[param.name] = param.value;
         });
 
@@ -169,7 +170,9 @@ export class ConstitutionalRulesEngine {
             ruleName: rule.name,
             severity: rule.severity,
             message: rule.description,
-            context: (context as Record<string, unknown>)?.agentName as string || 'unknown',
+            context:
+              ((context as Record<string, unknown>)?.agentName as string) ||
+              "unknown",
           };
 
           if (suggestion !== undefined) {
@@ -224,7 +227,7 @@ export class ConstitutionalRulesEngine {
   getMostViolatedRules(limit = 5): Rule[] {
     const stats = this.getViolationStats().slice(0, limit);
     return stats
-      .map(stat => this.rules.get(stat.ruleId))
+      .map((stat) => this.rules.get(stat.ruleId))
       .filter((rule): rule is Rule => rule !== undefined);
   }
 
@@ -238,9 +241,17 @@ export class ConstitutionalRulesEngine {
   /**
    * Export rules configuration
    */
-  exportConfig(): { rules: { id: string; name: string; enabled: boolean; parameters: RuleParameter[] }[]; exceptions: RuleException[] } {
+  exportConfig(): {
+    rules: {
+      id: string;
+      name: string;
+      enabled: boolean;
+      parameters: RuleParameter[];
+    }[];
+    exceptions: RuleException[];
+  } {
     return {
-      rules: Array.from(this.rules.values()).map(rule => ({
+      rules: Array.from(this.rules.values()).map((rule) => ({
         id: rule.id,
         name: rule.name,
         enabled: rule.enabled,
@@ -253,7 +264,10 @@ export class ConstitutionalRulesEngine {
   /**
    * Import rules configuration
    */
-  importConfig(config: { rules?: { id: string; enabled: boolean; parameters?: RuleParameter[] }[]; exceptions?: RuleException[] }): void {
+  importConfig(config: {
+    rules?: { id: string; enabled: boolean; parameters?: RuleParameter[] }[];
+    exceptions?: RuleException[];
+  }): void {
     if (config.rules) {
       config.rules.forEach((ruleConfig) => {
         const rule = this.rules.get(ruleConfig.id);

@@ -95,11 +95,11 @@ export class LocationSetCoordinator implements Plugin {
         return this.getLocation(input.data as { id: string });
       case "update-availability":
         return this.updateAvailability(
-          input.data as { locationId: string; slot: AvailabilitySlot }
+          input.data as { locationId: string; slot: AvailabilitySlot },
         );
       case "add-permit":
         return this.addPermit(
-          input.data as { locationId: string; permit: Permit }
+          input.data as { locationId: string; permit: Permit },
         );
       case "add-set":
         return this.addSetDesign(input.data as unknown as Partial<SetDesign>);
@@ -107,11 +107,11 @@ export class LocationSetCoordinator implements Plugin {
         return this.getSetDesigns(input.data as { locationId?: string });
       case "match":
         return this.matchLocationToScene(
-          input.data as { sceneRequirements: Record<string, unknown> }
+          input.data as { sceneRequirements: Record<string, unknown> },
         );
       case "schedule":
         return this.getSchedule(
-          input.data as { startDate: string; endDate: string }
+          input.data as { startDate: string; endDate: string },
         );
       default:
         return {
@@ -167,7 +167,7 @@ export class LocationSetCoordinator implements Plugin {
   }
 
   private async searchLocations(
-    criteria: SearchCriteria
+    criteria: SearchCriteria,
   ): Promise<PluginOutput> {
     let results = Array.from(this.locations.values());
 
@@ -176,7 +176,7 @@ export class LocationSetCoordinator implements Plugin {
     }
     if (criteria.city) {
       results = results.filter((l) =>
-        l.city.toLowerCase().includes(criteria.city!.toLowerCase())
+        l.city.toLowerCase().includes(criteria.city!.toLowerCase()),
       );
     }
     if (criteria.maxCostPerDay) {
@@ -184,12 +184,12 @@ export class LocationSetCoordinator implements Plugin {
     }
     if (criteria.requiredAmenities && criteria.requiredAmenities.length > 0) {
       results = results.filter((l) =>
-        criteria.requiredAmenities!.every((a) => l.amenities.includes(a))
+        criteria.requiredAmenities!.every((a) => l.amenities.includes(a)),
       );
     }
     if (criteria.tags && criteria.tags.length > 0) {
       results = results.filter((l) =>
-        criteria.tags!.some((t) => l.tags.includes(t))
+        criteria.tags!.some((t) => l.tags.includes(t)),
       );
     }
     if (criteria.availableFrom && criteria.availableTo) {
@@ -197,8 +197,8 @@ export class LocationSetCoordinator implements Plugin {
         this.isLocationAvailable(
           l,
           criteria.availableFrom!,
-          criteria.availableTo!
-        )
+          criteria.availableTo!,
+        ),
       );
     }
 
@@ -216,7 +216,7 @@ export class LocationSetCoordinator implements Plugin {
   private isLocationAvailable(
     location: Location,
     from: string,
-    to: string
+    to: string,
   ): boolean {
     const fromDate = new Date(from);
     const toDate = new Date(to);
@@ -379,7 +379,7 @@ export class LocationSetCoordinator implements Plugin {
 
       if (reqs["amenities"] && Array.isArray(reqs["amenities"])) {
         const matchedAmenities = (reqs["amenities"] as string[]).filter((a) =>
-          location.amenities.includes(a)
+          location.amenities.includes(a),
         );
         score += matchedAmenities.length * 10;
         if (matchedAmenities.length > 0) {
@@ -387,7 +387,10 @@ export class LocationSetCoordinator implements Plugin {
         }
       }
 
-      if (reqs["maxBudget"] && location.costPerDay <= (reqs["maxBudget"] as number)) {
+      if (
+        reqs["maxBudget"] &&
+        location.costPerDay <= (reqs["maxBudget"] as number)
+      ) {
         score += 20;
         reasons.push("Within budget");
       }

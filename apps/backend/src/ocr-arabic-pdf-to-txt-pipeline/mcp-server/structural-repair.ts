@@ -23,7 +23,7 @@ function splitInlineMarkers(line: string): string[] {
     .replace(/([.؟?!:])\s+-\s+(?=[\u0600-\u06FF])/gu, "$1\n- ")
     .replace(
       /([^\n])\s+(مشهد[0-9٠-٩]+(?:\s*[-–—]\s*(?:داخلي|خارجي|نهار|ليل|صباح|مساء|فجر))*)/gu,
-      "$1\n$2"
+      "$1\n$2",
     )
     .replace(/([^\n])\s+(قطع)(?=\s|$)/gu, "$1\n$2");
 
@@ -51,7 +51,7 @@ function collectReferenceAnchors(referenceText: string): string[] {
 
 function splitPendingAtAnchor(
   pending: string,
-  anchor: string
+  anchor: string,
 ): { left: string; right: string } | null {
   const index = pending.indexOf(anchor);
   if (index <= 0) {
@@ -109,7 +109,7 @@ export class StructuralRepair {
 export async function waitForRepairStability(
   repair: StructuralRepair,
   text: string,
-  referenceText = ""
+  referenceText = "",
 ): Promise<string> {
   let current = text;
   for (let i = 0; i < 3; i += 1) {

@@ -10,7 +10,7 @@ const { mockExecuteStandardPattern } = vi.hoisted(() => ({
 
 const { mockGenerateText } = vi.hoisted(() => ({
   mockGenerateText: vi.fn(() =>
-    Promise.resolve("استجابة احتياطية مختصرة لا تعتمد على اتصال خارجي.")
+    Promise.resolve("استجابة احتياطية مختصرة لا تعتمد على اتصال خارجي."),
   ),
 }));
 
@@ -52,7 +52,9 @@ describe("CulturalHistoricalAnalyzerAgent", () => {
     });
 
     expect(mockExecuteStandardPattern).toHaveBeenCalledTimes(1);
-    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain("تحليل ثقافي وتاريخي");
+    expect(mockExecuteStandardPattern.mock.calls[0]?.[0]).toContain(
+      "تحليل ثقافي وتاريخي",
+    );
     expect(result.text).toContain("تحليل ثقافي");
     expect(result.confidence).toBe(0.74);
     expect(result.notes).toEqual(["تحقق سياقي جيد"]);

@@ -9,13 +9,8 @@ import { TaskType } from "@core/types";
 
 import { log } from "../services/loggerService";
 
-// Import upgraded agents
 import { AdaptiveRewritingAgent } from "./adaptiveRewriting/AdaptiveRewritingAgent";
 import { AnalysisAgent } from "./analysis/AnalysisAgent";
-
-// المجموعة الأولى - الوكلاء السبعة الجديدة
-
-// الوكلاء الأربعة المتبقية من الترقية السابقة
 import { AudienceResonanceAgent } from "./audienceResonance/AudienceResonanceAgent";
 import { CharacterDeepAnalyzerAgent } from "./characterDeepAnalyzer/CharacterDeepAnalyzerAgent";
 import { CharacterNetworkAgent } from "./characterNetwork/CharacterNetworkAgent";

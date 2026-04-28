@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+
 import type { ChatMessage } from "../../types";
 
 export const useScenePartner = () => {

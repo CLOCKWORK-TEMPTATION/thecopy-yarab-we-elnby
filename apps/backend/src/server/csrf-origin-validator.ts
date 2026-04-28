@@ -1,8 +1,7 @@
+import { env } from "@/config/env";
+import { logger } from "@/lib/logger";
 
-import { env } from '@/config/env';
-import { logger } from '@/lib/logger';
-
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from "express";
 
 /**
  * Additional CSRF Protection — validates Origin/Referer for state-changing requests.
@@ -16,32 +15,32 @@ import type { NextFunction, Request, Response } from 'express';
 export function csrfOriginRefererValidator(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   // Only check state-changing methods
-  if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+  if (!["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
     next();
     return;
   }
 
   // Skip for health endpoints and metrics
-  const safePaths = ['/health', '/api/health', '/metrics'];
+  const safePaths = ["/health", "/api/health", "/metrics"];
   if (safePaths.some((path) => req.path.startsWith(path))) {
     next();
     return;
   }
 
-  const origin = req.get('Origin');
-  const referer = req.get('Referer');
-  const contentType = req.get('Content-Type') ?? '';
-  const userAgent = req.get('User-Agent') ?? '';
+  const origin = req.get("Origin");
+  const referer = req.get("Referer");
+  const contentType = req.get("Content-Type") ?? "";
+  const userAgent = req.get("User-Agent") ?? "";
 
   const rawAllowed = [
-    ...env.CORS_ORIGIN.split(',')
+    ...env.CORS_ORIGIN.split(",")
       .map((o) => o.trim())
       .filter(Boolean),
-    'http://localhost:5000',
-    'http://localhost:3000',
+    "http://localhost:5000",
+    "http://localhost:3000",
     `http://localhost:${env.PORT}`,
   ];
 
@@ -68,22 +67,22 @@ export function csrfOriginRefererValidator(
   // SECURITY: Require Origin or Referer for state-changing requests
   if (!origin && !referer) {
     const isBrowserRequest =
-      contentType.includes('application/x-www-form-urlencoded') ||
-      contentType.includes('multipart/form-data') ||
-      (contentType.includes('application/json') &&
-        userAgent.toLowerCase().includes('mozilla'));
+      contentType.includes("application/x-www-form-urlencoded") ||
+      contentType.includes("multipart/form-data") ||
+      (contentType.includes("application/json") &&
+        userAgent.toLowerCase().includes("mozilla"));
 
     if (isBrowserRequest) {
-      const sanitizedPath = req.path.replace(/[^\w\-/]/g, '');
-      const sanitizedMethod = req.method.replace(/[^A-Z]/g, '');
-      logger.warn('CSRF: Missing Origin/Referer', {
+      const sanitizedPath = req.path.replace(/[^\w\-/]/g, "");
+      const sanitizedMethod = req.method.replace(/[^A-Z]/g, "");
+      logger.warn("CSRF: Missing Origin/Referer", {
         path: sanitizedPath,
         method: sanitizedMethod,
       });
       res.status(403).json({
         success: false,
-        error: 'طلب غير مصرح به',
-        code: 'CSRF_MISSING_ORIGIN',
+        error: "طلب غير مصرح به",
+        code: "CSRF_MISSING_ORIGIN",
       });
       return;
     }
@@ -95,12 +94,12 @@ export function csrfOriginRefererValidator(
   if (origin) {
     const normalizedOrigin = parseOriginStrict(origin);
     if (!normalizedOrigin || !allowedOriginSet.has(normalizedOrigin)) {
-      const sanitizedOrigin = origin.replace(/[^\w\-:.]/g, '');
-      logger.warn('CSRF: Origin mismatch', { origin: sanitizedOrigin });
+      const sanitizedOrigin = origin.replace(/[^\w\-:.]/g, "");
+      logger.warn("CSRF: Origin mismatch", { origin: sanitizedOrigin });
       res.status(403).json({
         success: false,
-        error: 'طلب غير مصرح به',
-        code: 'CSRF_ORIGIN_MISMATCH',
+        error: "طلب غير مصرح به",
+        code: "CSRF_ORIGIN_MISMATCH",
       });
       return;
     }
@@ -110,21 +109,21 @@ export function csrfOriginRefererValidator(
   if (!origin && referer) {
     const refererOrigin = parseOriginStrict(referer);
     if (!refererOrigin) {
-      logger.warn('CSRF: Invalid Referer URL');
+      logger.warn("CSRF: Invalid Referer URL");
       res.status(403).json({
         success: false,
-        error: 'طلب غير مصرح به',
-        code: 'CSRF_INVALID_REFERER',
+        error: "طلب غير مصرح به",
+        code: "CSRF_INVALID_REFERER",
       });
       return;
     }
     if (!allowedOriginSet.has(refererOrigin)) {
-      const sanitizedReferer = refererOrigin.replace(/[^\w\-:.]/g, '');
-      logger.warn('CSRF: Referer mismatch', { referer: sanitizedReferer });
+      const sanitizedReferer = refererOrigin.replace(/[^\w\-:.]/g, "");
+      logger.warn("CSRF: Referer mismatch", { referer: sanitizedReferer });
       res.status(403).json({
         success: false,
-        error: 'طلب غير مصرح به',
-        code: 'CSRF_REFERER_MISMATCH',
+        error: "طلب غير مصرح به",
+        code: "CSRF_REFERER_MISMATCH",
       });
       return;
     }

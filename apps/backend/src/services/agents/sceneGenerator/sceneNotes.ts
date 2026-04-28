@@ -5,7 +5,7 @@ export function generateSceneNotes(
   tension: number,
   dialogue: number,
   visual: number,
-  pacing: number
+  pacing: number,
 ): string[] {
   const notes: string[] = [];
 

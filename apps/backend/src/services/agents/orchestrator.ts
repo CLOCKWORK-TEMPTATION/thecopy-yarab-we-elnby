@@ -5,28 +5,28 @@
  * Enhanced with workflow system support
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { TaskType } from './core/enums';
-import { StandardAgentInput, StandardAgentOutput } from './core/types';
-import { workflowExecutor } from './core/workflow-executor';
-import { getPresetWorkflow, PresetWorkflowName } from './core/workflow-presets';
+import { TaskType } from "./core/enums";
+import { StandardAgentInput, StandardAgentOutput } from "./core/types";
+import { workflowExecutor } from "./core/workflow-executor";
+import { getPresetWorkflow, PresetWorkflowName } from "./core/workflow-presets";
 import {
   AgentExecutionResult,
   WorkflowConfig,
   WorkflowMetrics,
   WorkflowStatus,
-} from './core/workflow-types';
-import { startDebate } from './debate';
-import { DebateConfig } from './debate/types';
+} from "./core/workflow-types";
+import { startDebate } from "./debate";
+import { DebateConfig } from "./debate/types";
 import {
   executeAgentsInParallel,
   executeAgentsSequentially,
   getDebateAgents,
   getRecommendedAgentTypes,
-} from './orchestrator-helpers';
-import { agentRegistry } from './registry';
-import { BaseAgent } from './shared/BaseAgent';
+} from "./orchestrator-helpers";
+import { agentRegistry } from "./registry";
+import { BaseAgent } from "./shared/BaseAgent";
 
 export interface OrchestrationInput {
   fullText: string;
@@ -77,7 +77,9 @@ export class MultiAgentOrchestrator {
     const results = new Map<TaskType, StandardAgentOutput>();
     const { fullText, taskTypes, context, options } = input;
 
-    logger.info(`Starting multi-agent orchestration for ${taskTypes.length} tasks`);
+    logger.info(
+      `Starting multi-agent orchestration for ${taskTypes.length} tasks`,
+    );
 
     try {
       if (options?.parallel) {
@@ -88,7 +90,7 @@ export class MultiAgentOrchestrator {
 
       const endTime = Date.now();
       const successfulTasks = Array.from(results.values()).filter(
-        (r) => r.confidence > 0.5
+        (r) => r.confidence > 0.5,
       ).length;
       const failedTasks = taskTypes.length - successfulTasks;
       const averageConfidence =
@@ -97,7 +99,12 @@ export class MultiAgentOrchestrator {
 
       const orchestrationOutput: OrchestrationOutput = {
         results,
-        summary: { totalExecutionTime: endTime - startTime, successfulTasks, failedTasks, averageConfidence },
+        summary: {
+          totalExecutionTime: endTime - startTime,
+          successfulTasks,
+          failedTasks,
+          averageConfidence,
+        },
       };
 
       if (options?.includeMetadata) {
@@ -108,10 +115,12 @@ export class MultiAgentOrchestrator {
         };
       }
 
-      logger.info(`Multi-agent orchestration completed: ${successfulTasks}/${taskTypes.length} successful`);
+      logger.info(
+        `Multi-agent orchestration completed: ${successfulTasks}/${taskTypes.length} successful`,
+      );
       return orchestrationOutput;
     } catch (error) {
-      logger.error('Multi-agent orchestration failed:', error);
+      logger.error("Multi-agent orchestration failed:", error);
       throw error;
     }
   }
@@ -122,7 +131,7 @@ export class MultiAgentOrchestrator {
   async executeSingleAgent(
     taskType: TaskType,
     input: string,
-    context?: Record<string, unknown>
+    context?: Record<string, unknown>,
   ): Promise<StandardAgentOutput> {
     const agent = agentRegistry.getAgent(taskType);
     if (!agent) {
@@ -147,7 +156,7 @@ export class MultiAgentOrchestrator {
   /**
    * Get recommended agents for a given project type
    */
-  getRecommendedAgents(projectType: 'film' | 'series' | 'stage'): TaskType[] {
+  getRecommendedAgents(projectType: "film" | "series" | "stage"): TaskType[] {
     return getRecommendedAgentTypes(projectType);
   }
 
@@ -160,7 +169,7 @@ export class MultiAgentOrchestrator {
     taskTypes?: TaskType[],
     context?: string,
     config?: Partial<DebateConfig>,
-    confidenceThreshold = 0.6
+    confidenceThreshold = 0.6,
   ): Promise<StandardAgentOutput> {
     logger.info(`Starting multi-agent debate on: ${topic}`);
 
@@ -168,22 +177,32 @@ export class MultiAgentOrchestrator {
       const availableAgents = getDebateAgents(taskTypes);
 
       if (availableAgents.length === 0) {
-        throw new Error('لا توجد وكلاء متاحة للمناظرة');
+        throw new Error("لا توجد وكلاء متاحة للمناظرة");
       }
 
       logger.info(`Selected ${availableAgents.length} agents for debate`);
 
-      const debateConfig: Partial<DebateConfig> = { confidenceThreshold, ...config };
-      const result = await startDebate(topic, availableAgents, context, debateConfig);
+      const debateConfig: Partial<DebateConfig> = {
+        confidenceThreshold,
+        ...config,
+      };
+      const result = await startDebate(
+        topic,
+        availableAgents,
+        context,
+        debateConfig,
+      );
 
-      logger.info(`Multi-agent debate completed with confidence: ${result.confidence}`);
+      logger.info(
+        `Multi-agent debate completed with confidence: ${result.confidence}`,
+      );
       return result;
     } catch (error) {
-      logger.error('Multi-agent debate failed:', error);
+      logger.error("Multi-agent debate failed:", error);
       return {
-        text: `فشلت المناظرة: ${error instanceof Error ? error.message : 'خطأ غير معروف'}`,
+        text: `فشلت المناظرة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
         confidence: 0.3,
-        notes: ['فشل في إتمام المناظرة'],
+        notes: ["فشل في إتمام المناظرة"],
         metadata: { debateRounds: 0 },
       };
     }
@@ -196,31 +215,42 @@ export class MultiAgentOrchestrator {
   async executeWithDebate(
     input: OrchestrationInput,
     enableDebate = true,
-    debateConfig?: Partial<DebateConfig>
+    debateConfig?: Partial<DebateConfig>,
   ): Promise<OrchestrationOutput> {
     const result = await this.executeAgents(input);
 
     if (enableDebate && result.summary.averageConfidence < 0.7) {
-      logger.info(`Low average confidence (${result.summary.averageConfidence.toFixed(2)}), triggering debate`);
+      logger.info(
+        `Low average confidence (${result.summary.averageConfidence.toFixed(2)}), triggering debate`,
+      );
 
       try {
         const participatingTaskTypes = Array.from(result.results.keys());
         const agents = participatingTaskTypes
-          .map(taskType => agentRegistry.getAgent(taskType))
+          .map((taskType) => agentRegistry.getAgent(taskType))
           .filter((agent): agent is BaseAgent => agent !== undefined);
 
         const debateTopic = `تحسين تحليل المشروع: ${input.projectName}`;
-        const debateResult = await startDebate(debateTopic, agents, input.fullText, debateConfig);
+        const debateResult = await startDebate(
+          debateTopic,
+          agents,
+          input.fullText,
+          debateConfig,
+        );
 
         result.results.set(TaskType.INTEGRATED, debateResult);
         result.summary.successfulTasks += 1;
-        const allConfidences = Array.from(result.results.values()).map(r => r.confidence);
+        const allConfidences = Array.from(result.results.values()).map(
+          (r) => r.confidence,
+        );
         result.summary.averageConfidence =
           allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length;
 
-        logger.info(`Debate completed, new average confidence: ${result.summary.averageConfidence.toFixed(2)}`);
+        logger.info(
+          `Debate completed, new average confidence: ${result.summary.averageConfidence.toFixed(2)}`,
+        );
       } catch (error) {
-        logger.error('Debate execution failed:', error);
+        logger.error("Debate execution failed:", error);
       }
     }
 
@@ -232,7 +262,7 @@ export class MultiAgentOrchestrator {
    */
   async executeWorkflow(
     workflowName: PresetWorkflowName,
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<{
     status: WorkflowStatus;
     results: Map<string, AgentExecutionResult>;
@@ -248,7 +278,7 @@ export class MultiAgentOrchestrator {
    */
   async executeCustomWorkflow(
     config: WorkflowConfig,
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<{
     status: WorkflowStatus;
     results: Map<string, AgentExecutionResult>;

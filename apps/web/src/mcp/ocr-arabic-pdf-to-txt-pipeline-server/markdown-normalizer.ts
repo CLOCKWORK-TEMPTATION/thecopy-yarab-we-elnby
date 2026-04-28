@@ -371,30 +371,25 @@ export class MarkdownNormalizer {
       }
       const scene = line.match(this.sceneHeadingPattern);
 
-      if (scene) {
-        let j = i + 1;
-        while (j < lines.length && !lines[j]) {
-          j += 1;
-        }
-        if (j < lines.length) {
-          const nextLine = lines[j];
-          if (!nextLine) {
-            merged.push(line);
-            i += 1;
-            continue;
-          }
-          const num = nextLine.match(this.headingNumberPattern);
-          if (num) {
-            const hashes = scene[1];
-            const sceneLabel = scene[2];
-            const sceneNumber = num[2];
-            if (hashes && sceneLabel && sceneNumber) {
-              merged.push(`${hashes} ${sceneLabel} ${sceneNumber}`);
-              i = j + 1;
-              continue;
-            }
-          }
-        }
+      if (!scene) {
+        merged.push(line);
+        i += 1;
+        continue;
+      }
+
+      let j = i + 1;
+      while (j < lines.length && !lines[j]) {
+        j += 1;
+      }
+
+      const num = lines[j]?.match(this.headingNumberPattern);
+      const hashes = scene[1];
+      const sceneLabel = scene[2];
+      const sceneNumber = num?.[2];
+      if (num && hashes && sceneLabel && sceneNumber) {
+        merged.push(`${hashes} ${sceneLabel} ${sceneNumber}`);
+        i = j + 1;
+        continue;
       }
 
       merged.push(line);

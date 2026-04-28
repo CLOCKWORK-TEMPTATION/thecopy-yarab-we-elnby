@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { breakdownController } from './breakdown.controller';
+import { breakdownController } from "./breakdown.controller";
 
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
 const { mockBreakdownService } = vi.hoisted(() => ({
   mockBreakdownService: {
@@ -18,7 +18,7 @@ const { mockBreakdownService } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('@/services/breakdown/service', () => ({
+vi.mock("@/services/breakdown/service", () => ({
   breakdownService: mockBreakdownService,
 }));
 
@@ -43,12 +43,12 @@ function objectContainingMatcher(value: Record<string, unknown>): unknown {
   return expect.objectContaining(value);
 }
 
-describe('BreakdownController', () => {
+describe("BreakdownController", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('يعيد الحالة الصحية للخدمة', () => {
+  it("يعيد الحالة الصحية للخدمة", () => {
     const res = createMockResponse();
 
     breakdownController.health({} as Request, res);
@@ -57,17 +57,17 @@ describe('BreakdownController', () => {
       expect.objectContaining({
         success: true,
         data: objectContainingMatcher({
-          service: 'breakdown',
-          status: 'ok',
+          service: "breakdown",
+          status: "ok",
         }),
-      })
+      }),
     );
   });
 
-  it('يرفض طلب التهيئة إذا غاب نص السيناريو', async () => {
+  it("يرفض طلب التهيئة إذا غاب نص السيناريو", async () => {
     const req = {
       body: {},
-      user: { id: 'user-1', email: 'test@example.com' },
+      user: { id: "user-1", email: "test@example.com" },
     } as unknown as Request;
     const res = createMockResponse();
 
@@ -77,16 +77,16 @@ describe('BreakdownController', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'بيانات الطلب غير صالحة',
-      })
+        error: "بيانات الطلب غير صالحة",
+      }),
     );
   });
 
-  it('يعيد 404 إذا لم يجد تقرير المشروع', async () => {
+  it("يعيد 404 إذا لم يجد تقرير المشروع", async () => {
     mockBreakdownService.getProjectReport.mockResolvedValueOnce(null);
     const req = {
-      params: { projectId: 'project-1' },
-      user: { id: 'user-1', email: 'test@example.com' },
+      params: { projectId: "project-1" },
+      user: { id: "user-1", email: "test@example.com" },
     } as unknown as Request;
     const res = createMockResponse();
 
@@ -95,17 +95,17 @@ describe('BreakdownController', () => {
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      error: 'لم يتم العثور على تقرير بريك دون للمشروع',
+      error: "لم يتم العثور على تقرير بريك دون للمشروع",
     });
   });
 
-  it('يحوّل أخطاء الكيان غير الموجود إلى 404', async () => {
+  it("يحوّل أخطاء الكيان غير الموجود إلى 404", async () => {
     mockBreakdownService.analyzeProject.mockRejectedValueOnce(
-      new Error('المشروع غير موجود')
+      new Error("المشروع غير موجود"),
     );
     const req = {
-      params: { projectId: 'missing-project' },
-      user: { id: 'user-1', email: 'test@example.com' },
+      params: { projectId: "missing-project" },
+      user: { id: "user-1", email: "test@example.com" },
     } as unknown as Request;
     const res = createMockResponse();
 
@@ -114,13 +114,13 @@ describe('BreakdownController', () => {
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      error: 'المشروع غير موجود',
+      error: "المشروع غير موجود",
     });
   });
 
-  it('يرفض أي طلب محمي إذا غاب المستخدم المصادق', async () => {
+  it("يرفض أي طلب محمي إذا غاب المستخدم المصادق", async () => {
     const req = {
-      params: { projectId: 'project-1' },
+      params: { projectId: "project-1" },
     } as unknown as Request;
     const res = createMockResponse();
 
@@ -129,29 +129,29 @@ describe('BreakdownController', () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       success: false,
-      error: 'غير مصرح',
+      error: "غير مصرح",
     });
     expect(mockBreakdownService.analyzeProject).not.toHaveBeenCalled();
   });
 
-  it('يمرر معرف المستخدم إلى خدمة التهيئة', async () => {
+  it("يمرر معرف المستخدم إلى خدمة التهيئة", async () => {
     mockBreakdownService.createProjectAndParse.mockResolvedValueOnce({
-      projectId: 'project-1',
-      title: 'مشروع',
+      projectId: "project-1",
+      title: "مشروع",
       parsed: { scenes: [] },
     });
     const req = {
-      body: { scriptContent: 'مشهد داخلي' },
-      user: { id: 'user-42', email: 'owner@example.com' },
+      body: { scriptContent: "مشهد داخلي" },
+      user: { id: "user-42", email: "owner@example.com" },
     } as unknown as Request;
     const res = createMockResponse();
 
     await breakdownController.bootstrapProject(req, res);
 
     expect(mockBreakdownService.createProjectAndParse).toHaveBeenCalledWith(
-      'مشهد داخلي',
+      "مشهد داخلي",
       undefined,
-      'user-42'
+      "user-42",
     );
   });
 });

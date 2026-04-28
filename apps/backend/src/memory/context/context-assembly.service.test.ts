@@ -45,7 +45,7 @@ describe("ContextAssemblyService", () => {
         agentId: "agent-1",
         profile: "analysis",
       },
-      mockHits
+      mockHits,
     );
 
     expect(context.profile).toBe("analysis");
@@ -58,12 +58,12 @@ describe("ContextAssemblyService", () => {
     const analysisPrompt = contextAssemblyService.buildAugmentedPrompt(
       "ابدأ",
       mockHits,
-      "analysis"
+      "analysis",
     );
     const codePrompt = contextAssemblyService.buildAugmentedPrompt(
       "ابدأ",
       mockHits,
-      "code"
+      "code",
     );
 
     expect(analysisPrompt).toContain("سياق تحليلي");
@@ -71,11 +71,15 @@ describe("ContextAssemblyService", () => {
   });
 
   it("should enforce profile-specific chunk limits", () => {
-    const completionHits = contextAssemblyService.selectHits(mockHits, "completion", 10);
+    const completionHits = contextAssemblyService.selectHits(
+      mockHits,
+      "completion",
+      10,
+    );
     const summarizationHits = contextAssemblyService.selectHits(
       mockHits,
       "summarization",
-      10
+      10,
     );
 
     expect(completionHits.length).toBeLessThanOrEqual(4);

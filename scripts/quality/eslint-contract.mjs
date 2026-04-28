@@ -26,7 +26,9 @@ const targetArgs = args
 const projects = {
   web: {
     root: resolve(repoRoot, "apps/web"),
-    targets: ["."],
+    discoverTargets() {
+      return ["."];
+    },
   },
   backend: {
     root: resolve(repoRoot, "apps/backend"),

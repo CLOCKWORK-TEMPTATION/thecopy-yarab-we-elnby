@@ -154,7 +154,7 @@ export function normalizeResult(
       : {};
 
   // Workflow responses have a `results` object with step outputs
-  if ("results" in data && typeof data.results === "object") {
+  if ("results" in data && typeof data["results"] === "object") {
     return normalizeWorkflow(data, task);
   }
 

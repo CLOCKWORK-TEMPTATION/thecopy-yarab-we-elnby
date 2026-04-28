@@ -1,9 +1,7 @@
 import { TaskType } from "@core/types";
 
 import { BaseAgent } from "../shared/BaseAgent";
-import {
-  StandardAgentInput,
-} from "../shared/standardAgentPattern";
+import { StandardAgentInput } from "../shared/standardAgentPattern";
 
 import { CHARACTER_DEEP_ANALYZER_AGENT_CONFIG } from "./agent";
 
@@ -17,7 +15,7 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     super(
       "CharacterDeepAnalyzer AI",
       TaskType.CHARACTER_DEEP_ANALYZER,
-      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt ?? ""
+      CHARACTER_DEEP_ANALYZER_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.75;
@@ -33,8 +31,11 @@ export class CharacterDeepAnalyzerAgent extends BaseAgent {
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
     const typedCtx = contextObj;
-    const characterName = (typedCtx?.['characterName'] as string) || "الشخصية المستهدفة";
-    const previousAnalysis = typedCtx?.['previousAnalysis'] as string | undefined;
+    const characterName =
+      (typedCtx?.["characterName"] as string) || "الشخصية المستهدفة";
+    const previousAnalysis = typedCtx?.["previousAnalysis"] as
+      | string
+      | undefined;
 
     let prompt = `## مهمة التحليل العميق للشخصية: ${characterName}
 
@@ -86,7 +87,7 @@ ${previousAnalysis.substring(0, 1000)}
    * استجابة احتياطية
    */
   protected override async getFallbackResponse(
-    _input: StandardAgentInput
+    _input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     return `# تحليل شخصية (احتياطي)

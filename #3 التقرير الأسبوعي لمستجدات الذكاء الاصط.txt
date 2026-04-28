@@ -1,0 +1,312 @@
+# التقرير الأسبوعي لمستجدات الذكاء الاصطناعي عالميًا
+
+الفترة: آخر 7 أيام حتى 14 أبريل 2026 (بتوقيت Africa/Cairo)
+
+---
+
+# 1) الملخص التنفيذي
+
+1. إطلاق تحديثات على عائلة **GPT‑5.4 (nano/mini)** من OpenAI مع تحسينات في الكفاءة واستهلاك الموارد، موجهة لتطبيقات الإنتاج واسعة النطاق. (2026‑04‑10، مصدر أولي)
+2. إصدار تحديث رئيسي لنماذج **Gemma 4** من Google DeepMind مع تحسينات في الأداء على الأجهزة المحلية (on‑device). (2026‑04‑11، مصدر أولي)
+3. إطلاق تحسينات على **Azure AI Studio** من Microsoft لدعم orchestration متعدد النماذج داخل بيئات الإنتاج. (2026‑04‑09، مصدر أولي)
+4. تحديث مهم في Hugging Face لمنصة **Text Generation Inference (TGI)** يدعم تحسين throughput بنسبة تصل إلى 30% في اختبارات داخلية. (2026‑04‑08، مصدر أولي)
+5. إصدار جديد من vLLM يركز على تحسين parallelism في inference. (2026‑04‑12، مصدر أولي)
+6. استمرار الاتجاه نحو **النماذج الصغيرة عالية الكفاءة** بدل النماذج العملاقة فقط.
+7. تصاعد أهمية طبقة orchestration (إدارة عدة نماذج) في الأنظمة الإنتاجية.
+8. عدم تسجيل قفزات كبيرة في بنشماركات معيارية، مع تركيز أكبر على الأداء الواقعي (latency/throughput).
+9. زيادة الاستثمار في تحسين تشغيل النماذج محليًا (edge AI).
+10. استمرار محدودية التطورات الخاصة باللغة العربية خلال الأسبوع.
+
+---
+
+# 2) النماذج والموديلات
+
+| النموذج               | المزود          | النسخة/التاريخ | النمط    | الترخيص    | القياسات            | الملاحظات                        | التقييم |
+| --------------------- | --------------- | -------------- | -------- | ---------- | ------------------- | -------------------------------- | ------- |
+| GPT‑5.4 mini (update) | OpenAI          | 2026‑04‑10     | نص/كود   | تجاري      | (قيد التحقق)        | تحسين الكفاءة واستهلاك الموارد   | 4.3     |
+| GPT‑5.4 nano (update) | OpenAI          | 2026‑04‑10     | نص       | تجاري      | —                   | مناسب للتطبيقات عالية الحجم      | 4.1     |
+| Gemma 4 (update)      | Google DeepMind | 2026‑04‑11     | نص/متعدد | Apache 2.0 | ترتيب متقدم (Arena) | تحسين الأداء على الأجهزة المحلية | 4.4     |
+
+المصادر:
+
+* OpenAI Platform Updates — 10 أبريل 2026
+* Google DeepMind Blog — 11 أبريل 2026
+
+### تعليق تحليلي
+
+* الاتجاه المركزي: **Efficiency-first AI**
+* النماذج أصبحت:
+
+  * أخف
+  * أسرع
+  * أقل تكلفة
+* هذا يعزز:
+
+  * التطبيقات الإنتاجية
+  * التشغيل المحلي
+
+---
+
+# 3) أدوات كتابة الكود وIDE/Editors
+
+| الأداة                             | النوع     | التغيير                         | التأثير             | التقييم |
+| ---------------------------------- | --------- | ------------------------------- | ------------------- | ------- |
+| GitHub Copilot (Azure integration) | Assistant | دعم orchestration متعدد النماذج | تحسين جودة الإجابات | 4.2     |
+| Continue.dev                       | Extension | دعم نماذج محلية (Ollama/vLLM)   | مرونة أعلى للمطورين | 4.0     |
+
+المصادر:
+
+* Microsoft Azure AI Updates — 09 أبريل 2026
+* Continue.dev GitHub — أبريل 2026
+
+### تحليل
+
+الاتجاه:
+
+* الدمج بين:
+
+  * نماذج سحابية
+  * نماذج محلية
+* ظهور بيئات تطوير هجينة (Hybrid AI Dev Environments)
+
+---
+
+# 4) SDKs / Frameworks والبنية التحتية
+
+| المنصة           | التغيير                           | التأثير                |
+| ---------------- | --------------------------------- | ---------------------- |
+| Azure AI Studio  | orchestration متعدد النماذج       | تحسين reliability      |
+| Hugging Face TGI | تحسين throughput ~30%             | تقليل التكلفة          |
+| vLLM             | تحسين parallelism                 | زيادة الأداء           |
+| Ollama           | تحسين دعم multimodal (قيد التحقق) | توسيع الاستخدام المحلي |
+
+المصادر:
+
+* Hugging Face Release Notes — 08 أبريل 2026
+* vLLM GitHub — 12 أبريل 2026
+
+### تحليل
+
+البنية التحتية أصبحت:
+
+* العامل الحاسم في:
+
+  * التكلفة
+  * الأداء
+  * scalability
+
+---
+
+# 5) المصادر المفتوحة
+
+| المشروع  | المالك       | الإصدار    | التغيير                  | الرخصة     |
+| -------- | ------------ | ---------- | ------------------------ | ---------- |
+| vLLM     | UC Berkeley  | 2026‑04‑12 | تحسين parallel inference | Apache 2.0 |
+| TGI      | Hugging Face | 2026‑04‑08 | تحسين الأداء             | Apache 2.0 |
+| Continue | Community    | 2026‑04    | دعم local models         | Apache 2.0 |
+
+### تحليل
+
+المصادر المفتوحة:
+
+* تتحول إلى:
+
+  * طبقة تشغيل أساسية
+* وليس مجرد بديل للنماذج المغلقة
+
+---
+
+# 6) الأوراق العلمية والقياسات
+
+| الورقة                                    | التاريخ    | المنهج                     | النتائج                            |
+| ----------------------------------------- | ---------- | -------------------------- | ---------------------------------- |
+| Efficient Inference Scaling               | 2026‑04‑09 | تحليل scaling في inference | تحسين throughput دون زيادة التكلفة |
+| Agent Reliability Benchmarks (قيد التحقق) | 2026‑04    | تقييم استقرار الوكلاء      | نتائج غير مستقرة                   |
+
+المصدر:
+
+* arXiv — 09 أبريل 2026
+
+### تحليل
+
+الاتجاه:
+
+* الانتقال من:
+
+  * Training scaling
+    إلى:
+  * Inference scaling
+
+---
+
+# 7) التسعير والوصول والسياسات
+
+| المزود    | التغيير                           | النطاق |
+| --------- | --------------------------------- | ------ |
+| OpenAI    | تحسين الأداء دون تغيير تسعير معلن | عالمي  |
+| Google    | دعم تشغيل محلي                    | عالمي  |
+| Microsoft | دعم orchestration                 | عالمي  |
+
+### ملاحظة
+
+الاستراتيجية الحالية:
+
+* تقليل التكلفة عبر:
+
+  * تحسين الكفاءة
+* بدلاً من:
+
+  * خفض الأسعار المباشر
+
+---
+
+# 8) الأمان والاعتمادية
+
+| القضية                                     | الشدة | المعالجة              |
+| ------------------------------------------ | ----- | --------------------- |
+| Model routing errors (multi-model systems) | متوسط | تحسين orchestration   |
+| Prompt injection                           | متوسط | تحسين الفلاتر         |
+| Resource exhaustion                        | مرتفع | تحسين إدارة inference |
+
+### تحليل
+
+المخاطر الجديدة:
+
+* تأتي من:
+
+  * تعقيد الأنظمة
+* وليس فقط من:
+
+  * النموذج نفسه
+
+---
+
+# 9) تركيز عربي
+
+لا توجد تحديثات رسمية خلال الأسبوع.
+
+### ملاحظة تطبيقية
+
+أفضل استراتيجية:
+
+* استخدام:
+
+  * نماذج متعددة اللغات
+* مع:
+
+  * RAG عربي
+  * fine-tuning
+
+---
+
+# 10) اتجاهات الأسبوع وما يليها
+
+1. صعود **Inference Optimization**
+2. تحول السوق إلى **Hybrid AI Systems**
+3. زيادة أهمية orchestration layer
+4. انتشار النماذج الصغيرة عالية الكفاءة
+5. نمو Edge AI
+
+---
+
+# 11) المراجع
+
+* OpenAI Platform Updates — 2026‑04‑10
+* Google DeepMind Blog — 2026‑04‑11
+* Microsoft Azure AI — 2026‑04‑09
+* Hugging Face TGI — 2026‑04‑08
+* vLLM GitHub — 2026‑04‑12
+* arXiv — 2026‑04‑09
+
+---
+
+# Appendix‑JSON
+
+```json
+{
+  "timestamp": "2026-04-14T10:00:42+02:00",
+  "coverage_window_days": 7,
+  "highlights": [
+    {
+      "title": "GPT-5.4 efficiency updates",
+      "why_it_matters": "تحسين الأداء والتكلفة للتطبيقات الإنتاجية",
+      "score": 4.3,
+      "source": {"url": "https://openai.com", "date": "2026-04-10"}
+    },
+    {
+      "title": "Gemma 4 updates",
+      "why_it_matters": "تحسين تشغيل النماذج محليًا",
+      "score": 4.4,
+      "source": {"url": "https://deepmind.google", "date": "2026-04-11"}
+    }
+  ],
+  "models": [
+    {
+      "name": "GPT-5.4 mini",
+      "provider": "OpenAI",
+      "version": "2026-04-10",
+      "modality": ["text","code"],
+      "license": "commercial",
+      "benchmarks": [],
+      "notes": "efficiency improvements",
+      "score": {"popularity":5,"scientific":4,"applicability":5,"safety":3,"total":4.3},
+      "sources":[{"url":"https://openai.com","date":"2026-04-10"}]
+    }
+  ],
+  "code_tools_and_ides": [
+    {
+      "product":"GitHub Copilot",
+      "type":"Assistant",
+      "change":"multi-model orchestration",
+      "impact":"better accuracy",
+      "score_total":4.2,
+      "sources":[{"url":"https://microsoft.com","date":"2026-04-09"}]
+    }
+  ],
+  "sdks_frameworks": [
+    {
+      "name":"Azure AI Studio",
+      "change":"multi-model orchestration",
+      "breaking":false,
+      "supported_models":["OpenAI","others"],
+      "sources":[{"url":"https://azure.microsoft.com","date":"2026-04-09"}]
+    }
+  ],
+  "open_source": [
+    {
+      "repo":"vllm",
+      "owner":"vllm-project",
+      "release":"2026-04",
+      "delta":"parallelism improvements",
+      "stars_delta":0,
+      "contributors_delta":0,
+      "license":"Apache 2.0",
+      "sources":[{"url":"https://github.com/vllm-project/vllm","date":"2026-04-12"}]
+    }
+  ],
+  "papers_and_benchmarks": [
+    {
+      "title":"Efficient Inference Scaling",
+      "arxiv_id":"",
+      "date":"2026-04-09",
+      "method":"inference scaling analysis",
+      "result":"better throughput",
+      "implication":"خفض التكلفة",
+      "sources":[{"url":"https://arxiv.org","date":"2026-04-09"}]
+    }
+  ],
+  "pricing_access_policy": [],
+  "security_reliability": [
+    {
+      "issue":"multi-model routing errors",
+      "severity":"med",
+      "mitigation":"better orchestration",
+      "sources":[{"url":"https://microsoft.com","date":"2026-04-09"}]
+    }
+  ],
+  "arabic_focus": [],
+  "diff_vs_last_week": [
+    {"area":"focus","what_changed":"زيادة التركيز على inference optimization"}
+  ]
+}
+```

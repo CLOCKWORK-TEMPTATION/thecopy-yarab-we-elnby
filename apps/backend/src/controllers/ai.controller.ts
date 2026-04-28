@@ -1,19 +1,19 @@
-import { Response } from 'express';
-import { z } from 'zod';
+import { Response } from "express";
+import { z } from "zod";
 
-import { logger } from '@/lib/logger';
-import { GeminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { GeminiService } from "@/services/gemini.service";
 
-import type { AuthRequest } from '@/middleware/auth.middleware';
+import type { AuthRequest } from "@/middleware/auth.middleware";
 
 const chatSchema = z.object({
-  message: z.string().min(1, 'الرسالة مطلوبة'),
+  message: z.string().min(1, "الرسالة مطلوبة"),
   context: z.unknown().optional(),
 });
 
 const shotSuggestionSchema = z.object({
-  sceneDescription: z.string().min(1, 'وصف المشهد مطلوب'),
-  shotType: z.string().min(1, 'نوع اللقطة مطلوب'),
+  sceneDescription: z.string().min(1, "وصف المشهد مطلوب"),
+  shotType: z.string().min(1, "نوع اللقطة مطلوب"),
 });
 
 export class AIController {
@@ -26,7 +26,7 @@ export class AIController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -36,7 +36,7 @@ export class AIController {
       if (!validation.success) {
         res.status(400).json({
           success: false,
-          error: 'بيانات غير صحيحة',
+          error: "بيانات غير صحيحة",
           details: validation.error.issues,
         });
         return;
@@ -44,7 +44,7 @@ export class AIController {
 
       const { message, context } = validation.data;
 
-      logger.info('AI chat request', {
+      logger.info("AI chat request", {
         userId: req.user.id,
         messageLength: message.length,
         hasContext: !!context,
@@ -61,10 +61,10 @@ export class AIController {
         },
       });
     } catch (error) {
-      logger.error('AI chat error:', error);
+      logger.error("AI chat error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء التواصل مع الذكاء الاصطناعي',
+        error: "حدث خطأ أثناء التواصل مع الذكاء الاصطناعي",
       });
     }
   }
@@ -78,7 +78,7 @@ export class AIController {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          error: 'غير مصرح',
+          error: "غير مصرح",
         });
         return;
       }
@@ -88,7 +88,7 @@ export class AIController {
       if (!validation.success) {
         res.status(400).json({
           success: false,
-          error: 'بيانات غير صحيحة',
+          error: "بيانات غير صحيحة",
           details: validation.error.issues,
         });
         return;
@@ -96,24 +96,27 @@ export class AIController {
 
       const { sceneDescription, shotType } = validation.data;
 
-      logger.info('Shot suggestion request', {
+      logger.info("Shot suggestion request", {
         userId: req.user.id,
         shotType,
         sceneLength: sceneDescription.length,
       });
 
       const geminiService = new GeminiService();
-      const suggestion = await geminiService.getShotSuggestion(sceneDescription, shotType);
+      const suggestion = await geminiService.getShotSuggestion(
+        sceneDescription,
+        shotType,
+      );
 
       res.json({
         success: true,
         data: suggestion,
       });
     } catch (error) {
-      logger.error('Shot suggestion error:', error);
+      logger.error("Shot suggestion error:", error);
       res.status(500).json({
         success: false,
-        error: 'حدث خطأ أثناء توليد اقتراحات اللقطة',
+        error: "حدث خطأ أثناء توليد اقتراحات اللقطة",
       });
     }
   }

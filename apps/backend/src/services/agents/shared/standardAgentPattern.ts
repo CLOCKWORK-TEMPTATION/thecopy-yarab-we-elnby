@@ -1,4 +1,3 @@
- 
 /**
  * Standard Agent Execution Pattern
  *
@@ -27,7 +26,7 @@ export type {
 // Helper function to call Gemini AI with text prompt
 async function callGeminiText(
   prompt: string,
-  _options?: { temperature?: number }
+  _options?: { temperature?: number },
 ): Promise<string> {
   const response = await geminiService.analyzeText(prompt, "general");
   return response;
@@ -37,7 +36,11 @@ async function callGeminiText(
 function toText(value: unknown): string {
   if (typeof value === "string") return value;
   if (value === null || value === undefined) return "";
-  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint"
+  ) {
     return String(value);
   }
   try {
@@ -132,7 +135,7 @@ const DEFAULT_OPTIONS: StandardAgentOptions = {
 async function performRAG(
   input: string,
   context?: string,
-  useSemanticRAG = true
+  useSemanticRAG = true,
 ): Promise<RAGContext> {
   if (!context || context.length < 100 || !useSemanticRAG) {
     return { chunks: [], relevanceScores: [] };
@@ -144,8 +147,8 @@ async function performRAG(
   });
 
   return {
-    chunks: result.chunks.map(c => c.text),
-    relevanceScores: result.chunks.map(c => c.relevanceScore),
+    chunks: result.chunks.map((c) => c.text),
+    relevanceScores: result.chunks.map((c) => c.relevanceScore),
     metrics: {
       precision: result.metrics.precision,
       recall: result.metrics.recall,
@@ -155,7 +158,10 @@ async function performRAG(
   };
 }
 
-function buildPromptWithRAG(basePrompt: string, ragContext: RAGContext): string {
+function buildPromptWithRAG(
+  basePrompt: string,
+  ragContext: RAGContext,
+): string {
   if (ragContext.chunks.length === 0) return basePrompt;
 
   const contextSection = ragContext.chunks
@@ -199,20 +205,26 @@ interface PipelineRunContext {
 export async function executeStandardAgentPattern(
   taskPrompt: string,
   options: StandardAgentOptions,
-  context?: Record<string, unknown>
+  context?: Record<string, unknown>,
 ): Promise<StandardAgentOutput> {
   const startedAt = Date.now();
   const merged = { ...DEFAULT_OPTIONS, ...options };
   const originalText =
-    typeof context?.["originalText"] === "string" ? context["originalText"] : undefined;
+    typeof context?.["originalText"] === "string"
+      ? context["originalText"]
+      : undefined;
 
   const state: PipelineState = {
     currentText: "",
     confidence: 0.7,
     notes: [],
     metadata: {
-      ragUsed: false, critiqueIterations: 0, constitutionalViolations: 0,
-      uncertaintyScore: 0, hallucinationDetected: false, debateRounds: 0,
+      ragUsed: false,
+      critiqueIterations: 0,
+      constitutionalViolations: 0,
+      uncertaintyScore: 0,
+      hallucinationDetected: false,
+      debateRounds: 0,
     },
   };
 
@@ -241,19 +253,36 @@ export async function executeStandardAgentPattern(
   }
 }
 
-async function runPipeline(context: PipelineRunContext): Promise<StandardAgentOutput> {
-  const { taskPrompt, merged, options, originalText, state, startedAt } = context;
+async function runPipeline(
+  context: PipelineRunContext,
+): Promise<StandardAgentOutput> {
+  const { taskPrompt, merged, options, originalText, state, startedAt } =
+    context;
   // Step 1: RAG
-  const finalPrompt = await applyRAGStep(taskPrompt, merged, originalText, state);
-  state.currentText = await callGeminiText(finalPrompt, { temperature: merged.temperature ?? 0.3 });
+  const finalPrompt = await applyRAGStep(
+    taskPrompt,
+    merged,
+    originalText,
+    state,
+  );
+  state.currentText = await callGeminiText(finalPrompt, {
+    temperature: merged.temperature ?? 0.3,
+  });
 
   // Step 2-5: Quality checks
-  if (options.enableSelfCritique) await applySelfCritiqueStep(finalPrompt, merged, state);
-  if (options.enableConstitutional) await applyConstitutionalStep(taskPrompt, merged, state);
-  if (options.enableUncertainty) await applyUncertaintyStep(finalPrompt, merged, state);
-  if (options.enableHallucination) await applyHallucinationStep(taskPrompt, state);
+  if (options.enableSelfCritique)
+    await applySelfCritiqueStep(finalPrompt, merged, state);
+  if (options.enableConstitutional)
+    await applyConstitutionalStep(taskPrompt, merged, state);
+  if (options.enableUncertainty)
+    await applyUncertaintyStep(finalPrompt, merged, state);
+  if (options.enableHallucination)
+    await applyHallucinationStep(taskPrompt, state);
 
-  if (merged.enableDebate && state.confidence < (merged.confidenceThreshold ?? 0.7)) {
+  if (
+    merged.enableDebate &&
+    state.confidence < (merged.confidenceThreshold ?? 0.7)
+  ) {
     state.notes.push("الثقة منخفضة - يُوصى بتفعيل النقاش متعدد الوكلاء");
   }
 
@@ -270,8 +299,10 @@ async function runPipeline(context: PipelineRunContext): Promise<StandardAgentOu
 }
 
 async function applyRAGStep(
-  taskPrompt: string, merged: StandardAgentOptions,
-  originalText: string | undefined, state: PipelineState
+  taskPrompt: string,
+  merged: StandardAgentOptions,
+  originalText: string | undefined,
+  state: PipelineState,
 ): Promise<string> {
   if (!merged.enableRAG || !originalText) return taskPrompt;
 
@@ -281,12 +312,14 @@ async function applyRAGStep(
   state.metadata.ragUsed = ragContext.chunks.length > 0;
 
   if (state.metadata.ragUsed) {
-    const ragType = useSemanticRAG ? 'Semantic RAG' : 'Keyword RAG';
-    state.notes.push(`استخدم ${ragType}: ${ragContext.chunks.length} أجزاء ذات صلة`);
+    const ragType = useSemanticRAG ? "Semantic RAG" : "Keyword RAG";
+    state.notes.push(
+      `استخدم ${ragType}: ${ragContext.chunks.length} أجزاء ذات صلة`,
+    );
     if (ragContext.metrics) {
       state.notes.push(
         `دقة RAG: ${(ragContext.metrics.precision! * 100).toFixed(0)}%, ` +
-        `استدعاء: ${(ragContext.metrics.recall! * 100).toFixed(0)}%`
+          `استدعاء: ${(ragContext.metrics.recall! * 100).toFixed(0)}%`,
       );
     }
   }
@@ -294,10 +327,14 @@ async function applyRAGStep(
 }
 
 async function applySelfCritiqueStep(
-  finalPrompt: string, merged: StandardAgentOptions, state: PipelineState
+  finalPrompt: string,
+  merged: StandardAgentOptions,
+  state: PipelineState,
 ): Promise<void> {
   const result = await performSelfCritique(
-    state.currentText, merged.temperature ?? 0.3, merged.maxIterations ?? 3
+    state.currentText,
+    merged.temperature ?? 0.3,
+    merged.maxIterations ?? 3,
   );
   state.currentText = result.finalText;
   state.metadata.critiqueIterations = result.iterations;
@@ -309,10 +346,15 @@ async function applySelfCritiqueStep(
 }
 
 async function applyConstitutionalStep(
-  taskPrompt: string, merged: StandardAgentOptions, state: PipelineState
+  taskPrompt: string,
+  merged: StandardAgentOptions,
+  state: PipelineState,
 ): Promise<void> {
   const result = await performConstitutionalCheck(
-    state.currentText, taskPrompt, "gemini-1.5-flash", merged.temperature ?? 0.3
+    state.currentText,
+    taskPrompt,
+    "gemini-1.5-flash",
+    merged.temperature ?? 0.3,
   );
   state.currentText = result.correctedText;
   state.metadata.constitutionalViolations = result.violations.length;
@@ -323,10 +365,15 @@ async function applyConstitutionalStep(
 }
 
 async function applyUncertaintyStep(
-  finalPrompt: string, merged: StandardAgentOptions, state: PipelineState
+  finalPrompt: string,
+  merged: StandardAgentOptions,
+  state: PipelineState,
 ): Promise<void> {
   const metrics = await measureUncertainty(
-    state.currentText, finalPrompt, "gemini-1.5-flash", merged.temperature ?? 0.3
+    state.currentText,
+    finalPrompt,
+    "gemini-1.5-flash",
+    merged.temperature ?? 0.3,
   );
   state.metadata.uncertaintyScore = metrics.score;
   state.confidence = Math.min(state.confidence, metrics.confidence);
@@ -336,9 +383,14 @@ async function applyUncertaintyStep(
 }
 
 async function applyHallucinationStep(
-  taskPrompt: string, state: PipelineState
+  taskPrompt: string,
+  state: PipelineState,
 ): Promise<void> {
-  const result = await detectHallucinations(state.currentText, taskPrompt, "gemini-1.5-flash");
+  const result = await detectHallucinations(
+    state.currentText,
+    taskPrompt,
+    "gemini-1.5-flash",
+  );
   state.metadata.hallucinationDetected = result.detected;
   if (result.detected) {
     state.currentText = result.correctedText;
@@ -352,11 +404,18 @@ async function applyHallucinationStep(
 // Helper: Format output for display (text only, no JSON)
 // =====================================================
 
-export function formatAgentOutput(output: StandardAgentOutput, agentName: string): string {
+export function formatAgentOutput(
+  output: StandardAgentOutput,
+  agentName: string,
+): string {
   const sections = [
-    `=== ${agentName} - التقرير ===`, "",
-    `الثقة: ${(output.confidence * 100).toFixed(0)}%`, "",
-    "--- التحليل ---", output.text, "",
+    `=== ${agentName} - التقرير ===`,
+    "",
+    `الثقة: ${(output.confidence * 100).toFixed(0)}%`,
+    "",
+    "--- التحليل ---",
+    output.text,
+    "",
   ];
 
   if (output.notes.length > 0) {
@@ -372,7 +431,9 @@ export function formatAgentOutput(output: StandardAgentOutput, agentName: string
       sections.push(`✓ نقد ذاتي: ${output.metadata.critiqueIterations} دورات`);
     }
     if ((output.metadata.constitutionalViolations ?? 0) > 0) {
-      sections.push(`⚠ انتهاكات دستورية: ${output.metadata.constitutionalViolations}`);
+      sections.push(
+        `⚠ انتهاكات دستورية: ${output.metadata.constitutionalViolations}`,
+      );
     }
     if (output.metadata.hallucinationDetected) {
       sections.push("⚠ تم اكتشاف وتصحيح هلوسات");

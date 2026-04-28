@@ -210,10 +210,7 @@ export function InfiniteCanvas({
     setSelectedNode(null);
   };
 
-  // Connect nodes
-  const handleNodeClick = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const activateNode = (id: string) => {
     if (tool === "connect") {
       if (connectingFrom) {
         if (connectingFrom !== id) {
@@ -232,6 +229,12 @@ export function InfiniteCanvas({
     } else {
       setSelectedNode(id);
     }
+  };
+
+  // Connect nodes
+  const handleNodeClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    activateNode(id);
   };
 
   // Handle node drag start
@@ -280,6 +283,9 @@ export function InfiniteCanvas({
         className
       )}
       ref={canvasRef}
+      role="button"
+      aria-label="لوحة الأفكار التفاعلية"
+      tabIndex={0}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -424,7 +430,14 @@ export function InfiniteCanvas({
               top: node.position.y,
               borderColor: node.color,
             }}
+            role="button"
+            tabIndex={0}
             onClick={(e) => handleNodeClick(node.id, e)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              e.preventDefault();
+              activateNode(node.id);
+            }}
             onMouseDown={(e) => handleNodeDragStart(node.id, e)}
           >
             {/* Color indicator */}

@@ -4,6 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
+import {
+  arrayBufferToBase64,
+  deriveAuthVerifier,
+  deriveKEK,
+  encryptData,
+  generateIV,
+  generateRecoveryKey,
+  generateSalt,
+  getKeyManager,
+  uint8ArrayToBase64,
+} from "@/lib/crypto";
 
 /**
  * نموذج تسجيل Zero-Knowledge
@@ -15,18 +26,6 @@ import { logger } from "@/lib/ai/utils/logger";
  * 3. KEK يبقى في الذاكرة فقط
  * 4. توليد وعرض Recovery Key
  */
-
-import {
-  generateSalt,
-  deriveKEK,
-  deriveAuthVerifier,
-  generateRecoveryKey,
-  uint8ArrayToBase64,
-  encryptData,
-  generateIV,
-  arrayBufferToBase64,
-  getKeyManager,
-} from "@/lib/crypto";
 
 export function ZKSignupForm() {
   const router = useRouter();
@@ -176,10 +175,14 @@ export function ZKSignupForm() {
 
       <form onSubmit={handleSignup} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label
+            htmlFor="field-zksignupform-1"
+            className="block text-sm font-medium mb-1"
+          >
             البريد الإلكتروني
           </label>
           <input
+            id="field-zksignupform-1"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -190,10 +193,14 @@ export function ZKSignupForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label
+            htmlFor="field-zksignupform-2"
+            className="block text-sm font-medium mb-1"
+          >
             كلمة المرور (12 حرفاً على الأقل)
           </label>
           <input
+            id="field-zksignupform-2"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -204,10 +211,14 @@ export function ZKSignupForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label
+            htmlFor="field-zksignupform-3"
+            className="block text-sm font-medium mb-1"
+          >
             تأكيد كلمة المرور
           </label>
           <input
+            id="field-zksignupform-3"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

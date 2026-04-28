@@ -17,8 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { EMPTY_CAPTIONS_TRACK } from "./constants";
 import { formatRecordedAt, formatTime, getScoreColor } from "./utils";
+
 import type { ComparisonView, Take } from "./types";
 
 interface ComparisonPanelProps {

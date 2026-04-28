@@ -17,6 +17,41 @@ type ToastFn = (options: {
   variant?: "default" | "destructive";
 }) => void;
 
+interface DevelopmentDraft {
+  textInput?: string;
+  analysisReport?: string;
+  specialRequirements?: string;
+  additionalInfo?: string;
+  ts?: number;
+}
+
+const restoreDraftFields = (
+  dispatch: React.Dispatch<ActionType>,
+  parsed: DevelopmentDraft
+): void => {
+  if (parsed.textInput) {
+    dispatch({ type: "SET_TEXT_INPUT", payload: parsed.textInput });
+  }
+  if (parsed.analysisReport) {
+    dispatch({
+      type: "SET_ANALYSIS_REPORT",
+      payload: parsed.analysisReport,
+    });
+  }
+  if (parsed.specialRequirements) {
+    dispatch({
+      type: "SET_SPECIAL_REQUIREMENTS",
+      payload: parsed.specialRequirements,
+    });
+  }
+  if (parsed.additionalInfo) {
+    dispatch({
+      type: "SET_ADDITIONAL_INFO",
+      payload: parsed.additionalInfo,
+    });
+  }
+};
+
 /**
  * تحميل بيانات التحليل المحفوظة من localStorage أو sessionStorage.
  * يتحقق أولاً من وجود تحليل المحطات السبع ثم من الجلسة ثم من الخادم البعيد.
@@ -106,48 +141,23 @@ export function loadSavedAnalysisDataImpl(
   }
 
   // استعادة المسودة المحفوظة كملاذ أخير
-  if (!currentTextInput && !currentAnalysisReport) {
-    try {
-      const draft = sessionStorage.getItem("development_draft");
-      if (draft) {
-        const parsed = JSON.parse(draft) as {
-          textInput?: string;
-          analysisReport?: string;
-          specialRequirements?: string;
-          additionalInfo?: string;
-          ts?: number;
-        };
-        // لا تستعيد مسودات أقدم من 24 ساعة
-        if (parsed.ts && Date.now() - parsed.ts < 86_400_000) {
-          if (parsed.textInput) {
-            dispatch({ type: "SET_TEXT_INPUT", payload: parsed.textInput });
-          }
-          if (parsed.analysisReport) {
-            dispatch({
-              type: "SET_ANALYSIS_REPORT",
-              payload: parsed.analysisReport,
-            });
-          }
-          if (parsed.specialRequirements) {
-            dispatch({
-              type: "SET_SPECIAL_REQUIREMENTS",
-              payload: parsed.specialRequirements,
-            });
-          }
-          if (parsed.additionalInfo) {
-            dispatch({
-              type: "SET_ADDITIONAL_INFO",
-              payload: parsed.additionalInfo,
-            });
-          }
-          toast({
-            title: "تم استعادة المسودة",
-            description: "تم استعادة المدخلات من الجلسة السابقة",
-          });
-        }
-      }
-    } catch {
-      // corrupt draft — ignore
-    }
+  if (currentTextInput || currentAnalysisReport) {
+    return;
+  }
+
+  try {
+    const draft = sessionStorage.getItem("development_draft");
+    if (!draft) return;
+
+    const parsed = JSON.parse(draft) as DevelopmentDraft;
+    if (!parsed.ts || Date.now() - parsed.ts >= 86_400_000) return;
+
+    restoreDraftFields(dispatch, parsed);
+    toast({
+      title: "تم استعادة المسودة",
+      description: "تم استعادة المدخلات من الجلسة السابقة",
+    });
+  } catch {
+    // corrupt draft — ignore
   }
 }

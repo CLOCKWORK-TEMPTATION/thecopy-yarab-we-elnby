@@ -24,52 +24,52 @@
  *   - بيانات حسّاسة محتملة في رؤوس HTTP (Authorization, Cookie) مغطّاة كذلك.
  */
 
-import pino, { type Logger as PinoLogger, type LoggerOptions } from 'pino';
+import pino, { type Logger as PinoLogger, type LoggerOptions } from "pino";
 
 // ----------------------------------------------------------------------------
 // قائمة المسارات المعرّضة للأسرار (يقوم pino بإخفائها تلقائياً)
 // ----------------------------------------------------------------------------
 const REDACT_PATHS: readonly string[] = [
   // مفاتيح API الشائعة
-  '*.password',
-  '*.passwd',
-  '*.secret',
-  '*.token',
-  '*.apiKey',
-  '*.api_key',
-  '*.accessToken',
-  '*.refreshToken',
-  '*.authorization',
-  '*.auth',
-  '*.cookie',
-  '*.cookies',
-  '*.jwt',
-  '*.bearerToken',
+  "*.password",
+  "*.passwd",
+  "*.secret",
+  "*.token",
+  "*.apiKey",
+  "*.api_key",
+  "*.accessToken",
+  "*.refreshToken",
+  "*.authorization",
+  "*.auth",
+  "*.cookie",
+  "*.cookies",
+  "*.jwt",
+  "*.bearerToken",
   // متغيّرات بيئة معروفة
-  '*.TIPTAP_PRO_TOKEN',
-  '*.JWT_SECRET',
-  '*.GEMINI_API_KEY',
-  '*.GOOGLE_GENAI_API_KEY',
-  '*.OPENAI_API_KEY',
-  '*.ANTHROPIC_API_KEY',
-  '*.MISTRAL_API_KEY',
-  '*.DEEPSEEK_API_KEY',
-  '*.GROQ_API_KEY',
-  '*.OPENROUTER_API_KEY',
-  '*.SENTRY_AUTH_TOKEN',
-  '*.SLACK_TOKEN',
-  '*.SMTP_PASSWORD',
-  '*.DATABASE_URL',
-  '*.REDIS_URL',
+  "*.TIPTAP_PRO_TOKEN",
+  "*.JWT_SECRET",
+  "*.GEMINI_API_KEY",
+  "*.GOOGLE_GENAI_API_KEY",
+  "*.OPENAI_API_KEY",
+  "*.ANTHROPIC_API_KEY",
+  "*.MISTRAL_API_KEY",
+  "*.DEEPSEEK_API_KEY",
+  "*.GROQ_API_KEY",
+  "*.OPENROUTER_API_KEY",
+  "*.SENTRY_AUTH_TOKEN",
+  "*.SLACK_TOKEN",
+  "*.SMTP_PASSWORD",
+  "*.DATABASE_URL",
+  "*.REDIS_URL",
   // رؤوس HTTP
-  'req.headers.authorization',
-  'req.headers.cookie',
+  "req.headers.authorization",
+  "req.headers.cookie",
   'req.headers["x-api-key"]',
   'req.headers["x-auth-token"]',
-  'request.headers.authorization',
-  'request.headers.cookie',
-  'headers.authorization',
-  'headers.cookie',
+  "request.headers.authorization",
+  "request.headers.cookie",
+  "headers.authorization",
+  "headers.cookie",
 ];
 
 // ----------------------------------------------------------------------------
@@ -78,19 +78,23 @@ const REDACT_PATHS: readonly string[] = [
 function buildLoggerOptions(): LoggerOptions {
   const nodeEnv = process.env.NODE_ENV;
   const baseLevel =
-    nodeEnv === 'development' ? 'debug' : nodeEnv === 'production' ? 'info' : 'warn';
+    nodeEnv === "development"
+      ? "debug"
+      : nodeEnv === "production"
+        ? "info"
+        : "warn";
 
   const options: LoggerOptions = {
     level: process.env.LOG_LEVEL ?? baseLevel,
     base: {
-      service: 'the-copy-backend',
-      env: nodeEnv ?? 'unknown',
+      service: "the-copy-backend",
+      env: nodeEnv ?? "unknown",
       pid: process.pid,
     },
     timestamp: pino.stdTimeFunctions.isoTime,
     redact: {
       paths: [...REDACT_PATHS],
-      censor: '[REDACTED]',
+      censor: "[REDACTED]",
       remove: false,
     },
     formatters: {
@@ -105,13 +109,13 @@ function buildLoggerOptions(): LoggerOptions {
   };
 
   // وضع التطوير: pino-pretty عند الطلب فقط (يبقى JSON الافتراضي حتى في dev لمنع كسر CI)
-  if (nodeEnv === 'development' && process.env.LOG_PRETTY === 'true') {
+  if (nodeEnv === "development" && process.env.LOG_PRETTY === "true") {
     options.transport = {
-      target: 'pino-pretty',
+      target: "pino-pretty",
       options: {
         colorize: true,
-        translateTime: 'SYS:standard',
-        ignore: 'pid,hostname,service,env',
+        translateTime: "SYS:standard",
+        ignore: "pid,hostname,service,env",
         singleLine: false,
       },
     };
@@ -123,7 +127,7 @@ function buildLoggerOptions(): LoggerOptions {
 // ----------------------------------------------------------------------------
 // مُحوِّل توافق winston→pino على مستوى الاستدعاء
 // ----------------------------------------------------------------------------
-type LevelMethod = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+type LevelMethod = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 type CompatibleLogMethod = (
   arg1: unknown,
   arg2?: unknown,
@@ -135,23 +139,23 @@ type FlexibleLogFn = (
   arg2?: unknown,
   ...rest: unknown[]
 ) => void;
-type CompatibleLogger = Omit<PinoLogger, LevelMethod | 'child'> &
+type CompatibleLogger = Omit<PinoLogger, LevelMethod | "child"> &
   Record<LevelMethod, CompatibleLogMethod> & {
-    child(...childArgs: Parameters<PinoLogger['child']>): CompatibleLogger;
+    child(...childArgs: Parameters<PinoLogger["child"]>): CompatibleLogger;
   };
 
 const LEVEL_METHODS: ReadonlySet<LevelMethod> = new Set([
-  'trace',
-  'debug',
-  'info',
-  'warn',
-  'error',
-  'fatal',
+  "trace",
+  "debug",
+  "info",
+  "warn",
+  "error",
+  "fatal",
 ]);
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return (
-    typeof value === 'object' &&
+    typeof value === "object" &&
     value !== null &&
     !Array.isArray(value) &&
     !(value instanceof Date)
@@ -170,7 +174,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
   return new Proxy(base, {
     get(target, prop, receiver): unknown {
-      if (typeof prop === 'string' && LEVEL_METHODS.has(prop as LevelMethod)) {
+      if (typeof prop === "string" && LEVEL_METHODS.has(prop as LevelMethod)) {
         const method = prop as LevelMethod;
         const original: FlexibleLogFn = target[method];
         return function adaptedLogMethod(
@@ -180,7 +184,7 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
           ...rest: unknown[]
         ): void {
           // Winston-style: (message: string, errorOrContext?: Error | object)
-          if (typeof arg1 === 'string' && arg2 !== undefined) {
+          if (typeof arg1 === "string" && arg2 !== undefined) {
             if (arg2 instanceof Error) {
               Reflect.apply(original, target, [{ err: arg2 }, arg1]);
               return;
@@ -195,12 +199,14 @@ function adaptPinoLogger(base: PinoLogger): CompatibleLogger {
         };
       }
 
-      if (prop === 'child') {
+      if (prop === "child") {
         return function adaptedChild(
           this: unknown,
-          ...childArgs: Parameters<PinoLogger['child']>
+          ...childArgs: Parameters<PinoLogger["child"]>
         ): CompatibleLogger {
-          const childInstance = target.child(...childArgs) as unknown as PinoLogger;
+          const childInstance = target.child(
+            ...childArgs,
+          ) as unknown as PinoLogger;
           return adaptPinoLogger(childInstance);
         };
       }

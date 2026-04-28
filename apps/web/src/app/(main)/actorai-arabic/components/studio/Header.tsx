@@ -1,13 +1,113 @@
-import { Button } from "@/components/ui/button";
 import React from "react";
 
+import { Button } from "@/components/ui/button";
+
+import type { User, ViewType } from "../../types";
+
+interface NavItem {
+  view: ViewType;
+  label: string;
+}
+
 interface HeaderProps {
-  currentView: string;
-  user: any;
-  navigate: (view: string) => void;
+  currentView: ViewType;
+  user: User | null;
+  navigate: (view: ViewType) => void;
   handleLogout: () => void;
   toggleTheme: () => void;
   theme: "light" | "dark";
+}
+
+const PRIMARY_NAV_ITEMS: NavItem[] = [
+  { view: "home", label: "🏠 الرئيسية" },
+  { view: "demo", label: "🎬 التجربة" },
+  { view: "vocal", label: "🎤 تمارين الصوت" },
+  { view: "voicecoach", label: "🎙️ مدرب الصوت" },
+  { view: "rhythm", label: "🎵 إيقاع المشهد" },
+  { view: "webcam", label: "👁️ التحليل البصري" },
+  { view: "ar", label: "🥽 تدريب AR/MR" },
+  { view: "memorization", label: "🧠 اختبار الحفظ" },
+];
+
+function getNavButtonClass(isActive: boolean) {
+  return isActive
+    ? "bg-white/[0.04] text-indigo-400"
+    : "text-white hover:bg-blue-800";
+}
+
+function HeaderNavButton({
+  item,
+  currentView,
+  navigate,
+}: {
+  item: NavItem;
+  currentView: ViewType;
+  navigate: (view: ViewType) => void;
+}) {
+  const isActive = currentView === item.view;
+
+  return (
+    <Button
+      onClick={() => navigate(item.view)}
+      variant={isActive ? "secondary" : "ghost"}
+      className={getNavButtonClass(isActive)}
+    >
+      {item.label}
+    </Button>
+  );
+}
+
+function AuthButtons({
+  user,
+  currentView,
+  navigate,
+  handleLogout,
+}: {
+  user: User | null;
+  currentView: ViewType;
+  navigate: (view: ViewType) => void;
+  handleLogout: () => void;
+}) {
+  if (!user) {
+    return (
+      <>
+        <Button
+          onClick={() => navigate("login")}
+          variant="ghost"
+          className="text-white hover:bg-blue-800"
+        >
+          دخول
+        </Button>
+        <Button
+          onClick={() => navigate("register")}
+          className="bg-white/[0.04] text-indigo-400 hover:bg-white/6"
+        >
+          ابدأ الآن
+        </Button>
+      </>
+    );
+  }
+
+  const isDashboard = currentView === "dashboard";
+
+  return (
+    <>
+      <Button
+        onClick={() => navigate("dashboard")}
+        variant={isDashboard ? "secondary" : "ghost"}
+        className={getNavButtonClass(isDashboard)}
+      >
+        📊 لوحة التحكم
+      </Button>
+      <Button
+        onClick={handleLogout}
+        variant="ghost"
+        className="text-white hover:bg-red-600"
+      >
+        🚪 خروج
+      </Button>
+    </>
+  );
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,133 +127,21 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <nav className="flex items-center gap-2">
-          <Button
-            onClick={() => navigate("home")}
-            variant={currentView === "home" ? "secondary" : "ghost"}
-            className={
-              currentView === "home"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🏠 الرئيسية
-          </Button>
-          <Button
-            onClick={() => navigate("demo")}
-            variant={currentView === "demo" ? "secondary" : "ghost"}
-            className={
-              currentView === "demo"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🎬 التجربة
-          </Button>
-          <Button
-            onClick={() => navigate("vocal")}
-            variant={currentView === "vocal" ? "secondary" : "ghost"}
-            className={
-              currentView === "vocal"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🎤 تمارين الصوت
-          </Button>
-          <Button
-            onClick={() => navigate("voicecoach")}
-            variant={currentView === "voicecoach" ? "secondary" : "ghost"}
-            className={
-              currentView === "voicecoach"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🎙️ مدرب الصوت
-          </Button>
-          <Button
-            onClick={() => navigate("rhythm")}
-            variant={currentView === "rhythm" ? "secondary" : "ghost"}
-            className={
-              currentView === "rhythm"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🎵 إيقاع المشهد
-          </Button>
-          <Button
-            onClick={() => navigate("webcam")}
-            variant={currentView === "webcam" ? "secondary" : "ghost"}
-            className={
-              currentView === "webcam"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            👁️ التحليل البصري
-          </Button>
-          <Button
-            onClick={() => navigate("ar")}
-            variant={currentView === "ar" ? "secondary" : "ghost"}
-            className={
-              currentView === "ar"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🥽 تدريب AR/MR
-          </Button>
-          <Button
-            onClick={() => navigate("memorization")}
-            variant={currentView === "memorization" ? "secondary" : "ghost"}
-            className={
-              currentView === "memorization"
-                ? "bg-white/[0.04] text-indigo-400"
-                : "text-white hover:bg-blue-800"
-            }
-          >
-            🧠 اختبار الحفظ
-          </Button>
+          {PRIMARY_NAV_ITEMS.map((item) => (
+            <HeaderNavButton
+              key={item.view}
+              item={item}
+              currentView={currentView}
+              navigate={navigate}
+            />
+          ))}
 
-          {user ? (
-            <>
-              <Button
-                onClick={() => navigate("dashboard")}
-                variant={currentView === "dashboard" ? "secondary" : "ghost"}
-                className={
-                  currentView === "dashboard"
-                    ? "bg-white/[0.04] text-indigo-400"
-                    : "text-white hover:bg-blue-800"
-                }
-              >
-                📊 لوحة التحكم
-              </Button>
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                className="text-white hover:bg-red-600"
-              >
-                🚪 خروج
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={() => navigate("login")}
-                variant="ghost"
-                className="text-white hover:bg-blue-800"
-              >
-                دخول
-              </Button>
-              <Button
-                onClick={() => navigate("register")}
-                className="bg-white/[0.04] text-indigo-400 hover:bg-white/6"
-              >
-                ابدأ الآن
-              </Button>
-            </>
-          )}
+          <AuthButtons
+            user={user}
+            currentView={currentView}
+            navigate={navigate}
+            handleLogout={handleLogout}
+          />
 
           <Button
             onClick={toggleTheme}

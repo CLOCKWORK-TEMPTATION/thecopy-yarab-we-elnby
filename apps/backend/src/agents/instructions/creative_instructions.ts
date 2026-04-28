@@ -1,4 +1,3 @@
-
 export const CREATIVE_INSTRUCTIONS = `
 **العملية:** طبق "المراحل الثلاث للإبداع المحاكي".
 

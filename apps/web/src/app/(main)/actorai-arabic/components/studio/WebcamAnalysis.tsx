@@ -13,6 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 
 import type { WebcamAnalysisResult } from "../../types";
+import type { RefObject } from "react";
 
 interface WebcamAnalysisProps {
   webcamActive: boolean;
@@ -20,7 +21,8 @@ interface WebcamAnalysisProps {
   webcamAnalysisTime: number;
   webcamAnalysisResult: WebcamAnalysisResult | null;
   webcamPermission: "granted" | "denied" | "pending";
-  webcamEngine: any;
+  videoRef: RefObject<HTMLVideoElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   requestWebcamPermission: () => Promise<void>;
   stopWebcam: () => void;
   startWebcamAnalysis: () => void;
@@ -37,7 +39,8 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
   webcamAnalysisTime,
   webcamAnalysisResult,
   webcamPermission,
-  webcamEngine,
+  videoRef,
+  canvasRef,
   requestWebcamPermission,
   stopWebcam,
   startWebcamAnalysis,
@@ -73,14 +76,14 @@ export const WebcamAnalysis: React.FC<WebcamAnalysisProps> = ({
             {webcamActive ? (
               <>
                 <video
-                  ref={webcamEngine.videoRef}
+                  ref={videoRef}
                   autoPlay
                   playsInline
                   muted
                   className="w-full h-full object-cover scale-x-[-1]"
                 />
                 <canvas
-                  ref={webcamEngine.canvasRef}
+                  ref={canvasRef}
                   className="absolute inset-0 w-full h-full pointer-events-none"
                 />
                 {webcamAnalyzing && (

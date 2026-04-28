@@ -104,6 +104,19 @@ const isDialogueCandidate = (normalized: string): boolean => {
   return false;
 };
 
+const pushDialogueRegion = (
+  regions: DialogueRegion[],
+  start: number,
+  end: number,
+  candidateCount: number
+): void => {
+  if (end < start) return;
+  const regionSize = end - start + 1;
+  if (regionSize < MIN_DIALOGUE_REGION_SIZE) return;
+  const density = candidateCount / regionSize;
+  regions.push({ start, end, density });
+};
+
 // ─── بناء حدود المشاهد ───────────────────────────────────────────
 
 /**
@@ -150,14 +163,7 @@ const findDialogueRegions = (
       gap++;
       if (gap > MAX_DIALOGUE_GAP && regionStart !== -1) {
         // أغلق المنطقة الحالية
-        const regionEnd = i - gap;
-        if (regionEnd >= regionStart) {
-          const regionSize = regionEnd - regionStart + 1;
-          if (regionSize >= MIN_DIALOGUE_REGION_SIZE) {
-            const density = candidateCount / regionSize;
-            regions.push({ start: regionStart, end: regionEnd, density });
-          }
-        }
+        pushDialogueRegion(regions, regionStart, i - gap, candidateCount);
         regionStart = -1;
         candidateCount = 0;
         gap = 0;
@@ -168,13 +174,7 @@ const findDialogueRegions = (
   // أغلق آخر منطقة لو لسه مفتوحة
   if (regionStart !== -1) {
     const regionEnd = normalizedLines.length - 1 - gap;
-    if (regionEnd >= regionStart) {
-      const regionSize = regionEnd - regionStart + 1;
-      if (regionSize >= MIN_DIALOGUE_REGION_SIZE) {
-        const density = candidateCount / regionSize;
-        regions.push({ start: regionStart, end: regionEnd, density });
-      }
-    }
+    pushDialogueRegion(regions, regionStart, regionEnd, candidateCount);
   }
 
   return regions;
@@ -245,7 +245,7 @@ const buildLineContexts = (
 
     // منطقة الحوار
     const regionIdxRaw = lineToRegion[i];
-    const regionIdx = regionIdxRaw !== undefined ? regionIdxRaw : -1;
+    const regionIdx = regionIdxRaw ?? -1;
     const region = regionIdx >= 0 ? dialogueRegions[regionIdx] : undefined;
     const dialogueDensity = region?.density ?? 0;
 

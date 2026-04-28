@@ -1,13 +1,18 @@
 import React from "react";
+
 import { WebcamAnalysis } from "./index";
+
+import type { WebcamAnalysisResult } from "../../types";
+import type { RefObject } from "react";
 
 interface WebcamAnalysisPageProps {
   webcamActive: boolean;
   webcamAnalyzing: boolean;
   webcamAnalysisTime: number;
-  webcamAnalysisResult: any;
+  webcamAnalysisResult: WebcamAnalysisResult | null;
   webcamPermission: string;
-  webcamEngine: string;
+  videoRef: RefObject<HTMLVideoElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   requestWebcamPermission: () => void;
   stopWebcam: () => void;
   startWebcamAnalysis: () => void;
@@ -24,7 +29,8 @@ export const WebcamAnalysisPage: React.FC<WebcamAnalysisPageProps> = ({
   webcamAnalysisTime,
   webcamAnalysisResult,
   webcamPermission,
-  webcamEngine,
+  videoRef,
+  canvasRef,
   requestWebcamPermission,
   stopWebcam,
   startWebcamAnalysis,
@@ -40,7 +46,8 @@ export const WebcamAnalysisPage: React.FC<WebcamAnalysisPageProps> = ({
     webcamAnalysisTime={webcamAnalysisTime}
     webcamAnalysisResult={webcamAnalysisResult}
     webcamPermission={webcamPermission}
-    webcamEngine={webcamEngine}
+    videoRef={videoRef}
+    canvasRef={canvasRef}
     requestWebcamPermission={requestWebcamPermission}
     stopWebcam={stopWebcam}
     startWebcamAnalysis={startWebcamAnalysis}

@@ -71,14 +71,14 @@ export class CharacterNetworkAgent extends BaseAgent {
     prompt += buildOriginalTextSection(originalText);
     prompt += buildCharactersSection(characters);
     prompt += buildFocusCharactersSection(focusCharacters);
-    prompt += buildAnalysisOptionsSection(
-      relationshipTypes,
-      this.translateRelationType.bind(this),
+    prompt += buildAnalysisOptionsSection({
       analyzeEvolution,
-      trackInfluence,
       identifyGroups,
-      mapPowerDynamics
-    );
+      mapPowerDynamics,
+      relationshipTypes,
+      trackInfluence,
+      translateFn: this.translateRelationType.bind(this),
+    });
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
     prompt += getBaseInstructions();
     prompt += buildConditionalInstructions(

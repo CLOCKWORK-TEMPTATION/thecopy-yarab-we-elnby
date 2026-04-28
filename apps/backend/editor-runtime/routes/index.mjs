@@ -26,7 +26,10 @@ import {
   DEFAULT_ANTIWORD_HOME,
 } from "../services/doc-extractor.mjs";
 import { probeKarankReadiness } from "../services/karank-readiness.mjs";
-import { probeSuspicionReviewReadinessSync, probeOperationalReadiness } from "../services/suspicion-review-probe.mjs";
+import {
+  probeSuspicionReviewReadinessSync,
+  probeOperationalReadiness,
+} from "../services/suspicion-review-probe.mjs";
 import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -132,8 +135,7 @@ const buildHealthData = async () => {
       sourceType: "import-pipeline",
       code: "KARANK_IMPORT_PIPELINE_NOT_READY",
       blocking: true,
-      message:
-        "مسار الاستيراد الطرفي غير جاهز لأن الكرنك أو فحصه الحي فشل.",
+      message: "مسار الاستيراد الطرفي غير جاهز لأن الكرنك أو فحصه الحي فشل.",
     });
   }
 
@@ -219,27 +221,38 @@ const buildDeepHealthResponse = (data) => {
       ok: karank.ok,
       checkedAt: karank.checkedAt,
       minimumPythonVersion: karank.minimumPythonVersion,
-      python: karank.python ? {
-        ok: karank.python.ok === true,
-        version: karank.python.version || null,
-      } : { ok: false, version: null },
-      engine: karank.engine ? {
-        ok: karank.engine.ok === true,
-        exists: karank.engine.exists === true,
-      } : { ok: false, exists: false },
-      ping: karank.ping ? {
-        ok: karank.ping.ok === true,
-      } : { ok: false },
-      textExtractProbe: karank.textExtractProbe ? {
-        ok: karank.textExtractProbe.ok === true,
-        rawTextLength: karank.textExtractProbe.rawTextLength || 0,
-        schemaElementCount: karank.textExtractProbe.schemaElementCount || 0,
-      } : { ok: false, rawTextLength: 0, schemaElementCount: 0 },
-      importPipelineProbe: karank.importPipelineProbe ? {
-        ok: karank.importPipelineProbe.ok === true,
-        method: karank.importPipelineProbe.method || null,
-        progressiveStage: karank.importPipelineProbe.progressiveStage || null,
-      } : { ok: false, method: null, progressiveStage: null },
+      python: karank.python
+        ? {
+            ok: karank.python.ok === true,
+            version: karank.python.version || null,
+          }
+        : { ok: false, version: null },
+      engine: karank.engine
+        ? {
+            ok: karank.engine.ok === true,
+            exists: karank.engine.exists === true,
+          }
+        : { ok: false, exists: false },
+      ping: karank.ping
+        ? {
+            ok: karank.ping.ok === true,
+          }
+        : { ok: false },
+      textExtractProbe: karank.textExtractProbe
+        ? {
+            ok: karank.textExtractProbe.ok === true,
+            rawTextLength: karank.textExtractProbe.rawTextLength || 0,
+            schemaElementCount: karank.textExtractProbe.schemaElementCount || 0,
+          }
+        : { ok: false, rawTextLength: 0, schemaElementCount: 0 },
+      importPipelineProbe: karank.importPipelineProbe
+        ? {
+            ok: karank.importPipelineProbe.ok === true,
+            method: karank.importPipelineProbe.method || null,
+            progressiveStage:
+              karank.importPipelineProbe.progressiveStage || null,
+          }
+        : { ok: false, method: null, progressiveStage: null },
       bridgeState: karank.bridgeState || null,
       errors: [
         karank.python?.error,
@@ -252,60 +265,80 @@ const buildDeepHealthResponse = (data) => {
 
     // ─── قسم antiword ───
     antiword: {
-      antiwordReady: ANTIWORD_PREFLIGHT.binaryAvailable === true && ANTIWORD_PREFLIGHT.antiwordHomeExists === true,
+      antiwordReady:
+        ANTIWORD_PREFLIGHT.binaryAvailable === true &&
+        ANTIWORD_PREFLIGHT.antiwordHomeExists === true,
       antiwordBinaryAvailable: ANTIWORD_PREFLIGHT.binaryAvailable === true,
       antiwordHomeExists: ANTIWORD_PREFLIGHT.antiwordHomeExists === true,
       antiwordPath: ANTIWORD_PREFLIGHT.antiwordPath || DEFAULT_ANTIWORD_PATH,
       antiwordHome: ANTIWORD_PREFLIGHT.antiwordHome || DEFAULT_ANTIWORD_HOME,
       antiwordWarnings: FILE_IMPORT_PREFLIGHT_WARNINGS,
-      docIntakeReady: ANTIWORD_PREFLIGHT.binaryAvailable === true && ANTIWORD_PREFLIGHT.antiwordHomeExists === true,
+      docIntakeReady:
+        ANTIWORD_PREFLIGHT.binaryAvailable === true &&
+        ANTIWORD_PREFLIGHT.antiwordHomeExists === true,
     },
 
     // ─── قسم المحولات والوقت التشغيلي ───
     runtime: {
-      docxConverterScriptExists: existsSync(resolve(__dirname, '../services/docx-extractor.mjs')),
+      docxConverterScriptExists: existsSync(
+        resolve(__dirname, "../services/docx-extractor.mjs"),
+      ),
       pdfOcrReady: ocrAgent.configured === true,
       finalReviewReady: finalReviewRuntime.configured === true,
-      aiContextReady: geminiContext.configured === true && geminiContext.enabled === true,
+      aiContextReady:
+        geminiContext.configured === true && geminiContext.enabled === true,
       intakeLimitations: intakeLimitations,
     },
 
     // ─── قسم إعدادات خط أنابيب مراجعة المحرر ───
     editorReviewPipeline: {
-      suspicionModelEnabled: (process.env.SUSPICION_MODEL_ENABLED ?? "true").trim().toLowerCase() !== "false",
-      suspicionReviewEndpointResolved: syncProbe.suspicionReviewEndpointResolved === true,
-      suspicionReviewEndpointValue: syncProbe.suspicionReviewEndpointValue || "/api/suspicion-review",
-      finalReviewEnabled: (process.env.FINAL_REVIEW_ENABLED ?? "true").trim().toLowerCase() !== "false",
+      suspicionModelEnabled:
+        (process.env.SUSPICION_MODEL_ENABLED ?? "true").trim().toLowerCase() !==
+        "false",
+      suspicionReviewEndpointResolved:
+        syncProbe.suspicionReviewEndpointResolved === true,
+      suspicionReviewEndpointValue:
+        syncProbe.suspicionReviewEndpointValue || "/api/suspicion-review",
+      finalReviewEnabled:
+        (process.env.FINAL_REVIEW_ENABLED ?? "true").trim().toLowerCase() !==
+        "false",
       finalReviewEndpointResolved: finalReviewRuntime.configured === true,
-      finalReviewEndpointValue: finalReviewRuntime.baseUrl || "/api/final-review",
+      finalReviewEndpointValue:
+        finalReviewRuntime.baseUrl || "/api/final-review",
       textExtractEndpointResolved: karank.ok === true,
       fileImportExtractEndpointResolved: karank.ok === true,
     },
 
     // ─── قسم الإثبات التشغيلي ───
-    operationalProof: operationalProof ? {
-      probeVersion: operationalProof.probeVersion || "unknown",
-      timestamp: operationalProof.timestamp || null,
-      latencyMs: operationalProof.latencyMs || null,
-      karankPipelineRan: operationalProof.karankPipelineRan === true,
-      karankSchemaElementCount: operationalProof.karankSchemaElementCount || 0,
-      karankRawTextLength: operationalProof.karankRawTextLength || 0,
-      suspicionCasesCount: operationalProof.suspicionCasesCount || 0,
-      suspicionModelReached: operationalProof.suspicionModelReached === true,
-      suspicionReviewedCount: operationalProof.suspicionReviewedCount || 0,
-      finalReviewCandidatesCount: operationalProof.finalReviewCandidatesCount || 0,
-      finalReviewReached: operationalProof.finalReviewReached === true,
-      finalReviewAppliedCount: operationalProof.finalReviewAppliedCount || 0,
-      settled: operationalProof.settled === true,
-      failureStage: operationalProof.failureStage || null,
-      failureCode: operationalProof.failureCode || null,
-      warnings: operationalProof.warnings || [],
-    } : {
-      probeVersion: "unavailable",
-      settled: false,
-      failureStage: "probe-not-run",
-      failureCode: "PROBE_NOT_EXECUTED",
-    },
+    operationalProof: operationalProof
+      ? {
+          probeVersion: operationalProof.probeVersion || "unknown",
+          timestamp: operationalProof.timestamp || null,
+          latencyMs: operationalProof.latencyMs || null,
+          karankPipelineRan: operationalProof.karankPipelineRan === true,
+          karankSchemaElementCount:
+            operationalProof.karankSchemaElementCount || 0,
+          karankRawTextLength: operationalProof.karankRawTextLength || 0,
+          suspicionCasesCount: operationalProof.suspicionCasesCount || 0,
+          suspicionModelReached:
+            operationalProof.suspicionModelReached === true,
+          suspicionReviewedCount: operationalProof.suspicionReviewedCount || 0,
+          finalReviewCandidatesCount:
+            operationalProof.finalReviewCandidatesCount || 0,
+          finalReviewReached: operationalProof.finalReviewReached === true,
+          finalReviewAppliedCount:
+            operationalProof.finalReviewAppliedCount || 0,
+          settled: operationalProof.settled === true,
+          failureStage: operationalProof.failureStage || null,
+          failureCode: operationalProof.failureCode || null,
+          warnings: operationalProof.warnings || [],
+        }
+      : {
+          probeVersion: "unavailable",
+          settled: false,
+          failureStage: "probe-not-run",
+          failureCode: "PROBE_NOT_EXECUTED",
+        },
 
     // ─── البيانات التفصيلية الموروثة ───
     antiwordPath: ANTIWORD_PREFLIGHT.antiwordPath || DEFAULT_ANTIWORD_PATH,
@@ -326,7 +359,9 @@ const buildDeepHealthResponse = (data) => {
     finalReviewFallbackReason: finalReviewRuntime.fallbackReason,
     finalReviewApiBaseUrl: finalReviewRuntime.baseUrl,
     finalReviewApiVersion: finalReviewRuntime.apiVersion,
-    finalReviewFallbackStatus: finalReviewRuntime.fallbackApplied ? "active" : "idle",
+    finalReviewFallbackStatus: finalReviewRuntime.fallbackApplied
+      ? "active"
+      : "idle",
     finalReviewChannel: {
       channel: "final-review",
       requestedModel: finalReviewRuntime.requestedModel,

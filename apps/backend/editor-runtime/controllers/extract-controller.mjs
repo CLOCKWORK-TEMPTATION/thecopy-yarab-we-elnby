@@ -12,7 +12,10 @@ import {
 import { ExecFileClassifiedError } from "../exec-file-error-classifier.mjs";
 import { parseExtractRequest } from "../services/request-parser.mjs";
 import { normalizeExtractionResponseData } from "../services/response-normalizer.mjs";
-import { extractByType, ANTIWORD_PREFLIGHT } from "../services/import-pipeline.mjs";
+import {
+  extractByType,
+  ANTIWORD_PREFLIGHT,
+} from "../services/import-pipeline.mjs";
 
 export { ANTIWORD_PREFLIGHT };
 
@@ -20,12 +23,12 @@ export const handleExtract = async (req, res) => {
   try {
     const { filename, extension, buffer } = await parseExtractRequest(
       req,
-      readRawBody
+      readRawBody,
     );
     const extracted = await extractByType(buffer, extension, filename);
     const normalizedData = normalizeExtractionResponseData(
       extracted,
-      extension
+      extension,
     );
 
     sendJson(res, 200, {

@@ -17,7 +17,7 @@ export const convertDocxToTxt = async (inputPath, outputPath) => {
 const isMainModule =
   process.argv[1] &&
   process.argv[1].endsWith(
-    path.basename(import.meta.url.replace("file://", ""))
+    path.basename(import.meta.url.replace("file://", "")),
   );
 
 if (isMainModule) {
@@ -25,7 +25,7 @@ if (isMainModule) {
 
   if (args.length < 2) {
     console.error(
-      "طريقة الاستخدام: node server/docx-to-txt.mjs <input.docx> <output.txt>"
+      "طريقة الاستخدام: node server/docx-to-txt.mjs <input.docx> <output.txt>",
     );
     process.exit(1);
   }
@@ -35,6 +35,6 @@ if (isMainModule) {
     (error) => {
       console.error("حدث خطأ أثناء تحويل DOCX:", error);
       process.exit(1);
-    }
+    },
   );
 }

@@ -176,8 +176,9 @@ function Documentation() {
           </h3>
           <div className="form-grid">
             <div className="form-group">
-              <label>اسم المشروع (عربي)</label>
+              <label htmlFor="field-documentation-1">اسم المشروع (عربي)</label>
               <input
+                id="field-documentation-1"
                 type="text"
                 className="input"
                 placeholder="مثال: رحلة إلى المجهول"
@@ -188,8 +189,11 @@ function Documentation() {
               />
             </div>
             <div className="form-group">
-              <label>اسم المشروع (إنجليزي)</label>
+              <label htmlFor="field-documentation-2">
+                اسم المشروع (إنجليزي)
+              </label>
               <input
+                id="field-documentation-2"
                 type="text"
                 className="input"
                 placeholder="Example: Journey to the Unknown"
@@ -200,8 +204,9 @@ function Documentation() {
               />
             </div>
             <div className="form-group">
-              <label>المخرج</label>
+              <label htmlFor="field-documentation-3">المخرج</label>
               <input
+                id="field-documentation-3"
                 type="text"
                 className="input"
                 placeholder="اسم المخرج"
@@ -212,8 +217,9 @@ function Documentation() {
               />
             </div>
             <div className="form-group">
-              <label>شركة الإنتاج</label>
+              <label htmlFor="field-documentation-4">شركة الإنتاج</label>
               <input
+                id="field-documentation-4"
                 type="text"
                 className="input"
                 placeholder="اسم الشركة"
@@ -253,8 +259,9 @@ function Documentation() {
           </h3>
           <div className="form-grid">
             <div className="form-group full-width">
-              <label>عنوان القرار</label>
+              <label htmlFor="field-documentation-5">عنوان القرار</label>
               <input
+                id="field-documentation-5"
                 type="text"
                 className="input"
                 placeholder="مثال: اختيار اللون الرئيسي للديكور"
@@ -265,8 +272,9 @@ function Documentation() {
               />
             </div>
             <div className="form-group full-width">
-              <label>الوصف</label>
+              <label htmlFor="field-documentation-6">الوصف</label>
               <textarea
+                id="field-documentation-6"
                 className="input"
                 placeholder="وصف تفصيلي للقرار"
                 value={decisionForm.description}
@@ -279,8 +287,9 @@ function Documentation() {
               />
             </div>
             <div className="form-group">
-              <label>الفئة</label>
+              <label htmlFor="field-documentation-7">الفئة</label>
               <select
+                id="field-documentation-7"
                 className="input"
                 value={decisionForm.category}
                 onChange={(e) =>
@@ -295,8 +304,9 @@ function Documentation() {
               </select>
             </div>
             <div className="form-group">
-              <label>المبرر</label>
+              <label htmlFor="field-documentation-8">المبرر</label>
               <input
+                id="field-documentation-8"
                 type="text"
                 className="input"
                 placeholder="سبب اتخاذ هذا القرار"

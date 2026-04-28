@@ -9,16 +9,16 @@
  * - selectFinalReviewPayloads: اختيار المرشحين بحدّ أقصى = max(1, ceil(total*ratio)).
  */
 
+import {
+  FINAL_REVIEW_MAX_RATIO,
+  FINAL_REVIEW_PROMOTION_THRESHOLD,
+} from "../../paste-classifier-config";
+
 import type { SuspicionCase } from "@editor/suspicion-engine/types";
 import type {
   ReviewRoutingStats as FinalReviewRoutingStats,
   FinalReviewSuspiciousLinePayload,
 } from "@editor/types/final-review";
-
-import {
-  FINAL_REVIEW_MAX_RATIO,
-  FINAL_REVIEW_PROMOTION_THRESHOLD,
-} from "../../paste-classifier-config";
 
 /**
  * ترقية حالات agent-candidate ذات alternative-pull قوي (≥ promotion threshold)

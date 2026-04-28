@@ -3,17 +3,17 @@
  * المرحلة 3 - Multi-Agent Debate System
  */
 
-import { BaseAgent } from '../shared/BaseAgent';
-import { StandardAgentOutput } from '../shared/standardAgentPattern';
+import { BaseAgent } from "../shared/BaseAgent";
+import { StandardAgentOutput } from "../shared/standardAgentPattern";
 
 /**
  * Debate Role - دور الوكيل في النقاش
  */
 export enum DebateRole {
-  PROPOSER = 'proposer',     // مقدم الحجة الأولى
-  OPPONENT = 'opponent',      // المعارض
-  MODERATOR = 'moderator',    // المنسق
-  SYNTHESIZER = 'synthesizer' // موحد الآراء
+  PROPOSER = "proposer", // مقدم الحجة الأولى
+  OPPONENT = "opponent", // المعارض
+  MODERATOR = "moderator", // المنسق
+  SYNTHESIZER = "synthesizer", // موحد الآراء
 }
 
 /**
@@ -52,7 +52,7 @@ export interface DebateRound {
   consensus?: ConsensusResult;
   startTime: Date;
   endTime?: Date;
-  status: 'active' | 'completed' | 'aborted';
+  status: "active" | "completed" | "aborted";
 }
 
 /**
@@ -91,7 +91,7 @@ export interface DebateSession {
   participants: DebateParticipant[];
   rounds: DebateRound[];
   config: DebateConfig;
-  status: 'initializing' | 'in_progress' | 'completed' | 'failed';
+  status: "initializing" | "in_progress" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
   finalResult?: StandardAgentOutput;

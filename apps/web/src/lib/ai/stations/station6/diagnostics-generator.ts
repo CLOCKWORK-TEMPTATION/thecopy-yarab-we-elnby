@@ -112,35 +112,35 @@ ${text.substring(0, 4000)}
    */
   validateAndEnrichDiagnostics(data: unknown): DiagnosticsReport {
     const record = asJsonRecord(data);
-    const healthBreakdown = asJsonRecord(record.healthBreakdown);
+    const healthBreakdown = asJsonRecord(record["healthBreakdown"]);
 
     return {
-      overallHealthScore: asJsonNumber(record.overallHealthScore, 50),
+      overallHealthScore: asJsonNumber(record["overallHealthScore"], 50),
       healthBreakdown: {
         characterDevelopment: asJsonNumber(
-          healthBreakdown.characterDevelopment,
+          healthBreakdown["characterDevelopment"],
           50
         ),
-        plotCoherence: asJsonNumber(healthBreakdown.plotCoherence, 50),
+        plotCoherence: asJsonNumber(healthBreakdown["plotCoherence"], 50),
         structuralIntegrity: asJsonNumber(
-          healthBreakdown.structuralIntegrity,
+          healthBreakdown["structuralIntegrity"],
           50
         ),
-        dialogueQuality: asJsonNumber(healthBreakdown.dialogueQuality, 50),
-        thematicDepth: asJsonNumber(healthBreakdown.thematicDepth, 50),
+        dialogueQuality: asJsonNumber(healthBreakdown["dialogueQuality"], 50),
+        thematicDepth: asJsonNumber(healthBreakdown["thematicDepth"], 50),
       },
-      criticalIssues: asArray<DiagnosticIssue>(record.criticalIssues).slice(
+      criticalIssues: asArray<DiagnosticIssue>(record["criticalIssues"]).slice(
         0,
         10
       ),
-      warnings: asArray<DiagnosticIssue>(record.warnings).slice(0, 15),
-      suggestions: asArray<DiagnosticIssue>(record.suggestions).slice(0, 20),
-      isolatedCharacters: asArray(record.isolatedCharacters).slice(0, 5),
-      abandonedConflicts: asArray(record.abandonedConflicts).slice(0, 8),
-      structuralIssues: asArray(record.structuralIssues).slice(0, 10),
-      riskAreas: asArray(record.riskAreas).slice(0, 8),
-      opportunities: asArray(record.opportunities).slice(0, 10),
-      summary: asString(record.summary, "تحليل تشخيصي غير متوفر"),
+      warnings: asArray<DiagnosticIssue>(record["warnings"]).slice(0, 15),
+      suggestions: asArray<DiagnosticIssue>(record["suggestions"]).slice(0, 20),
+      isolatedCharacters: asArray(record["isolatedCharacters"]).slice(0, 5),
+      abandonedConflicts: asArray(record["abandonedConflicts"]).slice(0, 8),
+      structuralIssues: asArray(record["structuralIssues"]).slice(0, 10),
+      riskAreas: asArray(record["riskAreas"]).slice(0, 8),
+      opportunities: asArray(record["opportunities"]).slice(0, 10),
+      summary: asString(record["summary"], "تحليل تشخيصي غير متوفر"),
     };
   }
 
@@ -151,9 +151,9 @@ ${text.substring(0, 4000)}
     previousStationsOutput: PreviousStationsOutput
   ): DiagnosticsReport {
     const station4 = asJsonRecord(previousStationsOutput.station4);
-    const efficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
+    const efficiencyMetrics = asJsonRecord(station4["efficiencyMetrics"]);
     const efficiencyScore = asJsonRecord(
-      efficiencyMetrics.overallEfficiencyScore,
+      efficiencyMetrics["overallEfficiencyScore"],
       50
     );
 

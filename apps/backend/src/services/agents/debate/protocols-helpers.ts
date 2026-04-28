@@ -3,11 +3,7 @@
  * Extracted from protocols.ts to reduce file size
  */
 
-import {
-  DebateArgument,
-  DebateRole,
-  Vote,
-} from './types';
+import { DebateArgument, DebateRole, Vote } from "./types";
 
 /**
  * Build argument prompt based on role
@@ -16,7 +12,7 @@ export function buildArgumentPrompt(
   topic: string,
   role: DebateRole,
   context?: string,
-  previousArguments?: DebateArgument[]
+  previousArguments?: DebateArgument[],
 ): string {
   let prompt = `الموضوع: ${topic}\n\n`;
 
@@ -29,21 +25,21 @@ export function buildArgumentPrompt(
     previousArguments.forEach((arg, idx) => {
       prompt += `${idx + 1}. ${arg.agentName}: ${arg.position.substring(0, 200)}...\n`;
     });
-    prompt += '\n';
+    prompt += "\n";
   }
 
   switch (role) {
     case DebateRole.PROPOSER:
-      prompt += 'قدم حجة قوية ومدعومة بالأدلة لدعم موقفك من هذا الموضوع.';
+      prompt += "قدم حجة قوية ومدعومة بالأدلة لدعم موقفك من هذا الموضوع.";
       break;
     case DebateRole.OPPONENT:
-      prompt += 'قدم حجة مضادة مدعومة بالأدلة.';
+      prompt += "قدم حجة مضادة مدعومة بالأدلة.";
       break;
     case DebateRole.SYNTHESIZER:
-      prompt += 'حلل الحجج واستخلص رأياً موحداً.';
+      prompt += "حلل الحجج واستخلص رأياً موحداً.";
       break;
     default:
-      prompt += 'قدم تحليلاً متوازناً للموضوع.';
+      prompt += "قدم تحليلاً متوازناً للموضوع.";
   }
 
   return prompt;
@@ -54,9 +50,9 @@ export function buildArgumentPrompt(
  */
 export function buildRefutationPrompt(
   args: DebateArgument[],
-  context?: string
+  context?: string,
 ): string {
-  let prompt = 'قم بتحليل ونقد الحجج التالية:\n\n';
+  let prompt = "قم بتحليل ونقد الحجج التالية:\n\n";
 
   args.forEach((arg, idx) => {
     prompt += `**الحجة ${idx + 1}** (${arg.agentName}):\n`;
@@ -67,7 +63,7 @@ export function buildRefutationPrompt(
     prompt += `\nالسياق:\n${context}\n\n`;
   }
 
-  prompt += 'قدم رداً منطقياً يتضمن نقاط الضعف والحجج المضادة.';
+  prompt += "قدم رداً منطقياً يتضمن نقاط الضعف والحجج المضادة.";
 
   return prompt;
 }
@@ -75,14 +71,17 @@ export function buildRefutationPrompt(
 /**
  * Build voting prompt
  */
-export function buildVotingPrompt(args: DebateArgument[], topic: string): string {
+export function buildVotingPrompt(
+  args: DebateArgument[],
+  topic: string,
+): string {
   let prompt = `الموضوع: ${topic}\n\nقيّم الحجج التالية (من 0 إلى 1):\n\n`;
 
   args.forEach((arg, idx) => {
     prompt += `${idx + 1}. ${arg.agentName}:\n${arg.position.substring(0, 300)}\n\n`;
   });
 
-  prompt += 'أعطِ درجة لكل حجة بناءً على القوة المنطقية والأدلة.';
+  prompt += "أعطِ درجة لكل حجة بناءً على القوة المنطقية والأدلة.";
 
   return prompt;
 }
@@ -91,17 +90,13 @@ export function buildVotingPrompt(args: DebateArgument[], topic: string): string
  * Extract reasoning from text
  */
 export function extractReasoning(text: string): string {
-  const patterns = [
-    /لأن[^.]+\./g,
-    /بسبب[^.]+\./g,
-    /نظراً[^.]+\./g,
-  ];
+  const patterns = [/لأن[^.]+\./g, /بسبب[^.]+\./g, /نظراً[^.]+\./g];
 
-  let reasoning = '';
+  let reasoning = "";
   for (const pattern of patterns) {
     const matches = text.match(pattern);
     if (matches) {
-      reasoning += matches.join(' ');
+      reasoning += matches.join(" ");
     }
   }
 
@@ -113,10 +108,10 @@ export function extractReasoning(text: string): string {
  */
 export function extractEvidence(text: string): string[] {
   const evidence: string[] = [];
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   for (const line of lines) {
-    if ((/^[-*•]\s/.exec(line)) || (/^\d+[.)]\s/.exec(line))) {
+    if (/^[-*•]\s/.exec(line) || /^\d+[.)]\s/.exec(line)) {
       evidence.push(line.trim());
     }
   }
@@ -128,19 +123,28 @@ export function extractEvidence(text: string): string[] {
  * Get synthesis from synthesizer agent
  */
 export async function getSynthesizerAgentOutput(
-  synthesizer: { executeTask: (input: { input: string; options?: Record<string, unknown> }) => Promise<{ text: string }> },
+  synthesizer: {
+    executeTask: (input: {
+      input: string;
+      options?: Record<string, unknown>;
+    }) => Promise<{ text: string }>;
+  },
   args: DebateArgument[],
-  topic: string
+  topic: string,
 ): Promise<string> {
   const prompt = `
 الموضوع: ${topic}
 
 قم بتوليف الحجج التالية في رأي موحد:
 
-${args.map((arg, idx) => `
+${args
+  .map(
+    (arg, idx) => `
 ${idx + 1}. ${arg.agentName}:
 ${arg.position}
-`).join('\n---\n')}
+`,
+  )
+  .join("\n---\n")}
 
 قدم توليفاً شاملاً يجمع أفضل ما في كل حجة.
 `;
@@ -161,7 +165,7 @@ ${arg.position}
  */
 export function generateDirectSynthesis(
   args: DebateArgument[],
-  topic: string
+  topic: string,
 ): string {
   let synthesis = `# توليف الآراء حول: ${topic}\n\n`;
   synthesis += `بناءً على ${args.length} حجة من المشاركين، نستنتج ما يلي:\n\n`;
@@ -178,18 +182,18 @@ export function generateDirectSynthesis(
  */
 export function analyzeConsensusPoints(
   _args: DebateArgument[],
-  synthesisText: string
+  synthesisText: string,
 ): { consensusPoints: string[]; disagreementPoints: string[] } {
   const consensusPoints: string[] = [];
   const disagreementPoints: string[] = [];
 
-  const lines = synthesisText.split('\n');
+  const lines = synthesisText.split("\n");
 
   for (const line of lines) {
-    if (line.includes('اتفاق') || line.includes('توافق')) {
+    if (line.includes("اتفاق") || line.includes("توافق")) {
       consensusPoints.push(line.trim());
     }
-    if (line.includes('اختلاف') || line.includes('تعارض')) {
+    if (line.includes("اختلاف") || line.includes("تعارض")) {
       disagreementPoints.push(line.trim());
     }
   }
@@ -202,7 +206,7 @@ export function analyzeConsensusPoints(
  */
 export function calculateAgreementScore(
   args: DebateArgument[],
-  consensusPoints: string[]
+  consensusPoints: string[],
 ): number {
   if (args.length === 0) return 0;
 
@@ -211,7 +215,7 @@ export function calculateAgreementScore(
 
   const consensusRatio = Math.min(1, consensusPoints.length / args.length);
 
-  return (avgConfidence * 0.6) + (consensusRatio * 0.4);
+  return avgConfidence * 0.6 + consensusRatio * 0.4;
 }
 
 /**
@@ -225,14 +229,14 @@ const voteRegexCache: RegExp[] = [];
 export function parseVotesFromResponse(
   response: string,
   args: DebateArgument[],
-  voterId: string
+  voterId: string,
 ): Vote[] {
   const votes: Vote[] = [];
 
   args.forEach((arg, idx) => {
     let regex = voteRegexCache[idx];
     if (!regex) {
-      regex = new RegExp(`${idx + 1}[\\s\\S]{0,50}(\\d+\\.?\\d*)`, 'i');
+      regex = new RegExp(`${idx + 1}[\\s\\S]{0,50}(\\d+\\.?\\d*)`, "i");
       voteRegexCache[idx] = regex;
     }
 
@@ -240,7 +244,7 @@ export function parseVotesFromResponse(
 
     let score = 0.5;
     if (scoreMatch) {
-      score = Math.min(1, Math.max(0, parseFloat(scoreMatch[1] ?? '0.5')));
+      score = Math.min(1, Math.max(0, parseFloat(scoreMatch[1] ?? "0.5")));
     }
 
     votes.push({

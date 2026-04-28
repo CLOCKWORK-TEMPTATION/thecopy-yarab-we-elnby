@@ -1,16 +1,18 @@
-import path from 'node:path';
+import path from "node:path";
 
-import moduleAlias from 'module-alias';
+import moduleAlias from "module-alias";
 
 export interface RuntimeAliasRegistration {
   shouldRegister: boolean;
   baseDir: string | null;
 }
 
-export function resolveRuntimeAliasRegistration(currentDir = __dirname): RuntimeAliasRegistration {
+export function resolveRuntimeAliasRegistration(
+  currentDir = __dirname,
+): RuntimeAliasRegistration {
   const normalizedDir = path.resolve(currentDir);
   const pathSegments = normalizedDir.split(path.sep);
-  const distIndex = pathSegments.lastIndexOf('dist');
+  const distIndex = pathSegments.lastIndexOf("dist");
 
   if (distIndex === -1) {
     return {
@@ -27,16 +29,22 @@ export function resolveRuntimeAliasRegistration(currentDir = __dirname): Runtime
 
 let aliasesRegistered = false;
 
-export function registerRuntimeAliases(currentDir = __dirname): RuntimeAliasRegistration {
+export function registerRuntimeAliases(
+  currentDir = __dirname,
+): RuntimeAliasRegistration {
   const registration = resolveRuntimeAliasRegistration(currentDir);
 
-  if (!registration.shouldRegister || !registration.baseDir || aliasesRegistered) {
+  if (
+    !registration.shouldRegister ||
+    !registration.baseDir ||
+    aliasesRegistered
+  ) {
     return registration;
   }
 
   moduleAlias.addAliases({
-    '@': registration.baseDir,
-    '@core': path.join(registration.baseDir, 'services', 'agents', 'core'),
+    "@": registration.baseDir,
+    "@core": path.join(registration.baseDir, "services", "agents", "core"),
   });
 
   aliasesRegistered = true;

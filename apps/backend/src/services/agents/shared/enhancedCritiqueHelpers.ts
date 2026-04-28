@@ -5,13 +5,17 @@
 
 import { logger } from "@/lib/logger";
 
-import type { CritiqueConfiguration, DimensionScore, EnhancedCritiqueResult , CritiqueDimension } from "./critiqueTypes";
-
+import type {
+  CritiqueConfiguration,
+  DimensionScore,
+  EnhancedCritiqueResult,
+  CritiqueDimension,
+} from "./critiqueTypes";
 
 /** حساب النتيجة الإجمالية من درجات الأبعاد */
 export function calculateOverallScore(
   dimensionScores: DimensionScore[],
-  dimensions: CritiqueDimension[]
+  dimensions: CritiqueDimension[],
 ): number {
   let totalScore = 0;
   let totalWeight = 0;
@@ -28,7 +32,7 @@ export function calculateOverallScore(
 /** تحديد المستوى بناءً على النتيجة */
 export function determineLevel(
   score: number,
-  thresholds: CritiqueConfiguration["thresholds"]
+  thresholds: CritiqueConfiguration["thresholds"],
 ): EnhancedCritiqueResult["overallLevel"] {
   if (score >= thresholds.excellent) return "excellent";
   if (score >= thresholds.good) return "good";
@@ -54,9 +58,12 @@ function isRawDimensionPayload(value: unknown): value is RawDimensionPayload {
   const v = value as Record<string, unknown>;
   if (v["score"] !== undefined && typeof v["score"] !== "number") return false;
   if (v["level"] !== undefined && typeof v["level"] !== "string") return false;
-  if (v["strengths"] !== undefined && !Array.isArray(v["strengths"])) return false;
-  if (v["weaknesses"] !== undefined && !Array.isArray(v["weaknesses"])) return false;
-  if (v["suggestions"] !== undefined && !Array.isArray(v["suggestions"])) return false;
+  if (v["strengths"] !== undefined && !Array.isArray(v["strengths"]))
+    return false;
+  if (v["weaknesses"] !== undefined && !Array.isArray(v["weaknesses"]))
+    return false;
+  if (v["suggestions"] !== undefined && !Array.isArray(v["suggestions"]))
+    return false;
   return true;
 }
 
@@ -69,7 +76,7 @@ function asStringArray(value: unknown): string[] {
 /** تحليل استجابة تقييم البُعد من JSON */
 export function parseDimensionResponse(
   response: string,
-  dimension: CritiqueDimension
+  dimension: CritiqueDimension,
 ): DimensionScore {
   try {
     const jsonMatch = /```json\s*([\s\S]*?)\s*```/.exec(response);
@@ -97,10 +104,14 @@ export function parseDimensionResponse(
           suggestions: asStringArray(parsed.suggestions),
         };
       }
-      logger.warn("[Enhanced Critique] JSON payload did not match expected shape, using fallback");
+      logger.warn(
+        "[Enhanced Critique] JSON payload did not match expected shape, using fallback",
+      );
     }
   } catch {
-    logger.warn("[Enhanced Critique] Failed to parse JSON response, using fallback");
+    logger.warn(
+      "[Enhanced Critique] Failed to parse JSON response, using fallback",
+    );
   }
 
   return fallbackDimensionParse(response, dimension);
@@ -109,7 +120,7 @@ export function parseDimensionResponse(
 /** تحليل احتياطي للبُعد */
 export function fallbackDimensionParse(
   response: string,
-  dimension: CritiqueDimension
+  dimension: CritiqueDimension,
 ): DimensionScore {
   const strengths: string[] = [];
   const weaknesses: string[] = [];
@@ -129,7 +140,7 @@ export function fallbackDimensionParse(
     level: "satisfactory",
     strengths,
     weaknesses,
-    suggestions
+    suggestions,
   };
 }
 
@@ -137,18 +148,26 @@ export function fallbackDimensionParse(
 export function generateCritiqueNotes(
   dimensionScores: DimensionScore[],
   overallScore: number,
-  config: CritiqueConfiguration
+  config: CritiqueConfiguration,
 ): string[] {
   const notes: string[] = [];
 
-  const weakDimensions = dimensionScores.filter((d) => d.score < config.thresholds.good);
+  const weakDimensions = dimensionScores.filter(
+    (d) => d.score < config.thresholds.good,
+  );
   if (weakDimensions.length > 0) {
-    notes.push(`الأبعاد التي تحتاج تحسين: ${weakDimensions.map((d) => d.dimension).join("، ")}`);
+    notes.push(
+      `الأبعاد التي تحتاج تحسين: ${weakDimensions.map((d) => d.dimension).join("، ")}`,
+    );
   }
 
-  const strongDimensions = dimensionScores.filter((d) => d.score >= config.thresholds.good);
+  const strongDimensions = dimensionScores.filter(
+    (d) => d.score >= config.thresholds.good,
+  );
   if (strongDimensions.length > 0) {
-    notes.push(`الأبعاد القوية: ${strongDimensions.map((d) => d.dimension).join("، ")}`);
+    notes.push(
+      `الأبعاد القوية: ${strongDimensions.map((d) => d.dimension).join("، ")}`,
+    );
   }
 
   if (overallScore >= config.thresholds.excellent) {
@@ -167,21 +186,22 @@ export function generateCritiqueNotes(
 /** توليد خطة التحسين */
 export function generateImprovementPlan(
   dimensionScores: DimensionScore[],
-  config: CritiqueConfiguration
+  config: CritiqueConfiguration,
 ): EnhancedCritiqueResult["improvementPlan"] {
   const plan: NonNullable<EnhancedCritiqueResult["improvementPlan"]> = [];
   const sortedByScore = [...dimensionScores].sort((a, b) => a.score - b.score);
 
   for (const dimension of sortedByScore.slice(0, 3)) {
     if (dimension.score < config.thresholds.good) {
-      const priority = dimension.score < config.thresholds.needsImprovement
-        ? ("high" as const)
-        : ("medium" as const);
+      const priority =
+        dimension.score < config.thresholds.needsImprovement
+          ? ("high" as const)
+          : ("medium" as const);
 
       plan.push({
         priority,
         actions: dimension.suggestions.slice(0, 3),
-        expectedImpact: `تحسين بُعد "${dimension.dimension}" سيرفع من جودة التحليل بشكل ملحوظ`
+        expectedImpact: `تحسين بُعد "${dimension.dimension}" سيرفع من جودة التحليل بشكل ملحوظ`,
       });
     }
   }
@@ -194,10 +214,13 @@ export function buildDimensionEvaluationPrompt(
   output: string,
   task: string,
   originalText: string,
-  dimension: CritiqueDimension
+  dimension: CritiqueDimension,
 ): string {
   const rubricText = dimension.rubric
-    .map((level) => `\n**${level.level}** (${level.score}): ${level.description}\nالمؤشرات: ${level.indicators.join("، ")}`)
+    .map(
+      (level) =>
+        `\n**${level.level}** (${level.score}): ${level.description}\nالمؤشرات: ${level.indicators.join("، ")}`,
+    )
     .join("\n");
 
   return `أنت ناقد متخصص في تحليل المحتوى الدرامي.

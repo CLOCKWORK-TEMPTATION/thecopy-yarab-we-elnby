@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const platformAdapterInstructions = `
 تكييف المحتوى للمنصات المختلفة:
@@ -52,6 +52,6 @@ export const platformAdapterAgentConfig: AIAgentConfig = {
     "تكييف هيكلي للمحتوى",
     "تعديل الإيقاع والتوقيت",
     "استغلال خصائص المنصة",
-    "التخطيط للعرض المرحلي"
-  ]
+    "التخطيط للعرض المرحلي",
+  ],
 };

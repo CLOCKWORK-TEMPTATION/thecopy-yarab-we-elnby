@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 /**
  * @const {AIAgentConfig} DIALOGUE_FORENSICS_AGENT_CONFIG
@@ -11,35 +11,39 @@ import type { AIAgentConfig } from '../../types/types';
  * of stylistic inconsistencies.
  */
 export const DIALOGUE_FORENSICS_AGENT_CONFIG: AIAgentConfig = {
-    id: TaskType.DIALOGUE_FORENSICS,
-    name: "Voiceprint AI",
-    description: "وكيل البصمة الصوتية للحوار: محلل لغوي متطور يستخدم تقنيات معالجة اللغة الطبيعية المتقدمة مع نماذج BERT المتخصصة لتحليل الخصائص الصوتية الفريدة لكل شخصية، مزود بخوارزميات تحليل المشاعر السياقية ونماذج التعرف على الأنماط اللغوية الدقيقة وكشف التناقضات الأسلوبية.",
-    category: TaskCategory.ANALYSIS,
-    capabilities: {
-      multiModal: false,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: true,
-      selfReflection: true,
-      ragEnabled: true,
-      vectorSearch: true,
-      agentOrchestration: false,
-      metacognitive: false,
-      adaptiveLearning: true,
-      complexityScore: 0.82,
-      accuracyLevel: 0.90,
-      processingSpeed: 'medium',
-      resourceIntensity: 'medium',
-      languageModeling: true,
-      patternRecognition: true,
-      creativeGeneration: false,
-      analyticalReasoning: true,
-      emotionalIntelligence: true
-    },
-    collaboratesWith: [TaskType.CHARACTER_VOICE, TaskType.DIALOGUE_ADVANCED_ANALYZER],
-    dependsOn: [],
-    enhances: [TaskType.CHARACTER_VOICE],
-    systemPrompt: `You are Voiceprint AI, a sophisticated linguistic forensics agent. Your primary function is to dissect and analyze dialogue to create a unique 'voiceprint' for each character. This involves a deep dive into linguistic patterns, emotional undertones, and stylistic nuances.
+  id: TaskType.DIALOGUE_FORENSICS,
+  name: "Voiceprint AI",
+  description:
+    "وكيل البصمة الصوتية للحوار: محلل لغوي متطور يستخدم تقنيات معالجة اللغة الطبيعية المتقدمة مع نماذج BERT المتخصصة لتحليل الخصائص الصوتية الفريدة لكل شخصية، مزود بخوارزميات تحليل المشاعر السياقية ونماذج التعرف على الأنماط اللغوية الدقيقة وكشف التناقضات الأسلوبية.",
+  category: TaskCategory.ANALYSIS,
+  capabilities: {
+    multiModal: false,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: true,
+    selfReflection: true,
+    ragEnabled: true,
+    vectorSearch: true,
+    agentOrchestration: false,
+    metacognitive: false,
+    adaptiveLearning: true,
+    complexityScore: 0.82,
+    accuracyLevel: 0.9,
+    processingSpeed: "medium",
+    resourceIntensity: "medium",
+    languageModeling: true,
+    patternRecognition: true,
+    creativeGeneration: false,
+    analyticalReasoning: true,
+    emotionalIntelligence: true,
+  },
+  collaboratesWith: [
+    TaskType.CHARACTER_VOICE,
+    TaskType.DIALOGUE_ADVANCED_ANALYZER,
+  ],
+  dependsOn: [],
+  enhances: [TaskType.CHARACTER_VOICE],
+  systemPrompt: `You are Voiceprint AI, a sophisticated linguistic forensics agent. Your primary function is to dissect and analyze dialogue to create a unique 'voiceprint' for each character. This involves a deep dive into linguistic patterns, emotional undertones, and stylistic nuances.
 
 **Core Directives:**
 
@@ -65,12 +69,12 @@ Your analysis must be structured and detailed. For each character, provide a 'Vo
 *   **Confidence Score:** A score (out of 100) indicating your confidence in the analysis, with a brief justification.
 
 You are a tool for deep, nuanced analysis. Your insights will be used to enhance character development and ensure dialogue authenticity. Be precise, be thorough, and be insightful.`,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "لتحليل البصمة الصوتية، سأدرس الخصائص اللغوية...",
-    cacheStrategy: 'selective',
-    parallelizable: true,
-    batchProcessing: true,
-    validationRules: ["تفرد الأصوات", "دقة التحليل اللغوي"],
-    outputSchema: {},
-    confidenceThreshold: 0.88
+  fewShotExamples: [],
+  chainOfThoughtTemplate: "لتحليل البصمة الصوتية، سأدرس الخصائص اللغوية...",
+  cacheStrategy: "selective",
+  parallelizable: true,
+  batchProcessing: true,
+  validationRules: ["تفرد الأصوات", "دقة التحليل اللغوي"],
+  outputSchema: {},
+  confidenceThreshold: 0.88,
 };

@@ -5,7 +5,7 @@ import type {
   EditorialState,
   FootageState,
 } from "./usePostProduction-types";
-import type { VisualMood } from "../../types";
+import type { VisualMood } from "../types";
 
 /**
  * درجة الحرارة الافتراضية

@@ -28,7 +28,7 @@ const log = (tag, data) => {
   const ts = new Date().toISOString();
   console.warn(
     `[${ts}] [vision-proofread] ${tag}`,
-    data != null ? JSON.stringify(data) : ""
+    data != null ? JSON.stringify(data) : "",
   );
 };
 
@@ -49,7 +49,7 @@ const sanitizeRemoteErrorText = (text) => {
   if (!raw) return "";
   const withoutDataUrls = raw.replace(
     /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,
-    "data:image/*;base64,[omitted]"
+    "data:image/*;base64,[omitted]",
   );
   return withoutDataUrls.length <= 1200
     ? withoutDataUrls
@@ -88,12 +88,12 @@ const assertTranscriptResponse = (text, pageLabel) => {
   const normalized = String(text ?? "").trim();
   if (!normalized) {
     throw new Error(
-      `vision-proofread returned empty text for page ${pageLabel} [VISION_PROOFREAD_EMPTY_RESULT]`
+      `vision-proofread returned empty text for page ${pageLabel} [VISION_PROOFREAD_EMPTY_RESULT]`,
     );
   }
   if (NON_TRANSCRIPT_PATTERNS.some((pattern) => pattern.test(normalized))) {
     throw new Error(
-      `vision-proofread returned non-transcript content for page ${pageLabel} [VISION_PROOFREAD_NON_TRANSCRIPT]`
+      `vision-proofread returned non-transcript content for page ${pageLabel} [VISION_PROOFREAD_NON_TRANSCRIPT]`,
     );
   }
   return normalized;
@@ -110,7 +110,7 @@ const assertRenderedPageNotBlank = async (imageBuffer, pageLabel) => {
     info.height <= BLANK_PAGE_MIN_TRIMMED_DIMENSION_PX
   ) {
     throw new Error(
-      `vision-proofread detected a blank rendered page ${pageLabel} [VISION_PROOFREAD_BLANK_PAGE]`
+      `vision-proofread detected a blank rendered page ${pageLabel} [VISION_PROOFREAD_BLANK_PAGE]`,
     );
   }
 };
@@ -118,7 +118,7 @@ const assertRenderedPageNotBlank = async (imageBuffer, pageLabel) => {
 // ── prompt ─────────────────────────────────────────────────
 
 const buildProofreadPrompt = (
-  ocrText
+  ocrText,
 ) => `You are a pixel-perfect Arabic OCR verifier. Your ONLY job is to make the text match EXACTLY what appears in the image — nothing more, nothing less.
 
 Below is text extracted by OCR from the attached page image.
@@ -228,7 +228,7 @@ const requestProofread = async ({
       if (!res.ok) {
         const safe = sanitizeRemoteErrorText(resText);
         const err = new Error(
-          `vision-proofread failed: ${res.status} ${res.statusText} ${safe}`
+          `vision-proofread failed: ${res.status} ${res.statusText} ${safe}`,
         );
         if (isRetryableStatus(res.status) && attempt < maxRetries) {
           attempt += 1;
@@ -256,7 +256,7 @@ const requestProofread = async ({
           safetyRatings,
         });
         throw new Error(
-          `vision-proofread returned empty text for page ${_pageLabel} (finishReason: ${blockReason ?? "unknown"})`
+          `vision-proofread returned empty text for page ${_pageLabel} (finishReason: ${blockReason ?? "unknown"})`,
         );
       }
 
@@ -292,7 +292,7 @@ const requestProofread = async ({
   throw new Error(
     `vision-proofread failed after retries (page ${_pageLabel}): ${
       lastError?.message ?? lastError
-    }`
+    }`,
   );
 };
 
@@ -331,7 +331,7 @@ const proofreadPage = async ({
       timeoutMs,
       _pageLabel: pageNumber,
     }),
-    pageNumber
+    pageNumber,
   );
 
   log("page-done", {
@@ -410,7 +410,7 @@ export const runVisionProofread = async ({
         apiKey,
         model,
         timeoutMs,
-      })
+      }),
   );
 
   const durationMs = Date.now() - t0;

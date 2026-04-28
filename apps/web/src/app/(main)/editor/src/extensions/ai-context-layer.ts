@@ -11,6 +11,8 @@
  * - {@link ContextEnhancementResult} — نتيجة عملية التعزيز
  */
 
+import { definedProps } from "@/lib/defined-props";
+
 import { resolveContextEnhanceEndpoint } from "../utils/backend-endpoints";
 import { logger } from "../utils/logger";
 
@@ -69,6 +71,35 @@ const isContextLayerEnabled = (): boolean => {
 
 // ─── SSE Parser ───────────────────────────────────────────────────
 
+interface SSEEvent {
+  event: string;
+  data: string;
+}
+
+interface CorrectionPayload {
+  lineIndex: number;
+  correctedType: string;
+  confidence?: number;
+  reason?: string;
+}
+
+function parseRawSSEEvent(rawEvent: string): SSEEvent | null {
+  if (!rawEvent.trim()) return null;
+
+  let eventType = "message";
+  let data = "";
+
+  for (const line of rawEvent.split("\n")) {
+    if (line.startsWith("event: ")) {
+      eventType = line.slice(7).trim();
+    } else if (line.startsWith("data: ")) {
+      data = line.slice(6);
+    }
+  }
+
+  return data ? { event: eventType, data } : null;
+}
+
 /**
  * يقرأ SSE stream ويستخرج الأحداث.
  *
@@ -77,7 +108,7 @@ const isContextLayerEnabled = (): boolean => {
 async function* parseSSEStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   signal?: AbortSignal
-): AsyncGenerator<{ event: string; data: string }> {
+): AsyncGenerator<SSEEvent> {
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -96,27 +127,65 @@ async function* parseSSEStream(
       buffer = events.pop() ?? "";
 
       for (const rawEvent of events) {
-        if (!rawEvent.trim()) continue;
-
-        let eventType = "message";
-        let data = "";
-
-        for (const line of rawEvent.split("\n")) {
-          if (line.startsWith("event: ")) {
-            eventType = line.slice(7).trim();
-          } else if (line.startsWith("data: ")) {
-            data = line.slice(6);
-          }
-        }
-
-        if (data) {
-          yield { event: eventType, data };
-        }
+        const parsed = parseRawSSEEvent(rawEvent);
+        if (parsed) yield parsed;
       }
     }
   } finally {
     reader.releaseLock();
   }
+}
+
+function applyCorrectionEvent(
+  data: string,
+  view: EditorView,
+  updateSession: ProgressiveUpdateSession
+) {
+  try {
+    const correction = JSON.parse(data) as CorrectionPayload;
+    if (!isElementType(correction.correctedType)) {
+      return { total: 1, applied: 0 };
+    }
+
+    const command: AICorrectionCommand = {
+      lineIndex: correction.lineIndex,
+      correctedType: correction.correctedType,
+      confidence: correction.confidence ?? 0.8,
+      reason: correction.reason ?? "",
+      source: "gemini-context",
+    };
+
+    return {
+      total: 1,
+      applied: updateSession.applyCorrection(view, command) ? 1 : 0,
+    };
+  } catch {
+    return { total: 0, applied: 0 };
+  }
+}
+
+function logStreamError(data: string, sessionId: string) {
+  try {
+    const errorData = JSON.parse(data) as { message?: string };
+    contextLogger.error("context-enhance-stream-error", {
+      sessionId,
+      message: errorData.message,
+    });
+  } catch {
+    // تجاهل
+  }
+}
+
+function logStreamDone(
+  sessionId: string,
+  totalCorrections: number,
+  appliedCorrections: number
+) {
+  contextLogger.info("context-enhance-stream-done", {
+    sessionId,
+    totalCorrections,
+    appliedCorrections,
+  });
 }
 
 // ─── الدالة الرئيسية ─────────────────────────────────────────────
@@ -200,51 +269,13 @@ export const requestContextEnhancement = async (
       if (view.isDestroyed || updateSession.status === "aborted") break;
 
       if (sseEvent.event === "correction") {
-        try {
-          const correction = JSON.parse(sseEvent.data) as {
-            lineIndex: number;
-            correctedType: string;
-            confidence?: number;
-            reason?: string;
-          };
-          totalCorrections += 1;
-
-          // تحويل إلى AICorrectionCommand
-          if (
-            typeof correction.correctedType === "string" &&
-            isElementType(correction.correctedType)
-          ) {
-            const command: AICorrectionCommand = {
-              lineIndex: correction.lineIndex,
-              correctedType: correction.correctedType,
-              confidence: correction.confidence ?? 0.8,
-              reason: correction.reason ?? "",
-              source: "gemini-context",
-            };
-
-            if (updateSession.applyCorrection(view, command)) {
-              appliedCorrections += 1;
-            }
-          }
-        } catch {
-          // تجاهل JSON غير صالح
-        }
+        const result = applyCorrectionEvent(sseEvent.data, view, updateSession);
+        totalCorrections += result.total;
+        appliedCorrections += result.applied;
       } else if (sseEvent.event === "error") {
-        try {
-          const errorData = JSON.parse(sseEvent.data) as { message?: string };
-          contextLogger.error("context-enhance-stream-error", {
-            sessionId,
-            message: errorData.message,
-          });
-        } catch {
-          // تجاهل
-        }
+        logStreamError(sseEvent.data, sessionId);
       } else if (sseEvent.event === "done") {
-        contextLogger.info("context-enhance-stream-done", {
-          sessionId,
-          totalCorrections,
-          appliedCorrections,
-        });
+        logStreamDone(sessionId, totalCorrections, appliedCorrections);
       }
     }
 
@@ -276,4 +307,3 @@ export const requestContextEnhancement = async (
     };
   }
 };
-import { definedProps } from "@/lib/defined-props";

@@ -2,14 +2,19 @@
 import { motion } from "framer-motion";
 import React from "react";
 
-export const BackgroundBeams = React.memo(() => {
-  const paths = [
-    "M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875",
-    "M-373 -197C-373 -197 -305 208 159 335C623 462 691 867 691 867",
-    "M-366 -205C-366 -205 -298 200 166 327C630 454 698 859 698 859",
-    // Add more paths for more beams
-  ];
+const paths = [
+  "M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875",
+  "M-373 -197C-373 -197 -305 208 159 335C623 462 691 867 691 867",
+  "M-366 -205C-366 -205 -298 200 166 327C630 454 698 859 698 859",
+] as const;
 
+const beamAnimationConfig = paths.map((_, index) => ({
+  y2: `${93 + ((index * 5) % 8)}%`,
+  duration: 10 + ((index * 7) % 10),
+  delay: (index * 3) % 10,
+}));
+
+export const BackgroundBeams = React.memo(() => {
   return (
     <div className="absolute h-full w-full inset-0 [mask-size:40px] [mask-repeat:no-repeat] flex items-center justify-center pointer-events-none">
       <svg
@@ -44,13 +49,13 @@ export const BackgroundBeams = React.memo(() => {
                 x1: ["0%", "100%"],
                 x2: ["0%", "95%"],
                 y1: ["0%", "100%"],
-                y2: ["0%", `${93 + Math.random() * 8}%`],
+                y2: ["0%", beamAnimationConfig[index].y2],
               }}
               transition={{
-                duration: Math.random() * 10 + 10,
+                duration: beamAnimationConfig[index].duration,
                 ease: "easeInOut",
                 repeat: Infinity,
-                delay: Math.random() * 10,
+                delay: beamAnimationConfig[index].delay,
               }}
             >
               <stop stopColor="#FFD700" stopOpacity="0"></stop>

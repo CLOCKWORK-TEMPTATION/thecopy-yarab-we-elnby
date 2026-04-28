@@ -3,15 +3,23 @@
  * Handles workflow execution and management endpoints
  */
 
-import { Request, Response } from 'express';
-import { z } from 'zod';
+import { Request, Response } from "express";
+import { z } from "zod";
 
-import { logger } from '@/lib/logger';
-import { StandardAgentInput } from '@/services/agents/core/types';
-import { workflowExecutor } from '@/services/agents/core/workflow-executor';
-import { getPresetWorkflow, PRESET_WORKFLOWS, type PresetWorkflowName } from '@/services/agents/core/workflow-presets';
-import { WorkflowStatus, type WorkflowConfig, type WorkflowEvent, type WorkflowMetrics } from '@/services/agents/core/workflow-types';
-
+import { logger } from "@/lib/logger";
+import { StandardAgentInput } from "@/services/agents/core/types";
+import { workflowExecutor } from "@/services/agents/core/workflow-executor";
+import {
+  getPresetWorkflow,
+  PRESET_WORKFLOWS,
+  type PresetWorkflowName,
+} from "@/services/agents/core/workflow-presets";
+import {
+  WorkflowStatus,
+  type WorkflowConfig,
+  type WorkflowEvent,
+  type WorkflowMetrics,
+} from "@/services/agents/core/workflow-types";
 
 interface WorkflowProgressRecord {
   workflowId: string;
@@ -42,12 +50,14 @@ function calculateProgress(record: WorkflowProgressRecord): number {
   return Math.min(
     100,
     Math.round(
-      ((record.completedSteps + record.failedSteps) / record.totalSteps) * 100
-    )
+      ((record.completedSteps + record.failedSteps) / record.totalSteps) * 100,
+    ),
   );
 }
 
-function calculateEstimatedTimeRemaining(record: WorkflowProgressRecord): number | undefined {
+function calculateEstimatedTimeRemaining(
+  record: WorkflowProgressRecord,
+): number | undefined {
   const finishedSteps = record.completedSteps + record.failedSteps;
   const remainingSteps = record.totalSteps - finishedSteps;
   if (finishedSteps <= 0 || remainingSteps <= 0) {
@@ -79,7 +89,7 @@ function finalizeWorkflowProgress(
   workflowId: string,
   status: WorkflowStatus,
   metrics?: WorkflowMetrics,
-  error?: string
+  error?: string,
 ): void {
   const record = activeWorkflows.get(workflowId);
   if (!record) {
@@ -96,7 +106,8 @@ function finalizeWorkflowProgress(
   if (error) {
     record.error = error;
   }
-  record.progress = status === WorkflowStatus.COMPLETED ? 100 : calculateProgress(record);
+  record.progress =
+    status === WorkflowStatus.COMPLETED ? 100 : calculateProgress(record);
   workflowHistory.unshift({ ...record });
   if (workflowHistory.length > MAX_WORKFLOW_HISTORY) {
     workflowHistory.pop();
@@ -104,7 +115,7 @@ function finalizeWorkflowProgress(
 }
 
 function extractEventError(event: WorkflowEvent): string | undefined {
-  if (!event.data || typeof event.data !== 'object') {
+  if (!event.data || typeof event.data !== "object") {
     return undefined;
   }
 
@@ -113,7 +124,7 @@ function extractEventError(event: WorkflowEvent): string | undefined {
   if (error instanceof Error) {
     return error.message;
   }
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return error;
   }
   return undefined;
@@ -127,19 +138,19 @@ function updateWorkflowProgressFromEvent(event: WorkflowEvent): void {
 
   record.updatedAt = event.timestamp.toISOString();
 
-  if (event.type === 'step-started') {
-    if (typeof event.stepId === 'string') {
+  if (event.type === "step-started") {
+    if (typeof event.stepId === "string") {
       record.currentStep = event.stepId;
     }
     record.status = WorkflowStatus.RUNNING;
-  } else if (event.type === 'step-completed') {
+  } else if (event.type === "step-completed") {
     record.completedSteps += 1;
-    if (typeof event.stepId === 'string') {
+    if (typeof event.stepId === "string") {
       record.currentStep = event.stepId;
     }
-  } else if (event.type === 'step-failed') {
+  } else if (event.type === "step-failed") {
     record.failedSteps += 1;
-    if (typeof event.stepId === 'string') {
+    if (typeof event.stepId === "string") {
       record.currentStep = event.stepId;
     }
     const eventError = extractEventError(event);
@@ -158,31 +169,39 @@ function updateWorkflowProgressFromEvent(event: WorkflowEvent): void {
 }
 
 for (const eventType of [
-  'step-started',
-  'step-completed',
-  'step-failed',
+  "step-started",
+  "step-completed",
+  "step-failed",
 ] as const) {
   workflowExecutor.on(eventType, updateWorkflowProgressFromEvent);
 }
 
-const workflowInputSchema = z.object({
-  input: z.string().optional(),
-  text: z.string().optional(),
-  context: z.record(z.string(), z.unknown()).optional(),
-  options: z.record(z.string(), z.unknown()).optional(),
-}).passthrough();
+const workflowInputSchema = z
+  .object({
+    input: z.string().optional(),
+    text: z.string().optional(),
+    context: z.record(z.string(), z.unknown()).optional(),
+    options: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
 
-const executeWorkflowBodySchema = z.object({
-  preset: z.string().min(1),
-  input: workflowInputSchema,
-}).passthrough();
+const executeWorkflowBodySchema = z
+  .object({
+    preset: z.string().min(1),
+    input: workflowInputSchema,
+  })
+  .passthrough();
 
-const executeCustomWorkflowBodySchema = z.object({
-  config: z.object({
-    name: z.string().optional(),
-  }).passthrough(),
-  input: workflowInputSchema,
-}).passthrough();
+const executeCustomWorkflowBodySchema = z
+  .object({
+    config: z
+      .object({
+        name: z.string().optional(),
+      })
+      .passthrough(),
+    input: workflowInputSchema,
+  })
+  .passthrough();
 
 /**
  * Execute a preset workflow
@@ -193,7 +212,7 @@ export async function executeWorkflow(req: Request, res: Response) {
     if (!validation.success) {
       return res.status(400).json({
         success: false,
-        error: 'يجب توفير نوع الورك فلو والمدخلات',
+        error: "يجب توفير نوع الورك فلو والمدخلات",
       });
     }
     const { preset, input } = validation.data;
@@ -202,14 +221,14 @@ export async function executeWorkflow(req: Request, res: Response) {
     if (!(preset in PRESET_WORKFLOWS)) {
       return res.status(400).json({
         success: false,
-        error: 'نوع الورك فلو غير صحيح',
+        error: "نوع الورك فلو غير صحيح",
       });
     }
 
     logger.info(`[Workflow API] Executing preset workflow: ${preset}`);
 
     const agentInput: StandardAgentInput = {
-      input: input.input ?? input.text ?? '',
+      input: input.input ?? input.text ?? "",
       context: input.context ?? {},
       options: input.options ?? {},
     };
@@ -228,10 +247,10 @@ export async function executeWorkflow(req: Request, res: Response) {
       },
     });
   } catch (error) {
-    logger.error('[Workflow API] Execution failed:', error);
+    logger.error("[Workflow API] Execution failed:", error);
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'فشل تنفيذ الورك فلو',
+      error: error instanceof Error ? error.message : "فشل تنفيذ الورك فلو",
     });
   }
 }
@@ -245,7 +264,7 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
     if (!validation.success) {
       return res.status(400).json({
         success: false,
-        error: 'يجب توفير تكوين الورك فلو والمدخلات',
+        error: "يجب توفير تكوين الورك فلو والمدخلات",
       });
     }
     const { config: rawConfig, input } = validation.data;
@@ -254,7 +273,7 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
     logger.info(`[Workflow API] Executing custom workflow: ${config.name}`);
 
     const agentInput: StandardAgentInput = {
-      input: input.input ?? input.text ?? '',
+      input: input.input ?? input.text ?? "",
       context: input.context ?? {},
       options: input.options ?? {},
     };
@@ -272,10 +291,11 @@ export async function executeCustomWorkflow(req: Request, res: Response) {
       },
     });
   } catch (error) {
-    logger.error('[Workflow API] Custom workflow failed:', error);
+    logger.error("[Workflow API] Custom workflow failed:", error);
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'فشل تنفيذ الورك فلو المخصص',
+      error:
+        error instanceof Error ? error.message : "فشل تنفيذ الورك فلو المخصص",
     });
   }
 }
@@ -290,11 +310,11 @@ export function getWorkflowPresets(_req: Request, res: Response) {
       return {
         id,
         name: workflow.name,
-        description: workflow.description ?? '',
+        description: workflow.description ?? "",
         estimatedDuration: workflow.globalTimeout ?? 300000,
         agentCount: workflow.steps.length,
         maxConcurrency: workflow.maxConcurrency ?? 5,
-        errorHandling: workflow.errorHandling ?? 'lenient',
+        errorHandling: workflow.errorHandling ?? "lenient",
       };
     });
 
@@ -303,10 +323,10 @@ export function getWorkflowPresets(_req: Request, res: Response) {
       data: presets,
     });
   } catch (error) {
-    logger.error('[Workflow API] Failed to get presets:', error);
+    logger.error("[Workflow API] Failed to get presets:", error);
     return res.status(500).json({
       success: false,
-      error: 'فشل جلب قوالب الورك فلو',
+      error: "فشل جلب قوالب الورك فلو",
     });
   }
 }
@@ -324,7 +344,7 @@ export function getWorkflowProgress(req: Request, res: Response) {
     if (!workflowId) {
       return res.status(400).json({
         success: false,
-        error: 'يجب توفير معرّف الورك فلو',
+        error: "يجب توفير معرّف الورك فلو",
       });
     }
 
@@ -335,7 +355,7 @@ export function getWorkflowProgress(req: Request, res: Response) {
     if (!record) {
       return res.status(404).json({
         success: false,
-        error: 'حالة الورك فلو غير موجودة',
+        error: "حالة الورك فلو غير موجودة",
       });
     }
 
@@ -344,10 +364,10 @@ export function getWorkflowProgress(req: Request, res: Response) {
       data: record,
     });
   } catch (error) {
-    logger.error('[Workflow API] Failed to get progress:', error);
+    logger.error("[Workflow API] Failed to get progress:", error);
     return res.status(500).json({
       success: false,
-      error: 'فشل جلب حالة الورك فلو',
+      error: "فشل جلب حالة الورك فلو",
     });
   }
 }
@@ -362,10 +382,10 @@ export function getWorkflowHistory(_req: Request, res: Response) {
       data: workflowHistory,
     });
   } catch (error) {
-    logger.error('[Workflow API] Failed to get history:', error);
+    logger.error("[Workflow API] Failed to get history:", error);
     return res.status(500).json({
       success: false,
-      error: 'فشل جلب سجل الورك فلو',
+      error: "فشل جلب سجل الورك فلو",
     });
   }
 }
@@ -375,12 +395,13 @@ export function getWorkflowHistory(_req: Request, res: Response) {
  */
 export function getWorkflowDetails(req: Request, res: Response) {
   try {
-    const preset = typeof req.params["preset"] === 'string' ? req.params["preset"] : '';
+    const preset =
+      typeof req.params["preset"] === "string" ? req.params["preset"] : "";
 
     if (!(preset in PRESET_WORKFLOWS)) {
       return res.status(404).json({
         success: false,
-        error: 'الورك فلو غير موجود',
+        error: "الورك فلو غير موجود",
       });
     }
 
@@ -406,10 +427,10 @@ export function getWorkflowDetails(req: Request, res: Response) {
       },
     });
   } catch (error) {
-    logger.error('[Workflow API] Failed to get workflow details:', error);
+    logger.error("[Workflow API] Failed to get workflow details:", error);
     return res.status(500).json({
       success: false,
-      error: 'فشل جلب تفاصيل الورك فلو',
+      error: "فشل جلب تفاصيل الورك فلو",
     });
   }
 }

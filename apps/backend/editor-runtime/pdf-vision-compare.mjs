@@ -6,7 +6,7 @@ const log = (tag, data) => {
   const ts = new Date().toISOString();
   console.warn(
     `[${ts}] [vision-compare] ${tag}`,
-    data != null ? JSON.stringify(data) : ""
+    data != null ? JSON.stringify(data) : "",
   );
 };
 
@@ -44,7 +44,7 @@ const sanitizeRemoteErrorText = (text) => {
 
   const withoutDataUrls = raw.replace(
     /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g,
-    "data:image/*;base64,[omitted]"
+    "data:image/*;base64,[omitted]",
   );
   if (withoutDataUrls.length <= 1200) {
     return withoutDataUrls;
@@ -194,7 +194,7 @@ const requestMistralChatForImage = async ({
       if (!response.ok) {
         const safeResponseText = sanitizeRemoteErrorText(responseText);
         const error = new Error(
-          `mistral-compare failed [schema=${VISION_COMPARE_REQUEST_SCHEMA}]: ${response.status} ${response.statusText} ${safeResponseText}`
+          `mistral-compare failed [schema=${VISION_COMPARE_REQUEST_SCHEMA}]: ${response.status} ${response.statusText} ${safeResponseText}`,
         );
         if (isRetryableStatus(response.status) && attempt < maxRetries) {
           attempt += 1;
@@ -207,7 +207,7 @@ const requestMistralChatForImage = async ({
       const text = extractAssistantMessageText(payload).trim();
       if (!text) {
         throw new Error(
-          "mistral-compare returned empty assistant text for page image."
+          "mistral-compare returned empty assistant text for page image.",
         );
       }
       log("api-call-done", {
@@ -233,7 +233,7 @@ const requestMistralChatForImage = async ({
     error: toErrorMessage(lastError),
   });
   throw new Error(
-    `mistral-compare failed after retries: ${toErrorMessage(lastError)}`
+    `mistral-compare failed after retries: ${toErrorMessage(lastError)}`,
   );
 };
 
@@ -369,14 +369,14 @@ export const runVisionCompare = async ({
         apiKey,
         model,
         timeoutMs,
-      })
+      }),
   );
 
   return {
     pages: resultPages,
     proposedPatchCount: resultPages.reduce(
       (sum, item) => sum + item.proposedPatches.length,
-      0
+      0,
     ),
   };
 };
@@ -389,7 +389,7 @@ export const runVisionComparePreflight = async ({
 }) => {
   if (typeof imagePath !== "string" || !imagePath.trim()) {
     throw new Error(
-      "[PDF_OCR_VISION_COMPARE_PREFLIGHT_INVALID_INPUT] Vision compare preflight failed: first-page image path is required."
+      "[PDF_OCR_VISION_COMPARE_PREFLIGHT_INVALID_INPUT] Vision compare preflight failed: first-page image path is required.",
     );
   }
 
@@ -408,7 +408,7 @@ export const runVisionComparePreflight = async ({
       `[PDF_OCR_VISION_COMPARE_PREFLIGHT_FAILED] Vision compare preflight failed: ${
         error instanceof Error ? error.message : String(error)
       }`,
-      { cause: error }
+      { cause: error },
     );
   }
 };

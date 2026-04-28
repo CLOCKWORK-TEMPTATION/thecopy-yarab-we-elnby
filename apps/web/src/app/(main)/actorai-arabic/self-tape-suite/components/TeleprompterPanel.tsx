@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+
 import type { TeleprompterSettings } from "./types";
 
 interface TeleprompterPanelProps {
@@ -183,9 +184,7 @@ export const TeleprompterPanel: React.FC<TeleprompterPanelProps> = ({
         <Card className="bg-black border-purple-500/30 bg-transparent lg:col-span-2">
           <CardContent className="p-0">
             <div
-              className={`relative min-h-[500px] overflow-hidden ${
-                teleprompterSettings.mirrorMode ? "scale-x-[-1]" : ""
-              }`}
+              className={`relative min-h-[500px] overflow-hidden ${teleprompterSettings.mirrorMode ? "scale-x-[-1]" : ""}`}
             >
               {countdown > 0 && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80">
@@ -219,13 +218,7 @@ export const TeleprompterPanel: React.FC<TeleprompterPanelProps> = ({
                   return (
                     <p
                       key={`${line}-${index}`}
-                      className={`mb-4 leading-relaxed transition-all duration-300 ${
-                        isCurrentLine
-                          ? "rounded-[22px] bg-yellow-500/10 px-4 py-2 text-yellow-300"
-                          : lineProgress < teleprompterPosition
-                            ? "text-white/45"
-                            : "text-white"
-                      }`}
+                      className={`mb-4 leading-relaxed transition-all duration-300 ${isCurrentLine ? "rounded-[22px] bg-yellow-500/10 px-4 py-2 text-yellow-300" : lineProgress < teleprompterPosition ? "text-white/45" : "text-white"}`}
                     >
                       {line || "\u00A0"}
                     </p>

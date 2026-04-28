@@ -3,5 +3,5 @@
  * Re-export from agents.ts for backward compatibility
  */
 
-export type { AgentConfig, AgentsConfig } from './agents';
-export { agentsConfig } from './agents';
+export type { AgentConfig, AgentsConfig } from "./agents";
+export { agentsConfig } from "./agents";

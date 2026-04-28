@@ -16,7 +16,7 @@ import React from "react";
 import { useSceneAnalysis } from "../../application/workspace/use-scene-analysis";
 import { useToastQueue } from "../../application/workspace/use-toast-queue";
 import CastBreakdownView from "../cast/cast-breakdown-view";
-import ToastContainer from "../shared/toast-container";
+import { ToastContainer } from "../shared/toast-container";
 
 import AgentCard from "./agent-card";
 import ScenarioNavigator from "./scenario-navigator";
@@ -174,14 +174,17 @@ const ResultsView: React.FC<ResultsViewProps> = ({
           return (
             <div
               key={scene.id}
-              className={`overflow-hidden rounded-xl border ${
-                isExpanded
-                  ? "border-blue-500/50 shadow-lg shadow-blue-900/10"
-                  : "border-white/8"
-              } bg-white/6`}
+              className={`overflow-hidden rounded-xl border ${isExpanded ? "border-blue-500/50 shadow-lg shadow-blue-900/10" : "border-white/8"} bg-white/6`}
             >
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => sceneAnalysis.toggleScene(scene.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    sceneAnalysis.toggleScene(scene.id);
+                  }
+                }}
                 className="flex cursor-pointer items-center justify-between p-4 transition-colors hover:bg-white/8"
               >
                 <div className="flex flex-col gap-1">
@@ -223,11 +226,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                       disabled={
                         isStrategizing || (isHistoryView && !displayScenarios)
                       }
-                      className={`flex items-center gap-2 rounded-[22px] border px-3 py-2 text-sm font-medium transition-all ${
-                        isStrategizing
-                          ? "border-white/8 bg-white/6 text-white/55"
-                          : "border-indigo-500/50 bg-indigo-600/20 text-indigo-200 hover:bg-indigo-600/30"
-                      } ${isHistoryView && !displayScenarios ? "cursor-not-allowed opacity-50" : ""}`}
+                      className={`flex items-center gap-2 rounded-[22px] border px-3 py-2 text-sm font-medium transition-all ${isStrategizing ? "border-white/8 bg-white/6 text-white/55" : "border-indigo-500/50 bg-indigo-600/20 text-indigo-200 hover:bg-indigo-600/30"} ${isHistoryView && !displayScenarios ? "cursor-not-allowed opacity-50" : ""}`}
                     >
                       {isStrategizing ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -250,11 +249,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                           void sceneAnalysis.handleAnalyzeScene(scene);
                         }}
                         disabled={isProcessing}
-                        className={`rounded-[22px] px-4 py-2 text-sm font-medium transition-all ${
-                          isProcessing
-                            ? "cursor-not-allowed bg-black/22 text-white/55"
-                            : "bg-black/22 text-white hover:bg-black/28"
-                        }`}
+                        className={`rounded-[22px] px-4 py-2 text-sm font-medium transition-all ${isProcessing ? "cursor-not-allowed bg-black/22 text-white/55" : "bg-black/22 text-white hover:bg-black/28"}`}
                       >
                         {isProcessing ? "جاري العمل..." : "إعادة التحليل"}
                       </button>
@@ -270,11 +265,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                         void sceneAnalysis.handleAnalyzeScene(scene);
                       }}
                       disabled={isProcessing}
-                      className={`rounded-[22px] px-4 py-2 text-sm font-medium transition-all ${
-                        isProcessing
-                          ? "cursor-not-allowed bg-black/22 text-white/55"
-                          : "bg-blue-600 text-white shadow-lg shadow-blue-900/20 hover:bg-blue-500"
-                      }`}
+                      className={`rounded-[22px] px-4 py-2 text-sm font-medium transition-all ${isProcessing ? "cursor-not-allowed bg-black/22 text-white/55" : "bg-blue-600 text-white shadow-lg shadow-blue-900/20 hover:bg-blue-500"}`}
                     >
                       {isProcessing ? "جاري العمل..." : "تحليل المشهد"}
                     </button>
@@ -301,11 +292,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                         onClick={() =>
                           sceneAnalysis.handleVersionSelect(scene.id, null)
                         }
-                        className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                          !activeVersionId
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "bg-white/6 text-white/55 hover:bg-white/8"
-                        }`}
+                        className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-all ${!activeVersionId ? "bg-blue-600 text-white shadow-md" : "bg-white/6 text-white/55 hover:bg-white/8"}`}
                       >
                         الحالية (الأحدث)
                       </button>
@@ -319,11 +306,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({
                               version.id
                             )
                           }
-                          className={`flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
-                            activeVersionId === version.id
-                              ? "bg-blue-600 text-white shadow-md"
-                              : "bg-white/6 text-white/55 hover:bg-white/8"
-                          }`}
+                          className={`flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-all ${activeVersionId === version.id ? "bg-blue-600 text-white shadow-md" : "bg-white/6 text-white/55 hover:bg-white/8"}`}
                         >
                           <Clock className="h-3 w-3" />
                           {version.label}

@@ -61,7 +61,7 @@ const state: DiagnosticsState = { ...initialState };
 export function isDiagnosticsEnabled(): boolean {
   return (
     typeof process !== "undefined" &&
-    process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS === "1"
+    process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"] === "1"
   );
 }
 

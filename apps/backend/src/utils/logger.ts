@@ -23,4 +23,4 @@ export {
   createModuleLogger,
   type Logger,
   type LogContext,
-} from '@/lib/logger';
+} from "@/lib/logger";

@@ -19,7 +19,11 @@ export interface MultimodalInput {
 }
 
 export type DimensionSize = 768 | 1536 | 3072;
-export type TaskType = "CODE_RETRIEVAL" | "SEMANTIC_SIMILARITY" | "CLASSIFICATION" | "CLUSTERING";
+export type TaskType =
+  | "CODE_RETRIEVAL"
+  | "SEMANTIC_SIMILARITY"
+  | "CLASSIFICATION"
+  | "CLUSTERING";
 
 // Indexer Types
 export interface FileInfo {

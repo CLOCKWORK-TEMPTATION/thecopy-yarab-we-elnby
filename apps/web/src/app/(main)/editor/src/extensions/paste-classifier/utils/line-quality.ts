@@ -7,9 +7,9 @@
  * - وجود علامات بنيوية (مشهد/داخلي/ليل/...).
  */
 
-import type { LineQuality } from "@editor/suspicion-engine/types";
-
 import { ARABIC_RANGE, WEIRD_CHARS } from "../constants";
+
+import type { LineQuality } from "@editor/suspicion-engine/types";
 
 /**
  * يحسب درجة جودة لسطر نصي.

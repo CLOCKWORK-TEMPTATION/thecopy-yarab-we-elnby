@@ -51,7 +51,7 @@ export const validateExtractRequestBody = (rawBody) => {
 
   if (!SUPPORTED_EXTENSIONS.has(extension)) {
     throw new RequestValidationError(
-      `Unsupported extension: ${extension || "unknown"}`
+      `Unsupported extension: ${extension || "unknown"}`,
     );
   }
   if (!fileBase64) {
@@ -70,7 +70,7 @@ const parseMultipartBoundary = (contentType) => {
   const boundary = match?.[1] ?? match?.[2] ?? "";
   if (!boundary) {
     throw new RequestValidationError(
-      "Invalid multipart request: boundary is missing."
+      "Invalid multipart request: boundary is missing.",
     );
   }
   return boundary;
@@ -133,7 +133,7 @@ const parseMultipartExtractRequestBody = (rawBody, contentType) => {
     }
 
     const partBuffer = trimTrailingCrlf(
-      rawBody.subarray(partStart, nextBoundaryIndex)
+      rawBody.subarray(partStart, nextBoundaryIndex),
     );
     searchIndex = nextBoundaryIndex;
 
@@ -150,11 +150,11 @@ const parseMultipartExtractRequestBody = (rawBody, contentType) => {
       .subarray(0, headerSeparatorIndex)
       .toString("utf8");
     const bodyBuffer = partBuffer.subarray(
-      headerSeparatorIndex + HEADER_SEPARATOR_BUFFER.length
+      headerSeparatorIndex + HEADER_SEPARATOR_BUFFER.length,
     );
     const headerLines = headersRaw.split(CRLF_BUFFER.toString("utf8"));
     const dispositionHeader = headerLines.find((line) =>
-      line.toLowerCase().startsWith("content-disposition:")
+      line.toLowerCase().startsWith("content-disposition:"),
     );
     if (!dispositionHeader) {
       continue;
@@ -169,7 +169,7 @@ const parseMultipartExtractRequestBody = (rawBody, contentType) => {
     const resolvedFilename = decodeMultipartFilename(filename);
     if (!resolvedFilename) {
       throw new RequestValidationError(
-        "Invalid multipart request: uploaded file has no filename."
+        "Invalid multipart request: uploaded file has no filename.",
       );
     }
 
@@ -178,7 +178,7 @@ const parseMultipartExtractRequestBody = (rawBody, contentType) => {
       .toLowerCase();
     if (!SUPPORTED_EXTENSIONS.has(extension)) {
       throw new RequestValidationError(
-        `Unsupported extension: ${extension || "unknown"}`
+        `Unsupported extension: ${extension || "unknown"}`,
       );
     }
 
@@ -194,7 +194,7 @@ const parseMultipartExtractRequestBody = (rawBody, contentType) => {
   }
 
   throw new RequestValidationError(
-    "Invalid multipart request: missing file field."
+    "Invalid multipart request: missing file field.",
   );
 };
 

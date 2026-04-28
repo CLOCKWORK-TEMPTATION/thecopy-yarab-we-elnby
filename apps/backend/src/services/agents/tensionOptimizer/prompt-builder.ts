@@ -22,7 +22,8 @@ export function buildSceneBreakdownSection(sceneBreakdown: unknown[]): string {
     const sceneDesc =
       typeof scene === "string"
         ? scene
-        : (scene as Record<string, unknown>)["description"] as string || `مشهد ${idx + 1}`;
+        : ((scene as Record<string, unknown>)["description"] as string) ||
+          `مشهد ${idx + 1}`;
     section += `${idx + 1}. ${sceneDesc}\n`;
   });
   section += "\n";
@@ -45,7 +46,9 @@ export interface TensionInfoSectionInput {
   translatePace: (pace: string) => string;
 }
 
-export function buildTensionInfoSection(input: TensionInfoSectionInput): string {
+export function buildTensionInfoSection(
+  input: TensionInfoSectionInput,
+): string {
   const {
     currentLevel,
     targetLevel,
@@ -95,7 +98,7 @@ export function getBaseInstructions(): string {
 export function buildConditionalInstructions(
   identifyPeaks: boolean,
   analyzeRelease: boolean,
-  provideRecommendations: boolean
+  provideRecommendations: boolean,
 ): string {
   let instructions = "";
 

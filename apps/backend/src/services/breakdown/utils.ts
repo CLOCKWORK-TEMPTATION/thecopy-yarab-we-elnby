@@ -5,24 +5,24 @@ import type {
   ShootingScheduleDay,
   ShootingScheduleItem,
   TimeOfDay,
-} from './types';
+} from "./types";
 
 export const ELEMENT_COLORS: Record<string, string> = {
-  CAST: '#FF0000',
-  EXTRAS: '#FFD700',
-  STUNTS: '#FFA500',
-  PROPS: '#800080',
-  SET_DRESSING: '#9370DB',
-  SFX: '#0000FF',
-  VFX: '#00BFFF',
-  VEHICLES: '#FF69B4',
-  ANIMALS: '#8B4513',
-  WARDROBE: '#008000',
-  MAKEUP: '#FF1493',
-  SOUND: '#00CED1',
-  EQUIPMENT: '#696969',
-  CONTINUITY: '#FF4500',
-  GRAPHICS: '#06B6D4',
+  CAST: "#FF0000",
+  EXTRAS: "#FFD700",
+  STUNTS: "#FFA500",
+  PROPS: "#800080",
+  SET_DRESSING: "#9370DB",
+  SFX: "#0000FF",
+  VFX: "#00BFFF",
+  VEHICLES: "#FF69B4",
+  ANIMALS: "#8B4513",
+  WARDROBE: "#008000",
+  MAKEUP: "#FF1493",
+  SOUND: "#00CED1",
+  EQUIPMENT: "#696969",
+  CONTINUITY: "#FF4500",
+  GRAPHICS: "#06B6D4",
 };
 
 export function pageCountToText(pageCount: number): string {
@@ -56,7 +56,10 @@ export function estimateShootingTime(pageCount: number): number {
   return Math.max(1, Math.ceil(pageCount * 1.5));
 }
 
-export function estimateShootingDays(totalPages: number, dailyCapacity = 3): number {
+export function estimateShootingDays(
+  totalPages: number,
+  dailyCapacity = 3,
+): number {
   return Math.max(1, Math.ceil(totalPages / dailyCapacity));
 }
 
@@ -64,19 +67,19 @@ export function validateSceneHeader(header: SceneHeader): string[] {
   const errors: string[] = [];
 
   if (header.sceneNumber <= 0) {
-    errors.push('رقم المشهد يجب أن يكون أكبر من صفر');
+    errors.push("رقم المشهد يجب أن يكون أكبر من صفر");
   }
 
   if (!header.location.trim()) {
-    errors.push('الموقع غير واضح في رأس المشهد');
+    errors.push("الموقع غير واضح في رأس المشهد");
   }
 
   if (header.pageCount <= 0) {
-    errors.push('عدد صفحات المشهد غير صالح');
+    errors.push("عدد صفحات المشهد غير صالح");
   }
 
   if (header.storyDay <= 0) {
-    errors.push('اليوم الدرامي يجب أن يكون أكبر من صفر');
+    errors.push("اليوم الدرامي يجب أن يكون أكبر من صفر");
   }
 
   return errors;
@@ -100,17 +103,17 @@ export function clampMetric(value: number): number {
 
 function timeSortValue(timeOfDay: TimeOfDay): number {
   switch (timeOfDay) {
-    case 'DAWN':
+    case "DAWN":
       return 1;
-    case 'MORNING':
+    case "MORNING":
       return 2;
-    case 'DAY':
+    case "DAY":
       return 3;
-    case 'EVENING':
+    case "EVENING":
       return 4;
-    case 'DUSK':
+    case "DUSK":
       return 5;
-    case 'NIGHT':
+    case "NIGHT":
       return 6;
     default:
       return 7;
@@ -131,7 +134,7 @@ function buildScheduleItem(scene: BreakdownReportScene): ShootingScheduleItem {
 
 function needsNewScheduleGroup(
   currentGroup: ShootingScheduleDay | null,
-  item: ShootingScheduleItem
+  item: ShootingScheduleItem,
 ): boolean {
   return (
     currentGroup?.location !== item.location ||
@@ -141,15 +144,21 @@ function needsNewScheduleGroup(
 }
 
 export function generateShootingSchedule(
-  scenes: BreakdownReportScene[]
+  scenes: BreakdownReportScene[],
 ): ShootingScheduleDay[] {
   const sortedScenes = [...scenes].sort((left, right) => {
     if (left.headerData.location !== right.headerData.location) {
-      return left.headerData.location.localeCompare(right.headerData.location, 'ar');
+      return left.headerData.location.localeCompare(
+        right.headerData.location,
+        "ar",
+      );
     }
 
     if (left.headerData.timeOfDay !== right.headerData.timeOfDay) {
-      return timeSortValue(left.headerData.timeOfDay) - timeSortValue(right.headerData.timeOfDay);
+      return (
+        timeSortValue(left.headerData.timeOfDay) -
+        timeSortValue(right.headerData.timeOfDay)
+      );
     }
 
     return left.headerData.sceneNumber - right.headerData.sceneNumber;
@@ -186,7 +195,7 @@ export function generateShootingSchedule(
 }
 
 export function buildElementsByCategory(
-  scenes: BreakdownReportScene[]
+  scenes: BreakdownReportScene[],
 ): Record<string, number> {
   return scenes.reduce<Record<string, number>>((accumulator, scene) => {
     scene.analysis.elements.forEach((element) => {
@@ -200,22 +209,22 @@ export function buildSummaryText(scenes: BreakdownReportScene[]): string {
   const totalScenes = scenes.length;
   const totalCast = scenes.reduce(
     (sum, scene) => sum + scene.analysis.cast.length,
-    0
+    0,
   );
   const totalLocations = new Set(
-    scenes.map((scene) => scene.headerData.location)
+    scenes.map((scene) => scene.headerData.location),
   ).size;
   const totalWarnings = scenes.reduce(
     (sum, scene) => sum + scene.analysis.warnings.length,
-    0
+    0,
   );
 
   return `تم تحليل ${totalScenes} مشهد، مع ${totalCast} شخصية و${totalLocations} موقعاً رئيسياً. رُصد ${totalWarnings} تحذيراً إنتاجياً يحتاج مراجعة.`;
 }
 
 export function buildSceneStats(
-  analysis: Omit<BreakdownSceneAnalysis, 'stats' | 'elements'>
-): BreakdownSceneAnalysis['stats'] {
+  analysis: Omit<BreakdownSceneAnalysis, "stats" | "elements">,
+): BreakdownSceneAnalysis["stats"] {
   return {
     cast: analysis.cast.length,
     extras: analysis.extras.length,

@@ -71,7 +71,7 @@ export const parseSchemaText = (schemaText) => {
     const mappedType = mapEngineElement(parsed.element);
     if (!mappedType) {
       warnings.push(
-        `سطر ${i + 1}: عنصر غير معروف "${parsed.element}" — تم تجاهله`
+        `سطر ${i + 1}: عنصر غير معروف "${parsed.element}" — تم تجاهله`,
       );
       continue;
     }
@@ -136,7 +136,7 @@ export const schemaElementsToDrafts = (schemaElements) => {
       const next = drafts[i + 1];
       if (!next || next.type !== "scene_header_2") {
         warnings.push(
-          `scene_header_1 بدون scene_header_2 تالٍ — scene_header_1 جزئي`
+          `scene_header_1 بدون scene_header_2 تالٍ — scene_header_1 جزئي`,
         );
       }
     }

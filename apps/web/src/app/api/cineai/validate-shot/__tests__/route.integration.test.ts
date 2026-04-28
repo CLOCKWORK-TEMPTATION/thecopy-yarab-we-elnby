@@ -49,47 +49,49 @@ async function startFixtureServer(
   };
 
   const server = createServer(
-    async (request: IncomingMessage, response: ServerResponse) => {
-      if (
-        request.method === "POST" &&
-        request.url === "/api/cineai/validate-shot"
-      ) {
-        const bodyText = await readBodyAsText(request);
-        const payload = bodyText
-          ? (JSON.parse(bodyText) as Record<string, unknown>)
-          : {};
-        state.receivedBodies.push(payload);
+    (request: IncomingMessage, response: ServerResponse) => {
+      void (async () => {
+        if (
+          request.method === "POST" &&
+          request.url === "/api/cineai/validate-shot"
+        ) {
+          const bodyText = await readBodyAsText(request);
+          const payload = bodyText
+            ? (JSON.parse(bodyText) as Record<string, unknown>)
+            : {};
+          state.receivedBodies.push(payload);
 
-        if (mode === "fail") {
-          response.writeHead(503, { "content-type": "application/json" });
+          if (mode === "fail") {
+            response.writeHead(503, { "content-type": "application/json" });
+            response.end(
+              JSON.stringify({
+                success: false,
+                error: "Fixture backend failure",
+              })
+            );
+            return;
+          }
+
+          response.writeHead(200, { "content-type": "application/json" });
           response.end(
             JSON.stringify({
-              success: false,
-              error: "Fixture backend failure",
+              success: true,
+              validation: {
+                score: 88,
+                exposure: "Balanced",
+                composition: "Strong thirds",
+                focus: "Sharp",
+                colorBalance: "Neutral",
+                suggestions: ["تحسين خفيف في فصل الخلفية."],
+              },
             })
           );
           return;
         }
 
-        response.writeHead(200, { "content-type": "application/json" });
-        response.end(
-          JSON.stringify({
-            success: true,
-            validation: {
-              score: 88,
-              exposure: "Balanced",
-              composition: "Strong thirds",
-              focus: "Sharp",
-              colorBalance: "Neutral",
-              suggestions: ["تحسين خفيف في فصل الخلفية."],
-            },
-          })
-        );
-        return;
-      }
-
-      response.writeHead(404, { "content-type": "application/json" });
-      response.end(JSON.stringify({ success: false, error: "Not found" }));
+        response.writeHead(404, { "content-type": "application/json" });
+        response.end(JSON.stringify({ success: false, error: "Not found" }));
+      })();
     }
   );
 
@@ -137,28 +139,28 @@ let nextPublicBackendUrlSnapshot: string | undefined;
 let nextPublicApiUrlSnapshot: string | undefined;
 
 beforeEach(() => {
-  backendUrlSnapshot = process.env.BACKEND_URL;
-  nextPublicBackendUrlSnapshot = process.env.NEXT_PUBLIC_BACKEND_URL;
-  nextPublicApiUrlSnapshot = process.env.NEXT_PUBLIC_API_URL;
+  backendUrlSnapshot = process.env["BACKEND_URL"];
+  nextPublicBackendUrlSnapshot = process.env["NEXT_PUBLIC_BACKEND_URL"];
+  nextPublicApiUrlSnapshot = process.env["NEXT_PUBLIC_API_URL"];
 });
 
 afterEach(() => {
   if (backendUrlSnapshot === undefined) {
-    delete process.env.BACKEND_URL;
+    delete process.env["BACKEND_URL"];
   } else {
-    process.env.BACKEND_URL = backendUrlSnapshot;
+    process.env["BACKEND_URL"] = backendUrlSnapshot;
   }
 
   if (nextPublicBackendUrlSnapshot === undefined) {
-    delete process.env.NEXT_PUBLIC_BACKEND_URL;
+    delete process.env["NEXT_PUBLIC_BACKEND_URL"];
   } else {
-    process.env.NEXT_PUBLIC_BACKEND_URL = nextPublicBackendUrlSnapshot;
+    process.env["NEXT_PUBLIC_BACKEND_URL"] = nextPublicBackendUrlSnapshot;
   }
 
   if (nextPublicApiUrlSnapshot === undefined) {
-    delete process.env.NEXT_PUBLIC_API_URL;
+    delete process.env["NEXT_PUBLIC_API_URL"];
   } else {
-    process.env.NEXT_PUBLIC_API_URL = nextPublicApiUrlSnapshot;
+    process.env["NEXT_PUBLIC_API_URL"] = nextPublicApiUrlSnapshot;
   }
 
   vi.resetModules();
@@ -168,9 +170,9 @@ describe("POST /api/cineai/validate-shot - integration", () => {
   it("يمرر multipart إلى خدمة حقيقية بعد تحويل الصورة إلى Base64", async () => {
     const fixture = await startFixtureServer("success");
     try {
-      process.env.BACKEND_URL = fixture.baseUrl;
-      delete process.env.NEXT_PUBLIC_API_URL;
-      delete process.env.NEXT_PUBLIC_BACKEND_URL;
+      process.env["BACKEND_URL"] = fixture.baseUrl;
+      delete process.env["NEXT_PUBLIC_API_URL"];
+      delete process.env["NEXT_PUBLIC_BACKEND_URL"];
       vi.resetModules();
 
       const { POST } = await import("../route");
@@ -208,9 +210,9 @@ describe("POST /api/cineai/validate-shot - integration", () => {
   it("يرفض multipart عند غياب ملف الصورة", async () => {
     const fixture = await startFixtureServer("success");
     try {
-      process.env.BACKEND_URL = fixture.baseUrl;
-      delete process.env.NEXT_PUBLIC_API_URL;
-      delete process.env.NEXT_PUBLIC_BACKEND_URL;
+      process.env["BACKEND_URL"] = fixture.baseUrl;
+      delete process.env["NEXT_PUBLIC_API_URL"];
+      delete process.env["NEXT_PUBLIC_BACKEND_URL"];
       vi.resetModules();
 
       const { POST } = await import("../route");
@@ -244,9 +246,9 @@ describe("POST /api/cineai/validate-shot - integration", () => {
   it("يعكس فشل الخدمة الخلفية الفعلية إلى الواجهة دون كسر العقد", async () => {
     const fixture = await startFixtureServer("fail");
     try {
-      process.env.BACKEND_URL = fixture.baseUrl;
-      delete process.env.NEXT_PUBLIC_API_URL;
-      delete process.env.NEXT_PUBLIC_BACKEND_URL;
+      process.env["BACKEND_URL"] = fixture.baseUrl;
+      delete process.env["NEXT_PUBLIC_API_URL"];
+      delete process.env["NEXT_PUBLIC_BACKEND_URL"];
       vi.resetModules();
 
       const { POST } = await import("../route");

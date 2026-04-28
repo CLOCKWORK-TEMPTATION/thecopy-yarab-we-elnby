@@ -160,7 +160,7 @@ describe("Upgraded Agents", () => {
       expect(result).toBeDefined();
       expect(result.confidence).toBe(0);
       expect(result.text).toContain("حدث خطأ");
-      expect(result.metadata?.error).toBe(true);
+      expect(result.metadata?.["error"]).toBe(true);
     });
   });
 

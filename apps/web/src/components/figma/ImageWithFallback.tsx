@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import type React from "react";
@@ -16,7 +17,9 @@ export function ImageWithFallback(
     setDidError(true);
   };
 
-  const { src, alt, style, className, ...rest } = props;
+  const { src, alt = "", style, className, width, height, onLoad } = props;
+  const imageWidth = typeof width === "number" ? width : 88;
+  const imageHeight = typeof height === "number" ? height : 88;
 
   if (didError) {
     return (
@@ -25,10 +28,12 @@ export function ImageWithFallback(
         style={style}
       >
         <div className="flex items-center justify-center w-full h-full">
-          <img
-            src={ERROR_IMG_SRC || "/placeholder.svg"}
-            alt="Error loading image"
-            {...rest}
+          <Image
+            src={ERROR_IMG_SRC}
+            alt=""
+            width={imageWidth}
+            height={imageHeight}
+            unoptimized
             data-original-url={src}
           />
         </div>
@@ -37,13 +42,16 @@ export function ImageWithFallback(
   }
 
   return (
-    <img
+    <Image
       src={src ?? "/placeholder.svg"}
       alt={alt}
+      width={imageWidth}
+      height={imageHeight}
+      unoptimized
       className={className}
       style={style}
-      {...rest}
       onError={handleError}
+      onLoad={onLoad}
     />
   );
 }

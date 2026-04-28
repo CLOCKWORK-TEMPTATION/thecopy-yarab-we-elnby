@@ -36,10 +36,10 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj?.originalText as string) || "";
-    const genre = (contextObj?.genre as string) || "";
-    const themes = (contextObj?.themes as string[]) || [];
-    const previousAnalysis = (contextObj?.previousAnalysis as string) || "";
+    const originalText = (contextObj?.["originalText"] as string) || "";
+    const genre = (contextObj?.["genre"] as string) || "";
+    const themes = (contextObj?.["themes"] as string[]) || [];
+    const previousAnalysis = (contextObj?.["previousAnalysis"] as string) || "";
 
     // Build structured prompt
     let prompt = `${TARGET_AUDIENCE_ANALYZER_INSTRUCTIONS}\n\n`;
@@ -298,7 +298,7 @@ export class TargetAudienceAnalyzerAgent extends BaseAgent {
       typeof input.context === "object" && input.context !== null
         ? input.context
         : {};
-    const genre = (contextObj?.genre as string) || "غير محدد";
+    const genre = (contextObj?.["genre"] as string) || "غير محدد";
 
     return `تحليل الجمهور المستهدف:
 

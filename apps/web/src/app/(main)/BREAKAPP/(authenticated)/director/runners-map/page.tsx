@@ -320,9 +320,7 @@ export default function DirectorRunnersMapPage() {
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`px-3 py-1 text-xs rounded-full font-cairo ${
-                connected ? "bg-white/8 text-white" : "bg-white/6 text-white/55"
-              }`}
+              className={`px-3 py-1 text-xs rounded-full font-cairo ${connected ? "bg-white/8 text-white" : "bg-white/6 text-white/55"}`}
             >
               {connected ? "متصل لحظيّاً" : "غير متصل"}
             </span>
@@ -364,10 +362,14 @@ export default function DirectorRunnersMapPage() {
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-white mb-2 font-cairo">
+              <label
+                htmlFor="field-page-1"
+                className="block text-sm font-medium text-white mb-2 font-cairo"
+              >
                 معرّف الجلسة الحاليّة
               </label>
               <input
+                id="field-page-1"
                 type="text"
                 value={sessionDraft}
                 onChange={handleSessionDraftChange}
@@ -457,9 +459,7 @@ export default function DirectorRunnersMapPage() {
                       {runner.name ?? runner.runnerId}
                     </h3>
                     <span
-                      className={`px-2 py-1 text-xs rounded-full border font-cairo ${
-                        STATUS_TONE_MAP[runner.status]
-                      }`}
+                      className={`px-2 py-1 text-xs rounded-full border font-cairo ${STATUS_TONE_MAP[runner.status]}`}
                     >
                       {STATUS_LABEL_MAP[runner.status]}
                     </span>

@@ -1,36 +1,37 @@
-import { TaskCategory, TaskType } from '../../../types/types';
+import { TaskCategory, TaskType } from "../../../types/types";
 
-import type { AIAgentConfig } from '../../../types/types';
+import type { AIAgentConfig } from "../../../types/types";
 
 export const recommendationsGeneratorAgent: AIAgentConfig = {
-    name: "WisdomSynthesizer AI",
-    description: "الوحدة 11 - مُركب الحكمة الإبداعية: مولد توصيات وتحسينات متطور يستخدم نماذج الذكاء التركيبي مع خوارزميات التحسين متعددة الأهداف لتقديم اقتراحات مخصصة وحلول إبداعية مبتكرة، مزود بقدرات التعلم من التغذية الراجعة ونماذج التفكير التصميمي، مع إمكانيات إنتاج بدائل متنوعة وتقييم تأثير التحسينات المقترحة على الجودة الإجمالية.",
-    category: TaskCategory.ADVANCED_MODULES,
-    capabilities: {
-      multiModal: false,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: true,
-      selfReflection: true,
-      ragEnabled: true,
-      vectorSearch: false,
-      agentOrchestration: true,
-      metacognitive: true,
-      adaptiveLearning: true,
-      complexityScore: 0.88,
-      accuracyLevel: 0.90,
-      processingSpeed: 'medium',
-      resourceIntensity: 'high',
-      languageModeling: true,
-      patternRecognition: true,
-      creativeGeneration: true,
-      analyticalReasoning: true,
-      emotionalIntelligence: true
-    },
-    collaboratesWith: [TaskType.ANALYSIS, TaskType.LITERARY_QUALITY_ANALYZER],
-    dependsOn: [TaskType.ANALYSIS],
-    enhances: [],
-    systemPrompt: `You are WisdomSynthesizer AI, a sophisticated Creative Wisdom Synthesizer. Your primary function is to generate advanced recommendations and improvements by leveraging synthetic intelligence models and multi-objective optimization algorithms.
+  name: "WisdomSynthesizer AI",
+  description:
+    "الوحدة 11 - مُركب الحكمة الإبداعية: مولد توصيات وتحسينات متطور يستخدم نماذج الذكاء التركيبي مع خوارزميات التحسين متعددة الأهداف لتقديم اقتراحات مخصصة وحلول إبداعية مبتكرة، مزود بقدرات التعلم من التغذية الراجعة ونماذج التفكير التصميمي، مع إمكانيات إنتاج بدائل متنوعة وتقييم تأثير التحسينات المقترحة على الجودة الإجمالية.",
+  category: TaskCategory.ADVANCED_MODULES,
+  capabilities: {
+    multiModal: false,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: true,
+    selfReflection: true,
+    ragEnabled: true,
+    vectorSearch: false,
+    agentOrchestration: true,
+    metacognitive: true,
+    adaptiveLearning: true,
+    complexityScore: 0.88,
+    accuracyLevel: 0.9,
+    processingSpeed: "medium",
+    resourceIntensity: "high",
+    languageModeling: true,
+    patternRecognition: true,
+    creativeGeneration: true,
+    analyticalReasoning: true,
+    emotionalIntelligence: true,
+  },
+  collaboratesWith: [TaskType.ANALYSIS, TaskType.LITERARY_QUALITY_ANALYZER],
+  dependsOn: [TaskType.ANALYSIS],
+  enhances: [],
+  systemPrompt: `You are WisdomSynthesizer AI, a sophisticated Creative Wisdom Synthesizer. Your primary function is to generate advanced recommendations and improvements by leveraging synthetic intelligence models and multi-objective optimization algorithms.
 
 Core Directives:
 1.  **Synthesize Insights:** Aggregate and synthesize findings from various analytical agents, including thematic, character, and plot analyses, to form a holistic understanding of the creative work.
@@ -43,12 +44,13 @@ Core Directives:
 
 Operational Persona:
 You are a wise, insightful, and creative mentor. Your tone should be constructive, encouraging, and deeply analytical. You are a partner in the creative process, dedicated to helping the user realize the full potential of their work. Avoid generic advice and focus on providing profound, tailored insights that unlock new creative possibilities.`,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "لتقديم التوصيات، سأجمع الرؤى من التحليلات المختلفة...",
-    cacheStrategy: 'adaptive',
-    parallelizable: false,
-    batchProcessing: false,
-    validationRules: ["عملية التوصيات", "إبداعية الحلول"],
-    outputSchema: {},
-    confidenceThreshold: 0.87
+  fewShotExamples: [],
+  chainOfThoughtTemplate:
+    "لتقديم التوصيات، سأجمع الرؤى من التحليلات المختلفة...",
+  cacheStrategy: "adaptive",
+  parallelizable: false,
+  batchProcessing: false,
+  validationRules: ["عملية التوصيات", "إبداعية الحلول"],
+  outputSchema: {},
+  confidenceThreshold: 0.87,
 };

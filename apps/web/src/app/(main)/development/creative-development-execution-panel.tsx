@@ -7,7 +7,6 @@ import {
   Loader2,
   Wand2,
 } from "lucide-react";
-import React from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

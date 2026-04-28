@@ -21,7 +21,6 @@ import { generateText, stepCountIs } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
 
-
 function writeStderr(...args: unknown[]): void {
   process.stderr.write(formatLogLine(...args) + "\n");
 }
@@ -54,7 +53,7 @@ function parseBatchArgs(): BatchArgs {
   const args = process.argv.slice(2);
   if (args.length === 0) {
     writeStderr(
-      "الاستخدام: npx tsx src/batch.ts <مجلد_PDF> [--output <مجلد>] [--format txt|md]"
+      "الاستخدام: npx tsx src/batch.ts <مجلد_PDF> [--output <مجلد>] [--format txt|md]",
     );
     process.exit(1);
   }
@@ -182,7 +181,7 @@ outputPath: ${outputPath}
       log(
         "نجاح",
         C.green,
-        `${pdfFile} → ${outputName} (${(elapsed / 1000).toFixed(1)}ث)`
+        `${pdfFile} → ${outputName} (${(elapsed / 1000).toFixed(1)}ث)`,
       );
     } catch (error: unknown) {
       const elapsed = Date.now() - startTime;

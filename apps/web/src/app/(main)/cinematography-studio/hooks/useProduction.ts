@@ -400,7 +400,7 @@ export function useProduction(mood: VisualMood = "noir") {
     setAnalysisState(initialAnalysisState);
     setAssistantState(initialAssistantState);
     mediaInput.clearMedia();
-  }, [mediaInput.clearMedia]);
+  }, [mediaInput]);
 
   // ============================================
   // دوال الإعدادات التقنية

@@ -38,7 +38,9 @@ export function KeyboardShortcutsHelp({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* الخلفية */}
-      <div
+      <button
+        type="button"
+        aria-label="إغلاق نافذة الاختصارات"
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />

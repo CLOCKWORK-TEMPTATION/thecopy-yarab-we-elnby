@@ -214,6 +214,110 @@ function TrendBadge({
   );
 }
 
+function calculateMetricTrend(
+  value: number,
+  previousValue: number | undefined,
+  trend: MetricsCardProps["trend"]
+): MetricsCardProps["trend"] {
+  if (trend) {
+    return trend;
+  }
+  if (previousValue === undefined) {
+    return undefined;
+  }
+  if (value > previousValue) {
+    return "up";
+  }
+  if (value < previousValue) {
+    return "down";
+  }
+  return "stable";
+}
+
+function calculateMetricPercentage(
+  value: number | string,
+  previousValue: number | undefined,
+  trendPercentage: number | undefined
+): number | undefined {
+  if (trendPercentage !== undefined) {
+    return trendPercentage;
+  }
+  if (previousValue === undefined || previousValue === 0) {
+    return undefined;
+  }
+  return ((Number(value) - previousValue) / previousValue) * 100;
+}
+
+function getSparklineColor(trend: MetricsCardProps["trend"]): string {
+  if (trend === "up") {
+    return "var(--accent-success)";
+  }
+  if (trend === "down") {
+    return "var(--accent-error)";
+  }
+  return "var(--brand)";
+}
+
+function AnomalyIndicator({ isAnomaly }: { isAnomaly: boolean }) {
+  if (!isAnomaly) {
+    return null;
+  }
+
+  return (
+    <div className="absolute top-2 left-2 z-10">
+      <AlertTriangle className="h-4 w-4 text-accent-warning animate-pulse" />
+    </div>
+  );
+}
+
+function MetricSparkline({
+  data,
+  trend,
+}: {
+  data: number[] | undefined;
+  trend: MetricsCardProps["trend"];
+}) {
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="metric-card__sparkline">
+      <Sparkline data={data} color={getSparklineColor(trend)} />
+    </div>
+  );
+}
+
+function PredictionRow({ prediction }: Pick<MetricsCardProps, "prediction">) {
+  if (!prediction) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/50">
+      <Sparkles className="h-3 w-3 text-brand" />
+      <span>
+        التوقع: {prediction.value.toLocaleString("ar-SA")}
+        <span className="opacity-60 mr-1">(ثقة {prediction.confidence}%)</span>
+      </span>
+    </div>
+  );
+}
+
+function PreviousValueRow({
+  previousValue,
+}: Pick<MetricsCardProps, "previousValue">) {
+  if (previousValue === undefined) {
+    return null;
+  }
+
+  return (
+    <div className="text-xs text-muted-foreground">
+      السابق: {previousValue.toLocaleString("ar-SA")}
+    </div>
+  );
+}
+
 export function MetricsCard({
   title,
   value,
@@ -228,23 +332,17 @@ export function MetricsCard({
   suffix = "",
   className,
 }: MetricsCardProps) {
-  // Calculate trend if not provided
   const numericValue = typeof value === "number" ? value : Number(value);
-  const calculatedTrend =
-    trend ??
-    (previousValue !== undefined
-      ? numericValue > previousValue
-        ? "up"
-        : numericValue < previousValue
-          ? "down"
-          : "stable"
-      : undefined);
-
-  const calculatedPercentage =
-    trendPercentage ??
-    (previousValue !== undefined && previousValue !== 0
-      ? ((Number(value) - previousValue) / previousValue) * 100
-      : undefined);
+  const calculatedTrend = calculateMetricTrend(
+    numericValue,
+    previousValue,
+    trend
+  );
+  const calculatedPercentage = calculateMetricPercentage(
+    value,
+    previousValue,
+    trendPercentage
+  );
 
   return (
     <Card
@@ -254,12 +352,7 @@ export function MetricsCard({
         className
       )}
     >
-      {/* Anomaly indicator */}
-      {isAnomaly && (
-        <div className="absolute top-2 left-2 z-10">
-          <AlertTriangle className="h-4 w-4 text-accent-warning animate-pulse" />
-        </div>
-      )}
+      <AnomalyIndicator isAnomaly={isAnomaly} />
 
       {/* Hover glow effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
@@ -289,41 +382,9 @@ export function MetricsCard({
           />
         </div>
 
-        {/* Sparkline */}
-        {sparklineData && sparklineData.length > 0 && (
-          <div className="metric-card__sparkline">
-            <Sparkline
-              data={sparklineData}
-              color={
-                calculatedTrend === "up"
-                  ? "var(--accent-success)"
-                  : calculatedTrend === "down"
-                    ? "var(--accent-error)"
-                    : "var(--brand)"
-              }
-            />
-          </div>
-        )}
-
-        {/* Prediction */}
-        {prediction && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/50">
-            <Sparkles className="h-3 w-3 text-brand" />
-            <span>
-              التوقع: {prediction.value.toLocaleString("ar-SA")}
-              <span className="opacity-60 mr-1">
-                (ثقة {prediction.confidence}%)
-              </span>
-            </span>
-          </div>
-        )}
-
-        {/* Previous value comparison */}
-        {previousValue !== undefined && (
-          <div className="text-xs text-muted-foreground">
-            السابق: {previousValue.toLocaleString("ar-SA")}
-          </div>
-        )}
+        <MetricSparkline data={sparklineData} trend={calculatedTrend} />
+        <PredictionRow prediction={prediction} />
+        <PreviousValueRow previousValue={previousValue} />
       </CardContent>
     </Card>
   );

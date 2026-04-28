@@ -57,42 +57,41 @@ export class DiagnosticsLogic {
 
   validateAndEnrichDiagnostics(data: unknown): DiagnosticsReport {
     const record = asJsonRecord(data);
-    const healthBreakdown = asJsonRecord(record.healthBreakdown);
+    const healthBreakdown = asJsonRecord(record["healthBreakdown"]);
 
     return {
-      overallHealthScore: asJsonNumber(record.overallHealthScore, 50),
+      overallHealthScore: asJsonNumber(record["overallHealthScore"], 50),
       healthBreakdown: {
         characterDevelopment: asJsonNumber(
-          healthBreakdown.characterDevelopment,
+          healthBreakdown["characterDevelopment"],
           50
         ),
-        plotCoherence: asJsonNumber(healthBreakdown.plotCoherence, 50),
+        plotCoherence: asJsonNumber(healthBreakdown["plotCoherence"], 50),
         structuralIntegrity: asJsonNumber(
-          healthBreakdown.structuralIntegrity,
+          healthBreakdown["structuralIntegrity"],
           50
         ),
-        dialogueQuality: asJsonNumber(healthBreakdown.dialogueQuality, 50),
-        thematicDepth: asJsonNumber(healthBreakdown.thematicDepth, 50),
+        dialogueQuality: asJsonNumber(healthBreakdown["dialogueQuality"], 50),
+        thematicDepth: asJsonNumber(healthBreakdown["thematicDepth"], 50),
       },
-      criticalIssues: asArray<DiagnosticIssue>(record.criticalIssues).slice(
+      criticalIssues: asArray<DiagnosticIssue>(record["criticalIssues"]).slice(
         0,
         10
       ),
-      warnings: asArray<DiagnosticIssue>(record.warnings).slice(0, 15),
-      suggestions: asArray<DiagnosticIssue>(record.suggestions).slice(0, 20),
+      warnings: asArray<DiagnosticIssue>(record["warnings"]).slice(0, 15),
+      suggestions: asArray<DiagnosticIssue>(record["suggestions"]).slice(0, 20),
       isolatedCharacters: asArray<IsolatedCharacter>(
-        record.isolatedCharacters
+        record["isolatedCharacters"]
       ).slice(0, 5),
       abandonedConflicts: asArray<AbandonedConflict>(
-        record.abandonedConflicts
+        record["abandonedConflicts"]
       ).slice(0, 8),
-      structuralIssues: asArray<StructuralIssue>(record.structuralIssues).slice(
-        0,
-        10
-      ),
-      riskAreas: asArray<RiskArea>(record.riskAreas).slice(0, 8),
-      opportunities: asArray<Opportunity>(record.opportunities).slice(0, 10),
-      summary: asString(record.summary, "تحليل تشخيصي غير متوفر"),
+      structuralIssues: asArray<StructuralIssue>(
+        record["structuralIssues"]
+      ).slice(0, 10),
+      riskAreas: asArray<RiskArea>(record["riskAreas"]).slice(0, 8),
+      opportunities: asArray<Opportunity>(record["opportunities"]).slice(0, 10),
+      summary: asString(record["summary"], "تحليل تشخيصي غير متوفر"),
     };
   }
 
@@ -100,11 +99,11 @@ export class DiagnosticsLogic {
     previousStationsOutput: PreviousStationsOutput
   ): DiagnosticsReport {
     const station4 = asJsonRecord(previousStationsOutput.station4);
-    const efficiencyMetrics = asJsonRecord(station4.efficiencyMetrics);
+    const efficiencyMetrics = asJsonRecord(station4["efficiencyMetrics"]);
     const efficiencyScore =
-      typeof efficiencyMetrics.overallEfficiencyScore === "number" &&
-      Number.isFinite(efficiencyMetrics.overallEfficiencyScore)
-        ? efficiencyMetrics.overallEfficiencyScore
+      typeof efficiencyMetrics["overallEfficiencyScore"] === "number" &&
+      Number.isFinite(efficiencyMetrics["overallEfficiencyScore"])
+        ? efficiencyMetrics["overallEfficiencyScore"]
         : 50;
 
     return {

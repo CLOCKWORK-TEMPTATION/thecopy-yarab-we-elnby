@@ -98,11 +98,15 @@ export default function ControlPanel({
         {!currentSession ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2 text-white/82">
+              <label
+                htmlFor="field-controlpanel-1"
+                className="block text-sm font-medium mb-2 text-white/82"
+              >
                 ملخص الفكرة
               </label>
               <FileUpload onFileContent={onFileContent} className="mb-4" />
               <Textarea
+                id="field-controlpanel-1"
                 value={brief}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setBrief(e.target.value)

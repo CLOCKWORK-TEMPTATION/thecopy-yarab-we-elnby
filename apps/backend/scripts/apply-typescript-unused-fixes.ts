@@ -51,7 +51,8 @@ function createLanguageService(
     readFile: (fileName) => ts.sys.readFile(fileName),
     readDirectory: (rootDir, extensions, excludes, includes, depth) =>
       ts.sys.readDirectory(rootDir, extensions, excludes, includes, depth),
-    directoryExists: (directoryName) => ts.sys.directoryExists?.(directoryName) ?? false,
+    directoryExists: (directoryName) =>
+      ts.sys.directoryExists?.(directoryName) ?? false,
     getDirectories: (pathName) => ts.sys.getDirectories(pathName),
   };
 
@@ -75,9 +76,9 @@ function collectUnusedIdentifierEdits(
 
   for (const diagnostic of diagnostics) {
     if (
-      !diagnostic.file
-      || diagnostic.start === undefined
-      || diagnostic.length === undefined
+      !diagnostic.file ||
+      diagnostic.start === undefined ||
+      diagnostic.length === undefined
     ) {
       continue;
     }
@@ -148,9 +149,9 @@ function applyEdits(edits: FileEdit[]): number {
       }
 
       updatedText =
-        updatedText.slice(0, edit.spanStart)
-        + edit.newText
-        + updatedText.slice(editEnd);
+        updatedText.slice(0, edit.spanStart) +
+        edit.newText +
+        updatedText.slice(editEnd);
 
       nextBlockedStart = edit.spanStart;
       appliedChanges += 1;
@@ -186,9 +187,9 @@ function main(): void {
       .getPreEmitDiagnostics(program)
       .filter(
         (diagnostic) =>
-          TARGET_CODES.has(diagnostic.code)
-          && Boolean(diagnostic.file)
-          && !diagnostic.file?.isDeclarationFile,
+          TARGET_CODES.has(diagnostic.code) &&
+          Boolean(diagnostic.file) &&
+          !diagnostic.file?.isDeclarationFile,
       );
 
     if (diagnostics.length === 0) {

@@ -3,7 +3,10 @@ import path from "node:path";
 import ts from "typescript";
 
 const repoRoot = path.resolve(process.cwd());
-const logPath = path.resolve(repoRoot, process.argv[2] ?? "output/tsc-backend.log");
+const logPath = path.resolve(
+  repoRoot,
+  process.argv[2] ?? "output/tsc-backend.log",
+);
 
 const diagnosticPattern =
   /^((?:apps\/backend\/)?src\/.+?)\((\d+),(\d+)\): error TS4111: Property '([^']+)' comes from an index signature/;
@@ -62,7 +65,7 @@ for (const [relativeFilePath, diagnostics] of fileDiagnostics.entries()) {
     originalText,
     ts.ScriptTarget.Latest,
     true,
-    scriptKind
+    scriptKind,
   );
   const lineStarts = sourceFile.getLineStarts();
   const edits = [];
@@ -83,7 +86,8 @@ for (const [relativeFilePath, diagnostics] of fileDiagnostics.entries()) {
       continue;
     }
 
-    const isOptionalChain = "questionDotToken" in node && node.questionDotToken != null;
+    const isOptionalChain =
+      "questionDotToken" in node && node.questionDotToken != null;
     edits.push({
       start: node.expression.getStart(sourceFile),
       end: node.getEnd(),
@@ -91,8 +95,11 @@ for (const [relativeFilePath, diagnostics] of fileDiagnostics.entries()) {
     });
   }
 
-  const uniqueEdits = [...new Map(edits.map((edit) => [`${edit.start}:${edit.end}`, edit])).values()]
-    .sort((left, right) => right.start - left.start);
+  const uniqueEdits = [
+    ...new Map(
+      edits.map((edit) => [`${edit.start}:${edit.end}`, edit]),
+    ).values(),
+  ].sort((left, right) => right.start - left.start);
 
   if (uniqueEdits.length === 0) {
     continue;

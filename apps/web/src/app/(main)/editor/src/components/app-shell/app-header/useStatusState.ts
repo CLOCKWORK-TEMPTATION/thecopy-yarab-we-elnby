@@ -5,7 +5,7 @@
 
 import { useMemo } from "react";
 
-import type { ProgressiveSurfaceState } from "../editor";
+import type { ProgressiveSurfaceState } from "../../editor/editor-area.types";
 
 export interface StatusState {
   statusLabel: string;

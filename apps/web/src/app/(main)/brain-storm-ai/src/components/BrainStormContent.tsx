@@ -145,9 +145,13 @@ export default function BrainStormContent() {
 
   // اختصارات لوحة المفاتيح — بعد تعريف جميع handlers
   useKeyboardShortcuts({
-    onStartSession: handleStartSession,
+    onStartSession: () => {
+      void handleStartSession();
+    },
     onStopSession: handleStopAndArchive,
-    onAdvancePhase: handleAdvancePhase,
+    onAdvancePhase: () => {
+      void handleAdvancePhase();
+    },
     onSaveSession: () => {
       if (currentSession) {
         saveSession(currentSession, debateMessages);

@@ -1,26 +1,25 @@
 /**
  * اختيار الوكلاء للمناظرة - Agent Selection for Debates
- * 
+ *
  * @module selection
  * @description
  * يوفر وظائف لاختيار وتعيين أدوار الوكلاء في المناظرة.
  * جزء من المرحلة 3 - نظام المناظرة متعدد الوكلاء
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-import { TaskType } from '../core/enums';
-import { BaseAgent } from '../shared/BaseAgent';
+import { TaskType } from "../core/enums";
+import { BaseAgent } from "../shared/BaseAgent";
 
-import { DebateConfig, DebateParticipant, DebateRole } from './types';
-
+import { DebateConfig, DebateParticipant, DebateRole } from "./types";
 
 /**
  * اختيار الوكلاء المشاركين في المناظرة
- * 
+ *
  * @description
  * يختار الوكلاء المناسبين من القائمة المتاحة ويعين لهم أدواراً
- * 
+ *
  * @param availableAgents - الوكلاء المتاحون
  * @param config - إعدادات المناظرة (اختياري)
  * @returns قائمة المشاركين مع أدوارهم
@@ -28,12 +27,14 @@ import { DebateConfig, DebateParticipant, DebateRole } from './types';
  */
 export function selectDebatingAgents(
   availableAgents: BaseAgent[],
-  config?: Partial<DebateConfig>
+  config?: Partial<DebateConfig>,
 ): DebateParticipant[] {
-  logger.info("اختيار الوكلاء للمناظرة", { availableCount: availableAgents.length });
+  logger.info("اختيار الوكلاء للمناظرة", {
+    availableCount: availableAgents.length,
+  });
 
   if (availableAgents.length === 0) {
-    throw new Error('لا توجد وكلاء متاحة للمناظرة');
+    throw new Error("لا توجد وكلاء متاحة للمناظرة");
   }
 
   const maxParticipants = config?.maxParticipants ?? 5;
@@ -59,7 +60,7 @@ export function selectDebatingAgents(
 
     // إضافة وكلاء إضافيين إذا كانوا متاحين
     const remainingAgents = availableAgents.filter(
-      agent => !agentsWithRoles.some(p => p.agent === agent)
+      (agent) => !agentsWithRoles.some((p) => p.agent === agent),
     );
 
     while (
@@ -78,17 +79,19 @@ export function selectDebatingAgents(
   // 5. تحديد العدد الأقصى للمشاركين
   const finalParticipants = agentsWithRoles.slice(0, maxParticipants);
 
-  logger.info("تم اختيار الوكلاء للمناظرة", { count: finalParticipants.length });
+  logger.info("تم اختيار الوكلاء للمناظرة", {
+    count: finalParticipants.length,
+  });
 
   return finalParticipants;
 }
 
 /**
  * تعيين الأدوار للوكلاء
- * 
+ *
  * @description
  * يعين دوراً مناسباً لكل وكيل بناءً على خصائصه
- * 
+ *
  * @param agents - مصفوفة الوكلاء
  * @returns مصفوفة المشاركين مع أدوارهم
  */
@@ -148,17 +151,17 @@ export function assignRoles(agents: BaseAgent[]): DebateParticipant[] {
 
 /**
  * موازنة أنواع الوكلاء لتحقيق التنوع
- * 
+ *
  * @description
  * يختار مزيجاً متوازناً من الوكلاء التحليليين والإبداعيين والمتكاملين
- * 
+ *
  * @param agents - مصفوفة الوكلاء
  * @param maxCount - الحد الأقصى لعدد الوكلاء
  * @returns مصفوفة الوكلاء المتوازنة
  */
 export function balanceAgentTypes(
   agents: BaseAgent[],
-  maxCount: number
+  maxCount: number,
 ): BaseAgent[] {
   logger.debug("موازنة أنواع الوكلاء", { maxCount });
 
@@ -172,7 +175,7 @@ export function balanceAgentTypes(
   const integratedAgents: BaseAgent[] = [];
   const otherAgents: BaseAgent[] = [];
 
-  agents.forEach(agent => {
+  agents.forEach((agent) => {
     const config = agent.getConfig();
     const taskType = config.taskType;
 
@@ -222,10 +225,10 @@ export function balanceAgentTypes(
 
 /**
  * تجنب التكرار - اختيار أنواع وكلاء فريدة
- * 
+ *
  * @description
  * يزيل الوكلاء المكررين من نفس النوع للحصول على تنوع أفضل
- * 
+ *
  * @param agents - مصفوفة الوكلاء
  * @returns مصفوفة الوكلاء الفريدين
  */
@@ -247,13 +250,13 @@ export function avoidRedundancy(agents: BaseAgent[]): BaseAgent[] {
       // السماح بتكرار واحد للفئات الرئيسية
       if (
         isAnalyticTask(taskType) &&
-        uniqueAgents.filter(a => isAnalyticTask(a.getConfig().taskType))
+        uniqueAgents.filter((a) => isAnalyticTask(a.getConfig().taskType))
           .length < 2
       ) {
         uniqueAgents.push(agent);
       } else if (
         isCreativeTask(taskType) &&
-        uniqueAgents.filter(a => isCreativeTask(a.getConfig().taskType))
+        uniqueAgents.filter((a) => isCreativeTask(a.getConfig().taskType))
           .length < 2
       ) {
         uniqueAgents.push(agent);
@@ -275,9 +278,9 @@ export function avoidRedundancy(agents: BaseAgent[]): BaseAgent[] {
  */
 export function selectAgentsByTaskTypes(
   agents: BaseAgent[],
-  taskTypes: TaskType[]
+  taskTypes: TaskType[],
 ): BaseAgent[] {
-  return agents.filter(agent => {
+  return agents.filter((agent) => {
     const config = agent.getConfig();
     return taskTypes.includes(config.taskType);
   });
@@ -289,7 +292,7 @@ export function selectAgentsByTaskTypes(
  */
 export function selectMostConfidentAgents(
   agents: BaseAgent[],
-  count: number
+  count: number,
 ): BaseAgent[] {
   // Note: We can't measure confidence without executing tasks
   // For now, return first N agents
@@ -303,9 +306,9 @@ export function selectMostConfidentAgents(
  * إنشاء مشاركين بأدوار مخصصة
  */
 export function createParticipantsWithRoles(
-  agentRolePairs: { agent: BaseAgent; role: DebateRole }[]
+  agentRolePairs: { agent: BaseAgent; role: DebateRole }[],
 ): DebateParticipant[] {
-  return agentRolePairs.map(pair => ({
+  return agentRolePairs.map((pair) => ({
     agent: pair.agent,
     role: pair.role,
     voteWeight: pair.role === DebateRole.SYNTHESIZER ? 1.2 : 1.0,

@@ -161,7 +161,14 @@ function scanMentionsAndActions(
     if (!isHeader) {
       const foundNames = scanForMentions(line, nameList);
       foundNames.forEach((name) => {
-        processFoundMention(name, i, lines, currentSceneNum, charMap, scenes);
+        processFoundMention({
+          name,
+          lineIndex: i,
+          lines,
+          sceneNum: currentSceneNum,
+          charMap,
+          scenes,
+        });
       });
     }
   }
@@ -170,14 +177,23 @@ function scanMentionsAndActions(
 /**
  * Process a found character mention
  */
-function processFoundMention(
-  name: string,
-  lineIndex: number,
-  lines: string[],
-  sceneNum: number,
-  charMap: Map<string, CharacterStats>,
-  scenes: SceneData[]
-): void {
+interface MentionContext {
+  name: string;
+  lineIndex: number;
+  lines: string[];
+  sceneNum: number;
+  charMap: Map<string, CharacterStats>;
+  scenes: SceneData[];
+}
+
+function processFoundMention({
+  name,
+  lineIndex,
+  lines,
+  sceneNum,
+  charMap,
+  scenes,
+}: MentionContext): void {
   const previousLine = lineIndex > 0 ? (lines[lineIndex - 1] ?? "") : "";
   const currentLine = lines[lineIndex] ?? "";
   const prevIsHeader =
@@ -259,14 +275,14 @@ function buildCharacterProfiles(
   });
 
   charMap.forEach((stats, name) => {
-    const profile = buildSingleProfile(
+    const profile = buildSingleProfile({
       name,
       stats,
       lines,
       dialogueMap,
       totalScenes,
-      maxWords
-    );
+      maxWords,
+    });
     profiles.push(profile);
   });
 
@@ -276,14 +292,23 @@ function buildCharacterProfiles(
 /**
  * Build a single character profile
  */
-function buildSingleProfile(
-  name: string,
-  stats: CharacterStats,
-  lines: string[],
-  dialogueMap: Map<string, string[]>,
-  totalScenes: number,
-  maxWords: number
-): CharacterProfile {
+interface BuildProfileContext {
+  name: string;
+  stats: CharacterStats;
+  lines: string[];
+  dialogueMap: Map<string, string[]>;
+  totalScenes: number;
+  maxWords: number;
+}
+
+function buildSingleProfile({
+  name,
+  stats,
+  lines,
+  dialogueMap,
+  totalScenes,
+  maxWords,
+}: BuildProfileContext): CharacterProfile {
   // Character classification
   const isGroup = GROUP_KEYWORDS.some((k) => name.includes(k));
   const isGeneric = GENERIC_KEYWORDS.some(

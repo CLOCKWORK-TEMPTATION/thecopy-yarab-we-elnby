@@ -6,12 +6,12 @@ import {
   StandardAgentInput,
   StandardAgentOptions,
   StandardAgentOutput,
- executeStandardAgentPattern } from "./standardAgentPattern";
-
+  executeStandardAgentPattern,
+} from "./standardAgentPattern";
 
 /**
  * واجهة إعدادات الوكيل
- * 
+ *
  * @description
  * تحدد هيكل كائن إعدادات الوكيل
  */
@@ -38,12 +38,12 @@ export interface AgentConfig {
 
 /**
  * الفئة الأساسية للوكيل - Base Agent Class
- * 
+ *
  * @description
  * النمط القياسي لجميع الوكلاء في النظام.
  * يطبق سلسلة المعالجة: RAG → Self-Critique → Constitutional → Uncertainty → Hallucination → Debate
  * إخراج نصي فقط - لا JSON في الواجهة
- * 
+ *
  * @example
  * ```typescript
  * class MyAgent extends BaseAgent {
@@ -68,7 +68,7 @@ export abstract class BaseAgent {
 
   /**
    * منشئ الفئة الأساسية للوكيل
-   * 
+   *
    * @param name - اسم الوكيل المعرّف
    * @param taskType - نوع المهمة التي يقوم بها الوكيل
    * @param systemPrompt - تعليمات النظام الأساسية للوكيل
@@ -81,18 +81,21 @@ export abstract class BaseAgent {
 
   /**
    * تنفيذ المهمة باستخدام النمط القياسي للوكيل
-   * 
+   *
    * @description
    * يقوم بتنفيذ المهمة المطلوبة مع تطبيق جميع مراحل المعالجة
    * المدخلات: { input, options, context }
    * المخرجات: { text, confidence, notes } - نصي فقط
-   * 
+   *
    * @param input - مدخلات الوكيل تشمل النص والخيارات والسياق
    * @returns وعد بنتيجة التنفيذ مع نص الإخراج ودرجة الثقة والملاحظات
    * @throws يعيد نتيجة احتياطية في حالة الخطأ بدلاً من رمي استثناء
    */
   async executeTask(input: StandardAgentInput): Promise<StandardAgentOutput> {
-    logger.info(`بدء تنفيذ المهمة`, { agentName: this.name, taskType: this.taskType });
+    logger.info(`بدء تنفيذ المهمة`, {
+      agentName: this.name,
+      taskType: this.taskType,
+    });
 
     try {
       return await this.executeTaskCore(input);
@@ -104,7 +107,9 @@ export abstract class BaseAgent {
   /**
    * التنفيذ الأساسي للمهمة
    */
-  private async executeTaskCore(input: StandardAgentInput): Promise<StandardAgentOutput> {
+  private async executeTaskCore(
+    input: StandardAgentInput,
+  ): Promise<StandardAgentOutput> {
     const basePrompt = this.buildPrompt(input);
     const options = this.mergeOptions(input.options);
 
@@ -129,7 +134,9 @@ export abstract class BaseAgent {
   /**
    * دمج الخيارات مع القيم الافتراضية
    */
-  private mergeOptions(inputOptions?: StandardAgentOptions): StandardAgentOptions {
+  private mergeOptions(
+    inputOptions?: StandardAgentOptions,
+  ): StandardAgentOptions {
     const defaults: StandardAgentOptions = {
       temperature: 0.7,
       maxTokens: 48192,
@@ -144,8 +151,12 @@ export abstract class BaseAgent {
   /**
    * معالجة أخطاء التنفيذ
    */
-  private async handleTaskError(error: unknown, input: StandardAgentInput): Promise<StandardAgentOutput> {
-    const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
+  private async handleTaskError(
+    error: unknown,
+    input: StandardAgentInput,
+  ): Promise<StandardAgentOutput> {
+    const errorMessage =
+      error instanceof Error ? error.message : "خطأ غير معروف";
 
     logger.error(`فشل في تنفيذ المهمة`, {
       agentName: this.name,
@@ -177,7 +188,9 @@ export abstract class BaseAgent {
         : [String(output.notes)];
 
     const normalizedText =
-      typeof output.text === "string" ? output.text.trim() : String(output.text ?? "");
+      typeof output.text === "string"
+        ? output.text.trim()
+        : String(output.text ?? "");
     const clampedConfidence = Math.min(1, Math.max(0, output.confidence));
 
     return {
@@ -197,10 +210,10 @@ export abstract class BaseAgent {
 
   /**
    * بناء النص من المدخلات - يجب تنفيذه في كل وكيل فرعي
-   * 
+   *
    * @description
    * طريقة مجردة يجب تنفيذها في الفئات الفرعية لبناء النص المطلوب
-   * 
+   *
    * @param input - مدخلات الوكيل
    * @returns النص المبني للمعالجة
    */
@@ -208,15 +221,15 @@ export abstract class BaseAgent {
 
   /**
    * المعالجة اللاحقة - يمكن للوكلاء الفرعية تجاوز هذه الطريقة
-   * 
+   *
    * @description
    * معالجة اختيارية بعد الحصول على النتيجة الأولية
-   * 
+   *
    * @param output - نتيجة المعالجة الأولية
    * @returns النتيجة بعد المعالجة اللاحقة
    */
   protected postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     // افتراضي: لا توجد معالجة لاحقة
     return Promise.resolve(output);
@@ -224,15 +237,15 @@ export abstract class BaseAgent {
 
   /**
    * توليد استجابة احتياطية عند فشل التنفيذ
-   * 
+   *
    * @description
    * يُستخدم لتوفير استجابة بديلة في حالة فشل المعالجة الرئيسية
-   * 
+   *
    * @param input - مدخلات الوكيل الأصلية
    * @returns نص الاستجابة الاحتياطية
    */
   protected async getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     try {
       // محاولة التوليد البسيط باستخدام تعليمات النظام فقط
@@ -251,10 +264,10 @@ export abstract class BaseAgent {
 
   /**
    * الحصول على إعدادات الوكيل
-   * 
+   *
    * @description
    * يُرجع كائن يحتوي على جميع إعدادات وقدرات الوكيل
-   * 
+   *
    * @returns كائن إعدادات الوكيل
    */
   getConfig(): AgentConfig {
@@ -273,10 +286,10 @@ export abstract class BaseAgent {
 
   /**
    * تعيين الحد الأدنى للثقة لهذا الوكيل
-   * 
+   *
    * @description
    * يحدد الحد الأدنى المقبول لدرجة الثقة (بين 0 و 1)
-   * 
+   *
    * @param threshold - قيمة الحد الأدنى للثقة (0-1)
    */
   setConfidenceFloor(threshold: number): void {

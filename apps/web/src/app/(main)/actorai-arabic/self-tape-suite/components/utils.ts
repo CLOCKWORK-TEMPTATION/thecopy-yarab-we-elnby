@@ -1,7 +1,9 @@
 import { readStoredSelfTapeTakes } from "../../lib/self-tape";
-import type { PersistedSelfTapeTake } from "../../lib/self-tape";
+
 import { SAMPLE_TAKES } from "./constants";
+
 import type { NoteSeverity, Take, TakeNote } from "./types";
+import type { PersistedSelfTapeTake } from "../../lib/self-tape";
 
 export function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => {

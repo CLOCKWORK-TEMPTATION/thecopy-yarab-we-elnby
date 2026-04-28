@@ -8,8 +8,14 @@ export function assessConflictIdentification(text: string): number {
   let score = 0.5;
 
   const conflictTerms = [
-    "صراع", "نزاع", "خلاف", "مواجهة",
-    "تضارب", "تعارض", "صدام", "احتكاك",
+    "صراع",
+    "نزاع",
+    "خلاف",
+    "مواجهة",
+    "تضارب",
+    "تعارض",
+    "صدام",
+    "احتكاك",
   ];
   const termCount = safeCountMultipleTerms(text, conflictTerms);
   score += Math.min(0.25, sumCounts(termCount) * 0.02);
@@ -27,8 +33,14 @@ export function assessAnalysisDepth(text: string): number {
   let score = 0.5;
 
   const depthIndicators = [
-    "جذور", "أسباب", "يؤدي إلى", "ينتج عن",
-    "يتطور", "يتصاعد", "ذروة", "حل",
+    "جذور",
+    "أسباب",
+    "يؤدي إلى",
+    "ينتج عن",
+    "يتطور",
+    "يتصاعد",
+    "ذروة",
+    "حل",
   ];
   const depthCount = safeCountMultipleTerms(text, depthIndicators);
   score += Math.min(0.25, sumCounts(depthCount) * 0.025);
@@ -46,8 +58,13 @@ export function assessEvidenceQuality(text: string): number {
   let score = 0.6;
 
   const evidenceMarkers = [
-    "مثل", "كما في", "نرى", "يظهر",
-    "في المشهد", "عندما", "حيث",
+    "مثل",
+    "كما في",
+    "نرى",
+    "يظهر",
+    "في المشهد",
+    "عندما",
+    "حيث",
   ];
   const evidenceCount = safeCountMultipleTerms(text, evidenceMarkers);
   score += Math.min(0.25, sumCounts(evidenceCount) * 0.025);
@@ -62,8 +79,14 @@ export function assessInsightfulness(text: string): number {
   let score = 0.5;
 
   const insightWords = [
-    "يكشف", "يوضح", "يعكس", "الأهمية",
-    "التأثير", "الدلالة", "يشير", "نستنتج",
+    "يكشف",
+    "يوضح",
+    "يعكس",
+    "الأهمية",
+    "التأثير",
+    "الدلالة",
+    "يشير",
+    "نستنتج",
   ];
   const insightCount = safeCountMultipleTerms(text, insightWords);
   score += Math.min(0.3, sumCounts(insightCount) * 0.03);
@@ -77,7 +100,7 @@ export function assessInsightfulness(text: string): number {
 
 export function countConflicts(text: string): number {
   const conflictMarkers = text.match(
-    /الصراع الأول|الصراع الثاني|الصراع الرئيسي|صراع|نزاع رئيسي/gi
+    /الصراع الأول|الصراع الثاني|الصراع الرئيسي|صراع|نزاع رئيسي/gi,
   );
   return conflictMarkers ? Math.min(conflictMarkers.length, 8) : 0;
 }
@@ -145,9 +168,13 @@ interface ThresholdCheck {
   lowMsg?: string;
 }
 
-export function addThresholdNotes(notes: string[], checks: ThresholdCheck[]): void {
+export function addThresholdNotes(
+  notes: string[],
+  checks: ThresholdCheck[],
+): void {
   for (const check of checks) {
     if (check.value > check.high) notes.push(check.highMsg);
-    else if (check.low !== undefined && check.lowMsg && check.value < check.low) notes.push(check.lowMsg);
+    else if (check.low !== undefined && check.lowMsg && check.value < check.low)
+      notes.push(check.lowMsg);
   }
 }

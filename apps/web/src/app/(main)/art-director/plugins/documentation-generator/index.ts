@@ -274,8 +274,8 @@ export class AutomaticDocumentationGenerator implements Plugin {
     switch (type) {
       case "overview":
         return {
-          en: `# Production Overview\n\nThis document provides a comprehensive overview of the production.\n\n## Project Details\n- Production Name: ${stringifyUnknown(projectData.name, "TBD")}\n- Director: ${stringifyUnknown(projectData.director, "TBD")}\n- Art Director: ${stringifyUnknown(projectData.artDirector, "TBD")}\n- Status: ${stringifyUnknown(projectData.status, "In Development")}`,
-          ar: `# نظرة عامة على الإنتاج\n\nيقدم هذا المستند نظرة شاملة على الإنتاج.\n\n## تفاصيل المشروع\n- اسم الإنتاج: ${stringifyUnknown(projectData.name, "سيُحدد")}\n- المخرج: ${stringifyUnknown(projectData.director, "سيُحدد")}\n- مدير الفن: ${stringifyUnknown(projectData.artDirector, "سيُحدد")}\n- الحالة: ${stringifyUnknown(projectData.status, "قيد التطوير")}`,
+          en: `# Production Overview\n\nThis document provides a comprehensive overview of the production.\n\n## Project Details\n- Production Name: ${stringifyUnknown(projectData["name"], "TBD")}\n- Director: ${stringifyUnknown(projectData["director"], "TBD")}\n- Art Director: ${stringifyUnknown(projectData["artDirector"], "TBD")}\n- Status: ${stringifyUnknown(projectData["status"], "In Development")}`,
+          ar: `# نظرة عامة على الإنتاج\n\nيقدم هذا المستند نظرة شاملة على الإنتاج.\n\n## تفاصيل المشروع\n- اسم الإنتاج: ${stringifyUnknown(projectData["name"], "سيُحدد")}\n- المخرج: ${stringifyUnknown(projectData["director"], "سيُحدد")}\n- مدير الفن: ${stringifyUnknown(projectData["artDirector"], "سيُحدد")}\n- الحالة: ${stringifyUnknown(projectData["status"], "قيد التطوير")}`,
         };
       case "scenes":
         return {

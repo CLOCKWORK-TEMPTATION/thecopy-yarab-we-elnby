@@ -361,7 +361,7 @@ export type {
  * @param dataSchema - مخطط Zod للبيانات المتوقعة
  * @returns مخطط Zod للاستجابة الكاملة
  */
- 
+
 export const ApiResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
   z.discriminatedUnion("success", [
     // حالة النجاح: success = true مع data اختياري
@@ -398,7 +398,7 @@ export const SimpleApiResponseSchema = z
     },
     {
       message: "رسالة الخطأ مطلوبة عند فشل العملية",
-    }
+    },
   );
 
 /**

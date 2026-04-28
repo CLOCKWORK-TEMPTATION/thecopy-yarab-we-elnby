@@ -293,7 +293,7 @@ export const invokeWithFallback = async ({
             status: errorInfo.status,
             temporary: errorInfo.temporary,
           },
-          "review provider invocation failed"
+          "review provider invocation failed",
         );
 
         if (errorInfo.temporary && attempt < maxRetries) {
@@ -330,6 +330,6 @@ export const invokeWithFallback = async ({
       specifier: lastErrorInfo?.specifier ?? null,
       temporary: lastErrorInfo?.temporary ?? false,
       retryCount,
-    }
+    },
   );
 };

@@ -18,7 +18,6 @@ import { readdirSync, mkdirSync, statSync, existsSync } from "node:fs";
 import { join, basename, extname } from "node:path";
 import { format as formatLogLine } from "node:util";
 
-
 function writeStdout(...args: unknown[]): void {
   process.stdout.write(formatLogLine(...args) + "\n");
 }
@@ -40,7 +39,7 @@ function parseArgs(): { input: string; output: string } {
 
   if (!input || !output) {
     writeStderr(
-      "الاستخدام: npx tsx enhance-image.ts --input <مجلد_أو_صورة> --output <مجلد_أو_صورة>"
+      "الاستخدام: npx tsx enhance-image.ts --input <مجلد_أو_صورة> --output <مجلد_أو_صورة>",
     );
     process.exit(1);
   }
@@ -52,7 +51,7 @@ function parseArgs(): { input: string; output: string } {
 
 async function enhanceImage(
   inputPath: string,
-  outputPath: string
+  outputPath: string,
 ): Promise<void> {
   // استيراد ديناميكي لـ sharp
   const sharp = (await import("sharp")).default;
@@ -132,16 +131,14 @@ async function main(): Promise<void> {
       }
     }
 
-    writeStderr(
-      `تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`
-    );
+    writeStderr(`تم تحسين ${processed}/${imageFiles.length} صورة → ${output}`);
     writeStdout(
       JSON.stringify({
         success: true,
         files_processed: processed,
         files_total: imageFiles.length,
         output_dir: output,
-      })
+      }),
     );
     return;
   }

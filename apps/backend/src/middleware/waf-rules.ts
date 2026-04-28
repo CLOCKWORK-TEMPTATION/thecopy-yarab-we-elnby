@@ -297,12 +297,32 @@ export const BOT_DETECTION_PATTERNS: WAFRule[] = [
 // ============================================================================
 
 export const RULE_CATEGORIES: RuleCategory[] = [
-  { rules: SQL_INJECTION_PATTERNS, eventType: "SQL_INJECTION", configKey: "sqlInjection" },
+  {
+    rules: SQL_INJECTION_PATTERNS,
+    eventType: "SQL_INJECTION",
+    configKey: "sqlInjection",
+  },
   { rules: XSS_PATTERNS, eventType: "XSS_ATTACK", configKey: "xss" },
-  { rules: COMMAND_INJECTION_PATTERNS, eventType: "COMMAND_INJECTION", configKey: "commandInjection" },
-  { rules: PATH_TRAVERSAL_PATTERNS, eventType: "PATH_TRAVERSAL", configKey: "pathTraversal" },
-  { rules: PROTOCOL_ATTACK_PATTERNS, eventType: "PROTOCOL_ATTACK", configKey: "protocolAttack" },
-  { rules: BOT_DETECTION_PATTERNS, eventType: "BOT_DETECTED", configKey: "botProtection" },
+  {
+    rules: COMMAND_INJECTION_PATTERNS,
+    eventType: "COMMAND_INJECTION",
+    configKey: "commandInjection",
+  },
+  {
+    rules: PATH_TRAVERSAL_PATTERNS,
+    eventType: "PATH_TRAVERSAL",
+    configKey: "pathTraversal",
+  },
+  {
+    rules: PROTOCOL_ATTACK_PATTERNS,
+    eventType: "PROTOCOL_ATTACK",
+    configKey: "protocolAttack",
+  },
+  {
+    rules: BOT_DETECTION_PATTERNS,
+    eventType: "BOT_DETECTED",
+    configKey: "botProtection",
+  },
 ];
 
 // Export all patterns for testing

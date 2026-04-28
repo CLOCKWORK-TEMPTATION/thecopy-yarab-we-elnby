@@ -1,4 +1,3 @@
- 
 // CineArchitect AI - Cinema Skills Trainer Constants
 // الثوابت والبيانات الثابتة للمدرب الافتراضي
 
@@ -222,4 +221,7 @@ export const vrEquipment: VREquipment[] = [
   },
 ];
 
-export const traineeProgress = new Map<string, import("./types").TraineeProgress>();
+export const traineeProgress = new Map<
+  string,
+  import("./types").TraineeProgress
+>();

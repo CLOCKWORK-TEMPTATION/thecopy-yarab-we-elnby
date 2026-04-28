@@ -1,4 +1,3 @@
-
 import { definedProps } from "@/utils/defined-props";
 
 import type {
@@ -76,7 +75,7 @@ export class ContextAssemblyService {
       ...new Set(
         contextResults
           .map((result) => result.source)
-          .filter((value) => value && value !== "AdHocChunks")
+          .filter((value) => value && value !== "AdHocChunks"),
       ),
     ];
     const relevantDecisions = contextResults
@@ -101,12 +100,12 @@ export class ContextAssemblyService {
   selectHits(
     hits: RetrievalHit[],
     profile: ContextProfile = "analysis",
-    requestedTopK?: number
+    requestedTopK?: number,
   ): RetrievalHit[] {
     const profileConfig = PROFILE_CONFIGS[profile];
     const maxChunks = Math.min(
       requestedTopK ?? profileConfig.maxChunks,
-      profileConfig.maxChunks
+      profileConfig.maxChunks,
     );
 
     const rankedHits = hits
@@ -145,7 +144,7 @@ export class ContextAssemblyService {
   buildAugmentedPrompt(
     basePrompt: string,
     hits: (Partial<RetrievalHit> & { text: string })[],
-    profile: ContextProfile = "analysis"
+    profile: ContextProfile = "analysis",
   ): string {
     if (hits.length === 0) {
       return basePrompt;
@@ -208,7 +207,7 @@ export class ContextAssemblyService {
   private estimateTokens(results: ContextResult[]): number {
     return results.reduce(
       (sum, result) => sum + this.estimateTokensFromText(result.content),
-      0
+      0,
     );
   }
 
@@ -219,7 +218,7 @@ export class ContextAssemblyService {
   private generateSummary(
     results: ContextResult[],
     query: string,
-    profile: ContextProfile
+    profile: ContextProfile,
   ): string {
     const fileCount = new Set(results.map((result) => result.source)).size;
     const typeBreakdown = results.reduce<Record<string, number>>(
@@ -227,7 +226,7 @@ export class ContextAssemblyService {
         accumulator[result.type] = (accumulator[result.type] ?? 0) + 1;
         return accumulator;
       },
-      {}
+      {},
     );
 
     const breakdown = Object.entries(typeBreakdown)

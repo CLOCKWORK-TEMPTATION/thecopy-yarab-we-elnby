@@ -1,31 +1,19 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
-import type { WebcamAnalysisResult, WebcamSession } from "../../types";
 
 export const useWebcamAnalysisBridge = (
   showNotification: (type: string, message: string) => void
 ) => {
   const webcamEngine = useWebcamAnalysis();
-
-  const [webcamActive, setWebcamActive] = useState(false);
-  const [webcamAnalyzing, setWebcamAnalyzing] = useState(false);
-  const [webcamAnalysisTime, setWebcamAnalysisTime] = useState(0);
-  const [webcamAnalysisResult, setWebcamAnalysisResult] =
-    useState<WebcamAnalysisResult | null>(null);
-  const [webcamSessions, setWebcamSessions] = useState<WebcamSession[]>([]);
-  const [webcamPermission, setWebcamPermission] = useState<
-    "granted" | "denied" | "pending"
-  >("pending");
-
-  useEffect(() => {
-    setWebcamActive(webcamEngine.state.isActive);
-    setWebcamAnalyzing(webcamEngine.state.isAnalyzing);
-    setWebcamAnalysisTime(webcamEngine.state.analysisTime);
-    setWebcamAnalysisResult(webcamEngine.state.analysisResult);
-    setWebcamSessions(webcamEngine.state.sessions);
-    setWebcamPermission(webcamEngine.state.permission);
-  }, [webcamEngine.state]);
+  const {
+    isActive: webcamActive,
+    isAnalyzing: webcamAnalyzing,
+    analysisTime: webcamAnalysisTime,
+    analysisResult: webcamAnalysisResult,
+    sessions: webcamSessions,
+    permission: webcamPermission,
+  } = webcamEngine.state;
 
   const requestWebcamPermission = useCallback(async () => {
     try {

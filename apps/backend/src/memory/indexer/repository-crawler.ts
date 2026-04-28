@@ -1,4 +1,3 @@
- 
 /**
  * Repository Crawler
  * زاحف الملفات للمستودع
@@ -92,7 +91,7 @@ export class RepositoryCrawler {
           const fileInfo = await this.readMatchingFile(
             filePath,
             options.rootPath,
-            maxFileSize
+            maxFileSize,
           );
           if (fileInfo) {
             files.push(fileInfo);
@@ -109,7 +108,7 @@ export class RepositoryCrawler {
   private async readMatchingFile(
     filePath: string,
     rootPath: string,
-    maxFileSize: number
+    maxFileSize: number,
   ): Promise<FileInfo | null> {
     try {
       const handle = await open(filePath, "r");
@@ -118,7 +117,7 @@ export class RepositoryCrawler {
 
         if (fileStat.size > maxFileSize) {
           logger.warn(
-            `Skipping large file: ${filePath} (${(fileStat.size / 1024 / 1024).toFixed(2)} MB)`
+            `Skipping large file: ${filePath} (${(fileStat.size / 1024 / 1024).toFixed(2)} MB)`,
           );
           return null;
         }
@@ -149,7 +148,7 @@ export class RepositoryCrawler {
    */
   async crawlSpecific(
     rootPath: string,
-    filePaths: string[]
+    filePaths: string[],
   ): Promise<FileInfo[]> {
     const files: FileInfo[] = [];
 
@@ -197,7 +196,7 @@ export class RepositoryCrawler {
       const { stdout } = await execFileAsync(
         "git",
         ["diff", "--name-only", `${lastIndexedCommit}..HEAD`],
-        { cwd: process.cwd(), windowsHide: true }
+        { cwd: process.cwd(), windowsHide: true },
       );
 
       const changedFiles = stdout.split(/\r?\n/).filter(Boolean);
@@ -205,7 +204,7 @@ export class RepositoryCrawler {
     } catch (error) {
       logger.warn(
         `Unable to inspect git diff from ${lastIndexedCommit}; reindexing defensively`,
-        { error }
+        { error },
       );
       return true;
     }
@@ -215,12 +214,15 @@ export class RepositoryCrawler {
    * تجميع الملفات حسب النوع
    */
   groupByType(files: FileInfo[]): Record<string, FileInfo[]> {
-    return files.reduce((acc, file) => {
-      const type = this.getFileType(file);
-      acc[type] ??= [];
-      acc[type].push(file);
-      return acc;
-    }, {} as Record<string, FileInfo[]>);
+    return files.reduce(
+      (acc, file) => {
+        const type = this.getFileType(file);
+        acc[type] ??= [];
+        acc[type].push(file);
+        return acc;
+      },
+      {} as Record<string, FileInfo[]>,
+    );
   }
 
   /**
@@ -232,7 +234,7 @@ export class RepositoryCrawler {
     if (language === "typescript" || language === "javascript") {
       // ES6 imports
       const es6Matches = content.matchAll(
-        /import\s+(?:(?:{[^}]*}|[^'"]*)\s+from\s+)?['"]([^'"]+)['"];?/g
+        /import\s+(?:(?:{[^}]*}|[^'"]*)\s+from\s+)?['"]([^'"]+)['"];?/g,
       );
       for (const match of es6Matches) {
         const importPath = match[1];
@@ -263,7 +265,7 @@ export class RepositoryCrawler {
     if (language === "typescript" || language === "javascript") {
       // Named exports
       const namedMatches = content.matchAll(
-        /export\s+(?:const|let|var|function|class|interface|type|enum)\s+(\w+)/g
+        /export\s+(?:const|let|var|function|class|interface|type|enum)\s+(\w+)/g,
       );
       for (const match of namedMatches) {
         const exportName = match[1];
@@ -274,7 +276,7 @@ export class RepositoryCrawler {
 
       // Default exports
       const defaultMatches = content.matchAll(
-        /export\s+default\s+(?:class|function)?\s*(\w+)?/g
+        /export\s+default\s+(?:class|function)?\s*(\w+)?/g,
       );
       for (const match of defaultMatches) {
         if (match[1]) exports.push(match[1]);
@@ -292,7 +294,7 @@ export class RepositoryCrawler {
 
     if (language === "typescript" || language === "javascript") {
       const matches = content.matchAll(
-        /(?:function|const|let|var)\s+(\w+)\s*[=:]*\s*(?:\([^)]*\)|.*?=>)/g
+        /(?:function|const|let|var)\s+(\w+)\s*[=:]*\s*(?:\([^)]*\)|.*?=>)/g,
       );
       for (const match of matches) {
         const functionName = match[1];
@@ -312,7 +314,9 @@ export class RepositoryCrawler {
     const classes: string[] = [];
 
     if (language === "typescript" || language === "javascript") {
-      const matches = content.matchAll(/class\s+(\w+)(?:\s+extends|\s+implements|\s*{)/g);
+      const matches = content.matchAll(
+        /class\s+(\w+)(?:\s+extends|\s+implements|\s*{)/g,
+      );
       for (const match of matches) {
         const className = match[1];
         if (className) {

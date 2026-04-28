@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import { definedProps } from "@/utils/defined-props";
 
-
 import { scenes, supportedDevices } from "./store";
 
 import type {
@@ -32,19 +31,19 @@ function cameraNotFound(): PluginOutput {
 
 function getDistance(a: Vector3D, b: Vector3D): number {
   return Math.sqrt(
-    Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2)
+    Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2),
   );
 }
 
 function analyzeComposition(
   camera: VirtualCamera,
-  scene: XRScene
+  scene: XRScene,
 ): Record<string, unknown> {
   const objectsInFrame = scene.objects.filter((obj) => {
     const distance = Math.sqrt(
       Math.pow(obj.position.x - camera.position.x, 2) +
         Math.pow(obj.position.y - camera.position.y, 2) +
-        Math.pow(obj.position.z - camera.position.z, 2)
+        Math.pow(obj.position.z - camera.position.z, 2),
     );
     return distance < 20;
   });
@@ -59,14 +58,14 @@ function analyzeComposition(
     },
     depthLayers: {
       foreground: objectsInFrame.filter(
-        (o) => getDistance(o.position, camera.position) < 3
+        (o) => getDistance(o.position, camera.position) < 3,
       ).length,
       midground: objectsInFrame.filter((o) => {
         const d = getDistance(o.position, camera.position);
         return d >= 3 && d < 8;
       }).length,
       background: objectsInFrame.filter(
-        (o) => getDistance(o.position, camera.position) >= 8
+        (o) => getDistance(o.position, camera.position) >= 8,
       ).length,
     },
     estimatedFps: 60,
@@ -242,7 +241,7 @@ export function setupCamera(data: SetupCameraInput): PluginOutput {
 }
 
 export function simulateCameraMovement(
-  data: SimulateCameraMovementInput
+  data: SimulateCameraMovementInput,
 ): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
@@ -273,9 +272,7 @@ export function simulateCameraMovement(
   };
 }
 
-export function configureLighting(
-  data: ConfigureLightingInput
-): PluginOutput {
+export function configureLighting(data: ConfigureLightingInput): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -313,7 +310,10 @@ export function exportScene(data: ExportSceneInput): PluginOutput {
     return sceneNotFound();
   }
 
-  const exportFormats: Record<string, { extension: string; description: string }> = {
+  const exportFormats: Record<
+    string,
+    { extension: string; description: string }
+  > = {
     gltf: {
       extension: ".gltf",
       description: "GL Transmission Format - WebXR compatible",
@@ -360,9 +360,7 @@ export function getSupportedDevices(): PluginOutput {
   };
 }
 
-export function generateARPreview(
-  data: GenerateArPreviewInput
-): PluginOutput {
+export function generateARPreview(data: GenerateArPreviewInput): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {
     return sceneNotFound();
@@ -393,7 +391,7 @@ export function generateARPreview(
 }
 
 export function generateVRWalkthrough(
-  data: GenerateVrWalkthroughInput
+  data: GenerateVrWalkthroughInput,
 ): PluginOutput {
   const scene = scenes.get(data.sceneId);
   if (!scene) {

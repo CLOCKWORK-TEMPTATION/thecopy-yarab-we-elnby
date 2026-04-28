@@ -1,6 +1,7 @@
-import type { EditorView } from "@tiptap/pm/view";
-import type { ImportSource, LineQuality } from "@editor/suspicion-engine/types";
 import { ARABIC_RANGE, WEIRD_CHARS } from "./constants";
+
+import type { ImportSource, LineQuality } from "@editor/suspicion-engine/types";
+import type { EditorView } from "@tiptap/pm/view";
 
 export const simpleHash = (str: string): string => {
   let hash = 5381;

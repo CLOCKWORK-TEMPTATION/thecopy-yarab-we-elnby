@@ -75,33 +75,33 @@ export class AgentReviewValidationError extends Error {
 export const validateAgentReviewRequestBody = (body) => {
   if (!isObjectRecord(body)) {
     throw new AgentReviewValidationError(
-      "Invalid agent-review request body: must be a JSON object."
+      "Invalid agent-review request body: must be a JSON object.",
     );
   }
 
   const sessionId = normalizeIncomingText(body.sessionId, 120);
   if (!isNonEmptyString(sessionId)) {
     throw new AgentReviewValidationError(
-      "Missing or invalid sessionId: must be a non-empty string."
+      "Missing or invalid sessionId: must be a non-empty string.",
     );
   }
 
   const importOpId = normalizeIncomingText(body.importOpId, 120);
   if (!isNonEmptyString(importOpId)) {
     throw new AgentReviewValidationError(
-      "Missing or invalid importOpId: must be a non-empty string."
+      "Missing or invalid importOpId: must be a non-empty string.",
     );
   }
 
   if (!isIntegerNumber(body.totalReviewed)) {
     throw new AgentReviewValidationError(
-      "Invalid totalReviewed: must be a non-negative integer."
+      "Invalid totalReviewed: must be a non-negative integer.",
     );
   }
 
   if (!Array.isArray(body.suspiciousLines)) {
     throw new AgentReviewValidationError(
-      "Invalid suspiciousLines: must be an array."
+      "Invalid suspiciousLines: must be an array.",
     );
   }
 
@@ -109,14 +109,14 @@ export const validateAgentReviewRequestBody = (body) => {
   const suspiciousLines = body.suspiciousLines.map((entry, index) => {
     if (!isObjectRecord(entry)) {
       throw new AgentReviewValidationError(
-        `Invalid suspicious line at index ${index}: must be an object.`
+        `Invalid suspicious line at index ${index}: must be an object.`,
       );
     }
 
     const itemId = resolveSuspiciousItemId(entry, index);
     if (seenItemIds.has(itemId)) {
       throw new AgentReviewValidationError(
-        `Duplicate itemId "${itemId}" in suspiciousLines.`
+        `Duplicate itemId "${itemId}" in suspiciousLines.`,
       );
     }
     seenItemIds.add(itemId);
@@ -124,14 +124,14 @@ export const validateAgentReviewRequestBody = (body) => {
     const text = normalizeIncomingText(entry.text, MAX_TEXT_LENGTH);
     if (!isNonEmptyString(text)) {
       throw new AgentReviewValidationError(
-        `Invalid text at suspicious line ${index}: must be a non-empty string.`
+        `Invalid text at suspicious line ${index}: must be a non-empty string.`,
       );
     }
 
     const assignedType = normalizeIncomingText(entry.assignedType, 64);
     if (!ALLOWED_LINE_TYPES.has(assignedType)) {
       throw new AgentReviewValidationError(
-        `Invalid assignedType "${assignedType}" at suspicious line ${index}.`
+        `Invalid assignedType "${assignedType}" at suspicious line ${index}.`,
       );
     }
 
@@ -143,7 +143,7 @@ export const validateAgentReviewRequestBody = (body) => {
       totalSuspicion > 100
     ) {
       throw new AgentReviewValidationError(
-        `Invalid totalSuspicion at suspicious line ${index}: must be a number 0-100.`
+        `Invalid totalSuspicion at suspicious line ${index}: must be a number 0-100.`,
       );
     }
 
@@ -220,7 +220,7 @@ export const validateAgentReviewRequestBody = (body) => {
   for (const forcedItemId of forcedItemIds) {
     if (!requiredItemIdSet.has(forcedItemId)) {
       throw new AgentReviewValidationError(
-        "forcedItemIds must be subset of requiredItemIds."
+        "forcedItemIds must be subset of requiredItemIds.",
       );
     }
   }
@@ -228,7 +228,7 @@ export const validateAgentReviewRequestBody = (body) => {
   for (const requiredItemId of requiredItemIds) {
     if (!seenItemIds.has(requiredItemId)) {
       throw new AgentReviewValidationError(
-        `requiredItemIds contains unknown itemId "${requiredItemId}".`
+        `requiredItemIds contains unknown itemId "${requiredItemId}".`,
       );
     }
   }
@@ -286,7 +286,7 @@ export const parseReviewCommands = (text) => {
 
   return commands
     .filter(
-      (command) => isObjectRecord(command) && isNonEmptyString(command.op)
+      (command) => isObjectRecord(command) && isNonEmptyString(command.op),
     )
     .flatMap((command) => {
       if (!isNonEmptyString(command.itemId)) {
@@ -343,7 +343,7 @@ export const parseReviewCommands = (text) => {
 
 export const normalizeCommandsAgainstRequest = (commands, request) => {
   const validItemIds = new Set(
-    request.suspiciousLines.map((line) => line.itemId)
+    request.suspiciousLines.map((line) => line.itemId),
   );
   const bestByItemId = new Map();
 
@@ -370,7 +370,7 @@ export const determineCoverage = (commands, request, options = {}) => {
   const resolvedItemIds = commands.map((command) => command.itemId);
   const resolvedSet = new Set(resolvedItemIds);
   const missingItemIds = request.requiredItemIds.filter(
-    (itemId) => !resolvedSet.has(itemId)
+    (itemId) => !resolvedSet.has(itemId),
   );
   const forcedItemIds = [...request.forcedItemIds];
   const unresolvedForcedItemIds = options.ignoreForcedCoverage
@@ -413,7 +413,7 @@ export const buildMeta = (coverage, extras = {}) => ({
 export const computeMaxTokens = (
   request,
   { baseOutputTokens, tokensPerSuspiciousLine, maxTokensCeiling },
-  boostFactor = 1
+  boostFactor = 1,
 ) =>
   Math.min(
     maxTokensCeiling,
@@ -422,9 +422,9 @@ export const computeMaxTokens = (
       Math.ceil(
         (baseOutputTokens +
           request.suspiciousLines.length * tokensPerSuspiciousLine) *
-          boostFactor
-      )
-    )
+          boostFactor,
+      ),
+    ),
   );
 
 export const buildAgentReviewMessages = (request) => [

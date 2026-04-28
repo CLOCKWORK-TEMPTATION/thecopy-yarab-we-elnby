@@ -79,7 +79,7 @@ const summarizeSchemaElements = (schemaElements) => {
       typeof entry.element === "string" &&
       typeof entry.value === "string" &&
       entry.element.trim() &&
-      entry.value.trim()
+      entry.value.trim(),
   );
 
   return {
@@ -162,10 +162,12 @@ export const probeKarankReadiness = async () => {
     referenceTextLength: KARANK_HEALTH_REFERENCE_TEXT.length,
   };
   try {
-    const parseTextResult = await karankBridge.parseText(KARANK_HEALTH_REFERENCE_TEXT);
+    const parseTextResult = await karankBridge.parseText(
+      KARANK_HEALTH_REFERENCE_TEXT,
+    );
     Object.assign(
       textExtractProbe,
-      evaluateProbeResult(parseTextResult, KARANK_HEALTH_REFERENCE_TEXT)
+      evaluateProbeResult(parseTextResult, KARANK_HEALTH_REFERENCE_TEXT),
     );
   } catch (error) {
     textExtractProbe.error = formatError(error);
@@ -179,7 +181,7 @@ export const probeKarankReadiness = async () => {
   };
   try {
     const importResult = await runReferenceImportPipeline(
-      KARANK_HEALTH_REFERENCE_TEXT
+      KARANK_HEALTH_REFERENCE_TEXT,
     );
     Object.assign(
       importPipelineProbe,
@@ -190,7 +192,7 @@ export const probeKarankReadiness = async () => {
           importResult?.method === "karank-engine-bridge"
             ? "karank-visible"
             : "first-visible",
-      }
+      },
     );
   } catch (error) {
     importPipelineProbe.error = formatError(error);

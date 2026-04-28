@@ -17,34 +17,38 @@ function isTrustedWorkerMessage(event: MessageEvent<unknown>): boolean {
 // Worker message handler
 self.addEventListener(
   "message",
-  async (event: MessageEvent<PipelineAgentMessage>) => {
-    if (!isTrustedWorkerMessage(event)) {
-      return;
-    }
-
-    const message = event.data;
-
-    try {
-      switch (message.type) {
-        case "execute-pipeline":
-          await executePipeline(message);
-          break;
-        case "execute-step":
-          await executeStep(message);
-          break;
-        case "cancel":
-          handleCancel(message.executionId);
-          break;
-        default:
-          sendError("Unknown message type");
-      }
-    } catch (error) {
-      sendError(
-        error instanceof Error ? error.message : "Worker execution failed"
-      );
-    }
+  (event: MessageEvent<PipelineAgentMessage>) => {
+    void handleWorkerMessage(event);
   }
 );
+
+async function handleWorkerMessage(event: MessageEvent<PipelineAgentMessage>) {
+  if (!isTrustedWorkerMessage(event)) {
+    return;
+  }
+
+  const message = event.data;
+
+  try {
+    switch (message.type) {
+      case "execute-pipeline":
+        await executePipeline(message);
+        break;
+      case "execute-step":
+        await executeStep(message);
+        break;
+      case "cancel":
+        handleCancel(message.executionId);
+        break;
+      default:
+        sendError("Unknown message type");
+    }
+  } catch (error) {
+    sendError(
+      error instanceof Error ? error.message : "Worker execution failed"
+    );
+  }
+}
 
 // Active execution tracking
 const activeExecutions = new Map<string, AbortController>();

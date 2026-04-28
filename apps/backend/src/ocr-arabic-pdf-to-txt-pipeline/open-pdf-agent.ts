@@ -122,7 +122,7 @@ const parseToolJson = (raw: unknown, toolName: string): JsonRecord => {
     } catch (error) {
       throw new Error(
         `تعذر تحليل JSON من ${toolName}: ${error instanceof Error ? error.message : String(error)}`,
-        { cause: error }
+        { cause: error },
       );
     }
   }
@@ -132,7 +132,7 @@ const parseToolJson = (raw: unknown, toolName: string): JsonRecord => {
 const runTool = async (
   toolDef: unknown,
   payload: Record<string, unknown>,
-  toolName: string
+  toolName: string,
 ): Promise<JsonRecord> => {
   const maybeExecute = (toolDef as { execute?: unknown }).execute;
   if (typeof maybeExecute !== "function") {
@@ -176,8 +176,7 @@ const toClassification = (value: JsonRecord): ClassificationResult | null => {
     type: value["type"] as ClassificationResult["type"],
     pages: Number(value["pages"] ?? 0),
     size_mb: Number(value["size_mb"] ?? 0),
-    filename:
-      typeof value["filename"] === "string" ? value["filename"] : "",
+    filename: typeof value["filename"] === "string" ? value["filename"] : "",
     has_arabic: Boolean(value["has_arabic"]),
     recommended_engine: value[
       "recommended_engine"
@@ -188,7 +187,7 @@ const toClassification = (value: JsonRecord): ClassificationResult | null => {
 
 const verifyPathType = async (
   absolutePath: string,
-  expected: "file" | "dir"
+  expected: "file" | "dir",
 ): Promise<void> => {
   const entry = await stat(absolutePath);
   if (expected === "file" && !entry.isFile()) {
@@ -201,7 +200,7 @@ const verifyPathType = async (
 
 const verifyPipelineFootprint = async (
   agentRoot: string,
-  mcpServerPath: string
+  mcpServerPath: string,
 ): Promise<PipelineFootprint> => {
   const mcpRoot = dirname(mcpServerPath);
   const requiredDirectories = [
@@ -251,7 +250,7 @@ const verifyPipelineFootprint = async (
 const runMcpStage = async (
   mcpServerPath: string,
   rawTxtPath: string,
-  normalizedMdOutputPath: string
+  normalizedMdOutputPath: string,
 ): Promise<McpStageResult> => {
   const llmReferencePathRaw =
     process.env["OPEN_PDF_AGENT_LLM_REFERENCE_PATH"] ?? "";
@@ -288,7 +287,7 @@ const runMcpStage = async (
 
     if (!convertTool || typeof execute !== "function") {
       throw new Error(
-        "أداة convert_document_to_markdown غير متاحة من خادم MCP."
+        "أداة convert_document_to_markdown غير متاحة من خادم MCP.",
       );
     }
 
@@ -311,14 +310,12 @@ const runMcpStage = async (
       ? (payload["content"] as Record<string, unknown>[])
       : [];
     const firstText = content.find(
-      (item) => typeof item?.["text"] === "string"
+      (item) => typeof item?.["text"] === "string",
     );
 
     return {
       summary:
-        typeof firstText?.["text"] === "string"
-          ? firstText["text"]
-          : null,
+        typeof firstText?.["text"] === "string" ? firstText["text"] : null,
       llmEnabled,
       llmModel: llmEnabled ? llmModel : null,
       llmReferencePath: llmEnabled ? llmReferencePath : null,
@@ -378,10 +375,10 @@ const main = async (): Promise<void> => {
   const warnings: string[] = [];
 
   const verifyFootprintEnabled = isEnabledByDefault(
-    process.env["OPEN_PDF_AGENT_VERIFY_FOOTPRINT"] ?? "false"
+    process.env["OPEN_PDF_AGENT_VERIFY_FOOTPRINT"] ?? "false",
   );
   const mcpStageEnabled = isEnabledByDefault(
-    process.env["OPEN_PDF_AGENT_ENABLE_MCP_STAGE"] ?? "true"
+    process.env["OPEN_PDF_AGENT_ENABLE_MCP_STAGE"] ?? "true",
   );
 
   let footprint: PipelineFootprint | null = null;
@@ -395,7 +392,7 @@ const main = async (): Promise<void> => {
   const localClassificationRaw = await runTool(
     classifyPdfTool,
     { pdfPath: inputPath },
-    "classify_pdf"
+    "classify_pdf",
   );
   attempts.push("classify-local");
 
@@ -417,7 +414,7 @@ const main = async (): Promise<void> => {
       output: outputJsonPath,
       pages: args.pages,
     },
-    "skill_ocr_mistral"
+    "skill_ocr_mistral",
   );
   attempts.push("ocr-skill");
   warnings.push(...toStringArray(ocrResult["warnings"]));
@@ -430,7 +427,7 @@ const main = async (): Promise<void> => {
       format: "txt-raw",
       output: outputTxtPath,
     },
-    "skill_write_output"
+    "skill_write_output",
   );
   attempts.push("write-output-skill");
   warnings.push(...toStringArray(writeResult["warnings"]));
@@ -459,7 +456,7 @@ const main = async (): Promise<void> => {
       }
     } catch {
       warnings.push(
-        "MCP stage completed but markdown output file was not found."
+        "MCP stage completed but markdown output file was not found.",
       );
     }
   } else {
@@ -489,7 +486,7 @@ main().catch((error: unknown) => {
     JSON.stringify({
       success: false,
       error: message,
-    })
+    }),
   );
   process.exitCode = 1;
 });

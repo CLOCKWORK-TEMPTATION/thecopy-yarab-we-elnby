@@ -87,7 +87,7 @@ rules:
           })
     metadata:
       category: security
-      cwe: 'CWE-346'
+      cwe: "CWE-346"
 
   - id: thecopy.backend.no-token-in-json-auth-response
     message: >-

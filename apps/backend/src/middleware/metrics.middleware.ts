@@ -1,13 +1,19 @@
 /**
  * Prometheus Metrics for Performance Monitoring
- * 
+ *
  * Tracks custom application metrics
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { Counter, Histogram, Gauge, Registry, collectDefaultMetrics } from 'prom-client';
+import { Request, Response, NextFunction } from "express";
+import {
+  Counter,
+  Histogram,
+  Gauge,
+  Registry,
+  collectDefaultMetrics,
+} from "prom-client";
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // Create a custom registry
 export const register = new Registry();
@@ -15,8 +21,8 @@ export const register = new Registry();
 // Collect default metrics (CPU, memory, etc.)
 collectDefaultMetrics({
   register,
-  prefix: 'the_copy_',
-  labels: { app: 'the-copy-backend' },
+  prefix: "the_copy_",
+  labels: { app: "the-copy-backend" },
 });
 
 // ===== HTTP Metrics =====
@@ -25,9 +31,9 @@ collectDefaultMetrics({
  * HTTP request counter
  */
 export const httpRequestsTotal = new Counter({
-  name: 'the_copy_http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status_code'],
+  name: "the_copy_http_requests_total",
+  help: "Total number of HTTP requests",
+  labelNames: ["method", "route", "status_code"],
   registers: [register],
 });
 
@@ -35,9 +41,9 @@ export const httpRequestsTotal = new Counter({
  * HTTP request duration histogram
  */
 export const httpRequestDurationMs = new Histogram({
-  name: 'the_copy_http_request_duration_ms',
-  help: 'Duration of HTTP requests in milliseconds',
-  labelNames: ['method', 'route', 'status_code'],
+  name: "the_copy_http_request_duration_ms",
+  help: "Duration of HTTP requests in milliseconds",
+  labelNames: ["method", "route", "status_code"],
   buckets: [10, 50, 100, 200, 500, 1000, 2000, 5000, 10000],
   registers: [register],
 });
@@ -46,8 +52,8 @@ export const httpRequestDurationMs = new Histogram({
  * Active HTTP connections
  */
 export const httpActiveConnections = new Gauge({
-  name: 'the_copy_http_active_connections',
-  help: 'Number of active HTTP connections',
+  name: "the_copy_http_active_connections",
+  help: "Number of active HTTP connections",
   registers: [register],
 });
 
@@ -57,9 +63,9 @@ export const httpActiveConnections = new Gauge({
  * Gemini API request counter
  */
 export const geminiRequestsTotal = new Counter({
-  name: 'the_copy_gemini_requests_total',
-  help: 'Total number of Gemini API requests',
-  labelNames: ['status', 'analysis_type'],
+  name: "the_copy_gemini_requests_total",
+  help: "Total number of Gemini API requests",
+  labelNames: ["status", "analysis_type"],
   registers: [register],
 });
 
@@ -67,9 +73,9 @@ export const geminiRequestsTotal = new Counter({
  * Gemini API request duration
  */
 export const geminiRequestDurationMs = new Histogram({
-  name: 'the_copy_gemini_request_duration_ms',
-  help: 'Duration of Gemini API requests in milliseconds',
-  labelNames: ['analysis_type'],
+  name: "the_copy_gemini_request_duration_ms",
+  help: "Duration of Gemini API requests in milliseconds",
+  labelNames: ["analysis_type"],
   buckets: [500, 1000, 2000, 5000, 10000, 30000, 60000],
   registers: [register],
 });
@@ -78,14 +84,14 @@ export const geminiRequestDurationMs = new Histogram({
  * Gemini cache hit rate
  */
 export const geminiCacheHits = new Counter({
-  name: 'the_copy_gemini_cache_hits_total',
-  help: 'Total number of Gemini cache hits',
+  name: "the_copy_gemini_cache_hits_total",
+  help: "Total number of Gemini cache hits",
   registers: [register],
 });
 
 export const geminiCacheMisses = new Counter({
-  name: 'the_copy_gemini_cache_misses_total',
-  help: 'Total number of Gemini cache misses',
+  name: "the_copy_gemini_cache_misses_total",
+  help: "Total number of Gemini cache misses",
   registers: [register],
 });
 
@@ -95,9 +101,9 @@ export const geminiCacheMisses = new Counter({
  * Database query counter
  */
 export const dbQueriesTotal = new Counter({
-  name: 'the_copy_db_queries_total',
-  help: 'Total number of database queries',
-  labelNames: ['operation', 'table'],
+  name: "the_copy_db_queries_total",
+  help: "Total number of database queries",
+  labelNames: ["operation", "table"],
   registers: [register],
 });
 
@@ -105,9 +111,9 @@ export const dbQueriesTotal = new Counter({
  * Database query duration
  */
 export const dbQueryDurationMs = new Histogram({
-  name: 'the_copy_db_query_duration_ms',
-  help: 'Duration of database queries in milliseconds',
-  labelNames: ['operation', 'table'],
+  name: "the_copy_db_query_duration_ms",
+  help: "Duration of database queries in milliseconds",
+  labelNames: ["operation", "table"],
   buckets: [1, 5, 10, 25, 50, 100, 250, 500, 1000],
   registers: [register],
 });
@@ -116,8 +122,8 @@ export const dbQueryDurationMs = new Histogram({
  * Database connection pool size
  */
 export const dbConnectionPoolSize = new Gauge({
-  name: 'the_copy_db_connection_pool_size',
-  help: 'Current database connection pool size',
+  name: "the_copy_db_connection_pool_size",
+  help: "Current database connection pool size",
   registers: [register],
 });
 
@@ -127,9 +133,9 @@ export const dbConnectionPoolSize = new Gauge({
  * Queue job counter
  */
 export const queueJobsTotal = new Counter({
-  name: 'the_copy_queue_jobs_total',
-  help: 'Total number of queue jobs',
-  labelNames: ['queue', 'status'],
+  name: "the_copy_queue_jobs_total",
+  help: "Total number of queue jobs",
+  labelNames: ["queue", "status"],
   registers: [register],
 });
 
@@ -137,9 +143,9 @@ export const queueJobsTotal = new Counter({
  * Queue job duration
  */
 export const queueJobDurationMs = new Histogram({
-  name: 'the_copy_queue_job_duration_ms',
-  help: 'Duration of queue jobs in milliseconds',
-  labelNames: ['queue'],
+  name: "the_copy_queue_job_duration_ms",
+  help: "Duration of queue jobs in milliseconds",
+  labelNames: ["queue"],
   buckets: [100, 500, 1000, 5000, 10000, 30000, 60000, 120000],
   registers: [register],
 });
@@ -148,9 +154,9 @@ export const queueJobDurationMs = new Histogram({
  * Queue size gauge
  */
 export const queueSize = new Gauge({
-  name: 'the_copy_queue_size',
-  help: 'Number of jobs in queue',
-  labelNames: ['queue', 'state'],
+  name: "the_copy_queue_size",
+  help: "Number of jobs in queue",
+  labelNames: ["queue", "state"],
   registers: [register],
 });
 
@@ -160,8 +166,8 @@ export const queueSize = new Gauge({
  * Redis connection status
  */
 export const redisConnectionStatus = new Gauge({
-  name: 'the_copy_redis_connection_status',
-  help: 'Redis connection status (1 = connected, 0 = disconnected)',
+  name: "the_copy_redis_connection_status",
+  help: "Redis connection status (1 = connected, 0 = disconnected)",
   registers: [register],
 });
 
@@ -169,9 +175,9 @@ export const redisConnectionStatus = new Gauge({
  * Redis cache operations counter
  */
 export const redisCacheOpsTotal = new Counter({
-  name: 'the_copy_redis_cache_ops_total',
-  help: 'Total number of Redis cache operations',
-  labelNames: ['operation', 'layer'],
+  name: "the_copy_redis_cache_ops_total",
+  help: "Total number of Redis cache operations",
+  labelNames: ["operation", "layer"],
   registers: [register],
 });
 
@@ -179,8 +185,8 @@ export const redisCacheOpsTotal = new Counter({
  * Redis cache hit rate
  */
 export const redisCacheHitRate = new Gauge({
-  name: 'the_copy_redis_cache_hit_rate',
-  help: 'Redis cache hit rate percentage',
+  name: "the_copy_redis_cache_hit_rate",
+  help: "Redis cache hit rate percentage",
   registers: [register],
 });
 
@@ -188,9 +194,9 @@ export const redisCacheHitRate = new Gauge({
  * Redis operation latency
  */
 export const redisOperationLatencyMs = new Histogram({
-  name: 'the_copy_redis_operation_latency_ms',
-  help: 'Redis operation latency in milliseconds',
-  labelNames: ['operation'],
+  name: "the_copy_redis_operation_latency_ms",
+  help: "Redis operation latency in milliseconds",
+  labelNames: ["operation"],
   buckets: [1, 5, 10, 25, 50, 100, 250, 500, 1000],
   registers: [register],
 });
@@ -199,8 +205,8 @@ export const redisOperationLatencyMs = new Histogram({
  * Redis memory usage (if available)
  */
 export const redisMemoryUsageBytes = new Gauge({
-  name: 'the_copy_redis_memory_usage_bytes',
-  help: 'Redis memory usage in bytes',
+  name: "the_copy_redis_memory_usage_bytes",
+  help: "Redis memory usage in bytes",
   registers: [register],
 });
 
@@ -208,8 +214,8 @@ export const redisMemoryUsageBytes = new Gauge({
  * Cache size (L1 memory cache)
  */
 export const cacheMemorySize = new Gauge({
-  name: 'the_copy_cache_memory_size',
-  help: 'Number of items in L1 memory cache',
+  name: "the_copy_cache_memory_size",
+  help: "Number of items in L1 memory cache",
   registers: [register],
 });
 
@@ -219,8 +225,8 @@ export const cacheMemorySize = new Gauge({
  * Active users gauge
  */
 export const activeUsers = new Gauge({
-  name: 'the_copy_active_users',
-  help: 'Number of currently active users',
+  name: "the_copy_active_users",
+  help: "Number of currently active users",
   registers: [register],
 });
 
@@ -228,8 +234,8 @@ export const activeUsers = new Gauge({
  * Projects created counter
  */
 export const projectsCreated = new Counter({
-  name: 'the_copy_projects_created_total',
-  help: 'Total number of projects created',
+  name: "the_copy_projects_created_total",
+  help: "Total number of projects created",
   registers: [register],
 });
 
@@ -237,22 +243,22 @@ export const projectsCreated = new Counter({
  * Scenes analyzed counter
  */
 export const scenesAnalyzed = new Counter({
-  name: 'the_copy_scenes_analyzed_total',
-  help: 'Total number of scenes analyzed',
+  name: "the_copy_scenes_analyzed_total",
+  help: "Total number of scenes analyzed",
   registers: [register],
 });
 
 // ===== Middleware =====
 
 const LONG_RUNNING_API_PATHS = new Set([
-  '/health/ready',
-  '/health/detailed',
-  '/api/export/pdfa',
-  '/api/file-extract',
-  '/api/files/extract',
-  '/api/text-extract',
-  '/api/final-review',
-  '/api/suspicion-review',
+  "/health/ready",
+  "/health/detailed",
+  "/api/export/pdfa",
+  "/api/file-extract",
+  "/api/files/extract",
+  "/api/text-extract",
+  "/api/final-review",
+  "/api/suspicion-review",
 ]);
 
 function getSlowRequestThresholdMs(path: string): number {
@@ -260,7 +266,7 @@ function getSlowRequestThresholdMs(path: string): number {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function getRoutePath(req: Request): string {
@@ -268,21 +274,25 @@ function getRoutePath(req: Request): string {
   if (!isRecord(route)) {
     return req.path;
   }
-  const routePath = route['path'];
-  return typeof routePath === 'string' ? routePath : req.path;
+  const routePath = route["path"];
+  return typeof routePath === "string" ? routePath : req.path;
 }
 
 /**
  * Middleware to track HTTP metrics
  */
-export function metricsMiddleware(req: Request, res: Response, next: NextFunction) {
+export function metricsMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const startTime = Date.now();
 
   // Increment active connections
   httpActiveConnections.inc();
 
   // Track response
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - startTime;
     const route = getRoutePath(req);
     const method = req.method;
@@ -298,16 +308,19 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
       status_code: statusCode,
     });
 
-    httpRequestDurationMs.observe({
-      method,
-      route,
-      status_code: statusCode,
-    }, duration);
+    httpRequestDurationMs.observe(
+      {
+        method,
+        route,
+        status_code: statusCode,
+      },
+      duration,
+    );
 
     // Log slow requests
     const slowRequestThresholdMs = getSlowRequestThresholdMs(route);
     if (duration > slowRequestThresholdMs) {
-      logger.warn('Slow request detected', {
+      logger.warn("Slow request detected", {
         method,
         route,
         duration,
@@ -325,11 +338,11 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
  */
 export async function metricsEndpoint(_req: Request, res: Response) {
   try {
-    res.set('Content-Type', register.contentType);
+    res.set("Content-Type", register.contentType);
     res.end(await register.metrics());
   } catch (error) {
-    logger.error('Failed to collect metrics:', error);
-    res.status(500).end('Failed to collect metrics');
+    logger.error("Failed to collect metrics:", error);
+    res.status(500).end("Failed to collect metrics");
   }
 }
 
@@ -339,16 +352,19 @@ export async function metricsEndpoint(_req: Request, res: Response) {
 export function trackGeminiRequest(
   analysisType: string,
   duration: number,
-  success: boolean
+  success: boolean,
 ) {
   geminiRequestsTotal.inc({
-    status: success ? 'success' : 'error',
+    status: success ? "success" : "error",
     analysis_type: analysisType,
   });
 
-  geminiRequestDurationMs.observe({
-    analysis_type: analysisType,
-  }, duration);
+  geminiRequestDurationMs.observe(
+    {
+      analysis_type: analysisType,
+    },
+    duration,
+  );
 }
 
 /**
@@ -368,17 +384,20 @@ export function trackGeminiCache(hit: boolean) {
 export function trackDbQuery(
   operation: string,
   table: string,
-  duration: number
+  duration: number,
 ) {
   dbQueriesTotal.inc({
     operation,
     table,
   });
 
-  dbQueryDurationMs.observe({
-    operation,
-    table,
-  }, duration);
+  dbQueryDurationMs.observe(
+    {
+      operation,
+      table,
+    },
+    duration,
+  );
 }
 
 /**
@@ -386,36 +405,42 @@ export function trackDbQuery(
  */
 export function trackQueueJob(
   queue: string,
-  status: 'completed' | 'failed',
-  duration: number
+  status: "completed" | "failed",
+  duration: number,
 ) {
   queueJobsTotal.inc({
     queue,
     status,
   });
 
-  queueJobDurationMs.observe({
-    queue,
-  }, duration);
+  queueJobDurationMs.observe(
+    {
+      queue,
+    },
+    duration,
+  );
 }
 
 /**
  * Update queue size
  */
 export function updateQueueSize(queue: string, state: string, size: number) {
-  queueSize.set({
-    queue,
-    state,
-  }, size);
+  queueSize.set(
+    {
+      queue,
+      state,
+    },
+    size,
+  );
 }
 
 /**
  * Track Redis cache operation
  */
 export function trackRedisCacheOp(
-  operation: 'get' | 'set' | 'delete' | 'clear',
-  layer: 'l1' | 'l2',
-  latency?: number
+  operation: "get" | "set" | "delete" | "clear",
+  layer: "l1" | "l2",
+  latency?: number,
 ) {
   redisCacheOpsTotal.inc({
     operation,
@@ -423,9 +448,12 @@ export function trackRedisCacheOp(
   });
 
   if (latency !== undefined) {
-    redisOperationLatencyMs.observe({
-      operation,
-    }, latency);
+    redisOperationLatencyMs.observe(
+      {
+        operation,
+      },
+      latency,
+    );
   }
 }
 

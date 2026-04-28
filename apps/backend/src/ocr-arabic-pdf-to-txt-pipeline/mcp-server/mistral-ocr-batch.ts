@@ -25,7 +25,7 @@ export async function processDocumentViaBatch(
   config: MistralOCRConfig,
   documentUrl: string,
   documentName: string | undefined,
-  commonKwargs: JsonRecord
+  commonKwargs: JsonRecord,
 ): Promise<BatchOcrResult> {
   const payload: JsonRecord = {
     document: {
@@ -36,10 +36,7 @@ export async function processDocumentViaBatch(
     ...commonKwargs,
   };
 
-  const timeoutHours = Math.max(
-    1,
-    Math.ceil(config.batchTimeoutSec / 3600)
-  );
+  const timeoutHours = Math.max(1, Math.ceil(config.batchTimeoutSec / 3600));
   const batch = await mistralRequestJson("POST", "/batch/jobs", {
     endpoint: "/v1/ocr",
     model: config.model,
@@ -57,13 +54,13 @@ export async function processDocumentViaBatch(
   const deadline = Date.now() + config.batchTimeoutSec * 1000;
   const pollInterval = Math.max(
     500,
-    Math.round(config.batchPollIntervalSec * 1000)
+    Math.round(config.batchPollIntervalSec * 1000),
   );
 
   while (true) {
     const job = await mistralRequestJson(
       "GET",
-      `/batch/jobs/${encodeURIComponent(jobId)}?inline=true`
+      `/batch/jobs/${encodeURIComponent(jobId)}?inline=true`,
     );
     const status = str(field(job, "status", "")).toUpperCase();
     const completed = Number(field(job, "completed_requests", 0));
@@ -82,7 +79,7 @@ export async function processDocumentViaBatch(
     if (["FAILED", "TIMEOUT_EXCEEDED", "CANCELLED"].includes(status)) {
       const errors = field(job, "errors", []);
       throw new Error(
-        `Batch OCR انتهى بالحالة ${status}. errors=${JSON.stringify(errors)}`
+        `Batch OCR انتهى بالحالة ${status}. errors=${JSON.stringify(errors)}`,
       );
     }
 
@@ -90,23 +87,23 @@ export async function processDocumentViaBatch(
       try {
         await mistralRequestJson(
           "POST",
-          `/batch/jobs/${encodeURIComponent(jobId)}/cancel`
+          `/batch/jobs/${encodeURIComponent(jobId)}/cancel`,
         );
         log(
           "WARN",
           "تم إرسال طلب إلغاء لـ Batch OCR job بعد تجاوز المهلة: %s",
-          jobId
+          jobId,
         );
       } catch (cancelError) {
         log(
           "WARN",
           "تعذر إلغاء Batch OCR job %s بعد انتهاء المهلة: %s",
           jobId,
-          String(cancelError)
+          String(cancelError),
         );
       }
       throw new Error(
-        `انتهت مهلة Batch OCR (${config.batchTimeoutSec}s) قبل الاكتمال.`
+        `انتهت مهلة Batch OCR (${config.batchTimeoutSec}s) قبل الاكتمال.`,
       );
     }
 
@@ -115,7 +112,7 @@ export async function processDocumentViaBatch(
 }
 
 async function extractMarkdownFromBatchJob(
-  job: unknown
+  job: unknown,
 ): Promise<BatchOcrResult> {
   const outputs = field<unknown[]>(job, "outputs", []);
   if (Array.isArray(outputs) && outputs.length > 0) {
@@ -132,7 +129,7 @@ async function extractMarkdownFromBatchJob(
   }
 
   const outputFileId = str(
-    field(job, "output_file", "") || field(job, "output_file_id", "")
+    field(job, "output_file", "") || field(job, "output_file_id", ""),
   ).trim();
   if (outputFileId) {
     const text = await downloadMistralFileText(outputFileId);

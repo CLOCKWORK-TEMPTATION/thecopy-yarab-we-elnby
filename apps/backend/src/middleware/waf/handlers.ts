@@ -46,7 +46,7 @@ export interface CheckResult {
 export type CheckHandler = (
   req: Request,
   res: Response,
-  ctx: RequestContext
+  ctx: RequestContext,
 ) => CheckResult;
 
 // ============================================================================
@@ -101,7 +101,7 @@ const checkIPBlacklist: CheckHandler = (_req, _res, ctx) => {
       severity: "high",
       ...ctx,
       matchedValue: ctx.ip,
-    })
+    }),
   );
 
   const wafConfig = getWafConfig();
@@ -124,7 +124,7 @@ const checkUserAgentBlacklist: CheckHandler = (_req, _res, ctx) => {
       severity: "medium",
       ...ctx,
       matchedValue: ctx.userAgent,
-    })
+    }),
   );
 
   const wafConfig = getWafConfig();
@@ -159,7 +159,7 @@ const checkRateLimitHandler: CheckHandler = (_req, res, ctx) => {
         windowMs: wafConfig.rateLimit.windowMs,
         maxRequests: wafConfig.rateLimit.maxRequests,
       },
-    })
+    }),
   );
 
   if (wafConfig.mode === "block") {
@@ -183,19 +183,39 @@ interface RuleCategory {
 }
 
 export const RULE_CATEGORIES: RuleCategory[] = [
-  { rules: SQL_INJECTION_PATTERNS, eventType: "SQL_INJECTION", configKey: "sqlInjection" },
+  {
+    rules: SQL_INJECTION_PATTERNS,
+    eventType: "SQL_INJECTION",
+    configKey: "sqlInjection",
+  },
   { rules: XSS_PATTERNS, eventType: "XSS_ATTACK", configKey: "xss" },
-  { rules: COMMAND_INJECTION_PATTERNS, eventType: "COMMAND_INJECTION", configKey: "commandInjection" },
-  { rules: PATH_TRAVERSAL_PATTERNS, eventType: "PATH_TRAVERSAL", configKey: "pathTraversal" },
-  { rules: PROTOCOL_ATTACK_PATTERNS, eventType: "PROTOCOL_ATTACK", configKey: "protocolAttack" },
-  { rules: BOT_DETECTION_PATTERNS, eventType: "BOT_DETECTED", configKey: "botProtection" },
+  {
+    rules: COMMAND_INJECTION_PATTERNS,
+    eventType: "COMMAND_INJECTION",
+    configKey: "commandInjection",
+  },
+  {
+    rules: PATH_TRAVERSAL_PATTERNS,
+    eventType: "PATH_TRAVERSAL",
+    configKey: "pathTraversal",
+  },
+  {
+    rules: PROTOCOL_ATTACK_PATTERNS,
+    eventType: "PROTOCOL_ATTACK",
+    configKey: "protocolAttack",
+  },
+  {
+    rules: BOT_DETECTION_PATTERNS,
+    eventType: "BOT_DETECTED",
+    configKey: "botProtection",
+  },
 ];
 
 export function processRuleMatch(
   req: Request,
   rule: WAFRule,
   eventType: WAFEventType,
-  ctx: RequestContext
+  ctx: RequestContext,
 ): CheckResult {
   const wafConfig = getWafConfig();
   const result = checkRule(req, rule);
@@ -265,7 +285,7 @@ export function executeCheckPipeline(
   handlers: CheckHandler[],
   req: Request,
   res: Response,
-  ctx: RequestContext
+  ctx: RequestContext,
 ): CheckResult | null {
   for (const handler of handlers) {
     const result = handler(req, res, ctx);

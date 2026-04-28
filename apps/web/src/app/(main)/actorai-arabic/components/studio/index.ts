@@ -12,7 +12,6 @@ export { useRecording } from "./useRecording";
 export { useVocalExercises } from "./useVocalExercises";
 export { useRhythmAnalysis } from "./useRhythmAnalysis";
 export { useWebcamAnalysisBridge } from "./useWebcamAnalysisBridge";
-export { useRhythmAnalysis } from "./useRhythmAnalysis";
 export { useWebcamAnalysis } from "./useWebcamAnalysis";
 export { useARTraining } from "./useARTraining";
 

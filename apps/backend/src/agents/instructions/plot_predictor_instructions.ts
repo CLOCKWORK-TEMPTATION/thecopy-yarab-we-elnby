@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 export const plotPredictorInstructions = `
 توقع مسار الأحداث والتطور الدرامي:
@@ -39,8 +39,8 @@ export const plotPredictorAgentConfig: AIAgentConfig = {
   instructions: plotPredictorInstructions,
   capabilities: [
     "توقع الأحداث المستقبلية",
-    "تحليل تطور الشخصيات", 
+    "تحليل تطور الشخصيات",
     "تقدير احتماليات السيناريوهات",
-    "تحديد النقاط المحورية"
-  ]
+    "تحديد النقاط المحورية",
+  ],
 };

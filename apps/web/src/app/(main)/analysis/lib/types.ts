@@ -27,7 +27,7 @@ export interface StationState {
   progress: number;
   startedAt: string | null;
   completedAt: string | null;
-  output: unknown | null;
+  output: unknown;
   error: string | null;
   confidence: number | null;
 }

@@ -59,7 +59,9 @@ describe("RhythmMappingAgent", () => {
   });
 
   it("should return fallback metadata on failure", async () => {
-    mockExecuteStandardPattern.mockRejectedValueOnce(new Error("rhythm failed"));
+    mockExecuteStandardPattern.mockRejectedValueOnce(
+      new Error("rhythm failed"),
+    );
 
     const result = await agent.executeTask({
       input: "حلل الإيقاع",

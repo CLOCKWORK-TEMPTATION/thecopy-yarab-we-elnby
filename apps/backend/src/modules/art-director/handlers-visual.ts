@@ -29,7 +29,7 @@ const COLOR_TEMPERATURE_MAP: Record<string, number> = {
 function buildScenePair(
   sceneId: string,
   palette: string[],
-  lightingCondition: string
+  lightingCondition: string,
 ) {
   const temperature = COLOR_TEMPERATURE_MAP[lightingCondition] ?? 5600;
   return [
@@ -63,10 +63,9 @@ function buildScenePair(
 }
 
 export async function handleVisualConsistency(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
-  const sceneId =
-    asString(payload["sceneId"]) || randomUUID();
+  const sceneId = asString(payload["sceneId"]) || randomUUID();
   const lightingCondition =
     asString(payload["lightingCondition"]) || "daylight";
   const colors = parseList(payload["referenceColors"]);
@@ -90,7 +89,7 @@ export async function handleVisualConsistency(
 }
 
 export async function handleTerminologyTranslation(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const term = asString(payload["term"]);
   const sourceLang = asString(payload["sourceLang"]) || "en";
@@ -115,7 +114,7 @@ export async function handleTerminologyTranslation(
 function buildBudgetCategories(
   categories: string[],
   requestPerCategory: number,
-  priority: string
+  priority: string,
 ) {
   return categories.map((category, index) => ({
     name: slugify(category),
@@ -134,7 +133,7 @@ function buildBudgetCategories(
 }
 
 export async function handleBudgetOptimization(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const totalBudget = Math.max(asNumber(payload["totalBudget"]), 1);
   const categories = parseList(payload["categories"]);
@@ -142,11 +141,9 @@ export async function handleBudgetOptimization(
   const categoryWeight =
     priority === "quality" ? 1.08 : priority === "cost" ? 0.92 : 1;
   const baseCategories =
-    categories.length > 0
-      ? categories
-      : ["الديكور", "الإضاءة", "الإكسسوارات"];
+    categories.length > 0 ? categories : ["الديكور", "الإضاءة", "الإكسسوارات"];
   const requestPerCategory = Math.round(
-    (totalBudget / baseCategories.length) * categoryWeight
+    (totalBudget / baseCategories.length) * categoryWeight,
   );
 
   const result = await runPlugin(BudgetOptimizer, {
@@ -157,7 +154,7 @@ export async function handleBudgetOptimization(
       categories: buildBudgetCategories(
         baseCategories,
         requestPerCategory,
-        priority
+        priority,
       ),
     },
   });
@@ -179,7 +176,7 @@ const TIME_OF_DAY_MAP: Record<string, string> = {
 };
 
 export async function handleLightingSimulation(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const location = asString(payload["location"]) || "interior";
   const timeOfDay = asString(payload["timeOfDay"]) || "morning";
@@ -206,7 +203,7 @@ export async function handleLightingSimulation(
 }
 
 export async function handleRiskAnalysis(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const budget = Math.max(asNumber(payload["budget"]), 1000);
   const timeline = Math.max(asNumber(payload["timeline"]), 1);
@@ -248,7 +245,7 @@ export async function handleRiskAnalysis(
 }
 
 export async function handleProductionReadinessPrompt(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const projectName = asString(payload["projectName"]) || "art-director";
   const department = asString(payload["department"]) || "art";

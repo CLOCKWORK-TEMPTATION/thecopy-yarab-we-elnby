@@ -19,7 +19,7 @@ export const buildMessages = (request) => [
     JSON.stringify({
       totalReviewed: request.totalReviewed,
       reviewLines: request.reviewLines,
-    })
+    }),
   ),
 ];
 
@@ -41,7 +41,9 @@ export const parseResponseJson = (text) => {
 };
 
 export const normalizeReviewedLines = (parsed, request) => {
-  const lines = Array.isArray(parsed?.reviewedLines) ? parsed.reviewedLines : [];
+  const lines = Array.isArray(parsed?.reviewedLines)
+    ? parsed.reviewedLines
+    : [];
   const byItemId = new Map();
   for (const line of lines) {
     if (!isObjectRecord(line) || !isNonEmptyString(line.itemId)) continue;
@@ -105,10 +107,11 @@ export const normalizeDiscoveredLines = (parsed, request) => {
 
   for (const reviewLine of request.reviewLines) {
     for (const contextLine of reviewLine.contextLines) {
-      if (!isIntegerNumber(contextLine.lineIndex) || !contextLine.text) continue;
+      if (!isIntegerNumber(contextLine.lineIndex) || !contextLine.text)
+        continue;
       allowedContextMap.set(
         `${contextLine.lineIndex}:${contextLine.text}`,
-        contextLine
+        contextLine,
       );
     }
   }

@@ -137,7 +137,7 @@ export class AnalysisPipeline {
     try {
       const orchestrationResult = await this.orchestrator.execute(
         data.text,
-        (data.options?.title as string) ?? "untitled-project"
+        (data.options?.["title"] as string) ?? "untitled-project"
       );
 
       const performanceMetrics =
@@ -195,7 +195,7 @@ export class AnalysisPipeline {
     try {
       const orchestrationResult = await this.orchestrator.execute(
         data.text,
-        (data.options?.title as string) ?? "untitled-project",
+        (data.options?.["title"] as string) ?? "untitled-project",
         options
       );
 

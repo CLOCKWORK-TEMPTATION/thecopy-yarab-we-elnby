@@ -134,7 +134,7 @@ describe("AgentReportsExporter — JSON export", () => {
 
     const parsed = JSON.parse(lastBlobContent) as Record<string, unknown>;
     expect(parsed).toHaveProperty("reports");
-    expect((parsed.reports as Record<string, unknown>)["agent-alpha"]).toBe(
+    expect((parsed["reports"] as Record<string, unknown>)["agent-alpha"]).toBe(
       "نتيجة الوكيل ألفا"
     );
   });
@@ -151,7 +151,7 @@ describe("AgentReportsExporter — JSON export", () => {
     const parsed = JSON.parse(lastBlobContent) as Record<string, unknown>;
     expect(parsed).toHaveProperty("taskResults");
 
-    const exportedResults = parsed.taskResults as Record<
+    const exportedResults = parsed["taskResults"] as Record<
       string,
       AgentTaskResult
     >;
@@ -180,7 +180,7 @@ describe("AgentReportsExporter — JSON export", () => {
 
     const parsed = JSON.parse(lastBlobContent) as Record<string, unknown>;
     expect(parsed).toHaveProperty("taskResults");
-    expect(parsed.taskResults).toEqual({});
+    expect(parsed["taskResults"]).toEqual({});
   });
 
   it("uses application/json MIME type", () => {
@@ -331,7 +331,7 @@ describe("AgentReportsExporter — missing/empty taskResults robustness", () => 
     renderExporter({ taskResults: {} });
     expect(() => clickJsonExport()).not.toThrow();
     const parsed = JSON.parse(lastBlobContent) as Record<string, unknown>;
-    expect(parsed.taskResults).toEqual({});
+    expect(parsed["taskResults"]).toEqual({});
   });
 
   it("Text export does not throw when taskResults is undefined", () => {

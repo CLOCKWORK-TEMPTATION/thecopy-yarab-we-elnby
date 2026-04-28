@@ -50,7 +50,15 @@ const sharedArgs = [
 ];
 
 const groups = [
-  ["src/config", "src/db", "src/middleware", "src/types", "src/utils", "src/bootstrap", "src/routes"],
+  [
+    "src/config",
+    "src/db",
+    "src/middleware",
+    "src/types",
+    "src/utils",
+    "src/bootstrap",
+    "src/routes",
+  ],
   ["src/controllers"],
   ["src/modules/breakapp"],
   ["src/modules/art-director"],
@@ -78,7 +86,7 @@ const groups = [
 for (const group of groups) {
   console.log(`\n[lint] ${group.join(", ")}`);
   const resolvedTargets = group.filter((target) =>
-    fs.existsSync(path.resolve(backendRoot, target))
+    fs.existsSync(path.resolve(backendRoot, target)),
   );
   if (resolvedTargets.length === 0) {
     continue;
@@ -86,12 +94,17 @@ for (const group of groups) {
 
   const result = spawnSync(
     process.execPath,
-    ["--max-old-space-size=6144", eslintPath, ...sharedArgs, ...resolvedTargets],
+    [
+      "--max-old-space-size=6144",
+      eslintPath,
+      ...sharedArgs,
+      ...resolvedTargets,
+    ],
     {
       cwd: backendRoot,
       stdio: "inherit",
       env: process.env,
-    }
+    },
   );
 
   if (result.status !== 0) {

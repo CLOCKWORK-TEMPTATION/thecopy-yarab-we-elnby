@@ -15,9 +15,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import type { ViewType } from "../../types";
+
 interface LoginPageProps {
   onLogin: (email: string, password: string) => void;
-  onNavigate: (view: any) => void;
+  onNavigate: (view: ViewType) => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({

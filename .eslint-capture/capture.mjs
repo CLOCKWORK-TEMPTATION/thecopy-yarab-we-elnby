@@ -3,7 +3,14 @@
 // Mirrors scripts/quality/eslint-contract.mjs target discovery for web + backend.
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,7 +32,8 @@ const projects = {
         if (!existsSync(full)) return;
         const stats = statSync(full);
         if (stats.isDirectory()) {
-          for (const entry of readdirSync(full)) collect(`${relativePath}/${entry}`);
+          for (const entry of readdirSync(full))
+            collect(`${relativePath}/${entry}`);
           return;
         }
         const extension = relativePath.slice(relativePath.lastIndexOf("."));
@@ -48,10 +56,12 @@ const projects = {
 
       for (const entry of ["scripts", "agents", "examples"]) {
         const full = resolve(root, entry);
-        if (existsSync(full) && statSync(full).isDirectory()) targets.push(entry);
+        if (existsSync(full) && statSync(full).isDirectory())
+          targets.push(entry);
       }
 
-      if (existsSync(resolve(root, "mcp-server.ts"))) targets.push("mcp-server.ts");
+      if (existsSync(resolve(root, "mcp-server.ts")))
+        targets.push("mcp-server.ts");
       return targets;
     },
   },
@@ -61,7 +71,10 @@ const eslintBin = resolve(repoRoot, "node_modules/eslint/bin/eslint.js");
 
 function createBackendLintProject(target, root) {
   const safeName = target.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 120);
-  const tempConfig = resolve(root, `.tsconfig.eslint-contract.${process.pid}.${safeName}.json`);
+  const tempConfig = resolve(
+    root,
+    `.tsconfig.eslint-contract.${process.pid}.${safeName}.json`,
+  );
   const isFile = /\.[cm]?[jt]sx?$/.test(target);
   const include = [
     "src/global.d.ts",
@@ -92,7 +105,10 @@ function createBackendLintProject(target, root) {
 
 function runEslint(projectKey, target) {
   const cfg = projects[projectKey];
-  const tempProject = projectKey === "backend" ? createBackendLintProject(target, cfg.root) : null;
+  const tempProject =
+    projectKey === "backend"
+      ? createBackendLintProject(target, cfg.root)
+      : null;
   const result = spawnSync(
     process.execPath,
     [
@@ -115,12 +131,27 @@ function runEslint(projectKey, target) {
   if (tempProject) rmSync(tempProject, { force: true });
 
   if (!result.stdout.trim()) {
-    return { fatal: true, status: result.status ?? 1, output: `${result.stderr ?? ""}${result.stdout ?? ""}`, files: [] };
+    return {
+      fatal: true,
+      status: result.status ?? 1,
+      output: `${result.stderr ?? ""}${result.stdout ?? ""}`,
+      files: [],
+    };
   }
   try {
-    return { fatal: false, status: result.status ?? 0, output: result.stderr ?? "", files: JSON.parse(result.stdout) };
+    return {
+      fatal: false,
+      status: result.status ?? 0,
+      output: result.stderr ?? "",
+      files: JSON.parse(result.stdout),
+    };
   } catch (err) {
-    return { fatal: true, status: result.status ?? 1, output: `${err.message}\n${result.stderr ?? ""}\n${result.stdout ?? ""}`, files: [] };
+    return {
+      fatal: true,
+      status: result.status ?? 1,
+      output: `${err.message}\n${result.stderr ?? ""}\n${result.stdout ?? ""}`,
+      files: [],
+    };
   }
 }
 
@@ -138,7 +169,10 @@ for (const projectKey of Object.keys(projects)) {
       continue;
     }
     for (const fileResult of result.files) {
-      const filePath = relative(repoRoot, fileResult.filePath).replaceAll("\\", "/");
+      const filePath = relative(repoRoot, fileResult.filePath).replaceAll(
+        "\\",
+        "/",
+      );
       for (const m of fileResult.messages ?? []) {
         allMessages.push({
           project: projectKey,
@@ -177,7 +211,10 @@ const errors = allMessages
 const warnings = allMessages.filter((m) => m.severity === 1).length;
 const outDir = resolve(repoRoot, ".eslint-capture");
 mkdirSync(outDir, { recursive: true });
-writeFileSync(resolve(outDir, "all-errors.json"), `${JSON.stringify(errors, null, 2)}\n`);
+writeFileSync(
+  resolve(outDir, "all-errors.json"),
+  `${JSON.stringify(errors, null, 2)}\n`,
+);
 
 const summary = {
   totalMessages: allMessages.length,
@@ -185,10 +222,18 @@ const summary = {
   totalWarnings: warnings,
   fatalTargets: fatalOutputs.length,
 };
-writeFileSync(resolve(outDir, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
+writeFileSync(
+  resolve(outDir, "summary.json"),
+  `${JSON.stringify(summary, null, 2)}\n`,
+);
 
 const slice = errors.filter((e) => e.index >= 501 && e.index <= 1000);
-writeFileSync(resolve(outDir, "slice-501-1000.json"), `${JSON.stringify(slice, null, 2)}\n`);
+writeFileSync(
+  resolve(outDir, "slice-501-1000.json"),
+  `${JSON.stringify(slice, null, 2)}\n`,
+);
 
-process.stderr.write(`[capture] errors=${errors.length} warnings=${warnings} fatalTargets=${fatalOutputs.length}\n`);
+process.stderr.write(
+  `[capture] errors=${errors.length} warnings=${warnings} fatalTargets=${fatalOutputs.length}\n`,
+);
 process.stderr.write(`[capture] slice 501..1000 size=${slice.length}\n`);

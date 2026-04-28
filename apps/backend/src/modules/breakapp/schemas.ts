@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const scanQrSchema = z.object({ qr_token: z.string().min(1) });
 export const createSessionBodySchema = z.object({
@@ -15,7 +15,7 @@ export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1),
 });
 export const orderStatusSchema = z.object({
-  status: z.enum(['pending', 'processing', 'completed', 'cancelled']),
+  status: z.enum(["pending", "processing", "completed", "cancelled"]),
 });
 export const runnerLocationSchema = z.object({
   runnerId: z.string().min(1),

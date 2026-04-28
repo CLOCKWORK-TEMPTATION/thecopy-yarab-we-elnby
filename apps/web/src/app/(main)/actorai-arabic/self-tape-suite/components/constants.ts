@@ -1,5 +1,4 @@
-import type { NoteType } from "./types";
-import type { Take } from "./types";
+import type { NoteType, Take } from "./types";
 
 export const RECORDING_MIME_CANDIDATES = [
   "video/webm;codecs=vp9,opus",

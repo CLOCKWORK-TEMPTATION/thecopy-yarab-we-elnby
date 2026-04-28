@@ -9,37 +9,37 @@
  */
 export enum RealtimeEventType {
   // Job Progress Events
-  JOB_STARTED = 'job:started',
-  JOB_PROGRESS = 'job:progress',
-  JOB_COMPLETED = 'job:completed',
-  JOB_FAILED = 'job:failed',
-  JOB_RETRY = 'job:retry',
+  JOB_STARTED = "job:started",
+  JOB_PROGRESS = "job:progress",
+  JOB_COMPLETED = "job:completed",
+  JOB_FAILED = "job:failed",
+  JOB_RETRY = "job:retry",
 
   // Queue Events
-  QUEUE_ACTIVE = 'queue:active',
-  QUEUE_WAITING = 'queue:waiting',
-  QUEUE_COMPLETED = 'queue:completed',
-  QUEUE_FAILED = 'queue:failed',
-  QUEUE_STALLED = 'queue:stalled',
-  QUEUE_CLEANED = 'queue:cleaned',
+  QUEUE_ACTIVE = "queue:active",
+  QUEUE_WAITING = "queue:waiting",
+  QUEUE_COMPLETED = "queue:completed",
+  QUEUE_FAILED = "queue:failed",
+  QUEUE_STALLED = "queue:stalled",
+  QUEUE_CLEANED = "queue:cleaned",
 
   // Analysis Events
-  ANALYSIS_STARTED = 'analysis:started',
-  ANALYSIS_PROGRESS = 'analysis:progress',
-  ANALYSIS_STATION_COMPLETED = 'analysis:station_completed',
-  ANALYSIS_COMPLETED = 'analysis:completed',
-  ANALYSIS_FAILED = 'analysis:failed',
+  ANALYSIS_STARTED = "analysis:started",
+  ANALYSIS_PROGRESS = "analysis:progress",
+  ANALYSIS_STATION_COMPLETED = "analysis:station_completed",
+  ANALYSIS_COMPLETED = "analysis:completed",
+  ANALYSIS_FAILED = "analysis:failed",
 
   // System Events
-  SYSTEM_ERROR = 'system:error',
-  SYSTEM_WARNING = 'system:warning',
-  SYSTEM_INFO = 'system:info',
+  SYSTEM_ERROR = "system:error",
+  SYSTEM_WARNING = "system:warning",
+  SYSTEM_INFO = "system:info",
 
   // Connection Events
-  CONNECTED = 'connected',
-  DISCONNECTED = 'disconnected',
-  AUTHENTICATED = 'authenticated',
-  UNAUTHORIZED = 'unauthorized',
+  CONNECTED = "connected",
+  DISCONNECTED = "disconnected",
+  AUTHENTICATED = "authenticated",
+  UNAUTHORIZED = "unauthorized",
 }
 
 /**
@@ -58,7 +58,7 @@ export interface JobProgressPayload extends RealtimeBasePayload {
   jobId: string;
   queueName: string;
   progress: number; // 0-100
-  status: 'active' | 'waiting' | 'completed' | 'failed' | 'delayed';
+  status: "active" | "waiting" | "completed" | "failed" | "delayed";
   data?: unknown;
   message?: string;
   currentStep?: string;
@@ -143,7 +143,7 @@ export interface StationCompletedPayload extends RealtimeBasePayload {
  * System Event Payload
  */
 export interface SystemEventPayload extends RealtimeBasePayload {
-  level: 'error' | 'warning' | 'info';
+  level: "error" | "warning" | "info";
   message: string;
   details?: unknown;
   code?: string;
@@ -184,10 +184,10 @@ export interface RealtimeEvent<T extends RealtimePayload = RealtimePayload> {
  * WebSocket room names
  */
 export enum WebSocketRoom {
-  USER = 'user',
-  PROJECT = 'project',
-  QUEUE = 'queue',
-  GLOBAL = 'global',
+  USER = "user",
+  PROJECT = "project",
+  QUEUE = "queue",
+  GLOBAL = "global",
 }
 
 /**
@@ -202,7 +202,7 @@ export function createRoomName(room: WebSocketRoom, id: string): string {
  */
 export function createRealtimeEvent<T extends RealtimePayload>(
   eventType: RealtimeEventType,
-  payload: Omit<T, 'timestamp' | 'eventType'>
+  payload: Omit<T, "timestamp" | "eventType">,
 ): RealtimeEvent<T> {
   return {
     event: eventType,

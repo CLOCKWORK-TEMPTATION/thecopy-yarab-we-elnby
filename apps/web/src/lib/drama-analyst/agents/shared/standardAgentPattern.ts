@@ -7,34 +7,33 @@
 import { callGeminiText, toText } from "@/lib/ai/gemini-core";
 
 import {
-  performSelfCritique,
-  performConstitutionalCheck,
-  measureUncertainty,
   detectHallucinations,
+  measureUncertainty,
+  performConstitutionalCheck,
+  performSelfCritique,
 } from "./standardAgentPattern.quality";
-import { performRAG, buildPromptWithRAG } from "./standardAgentPattern.rag";
+import { buildPromptWithRAG, performRAG } from "./standardAgentPattern.rag";
+import {
+  DEFAULT_OPTIONS,
+  type ExecutionMetadata,
+  type ExecutionState,
+  type NormalizedExecutionArgs,
+  type StandardAgentInput,
+  type StandardAgentOptions,
+  type StandardAgentOutput,
+} from "./standardAgentPattern.types";
 
 export { formatAgentOutput } from "./standardAgentFormat";
 
 export type {
+  ConstitutionalCheckResult,
+  HallucinationCheckResult,
+  RAGContext,
+  SelfCritiqueResult,
   StandardAgentInput,
   StandardAgentOptions,
   StandardAgentOutput,
-  RAGContext,
-  SelfCritiqueResult,
-  ConstitutionalCheckResult,
   UncertaintyMetrics,
-  HallucinationCheckResult,
-} from "./standardAgentPattern.types";
-
-import {
-  DEFAULT_OPTIONS,
-  type StandardAgentInput,
-  type StandardAgentOptions,
-  type StandardAgentOutput,
-  type ExecutionMetadata,
-  type ExecutionState,
-  type NormalizedExecutionArgs,
 } from "./standardAgentPattern.types";
 
 // =====================================================
@@ -59,7 +58,7 @@ function createPromptWithOptionalRag(
   metadata: ExecutionMetadata,
   notes: string[]
 ): string {
-  const originalText = context?.originalText;
+  const originalText = context?.["originalText"];
   if (!options.enableRAG || typeof originalText !== "string") return taskPrompt;
 
   const ragContext = performRAG(taskPrompt, originalText);

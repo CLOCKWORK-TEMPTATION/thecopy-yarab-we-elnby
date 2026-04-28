@@ -8,7 +8,7 @@ import {
   resolveReviewChannelConfig,
 } from "../provider-config.mjs";
 import { getReviewRuntimeSnapshot } from "../provider-api-runtime.mjs";
-import { FINAL_REVIEW_CHANNEL, DEFAULT_MODEL_ID } from "./constants.mjs";
+import { FINAL_REVIEW_CHANNEL } from "./constants.mjs";
 
 export const logger = pino({ name: "final-review" });
 logReviewChannelStartupWarnings(logger, "final-review");

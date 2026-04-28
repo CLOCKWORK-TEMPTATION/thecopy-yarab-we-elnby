@@ -1,11 +1,11 @@
-import { EventEmitter } from 'node:events';
+import { EventEmitter } from "node:events";
 
 export type ConnectionOptions = Record<string, unknown>;
 
 export interface JobsOptions {
   attempts?: number;
   backoff?: {
-    type?: 'fixed' | 'exponential';
+    type?: "fixed" | "exponential";
     delay?: number;
   };
   priority?: number;
@@ -30,12 +30,12 @@ export interface WorkerOptions {
 }
 
 type JobState =
-  | 'waiting'
-  | 'active'
-  | 'completed'
-  | 'failed'
-  | 'delayed'
-  | 'paused';
+  | "waiting"
+  | "active"
+  | "completed"
+  | "failed"
+  | "delayed"
+  | "paused";
 
 interface QueueStore {
   name: string;
@@ -60,12 +60,15 @@ interface JobInit<DataType, NameType extends string> {
 
 const stores = new Map<string, QueueStore>();
 const NON_EXECUTING_PROCESSORS = new Set([
-  'processAIAnalysis',
-  'processDocument',
-  'processCacheWarming',
+  "processAIAnalysis",
+  "processDocument",
+  "processCacheWarming",
 ]);
 
-function getStore(name: string, defaultJobOptions: JobsOptions = {}): QueueStore {
+function getStore(
+  name: string,
+  defaultJobOptions: JobsOptions = {},
+): QueueStore {
   let store = stores.get(name);
   if (!store) {
     store = {
@@ -89,7 +92,7 @@ function getStore(name: string, defaultJobOptions: JobsOptions = {}): QueueStore
 
 function mergeJobOptions(
   defaults: JobsOptions = {},
-  overrides: JobsOptions = {}
+  overrides: JobsOptions = {},
 ): JobsOptions {
   return {
     ...defaults,
@@ -103,17 +106,25 @@ function mergeJobOptions(
 
 function getJobStateCount(store: QueueStore, states: JobState[]): number {
   return Array.from(store.jobs.values()).filter((job) =>
-    states.includes(job.__getState())
+    states.includes(job.__getState()),
   ).length;
 }
 
-function emitQueueEvent(store: QueueStore, event: string, ...args: unknown[]): void {
+function emitQueueEvent(
+  store: QueueStore,
+  event: string,
+  ...args: unknown[]
+): void {
   for (const queue of store.queueInstances) {
     queue.emit(event, ...args);
   }
 }
 
-function emitWorkerEvent(store: QueueStore, event: string, ...args: unknown[]): void {
+function emitWorkerEvent(
+  store: QueueStore,
+  event: string,
+  ...args: unknown[]
+): void {
   for (const worker of store.workers) {
     worker.emit(event, ...args);
   }
@@ -136,7 +147,7 @@ function getRetryDelay(job: Job): number {
   const delay = job.opts.backoff?.delay ?? 0;
   if (!delay) return 0;
 
-  if (job.opts.backoff?.type === 'exponential') {
+  if (job.opts.backoff?.type === "exponential") {
     return delay * Math.max(1, 2 ** Math.max(job.attemptsMade - 1, 0));
   }
 
@@ -149,7 +160,7 @@ function shouldProcessWithWorker(worker: Worker): boolean {
 
 function getNextWaitingJob(store: QueueStore): Job | undefined {
   const waitingJobs = Array.from(store.jobs.values()).filter(
-    (job) => job.__getState() === 'waiting'
+    (job) => job.__getState() === "waiting",
   );
 
   waitingJobs.sort((left, right) => {
@@ -190,7 +201,7 @@ function drainStore(store: QueueStore): void {
           !candidate.closed &&
           candidate.autorun &&
           shouldProcessWithWorker(candidate) &&
-          candidate.activeCount < candidate.concurrency
+          candidate.activeCount < candidate.concurrency,
       );
 
       if (!worker) {
@@ -202,13 +213,13 @@ function drainStore(store: QueueStore): void {
         break;
       }
 
-      job.__setState('active');
+      job.__setState("active");
       job.processedOn = Date.now();
       job.attemptsMade += 1;
       worker.activeCount += 1;
 
-      emitQueueEvent(store, 'active', job);
-      emitWorkerEvent(store, 'active', job);
+      emitQueueEvent(store, "active", job);
+      emitWorkerEvent(store, "active", job);
 
       void runJob(store, worker, job);
     }
@@ -217,24 +228,28 @@ function drainStore(store: QueueStore): void {
   }
 }
 
-async function runJob(store: QueueStore, worker: Worker, job: Job): Promise<void> {
+async function runJob(
+  store: QueueStore,
+  worker: Worker,
+  job: Job,
+): Promise<void> {
   try {
     const result = await worker.processor(job);
-    await job.moveToCompleted(result, '0', false);
-    emitQueueEvent(store, 'completed', job);
-    emitWorkerEvent(store, 'completed', job);
+    await job.moveToCompleted(result, "0", false);
+    emitQueueEvent(store, "completed", job);
+    emitWorkerEvent(store, "completed", job);
   } catch (error) {
     const normalizedError =
       error instanceof Error ? error : new Error(String(error));
 
-    emitQueueEvent(store, 'failed', job, normalizedError);
-    emitWorkerEvent(store, 'failed', job, normalizedError);
+    emitQueueEvent(store, "failed", job, normalizedError);
+    emitWorkerEvent(store, "failed", job, normalizedError);
 
     const maxAttempts = Math.max(job.opts.attempts ?? 1, 1);
     if (job.attemptsMade < maxAttempts) {
       job.failedReason = normalizedError.message;
       job.finishedOn = Date.now();
-      job.__setState('delayed');
+      job.__setState("delayed");
 
       const timer = setTimeout(() => {
         store.timers.delete(timer);
@@ -244,13 +259,13 @@ async function runJob(store: QueueStore, worker: Worker, job: Job): Promise<void
 
         job.failedReason = undefined;
         job.finishedOn = undefined;
-        job.__setState(store.paused ? 'paused' : 'waiting');
+        job.__setState(store.paused ? "paused" : "waiting");
         scheduleStoreDrain(store);
       }, getRetryDelay(job));
 
       store.timers.add(timer);
     } else {
-      await job.moveToFailed(normalizedError, '0', false);
+      await job.moveToFailed(normalizedError, "0", false);
     }
   } finally {
     worker.activeCount = Math.max(0, worker.activeCount - 1);
@@ -308,35 +323,35 @@ export class Job<
   moveToCompleted(
     returnvalue: ReturnType,
     _token: string,
-    _fetchNext: boolean
+    _fetchNext: boolean,
   ): Promise<void> {
     this.returnvalue = returnvalue;
     this.failedReason = undefined;
     this.finishedOn = Date.now();
-    this.state = 'completed';
+    this.state = "completed";
     return Promise.resolve();
   }
 
   moveToFailed(
     error: Error,
     _token: string,
-    _fetchNext: boolean
+    _fetchNext: boolean,
   ): Promise<void> {
     this.returnvalue = undefined;
     this.failedReason = error.message;
     this.finishedOn = Date.now();
-    this.state = 'failed';
+    this.state = "failed";
     return Promise.resolve();
   }
 
   retry(): Promise<void> {
-    if (this.state !== 'failed') {
+    if (this.state !== "failed") {
       return Promise.resolve();
     }
 
     this.failedReason = undefined;
     this.finishedOn = undefined;
-    this.state = this.store.paused ? 'paused' : 'waiting';
+    this.state = this.store.paused ? "paused" : "waiting";
     scheduleStoreDrain(this.store);
     return Promise.resolve();
   }
@@ -370,13 +385,13 @@ export class Queue<
   add(
     name: NameType,
     data: DataType,
-    opts: JobsOptions = {}
+    opts: JobsOptions = {},
   ): Promise<Job<DataType, ReturnType, NameType>> {
     this.ensureOpen();
 
     const id = String(++this.store.nextId);
     const mergedOptions = mergeJobOptions(this.store.defaultJobOptions, opts);
-    const initialState: JobState = this.store.paused ? 'paused' : 'waiting';
+    const initialState: JobState = this.store.paused ? "paused" : "waiting";
     const job = new Job<DataType, ReturnType, NameType>({
       store: this.store,
       id,
@@ -387,7 +402,7 @@ export class Queue<
     });
 
     this.store.jobs.set(id, job);
-    emitQueueEvent(this.store, 'waiting', job);
+    emitQueueEvent(this.store, "waiting", job);
 
     if (!this.store.paused) {
       scheduleStoreDrain(this.store);
@@ -396,34 +411,40 @@ export class Queue<
     return Promise.resolve(job);
   }
 
-  getJob(id: string | number): Promise<Job<DataType, ReturnType, NameType> | undefined> {
+  getJob(
+    id: string | number,
+  ): Promise<Job<DataType, ReturnType, NameType> | undefined> {
     this.ensureOpen();
-    return Promise.resolve(this.store.jobs.get(String(id)) as Job<DataType, ReturnType, NameType> | undefined);
+    return Promise.resolve(
+      this.store.jobs.get(String(id)) as
+        | Job<DataType, ReturnType, NameType>
+        | undefined,
+    );
   }
 
   getWaitingCount(): Promise<number> {
     this.ensureOpen();
-    return Promise.resolve(getJobStateCount(this.store, ['waiting', 'paused']));
+    return Promise.resolve(getJobStateCount(this.store, ["waiting", "paused"]));
   }
 
   getActiveCount(): Promise<number> {
     this.ensureOpen();
-    return Promise.resolve(getJobStateCount(this.store, ['active']));
+    return Promise.resolve(getJobStateCount(this.store, ["active"]));
   }
 
   getCompletedCount(): Promise<number> {
     this.ensureOpen();
-    return Promise.resolve(getJobStateCount(this.store, ['completed']));
+    return Promise.resolve(getJobStateCount(this.store, ["completed"]));
   }
 
   getFailedCount(): Promise<number> {
     this.ensureOpen();
-    return Promise.resolve(getJobStateCount(this.store, ['failed']));
+    return Promise.resolve(getJobStateCount(this.store, ["failed"]));
   }
 
   getDelayedCount(): Promise<number> {
     this.ensureOpen();
-    return Promise.resolve(getJobStateCount(this.store, ['delayed']));
+    return Promise.resolve(getJobStateCount(this.store, ["delayed"]));
   }
 
   async getJobCounts(): Promise<Record<string, number>> {
@@ -442,8 +463,8 @@ export class Queue<
     this.store.paused = true;
 
     for (const job of this.store.jobs.values()) {
-      if (job.__getState() === 'waiting') {
-        job.__setState('paused');
+      if (job.__getState() === "waiting") {
+        job.__setState("paused");
       }
     }
     return Promise.resolve();
@@ -454,8 +475,8 @@ export class Queue<
     this.store.paused = false;
 
     for (const job of this.store.jobs.values()) {
-      if (job.__getState() === 'paused') {
-        job.__setState('waiting');
+      if (job.__getState() === "paused") {
+        job.__setState("waiting");
       }
     }
 
@@ -471,7 +492,7 @@ export class Queue<
   clean(
     grace: number,
     _limit: number,
-    state: 'completed' | 'failed'
+    state: "completed" | "failed",
   ): Promise<void> {
     this.ensureOpen();
 
@@ -521,7 +542,7 @@ export class Worker<
   public readonly concurrency: number;
   public readonly autorun: boolean;
   public readonly processor: (
-    job: Job<DataType, ReturnType, NameType>
+    job: Job<DataType, ReturnType, NameType>,
   ) => Promise<ReturnType>;
   public readonly processorName: string;
   public closed = false;
@@ -531,13 +552,15 @@ export class Worker<
 
   constructor(
     name: string,
-    processor: (job: Job<DataType, ReturnType, NameType>) => Promise<ReturnType>,
-    opts: WorkerOptions = {}
+    processor: (
+      job: Job<DataType, ReturnType, NameType>,
+    ) => Promise<ReturnType>,
+    opts: WorkerOptions = {},
   ) {
     super();
     this.name = name;
     this.processor = processor;
-    this.processorName = processor.name || 'anonymous';
+    this.processorName = processor.name || "anonymous";
     this.concurrency = opts.concurrency ?? 1;
     this.autorun = opts.autorun !== false;
     this.store = getStore(name);

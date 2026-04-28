@@ -232,10 +232,14 @@ export default function AdminVendorsPage() {
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-white mb-2 font-cairo">
+              <label
+                htmlFor="field-page-1"
+                className="block text-sm font-medium text-white mb-2 font-cairo"
+              >
                 الاسم
               </label>
               <input
+                id="field-page-1"
                 type="text"
                 value={form.name}
                 onChange={handleNameChange}
@@ -247,10 +251,14 @@ export default function AdminVendorsPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2 font-cairo">
+                <label
+                  htmlFor="field-page-2"
+                  className="block text-sm font-medium text-white mb-2 font-cairo"
+                >
                   خط العرض
                 </label>
                 <input
+                  id="field-page-2"
                   type="number"
                   step="any"
                   value={form.lat}
@@ -261,10 +269,14 @@ export default function AdminVendorsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white mb-2 font-cairo">
+                <label
+                  htmlFor="field-page-3"
+                  className="block text-sm font-medium text-white mb-2 font-cairo"
+                >
                   خط الطول
                 </label>
                 <input
+                  id="field-page-3"
                   type="number"
                   step="any"
                   value={form.lng}

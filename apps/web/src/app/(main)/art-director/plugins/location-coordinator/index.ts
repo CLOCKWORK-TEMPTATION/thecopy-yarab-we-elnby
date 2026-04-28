@@ -370,13 +370,13 @@ export class LocationSetCoordinator implements Plugin {
       let score = 0;
       const reasons: string[] = [];
 
-      if (reqs.type && location.type === reqs.type) {
+      if (reqs["type"] && location.type === reqs["type"]) {
         score += 30;
         reasons.push("Type matches");
       }
 
-      if (reqs.amenities && Array.isArray(reqs.amenities)) {
-        const matchedAmenities = (reqs.amenities as string[]).filter((a) =>
+      if (reqs["amenities"] && Array.isArray(reqs["amenities"])) {
+        const matchedAmenities = (reqs["amenities"] as string[]).filter((a) =>
           location.amenities.includes(a)
         );
         score += matchedAmenities.length * 10;
@@ -385,7 +385,10 @@ export class LocationSetCoordinator implements Plugin {
         }
       }
 
-      if (reqs.maxBudget && location.costPerDay <= (reqs.maxBudget as number)) {
+      if (
+        reqs["maxBudget"] &&
+        location.costPerDay <= (reqs["maxBudget"] as number)
+      ) {
         score += 20;
         reasons.push("Within budget");
       }

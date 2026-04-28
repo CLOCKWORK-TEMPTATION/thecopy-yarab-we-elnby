@@ -9,22 +9,23 @@
  */
 
 import { formatFinalReviewPacketText } from "@editor/final-review/payload-builder";
+
+import {
+  DEFAULT_FINAL_REVIEW_SCHEMA_HINTS,
+  FINAL_REVIEW_ENDPOINT,
+} from "../../paste-classifier-config";
+import { NON_FATAL_FINAL_REVIEW_STATUSES } from "../constants";
+import { ProgressivePipelineStageError } from "../errors";
+
+import { selectFinalReviewPayloads } from "./routing";
+
+import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 import type {
   AgentCommand,
   FinalReviewRequestPayload,
   FinalReviewResponsePayload,
   FinalReviewSuspiciousLinePayload,
 } from "@editor/types/final-review";
-
-import {
-  DEFAULT_FINAL_REVIEW_SCHEMA_HINTS,
-  FINAL_REVIEW_ENDPOINT,
-} from "../../paste-classifier-config";
-import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
-
-import { NON_FATAL_FINAL_REVIEW_STATUSES } from "../constants";
-import { ProgressivePipelineStageError } from "../errors";
-import { selectFinalReviewPayloads } from "./routing";
 
 /**
  * تطبيع قيمة ثقة قادمة من أمر مراجعة. غير المالية يُعاد fallback.

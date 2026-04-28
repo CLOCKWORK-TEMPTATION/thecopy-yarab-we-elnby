@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { buildTakeInsights, pickSupportedMimeType } from "../../lib/self-tape";
+
 import { RECORDING_MIME_CANDIDATES } from "./constants";
 import { createNotesFromInsights } from "./utils";
+
 import type {
   ActiveTool,
   CameraState,
@@ -233,9 +236,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
     }
 
     let stream = mediaStreamRef.current;
-    if (!stream) {
-      stream = await requestCameraAccess();
-    }
+    stream ??= await requestCameraAccess();
 
     if (!stream) {
       return;
@@ -371,6 +372,9 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
   }, [activeTool, attachStreamToPreview]);
 
   useEffect(() => {
+    const sessionUrlRegistry = sessionUrlRegistryRef.current;
+    const blobRegistry = blobRegistryRef.current;
+
     return () => {
       clearRecordingInterval();
       if (mediaRecorderRef.current?.state === "recording") {
@@ -382,11 +386,11 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
       }
       stopCameraTracks(mediaStreamRef.current);
       mediaStreamRef.current = null;
-      sessionUrlRegistryRef.current.forEach((url) => {
+      sessionUrlRegistry.forEach((url) => {
         URL.revokeObjectURL(url);
       });
-      sessionUrlRegistryRef.current.clear();
-      blobRegistryRef.current.clear();
+      sessionUrlRegistry.clear();
+      blobRegistry.clear();
     };
   }, [
     clearRecordingInterval,

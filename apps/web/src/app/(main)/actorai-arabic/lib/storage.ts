@@ -44,6 +44,28 @@ function isValidView(value: string | null | undefined): value is ViewType {
   return Boolean(value && VALID_VIEWS.includes(value as ViewType));
 }
 
+function hasNoValidParsedItems(
+  rawItems: unknown,
+  parsedItems: unknown[] | undefined
+): boolean {
+  return (
+    Array.isArray(rawItems) &&
+    rawItems.length > 0 &&
+    (parsedItems?.length ?? 0) === 0
+  );
+}
+
+function assignValidatedCollection<T>(
+  target: PersistedAppState,
+  key: "scripts" | "recordings",
+  rawItems: unknown,
+  parsedItems: T[] | undefined
+): void {
+  if (parsedItems && !hasNoValidParsedItems(rawItems, parsedItems)) {
+    target[key] = parsedItems as PersistedAppState[typeof key];
+  }
+}
+
 function parseStoredState(raw: string | null): PersistedAppState {
   if (!raw) {
     return {};
@@ -78,27 +100,18 @@ function parseStoredState(raw: string | null): PersistedAppState {
       nextState.user = null;
     }
 
-    if (
-      !(
-        Array.isArray(parsed.scripts) &&
-        parsed.scripts.length > 0 &&
-        (parsedScripts?.length ?? 0) === 0
-      ) &&
+    assignValidatedCollection(
+      nextState,
+      "scripts",
+      parsed.scripts,
       parsedScripts
-    ) {
-      nextState.scripts = parsedScripts;
-    }
-
-    if (
-      !(
-        Array.isArray(parsed.recordings) &&
-        parsed.recordings.length > 0 &&
-        (parsedRecordings?.length ?? 0) === 0
-      ) &&
+    );
+    assignValidatedCollection(
+      nextState,
+      "recordings",
+      parsed.recordings,
       parsedRecordings
-    ) {
-      nextState.recordings = parsedRecordings;
-    }
+    );
 
     return nextState;
   } catch {

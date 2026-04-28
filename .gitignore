@@ -868,3 +868,7 @@ __pycache__/
 *.pyc
 
 .replit
+
+# validate pipeline
+.validate-reports/
+.validate-state.json

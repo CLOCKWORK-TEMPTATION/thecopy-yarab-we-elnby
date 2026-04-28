@@ -8,7 +8,7 @@ import { parse as parseEnv } from "dotenv";
 interface ServerInstance {
   setRequestHandler<TRequest>(
     schema: unknown,
-    handler: (request: TRequest) => unknown
+    handler: (request: TRequest) => unknown,
   ): void;
   connect(transport: StdioTransportInstance): Promise<void>;
 }
@@ -18,7 +18,7 @@ type StdioTransportInstance = object;
 interface McpServerModule {
   Server: new (
     info: { name: string; version: string },
-    options: { capabilities: { tools: Record<string, unknown> } }
+    options: { capabilities: { tools: Record<string, unknown> } },
   ) => ServerInstance;
 }
 
@@ -45,17 +45,13 @@ interface CallToolRequest {
 
 const loadRuntimeModule = createRequire(__filename);
 const { Server } = loadRuntimeModule(
-  "@modelcontextprotocol/sdk/server/index.js"
+  "@modelcontextprotocol/sdk/server/index.js",
 ) as McpServerModule;
 const { StdioServerTransport } = loadRuntimeModule(
-  "@modelcontextprotocol/sdk/server/stdio.js"
+  "@modelcontextprotocol/sdk/server/stdio.js",
 ) as StdioModule;
-const {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ErrorCode,
-  McpError,
-} = loadRuntimeModule("@modelcontextprotocol/sdk/types.js") as McpTypesModule;
+const { CallToolRequestSchema, ListToolsRequestSchema, ErrorCode, McpError } =
+  loadRuntimeModule("@modelcontextprotocol/sdk/types.js") as McpTypesModule;
 
 function writeStderr(...args: unknown[]): void {
   process.stderr.write(formatLogLine(...args) + "\n");
@@ -82,7 +78,7 @@ const stripWrappingQuotes = (value: string): string =>
 
 const isPlaceholderEnvValue = (
   key: string,
-  value: string | undefined
+  value: string | undefined,
 ): boolean => {
   const trimmed = stripWrappingQuotes((value ?? "").trim());
   if (!trimmed) {
@@ -93,7 +89,10 @@ const isPlaceholderEnvValue = (
     return true;
   }
 
-  if (key === "DATABASE_URL" && /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)) {
+  if (
+    key === "DATABASE_URL" &&
+    /:\/\/USER:PASSWORD@HOST(?::\d+)?\/DB_NAME/i.test(trimmed)
+  ) {
     return true;
   }
 
@@ -111,7 +110,10 @@ const applyEnvFile = (filePath: string): void => {
       continue;
     }
 
-    if (existingValue === undefined || isPlaceholderEnvValue(key, existingValue)) {
+    if (
+      existingValue === undefined ||
+      isPlaceholderEnvValue(key, existingValue)
+    ) {
       process.env[key] = value;
     }
   }
@@ -148,7 +150,7 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 // Define the input schema manually as JSON Schema
@@ -270,130 +272,134 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
-  if (request.params.name !== "convert_document_to_markdown") {
-    throw new McpError(
-      ErrorCode.MethodNotFound,
-      `Unknown tool: ${request.params.name}`
-    );
-  }
-
-  const args = request.params.arguments as {
-    inputPath: string;
-    outputPath?: string;
-    normalizeOutput?: boolean;
-    saveRawMarkdown?: boolean;
-    useLlm?: boolean;
-    llmModel?: string;
-    llmReferencePath?: string;
-    llmStrict?: boolean;
-    mistralOcrModel?: string;
-    useBatchOcr?: boolean;
-    normalizerOptions?: NormalizationOptions;
-  };
-
-  if (!args.inputPath) {
-    throw new McpError(ErrorCode.InvalidParams, "inputPath is required");
-  }
-
-  const {
-    inputPath,
-    outputPath,
-    normalizeOutput = true,
-    saveRawMarkdown = true,
-    useLlm = false,
-    llmModel = "kimi-k2.5",
-    llmReferencePath,
-    llmStrict = false,
-    mistralOcrModel = "mistral-ocr-latest",
-    useBatchOcr = false,
-    normalizerOptions,
-  } = args;
-
-  if (mistralOcrModel !== CANONICAL_MISTRAL_OCR_MODEL) {
-    throw new McpError(
-      ErrorCode.InvalidParams,
-      `mistralOcrModel must be ${CANONICAL_MISTRAL_OCR_MODEL}.`
-    );
-  }
-
-  const config: ConfigManager = {
-    inputPath,
-    ...(outputPath ? { outputPath } : {}),
-    normalizeOutput,
-    ...(normalizerOptions ? { normalizerOptions } : {}),
-    saveRawMarkdown,
-    llm: {
-      enabled: useLlm,
-      model: llmModel,
-      ...(llmReferencePath ? { referencePath: llmReferencePath } : {}),
-      strict: llmStrict,
-      iterative: true,
-      maxIterations: 2,
-      targetMatch: 98.5,
-      diffPreviewLines: 12,
-    },
-    mistral: {
-      model: mistralOcrModel,
-      useDocumentInput: true,
-      useBatchOCR: useBatchOcr,
-      batchTimeoutSec: 300,
-      batchPollIntervalSec: 3,
-      annotationStrict: false,
-      extractHeader: false,
-      extractFooter: false,
-      includeImageBase64: false,
-    },
-    preOcr: {
-      enabled: true,
-      lang: "ar",
-      matchThreshold: 0.88,
-      fullpageFallbackRatio: 0.7,
-      regionPaddingPx: 12,
-    },
-  };
-
-  try {
-    const converter = new PDFToTextConverter(config);
-    const { finalMarkdown } = await converter.convert();
-
-    let successMsg = "Document converted successfully.";
-
-    try {
-      const outPath = converter.resolveOutputPath();
-      const savedPath = await converter.writeNonOverwritingFile(
-        outPath,
-        finalMarkdown
+server.setRequestHandler(
+  CallToolRequestSchema,
+  async (request: CallToolRequest) => {
+    if (request.params.name !== "convert_document_to_markdown") {
+      throw new McpError(
+        ErrorCode.MethodNotFound,
+        `Unknown tool: ${request.params.name}`,
       );
-      successMsg += ` Saved to ${savedPath}`;
-    } catch (fsError) {
-      const fsErrorMessage =
-        fsError instanceof Error ? fsError.message : String(fsError);
-      writeStderr("Failed to write to file:", fsError);
-      successMsg += ` Note: Failed to write to file: ${fsErrorMessage}`;
     }
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `${successMsg}\n\nFinal Markdown Preview (first 1000 chars):\n${finalMarkdown.substring(0, 1000)}...`,
-        },
-      ],
+    const args = request.params.arguments as {
+      inputPath: string;
+      outputPath?: string;
+      normalizeOutput?: boolean;
+      saveRawMarkdown?: boolean;
+      useLlm?: boolean;
+      llmModel?: string;
+      llmReferencePath?: string;
+      llmStrict?: boolean;
+      mistralOcrModel?: string;
+      useBatchOcr?: boolean;
+      normalizerOptions?: NormalizationOptions;
     };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Conversion failed: ${errorMessage}`,
-        },
-      ],
-      isError: true,
+
+    if (!args.inputPath) {
+      throw new McpError(ErrorCode.InvalidParams, "inputPath is required");
+    }
+
+    const {
+      inputPath,
+      outputPath,
+      normalizeOutput = true,
+      saveRawMarkdown = true,
+      useLlm = false,
+      llmModel = "kimi-k2.5",
+      llmReferencePath,
+      llmStrict = false,
+      mistralOcrModel = "mistral-ocr-latest",
+      useBatchOcr = false,
+      normalizerOptions,
+    } = args;
+
+    if (mistralOcrModel !== CANONICAL_MISTRAL_OCR_MODEL) {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        `mistralOcrModel must be ${CANONICAL_MISTRAL_OCR_MODEL}.`,
+      );
+    }
+
+    const config: ConfigManager = {
+      inputPath,
+      ...(outputPath ? { outputPath } : {}),
+      normalizeOutput,
+      ...(normalizerOptions ? { normalizerOptions } : {}),
+      saveRawMarkdown,
+      llm: {
+        enabled: useLlm,
+        model: llmModel,
+        ...(llmReferencePath ? { referencePath: llmReferencePath } : {}),
+        strict: llmStrict,
+        iterative: true,
+        maxIterations: 2,
+        targetMatch: 98.5,
+        diffPreviewLines: 12,
+      },
+      mistral: {
+        model: mistralOcrModel,
+        useDocumentInput: true,
+        useBatchOCR: useBatchOcr,
+        batchTimeoutSec: 300,
+        batchPollIntervalSec: 3,
+        annotationStrict: false,
+        extractHeader: false,
+        extractFooter: false,
+        includeImageBase64: false,
+      },
+      preOcr: {
+        enabled: true,
+        lang: "ar",
+        matchThreshold: 0.88,
+        fullpageFallbackRatio: 0.7,
+        regionPaddingPx: 12,
+      },
     };
-  }
-});
+
+    try {
+      const converter = new PDFToTextConverter(config);
+      const { finalMarkdown } = await converter.convert();
+
+      let successMsg = "Document converted successfully.";
+
+      try {
+        const outPath = converter.resolveOutputPath();
+        const savedPath = await converter.writeNonOverwritingFile(
+          outPath,
+          finalMarkdown,
+        );
+        successMsg += ` Saved to ${savedPath}`;
+      } catch (fsError) {
+        const fsErrorMessage =
+          fsError instanceof Error ? fsError.message : String(fsError);
+        writeStderr("Failed to write to file:", fsError);
+        successMsg += ` Note: Failed to write to file: ${fsErrorMessage}`;
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `${successMsg}\n\nFinal Markdown Preview (first 1000 chars):\n${finalMarkdown.substring(0, 1000)}...`,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Conversion failed: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  },
+);
 
 async function run(): Promise<void> {
   const transport = new StdioServerTransport();

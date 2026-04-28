@@ -3,15 +3,15 @@
  * Applies constitutional rules with context, priority handling, and exceptions
  */
 
-import { logger } from '@/lib/logger';
-import { geminiService } from '@/services/gemini.service';
+import { logger } from "@/lib/logger";
+import { geminiService } from "@/services/gemini.service";
 
 import {
   ConstitutionalRulesEngine,
   Rule,
   RuleViolation,
   RuleSeverity,
-} from './constitutionalRules';
+} from "./constitutionalRules";
 
 export interface RuleApplicationResult {
   violations: RuleViolation[];
@@ -34,11 +34,11 @@ export async function applyRulesWithContext(
   text: string,
   engine: ConstitutionalRulesEngine,
   context?: unknown,
-  options: RuleApplicationOptions = {}
+  options: RuleApplicationOptions = {},
 ): Promise<RuleApplicationResult> {
   const {
     autoCorrect = false,
-    severityFilter = ['critical', 'major', 'minor'],
+    severityFilter = ["critical", "major", "minor"],
     maxCorrections = 3,
     includeWarnings = true,
   } = options;
@@ -47,17 +47,15 @@ export async function applyRulesWithContext(
   const allViolations = await engine.checkRules(text, context);
 
   // Filter by severity
-  const violations = allViolations.filter(v =>
-    includeWarnings || v.severity !== 'warning'
-  ).filter(v =>
-    severityFilter.includes(v.severity)
-  );
+  const violations = allViolations
+    .filter((v) => includeWarnings || v.severity !== "warning")
+    .filter((v) => severityFilter.includes(v.severity));
 
   if (violations.length === 0) {
     return {
       violations: [],
       applied: true,
-      summary: 'النص يلتزم بجميع القواعد الدستورية',
+      summary: "النص يلتزم بجميع القواعد الدستورية",
     };
   }
 
@@ -68,7 +66,7 @@ export async function applyRulesWithContext(
     correctedText = await correctViolations(
       text,
       violations.slice(0, maxCorrections),
-      context
+      context,
     );
   }
 
@@ -89,15 +87,18 @@ export async function applyRulesWithContext(
 async function correctViolations(
   text: string,
   violations: RuleViolation[],
-  _context?: unknown
+  _context?: unknown,
 ): Promise<string> {
   if (violations.length === 0) {
     return text;
   }
 
   const violationDescriptions = violations
-    .map(v => `- ${v.ruleName}: ${v.message}${v.suggestion ? ` (${v.suggestion})` : ''}`)
-    .join('\n');
+    .map(
+      (v) =>
+        `- ${v.ruleName}: ${v.message}${v.suggestion ? ` (${v.suggestion})` : ""}`,
+    )
+    .join("\n");
 
   const correctionPrompt = `
 النص التالي يحتوي على انتهاكات للقواعد الدستورية:
@@ -114,11 +115,11 @@ ${text.substring(0, 2000)}
   try {
     const correctedText = await geminiService.analyzeText(
       correctionPrompt,
-      'general'
+      "general",
     );
     return correctedText;
   } catch (error) {
-    logger.error('Failed to correct violations:', { error });
+    logger.error("Failed to correct violations:", { error });
     return text;
   }
 }
@@ -128,13 +129,16 @@ ${text.substring(0, 2000)}
  */
 function generateViolationSummary(violations: RuleViolation[]): string {
   if (violations.length === 0) {
-    return 'لا توجد انتهاكات';
+    return "لا توجد انتهاكات";
   }
 
-  const bySeverity = violations.reduce((acc, v) => {
-    acc[v.severity] = (acc[v.severity] ?? 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const bySeverity = violations.reduce(
+    (acc, v) => {
+      acc[v.severity] = (acc[v.severity] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   const parts: string[] = [];
 
@@ -151,7 +155,7 @@ function generateViolationSummary(violations: RuleViolation[]): string {
     parts.push(`${bySeverity.warning} تحذير`);
   }
 
-  return `تم اكتشاف ${violations.length} انتهاك: ${parts.join(', ')}`;
+  return `تم اكتشاف ${violations.length} انتهاك: ${parts.join(", ")}`;
 }
 
 /**
@@ -168,11 +172,13 @@ export class RulePriorityHandler {
 
     return [...rules].sort((a, b) => {
       // First sort by priority
-      const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+      const priorityDiff =
+        priorityOrder[b.priority] - priorityOrder[a.priority];
       if (priorityDiff !== 0) return priorityDiff;
 
       // Then by severity
-      const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
+      const severityDiff =
+        severityOrder[b.severity] - severityOrder[a.severity];
       return severityDiff;
     });
   }
@@ -181,14 +187,14 @@ export class RulePriorityHandler {
    * Get critical rules only
    */
   static getCriticalRules(rules: Rule[]): Rule[] {
-    return rules.filter(r => r.severity === 'critical');
+    return rules.filter((r) => r.severity === "critical");
   }
 
   /**
    * Get high priority rules
    */
   static getHighPriorityRules(rules: Rule[]): Rule[] {
-    return rules.filter(r => r.priority === 'high');
+    return rules.filter((r) => r.priority === "high");
   }
 }
 
@@ -206,11 +212,11 @@ export class RuleExceptionHandler {
     exemptionRules: {
       ruleId: string;
       condition: (ctx: unknown) => boolean;
-    }[]
+    }[],
   ): boolean {
     return exemptionRules.some(
-      exemption =>
-        exemption.ruleId === ruleId && exemption.condition(context)
+      (exemption) =>
+        exemption.ruleId === ruleId && exemption.condition(context),
     );
   }
 
@@ -220,17 +226,17 @@ export class RuleExceptionHandler {
   static createCommonExemptions() {
     return [
       {
-        ruleId: 'char-no-anachronistic-psychology',
+        ruleId: "char-no-anachronistic-psychology",
         condition: (ctx: unknown) => {
           const c = ctx as Record<string, unknown> | null;
-          return c?.genre === 'fantasy' || c?.genre === 'sci-fi';
+          return c?.genre === "fantasy" || c?.genre === "sci-fi";
         },
       },
       {
-        ruleId: 'dialogue-dialect-awareness',
+        ruleId: "dialogue-dialect-awareness",
         condition: (ctx: unknown) => {
           const c = ctx as Record<string, unknown> | null;
-          return c?.setting === 'contemporary' && c?.language === 'formal';
+          return c?.setting === "contemporary" && c?.language === "formal";
         },
       },
     ];

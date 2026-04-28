@@ -33,25 +33,26 @@ const wrapKarankStageError = (
   error,
   contextMessage,
   timeoutCode,
-  genericCode
+  genericCode,
 ) => {
   const message = error instanceof Error ? error.message : String(error);
   const isTimeout = /timeout|انتهت مهلة الطلب/iu.test(message);
 
   return Object.assign(
     new Error(
-      `${contextMessage}: ${message} [${isTimeout ? timeoutCode : genericCode}]`
+      `${contextMessage}: ${message} [${isTimeout ? timeoutCode : genericCode}]`,
     ),
     {
       statusCode: isTimeout ? 504 : 422,
       errorCode: isTimeout ? timeoutCode : genericCode,
       cause: error,
-    }
+    },
   );
 };
 
 const requireKarankExtraction = (engineResult, fallbackText) => {
-  const schemaText = engineResult?.schemaText || engineResult?.schema_text || "";
+  const schemaText =
+    engineResult?.schemaText || engineResult?.schema_text || "";
   const schemaElements =
     engineResult?.schemaElements || engineResult?.schema_elements || [];
   const rawText =
@@ -60,14 +61,14 @@ const requireKarankExtraction = (engineResult, fallbackText) => {
   if (!Array.isArray(schemaElements) || schemaElements.length === 0) {
     throw createPipelineError(
       "فشل الكرنك في إنتاج عناصر بنيوية صالحة.",
-      "KARANK_EMPTY_RESULT"
+      "KARANK_EMPTY_RESULT",
     );
   }
 
   if (!String(rawText).trim()) {
     throw createPipelineError(
       "فشل الكرنك في إنتاج نص مرئي صالح.",
-      "KARANK_EMPTY_VISIBLE_TEXT"
+      "KARANK_EMPTY_VISIBLE_TEXT",
     );
   }
 
@@ -85,14 +86,14 @@ const enrichWithEngine = async (extractedText, baseResult) => {
     const engineResult = await karankBridge.parseText(extractedText);
     normalizedEngineResult = requireKarankExtraction(
       engineResult,
-      baseResult.text
+      baseResult.text,
     );
   } catch (error) {
     throw wrapKarankStageError(
       error,
       "فشل الكرنك في تحليل النص المستخرج",
       "KARANK_STAGE_TIMEOUT",
-      "KARANK_STAGE_FAILED"
+      "KARANK_STAGE_FAILED",
     );
   }
 
@@ -115,7 +116,7 @@ export const extractByType = async (buffer, extension, filename) => {
     if (!text.trim()) {
       throw createPipelineError(
         "فشل مسار OCR في إنتاج نص صالح لملف PDF.",
-        "OCR_EMPTY_RESULT"
+        "OCR_EMPTY_RESULT",
       );
     }
 
@@ -135,7 +136,7 @@ export const extractByType = async (buffer, extension, filename) => {
     if (!text.trim()) {
       throw createPipelineError(
         `تعذر استخراج نص صالح من ملف ${extension.toUpperCase()}.`,
-        "EMPTY_TEXT_RESULT"
+        "EMPTY_TEXT_RESULT",
       );
     }
 
@@ -153,7 +154,7 @@ export const extractByType = async (buffer, extension, filename) => {
             category: "binary-missing",
             antiwordPath: ANTIWORD_PREFLIGHT.antiwordPath,
           },
-        }
+        },
       );
     }
 
@@ -167,7 +168,7 @@ export const extractByType = async (buffer, extension, filename) => {
             category: "invalid-config",
             antiwordHome: ANTIWORD_PREFLIGHT.antiwordHome,
           },
-        }
+        },
       );
     }
 
@@ -177,7 +178,7 @@ export const extractByType = async (buffer, extension, filename) => {
     if (!docText.trim()) {
       throw createPipelineError(
         "تعذر استخراج نص صالح من ملف DOC.",
-        "DOC_EMPTY_RESULT"
+        "DOC_EMPTY_RESULT",
       );
     }
 
@@ -187,7 +188,7 @@ export const extractByType = async (buffer, extension, filename) => {
   if (extension === "docx") {
     const tempPath = join(
       tmpdir(),
-      `karank-${Date.now()}-${Math.random().toString(36).slice(2)}.docx`
+      `karank-${Date.now()}-${Math.random().toString(36).slice(2)}.docx`,
     );
 
     try {
@@ -197,7 +198,7 @@ export const extractByType = async (buffer, extension, filename) => {
       try {
         const engineResult = await karankBridge.parseDocx(
           tempPath,
-          DOCX_ENGINE_FAST_TIMEOUT_MS
+          DOCX_ENGINE_FAST_TIMEOUT_MS,
         );
         normalizedEngineResult = requireKarankExtraction(engineResult, "");
       } catch (error) {
@@ -205,7 +206,7 @@ export const extractByType = async (buffer, extension, filename) => {
           error,
           "فشل الكرنك في تحليل ملف DOCX",
           "DOCX_KARANK_TIMEOUT",
-          "DOCX_KARANK_FAILED"
+          "DOCX_KARANK_FAILED",
         );
       }
 
@@ -229,5 +230,5 @@ export const extractByType = async (buffer, extension, filename) => {
 
 export const runReferenceImportPipeline = async (
   referenceText,
-  filename = "health-reference.txt"
+  filename = "health-reference.txt",
 ) => extractByType(Buffer.from(referenceText, "utf8"), "txt", filename);

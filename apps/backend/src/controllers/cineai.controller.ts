@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
-import { z } from 'zod';
+import { Request, Response } from "express";
+import { z } from "zod";
 
-import { logger } from '@/lib/logger';
-import { cineAIService } from '@/services/cineai.service';
-import { definedProps } from '@/utils/defined-props';
+import { logger } from "@/lib/logger";
+import { cineAIService } from "@/services/cineai.service";
+import { definedProps } from "@/utils/defined-props";
 
 const validateShotSchema = z.object({
   imageBase64: z.string().optional(),
@@ -13,7 +13,7 @@ const validateShotSchema = z.object({
 });
 
 const colorGradingSchema = z.object({
-  sceneType: z.string().min(1, 'Scene type is required'),
+  sceneType: z.string().min(1, "Scene type is required"),
   mood: z.string().optional(),
   temperature: z.number().optional(),
 });
@@ -27,12 +27,15 @@ interface MultipartRequest extends Request {
   file?: UploadedFile;
 }
 
-function readMultipartImage(req: Request): { imageBase64?: string; mimeType?: string } {
+function readMultipartImage(req: Request): {
+  imageBase64?: string;
+  mimeType?: string;
+} {
   const file = (req as MultipartRequest).file;
   if (file?.buffer) {
     return {
-      imageBase64: Buffer.from(file.buffer).toString('base64'),
-      mimeType: file.mimetype ?? 'image/png',
+      imageBase64: Buffer.from(file.buffer).toString("base64"),
+      mimeType: file.mimetype ?? "image/png",
     };
   }
 
@@ -40,7 +43,7 @@ function readMultipartImage(req: Request): { imageBase64?: string; mimeType?: st
 }
 
 function readBodyRecord(req: Request): Record<string, unknown> {
-  return typeof req.body === 'object' && req.body !== null
+  return typeof req.body === "object" && req.body !== null
     ? (req.body as Record<string, unknown>)
     : {};
 }
@@ -58,7 +61,7 @@ export class CineAIController {
       if (!validation.success) {
         res.status(400).json({
           success: false,
-          error: 'Invalid request payload',
+          error: "Invalid request payload",
           details: validation.error.flatten(),
         });
         return;
@@ -70,18 +73,19 @@ export class CineAIController {
           mimeType: validation.data.mimeType,
           imageBase64: validation.data.imageBase64,
           mood: validation.data.mood,
-        })
+        }),
       );
       res.status(200).json({
         success: true,
         validation: result,
         analyzedAt: new Date().toISOString(),
-        source: 'backend',
+        source: "backend",
       });
     } catch (error) {
-      logger.error('Failed to validate shot:', error);
-      const message = error instanceof Error ? error.message : 'Failed to validate shot';
-      res.status(message.includes('not configured') ? 503 : 502).json({
+      logger.error("Failed to validate shot:", error);
+      const message =
+        error instanceof Error ? error.message : "Failed to validate shot";
+      res.status(message.includes("not configured") ? 503 : 502).json({
         success: false,
         error: message,
       });
@@ -94,7 +98,7 @@ export class CineAIController {
       if (!validation.success) {
         res.status(400).json({
           success: false,
-          error: 'Invalid request payload',
+          error: "Invalid request payload",
           details: validation.error.flatten(),
         });
         return;
@@ -105,25 +109,35 @@ export class CineAIController {
           sceneType: validation.data.sceneType,
           temperature: validation.data.temperature,
           mood: validation.data.mood,
-        })
+        }),
       );
       res.status(200).json({
         success: true,
         ...result,
         sceneType: validation.data.sceneType,
-        mood: validation.data.mood ?? 'neutral',
+        mood: validation.data.mood ?? "neutral",
         temperature: validation.data.temperature ?? 5500,
         generatedAt: new Date().toISOString(),
-        source: 'backend',
+        source: "backend",
       });
     } catch (error) {
-      logger.error('Failed to generate color grading palette:', error);
+      logger.error("Failed to generate color grading palette:", error);
       const message =
-        error instanceof Error ? error.message : 'Failed to generate color palette';
-      res.status(message.includes('required') ? 400 : message.includes('not configured') ? 503 : 502).json({
-        success: false,
-        error: message,
-      });
+        error instanceof Error
+          ? error.message
+          : "Failed to generate color palette";
+      res
+        .status(
+          message.includes("required")
+            ? 400
+            : message.includes("not configured")
+              ? 503
+              : 502,
+        )
+        .json({
+          success: false,
+          error: message,
+        });
     }
   }
 }

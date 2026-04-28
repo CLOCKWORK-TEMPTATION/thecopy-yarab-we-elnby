@@ -58,7 +58,9 @@ export function usePromptStudio() {
         setComparisonResult(snapshot.comparisonResult ?? null);
         setSuggestions(snapshot.suggestions ?? []);
       })
-      .catch(() => {})
+      .catch((error: unknown) => {
+        void error;
+      })
       .finally(() => {
         if (!cancelled) {
           setIsRemoteStateReady(true);
@@ -90,7 +92,9 @@ export function usePromptStudio() {
           comparisonResult,
           suggestions,
         }
-      ).catch(() => {});
+      ).catch((error: unknown) => {
+        void error;
+      });
     }, 400);
 
     return () => {

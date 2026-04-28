@@ -1,12 +1,13 @@
-import { GeminiService, GeminiModel } from "../../gemini-service";
+import { GeminiModel, GeminiService } from "../gemini-service";
 
-import { VisualCinematicAnalysis } from "./types";
+import { Location, VisualCinematicAnalysis, VisualMoment } from "./types";
 import {
   safeSub,
   asJsonRecord,
-  asArray,
+  asJsonRecords,
+  asNumber,
+  asString,
   asStringArray,
-  scaledTimestamp,
 } from "./utils";
 
 export class VisualCinematicAnalysisEngine {
@@ -53,22 +54,17 @@ export class VisualCinematicAnalysisEngine {
         temperature: 0.6,
       });
 
-      const analysis = asJsonRecord(JSON.parse(result.content || "{}"));
-
-      const keyVisualMoments = asArray<any>(analysis.key_visual_moments).map(
-        (moment) => ({
-          ...moment,
-          timestamp: scaledTimestamp(moment.timestamp),
-        })
-      );
+      const analysis = asJsonRecord(JSON.parse(result.content ?? "{}"));
 
       return {
-        visualDensity: Number(analysis.visual_density) || 5,
-        cinematicPotential: Number(analysis.cinematic_potential) || 5,
-        keyVisualMoments,
-        colorPalette: asStringArray(analysis.color_palette),
-        visualMotifs: asArray<any>(analysis.visual_motifs),
-        cinematographyNotes: asStringArray(analysis.cinematography_notes),
+        visualDensity: asNumber(analysis["visual_density"], 5),
+        cinematicPotential: asNumber(analysis["cinematic_potential"], 5),
+        keyVisualMoments: asJsonRecords(analysis["key_visual_moments"]).map(
+          toVisualMoment
+        ),
+        colorPalette: asStringArray(analysis["color_palette"]),
+        visualMotifs: asVisualMotifs(analysis["visual_motifs"]),
+        cinematographyNotes: asStringArray(analysis["cinematography_notes"]),
       };
     } catch (error) {
       console.error("Error in visual cinematic analysis:", error);
@@ -86,4 +82,39 @@ export class VisualCinematicAnalysisEngine {
       cinematographyNotes: [],
     };
   }
+}
+
+function toLocation(record: Record<string, unknown>): Location {
+  const timestamp = asNumber(record["timestamp"], 0);
+  const start = asNumber(record["start"], timestamp);
+  const end = asNumber(record["end"], start);
+
+  return {
+    start,
+    end,
+    description: asString(record["description"]),
+  };
+}
+
+function toVisualMoment(record: Record<string, unknown>): VisualMoment {
+  return {
+    location: toLocation(record),
+    description: asString(record["description"]),
+    cinematicPotential: asNumber(
+      record["cinematicPotential"],
+      asNumber(record["emotional_impact"], 0)
+    ),
+    visualElements: asStringArray(record["symbolic_elements"]),
+  };
+}
+
+function asVisualMotifs(value: unknown): string[] {
+  const direct = asStringArray(value);
+  if (direct.length > 0) {
+    return direct;
+  }
+
+  return asJsonRecords(value)
+    .map((record) => asString(record["motif"]))
+    .filter((motif) => motif.length > 0);
 }

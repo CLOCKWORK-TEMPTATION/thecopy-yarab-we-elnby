@@ -7,13 +7,11 @@
  * - بناء خريطة SourceHints لكل سطر مصنف.
  */
 
-import type { ImportSource, SourceHints } from "@editor/suspicion-engine/types";
-
-import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
-
 import { computeLineQuality } from "./line-quality";
 
+import type { ClassifiedDraftWithId } from "../../paste-classifier-helpers";
 import type { ClassifyLinesContext } from "../types";
+import type { ImportSource, SourceHints } from "@editor/suspicion-engine/types";
 
 /**
  * يحدد قيمة ImportSource من بروفايل التصنيف ونوع الملف.

@@ -3,7 +3,11 @@
  * Dynamic learning and adaptation of constitutional rules
  */
 
-import { Rule, RuleViolation, RuleSeverity } from '../shared/constitutionalRules';
+import {
+  Rule,
+  RuleViolation,
+  RuleSeverity,
+} from "../shared/constitutionalRules";
 
 export interface RulePerformanceMetrics {
   ruleId: string;
@@ -16,7 +20,7 @@ export interface RulePerformanceMetrics {
 
 export interface RuleAdjustmentSuggestion {
   ruleId: string;
-  adjustment: 'tighten' | 'loosen' | 'disable' | 'modify_params';
+  adjustment: "tighten" | "loosen" | "disable" | "modify_params";
   reason: string;
   confidence: number;
   suggestedParams?: Record<string, unknown>;
@@ -36,7 +40,7 @@ export class RuleLearningSystem {
   trackRuleViolation(
     ruleId: string,
     violation: RuleViolation,
-    context?: unknown
+    context?: unknown,
   ): void {
     // Update performance metrics
     let metrics = this.performanceMetrics.get(ruleId);
@@ -80,7 +84,7 @@ export class RuleLearningSystem {
   private trackPattern(
     ruleId: string,
     violation: RuleViolation,
-    context?: unknown
+    context?: unknown,
   ): void {
     let patterns = this.violationPatterns.get(ruleId);
 
@@ -92,7 +96,8 @@ export class RuleLearningSystem {
     patterns.push({
       timestamp: new Date(),
       severity: violation.severity,
-      context: (context as Record<string, string> | undefined)?.agentName ?? 'unknown',
+      context:
+        (context as Record<string, string> | undefined)?.agentName ?? "unknown",
       message: violation.message,
     });
 
@@ -105,9 +110,7 @@ export class RuleLearningSystem {
   /**
    * Suggest rule adjustments based on performance
    */
-  suggestRuleAdjustments(
-    rules: Rule[]
-  ): RuleAdjustmentSuggestion[] {
+  suggestRuleAdjustments(rules: Rule[]): RuleAdjustmentSuggestion[] {
     const suggestions: RuleAdjustmentSuggestion[] = [];
 
     for (const rule of rules) {
@@ -127,7 +130,7 @@ export class RuleLearningSystem {
   private collectSuggestionsForRule(
     rule: Rule,
     metrics: RulePerformanceMetrics,
-    suggestions: RuleAdjustmentSuggestion[]
+    suggestions: RuleAdjustmentSuggestion[],
   ): void {
     this.checkHighFalsePositiveRate(rule, metrics, suggestions);
     this.checkFrequentViolations(rule, metrics, suggestions);
@@ -137,29 +140,42 @@ export class RuleLearningSystem {
 
   /** Too many false positives -> loosen or disable */
   private checkHighFalsePositiveRate(
-    rule: Rule, metrics: RulePerformanceMetrics, suggestions: RuleAdjustmentSuggestion[]
+    rule: Rule,
+    metrics: RulePerformanceMetrics,
+    suggestions: RuleAdjustmentSuggestion[],
   ): void {
-    if (metrics.falsePositiveCount > 5 &&
-        metrics.falsePositiveCount / metrics.violationCount > 0.3) {
+    if (
+      metrics.falsePositiveCount > 5 &&
+      metrics.falsePositiveCount / metrics.violationCount > 0.3
+    ) {
       suggestions.push({
-        ruleId: rule.id, adjustment: 'loosen',
-        reason: 'معدل إيجابيات خاطئة مرتفع', confidence: 0.8,
+        ruleId: rule.id,
+        adjustment: "loosen",
+        reason: "معدل إيجابيات خاطئة مرتفع",
+        confidence: 0.8,
       });
     }
   }
 
   /** Very frequent violations -> may need stricter params */
   private checkFrequentViolations(
-    rule: Rule, metrics: RulePerformanceMetrics, suggestions: RuleAdjustmentSuggestion[]
+    rule: Rule,
+    metrics: RulePerformanceMetrics,
+    suggestions: RuleAdjustmentSuggestion[],
   ): void {
     if (metrics.violationCount > 50) {
       const patterns = this.violationPatterns.get(rule.id) ?? [];
       const recentPatterns = patterns.slice(-20);
       if (this.analyzePatternConsistency(recentPatterns)) {
         suggestions.push({
-          ruleId: rule.id, adjustment: 'modify_params',
-          reason: 'أنماط انتهاك متسقة في سياقات محددة', confidence: 0.7,
-          suggestedParams: this.suggestParameterAdjustments(rule, recentPatterns),
+          ruleId: rule.id,
+          adjustment: "modify_params",
+          reason: "أنماط انتهاك متسقة في سياقات محددة",
+          confidence: 0.7,
+          suggestedParams: this.suggestParameterAdjustments(
+            rule,
+            recentPatterns,
+          ),
         });
       }
     }
@@ -167,24 +183,36 @@ export class RuleLearningSystem {
 
   /** Never violated -> maybe too strict */
   private checkNeverViolated(
-    rule: Rule, metrics: RulePerformanceMetrics, suggestions: RuleAdjustmentSuggestion[]
+    rule: Rule,
+    metrics: RulePerformanceMetrics,
+    suggestions: RuleAdjustmentSuggestion[],
   ): void {
     if (metrics.violationCount === 0 && metrics.contexts.length > 10) {
       suggestions.push({
-        ruleId: rule.id, adjustment: 'loosen',
-        reason: 'لم يتم تفعيل القاعدة مطلقاً رغم الاستخدام المتكرر', confidence: 0.6,
+        ruleId: rule.id,
+        adjustment: "loosen",
+        reason: "لم يتم تفعيل القاعدة مطلقاً رغم الاستخدام المتكرر",
+        confidence: 0.6,
       });
     }
   }
 
   /** Rarely violated in specific contexts -> consider exception */
   private checkRareContextViolations(
-    rule: Rule, metrics: RulePerformanceMetrics, suggestions: RuleAdjustmentSuggestion[]
+    rule: Rule,
+    metrics: RulePerformanceMetrics,
+    suggestions: RuleAdjustmentSuggestion[],
   ): void {
-    if (metrics.violationCount < 5 && metrics.violationCount > 0 && metrics.contexts.length === 1) {
+    if (
+      metrics.violationCount < 5 &&
+      metrics.violationCount > 0 &&
+      metrics.contexts.length === 1
+    ) {
       suggestions.push({
-        ruleId: rule.id, adjustment: 'modify_params',
-        reason: `انتهاكات نادرة في سياق محدد: ${metrics.contexts[0]}`, confidence: 0.5,
+        ruleId: rule.id,
+        adjustment: "modify_params",
+        reason: `انتهاكات نادرة في سياق محدد: ${metrics.contexts[0]}`,
+        confidence: 0.5,
       });
     }
   }
@@ -198,7 +226,7 @@ export class RuleLearningSystem {
     }
 
     // Check if patterns occur in same context
-    const contexts = patterns.map(p => p.context);
+    const contexts = patterns.map((p) => p.context);
     const uniqueContexts = new Set(contexts);
 
     return uniqueContexts.size <= 2; // Consistent if in 1-2 contexts
@@ -209,7 +237,7 @@ export class RuleLearningSystem {
    */
   private suggestParameterAdjustments(
     rule: Rule,
-    patterns: ViolationPattern[]
+    patterns: ViolationPattern[],
   ): Record<string, unknown> {
     const adjustments: Record<string, unknown> = {};
 
@@ -217,7 +245,7 @@ export class RuleLearningSystem {
     // This is a simplified heuristic
 
     for (const param of rule.parameters) {
-      if (param.type === 'number') {
+      if (param.type === "number") {
         // Suggest increasing/decreasing numeric thresholds
         if (patterns.length > 10) {
           adjustments[param.name] = param.value * 1.2; // Loosen by 20%
@@ -255,13 +283,11 @@ export class RuleLearningSystem {
    * Get rules with high false positive rate
    */
   getProblematicRules(threshold = 0.3): RulePerformanceMetrics[] {
-    return Array.from(this.performanceMetrics.values())
-      .filter(m => {
-        const rate = m.violationCount > 0
-          ? m.falsePositiveCount / m.violationCount
-          : 0;
-        return rate > threshold;
-      });
+    return Array.from(this.performanceMetrics.values()).filter((m) => {
+      const rate =
+        m.violationCount > 0 ? m.falsePositiveCount / m.violationCount : 0;
+      return rate > threshold;
+    });
   }
 
   /**
@@ -287,10 +313,14 @@ export class RuleLearningSystem {
    */
   import(data: Record<string, unknown>): void {
     if (data.metrics) {
-      this.performanceMetrics = new Map(data.metrics as [string, RulePerformanceMetrics][]);
+      this.performanceMetrics = new Map(
+        data.metrics as [string, RulePerformanceMetrics][],
+      );
     }
     if (data.patterns) {
-      this.violationPatterns = new Map(data.patterns as [string, ViolationPattern[]][]);
+      this.violationPatterns = new Map(
+        data.patterns as [string, ViolationPattern[]][],
+      );
     }
   }
 }

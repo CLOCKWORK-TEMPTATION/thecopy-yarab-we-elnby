@@ -1,15 +1,10 @@
-export type BreakappRole =
-  | 'director'
-  | 'crew'
-  | 'runner'
-  | 'vendor'
-  | 'admin';
+export type BreakappRole = "director" | "crew" | "runner" | "vendor" | "admin";
 
-export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
+export type OrderStatus = "pending" | "processing" | "completed" | "cancelled";
 
-export type SessionStatus = 'active' | 'ended' | 'cancelled';
+export type SessionStatus = "active" | "ended" | "cancelled";
 
-export type BatchStatus = 'pending' | 'in-progress' | 'completed' | 'cancelled';
+export type BatchStatus = "pending" | "in-progress" | "completed" | "cancelled";
 
 export interface BreakappTokenPayload {
   sub: string;

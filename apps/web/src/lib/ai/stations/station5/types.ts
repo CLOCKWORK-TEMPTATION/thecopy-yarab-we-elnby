@@ -1,3 +1,13 @@
+// =============================================================================
+// أنواع مساعدة لمحطة 5 — استيراد الأنواع المشتركة من النماذج الأساسية
+// =============================================================================
+import type { DebateResult } from "../../constitutional/multi-agent-debate";
+import type {
+  Conflict,
+  ConflictNetwork,
+} from "../../core/models/base-entities";
+import type { Station4Output } from "../../core/models/station-4-types";
+
 // Define ConflictPhase enum for conflict progression tracking
 export enum ConflictPhaseEnum {
   LATENT = "latent",
@@ -278,4 +288,6 @@ export interface StationMetadata {
   status: "Success" | "Failed";
   agentsUsed: string[];
   executionTime: number;
+  constitutionalViolations?: number;
+  debateResults?: DebateResult;
 }

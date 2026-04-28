@@ -125,9 +125,7 @@ export function DebateView({
             transition={{ delay: index * 0.05 }}
           >
             <Card
-              className={`bg-[var(--color-panel)] border-[var(--color-surface)] ${
-                isCompact ? "p-3" : "p-4"
-              }`}
+              className={`bg-[var(--color-panel)] border-[var(--color-surface)] ${isCompact ? "p-3" : "p-4"}`}
             >
               <div className="flex items-start gap-3">
                 <div

@@ -53,8 +53,8 @@ export class TreatmentLogic {
 
   validateAndEnrichTreatmentPlan(data: unknown): TreatmentPlan {
     const record = asJsonRecord(data);
-    const implementationRoadmap = asJsonRecord(record.implementationRoadmap);
-    const riskAssessment = asJsonRecord(record.riskAssessment);
+    const implementationRoadmap = asJsonRecord(record["implementationRoadmap"]);
+    const riskAssessment = asJsonRecord(record["riskAssessment"]);
 
     const validComplexity = (value: unknown): "low" | "medium" | "high" => {
       if (value === "low" || value === "medium" || value === "high") {
@@ -65,10 +65,10 @@ export class TreatmentLogic {
 
     return {
       prioritizedRecommendations: asArray<Recommendation>(
-        record.prioritizedRecommendations
+        record["prioritizedRecommendations"]
       ).slice(0, 20),
       implementationRoadmap: {
-        phase1: (implementationRoadmap.phase1 as
+        phase1: (implementationRoadmap["phase1"] as
           | TreatmentPlan["implementationRoadmap"]["phase1"]
           | undefined) ?? {
           title: "المرحلة الأولى",
@@ -76,7 +76,7 @@ export class TreatmentLogic {
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase2: (implementationRoadmap.phase2 as
+        phase2: (implementationRoadmap["phase2"] as
           | TreatmentPlan["implementationRoadmap"]["phase2"]
           | undefined) ?? {
           title: "المرحلة الثانية",
@@ -84,7 +84,7 @@ export class TreatmentLogic {
           estimatedTime: "غير محدد",
           expectedImpact: 0,
         },
-        phase3: (implementationRoadmap.phase3 as
+        phase3: (implementationRoadmap["phase3"] as
           | TreatmentPlan["implementationRoadmap"]["phase3"]
           | undefined) ?? {
           title: "المرحلة الثالثة",
@@ -94,21 +94,21 @@ export class TreatmentLogic {
         },
       },
       estimatedImprovementScore: asJsonNumber(
-        record.estimatedImprovementScore,
+        record["estimatedImprovementScore"],
         50
       ),
       implementationComplexity: validComplexity(
-        record.implementationComplexity
+        record["implementationComplexity"]
       ),
-      totalTimeEstimate: asString(record.totalTimeEstimate, "غير محدد"),
+      totalTimeEstimate: asString(record["totalTimeEstimate"], "غير محدد"),
       riskAssessment: {
-        overallRisk: validComplexity(riskAssessment.overallRisk),
+        overallRisk: validComplexity(riskAssessment["overallRisk"]),
         specificRisks: asArray<
           TreatmentPlan["riskAssessment"]["specificRisks"][number]
-        >(riskAssessment.specificRisks).slice(0, 10),
+        >(riskAssessment["specificRisks"]).slice(0, 10),
       },
       successMetrics: asArray<TreatmentPlan["successMetrics"][number]>(
-        record.successMetrics
+        record["successMetrics"]
       ).slice(0, 8),
     };
   }

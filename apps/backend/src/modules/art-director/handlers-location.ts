@@ -16,7 +16,7 @@ import { readStore, updateStore, type StoredLocation } from "./store";
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 export async function handleLocationSearch(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const query = asString(payload["query"]).toLowerCase();
   const type = mapLocationType(asString(payload["type"]));
@@ -45,7 +45,7 @@ function buildStoredLocation(
   name: string,
   nameAr: string,
   payload: Record<string, unknown>,
-  features: string[]
+  features: string[],
 ): StoredLocation {
   const now = new Date().toISOString();
   return {
@@ -53,12 +53,9 @@ function buildStoredLocation(
     name: asString(rawLocation["name"]) || name,
     nameAr: asString(rawLocation["nameAr"]) || nameAr || name,
     type: mapLocationType(
-      asString(rawLocation["type"]) ||
-        asString(payload["type"]) ||
-        "interior"
+      asString(rawLocation["type"]) || asString(payload["type"]) || "interior",
     ),
-    address:
-      asString(rawLocation["address"]) || asString(payload["address"]),
+    address: asString(rawLocation["address"]) || asString(payload["address"]),
     features,
     createdAt: now,
     updatedAt: now,
@@ -66,7 +63,7 @@ function buildStoredLocation(
 }
 
 export async function handleLocationAdd(
-  payload: Record<string, unknown>
+  payload: Record<string, unknown>,
 ): Promise<ArtDirectorHandlerResponse> {
   const nameAr = asString(payload["nameAr"]);
   const name = asString(payload["name"]) || nameAr;
@@ -102,13 +99,13 @@ export async function handleLocationAdd(
     name,
     nameAr,
     payload,
-    features
+    features,
   );
 
   await updateStore((store) => {
     store.locations = uniqueById<StoredLocation>(
       store.locations,
-      storedLocation
+      storedLocation,
     );
   });
 

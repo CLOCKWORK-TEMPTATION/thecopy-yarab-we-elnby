@@ -1,4 +1,3 @@
-
 /**
  * Multi-Layer Cache Service
  *
@@ -15,17 +14,22 @@
  * - Sentry performance monitoring integration
  */
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
-import * as Sentry from '@sentry/node';
+import * as Sentry from "@sentry/node";
 
-import { env } from '@/config/env';
-import { isRedisEnabled } from '@/config/redis-gate';
-import { logger } from '@/lib/logger';
+import { env } from "@/config/env";
+import { isRedisEnabled } from "@/config/redis-gate";
+import { logger } from "@/lib/logger";
 
-import { buildRedisClient } from './cache-redis-init';
+import { buildRedisClient } from "./cache-redis-init";
 
-import type { CacheEntry, CacheMetrics, RedisClientInstance, RedisOperation } from './cache.types';
+import type {
+  CacheEntry,
+  CacheMetrics,
+  RedisClientInstance,
+  RedisOperation,
+} from "./cache.types";
 
 const sentryEnabled = Boolean(env.SENTRY_DSN);
 
@@ -48,7 +52,7 @@ export class CacheService {
     deletes: 0,
     errors: 0,
     redisConnectionHealth: {
-      status: 'disconnected',
+      status: "disconnected",
       lastCheck: Date.now(),
       consecutiveFailures: 0,
     },
@@ -58,7 +62,7 @@ export class CacheService {
     if (isRedisEnabled()) {
       this.initializeRedis();
     } else {
-      logger.info('Cache operating in L1-only mode — Redis is disabled');
+      logger.info("Cache operating in L1-only mode — Redis is disabled");
     }
     this.startMemoryCacheCleanup();
   }
@@ -71,37 +75,46 @@ export class CacheService {
     try {
       const redisClient = buildRedisClient({
         onError: (error: Error) => {
-          logger.warn('Redis connection error, falling back to memory cache:', error.message);
-          this.updateRedisHealth('error');
+          logger.warn(
+            "Redis connection error, falling back to memory cache:",
+            error.message,
+          );
+          this.updateRedisHealth("error");
           this.metrics.errors++;
 
           if (sentryEnabled) {
             Sentry.captureException(error, {
-              tags: { component: 'cache-service', layer: 'redis' },
-              level: 'warning',
+              tags: { component: "cache-service", layer: "redis" },
+              level: "warning",
             });
           }
         },
         onConnect: () => {
-          logger.info('Redis cache connected successfully');
-          this.updateRedisHealth('connected');
+          logger.info("Redis cache connected successfully");
+          this.updateRedisHealth("connected");
         },
         onEnd: () => {
-          logger.warn('Redis connection closed');
-          this.updateRedisHealth('disconnected');
+          logger.warn("Redis connection closed");
+          this.updateRedisHealth("disconnected");
         },
       });
 
       this.redis = redisClient;
 
       redisClient.connect().catch((error: Error) => {
-        logger.warn('Redis initial connection failed, using memory cache only:', error.message);
-        this.updateRedisHealth('error');
+        logger.warn(
+          "Redis initial connection failed, using memory cache only:",
+          error.message,
+        );
+        this.updateRedisHealth("error");
         this.redis = null;
       });
     } catch (error) {
-      logger.warn('Redis initialization failed, using memory cache only:', error);
-      this.updateRedisHealth('error');
+      logger.warn(
+        "Redis initialization failed, using memory cache only:",
+        error,
+      );
+      this.updateRedisHealth("error");
       this.redis = null;
       this.metrics.errors++;
     }
@@ -110,11 +123,13 @@ export class CacheService {
   /**
    * Update Redis connection health status
    */
-  private updateRedisHealth(status: 'connected' | 'disconnected' | 'error'): void {
+  private updateRedisHealth(
+    status: "connected" | "disconnected" | "error",
+  ): void {
     this.metrics.redisConnectionHealth.status = status;
     this.metrics.redisConnectionHealth.lastCheck = Date.now();
 
-    if (status === 'error' || status === 'disconnected') {
+    if (status === "error" || status === "disconnected") {
       this.metrics.redisConnectionHealth.consecutiveFailures++;
     } else {
       this.metrics.redisConnectionHealth.consecutiveFailures = 0;
@@ -134,7 +149,7 @@ export class CacheService {
    */
   private async executeRedisOperation<T>(
     operation: RedisOperation<T>,
-    operationName: string
+    operationName: string,
   ): Promise<T | null> {
     if (!this.isRedisAvailable()) {
       return null;
@@ -142,13 +157,13 @@ export class CacheService {
 
     try {
       const result = await operation();
-      this.updateRedisHealth('connected');
+      this.updateRedisHealth("connected");
       return result;
     } catch (error) {
       logger.error(`Redis ${operationName} error:`, error);
       this.metrics.errors++;
-      this.updateRedisHealth('error');
-      this.captureError(error, operationName, 'redis');
+      this.updateRedisHealth("error");
+      this.captureError(error, operationName, "redis");
       return null;
     }
   }
@@ -156,16 +171,20 @@ export class CacheService {
   /**
    * Capture error to Sentry if configured
    */
-  private captureError(error: unknown, operation: string, layer?: string): void {
+  private captureError(
+    error: unknown,
+    operation: string,
+    layer?: string,
+  ): void {
     if (!sentryEnabled) return;
 
     Sentry.captureException(error, {
       tags: {
-        component: 'cache-service',
+        component: "cache-service",
         operation,
         ...(layer && { layer }),
       },
-      level: 'warning',
+      level: "warning",
     });
   }
 
@@ -194,7 +213,9 @@ export class CacheService {
    */
   private isValueSizeValid(serialized: string): boolean {
     if (serialized.length > this.MAX_VALUE_SIZE) {
-      logger.warn(`Value too large (${serialized.length} bytes), skipping cache`);
+      logger.warn(
+        `Value too large (${serialized.length} bytes), skipping cache`,
+      );
       return false;
     }
     return true;
@@ -205,9 +226,9 @@ export class CacheService {
    */
   generateKey(prefix: string, data: unknown): string {
     const hash = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(JSON.stringify(data))
-      .digest('hex')
+      .digest("hex")
       .substring(0, 16);
     return `${prefix}:${hash}`;
   }
@@ -231,9 +252,9 @@ export class CacheService {
       this.metrics.misses++;
       return null;
     } catch (error) {
-      logger.error('Cache get error:', error);
+      logger.error("Cache get error:", error);
       this.metrics.errors++;
-      this.captureError(error, 'get');
+      this.captureError(error, "get");
       return null;
     }
   }
@@ -264,10 +285,10 @@ export class CacheService {
   private async getFromL2Cache<T>(key: string): Promise<T | null> {
     const value = await this.executeRedisOperation(
       () => this.redis!.get(key),
-      'get'
+      "get",
     );
 
-    if (!value || typeof value !== 'string') {
+    if (!value || typeof value !== "string") {
       return null;
     }
 
@@ -285,7 +306,11 @@ export class CacheService {
   /**
    * Set value in cache (L1 + L2)
    */
-  async set<T>(key: string, value: T, ttl: number = this.DEFAULT_TTL): Promise<void> {
+  async set<T>(
+    key: string,
+    value: T,
+    ttl: number = this.DEFAULT_TTL,
+  ): Promise<void> {
     try {
       const normalizedTTL = this.normalizeTTL(ttl);
       const serialized = JSON.stringify(value);
@@ -296,15 +321,19 @@ export class CacheService {
 
       this.setMemoryCache(key, value, normalizedTTL);
 
-      const redisSuccess = await this.setInL2Cache(key, serialized, normalizedTTL);
-      const layer = redisSuccess ? 'L1+L2' : 'L1 only';
+      const redisSuccess = await this.setInL2Cache(
+        key,
+        serialized,
+        normalizedTTL,
+      );
+      const layer = redisSuccess ? "L1+L2" : "L1 only";
 
       logger.debug(`Cache set (${layer}): ${key}, TTL: ${normalizedTTL}s`);
       this.metrics.sets++;
     } catch (error) {
-      logger.error('Cache set error:', error);
+      logger.error("Cache set error:", error);
       this.metrics.errors++;
-      this.captureError(error, 'set');
+      this.captureError(error, "set");
     }
   }
 
@@ -312,10 +341,14 @@ export class CacheService {
    * Attempt to set value in L2 (Redis) cache.
    * Returns true if successful, false otherwise.
    */
-  private async setInL2Cache(key: string, serialized: string, ttl: number): Promise<boolean> {
+  private async setInL2Cache(
+    key: string,
+    serialized: string,
+    ttl: number,
+  ): Promise<boolean> {
     const result = await this.executeRedisOperation(
       () => this.redis!.setEx(key, ttl, serialized),
-      'set'
+      "set",
     );
     return result !== null;
   }
@@ -327,17 +360,14 @@ export class CacheService {
     try {
       this.memoryCache.delete(key);
 
-      await this.executeRedisOperation(
-        () => this.redis!.del(key),
-        'delete'
-      );
+      await this.executeRedisOperation(() => this.redis!.del(key), "delete");
 
       this.metrics.deletes++;
       logger.debug(`Cache deleted: ${key}`);
     } catch (error) {
-      logger.error('Cache delete error:', error);
+      logger.error("Cache delete error:", error);
       this.metrics.errors++;
-      this.captureError(error, 'delete');
+      this.captureError(error, "delete");
     }
   }
 
@@ -352,14 +382,14 @@ export class CacheService {
         await this.clearAll();
       }
     } catch (error) {
-      logger.error('Cache clear error:', error);
-      this.captureError(error, 'clear');
+      logger.error("Cache clear error:", error);
+      this.captureError(error, "clear");
     }
   }
 
   private async clearByPattern(pattern: string): Promise<void> {
     const keysToDelete = Array.from(this.memoryCache.keys()).filter((key) =>
-      key.startsWith(pattern)
+      key.startsWith(pattern),
     );
     keysToDelete.forEach((key) => this.memoryCache.delete(key));
 
@@ -369,7 +399,7 @@ export class CacheService {
         await this.redis!.del(keys);
       }
       return keys.length;
-    }, 'clear-pattern');
+    }, "clear-pattern");
 
     logger.info(`Cache cleared for pattern: ${pattern}`);
   }
@@ -377,12 +407,9 @@ export class CacheService {
   private async clearAll(): Promise<void> {
     this.memoryCache.clear();
 
-    await this.executeRedisOperation(
-      () => this.redis!.flushDb(),
-      'clear-all'
-    );
+    await this.executeRedisOperation(() => this.redis!.flushDb(), "clear-all");
 
-    logger.info('All cache cleared');
+    logger.info("All cache cleared");
   }
 
   /**
@@ -436,7 +463,7 @@ export class CacheService {
 
     return {
       memorySize: this.memoryCache.size,
-      redisStatus: this.isRedisAvailable() ? 'connected' : 'disconnected',
+      redisStatus: this.isRedisAvailable() ? "connected" : "disconnected",
       metrics: { ...this.metrics },
       hitRate,
     };
@@ -485,7 +512,7 @@ export class CacheService {
     }
 
     this.memoryCache.clear();
-    logger.info('Cache service disconnected and cleaned up');
+    logger.info("Cache service disconnected and cleaned up");
   }
 }
 

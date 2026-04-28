@@ -13,7 +13,6 @@ import { statSync } from "node:fs";
 import { basename } from "node:path";
 import { format as formatLogLine } from "node:util";
 
-
 function writeStdout(...args: unknown[]): void {
   process.stdout.write(formatLogLine(...args) + "\n");
 }
@@ -84,7 +83,7 @@ function extractRawText(pdfPath: string, maxPages = 3): string {
 function arabicRatio(text: string): number {
   if (text.length === 0) return 0;
   const arabicChars = [...text].filter(
-    (c) => c.charCodeAt(0) >= 0x0600 && c.charCodeAt(0) <= 0x06ff
+    (c) => c.charCodeAt(0) >= 0x0600 && c.charCodeAt(0) <= 0x06ff,
   ).length;
   return arabicChars / text.length;
 }
@@ -139,7 +138,7 @@ function classifyPdf(pdfPath: string): ClassificationResult {
   // تحذير الحجم
   if (sizeMb > 50) {
     notes.push(
-      `حجم الملف كبير (${sizeMb}MB) — قد يتجاوز حد Mistral API (50MB)`
+      `حجم الملف كبير (${sizeMb}MB) — قد يتجاوز حد Mistral API (50MB)`,
     );
   }
 

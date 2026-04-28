@@ -1,16 +1,16 @@
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
-import { db } from '@/db';
+import { db } from "@/db";
 import {
   breakappOrderItems,
   breakappOrders,
   breakappRunnerLocations,
   breakappVendors,
-} from '@/db/schema';
+} from "@/db/schema";
 
-import { ensureDatabase } from './_helpers';
+import { ensureDatabase } from "./_helpers";
 
-import type { OrderStatus } from '../service.types';
+import type { OrderStatus } from "../service.types";
 
 export interface SessionBatchRow {
   vendorId: string;
@@ -19,7 +19,7 @@ export interface SessionBatchRow {
 }
 
 export async function aggregateSessionBatches(
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionBatchRow[]> {
   ensureDatabase();
   const rows = await db
@@ -31,17 +31,17 @@ export async function aggregateSessionBatches(
     .from(breakappOrders)
     .innerJoin(
       breakappOrderItems,
-      eq(breakappOrderItems.orderId, breakappOrders.id)
+      eq(breakappOrderItems.orderId, breakappOrders.id),
     )
-    .innerJoin(
-      breakappVendors,
-      eq(breakappVendors.id, breakappOrders.vendorId)
-    )
+    .innerJoin(breakappVendors, eq(breakappVendors.id, breakappOrders.vendorId))
     .where(
       and(
         eq(breakappOrders.sessionId, sessionId),
-        inArray(breakappOrders.status, ['pending', 'processing'] as OrderStatus[])
-      )
+        inArray(breakappOrders.status, [
+          "pending",
+          "processing",
+        ] as OrderStatus[]),
+      ),
     )
     .groupBy(breakappOrders.vendorId, breakappVendors.name);
 
@@ -52,9 +52,7 @@ export async function aggregateSessionBatches(
   }));
 }
 
-export async function listRunnerTasks(
-  runnerId: string
-): Promise<
+export async function listRunnerTasks(runnerId: string): Promise<
   {
     id: string;
     sessionId: string;
@@ -79,17 +77,17 @@ export async function listRunnerTasks(
     .from(breakappOrders)
     .innerJoin(
       breakappOrderItems,
-      eq(breakappOrderItems.orderId, breakappOrders.id)
+      eq(breakappOrderItems.orderId, breakappOrders.id),
     )
-    .innerJoin(
-      breakappVendors,
-      eq(breakappVendors.id, breakappOrders.vendorId)
-    )
+    .innerJoin(breakappVendors, eq(breakappVendors.id, breakappOrders.vendorId))
     .where(
       and(
         eq(breakappOrders.userId, runnerId),
-        inArray(breakappOrders.status, ['pending', 'processing'] as OrderStatus[])
-      )
+        inArray(breakappOrders.status, [
+          "pending",
+          "processing",
+        ] as OrderStatus[]),
+      ),
     )
     .groupBy(
       breakappOrders.id,
@@ -97,7 +95,7 @@ export async function listRunnerTasks(
       breakappOrders.vendorId,
       breakappVendors.name,
       breakappOrders.status,
-      breakappOrders.createdAt
+      breakappOrders.createdAt,
     )
     .orderBy(desc(breakappOrders.createdAt));
 

@@ -116,9 +116,7 @@ export default function AdminProjectInvitesPage() {
     if (!invite) {
       return null;
     }
-    return `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(
-      invite.qr_token
-    )}`;
+    return `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(invite.qr_token)}`;
   }, [invite]);
 
   return (
@@ -144,10 +142,14 @@ export default function AdminProjectInvitesPage() {
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-white mb-2 font-cairo">
+              <label
+                htmlFor="field-page-1"
+                className="block text-sm font-medium text-white mb-2 font-cairo"
+              >
                 الدور
               </label>
               <select
+                id="field-page-1"
                 value={role}
                 onChange={handleRoleChange}
                 disabled={loading}
@@ -165,10 +167,14 @@ export default function AdminProjectInvitesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-white mb-2 font-cairo">
+              <label
+                htmlFor="field-page-2"
+                className="block text-sm font-medium text-white mb-2 font-cairo"
+              >
                 مدة الصلاحية (بالدقائق)
               </label>
               <input
+                id="field-page-2"
                 type="number"
                 min={1}
                 max={1440}

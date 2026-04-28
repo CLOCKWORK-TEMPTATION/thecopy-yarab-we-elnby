@@ -10201,3 +10201,300 @@ git push -u origin str-098-foundation-completion
 ### هل استلزم الأمر تحديث session-state
 
 نعم
+
+## الجولة 166
+
+### التاريخ والوقت
+
+2026-04-28T08:59:30.177Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+
+## جولة 106 — تشغيل وإصلاح type-check:strict على @the-copy/web — 2026-04-28
+
+### قاعدة منع إضعاف الفحوصات
+
+مقروءة ومثبتة من `AGENTS.md` و `.repo-agent/OPERATING-CONTRACT.md` و `.repo-agent/STARTUP-PROTOCOL.md` و `.repo-agent/HANDOFF-PROTOCOL.md` و `CLAUDE.md`. لم تُعدَّل أي ملفات فحص أو contract أو tsconfig أو tsconfig.check.json أو eslint config أو test config. كل الإصلاحات في كود المصدر فقط داخل `apps/web/src/` و `apps/web/scripts/`.
+
+### المسار التشغيلي
+
+تشغيل `pnpm --filter @the-copy/web run type-check:strict` على شجرة `apps/web` بإعدادات `tsconfig.check.json` التي تُفعِّل `noPropertyAccessFromIndexSignature: true` فوق إعدادات `tsconfig.json` الصارمة (`strict`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`).
+
+### النتائج التراكمية
+
+| المرحلة | عدد الأخطاء | الفارق |
+|---|---:|---:|
+| القياس الأساسي قبل الإصلاح | 1,189 | — |
+| بعد الدفعة 1 الميكانيكية (TS4111+TS6133+TS6138) | 507 | −682 |
+| بعد إصلاح station-N-types الأساسي | 390 | −117 |
+| بعد إصلاح station6 + BUDGET + art-director + station5 + الأيقونات | 407 | +17 (انكشف TS4111 جديد) |
+| بعد إعادة تشغيل سكريبت TS4111 الآلي | **347** | −60 |
+| **إجمالي الإصلاح** | — | **−842 (70.8%)** |
+
+### الإصلاحات المنفَّذة
+
+#### الدفعة 1 — ميكانيكية آلية (682 خطأ)
+
+سكريبت `outputs/fix-ts4111.mjs` يقرأ سجل tsc، يستخرج `(file, line, col, prop)` لكل TS4111، يتحقق من تطابق الحرف عند العمود مع `'.PROP'`، ثم يستبدل بـ `['PROP']`. تطبيق: 656 + 60 = 716 موضعاً عبر 76 ملفاً، 0 skipped.
+
+سكريبت `outputs/fix-optional-chain.mjs` تصحيحي ثانوي: يكتشف كسر optional chaining (`obj?['x']` → `obj?.['x']`) الناتج عن السكريبت الأول، 53 موضعاً عبر 15 ملفاً.
+
+إصلاحات يدوية لـ TS6133/TS6138:
+
+- إزالة 16 استيراد React غير مستخدم (React 17+ jsx: react-jsx).
+- prefix بـ `_` لـ `chatEndRef`, `setVisionProConnected`, `setWebcamSessions` في actorai-arabic.
+- إزالة destructure مهمل `originalRun` في `lib/app/handlers.ts`.
+- إزالة مُعدِّل `private` من 3 معاملات constructor غير المُستهلَكة كحقول في station6.
+
+#### الدفعة 2 — imports ومسارات (160 خطأ)
+
+- إضافة `import type` للأنواع المشتركة في `src/lib/ai/core/models/station-{1..7}-types.ts` (مصدر: `./common-types`، مع dependency بين stations).
+- إضافة تعريفات `JsonRecord` و `DebateResult` في `src/lib/ai/stations/station6/types.ts`.
+- تصحيح مسارات استيراد `../constitutional/...` → `../../constitutional/...` في 3 ملفات station6.
+- إضافة `import type { GeminiService }` و تعريف `PreviousStationsOutput` في `station6/index.ts`.
+- إضافة استيراد `Conflict` من `base-entities` في `station5/dynamic-analysis-engine.ts` و station5/types.ts.
+- إنشاء قسم جديد كامل في `BUDGET/lib/constants.ts` يصدِّر `COLOR_PALETTE` (10 ألوان hex) و `BUDGET_TEMPLATES` (4 قوالب: feature/short/documentary/commercial) مع interface مكتوب `BudgetTemplate`.
+- إضافة استيراد `CardSpotlight` في `actorai-arabic/components/studio/Recording.tsx`.
+- إضافة الأيقونات `CameraOff`, `RefreshCcw`, `ScanLine` في `cinematography-studio/components/tools/{ProductionTools,PostProductionTools}.tsx`.
+- تصحيح اسم `CameraSettings` → `CameraEyeSettings` (مع alias) في `useARTraining.ts`.
+- تصحيح اسم `immersiveConceptArt` → `immersiveConceptArtStudio` في `art-director/index.ts` (موضعان).
+- تصحيح تصادم case-sensitivity بين `Tools.tsx` و `tools/` directory: تخصيص المسار إلى `./tools/index`.
+
+### الأخطاء المتبقية (347)
+
+| العدد | الرمز | الفئة |
+|---:|---|---|
+| 66 | TS2353 | Object literal known properties |
+| 49 | TS2322 | Type assignment mismatch |
+| 46 | TS2339 | Property doesn't exist on type |
+| 45 | TS2345 | Argument type mismatch |
+| 35 | TS2532 | Object possibly undefined |
+| 19 | TS2307 | Cannot find module (مسارات تشير لملفات محذوفة) |
+| 15 | TS2416 | Override signature mismatch |
+| 10 | TS2379 | exactOptionalPropertyTypes في الاستهلاك |
+| 10 | TS7006 | Implicit any parameter |
+| 9 | TS2375 | exactOptionalPropertyTypes في الخاصية |
+| 9 | TS2352 | Cast غير متوافق |
+| 7 | TS2769 | No overload matches |
+| باقي | متفرقات | TS2540, TS2739, TS2571, TS2459, TS18048, TS2395, TS2300, TS1308, TS2554, TS2305, TS2704, TS2740, TS5097, TS2367, TS2344 |
+
+كل هذه الفئات تحتاج فحصاً دلالياً ملف بملف وفهم النوايا التصميمية لكل واجهة. لا يوجد منها ما يمكن إصلاحه بـ regex آلي دون مخاطرة بإضعاف نوع أو إخفاء سبب جذري.
+
+### الملفات المُعدَّلة في هذه الجولة
+
+ملفات السكريبت الإصلاحية (في `outputs/`):
+- `outputs/fix-ts4111.mjs` (سكريبت إصلاح آلي قابل للتشغيل المستقبلي)
+- `outputs/fix-optional-chain.mjs` (سكريبت تصحيحي قابل للتشغيل المستقبلي)
+
+ملفات المصدر المُعدَّلة (≈ 90 ملفاً):
+- 76 ملفاً عبر سكريبت TS4111 الآلي (مسارات env و config)
+- 15 ملفاً عبر سكريبت optional chain
+- 7 ملفات station-N-types.ts
+- 4 ملفات داخل station6/
+- station5/dynamic-analysis-engine.ts و station5/types.ts
+- BUDGET/lib/constants.ts (إضافة قسم كامل)
+- 3 ملفات tsx لإضافة استيرادات (CardSpotlight + lucide icons)
+- art-director/index.ts (تصحيح اسم plugin)
+- art-director/components/Tools.tsx (تخصيص path لتجنب case clash)
+- 16 ملف tsx/ts لإزالة استيرادات React غير مستخدمة
+- 4 ملفات لمعالجة TS6133 (rename إلى `_` أو إزالة)
+- 3 ملفات station6 لمعالجة TS6138 (إزالة `private` modifier)
+
+### قرارات التصميم
+
+- **سكريبتات الإصلاح الآلية** كُتبت بحيث تكون idempotent وتتحقق من تطابق العمود مع المحتوى المتوقع قبل أي تعديل، وتُسجِّل عدد الـ skipped مع الأسباب. لا تكتب فوق ملف إلا إذا تم تطبيق تعديل واحد على الأقل، ولا تلمس tsconfig أو ملفات الفحص.
+- **station6/types.ts** اعتمد إعادة تصدير `DebateResult` من `../../constitutional/multi-agent-debate` بدلاً من تعريف نوع منافس، حفاظاً على مصدر حقيقة واحد.
+- **BUDGET/lib/constants.ts**: `COLOR_PALETTE` و `BUDGET_TEMPLATES` مُحدَّدة كـ `readonly` لمنع التعديل العَرَضي وقت التشغيل، وتُعطى قيماً عملية حقيقية (4 قوالب بفئات سينمائية صحيحة، 10 ألوان hex متباينة) لا placeholders.
+
+### قاعدة الفحص الحاكمة — تأكيد التزام
+
+- لم تُعدَّل أي ملفات: `tsconfig.json`, `tsconfig.check.json`, `package.json scripts`, `scripts/quality/typecheck-contract.mjs`, `scripts/quality/eslint-contract.mjs`, `.repo-agent/TOOL-GUARD-CONTRACT.json`, `vitest.config*`, `playwright.config*`.
+- لم تُضَف استثناءات أو eslint-disable أو @ts-ignore أو @ts-expect-error لأي ملف.
+- لم يُخفَّض `noPropertyAccessFromIndexSignature` ولا `noUnusedLocals` ولا أي flag صرامة.
+- كل إصلاح TS4111 طُبِّق على المُستهلِك (تحويل `.X` إلى `['X']`)، لا على المُعرِّف. كل إصلاح TS6133/6138 طُبِّق بإزالة الكود الميت أو prefix بـ `_` (السلوك القياسي لـ TS لتجاهل المُعطَّلات المتعمَّدة).
+
+### المتبقي مفتوحاً
+
+347 خطأ تشغيلي على `pnpm --filter @the-copy/web run type-check:strict`، موزعة على ≈ 19 رمز TypeScript. الإصلاح يتطلب جلسات إضافية بحوار مع المالك حول النوايا التصميمية لكل واجهة، خاصة في:
+
+- `actorai-arabic/components/studio/*` (TS2322/TS2339/TS2353 على واجهات indicators و studio)
+- `arabic-creative-writing-studio/components/*` (TS2322/TS2769/TS2375 على ExportResult و WritingEditor)
+- `art-director/__tests__/integration.test.tsx` (TS2345 على fetch mocks)
+- ملفات station6/* المتبقية (TS2353/TS2339 على object literals)
+- `breakdown/infrastructure/cast/*` (TS2307 لـ `../../domain/models` المحذوف غالباً)
+- `cinematography-studio/hooks/*` (TS2307 لـ `../../types` المحذوف)
+- `editor/src/components/app-shell/app-header/*` (TS2307 لـ `../editor` المحذوف)
+
+كل الـ TS2307 المتبقية مرتبطة بمسارات تشير لملفات إما حُذِفت أو نُقِلت، وتحتاج تحقيقاً يدوياً لكل حالة (إعادة إنشاء الملف، أو تحديث المسار، أو حذف الاستيراد إذا كانت الميزة محذوفة).
+
+## الجولة 167
+
+### التاريخ والوقت
+
+2026-04-28T12:04:01.837Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- .github/copilot-instructions.md
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 168
+
+### التاريخ والوقت
+
+2026-04-28T13:01:49.840Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم
+
+## الجولة 169
+
+### التاريخ والوقت
+
+2026-04-28T20:32:52.952Z
+
+### نوع الجولة
+
+بدء جلسة
+
+### ما الذي فحصه bootstrap
+
+- حالة git الحالية
+- أوامر التشغيل الرسمية
+- المنافذ الرسمية
+- التطبيقات والحزم
+- العقود اليدوية
+- الملفات المرجعية الحية
+- مرايا IDE المطلوبة
+- طبقات المعرفة والاسترجاع
+
+### ما الذي تم تحديثه
+
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
+- output/session-state.md
+- .repo-agent/AGENT-CONTEXT.generated.md
+
+### مستوى drift
+
+`hard-drift`
+
+### حالة طبقة المعرفة والاسترجاع
+
+- governance status: `governed`
+- total systems: `5`
+
+### ما الذي بقي مفتوحًا
+
+- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+
+### هل استلزم الأمر تحديث session-state
+
+نعم

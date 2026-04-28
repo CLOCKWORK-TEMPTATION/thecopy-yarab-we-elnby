@@ -24,8 +24,8 @@ describe("seven-stations fallback", () => {
       "station6",
       "station7",
     ]);
-    expect(result.stationOutputs.station1.logline).toBeTruthy();
-    expect(result.stationOutputs.station7.finalReport).toBeTruthy();
+    expect(result.stationOutputs.station1["logline"]).toBeTruthy();
+    expect(result.stationOutputs.station7["finalReport"]).toBeTruthy();
   });
 
   it("يحوّل البنى غير القابلة للتسلسل إلى قيم آمنة", () => {

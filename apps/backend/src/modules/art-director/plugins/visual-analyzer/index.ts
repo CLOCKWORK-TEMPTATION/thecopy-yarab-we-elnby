@@ -54,7 +54,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
     switch (input.type) {
       case "analyze":
         return this.analyzeVisualConsistency(
-          input.data as unknown as AnalyzeInput
+          input.data as unknown as AnalyzeInput,
         );
       case "compare":
         return this.compareScenes(input.data as any);
@@ -67,7 +67,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   }
 
   private async analyzeVisualConsistency(
-    data: AnalyzeInput
+    data: AnalyzeInput,
   ): Promise<PluginOutput> {
     const issues: VisualIssue[] = [];
     const suggestions: string[] = [];
@@ -94,14 +94,14 @@ export class VisualConsistencyAnalyzer implements Plugin {
     // Generate suggestions
     if (colorIssues.length > 0) {
       suggestions.push(
-        "Consider creating a master color reference sheet for all scenes"
+        "Consider creating a master color reference sheet for all scenes",
       );
       suggestions.push("قم بإنشاء مرجع رئيسي للألوان لجميع المشاهد");
     }
 
     if (lightingIssues.length > 0) {
       suggestions.push(
-        "Use consistent color temperature across matching scenes"
+        "Use consistent color temperature across matching scenes",
       );
       suggestions.push("استخدم درجة حرارة لونية متسقة عبر المشاهد المتطابقة");
     }
@@ -122,7 +122,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   }
 
   private analyzeColorConsistency(
-    scenes: AnalyzeInput["scenes"]
+    scenes: AnalyzeInput["scenes"],
   ): VisualIssue[] {
     const issues: VisualIssue[] = [];
 
@@ -136,7 +136,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
       if (scene1.colorPalette && scene2.colorPalette) {
         const primaryDiff = this.compareColorArrays(
           scene1.colorPalette.primary,
-          scene2.colorPalette.primary
+          scene2.colorPalette.primary,
         );
 
         if (primaryDiff > 0.3) {
@@ -156,7 +156,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   }
 
   private analyzeLightingConsistency(
-    scenes: AnalyzeInput["scenes"]
+    scenes: AnalyzeInput["scenes"],
   ): VisualIssue[] {
     const issues: VisualIssue[] = [];
 
@@ -169,7 +169,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
 
       if (scene1.lighting && scene2.lighting) {
         const tempDiff = Math.abs(
-          scene1.lighting.colorTemperature - scene2.lighting.colorTemperature
+          scene1.lighting.colorTemperature - scene2.lighting.colorTemperature,
         );
 
         if (tempDiff > 1000) {
@@ -189,7 +189,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
   }
 
   private analyzeCostumeConsistency(
-    scenes: AnalyzeInput["scenes"]
+    scenes: AnalyzeInput["scenes"],
   ): VisualIssue[] {
     const issues: VisualIssue[] = [];
     const characterCostumes: Map<string, Set<string>> = new Map();
@@ -253,7 +253,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
     const diff = Math.sqrt(
       Math.pow(rgb1.r - rgb2.r, 2) +
         Math.pow(rgb1.g - rgb2.g, 2) +
-        Math.pow(rgb1.b - rgb2.b, 2)
+        Math.pow(rgb1.b - rgb2.b, 2),
     );
 
     return diff / 441.67; // Max possible difference (sqrt(255^2 * 3))
@@ -272,7 +272,7 @@ export class VisualConsistencyAnalyzer implements Plugin {
 
   private calculateConsistencyScore(
     issues: VisualIssue[],
-    _sceneCount: number
+    _sceneCount: number,
   ): number {
     const baseScore = 100;
     let deductions = 0;

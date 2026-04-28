@@ -1,5 +1,4 @@
-import { TaskCategory, TaskType , AIAgentConfig } from "@core/types";
-
+import { TaskCategory, TaskType, AIAgentConfig } from "@core/types";
 
 export const THEMATIC_MINING_AGENT_CONFIG: AIAgentConfig = {
   id: TaskType.THEMATIC_MINING,

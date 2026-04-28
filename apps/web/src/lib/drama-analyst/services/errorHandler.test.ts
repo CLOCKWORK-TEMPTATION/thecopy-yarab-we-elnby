@@ -133,7 +133,7 @@ describe("ErrorHandler", () => {
       expect(detailedError.context.sessionId).toBe("session456");
       expect(detailedError.context.component).toBe("TestComponent");
       expect(detailedError.context.action).toBe("testAction");
-      expect(detailedError.context.metadata?.test).toBe("value");
+      expect(detailedError.context.metadata?.["test"]).toBe("value");
       expect(detailedError.context.timestamp).toBeDefined();
     });
 
@@ -257,9 +257,9 @@ describe("ErrorHandler", () => {
       expect(stats.byType.NETWORK_ERROR).toBe(1);
       expect(stats.byType.API_ERROR).toBe(1);
       expect(stats.byType.FILE_ERROR).toBe(1);
-      expect(stats.bySeverity.high).toBe(1);
-      expect(stats.bySeverity.medium).toBe(1);
-      expect(stats.bySeverity.low).toBe(1);
+      expect(stats.bySeverity["high"]).toBe(1);
+      expect(stats.bySeverity["medium"]).toBe(1);
+      expect(stats.bySeverity["low"]).toBe(1);
       expect(stats.recentErrors).toBe(3);
     });
   });
@@ -304,7 +304,7 @@ describe("ErrorHandler", () => {
 
       expect(detailedError.type).toBe(ErrorType.FILE_ERROR);
       expect(detailedError.context.component).toBe("FileService");
-      expect(detailedError.context.metadata?.fileName).toBe("test.txt");
+      expect(detailedError.context.metadata?.["fileName"]).toBe("test.txt");
       expect(detailedError.severity).toBe("medium");
     });
 
@@ -318,7 +318,7 @@ describe("ErrorHandler", () => {
 
       expect(detailedError.type).toBe(ErrorType.VALIDATION_ERROR);
       expect(detailedError.context.component).toBe("ValidationService");
-      expect(detailedError.context.metadata?.field).toBe("email");
+      expect(detailedError.context.metadata?.["field"]).toBe("email");
       expect(detailedError.severity).toBe("low");
     });
 

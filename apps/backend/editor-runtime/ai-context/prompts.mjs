@@ -12,7 +12,7 @@ export const buildUserPrompt = (classifiedLines) => {
   const formatted = classifiedLines
     .map(
       (line, index) =>
-        `[${index}] (${line.assignedType}, ثقة=${line.confidence}%) ${line.text}`
+        `[${index}] (${line.assignedType}, ثقة=${line.confidence}%) ${line.text}`,
     )
     .join("\n");
 

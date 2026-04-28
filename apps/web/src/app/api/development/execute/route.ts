@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { logger } from "@/lib/ai/utils/logger";
+import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
 /**
  * مسار تنفيذ أدوات التطوير الإبداعي
@@ -10,8 +11,6 @@ import { logger } from "@/lib/ai/utils/logger";
  *
  * المسار: POST /api/development/execute
  */
-
-import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

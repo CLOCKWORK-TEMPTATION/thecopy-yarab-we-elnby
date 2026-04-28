@@ -33,7 +33,7 @@ const buildCriticalMatchers = (criticalTokens = []) => {
   const set = new Set(
     (Array.isArray(criticalTokens) ? criticalTokens : [])
       .filter((item) => typeof item === "string" && item.trim())
-      .map((item) => item.trim())
+      .map((item) => item.trim()),
   );
 
   return {
@@ -42,7 +42,7 @@ const buildCriticalMatchers = (criticalTokens = []) => {
       if (!normalized) return false;
       if (set.has(normalized)) return true;
       return CRITICAL_DEFAULT_PATTERNS.some((pattern) =>
-        pattern.test(normalized)
+        pattern.test(normalized),
       );
     },
   };
@@ -120,10 +120,10 @@ export const enforceTokenMatch = ({
       : toPercent(matchedWords / totalReferenceWords);
   const structuralMatch = computeStructuralMatch(
     referenceLines,
-    candidateLines
+    candidateLines,
   );
   const criticalCount = mismatchReport.filter(
-    (item) => item.severity === "critical"
+    (item) => item.severity === "critical",
   ).length;
   const accepted = wordMatch >= minWordMatch && criticalCount === 0;
 
@@ -133,7 +133,7 @@ export const enforceTokenMatch = ({
       rejectionReason = `critical mismatches detected (${criticalCount}).`;
     } else {
       rejectionReason = `wordMatch ${wordMatch.toFixed(
-        2
+        2,
       )}% is below threshold ${Number(minWordMatch).toFixed(2)}%.`;
     }
   }

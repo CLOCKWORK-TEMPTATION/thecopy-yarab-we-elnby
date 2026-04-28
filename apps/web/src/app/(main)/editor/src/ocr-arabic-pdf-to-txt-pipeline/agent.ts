@@ -33,7 +33,7 @@ import { resolve } from "node:path";
 
 import { createMCPClient } from "@ai-sdk/mcp";
 import { openai } from "@ai-sdk/openai";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio";
 import { ToolLoopAgent, stepCountIs } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
@@ -229,8 +229,8 @@ async function buildAgent() {
         for (const call of toolCalls) {
           const callArgs =
             "input" in call
-              ? (call as Record<string, unknown>).input
-              : (call as Record<string, unknown>).args;
+              ? (call as Record<string, unknown>)["input"]
+              : (call as Record<string, unknown>)["args"];
           log(
             "أداة",
             C.cyan,

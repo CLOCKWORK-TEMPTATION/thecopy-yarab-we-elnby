@@ -2,7 +2,6 @@
  * Enhanced RAG Service - Unified Retrieval-Augmented Generation
  */
 
-
 import { definedProps } from "@/utils/defined-props";
 
 import { contextAssemblyService } from "../../memory/context/context-assembly.service";
@@ -60,7 +59,7 @@ export class EnhancedRAGService {
 
   private async indexDocument(
     normalizedDocument: string,
-    requestOptions: EnhancedRAGRequestOptions
+    requestOptions: EnhancedRAGRequestOptions,
   ) {
     return weaviateIndexingService.indexAdHocDocument(
       normalizedDocument,
@@ -68,7 +67,7 @@ export class EnhancedRAGService {
       definedProps({
         maxChunkSize: this.options.chunkSize,
         coherenceThreshold: this.options.coherenceThreshold,
-      })
+      }),
     );
   }
 
@@ -77,7 +76,7 @@ export class EnhancedRAGService {
     profile: ContextProfile,
     topK: number,
     documentHash: string,
-    totalChunks: number
+    totalChunks: number,
   ) {
     const limit = Math.max(topK * 3, totalChunks);
     return weaviateRetrievalService.retrieve({
@@ -95,19 +94,41 @@ export class EnhancedRAGService {
   }
 
   private selectAndMapChunks(
-    retrievedHits: { relevanceScore: number; text: string; startIndex?: number; endIndex?: number; coherenceScore?: number; sentences?: string[]; rank: number; collection?: string; source?: string; documentHash?: string; metadata?: Record<string, unknown> }[],
+    retrievedHits: {
+      relevanceScore: number;
+      text: string;
+      startIndex?: number;
+      endIndex?: number;
+      coherenceScore?: number;
+      sentences?: string[];
+      rank: number;
+      collection?: string;
+      source?: string;
+      documentHash?: string;
+      metadata?: Record<string, unknown>;
+    }[],
     profile: ContextProfile,
-    topK: number
+    topK: number,
   ): RetrievedChunk[] {
-    const minScore = this.options.minRelevanceScore ?? DEFAULT_OPTIONS.minRelevanceScore ?? 0;
-    const filteredHits = retrievedHits.filter((hit) => hit.relevanceScore >= minScore);
+    const minScore =
+      this.options.minRelevanceScore ?? DEFAULT_OPTIONS.minRelevanceScore ?? 0;
+    const filteredHits = retrievedHits.filter(
+      (hit) => hit.relevanceScore >= minScore,
+    );
 
-    const selectedHits = this.options.enableReranking === false
-      ? filteredHits
-          .sort((left, right) => right.relevanceScore - left.relevanceScore)
-          .slice(0, topK)
-          .map((hit, index) => ({ ...hit, rank: index + 1 }))
-      : contextAssemblyService.selectHits(filteredHits as unknown as Parameters<typeof contextAssemblyService.selectHits>[0], profile, topK);
+    const selectedHits =
+      this.options.enableReranking === false
+        ? filteredHits
+            .sort((left, right) => right.relevanceScore - left.relevanceScore)
+            .slice(0, topK)
+            .map((hit, index) => ({ ...hit, rank: index + 1 }))
+        : contextAssemblyService.selectHits(
+            filteredHits as unknown as Parameters<
+              typeof contextAssemblyService.selectHits
+            >[0],
+            profile,
+            topK,
+          );
 
     return selectedHits.map<RetrievedChunk>((hit) => ({
       text: hit.text,
@@ -129,7 +150,7 @@ export class EnhancedRAGService {
   async performRAG(
     query: string,
     document: string,
-    requestOptions: EnhancedRAGRequestOptions = {}
+    requestOptions: EnhancedRAGRequestOptions = {},
   ): Promise<{
     chunks: RetrievedChunk[];
     metrics: RAGMetrics;
@@ -146,7 +167,10 @@ export class EnhancedRAGService {
     }
 
     const profile = requestOptions.profile ?? "analysis";
-    const indexedDocument = await this.indexDocument(normalizedDocument, requestOptions);
+    const indexedDocument = await this.indexDocument(
+      normalizedDocument,
+      requestOptions,
+    );
 
     if (indexedDocument.totalChunks === 0) {
       return emptyResult(0);
@@ -154,22 +178,34 @@ export class EnhancedRAGService {
 
     const topK = this.options.maxChunks ?? DEFAULT_OPTIONS.maxChunks ?? 5;
     const retrievedHits = await this.retrieveHits(
-      query, profile, topK, indexedDocument.documentHash, indexedDocument.totalChunks
+      query,
+      profile,
+      topK,
+      indexedDocument.documentHash,
+      indexedDocument.totalChunks,
     );
     const chunks = this.selectAndMapChunks(retrievedHits, profile, topK);
 
     return {
       chunks,
-      metrics: this.calculateMetrics(indexedDocument.totalChunks, chunks, Date.now() - startTime),
+      metrics: this.calculateMetrics(
+        indexedDocument.totalChunks,
+        chunks,
+        Date.now() - startTime,
+      ),
     };
   }
 
   buildAugmentedPrompt(
     basePrompt: string,
     chunks: RetrievedChunk[],
-    profile: ContextProfile = "analysis"
+    profile: ContextProfile = "analysis",
   ): string {
-    return contextAssemblyService.buildAugmentedPrompt(basePrompt, chunks, profile);
+    return contextAssemblyService.buildAugmentedPrompt(
+      basePrompt,
+      chunks,
+      profile,
+    );
   }
 
   setOptions(options: Partial<EnhancedRAGOptions>): void {
@@ -183,18 +219,20 @@ export class EnhancedRAGService {
   private calculateMetrics(
     totalChunks: number,
     retrievedChunks: { relevanceScore: number }[],
-    processingTimeMs: number
+    processingTimeMs: number,
   ): RAGMetrics {
     const numRetrieved = retrievedChunks.length;
 
     const avgRelevanceScore =
       numRetrieved > 0
-        ? retrievedChunks.reduce((sum, chunk) => sum + chunk.relevanceScore, 0) /
-          numRetrieved
+        ? retrievedChunks.reduce(
+            (sum, chunk) => sum + chunk.relevanceScore,
+            0,
+          ) / numRetrieved
         : 0;
 
     const highlyRelevant = retrievedChunks.filter(
-      (chunk) => chunk.relevanceScore > 0.75
+      (chunk) => chunk.relevanceScore > 0.75,
     ).length;
     const precision = numRetrieved > 0 ? highlyRelevant / numRetrieved : 0;
     const maxExpectedRelevant = Math.min(5, totalChunks);

@@ -18,7 +18,7 @@ export class PlatformAdapterAgent extends BaseAgent {
     super(
       "MediaTransmorph AI",
       TaskType.PLATFORM_ADAPTER,
-      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt ?? ""
+      PLATFORM_ADAPTER_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     this.confidenceFloor = 0.78;
@@ -32,12 +32,12 @@ export class PlatformAdapterAgent extends BaseAgent {
 
     // Extract platform-specific context
     const contextObj =
-      typeof context === "object" && context !== null
-        ? (context)
-        : {};
-    const targetPlatform = (contextObj["targetPlatform"] as string) || "غير محدد";
+      typeof context === "object" && context !== null ? context : {};
+    const targetPlatform =
+      (contextObj["targetPlatform"] as string) || "غير محدد";
     const sourceContent = (contextObj["sourceContent"] as string) || userInput;
-    const constraints = (contextObj["constraints"] as Record<string, unknown>) || {};
+    const constraints =
+      (contextObj["constraints"] as Record<string, unknown>) || {};
 
     let prompt = `## مهمة تحويل المحتوى للمنصة
 
@@ -91,7 +91,7 @@ ${userInput}
    * معالجة ما بعد التنفيذ - تنظيف المخرجات من JSON
    */
   protected override postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     let cleanedText = output.text;
 
@@ -132,13 +132,24 @@ ${userInput}
     return `### المنصة المستهدفة: ${targetPlatform}\n\n`;
   }
 
-  private buildConstraintsSection(constraints: Record<string, unknown>): string {
+  private buildConstraintsSection(
+    constraints: Record<string, unknown>,
+  ): string {
     if (Object.keys(constraints).length === 0) return "";
     let section = `### قيود المنصة:\n`;
-    section += this.formatConstraint("حد الأحرف", constraints["characterLimit"]);
+    section += this.formatConstraint(
+      "حد الأحرف",
+      constraints["characterLimit"],
+    );
     section += this.formatConstraint("طول الفيديو", constraints["videoLength"]);
-    section += this.formatConstraint("مواصفات الصور", constraints["imageSpecs"]);
-    section += this.formatConstraint("عدد الهاشتاغات", constraints["hashtagCount"]);
+    section += this.formatConstraint(
+      "مواصفات الصور",
+      constraints["imageSpecs"],
+    );
+    section += this.formatConstraint(
+      "عدد الهاشتاغات",
+      constraints["hashtagCount"],
+    );
     section += `\n`;
     return section;
   }
@@ -156,8 +167,12 @@ ${userInput}
     return undefined;
   }
 
-  private buildPreviousStationsSection(contextObj: Record<string, unknown>): string {
-    const previousStations = contextObj["previousStations"] as Record<string, string> | undefined;
+  private buildPreviousStationsSection(
+    contextObj: Record<string, unknown>,
+  ): string {
+    const previousStations = contextObj["previousStations"] as
+      | Record<string, string>
+      | undefined;
     if (!previousStations) return "";
     let section = `### السياق من المحطات السابقة:\n`;
     if (previousStations["analysis"]) {
@@ -173,13 +188,14 @@ ${userInput}
    * استجابة احتياطية في حالة الفشل
    */
   protected override getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     const contextObj =
       typeof input.context === "object" && input.context !== null
         ? input.context
         : {};
-    const targetPlatform = (contextObj)["targetPlatform"] as string || "المنصة المستهدفة";
+    const targetPlatform =
+      (contextObj["targetPlatform"] as string) || "المنصة المستهدفة";
 
     return Promise.resolve(`# تحويل المحتوى - وضع الطوارئ
 

@@ -23,8 +23,7 @@ const stripAsciiControlChars = (value) => {
   const text = String(value ?? "");
   let cleaned = "";
 
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i];
+  for (const ch of text) {
     const code = ch.charCodeAt(0);
     const isBlocked =
       (code >= 0x00 && code <= 0x08) ||

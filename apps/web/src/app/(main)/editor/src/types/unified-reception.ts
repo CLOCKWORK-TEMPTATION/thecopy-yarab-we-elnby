@@ -108,7 +108,7 @@ export interface ProgressiveElement {
   orderIndex: number;
   text: string;
   normalizedText: string;
-  elementType: ElementType | string;
+  elementType: string;
   expectedCurrentText: string;
   reviewEligibility: ReviewEligibility;
   nonReviewableReason?: string | null;

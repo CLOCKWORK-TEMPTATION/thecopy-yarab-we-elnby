@@ -167,10 +167,11 @@ export function SWOTAnalysis({
     const config = CATEGORIES[category];
 
     return (
-      <div
+      <button
+        type="button"
         key={item.id}
         className={cn(
-          "p-3 rounded-lg border transition-all cursor-pointer",
+          "w-full p-3 rounded-lg border transition-all cursor-pointer text-right",
           config.borderColor,
           isExpanded ? config.bgColor : "hover:bg-muted/50",
           item.priority === "high" &&
@@ -214,7 +215,7 @@ export function SWOTAnalysis({
             </div>
           </div>
         </div>
-      </div>
+      </button>
     );
   };
 

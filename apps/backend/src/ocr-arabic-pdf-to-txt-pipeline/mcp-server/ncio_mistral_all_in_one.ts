@@ -12,7 +12,6 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
-
 // Re-export decomposed modules for backward compatibility
 export type {
   LLMConfig,
@@ -79,7 +78,7 @@ export class PDFToTextConverter {
   async extractMarkdown(): Promise<string> {
     if (!(await fileExists(this.config.inputPath))) {
       throw new Error(
-        `الملف غير موجود في المسار المحدد: ${this.config.inputPath}`
+        `الملف غير موجود في المسار المحدد: ${this.config.inputPath}`,
       );
     }
 
@@ -100,7 +99,7 @@ export class PDFToTextConverter {
   private async processPdf(): Promise<string> {
     if (!this.config.mistral.useDocumentInput) {
       throw new Error(
-        "في نسخة TypeScript يجب استخدام OCR المباشر للـ PDF (أزل --mistral-disable-document-input). "
+        "في نسخة TypeScript يجب استخدام OCR المباشر للـ PDF (أزل --mistral-disable-document-input). ",
       );
     }
 
@@ -166,7 +165,7 @@ export class PDFToTextConverter {
 
     if (
       allowedRoots.some((rootPath) =>
-        this.isWithinOutputRoot(resolvedPath, rootPath)
+        this.isWithinOutputRoot(resolvedPath, rootPath),
       )
     ) {
       return resolvedPath;
@@ -177,7 +176,7 @@ export class PDFToTextConverter {
 
   async writeNonOverwritingFile(
     filePath: string,
-    content: string
+    content: string,
   ): Promise<string> {
     const safePath = this.resolveSafeOutputPath(filePath);
     const ext = path.extname(safePath);
@@ -185,7 +184,8 @@ export class PDFToTextConverter {
     const stem = path.basename(safePath, ext);
 
     for (let c = 0; c < 1000; c += 1) {
-      const candidate = c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
+      const candidate =
+        c === 0 ? safePath : path.join(dir, `${stem}_${c}${ext}`);
       try {
         // codeql[js/http-to-file-access]
         await writeFile(candidate, content, { encoding: "utf-8", flag: "wx" });
@@ -194,7 +194,7 @@ export class PDFToTextConverter {
             "INFO",
             "الملف %s موجود مسبقاً، سيتم الحفظ باسم: %s",
             safePath,
-            candidate
+            candidate,
           );
         }
         return candidate;
@@ -207,13 +207,13 @@ export class PDFToTextConverter {
     }
 
     throw new Error(
-      `تعذر اختيار اسم ملف غير مستخدم لمسار الإخراج: ${safePath}`
+      `تعذر اختيار اسم ملف غير مستخدم لمسار الإخراج: ${safePath}`,
     );
   }
 
   private async applyStructuralRepair(
     text: string,
-    referenceText = ""
+    referenceText = "",
   ): Promise<string> {
     return waitForRepairStability(this.structuralRepair, text, referenceText);
   }
@@ -240,7 +240,7 @@ export class PDFToTextConverter {
   generateDiffPreview(
     referenceText: string,
     candidateText: string,
-    maxLines: number
+    maxLines: number,
   ): string {
     const refLines = referenceText.split(/\r?\n/);
     const candLines = candidateText.split(/\r?\n/);
@@ -276,7 +276,7 @@ export class PDFToTextConverter {
 
     const repairedInitial = await this.applyStructuralRepair(
       initialMarkdown,
-      referenceText
+      referenceText,
     );
 
     if (!referenceText) {
@@ -292,7 +292,7 @@ export class PDFToTextConverter {
     let bestScore = this.calculateMatchScore(referenceText, best);
     let bestSemanticScore = QualityChecker.calculateSimilarity(
       referenceText,
-      best
+      best,
     );
     log("INFO", "نسبة التطابق قبل LLM: %.2f%%", bestScore);
     log("INFO", "نسبة التطابق الدلالي قبل LLM: %s%%", bestSemanticScore);
@@ -310,7 +310,7 @@ export class PDFToTextConverter {
           "INFO",
           "تم الوصول للنسبة المستهدفة %.2f%% قبل الجولة %s.",
           this.config.llm.targetMatch,
-          i
+          i,
         );
         break;
       }
@@ -318,7 +318,7 @@ export class PDFToTextConverter {
       const preview = this.generateDiffPreview(
         referenceText,
         current,
-        this.config.llm.diffPreviewLines
+        this.config.llm.diffPreviewLines,
       );
       const feedback = [
         `Current best match: ${bestScore.toFixed(2)}%. Target: ${this.config.llm.targetMatch.toFixed(2)}%.`,
@@ -329,7 +329,7 @@ export class PDFToTextConverter {
       let candidate = await this.llmPostProcessor.postprocess(
         current,
         referenceText,
-        feedback
+        feedback,
       );
       if (this.config.normalizeOutput) {
         candidate = this.normalizer.normalize(candidate);
@@ -339,7 +339,7 @@ export class PDFToTextConverter {
       const score = this.calculateMatchScore(referenceText, candidate);
       const semanticScore = QualityChecker.calculateSimilarity(
         referenceText,
-        candidate
+        candidate,
       );
       log("INFO", "جولة LLM %s/%s -> نسبة التطابق: %.2f%%", i, rounds, score);
       log(
@@ -347,7 +347,7 @@ export class PDFToTextConverter {
         "جولة LLM %s/%s -> نسبة التطابق الدلالي: %s%%",
         i,
         rounds,
-        semanticScore
+        semanticScore,
       );
 
       current = candidate;
@@ -375,7 +375,7 @@ export class PDFToTextConverter {
         log(
           "INFO",
           "لا يوجد تحسن ملموس لعدد %s جولات متتالية، سيتم إيقاف التحسين التكراري.",
-          noImprovementRounds
+          noImprovementRounds,
         );
         break;
       }
@@ -385,7 +385,7 @@ export class PDFToTextConverter {
     log(
       "INFO",
       "أفضل نسبة تطابق دلالي بعد التحسين التكراري: %s%%",
-      bestSemanticScore
+      bestSemanticScore,
     );
     return best;
   }
@@ -400,7 +400,7 @@ export class PDFToTextConverter {
         "INFO",
         "اكتمل التطبيع: حجم النص قبل=%s حرف، بعد=%s حرف.",
         rawMarkdown.length,
-        finalMarkdown.length
+        finalMarkdown.length,
       );
     } else {
       log("INFO", "تم الاستخراج بدون تطبيع بناءً على الإعدادات.");
@@ -412,7 +412,7 @@ export class PDFToTextConverter {
         log(
           "INFO",
           "تم تطبيق تصحيحات OCR المسبقة: %s",
-          preprocessed.detectedIssues.join(" | ")
+          preprocessed.detectedIssues.join(" | "),
         );
       }
       finalMarkdown = preprocessed.text;
@@ -433,7 +433,7 @@ export class PDFToTextConverter {
         log(
           "WARN",
           "فشلت طبقة LLM وسيتم المتابعة بالنص الحالي: %s",
-          String(error)
+          String(error),
         );
       }
     }
@@ -447,8 +447,8 @@ export class PDFToTextConverter {
 // ============================================================================
 
 async function main(): Promise<void> {
-  if (isTruthy(process.env['FORCE_CPU_ONLY'] ?? "")) {
-    process.env['CUDA_VISIBLE_DEVICES'] = "-1";
+  if (isTruthy(process.env["FORCE_CPU_ONLY"] ?? "")) {
+    process.env["CUDA_VISIBLE_DEVICES"] = "-1";
   }
 
   const envPath = path.join(process.cwd(), ".env");
@@ -462,7 +462,7 @@ async function main(): Promise<void> {
     log(
       "INFO",
       "العملية مكتملة. تم استخراج نص يحتوي على %s حرف.",
-      finalMarkdown.length
+      finalMarkdown.length,
     );
 
     const outputPath = converter.resolveOutputPath();
@@ -473,14 +473,14 @@ async function main(): Promise<void> {
       const dir = path.dirname(outputPath);
       const rawPath = await converter.writeNonOverwritingFile(
         path.join(dir, `${stem}.raw.md`),
-        rawMarkdown
+        rawMarkdown,
       );
       log("INFO", "تم حفظ النسخة الخام في: %s", rawPath);
     }
 
     const savedOutputPath = await converter.writeNonOverwritingFile(
       outputPath,
-      finalMarkdown
+      finalMarkdown,
     );
     log("INFO", "تم حفظ النص المستخرج في: %s", savedOutputPath);
 
@@ -488,7 +488,7 @@ async function main(): Promise<void> {
     if (annotation !== undefined && annotation !== null) {
       const annotationPath = await converter.writeNonOverwritingFile(
         converter.resolveAnnotationOutputPath(savedOutputPath),
-        `${JSON.stringify(annotation, null, 2)}\n`
+        `${JSON.stringify(annotation, null, 2)}\n`,
       );
       log("INFO", "تم حفظ document annotation في: %s", annotationPath);
     }
@@ -498,7 +498,7 @@ async function main(): Promise<void> {
     log(
       "CRITICAL",
       "فشل البرنامج في إكمال المهمة المطلوبة بسبب الخطأ: %s",
-      String(error)
+      String(error),
     );
     process.exitCode = 1;
   }

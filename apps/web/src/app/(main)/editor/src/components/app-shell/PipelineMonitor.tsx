@@ -9,7 +9,7 @@ import {
   type RecordedAICorrection,
 } from "@editor/extensions/pipeline-recorder";
 
-import type { ProgressiveSurfaceState } from "../editor";
+import type { ProgressiveSurfaceState } from "../editor/editor-area.types";
 
 // ─── أنواع ─────────────────────────────────────────────────────────
 
@@ -81,13 +81,7 @@ const StageRow: React.FC<{
   return (
     <>
       <div
-        className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors ${
-          isActive
-            ? "border border-cyan-700/40 bg-cyan-950/60"
-            : isLast
-              ? "bg-black/18"
-              : "bg-transparent"
-        }`}
+        className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors ${isActive ? "border border-cyan-700/40 bg-cyan-950/60" : isLast ? "bg-black/18" : "bg-transparent"}`}
       >
         <span className="shrink-0 text-sm">{meta.icon}</span>
         <span className="min-w-[100px] font-medium text-white">
@@ -471,9 +465,7 @@ export const PipelineMonitor: React.FC<{
             return (
               <div
                 key={stageKey}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs ${
-                  isActive ? "border border-cyan-800/30 bg-cyan-950/30" : ""
-                }`}
+                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs ${isActive ? "border border-cyan-800/30 bg-cyan-950/30" : ""}`}
               >
                 <span
                   className={`shrink-0 text-sm ${isPending ? "opacity-30" : "opacity-20"}`}

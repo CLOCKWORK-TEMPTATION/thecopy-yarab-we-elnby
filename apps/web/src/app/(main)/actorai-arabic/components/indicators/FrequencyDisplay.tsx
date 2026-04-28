@@ -30,8 +30,7 @@ export const FrequencyDisplay: React.FC<FrequencyDisplayProps> = ({
     let barHeight;
     let x = 0;
 
-    for (let i = 0; i < data.length; i++) {
-      const dataPoint = data[i] ?? 0;
+    for (const dataPoint of data) {
       barHeight = dataPoint * height;
 
       const gradient = ctx.createLinearGradient(

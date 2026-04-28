@@ -8,30 +8,30 @@
  * يدعم معالجة المهام في الخلفية باستخدام BullMQ و Redis.
  */
 
-import { isRedisEnabled } from '@/config/redis-gate';
-import { checkRedisVersion } from '@/config/redis.config';
-import { logger } from '@/lib/logger';
+import { isRedisEnabled } from "@/config/redis-gate";
+import { checkRedisVersion } from "@/config/redis.config";
+import { logger } from "@/lib/logger";
 
-import { registerAIAnalysisWorker } from './jobs/ai-analysis.job';
-import { registerCacheWarmingWorker } from './jobs/cache-warming.job';
-import { registerDocumentProcessingWorker } from './jobs/document-processing.job';
-import { queueManager } from './queue.config';
+import { registerAIAnalysisWorker } from "./jobs/ai-analysis.job";
+import { registerCacheWarmingWorker } from "./jobs/cache-warming.job";
+import { registerDocumentProcessingWorker } from "./jobs/document-processing.job";
+import { queueManager } from "./queue.config";
 
 /** حالة تفعيل نظام قوائم الانتظار */
 let queueSystemEnabled = false;
 
 /**
  * تهيئة جميع العمال
- * 
+ *
  * @description
  * يتحقق من توافق إصدار Redis ثم يسجل جميع معالجات المهام.
  * في حالة عدم التوافق، يتم تعطيل نظام قوائم الانتظار مع استمرار عمل التطبيق.
- * 
+ *
  * @returns وعد يكتمل عند انتهاء التهيئة
  */
 export async function initializeWorkers(): Promise<void> {
   if (!isRedisEnabled()) {
-    logger.info('Queue workers skipped — Redis is disabled');
+    logger.info("Queue workers skipped — Redis is disabled");
     return;
   }
 
@@ -46,12 +46,12 @@ export async function initializeWorkers(): Promise<void> {
       requiredVersion: versionCheck.minVersion,
       reason: versionCheck.reason,
     });
-    
+
     logger.warn(
       "تم تعطيل نظام قوائم الانتظار. التطبيق سيستمر في العمل بدون المهام الخلفية. " +
-      "لتفعيل النظام: قم بترقية Redis إلى الإصدار المطلوب أو استخدم خدمة Redis سحابية."
+        "لتفعيل النظام: قم بترقية Redis إلى الإصدار المطلوب أو استخدم خدمة Redis سحابية.",
     );
-    
+
     queueSystemEnabled = false;
     return;
   }
@@ -71,11 +71,11 @@ export async function initializeWorkers(): Promise<void> {
 
 /**
  * التحقق من حالة تفعيل نظام قوائم الانتظار
- * 
+ *
  * @description
  * يُستخدم للتحقق مما إذا كان نظام قوائم الانتظار مفعلاً
  * قبل محاولة إضافة مهام جديدة
- * 
+ *
  * @returns قيمة منطقية تشير إلى حالة التفعيل
  */
 export function isQueueSystemEnabled(): boolean {
@@ -84,10 +84,10 @@ export function isQueueSystemEnabled(): boolean {
 
 /**
  * إيقاف جميع العمال وقوائم الانتظار
- * 
+ *
  * @description
  * يقوم بإغلاق جميع الاتصالات والموارد بشكل نظيف
- * 
+ *
  * @returns وعد يكتمل عند انتهاء الإيقاف
  */
 export async function shutdownQueues(): Promise<void> {
@@ -97,10 +97,10 @@ export async function shutdownQueues(): Promise<void> {
 }
 
 // تصدير مدير قوائم الانتظار ووظائف المهام
-export { queueManager, QueueName } from './queue.config';
-export { queueAIAnalysis } from './jobs/ai-analysis.job';
-export { queueDocumentProcessing } from './jobs/document-processing.job';
-export { queueCacheWarming } from './jobs/cache-warming.job';
+export { queueManager, QueueName } from "./queue.config";
+export { queueAIAnalysis } from "./jobs/ai-analysis.job";
+export { queueDocumentProcessing } from "./jobs/document-processing.job";
+export { queueCacheWarming } from "./jobs/cache-warming.job";
 
 export const queues = {
   initializeWorkers,

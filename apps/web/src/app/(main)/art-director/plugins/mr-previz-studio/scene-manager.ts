@@ -16,7 +16,13 @@ import {
   DEFAULT_DIRECTIONAL_POSITION,
 } from "./constants";
 
-import type { XRScene } from "./types";
+import type {
+  CameraMovement,
+  VirtualCamera,
+  XRLighting,
+  XRObject,
+  XRScene,
+} from "./types";
 
 const scenes = new Map<string, XRScene>();
 
@@ -82,7 +88,7 @@ export function getScene(sceneId: string): XRScene | undefined {
 /**
  * إضافة كائن إلى مشهد
  */
-export function addObjectToScene(sceneId: string, object: any): boolean {
+export function addObjectToScene(sceneId: string, object: XRObject): boolean {
   const scene = scenes.get(sceneId);
   if (!scene) {
     return false;
@@ -96,7 +102,10 @@ export function addObjectToScene(sceneId: string, object: any): boolean {
 /**
  * إضافة كاميرا إلى مشهد
  */
-export function addCameraToScene(sceneId: string, camera: any): boolean {
+export function addCameraToScene(
+  sceneId: string,
+  camera: VirtualCamera
+): boolean {
   const scene = scenes.get(sceneId);
   if (!scene) {
     return false;
@@ -112,7 +121,7 @@ export function addCameraToScene(sceneId: string, camera: any): boolean {
  */
 export function updateSceneLighting(
   sceneId: string,
-  lighting: Partial<any>
+  lighting: Partial<XRLighting>
 ): boolean {
   const scene = scenes.get(sceneId);
   if (!scene) {
@@ -142,7 +151,7 @@ export function updateSceneLighting(
 export function updateCameraMovement(
   sceneId: string,
   cameraId: string,
-  movement: any
+  movement: CameraMovement
 ): boolean {
   const scene = scenes.get(sceneId);
   if (!scene) {

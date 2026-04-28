@@ -35,7 +35,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     super(
       "PersonaSynth AI",
       TaskType.CHARACTER_VOICE,
-      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt ?? ""
+      CHARACTER_VOICE_AGENT_CONFIG.systemPrompt ?? "",
     );
 
     // Set agent-specific confidence floor
@@ -66,7 +66,9 @@ export class CharacterVoiceAgent extends BaseAgent {
     return section;
   }
 
-  private buildProfileSection(profile: CharacterVoiceContext["characterProfile"]): string {
+  private buildProfileSection(
+    profile: CharacterVoiceContext["characterProfile"],
+  ): string {
     if (!profile) return "";
     return `ملف الشخصية:\n${this.formatCharacterProfile(profile)}\n\n`;
   }
@@ -80,10 +82,14 @@ export class CharacterVoiceAgent extends BaseAgent {
     return section + "\n";
   }
 
-  private buildRelationshipSection(relationshipContext: Record<string, string>): string {
+  private buildRelationshipSection(
+    relationshipContext: Record<string, string>,
+  ): string {
     if (Object.keys(relationshipContext).length === 0) return "";
     let section = `السياق العلائقي:\n`;
-    for (const [character, relationship] of Object.entries(relationshipContext)) {
+    for (const [character, relationship] of Object.entries(
+      relationshipContext,
+    )) {
       section += `- مع ${character}: ${relationship}\n`;
     }
     return section + "\n";
@@ -102,7 +108,7 @@ export class CharacterVoiceAgent extends BaseAgent {
   }
 
   protected override async postProcess(
-    output: StandardAgentOutput
+    output: StandardAgentOutput,
   ): Promise<StandardAgentOutput> {
     await Promise.resolve();
     // Clean up the dialogue text
@@ -128,7 +134,7 @@ export class CharacterVoiceAgent extends BaseAgent {
         output,
         consistencyScore,
         naturalityScore,
-        emotionalDepth
+        emotionalDepth,
       ),
       metadata: {
         ...output.metadata,
@@ -229,9 +235,14 @@ export class CharacterVoiceAgent extends BaseAgent {
 
   private assessVoiceConsistency(text: string): number {
     let score = 0.7;
-    const hasFormal = ["لقد", "إن", "ذلك", "هذا", "أولئك"].some((w) => text.includes(w));
-    const hasInformal = ["يعني", "كده", "أوكي", "ماشي"].some((w) => text.includes(w));
-    if ((hasFormal && !hasInformal) || (!hasFormal && hasInformal)) score += 0.15;
+    const hasFormal = ["لقد", "إن", "ذلك", "هذا", "أولئك"].some((w) =>
+      text.includes(w),
+    );
+    const hasInformal = ["يعني", "كده", "أوكي", "ماشي"].some((w) =>
+      text.includes(w),
+    );
+    if ((hasFormal && !hasInformal) || (!hasFormal && hasInformal))
+      score += 0.15;
     score += this.assessSentenceConsistency(text);
     return Math.min(1, score);
   }
@@ -239,15 +250,24 @@ export class CharacterVoiceAgent extends BaseAgent {
   private assessSentenceConsistency(text: string): number {
     const sentences = text.split(/[.!?]/);
     if (sentences.length <= 2) return 0;
-    const avgLength = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) / sentences.length;
-    const variance = sentences.reduce((sum, s) => sum + Math.abs(s.split(/\s+/).length - avgLength), 0) / sentences.length;
+    const avgLength =
+      sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) /
+      sentences.length;
+    const variance =
+      sentences.reduce(
+        (sum, s) => sum + Math.abs(s.split(/\s+/).length - avgLength),
+        0,
+      ) / sentences.length;
     return variance < 5 ? 0.15 : 0;
   }
 
   private assessNaturality(text: string): number {
     let score = 0.6;
     const markers = ["آه", "أوه", "حسناً", "ربما", "أعتقد", "أظن", "يبدو"];
-    const markerCount = markers.reduce((count, m) => count + (text.split(m).length - 1), 0);
+    const markerCount = markers.reduce(
+      (count, m) => count + (text.split(m).length - 1),
+      0,
+    );
     score += Math.min(0.2, markerCount * 0.05);
     if (text.includes("...") || text.includes("،")) score += 0.1;
     if (text.includes("؟")) score += 0.1;
@@ -256,10 +276,32 @@ export class CharacterVoiceAgent extends BaseAgent {
 
   private assessEmotionalDepth(text: string): number {
     let score = 0.5;
-    const emotionalWords = ["أحب", "أكره", "خائف", "سعيد", "حزين", "غاضب", "قلق", "متحمس", "محبط", "فخور", "خجول", "متردد", "أشعر", "إحساس", "عاطفة", "قلب", "روح"];
-    const emotionCount = emotionalWords.reduce((count, w) => count + (text.split(w).length - 1), 0);
+    const emotionalWords = [
+      "أحب",
+      "أكره",
+      "خائف",
+      "سعيد",
+      "حزين",
+      "غاضب",
+      "قلق",
+      "متحمس",
+      "محبط",
+      "فخور",
+      "خجول",
+      "متردد",
+      "أشعر",
+      "إحساس",
+      "عاطفة",
+      "قلب",
+      "روح",
+    ];
+    const emotionCount = emotionalWords.reduce(
+      (count, w) => count + (text.split(w).length - 1),
+      0,
+    );
     score += Math.min(0.3, emotionCount * 0.1);
-    if (["كأن", "مثل", "يشبه", "كما لو"].some((w) => text.includes(w))) score += 0.2;
+    if (["كأن", "مثل", "يشبه", "كما لو"].some((w) => text.includes(w)))
+      score += 0.2;
     return Math.min(1, score);
   }
 
@@ -267,7 +309,12 @@ export class CharacterVoiceAgent extends BaseAgent {
    * Detect dialogue type
    */
   private detectDialogueType(text: string): string {
-    const charCount = (char: string) => (text.match(new RegExp(char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []).length;
+    const charCount = (char: string) =>
+      (
+        text.match(
+          new RegExp(char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+        ) ?? []
+      ).length;
     if (text.includes("؟") && text.includes("!")) return "حوار متنوع";
     if (charCount("؟") > 2) return "حوار استفهامي";
     if (charCount("!") > 2) return "حوار انفعالي";
@@ -283,7 +330,7 @@ export class CharacterVoiceAgent extends BaseAgent {
     output: StandardAgentOutput,
     consistencyScore: number,
     naturalityScore: number,
-    emotionalDepth: number
+    emotionalDepth: number,
   ): string[] {
     const notes: string[] = [];
     if (consistencyScore > 0.85) notes.push("صوت متسق تماماً");
@@ -293,36 +340,55 @@ export class CharacterVoiceAgent extends BaseAgent {
     else if (naturalityScore > 0.6) notes.push("طبيعية مقبولة");
     if (emotionalDepth > 0.7) notes.push("عمق عاطفي ممتاز");
     if (output.confidence > 0.85) notes.push("جودة عالية");
-    if (output.notes) notes.push(...output.notes.filter((n) => !notes.includes(n)));
+    if (output.notes)
+      notes.push(...output.notes.filter((n) => !notes.includes(n)));
     return notes;
   }
 
   private static readonly PROFILE_FIELDS: [keyof CharacterProfile, string][] = [
-    ["name", "الاسم"], ["age", "العمر"], ["personality", "الشخصية"],
-    ["background", "الخلفية"], ["goals", "الأهداف"], ["fears", "المخاوف"],
+    ["name", "الاسم"],
+    ["age", "العمر"],
+    ["personality", "الشخصية"],
+    ["background", "الخلفية"],
+    ["goals", "الأهداف"],
+    ["fears", "المخاوف"],
     ["speechPattern", "نمط الكلام"],
   ];
 
   private formatCharacterProfile(profile: CharacterProfile | string): string {
     if (typeof profile === "string") return profile;
-    const formatted = CharacterVoiceAgent.PROFILE_FIELDS
-      .filter(([key]) => profile?.[key])
-      .map(([key, label]) => `${label}: ${profile[key]}`);
+    const formatted = CharacterVoiceAgent.PROFILE_FIELDS.filter(
+      ([key]) => profile?.[key],
+    ).map(([key, label]) => `${label}: ${profile[key]}`);
     return formatted.join("\n") || "ملف شخصية عام";
   }
 
   private translateEmotionalState(state: string): string {
-    const states: Record<string, string> = { neutral: "محايد", happy: "سعيد", sad: "حزين", angry: "غاضب", fearful: "خائف", anxious: "قلق", excited: "متحمس", confused: "مرتبك", confident: "واثق", disappointed: "محبط" };
+    const states: Record<string, string> = {
+      neutral: "محايد",
+      happy: "سعيد",
+      sad: "حزين",
+      angry: "غاضب",
+      fearful: "خائف",
+      anxious: "قلق",
+      excited: "متحمس",
+      confused: "مرتبك",
+      confident: "واثق",
+      disappointed: "محبط",
+    };
     return states[state] ?? state;
   }
 
   protected override async getFallbackResponse(
-    input: StandardAgentInput
+    input: StandardAgentInput,
   ): Promise<string> {
     await Promise.resolve();
     const ctx = input.context as CharacterVoiceContext;
     const profile = ctx?.characterProfile;
-    const character = (typeof profile === "object" && profile !== null ? (profile).name : undefined) ?? "الشخصية";
+    const character =
+      (typeof profile === "object" && profile !== null
+        ? profile.name
+        : undefined) ?? "الشخصية";
 
     return `تحليل صوت ${character}:
 الشخصية لديها نمط كلام مميز يعكس خلفيتها وشخصيتها.

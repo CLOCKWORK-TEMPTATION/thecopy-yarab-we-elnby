@@ -176,14 +176,23 @@ function applyDefaultEffect(
   return velocity;
 }
 
-function applyParticleEffect(
-  effect: Effect,
-  position: ParticlePosition,
-  intersection: { x: number; y: number; z: number },
-  velocity: ParticleVelocity,
-  config: EffectConfig,
-  time: number
-): ParticleVelocity {
+interface ApplyParticleEffectInput {
+  config: EffectConfig;
+  effect: Effect;
+  intersection: { x: number; y: number; z: number };
+  position: ParticlePosition;
+  time: number;
+  velocity: ParticleVelocity;
+}
+
+function applyParticleEffect({
+  config,
+  effect,
+  intersection,
+  position,
+  time,
+  velocity,
+}: ApplyParticleEffectInput): ParticleVelocity {
   switch (effect) {
     case "spark":
       return applySparkEffect(position, intersection, velocity, config);
@@ -361,14 +370,14 @@ function updateParticles(
 
     // Apply effect if mouse is hovering
     if (intersectionPoint) {
-      velocity = applyParticleEffect(
+      velocity = applyParticleEffect({
+        config: effectConfig,
         effect,
+        intersection: intersectionPoint,
         position,
-        intersectionPoint,
+        time,
         velocity,
-        effectConfig,
-        time
-      );
+      });
     }
 
     // Attract back to original position

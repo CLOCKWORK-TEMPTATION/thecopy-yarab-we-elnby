@@ -12,7 +12,12 @@ import {
   checkEnvironment,
 } from "./health-checks.helpers.js";
 
-import type { HealthCheck, HealthStatus, ReadinessStatus, DetailedHealthStatus } from "./health-checks.helpers.js";
+import type {
+  HealthCheck,
+  HealthStatus,
+  ReadinessStatus,
+  DetailedHealthStatus,
+} from "./health-checks.helpers.js";
 
 export async function checkExternalServices(): Promise<HealthCheck> {
   try {
@@ -23,7 +28,8 @@ export async function checkExternalServices(): Promise<HealthCheck> {
       return {
         status: "unhealthy",
         responseTime: aiProviderHealth.responseTime,
-        error: aiProviderHealth.error ?? "The AI provider readiness probe failed.",
+        error:
+          aiProviderHealth.error ?? "The AI provider readiness probe failed.",
         details: {
           sentryConfigured,
           aiTriState: aiProviderHealth.triState,
@@ -46,7 +52,10 @@ export async function checkExternalServices(): Promise<HealthCheck> {
     logger.error("External services health check failed", { error });
     return {
       status: "unhealthy",
-      error: error instanceof Error ? error.message : "External services check failed",
+      error:
+        error instanceof Error
+          ? error.message
+          : "External services check failed",
     };
   }
 }
@@ -109,7 +118,9 @@ export async function checkEditorIntegration(): Promise<HealthCheck> {
     return {
       status: "unhealthy",
       error:
-        error instanceof Error ? error.message : "Editor integration check failed",
+        error instanceof Error
+          ? error.message
+          : "Editor integration check failed",
     };
   }
 }
@@ -148,7 +159,7 @@ export function checkAnalyticsPersistence(): HealthCheck {
 }
 
 export function aggregateHealthStatus(
-  checks: Record<string, HealthCheck>
+  checks: Record<string, HealthCheck>,
 ): "healthy" | "degraded" | "unhealthy" {
   const values = Object.values(checks);
   if (values.some((check) => check.status === "unhealthy")) return "unhealthy";
@@ -157,15 +168,25 @@ export function aggregateHealthStatus(
 }
 
 export function aggregateReadinessStatus(
-  checks: Record<string, HealthCheck>
+  checks: Record<string, HealthCheck>,
 ): "ready" | "degraded" | "not_ready" {
   const values = Object.values(checks);
-  if (values.some((c) => c.status === "unhealthy" && c.required !== false)) return "not_ready";
-  if (values.some((c) => c.status === "degraded" || (c.status === "unhealthy" && c.required === false))) return "degraded";
+  if (values.some((c) => c.status === "unhealthy" && c.required !== false))
+    return "not_ready";
+  if (
+    values.some(
+      (c) =>
+        c.status === "degraded" ||
+        (c.status === "unhealthy" && c.required === false),
+    )
+  )
+    return "degraded";
   return "ready";
 }
 
-export async function performHealthChecks(startTime: number): Promise<HealthStatus> {
+export async function performHealthChecks(
+  startTime: number,
+): Promise<HealthStatus> {
   const checks = {
     database: await checkDatabase(),
     redis: await checkRedis(),
@@ -203,7 +224,7 @@ export async function performReadinessChecks(): Promise<ReadinessStatus> {
 }
 
 export async function performDetailedHealthChecks(
-  startTime: number
+  startTime: number,
 ): Promise<DetailedHealthStatus> {
   const checks = {
     database: await checkDatabase(),

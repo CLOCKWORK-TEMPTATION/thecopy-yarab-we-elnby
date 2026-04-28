@@ -20,33 +20,33 @@ let snapshot: EnvSnapshot;
 
 beforeEach(() => {
   snapshot = {
-    imageMaxMb: process.env.NEXT_PUBLIC_CINE_IMAGE_MAX_MB,
-    videoMaxMb: process.env.NEXT_PUBLIC_CINE_VIDEO_MAX_MB,
-    captureWidth: process.env.NEXT_PUBLIC_CINE_CAPTURE_WIDTH,
-    captureHeight: process.env.NEXT_PUBLIC_CINE_CAPTURE_HEIGHT,
-    captureQuality: process.env.NEXT_PUBLIC_CINE_CAPTURE_QUALITY,
-    captureMime: process.env.NEXT_PUBLIC_CINE_CAPTURE_MIME,
+    imageMaxMb: process.env["NEXT_PUBLIC_CINE_IMAGE_MAX_MB"],
+    videoMaxMb: process.env["NEXT_PUBLIC_CINE_VIDEO_MAX_MB"],
+    captureWidth: process.env["NEXT_PUBLIC_CINE_CAPTURE_WIDTH"],
+    captureHeight: process.env["NEXT_PUBLIC_CINE_CAPTURE_HEIGHT"],
+    captureQuality: process.env["NEXT_PUBLIC_CINE_CAPTURE_QUALITY"],
+    captureMime: process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"],
   };
 });
 
 afterEach(() => {
-  process.env.NEXT_PUBLIC_CINE_IMAGE_MAX_MB = snapshot.imageMaxMb;
-  process.env.NEXT_PUBLIC_CINE_VIDEO_MAX_MB = snapshot.videoMaxMb;
-  process.env.NEXT_PUBLIC_CINE_CAPTURE_WIDTH = snapshot.captureWidth;
-  process.env.NEXT_PUBLIC_CINE_CAPTURE_HEIGHT = snapshot.captureHeight;
-  process.env.NEXT_PUBLIC_CINE_CAPTURE_QUALITY = snapshot.captureQuality;
-  process.env.NEXT_PUBLIC_CINE_CAPTURE_MIME = snapshot.captureMime;
+  process.env["NEXT_PUBLIC_CINE_IMAGE_MAX_MB"] = snapshot.imageMaxMb;
+  process.env["NEXT_PUBLIC_CINE_VIDEO_MAX_MB"] = snapshot.videoMaxMb;
+  process.env["NEXT_PUBLIC_CINE_CAPTURE_WIDTH"] = snapshot.captureWidth;
+  process.env["NEXT_PUBLIC_CINE_CAPTURE_HEIGHT"] = snapshot.captureHeight;
+  process.env["NEXT_PUBLIC_CINE_CAPTURE_QUALITY"] = snapshot.captureQuality;
+  process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"] = snapshot.captureMime;
   vi.resetModules();
 });
 
 describe("cinematography-input-config", () => {
   it("يطبق القيم المخصصة من البيئة ضمن الحدود الآمنة", async () => {
-    process.env.NEXT_PUBLIC_CINE_IMAGE_MAX_MB = "24";
-    process.env.NEXT_PUBLIC_CINE_VIDEO_MAX_MB = "640";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_WIDTH = "1920";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_HEIGHT = "1080";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_QUALITY = "0.8";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_MIME = "image/jpeg";
+    process.env["NEXT_PUBLIC_CINE_IMAGE_MAX_MB"] = "24";
+    process.env["NEXT_PUBLIC_CINE_VIDEO_MAX_MB"] = "640";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_WIDTH"] = "1920";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_HEIGHT"] = "1080";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_QUALITY"] = "0.8";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"] = "image/jpeg";
     vi.resetModules();
 
     const { createCinematographyInputConfig } =
@@ -63,12 +63,12 @@ describe("cinematography-input-config", () => {
   });
 
   it("يعيد القيم الافتراضية عند تمرير مدخلات بيئة غير صالحة", async () => {
-    process.env.NEXT_PUBLIC_CINE_IMAGE_MAX_MB = "invalid";
-    process.env.NEXT_PUBLIC_CINE_VIDEO_MAX_MB = "-100";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_WIDTH = "100000";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_HEIGHT = "12";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_QUALITY = "5";
-    process.env.NEXT_PUBLIC_CINE_CAPTURE_MIME = "text/plain";
+    process.env["NEXT_PUBLIC_CINE_IMAGE_MAX_MB"] = "invalid";
+    process.env["NEXT_PUBLIC_CINE_VIDEO_MAX_MB"] = "-100";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_WIDTH"] = "100000";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_HEIGHT"] = "12";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_QUALITY"] = "5";
+    process.env["NEXT_PUBLIC_CINE_CAPTURE_MIME"] = "text/plain";
     vi.resetModules();
 
     const { createCinematographyInputConfig } =

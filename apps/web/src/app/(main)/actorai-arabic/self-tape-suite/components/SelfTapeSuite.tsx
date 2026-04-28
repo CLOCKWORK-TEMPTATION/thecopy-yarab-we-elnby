@@ -1,9 +1,12 @@
 "use client";
 
 import { useRef } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import { SELF_TAPE_STORAGE_KEY } from "../../lib/self-tape";
+
 import { ComparisonPanel } from "./ComparisonPanel";
 import { ExportPanel } from "./ExportPanel";
 import { NotesPanel } from "./NotesPanel";
@@ -11,6 +14,7 @@ import { RecorderPanel } from "./RecorderPanel";
 import { TeleprompterPanel } from "./TeleprompterPanel";
 import { useMediaRecording } from "./useMediaRecording";
 import { useSelfTapeSuite } from "./useSelfTapeSuite";
+
 import type { ActiveTool } from "./types";
 
 export const SelfTapeSuite: React.FC = () => {
@@ -98,13 +102,7 @@ export const SelfTapeSuite: React.FC = () => {
       {suite.notification && (
         <div className="fixed left-1/2 top-20 z-50 -translate-x-1/2">
           <div
-            className={`rounded-lg border px-4 py-3 ${
-              suite.notification.type === "success"
-                ? "border-green-500 bg-green-500/20 text-green-300"
-                : suite.notification.type === "error"
-                  ? "border-red-500 bg-red-500/20 text-red-300"
-                  : "border-blue-500 bg-blue-500/20 text-blue-300"
-            }`}
+            className={`rounded-lg border px-4 py-3 ${suite.notification.type === "success" ? "border-green-500 bg-green-500/20 text-green-300" : suite.notification.type === "error" ? "border-red-500 bg-red-500/20 text-red-300" : "border-blue-500 bg-blue-500/20 text-blue-300"}`}
           >
             <p>{suite.notification.message}</p>
           </div>

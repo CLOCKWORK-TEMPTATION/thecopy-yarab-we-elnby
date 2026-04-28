@@ -10,15 +10,15 @@
  */
 
 import { Fragment, Node as PmNode, Schema, Slice } from "@tiptap/pm/model";
-import type { EditorView } from "@tiptap/pm/view";
 
 import { ensureCharacterTrailingColon } from "../character";
-import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 
 import { buildProgressiveNodeAttrs } from "./utils/draft-builders";
 import { computeDocumentSignature } from "./utils/text-normalization";
 
+import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import type { RenderClassifiedDraftsResult } from "./types";
+import type { EditorView } from "@tiptap/pm/view";
 
 /**
  * إنشاء عقدة ProseMirror من عنصر مصنّف.
@@ -247,9 +247,7 @@ export const renderClassifiedDraftsToView = (
           : null;
       if (!elementId || !expectedTopLevelElementIds.has(elementId)) return;
 
-      if (firstMatch === null) {
-        firstMatch = offset;
-      }
+      firstMatch ??= offset;
       lastMatchEnd = offset + node.nodeSize;
     });
 

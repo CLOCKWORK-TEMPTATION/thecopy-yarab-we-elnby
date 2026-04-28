@@ -221,7 +221,7 @@ function ArtDirectorStudioInner() {
 
       <div className="art-director-layout">
         <CardSpotlight className="art-director-sidebar-shell">
-          <aside className="art-director-sidebar" role="complementary">
+          <aside className="art-director-sidebar">
             <Logo />
             <HeroStrip />
             <Navigation activeTab={activeTab} onTabChange={handleTabChange} />

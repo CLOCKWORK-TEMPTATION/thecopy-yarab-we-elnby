@@ -33,39 +33,37 @@ export function updateWAFConfig(config: Partial<WAFConfig>): void {
   const newConfig = { ...config };
 
   if (newConfig.customRules) {
-    newConfig.customRules = (newConfig.customRules as unknown as CustomRuleInput[]).map(
-      (rule) => {
-        let pattern: RegExp;
-        if (typeof rule.pattern === "string") {
-          if (rule.pattern.length > 500) {
-            throw new Error(`Pattern too long for rule ${rule.id}`);
-          }
-          try {
-            const patternSource = escapeRegex(rule.pattern);
-            const patternFlags = "gi";
-            const validFlags = /^[gimuy]*$/;
-            if (!validFlags.test(patternFlags)) {
-              throw new Error(`Invalid regex flags for rule ${rule.id}`);
-            }
-            pattern = new RegExp(patternSource, patternFlags);
-          } catch {
-            throw new Error(`Invalid regex pattern for rule ${rule.id}`);
-          }
-        } else if (rule.pattern instanceof RegExp) {
-          pattern = rule.pattern;
-        } else {
-          throw new Error(`Invalid pattern type for rule ${rule.id}`);
+    newConfig.customRules = (
+      newConfig.customRules as unknown as CustomRuleInput[]
+    ).map((rule) => {
+      let pattern: RegExp;
+      if (typeof rule.pattern === "string") {
+        if (rule.pattern.length > 500) {
+          throw new Error(`Pattern too long for rule ${rule.id}`);
         }
-
-        if (!isRegexSafe(pattern)) {
-          throw new Error(
-            `Unsafe regex pattern detected for rule ${rule.id}`
-          );
+        try {
+          const patternSource = escapeRegex(rule.pattern);
+          const patternFlags = "gi";
+          const validFlags = /^[gimuy]*$/;
+          if (!validFlags.test(patternFlags)) {
+            throw new Error(`Invalid regex flags for rule ${rule.id}`);
+          }
+          pattern = new RegExp(patternSource, patternFlags);
+        } catch {
+          throw new Error(`Invalid regex pattern for rule ${rule.id}`);
         }
-
-        return { ...rule, pattern };
+      } else if (rule.pattern instanceof RegExp) {
+        pattern = rule.pattern;
+      } else {
+        throw new Error(`Invalid pattern type for rule ${rule.id}`);
       }
-    );
+
+      if (!isRegexSafe(pattern)) {
+        throw new Error(`Unsafe regex pattern detected for rule ${rule.id}`);
+      }
+
+      return { ...rule, pattern };
+    });
   }
 
   wafState.config = { ...wafState.config, ...newConfig };
@@ -129,7 +127,7 @@ export function addCustomRule(rule: WAFRule): void {
 
 export function removeCustomRule(ruleId: string): void {
   wafState.config.customRules = wafState.config.customRules.filter(
-    (r) => r.id !== ruleId
+    (r) => r.id !== ruleId,
   );
   logger.info("Custom WAF rule removed", { ruleId });
 }

@@ -109,15 +109,24 @@ export function UniversalSearch({
     setIsOpen(open);
   }, [open]);
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setIsOpen(newOpen);
-    onOpenChange?.(newOpen);
-    if (!newOpen) {
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(0);
-    }
-  };
+  const handleOpenChange = React.useCallback(
+    (newOpen: boolean) => {
+      setIsOpen(newOpen);
+      onOpenChange?.(newOpen);
+      if (!newOpen) {
+        setQuery("");
+        setResults([]);
+        setSelectedIndex(0);
+      }
+    },
+    [onOpenChange]
+  );
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const id = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [isOpen]);
 
   // Keyboard shortcuts
   React.useEffect(() => {
@@ -130,7 +139,7 @@ export function UniversalSearch({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, handleOpenChange]);
 
   // Search with debounce
   React.useEffect(() => {
@@ -139,17 +148,19 @@ export function UniversalSearch({
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const searchResults = await onSearch(query, category);
-        setResults(searchResults);
-      } catch (error) {
-        void error;
-        setResults([]);
-      } finally {
-        setIsSearching(false);
-      }
+    const timer = setTimeout(() => {
+      void (async () => {
+        setIsSearching(true);
+        try {
+          const searchResults = await onSearch(query, category);
+          setResults(searchResults);
+        } catch (error) {
+          void error;
+          setResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      })();
     }, 300);
 
     return () => clearTimeout(timer);
@@ -194,7 +205,6 @@ export function UniversalSearch({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className="flex-1 bg-transparent border-none outline-none text-lg placeholder:text-muted-foreground"
-                autoFocus
               />
 
               {/* Voice Search */}

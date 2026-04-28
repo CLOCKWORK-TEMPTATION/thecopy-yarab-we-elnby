@@ -62,10 +62,14 @@ const PreProductionTools: React.FC<PreProductionToolsProps> = ({
       >
         <div className="space-y-5">
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]">
+            <label
+              htmlFor="field-preproductiontools-1"
+              className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]"
+            >
               Scene Description
             </label>
             <Textarea
+              id="field-preproductiontools-1"
               placeholder="اكتب وصفًا دقيقًا للمشهد، توزيع الحركة، الإضاءة المطلوبة، وشعور الكاميرا."
               className="min-h-[180px] border-[#343434] bg-[#0d0d0d] text-white placeholder:text-[#6c675c]"
               value={prompt}

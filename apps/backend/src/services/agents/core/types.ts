@@ -2,7 +2,7 @@
  * Core types for Drama Analyst AI Agent System - Backend
  */
 
-import { TaskType, TaskCategory } from './enums';
+import { TaskType, TaskCategory } from "./enums";
 
 export interface AIAgentCapabilities {
   // Core capabilities
@@ -172,11 +172,13 @@ export interface AgentConfigMapping {
 export interface Result<T, E = Error> {
   ok: boolean;
   value?: T;
-  error?: E | {
-    code: string;
-    message: string;
-    cause?: unknown;
-  };
+  error?:
+    | E
+    | {
+        code: string;
+        message: string;
+        cause?: unknown;
+      };
 }
 
 export interface AIRequest {

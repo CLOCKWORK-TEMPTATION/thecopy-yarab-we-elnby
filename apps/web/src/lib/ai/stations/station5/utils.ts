@@ -21,8 +21,16 @@ export function asJsonRecord(value: unknown): JsonRecord {
   return isJsonRecord(value) ? value : {};
 }
 
+export function asJsonRecords(value: unknown): JsonRecord[] {
+  return Array.isArray(value) ? value.map(asJsonRecord) : [];
+}
+
 export function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+export function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
 }
 
 export function asStringArray(value: unknown): string[] {

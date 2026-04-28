@@ -307,7 +307,7 @@ it("يعرض النتيجة النهائية بوضوح عند اكتمال ال
   };
 
   expect(mockSession.status).toBe("completed");
-  expect(mockSession.results?.phase5Debate).toBeDefined();
+  expect(mockSession.results?.["phase5Debate"]).toBeDefined();
 });
 
 it("يتعامل مع أخطاء النقاش بشكل منضبط عبر مسار إعادة المحاولة", async () => {

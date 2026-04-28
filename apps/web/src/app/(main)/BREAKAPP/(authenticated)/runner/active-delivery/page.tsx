@@ -258,13 +258,7 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
                         المهمة النشطة
                       </h2>
                       <span
-                        className={`px-3 py-1 text-xs rounded-full font-cairo ${
-                          activeTask.status === "completed"
-                            ? "bg-white/8 text-white"
-                            : activeTask.status === "in-progress"
-                              ? "bg-white/8 text-white"
-                              : "bg-white/6 text-white/55"
-                        }`}
+                        className={`px-3 py-1 text-xs rounded-full font-cairo ${activeTask.status === "completed" ? "bg-white/8 text-white" : activeTask.status === "in-progress" ? "bg-white/8 text-white" : "bg-white/6 text-white/55"}`}
                       >
                         {activeTask.status === "completed"
                           ? "مكتمل"
@@ -443,24 +437,14 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
                           <button
                             key={task.id}
                             onClick={() => setActiveTaskId(task.id)}
-                            className={`w-full text-right p-3 rounded-[22px] border transition ${
-                              isActive
-                                ? "border-white/20 bg-white/8"
-                                : "border-white/8 bg-white/[0.02] hover:bg-white/4"
-                            }`}
+                            className={`w-full text-right p-3 rounded-[22px] border transition ${isActive ? "border-white/20 bg-white/8" : "border-white/8 bg-white/[0.02] hover:bg-white/4"}`}
                           >
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-white font-cairo text-sm">
                                 {task.vendorName}
                               </span>
                               <span
-                                className={`px-2 py-0.5 text-xs rounded-full font-cairo ${
-                                  task.status === "completed"
-                                    ? "bg-white/8 text-white"
-                                    : task.status === "in-progress"
-                                      ? "bg-white/8 text-white"
-                                      : "bg-white/6 text-white/55"
-                                }`}
+                                className={`px-2 py-0.5 text-xs rounded-full font-cairo ${task.status === "completed" ? "bg-white/8 text-white" : task.status === "in-progress" ? "bg-white/8 text-white" : "bg-white/6 text-white/55"}`}
                               >
                                 {task.status === "completed"
                                   ? "مكتمل"

@@ -1,6 +1,6 @@
-import { TaskCategory, TaskType } from '../../types/types';
+import { TaskCategory, TaskType } from "../../types/types";
 
-import type { AIAgentConfig } from '../../types/types';
+import type { AIAgentConfig } from "../../types/types";
 
 /**
  * @const {AIAgentConfig} RHYTHM_MAPPING_AGENT_CONFIG
@@ -10,35 +10,36 @@ import type { AIAgentConfig } from '../../types/types';
  * and spectral prediction models to identify peaks and troughs in narrative energy.
  */
 export const RHYTHM_MAPPING_AGENT_CONFIG: AIAgentConfig = {
-    id: TaskType.RHYTHM_MAPPING,
-    name: "TemporalDynamics AI",
-    description: "وكيل ديناميكيات الإيقاع الزمني: محلل متطور يستخدم تقنيات معالجة الإشارات الرقمية مع الشبكات العصبية الالتفافية لرسم خرائط التوتر الدرامي والإيقاع السردي، مزود بخوارزميات تحليل السلاسل الزمنية ونماذج التنبؤ الطيفي لتحديد نقاط الذروة والانخفاض في الطاقة السردية.",
-    category: TaskCategory.ANALYSIS,
-    capabilities: {
-      multiModal: true,
-      reasoningChains: true,
-      toolUse: true,
-      memorySystem: false,
-      selfReflection: false,
-      ragEnabled: false,
-      vectorSearch: false,
-      agentOrchestration: false,
-      metacognitive: false,
-      adaptiveLearning: true,
-      complexityScore: 0.75,
-      accuracyLevel: 0.85,
-      processingSpeed: 'fast',
-      resourceIntensity: 'medium',
-      languageModeling: false,
-      patternRecognition: true,
-      creativeGeneration: false,
-      analyticalReasoning: true,
-      emotionalIntelligence: false
-    },
-    collaboratesWith: [TaskType.TENSION_OPTIMIZER],
-    dependsOn: [],
-    enhances: [TaskType.ANALYSIS],
-    systemPrompt: `You are the TemporalDynamics AI, a sophisticated analyst specializing in narrative rhythm and pacing. Your core function is to dissect a script and map its dramatic tension and narrative rhythm over time.
+  id: TaskType.RHYTHM_MAPPING,
+  name: "TemporalDynamics AI",
+  description:
+    "وكيل ديناميكيات الإيقاع الزمني: محلل متطور يستخدم تقنيات معالجة الإشارات الرقمية مع الشبكات العصبية الالتفافية لرسم خرائط التوتر الدرامي والإيقاع السردي، مزود بخوارزميات تحليل السلاسل الزمنية ونماذج التنبؤ الطيفي لتحديد نقاط الذروة والانخفاض في الطاقة السردية.",
+  category: TaskCategory.ANALYSIS,
+  capabilities: {
+    multiModal: true,
+    reasoningChains: true,
+    toolUse: true,
+    memorySystem: false,
+    selfReflection: false,
+    ragEnabled: false,
+    vectorSearch: false,
+    agentOrchestration: false,
+    metacognitive: false,
+    adaptiveLearning: true,
+    complexityScore: 0.75,
+    accuracyLevel: 0.85,
+    processingSpeed: "fast",
+    resourceIntensity: "medium",
+    languageModeling: false,
+    patternRecognition: true,
+    creativeGeneration: false,
+    analyticalReasoning: true,
+    emotionalIntelligence: false,
+  },
+  collaboratesWith: [TaskType.TENSION_OPTIMIZER],
+  dependsOn: [],
+  enhances: [TaskType.ANALYSIS],
+  systemPrompt: `You are the TemporalDynamics AI, a sophisticated analyst specializing in narrative rhythm and pacing. Your core function is to dissect a script and map its dramatic tension and narrative rhythm over time.
 
 **Objective:** Analyze the provided script to identify its rhythmic structure. Your analysis should pinpoint the peaks and valleys of narrative energy, track the pacing, and visualize the overall flow of the story.
 
@@ -51,12 +52,12 @@ export const RHYTHM_MAPPING_AGENT_CONFIG: AIAgentConfig = {
 **Output Format:**
 -   **Rhythm Map:** A data structure (e.g., an array of objects) representing the script's timeline, with each object containing a scene/sequence identifier and a corresponding value for tension and pace.
 -   **Analytical Summary:** A brief text summary (2-3 paragraphs) interpreting the rhythm map and providing actionable insights.`,
-    fewShotExamples: [],
-    chainOfThoughtTemplate: "لتحليل الإيقاع، سأبدأ بتقسيم النص...",
-    cacheStrategy: 'aggressive',
-    parallelizable: true,
-    batchProcessing: true,
-    validationRules: ["دقة القياسات الإيقاعية", "وضوح التصورات البيانية"],
-    outputSchema: {},
-    confidenceThreshold: 0.80
+  fewShotExamples: [],
+  chainOfThoughtTemplate: "لتحليل الإيقاع، سأبدأ بتقسيم النص...",
+  cacheStrategy: "aggressive",
+  parallelizable: true,
+  batchProcessing: true,
+  validationRules: ["دقة القياسات الإيقاعية", "وضوح التصورات البيانية"],
+  outputSchema: {},
+  confidenceThreshold: 0.8,
 };

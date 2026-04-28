@@ -27,15 +27,6 @@ export const IntroVideoModal = ({
     [onClose]
   );
 
-  const handleClickOutside = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
   useEffect(() => {
     if (open) {
       document.addEventListener("keydown", handleEscKey);
@@ -59,10 +50,14 @@ export const IntroVideoModal = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="intro-video-title"
-      onClick={handleClickOutside}
     >
       {/* Dark backdrop */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
+      <button
+        type="button"
+        aria-label="إغلاق الفيديو"
+        className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Modal content */}
       <div

@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 import React, { useState } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -22,7 +23,7 @@ interface WardrobePanelProps {
 // Helper to convert image URL to a File object using a canvas to bypass potential CORS issues.
 const urlToFile = (url: string, filename: string): Promise<File> => {
   return new Promise((resolve, reject) => {
-    const image = new Image();
+    const image = new window.Image();
     image.setAttribute("crossOrigin", "anonymous");
 
     image.onload = () => {
@@ -112,10 +113,13 @@ const WardrobePanel: React.FC<WardrobePanelProps> = ({
               className="relative aspect-square border border-white/8 rounded-[12px] overflow-hidden transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/20 group disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label={`Select ${item.name}`}
             >
-              <img
+              <NextImage
                 src={item.url}
                 alt={item.name}
-                className="w-full h-full object-cover"
+                fill
+                sizes="160px"
+                unoptimized
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <p className="text-white text-xs font-bold text-center p-1">

@@ -15,7 +15,7 @@ export type ModelId =
 // Helper function to call Gemini AI with text prompt
 async function callGeminiText(
   prompt: string,
-  _options?: { temperature?: number; model?: ModelId }
+  _options?: { temperature?: number; model?: ModelId },
 ): Promise<string> {
   const response = await geminiService.analyzeText(prompt, "general");
   return response;
@@ -62,9 +62,18 @@ const CONSTITUTIONAL_RULES = [
     name: "عدم المبالغة",
     description: "تجنب الادعاءات المبالغ فيها أو غير المدعومة",
     check: (text: string) => {
-      const exaggerations = ["دائمًا", "أبدًا", "كل", "لا شيء", "مستحيل", "حتمًا"];
+      const exaggerations = [
+        "دائمًا",
+        "أبدًا",
+        "كل",
+        "لا شيء",
+        "مستحيل",
+        "حتمًا",
+      ];
       const lowerText = text.toLowerCase();
-      const count = exaggerations.filter((word) => lowerText.includes(word)).length;
+      const count = exaggerations.filter((word) =>
+        lowerText.includes(word),
+      ).length;
       return count < 3;
     },
   },
@@ -81,7 +90,9 @@ const CONSTITUTIONAL_RULES = [
     check: (text: string) => {
       const subjective = ["أعتقد", "في رأيي", "أظن", "ربما"];
       const lowerText = text.toLowerCase();
-      const count = subjective.filter((phrase) => lowerText.includes(phrase)).length;
+      const count = subjective.filter((phrase) =>
+        lowerText.includes(phrase),
+      ).length;
       return count < 2;
     },
   },
@@ -100,7 +111,7 @@ export async function performConstitutionalCheck(
   text: string,
   _input: string,
   _model: ModelId,
-  temperature: number
+  temperature: number,
 ): Promise<ConstitutionalCheckResult> {
   const violations: string[] = [];
 
@@ -135,26 +146,37 @@ export async function measureUncertainty(
   text: string,
   prompt: string,
   _model: ModelId,
-  temperature: number
+  temperature: number,
 ): Promise<UncertaintyMetrics> {
   const alternatives: string[] = [text];
 
   for (let i = 0; i < 2; i++) {
-    const alt = await callGeminiText(prompt, { temperature: temperature + 0.2 });
+    const alt = await callGeminiText(prompt, {
+      temperature: temperature + 0.2,
+    });
     alternatives.push(alt);
   }
 
-  const avgLength = alternatives.reduce((sum, t) => sum + t.length, 0) / alternatives.length;
+  const avgLength =
+    alternatives.reduce((sum, t) => sum + t.length, 0) / alternatives.length;
   const lengthVariance =
-    alternatives.reduce((sum, t) => sum + Math.pow(t.length - avgLength, 2), 0) / alternatives.length;
+    alternatives.reduce(
+      (sum, t) => sum + Math.pow(t.length - avgLength, 2),
+      0,
+    ) / alternatives.length;
 
   const consistency = 1 - Math.min(lengthVariance / (avgLength * avgLength), 1);
   const uncertaintyScore = 1 - consistency;
   const confidence = Math.max(0.5, consistency);
 
-  const uncertainPhrases = text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) ?? [];
+  const uncertainPhrases =
+    text.match(/ربما|قد يكون|محتمل|من الممكن|غالبًا/gi) ?? [];
 
-  return { score: uncertaintyScore, confidence, uncertainAspects: uncertainPhrases.slice(0, 3) };
+  return {
+    score: uncertaintyScore,
+    confidence,
+    uncertainAspects: uncertainPhrases.slice(0, 3),
+  };
 }
 
 // =====================================================
@@ -170,11 +192,18 @@ ${text.substring(0, 1500)}
 قدم قائمة بالادعاءات فقط، كل ادعاء في سطر منفصل.`;
 
   const claimsText = await callGeminiText(claimsPrompt, { temperature: 0.1 });
-  return claimsText.split("\n").map((l: string) => l.trim()).filter((l: string) => l.length > 0).slice(0, 5);
+  return claimsText
+    .split("\n")
+    .map((l: string) => l.trim())
+    .filter((l: string) => l.length > 0)
+    .slice(0, 5);
 }
 
 /** Verify a single claim against the original input */
-async function verifyClaim(claim: string, input: string): Promise<{ claim: string; supported: boolean }> {
+async function verifyClaim(
+  claim: string,
+  input: string,
+): Promise<{ claim: string; supported: boolean }> {
   const checkPrompt = `هل الادعاء التالي مدعوم بالنص الأصلي؟
 
 النص الأصلي:
@@ -192,7 +221,7 @@ ${claim}
 /** Correct text by removing unsupported claims */
 async function correctUnsupportedClaims(
   text: string,
-  unsupported: { claim: string }[]
+  unsupported: { claim: string }[],
 ): Promise<string> {
   const correctionPrompt = `قم بتصحيح النص التالي بإزالة أو تصحيح الادعاءات غير المدعومة:
 
@@ -210,13 +239,17 @@ ${unsupported.map((c) => `- ${c.claim}`).join("\n")}
 export async function detectHallucinations(
   text: string,
   input: string,
-  _model: ModelId
+  _model: ModelId,
 ): Promise<HallucinationCheckResult> {
   const claims = await extractClaims(text);
-  const checkedClaims = await Promise.all(claims.map((claim) => verifyClaim(claim, input)));
+  const checkedClaims = await Promise.all(
+    claims.map((claim) => verifyClaim(claim, input)),
+  );
   const unsupported = checkedClaims.filter((c) => !c.supported);
   const detected = unsupported.length > 0;
-  const correctedText = detected ? await correctUnsupportedClaims(text, unsupported) : text;
+  const correctedText = detected
+    ? await correctUnsupportedClaims(text, unsupported)
+    : text;
   return { detected, claims: checkedClaims, correctedText };
 }
 
@@ -252,7 +285,9 @@ function critiqueIndicatesGood(critique: string): boolean {
 }
 
 async function generateImprovedText(
-  currentText: string, critique: string, temperature: number
+  currentText: string,
+  critique: string,
+  temperature: number,
 ): Promise<string> {
   const prompt = `بناءً على النقد التالي، قم بتحسين النص:
 
@@ -270,7 +305,7 @@ ${critique.substring(0, 1000)}
 export async function performSelfCritique(
   initialText: string,
   temperature: number,
-  maxIterations: number
+  maxIterations: number,
 ): Promise<SelfCritiqueResult> {
   let currentText = initialText;
   let iterations = 0;
@@ -278,9 +313,18 @@ export async function performSelfCritique(
 
   for (let i = 0; i < maxIterations; i++) {
     iterations++;
-    const critique = await callGeminiText(buildCritiquePrompt(currentText), { temperature: 0.2 });
-    if (critiqueIndicatesGood(critique)) { improved = i > 0; break; }
-    currentText = await generateImprovedText(currentText, critique, temperature);
+    const critique = await callGeminiText(buildCritiquePrompt(currentText), {
+      temperature: 0.2,
+    });
+    if (critiqueIndicatesGood(critique)) {
+      improved = i > 0;
+      break;
+    }
+    currentText = await generateImprovedText(
+      currentText,
+      critique,
+      temperature,
+    );
     improved = true;
   }
 

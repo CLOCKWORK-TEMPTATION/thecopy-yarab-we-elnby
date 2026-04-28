@@ -21,7 +21,7 @@ function stringifyQueryValue(value: unknown): string {
     case "symbol":
       return String(value);
     case "object":
-      return value === null ? "" : JSON.stringify(value) ?? "";
+      return value === null ? "" : (JSON.stringify(value) ?? "");
     default:
       return "";
   }
@@ -77,4 +77,3 @@ export const artDirectorRouter = Router();
 artDirectorRouter.use((req, res) => {
   void respond(req, res);
 });
-

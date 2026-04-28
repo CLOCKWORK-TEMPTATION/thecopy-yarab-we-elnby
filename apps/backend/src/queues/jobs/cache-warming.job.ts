@@ -5,16 +5,16 @@
  * to improve performance and reduce API calls
  */
 
-import { Job } from 'bullmq';
+import { Job } from "bullmq";
 
-import { logger } from '@/lib/logger';
-import { queueManager, QueueName } from '@/queues/queue.config';
-import { warmGeminiCache } from '@/services/gemini-cache.strategy';
+import { logger } from "@/lib/logger";
+import { queueManager, QueueName } from "@/queues/queue.config";
+import { warmGeminiCache } from "@/services/gemini-cache.strategy";
 
 // Job data types
 export interface CacheWarmingJobData {
   entities: {
-    type: 'scene' | 'character' | 'shot' | 'project';
+    type: "scene" | "character" | "shot" | "project";
     id: string;
     analysisType: string;
   }[];
@@ -31,7 +31,9 @@ export interface CacheWarmingResult {
 /**
  * Process cache warming job
  */
-async function processCacheWarming(job: Job<CacheWarmingJobData>): Promise<CacheWarmingResult> {
+async function processCacheWarming(
+  job: Job<CacheWarmingJobData>,
+): Promise<CacheWarmingResult> {
   const startTime = Date.now();
   const { entities } = job.data;
 
@@ -49,7 +51,7 @@ async function processCacheWarming(job: Job<CacheWarmingJobData>): Promise<Cache
     // Use the warmGeminiCache utility
     await warmGeminiCache(entities, async (entity) => {
       // Import Gemini service dynamically
-      const { GeminiService } = await import('@/services/gemini.service');
+      const { GeminiService } = await import("@/services/gemini.service");
       const gemini = new GeminiService();
 
       // Fetch entity data (this should be replaced with actual DB queries)
@@ -70,7 +72,7 @@ async function processCacheWarming(job: Job<CacheWarmingJobData>): Promise<Cache
     const processingTime = Date.now() - startTime;
 
     logger.info(
-      `[CacheWarming] Completed: ${warmedCount} warmed, ${skippedCount} skipped, ${failedCount} failed in ${processingTime}ms`
+      `[CacheWarming] Completed: ${warmedCount} warmed, ${skippedCount} skipped, ${failedCount} failed in ${processingTime}ms`,
     );
 
     await job.updateProgress(100);
@@ -82,7 +84,7 @@ async function processCacheWarming(job: Job<CacheWarmingJobData>): Promise<Cache
       processingTime,
     };
   } catch (error) {
-    logger.error('[CacheWarming] Error processing cache warming:', error);
+    logger.error("[CacheWarming] Error processing cache warming:", error);
     throw error;
   }
 }
@@ -90,21 +92,25 @@ async function processCacheWarming(job: Job<CacheWarmingJobData>): Promise<Cache
 /**
  * Queue cache warming job
  */
-export async function queueCacheWarming(data: CacheWarmingJobData): Promise<string> {
+export async function queueCacheWarming(
+  data: CacheWarmingJobData,
+): Promise<string> {
   const queue = queueManager.getQueue(QueueName.CACHE_WARMING);
 
-  const job = await queue.add('cache-warming', data, {
+  const job = await queue.add("cache-warming", data, {
     priority: data.priority ?? 5,
     attempts: 2, // Only retry once
     backoff: {
-      type: 'exponential',
+      type: "exponential",
       delay: 5000,
     },
   });
 
   // Sanitize job ID
-  const safeJobId = job.id ? String(job.id).replace(/[\r\n]/g, '') : 'unknown';
-  logger.info(`[CacheWarming] Job ${safeJobId} queued for ${data.entities.length} entities`);
+  const safeJobId = job.id ? String(job.id).replace(/[\r\n]/g, "") : "unknown";
+  logger.info(
+    `[CacheWarming] Job ${safeJobId} queued for ${data.entities.length} entities`,
+  );
 
   return job.id!;
 }
@@ -121,7 +127,7 @@ export function registerCacheWarmingWorker(): void {
     },
   });
 
-  logger.info('[CacheWarming] Worker registered');
+  logger.info("[CacheWarming] Worker registered");
 }
 
 export const cacheWarmingJob = {

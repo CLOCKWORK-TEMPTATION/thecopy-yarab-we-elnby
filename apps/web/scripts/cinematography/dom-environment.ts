@@ -1,6 +1,7 @@
 // DOM Environment Setup for Cinematography Integration Tests
 // إعداد بيئة DOM لاختبارات التكامل
 
+import { cleanup } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 
 /**
@@ -70,7 +71,6 @@ export function installDomEnvironment(): () => void {
   ).IS_REACT_ACT_ENVIRONMENT = true;
 
   return () => {
-    // @ts-ignore - cleanup function
     cleanup();
     dom.window.close();
 

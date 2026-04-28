@@ -1,11 +1,11 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ErrorCode,
   McpError,
-} from "@modelcontextprotocol/sdk/types.js";
+} from "@modelcontextprotocol/sdk/types";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -247,7 +247,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       successMsg += ` Saved to ${savedPath}`;
     } catch (fsError) {
       console.error("Failed to write to file:", fsError);
-      successMsg += ` Note: Failed to write to file: ${fsError}`;
+      successMsg += ` Note: Failed to write to file: ${String(fsError)}`;
     }
 
     return {

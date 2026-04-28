@@ -5,7 +5,7 @@
  * Includes UUID validation, input sanitization, and strict type checking
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Re-export scene & shot schemas extracted to validation.schemas.shots.ts
 export {
@@ -22,13 +22,13 @@ export {
   updateShotSchema,
   shotIdParamSchema,
   sceneIdParamForShotsSchema,
-} from './validation.schemas.shots';
+} from "./validation.schemas.shots";
 export type {
   CreateSceneInput,
   UpdateSceneInput,
   CreateShotInput,
   UpdateShotInput,
-} from './validation.schemas.shots';
+} from "./validation.schemas.shots";
 
 // ============================================
 // COMMON SCHEMAS
@@ -38,7 +38,7 @@ export type {
  * UUID validation with proper format checking
  */
 export const uuidSchema = z.string().uuid({
-  message: 'معرّف UUID غير صالح',
+  message: "معرّف UUID غير صالح",
 });
 
 /**
@@ -52,7 +52,9 @@ export const paginationSchema = z.object({
 /**
  * Sort order
  */
-export const sortOrderSchema = z.enum(['asc', 'desc', 'ASC', 'DESC']).default('desc');
+export const sortOrderSchema = z
+  .enum(["asc", "desc", "ASC", "DESC"])
+  .default("desc");
 
 // ============================================
 // AUTH SCHEMAS
@@ -61,28 +63,28 @@ export const sortOrderSchema = z.enum(['asc', 'desc', 'ASC', 'DESC']).default('d
 export const signupSchema = z.object({
   email: z
     .string()
-    .email({ message: 'البريد الإلكتروني غير صالح' })
-    .min(5, { message: 'البريد الإلكتروني قصير جداً' })
-    .max(255, { message: 'البريد الإلكتروني طويل جداً' })
+    .email({ message: "البريد الإلكتروني غير صالح" })
+    .min(5, { message: "البريد الإلكتروني قصير جداً" })
+    .max(255, { message: "البريد الإلكتروني طويل جداً" })
     .toLowerCase()
     .trim(),
   password: z
     .string()
-    .min(8, { message: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
-    .max(128, { message: 'كلمة المرور طويلة جداً' })
+    .min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" })
+    .max(128, { message: "كلمة المرور طويلة جداً" })
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message: 'كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم',
+      message: "كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم",
     }),
   firstName: z
     .string()
-    .min(1, { message: 'الاسم الأول مطلوب' })
-    .max(100, { message: 'الاسم الأول طويل جداً' })
+    .min(1, { message: "الاسم الأول مطلوب" })
+    .max(100, { message: "الاسم الأول طويل جداً" })
     .trim()
     .optional(),
   lastName: z
     .string()
-    .min(1, { message: 'الاسم الأخير مطلوب' })
-    .max(100, { message: 'الاسم الأخير طويل جداً' })
+    .min(1, { message: "الاسم الأخير مطلوب" })
+    .max(100, { message: "الاسم الأخير طويل جداً" })
     .trim()
     .optional(),
 });
@@ -90,10 +92,10 @@ export const signupSchema = z.object({
 export const loginSchema = z.object({
   email: z
     .string()
-    .email({ message: 'البريد الإلكتروني غير صالح' })
+    .email({ message: "البريد الإلكتروني غير صالح" })
     .toLowerCase()
     .trim(),
-  password: z.string().min(1, { message: 'كلمة المرور مطلوبة' }),
+  password: z.string().min(1, { message: "كلمة المرور مطلوبة" }),
 });
 
 // ============================================
@@ -103,25 +105,25 @@ export const loginSchema = z.object({
 export const createProjectSchema = z.object({
   title: z
     .string()
-    .min(1, { message: 'عنوان المشروع مطلوب' })
-    .max(500, { message: 'عنوان المشروع طويل جداً' })
+    .min(1, { message: "عنوان المشروع مطلوب" })
+    .max(500, { message: "عنوان المشروع طويل جداً" })
     .trim(),
   scriptContent: z
     .string()
-    .max(1000000, { message: 'محتوى السيناريو كبير جداً (الحد الأقصى 1MB)' })
+    .max(1000000, { message: "محتوى السيناريو كبير جداً (الحد الأقصى 1MB)" })
     .optional(),
 });
 
 export const updateProjectSchema = z.object({
   title: z
     .string()
-    .min(1, { message: 'عنوان المشروع مطلوب' })
-    .max(500, { message: 'عنوان المشروع طويل جداً' })
+    .min(1, { message: "عنوان المشروع مطلوب" })
+    .max(500, { message: "عنوان المشروع طويل جداً" })
     .trim()
     .optional(),
   scriptContent: z
     .string()
-    .max(1000000, { message: 'محتوى السيناريو كبير جداً (الحد الأقصى 1MB)' })
+    .max(1000000, { message: "محتوى السيناريو كبير جداً (الحد الأقصى 1MB)" })
     .optional(),
 });
 
@@ -138,55 +140,34 @@ export const analyzeProjectSchema = z.object({
 // ============================================
 
 export const characterConsistencyStatusSchema = z.enum([
-  'good',
-  'warning',
-  'error',
+  "good",
+  "warning",
+  "error",
 ]);
 
 export const createCharacterSchema = z.object({
   projectId: uuidSchema,
   name: z
     .string()
-    .min(1, { message: 'اسم الشخصية مطلوب' })
-    .max(200, { message: 'اسم الشخصية طويل جداً' })
+    .min(1, { message: "اسم الشخصية مطلوب" })
+    .max(200, { message: "اسم الشخصية طويل جداً" })
     .trim(),
   appearances: z
     .number()
-    .int({ message: 'عدد الظهورات يجب أن يكون عدد صحيح' })
-    .min(0, { message: 'عدد الظهورات يجب أن يكون صفر أو موجب' })
+    .int({ message: "عدد الظهورات يجب أن يكون عدد صحيح" })
+    .min(0, { message: "عدد الظهورات يجب أن يكون صفر أو موجب" })
     .default(0),
-  consistencyStatus: characterConsistencyStatusSchema.default('good'),
-  lastSeen: z
-    .string()
-    .max(500)
-    .optional(),
-  notes: z
-    .string()
-    .max(5000, { message: 'الملاحظات طويلة جداً' })
-    .optional(),
+  consistencyStatus: characterConsistencyStatusSchema.default("good"),
+  lastSeen: z.string().max(500).optional(),
+  notes: z.string().max(5000, { message: "الملاحظات طويلة جداً" }).optional(),
 });
 
 export const updateCharacterSchema = z.object({
-  name: z
-    .string()
-    .min(1)
-    .max(200)
-    .trim()
-    .optional(),
-  appearances: z
-    .number()
-    .int()
-    .min(0)
-    .optional(),
+  name: z.string().min(1).max(200).trim().optional(),
+  appearances: z.number().int().min(0).optional(),
   consistencyStatus: characterConsistencyStatusSchema.optional(),
-  lastSeen: z
-    .string()
-    .max(500)
-    .optional(),
-  notes: z
-    .string()
-    .max(5000)
-    .optional(),
+  lastSeen: z.string().max(500).optional(),
+  notes: z.string().max(5000).optional(),
 });
 
 export const characterIdParamSchema = z.object({
@@ -202,17 +183,17 @@ export const projectIdParamForCharactersSchema = z.object({
 // ============================================
 
 export const analysisTypeSchema = z.enum([
-  'characters',
-  'themes',
-  'structure',
-  'screenplay',
+  "characters",
+  "themes",
+  "structure",
+  "screenplay",
 ]);
 
 export const sevenStationsPipelineSchema = z.object({
   text: z
     .string()
-    .min(10, { message: 'النص قصير جداً للتحليل' })
-    .max(100000, { message: 'النص كبير جداً للتحليل (الحد الأقصى 100KB)' }),
+    .min(10, { message: "النص قصير جداً للتحليل" })
+    .max(100000, { message: "النص كبير جداً للتحليل (الحد الأقصى 100KB)" }),
   analysisType: analysisTypeSchema.optional(),
 });
 
@@ -221,16 +202,16 @@ export const sevenStationsPipelineSchema = z.object({
 // ============================================
 
 export const jobIdParamSchema = z.object({
-  jobId: z.string().min(1, { message: 'معرّف المهمة مطلوب' }),
+  jobId: z.string().min(1, { message: "معرّف المهمة مطلوب" }),
 });
 
 export const queueNameParamSchema = z.object({
   queueName: z.enum([
-    'ai-analysis',
-    'document-processing',
-    'notifications',
-    'export',
-    'cache-warming',
+    "ai-analysis",
+    "document-processing",
+    "notifications",
+    "export",
+    "cache-warming",
   ]),
 });
 
@@ -242,11 +223,11 @@ export const metricsRangeSchema = z.object({
   start: z.coerce
     .number()
     .int()
-    .min(0, { message: 'وقت البداية يجب أن يكون موجباً' }),
+    .min(0, { message: "وقت البداية يجب أن يكون موجباً" }),
   end: z.coerce
     .number()
     .int()
-    .min(0, { message: 'وقت النهاية يجب أن يكون موجباً' }),
+    .min(0, { message: "وقت النهاية يجب أن يكون موجباً" }),
 });
 
 // ============================================
@@ -259,4 +240,6 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
 export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;
-export type SevenStationsPipelineInput = z.infer<typeof sevenStationsPipelineSchema>;
+export type SevenStationsPipelineInput = z.infer<
+  typeof sevenStationsPipelineSchema
+>;

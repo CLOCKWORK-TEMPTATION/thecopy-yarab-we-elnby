@@ -218,6 +218,9 @@ export function SceneViewport({
       {/* 3D Viewport Canvas */}
       <div
         ref={canvasRef}
+        role="button"
+        aria-label="منفذ عرض المشهد"
+        tabIndex={0}
         className={cn(
           "flex-1 relative overflow-hidden",
           `bg-gradient-to-br ${getTimeOfDayStyle()}`
@@ -283,10 +286,11 @@ export function SceneViewport({
             const size = 40 * scale * obj.scale;
 
             return (
-              <div
+              <button
+                type="button"
                 key={obj.id}
                 className={cn(
-                  "absolute cursor-pointer transition-all duration-200",
+                  "absolute cursor-pointer transition-all duration-200 border-0 bg-transparent p-0",
                   isSelected && "z-10"
                 )}
                 style={{
@@ -328,7 +332,7 @@ export function SceneViewport({
                 <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-card/80 backdrop-blur-sm px-2 py-0.5 rounded">
                   {obj.name}
                 </div>
-              </div>
+              </button>
             );
           })}
 

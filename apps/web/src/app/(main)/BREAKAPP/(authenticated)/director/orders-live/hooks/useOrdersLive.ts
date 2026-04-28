@@ -60,7 +60,7 @@ export function useOrdersLive() {
     try {
       const params: Record<string, string> = {};
       if (statusFilter !== "all") {
-        params.status = statusFilter;
+        params["status"] = statusFilter;
       }
       const response = await api.get<LiveOrder[]>(
         `/breakapp/orders/session/${sessionId}`,

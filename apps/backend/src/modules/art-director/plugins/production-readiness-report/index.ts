@@ -33,7 +33,7 @@ const MAX_REQUIREMENTS_CHARS = 1000;
 const formatFileSection = (
   title: string,
   content: string,
-  maxChars: number
+  maxChars: number,
 ): string =>
   `\n────────────────────────────────────────────────────────────────────────────────\n${title}\n────────────────────────────────────────────────────────────────────────────────\n${content.substring(0, maxChars)}\n`;
 
@@ -50,7 +50,7 @@ const buildPrompt = ({
     ? formatFileSection(
         "📦 محتوى package.json",
         analysisData.packageJsonContent,
-        MAX_PACKAGE_JSON_CHARS
+        MAX_PACKAGE_JSON_CHARS,
       )
     : "";
 
@@ -58,7 +58,7 @@ const buildPrompt = ({
     ? formatFileSection(
         "📄 محتوى README",
         analysisData.readmeContent,
-        MAX_README_CHARS
+        MAX_README_CHARS,
       )
     : "";
 
@@ -66,7 +66,7 @@ const buildPrompt = ({
     ? formatFileSection(
         "📋 محتوى requirements.txt",
         analysisData.requirementsContent,
-        MAX_REQUIREMENTS_CHARS
+        MAX_REQUIREMENTS_CHARS,
       )
     : "";
 

@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -217,102 +218,97 @@ export function AgentReportViewer({ report, trigger }: AgentReportViewerProps) {
   );
 
   return (
-    <>
-      <div onClick={() => setOpen(true)} className="inline-block">
-        {trigger ?? defaultTrigger}
-      </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger ?? defaultTrigger}</DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            {report.agentName}
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2 pt-2">
+            <Badge
+              variant="outline"
+              className={`${getConfidenceColor(report.confidence)} text-white`}
+            >
+              الثقة: {(report.confidence * 100).toFixed(0)}%
+            </Badge>
+            <Badge variant="secondary">
+              {getConfidenceLabel(report.confidence)}
+            </Badge>
+            {report.timestamp && (
+              <span className="text-sm text-muted-foreground">
+                {report.timestamp}
+              </span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              {report.agentName}
-            </DialogTitle>
-            <DialogDescription className="flex items-center gap-2 pt-2">
-              <Badge
-                variant="outline"
-                className={`${getConfidenceColor(report.confidence)} text-white`}
+        <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
+          <div className="space-y-4">
+            {/* Main Content */}
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground mb-2">
+                التحليل
+              </h3>
+              <div
+                className="whitespace-pre-wrap text-sm"
+                dir="rtl"
+                style={{ fontFamily: "inherit" }}
               >
-                الثقة: {(report.confidence * 100).toFixed(0)}%
-              </Badge>
-              <Badge variant="secondary">
-                {getConfidenceLabel(report.confidence)}
-              </Badge>
-              {report.timestamp && (
-                <span className="text-sm text-muted-foreground">
-                  {report.timestamp}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
+                {toText(report.text)}
+              </div>
+            </div>
 
-          <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
-            <div className="space-y-4">
-              {/* Main Content */}
+            {/* Notes */}
+            {report.notes && report.notes.length > 0 && (
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-                  التحليل
+                  ملاحظات
                 </h3>
-                <div
-                  className="whitespace-pre-wrap text-sm"
-                  dir="rtl"
-                  style={{ fontFamily: "inherit" }}
-                >
-                  {toText(report.text)}
+                <ul className="space-y-1">
+                  {report.notes.map((note, i) => (
+                    <li key={i} className="text-sm flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <span>{note}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Metadata */}
+            {report.metadata && Object.keys(report.metadata).length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-2">
+                  معلومات إضافية
+                </h3>
+                <div className="space-y-1 text-sm">
+                  {Object.entries(report.metadata).map(([key, value]) => (
+                    <div key={key} className="flex gap-2">
+                      <span className="font-medium">{key}:</span>
+                      <span className="text-muted-foreground">
+                        {String(value)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              {/* Notes */}
-              {report.notes && report.notes.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-                    ملاحظات
-                  </h3>
-                  <ul className="space-y-1">
-                    {report.notes.map((note, i) => (
-                      <li key={i} className="text-sm flex items-start gap-2">
-                        <span className="text-primary">•</span>
-                        <span>{note}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Metadata */}
-              {report.metadata && Object.keys(report.metadata).length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-                    معلومات إضافية
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    {Object.entries(report.metadata).map(([key, value]) => (
-                      <div key={key} className="flex gap-2">
-                        <span className="font-medium">{key}:</span>
-                        <span className="text-muted-foreground">
-                          {String(value)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              إغلاق
-            </Button>
-            <Button onClick={handleExport} className="gap-2">
-              <Download className="h-4 w-4" />
-              تصدير التقرير
-            </Button>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </ScrollArea>
+
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            إغلاق
+          </Button>
+          <Button onClick={handleExport} className="gap-2">
+            <Download className="h-4 w-4" />
+            تصدير التقرير
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

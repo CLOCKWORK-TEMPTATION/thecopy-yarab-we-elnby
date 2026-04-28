@@ -1,4 +1,3 @@
- 
 /**
  * Unified Real-time Service
  *
@@ -6,7 +5,7 @@
  * Provides a single interface to broadcast events to both channels
  */
 
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 import {
   RealtimeEvent,
   RealtimeEventType,
@@ -21,18 +20,18 @@ import {
   createRealtimeEvent,
   createRoomName,
   WebSocketRoom,
-} from '@/types/realtime.types';
+} from "@/types/realtime.types";
 
-import { sseService } from './sse.service';
-import { websocketService } from './websocket.service';
+import { sseService } from "./sse.service";
+import { websocketService } from "./websocket.service";
 
 /**
  * Broadcast target options
  */
 export enum BroadcastTarget {
-  ALL = 'all', // Broadcast to both WebSocket and SSE
-  WEBSOCKET = 'websocket', // Only WebSocket
-  SSE = 'sse', // Only SSE
+  ALL = "all", // Broadcast to both WebSocket and SSE
+  WEBSOCKET = "websocket", // Only WebSocket
+  SSE = "sse", // Only SSE
 }
 
 /**
@@ -50,7 +49,7 @@ export interface BroadcastOptions {
 /**
  * Log level type for consistent logging
  */
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * Payload with optional queue and user routing (used for routing purposes)
@@ -79,12 +78,15 @@ class RealtimeService {
    */
   broadcast<T extends RealtimePayload>(
     event: RealtimeEvent<T>,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const { target = BroadcastTarget.ALL, eventId } = options;
 
     try {
-      if (target === BroadcastTarget.ALL || target === BroadcastTarget.WEBSOCKET) {
+      if (
+        target === BroadcastTarget.ALL ||
+        target === BroadcastTarget.WEBSOCKET
+      ) {
         websocketService.broadcast(event);
       }
 
@@ -93,10 +95,10 @@ class RealtimeService {
       }
 
       logger.debug(
-        `[Realtime] Broadcasted event: ${event.event} via ${target}`
+        `[Realtime] Broadcasted event: ${event.event} via ${target}`,
       );
     } catch (error) {
-      logger.error('[Realtime] Failed to broadcast event:', error);
+      logger.error("[Realtime] Failed to broadcast event:", error);
     }
   }
 
@@ -106,12 +108,15 @@ class RealtimeService {
   toRoom<T extends RealtimePayload>(
     room: string,
     event: RealtimeEvent<T>,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const { target = BroadcastTarget.ALL, eventId } = options;
 
     try {
-      if (target === BroadcastTarget.ALL || target === BroadcastTarget.WEBSOCKET) {
+      if (
+        target === BroadcastTarget.ALL ||
+        target === BroadcastTarget.WEBSOCKET
+      ) {
         websocketService.toRoom(room, event);
       }
 
@@ -120,7 +125,7 @@ class RealtimeService {
       }
 
       logger.debug(
-        `[Realtime] Sent event to room ${room}: ${event.event} via ${target}`
+        `[Realtime] Sent event to room ${room}: ${event.event} via ${target}`,
       );
     } catch (error) {
       logger.error(`[Realtime] Failed to send event to room ${room}:`, error);
@@ -133,12 +138,15 @@ class RealtimeService {
   toUser<T extends RealtimePayload>(
     userId: string,
     event: RealtimeEvent<T>,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const { target = BroadcastTarget.ALL, eventId } = options;
 
     try {
-      if (target === BroadcastTarget.ALL || target === BroadcastTarget.WEBSOCKET) {
+      if (
+        target === BroadcastTarget.ALL ||
+        target === BroadcastTarget.WEBSOCKET
+      ) {
         websocketService.toUser(userId, event);
       }
 
@@ -147,7 +155,7 @@ class RealtimeService {
       }
 
       logger.debug(
-        `[Realtime] Sent event to user ${userId}: ${event.event} via ${target}`
+        `[Realtime] Sent event to user ${userId}: ${event.event} via ${target}`,
       );
     } catch (error) {
       logger.error(`[Realtime] Failed to send event to user ${userId}:`, error);
@@ -160,7 +168,7 @@ class RealtimeService {
   toProject<T extends RealtimePayload>(
     projectId: string,
     event: RealtimeEvent<T>,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const projectRoom = createRoomName(WebSocketRoom.PROJECT, projectId);
     this.toRoom(projectRoom, event, options);
@@ -172,7 +180,7 @@ class RealtimeService {
   toQueue<T extends RealtimePayload>(
     queueName: string,
     event: RealtimeEvent<T>,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const queueRoom = createRoomName(WebSocketRoom.QUEUE, queueName);
     this.toRoom(queueRoom, event, options);
@@ -188,7 +196,7 @@ class RealtimeService {
   private routeJobEvent<T extends RealtimePayload>(
     event: RealtimeEvent<T>,
     payload: JobRoutablePayload,
-    options: BroadcastOptions
+    options: BroadcastOptions,
   ): void {
     if (payload.queueName) {
       this.toQueue(payload.queueName, event, options);
@@ -204,7 +212,7 @@ class RealtimeService {
   private routeAnalysisEvent<T extends RealtimePayload>(
     event: RealtimeEvent<T>,
     payload: AnalysisRoutablePayload,
-    options: BroadcastOptions
+    options: BroadcastOptions,
   ): void {
     if (payload.projectId) {
       this.toProject(payload.projectId, event, options);
@@ -222,7 +230,7 @@ class RealtimeService {
    */
   private routeSystemEvent<T extends RealtimePayload>(
     event: RealtimeEvent<T>,
-    options: BroadcastOptions
+    options: BroadcastOptions,
   ): void {
     if (options.userId) {
       this.toUser(options.userId, event, options);
@@ -248,60 +256,66 @@ class RealtimeService {
    * Emit job started event
    */
   emitJobStarted(
-    payload: Omit<JobStartedPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<JobStartedPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<JobStartedPayload>(
       RealtimeEventType.JOB_STARTED,
-      payload
+      payload,
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('info', `Job started: ${payload.jobId}`);
+    this.logEvent("info", `Job started: ${payload.jobId}`);
   }
 
   /**
    * Emit job progress event
    */
   emitJobProgress(
-    payload: Omit<JobProgressPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<JobProgressPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<JobProgressPayload>(
       RealtimeEventType.JOB_PROGRESS,
-      payload
+      payload,
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('debug', `Job progress: ${payload.jobId} - ${payload.progress}%`);
+    this.logEvent(
+      "debug",
+      `Job progress: ${payload.jobId} - ${payload.progress}%`,
+    );
   }
 
   /**
    * Emit job completed event
    */
   emitJobCompleted(
-    payload: Omit<JobCompletedPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<JobCompletedPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<JobCompletedPayload>(
       RealtimeEventType.JOB_COMPLETED,
-      payload
+      payload,
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('info', `Job completed: ${payload.jobId} in ${payload.duration}ms`);
+    this.logEvent(
+      "info",
+      `Job completed: ${payload.jobId} in ${payload.duration}ms`,
+    );
   }
 
   /**
    * Emit job failed event
    */
   emitJobFailed(
-    payload: Omit<JobFailedPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<JobFailedPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<JobFailedPayload>(
       RealtimeEventType.JOB_FAILED,
-      payload
+      payload,
     );
     this.routeJobEvent(event, payload, options);
-    this.logEvent('error', `Job failed: ${payload.jobId} - ${payload.error}`);
+    this.logEvent("error", `Job failed: ${payload.jobId} - ${payload.error}`);
   }
 
   // ============================================================================
@@ -312,30 +326,36 @@ class RealtimeService {
    * Emit analysis progress event
    */
   emitAnalysisProgress(
-    payload: Omit<AnalysisProgressPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<AnalysisProgressPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<AnalysisProgressPayload>(
       RealtimeEventType.ANALYSIS_PROGRESS,
-      payload
+      payload,
     );
     this.routeAnalysisEvent(event, payload, options);
-    this.logEvent('debug', `Analysis progress: ${payload.analysisId} - Station ${payload.currentStation}/${payload.totalStations}`);
+    this.logEvent(
+      "debug",
+      `Analysis progress: ${payload.analysisId} - Station ${payload.currentStation}/${payload.totalStations}`,
+    );
   }
 
   /**
    * Emit station completed event
    */
   emitStationCompleted(
-    payload: Omit<StationCompletedPayload, 'timestamp' | 'eventType'>,
-    options: BroadcastOptions = {}
+    payload: Omit<StationCompletedPayload, "timestamp" | "eventType">,
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<StationCompletedPayload>(
       RealtimeEventType.ANALYSIS_STATION_COMPLETED,
-      payload
+      payload,
     );
     this.routeAnalysisEvent(event, payload, options);
-    this.logEvent('info', `Station completed: ${payload.stationName} in ${payload.duration}ms`);
+    this.logEvent(
+      "info",
+      `Station completed: ${payload.stationName} in ${payload.duration}ms`,
+    );
   }
 
   // ============================================================================
@@ -347,10 +367,10 @@ class RealtimeService {
    */
   private emitSystemEvent(
     eventType: RealtimeEventType,
-    level: 'info' | 'warning' | 'error',
+    level: "info" | "warning" | "error",
     message: string,
     details?: unknown,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
     const event = createRealtimeEvent<SystemEventPayload>(eventType, {
       level,
@@ -358,7 +378,7 @@ class RealtimeService {
       details,
     });
     this.routeSystemEvent(event, options);
-    const logLevel: LogLevel = level === 'warning' ? 'warn' : level;
+    const logLevel: LogLevel = level === "warning" ? "warn" : level;
     this.logEvent(logLevel, `System ${level}: ${message}`);
   }
 
@@ -368,9 +388,15 @@ class RealtimeService {
   emitSystemInfo(
     message: string,
     details?: unknown,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
-    this.emitSystemEvent(RealtimeEventType.SYSTEM_INFO, 'info', message, details, options);
+    this.emitSystemEvent(
+      RealtimeEventType.SYSTEM_INFO,
+      "info",
+      message,
+      details,
+      options,
+    );
   }
 
   /**
@@ -379,9 +405,15 @@ class RealtimeService {
   emitSystemWarning(
     message: string,
     details?: unknown,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
-    this.emitSystemEvent(RealtimeEventType.SYSTEM_WARNING, 'warning', message, details, options);
+    this.emitSystemEvent(
+      RealtimeEventType.SYSTEM_WARNING,
+      "warning",
+      message,
+      details,
+      options,
+    );
   }
 
   /**
@@ -390,9 +422,15 @@ class RealtimeService {
   emitSystemError(
     message: string,
     details?: unknown,
-    options: BroadcastOptions = {}
+    options: BroadcastOptions = {},
   ): void {
-    this.emitSystemEvent(RealtimeEventType.SYSTEM_ERROR, 'error', message, details, options);
+    this.emitSystemEvent(
+      RealtimeEventType.SYSTEM_ERROR,
+      "error",
+      message,
+      details,
+      options,
+    );
   }
 
   /**
@@ -415,14 +453,14 @@ class RealtimeService {
    */
   getHealth(): {
     websocket: {
-      status: 'operational' | 'not_initialized';
+      status: "operational" | "not_initialized";
       initialized: boolean;
     };
     sse: {
-      status: 'operational';
+      status: "operational";
       clients: number;
     };
-    overall: 'healthy' | 'degraded' | 'down';
+    overall: "healthy" | "degraded" | "down";
     timestamp: string;
   } {
     const wsIO = websocketService.getIO();
@@ -431,22 +469,22 @@ class RealtimeService {
     const wsHealthy = !!wsIO;
     const sseHealthy = true; // SSE is always available
 
-    let overall: 'healthy' | 'degraded' | 'down';
+    let overall: "healthy" | "degraded" | "down";
     if (wsHealthy && sseHealthy) {
-      overall = 'healthy';
+      overall = "healthy";
     } else if (wsHealthy || sseHealthy) {
-      overall = 'degraded';
+      overall = "degraded";
     } else {
-      overall = 'down';
+      overall = "down";
     }
 
     return {
       websocket: {
-        status: wsIO ? 'operational' : 'not_initialized',
+        status: wsIO ? "operational" : "not_initialized",
         initialized: !!wsIO,
       },
       sse: {
-        status: 'operational',
+        status: "operational",
         clients: sseStats.totalClients,
       },
       overall,
@@ -462,7 +500,10 @@ class RealtimeService {
     try {
       return sseService.streamData(clientId, data, event);
     } catch (error) {
-      logger.error(`[Realtime] Failed to stream to SSE client ${clientId}:`, error);
+      logger.error(
+        `[Realtime] Failed to stream to SSE client ${clientId}:`,
+        error,
+      );
       return false;
     }
   }
@@ -473,11 +514,13 @@ class RealtimeService {
   subscribeSSEClientToRoom(clientId: string, room: string): void {
     try {
       sseService.subscribeToRoom(clientId, room);
-      logger.info(`[Realtime] SSE client ${clientId} subscribed to room: ${room}`);
+      logger.info(
+        `[Realtime] SSE client ${clientId} subscribed to room: ${room}`,
+      );
     } catch (error) {
       logger.error(
         `[Realtime] Failed to subscribe SSE client ${clientId} to room ${room}:`,
-        error
+        error,
       );
     }
   }
@@ -488,11 +531,13 @@ class RealtimeService {
   unsubscribeSSEClientFromRoom(clientId: string, room: string): void {
     try {
       sseService.unsubscribeFromRoom(clientId, room);
-      logger.info(`[Realtime] SSE client ${clientId} unsubscribed from room: ${room}`);
+      logger.info(
+        `[Realtime] SSE client ${clientId} unsubscribed from room: ${room}`,
+      );
     } catch (error) {
       logger.error(
         `[Realtime] Failed to unsubscribe SSE client ${clientId} from room ${room}:`,
-        error
+        error,
       );
     }
   }
@@ -501,7 +546,7 @@ class RealtimeService {
    * Shutdown all real-time services
    */
   async shutdown(): Promise<void> {
-    logger.info('[Realtime] Shutting down all services...');
+    logger.info("[Realtime] Shutting down all services...");
 
     try {
       // Shutdown WebSocket
@@ -510,9 +555,9 @@ class RealtimeService {
       // Shutdown SSE
       sseService.shutdown();
 
-      logger.info('[Realtime] All services shut down successfully');
+      logger.info("[Realtime] All services shut down successfully");
     } catch (error) {
-      logger.error('[Realtime] Error during shutdown:', error);
+      logger.error("[Realtime] Error during shutdown:", error);
       throw error;
     }
   }

@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
-import type { AnalysisResult } from "../../types";
+
 import { SAMPLE_SCRIPT } from "../../types/constants";
+
+import type { AnalysisResult } from "../../types";
 
 export const useScriptAnalysis = (
   showNotification: (type: string, message: string) => void

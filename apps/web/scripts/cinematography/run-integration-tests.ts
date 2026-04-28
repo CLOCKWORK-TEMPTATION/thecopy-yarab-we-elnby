@@ -13,7 +13,6 @@ import {
   runSessionStorageSuite,
   runCameraBindingSuite,
 } from "./test-suites";
-import { runSuite, SuiteResult } from "./utils/test-helpers";
 
 const outputDirectory = resolve(
   process.cwd(),
@@ -25,15 +24,22 @@ mkdirSync(outputDirectory, { recursive: true });
 
 await ensureMediaFixtures();
 
+interface SuiteResult {
+  name: string;
+  status: "passed" | "failed";
+  durationMs: number;
+  details?: string;
+}
+
 async function runSuite(
   name: string,
-  runner: () => Promise<void>
+  runner: () => void | Promise<void>
 ): Promise<SuiteResult> {
   const startedAt = Date.now();
   process.stdout.write(`RUN ${name}\n`);
 
   try {
-    await runner();
+    await Promise.resolve(runner());
     const result: SuiteResult = {
       name,
       status: "passed",
@@ -58,7 +64,7 @@ async function runSuite(
 const suiteResults: SuiteResult[] = [];
 
 suiteResults.push(
-  await runSuite("cinematography-config", async () => runConfigSuite()),
+  await runSuite("cinematography-config", runConfigSuite),
   await runSuite("cinematography-local-fallback", runLocalFallbackSuite),
   await runSuite("cinematography-validate-shot-route", runRouteSuite),
   await runSuite("cinematography-media-hook", runMediaHookSuite),

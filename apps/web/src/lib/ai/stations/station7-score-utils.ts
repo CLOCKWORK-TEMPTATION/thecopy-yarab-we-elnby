@@ -15,6 +15,15 @@ import type {
   StationScoreLike,
 } from "./station7-types";
 
+export interface StationScoreInputs {
+  station1?: Station1Output;
+  station2?: Station2Output;
+  station3?: Station3Output;
+  station4?: Station4Output;
+  station5?: Station5Output;
+  station6?: Station6Output;
+}
+
 // ---------------------------------------------------------------------------
 // Type guard helpers
 // ---------------------------------------------------------------------------
@@ -45,14 +54,14 @@ export function toStationScoreLike(value: unknown): StationScoreLike | null {
 // Score matrix
 // ---------------------------------------------------------------------------
 
-export function calculateScoreMatrix(
-  s1?: Station1Output,
-  s2?: Station2Output,
-  s3?: Station3Output,
-  s4?: Station4Output,
-  s5?: Station5Output,
-  s6?: Station6Output
-): ScoreMatrix {
+export function calculateScoreMatrix({
+  station1: s1,
+  station2: s2,
+  station3: s3,
+  station4: s4,
+  station5: s5,
+  station6: s6,
+}: StationScoreInputs): ScoreMatrix {
   const foundation = calculateStationScore(s1);
   const conceptual = calculateStationScore(s2);
   const conflictNetwork = calculateStationScore(s3);
@@ -162,14 +171,14 @@ export function determineRating(
 // Final confidence calculation
 // ---------------------------------------------------------------------------
 
-export function calculateFinalConfidence(
-  s1?: Station1Output,
-  s2?: Station2Output,
-  s3?: Station3Output,
-  s4?: Station4Output,
-  s5?: Station5Output,
-  s6?: Station6Output
-): Station7Output["finalConfidence"] {
+export function calculateFinalConfidence({
+  station1: s1,
+  station2: s2,
+  station3: s3,
+  station4: s4,
+  station5: s5,
+  station6: s6,
+}: StationScoreInputs): Station7Output["finalConfidence"] {
   const stationConfidences = new Map<string, number>();
 
   if (s1?.uncertaintyReport?.confidence)
@@ -226,14 +235,13 @@ export function calculateFinalConfidence(
 // Metadata helpers
 // ---------------------------------------------------------------------------
 
-export function extractAgentsUsed(
-  s1?: Station1Output,
-  _s2?: Station2Output,
-  s3?: Station3Output,
-  s4?: Station4Output,
-  s5?: Station5Output,
-  s6?: Station6Output
-): string[] {
+export function extractAgentsUsed({
+  station1: s1,
+  station3: s3,
+  station4: s4,
+  station5: s5,
+  station6: s6,
+}: StationScoreInputs): string[] {
   const agents = new Set<string>();
   [s1, s3, s4, s5, s6].forEach((station) => {
     if (
@@ -246,14 +254,9 @@ export function extractAgentsUsed(
   return Array.from(agents);
 }
 
-export function calculateTotalTokens(
-  _s1?: Station1Output,
-  _s2?: Station2Output,
-  _s3?: Station3Output,
-  s4?: Station4Output,
-  _s5?: Station5Output,
-  _s6?: Station6Output
-): number {
+export function calculateTotalTokens({
+  station4: s4,
+}: StationScoreInputs): number {
   let total = 0;
   if (s4?.metadata?.tokensUsed && typeof s4.metadata.tokensUsed === "number") {
     total += s4.metadata.tokensUsed;

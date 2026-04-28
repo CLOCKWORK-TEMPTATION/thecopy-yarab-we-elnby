@@ -80,11 +80,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 ${
-        preferences.theme === "dark"
-          ? "dark bg-black/14"
-          : "bg-gradient-to-br from-white/[0.04] to-white/6"
-      }`}
+      className={`min-h-screen transition-colors duration-300 ${preferences.theme === "dark" ? "dark bg-black/14" : "bg-gradient-to-br from-white/[0.04] to-white/6"}`}
     >
       <Toaster
         position="top-right"
@@ -119,16 +115,12 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
           className={`text-center mb-12 ${status === "complete" ? "hidden" : ""}`}
         >
           <h2
-            className={`text-4xl font-bold mb-4 ${
-              preferences.theme === "dark" ? "text-white" : "text-white"
-            }`}
+            className={`text-4xl font-bold mb-4 ${preferences.theme === "dark" ? "text-white" : "text-white"}`}
           >
             Create Professional Film Budgets with AI
           </h2>
           <p
-            className={`text-xl ${
-              preferences.theme === "dark" ? "text-white/68" : "text-white/55"
-            }`}
+            className={`text-xl ${preferences.theme === "dark" ? "text-white/68" : "text-white/55"}`}
           >
             Transform your script into a detailed, industry-standard budget in
             minutes
@@ -140,17 +132,11 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`rounded-xl shadow-lg border ${
-            preferences.theme === "dark"
-              ? "bg-black/18 border-white/8"
-              : "bg-white/[0.04] border-white/8"
-          } p-6 mb-8`}
+          className={`rounded-xl shadow-lg border ${preferences.theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"} p-6 mb-8`}
         >
           <div className="flex justify-between items-center mb-6">
             <h2
-              className={`text-xl font-semibold flex items-center gap-2 ${
-                preferences.theme === "dark" ? "text-white" : "text-white"
-              }`}
+              className={`text-xl font-semibold flex items-center gap-2 ${preferences.theme === "dark" ? "text-white" : "text-white"}`}
             >
               <FileText size={24} className="text-indigo-500" />
               Script Input &amp; Analysis
@@ -176,11 +162,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
             value={scriptText}
             onChange={(e) => setScriptText(e.target.value)}
             placeholder="Paste your movie script, scene description, or project outline here. Include details about locations, cast size, stunts, VFX, shooting schedule, etc. for more accurate estimates..."
-            className={`w-full h-64 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm font-mono resize-none ${
-              preferences.theme === "dark"
-                ? "bg-black/14 border-white/8 text-white placeholder-white/45"
-                : "border-white/8 text-white placeholder-white/45"
-            }`}
+            className={`w-full h-64 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm font-mono resize-none ${preferences.theme === "dark" ? "bg-black/14 border-white/8 text-white placeholder-white/45" : "border-white/8 text-white placeholder-white/45"}`}
           />
 
           <div className="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -190,11 +172,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
                 value={budgetName}
                 onChange={(e) => setBudgetName(e.target.value)}
                 placeholder="Project name (optional)"
-                className={`px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500 ${
-                  preferences.theme === "dark"
-                    ? "bg-black/22 border-white/8 text-white"
-                    : "border-white/8"
-                }`}
+                className={`px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-500 ${preferences.theme === "dark" ? "bg-black/22 border-white/8 text-white" : "border-white/8"}`}
               />
               {status === "complete" && (
                 <div className="flex gap-2">
@@ -221,11 +199,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
               disabled={!scriptText || status === "analyzing"}
               className={`
                 flex items-center gap-2 px-8 py-3 rounded-lg text-white font-semibold transition-all shadow-lg transform hover:scale-105
-                ${
-                  !scriptText || status === "analyzing"
-                    ? "bg-white/8 cursor-not-allowed"
-                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl"
-                }
+                ${!scriptText || status === "analyzing" ? "bg-white/8 cursor-not-allowed" : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl"}
               `}
             >
               {status === "analyzing" ? (
@@ -281,47 +255,27 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
 
               {/* Action Bar */}
               <div
-                className={`p-4 rounded-xl border ${
-                  preferences.theme === "dark"
-                    ? "bg-black/18 border-white/8"
-                    : "bg-white/[0.04] border-white/8"
-                } shadow-md`}
+                className={`p-4 rounded-xl border ${preferences.theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"} shadow-md`}
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setShowChart(!showChart)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        showChart
-                          ? "bg-indigo-600 text-white"
-                          : preferences.theme === "dark"
-                            ? "bg-black/22 text-white/68 hover:bg-black/28"
-                            : "bg-white/6 text-white/68 hover:bg-white/8/8"
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${showChart ? "bg-indigo-600 text-white" : preferences.theme === "dark" ? "bg-black/22 text-white/68 hover:bg-black/28" : "bg-white/6 text-white/68 hover:bg-white/8/8"}`}
                     >
                       <BarChart3 size={16} />
                       {showChart ? "Hide Charts" : "Show Charts"}
                     </button>
                     <button
                       onClick={() => setShowAnalytics(!showAnalytics)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                        showAnalytics
-                          ? "bg-purple-600 text-white"
-                          : preferences.theme === "dark"
-                            ? "bg-black/22 text-white/68 hover:bg-black/28"
-                            : "bg-white/6 text-white/68 hover:bg-white/8/8"
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${showAnalytics ? "bg-purple-600 text-white" : preferences.theme === "dark" ? "bg-black/22 text-white/68 hover:bg-black/28" : "bg-white/6 text-white/68 hover:bg-white/8/8"}`}
                     >
                       <TrendingUp size={16} />
                       {showAnalytics ? "Hide Analytics" : "Analytics"}
                     </button>
                   </div>
                   <div
-                    className={`text-sm ${
-                      preferences.theme === "dark"
-                        ? "text-white/55"
-                        : "text-white/45"
-                    }`}
+                    className={`text-sm ${preferences.theme === "dark" ? "text-white/55" : "text-white/45"}`}
                   >
                     Last updated: {new Date().toLocaleString()}
                   </div>
@@ -334,11 +288,7 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className={`rounded-xl shadow-lg border overflow-hidden ${
-                    preferences.theme === "dark"
-                      ? "bg-black/18 border-white/8"
-                      : "bg-white/[0.04] border-white/8"
-                  }`}
+                  className={`rounded-xl shadow-lg border overflow-hidden ${preferences.theme === "dark" ? "bg-black/18 border-white/8" : "bg-white/[0.04] border-white/8"}`}
                 >
                   <EnhancedChart budget={budget} theme={resolvedTheme} />
                 </motion.div>

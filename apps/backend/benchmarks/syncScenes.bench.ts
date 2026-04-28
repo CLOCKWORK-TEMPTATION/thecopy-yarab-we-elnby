@@ -1,19 +1,19 @@
-import { db } from '../src/db';
-import { scenes, projects } from '../src/db/schema';
-import { breakdownService } from '../src/services/breakdown/service';
-import { eq } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
+import { db } from "../src/db";
+import { scenes, projects } from "../src/db/schema";
+import { breakdownService } from "../src/services/breakdown/service";
+import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 async function runBenchmark() {
-  console.log('Setting up benchmark...');
+  console.log("Setting up benchmark...");
   const projectId = randomUUID();
 
   // Insert a mock project
   await db.insert(projects).values({
     id: projectId,
-    title: 'Bench Project',
-    userId: 'user_123',
-    scriptContent: 'some content'
+    title: "Bench Project",
+    userId: "user_123",
+    scriptContent: "some content",
   });
 
   // Generate 200 parsed scenes
@@ -23,16 +23,16 @@ async function runBenchmark() {
     headerData: {
       sceneNumber: i + 1,
       location: `Location ${i}`,
-      timeOfDay: 'DAY',
-      rawHeader: 'raw',
-      sceneType: 'EXT',
+      timeOfDay: "DAY",
+      rawHeader: "raw",
+      sceneType: "EXT",
       pageCount: 1,
-      storyDay: '1'
+      storyDay: "1",
     },
-    warnings: []
+    warnings: [],
   }));
 
-  console.log('Running initial sync (all inserts)...');
+  console.log("Running initial sync (all inserts)...");
   const startInsert = performance.now();
   // @ts-ignore
   await breakdownService.syncScenes(projectId, parsedScenes);
@@ -40,16 +40,19 @@ async function runBenchmark() {
   console.log(`Insert time: ${endInsert - startInsert}ms`);
 
   // Verify inserted
-  const inserted = await db.select().from(scenes).where(eq(scenes.projectId, projectId));
+  const inserted = await db
+    .select()
+    .from(scenes)
+    .where(eq(scenes.projectId, projectId));
   console.log(`Inserted ${inserted.length} scenes.`);
 
   // Mutate parsed scenes to test updates
-  const updatedParsedScenes = parsedScenes.map(s => ({
+  const updatedParsedScenes = parsedScenes.map((s) => ({
     ...s,
-    header: s.header + ' updated'
+    header: s.header + " updated",
   }));
 
-  console.log('Running second sync (all updates)...');
+  console.log("Running second sync (all updates)...");
   const startUpdate = performance.now();
   // @ts-ignore
   await breakdownService.syncScenes(projectId, updatedParsedScenes);
@@ -60,7 +63,7 @@ async function runBenchmark() {
   await db.delete(scenes).where(eq(scenes.projectId, projectId));
   await db.delete(projects).where(eq(projects.id, projectId));
 
-  console.log('Done.');
+  console.log("Done.");
   process.exit(0);
 }
 

@@ -43,7 +43,7 @@ const DOFCalculator = dynamic(() => import("./tools/DOFCalculatorTool"), {
 });
 
 let DiagnosticOverlayContainer: React.ComponentType | null = null;
-if (process.env.NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS === "1") {
+if (process.env["NEXT_PUBLIC_CINEMATOGRAPHY_DIAGNOSTICS"] === "1") {
   DiagnosticOverlayContainer = dynamic(
     () => import("./diagnostics/DiagnosticOverlayContainer"),
     { ssr: false }
