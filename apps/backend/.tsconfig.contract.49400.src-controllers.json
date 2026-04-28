@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "tsBuildInfoFile": "./.tsbuildinfo.contract.49400.src-controllers"
+  },
+  "include": [
+    "src/global.d.ts",
+    "src/env.d.ts",
+    "src/types/env.d.ts",
+    "src/types/mcp-sdk-compat.d.ts",
+    "src/types/module-alias.d.ts",
+    "src/controllers/**/*.ts",
+    "src/controllers/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

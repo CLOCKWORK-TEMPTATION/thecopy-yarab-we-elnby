@@ -20,6 +20,7 @@ import {
 } from "./ownership-queries";
 import { parseScreenplay } from "./parser";
 import { persistBreakdownReport, reportToCsv } from "./report-persistence";
+import { findParsedScene } from "./scene-reanalysis";
 import {
   aiBreakdownSchema,
   buildAiPrompt,
@@ -96,7 +97,7 @@ export class BreakdownService {
     scriptContent?: string,
     projectTitle?: string,
   ): Promise<ParsedScreenplay> {
-    const project = await this.getOwnedProject(projectId, userId);
+    const project = await getOwnedProject(projectId, userId);
 
     if (!project) {
       throw new Error("المشروع غير موجود");
@@ -127,7 +128,7 @@ export class BreakdownService {
     projectId: string,
     userId: string,
   ): Promise<BreakdownReport> {
-    const project = await this.getOwnedProject(projectId, userId);
+    const project = await getOwnedProject(projectId, userId);
 
     if (!project) {
       throw new Error("المشروع غير موجود");
@@ -146,17 +147,17 @@ export class BreakdownService {
         project.scriptContent,
         project.title,
       );
-      const syncedScenes = await this.getScenesByProject(projectId);
+      const syncedScenes = await getScenesByProject(projectId);
       const analyzedScenes = await this.analyzeParsedScenes(
         parsed.scenes,
         syncedScenes,
       );
-      const report = await this.persistReport(
+      const report = await persistBreakdownReport({
         projectId,
-        project.title,
+        title: project.title,
         analyzedScenes,
         jobId,
-      );
+      });
       await this.completeJob(jobId, "completed");
       return report;
     } catch (error) {
@@ -173,7 +174,7 @@ export class BreakdownService {
     sceneId: string,
     userId: string,
   ): Promise<BreakdownReportScene> {
-    const ownedScene = await this.getOwnedScene(sceneId, userId);
+    const ownedScene = await getOwnedScene(sceneId, userId);
     const sceneRecord = requireValue(ownedScene?.scene, "المشهد غير موجود");
     const project = requireValue(
       ownedScene?.project,
@@ -210,12 +211,12 @@ export class BreakdownService {
     jobId: string,
   ): Promise<BreakdownReportScene> {
     const currentReport = await this.getProjectReport(project.id, userId);
-    const parsedScene = this.findParsedScene(
+    const parsedScene = findParsedScene({
       sceneId,
       sceneRecord,
       project,
       currentReport,
-    );
+    });
     const analyzed = await this.analyzeSceneRecord(parsedScene, sceneRecord.id);
 
     if (!currentReport) {
@@ -230,12 +231,12 @@ export class BreakdownService {
     const nextScenes = currentReport.scenes.map((scene) =>
       scene.sceneId === sceneId ? analyzed : scene,
     );
-    const nextReport = await this.persistReport(
-      project.id,
-      project.title,
-      nextScenes,
+    const nextReport = await persistBreakdownReport({
+      projectId: project.id,
+      title: project.title,
+      analyzedScenes: nextScenes,
       jobId,
-    );
+    });
     return requireValue(
       nextReport.scenes.find((scene) => scene.sceneId === sceneId) ??
         nextReport.scenes[0],
@@ -243,44 +244,11 @@ export class BreakdownService {
     );
   }
 
-  private findParsedScene(
-    sceneId: string,
-    sceneRecord: typeof scenes.$inferSelect,
-    project: typeof projects.$inferSelect,
-    currentReport: BreakdownReport | null,
-  ): ParsedScene {
-    const parsed = parseScreenplay(project.scriptContent ?? "", project.title);
-    const matched =
-      parsed.scenes.find(
-        (scene) => scene.headerData.sceneNumber === sceneRecord.sceneNumber,
-      ) ?? null;
-
-    if (matched) {
-      return matched;
-    }
-
-    if (currentReport) {
-      const reportScene = currentReport.scenes.find(
-        (scene) => scene.sceneId === sceneId,
-      );
-      if (reportScene) {
-        return {
-          header: reportScene.header,
-          content: reportScene.content,
-          headerData: reportScene.headerData,
-          warnings: [],
-        };
-      }
-    }
-
-    throw new Error("تعذر إعادة بناء محتوى المشهد من المشروع");
-  }
-
   async getProjectReport(
     projectId: string,
     userId: string,
   ): Promise<BreakdownReport | null> {
-    const project = await this.getOwnedProject(projectId, userId);
+    const project = await getOwnedProject(projectId, userId);
 
     if (!project) {
       throw new Error("المشروع غير موجود");
@@ -322,7 +290,7 @@ export class BreakdownService {
     sceneId: string,
     userId: string,
   ): Promise<BreakdownReportScene | null> {
-    const ownedScene = await this.getOwnedScene(sceneId, userId);
+    const ownedScene = await getOwnedScene(sceneId, userId);
 
     if (!ownedScene) {
       throw new Error("المشهد غير موجود");
@@ -359,7 +327,7 @@ export class BreakdownService {
     format: "json" | "csv";
     content: string;
   }> {
-    const row = await this.getOwnedReport(reportId, userId);
+    const row = await getOwnedReport(reportId, userId);
 
     if (!row?.reportData) {
       throw new Error("تقرير البريك دون غير موجود");
@@ -370,9 +338,7 @@ export class BreakdownService {
     const reportIdentifier = report.id ?? reportId;
     const fileName = `${reportTitle.replace(/[^\w\u0600-\u06FF]+/g, "_")}_${reportIdentifier}.${format}`;
     const content =
-      format === "json"
-        ? JSON.stringify(report, null, 2)
-        : this.reportToCsv(report);
+      format === "json" ? JSON.stringify(report, null, 2) : reportToCsv(report);
 
     await db.insert(breakdownExports).values({
       reportId,
@@ -398,18 +364,6 @@ export class BreakdownService {
     });
 
     return { answer };
-  }
-
-  private async getOwnedProject(projectId: string, userId: string) {
-    return getOwnedProject(projectId, userId);
-  }
-
-  private async getOwnedScene(sceneId: string, userId: string) {
-    return getOwnedScene(sceneId, userId);
-  }
-
-  private async getOwnedReport(reportId: string, userId: string) {
-    return getOwnedReport(reportId, userId);
   }
 
   private async analyzeParsedScenes(
@@ -477,28 +431,6 @@ export class BreakdownService {
     parsedScenes: ParsedScene[],
   ): Promise<void> {
     await syncProjectScenes(projectId, parsedScenes);
-  }
-
-  private async getScenesByProject(projectId: string) {
-    return getScenesByProject(projectId);
-  }
-
-  private async persistReport(
-    projectId: string,
-    title: string,
-    analyzedScenes: BreakdownReportScene[],
-    jobId?: string,
-  ): Promise<BreakdownReport> {
-    return persistBreakdownReport({
-      projectId,
-      title,
-      analyzedScenes,
-      ...(jobId ? { jobId } : {}),
-    });
-  }
-
-  private reportToCsv(report: BreakdownReport): string {
-    return reportToCsv(report);
   }
 
   private async createJob(

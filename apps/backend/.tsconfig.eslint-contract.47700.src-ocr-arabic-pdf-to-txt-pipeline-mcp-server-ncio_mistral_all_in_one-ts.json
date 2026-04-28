@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/global.d.ts",
+    "src/env.d.ts",
+    "src/types/env.d.ts",
+    "src/types/mcp-sdk-compat.d.ts",
+    "src/types/module-alias.d.ts",
+    "src/ocr-arabic-pdf-to-txt-pipeline/mcp-server/ncio_mistral_all_in_one.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
