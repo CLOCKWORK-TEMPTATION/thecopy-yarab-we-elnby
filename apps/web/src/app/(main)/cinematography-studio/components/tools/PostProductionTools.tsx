@@ -37,6 +37,7 @@ import type {
   CameraPermissionState,
   MediaInputMode,
 } from "../../hooks/useMediaInputPipeline";
+import type { FootageState } from "../../hooks/usePostProduction-types";
 import type { ExportSettings, PostProductionToolsProps } from "../../types";
 
 interface DailyCameraReportPanelProps {
@@ -50,12 +51,7 @@ interface DailyCameraReportPanelProps {
   mediaError: string | null;
   footageError: string | null;
   footageAnalysisSource: string | null;
-  footageAnalysisStatus: {
-    exposure: string;
-    colorConsistency: string;
-    focusQuality: string;
-    motionBlur: string;
-  };
+  footageAnalysisStatus: FootageState["analysisStatus"];
   footageSummary: {
     score: number | string;
     exposure: number | string;

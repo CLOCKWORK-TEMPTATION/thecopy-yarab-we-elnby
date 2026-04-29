@@ -432,53 +432,66 @@ export class AudienceResonanceAgent extends BaseAgent {
   private formatAudienceProfile(audience: AudienceProfile): string {
     const formatted: string[] = [];
 
-    // Demographics
-    if (audience.demographics) {
-      formatted.push("**الديموغرافيا:**");
-      const demo = audience.demographics;
-      if (demo.ageRange) formatted.push(`  - الفئة العمرية: ${demo.ageRange}`);
-      if (demo.gender) formatted.push(`  - الجنس: ${demo.gender}`);
-      if (demo.education)
-        formatted.push(`  - المستوى التعليمي: ${demo.education}`);
-      if (demo.culturalBackground)
-        formatted.push(`  - الخلفية الثقافية: ${demo.culturalBackground}`);
-      if (demo.socioeconomicStatus)
-        formatted.push(`  - الحالة الاقتصادية: ${demo.socioeconomicStatus}`);
-      formatted.push("");
-    }
+    this.appendDemographics(formatted, audience.demographics);
+    this.appendPsychographics(formatted, audience.psychographics);
+    this.appendPreferences(formatted, audience.preferences);
 
-    // Psychographics
-    if (audience.psychographics) {
-      formatted.push("**الخصائص النفسية:**");
-      const psycho = audience.psychographics;
-      if (psycho.values && psycho.values.length > 0)
-        formatted.push(`  - القيم: ${psycho.values.join("، ")}`);
-      if (psycho.interests && psycho.interests.length > 0)
-        formatted.push(`  - الاهتمامات: ${psycho.interests.join("، ")}`);
-      if (psycho.lifestyle)
-        formatted.push(`  - نمط الحياة: ${psycho.lifestyle}`);
-      if (psycho.emotionalTriggers && psycho.emotionalTriggers.length > 0)
-        formatted.push(
-          `  - المحفزات العاطفية: ${psycho.emotionalTriggers.join("، ")}`
-        );
-      formatted.push("");
-    }
+    const profile = formatted.join("\n");
+    return profile.length > 0 ? profile : "ملف جمهور عام";
+  }
 
-    // Preferences
-    if (audience.preferences) {
-      formatted.push("**التفضيلات:**");
-      const prefs = audience.preferences;
-      if (prefs.genrePreferences && prefs.genrePreferences.length > 0)
-        formatted.push(
-          `  - الأنواع المفضلة: ${prefs.genrePreferences.join("، ")}`
-        );
-      if (prefs.contentStyle)
-        formatted.push(`  - أسلوب المحتوى: ${prefs.contentStyle}`);
-      if (prefs.complexity)
-        formatted.push(`  - مستوى التعقيد: ${prefs.complexity}`);
-    }
+  private appendDemographics(
+    formatted: string[],
+    demo: AudienceProfile["demographics"]
+  ): void {
+    if (!demo) return;
 
-    return formatted.join("\n") || "ملف جمهور عام";
+    formatted.push("**الديموغرافيا:**");
+    if (demo.ageRange) formatted.push(`  - الفئة العمرية: ${demo.ageRange}`);
+    if (demo.gender) formatted.push(`  - الجنس: ${demo.gender}`);
+    if (demo.education)
+      formatted.push(`  - المستوى التعليمي: ${demo.education}`);
+    if (demo.culturalBackground)
+      formatted.push(`  - الخلفية الثقافية: ${demo.culturalBackground}`);
+    if (demo.socioeconomicStatus)
+      formatted.push(`  - الحالة الاقتصادية: ${demo.socioeconomicStatus}`);
+    formatted.push("");
+  }
+
+  private appendPsychographics(
+    formatted: string[],
+    psycho: AudienceProfile["psychographics"]
+  ): void {
+    if (!psycho) return;
+
+    formatted.push("**الخصائص النفسية:**");
+    if (psycho.values && psycho.values.length > 0)
+      formatted.push(`  - القيم: ${psycho.values.join("، ")}`);
+    if (psycho.interests && psycho.interests.length > 0)
+      formatted.push(`  - الاهتمامات: ${psycho.interests.join("، ")}`);
+    if (psycho.lifestyle) formatted.push(`  - نمط الحياة: ${psycho.lifestyle}`);
+    if (psycho.emotionalTriggers && psycho.emotionalTriggers.length > 0)
+      formatted.push(
+        `  - المحفزات العاطفية: ${psycho.emotionalTriggers.join("، ")}`
+      );
+    formatted.push("");
+  }
+
+  private appendPreferences(
+    formatted: string[],
+    prefs: AudienceProfile["preferences"]
+  ): void {
+    if (!prefs) return;
+
+    formatted.push("**التفضيلات:**");
+    if (prefs.genrePreferences && prefs.genrePreferences.length > 0)
+      formatted.push(
+        `  - الأنواع المفضلة: ${prefs.genrePreferences.join("، ")}`
+      );
+    if (prefs.contentStyle)
+      formatted.push(`  - أسلوب المحتوى: ${prefs.contentStyle}`);
+    if (prefs.complexity)
+      formatted.push(`  - مستوى التعقيد: ${prefs.complexity}`);
   }
 
   /**

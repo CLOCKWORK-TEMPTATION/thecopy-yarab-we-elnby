@@ -2,12 +2,10 @@ import React from "react";
 
 import { VocalExercises } from "./index";
 
-import type { VocalExercise } from "../../types";
-
 interface VocalExercisesPageProps {
-  activeExercise: VocalExercise | null;
+  activeExercise: string | null;
   exerciseTimer: number;
-  startExercise: () => void;
+  startExercise: (id: string) => void;
   stopExercise: () => void;
   formatTime: (seconds: number) => string;
 }

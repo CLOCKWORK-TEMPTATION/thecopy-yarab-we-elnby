@@ -40,6 +40,8 @@ import { useCreativeDevelopment } from "./hooks";
 import { type AdvancedAISettings } from "./types";
 import { DEVELOPMENT_TASKS, getTasksByCategory } from "./utils/task-catalog";
 
+import type { UnlockStatus } from "./hooks/useCreativeDevelopment";
+
 const FileUpload = dynamic(() => import("@/components/file-upload"), {
   loading: () => (
     <div className="flex items-center justify-center p-8">
@@ -243,6 +245,63 @@ function AIResultCard({
   );
 }
 
+interface AnalysisStatusSectionProps {
+  unlockStatus: UnlockStatus;
+  analysisId: string | null;
+  isManualMode: boolean;
+  isAnalysisComplete: boolean;
+  enableManualMode: () => void;
+  clearAnalysisData: () => void;
+}
+
+function AnalysisStatusSection({
+  unlockStatus,
+  analysisId,
+  isManualMode,
+  isAnalysisComplete,
+  enableManualMode,
+  clearAnalysisData,
+}: AnalysisStatusSectionProps) {
+  return (
+    <>
+      {unlockStatus.locked ? <LockedStateAlert status={unlockStatus} /> : null}
+      {isAnalysisComplete && analysisId && !isManualMode ? (
+        <LoadedStateAlert />
+      ) : null}
+
+      {analysisId ? (
+        <div className="flex items-center justify-between text-sm text-white/52">
+          <span>
+            {isManualMode
+              ? "الوضع اليدوي — يمكنك تعديل جميع الحقول"
+              : `تم تحميل نتائج تحليل المحطات السبع تلقائياً (ID: ${analysisId.slice(0, 8)}...)`}
+          </span>
+          <div className="flex gap-2">
+            {!isManualMode ? (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={enableManualMode}
+                className="p-0 h-auto"
+              >
+                تعديل يدوي
+              </Button>
+            ) : null}
+            <Button
+              variant="link"
+              size="sm"
+              onClick={clearAnalysisData}
+              className="p-0 h-auto ml-2"
+            >
+              مسح البيانات
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 const DramaAnalystApp: React.FC = () => {
   const {
     textInput,
@@ -286,7 +345,7 @@ const DramaAnalystApp: React.FC = () => {
     getAgentReport,
   } = useCreativeDevelopment();
 
-  const fieldsLocked = !!analysisId && !isManualMode;
+  const fieldsLocked = Boolean(analysisId) && !isManualMode;
 
   const handleCatalogSubmit = useCallback(async () => {
     if (!selectedCatalogTaskId) return;
@@ -345,40 +404,14 @@ const DramaAnalystApp: React.FC = () => {
         </Card>
       </CardSpotlight>
 
-      {unlockStatus.locked ? <LockedStateAlert status={unlockStatus} /> : null}
-      {isAnalysisComplete && analysisId && !isManualMode ? (
-        <LoadedStateAlert />
-      ) : null}
-
-      {analysisId ? (
-        <div className="flex items-center justify-between text-sm text-white/52">
-          <span>
-            {isManualMode
-              ? "الوضع اليدوي — يمكنك تعديل جميع الحقول"
-              : `تم تحميل نتائج تحليل المحطات السبع تلقائياً (ID: ${analysisId.slice(0, 8)}...)`}
-          </span>
-          <div className="flex gap-2">
-            {!isManualMode ? (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={enableManualMode}
-                className="p-0 h-auto"
-              >
-                تعديل يدوي
-              </Button>
-            ) : null}
-            <Button
-              variant="link"
-              size="sm"
-              onClick={clearAnalysisData}
-              className="p-0 h-auto ml-2"
-            >
-              مسح البيانات
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      <AnalysisStatusSection
+        unlockStatus={unlockStatus}
+        analysisId={analysisId}
+        isManualMode={isManualMode}
+        isAnalysisComplete={isAnalysisComplete}
+        enableManualMode={enableManualMode}
+        clearAnalysisData={clearAnalysisData}
+      />
 
       <TextInputCard
         textInput={textInput}

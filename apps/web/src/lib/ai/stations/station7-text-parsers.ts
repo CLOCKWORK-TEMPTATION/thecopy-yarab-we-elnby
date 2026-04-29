@@ -77,6 +77,53 @@ export function parseStructuredText(text: string): {
 // Audience resonance parser
 // ---------------------------------------------------------------------------
 
+const AUDIENCE_SCORE_FIELDS = [
+  ["التأثير العاطفي", "emotionalImpact"],
+  ["التفاعل الفكري", "intellectualEngagement"],
+  ["القابلية للارتباط", "relatability"],
+  ["قابلية التذكر", "memorability"],
+  ["الإمكانات الفيروسية", "viralPotential"],
+] as const;
+
+const AUDIENCE_SECTIONS = [
+  ["الاستجابة الأولية", "primary"],
+  ["الاستجابات الثانوية", "secondary"],
+  ["العناصر المثيرة للجدل", "controversial"],
+] as const;
+
+const parseFirstNumber = (value: string): number | undefined => {
+  const match = /(\d+)/.exec(value);
+  return match?.[1] ? parseInt(match[1]) : undefined;
+};
+
+const applyAudienceScoreField = (
+  trimmed: string,
+  result: Partial<AudienceResonance>
+): boolean => {
+  const metric = AUDIENCE_SCORE_FIELDS.find(([label]) =>
+    trimmed.includes(label)
+  );
+  const score = metric ? parseFirstNumber(trimmed) : undefined;
+  if (!metric || score === undefined) return false;
+
+  result[metric[1]] = score;
+  return true;
+};
+
+const readAudienceSection = (trimmed: string): string | undefined =>
+  AUDIENCE_SECTIONS.find(([label]) => trimmed.includes(label))?.[1];
+
+const appendAudienceBullet = (
+  section: string,
+  item: string,
+  result: Partial<AudienceResonance>
+): void => {
+  if (section === "secondary") result.secondaryResponses?.push(item);
+  else if (section === "controversial")
+    result.controversialElements?.push(item);
+  else if (section === "primary") result.primaryResponse = item;
+};
+
 export function parseAudienceResonance(
   text: string
 ): Partial<AudienceResonance> {
@@ -91,33 +138,16 @@ export function parseAudienceResonance(
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.includes("التأثير العاطفي")) {
-      const match = /(\d+)/.exec(trimmed);
-      if (match?.[1]) result.emotionalImpact = parseInt(match[1]);
-    } else if (trimmed.includes("التفاعل الفكري")) {
-      const match = /(\d+)/.exec(trimmed);
-      if (match?.[1]) result.intellectualEngagement = parseInt(match[1]);
-    } else if (trimmed.includes("القابلية للارتباط")) {
-      const match = /(\d+)/.exec(trimmed);
-      if (match?.[1]) result.relatability = parseInt(match[1]);
-    } else if (trimmed.includes("قابلية التذكر")) {
-      const match = /(\d+)/.exec(trimmed);
-      if (match?.[1]) result.memorability = parseInt(match[1]);
-    } else if (trimmed.includes("الإمكانات الفيروسية")) {
-      const match = /(\d+)/.exec(trimmed);
-      if (match?.[1]) result.viralPotential = parseInt(match[1]);
-    } else if (trimmed.includes("الاستجابة الأولية")) {
-      currentSection = "primary";
-    } else if (trimmed.includes("الاستجابات الثانوية")) {
-      currentSection = "secondary";
-    } else if (trimmed.includes("العناصر المثيرة للجدل")) {
-      currentSection = "controversial";
+    if (applyAudienceScoreField(trimmed, result)) {
+      continue;
+    }
+
+    const nextSection = readAudienceSection(trimmed);
+    if (nextSection) {
+      currentSection = nextSection;
     } else if (trimmed.startsWith("-")) {
       const item = trimmed.substring(1).trim();
-      if (currentSection === "secondary" && item)
-        result.secondaryResponses!.push(item);
-      else if (currentSection === "controversial" && item)
-        result.controversialElements!.push(item);
+      if (item) appendAudienceBullet(currentSection, item, result);
     } else if (
       currentSection === "primary" &&
       trimmed &&
@@ -134,6 +164,48 @@ export function parseAudienceResonance(
 // Rewriting suggestions parser
 // ---------------------------------------------------------------------------
 
+const REWRITING_TEXT_FIELDS = [
+  ["الموقع:", "location"],
+  ["المشكلة الحالية:", "currentIssue"],
+  ["الاقتراح:", "suggestedRewrite"],
+  ["التبرير:", "reasoning"],
+] as const;
+
+const readAfterLabel = (line: string, label: string): string | undefined => {
+  const value = line.split(label)[1]?.trim();
+  return value === undefined || value.length === 0 ? undefined : value;
+};
+
+const readSuggestionPriority = (
+  line: string
+): RewritingSuggestion["priority"] => {
+  const priority = readAfterLabel(line, "الأولوية:")?.toLowerCase();
+  if (priority?.includes("must")) return "must";
+  if (priority?.includes("should")) return "should";
+  return "could";
+};
+
+const applyRewritingSuggestionLine = (
+  line: string,
+  suggestion: Partial<RewritingSuggestion>
+): void => {
+  const textField = REWRITING_TEXT_FIELDS.find(([label]) =>
+    line.includes(label)
+  );
+  if (textField) {
+    const value = readAfterLabel(line, textField[0]);
+    if (value) suggestion[textField[1]] = value;
+    return;
+  }
+
+  if (line.includes("التأثير:")) {
+    const impact = parseFirstNumber(line);
+    if (impact !== undefined) suggestion.impact = impact;
+  } else if (line.includes("الأولوية:")) {
+    suggestion.priority = readSuggestionPriority(line);
+  }
+};
+
 export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
   const suggestions: RewritingSuggestion[] = [];
   const blocks = text.split("---").filter((b) => b.trim());
@@ -146,27 +218,7 @@ export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
     const suggestion: Partial<RewritingSuggestion> = {};
 
     for (const line of lines) {
-      if (line.includes("الموقع:")) {
-        const location = line.split("الموقع:")[1]?.trim();
-        if (location) suggestion.location = location;
-      } else if (line.includes("المشكلة الحالية:")) {
-        const currentIssue = line.split("المشكلة الحالية:")[1]?.trim();
-        if (currentIssue) suggestion.currentIssue = currentIssue;
-      } else if (line.includes("الاقتراح:")) {
-        const suggestedRewrite = line.split("الاقتراح:")[1]?.trim();
-        if (suggestedRewrite) suggestion.suggestedRewrite = suggestedRewrite;
-      } else if (line.includes("التبرير:")) {
-        const reasoning = line.split("التبرير:")[1]?.trim();
-        if (reasoning) suggestion.reasoning = reasoning;
-      } else if (line.includes("التأثير:")) {
-        const match = /(\d+)/.exec(line);
-        if (match?.[1]) suggestion.impact = parseInt(match[1]);
-      } else if (line.includes("الأولوية:")) {
-        const priority = line.split("الأولوية:")[1]?.trim().toLowerCase();
-        if (priority?.includes("must")) suggestion.priority = "must";
-        else if (priority?.includes("should")) suggestion.priority = "should";
-        else suggestion.priority = "could";
-      }
+      applyRewritingSuggestionLine(line, suggestion);
     }
 
     if (

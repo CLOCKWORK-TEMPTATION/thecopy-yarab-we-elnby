@@ -39,11 +39,10 @@ import type {
   CameraEyeSettings,
   HolographicPartner,
   GestureControl,
+  ViewType,
 } from "../types";
 
 // ==================== دوال مساعدة للتنقل ====================
-
-type ViewType = string;
 
 interface ContentProps {
   currentView: ViewType;
@@ -165,9 +164,13 @@ export const ActorAiArabicStudio: React.FC = () => {
     setRhythmScriptText,
     analyzingRhythm,
     rhythmAnalysis,
+    selectedRhythmTab,
+    setSelectedRhythmTab,
     useRhythmSampleScript,
     analyzeSceneRhythm,
+    getTempoColor,
     getTempoLabel,
+    getSeverityColor,
   } = useRhythmAnalysis(showNotification);
 
   const {
@@ -307,9 +310,13 @@ export const ActorAiArabicStudio: React.FC = () => {
       setRhythmScriptText={setRhythmScriptText}
       analyzingRhythm={analyzingRhythm}
       rhythmAnalysis={rhythmAnalysis}
+      selectedRhythmTab={selectedRhythmTab}
+      setSelectedRhythmTab={setSelectedRhythmTab}
       useRhythmSampleScript={useRhythmSampleScript}
       analyzeSceneRhythm={analyzeSceneRhythm}
+      getTempoColor={getTempoColor}
       getTempoLabel={getTempoLabel}
+      getSeverityColor={getSeverityColor}
     />
   );
 

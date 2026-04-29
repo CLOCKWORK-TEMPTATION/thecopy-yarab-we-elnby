@@ -45,11 +45,14 @@ export const useRecording = () => {
 
   const stopRecording = useCallback(() => {
     setIsRecording(false);
+    const now = new Date();
+    const isoDate = now.toISOString().split("T")[0] ?? now.toISOString();
+
     const newRecording: Recording = {
-      id: Date.now().toString(),
-      title: `مشهد جديد - ${new Date().toLocaleDateString("ar-EG")}`,
+      id: now.getTime().toString(),
+      title: `مشهد جديد - ${now.toLocaleDateString("ar-EG")}`,
       duration: formatTime(recordingTime),
-      date: new Date().toISOString().split("T")[0],
+      date: isoDate,
       score: Math.floor(Math.random() * 20) + 80,
     };
     setRecordings((prev) => [newRecording, ...prev]);

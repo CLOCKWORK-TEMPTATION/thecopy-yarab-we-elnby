@@ -161,7 +161,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
       setCameraState("error");
       setCameraError(errorMessage);
       showNotification("error", errorMessage);
-      return;
+      return null;
     }
 
     setCameraState("requesting");
@@ -181,12 +181,14 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
       await attachStreamToPreview(stream);
       setCameraState("ready");
       showNotification("success", "تم تفعيل الكاميرا والميكروفون بنجاح.");
+      return stream;
     } catch {
       const errorMessage =
         "تعذر الوصول إلى الكاميرا أو الميكروفون. تحقق من الأذونات ثم أعد المحاولة.";
       setCameraState("error");
       setCameraError(errorMessage);
       showNotification("error", errorMessage);
+      return null;
     }
   }, [attachStreamToPreview, showNotification, stopCameraTracks]);
 

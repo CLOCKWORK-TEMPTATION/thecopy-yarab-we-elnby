@@ -15,7 +15,7 @@ import {
 import { EMPTY_CAPTIONS_TRACK } from "./constants";
 import { formatRecordedAt, formatTime, getScoreColor } from "./utils";
 
-import type { Take } from "./types";
+import type { ActiveTool, Take } from "./types";
 
 interface RecorderPanelProps {
   cameraState: "idle" | "requesting" | "ready" | "error";
@@ -30,13 +30,13 @@ interface RecorderPanelProps {
   totalDuration: number;
   exportableTakeIds: Set<string>;
   currentPromptLine: string;
-  requestCameraAccess: () => Promise<void>;
+  requestCameraAccess: () => Promise<MediaStream | null>;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   resetTeleprompter: () => void;
   deleteTake: (takeId: string) => void;
   exportTake: (takeId: string) => Promise<void>;
-  setActiveTool: (tool: string) => void;
+  setActiveTool: (tool: ActiveTool) => void;
   setNotesTakeId: (takeId: string | null) => void;
 }
 
@@ -122,7 +122,7 @@ function CameraPreview({
 interface TakeCardProps {
   take: Take;
   exportableTakeIds: Set<string>;
-  setActiveTool: (tool: string) => void;
+  setActiveTool: (tool: ActiveTool) => void;
   setNotesTakeId: (takeId: string | null) => void;
   exportTake: (takeId: string) => Promise<void>;
   deleteTake: (takeId: string) => void;

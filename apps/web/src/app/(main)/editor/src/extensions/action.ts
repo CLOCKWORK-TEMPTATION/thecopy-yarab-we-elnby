@@ -131,6 +131,43 @@ export const collectActionEvidence = (text: string): ActionEvidence => {
  * @param context - سياق التصنيف (اختياري)
  * @returns `true` إذا صُنّف كوصف/حدث
  */
+// Weights for each evidence type
+const EVIDENCE_WEIGHTS: Record<keyof ActionEvidence, number> = {
+  byDash: 0, // handled separately
+  byCue: 2,
+  byPattern: 2,
+  byVerb: 2,
+  byStructure: 1,
+  byNarrativeSyntax: 1,
+  byPronounAction: 1,
+  byThenAction: 1,
+  byAudioNarrative: 2,
+};
+
+const calculateActionScore = (evidence: ActionEvidence): number => {
+  let score = 0;
+  const keys = Object.keys(EVIDENCE_WEIGHTS) as (keyof ActionEvidence)[];
+  for (const key of keys) {
+    if (key !== "byDash" && evidence[key]) {
+      score += EVIDENCE_WEIGHTS[key];
+    }
+  }
+  return score;
+};
+
+const isExcludedFromAction = (normalized: string): boolean => {
+  if (TRANSITION_RE.test(normalized)) return true;
+  if (SCENE_NUMBER_EXACT_RE.test(normalized)) return true;
+  // سطر قصير منتهي بنقطتين غالبًا اسم شخصية.
+  if (
+    /[:：]\s*$/.test(normalized) &&
+    normalized.split(/\s+/).filter(Boolean).length <= 3
+  ) {
+    return true;
+  }
+  return false;
+};
+
 export const isActionLine = (
   text: string,
   context?: Partial<ClassificationContext>
@@ -138,29 +175,12 @@ export const isActionLine = (
   const normalized = normalizeLine(text);
   if (!normalized) return false;
 
-  if (TRANSITION_RE.test(normalized)) return false;
-  if (SCENE_NUMBER_EXACT_RE.test(normalized)) return false;
-
-  // سطر قصير منتهي بنقطتين غالبًا اسم شخصية.
-  if (
-    /[:：]\s*$/.test(normalized) &&
-    normalized.split(/\s+/).filter(Boolean).length <= 3
-  ) {
-    return false;
-  }
+  if (isExcludedFromAction(normalized)) return false;
 
   const evidence = collectActionEvidence(normalized);
   if (evidence.byDash) return true;
 
-  let score = 0;
-  if (evidence.byCue) score += 2;
-  if (evidence.byPattern) score += 2;
-  if (evidence.byVerb) score += 2;
-  if (evidence.byStructure) score += 1;
-  if (evidence.byNarrativeSyntax) score += 1;
-  if (evidence.byPronounAction) score += 1;
-  if (evidence.byThenAction) score += 1;
-  if (evidence.byAudioNarrative) score += 2;
+  const score = calculateActionScore(evidence);
 
   if (context?.isInDialogueBlock && score < 3) return false;
   if (context?.previousType === "action" && score >= 1) return true;

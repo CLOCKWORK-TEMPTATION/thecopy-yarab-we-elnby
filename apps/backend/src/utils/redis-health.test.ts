@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, expect, it, vi } from "vitest";
 
 const connectMock = vi.fn();
 const pingMock = vi.fn();
@@ -50,34 +50,33 @@ function getFirstRedisClientConfig(): RedisClientConfig {
   return config;
 }
 
-describe("Redis Health Utility", () => {
-  beforeEach(() => {
-    connectMock.mockReset();
-    pingMock.mockReset();
-    disconnectMock.mockReset();
-    quitMock.mockReset();
-    createClientMock.mockReset();
-    createClientMock.mockImplementation(() => mockClient);
-    infoMock.mockReset();
-    warnMock.mockReset();
-    vi.resetModules();
+beforeEach(() => {
+  connectMock.mockReset();
+  pingMock.mockReset();
+  disconnectMock.mockReset();
+  quitMock.mockReset();
+  createClientMock.mockReset();
+  createClientMock.mockImplementation(() => mockClient);
+  infoMock.mockReset();
+  warnMock.mockReset();
+  vi.resetModules();
 
-    process.env.REDIS_HOST = "cache.internal";
-    process.env.REDIS_PORT = "6381";
-    process.env.REDIS_PASSWORD = "super-secret";
-    delete process.env.REDIS_URL;
+  process.env.REDIS_HOST = "cache.internal";
+  process.env.REDIS_PORT = "6381";
+  process.env.REDIS_PASSWORD = "super-secret";
+  delete process.env.REDIS_URL;
 
-    getRedisConfigMock.mockReset();
-    getRedisConfigMock.mockReturnValue({
-      url: "redis://:super-secret@cache.internal:6381",
-    });
+  getRedisConfigMock.mockReset();
+  getRedisConfigMock.mockReturnValue({
+    url: "redis://:super-secret@cache.internal:6381",
   });
+});
 
-  afterEach(() => {
-    delete process.env.REDIS_HOST;
-    delete process.env.REDIS_PORT;
-    delete process.env.REDIS_PASSWORD;
-  });
+afterEach(() => {
+  delete process.env.REDIS_HOST;
+  delete process.env.REDIS_PORT;
+  delete process.env.REDIS_PASSWORD;
+});
 
   it("should create a Redis client and verify connectivity when ping succeeds", async () => {
     connectMock.mockResolvedValueOnce(undefined);
@@ -206,4 +205,3 @@ describe("Redis Health Utility", () => {
 
     expect(quitMock).toHaveBeenCalledTimes(1);
   });
-});

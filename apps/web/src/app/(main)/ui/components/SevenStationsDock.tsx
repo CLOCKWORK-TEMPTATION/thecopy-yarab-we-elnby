@@ -155,7 +155,7 @@ export function SevenStationsDock({
             station={station}
             index={index}
             current={current}
-            onViewDetails={onViewDetails}
+            {...(onViewDetails ? { onViewDetails } : {})}
           />
         ))}
       </div>

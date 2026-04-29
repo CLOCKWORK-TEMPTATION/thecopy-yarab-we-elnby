@@ -63,47 +63,98 @@ const isShortDialogueWord = (line: string): boolean => {
   return SHORT_DIALOGUE_WORDS.includes(normalized);
 };
 
+// Helper functions to reduce complexity of isCandidateCharacterName
+const hasInvalidCharacters = (candidate: string): boolean =>
+  /[؟!,،"«»]/.test(candidate);
+
+const hasInvalidTokens = (tokens: string[]): boolean => {
+  if (tokens.length === 0 || tokens.length > 5) return true;
+  if (tokens.some((token) => CHARACTER_STOP_WORDS.has(token))) return true;
+  if (tokens.some((token) => PRONOUN_RE.test(token))) return true;
+  return false;
+};
+
+const hasConversationalStart = (tokens: string[]): boolean => {
+  if (tokens.length <= 1) return false;
+  const firstToken = tokens[0];
+  return firstToken ? CONVERSATIONAL_START_SET.has(firstToken) : false;
+};
+
+const hasFunctionalWords = (tokens: string[]): boolean =>
+  tokens.some((token) => {
+    const normalizedToken = normalizeLine(token);
+    return FUNCTIONAL_WORD_RE.test(normalizedToken);
+  });
+
+const hasCompoundFunctionalStart = (tokens: string[]): boolean =>
+  tokens.some((token) => {
+    const normalizedToken = normalizeLine(token);
+    return COMPOUND_FUNCTIONAL_START_RE.test(normalizedToken);
+  });
+
+const hasActionPatterns = (candidate: string): boolean =>
+  isActionVerbStart(candidate) ||
+  matchesActionStartPattern(candidate) ||
+  hasActionVerbStructure(candidate);
+
+const parseGlueInlineDialogue = (
+  sanitized: string
+): ParsedInlineCharacterDialogue | null => {
+  const glueMatch = sanitized.match(INLINE_DIALOGUE_GLUE_RE);
+  if (!glueMatch) return null;
+
+  const [, rawCueText = "", rawCandidateName = "", rawDialogueText = ""] =
+    glueMatch;
+  const cueText = rawCueText.trim();
+  const candidateName = normalizeCharacterName(rawCandidateName);
+  const dialogueText = rawDialogueText.trim();
+
+  if (
+    cueText &&
+    isActionCueLine(cueText) &&
+    candidateName &&
+    dialogueText &&
+    isCandidateCharacterName(candidateName)
+  ) {
+    return { characterName: candidateName, dialogueText, cue: cueText };
+  }
+
+  return null;
+};
+
+const parseActionPrefixedInlineDialogue = (
+  nameTokens: string[],
+  dialogueText: string
+): ParsedInlineCharacterDialogue | null => {
+  const maxNameTokens = Math.min(3, nameTokens.length - 1);
+
+  for (let k = 1; k <= maxNameTokens; k++) {
+    const candidateName = normalizeCharacterName(
+      nameTokens.slice(-k).join(" ")
+    );
+    const cueText = nameTokens.slice(0, -k).join(" ").trim();
+    if (!cueText) continue;
+    if (!isActionCueLine(cueText)) continue;
+    if (!isCandidateCharacterName(candidateName)) continue;
+    return { characterName: candidateName, dialogueText, cue: cueText };
+  }
+
+  return null;
+};
+
 export const isCandidateCharacterName = (value: string): boolean => {
   const candidate = normalizeCharacterName(value);
   if (!candidate) return false;
   if (!ARABIC_ONLY_WITH_NUMBERS_RE.test(candidate)) return false;
   if (isShortDialogueWord(candidate)) return false;
-  if (/[؟!,،"«»]/.test(candidate)) return false;
+  if (hasInvalidCharacters(candidate)) return false;
 
   const tokens = candidate.split(/\s+/).filter(Boolean);
-  if (tokens.length === 0 || tokens.length > 5) return false;
-  if (tokens.some((token) => CHARACTER_STOP_WORDS.has(token))) return false;
-  // ضمير في أي موضع → مش اسم شخصية (مش بس لو كلمة واحدة)
-  if (tokens.some((token) => PRONOUN_RE.test(token))) return false;
-  // بداية كلامية (يا، انت، مش، ...) → حوار مش اسم
-  const firstToken = tokens[0];
-  if (
-    tokens.length > 1 &&
-    firstToken &&
-    CONVERSATIONAL_START_SET.has(firstToken)
-  )
-    return false;
-  if (
-    tokens.some((token) => {
-      const normalizedToken = normalizeLine(token);
-      return FUNCTIONAL_WORD_RE.test(normalizedToken);
-    })
-  ) {
-    return false;
-  }
-  // رفض بدايات وظيفية مركّبة («وما»، «فلا»، ...) في أي token
-  if (
-    tokens.some((token) => {
-      const normalizedToken = normalizeLine(token);
-      return COMPOUND_FUNCTIONAL_START_RE.test(normalizedToken);
-    })
-  ) {
-    return false;
-  }
-
-  if (isActionVerbStart(candidate)) return false;
-  if (matchesActionStartPattern(candidate)) return false;
-  if (hasActionVerbStructure(candidate)) return false;
+  if (hasInvalidTokens(tokens)) return false;
+  if (hasConversationalStart(tokens)) return false;
+  if (hasFunctionalWords(tokens)) return false;
+  if (hasCompoundFunctionalStart(tokens)) return false;
+  if (hasActionPatterns(candidate)) return false;
 
   return CHARACTER_RE.test(`${candidate}:`);
 };
@@ -115,24 +166,8 @@ export const parseInlineCharacterDialogue = (
   const sanitized = normalizeLine(stripLeadingBullets(trimmed));
   if (!sanitized) return null;
 
-  const glueMatch = sanitized.match(INLINE_DIALOGUE_GLUE_RE);
-  if (glueMatch) {
-    const [, rawCueText = "", rawCandidateName = "", rawDialogueText = ""] =
-      glueMatch;
-    const cueText = rawCueText.trim();
-    const candidateName = normalizeCharacterName(rawCandidateName);
-    const dialogueText = rawDialogueText.trim();
-
-    if (
-      cueText &&
-      isActionCueLine(cueText) &&
-      candidateName &&
-      dialogueText &&
-      isCandidateCharacterName(candidateName)
-    ) {
-      return { characterName: candidateName, dialogueText, cue: cueText };
-    }
-  }
+  const glueDialogue = parseGlueInlineDialogue(sanitized);
+  if (glueDialogue) return glueDialogue;
 
   const inlineMatch = sanitized.match(INLINE_DIALOGUE_RE);
   if (!inlineMatch) return null;
@@ -143,17 +178,11 @@ export const parseInlineCharacterDialogue = (
 
   const nameTokens = rawNamePart.split(/\s+/).filter(Boolean);
   if (nameTokens.length >= 2) {
-    const maxNameTokens = Math.min(3, nameTokens.length - 1);
-    for (let k = 1; k <= maxNameTokens; k++) {
-      const candidateName = normalizeCharacterName(
-        nameTokens.slice(-k).join(" ")
-      );
-      const cueText = nameTokens.slice(0, -k).join(" ").trim();
-      if (!cueText) continue;
-      if (!isActionCueLine(cueText)) continue;
-      if (!isCandidateCharacterName(candidateName)) continue;
-      return { characterName: candidateName, dialogueText, cue: cueText };
-    }
+    const actionPrefixedDialogue = parseActionPrefixedInlineDialogue(
+      nameTokens,
+      dialogueText
+    );
+    if (actionPrefixedDialogue) return actionPrefixedDialogue;
   }
 
   const normalizedName = normalizeCharacterName(rawNamePart);
@@ -162,19 +191,48 @@ export const parseInlineCharacterDialogue = (
   return { characterName: normalizedName, dialogueText };
 };
 
+// Helper to check if a line should be excluded from implicit character detection
+const isExcludedImplicitLine = (
+  trimmed: string,
+  context: Partial<ClassificationContext>
+): boolean => {
+  if (!trimmed) return true;
+  if (/[:：]/.test(trimmed)) return true;
+  if (!context.isInDialogueBlock) return true;
+  if (SCENE_NUMBER_EXACT_RE.test(trimmed)) return true;
+  if (TRANSITION_RE.test(trimmed)) return true;
+  if (isParentheticalLine(trimmed)) return true;
+  return false;
+};
+
+// Check if dialogue text has speech cues
+const hasSpeechCueIndicators = (dialogueText: string): boolean =>
+  hasDirectDialogueCues(dialogueText) ||
+  /[؟?!]/.test(dialogueText) ||
+  /(?:\.{2,}|…)/.test(dialogueText);
+
+// Check if action evidence indicates strong action patterns
+const hasStrongActionEvidence = (dialogueText: string): boolean => {
+  const actionEvidence = collectActionEvidence(dialogueText);
+  return (
+    actionEvidence.byDash ||
+    actionEvidence.byPattern ||
+    actionEvidence.byVerb ||
+    actionEvidence.byStructure ||
+    actionEvidence.byNarrativeSyntax ||
+    actionEvidence.byPronounAction ||
+    actionEvidence.byThenAction ||
+    actionEvidence.byAudioNarrative
+  );
+};
+
 export const parseImplicitCharacterDialogueWithoutColon = (
   line: string,
   context: Partial<ClassificationContext>,
   confirmedCharacters?: ReadonlySet<string>
 ): ParsedInlineCharacterDialogue | null => {
   const trimmed = (line ?? "").trim();
-  if (!trimmed) return null;
-  if (/[:：]/.test(trimmed)) return null;
-  if (!context.isInDialogueBlock) return null;
-
-  if (SCENE_NUMBER_EXACT_RE.test(trimmed)) return null;
-  if (TRANSITION_RE.test(trimmed)) return null;
-  if (isParentheticalLine(trimmed)) return null;
+  if (isExcludedImplicitLine(trimmed, context)) return null;
 
   const normalized = normalizeLine(trimmed);
   const tokens = normalized.split(/\s+/).filter(Boolean);
@@ -187,37 +245,26 @@ export const parseImplicitCharacterDialogueWithoutColon = (
     if (!candidateName || !dialogueText) continue;
     if (!isCandidateCharacterName(candidateName)) continue;
 
-    // Guard صارم: أي اسم (مفرد أو مركب) لا يُعتبر بداية شخصية ضمنية
-    // إلا إذا كان مؤكداً مسبقاً في سجل الشخصيات (confirmedCharacters).
-    // السبب: السطر ده جاي من كرنك كحوار صحيح، فصعود الحاجز يمنع
-    // تقسيمه الخاطئ إلى «اسم + حوار» بناءً على تطابق هيكلي ضعيف.
-    if (!confirmedCharacters?.has(candidateName)) {
-      continue;
-    }
+    // Guard: character must be in confirmed list
+    if (!confirmedCharacters?.has(candidateName)) continue;
 
-    const hasSpeechCue =
-      hasDirectDialogueCues(dialogueText) ||
-      /[؟?!]/.test(dialogueText) ||
-      /(?:\.{2,}|…)/.test(dialogueText);
-    if (!hasSpeechCue) continue;
-
-    const actionEvidence = collectActionEvidence(dialogueText);
-    const hasStrongAction =
-      actionEvidence.byDash ||
-      actionEvidence.byPattern ||
-      actionEvidence.byVerb ||
-      actionEvidence.byStructure ||
-      actionEvidence.byNarrativeSyntax ||
-      actionEvidence.byPronounAction ||
-      actionEvidence.byThenAction ||
-      actionEvidence.byAudioNarrative;
-
-    if (hasStrongAction) continue;
+    if (!hasSpeechCueIndicators(dialogueText)) continue;
+    if (hasStrongActionEvidence(dialogueText)) continue;
 
     return { characterName: candidateName, dialogueText };
   }
 
   return null;
+};
+
+// Helper to check if a line should be excluded from character detection
+const isExcludedCharacterLine = (trimmed: string): boolean => {
+  if (!trimmed) return true;
+  if (!/[:：]\s*$/.test(trimmed)) return true;
+  if (SCENE_NUMBER_EXACT_RE.test(trimmed)) return true;
+  if (TRANSITION_RE.test(trimmed)) return true;
+  if (isParentheticalLine(trimmed)) return true;
+  return false;
 };
 
 export const isCharacterLine = (
@@ -226,12 +273,7 @@ export const isCharacterLine = (
   _confirmedCharacters?: ReadonlySet<string>
 ): boolean => {
   const trimmed = normalizeLine(stripLeadingBullets((line ?? "").trim()));
-  if (!trimmed) return false;
-
-  if (!/[:：]\s*$/.test(trimmed)) return false;
-  if (SCENE_NUMBER_EXACT_RE.test(trimmed)) return false;
-  if (TRANSITION_RE.test(trimmed)) return false;
-  if (isParentheticalLine(trimmed)) return false;
+  if (isExcludedCharacterLine(trimmed)) return false;
 
   const namePart = normalizeCharacterName(trimmed);
   if (!isCandidateCharacterName(namePart)) return false;

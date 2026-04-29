@@ -35,7 +35,7 @@ export const BackgroundBeams = React.memo(() => {
           ></motion.path>
         ))}
         <defs>
-          {paths.map((_, index) => (
+          {beamAnimationConfig.map((config, index) => (
             <motion.linearGradient
               id={`linearGradient-${index}`}
               key={`gradient-${index}`}
@@ -49,13 +49,13 @@ export const BackgroundBeams = React.memo(() => {
                 x1: ["0%", "100%"],
                 x2: ["0%", "95%"],
                 y1: ["0%", "100%"],
-                y2: ["0%", beamAnimationConfig[index].y2],
+                y2: ["0%", config.y2],
               }}
               transition={{
-                duration: beamAnimationConfig[index].duration,
+                duration: config.duration,
                 ease: "easeInOut",
                 repeat: Infinity,
-                delay: beamAnimationConfig[index].delay,
+                delay: config.delay,
               }}
             >
               <stop stopColor="#FFD700" stopOpacity="0"></stop>

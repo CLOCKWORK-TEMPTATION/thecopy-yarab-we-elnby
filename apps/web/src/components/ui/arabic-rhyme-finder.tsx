@@ -145,7 +145,7 @@ export function ArabicRhymeFinder({
             copiedWord={copiedWord}
             onToggleFavorite={toggleFavorite}
             onCopy={copyWord}
-            onSelect={onWordSelect}
+            {...(onWordSelect ? { onSelect: onWordSelect } : {})}
           />
         </div>
 

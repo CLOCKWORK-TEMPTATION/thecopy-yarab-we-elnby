@@ -6,10 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { useApp } from "../../context/AppContext";
 
+import type { ViewType } from "../../types";
+
 // ─── Sub-components ───
 
 interface HeroActionsProps {
-  onNavigate: (view: string) => void;
+  onNavigate: (view: ViewType) => void;
 }
 
 function HeroActions({ onNavigate }: HeroActionsProps) {
@@ -56,7 +58,7 @@ function HeroActions({ onNavigate }: HeroActionsProps) {
 }
 
 interface FeatureGridProps {
-  onNavigate: (view: string) => void;
+  onNavigate: (view: ViewType) => void;
 }
 
 function FeatureGrid({ onNavigate }: FeatureGridProps) {

@@ -383,8 +383,10 @@ export function MetricsCard({
         </div>
 
         <MetricSparkline data={sparklineData} trend={calculatedTrend} />
-        <PredictionRow prediction={prediction} />
-        <PreviousValueRow previousValue={previousValue} />
+        <PredictionRow {...(prediction ? { prediction } : {})} />
+        <PreviousValueRow
+          {...(previousValue !== undefined ? { previousValue } : {})}
+        />
       </CardContent>
     </Card>
   );

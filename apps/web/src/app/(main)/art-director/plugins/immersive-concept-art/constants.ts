@@ -66,8 +66,16 @@ export const ART_STYLES: ArtStyle[] = [
   },
 ];
 
+export const DEFAULT_PALETTE = [
+  "#3498db",
+  "#2ecc71",
+  "#f1c40f",
+  "#e74c3c",
+  "#9b59b6",
+];
+
 export const PALETTES: Record<string, string[]> = {
-  default: ["#3498db", "#2ecc71", "#f1c40f", "#e74c3c", "#9b59b6"],
+  default: DEFAULT_PALETTE,
   warm: ["#ff6b6b", "#feca57", "#ff9f43", "#ee5253", "#f368e0"],
   cool: ["#54a0ff", "#5f27cd", "#48dbfb", "#0abde3", "#10ac84"],
   earthy: ["#8e6e53", "#c7a17a", "#e8d5b7", "#4a6741", "#2c3e50"],

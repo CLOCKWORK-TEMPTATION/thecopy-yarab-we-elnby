@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, RotateCcw, Home } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
@@ -70,13 +71,13 @@ export default function BreakdownError({ error, reset }: ErrorBoundaryProps) {
                 <RotateCcw className="h-4 w-4" />
                 إعادة المحاولة
               </button>
-              <a
+              <Link
                 href="/"
                 className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/8 bg-white/[0.04] text-white rounded-[22px] hover:bg-white/8 transition font-cairo text-sm font-medium"
               >
                 <Home className="h-4 w-4" />
                 الصفحة الرئيسية
-              </a>
+              </Link>
             </div>
           </div>
         </div>

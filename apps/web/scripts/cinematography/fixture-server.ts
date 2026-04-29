@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 interface FixtureServerState {
-  receivedBodies: unknown[];
+  receivedBodies: Record<string, unknown>[];
 }
 
 interface StartedFixtureServer {
@@ -159,7 +159,7 @@ export async function startFixtureServer(): Promise<StartedFixtureServer> {
     state,
     close: () =>
       new Promise<void>((resolveClose, rejectClose) => {
-        server.close((error: Error | null) => {
+        server.close((error?: Error) => {
           if (error) {
             rejectClose(error);
             return;

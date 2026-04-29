@@ -220,7 +220,7 @@ export async function executeTaskImpl(
 
   const effectiveCompletionScope =
     task.id === "completion"
-      ? params.completionScope.trim() ??=
+      ? params.completionScope.trim() ||
         "إكمال المقطع الحالي بشكل متسق مع النص المتاح"
       : "";
 
@@ -247,17 +247,16 @@ export async function executeTaskImpl(
       mergedSpecialRequirements
     );
 
-    if (!rawPayload) {
-      rawPayload =
-        task.executionMode === "brainstorm"
-          ? await tryBrainstormPath(task, params, mergedSpecialRequirements)
-          : await tryWorkflowPath(
-              task,
-              params,
-              mergedSpecialRequirements,
-              effectiveCompletionScope
-            );
-    }
+    rawPayload =
+      rawPayload ??
+      (task.executionMode === "brainstorm"
+        ? await tryBrainstormPath(task, params, mergedSpecialRequirements)
+        : await tryWorkflowPath(
+            task,
+            params,
+            mergedSpecialRequirements,
+            effectiveCompletionScope
+          ));
 
     if (!rawPayload) {
       dispatch({

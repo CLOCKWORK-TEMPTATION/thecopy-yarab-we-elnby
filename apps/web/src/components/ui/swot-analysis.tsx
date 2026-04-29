@@ -281,7 +281,7 @@ function SWOTCategoryCard({
               category={category}
               expandedItem={expandedItem}
               setExpandedItem={setExpandedItem}
-              onItemClick={onItemClick}
+              {...(onItemClick ? { onItemClick } : {})}
             />
           ))
         )}
@@ -436,7 +436,7 @@ export function SWOTAnalysis({
     setHoveredCategory,
     expandedItem,
     setExpandedItem,
-    onItemClick,
+    ...(onItemClick ? { onItemClick } : {}),
   };
 
   return (
@@ -460,7 +460,7 @@ export function SWOTAnalysis({
 
         <SWOTOverallScore
           overallScore={data.overallScore}
-          summary={data.summary}
+          {...(data.summary ? { summary: data.summary } : {})}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

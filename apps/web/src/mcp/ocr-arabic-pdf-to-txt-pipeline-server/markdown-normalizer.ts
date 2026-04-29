@@ -256,6 +256,23 @@ export class MarkdownNormalizer {
       return "";
     }
 
+    const basmala = this.normalizeBasmalaLine(stripped);
+    if (basmala) return basmala;
+
+    const gluedDialogue = this.normalizeGlueDialogue(stripped);
+    if (gluedDialogue !== null) return gluedDialogue;
+
+    const inlineDialogue = this.normalizeInlineDialogue(stripped);
+    if (inlineDialogue !== null) return inlineDialogue;
+
+    if (this.transitionRe.test(stripped)) {
+      return stripped.replace(/[:：]+\s*$/u, "").trim();
+    }
+
+    return stripped;
+  }
+
+  private normalizeBasmalaLine(stripped: string): string | null {
     const compactArabic = stripped.replace(/[^\u0600-\u06FF\s]/gu, "");
     const hasBasm = this.basmalaBasmRe.test(compactArabic);
     const hasAllah = this.basmalaAllahRe.test(compactArabic);
@@ -266,53 +283,55 @@ export class MarkdownNormalizer {
       return "بسم الله الرحمن الرحيم";
     }
 
+    return null;
+  }
+
+  private normalizeGlueDialogue(stripped: string): string | null {
     const glueMatch = stripped.match(this.inlineDialogueGlueRe);
-    if (glueMatch) {
-      const speakerPrefix = glueMatch[1];
-      const speakerSuffix = glueMatch[2];
-      const dialoguePart = glueMatch[3];
+    if (!glueMatch) return null;
 
-      if (!speakerPrefix || !speakerSuffix || !dialoguePart) {
-        return stripped;
-      }
+    const speakerPrefix = glueMatch[1];
+    const speakerSuffix = glueMatch[2];
+    const dialoguePart = glueMatch[3];
 
-      const speaker = `${speakerPrefix} ${speakerSuffix}`
-        .replace(this.whitespacePattern, " ")
-        .trim();
-      const dialogue = dialoguePart.replace(this.whitespacePattern, " ").trim();
-      if (speaker && dialogue && this.characterRe.test(`${speaker}:`)) {
-        return `${speaker}: ${dialogue}`;
-      }
+    if (!speakerPrefix || !speakerSuffix || !dialoguePart) {
+      return stripped;
     }
 
+    const speaker = `${speakerPrefix} ${speakerSuffix}`
+      .replace(this.whitespacePattern, " ")
+      .trim();
+    const dialogue = dialoguePart.replace(this.whitespacePattern, " ").trim();
+    if (speaker && dialogue && this.characterRe.test(`${speaker}:`)) {
+      return `${speaker}: ${dialogue}`;
+    }
+
+    return null;
+  }
+
+  private normalizeInlineDialogue(stripped: string): string | null {
     const inline = stripped.match(this.inlineDialogueRe);
-    if (inline) {
-      const inlineSpeaker = inline[1];
-      const inlineDialogue = inline[2];
+    if (!inline) return null;
 
-      if (!inlineSpeaker || !inlineDialogue) {
-        return stripped;
-      }
+    const inlineSpeaker = inline[1];
+    const inlineDialogue = inline[2];
 
-      const speaker = inlineSpeaker.replace(this.whitespacePattern, " ").trim();
-      const dialogue = inlineDialogue
-        .replace(this.whitespacePattern, " ")
-        .trim();
-      if (
-        speaker &&
-        dialogue &&
-        this.arabicOnlyWithNumbersRe.test(speaker) &&
-        this.characterRe.test(`${speaker}:`)
-      ) {
-        return `${speaker}: ${dialogue}`;
-      }
+    if (!inlineSpeaker || !inlineDialogue) {
+      return stripped;
     }
 
-    if (this.transitionRe.test(stripped)) {
-      return stripped.replace(/[:：]+\s*$/u, "").trim();
+    const speaker = inlineSpeaker.replace(this.whitespacePattern, " ").trim();
+    const dialogue = inlineDialogue.replace(this.whitespacePattern, " ").trim();
+    if (
+      speaker &&
+      dialogue &&
+      this.arabicOnlyWithNumbersRe.test(speaker) &&
+      this.characterRe.test(`${speaker}:`)
+    ) {
+      return `${speaker}: ${dialogue}`;
     }
 
-    return stripped;
+    return null;
   }
 
   private isHeading(line: string): boolean {

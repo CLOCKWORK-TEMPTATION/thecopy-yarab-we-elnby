@@ -36,54 +36,22 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     // Extract relevant context
     const contextObj =
       typeof context === "object" && context !== null ? context : {};
-    const originalText = (contextObj?.["originalText"] as string) || "";
+    const originalText = (contextObj?.["originalText"] as string) ?? "";
     const analysisResults =
-      (contextObj?.["analysisResults"] as Record<string, string>) || {};
+      (contextObj?.["analysisResults"] as Record<string, string>) ?? {};
     const previousStations =
-      (contextObj?.["previousStations"] as Record<string, string>) || {};
-    const focusAreas = (contextObj?.["focusAreas"] as string[]) || [];
+      (contextObj?.["previousStations"] as Record<string, string>) ?? {};
+    const focusAreas = (contextObj?.["focusAreas"] as string[]) ?? [];
     const priorityLevel =
-      (contextObj?.["priorityLevel"] as string) || "balanced";
+      (contextObj?.["priorityLevel"] as string) ?? "balanced";
 
     // Build structured prompt
     let prompt = `${RECOMMENDATIONS_GENERATOR_INSTRUCTIONS}\n\n`;
     prompt += `[مهمة مولد التوصيات والتحسينات - WisdomSynthesizer AI]\n\n`;
-
-    // Add original text
-    if (originalText) {
-      prompt += `النص الأصلي:\n${originalText}\n\n`;
-    }
-
-    // Add analysis results from previous stations
-    if (Object.keys(analysisResults).length > 0) {
-      prompt += `نتائج التحليلات السابقة:\n`;
-      for (const [analysisType, result] of Object.entries(analysisResults)) {
-        if (result) {
-          prompt += `\n--- ${analysisType} ---\n${String(result).substring(0, 500)}...\n`;
-        }
-      }
-      prompt += "\n";
-    }
-
-    // Add previous stations context
-    if (Object.keys(previousStations).length > 0) {
-      prompt += `سياق المحطات السابقة:\n`;
-      for (const [station, analysis] of Object.entries(previousStations)) {
-        if (analysis) {
-          prompt += `- ${station}: ${String(analysis).substring(0, 300)}...\n`;
-        }
-      }
-      prompt += "\n";
-    }
-
-    // Add focus areas if specified
-    if (focusAreas.length > 0) {
-      prompt += `مجالات التركيز المطلوبة:\n`;
-      focusAreas.forEach((area, index) => {
-        prompt += `${index + 1}. ${area}\n`;
-      });
-      prompt += "\n";
-    }
+    prompt += this.formatOriginalTextSection(originalText);
+    prompt += this.formatAnalysisResultsSection(analysisResults);
+    prompt += this.formatPreviousStationsSection(previousStations);
+    prompt += this.formatFocusAreasSection(focusAreas);
 
     // Add priority level
     prompt += `مستوى الأولوية: ${this.translatePriority(priorityLevel)}\n\n`;
@@ -125,6 +93,51 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
 لا تستخدم تنسيق JSON أو كتل برمجية.`;
 
     return prompt;
+  }
+
+  private formatOriginalTextSection(originalText: string): string {
+    if (!originalText) return "";
+    return `النص الأصلي:\n${originalText}\n\n`;
+  }
+
+  private formatAnalysisResultsSection(
+    analysisResults: Record<string, string>
+  ): string {
+    const sections = Object.entries(analysisResults)
+      .filter(([, result]) => result)
+      .map(
+        ([analysisType, result]) =>
+          `\n--- ${analysisType} ---\n${String(result).substring(0, 500)}...\n`
+      )
+      .join("");
+
+    if (!sections) return "";
+    return `نتائج التحليلات السابقة:\n${sections}\n`;
+  }
+
+  private formatPreviousStationsSection(
+    previousStations: Record<string, string>
+  ): string {
+    const rows = Object.entries(previousStations)
+      .filter(([, analysis]) => analysis)
+      .map(
+        ([station, analysis]) =>
+          `- ${station}: ${String(analysis).substring(0, 300)}...`
+      )
+      .join("\n");
+
+    if (!rows) return "";
+    return `سياق المحطات السابقة:\n${rows}\n\n`;
+  }
+
+  private formatFocusAreasSection(focusAreas: string[]): string {
+    if (focusAreas.length === 0) return "";
+
+    const rows = focusAreas
+      .map((area, index) => `${index + 1}. ${area}`)
+      .join("\n");
+
+    return `مجالات التركيز المطلوبة:\n${rows}\n\n`;
   }
 
   /**

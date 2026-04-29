@@ -18,7 +18,6 @@ const BASMALA_REVERSE_RE = /بسم\s+الله\s+الرحمن\s+الرحيم/;
 // ─── character sub-checks ───────────────────────────────────────────
 
 const detectCharacterMismatch = (
-  line: ClassifiedLine,
   features: TextFeatures
 ): DetectorFinding | null => {
   if (!features.endsWithColon) {
@@ -109,7 +108,6 @@ const detectDialogueMismatch = (
 // ─── action sub-checks ────────────────────────────────────────────
 
 const detectActionMismatch = (
-  line: ClassifiedLine,
   features: TextFeatures,
   context: readonly ClassifiedLine[],
   linePosition: number
@@ -235,7 +233,7 @@ export const createContentTypeMismatchDetector = (): SuspicionDetector => ({
     const type = line.assignedType;
 
     if (type === "character") {
-      return detectCharacterMismatch(line, features);
+      return detectCharacterMismatch(features);
     }
 
     if (type === "dialogue") {
@@ -243,7 +241,7 @@ export const createContentTypeMismatchDetector = (): SuspicionDetector => ({
     }
 
     if (type === "action") {
-      return detectActionMismatch(line, features, context, linePosition);
+      return detectActionMismatch(features, context, linePosition);
     }
 
     if (type === "parenthetical") {

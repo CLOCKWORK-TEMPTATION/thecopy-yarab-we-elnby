@@ -78,37 +78,13 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     prompt += `- النبرة (Tone): ${targetTone}\n`;
     prompt += `- الطول المستهدف: ${this.translateLength(targetLength)}\n`;
 
-    if (improvementFocus.length > 0) {
-      prompt += `- مجالات التركيز للتحسين: ${improvementFocus.map((f) => this.translateFocus(f)).join("، ")}\n`;
-    }
+    prompt += this.formatImprovementFocus(improvementFocus);
     prompt += `</parameters>\n\n`;
 
-    if (rewritingGoals.length > 0) {
-      prompt += `<goals>\n`;
-      rewritingGoals.forEach(
-        (goal, idx) => (prompt += `${idx + 1}. ${goal}\n`)
-      );
-      prompt += `</goals>\n\n`;
-    }
-
-    if (preserveElements.length > 0) {
-      prompt += `<preserve>\n`;
-      // عناصر يجب عدم تغييرها (مثل أسماء، تواريخ، مصطلحات محددة)
-      preserveElements.forEach(
-        (elem, idx) => (prompt += `${idx + 1}. ${elem}\n`)
-      );
-      prompt += `</preserve>\n\n`;
-    }
-
-    if (styleGuide) {
-      prompt += `<style_guide>\n${styleGuide}\n</style_guide>\n\n`;
-    }
-
-    if (constraints.length > 0) {
-      prompt += `<constraints>\n`;
-      constraints.forEach((c, idx) => (prompt += `${idx + 1}. ${c}\n`));
-      prompt += `</constraints>\n\n`;
-    }
+    prompt += this.formatNumberedXmlBlock("goals", rewritingGoals);
+    prompt += this.formatNumberedXmlBlock("preserve", preserveElements);
+    prompt += this.formatOptionalXmlBlock("style_guide", styleGuide);
+    prompt += this.formatNumberedXmlBlock("constraints", constraints);
 
     prompt += `<user_request>\n${taskInput}\n</user_request>\n\n`;
 
@@ -131,6 +107,21 @@ export class AdaptiveRewritingAgent extends BaseAgent {
 `;
 
     return prompt;
+  }
+
+  private formatImprovementFocus(improvementFocus: string[]): string {
+    if (improvementFocus.length === 0) return "";
+    return `- مجالات التركيز للتحسين: ${improvementFocus.map((f) => this.translateFocus(f)).join("، ")}\n`;
+  }
+
+  private formatNumberedXmlBlock(tag: string, items: string[]): string {
+    if (items.length === 0) return "";
+    const body = items.map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+    return `<${tag}>\n${body}\n</${tag}>\n\n`;
+  }
+
+  private formatOptionalXmlBlock(tag: string, value: string): string {
+    return value ? `<${tag}>\n${value}\n</${tag}>\n\n` : "";
   }
 
   /**

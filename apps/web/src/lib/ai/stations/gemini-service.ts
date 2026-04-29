@@ -129,7 +129,7 @@ export class GeminiService {
     const cacheKey = this.generateCacheKey(request);
 
     if (this.config.enableCaching) {
-      const cached = this.getFromCache<T>(cacheKey);
+      const cached = this.getFromCache<T>(cacheKey, request);
       if (cached) {
         logger.info("[GeminiService] Returning cached response", { cacheKey });
         return cached;
@@ -364,7 +364,10 @@ export class GeminiService {
     return JSON.stringify(keyData);
   }
 
-  private getFromCache<T>(cacheKey: string): GeminiResponse<T> | null {
+  private getFromCache<T>(
+    cacheKey: string,
+    request: GeminiRequest<T>
+  ): GeminiResponse<T> | null {
     const entry = this.cache.get(cacheKey);
     if (!entry) return null;
 
@@ -373,7 +376,13 @@ export class GeminiService {
       return null;
     }
 
-    const response = { ...entry.response };
+    if (request.validator && !request.validator(entry.response.content)) {
+      this.cache.delete(cacheKey);
+      return null;
+    }
+
+    const typedResponse = entry.response as GeminiResponse<T>;
+    const response = { ...typedResponse };
     response.metadata = { ...response.metadata, cached: true };
     return response;
   }

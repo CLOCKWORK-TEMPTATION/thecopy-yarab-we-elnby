@@ -15,6 +15,31 @@ import {
 import { PromptHistoryEntry, PromptEngineeringSnapshot } from "../types";
 import { restorePromptHistory, persistPromptHistory } from "../utils/history";
 
+type PromptComparisonResult = ReturnType<typeof comparePrompts>;
+
+function isUnknownRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isPromptComparisonResult(
+  value: unknown
+): value is PromptComparisonResult {
+  if (!isUnknownRecord(value)) {
+    return false;
+  }
+
+  const winner = value["winner"];
+  const differences = value["differences"];
+
+  return (
+    isUnknownRecord(value["prompt1"]) &&
+    isUnknownRecord(value["prompt2"]) &&
+    (winner === 1 || winner === 2 || winner === "tie") &&
+    Array.isArray(differences) &&
+    differences.every((item) => typeof item === "string")
+  );
+}
+
 export function usePromptStudio() {
   const [prompt, setPrompt] = React.useState("");
   const [analysis, setAnalysis] = React.useState<PromptAnalysis | null>(null);
@@ -30,9 +55,8 @@ export function usePromptStudio() {
   >([]);
   const [comparePrompt1, setComparePrompt1] = React.useState("");
   const [comparePrompt2, setComparePrompt2] = React.useState("");
-  const [comparisonResult, setComparisonResult] = React.useState<ReturnType<
-    typeof comparePrompts
-  > | null>(null);
+  const [comparisonResult, setComparisonResult] =
+    React.useState<PromptComparisonResult | null>(null);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [isRemoteStateReady, setIsRemoteStateReady] = React.useState(false);
 
@@ -55,7 +79,11 @@ export function usePromptStudio() {
         setPromptHistory(restorePromptHistory(snapshot.promptHistory));
         setComparePrompt1(snapshot.comparePrompt1 ?? "");
         setComparePrompt2(snapshot.comparePrompt2 ?? "");
-        setComparisonResult(snapshot.comparisonResult ?? null);
+        setComparisonResult(
+          isPromptComparisonResult(snapshot.comparisonResult)
+            ? snapshot.comparisonResult
+            : null
+        );
         setSuggestions(snapshot.suggestions ?? []);
       })
       .catch((error: unknown) => {

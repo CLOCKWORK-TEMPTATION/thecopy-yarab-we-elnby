@@ -2,8 +2,10 @@ import { useCallback } from "react";
 
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
 
+import type { NotificationType } from "../../types";
+
 export const useWebcamAnalysisBridge = (
-  showNotification: (type: string, message: string) => void
+  showNotification: (type: NotificationType, message: string) => void
 ) => {
   const webcamEngine = useWebcamAnalysis();
   const {

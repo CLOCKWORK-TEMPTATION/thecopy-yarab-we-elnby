@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 import {
+  getDeviceCapabilities,
+  getParticleLODConfig,
+} from "@/components/device-detection";
+import {
   performanceMonitor,
   type EffectConfig,
   type ParticlePosition,
@@ -20,6 +24,7 @@ import {
   updatePosition,
   type ParticleEffect,
 } from "@/lib/particle-frame-helpers";
+import { getOptimalParticleCount, requestIdle } from "@/lib/particle-lod-utils";
 
 const logger = createModuleLogger("components.particle-background-optimized");
 
@@ -172,22 +177,18 @@ function runBatchedParticleProcessing(
       currentIndex + Math.min(batchSize, 200),
       particleCount
     );
-    processParticleBatch(
-      currentIndex,
-      endIndex,
-      {
-        attractStrength,
-        colorAttribute,
-        config,
-        currentEffect,
-        damping,
-        intersectionPoint,
-        originalPositions,
-        positionAttribute,
-        time,
-        velocities,
-      }
-    );
+    processParticleBatch(currentIndex, endIndex, {
+      attractStrength,
+      colorAttribute,
+      config,
+      currentEffect,
+      damping,
+      intersectionPoint,
+      originalPositions,
+      positionAttribute,
+      time,
+      velocities,
+    });
     currentIndex = endIndex;
 
     if (currentIndex < particleCount) {
@@ -334,6 +335,11 @@ export default function OptimizedParticleAnimation() {
     if (!canRenderInBrowser || prefersReducedMotion) return;
     if (!canvasRef.current) return;
 
+    const capabilities = getDeviceCapabilities();
+    const lodConfig = getParticleLODConfig(capabilities);
+    const particleBudget = getOptimalParticleCount();
+    if (lodConfig.particleCount === 0 || particleBudget.count === 0) return;
+
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -388,36 +394,41 @@ export default function OptimizedParticleAnimation() {
       isGenerated: false,
     };
 
-    generateParticlesInBatches((error) => {
-      logger.error({ err: error }, "particle generation failed");
-    })
-      .then((result) => {
-        if (!sceneRef.current) return;
-        const {
-          positions,
-          colors,
-          count,
-          originalPositions,
-          phases,
-          velocities,
-        } = result;
-        sceneRef.current.geometry.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positions, 3)
-        );
-        sceneRef.current.geometry.setAttribute(
-          "color",
-          new THREE.BufferAttribute(colors, 3)
-        );
-        sceneRef.current.originalPositions = originalPositions;
-        sceneRef.current.phases = phases;
-        sceneRef.current.velocities = velocities;
-        sceneRef.current.particleCount = count;
-        sceneRef.current.isGenerated = true;
-      })
-      .catch((error) => {
-        logger.error({ err: error }, "particle generation pipeline failed");
-      });
+    const idleHandle = requestIdle(
+      () => {
+        generateParticlesInBatches((error) => {
+          logger.error({ err: error }, "particle generation failed");
+        })
+          .then((result) => {
+            if (!sceneRef.current) return;
+            const {
+              positions,
+              colors,
+              count,
+              originalPositions,
+              phases,
+              velocities,
+            } = result;
+            sceneRef.current.geometry.setAttribute(
+              "position",
+              new THREE.BufferAttribute(positions, 3)
+            );
+            sceneRef.current.geometry.setAttribute(
+              "color",
+              new THREE.BufferAttribute(colors, 3)
+            );
+            sceneRef.current.originalPositions = originalPositions;
+            sceneRef.current.phases = phases;
+            sceneRef.current.velocities = velocities;
+            sceneRef.current.particleCount = count;
+            sceneRef.current.isGenerated = true;
+          })
+          .catch((error) => {
+            logger.error({ err: error }, "particle generation pipeline failed");
+          });
+      },
+      { timeout: 100 }
+    );
 
     const removeInteractionHandlers = setupInteractionHandlers(
       canvas,
@@ -433,6 +444,11 @@ export default function OptimizedParticleAnimation() {
       try {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         if (cleanupTimeoutRef.current) clearTimeout(cleanupTimeoutRef.current);
+        if (typeof cancelIdleCallback !== "undefined") {
+          cancelIdleCallback(idleHandle);
+        } else {
+          clearTimeout(idleHandle);
+        }
         removeInteractionHandlers();
         if (geometry) geometry.dispose();
         if (material) material.dispose();

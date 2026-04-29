@@ -3,7 +3,7 @@
 // عمليات استوديو الفن التصوري الغامر
 
 import { v4 as uuidv4 } from "uuid";
-import { definedProps } from "@/utils/defined-props";
+import { definedProps } from "@/lib/defined-props";
 import type { PluginOutput } from "../../types";
 import type {
   ConceptArtProject,

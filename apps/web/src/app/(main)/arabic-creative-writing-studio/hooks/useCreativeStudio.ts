@@ -21,7 +21,10 @@ import type {
   StudioView,
   NotificationState,
 } from "../types/studio";
-import type { ExportFormat } from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
+import type {
+  ExportFormat,
+  ExportResult,
+} from "@/app/(main)/arabic-creative-writing-studio/lib/export-project";
 import type {
   CreativeProject,
   CreativePrompt,
@@ -103,10 +106,13 @@ async function runEnhancePrompt(
   technique: WritingTechnique
 ): Promise<{ success: boolean; data?: string; error?: string }> {
   const response = await geminiService.enhancePrompt(prompt, genre, technique);
-  if (response.success) {
+  if (response.success && typeof response.data === "string") {
     return { success: true, data: response.data };
   }
-  return { success: false, error: response.error ?? "فشل في تحسين المحفز" };
+  return {
+    success: false,
+    error: response.error ?? "فشل في تحسين المحفز",
+  };
 }
 
 interface UseCreativeStudioProps {
@@ -116,7 +122,7 @@ interface UseCreativeStudioProps {
   exportProjectFn: (
     project: CreativeProject,
     format: ExportFormat
-  ) => { success: boolean; message: string };
+  ) => ExportResult;
 }
 
 export function useCreativeStudio({

@@ -33,10 +33,12 @@ export interface ExtractionResult {
  * extractTextFromFile - معطّلة
  * رمي خطأ دائماً لأن الاستيراد متاح فقط من /editor
  */
-export function extractTextFromFile(_file: File): ExtractionResult {
-  throw new FileExtractionError(
-    ExtractionErrorType.EXTRACTION_DISABLED,
-    "استيراد الملفات معطّل في directors-studio. الرجاء استخدام /editor لاستيراد السيناريوهات."
+export function extractTextFromFile(_file: File): Promise<ExtractionResult> {
+  return Promise.reject(
+    new FileExtractionError(
+      ExtractionErrorType.EXTRACTION_DISABLED,
+      "استيراد الملفات معطّل في directors-studio. الرجاء استخدام /editor لاستيراد السيناريوهات."
+    )
   );
 }
 

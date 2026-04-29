@@ -171,23 +171,26 @@ const resolveBackendExtractionEndpoint = (endpoint?: string): string => {
   return normalizeEndpoint(resolved);
 };
 
-const parseBackendExtractionResult = (
-  fileType: ImportedFileType,
+const createBackendExtractionError = (body: FileExtractionResponse): Error => {
+  const code = toNonEmptyString(body.errorCode);
+  const message =
+    toNonEmptyString(body.error) ??
+    "Backend extraction failed without details.";
+  const fullMessage = code ? `${message} [${code}]` : message;
+  const extractionError = createErrorWithCause(fullMessage, {
+    errorCode: code,
+  }) as Error & { errorCode?: string };
+  if (code) {
+    extractionError.errorCode = code;
+  }
+  return extractionError;
+};
+
+const readBackendExtractionData = (
   body: FileExtractionResponse
 ): FileExtractionResult => {
   if (!body.success || !body.data) {
-    const code = toNonEmptyString(body.errorCode);
-    const message =
-      toNonEmptyString(body.error) ??
-      "Backend extraction failed without details.";
-    const fullMessage = code ? `${message} [${code}]` : message;
-    const extractionError = createErrorWithCause(fullMessage, {
-      errorCode: code,
-    }) as Error & { errorCode?: string };
-    if (code) {
-      extractionError.errorCode = code;
-    }
-    throw extractionError;
+    throw createBackendExtractionError(body);
   }
 
   const data = body.data;
@@ -211,99 +214,134 @@ const parseBackendExtractionResult = (
   if (typeof data.usedOcr !== "boolean") {
     throw new Error("Backend extraction response has invalid usedOcr field.");
   }
+  return data;
+};
 
-  const qualityScore =
-    typeof data.qualityScore === "number" && Number.isFinite(data.qualityScore)
-      ? data.qualityScore
-      : undefined;
+const readQualityScore = (data: FileExtractionResult): number | undefined =>
+  typeof data.qualityScore === "number" && Number.isFinite(data.qualityScore)
+    ? data.qualityScore
+    : undefined;
 
-  const normalizationApplied =
-    Array.isArray(data.normalizationApplied) &&
-    data.normalizationApplied.every((entry) => typeof entry === "string")
-      ? data.normalizationApplied
-      : undefined;
+const readStringArrayField = (value: unknown): string[] | undefined =>
+  Array.isArray(value) && value.every((entry) => typeof entry === "string")
+    ? value
+    : undefined;
 
-  const structuredBlocks =
-    Array.isArray(data.structuredBlocks) &&
-    data.structuredBlocks.every(
-      (block) =>
-        block &&
-        typeof block.formatId === "string" &&
-        typeof block.text === "string"
-    )
-      ? data.structuredBlocks
-      : undefined;
+const readStructuredBlocks = (
+  data: FileExtractionResult
+): FileExtractionResult["structuredBlocks"] | undefined =>
+  Array.isArray(data.structuredBlocks) &&
+  data.structuredBlocks.every(
+    (block) =>
+      block &&
+      typeof block.formatId === "string" &&
+      typeof block.text === "string"
+  )
+    ? data.structuredBlocks
+    : undefined;
 
-  const payloadVersion =
-    typeof data.payloadVersion === "number" &&
-    Number.isInteger(data.payloadVersion)
-      ? data.payloadVersion
-      : undefined;
+const readPayloadVersion = (data: FileExtractionResult): number | undefined =>
+  typeof data.payloadVersion === "number" &&
+  Number.isInteger(data.payloadVersion)
+    ? data.payloadVersion
+    : undefined;
+
+const readSchemaElements = (
+  data: FileExtractionResult
+): FileExtractionResult["schemaElements"] | undefined =>
+  Array.isArray(data.schemaElements) &&
+  data.schemaElements.every(
+    (entry) =>
+      isObjectRecord(entry) &&
+      typeof entry.element === "string" &&
+      typeof entry.value === "string"
+  )
+    ? data.schemaElements
+    : undefined;
+
+const readPipelineFootprint = (
+  data: FileExtractionResult
+): FileExtractionResult["pipelineFootprint"] | undefined =>
+  isObjectRecord(data.pipelineFootprint) &&
+  isStringArray(data.pipelineFootprint.checkedDirectories) &&
+  isStringArray(data.pipelineFootprint.checkedFiles)
+    ? {
+        checkedDirectories: data.pipelineFootprint.checkedDirectories,
+        checkedFiles: data.pipelineFootprint.checkedFiles,
+      }
+    : undefined;
+
+const readProgressiveStage = (
+  data: FileExtractionResult
+): ExtractionMeta["progressiveStage"] | undefined =>
+  data.extractionMeta?.progressiveStage === "first-visible" ||
+  data.extractionMeta?.progressiveStage === "karank-visible"
+    ? data.extractionMeta.progressiveStage
+    : undefined;
+
+const readFirstVisibleSourceKind = (
+  data: FileExtractionResult
+): ExtractionMeta["firstVisibleSourceKind"] | undefined =>
+  data.extractionMeta?.firstVisibleSourceKind === "user-paste" ||
+  data.extractionMeta?.firstVisibleSourceKind === "direct-extraction" ||
+  data.extractionMeta?.firstVisibleSourceKind === "ocr"
+    ? data.extractionMeta.firstVisibleSourceKind
+    : undefined;
+
+const readExtractionMeta = (
+  data: FileExtractionResult,
+  progressiveStage: ExtractionMeta["progressiveStage"] | undefined,
+  firstVisibleSourceKind: ExtractionMeta["firstVisibleSourceKind"] | undefined
+): ExtractionMeta | undefined => {
+  const meta = data.extractionMeta;
+  if (!isObjectRecord(meta) || typeof meta.sourceType !== "string") {
+    return undefined;
+  }
+
+  return {
+    sourceType: meta.sourceType,
+    processingTimeMs:
+      typeof meta.processingTimeMs === "number" &&
+      Number.isFinite(meta.processingTimeMs)
+        ? meta.processingTimeMs
+        : 0,
+    success: meta.success !== false,
+    ...(typeof meta.error === "string" && { error: meta.error }),
+    ...(progressiveStage ? { progressiveStage } : {}),
+    ...(firstVisibleSourceKind ? { firstVisibleSourceKind } : {}),
+    ...(isStringArray(meta.warnings) && { warnings: meta.warnings }),
+    ...(isStringArray(meta.attempts) && { attempts: meta.attempts }),
+  } satisfies ExtractionMeta;
+};
+
+const parseBackendExtractionResult = (
+  fileType: ImportedFileType,
+  body: FileExtractionResponse
+): FileExtractionResult => {
+  const data = readBackendExtractionData(body);
+  const qualityScore = readQualityScore(data);
+  const normalizationApplied = readStringArrayField(data.normalizationApplied);
+  const structuredBlocks = readStructuredBlocks(data);
+  const payloadVersion = readPayloadVersion(data);
 
   const rawExtractedText = toOptionalString(data.rawExtractedText);
   const textRaw = toOptionalString(data.textRaw);
   const textMarkdown = toOptionalString(data.textMarkdown);
   const schemaText = toOptionalString(data.schemaText);
-  const schemaElements =
-    Array.isArray(data.schemaElements) &&
-    data.schemaElements.every(
-      (entry) =>
-        isObjectRecord(entry) &&
-        typeof entry.element === "string" &&
-        typeof entry.value === "string"
-    )
-      ? data.schemaElements
-      : undefined;
+  const schemaElements = readSchemaElements(data);
   const artifactLinesRemoved =
     typeof data.artifactLinesRemoved === "number" &&
     Number.isInteger(data.artifactLinesRemoved)
       ? data.artifactLinesRemoved
       : undefined;
-  const pipelineFootprint =
-    isObjectRecord(data.pipelineFootprint) &&
-    isStringArray(data.pipelineFootprint.checkedDirectories) &&
-    isStringArray(data.pipelineFootprint.checkedFiles)
-      ? {
-          checkedDirectories: data.pipelineFootprint.checkedDirectories,
-          checkedFiles: data.pipelineFootprint.checkedFiles,
-        }
-      : undefined;
-  const progressiveStage =
-    data.extractionMeta?.progressiveStage === "first-visible" ||
-    data.extractionMeta?.progressiveStage === "karank-visible"
-      ? data.extractionMeta.progressiveStage
-      : undefined;
-  const firstVisibleSourceKind =
-    data.extractionMeta?.firstVisibleSourceKind === "user-paste" ||
-    data.extractionMeta?.firstVisibleSourceKind === "direct-extraction" ||
-    data.extractionMeta?.firstVisibleSourceKind === "ocr"
-      ? data.extractionMeta.firstVisibleSourceKind
-      : undefined;
-
-  const extractionMeta =
-    isObjectRecord(data.extractionMeta) &&
-    typeof data.extractionMeta.sourceType === "string"
-      ? ({
-          sourceType: data.extractionMeta.sourceType,
-          processingTimeMs:
-            typeof data.extractionMeta.processingTimeMs === "number" &&
-            Number.isFinite(data.extractionMeta.processingTimeMs)
-              ? data.extractionMeta.processingTimeMs
-              : 0,
-          success: data.extractionMeta.success !== false,
-          ...(typeof data.extractionMeta.error === "string" && {
-            error: data.extractionMeta.error,
-          }),
-          ...(progressiveStage ? { progressiveStage } : {}),
-          ...(firstVisibleSourceKind ? { firstVisibleSourceKind } : {}),
-          ...(isStringArray(data.extractionMeta.warnings) && {
-            warnings: data.extractionMeta.warnings,
-          }),
-          ...(isStringArray(data.extractionMeta.attempts) && {
-            attempts: data.extractionMeta.attempts,
-          }),
-        } satisfies ExtractionMeta)
-      : undefined;
+  const pipelineFootprint = readPipelineFootprint(data);
+  const progressiveStage = readProgressiveStage(data);
+  const firstVisibleSourceKind = readFirstVisibleSourceKind(data);
+  const extractionMeta = readExtractionMeta(
+    data,
+    progressiveStage,
+    firstVisibleSourceKind
+  );
 
   return {
     text: data.text,
@@ -404,6 +442,93 @@ const createErrorWithCause = (message: string, cause: unknown): Error => {
   return error;
 };
 
+interface BackendPdfOcrHealthPayload {
+  ocrConfigured?: unknown;
+  ocrAgent?: {
+    errorCodes?: unknown;
+    dependencies?: {
+      pdftoppm?: {
+        available?: unknown;
+        errorCode?: unknown;
+        errorMessage?: unknown;
+      };
+    };
+  };
+}
+
+const readAgentErrorCodes = (payload: BackendPdfOcrHealthPayload): string[] =>
+  Array.isArray(payload.ocrAgent?.errorCodes)
+    ? payload.ocrAgent.errorCodes.filter((entry) => typeof entry === "string")
+    : [];
+
+const buildBackendNotReadyResult = (
+  payload: BackendPdfOcrHealthPayload,
+  healthEndpoint: string
+): BackendPdfOcrReadiness => {
+  const ocrConfigured = payload.ocrConfigured === true;
+  const pdftoppm = payload.ocrAgent?.dependencies?.pdftoppm;
+  const agentErrorCodes = readAgentErrorCodes(payload);
+  const errorCode =
+    toNonEmptyString(pdftoppm?.errorCode) ??
+    (agentErrorCodes.length > 0 ? agentErrorCodes[0] : undefined) ??
+    "PDF_OCR_BACKEND_NOT_READY";
+  const errorMessage =
+    toNonEmptyString(pdftoppm?.errorMessage) ??
+    "Backend OCR readiness check failed.";
+
+  return {
+    ready: false,
+    healthEndpoint,
+    ocrConfigured,
+    errorCode,
+    errorMessage,
+  };
+};
+
+const parseBackendPdfOcrHealthPayload = (
+  payload: BackendPdfOcrHealthPayload,
+  healthEndpoint: string
+): BackendPdfOcrReadiness => {
+  const ocrConfigured = payload.ocrConfigured === true;
+  const pdftoppm = payload.ocrAgent?.dependencies?.pdftoppm;
+  const pdftoppmAvailable = pdftoppm?.available === true;
+  const pdftoppmReported = pdftoppm !== undefined && pdftoppm !== null;
+
+  if (ocrConfigured && (pdftoppmAvailable || !pdftoppmReported)) {
+    return {
+      ready: true,
+      healthEndpoint,
+      ocrConfigured: true,
+    };
+  }
+
+  return buildBackendNotReadyResult(payload, healthEndpoint);
+};
+
+const buildBackendPdfOcrProbeError = (
+  error: unknown,
+  healthEndpoint: string
+): BackendPdfOcrReadiness => {
+  if (error instanceof Error && error.name === "AbortError") {
+    return {
+      ready: false,
+      healthEndpoint,
+      errorCode: "PDF_OCR_HEALTH_TIMEOUT",
+      errorMessage: "Backend OCR health check timed out.",
+    };
+  }
+
+  return {
+    ready: false,
+    healthEndpoint,
+    errorCode: "PDF_OCR_HEALTH_UNREACHABLE",
+    errorMessage:
+      error instanceof Error
+        ? error.message
+        : "Failed to reach backend OCR health endpoint.",
+  };
+};
+
 export const probeBackendPdfOcrReadiness = async (
   options?: BackendExtractOptions
 ): Promise<BackendPdfOcrReadiness> => {
@@ -429,72 +554,10 @@ export const probeBackendPdfOcrReadiness = async (
       };
     }
 
-    const payload = (await response.json()) as {
-      ocrConfigured?: unknown;
-      ocrAgent?: {
-        errorCodes?: unknown;
-        dependencies?: {
-          pdftoppm?: {
-            available?: unknown;
-            errorCode?: unknown;
-            errorMessage?: unknown;
-          };
-        };
-      };
-    };
-
-    const ocrConfigured = payload?.ocrConfigured === true;
-    const pdftoppm = payload?.ocrAgent?.dependencies?.pdftoppm;
-    const pdftoppmAvailable = pdftoppm?.available === true;
-    const pdftoppmReported = pdftoppm !== undefined && pdftoppm !== null;
-
-    if (ocrConfigured && (pdftoppmAvailable || !pdftoppmReported)) {
-      return {
-        ready: true,
-        healthEndpoint,
-        ocrConfigured: true,
-      };
-    }
-
-    const agentErrorCodes = Array.isArray(payload?.ocrAgent?.errorCodes)
-      ? payload.ocrAgent.errorCodes.filter((entry) => typeof entry === "string")
-      : [];
-
-    const errorCode =
-      toNonEmptyString(pdftoppm?.errorCode) ??
-      (agentErrorCodes.length > 0 ? agentErrorCodes[0] : undefined) ??
-      "PDF_OCR_BACKEND_NOT_READY";
-
-    const errorMessage =
-      toNonEmptyString(pdftoppm?.errorMessage) ??
-      "Backend OCR readiness check failed.";
-
-    return {
-      ready: false,
-      healthEndpoint,
-      ocrConfigured,
-      errorCode,
-      errorMessage,
-    };
+    const payload = (await response.json()) as BackendPdfOcrHealthPayload;
+    return parseBackendPdfOcrHealthPayload(payload, healthEndpoint);
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      return {
-        ready: false,
-        healthEndpoint,
-        errorCode: "PDF_OCR_HEALTH_TIMEOUT",
-        errorMessage: "Backend OCR health check timed out.",
-      };
-    }
-
-    return {
-      ready: false,
-      healthEndpoint,
-      errorCode: "PDF_OCR_HEALTH_UNREACHABLE",
-      errorMessage:
-        error instanceof Error
-          ? error.message
-          : "Failed to reach backend OCR health endpoint.",
-    };
+    return buildBackendPdfOcrProbeError(error, healthEndpoint);
   } finally {
     globalThis.clearTimeout(timeoutId);
   }

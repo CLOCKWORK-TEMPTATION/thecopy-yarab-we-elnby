@@ -226,8 +226,13 @@ type ToastFn = ReturnType<typeof useToast>["toast"];
 type SetProjectFn = ReturnType<typeof useCurrentProject>["setProject"];
 
 interface CreateProjectAndOpenContext {
+  title: string;
+  openInEditor: boolean;
   createProject: CreateProjectMutation;
-  openEditorWithProject: (p: Project, opts?: { importIntent?: boolean }) => void;
+  openEditorWithProject: (
+    p: Project,
+    opts?: { importIntent?: boolean }
+  ) => void;
   setNewProjectTitle: (v: string) => void;
   setProject: SetProjectFn;
   setSelectedProjectId: (id: string) => void;
@@ -235,11 +240,11 @@ interface CreateProjectAndOpenContext {
 }
 
 async function createProjectAndMaybeOpen(
-  title: string,
-  openInEditor: boolean,
   context: CreateProjectAndOpenContext
 ): Promise<void> {
   const {
+    title,
+    openInEditor,
     createProject,
     openEditorWithProject,
     setNewProjectTitle,
@@ -367,7 +372,9 @@ export function NoProjectSection() {
         });
         return;
       }
-      await createProjectAndMaybeOpen(title, openInEditor, {
+      await createProjectAndMaybeOpen({
+        title,
+        openInEditor,
         createProject,
         openEditorWithProject,
         setNewProjectTitle,

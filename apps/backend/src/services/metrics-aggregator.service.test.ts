@@ -307,7 +307,9 @@ describe("MetricsAggregatorService > generatePerformanceReport", () => {
     const report = await service.generatePerformanceReport(startTime, endTime);
     expect(report.summary.systemHealth).toBe("degraded");
   });
+});
 
+describe("MetricsAggregatorService > generatePerformanceReport alerts", () => {
   it("should generate recommendations for low cache hit ratio", async () => {
     redisRegistryMock.getMetricsAsJSON.mockResolvedValue([
       {

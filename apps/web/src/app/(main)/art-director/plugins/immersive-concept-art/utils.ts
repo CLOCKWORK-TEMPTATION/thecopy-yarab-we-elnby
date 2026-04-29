@@ -1,10 +1,15 @@
 // Immersive Concept Art Studio Utilities
 // أدوات استوديو الفن التصوري الغامر
 
-import { PALETTES, THEME_RELATIONS, VR_INTERACTIONS } from "./constants";
+import {
+  DEFAULT_PALETTE,
+  PALETTES,
+  THEME_RELATIONS,
+  VR_INTERACTIONS,
+} from "./constants";
 
 export function getPaletteForTheme(theme: string): string[] {
-  return PALETTES[theme.toLowerCase()] ?? PALETTES["default"];
+  return PALETTES[theme.toLowerCase()] ?? DEFAULT_PALETTE;
 }
 
 export function suggestComplementaryColors(palette: string[]): string[] {

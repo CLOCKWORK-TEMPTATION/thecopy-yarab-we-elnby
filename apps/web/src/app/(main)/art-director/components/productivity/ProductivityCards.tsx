@@ -78,7 +78,7 @@ export function MetricCard({
             display: "inline-flex",
           }}
         >
-          <Icon size={20} aria-hidden="true" />
+          <Icon size={20} aria-hidden={true} />
         </div>
         <div>
           <div style={{ color: "var(--art-text-muted)", fontSize: "13px" }}>

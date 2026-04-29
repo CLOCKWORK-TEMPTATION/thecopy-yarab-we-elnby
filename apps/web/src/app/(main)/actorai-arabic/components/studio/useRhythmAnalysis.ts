@@ -2,7 +2,14 @@ import { useState, useCallback } from "react";
 
 import { SAMPLE_SCRIPT } from "../../types/constants";
 
-import type { SceneRhythmAnalysis } from "../../types";
+import type {
+  AlertSeverity,
+  NotificationType,
+  SceneRhythmAnalysis,
+  TempoLevel,
+} from "../../types";
+
+type RhythmTab = "map" | "comparison" | "monotony" | "suggestions";
 
 const TEMPO_LABELS: Record<string, string> = {
   slow: "بطيء",
@@ -167,12 +174,13 @@ function buildSampleAnalysis(): SceneRhythmAnalysis {
 }
 
 export const useRhythmAnalysis = (
-  showNotification: (type: string, message: string) => void
+  showNotification: (type: NotificationType, message: string) => void
 ) => {
   const [rhythmScriptText, setRhythmScriptText] = useState("");
   const [analyzingRhythm, setAnalyzingRhythm] = useState(false);
   const [rhythmAnalysis, setRhythmAnalysis] =
     useState<SceneRhythmAnalysis | null>(null);
+  const [selectedRhythmTab, setSelectedRhythmTab] = useState<RhythmTab>("map");
 
   const useRhythmSampleScript = useCallback(() => {
     setRhythmScriptText(SAMPLE_SCRIPT);
@@ -199,13 +207,45 @@ export const useRhythmAnalysis = (
     return TEMPO_LABELS[tempo] ?? tempo;
   }, []);
 
+  const getTempoColor = useCallback((tempo: string): string => {
+    switch (tempo as TempoLevel) {
+      case "slow":
+        return "bg-blue-400";
+      case "medium":
+        return "bg-green-400";
+      case "fast":
+        return "bg-orange-400";
+      case "very-fast":
+        return "bg-red-500";
+      default:
+        return "bg-white/45";
+    }
+  }, []);
+
+  const getSeverityColor = useCallback((severity: string): string => {
+    switch (severity as AlertSeverity) {
+      case "low":
+        return "bg-yellow-50 border-yellow-300 text-yellow-900";
+      case "medium":
+        return "bg-orange-50 border-orange-300 text-orange-900";
+      case "high":
+        return "bg-red-50 border-red-300 text-red-900";
+      default:
+        return "bg-white border-white/10 text-white/70";
+    }
+  }, []);
+
   return {
     rhythmScriptText,
     setRhythmScriptText,
     analyzingRhythm,
     rhythmAnalysis,
+    selectedRhythmTab,
+    setSelectedRhythmTab,
     useRhythmSampleScript,
     analyzeSceneRhythm,
+    getTempoColor,
     getTempoLabel,
+    getSeverityColor,
   };
 };

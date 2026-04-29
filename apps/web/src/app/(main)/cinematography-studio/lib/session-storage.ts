@@ -88,6 +88,105 @@ function sanitizeAnalysis(value: unknown): ShotAnalysis | null {
   };
 }
 
+function assignPhase(
+  result: PersistedStudioSession,
+  candidate: Record<string, unknown>
+): void {
+  const phase = asString(candidate["phase"]);
+  if (phase && (VALID_PHASES as readonly string[]).includes(phase)) {
+    result.phase = phase as Phase;
+  }
+}
+
+function assignView(
+  result: PersistedStudioSession,
+  candidate: Record<string, unknown>
+): void {
+  const view = asString(candidate["view"]);
+  if (view && (VALID_VIEWS as readonly string[]).includes(view)) {
+    result.view = view as ViewMode;
+  }
+}
+
+function assignMood(
+  result: PersistedStudioSession,
+  candidate: Record<string, unknown>
+): void {
+  const mood = asString(candidate["mood"]);
+  if (mood && (VALID_MOODS as readonly string[]).includes(mood)) {
+    result.mood = mood as VisualMood;
+  }
+}
+
+function assignActiveTool(
+  result: PersistedStudioSession,
+  candidate: Record<string, unknown>
+): void {
+  if (candidate["activeTool"] === null) {
+    result.activeTool = null;
+    return;
+  }
+
+  const tool = asString(candidate["activeTool"]);
+  if (tool) {
+    result.activeTool = tool;
+  }
+}
+
+function sanitizeTechnicalSettings(
+  value: unknown
+): PersistedStudioSession["technicalSettings"] | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const techRaw = value as Record<string, unknown>;
+  const focusPeaking = asBoolean(techRaw["focusPeaking"]);
+  const falseColor = asBoolean(techRaw["falseColor"]);
+  const colorTemp = asNumber(techRaw["colorTemp"]);
+
+  if (
+    focusPeaking === undefined ||
+    falseColor === undefined ||
+    colorTemp === undefined ||
+    colorTemp < 2000 ||
+    colorTemp > 10000
+  ) {
+    return undefined;
+  }
+
+  return { focusPeaking, falseColor, colorTemp };
+}
+
+function sanitizeAssistant(
+  value: unknown
+): PersistedStudioSession["lastAssistant"] | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const assistantRaw = value as Record<string, unknown>;
+  const question = asString(assistantRaw["question"]);
+  const answer = asString(assistantRaw["answer"]);
+
+  return question || answer
+    ? {
+        question: question ?? null,
+        answer: answer ?? null,
+      }
+    : null;
+}
+
+function assignSavedAt(
+  result: PersistedStudioSession,
+  candidate: Record<string, unknown>
+): void {
+  const savedAt = asString(candidate["savedAt"]);
+  if (savedAt) {
+    result.savedAt = savedAt;
+  }
+}
+
 function sanitizeSession(value: unknown): PersistedStudioSession | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -95,72 +194,22 @@ function sanitizeSession(value: unknown): PersistedStudioSession | null {
   const candidate = value as Record<string, unknown>;
   const result: PersistedStudioSession = {};
 
-  const phase = asString(candidate["phase"]);
-  if (phase && (VALID_PHASES as readonly string[]).includes(phase)) {
-    result.phase = phase as Phase;
+  assignPhase(result, candidate);
+  assignView(result, candidate);
+  assignMood(result, candidate);
+  assignActiveTool(result, candidate);
+  const technicalSettings = sanitizeTechnicalSettings(
+    candidate["technicalSettings"]
+  );
+  if (technicalSettings) {
+    result.technicalSettings = technicalSettings;
   }
-
-  const view = asString(candidate["view"]);
-  if (view && (VALID_VIEWS as readonly string[]).includes(view)) {
-    result.view = view as ViewMode;
-  }
-
-  const mood = asString(candidate["mood"]);
-  if (mood && (VALID_MOODS as readonly string[]).includes(mood)) {
-    result.mood = mood as VisualMood;
-  }
-
-  if (candidate["activeTool"] === null) {
-    result.activeTool = null;
-  } else {
-    const tool = asString(candidate["activeTool"]);
-    if (tool) {
-      result.activeTool = tool;
-    }
-  }
-
-  if (
-    candidate["technicalSettings"] &&
-    typeof candidate["technicalSettings"] === "object"
-  ) {
-    const techRaw = candidate["technicalSettings"] as Record<string, unknown>;
-    const focusPeaking = asBoolean(techRaw["focusPeaking"]);
-    const falseColor = asBoolean(techRaw["falseColor"]);
-    const colorTemp = asNumber(techRaw["colorTemp"]);
-    if (
-      focusPeaking !== undefined &&
-      falseColor !== undefined &&
-      colorTemp !== undefined &&
-      colorTemp >= 2000 &&
-      colorTemp <= 10000
-    ) {
-      result.technicalSettings = { focusPeaking, falseColor, colorTemp };
-    }
-  }
-
   result.lastAnalysis = sanitizeAnalysis(candidate["lastAnalysis"]);
-
-  if (
-    candidate["lastAssistant"] &&
-    typeof candidate["lastAssistant"] === "object"
-  ) {
-    const assistantRaw = candidate["lastAssistant"] as Record<string, unknown>;
-    const question = asString(assistantRaw["question"]);
-    const answer = asString(assistantRaw["answer"]);
-    if (question || answer) {
-      result.lastAssistant = {
-        question: question ?? null,
-        answer: answer ?? null,
-      };
-    } else {
-      result.lastAssistant = null;
-    }
+  const assistant = sanitizeAssistant(candidate["lastAssistant"]);
+  if (assistant !== undefined) {
+    result.lastAssistant = assistant;
   }
-
-  const savedAt = asString(candidate["savedAt"]);
-  if (savedAt) {
-    result.savedAt = savedAt;
-  }
+  assignSavedAt(result, candidate);
 
   return result;
 }

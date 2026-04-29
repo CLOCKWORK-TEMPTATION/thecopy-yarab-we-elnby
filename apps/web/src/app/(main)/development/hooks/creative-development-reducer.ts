@@ -16,6 +16,94 @@ import {
  * مُختزل حالة التطوير الإبداعي
  * يدير جميع تحديثات الحالة بطريقة مركزية
  */
+function reduceAnalysisAction(
+  state: CreativeDevelopmentState,
+  action: ActionType
+): CreativeDevelopmentState | null {
+  switch (action.type) {
+    case "SET_ANALYSIS_REPORT":
+      return { ...state, analysisReport: action.payload };
+
+    case "SET_ANALYSIS_COMPLETE":
+      return { ...state, isAnalysisComplete: action.payload };
+
+    case "SET_ANALYSIS_ID":
+      return { ...state, analysisId: action.payload };
+
+    case "SET_TASK_RESULTS":
+      return { ...state, taskResults: action.payload };
+
+    case "SET_SHOW_REPORT_MODAL":
+      return { ...state, showReportModal: action.payload };
+
+    case "SET_ADVANCED_SETTINGS":
+      return {
+        ...state,
+        advancedSettings: { ...state.advancedSettings, ...action.payload },
+      };
+
+    case "SET_AI_RESPONSE":
+      return { ...state, aiResponse: action.payload };
+
+    case "SET_ERROR":
+      return { ...state, error: action.payload };
+
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+
+    default:
+      return null;
+  }
+}
+
+function reduceSessionAction(
+  state: CreativeDevelopmentState,
+  action: ActionType
+): CreativeDevelopmentState | null {
+  switch (action.type) {
+    case "CLEAR_ANALYSIS_DATA":
+      return {
+        ...state,
+        analysisReport: "",
+        analysisId: null,
+        isAnalysisComplete: false,
+        isManualMode: false,
+        textInput: "",
+        catalogResult: null,
+        error: null,
+        taskResults: {},
+      };
+
+    case "ENABLE_MANUAL_MODE":
+      return {
+        ...state,
+        analysisId: null,
+        isManualMode: true,
+        isAnalysisComplete:
+          state.analysisReport.trim().length > MIN_TEXT_LENGTH,
+      };
+
+    case "LOAD_SEVEN_STATIONS":
+      return {
+        ...state,
+        analysisReport: action.payload.finalReport,
+        textInput: action.payload.originalText,
+        isAnalysisComplete: true,
+      };
+
+    case "LOAD_SESSION_ANALYSIS":
+      return {
+        ...state,
+        analysisReport: action.payload.report,
+        analysisId: action.payload.id,
+        isAnalysisComplete: true,
+      };
+
+    default:
+      return null;
+  }
+}
+
 export function creativeDevelopmentReducer(
   state: CreativeDevelopmentState,
   action: ActionType
@@ -78,75 +166,11 @@ export function creativeDevelopmentReducer(
             : [...state.selectedCompletionEnhancements, action.payload],
       };
 
-    case "SET_ANALYSIS_REPORT":
-      return { ...state, analysisReport: action.payload };
-
-    case "SET_ANALYSIS_COMPLETE":
-      return { ...state, isAnalysisComplete: action.payload };
-
-    case "SET_ANALYSIS_ID":
-      return { ...state, analysisId: action.payload };
-
-    case "SET_TASK_RESULTS":
-      return { ...state, taskResults: action.payload };
-
-    case "SET_SHOW_REPORT_MODAL":
-      return { ...state, showReportModal: action.payload };
-
-    case "SET_ADVANCED_SETTINGS":
-      return {
-        ...state,
-        advancedSettings: { ...state.advancedSettings, ...action.payload },
-      };
-
-    case "SET_AI_RESPONSE":
-      return { ...state, aiResponse: action.payload };
-
-    case "SET_ERROR":
-      return { ...state, error: action.payload };
-
-    case "SET_LOADING":
-      return { ...state, isLoading: action.payload };
-
-    case "CLEAR_ANALYSIS_DATA":
-      return {
-        ...state,
-        analysisReport: "",
-        analysisId: null,
-        isAnalysisComplete: false,
-        isManualMode: false,
-        textInput: "",
-        catalogResult: null,
-        error: null,
-        taskResults: {},
-      };
-
-    case "ENABLE_MANUAL_MODE":
-      return {
-        ...state,
-        analysisId: null,
-        isManualMode: true,
-        isAnalysisComplete:
-          state.analysisReport.trim().length > MIN_TEXT_LENGTH,
-      };
-
-    case "LOAD_SEVEN_STATIONS":
-      return {
-        ...state,
-        analysisReport: action.payload.finalReport,
-        textInput: action.payload.originalText,
-        isAnalysisComplete: true,
-      };
-
-    case "LOAD_SESSION_ANALYSIS":
-      return {
-        ...state,
-        analysisReport: action.payload.report,
-        analysisId: action.payload.id,
-        isAnalysisComplete: true,
-      };
-
     default:
-      return state;
+      return (
+        reduceAnalysisAction(state, action) ??
+        reduceSessionAction(state, action) ??
+        state
+      );
   }
 }

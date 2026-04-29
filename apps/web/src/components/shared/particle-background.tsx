@@ -230,17 +230,9 @@ interface ParticleSceneBuildContext {
   sceneRef: React.MutableRefObject<SceneState | null>;
 }
 
-function buildParticleScene(
-  context: ParticleSceneBuildContext
-) {
-  const {
-    colors,
-    finalCount,
-    originalPositions,
-    positions,
-    scene,
-    sceneRef,
-  } = context;
+function buildParticleScene(context: ParticleSceneBuildContext) {
+  const { colors, finalCount, originalPositions, positions, scene, sceneRef } =
+    context;
   if (!sceneRef.current) return;
   sceneRef.current.particleCount = finalCount;
   const finalPositions = positions.slice(0, finalCount * 3);

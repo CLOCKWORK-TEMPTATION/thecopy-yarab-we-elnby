@@ -59,6 +59,111 @@ const statusLabels = {
   flagged: "مُعلّم",
 };
 
+function SceneHeader({
+  title,
+  status,
+}: {
+  title: string;
+  status: SceneStatus;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <h3 className="flex-1 text-[var(--color-text)] line-clamp-2" dir="rtl">
+        {title}
+      </h3>
+      {status === "flagged" && (
+        <Flag
+          className="w-4 h-4 flex-shrink-0"
+          style={{ color: statusColors.flagged }}
+        />
+      )}
+    </div>
+  );
+}
+
+function SceneBeats({
+  beats,
+  isCompact,
+}: {
+  beats: string[];
+  isCompact: boolean;
+}) {
+  if (beats.length === 0) return null;
+
+  const visibleLimit = isCompact ? 2 : 4;
+  return (
+    <div className="flex flex-wrap gap-2" dir="rtl">
+      {beats.slice(0, visibleLimit).map((beat, idx) => (
+        <Badge
+          key={idx}
+          variant="secondary"
+          className="bg-[var(--color-surface)] text-[var(--color-muted)] hover:bg-[var(--color-surface)]"
+        >
+          {beat}
+        </Badge>
+      ))}
+      {beats.length > visibleLimit && (
+        <Badge
+          variant="secondary"
+          className="bg-[var(--color-surface)] text-[var(--color-muted)]"
+        >
+          +{beats.length - visibleLimit}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function SceneFooter({
+  duration,
+  status,
+  linksIn,
+  linksOut,
+}: {
+  duration: string | undefined;
+  status: SceneStatus;
+  linksIn: number;
+  linksOut: number;
+}) {
+  return (
+    <div className="flex items-center justify-between mt-auto pt-3 border-t border-[var(--color-surface)]">
+      <div className="flex items-center gap-4">
+        {duration && (
+          <div className="flex items-center gap-1 text-[var(--color-muted)]">
+            <Clock className="w-4 h-4" />
+            <span>{duration}</span>
+          </div>
+        )}
+        <Badge
+          variant="outline"
+          className="border-current"
+          style={{
+            color: statusColors[status],
+            borderColor: statusColors[status],
+          }}
+        >
+          {statusLabels[status]}
+        </Badge>
+      </div>
+
+      <div className="flex items-center gap-2 text-[var(--color-muted)]">
+        {linksIn > 0 && (
+          <div className="flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" />
+            <span>{linksIn}</span>
+          </div>
+        )}
+        {linksOut > 0 && (
+          <div className="flex items-center gap-1">
+            <ArrowRight className="w-4 h-4" />
+            <span>{linksOut}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SceneCard({
   scene,
   connections = {},
@@ -96,81 +201,14 @@ export function SceneCard({
       <div
         className={`p-${isCompact ? "4" : "6"} flex flex-col gap-${isCompact ? "2" : "3"}`}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <h3
-            className="flex-1 text-[var(--color-text)] line-clamp-2"
-            dir="rtl"
-          >
-            {title}
-          </h3>
-          {status === "flagged" && (
-            <Flag
-              className="w-4 h-4 flex-shrink-0"
-              style={{ color: statusColors.flagged }}
-            />
-          )}
-        </div>
-
-        {/* Beats */}
-        {beats.length > 0 && (
-          <div className="flex flex-wrap gap-2" dir="rtl">
-            {beats.slice(0, isCompact ? 2 : 4).map((beat, idx) => (
-              <Badge
-                key={idx}
-                variant="secondary"
-                className="bg-[var(--color-surface)] text-[var(--color-muted)] hover:bg-[var(--color-surface)]"
-              >
-                {beat}
-              </Badge>
-            ))}
-            {beats.length > (isCompact ? 2 : 4) && (
-              <Badge
-                variant="secondary"
-                className="bg-[var(--color-surface)] text-[var(--color-muted)]"
-              >
-                +{beats.length - (isCompact ? 2 : 4)}
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[var(--color-surface)]">
-          <div className="flex items-center gap-4">
-            {duration && (
-              <div className="flex items-center gap-1 text-[var(--color-muted)]">
-                <Clock className="w-4 h-4" />
-                <span>{duration}</span>
-              </div>
-            )}
-            <Badge
-              variant="outline"
-              className="border-current"
-              style={{
-                color: statusColors[status],
-                borderColor: statusColors[status],
-              }}
-            >
-              {statusLabels[status]}
-            </Badge>
-          </div>
-
-          <div className="flex items-center gap-2 text-[var(--color-muted)]">
-            {linksIn > 0 && (
-              <div className="flex items-center gap-1">
-                <ArrowLeft className="w-4 h-4" />
-                <span>{linksIn}</span>
-              </div>
-            )}
-            {linksOut > 0 && (
-              <div className="flex items-center gap-1">
-                <ArrowRight className="w-4 h-4" />
-                <span>{linksOut}</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <SceneHeader title={title} status={status} />
+        <SceneBeats beats={beats} isCompact={isCompact} />
+        <SceneFooter
+          duration={duration}
+          status={status}
+          linksIn={linksIn}
+          linksOut={linksOut}
+        />
       </div>
     </motion.div>
   );

@@ -13,6 +13,45 @@ export interface Project extends ApiProject {
 
 let currentProject: Project | null = null;
 
+function isOptionalString(value: unknown): boolean {
+  return value === undefined || typeof value === "string";
+}
+
+function hasRequiredStrings(
+  project: Record<string, unknown>,
+  keys: readonly string[]
+): boolean {
+  return keys.every((key) => typeof project[key] === "string");
+}
+
+function hasValidScriptContent(project: Record<string, unknown>): boolean {
+  return (
+    !("scriptContent" in project) ||
+    project["scriptContent"] === null ||
+    typeof project["scriptContent"] === "string"
+  );
+}
+
+function isApiProject(project: Record<string, unknown>): boolean {
+  return (
+    hasRequiredStrings(project, [
+      "id",
+      "title",
+      "userId",
+      "createdAt",
+      "updatedAt",
+    ]) && hasValidScriptContent(project)
+  );
+}
+
+function isLegacyProject(project: Record<string, unknown>): boolean {
+  return (
+    typeof project["id"] === "string" &&
+    isOptionalString(project["name"]) &&
+    isOptionalString(project["description"])
+  );
+}
+
 function parseStoredProject(stored: string): Project | null {
   const parsed: unknown = JSON.parse(stored);
 
@@ -20,22 +59,7 @@ function parseStoredProject(stored: string): Project | null {
     return null;
   }
 
-  const requiredStrings = [
-    "id",
-    "title",
-    "userId",
-    "createdAt",
-    "updatedAt",
-  ] as const;
-
-  if (requiredStrings.some((key) => typeof parsed[key] !== "string")) {
-    return null;
-  }
-
-  if (
-    parsed["scriptContent"] !== null &&
-    typeof parsed["scriptContent"] !== "string"
-  ) {
+  if (!isApiProject(parsed) && !isLegacyProject(parsed)) {
     return null;
   }
 

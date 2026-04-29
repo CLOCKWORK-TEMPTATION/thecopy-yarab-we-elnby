@@ -9,19 +9,16 @@ import {
   type RecordedAICorrection,
 } from "@editor/extensions/pipeline-recorder";
 
+import {
+  getStageMeta,
+  KNOWN_STAGES,
+  ProgressBar,
+  RunStagesPanel,
+  TypeDistBar,
+  type StageEntry,
+} from "./PipelineMonitorParts";
+
 import type { ProgressiveSurfaceState } from "../editor/editor-area.types";
-
-// ─── أنواع ─────────────────────────────────────────────────────────
-
-interface StageEntry {
-  stage: string;
-  lineCount: number;
-  changes: number;
-  latencyMs: number;
-  timestamp: number;
-  metadata?: Record<string, unknown>;
-  activeFiles: string[];
-}
 
 interface RunState {
   runId: string;
@@ -35,202 +32,6 @@ interface RunState {
   totalDurationMs: number;
   finalTypeDist: Record<string, number>;
 }
-
-// ─── ثوابت المراحل ──────────────────────────────────────────────────
-
-const STAGE_META: Record<string, { label: string; icon: string }> = {
-  "engine-bridge": { label: "البريدج", icon: "🌉" },
-  "schema-style-classify": { label: "تصنيف Schema", icon: "📐" },
-  "forward-pass": { label: "التمرير الأمامي", icon: "➡️" },
-  retroactive: { label: "التصحيح الرجعي", icon: "🔄" },
-  "reverse-pass": { label: "التمرير العكسي", icon: "⬅️" },
-  viterbi: { label: "Viterbi", icon: "🧬" },
-  "render-first": { label: "العرض الأول", icon: "🖥️" },
-  "gemini-context": { label: "Gemini سياق", icon: "🤖" },
-  "final-review": { label: "المراجعة النهائية", icon: "🧠" },
-};
-
-const getStageMeta = (stage: string) =>
-  STAGE_META[stage] ?? { label: stage, icon: "⚙️" };
-
-// ─── مكون شريط التقدم ──────────────────────────────────────────────
-
-const ProgressBar: React.FC<{ current: number; total: number }> = ({
-  current,
-  total,
-}) => {
-  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-  return (
-    <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/18">
-      <div
-        className="h-full rounded-full bg-gradient-to-l from-cyan-400 to-blue-600 transition-all duration-300"
-        style={{ width: `${pct}%` }}
-      />
-    </div>
-  );
-};
-
-// ─── مكون مرحلة واحدة ──────────────────────────────────────────────
-
-const StageRow: React.FC<{
-  entry: StageEntry;
-  isActive: boolean;
-  isLast: boolean;
-}> = ({ entry, isActive, isLast }) => {
-  const meta = getStageMeta(entry.stage);
-  return (
-    <>
-      <div
-        className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors ${isActive ? "border border-cyan-700/40 bg-cyan-950/60" : isLast ? "bg-black/18" : "bg-transparent"}`}
-      >
-        <span className="shrink-0 text-sm">{meta.icon}</span>
-        <span className="min-w-[100px] font-medium text-white">
-          {meta.label}
-        </span>
-        <span className="text-white/45 tabular-nums">
-          {entry.lineCount} سطر
-        </span>
-        {entry.changes > 0 && (
-          <span className="text-amber-400 tabular-nums">Δ{entry.changes}</span>
-        )}
-        {entry.latencyMs > 0 && (
-          <span className="ms-auto text-white/55 tabular-nums">
-            {entry.latencyMs}ms
-          </span>
-        )}
-        {isActive && (
-          <span className="relative ms-1 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-          </span>
-        )}
-      </div>
-      {entry.activeFiles.length > 0 && (
-        <div className="-mt-0.5 flex flex-wrap gap-1 px-3 pb-1">
-          {entry.activeFiles.map((f) => (
-            <span
-              key={f}
-              className="rounded bg-black/18 px-1.5 py-0.5 font-mono text-[9px] text-cyan-400/70"
-            >
-              {f}
-            </span>
-          ))}
-        </div>
-      )}
-    </>
-  );
-};
-
-// ─── مكون توزيع الأنواع ──────────────────────────────────────────
-
-const TYPE_COLORS: Record<string, string> = {
-  action: "bg-emerald-500",
-  dialogue: "bg-blue-500",
-  character: "bg-purple-500",
-  scene_header_1: "bg-amber-500",
-  scene_header_2: "bg-orange-500",
-  scene_header_3: "bg-yellow-500",
-  transition: "bg-red-500",
-  parenthetical: "bg-pink-500",
-  basmala: "bg-teal-500",
-};
-
-const TypeDistBar: React.FC<{ dist: Record<string, number> }> = ({ dist }) => {
-  const total = Object.values(dist).reduce((a, b) => a + b, 0);
-  if (total === 0) return null;
-  const entries = Object.entries(dist).sort(([, a], [, b]) => b - a);
-  return (
-    <div className="space-y-1">
-      <div className="flex h-2 gap-px overflow-hidden rounded-full">
-        {entries.map(([type, count]) => (
-          <div
-            key={type}
-            className={`${TYPE_COLORS[type] ?? "bg-white/45"} transition-all duration-500`}
-            style={{ width: `${(count / total) * 100}%` }}
-            title={`${type}: ${count}`}
-          />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-white/45">
-        {entries.map(([type, count]) => (
-          <span key={type} className="flex items-center gap-1">
-            <span
-              className={`inline-block h-1.5 w-1.5 rounded-full ${TYPE_COLORS[type] ?? "bg-white/45"}`}
-            />
-            {type.replace(/_/g, " ")} ({count})
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ─── ثوابت المراحل المعروفة ──────────────────────────────────────
-
-const KNOWN_STAGES = [
-  "schema-style-classify",
-  "forward-pass",
-  "retroactive",
-  "reverse-pass",
-  "viterbi",
-  "render-first",
-  "gemini-context",
-  "final-review",
-];
-
-// ─── مكون مراحل التشغيل ──────────────────────────────────────────
-
-const RunStagesPanel: React.FC<{
-  run: RunState;
-  activeStageIndex: number;
-  completedStages: string[];
-}> = ({ run, activeStageIndex, completedStages }) => (
-  <div className="max-h-[220px] space-y-1 overflow-y-auto border-b border-white/8 px-3 py-2">
-    {KNOWN_STAGES.map((stageKey, idx) => {
-      const entry = run.stages.find((s) => s.stage === stageKey);
-      const isActive = idx === activeStageIndex;
-      const isPending = !entry && !run.finished;
-      const isSkipped = !entry && run.finished;
-
-      if (entry) {
-        return (
-          <StageRow
-            key={stageKey}
-            entry={entry}
-            isActive={isActive}
-            isLast={idx === completedStages.length - 1}
-          />
-        );
-      }
-
-      const meta = getStageMeta(stageKey);
-      return (
-        <div
-          key={stageKey}
-          className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs ${isActive ? "border border-cyan-800/30 bg-cyan-950/30" : ""}`}
-        >
-          <span
-            className={`shrink-0 text-sm ${isPending ? "opacity-30" : "opacity-20"}`}
-          >
-            {meta.icon}
-          </span>
-          <span
-            className={`min-w-[100px] font-medium ${isPending ? "text-white/55" : "text-white/68 line-through"}`}
-          >
-            {meta.label}
-          </span>
-          {isSkipped && <span className="text-[10px] text-white/68">تخطي</span>}
-          {isActive && (
-            <span className="relative ms-auto flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-            </span>
-          )}
-        </div>
-      );
-    })}
-  </div>
-);
 
 // ─── مكون لوحة استعادة الفشل ─────────────────────────────────────
 
@@ -391,6 +192,178 @@ function buildPipelineEventHandler(
   };
 }
 
+function PipelineHeader({
+  run,
+  elapsed,
+  logEntries,
+  onDownload,
+  onClose,
+}: {
+  run: RunState | null;
+  elapsed: number;
+  logEntries: string[];
+  onDownload: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
+      <div className="flex items-center gap-2">
+        <span className="text-base">📡</span>
+        <span className="text-sm font-semibold text-white">
+          مراقب الـ Pipeline
+        </span>
+        {run && !run.finished && (
+          <span className="animate-pulse text-[10px] text-cyan-400 tabular-nums">
+            LIVE
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {run && (
+          <span className="text-[10px] text-white/45 tabular-nums">
+            {run.finished
+              ? `${(run.totalDurationMs / 1000).toFixed(1)}s`
+              : `${(elapsed / 1000).toFixed(1)}s`}
+          </span>
+        )}
+        <button
+          onClick={onDownload}
+          disabled={logEntries.length === 0}
+          className="px-1 text-sm leading-none text-white/45 transition-colors hover:text-white/68 disabled:cursor-not-allowed disabled:opacity-30"
+          title="تحميل السجل"
+        >
+          ⬇
+        </button>
+        <button
+          onClick={onClose}
+          className="px-1 text-lg leading-none text-white/45 transition-colors hover:text-white/68"
+          title="إغلاق (Ctrl+Shift+M)"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RunInfoPanel({
+  run,
+  completedStages,
+}: {
+  run: RunState | null;
+  completedStages: string[];
+}) {
+  if (!run) {
+    return (
+      <div className="px-4 py-6 text-center text-xs text-white/55">
+        في انتظار عملية لصق أو استيراد ملف...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1 border-b border-white/8 px-4 py-2 text-[11px] text-white/45">
+      <div className="flex justify-between">
+        <span>
+          المصدر: <span className="text-white/68">{run.source}</span>
+        </span>
+        <span>
+          {run.inputLines} سطر · {run.inputChars} حرف
+        </span>
+      </div>
+      <ProgressBar
+        current={completedStages.length}
+        total={KNOWN_STAGES.length}
+      />
+    </div>
+  );
+}
+
+function FailureRecoverySlot({
+  progressiveSurfaceState,
+  onDismissFailure,
+}: {
+  progressiveSurfaceState: ProgressiveSurfaceState | null;
+  onDismissFailure: () => void;
+}) {
+  const activeRun = progressiveSurfaceState?.activeRun;
+  if (
+    activeRun?.status !== "failed-after-visible" ||
+    !activeRun.failureRecoveryRequired
+  ) {
+    return null;
+  }
+
+  return (
+    <FailureRecoveryBanner
+      message={activeRun.latestFailureMessage ?? null}
+      onDismiss={onDismissFailure}
+    />
+  );
+}
+
+function CorrectionsSummary({
+  run,
+  appliedCorrections,
+}: {
+  run: RunState | null;
+  appliedCorrections: number;
+}) {
+  if (!run || run.aiCorrections.length === 0) return null;
+
+  return (
+    <div className="border-b border-white/8 px-4 py-2 text-[11px]">
+      <span className="text-white/45">
+        تصحيحات AI:{" "}
+        <span className="text-emerald-400">{appliedCorrections} مطبّق</span>
+        {" · "}
+        <span className="text-white/55">
+          {run.aiCorrections.length - appliedCorrections} مرفوض
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function TypeDistributionSection({ run }: { run: RunState | null }) {
+  if (!run?.finished || Object.keys(run.finalTypeDist).length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border-b border-white/8 px-4 py-2">
+      <TypeDistBar dist={run.finalTypeDist} />
+    </div>
+  );
+}
+
+function LiveLog({
+  logRef,
+  logEntries,
+}: {
+  logRef: React.RefObject<HTMLDivElement | null>;
+  logEntries: string[];
+}) {
+  return (
+    <div
+      ref={logRef}
+      className="max-h-[180px] min-h-[100px] flex-1 space-y-0.5 overflow-y-auto px-3 py-2 font-mono text-[10px] leading-relaxed text-white/45"
+    >
+      {logEntries.length === 0 ? (
+        <div className="py-4 text-center text-white/55">
+          السجل فارغ — الصق نص أو افتح ملف
+        </div>
+      ) : (
+        logEntries.map((entry, i) => (
+          <div key={i} className="break-all whitespace-pre-wrap">
+            {entry}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 export const PipelineMonitor: React.FC<{
   visible: boolean;
   progressiveSurfaceState: ProgressiveSurfaceState | null;
@@ -472,122 +445,32 @@ export const PipelineMonitor: React.FC<{
       dir="rtl"
       className="fixed bottom-4 left-4 z-[9999] flex max-h-[85vh] w-[420px] flex-col overflow-hidden rounded-[22px] border border-white/8 bg-black/14 shadow-2xl shadow-black/40 backdrop-blur-xl select-none"
     >
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between border-b border-white/8 px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="text-base">📡</span>
-          <span className="text-sm font-semibold text-white">
-            مراقب الـ Pipeline
-          </span>
-          {run && !run.finished && (
-            <span className="animate-pulse text-[10px] text-cyan-400 tabular-nums">
-              LIVE
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {run && (
-            <span className="text-[10px] text-white/45 tabular-nums">
-              {run.finished
-                ? `${(run.totalDurationMs / 1000).toFixed(1)}s`
-                : `${(elapsed / 1000).toFixed(1)}s`}
-            </span>
-          )}
-          <button
-            onClick={downloadLog}
-            disabled={logEntries.length === 0}
-            className="px-1 text-sm leading-none text-white/45 transition-colors hover:text-white/68 disabled:cursor-not-allowed disabled:opacity-30"
-            title="تحميل السجل"
-          >
-            ⬇
-          </button>
-          <button
-            onClick={onClose}
-            className="px-1 text-lg leading-none text-white/45 transition-colors hover:text-white/68"
-            title="إغلاق (Ctrl+Shift+M)"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {/* ── Run Info ── */}
-      {run ? (
-        <div className="space-y-1 border-b border-white/8 px-4 py-2 text-[11px] text-white/45">
-          <div className="flex justify-between">
-            <span>
-              المصدر: <span className="text-white/68">{run.source}</span>
-            </span>
-            <span>
-              {run.inputLines} سطر · {run.inputChars} حرف
-            </span>
-          </div>
-          <ProgressBar
-            current={completedStages.length}
-            total={KNOWN_STAGES.length}
-          />
-        </div>
-      ) : (
-        <div className="px-4 py-6 text-center text-xs text-white/55">
-          في انتظار عملية لصق أو استيراد ملف...
-        </div>
-      )}
-
-      {progressiveSurfaceState?.activeRun?.status === "failed-after-visible" &&
-        progressiveSurfaceState.activeRun.failureRecoveryRequired && (
-          <FailureRecoveryBanner
-            message={progressiveSurfaceState.activeRun.latestFailureMessage}
-            onDismiss={onDismissFailure}
-          />
-        )}
+      <PipelineHeader
+        run={run}
+        elapsed={elapsed}
+        logEntries={logEntries}
+        onDownload={downloadLog}
+        onClose={onClose}
+      />
+      <RunInfoPanel run={run} completedStages={completedStages} />
+      <FailureRecoverySlot
+        progressiveSurfaceState={progressiveSurfaceState}
+        onDismissFailure={onDismissFailure}
+      />
 
       {/* ── Stages ── */}
       {run && (
         <RunStagesPanel
-          run={run}
+          stages={run.stages}
+          finished={run.finished}
           activeStageIndex={activeStageIndex}
           completedStages={completedStages}
         />
       )}
 
-      {/* ── AI Corrections Summary ── */}
-      {run && run.aiCorrections.length > 0 && (
-        <div className="border-b border-white/8 px-4 py-2 text-[11px]">
-          <span className="text-white/45">
-            تصحيحات AI:{" "}
-            <span className="text-emerald-400">{appliedCorrections} مطبّق</span>
-            {" · "}
-            <span className="text-white/55">
-              {run.aiCorrections.length - appliedCorrections} مرفوض
-            </span>
-          </span>
-        </div>
-      )}
-
-      {/* ── Type Distribution ── */}
-      {run?.finished && Object.keys(run.finalTypeDist).length > 0 && (
-        <div className="border-b border-white/8 px-4 py-2">
-          <TypeDistBar dist={run.finalTypeDist} />
-        </div>
-      )}
-
-      {/* ── Live Log ── */}
-      <div
-        ref={logRef}
-        className="max-h-[180px] min-h-[100px] flex-1 space-y-0.5 overflow-y-auto px-3 py-2 font-mono text-[10px] leading-relaxed text-white/45"
-      >
-        {logEntries.length === 0 ? (
-          <div className="py-4 text-center text-white/55">
-            السجل فارغ — الصق نص أو افتح ملف
-          </div>
-        ) : (
-          logEntries.map((entry, i) => (
-            <div key={i} className="break-all whitespace-pre-wrap">
-              {entry}
-            </div>
-          ))
-        )}
-      </div>
+      <CorrectionsSummary run={run} appliedCorrections={appliedCorrections} />
+      <TypeDistributionSection run={run} />
+      <LiveLog logRef={logRef} logEntries={logEntries} />
     </div>
   );
 };

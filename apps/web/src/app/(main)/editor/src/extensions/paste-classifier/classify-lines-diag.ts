@@ -17,16 +17,16 @@ const countMatches = (text: string, re: RegExp): number =>
 
 export const buildCharBreakdown = (text: string): Record<string, number> => ({
   cr: countMatches(text, /\r/g),
-  nbsp: countMatches(text, / /gu),
-  zwnj: countMatches(text, /‌/gu),
-  zwj: countMatches(text, /‍/gu),
-  zwsp: countMatches(text, /​/gu),
-  lrm: countMatches(text, /‎/gu),
-  rlm: countMatches(text, /‏/gu),
-  bom: countMatches(text, /﻿/gu),
+  nbsp: countMatches(text, /\u00a0/gu),
+  zwnj: countMatches(text, /\u200c/gu),
+  zwj: countMatches(text, /\u200d/gu),
+  zwsp: countMatches(text, /\u200b/gu),
+  lrm: countMatches(text, /\u200e/gu),
+  rlm: countMatches(text, /\u200f/gu),
+  bom: countMatches(text, /\ufeff/gu),
   tab: countMatches(text, /\t/g),
-  softHyphen: countMatches(text, /­/gu),
-  alm: countMatches(text, /؜/gu),
+  softHyphen: countMatches(text, /\u00ad/gu),
+  alm: countMatches(text, /\u061c/gu),
   fullwidthColon: countMatches(text, /：/gu),
 });
 

@@ -24,9 +24,17 @@ import { SessionHistory } from "./features/SessionHistory";
 import AgentsSidebar from "./layout/AgentsSidebar";
 import BrainStormHeader from "./layout/BrainStormHeader";
 
-import type { BrainstormCatalog } from "../types";
-import type { SessionMessage } from "../types";
-import type { Session } from "../types";
+import type { SavedSession } from "../hooks/useSessionPersistence";
+import type {
+  AgentState,
+  BrainstormCatalog,
+  BrainstormAgentDefinition,
+  BrainstormAgentStats,
+  BrainstormPhase,
+  DebateMessage,
+  PhaseDisplayInfo,
+  Session,
+} from "../types";
 
 function LoadingState() {
   return (
@@ -75,24 +83,24 @@ function EmptyState({ error }: EmptyStateProps) {
 interface MainWorkspaceProps {
   catalog: BrainstormCatalog;
   currentSession: Session | null;
-  debateMessages: SessionMessage[];
+  debateMessages: DebateMessage[];
   brief: string;
   setBrief: React.Dispatch<React.SetStateAction<string>>;
   isLoading: boolean;
-  progressPercent: number;
-  activePhase: string;
-  setActivePhase: (p: string) => void;
-  phases: string[];
-  realAgents: unknown[];
-  displayedAgents: unknown[];
+  progressPercent: string;
+  activePhase: BrainstormPhase;
+  setActivePhase: (p: BrainstormPhase) => void;
+  phases: PhaseDisplayInfo[];
+  realAgents: readonly BrainstormAgentDefinition[];
+  displayedAgents: readonly BrainstormAgentDefinition[];
   showAllAgents: boolean;
   setShowAllAgents: (v: boolean) => void;
-  phaseAgents: unknown[];
-  agentStats: unknown;
+  phaseAgents: readonly BrainstormAgentDefinition[];
+  agentStats: BrainstormAgentStats;
   expandedAgents: Set<string>;
   toggleAgentExpand: (id: string) => void;
-  getAgentState: (id: string) => unknown;
-  savedSessions: unknown[];
+  getAgentState: (id: string) => AgentState;
+  savedSessions: SavedSession[];
   error: string | null;
   showShortcutsHelp: boolean;
   onStartSession: () => Promise<void>;
@@ -139,7 +147,7 @@ function MainWorkspace({
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl" dir="rtl">
       <BrainStormHeader
-        agentStats={agentStats as never}
+        agentStats={agentStats}
         error={error}
         currentSession={currentSession}
       />
@@ -181,20 +189,20 @@ function MainWorkspace({
 
         <div className="space-y-6">
           <AgentsSidebar
-            displayedAgents={displayedAgents as never}
-            allAgents={realAgents as never}
+            displayedAgents={displayedAgents}
+            allAgents={realAgents}
             showAllAgents={showAllAgents}
             setShowAllAgents={setShowAllAgents}
             totalAgentCount={realAgents.length}
-            phaseAgentCount={(phaseAgents as unknown[]).length}
+            phaseAgentCount={phaseAgents.length}
             activePhase={activePhase}
-            getAgentState={getAgentState as never}
+            getAgentState={getAgentState}
             expandedAgents={expandedAgents}
             toggleAgentExpand={toggleAgentExpand}
           />
 
           <SessionHistory
-            sessions={savedSessions as never}
+            sessions={savedSessions}
             onLoad={onLoadSavedSession}
             onDelete={onDeleteSession}
             onClearAll={onClearAllSessions}
@@ -202,7 +210,7 @@ function MainWorkspace({
         </div>
       </div>
 
-      <FeaturesGrid agentStats={agentStats as never} />
+      <FeaturesGrid agentStats={agentStats} />
 
       <KeyboardShortcutsHelp
         isOpen={showShortcutsHelp}
@@ -348,12 +356,12 @@ export default function BrainStormContent() {
       currentSession={currentSession}
       debateMessages={debateMessages}
       brief={brief}
-      setBrief={setBrief as React.Dispatch<React.SetStateAction<string>>}
+      setBrief={setBrief}
       isLoading={isLoading}
       progressPercent={progressPercent}
       activePhase={activePhase}
-      setActivePhase={setActivePhase as (p: string) => void}
-      phases={phases as string[]}
+      setActivePhase={setActivePhase}
+      phases={phases}
       realAgents={realAgents}
       displayedAgents={displayedAgents}
       showAllAgents={showAllAgents}

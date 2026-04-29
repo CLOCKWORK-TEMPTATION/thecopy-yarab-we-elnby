@@ -36,13 +36,40 @@ interface ContextMap {
   totalTokens: number;
 }
 
+type StationStatus = "pending" | "running" | "completed" | "failed";
+
 interface AnalysisSnapshot {
   text: string;
   results: Record<string, unknown>;
-  statuses: string[];
+  statuses: StationStatus[];
   activeStation: number | null;
   errorMessage: string | null;
   analysisId: string | null;
+}
+
+function createPendingStatuses(): StationStatus[] {
+  return Array<StationStatus>(STATIONS.length).fill("pending");
+}
+
+function isStationStatus(value: unknown): value is StationStatus {
+  return (
+    value === "pending" ||
+    value === "running" ||
+    value === "completed" ||
+    value === "failed"
+  );
+}
+
+function normalizeStatuses(value: unknown): StationStatus[] {
+  if (
+    Array.isArray(value) &&
+    value.length === STATIONS.length &&
+    value.every(isStationStatus)
+  ) {
+    return value;
+  }
+
+  return createPendingStatuses();
 }
 
 function restoreResults(
@@ -212,8 +239,8 @@ const STATIONS = [
 const StationsPipeline = () => {
   const [text, setText] = useState("");
   const [results, setResults] = useState<Record<number, unknown>>({});
-  const [statuses, setStatuses] = useState<string[]>(
-    Array<string>(STATIONS.length).fill("pending")
+  const [statuses, setStatuses] = useState<StationStatus[]>(
+    createPendingStatuses
   );
   const [activeStation, setActiveStation] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -236,12 +263,7 @@ const StationsPipeline = () => {
         if (cancelled || !snapshot) return;
         setText(snapshot.text ?? "");
         setResults(restoreResults(snapshot.results));
-        setStatuses(
-          Array.isArray(snapshot.statuses) &&
-            snapshot.statuses.length === STATIONS.length
-            ? snapshot.statuses
-            : Array<string>(STATIONS.length).fill("pending")
-        );
+        setStatuses(normalizeStatuses(snapshot.statuses));
         setActiveStation(snapshot.activeStation ?? null);
         setErrorMessage(snapshot.errorMessage ?? null);
         setAnalysisId(snapshot.analysisId ?? null);
@@ -299,7 +321,7 @@ const StationsPipeline = () => {
   const handleReset = () => {
     setText("");
     setResults({});
-    setStatuses(Array<string>(STATIONS.length).fill("pending"));
+    setStatuses(createPendingStatuses());
     setActiveStation(null);
     setErrorMessage(null);
     setAnalysisId(null);
@@ -319,7 +341,7 @@ const StationsPipeline = () => {
       return;
     }
 
-    setStatuses(Array<string>(STATIONS.length).fill("pending"));
+    setStatuses(createPendingStatuses());
     setResults({});
     setErrorMessage(null);
 
@@ -330,7 +352,7 @@ const StationsPipeline = () => {
           projectName: "تحليل درامي شامل",
         });
         const formattedResults = buildFormattedResults(pipelineResult);
-        const nextStatuses = STATIONS.map((station) =>
+        const nextStatuses: StationStatus[] = STATIONS.map((station) =>
           formattedResults[station.id] ? "completed" : "failed"
         );
         const newAnalysisId = saveAnalysisToSession(
@@ -474,7 +496,7 @@ const StationsPipeline = () => {
           <StationCard
             key={station.id}
             station={station}
-            status={statuses[index]}
+            status={statuses[index] ?? "pending"}
             results={results}
             isActive={activeStation === station.id}
           />

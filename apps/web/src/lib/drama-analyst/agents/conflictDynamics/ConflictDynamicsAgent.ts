@@ -49,39 +49,15 @@ export class ConflictDynamicsAgent extends BaseAgent {
     const identifyResolution = ctx?.identifyResolution ?? true;
 
     let prompt = `مهمة تحليل ديناميكيات الصراع الدرامي\n\n`;
-
-    if (originalText) {
-      prompt += `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
-    }
-
-    if (characters.length > 0) {
-      prompt += `الشخصيات الرئيسية:\n`;
-      characters.slice(0, 5).forEach((char: unknown, idx: number) => {
-        const charName =
-          typeof char === "string"
-            ? char
-            : this.readStringField(char, "name", `شخصية ${idx + 1}`);
-        prompt += `${idx + 1}. ${charName}\n`;
-      });
-      prompt += "\n";
-    }
-
-    if (plotPoints.length > 0) {
-      prompt += `نقاط الحبكة الرئيسية:\n`;
-      plotPoints.slice(0, 4).forEach((point: unknown, idx: number) => {
-        const pointText =
-          typeof point === "string"
-            ? point
-            : this.readStringField(point, "description", `نقطة ${idx + 1}`);
-        prompt += `${idx + 1}. ${pointText}\n`;
-      });
-      prompt += "\n";
-    }
-
-    prompt += `أنواع الصراعات المطلوب تحليلها: ${conflictTypes.map((type) => this.translateConflictType(type)).join("، ")}\n`;
-    prompt += `تحليل التطور: ${analyzeEvolution ? "نعم" : "لا"}\n`;
-    prompt += `تتبع الشدة: ${trackIntensity ? "نعم" : "لا"}\n`;
-    prompt += `تحديد الحل: ${identifyResolution ? "نعم" : "لا"}\n\n`;
+    prompt += this.formatOriginalTextSection(originalText);
+    prompt += this.formatCharactersSection(characters);
+    prompt += this.formatPlotPointsSection(plotPoints);
+    prompt += this.formatConflictOptionsSection(
+      conflictTypes,
+      analyzeEvolution,
+      trackIntensity,
+      identifyResolution
+    );
 
     prompt += `المهمة المطلوبة:\n${taskInput}\n\n`;
 
@@ -97,32 +73,11 @@ export class ConflictDynamicsAgent extends BaseAgent {
    - **الرهانات**: ما الذي على المحك، ما الذي يمكن أن يُفقد أو يُكسب
    - **الأدلة النصية**: أمثلة محددة من النص توضح الصراع
 
-${
-  analyzeEvolution
-    ? `3. **تطور الصراع**: كيف يتطور كل صراع عبر النص
-   - نقطة البداية
-   - التصعيد والذروة
-   - لحظات التحول الحاسمة`
-    : ""
-}
-
-${
-  trackIntensity
-    ? `4. **شدة الصراع**: تقييم مستوى الشدة والتوتر
-   - المستوى الحالي (منخفض، متوسط، عالي، حرج)
-   - التقلبات والتذبذبات
-   - المشاهد ذات الشدة القصوى`
-    : ""
-}
-
-${
+${this.formatConditionalInstructionSections(
+  analyzeEvolution,
+  trackIntensity,
   identifyResolution
-    ? `5. **الحل أو الخاتمة**: كيف يُحل أو يُختم كل صراع
-   - نوع الحل (انتصار، هزيمة، تسوية، عدم حل)
-   - رضا الأطراف
-   - التأثير على الشخصيات`
-    : ""
-}
+)}
 
 6. **التشابك والتفاعل**: كيف تتشابك الصراعات المختلفة وتؤثر على بعضها
 
@@ -134,6 +89,94 @@ ${
 لا تستخدم JSON أو جداول. نص تحليلي درامي مباشر.`;
 
     return prompt;
+  }
+
+  private formatOriginalTextSection(originalText: string): string {
+    if (!originalText) return "";
+    return `النص المراد تحليله:\n${originalText.substring(0, 2500)}...\n\n`;
+  }
+
+  private formatCharactersSection(characters: unknown[]): string {
+    if (characters.length === 0) return "";
+
+    const rows = characters
+      .slice(0, 5)
+      .map((char, idx) => {
+        const charName =
+          typeof char === "string"
+            ? char
+            : this.readStringField(char, "name", `شخصية ${idx + 1}`);
+        return `${idx + 1}. ${charName}`;
+      })
+      .join("\n");
+
+    return `الشخصيات الرئيسية:\n${rows}\n\n`;
+  }
+
+  private formatPlotPointsSection(plotPoints: unknown[]): string {
+    if (plotPoints.length === 0) return "";
+
+    const rows = plotPoints
+      .slice(0, 4)
+      .map((point, idx) => {
+        const pointText =
+          typeof point === "string"
+            ? point
+            : this.readStringField(point, "description", `نقطة ${idx + 1}`);
+        return `${idx + 1}. ${pointText}`;
+      })
+      .join("\n");
+
+    return `نقاط الحبكة الرئيسية:\n${rows}\n\n`;
+  }
+
+  private formatConflictOptionsSection(
+    conflictTypes: string[],
+    analyzeEvolution: boolean,
+    trackIntensity: boolean,
+    identifyResolution: boolean
+  ): string {
+    const translatedTypes = conflictTypes
+      .map((type) => this.translateConflictType(type))
+      .join("، ");
+
+    return (
+      `أنواع الصراعات المطلوب تحليلها: ${translatedTypes}\n` +
+      `تحليل التطور: ${analyzeEvolution ? "نعم" : "لا"}\n` +
+      `تتبع الشدة: ${trackIntensity ? "نعم" : "لا"}\n` +
+      `تحديد الحل: ${identifyResolution ? "نعم" : "لا"}\n\n`
+    );
+  }
+
+  private formatConditionalInstructionSections(
+    analyzeEvolution: boolean,
+    trackIntensity: boolean,
+    identifyResolution: boolean
+  ): string {
+    const sections: string[] = [];
+
+    if (analyzeEvolution) {
+      sections.push(`3. **تطور الصراع**: كيف يتطور كل صراع عبر النص
+   - نقطة البداية
+   - التصعيد والذروة
+   - لحظات التحول الحاسمة`);
+    }
+
+    if (trackIntensity) {
+      sections.push(`4. **شدة الصراع**: تقييم مستوى الشدة والتوتر
+   - المستوى الحالي (منخفض، متوسط، عالي، حرج)
+   - التقلبات والتذبذبات
+   - المشاهد ذات الشدة القصوى`);
+    }
+
+    if (identifyResolution) {
+      sections.push(`5. **الحل أو الخاتمة**: كيف يُحل أو يُختم كل صراع
+   - نوع الحل (انتصار، هزيمة، تسوية، عدم حل)
+   - رضا الأطراف
+   - التأثير على الشخصيات`);
+    }
+
+    return sections.join("\n\n");
   }
 
   protected override postProcess(

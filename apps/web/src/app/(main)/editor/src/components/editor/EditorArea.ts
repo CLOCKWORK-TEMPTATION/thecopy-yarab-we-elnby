@@ -89,7 +89,9 @@ export class EditorArea implements EditorHandle {
     this.progressiveManager = new ProgressiveSurfaceManager(
       this.editor,
       this.body,
-      { onProgressiveStateChange: props.onProgressiveStateChange }
+      definedProps({
+        onProgressiveStateChange: props.onProgressiveStateChange,
+      })
     );
 
     this.editor.on("update", this.handleEditorUpdate);
@@ -178,8 +180,9 @@ export class EditorArea implements EditorHandle {
     this.progressiveManager.cancelProgressivePreparation();
   };
 
-  approveCurrentVersion = (): void => {
+  approveCurrentVersion = (): Promise<void> => {
     this.progressiveManager.approveCurrentVersion();
+    return Promise.resolve();
   };
 
   dismissProgressiveFailure = (): boolean =>

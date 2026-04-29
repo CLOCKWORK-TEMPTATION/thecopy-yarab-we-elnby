@@ -112,26 +112,26 @@ export function createGeminiServiceBoundary(
     generateCharacterAnalysis(_prompt, _options = {}) {
       // In a real implementation, we would parse the text as JSON or structured data
       // For now, we return a basic structure
-      return {
+      return Promise.resolve({
         character: { name: "Unknown" },
         analysis: "text",
-      };
+      });
     },
 
     generateRelationships(_prompt, _options = {}) {
       // Parse relationships from text response
       // For now, return empty array - would need proper parsing
-      return [];
+      return Promise.resolve([]);
     },
 
     generateConflicts(_prompt, _options = {}) {
       // Parse conflicts from text response
-      return [];
+      return Promise.resolve([]);
     },
 
     generateThemes(_prompt, _options = {}) {
       // Parse themes from text response
-      return [];
+      return Promise.resolve([]);
     },
 
     async generateDialogueAnalysis(prompt, options = {}) {

@@ -78,7 +78,7 @@ interface UpdateStatusContext {
   emit: (event: string, data: unknown) => void;
   setTasks: (
     fn: (prev: DeliveryTaskWithLocation[]) => DeliveryTaskWithLocation[]
-  ) => void,
+  ) => void;
   setActiveTaskId: (v: string | null) => void;
   setUpdatingStatus: (v: boolean) => void;
 }

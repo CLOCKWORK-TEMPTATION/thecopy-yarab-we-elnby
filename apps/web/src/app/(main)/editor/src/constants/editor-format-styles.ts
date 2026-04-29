@@ -155,82 +155,57 @@ export const getFormatStyles = (
  * @param currentFormat - معرّف نوع العنصر الحالي
  * @returns قيمة CSS للهامش: `'12pt'` لسطر فارغ، `'0'` لعدم تباعد، `''` للافتراضي
  */
+// lookup table للتباعد بين العناصر
+const SPACING_RULES: Record<string, Record<string, string>> = {
+  basmala: {
+    scene_header_top_line: "12pt",
+    default: "0",
+  },
+  character: {
+    dialogue: "0",
+    parenthetical: "0",
+  },
+  parenthetical: {
+    dialogue: "0",
+    character: "0",
+    action: "0",
+    transition: "0",
+  },
+  scene_header_2: {
+    scene_header_3: "0",
+  },
+  scene_header_3: {
+    action: "12pt",
+  },
+  action: {
+    action: "12pt",
+    character: "12pt",
+    transition: "12pt",
+  },
+  dialogue: {
+    character: "12pt",
+    action: "12pt",
+    transition: "12pt",
+  },
+  transition: {
+    scene_header_1: "12pt",
+    scene_header_top_line: "12pt",
+  },
+};
+
 export const getSpacingMarginTop = (
   previousFormat: string,
   currentFormat: string
 ): string => {
-  if (
-    previousFormat === "basmala" &&
-    currentFormat === "scene_header_top_line"
-  ) {
-    return "12pt";
+  const rulesForPrev = SPACING_RULES[previousFormat];
+  if (!rulesForPrev) return "";
+
+  // خاصية default لـ basmala
+  if (previousFormat === "basmala" && !rulesForPrev[currentFormat]) {
+    return rulesForPrev.default ?? "0";
   }
 
-  if (previousFormat === "basmala") {
-    return "0";
-  }
-
-  if (previousFormat === "character") {
-    if (currentFormat === "dialogue" || currentFormat === "parenthetical") {
-      return "0";
-    }
-  }
-
-  if (previousFormat === "parenthetical" && currentFormat === "dialogue") {
-    return "0";
-  }
-
-  if (
-    previousFormat === "scene_header_2" &&
-    currentFormat === "scene_header_3"
-  ) {
-    return "0";
-  }
-
-  if (previousFormat === "scene_header_3" && currentFormat === "action") {
-    return "12pt";
-  }
-
-  if (previousFormat === "action") {
-    if (
-      currentFormat === "action" ||
-      currentFormat === "character" ||
-      currentFormat === "transition"
-    ) {
-      return "12pt";
-    }
-  }
-
-  if (previousFormat === "dialogue") {
-    if (
-      currentFormat === "character" ||
-      currentFormat === "action" ||
-      currentFormat === "transition"
-    ) {
-      return "12pt";
-    }
-  }
-
-  if (previousFormat === "parenthetical") {
-    if (
-      currentFormat === "character" ||
-      currentFormat === "action" ||
-      currentFormat === "transition"
-    ) {
-      return "0";
-    }
-  }
-
-  if (previousFormat === "transition") {
-    if (
-      currentFormat === "scene_header_1" ||
-      currentFormat === "scene_header_top_line"
-    ) {
-      return "12pt";
-    }
-  }
-
-  return "";
+  return rulesForPrev[currentFormat] ?? "";
 };
 
 /**

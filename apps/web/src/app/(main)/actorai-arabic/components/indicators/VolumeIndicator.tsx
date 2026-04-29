@@ -9,7 +9,17 @@ export interface VolumeIndicatorProps {
   volume: VoiceMetrics["volume"];
 }
 
+const MIN_VOLUME_DB = -60;
+const MAX_VOLUME_DB = 0;
+const VOLUME_DB_RANGE = MAX_VOLUME_DB - MIN_VOLUME_DB;
+
+function getVolumeRatio(volumeDb: number): number {
+  return Math.min(1, Math.max(0, (volumeDb - MIN_VOLUME_DB) / VOLUME_DB_RANGE));
+}
+
 export const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
+  const volumeRatio = getVolumeRatio(volume.value);
+
   return (
     <Card className="bg-white/[0.04] border-white/8 rounded-[22px]">
       <CardHeader className="pb-2">
@@ -24,13 +34,13 @@ export const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
             <div className="h-4 bg-white/10 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  volume.current > 0.8
+                  volume.level === "loud"
                     ? "bg-red-500"
-                    : volume.current > 0.4
+                    : volume.level === "normal"
                       ? "bg-green-500"
                       : "bg-blue-500"
                 }`}
-                style={{ width: `${volume.current * 100}%` }}
+                style={{ width: `${volumeRatio * 100}%` }}
               />
             </div>
             <div className="flex justify-between text-xs text-white/55 px-1">
@@ -41,14 +51,14 @@ export const VolumeIndicator: React.FC<VolumeIndicatorProps> = ({ volume }) => {
           </div>
           <div className="flex flex-col items-center justify-center min-w-[80px] p-2 bg-white/5 rounded-xl">
             <span className="text-sm font-medium text-white mb-1">
-              {Math.round(volume.current * 100)}%
+              {Math.round(volumeRatio * 100)}%
             </span>
             <Badge
               variant="outline"
               className={`border-0 text-xs ${
-                volume.label === "مناسب"
+                volume.level === "normal"
                   ? "bg-green-500/20 text-green-300"
-                  : volume.label === "مرتفع جداً"
+                  : volume.level === "loud"
                     ? "bg-red-500/20 text-red-300"
                     : "bg-blue-500/20 text-blue-300"
               }`}

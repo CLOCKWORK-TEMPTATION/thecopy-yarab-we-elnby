@@ -33,6 +33,141 @@ export interface ScriptError {
     | "NO_SCENES";
 }
 
+function buildSceneVersion(scene: Scene, oldVersionsLength: number): Version {
+  const newVersion: Version = {
+    id: Date.now().toString(),
+    timestamp: Date.now(),
+    label: `نسخة ${oldVersionsLength + 1} - ${new Date().toLocaleTimeString("ar-EG")}`,
+  };
+  if (scene.analysis) newVersion.analysis = scene.analysis;
+  if (scene.scenarios) newVersion.scenarios = scene.scenarios;
+  if (scene.headerData) newVersion.headerData = scene.headerData;
+  if (scene.stats) newVersion.stats = scene.stats;
+  if (scene.warnings) newVersion.warnings = scene.warnings;
+  return newVersion;
+}
+
+interface ResolvedSceneFields {
+  remoteId: string | undefined;
+  projectId: string | undefined;
+  reportId: string | undefined;
+  analysis: SceneBreakdown | undefined;
+  scenarios: ScenarioAnalysis | undefined;
+  headerData: Scene["headerData"] | undefined;
+  stats: Scene["stats"] | undefined;
+  elements: Scene["elements"] | undefined;
+  warnings: Scene["warnings"] | undefined;
+  source: Scene["source"] | undefined;
+}
+
+function compactSceneFields(fields: ResolvedSceneFields): Partial<Scene> {
+  const patch: Partial<Scene> = {};
+  if (fields.remoteId !== undefined) patch.remoteId = fields.remoteId;
+  if (fields.projectId !== undefined) patch.projectId = fields.projectId;
+  if (fields.reportId !== undefined) patch.reportId = fields.reportId;
+  if (fields.analysis !== undefined) patch.analysis = fields.analysis;
+  if (fields.scenarios !== undefined) patch.scenarios = fields.scenarios;
+  if (fields.headerData !== undefined) patch.headerData = fields.headerData;
+  if (fields.stats !== undefined) patch.stats = fields.stats;
+  if (fields.elements !== undefined) patch.elements = fields.elements;
+  if (fields.warnings !== undefined) patch.warnings = fields.warnings;
+  if (fields.source !== undefined) patch.source = fields.source;
+  return patch;
+}
+
+function pickSceneValue<T>(
+  patchValue: T | undefined,
+  breakdownValue: T | undefined,
+  currentValue: T | undefined
+): T | undefined {
+  return patchValue ?? breakdownValue ?? currentValue;
+}
+
+function resolvePatchFields(
+  scene: Scene,
+  breakdown: SceneBreakdown | undefined,
+  scenarios: ScenarioAnalysis | undefined,
+  scenePatch: Partial<Scene>
+): Partial<Scene> {
+  return compactSceneFields({
+    remoteId: scenePatch.remoteId ?? scene.remoteId,
+    projectId: scenePatch.projectId ?? scene.projectId,
+    reportId: scenePatch.reportId ?? scene.reportId,
+    analysis: breakdown ?? scene.analysis,
+    scenarios: scenarios ?? scene.scenarios,
+    headerData: pickSceneValue(
+      scenePatch.headerData,
+      breakdown?.headerData,
+      scene.headerData
+    ),
+    stats: pickSceneValue(scenePatch.stats, breakdown?.stats, scene.stats),
+    elements: pickSceneValue(
+      scenePatch.elements,
+      breakdown?.elements,
+      scene.elements
+    ),
+    warnings: pickSceneValue(
+      scenePatch.warnings,
+      breakdown?.warnings,
+      scene.warnings
+    ),
+    source: pickSceneValue(scenePatch.source, breakdown?.source, scene.source),
+  });
+}
+
+function applyScenePatch(
+  scene: Scene,
+  breakdown: SceneBreakdown | undefined,
+  scenarios: ScenarioAnalysis | undefined,
+  scenePatch: Partial<Scene>,
+  newVersions: Version[]
+): Scene {
+  const optionalFields = resolvePatchFields(
+    scene,
+    breakdown,
+    scenarios,
+    scenePatch
+  );
+
+  return {
+    id: scene.id,
+    header: scenePatch.header ?? scene.header,
+    content: scenePatch.content ?? scene.content,
+    isAnalyzed: Boolean(optionalFields.analysis),
+    versions: newVersions,
+    ...optionalFields,
+  };
+}
+
+function buildRestoredScene(scene: Scene, versionToRestore: Version): Scene {
+  const currentVersion: Version = {
+    id: Date.now().toString(),
+    timestamp: Date.now(),
+    label: `نسخة ما قبل الاستعادة (${new Date().toLocaleTimeString("ar-EG")})`,
+  };
+  if (scene.analysis) currentVersion.analysis = scene.analysis;
+  if (scene.scenarios) currentVersion.scenarios = scene.scenarios;
+  if (scene.headerData) currentVersion.headerData = scene.headerData;
+  if (scene.stats) currentVersion.stats = scene.stats;
+  if (scene.warnings) currentVersion.warnings = scene.warnings;
+
+  const nextScene: Scene = {
+    ...scene,
+    versions: [currentVersion, ...(scene.versions ?? [])],
+  };
+  const restoredAnalysis = versionToRestore.analysis ?? scene.analysis;
+  if (restoredAnalysis) nextScene.analysis = restoredAnalysis;
+  const restoredScenarios = versionToRestore.scenarios ?? scene.scenarios;
+  if (restoredScenarios) nextScene.scenarios = restoredScenarios;
+  const restoredHeaderData = versionToRestore.headerData ?? scene.headerData;
+  if (restoredHeaderData) nextScene.headerData = restoredHeaderData;
+  const restoredStats = versionToRestore.stats ?? scene.stats;
+  if (restoredStats) nextScene.stats = restoredStats;
+  const restoredWarnings = versionToRestore.warnings ?? scene.warnings;
+  if (restoredWarnings) nextScene.warnings = restoredWarnings;
+  return nextScene;
+}
+
 export function useScriptWorkspace() {
   const [scriptText, setScriptText] = useState("");
   const [scenes, setScenes] = useState<Scene[]>([]);
@@ -111,90 +246,6 @@ export function useScriptWorkspace() {
       setIsSegmenting(false);
     }
   }, [scriptText, toast]);
-
-  function buildSceneVersion(scene: Scene, oldVersionsLength: number): Version {
-    const newVersion: Version = {
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-      label: `نسخة ${oldVersionsLength + 1} - ${new Date().toLocaleTimeString("ar-EG")}`,
-    };
-    if (scene.analysis) newVersion.analysis = scene.analysis;
-    if (scene.scenarios) newVersion.scenarios = scene.scenarios;
-    if (scene.headerData) newVersion.headerData = scene.headerData;
-    if (scene.stats) newVersion.stats = scene.stats;
-    if (scene.warnings) newVersion.warnings = scene.warnings;
-    return newVersion;
-  }
-
-  function applyScenePatch(
-    scene: Scene,
-    breakdown: SceneBreakdown | undefined,
-    scenarios: ScenarioAnalysis | undefined,
-    scenePatch: Partial<Scene>,
-    newVersions: Version[]
-  ): Scene {
-    const nextAnalysis = breakdown ?? scene.analysis;
-    const nextScenarios = scenarios ?? scene.scenarios;
-    const nextHeaderData =
-      scenePatch.headerData ?? breakdown?.headerData ?? scene.headerData;
-    const nextStats = scenePatch.stats ?? breakdown?.stats ?? scene.stats;
-    const nextElements =
-      scenePatch.elements ?? breakdown?.elements ?? scene.elements;
-    const nextWarnings =
-      scenePatch.warnings ?? breakdown?.warnings ?? scene.warnings;
-    const nextSource = scenePatch.source ?? breakdown?.source ?? scene.source;
-
-    const nextScene: Scene = {
-      id: scene.id,
-      header: scenePatch.header ?? scene.header,
-      content: scenePatch.content ?? scene.content,
-      isAnalyzed: !!nextAnalysis,
-      versions: newVersions,
-    };
-    if (scene.remoteId) nextScene.remoteId = scene.remoteId;
-    if (scenePatch.remoteId) nextScene.remoteId = scenePatch.remoteId;
-    if (scene.projectId) nextScene.projectId = scene.projectId;
-    if (scenePatch.projectId) nextScene.projectId = scenePatch.projectId;
-    if (scene.reportId) nextScene.reportId = scene.reportId;
-    if (scenePatch.reportId) nextScene.reportId = scenePatch.reportId;
-    if (nextAnalysis) nextScene.analysis = nextAnalysis;
-    if (nextScenarios) nextScene.scenarios = nextScenarios;
-    if (nextHeaderData) nextScene.headerData = nextHeaderData;
-    if (nextStats) nextScene.stats = nextStats;
-    if (nextElements) nextScene.elements = nextElements;
-    if (nextWarnings) nextScene.warnings = nextWarnings;
-    if (nextSource) nextScene.source = nextSource;
-    return nextScene;
-  }
-
-  function buildRestoredScene(scene: Scene, versionToRestore: Version): Scene {
-    const currentVersion: Version = {
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-      label: `نسخة ما قبل الاستعادة (${new Date().toLocaleTimeString("ar-EG")})`,
-    };
-    if (scene.analysis) currentVersion.analysis = scene.analysis;
-    if (scene.scenarios) currentVersion.scenarios = scene.scenarios;
-    if (scene.headerData) currentVersion.headerData = scene.headerData;
-    if (scene.stats) currentVersion.stats = scene.stats;
-    if (scene.warnings) currentVersion.warnings = scene.warnings;
-
-    const nextScene: Scene = {
-      ...scene,
-      versions: [currentVersion, ...(scene.versions ?? [])],
-    };
-    const restoredAnalysis = versionToRestore.analysis ?? scene.analysis;
-    if (restoredAnalysis) nextScene.analysis = restoredAnalysis;
-    const restoredScenarios = versionToRestore.scenarios ?? scene.scenarios;
-    if (restoredScenarios) nextScene.scenarios = restoredScenarios;
-    const restoredHeaderData = versionToRestore.headerData ?? scene.headerData;
-    if (restoredHeaderData) nextScene.headerData = restoredHeaderData;
-    const restoredStats = versionToRestore.stats ?? scene.stats;
-    if (restoredStats) nextScene.stats = restoredStats;
-    const restoredWarnings = versionToRestore.warnings ?? scene.warnings;
-    if (restoredWarnings) nextScene.warnings = restoredWarnings;
-    return nextScene;
-  }
 
   const updateScene = useCallback(
     (

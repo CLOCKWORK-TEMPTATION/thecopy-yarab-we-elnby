@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 
+import type { NotificationType } from "../../types";
+
 export const useVocalExercises = (
-  showNotification: (type: string, message: string) => void
+  showNotification: (type: NotificationType, message: string) => void
 ) => {
   const [activeExercise, setActiveExercise] = useState<string | null>(null);
   const [exerciseTimer, setExerciseTimer] = useState(0);

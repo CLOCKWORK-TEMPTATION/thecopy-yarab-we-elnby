@@ -11,12 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import type { Recording } from "../../types";
+import type { Recording as ActingRecording } from "../../types";
 
 interface RecordingProps {
   isRecording: boolean;
   recordingTime: number;
-  recordings: Recording[];
+  recordings: ActingRecording[];
   startRecording: () => void;
   stopRecording: () => void;
   formatTime: (seconds: number) => string;

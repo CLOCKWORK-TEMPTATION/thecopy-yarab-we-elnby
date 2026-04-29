@@ -80,12 +80,12 @@ function buildDots(
 }
 
 interface DrawFrameContext {
-  ctx: CanvasRenderingContext2D,
-  el: HTMLCanvasElement,
-  container: HTMLElement,
-  dots: DotMeta[],
-  now: number,
-  config: CanvasAnimationConfig
+  ctx: CanvasRenderingContext2D;
+  el: HTMLCanvasElement;
+  container: HTMLElement;
+  dots: DotMeta[];
+  now: number;
+  config: CanvasAnimationConfig;
 }
 
 function drawFrame(context: DrawFrameContext) {

@@ -279,7 +279,10 @@ const BudgetApp: React.FC<BudgetAppProps> = ({
     loadTemplate,
     savePreferences,
     formatCurrency,
-  } = useBudgetState({ initialBudget, initialScript });
+  } = useBudgetState({
+    ...(initialBudget ? { initialBudget } : {}),
+    ...(initialScript ? { initialScript } : {}),
+  });
 
   return (
     <div

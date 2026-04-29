@@ -152,6 +152,114 @@ export const shouldReflect = (
   return false;
 };
 
+const applyDialogueWithoutSpeakerCorrection = (
+  classified: ClassifiedDraft[],
+  index: number,
+  draft: ClassifiedDraft,
+  line: string
+): boolean => {
+  if (draft.type !== "dialogue") return false;
+
+  const hasNearbyCharacter = lookBackForCharacter(classified, index, 5);
+  if (
+    hasNearbyCharacter ||
+    (!isActionVerbStart(line) && !hasActionVerbStructure(line)) ||
+    hasDirectDialogueCues(line) ||
+    wordCount(line) < 3
+  ) {
+    return false;
+  }
+
+  classified[index] = correctedDraft(draft, "action", 5);
+  return true;
+};
+
+const applyActionAfterCharacterCorrection = (
+  classified: ClassifiedDraft[],
+  index: number,
+  draft: ClassifiedDraft,
+  line: string
+): boolean => {
+  if (draft.type !== "action" || index <= 0) return false;
+
+  const prev = classified[index - 1];
+  if (prev?.type !== "character" || hasVeryStrongActionSignal(line)) {
+    return false;
+  }
+
+  classified[index] = correctedDraft(draft, "dialogue", 4);
+  return true;
+};
+
+interface UnconfirmedCharacterCorrectionContext {
+  classified: ClassifiedDraft[];
+  index: number;
+  chunkEnd: number;
+  draft: ClassifiedDraft;
+  line: string;
+  memoryManager: ContextMemoryManager;
+}
+
+const applyUnconfirmedCharacterCorrection = ({
+  classified,
+  index,
+  chunkEnd,
+  draft,
+  line,
+  memoryManager,
+}: UnconfirmedCharacterCorrectionContext): boolean => {
+  if (draft.type !== "character" || index + 1 >= chunkEnd) return false;
+
+  const next = classified[index + 1];
+  const name = normalizeCharacterName(line);
+  const isConfirmed = name ? memoryManager.isConfirmedCharacter(name) : false;
+  const hasDialogueFollower =
+    next?.type === "dialogue" || next?.type === "parenthetical";
+
+  if (isConfirmed || hasDialogueFollower) return false;
+  if (!hasActionVerbStructure(line) && wordCount(line) < 5) return false;
+
+  classified[index] = correctedDraft(draft, "action", 3);
+  return true;
+};
+
+const applyConfidenceDropCorrection = (
+  classified: ClassifiedDraft[],
+  index: number,
+  chunkEnd: number,
+  draft: ClassifiedDraft,
+  line: string
+): boolean => {
+  if (draft.confidence >= 78 || index <= 0 || index + 1 >= chunkEnd) {
+    return false;
+  }
+
+  const prev = classified[index - 1];
+  const next = classified[index + 1];
+  const neighborType = prev?.type;
+  if (
+    !prev ||
+    !next ||
+    neighborType !== next.type ||
+    prev.confidence < 85 ||
+    next.confidence < 85 ||
+    neighborType === draft.type
+  ) {
+    return false;
+  }
+
+  const prevPrev = index > 1 ? classified[index - 2] : null;
+  const seqValid = isValidSequenceTransition(
+    prevPrev ? prevPrev.type : null,
+    neighborType
+  );
+  const evidence = seqValid ? quickEvidenceCheck(line, neighborType) : 0;
+  if (evidence <= 0) return false;
+
+  classified[index] = correctedDraft(draft, neighborType, 3);
+  return true;
+};
+
 /**
  * مراجعة ذاتية على chunk من الأسطر المصنّفة.
  *
@@ -186,75 +294,19 @@ export const reflectOnChunk = (
     const line = normalizeLine(draft.text);
     if (!line) continue;
 
-    // ── فحص 1: Dialogue بدون Speaker + فيه action verb ──
-    if (draft.type === "dialogue") {
-      const hasNearbyCharacter = lookBackForCharacter(classified, i, 5);
-      if (
-        !hasNearbyCharacter &&
-        (isActionVerbStart(line) || hasActionVerbStructure(line)) &&
-        !hasDirectDialogueCues(line) &&
-        wordCount(line) >= 3
-      ) {
-        classified[i] = correctedDraft(draft, "action", 5);
-        corrections++;
-        continue;
-      }
-    }
-
-    // ── فحص 2: Action بعد Character مباشرة بدون strong signal ──
-    if (draft.type === "action" && i > 0) {
-      const prev = classified[i - 1];
-      if (prev?.type === "character" && !hasVeryStrongActionSignal(line)) {
-        classified[i] = correctedDraft(draft, "dialogue", 4);
-        corrections++;
-        continue;
-      }
-    }
-
-    // ── فحص 3: Character غير مؤكد بدون حوار بعده ──
-    if (draft.type === "character" && i + 1 < chunkEnd) {
-      const next = classified[i + 1];
-      const name = normalizeCharacterName(line);
-      const isConfirmed = name
-        ? memoryManager.isConfirmedCharacter(name)
-        : false;
-      if (
-        !isConfirmed &&
-        next &&
-        next.type !== "dialogue" &&
-        next.type !== "parenthetical"
-      ) {
-        if (hasActionVerbStructure(line) || wordCount(line) >= 5) {
-          classified[i] = correctedDraft(draft, "action", 3);
-          corrections++;
-          continue;
-        }
-      }
-    }
-
-    // ── فحص 4: Confidence Drop Pattern ──
-    if (draft.confidence < 78 && i > 0 && i + 1 < chunkEnd) {
-      const prev = classified[i - 1];
-      const next = classified[i + 1];
-      if (
-        prev &&
-        prev.type === next?.type &&
-        prev.confidence >= 85 &&
-        next.confidence >= 85 &&
-        prev.type !== draft.type
-      ) {
-        const prevPrev = i > 1 ? classified[i - 2] : null;
-        const seqValid = isValidSequenceTransition(
-          prevPrev ? prevPrev.type : null,
-          prev.type
-        );
-        const evidence = seqValid ? quickEvidenceCheck(line, prev.type) : 0;
-        if (evidence > 0) {
-          classified[i] = correctedDraft(draft, prev.type, 3);
-          corrections++;
-        }
-      }
-    }
+    const corrected =
+      applyDialogueWithoutSpeakerCorrection(classified, i, draft, line) ||
+      applyActionAfterCharacterCorrection(classified, i, draft, line) ||
+      applyUnconfirmedCharacterCorrection({
+        classified,
+        index: i,
+        chunkEnd,
+        draft,
+        line,
+        memoryManager,
+      }) ||
+      applyConfidenceDropCorrection(classified, i, chunkEnd, draft, line);
+    if (corrected) corrections++;
   }
 
   if (corrections > 0) {

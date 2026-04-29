@@ -212,8 +212,7 @@ function readInitialProductionState(): InitialProductionState {
           error: null,
         }
       : initialAssistantState,
-    technicalSettings:
-      persisted?.technicalSettings ?? defaultTechnicalSettings,
+    technicalSettings: persisted?.technicalSettings ?? defaultTechnicalSettings,
   };
 }
 
@@ -249,8 +248,9 @@ export function useProduction(mood: VisualMood = "noir") {
   // ============================================
 
   const initialState = useMemo(() => readInitialProductionState(), []);
-  const [analysisState, setAnalysisState] =
-    useState<AnalysisState>(initialState.analysisState);
+  const [analysisState, setAnalysisState] = useState<AnalysisState>(
+    initialState.analysisState
+  );
   const [assistantState, setAssistantState] = useState<AssistantState>(
     initialState.assistantState
   );

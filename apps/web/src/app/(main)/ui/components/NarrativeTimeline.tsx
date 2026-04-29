@@ -254,10 +254,10 @@ export function NarrativeTimeline({
                         isActiveBranch={isActiveBranch}
                         branchColor={branchColor}
                         draggedSceneId={draggedScene?.id ?? null}
-                        onSceneClick={onSceneClick}
                         onDragStart={setDraggedScene}
                         onDragEnd={() => setDraggedScene(null)}
                         onBranchCreate={handleBranchCreate}
+                        {...(onSceneClick ? { onSceneClick } : {})}
                       />
                     ))}
                   </div>

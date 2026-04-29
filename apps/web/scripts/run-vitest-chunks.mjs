@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const appRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const repoRoot = resolve(appRoot, "../..");
-const chunkSize = Number.parseInt(process.env.VITEST_CHUNK_SIZE ?? "24", 10);
+const chunkSize = Number.parseInt(process.env.VITEST_CHUNK_SIZE ?? "4", 10);
 const testFilePattern = /\.(?:test|spec)\.(?:js|mjs|cjs|ts|mts|cts|jsx|tsx)$/u;
 const excludedSegments = new Set([
   "node_modules",
@@ -81,17 +81,17 @@ for (const [index, chunk] of chunks.entries()) {
   const result = spawnSync(
     process.execPath,
     [
-      "--max-old-space-size=4096",
+      "--max-old-space-size=8192",
       vitestBin,
       "run",
-      "--maxWorkers=2",
+      "--maxWorkers=1",
       ...relativeFiles,
     ],
     {
       cwd: appRoot,
       env: {
         ...process.env,
-        NODE_OPTIONS: "",
+        NODE_OPTIONS: "--max-old-space-size=8192",
       },
       shell: false,
       stdio: "inherit",

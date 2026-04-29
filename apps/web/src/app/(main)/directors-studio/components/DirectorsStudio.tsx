@@ -35,10 +35,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProjects } from "@/hooks/useProject";
 
 import type { Project } from "@/types/api";
+import type { LucideIcon } from "lucide-react";
 
 // Dynamically import heavy components
 const SpatialScenePlanner = dynamic(
-  () => import("@/components/ui/spatial-scene-planner"),
+  () =>
+    import("@/components/ui/spatial-scene-planner").then(
+      (module) => module.SpatialScenePlanner
+    ),
   {
     loading: () => (
       <div className="flex items-center justify-center h-96 bg-[var(--app-surface)] rounded-lg">
@@ -54,19 +58,25 @@ const SpatialScenePlanner = dynamic(
   }
 );
 
-const AIShotLibrary = dynamic(() => import("@/components/ui/ai-shot-library"), {
-  loading: () => (
-    <div className="flex items-center justify-center h-96 bg-[var(--app-surface)] rounded-lg">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--app-accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--app-text-muted)]">
-          جاري تحميل مكتبة اللقطات...
-        </p>
+const AIShotLibrary = dynamic(
+  () =>
+    import("@/components/ui/ai-shot-library").then(
+      (module) => module.AIShotLibrary
+    ),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-96 bg-[var(--app-surface)] rounded-lg">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--app-accent)] mx-auto mb-4"></div>
+          <p className="text-[var(--app-text-muted)]">
+            جاري تحميل مكتبة اللقطات...
+          </p>
+        </div>
       </div>
-    </div>
-  ),
-  ssr: false,
-});
+    ),
+    ssr: false,
+  }
+);
 
 // Feature cards data
 const FEATURES = [
@@ -139,7 +149,7 @@ function renderFeatureContent(activeFeature: string): React.ReactNode {
     case "shot-library":
       return (
         <div className="h-[calc(100vh-200px)]">
-          <AIShotLibrary />
+          <AIShotLibrary shots={[]} />
         </div>
       );
     default:
@@ -416,11 +426,13 @@ function ProjectsTab({
   );
 }
 
-function StudioHeroHeader({
-  stats,
-}: {
-  stats: { label: string; value: string; icon: React.ElementType }[];
-}) {
+interface StudioStat {
+  label: string;
+  value: string;
+  icon: LucideIcon;
+}
+
+function StudioHeroHeader({ stats }: { stats: StudioStat[] }) {
   return (
     <header className="relative overflow-hidden border-b">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-indigo-900/80 to-violet-900/90" />
@@ -454,18 +466,21 @@ function StudioHeroHeader({
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {stats.map((stat) => (
-              <Card
-                key={stat.label}
-                className="bg-white/10 backdrop-blur-sm border-white/20 text-white"
-              >
-                <CardContent className="p-4 text-center">
-                  <stat.icon className="h-5 w-5 mx-auto mb-2 opacity-80" />
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs opacity-70">{stat.label}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Card
+                  key={stat.label}
+                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white"
+                >
+                  <CardContent className="p-4 text-center">
+                    <Icon className="h-5 w-5 mx-auto mb-2 opacity-80" />
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    <p className="text-xs opacity-70">{stat.label}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -480,7 +495,7 @@ export const DirectorsStudio: React.FC = () => {
   const { data: projectsData, isLoading: projectsLoading } = useProjects();
   const projects: Project[] = useMemo(() => projectsData ?? [], [projectsData]);
 
-  const STATS = useMemo(
+  const STATS = useMemo<StudioStat[]>(
     () => [
       {
         label: "المشاريع النشطة",

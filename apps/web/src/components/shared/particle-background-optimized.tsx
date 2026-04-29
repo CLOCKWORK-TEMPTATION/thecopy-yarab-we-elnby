@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 import {
+  getDeviceCapabilities,
+  getParticleLODConfig,
+} from "@/components/device-detection";
+import {
   performanceMonitor,
   type EffectConfig,
   type ParticlePosition,
@@ -19,6 +23,7 @@ import {
   updatePosition,
   type ParticleEffect,
 } from "@/lib/particle-frame-helpers";
+import { getOptimalParticleCount, requestIdle } from "@/lib/particle-lod-utils";
 
 interface SceneState {
   scene: THREE.Scene;
@@ -167,22 +172,18 @@ function runBatchedParticleProcessingShared(
       currentIndex + Math.min(batchSize, 200),
       particleCount
     );
-    processParticleBatchShared(
-      currentIndex,
-      endIndex,
-      {
-        attractStrength,
-        colorAttribute,
-        config,
-        currentEffect,
-        damping,
-        intersectionPoint,
-        originalPositions,
-        positionAttribute,
-        time,
-        velocities,
-      }
-    );
+    processParticleBatchShared(currentIndex, endIndex, {
+      attractStrength,
+      colorAttribute,
+      config,
+      currentEffect,
+      damping,
+      intersectionPoint,
+      originalPositions,
+      positionAttribute,
+      time,
+      velocities,
+    });
     currentIndex = endIndex;
 
     if (currentIndex < particleCount) {
@@ -328,6 +329,11 @@ export default function OptimizedParticleAnimation() {
     if (!canRenderInBrowser || prefersReducedMotion) return;
     if (!canvasRef.current) return;
 
+    const capabilities = getDeviceCapabilities();
+    const lodConfig = getParticleLODConfig(capabilities);
+    const particleBudget = getOptimalParticleCount();
+    if (lodConfig.particleCount === 0 || particleBudget.count === 0) return;
+
     const canvas = canvasRef.current;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -382,36 +388,41 @@ export default function OptimizedParticleAnimation() {
       isGenerated: false,
     };
 
-    generateParticlesInBatches((error) => {
-      console.error("خطأ في توليد الجسيمات:", error);
-    })
-      .then((result) => {
-        if (!sceneRef.current) return;
-        const {
-          positions,
-          colors,
-          count,
-          originalPositions,
-          phases,
-          velocities,
-        } = result;
-        sceneRef.current.geometry.setAttribute(
-          "position",
-          new THREE.BufferAttribute(positions, 3)
-        );
-        sceneRef.current.geometry.setAttribute(
-          "color",
-          new THREE.BufferAttribute(colors, 3)
-        );
-        sceneRef.current.originalPositions = originalPositions;
-        sceneRef.current.phases = phases;
-        sceneRef.current.velocities = velocities;
-        sceneRef.current.particleCount = count;
-        sceneRef.current.isGenerated = true;
-      })
-      .catch((error) => {
-        console.error("فشل في توليد الجسيمات:", error);
-      });
+    const idleHandle = requestIdle(
+      () => {
+        generateParticlesInBatches((error) => {
+          console.error("خطأ في توليد الجسيمات:", error);
+        })
+          .then((result) => {
+            if (!sceneRef.current) return;
+            const {
+              positions,
+              colors,
+              count,
+              originalPositions,
+              phases,
+              velocities,
+            } = result;
+            sceneRef.current.geometry.setAttribute(
+              "position",
+              new THREE.BufferAttribute(positions, 3)
+            );
+            sceneRef.current.geometry.setAttribute(
+              "color",
+              new THREE.BufferAttribute(colors, 3)
+            );
+            sceneRef.current.originalPositions = originalPositions;
+            sceneRef.current.phases = phases;
+            sceneRef.current.velocities = velocities;
+            sceneRef.current.particleCount = count;
+            sceneRef.current.isGenerated = true;
+          })
+          .catch((error) => {
+            console.error("فشل في توليد الجسيمات:", error);
+          });
+      },
+      { timeout: 100 }
+    );
 
     const removeInteractionHandlers = setupInteractionHandlersShared(
       canvas,
@@ -427,6 +438,11 @@ export default function OptimizedParticleAnimation() {
       try {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         if (cleanupTimeoutRef.current) clearTimeout(cleanupTimeoutRef.current);
+        if (typeof cancelIdleCallback !== "undefined") {
+          cancelIdleCallback(idleHandle);
+        } else {
+          clearTimeout(idleHandle);
+        }
         removeInteractionHandlers();
         if (geometry) geometry.dispose();
         if (material) material.dispose();

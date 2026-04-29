@@ -7,12 +7,13 @@ import { logger } from "@/lib/ai/utils/logger";
  * Google GenAI integration for advanced character analysis
  */
 
+import { normalizeCastMember } from "../../infrastructure/cast/utils/validation";
 import { getGeminiApiKeyFromEnv } from "../../infrastructure/gemini/env";
-import { ExtendedCastMember } from "../../types";
 
 import { DEFAULT_CAST_MODEL } from "./constants";
 
 import type { CastAgentOptions } from "./types";
+import type { ExtendedCastMember } from "../../types";
 
 // ============================================
 // AI INITIALIZATION
@@ -206,11 +207,15 @@ export const runCastAgent = async (
       ? (JSON.parse(response.text) as { members?: CastMember[] })
       : { members: [] };
 
-    // Post-process to ensure IDs exist
-    return (result.members ?? []).map((m: CastMember, index: number) => ({
-      ...m,
-      id: m.id ?? `char-${Date.now()}-${index}`,
-    }));
+    const generatedAt = Date.now();
+
+    return (result.members ?? []).map((member: CastMember, index: number) => {
+      const id =
+        typeof member.id === "string" && member.id
+          ? member.id
+          : `char-${generatedAt}-${index}`;
+      return normalizeCastMember({ ...member, id });
+    });
   } catch (error) {
     logger.error("Cast Agent Error:", error);
     return [];

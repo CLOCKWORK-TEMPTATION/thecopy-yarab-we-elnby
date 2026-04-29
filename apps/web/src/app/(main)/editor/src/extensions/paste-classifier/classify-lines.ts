@@ -262,7 +262,6 @@ const tryClassifyBasmala = (
 /** قاعدة 2: رأس مشهد كامل */
 const tryClassifyCompleteSceneHeader = (
   normalizedForClassification: string,
-  trimmed: string,
   push: (entry: ClassifiedDraft) => void
 ): boolean => {
   if (!isCompleteSceneHeaderLine(normalizedForClassification)) return false;
@@ -651,7 +650,8 @@ const runClassificationLoop = (
     };
 
     const normalizedForClassification = convertHindiToArabic(trimmed);
-    const detectedDialect = detectDialect(normalizedForClassification);
+    const hasDetectedDialect =
+      detectDialect(normalizedForClassification) !== null;
 
     if (tryMergePreviousLine(trimmed, state)) continue;
 
@@ -659,13 +659,7 @@ const runClassificationLoop = (
 
     if (tryClassifyBasmala(normalizedForClassification, trimmed, boundPush))
       continue;
-    if (
-      tryClassifyCompleteSceneHeader(
-        normalizedForClassification,
-        trimmed,
-        boundPush
-      )
-    )
+    if (tryClassifyCompleteSceneHeader(normalizedForClassification, boundPush))
       continue;
     if (tryClassifyTransition(normalizedForClassification, trimmed, boundPush))
       continue;
@@ -718,7 +712,7 @@ const runClassificationLoop = (
         trimmed,
         context,
         snapshot,
-        detectedDialect,
+        detectedDialect: hasDetectedDialect,
         push: boundPush,
       })
     )
@@ -860,7 +854,7 @@ export const classifyLines = (
     seqOptResult: _seqOptResult,
     schemaSeedAdopted: counters.adopted,
     schemaSeedOverridden: counters.overridden,
-    context,
+    ...(context !== undefined ? { context } : {}),
   });
 
   return classified;

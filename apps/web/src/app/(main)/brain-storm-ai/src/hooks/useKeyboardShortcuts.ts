@@ -42,59 +42,56 @@ export const SHORTCUT_LIST = [
   { keys: "Ctrl+/", description: "عرض الاختصارات" },
 ];
 
+interface ShortcutBinding {
+  matches: (event: KeyboardEvent, isCtrl: boolean) => boolean;
+  run: (actions: ShortcutActions) => void;
+}
+
+const SHORTCUT_BINDINGS: ShortcutBinding[] = [
+  {
+    matches: (event, isCtrl) => isCtrl && event.key === "Enter",
+    run: (actions) => actions.onStartSession?.(),
+  },
+  {
+    matches: (event, isCtrl) => isCtrl && event.key === "s",
+    run: (actions) => actions.onSaveSession?.(),
+  },
+  {
+    matches: (event, isCtrl) => isCtrl && event.shiftKey && event.key === "E",
+    run: (actions) => actions.onExportMarkdown?.(),
+  },
+  {
+    matches: (event, isCtrl) => isCtrl && !event.shiftKey && event.key === "e",
+    run: (actions) => actions.onExportJSON?.(),
+  },
+  {
+    matches: (event) => event.key === "Escape",
+    run: (actions) => actions.onStopSession?.(),
+  },
+  {
+    matches: (event, isCtrl) => isCtrl && event.key === "n",
+    run: (actions) => actions.onAdvancePhase?.(),
+  },
+  {
+    matches: (event, isCtrl) => isCtrl && event.key === "/",
+    run: (actions) => actions.onToggleHelp?.(),
+  },
+];
+
 export function useKeyboardShortcuts(actions: ShortcutActions): void {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const isCtrl = event.ctrlKey || event.metaKey;
+      const binding = SHORTCUT_BINDINGS.find((item) =>
+        item.matches(event, isCtrl)
+      );
 
-      // Ctrl+Enter: بدء جلسة
-      if (isCtrl && event.key === "Enter") {
-        event.preventDefault();
-        actions.onStartSession?.();
+      if (!binding) {
         return;
       }
 
-      // Ctrl+S: حفظ
-      if (isCtrl && event.key === "s") {
-        event.preventDefault();
-        actions.onSaveSession?.();
-        return;
-      }
-
-      // Ctrl+Shift+E: تصدير Markdown
-      if (isCtrl && event.shiftKey && event.key === "E") {
-        event.preventDefault();
-        actions.onExportMarkdown?.();
-        return;
-      }
-
-      // Ctrl+E: تصدير JSON
-      if (isCtrl && !event.shiftKey && event.key === "e") {
-        event.preventDefault();
-        actions.onExportJSON?.();
-        return;
-      }
-
-      // Escape: إيقاف
-      if (event.key === "Escape") {
-        event.preventDefault();
-        actions.onStopSession?.();
-        return;
-      }
-
-      // Ctrl+N: المرحلة التالية
-      if (isCtrl && event.key === "n") {
-        event.preventDefault();
-        actions.onAdvancePhase?.();
-        return;
-      }
-
-      // Ctrl+/: عرض الاختصارات
-      if (isCtrl && event.key === "/") {
-        event.preventDefault();
-        actions.onToggleHelp?.();
-        return;
-      }
+      event.preventDefault();
+      binding.run(actions);
     },
     [actions]
   );

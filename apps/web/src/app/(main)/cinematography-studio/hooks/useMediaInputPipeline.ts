@@ -109,17 +109,23 @@ function createInitialState(mode: MediaInputMode): MediaInputPipelineState {
 
 type SetState = React.Dispatch<React.SetStateAction<MediaInputPipelineState>>;
 
-async function processMediaFile(
-  file: File,
-  setState: SetState,
+interface ProcessMediaFileContext {
+  file: File;
+  setState: SetState;
   applyPreview: (
     url: string | null,
     type: MediaInputPipelineState["previewType"]
-  ) => void,
-  stopCamera: () => void,
-  setError: (msg: string) => void,
-  canvasRef: React.RefObject<HTMLCanvasElement | null>
+  ) => void;
+  stopCamera: () => void;
+  setError: (msg: string) => void;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+}
+
+async function processMediaFile(
+  context: ProcessMediaFileContext
 ): Promise<void> {
+  const { file, setState, applyPreview, stopCamera, setError, canvasRef } =
+    context;
   const fileIsImage = isImageFile(file);
   const fileIsVideo = isVideoFile(file);
   const inferredMode: MediaInputMode = fileIsVideo ? "video" : "image";
@@ -326,16 +332,16 @@ export function useMediaInputPipeline(
   const selectMediaFile = useCallback(
     async (file: File | null) => {
       if (!file) return;
-      await processMediaFile(
+      await processMediaFile({
         file,
         setState,
         applyPreview,
         stopCamera,
         setError,
-        cameraCanvasRef
-      );
+        canvasRef: cameraCanvasRef,
+      });
     },
-    [applyPreview, setError, stopCamera]
+    [applyPreview, setError, stopCamera, cameraCanvasRef]
   );
 
   const requestCamera = useCallback(async () => {
@@ -465,6 +471,8 @@ function translateCameraFailure(error: unknown): CameraFailure {
     typeof error.name === "string"
       ? error.name
       : "";
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const normalizedFailure = `${errorName} ${errorMessage}`.toLowerCase();
 
   if (
     errorName === "NotAllowedError" ||
@@ -487,7 +495,9 @@ function translateCameraFailure(error: unknown): CameraFailure {
   if (
     errorName === "SecurityError" ||
     errorName === "TypeError" ||
-    errorName === "NotSupportedError"
+    errorName === "NotSupportedError" ||
+    normalizedFailure.includes("not supported") ||
+    normalizedFailure.includes("unsupported")
   ) {
     return {
       permission: "unsupported",

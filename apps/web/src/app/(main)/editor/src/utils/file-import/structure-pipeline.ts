@@ -181,6 +181,144 @@ const resolvePolicy = (
     policy?.classifierRole ?? DEFAULT_STRUCTURE_PIPELINE_POLICY.classifierRole,
 });
 
+const resetSceneExpectations = (state: ClassificationState): void => {
+  state.expectedSceneHeader = null;
+  state.expectingDialogueAfterCue = false;
+};
+
+const handleSceneHeader2Expected = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  if (isSceneHeader2Only(line)) {
+    state.expectedSceneHeader = "scene_header_3";
+    state.expectingDialogueAfterCue = false;
+    return "scene_header_2";
+  }
+  if (hasTemporalSceneSignal(line) || hasSceneNumericSignal(line)) {
+    resetSceneExpectations(state);
+    return "scene_header_3";
+  }
+  if (isSceneHeader3Standalone(line)) {
+    resetSceneExpectations(state);
+    return "scene_header_3";
+  }
+  state.expectedSceneHeader = null;
+  return null;
+};
+
+const handleSceneHeader3Expected = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  if (hasTemporalSceneSignal(line) || hasSceneNumericSignal(line)) {
+    resetSceneExpectations(state);
+    return "scene_header_3";
+  }
+  if (isSceneHeader3Standalone(line)) {
+    resetSceneExpectations(state);
+    return "scene_header_3";
+  }
+  if (isSceneHeader2Only(line)) {
+    state.expectedSceneHeader = "scene_header_3";
+    state.expectingDialogueAfterCue = false;
+    return "scene_header_2";
+  }
+  state.expectedSceneHeader = null;
+  return null;
+};
+
+const classifyExpectedSceneHeader = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  if (state.expectedSceneHeader === "scene_header_2") {
+    return handleSceneHeader2Expected(line, state);
+  }
+  if (state.expectedSceneHeader === "scene_header_3") {
+    return handleSceneHeader3Expected(line, state);
+  }
+  return null;
+};
+
+const classifyDirectSceneHeader = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  if (isSceneHeader1Only(line)) {
+    state.expectedSceneHeader = "scene_header_2";
+    state.expectingDialogueAfterCue = false;
+    return "scene_header_1";
+  }
+  if (isSceneHeader2Only(line)) {
+    state.expectedSceneHeader = "scene_header_3";
+    state.expectingDialogueAfterCue = false;
+    return "scene_header_2";
+  }
+  if (isSceneHeader3Standalone(line)) {
+    resetSceneExpectations(state);
+    return "scene_header_3";
+  }
+  if (isTransitionLine(line)) {
+    resetSceneExpectations(state);
+    return "transition";
+  }
+
+  return null;
+};
+
+const classifySpeakerLine = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  const cueOnlyMatch = SPEAKER_CUE_RE.exec(line);
+  if (cueOnlyMatch && isLikelySpeakerName(cueOnlyMatch[1] ?? "")) {
+    state.expectingDialogueAfterCue = true;
+    return "character";
+  }
+
+  const inlineSpeakerMatch = INLINE_SPEAKER_RE.exec(line);
+  if (inlineSpeakerMatch && isLikelySpeakerName(inlineSpeakerMatch[1] ?? "")) {
+    state.expectingDialogueAfterCue = false;
+    return "dialogue";
+  }
+
+  return null;
+};
+
+const classifyFromContext = (
+  line: string,
+  state: ClassificationState
+): BlockFormatId | null => {
+  if (state.expectingDialogueAfterCue) {
+    resetSceneExpectations(state);
+    return "dialogue";
+  }
+  if (state.previousFormat === "character") {
+    state.expectedSceneHeader = null;
+    return "dialogue";
+  }
+  if (
+    state.previousFormat !== "dialogue" &&
+    state.previousFormat !== "parenthetical"
+  ) {
+    return null;
+  }
+
+  const normalizedForAction = normalizeLine(line);
+  if (
+    isActionVerbStart(normalizedForAction) ||
+    matchesActionStartPattern(normalizedForAction) ||
+    hasActionVerbStructure(normalizedForAction)
+  ) {
+    resetSceneExpectations(state);
+    return "action";
+  }
+
+  state.expectedSceneHeader = null;
+  return "dialogue";
+};
+
 /**
  * يُصنّف سطراً واحداً إلى نوع عنصر سيناريو عبر سلسلة أولويات ثابتة.
  *
@@ -196,111 +334,16 @@ const classifyLineLabelOnly = (
   state: ClassificationState
 ): BlockFormatId => {
   if (/^بسم\b/u.test(line) || line.startsWith("بسم الله")) {
-    state.expectedSceneHeader = null;
-    state.expectingDialogueAfterCue = false;
+    resetSceneExpectations(state);
     return "basmala";
   }
 
-  if (state.expectedSceneHeader === "scene_header_2") {
-    if (isSceneHeader2Only(line)) {
-      state.expectedSceneHeader = "scene_header_3";
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_2";
-    }
-    if (hasTemporalSceneSignal(line) || hasSceneNumericSignal(line)) {
-      state.expectedSceneHeader = null;
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_3";
-    }
-    if (isSceneHeader3Standalone(line)) {
-      state.expectedSceneHeader = null;
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_3";
-    }
-    state.expectedSceneHeader = null;
-  } else if (state.expectedSceneHeader === "scene_header_3") {
-    if (hasTemporalSceneSignal(line) || hasSceneNumericSignal(line)) {
-      state.expectedSceneHeader = null;
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_3";
-    }
-    if (isSceneHeader3Standalone(line)) {
-      state.expectedSceneHeader = null;
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_3";
-    }
-    if (isSceneHeader2Only(line)) {
-      state.expectedSceneHeader = "scene_header_3";
-      state.expectingDialogueAfterCue = false;
-      return "scene_header_2";
-    }
-    state.expectedSceneHeader = null;
-  }
-
-  if (isSceneHeader1Only(line)) {
-    state.expectedSceneHeader = "scene_header_2";
-    state.expectingDialogueAfterCue = false;
-    return "scene_header_1";
-  }
-
-  if (isSceneHeader2Only(line)) {
-    state.expectedSceneHeader = "scene_header_3";
-    state.expectingDialogueAfterCue = false;
-    return "scene_header_2";
-  }
-
-  if (isSceneHeader3Standalone(line)) {
-    state.expectedSceneHeader = null;
-    state.expectingDialogueAfterCue = false;
-    return "scene_header_3";
-  }
-
-  if (isTransitionLine(line)) {
-    state.expectedSceneHeader = null;
-    state.expectingDialogueAfterCue = false;
-    return "transition";
-  }
-
-  const cueOnlyMatch = SPEAKER_CUE_RE.exec(line);
-  if (cueOnlyMatch && isLikelySpeakerName(cueOnlyMatch[1] ?? "")) {
-    state.expectingDialogueAfterCue = true;
-    return "character";
-  }
-
-  const inlineSpeakerMatch = INLINE_SPEAKER_RE.exec(line);
-  if (inlineSpeakerMatch && isLikelySpeakerName(inlineSpeakerMatch[1] ?? "")) {
-    state.expectingDialogueAfterCue = false;
-    return "dialogue";
-  }
-
-  if (state.expectingDialogueAfterCue) {
-    state.expectedSceneHeader = null;
-    state.expectingDialogueAfterCue = false;
-    return "dialogue";
-  }
-
-  if (state.previousFormat === "character") {
-    state.expectedSceneHeader = null;
-    return "dialogue";
-  }
-
-  if (
-    state.previousFormat === "dialogue" ||
-    state.previousFormat === "parenthetical"
-  ) {
-    const normalizedForAction = normalizeLine(line);
-    if (
-      isActionVerbStart(normalizedForAction) ||
-      matchesActionStartPattern(normalizedForAction) ||
-      hasActionVerbStructure(normalizedForAction)
-    ) {
-      state.expectedSceneHeader = null;
-      state.expectingDialogueAfterCue = false;
-      return "action";
-    }
-    state.expectedSceneHeader = null;
-    return "dialogue";
-  }
+  const classified =
+    classifyExpectedSceneHeader(line, state) ??
+    classifyDirectSceneHeader(line, state) ??
+    classifySpeakerLine(line, state) ??
+    classifyFromContext(line, state);
+  if (classified) return classified;
 
   state.expectedSceneHeader = null;
   return "action";

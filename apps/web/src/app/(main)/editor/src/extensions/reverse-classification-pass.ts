@@ -80,6 +80,51 @@ const isValidSequence = (
   return validNext.has(toType);
 };
 
+const classifyBeforeBoundary = (
+  normalized: string
+): { type: ElementType; confidence: number } | null => {
+  if (isActionVerbStart(normalized) || hasActionVerbStructure(normalized)) {
+    return { type: "action", confidence: 85 };
+  }
+
+  const shortNeutralLine =
+    !hasActionVerbStructure(normalized) &&
+    !isActionCueLine(normalized) &&
+    !/^[-–—]/.test(normalized) &&
+    wordCount(normalized) <= 15;
+  if (
+    shortNeutralLine &&
+    (hasDirectDialogueCues(normalized) || wordCount(normalized) <= 8)
+  ) {
+    return { type: "dialogue", confidence: 82 };
+  }
+
+  return null;
+};
+
+const canApplyReverseOverride = (
+  classified: ClassifiedDraft[],
+  index: number,
+  forwardDraft: ClassifiedDraft,
+  reverseType: ElementType,
+  reverseConfidence: number
+): boolean => {
+  const shouldOverride =
+    reverseConfidence >= 82 &&
+    forwardDraft.confidence <= 80 &&
+    forwardDraft.classificationMethod !== "regex";
+  if (!shouldOverride) return false;
+
+  const prevType = index > 0 ? classified[index - 1]?.type : null;
+  const nextType =
+    index + 1 < classified.length ? classified[index + 1]?.type : null;
+
+  return (
+    (!prevType || isValidSequence(prevType, reverseType)) &&
+    (!nextType || isValidSequence(reverseType, nextType))
+  );
+};
+
 // ─── التصنيف العكسي ───────────────────────────────────────────────
 
 /**
@@ -115,20 +160,8 @@ const classifyWithReverseContext = (
 
   // قاعدة 2: لو اللي بعدي character أو scene_header → أنا آخر سطر في الكتلة
   if (nextType === "character" || nextType === "scene_header_top_line") {
-    if (isActionVerbStart(normalized) || hasActionVerbStructure(normalized)) {
-      return { type: "action", confidence: 85 };
-    }
-    if (
-      !hasActionVerbStructure(normalized) &&
-      !isActionCueLine(normalized) &&
-      !/^[-–—]/.test(normalized) &&
-      wordCount(normalized) <= 15
-    ) {
-      // سطر قصير بدون action indicators → حوار أرجح
-      if (hasDirectDialogueCues(normalized) || wordCount(normalized) <= 8) {
-        return { type: "dialogue", confidence: 82 };
-      }
-    }
+    const boundaryResult = classifyBeforeBoundary(normalized);
+    if (boundaryResult) return boundaryResult;
   }
 
   // قاعدة 3: لو الـ 3 أسطر بعدي ≥ 2 action + أنا فيّ action verb → action
@@ -284,26 +317,7 @@ export const mergeForwardReverse = (
       continue;
     }
 
-    // لو مختلفين → هل نغيّر؟
-    const shouldOverride =
-      revConf >= 82 &&
-      fwd.confidence <= 80 &&
-      fwd.classificationMethod !== "regex";
-
-    if (!shouldOverride) continue;
-
-    // فحص sequence rules — لازم النوع الجديد يتوافق مع الجيران
-    const prev = i > 0 ? classified[i - 1] : null;
-    const prevType = prev ? prev.type : null;
-
-    const next = i + 1 < n ? classified[i + 1] : null;
-    const nextType = next ? next.type : null;
-
-    const seqValid =
-      (!prevType || isValidSequence(prevType, rev)) &&
-      (!nextType || isValidSequence(rev, nextType));
-
-    if (!seqValid) continue;
+    if (!canApplyReverseOverride(classified, i, fwd, rev, revConf)) continue;
 
     classified[i] = {
       ...fwd,

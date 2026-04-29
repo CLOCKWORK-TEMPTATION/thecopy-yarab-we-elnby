@@ -17,6 +17,7 @@ import { z } from "zod";
  */
 export const PluginCategorySchema = z.enum([
   "ai-analytics", // أدوات الذكاء الاصطناعي التحليلية
+  "art-creation", // أدوات إنشاء الفن والمفاهيم البصرية
   "collaboration", // أدوات التعاون
   "resource-management", // إدارة الموارد
   "xr-immersive", // الواقع الممتد

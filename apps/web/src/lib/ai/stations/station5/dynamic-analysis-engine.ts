@@ -34,7 +34,9 @@ export class DynamicAnalysisEngine {
     // Process conflicts
     const conflicts: Map<string, ConflictWithPhase> =
       network.conflicts ?? new Map<string, ConflictWithPhase>();
-    for (const conflict of Array.from(conflicts.values())) {
+    for (const [conflictKey, conflict] of Array.from(conflicts.entries())) {
+      const conflictId = conflict.id ?? conflictKey;
+      const conflictName = conflict.name ?? conflictId;
       const legacyTimestamp = (
         conflict as ConflictWithPhase & {
           timestamp?: Date | Date[];
@@ -56,10 +58,10 @@ export class DynamicAnalysisEngine {
         events.push({
           timestamp,
           eventType: "conflict_emerged",
-          description: `Conflict emerged: ${conflict.name}`,
+          description: `Conflict emerged: ${conflictName}`,
           involvedEntities: {
             characters: conflict.involvedCharacters ?? [],
-            conflicts: [conflict.id],
+            conflicts: [conflictId],
           },
           significance: conflict.strength ?? 5,
           narrativePhase: this.inferNarrativePhase(timestamp, snapshots),
@@ -364,7 +366,7 @@ export class DynamicAnalysisEngine {
 
       progressionMap.set(confId, {
         conflictId: confId,
-        conflictName: conflict.name,
+        conflictName: conflict.name ?? confId,
         phaseTransitions,
         intensityProgression,
         resolutionProbability,

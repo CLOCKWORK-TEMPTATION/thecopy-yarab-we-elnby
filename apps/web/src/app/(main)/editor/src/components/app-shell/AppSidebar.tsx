@@ -343,7 +343,7 @@ export function AppSidebar({
               editorMatchCount={editorMatchCount}
               editorMatchPreview={editorMatchPreview}
               searchQuery={searchQuery}
-              onEditorSearchJump={onEditorSearchJump}
+              {...(onEditorSearchJump ? { onEditorSearchJump } : {})}
             />
           )}
 

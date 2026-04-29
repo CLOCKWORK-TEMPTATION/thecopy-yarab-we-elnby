@@ -59,7 +59,7 @@ describe("fileExtractor (gutted implementation)", () => {
       expect(() => getSupportedFileTypes()).toThrow(/معطّل/);
     });
 
-    it("should throw with correct error type", () => {
+    it("should throw with correct error type", async () => {
       const error = await captureError(() => getSupportedFileTypes());
       expect(error).toBeDefined();
       expectExtractionDisabled(error);
@@ -74,7 +74,7 @@ describe("fileExtractor (gutted implementation)", () => {
       expect(() => validateFile(file)).toThrow(/معطّل/);
     });
 
-    it("should throw with correct error type", () => {
+    it("should throw with correct error type", async () => {
       const file = new File(["content"], "script.docx", {
         type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });

@@ -2,10 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 
 import { useWebcamAnalysis as useWebcamAnalysisEngine } from "../../hooks/useWebcamAnalysis";
 
-import type { WebcamAnalysisResult, WebcamSession } from "../../types";
+import type {
+  NotificationType,
+  WebcamAnalysisResult,
+  WebcamSession,
+} from "../../types";
 
 export const useWebcamAnalysis = (
-  showNotification: (type: string, message: string) => void
+  showNotification: (type: NotificationType, message: string) => void
 ) => {
   const [webcamActive, setWebcamActive] = useState(false);
   const [webcamAnalyzing, setWebcamAnalyzing] = useState(false);
@@ -59,15 +63,33 @@ export const useWebcamAnalysis = (
     // محاكاة تحليل الكاميرا
     setTimeout(() => {
       const result: WebcamAnalysisResult = {
-        eyeContact: 85,
-        facialExpressions: 78,
-        bodyLanguage: 82,
-        overallScore: 82,
-        feedback: [
+        eyeLine: {
+          direction: "audience",
+          consistency: 85,
+          alerts: ["حافظ على التواصل البصري مع الجمهور"],
+        },
+        expressionSync: {
+          score: 78,
+          matchedEmotions: ["ترقب", "تعاطف"],
+          mismatches: ["لحظة غضب تحتاج وضوحاً أكبر"],
+        },
+        blinkRate: {
+          rate: 18,
+          status: "normal",
+          tensionIndicator: 35,
+        },
+        blocking: {
+          spaceUsage: 82,
+          movements: ["حركة جسدية مفتوحة"],
+          suggestions: ["استخدم المساحة الأمامية بثبات أكثر"],
+        },
+        alerts: [
           "حافظ على التواصل البصري مع الجمهور",
           "استخدم تعبيرات وجه متنوعة",
           "حافظ على وضعية جسدية مفتوحة",
         ],
+        overallScore: 82,
+        timestamp: new Date().toISOString(),
       };
 
       setWebcamAnalysisResult(result);

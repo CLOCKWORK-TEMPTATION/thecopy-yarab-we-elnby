@@ -32,6 +32,7 @@ interface ContextMap {
 }
 
 type PipelineResult = Awaited<ReturnType<typeof runFullPipeline>>;
+type StationStatus = "pending" | "running" | "completed" | "failed";
 
 function buildSharedFormattedResults(
   pipelineResult: PipelineResult
@@ -192,8 +193,8 @@ const STATIONS = [
 const StationsPipeline = () => {
   const [text, setText] = useState("");
   const [results, setResults] = useState<Record<number, unknown>>({});
-  const [statuses, setStatuses] = useState<string[]>(
-    Array<string>(STATIONS.length).fill("pending")
+  const [statuses, setStatuses] = useState<StationStatus[]>(
+    Array<StationStatus>(STATIONS.length).fill("pending")
   );
   const [activeStation, setActiveStation] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -209,7 +210,7 @@ const StationsPipeline = () => {
   const handleReset = () => {
     setText("");
     setResults({});
-    setStatuses(Array<string>(STATIONS.length).fill("pending"));
+    setStatuses(Array<StationStatus>(STATIONS.length).fill("pending"));
     setActiveStation(null);
     setErrorMessage(null);
   };
@@ -224,7 +225,7 @@ const StationsPipeline = () => {
       return;
     }
 
-    setStatuses(Array<string>(STATIONS.length).fill("pending"));
+    setStatuses(Array<StationStatus>(STATIONS.length).fill("pending"));
     setResults({});
     setErrorMessage(null);
 
@@ -235,7 +236,7 @@ const StationsPipeline = () => {
           projectName: "تحليل درامي شامل",
         });
         const formattedResults = buildSharedFormattedResults(pipelineResult);
-        const nextStatuses = STATIONS.map((station) =>
+        const nextStatuses: StationStatus[] = STATIONS.map((station) =>
           formattedResults[station.id] ? "completed" : "failed"
         );
 
@@ -387,7 +388,7 @@ const StationsPipeline = () => {
           <StationCard
             key={station.id}
             station={station}
-            status={statuses[index]}
+            status={statuses[index] ?? "pending"}
             results={results}
             isActive={activeStation === station.id}
           />

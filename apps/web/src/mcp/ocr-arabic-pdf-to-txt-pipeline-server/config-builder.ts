@@ -131,7 +131,7 @@ function buildLLMConfig(args: ParsedArgs): LLMConfig {
   };
 }
 
-function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
+function getTableFormat(args: ParsedArgs): "markdown" | "html" | undefined {
   const tableRaw = (
     argOptionalString(args, "mistral-table-format") ??
     process.env["MISTRAL_OCR_TABLE_FORMAT"] ??
@@ -141,6 +141,14 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
     .toLowerCase();
   const tableFormat =
     tableRaw === "markdown" || tableRaw === "html" ? tableRaw : undefined;
+  return tableFormat;
+}
+
+function getAnnotationConfig(args: ParsedArgs): {
+  annotationSchemaPath?: string;
+  annotationPrompt?: string;
+  annotationOutputPath?: string;
+} {
   const annotationSchemaPath =
     argOptionalString(args, "mistral-annotation-schema") ??
     process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ??
@@ -153,6 +161,16 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
     argOptionalString(args, "mistral-annotation-output") ??
     process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ??
     undefined;
+  return {
+    annotationSchemaPath,
+    annotationPrompt,
+    annotationOutputPath,
+  };
+}
+
+function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
+  const tableFormat = getTableFormat(args);
+  const annotationConfig = getAnnotationConfig(args);
 
   const mistral: MistralOCRConfig = {
     model: argString(
@@ -183,9 +201,15 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
     extractHeader: argBool(args, "mistral-extract-header"),
     extractFooter: argBool(args, "mistral-extract-footer"),
     includeImageBase64: argBool(args, "mistral-include-image-base64"),
-    ...(annotationSchemaPath !== undefined ? { annotationSchemaPath } : {}),
-    ...(annotationPrompt !== undefined ? { annotationPrompt } : {}),
-    ...(annotationOutputPath !== undefined ? { annotationOutputPath } : {}),
+    ...(annotationConfig.annotationSchemaPath !== undefined
+      ? { annotationSchemaPath: annotationConfig.annotationSchemaPath }
+      : {}),
+    ...(annotationConfig.annotationPrompt !== undefined
+      ? { annotationPrompt: annotationConfig.annotationPrompt }
+      : {}),
+    ...(annotationConfig.annotationOutputPath !== undefined
+      ? { annotationOutputPath: annotationConfig.annotationOutputPath }
+      : {}),
     ...(tableFormat !== undefined ? { tableFormat } : {}),
   };
   if (mistral.model !== DEFAULT_MISTRAL_OCR_MODEL) {

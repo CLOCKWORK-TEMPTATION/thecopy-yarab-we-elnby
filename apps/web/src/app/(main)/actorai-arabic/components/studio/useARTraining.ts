@@ -19,26 +19,28 @@ export const useARTraining = () => {
       speed: 50,
       fontSize: 24,
       opacity: 80,
-      scrollMode: "continuous",
+      position: "center",
     });
   const [blockingMarks, setBlockingMarks] = useState<BlockingMark[]>([
     {
       id: "1",
-      position: { x: 20, y: 30 },
-      description: "الوقوف عند الحافة",
-      character: "أحمد",
+      x: 20,
+      y: 30,
+      label: "الوقوف عند الحافة",
+      color: "#22c55e",
     },
     {
       id: "2",
-      position: { x: 80, y: 30 },
-      description: "النظر نحو الشرفة",
-      character: "ليلى",
+      x: 80,
+      y: 30,
+      label: "النظر نحو الشرفة",
+      color: "#3b82f6",
     },
   ]);
   const [cameraSettings, setCameraSettings] = useState<CameraSettings>({
+    focalLength: 50,
     shotType: "medium",
-    angle: "eye-level",
-    movement: "static",
+    aspectRatio: "16:9",
   });
   const [holographicPartner, setHolographicPartner] =
     useState<HolographicPartner>({

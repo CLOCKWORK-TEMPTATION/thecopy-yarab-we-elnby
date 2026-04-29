@@ -231,8 +231,8 @@ export function InspectorPanel({
       </div>
       <InspectorFields
         sceneData={sceneData}
-        onUpdate={onUpdate}
         onClose={onClose}
+        {...(onUpdate ? { onUpdate } : {})}
       />
     </motion.div>
   );

@@ -129,6 +129,82 @@ function extractFinalText(payload: BrainstormDebateResponse): string {
   );
 }
 
+function buildTaskPromptParts(
+  params: SubmitParams,
+  request: AIRequestData
+): string[] {
+  return [
+    `نوع المهمة: ${CREATIVE_TASK_LABELS[params.selectedTask!]}`,
+    `التوجيه الخاص: ${request.prompt || "بدون توجيه خاص"}`,
+    params.completionScope
+      ? `نطاق الإكمال المطلوب: ${params.completionScope}`
+      : "",
+    params.additionalInfo ? `معلومات إضافية: ${params.additionalInfo}` : "",
+    "النص الأصلي:",
+    request.context.files[0]?.textContent ?? "",
+  ].filter(Boolean);
+}
+
+function buildContextBrief(params: SubmitParams): string {
+  return [
+    params.analysisReport ? `تقرير التحليل:\n${params.analysisReport}` : "",
+    params.additionalInfo ? `معلومات داعمة:\n${params.additionalInfo}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+async function postBrainstormRequest(
+  params: SubmitParams,
+  request: AIRequestData,
+  agentIds: string[]
+): Promise<BrainstormDebateResponse> {
+  const response = await fetch("/api/brainstorm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({
+      task: buildTaskPromptParts(params, request).join("\n\n"),
+      context: {
+        brief: buildContextBrief(params),
+        phase: 3,
+        sessionId: params.analysisId ?? `development-${Date.now()}`,
+      },
+      agentIds,
+    }),
+  });
+
+  const payload = (await response
+    .json()
+    .catch(() => null)) as BrainstormDebateResponse | null;
+
+  if (!response.ok || !payload?.success) {
+    const errorMsg =
+      payload?.error ??
+      `فشل تنفيذ المهمة عبر الباك إند (رمز الحالة: ${response.status})`;
+    throw new Error(errorMsg);
+  }
+
+  return payload;
+}
+
+function buildSubmitResult(
+  payload: BrainstormDebateResponse,
+  agentIds: string[]
+): AIResponseData {
+  const finalText = extractFinalText(payload);
+  return {
+    text: finalText,
+    raw: finalText,
+    confidence: payload.result?.consensus ? 0.9 : 0.7,
+    metadata: {
+      consensus: payload.result?.consensus,
+      proposalsCount: payload.result?.proposals?.length ?? 0,
+      selectedAgents: agentIds,
+    },
+  };
+}
+
 /**
  * تحقق من صحة المدخلات وإرسال طلب الذكاء الاصطناعي عبر /api/brainstorm.
  * يُحدِّث الحالة عبر dispatch عند النجاح أو الفشل.
@@ -148,64 +224,8 @@ export async function handleSubmitImpl(
 
   try {
     const agentIds = buildAgentIds(params);
-
-    const taskPromptParts = [
-      `نوع المهمة: ${CREATIVE_TASK_LABELS[params.selectedTask!]}`,
-      `التوجيه الخاص: ${request.prompt || "بدون توجيه خاص"}`,
-      params.completionScope
-        ? `نطاق الإكمال المطلوب: ${params.completionScope}`
-        : "",
-      params.additionalInfo ? `معلومات إضافية: ${params.additionalInfo}` : "",
-      "النص الأصلي:",
-      request.context.files[0]?.textContent ?? "",
-    ].filter(Boolean);
-
-    const response = await fetch("/api/brainstorm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-        task: taskPromptParts.join("\n\n"),
-        context: {
-          brief: [
-            params.analysisReport
-              ? `تقرير التحليل:\n${params.analysisReport}`
-              : "",
-            params.additionalInfo
-              ? `معلومات داعمة:\n${params.additionalInfo}`
-              : "",
-          ]
-            .filter(Boolean)
-            .join("\n\n"),
-          phase: 3,
-          sessionId: params.analysisId ?? `development-${Date.now()}`,
-        },
-        agentIds,
-      }),
-    });
-
-    const payload = (await response
-      .json()
-      .catch(() => null)) as BrainstormDebateResponse | null;
-
-    if (!response.ok || !payload?.success) {
-      const errorMsg =
-        payload?.error ??
-        `فشل تنفيذ المهمة عبر الباك إند (رمز الحالة: ${response.status})`;
-      throw new Error(errorMsg);
-    }
-
-    const finalText = extractFinalText(payload);
-    const result: AIResponseData = {
-      text: finalText,
-      raw: finalText,
-      confidence: payload.result?.consensus ? 0.9 : 0.7,
-      metadata: {
-        consensus: payload.result?.consensus,
-        proposalsCount: payload.result?.proposals?.length ?? 0,
-        selectedAgents: agentIds,
-      },
-    };
+    const payload = await postBrainstormRequest(params, request, agentIds);
+    const result = buildSubmitResult(payload, agentIds);
 
     dispatch({ type: "SET_AI_RESPONSE", payload: result });
     toast({

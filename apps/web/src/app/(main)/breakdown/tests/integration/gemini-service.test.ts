@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../infrastructure/gemini/segment-script", () => ({
-  segmentScript: vi.fn(() => ({
-    scenes: [{ header: "مشهد 1", content: "محتوى المشهد" }],
-  })),
+  segmentScript: vi.fn(() =>
+    Promise.resolve({
+      scenes: [{ header: "مشهد 1", content: "محتوى المشهد" }],
+    })
+  ),
 }));
 
 vi.mock("../../infrastructure/gemini/analyze-scene", () => ({
@@ -28,9 +30,11 @@ vi.mock("../../infrastructure/gemini/analyze-scene", () => ({
 }));
 
 vi.mock("../../infrastructure/gemini/analyze-scenarios", () => ({
-  analyzeProductionScenarios: vi.fn(() => ({
-    scenarios: [],
-  })),
+  analyzeProductionScenarios: vi.fn(() =>
+    Promise.resolve({
+      scenarios: [],
+    })
+  ),
 }));
 
 import * as geminiService from "../../services/geminiService";

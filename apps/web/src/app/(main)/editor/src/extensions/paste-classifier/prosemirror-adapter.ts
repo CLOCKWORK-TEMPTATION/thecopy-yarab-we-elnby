@@ -22,14 +22,19 @@ import type { EditorView } from "@tiptap/pm/view";
 
 // ─── helpers لإنشاء عقد scene_header ──────────────────────────────────
 
+interface BuildSceneHeaderTopLineContext {
+  schema: Schema;
+  topId: string;
+  h1Id: string;
+  h2Id: string;
+  h1Text: string | undefined;
+  h2Text: string | undefined;
+}
+
 const buildSceneHeaderTopLine = (
-  schema: Schema,
-  topId: string,
-  h1Id: string,
-  h2Id: string,
-  h1Text: string | undefined,
-  h2Text: string | undefined
+  context: BuildSceneHeaderTopLineContext
 ): PmNode | null => {
+  const { schema, topId, h1Id, h2Id, h1Text, h2Text } = context;
   const h1Type = schema.nodes["scene_header_1"];
   const h2Type = schema.nodes["scene_header_2"];
   const topType = schema.nodes["scene_header_top_line"];
@@ -59,14 +64,14 @@ const createNodeForType = (
   const attrs = buildProgressiveNodeAttrs(itemId);
 
   if (type === "scene_header_top_line") {
-    return buildSceneHeaderTopLine(
+    return buildSceneHeaderTopLine({
       schema,
-      itemId,
-      itemId,
-      itemId,
-      header1,
-      header2
-    );
+      topId: itemId,
+      h1Id: itemId,
+      h2Id: itemId,
+      h1Text: header1,
+      h2Text: header2,
+    });
   }
 
   const simpleNodeTypes: readonly string[] = [
@@ -117,40 +122,40 @@ const tryMergeSceneHeaders = (
 
   if (item.type === "scene_header_1" && next?.type === "scene_header_2") {
     const nextId = next._itemId ?? "";
-    const node = buildSceneHeaderTopLine(
+    const node = buildSceneHeaderTopLine({
       schema,
-      itemId,
-      itemId,
-      nextId,
-      item.text,
-      next.text
-    );
+      topId: itemId,
+      h1Id: itemId,
+      h2Id: nextId,
+      h1Text: item.text,
+      h2Text: next.text,
+    });
     if (node) nodes.push(node);
     return true; // consumed 2 items
   }
 
   if (item.type === "scene_header_1") {
-    const node = buildSceneHeaderTopLine(
+    const node = buildSceneHeaderTopLine({
       schema,
-      itemId,
-      itemId,
-      itemId,
-      item.text,
-      undefined
-    );
+      topId: itemId,
+      h1Id: itemId,
+      h2Id: itemId,
+      h1Text: item.text,
+      h2Text: undefined,
+    });
     if (node) nodes.push(node);
     return false; // consumed 1 item normally
   }
 
   if (item.type === "scene_header_2") {
-    const node = buildSceneHeaderTopLine(
+    const node = buildSceneHeaderTopLine({
       schema,
-      itemId,
-      itemId,
-      itemId,
-      undefined,
-      item.text
-    );
+      topId: itemId,
+      h1Id: itemId,
+      h2Id: itemId,
+      h1Text: undefined,
+      h2Text: item.text,
+    });
     if (node) nodes.push(node);
     return false; // consumed 1 item normally
   }

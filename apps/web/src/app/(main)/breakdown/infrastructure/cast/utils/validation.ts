@@ -50,8 +50,7 @@ function readRoleCategory(value: unknown): ExtendedCastMember["roleCategory"] {
 
 export function normalizeCastMember(value: unknown): ExtendedCastMember {
   const record = readObject(value);
-
-  return {
+  const member: ExtendedCastMember = {
     ...DEFAULT_CAST_MEMBER,
     id: readString(record["id"]),
     name: readString(record["name"]),
@@ -60,13 +59,23 @@ export function normalizeCastMember(value: unknown): ExtendedCastMember {
     gender: readGender(record["gender"]),
     description: readString(record["description"]),
     motivation: readString(record["motivation"]),
-    nameArabic: readString(record["nameArabic"]) || undefined,
     roleCategory: readRoleCategory(record["roleCategory"]),
     ageRange: readString(record["ageRange"], readString(record["age"])),
     visualDescription: readString(
       record["visualDescription"],
       readString(record["description"])
     ),
-    personalityTraits: readStringArray(record["personalityTraits"]),
   };
+
+  const nameArabic = readString(record["nameArabic"]);
+  if (nameArabic) {
+    member.nameArabic = nameArabic;
+  }
+
+  const personalityTraits = readStringArray(record["personalityTraits"]);
+  if (personalityTraits !== undefined) {
+    member.personalityTraits = personalityTraits;
+  }
+
+  return member;
 }

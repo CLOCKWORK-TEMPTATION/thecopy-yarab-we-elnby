@@ -151,6 +151,44 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+function TooltipIndicator({
+  itemConfig,
+  hideIndicator,
+  indicator,
+  nestLabel,
+  indicatorColor,
+}: {
+  itemConfig: ChartConfig[string] | undefined;
+  hideIndicator: boolean;
+  indicator: "line" | "dot" | "dashed";
+  nestLabel: boolean;
+  indicatorColor?: string;
+}) {
+  if (itemConfig?.icon) return <itemConfig.icon />;
+  if (hideIndicator) return null;
+
+  return (
+    <div
+      className={cn(
+        "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+        {
+          "h-2.5 w-2.5": indicator === "dot",
+          "w-1": indicator === "line",
+          "w-0 border-[1.5px] border-dashed bg-transparent":
+            indicator === "dashed",
+          "my-0.5": nestLabel && indicator === "dashed",
+        }
+      )}
+      style={
+        {
+          "--color-bg": indicatorColor,
+          "--color-border": indicatorColor,
+        } as React.CSSProperties
+      }
+    />
+  );
+}
+
 function TooltipItemRow({
   item,
   index,
@@ -176,7 +214,11 @@ function TooltipItemRow({
 }) {
   const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`;
   const itemConfig = getPayloadConfigFromPayload(config, item, key);
-  const indicatorColor = color ?? item.payload?.["fill"] ?? item.color;
+  const payloadFill = item.payload?.["fill"];
+  const indicatorColor =
+    color ??
+    (typeof payloadFill === "string" ? payloadFill : undefined) ??
+    item.color;
   const formattedValue = formatChartValue(item.value);
 
   return (
@@ -191,30 +233,13 @@ function TooltipItemRow({
         formatter(item.value, item.name, item, index, item.payload)
       ) : (
         <>
-          {itemConfig?.icon ? (
-            <itemConfig.icon />
-          ) : (
-            !hideIndicator && (
-              <div
-                className={cn(
-                  "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                  {
-                    "h-2.5 w-2.5": indicator === "dot",
-                    "w-1": indicator === "line",
-                    "w-0 border-[1.5px] border-dashed bg-transparent":
-                      indicator === "dashed",
-                    "my-0.5": nestLabel && indicator === "dashed",
-                  }
-                )}
-                style={
-                  {
-                    "--color-bg": indicatorColor,
-                    "--color-border": indicatorColor,
-                  } as React.CSSProperties
-                }
-              />
-            )
-          )}
+          <TooltipIndicator
+            itemConfig={itemConfig}
+            hideIndicator={hideIndicator}
+            indicator={indicator}
+            nestLabel={nestLabel}
+            {...(indicatorColor ? { indicatorColor } : {})}
+          />
           <div
             className={cn(
               "flex flex-1 justify-between leading-none",
@@ -323,9 +348,9 @@ const ChartTooltipContent = React.forwardRef<
             hideIndicator={hideIndicator}
             nestLabel={nestLabel}
             tooltipLabel={tooltipLabel}
-            formatter={formatter}
-            color={color}
-            nameKey={nameKey}
+            {...(formatter ? { formatter } : {})}
+            {...(color ? { color } : {})}
+            {...(nameKey ? { nameKey } : {})}
           />
         ))}
       </div>

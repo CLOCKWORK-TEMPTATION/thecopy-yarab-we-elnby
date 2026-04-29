@@ -252,7 +252,11 @@ const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({
     handleExportJSON,
     handleExportCastingCall,
     clearFilters,
-  } = useCastBreakdown({ cast, sceneContent, onAnalyze });
+  } = useCastBreakdown({
+    cast,
+    sceneContent,
+    ...(onAnalyze ? { onAnalyze } : {}),
+  });
 
   if (isProcessing || analyzing) {
     return <CastLoadingState analyzing={analyzing} />;
@@ -263,8 +267,8 @@ const CastBreakdownView: React.FC<CastBreakdownViewProps> = ({
       <CastEmptyState
         analyzing={analyzing}
         sceneContent={sceneContent}
-        onAnalyze={onAnalyze}
         onAnalyzeClick={handleAnalyze}
+        {...(onAnalyze ? { onAnalyze } : {})}
       />
     );
   }

@@ -15,6 +15,7 @@ import {
   type Station3Input,
   type Station3Output,
 } from "./station3-network-builder";
+import { toCoreStation4Output } from "./station4-core-adapter";
 import {
   Station4EfficiencyMetrics,
   type Station4Output,
@@ -80,6 +81,13 @@ export interface OrchestrationResult {
     error: string;
     timestamp: string;
   }[];
+}
+
+interface StationStep {
+  number: number;
+  name: string;
+  run: () => Promise<unknown>;
+  assign: (out: unknown) => void;
 }
 
 export class StationsOrchestrator {
@@ -180,7 +188,7 @@ export class StationsOrchestrator {
     );
     const result = await station5.execute({
       conflictNetwork: station3Output.conflictNetwork,
-      station4Output,
+      station4Output: toCoreStation4Output(station4Output),
       fullText,
     });
     return result.output;
@@ -268,155 +276,132 @@ export class StationsOrchestrator {
       stationsCompleted++;
     };
 
+    const stationSteps: StationStep[] = [
+      {
+        number: 1,
+        name: "Text Analysis",
+        run: () => this.runStation1(fullText, projectName),
+        assign: (out: unknown) => {
+          stationOutputs.station1 = out as Station1Output;
+        },
+      },
+      {
+        number: 2,
+        name: "Conceptual Analysis",
+        run: () => {
+          if (!stationOutputs.station1) {
+            throw new Error("Station 1 output is required for Station 2");
+          }
+          return this.runStation2(fullText, stationOutputs.station1);
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station2 = out as Station2Output;
+        },
+      },
+      {
+        number: 3,
+        name: "Network Builder",
+        run: () => {
+          if (!stationOutputs.station1 || !stationOutputs.station2) {
+            throw new Error(
+              "Station 1 and 2 outputs are required for Station 3"
+            );
+          }
+          return this.runStation3(
+            fullText,
+            stationOutputs.station1,
+            stationOutputs.station2
+          );
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station3 = out as Station3Output;
+        },
+      },
+      {
+        number: 4,
+        name: "Efficiency Metrics",
+        run: () => {
+          if (!stationOutputs.station3) {
+            throw new Error("Station 3 output is required for Station 4");
+          }
+          return this.runStation4(fullText, stationOutputs.station3);
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station4 = out as Station4Output;
+        },
+      },
+      {
+        number: 5,
+        name: "Dynamic/Symbolic/Stylistic Analysis",
+        run: () => {
+          if (!stationOutputs.station3 || !stationOutputs.station4) {
+            throw new Error(
+              "Station 3 and 4 outputs are required for Station 5"
+            );
+          }
+          return this.runStation5(
+            fullText,
+            stationOutputs.station3,
+            stationOutputs.station4
+          );
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station5 = out as Station5Output;
+        },
+      },
+      {
+        number: 6,
+        name: "Diagnostics & Treatment",
+        run: () => {
+          const { station1, station2, station3, station4, station5 } =
+            stationOutputs;
+          if (!station1 || !station2 || !station3 || !station4 || !station5) {
+            throw new Error(
+              "All previous station outputs are required for Station 6"
+            );
+          }
+          return this.runStation6(fullText, {
+            station1,
+            station2,
+            station3,
+            station4,
+            station5,
+          });
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station6 = out as Station6Output;
+        },
+      },
+      {
+        number: 7,
+        name: "Finalization & Visualization",
+        run: () => {
+          if (!stationOutputs.station3 || !stationOutputs.station6) {
+            throw new Error(
+              "Station 3 and 6 outputs are required for Station 7"
+            );
+          }
+          return this.runStation7(
+            stationOutputs.station3,
+            stationOutputs.station6,
+            allPreviousStationsData
+          );
+        },
+        assign: (out: unknown) => {
+          stationOutputs.station7 = out as Station7Output;
+        },
+      },
+    ];
+
     try {
-      if (shouldRun(1)) {
-        const out = await this.executeStation<Station1Output>(
-          1,
-          "Text Analysis",
-          () => this.runStation1(fullText, projectName)
-        );
+      for (const step of stationSteps) {
+        if (!shouldRun(step.number)) continue;
+        const out = await this.executeStation(step.number, step.name, step.run);
         if (out) {
-          stationOutputs.station1 = out;
-          track(out, 1);
+          step.assign(out);
+          track(out, step.number);
         } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(2)) {
-        const out = await this.executeStation<Station2Output>(
-          2,
-          "Conceptual Analysis",
-          () => {
-            if (!stationOutputs.station1)
-              throw new Error("Station 1 output is required for Station 2");
-            return this.runStation2(fullText, stationOutputs.station1);
-          }
-        );
-        if (out) {
-          stationOutputs.station2 = out;
-          track(out, 2);
-        } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(3)) {
-        const out = await this.executeStation<Station3Output>(
-          3,
-          "Network Builder",
-          () => {
-            if (!stationOutputs.station1 || !stationOutputs.station2) {
-              throw new Error(
-                "Station 1 and 2 outputs are required for Station 3"
-              );
-            }
-            return this.runStation3(
-              fullText,
-              stationOutputs.station1,
-              stationOutputs.station2
-            );
-          }
-        );
-        if (out) {
-          stationOutputs.station3 = out;
-          track(out, 3);
-        } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(4)) {
-        const out = await this.executeStation<Station4Output>(
-          4,
-          "Efficiency Metrics",
-          () => {
-            if (!stationOutputs.station3)
-              throw new Error("Station 3 output is required for Station 4");
-            return this.runStation4(fullText, stationOutputs.station3);
-          }
-        );
-        if (out) {
-          stationOutputs.station4 = out;
-          track(out, 4);
-        } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(5)) {
-        const out = await this.executeStation<Station5Output>(
-          5,
-          "Dynamic/Symbolic/Stylistic Analysis",
-          () => {
-            if (!stationOutputs.station3 || !stationOutputs.station4) {
-              throw new Error(
-                "Station 3 and 4 outputs are required for Station 5"
-              );
-            }
-            return this.runStation5(
-              fullText,
-              stationOutputs.station3,
-              stationOutputs.station4
-            );
-          }
-        );
-        if (out) {
-          stationOutputs.station5 = out;
-          track(out, 5);
-        } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(6)) {
-        const out = await this.executeStation<Station6Output>(
-          6,
-          "Diagnostics & Treatment",
-          () => {
-            if (
-              !stationOutputs.station1 ||
-              !stationOutputs.station2 ||
-              !stationOutputs.station3 ||
-              !stationOutputs.station4 ||
-              !stationOutputs.station5
-            ) {
-              throw new Error(
-                "All previous station outputs are required for Station 6"
-              );
-            }
-            return this.runStation6(fullText, {
-              station1: stationOutputs.station1,
-              station2: stationOutputs.station2,
-              station3: stationOutputs.station3,
-              station4: stationOutputs.station4,
-              station5: stationOutputs.station5,
-            });
-          }
-        );
-        if (out) {
-          stationOutputs.station6 = out;
-          track(out, 6);
-        } else stationsFailed++;
-        await this.delay(6000);
-      }
-
-      if (shouldRun(7)) {
-        const out = await this.executeStation<Station7Output>(
-          7,
-          "Finalization & Visualization",
-          () => {
-            if (!stationOutputs.station3 || !stationOutputs.station6) {
-              throw new Error(
-                "Station 3 and 6 outputs are required for Station 7"
-              );
-            }
-            return this.runStation7(
-              stationOutputs.station3,
-              stationOutputs.station6,
-              allPreviousStationsData
-            );
-          }
-        );
-        if (out) {
-          stationOutputs.station7 = out;
-          track(out, 7);
-        } else stationsFailed++;
+        if (step.number < 7) await this.delay(6000);
       }
 
       const endTime = Date.now();

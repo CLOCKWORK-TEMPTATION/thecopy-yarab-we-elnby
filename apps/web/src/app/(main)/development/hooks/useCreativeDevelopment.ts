@@ -92,12 +92,16 @@ export function useCreativeDevelopment() {
   const { toast } = useToast();
   const initialTextInputRef = useRef(state.textInput);
   const initialAnalysisReportRef = useRef(state.analysisReport);
+  const didLoadSavedAnalysisRef = useRef(false);
 
   // ============================================
   // تحميل البيانات المحفوظة
   // ============================================
 
   useEffect(() => {
+    if (didLoadSavedAnalysisRef.current) return;
+    didLoadSavedAnalysisRef.current = true;
+
     loadSavedAnalysisDataImpl(
       dispatch,
       initialTextInputRef.current,

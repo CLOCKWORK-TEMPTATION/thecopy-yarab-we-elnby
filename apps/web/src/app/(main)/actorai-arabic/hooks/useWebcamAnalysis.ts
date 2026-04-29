@@ -58,6 +58,137 @@ const FRAME_DELTA_THRESHOLD = 24;
 
 // ─── File-level helpers ───
 
+interface FrameAccumulator {
+  motionWeight: number;
+  weightedX: number;
+  weightedY: number;
+  upperBrightness: number;
+  upperCount: number;
+  centerBrightness: number;
+  centerCount: number;
+  changedPixels: number;
+}
+
+function createFrameAccumulator(): FrameAccumulator {
+  return {
+    motionWeight: 0,
+    weightedX: 0,
+    weightedY: 0,
+    upperBrightness: 0,
+    upperCount: 0,
+    centerBrightness: 0,
+    centerCount: 0,
+    changedPixels: 0,
+  };
+}
+
+function isUpperFacePixel(x: number, y: number): boolean {
+  return (
+    y < SAMPLE_HEIGHT / 3 && x > SAMPLE_WIDTH / 4 && x < (SAMPLE_WIDTH * 3) / 4
+  );
+}
+
+function isCenterFacePixel(x: number, y: number): boolean {
+  return (
+    y > SAMPLE_HEIGHT / 4 &&
+    y < (SAMPLE_HEIGHT * 3) / 4 &&
+    x > SAMPLE_WIDTH / 4 &&
+    x < (SAMPLE_WIDTH * 3) / 4
+  );
+}
+
+function readBrightness(data: Uint8ClampedArray, pixelIndex: number): number {
+  const red = data[pixelIndex] ?? 0;
+  const green = data[pixelIndex + 1] ?? 0;
+  const blue = data[pixelIndex + 2] ?? 0;
+  return Math.round(red * 0.299 + green * 0.587 + blue * 0.114);
+}
+
+function addMotionDelta(
+  accumulator: FrameAccumulator,
+  x: number,
+  y: number,
+  delta: number
+): void {
+  if (delta <= FRAME_DELTA_THRESHOLD) {
+    return;
+  }
+
+  accumulator.changedPixels += 1;
+  accumulator.motionWeight += delta;
+  accumulator.weightedX += x * delta;
+  accumulator.weightedY += y * delta;
+}
+
+function addBrightnessBuckets(
+  accumulator: FrameAccumulator,
+  x: number,
+  y: number,
+  brightness: number
+): void {
+  if (isUpperFacePixel(x, y)) {
+    accumulator.upperBrightness += brightness / 255;
+    accumulator.upperCount += 1;
+  }
+
+  if (isCenterFacePixel(x, y)) {
+    accumulator.centerBrightness += brightness / 255;
+    accumulator.centerCount += 1;
+  }
+}
+
+function accumulateFrameSample(
+  data: Uint8ClampedArray,
+  previousFrame: Uint8ClampedArray | null,
+  grayscale: Uint8ClampedArray
+): FrameAccumulator {
+  const accumulator = createFrameAccumulator();
+
+  for (let y = 0; y < SAMPLE_HEIGHT; y += 1) {
+    for (let x = 0; x < SAMPLE_WIDTH; x += 1) {
+      const grayscaleIndex = y * SAMPLE_WIDTH + x;
+      const brightness = readBrightness(data, grayscaleIndex * 4);
+      grayscale[grayscaleIndex] = brightness;
+
+      const previousBrightness = previousFrame?.[grayscaleIndex] ?? brightness;
+      const delta = Math.abs(brightness - previousBrightness);
+
+      addMotionDelta(accumulator, x, y, delta);
+      addBrightnessBuckets(accumulator, x, y, brightness);
+    }
+  }
+
+  return accumulator;
+}
+
+function buildWebcamFrameSample(
+  accumulator: FrameAccumulator
+): WebcamFrameSample {
+  const {
+    motionWeight,
+    weightedX,
+    weightedY,
+    upperBrightness,
+    upperCount,
+    centerBrightness,
+    centerCount,
+    changedPixels,
+  } = accumulator;
+
+  return {
+    timestamp: Date.now(),
+    motionX: motionWeight > 0 ? weightedX / motionWeight / SAMPLE_WIDTH : 0.5,
+    motionY: motionWeight > 0 ? weightedY / motionWeight / SAMPLE_HEIGHT : 0.5,
+    movementEnergy: Math.min(
+      1,
+      motionWeight / Math.max(1, SAMPLE_WIDTH * SAMPLE_HEIGHT * 255 * 0.12)
+    ),
+    upperFaceBrightness: upperCount > 0 ? upperBrightness / upperCount : 0,
+    centerBrightness: centerCount > 0 ? centerBrightness / centerCount : 0,
+    coverage: changedPixels / (SAMPLE_WIDTH * SAMPLE_HEIGHT),
+  };
+}
+
 function buildSessionFromResult(
   result: WebcamAnalysisResult,
   analysisTime: number
@@ -129,70 +260,12 @@ function sampleVideoFrame(
 
   const imageData = context.getImageData(0, 0, SAMPLE_WIDTH, SAMPLE_HEIGHT);
   const grayscale = new Uint8ClampedArray(SAMPLE_WIDTH * SAMPLE_HEIGHT);
-
-  let motionWeight = 0;
-  let weightedX = 0;
-  let weightedY = 0;
-  let upperBrightness = 0;
-  let upperCount = 0;
-  let centerBrightness = 0;
-  let centerCount = 0;
-  let changedPixels = 0;
-
-  for (let y = 0; y < SAMPLE_HEIGHT; y += 1) {
-    for (let x = 0; x < SAMPLE_WIDTH; x += 1) {
-      const grayscaleIndex = y * SAMPLE_WIDTH + x;
-      const pixelIndex = grayscaleIndex * 4;
-      const red = imageData.data[pixelIndex] ?? 0;
-      const green = imageData.data[pixelIndex + 1] ?? 0;
-      const blue = imageData.data[pixelIndex + 2] ?? 0;
-      const brightness = Math.round(red * 0.299 + green * 0.587 + blue * 0.114);
-
-      grayscale[grayscaleIndex] = brightness;
-
-      const previousBrightness = previousFrame?.[grayscaleIndex] ?? brightness;
-      const delta = Math.abs(brightness - previousBrightness);
-
-      if (delta > FRAME_DELTA_THRESHOLD) {
-        changedPixels += 1;
-        motionWeight += delta;
-        weightedX += x * delta;
-        weightedY += y * delta;
-      }
-
-      const inUpperFace =
-        y < SAMPLE_HEIGHT / 3 &&
-        x > SAMPLE_WIDTH / 4 &&
-        x < (SAMPLE_WIDTH * 3) / 4;
-      if (inUpperFace) {
-        upperBrightness += brightness / 255;
-        upperCount += 1;
-      }
-
-      const inCenter =
-        y > SAMPLE_HEIGHT / 4 &&
-        y < (SAMPLE_HEIGHT * 3) / 4 &&
-        x > SAMPLE_WIDTH / 4 &&
-        x < (SAMPLE_WIDTH * 3) / 4;
-      if (inCenter) {
-        centerBrightness += brightness / 255;
-        centerCount += 1;
-      }
-    }
-  }
-
-  const sample: WebcamFrameSample = {
-    timestamp: Date.now(),
-    motionX: motionWeight > 0 ? weightedX / motionWeight / SAMPLE_WIDTH : 0.5,
-    motionY: motionWeight > 0 ? weightedY / motionWeight / SAMPLE_HEIGHT : 0.5,
-    movementEnergy: Math.min(
-      1,
-      motionWeight / Math.max(1, SAMPLE_WIDTH * SAMPLE_HEIGHT * 255 * 0.12)
-    ),
-    upperFaceBrightness: upperCount > 0 ? upperBrightness / upperCount : 0,
-    centerBrightness: centerCount > 0 ? centerBrightness / centerCount : 0,
-    coverage: changedPixels / (SAMPLE_WIDTH * SAMPLE_HEIGHT),
-  };
+  const accumulator = accumulateFrameSample(
+    imageData.data,
+    previousFrame,
+    grayscale
+  );
+  const sample = buildWebcamFrameSample(accumulator);
 
   return { sample, frame: grayscale };
 }

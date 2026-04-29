@@ -1,7 +1,7 @@
 // CineArchitect AI - Cinema Skills Trainer Constants
 // ثوابت المدرب الافتراضي للمهارات السينمائية
 
-import type { TrainingScenario, VREquipment } from "./types";
+import type { TrainingCategory, TrainingScenario, VREquipment } from "./types";
 
 export const TRAINING_SCENARIOS: TrainingScenario[] = [
   {
@@ -221,7 +221,7 @@ export const VR_EQUIPMENT: VREquipment[] = [
   },
 ];
 
-export const DEFAULT_SKILL_LEVELS: Record<string, number> = {
+export const DEFAULT_SKILL_LEVELS: Record<TrainingCategory, number> = {
   "camera-operation": 0,
   "lighting-setup": 0,
   "sound-recording": 0,

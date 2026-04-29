@@ -338,7 +338,7 @@ export function UniverseMap({
         scale={scale}
         showGrid={showGrid}
         activeView={activeView}
-        onNavigate={onNavigate}
+        {...(onNavigate ? { onNavigate } : {})}
       />
 
       <div className="absolute bottom-6 left-6 z-10 bg-[var(--color-panel)]/90 backdrop-blur-sm border border-[var(--color-surface)] rounded-lg p-4">

@@ -1,8 +1,8 @@
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
 interface DocumentationSummaryProps {
-  productionBookTitleAr?: string;
-  styleGuideNameAr?: string;
+  productionBookTitleAr?: string | undefined;
+  styleGuideNameAr?: string | undefined;
   decisionsCount: number;
 }
 

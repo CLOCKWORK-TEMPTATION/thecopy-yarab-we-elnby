@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 
 const {
   mockGenerateContent,
@@ -97,31 +97,30 @@ const allowedGuardrailResult = {
   warnings: [],
 };
 
-describe("GeminiService", () => {
-  let geminiService: GeminiService;
+let geminiService: GeminiService;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+beforeEach(() => {
+  vi.clearAllMocks();
 
-    mockCheckInput.mockReturnValue(allowedGuardrailResult);
-    mockCheckOutput.mockReturnValue(allowedGuardrailResult);
+  mockCheckInput.mockReturnValue(allowedGuardrailResult);
+  mockCheckOutput.mockReturnValue(allowedGuardrailResult);
 
-    vi.mocked(cachedGeminiCall).mockImplementation(
-      async (_key, _ttl, producer) => producer(),
-    );
+  vi.mocked(cachedGeminiCall).mockImplementation(
+    async (_key, _ttl, producer) => producer(),
+  );
 
-    mockGenerateContent.mockResolvedValue({
-      response: {
-        text: () => "نتيجة افتراضية",
-        usageMetadata: {
-          promptTokenCount: 10,
-          candidatesTokenCount: 20,
-        },
+  mockGenerateContent.mockResolvedValue({
+    response: {
+      text: () => "نتيجة افتراضية",
+      usageMetadata: {
+        promptTokenCount: 10,
+        candidatesTokenCount: 20,
       },
-    });
-
-    geminiService = new GeminiService();
+    },
   });
+
+  geminiService = new GeminiService();
+});
 
   it("ينشئ الخدمة بمفتاح صالح", () => {
     expect(geminiService).toBeDefined();
@@ -267,4 +266,3 @@ describe("GeminiService", () => {
     );
     expect(service.buildPrompt("نص", "unknown")).toContain("حلل الشخصيات");
   });
-});

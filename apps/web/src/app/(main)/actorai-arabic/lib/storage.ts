@@ -55,14 +55,23 @@ function hasNoValidParsedItems(
   );
 }
 
-function assignValidatedCollection<T>(
+function assignValidatedScripts(
   target: PersistedAppState,
-  key: "scripts" | "recordings",
   rawItems: unknown,
-  parsedItems: T[] | undefined
+  parsedItems: Script[] | undefined
 ): void {
   if (parsedItems && !hasNoValidParsedItems(rawItems, parsedItems)) {
-    target[key] = parsedItems as PersistedAppState[typeof key];
+    target.scripts = parsedItems;
+  }
+}
+
+function assignValidatedRecordings(
+  target: PersistedAppState,
+  rawItems: unknown,
+  parsedItems: Recording[] | undefined
+): void {
+  if (parsedItems && !hasNoValidParsedItems(rawItems, parsedItems)) {
+    target.recordings = parsedItems;
   }
 }
 
@@ -100,18 +109,8 @@ function parseStoredState(raw: string | null): PersistedAppState {
       nextState.user = null;
     }
 
-    assignValidatedCollection(
-      nextState,
-      "scripts",
-      parsed.scripts,
-      parsedScripts
-    );
-    assignValidatedCollection(
-      nextState,
-      "recordings",
-      parsed.recordings,
-      parsedRecordings
-    );
+    assignValidatedScripts(nextState, parsed.scripts, parsedScripts);
+    assignValidatedRecordings(nextState, parsed.recordings, parsedRecordings);
 
     return nextState;
   } catch {

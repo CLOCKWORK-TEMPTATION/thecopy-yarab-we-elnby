@@ -132,7 +132,7 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
     exportProject,
     updateSettings,
   } = useCreativeStudio({
-    initialSettings,
+    ...(initialSettings ? { initialSettings } : {}),
     showNotification,
     analysisBlockedReason:
       "تحليل النص يحتاج مفتاح Gemini صالحاً. أضفه من الإعدادات أولاً ثم عُد إلى المحرر.",
@@ -167,9 +167,9 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
               setSelectedPrompt(prompt);
               createNewProject(prompt);
             }}
-            onEnhancePrompt={(prompt, genre, technique) =>
-              enhancePrompt(prompt, genre, technique)
-            }
+            onEnhancePrompt={async (prompt, genre, technique) => {
+              await enhancePrompt(prompt, genre, technique);
+            }}
             loading={loading}
           />
         );

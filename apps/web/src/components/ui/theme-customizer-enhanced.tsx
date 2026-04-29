@@ -126,6 +126,45 @@ const colorPresets = [
   },
 ];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasStringFields(
+  value: unknown,
+  fields: readonly string[]
+): value is Record<string, string> {
+  return (
+    isRecord(value) && fields.every((field) => typeof value[field] === "string")
+  );
+}
+
+function isThemeConfig(value: unknown): value is ThemeConfig {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const mode = value["mode"];
+  const typography = value["typography"];
+  const spacing = value["spacing"];
+
+  return (
+    hasStringFields(value["colors"], [
+      "primary",
+      "secondary",
+      "accent",
+      "background",
+      "foreground",
+    ]) &&
+    isRecord(typography) &&
+    typeof typography["fontFamily"] === "string" &&
+    typeof typography["scale"] === "number" &&
+    isRecord(spacing) &&
+    typeof spacing["scale"] === "number" &&
+    (mode === "light" || mode === "dark" || mode === "system")
+  );
+}
+
 function ColorsTab({
   theme,
   updateTheme,
@@ -481,8 +520,10 @@ export function ThemeCustomizerEnhanced({
         const result = e.target?.result;
         if (typeof result === "string") {
           const imported: unknown = JSON.parse(result);
-          setTheme(imported as Parameters<typeof setTheme>[0]);
-          onThemeChange?.(imported as Parameters<typeof setTheme>[0]);
+          if (isThemeConfig(imported)) {
+            setTheme(imported);
+            onThemeChange?.(imported);
+          }
         }
       } catch (error) {
         void error;

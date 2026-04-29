@@ -508,7 +508,7 @@ const GesturesTab: React.FC<GesturesTabProps> = ({
                       onChange={handleChange}
                     />
                   </div>
-                  <p className="text-sm text-white/55">{gesture.description}</p>
+                  <p className="text-sm text-white/55">{gesture.action}</p>
                 </div>
               );
             })}

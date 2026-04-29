@@ -2,7 +2,8 @@ import React from "react";
 
 import { WebcamAnalysis } from "./index";
 
-import type { WebcamAnalysisResult } from "../../types";
+import type { WebcamPermission } from "../../hooks/useWebcamAnalysis";
+import type { BlinkRateStatus, WebcamAnalysisResult } from "../../types";
 import type { RefObject } from "react";
 
 interface WebcamAnalysisPageProps {
@@ -10,17 +11,17 @@ interface WebcamAnalysisPageProps {
   webcamAnalyzing: boolean;
   webcamAnalysisTime: number;
   webcamAnalysisResult: WebcamAnalysisResult | null;
-  webcamPermission: string;
+  webcamPermission: WebcamPermission;
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
-  requestWebcamPermission: () => void;
+  requestWebcamPermission: () => Promise<void>;
   stopWebcam: () => void;
   startWebcamAnalysis: () => void;
   stopWebcamAnalysis: () => void;
   formatTime: (seconds: number) => string;
   getEyeDirectionText: (direction: string) => string;
-  getBlinkStatusText: (status: string) => string;
-  getBlinkStatusColor: (status: string) => string;
+  getBlinkStatusText: (status: BlinkRateStatus) => string;
+  getBlinkStatusColor: (status: BlinkRateStatus) => string;
 }
 
 export const WebcamAnalysisPage: React.FC<WebcamAnalysisPageProps> = ({

@@ -53,7 +53,7 @@ availableGridCells.forEach((cellIndex, i) => {
 
 const getImage = (index: number) => {
   if (!images || images.length === 0) return "/placeholder.svg";
-  return images[index % images.length];
+  return images[index % images.length] ?? "/placeholder.svg";
 };
 
 export default function UILauncherPage() {

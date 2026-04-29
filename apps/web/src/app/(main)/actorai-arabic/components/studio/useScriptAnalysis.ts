@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
 
+import { analyzeScriptText } from "../../lib/script-analysis";
 import { SAMPLE_SCRIPT } from "../../types/constants";
 
-import type { AnalysisResult } from "../../types";
+import type { AnalysisResult, NotificationType } from "../../types";
 
 export const useScriptAnalysis = (
-  showNotification: (type: string, message: string) => void
+  showNotification: (type: NotificationType, message: string) => void
 ) => {
   const [scriptText, setScriptText] = useState("");
   const [selectedMethodology, setSelectedMethodology] =
@@ -28,26 +29,12 @@ export const useScriptAnalysis = (
 
     setAnalyzing(true);
 
-    // محاكاة تحليل النص
     setTimeout(() => {
-      const result: AnalysisResult = {
-        summary: "النص يعكس صراع داخلي عميق بين الرغبة والواجب",
-        keyEmotions: ["حزن", "أمل", "غضب", "خوف"],
-        characterArc: "يبدأ الشخصية مترددة وتنتهي بقرار حاسم",
-        suggestedActions: [
-          "التركيز على التغير في نبرة الصوت",
-          "استخدام حركات جسدية دقيقة",
-          "إضافة وقفات استراتيجية",
-        ],
-        difficulty: "متوسطة",
-        estimatedTime: "3-4 دقائق",
-      };
-
-      setAnalysisResult(result);
+      setAnalysisResult(analyzeScriptText(scriptText, selectedMethodology));
       setAnalyzing(false);
       showNotification("success", "تم تحليل النص بنجاح");
     }, 2000);
-  }, [scriptText, showNotification]);
+  }, [scriptText, selectedMethodology, showNotification]);
 
   return {
     scriptText,
