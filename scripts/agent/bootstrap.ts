@@ -22,19 +22,17 @@ import {
   verifyManualContractsExist,
   type FingerprintState,
 } from "./lib/repo-state";
-import { appendRoundNote, getNextRoundNumber } from "./lib/round-notes";
+import { renderRoundNotesSnapshot } from "./lib/round-notes";
 import {
   renderGeneratedContext,
   renderIdeShim,
-  renderRoundNote,
+  renderCurrentRoundNote,
   renderSessionState,
   renderStartupBrief,
-  shouldAppendSessionStart,
 } from "./lib/templates";
 import {
   formatTimestamp,
   fromRepoRoot,
-  readTextIfExists,
   sha256,
   stableStringify,
   toRepoRelative,
@@ -131,23 +129,19 @@ async function main(): Promise<void> {
   }
 
   const roundNotesPath = fromRepoRoot(ROUND_NOTES_PATH);
-  const currentRoundNotes = await readTextIfExists(roundNotesPath);
-  if (shouldAppendSessionStart(previousFingerprint, facts, drift)) {
-    const nextRoundNumber = await getNextRoundNumber(roundNotesPath);
-    const roundNote = renderRoundNote(
-      nextRoundNumber,
-      facts,
-      drift,
-      updatedPaths,
-      referenceTimestamp,
-    );
-    const roundNotesChanged = await writeTextIfChanged(
-      roundNotesPath,
-      appendRoundNote(currentRoundNotes, roundNote),
-    );
-    if (roundNotesChanged) {
-      updatedPaths.push(ROUND_NOTES_PATH);
-    }
+  const currentRoundNote = renderCurrentRoundNote(
+    facts,
+    drift,
+    updatedPaths,
+    bootstrapTimestamp,
+    referenceTimestamp,
+  );
+  const roundNotesChanged = await writeTextIfChanged(
+    roundNotesPath,
+    renderRoundNotesSnapshot(currentRoundNote),
+  );
+  if (roundNotesChanged) {
+    updatedPaths.push(ROUND_NOTES_PATH);
   }
 
   const outputHashes = await computeOutputHashes();

@@ -1,0 +1,110 @@
+﻿
+> the-copy-monorepo@1.0.0 prevalidate C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm agent:guard:verify
+
+
+> the-copy-monorepo@1.0.0 agent:guard:verify C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> tsx scripts/agent/guard.ts --phase=verify
+
+agent guard phase=verify
+code memory action=already-current
+code memory stale=false
+code memory coverage=100.0%
+
+> the-copy-monorepo@1.0.0 validate C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm run deps:audit:prod && pnpm run format:check && pnpm run lint:strict && pnpm run type-check && pnpm run test:strict && pnpm run build && pnpm run guard:budgets
+
+
+> the-copy-monorepo@1.0.0 deps:audit:prod C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm audit --prod --audit-level=high
+
+No known vulnerabilities found
+
+> the-copy-monorepo@1.0.0 format:check C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm --filter @the-copy/web format:check
+
+
+> @the-copy/web@1.2.0 format:check C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\apps\web
+> prettier --check .
+
+Checking formatting...
+node.exe : (node:30084) ExperimentalWarning: Type Stripping is an experimental feature and 
+might change at any time
+At D:\nvm4w\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/pnpm/bin/pnpm.cjs"  ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:30084) Ex...nge at any time:String) [], 
+    RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+All matched files use Prettier code style!
+
+> the-copy-monorepo@1.0.0 lint:strict C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm run lint && pnpm run check:exports
+
+
+> the-copy-monorepo@1.0.0 prelint C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> pnpm agent:guard:step
+
+
+> the-copy-monorepo@1.0.0 agent:guard:step C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> tsx scripts/agent/guard.ts --phase=step
+
+indexed chunks=5492 files=2588 qdrant=not-configured
+agent guard phase=step
+code memory action=indexed
+code memory stale=false
+code memory coverage=100.0%
+
+> the-copy-monorepo@1.0.0 lint C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy
+> turbo lint
+
+• turbo 2.9.4
+
+   • Packages in scope: @the-copy/backend, @the-copy/breakapp, @the-copy/core-memory, @the-copy/prompt-engineering, @the-copy/tsconfig, @the-copy/web
+   • Running lint in 6 packages
+   • Remote caching disabled
+
+@the-copy/core-memory:build: cache hit, replaying logs 314f8ec9a2be8425
+@the-copy/core-memory:build: 
+@the-copy/core-memory:build: > @the-copy/core-memory@1.0.0 build C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\packages\core-memory
+@the-copy/core-memory:build: > tsc
+@the-copy/core-memory:build: 
+@the-copy/backend:lint: cache miss, executing a4f19142fc0e10d4
+@the-copy/prompt-engineering:build: cache hit, replaying logs a405c4b6a98d1d75
+@the-copy/prompt-engineering:build: 
+@the-copy/prompt-engineering:build: > @the-copy/prompt-engineering@1.0.0 build C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\packages\prompt-engineering
+@the-copy/prompt-engineering:build: > tsc
+@the-copy/prompt-engineering:build: 
+@the-copy/breakapp:build: cache hit, replaying logs 0a29caccd1511938
+@the-copy/breakapp:build: 
+@the-copy/breakapp:build: > @the-copy/breakapp@1.0.0 build C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\packages\breakapp
+@the-copy/breakapp:build: > tsc
+@the-copy/breakapp:build: 
+@the-copy/web:lint: cache miss, executing 23ac447d217f44c7
+@the-copy/backend:lint: 
+@the-copy/backend:lint: > @the-copy/backend@1.0.0 lint C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\apps\backend
+@the-copy/backend:lint: > node ../../scripts/quality/eslint-contract.mjs --project=backend
+@the-copy/backend:lint: 
+@the-copy/web:lint: 
+@the-copy/web:lint: > @the-copy/web@1.2.0 lint C:\Users\Mohmed Aimen Raed\Documents\Claude\Projects\the copy\apps\web
+@the-copy/web:lint: > node ../../scripts/quality/eslint-contract.mjs --project=web
+@the-copy/web:lint: 
+@the-copy/web:lint: [lint] web: 1 error(s), 0 warning(s), 1 file(s) with messages.
+@the-copy/web:lint:   1× apps/web/src/app/(main)/arabic-creative-writing-studio/__tests__/index.ts|import/no-unresolved|Unable to resolve path to module './CreativeWritingStudio.test'.
+@the-copy/web:lint: [lint] web: lint violations detected.
+@the-copy/web:lint:  ELIFECYCLE  Command failed with exit code 1.
+ ERROR  @the-copy/web#lint: command (C:\Users\Mohmed Aimen 
+Raed\Documents\Claude\Projects\the copy\apps\web) D:\nvm4w\nodejs\pnpm.cmd run lint exited 
+(1)
+
+ Tasks:    3 successful, 5 total
+Cached:    3 cached, 5 total
+  Time:    2m45.229s 
+Failed:    @the-copy/web#lint
+
+ ERROR  run failed: command  exited (1)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

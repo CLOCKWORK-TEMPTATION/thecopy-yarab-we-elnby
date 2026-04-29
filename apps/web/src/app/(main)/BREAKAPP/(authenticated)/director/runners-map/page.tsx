@@ -11,8 +11,8 @@
  * لاتخاذ قرارات الإسناد بذكاء
  */
 
-import { api, getCurrentUser, type VendorMapData } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import { api, getCurrentUser } from "@the-copy/breakapp/lib/auth";
 import dynamic from "next/dynamic";
 import {
   useCallback,
@@ -23,8 +23,9 @@ import {
   type ChangeEvent,
 } from "react";
 
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { toast } from "@/hooks/use-toast";
+
+import type { VendorMapData } from "@the-copy/breakapp/lib/types";
 
 const MapComponent = dynamic(
   () => import("@the-copy/breakapp/components/maps/MapComponent"),
@@ -212,7 +213,7 @@ function SessionControls({
   onToggleOffline,
 }: SessionControlsProps) {
   return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+    <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <label
@@ -267,7 +268,7 @@ function SessionControls({
           </span>
         </div>
       </div>
-    </CardSpotlight>
+    </section>
   );
 }
 
@@ -278,7 +279,7 @@ interface RunnersListCardProps {
 
 function RunnersListCard({ visibleRunners, sessionId }: RunnersListCardProps) {
   return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+    <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
       <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
         الـ Runners ({visibleRunners.length})
       </h2>
@@ -318,7 +319,7 @@ function RunnersListCard({ visibleRunners, sessionId }: RunnersListCardProps) {
           ))}
         </ul>
       )}
-    </CardSpotlight>
+    </section>
   );
 }
 
@@ -491,7 +492,7 @@ export default function DirectorRunnersMapPage() {
           onRefresh={() => void fetchRunners()}
           onToggleOffline={handleToggleOffline}
         />
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+        <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
             عرض الخريطة
           </h2>
@@ -503,7 +504,7 @@ export default function DirectorRunnersMapPage() {
               className="h-full"
             />
           </div>
-        </CardSpotlight>
+        </section>
         <RunnersListCard
           visibleRunners={visibleRunners}
           sessionId={sessionId}

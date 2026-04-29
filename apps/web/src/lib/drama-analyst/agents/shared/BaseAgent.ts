@@ -111,19 +111,22 @@ export abstract class BaseAgent {
   /**
    * Generate fallback response when execution fails
    */
-  protected async getFallbackResponse(
+  protected getFallbackResponse(
     input: StandardAgentInput
-  ): Promise<string> {
+  ): string | Promise<string> {
     try {
       // Try simple generation with system prompt only
       const fallbackPrompt = `${this.systemPrompt}\n\nالمهمة: ${input.input}\n\nقدم إجابة مختصرة ومباشرة.`;
 
-      const response = await platformGenAIService.generateText(fallbackPrompt, {
-        temperature: 0.5,
-        maxTokens: 4096,
-      });
-
-      return response || "عذراً، لم أتمكن من إكمال المهمة المطلوبة.";
+      return platformGenAIService
+        .generateText(fallbackPrompt, {
+          temperature: 0.5,
+          maxTokens: 4096,
+        })
+        .then(
+          (response) => response || "عذراً، لم أتمكن من إكمال المهمة المطلوبة."
+        )
+        .catch(() => "عذراً، حدث خطأ في معالجة الطلب. يرجى المحاولة مرة أخرى.");
     } catch {
       return "عذراً، حدث خطأ في معالجة الطلب. يرجى المحاولة مرة أخرى.";
     }

@@ -167,6 +167,40 @@ export function determineRating(
   return "Needs Work";
 }
 
+function normalizeUncertainty(value: unknown): {
+  type: "epistemic" | "aleatoric" | null;
+  description: string;
+  reducible: boolean;
+} {
+  const record = asRecord(value);
+  if (!record) {
+    return { type: null, description: "", reducible: false };
+  }
+
+  const type =
+    record["type"] === "epistemic" || record["type"] === "aleatoric"
+      ? record["type"]
+      : null;
+  const aspect =
+    typeof record["aspect"] === "string"
+      ? record["aspect"]
+      : typeof record["component"] === "string"
+        ? record["component"]
+        : "غير محدد";
+  const note =
+    typeof record["note"] === "string"
+      ? record["note"]
+      : typeof record["reason"] === "string"
+        ? record["reason"]
+        : "";
+
+  return {
+    type,
+    description: note ? `${aspect}: ${note}` : aspect,
+    reducible: record["reducible"] === true,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Final confidence calculation
 // ---------------------------------------------------------------------------
@@ -207,13 +241,17 @@ export function calculateFinalConfidence({
   [s1, s3, s4, s5, s6].forEach((station) => {
     if (station?.uncertaintyReport?.uncertainties) {
       station.uncertaintyReport.uncertainties.forEach((uncertainty) => {
-        const description = `${uncertainty.aspect}: ${uncertainty.note}`;
-        if (uncertainty.type === "epistemic") {
+        const { type, description, reducible } =
+          normalizeUncertainty(uncertainty);
+        if (!description) {
+          return;
+        }
+        if (type === "epistemic") {
           epistemicUncertainties.push(description);
-          if ("reducible" in uncertainty && uncertainty.reducible) {
+          if (reducible) {
             resolvableIssues.push(description);
           }
-        } else if (uncertainty.type === "aleatoric") {
+        } else if (type === "aleatoric") {
           aleatoricUncertainties.push(description);
         }
       });

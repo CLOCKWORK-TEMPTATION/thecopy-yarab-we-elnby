@@ -124,51 +124,57 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return value ? `<${tag}>\n${value}\n</${tag}>\n\n` : "";
   }
 
+  private calculateQualityMetrics(text: string): {
+    goalAchievement: number;
+    qualityImprovement: number;
+    coherence: number;
+    creativity: number;
+    overallScore: number;
+  } {
+    const goalAchievement = this.assessGoalAchievement(text);
+    const qualityImprovement = this.assessQualityImprovement(text);
+    const coherence = this.assessCoherence(text);
+    const creativity = this.assessCreativity(text);
+
+    const overallScore =
+      goalAchievement * 0.35 +
+      qualityImprovement * 0.3 +
+      coherence * 0.2 +
+      creativity * 0.15;
+
+    return {
+      goalAchievement,
+      qualityImprovement,
+      coherence,
+      creativity,
+      overallScore,
+    };
+  }
+
   /**
    * معالجة المخرجات وتقييم الجودة (Self-Critique)
    */
   protected override postProcess(
     output: StandardAgentOutput
   ): StandardAgentOutput {
-    // تنظيف النص من أي بقايا كود أو علامات غير مرغوبة
     const processedText = this.cleanupRewrittenText(output.text);
-
-    // حساب مقاييس الجودة المتعددة
-    const goalAchievement = this.assessGoalAchievement(processedText);
-    const qualityImprovement = this.assessQualityImprovement(processedText);
-    const coherence = this.assessCoherence(processedText);
-    const creativity = this.assessCreativity(processedText);
-
-    // حساب درجة الجودة الكلية (Weighted Score)
-    const qualityScore =
-      goalAchievement * 0.35 +
-      qualityImprovement * 0.3 +
-      coherence * 0.2 +
-      creativity * 0.15;
-
-    // تعديل الثقة بناءً على تقييم المحتوى الفعلي
-    // نأخذ متوسط ثقة النموذج الخام مع جودة المحتوى المحسوبة
-    const adjustedConfidence = output.confidence * 0.4 + qualityScore * 0.6;
+    const metrics = this.calculateQualityMetrics(processedText);
+    const adjustedConfidence =
+      output.confidence * 0.4 + metrics.overallScore * 0.6;
 
     return {
       ...output,
       text: processedText,
-      confidence: Number(adjustedConfidence.toFixed(2)), // تقريب لرقمين عشريين
-      notes: this.generateRewritingNotes(
-        output,
-        goalAchievement,
-        qualityImprovement,
-        coherence,
-        creativity
-      ),
+      confidence: Number(adjustedConfidence.toFixed(2)),
+      notes: this.generateRewritingNotes(output, metrics),
       metadata: {
         ...output.metadata,
         rewritingMetrics: {
-          overallQuality: Number(qualityScore.toFixed(2)),
-          goalAchievement,
-          qualityImprovement,
-          coherence,
-          creativity,
+          overallQuality: Number(metrics.overallScore.toFixed(2)),
+          goalAchievement: metrics.goalAchievement,
+          qualityImprovement: metrics.qualityImprovement,
+          coherence: metrics.coherence,
+          creativity: metrics.creativity,
         },
         stats: {
           charCount: processedText.length,
@@ -302,30 +308,44 @@ export class AdaptiveRewritingAgent extends BaseAgent {
     return matches ? matches.length : 0;
   }
 
+  private getQualityRatingLabel(avg: number): string {
+    if (avg > 0.85) return "🟢 جودة إعادة الكتابة: ممتازة";
+    if (avg > 0.7) return "🟡 جودة إعادة الكتابة: جيدة جداً";
+    return "🟠 جودة إعادة الكتابة: مقبولة (تحتاج مراجعة)";
+  }
+
+  private getDetailedNotes(metrics: {
+    goalAchievement: number;
+    qualityImprovement: number;
+    coherence: number;
+    creativity: number;
+  }): string[] {
+    const notes: string[] = [];
+
+    if (metrics.goalAchievement > 0.8)
+      notes.push("✅ تم تحقيق الأهداف المحددة بدقة.");
+    if (metrics.coherence > 0.8) notes.push("✅ النص يتمتع بتماسك وترابط قوي.");
+    if (metrics.creativity < 0.5)
+      notes.push("ℹ️ الأسلوب مباشر وتقليدي (يمكن زيادة الإبداع).");
+
+    return notes;
+  }
+
   private generateRewritingNotes(
     output: StandardAgentOutput,
-    goalScore: number,
-    qualityScore: number,
-    coherenceScore: number,
-    creativityScore: number
+    metrics: {
+      goalAchievement: number;
+      qualityImprovement: number;
+      coherence: number;
+      creativity: number;
+      overallScore: number;
+    }
   ): string[] {
     const notesList: string[] = [];
-    const avg =
-      (goalScore + qualityScore + coherenceScore + creativityScore) / 4;
 
-    // تصنيف الجودة العامة
-    if (avg > 0.85) notesList.push("🟢 جودة إعادة الكتابة: ممتازة");
-    else if (avg > 0.7) notesList.push("🟡 جودة إعادة الكتابة: جيدة جداً");
-    else notesList.push("🟠 جودة إعادة الكتابة: مقبولة (تحتاج مراجعة)");
+    notesList.push(this.getQualityRatingLabel(metrics.overallScore));
+    notesList.push(...this.getDetailedNotes(metrics));
 
-    // ملاحظات تفصيلية
-    if (goalScore > 0.8) notesList.push("✅ تم تحقيق الأهداف المحددة بدقة.");
-    if (coherenceScore > 0.8)
-      notesList.push("✅ النص يتمتع بتماسك وترابط قوي.");
-    if (creativityScore < 0.5)
-      notesList.push("ℹ️ الأسلوب مباشر وتقليدي (يمكن زيادة الإبداع).");
-
-    // دمج أي ملاحظات سابقة من الـ LLM نفسه
     if (output.notes && Array.isArray(output.notes)) {
       notesList.push(...output.notes);
     }

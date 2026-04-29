@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "createdAt": "2026-04-29T14:32:18.055Z",
+  "updatedAt": "2026-04-29T14:32:18.067Z",
+  "locations": [
+    {
+      "id": "96f010e4-5200-4b94-ad48-1b7ed3b7f8a1",
+      "name": "Nile Studio",
+      "nameAr": "استوديو النيل",
+      "type": "studio",
+      "address": "Cairo",
+      "features": [
+        "Parking",
+        "Rigging"
+      ],
+      "createdAt": "2026-04-29T14:32:18.065Z",
+      "updatedAt": "2026-04-29T14:32:18.065Z"
+    }
+  ],
+  "setPieces": [],
+  "timeEntries": [],
+  "delays": [],
+  "productionBooks": [],
+  "styleGuides": [],
+  "decisions": [],
+  "previzScenes": [],
+  "virtualSets": [],
+  "conceptProjects": [],
+  "virtualProductions": [],
+  "lastProductionId": null,
+  "lastBookId": null,
+  "lastStyleGuideId": null
+}

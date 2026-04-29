@@ -76,24 +76,30 @@ interface ExecutiveSummaryContext extends StationOutputs {
 }
 
 function getStationOutputs(input: Station7Input): StationOutputs {
-  return {
-    station1: input.allPreviousStationsData.get(1) as
-      | Station1Output
-      | undefined,
-    station2: input.allPreviousStationsData.get(2) as
-      | Station2Output
-      | undefined,
-    station3: input.allPreviousStationsData.get(3) as
-      | Station3Output
-      | undefined,
-    station4: input.allPreviousStationsData.get(4) as
-      | Station4Output
-      | undefined,
-    station5: input.allPreviousStationsData.get(5) as
-      | Station5Output
-      | undefined,
-    station6: input.station6Output,
-  };
+  const outputs: StationOutputs = { station6: input.station6Output };
+  const station1 = input.allPreviousStationsData.get(1) as
+    | Station1Output
+    | undefined;
+  const station2 = input.allPreviousStationsData.get(2) as
+    | Station2Output
+    | undefined;
+  const station3 = input.allPreviousStationsData.get(3) as
+    | Station3Output
+    | undefined;
+  const station4 = input.allPreviousStationsData.get(4) as
+    | Station4Output
+    | undefined;
+  const station5 = input.allPreviousStationsData.get(5) as
+    | Station5Output
+    | undefined;
+
+  if (station1) outputs.station1 = station1;
+  if (station2) outputs.station2 = station2;
+  if (station3) outputs.station3 = station3;
+  if (station4) outputs.station4 = station4;
+  if (station5) outputs.station5 = station5;
+
+  return outputs;
 }
 
 function buildExecutiveSummaryPrompt(context: ExecutiveSummaryContext) {

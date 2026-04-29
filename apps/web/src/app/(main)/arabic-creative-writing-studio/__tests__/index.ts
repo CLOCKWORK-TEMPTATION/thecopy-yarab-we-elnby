@@ -4,7 +4,7 @@
  */
 
 // استيراد جميع ملفات الاختبار
-import "./CreativeWritingStudio.test";
+import "../components/CreativeWritingStudio.test";
 
 // هذا الملف يعمل كفهرسة لجميع اختبارات المكون
 // يمكن استخدامه لتشغيل جميع اختبارات المكون معاً

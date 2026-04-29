@@ -61,7 +61,7 @@ const initialState = {
 };
 
 // Create a simple store implementation
-function createStore<T extends Record<string, unknown>>(
+function createStore<T extends object>(
   initializer: (set: SetState<T>, get: GetState<T>) => T
 ) {
   let state: T;

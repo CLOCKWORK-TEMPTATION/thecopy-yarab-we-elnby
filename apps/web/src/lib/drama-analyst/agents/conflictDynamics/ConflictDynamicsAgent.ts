@@ -356,31 +356,58 @@ ${this.formatConditionalInstructionSections(
     return types;
   }
 
+  private countTermOccurrences(text: string, terms: string[]): number {
+    return terms.reduce((count, term) => {
+      const occurrences =
+        text.toLowerCase().split(term.toLowerCase()).length - 1;
+      return count + occurrences;
+    }, 0);
+  }
+
   private assessIntensityLevel(text: string): string {
     const highIntensity = ["حاد", "شديد", "عنيف", "حرج", "ذروة", "انفجار"];
     const mediumIntensity = ["متوسط", "متصاعد", "متزايد"];
     const lowIntensity = ["هادئ", "خفيف", "كامن", "مكبوت"];
 
-    // SECURITY FIX: Use safe string matching to prevent ReDoS
-    const highCount = highIntensity.reduce((count, term) => {
-      const occurrences =
-        text.toLowerCase().split(term.toLowerCase()).length - 1;
-      return count + occurrences;
-    }, 0);
-    const mediumCount = mediumIntensity.reduce((count, term) => {
-      const occurrences =
-        text.toLowerCase().split(term.toLowerCase()).length - 1;
-      return count + occurrences;
-    }, 0);
-    const lowCount = lowIntensity.reduce((count, term) => {
-      const occurrences =
-        text.toLowerCase().split(term.toLowerCase()).length - 1;
-      return count + occurrences;
-    }, 0);
+    const highCount = this.countTermOccurrences(text, highIntensity);
+    const mediumCount = this.countTermOccurrences(text, mediumIntensity);
+    const lowCount = this.countTermOccurrences(text, lowIntensity);
 
     if (highCount > mediumCount && highCount > lowCount) return "عالي";
     if (lowCount > mediumCount && lowCount > highCount) return "منخفض";
     return "متوسط";
+  }
+
+  private getOverallQualityNote(avg: number): string {
+    if (avg > 0.8) return "تحليل صراعات ممتاز";
+    if (avg > 0.65) return "تحليل جيد";
+    return "يحتاج عمق أكبر";
+  }
+
+  private getPositiveNotes(
+    identification: number,
+    depth: number,
+    evidence: number,
+    insight: number
+  ): string[] {
+    const notes: string[] = [];
+    if (identification > 0.8) notes.push("تحديد دقيق للصراعات");
+    if (depth > 0.8) notes.push("عمق تحليلي قوي");
+    if (evidence > 0.75) notes.push("أدلة نصية جيدة");
+    if (insight > 0.75) notes.push("رؤى ثاقبة");
+    return notes;
+  }
+
+  private getImprovementNotes(
+    identification: number,
+    depth: number,
+    evidence: number
+  ): string[] {
+    const notes: string[] = [];
+    if (identification < 0.6) notes.push("يحتاج تحديد أوضح");
+    if (depth < 0.5) notes.push("يحتاج تحليل أعمق");
+    if (evidence < 0.5) notes.push("يحتاج مزيد من الأدلة");
+    return notes;
   }
 
   private generateConflictNotes(
@@ -393,18 +420,11 @@ ${this.formatConditionalInstructionSections(
     const notes: string[] = [];
 
     const avg = (identification + depth + evidence + insight) / 4;
-    if (avg > 0.8) notes.push("تحليل صراعات ممتاز");
-    else if (avg > 0.65) notes.push("تحليل جيد");
-    else notes.push("يحتاج عمق أكبر");
-
-    if (identification > 0.8) notes.push("تحديد دقيق للصراعات");
-    if (depth > 0.8) notes.push("عمق تحليلي قوي");
-    if (evidence > 0.75) notes.push("أدلة نصية جيدة");
-    if (insight > 0.75) notes.push("رؤى ثاقبة");
-
-    if (identification < 0.6) notes.push("يحتاج تحديد أوضح");
-    if (depth < 0.5) notes.push("يحتاج تحليل أعمق");
-    if (evidence < 0.5) notes.push("يحتاج مزيد من الأدلة");
+    notes.push(this.getOverallQualityNote(avg));
+    notes.push(
+      ...this.getPositiveNotes(identification, depth, evidence, insight)
+    );
+    notes.push(...this.getImprovementNotes(identification, depth, evidence));
 
     if (output.notes) notes.push(...output.notes);
 

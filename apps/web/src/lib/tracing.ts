@@ -23,9 +23,6 @@ import { XMLHttpRequestInstrumentation } from "@opentelemetry/instrumentation-xm
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import {
   BatchSpanProcessor,
-  type SpanExporter,
-} from "@opentelemetry/sdk-trace-base";
-import {
   WebTracerProvider,
   type WebTracerConfig,
 } from "@opentelemetry/sdk-trace-web";
@@ -95,9 +92,7 @@ export function initBrowserTracing(): void {
     });
 
     // Create batch span processor for efficient export
-    const spanProcessor = new BatchSpanProcessor(
-      exporter as unknown as SpanExporter
-    );
+    const spanProcessor = new BatchSpanProcessor(exporter);
 
     // Create tracer provider with batch span processor
     const providerConfig: WebTracerConfig = {

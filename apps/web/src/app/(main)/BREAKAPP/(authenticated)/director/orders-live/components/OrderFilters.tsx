@@ -1,7 +1,5 @@
 import React, { ChangeEvent } from "react";
 
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-
 import { OrderStatusFilter, TimeSortOrder } from "../types";
 
 export interface OrderFiltersProps {
@@ -40,7 +38,7 @@ function SessionBar({
   onBatch,
 }: SessionBarProps) {
   return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+    <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
       <div className="flex items-end gap-3">
         <div className="flex-1">
           <label
@@ -73,7 +71,7 @@ function SessionBar({
           {batching ? "جارٍ التجميع..." : "تشغيل Batching يدويّاً"}
         </button>
       </div>
-    </CardSpotlight>
+    </section>
   );
 }
 
@@ -97,7 +95,7 @@ function FiltersBar({
   onTimeSortChange,
 }: FiltersBarProps) {
   return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+    <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
       <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
         الفلاتر
       </h2>
@@ -161,7 +159,7 @@ function FiltersBar({
           </select>
         </div>
       </div>
-    </CardSpotlight>
+    </section>
   );
 }
 

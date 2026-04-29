@@ -7,7 +7,16 @@ import {
   firstJsonObject,
 } from "./utils";
 
-import type { DiagnosticsReport, JsonRecord, DiagnosticIssue } from "./types";
+import type {
+  AbandonedConflict,
+  DiagnosticIssue,
+  DiagnosticsReport,
+  IsolatedCharacter,
+  JsonRecord,
+  Opportunity,
+  RiskArea,
+  StructuralIssue,
+} from "./types";
 import type { GeminiService } from "../gemini-service";
 
 type PreviousStationsOutput = Partial<
@@ -135,11 +144,17 @@ ${text.substring(0, 4000)}
       ),
       warnings: asArray<DiagnosticIssue>(record["warnings"]).slice(0, 15),
       suggestions: asArray<DiagnosticIssue>(record["suggestions"]).slice(0, 20),
-      isolatedCharacters: asArray(record["isolatedCharacters"]).slice(0, 5),
-      abandonedConflicts: asArray(record["abandonedConflicts"]).slice(0, 8),
-      structuralIssues: asArray(record["structuralIssues"]).slice(0, 10),
-      riskAreas: asArray(record["riskAreas"]).slice(0, 8),
-      opportunities: asArray(record["opportunities"]).slice(0, 10),
+      isolatedCharacters: asArray<IsolatedCharacter>(
+        record["isolatedCharacters"]
+      ).slice(0, 5),
+      abandonedConflicts: asArray<AbandonedConflict>(
+        record["abandonedConflicts"]
+      ).slice(0, 8),
+      structuralIssues: asArray<StructuralIssue>(
+        record["structuralIssues"]
+      ).slice(0, 10),
+      riskAreas: asArray<RiskArea>(record["riskAreas"]).slice(0, 8),
+      opportunities: asArray<Opportunity>(record["opportunities"]).slice(0, 10),
       summary: asString(record["summary"], "تحليل تشخيصي غير متوفر"),
     };
   }
@@ -152,7 +167,7 @@ ${text.substring(0, 4000)}
   ): DiagnosticsReport {
     const station4 = asJsonRecord(previousStationsOutput.station4);
     const efficiencyMetrics = asJsonRecord(station4["efficiencyMetrics"]);
-    const efficiencyScore = asJsonRecord(
+    const efficiencyScore = asJsonNumber(
       efficiencyMetrics["overallEfficiencyScore"],
       50
     );

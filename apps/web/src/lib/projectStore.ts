@@ -52,6 +52,44 @@ function isLegacyProject(project: Record<string, unknown>): boolean {
   );
 }
 
+function getStringField(
+  project: Record<string, unknown>,
+  key: string,
+  fallback: string
+): string {
+  const value = project[key];
+  return typeof value === "string" ? value : fallback;
+}
+
+function toProject(project: Record<string, unknown>): Project {
+  const title = getStringField(
+    project,
+    "title",
+    getStringField(project, "name", getStringField(project, "id", "Untitled"))
+  );
+  const scriptContent =
+    typeof project["scriptContent"] === "string" ||
+    project["scriptContent"] === null
+      ? project["scriptContent"]
+      : null;
+  const name = typeof project["name"] === "string" ? project["name"] : title;
+  const description =
+    typeof project["description"] === "string"
+      ? project["description"]
+      : undefined;
+
+  return {
+    id: getStringField(project, "id", ""),
+    title,
+    scriptContent,
+    userId: getStringField(project, "userId", "legacy"),
+    createdAt: getStringField(project, "createdAt", new Date(0).toISOString()),
+    updatedAt: getStringField(project, "updatedAt", new Date(0).toISOString()),
+    name,
+    ...(description !== undefined ? { description } : {}),
+  };
+}
+
 function parseStoredProject(stored: string): Project | null {
   const parsed: unknown = JSON.parse(stored);
 
@@ -63,7 +101,7 @@ function parseStoredProject(stored: string): Project | null {
     return null;
   }
 
-  return parsed as Project;
+  return toProject(parsed);
 }
 
 export function getCurrentProject(): Project | null {

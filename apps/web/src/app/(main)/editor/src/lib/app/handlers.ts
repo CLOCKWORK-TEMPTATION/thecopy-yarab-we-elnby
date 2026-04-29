@@ -280,7 +280,7 @@ export const approveCurrentVersion = (
   if (!area) return;
 
   try {
-    area.approveCurrentVersion();
+    void area.approveCurrentVersion();
     deps.toast({
       title: "تم اعتماد النسخة",
       description: "تم وسم كل العناصر الظاهرة في النسخة المعتمدة.",

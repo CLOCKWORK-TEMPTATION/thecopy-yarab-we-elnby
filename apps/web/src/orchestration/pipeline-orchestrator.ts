@@ -104,15 +104,9 @@ export interface SevenStationsExecution {
 export class SevenStationsOrchestrator {
   private activeExecutions = new Map<string, SevenStationsExecution>();
 
-  // Execute Seven Stations analysis pipeline
-  async runSevenStationsPipeline(
-    scriptId: string,
-    scriptContent: string,
-    options: RunPipelineWithInterfacesOptions = {}
-  ): Promise<SevenStationsExecution> {
+  private createExecution(scriptId: string): SevenStationsExecution {
     const executionId = `seven-stations-${scriptId}-${Date.now()}`;
-
-    const execution: SevenStationsExecution = {
+    return {
       id: executionId,
       stations: [],
       overallSuccess: false,
@@ -120,86 +114,131 @@ export class SevenStationsOrchestrator {
       startTime: new Date(),
       progress: 0,
     };
+  }
 
-    this.activeExecutions.set(executionId, execution);
+  private filterAndSortStations(
+    options: RunPipelineWithInterfacesOptions
+  ): Station[] {
+    const availableStations = getAllStations();
 
-    try {
-      // Get available stations
-      const availableStations = getAllStations();
+    const stationsToRun = availableStations.filter(
+      (station: Station) => !options.skipStations?.includes(station.id)
+    );
 
-      // Filter stations based on options
-      const stationsToRun = availableStations.filter(
-        (station: Station) => !options.skipStations?.includes(station.id)
-      );
+    if (options.priorityStations) {
+      const priority = new Set(options.priorityStations);
+      stationsToRun.sort((a: Station, b: Station) => {
+        const aPriority = priority.has(a.id) ? 1 : 0;
+        const bPriority = priority.has(b.id) ? 1 : 0;
+        return bPriority - aPriority;
+      });
+    }
 
-      // Prioritize stations if specified
-      if (options.priorityStations) {
-        const priority = new Set(options.priorityStations);
-        stationsToRun.sort((a: Station, b: Station) => {
-          const aPriority = priority.has(a.id) ? 1 : 0;
-          const bPriority = priority.has(b.id) ? 1 : 0;
-          return bPriority - aPriority;
-        });
+    return stationsToRun;
+  }
+
+  private createPipelineSteps(
+    stations: Station[],
+    timeout?: number
+  ): PipelineStep[] {
+    return stations.map((station: Station) => ({
+      id: station.id,
+      name: station.name,
+      description: station.description,
+      type: station.type,
+      config: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 2048,
+      },
+      timeout: timeout ?? 60000,
+      retries: 2,
+    }));
+  }
+
+  private convertResultsToStationResults(
+    results: Map<string, { success: boolean; duration: number; data?: string }>,
+    stations: Station[]
+  ): SevenStationsResult[] {
+    return Array.from(results.entries()).map(([stepId, result]) => {
+      const station = stations.find((s: Station) => s.id === stepId)!;
+      const stationResult: SevenStationsResult = {
+        stationId: stepId,
+        stationName: station.name,
+        success: result.success,
+        duration: result.duration,
+      };
+
+      if (result.data !== undefined) {
+        stationResult.result = result.data;
       }
 
-      // Convert stations to pipeline steps
-      const steps: PipelineStep[] = stationsToRun.map((station: Station) => ({
-        id: station.id,
-        name: station.name,
-        description: station.description,
-        type: station.type,
-        config: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-        timeout: options.timeout ?? 60000, // 1 minute default
-        retries: 2,
-      }));
+      return stationResult;
+    });
+  }
 
-      // Execute pipeline
+  private updateExecutionFromPipelineResult(
+    execution: SevenStationsExecution,
+    pipelineResult: {
+      status: string;
+      endTime?: Date;
+      startTime: Date;
+      results: Map<
+        string,
+        { success: boolean; duration: number; data?: string }
+      >;
+    },
+    stations: Station[]
+  ): void {
+    execution.stations = this.convertResultsToStationResults(
+      pipelineResult.results,
+      stations
+    );
+    execution.overallSuccess = pipelineResult.status === "completed";
+    execution.totalDuration = pipelineResult.endTime
+      ? pipelineResult.endTime.getTime() - pipelineResult.startTime.getTime()
+      : Date.now() - execution.startTime.getTime();
+    if (pipelineResult.endTime) {
+      execution.endTime = pipelineResult.endTime;
+    }
+    execution.progress = 100;
+  }
+
+  private handleExecutionFailure(execution: SevenStationsExecution): void {
+    execution.overallSuccess = false;
+    execution.endTime = new Date();
+    execution.totalDuration = Date.now() - execution.startTime.getTime();
+    logger.error("Seven Stations pipeline failed");
+  }
+
+  // Execute Seven Stations analysis pipeline
+  async runSevenStationsPipeline(
+    scriptId: string,
+    scriptContent: string,
+    options: RunPipelineWithInterfacesOptions = {}
+  ): Promise<SevenStationsExecution> {
+    const execution = this.createExecution(scriptId);
+    this.activeExecutions.set(execution.id, execution);
+
+    try {
+      const stationsToRun = this.filterAndSortStations(options);
+      const steps = this.createPipelineSteps(stationsToRun, options.timeout);
+
       const pipelineResult = await pipelineExecutor.executePipeline(
-        executionId,
+        execution.id,
         steps,
         { scriptContent, scriptId, ...(options.metadata ?? {}) }
       );
 
-      // Convert results to Seven Stations format
-      execution.stations = Array.from(pipelineResult.results.entries()).map(
-        ([stepId, result]) => {
-          const station = availableStations.find(
-            (s: Station) => s.id === stepId
-          )!;
-          const stationResult: SevenStationsResult = {
-            stationId: stepId,
-            stationName: station.name,
-            success: result.success,
-            duration: result.duration,
-          };
-
-          if (result.data !== undefined) {
-            stationResult.result = result.data;
-          }
-
-          return stationResult;
-        }
+      this.updateExecutionFromPipelineResult(
+        execution,
+        pipelineResult,
+        stationsToRun
       );
-
-      execution.overallSuccess = pipelineResult.status === "completed";
-      execution.totalDuration = pipelineResult.endTime
-        ? pipelineResult.endTime.getTime() - pipelineResult.startTime.getTime()
-        : Date.now() - execution.startTime.getTime();
-      if (pipelineResult.endTime) {
-        execution.endTime = pipelineResult.endTime;
-      }
-      execution.progress = 100;
       options.onProgress?.(execution);
     } catch {
-      execution.overallSuccess = false;
-      execution.endTime = new Date();
-      execution.totalDuration = Date.now() - execution.startTime.getTime();
-      logger.error("Seven Stations pipeline failed");
+      this.handleExecutionFailure(execution);
     }
 
     return execution;

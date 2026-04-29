@@ -1,11 +1,9 @@
 import React from "react";
 
-import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-
 import { STATUS_LABELS } from "../constants";
 import { LiveOrder, AvailableRunner } from "../types";
 
-import type { Order } from "@the-copy/breakapp";
+import type { Order } from "@the-copy/breakapp/lib/types";
 
 export interface OrderListProps {
   filteredOrders: LiveOrder[];
@@ -156,7 +154,7 @@ export const OrderList: React.FC<OrderListProps> = ({
   updateOrderStatus,
 }) => {
   return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+    <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-white font-cairo">
           الطلبات ({filteredOrders.length})
@@ -193,6 +191,6 @@ export const OrderList: React.FC<OrderListProps> = ({
           ))}
         </ul>
       )}
-    </CardSpotlight>
+    </section>
   );
 };

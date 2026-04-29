@@ -377,6 +377,30 @@ export class AudienceResonanceAgent extends BaseAgent {
     return "تحليل شامل";
   }
 
+  private getComprehensivenessNote(score: number): string | null {
+    if (score > 0.8) return "تحليل شامل ومفصل";
+    if (score > 0.6) return "تحليل جيد";
+    return "يحتاج مزيداً من التفاصيل";
+  }
+
+  private getInsightDepthNote(score: number): string | null {
+    if (score > 0.7) return "رؤى عميقة ومدروسة";
+    if (score > 0.5) return "تحليل مقبول";
+    return null;
+  }
+
+  private getActionabilityNote(score: number): string | null {
+    if (score > 0.7) return "توصيات قابلة للتنفيذ";
+    if (score > 0.5) return "توصيات عامة";
+    return null;
+  }
+
+  private getConfidenceNote(confidence: number): string | null {
+    if (confidence > 0.8) return "ثقة عالية في التوقعات";
+    if (confidence > 0.6) return "ثقة متوسطة";
+    return null;
+  }
+
   /**
    * Generate notes about the analysis
    */
@@ -388,37 +412,18 @@ export class AudienceResonanceAgent extends BaseAgent {
   ): string[] {
     const notes: string[] = [];
 
-    // Comprehensiveness
-    if (comprehensiveness > 0.8) {
-      notes.push("تحليل شامل ومفصل");
-    } else if (comprehensiveness > 0.6) {
-      notes.push("تحليل جيد");
-    } else {
-      notes.push("يحتاج مزيداً من التفاصيل");
-    }
+    const compNote = this.getComprehensivenessNote(comprehensiveness);
+    if (compNote) notes.push(compNote);
 
-    // Insight depth
-    if (insightDepth > 0.7) {
-      notes.push("رؤى عميقة ومدروسة");
-    } else if (insightDepth > 0.5) {
-      notes.push("تحليل مقبول");
-    }
+    const insightNote = this.getInsightDepthNote(insightDepth);
+    if (insightNote) notes.push(insightNote);
 
-    // Actionability
-    if (actionability > 0.7) {
-      notes.push("توصيات قابلة للتنفيذ");
-    } else if (actionability > 0.5) {
-      notes.push("توصيات عامة");
-    }
+    const actionNote = this.getActionabilityNote(actionability);
+    if (actionNote) notes.push(actionNote);
 
-    // Overall confidence
-    if (output.confidence > 0.8) {
-      notes.push("ثقة عالية في التوقعات");
-    } else if (output.confidence > 0.6) {
-      notes.push("ثقة متوسطة");
-    }
+    const confNote = this.getConfidenceNote(output.confidence);
+    if (confNote) notes.push(confNote);
 
-    // Add original notes
     if (output.notes) {
       notes.push(...output.notes.filter((note) => !notes.includes(note)));
     }

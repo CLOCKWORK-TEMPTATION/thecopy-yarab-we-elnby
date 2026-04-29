@@ -322,6 +322,40 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
     return priorities[priority] ?? priority;
   }
 
+  private getConfidenceNote(confidence: number): string {
+    if (confidence > 0.9) return "ثقة عالية في جودة التوصيات";
+    if (confidence > 0.75) return "ثقة جيدة في التوصيات";
+    return "ثقة متوسطة - يُنصح بمراجعة إضافية";
+  }
+
+  private getActionabilityNote(actionability: number): string | null {
+    if (actionability > 0.7) return "توصيات عملية وقابلة للتنفيذ";
+    if (actionability < 0.4) return "يمكن تعزيز الجانب العملي للتوصيات";
+    return null;
+  }
+
+  private getSpecificityNote(specificity: number): string | null {
+    if (specificity > 0.7) return "توصيات محددة ومفصلة";
+    if (specificity < 0.4) return "يمكن إضافة أمثلة أكثر تحديداً";
+    return null;
+  }
+
+  private getComprehensivenessNote(comprehensiveness: number): string | null {
+    if (comprehensiveness > 0.8) return "تغطية شاملة لجوانب العمل";
+    return null;
+  }
+
+  private getCreativeSolutionsNote(creativeSolutions: number): string | null {
+    if (creativeSolutions > 0.6) return "تضمين حلول إبداعية مبتكرة";
+    return null;
+  }
+
+  private getCountNote(count: number): string | null {
+    if (count > 10) return `تم تقديم ${count}+ توصية`;
+    if (count > 5) return `تم تقديم ${count} توصيات`;
+    return null;
+  }
+
   /**
    * Generate notes about the recommendations
    */
@@ -337,48 +371,27 @@ export class RecommendationsGeneratorAgent extends BaseAgent {
   ): string[] {
     const notes: string[] = [];
 
-    // Confidence assessment
-    if (output.confidence > 0.9) {
-      notes.push("ثقة عالية في جودة التوصيات");
-    } else if (output.confidence > 0.75) {
-      notes.push("ثقة جيدة في التوصيات");
-    } else {
-      notes.push("ثقة متوسطة - يُنصح بمراجعة إضافية");
-    }
+    notes.push(this.getConfidenceNote(output.confidence));
 
-    // Actionability
-    if (qualityMetrics.actionability > 0.7) {
-      notes.push("توصيات عملية وقابلة للتنفيذ");
-    } else if (qualityMetrics.actionability < 0.4) {
-      notes.push("يمكن تعزيز الجانب العملي للتوصيات");
-    }
+    const actionNote = this.getActionabilityNote(qualityMetrics.actionability);
+    if (actionNote) notes.push(actionNote);
 
-    // Specificity
-    if (qualityMetrics.specificity > 0.7) {
-      notes.push("توصيات محددة ومفصلة");
-    } else if (qualityMetrics.specificity < 0.4) {
-      notes.push("يمكن إضافة أمثلة أكثر تحديداً");
-    }
+    const specificNote = this.getSpecificityNote(qualityMetrics.specificity);
+    if (specificNote) notes.push(specificNote);
 
-    // Comprehensiveness
-    if (qualityMetrics.comprehensiveness > 0.8) {
-      notes.push("تغطية شاملة لجوانب العمل");
-    }
+    const compNote = this.getComprehensivenessNote(
+      qualityMetrics.comprehensiveness
+    );
+    if (compNote) notes.push(compNote);
 
-    // Creative solutions
-    if (qualityMetrics.creativeSolutions > 0.6) {
-      notes.push("تضمين حلول إبداعية مبتكرة");
-    }
+    const creativeNote = this.getCreativeSolutionsNote(
+      qualityMetrics.creativeSolutions
+    );
+    if (creativeNote) notes.push(creativeNote);
 
-    // Recommendations count
-    const count = this.countRecommendations(output.text);
-    if (count > 10) {
-      notes.push(`تم تقديم ${count}+ توصية`);
-    } else if (count > 5) {
-      notes.push(`تم تقديم ${count} توصيات`);
-    }
+    const countNote = this.getCountNote(this.countRecommendations(output.text));
+    if (countNote) notes.push(countNote);
 
-    // Add original notes
     if (output.notes) {
       notes.push(...output.notes);
     }

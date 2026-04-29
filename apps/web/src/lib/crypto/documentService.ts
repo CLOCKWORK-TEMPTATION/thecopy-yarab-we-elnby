@@ -226,7 +226,7 @@ export async function listEncryptedDocuments(): Promise<{
 
     return {
       success: true,
-      documents: data.data,
+      documents: data.data ?? [],
     };
   } catch (error) {
     logger.error("خطأ في جلب قائمة المستندات:", error);

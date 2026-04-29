@@ -168,7 +168,7 @@ export async function callBackendAPI(
 }
 
 export function checkBackendHealth(): Promise<boolean> {
-  return backendService.healthCheck();
+  return Promise.resolve(backendService.healthCheck());
 }
 
 export { BackendService };

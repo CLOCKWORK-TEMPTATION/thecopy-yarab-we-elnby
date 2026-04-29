@@ -11,27 +11,48 @@ import type { AudienceResonance, RewritingSuggestion } from "./station7-types";
 // Generic text extraction
 // ---------------------------------------------------------------------------
 
-export function extractText(content: unknown): string {
-  if (typeof content === "string") return content;
-  const record = asRecord(content);
-  if (record) {
-    if (typeof record["raw"] === "string") return record["raw"];
-    if (typeof record["text"] === "string") return record["text"];
-    if (typeof record["report"] === "string") return record["report"];
-    if (content === null || content === undefined) return "";
-    if (typeof content === "number" || typeof content === "boolean")
-      return String(content);
-    return "";
-  }
+function extractFromRecord(record: Record<string, unknown>): string | null {
+  if (typeof record["raw"] === "string") return record["raw"];
+  if (typeof record["text"] === "string") return record["text"];
+  if (typeof record["report"] === "string") return record["report"];
+  return null;
+}
+
+function extractPrimitive(content: unknown): string | null {
   if (content === null || content === undefined) return "";
   if (typeof content === "number" || typeof content === "boolean")
     return String(content);
-  return "";
+  return null;
+}
+
+export function extractText(content: unknown): string {
+  if (typeof content === "string") return content;
+
+  const record = asRecord(content);
+  if (record) {
+    const fromRecord = extractFromRecord(record);
+    if (fromRecord !== null) return fromRecord;
+    return extractPrimitive(content) ?? "";
+  }
+
+  return extractPrimitive(content) ?? "";
 }
 
 // ---------------------------------------------------------------------------
 // SWOT text parser
 // ---------------------------------------------------------------------------
+
+function detectSection<TSection extends string>(
+  trimmed: string,
+  sections: Record<string, TSection>
+): TSection | null {
+  for (const [arabicName, englishKey] of Object.entries(sections)) {
+    if (trimmed.includes(arabicName)) {
+      return englishKey;
+    }
+  }
+  return null;
+}
 
 export function parseStructuredText(text: string): {
   strengths: string[];
@@ -58,13 +79,10 @@ export function parseStructuredText(text: string): {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    for (const [arabicName, englishKey] of Object.entries(sections)) {
-      if (trimmed.includes(arabicName)) {
-        currentSection = englishKey;
-        break;
-      }
-    }
-    if (currentSection && trimmed.startsWith("-")) {
+    const detectedSection = detectSection(trimmed, sections);
+    if (detectedSection) {
+      currentSection = detectedSection;
+    } else if (currentSection && trimmed.startsWith("-")) {
       const item = trimmed.substring(1).trim();
       if (item) result[currentSection].push(item);
     }
@@ -206,29 +224,30 @@ const applyRewritingSuggestionLine = (
   }
 };
 
-export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
-  const suggestions: RewritingSuggestion[] = [];
-  const blocks = text.split("---").filter((b) => b.trim());
+function parseSuggestionBlock(block: string): RewritingSuggestion | null {
+  const lines = block
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l);
+  const suggestion: Partial<RewritingSuggestion> = {};
 
-  for (const block of blocks) {
-    const lines = block
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l);
-    const suggestion: Partial<RewritingSuggestion> = {};
-
-    for (const line of lines) {
-      applyRewritingSuggestionLine(line, suggestion);
-    }
-
-    if (
-      suggestion.location &&
-      suggestion.currentIssue &&
-      suggestion.suggestedRewrite
-    ) {
-      suggestions.push(suggestion as RewritingSuggestion);
-    }
+  for (const line of lines) {
+    applyRewritingSuggestionLine(line, suggestion);
   }
 
-  return suggestions;
+  if (
+    suggestion.location &&
+    suggestion.currentIssue &&
+    suggestion.suggestedRewrite
+  ) {
+    return suggestion as RewritingSuggestion;
+  }
+  return null;
+}
+
+export function parseRewritingSuggestions(text: string): RewritingSuggestion[] {
+  const blocks = text.split("---").filter((b) => b.trim());
+  return blocks
+    .map(parseSuggestionBlock)
+    .filter((s): s is RewritingSuggestion => s !== null);
 }

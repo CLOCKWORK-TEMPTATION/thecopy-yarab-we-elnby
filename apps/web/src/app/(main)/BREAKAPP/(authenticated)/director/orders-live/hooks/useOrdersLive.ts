@@ -1,5 +1,5 @@
-import { api, type Order } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import { api } from "@the-copy/breakapp/lib/auth";
 import {
   useState,
   useEffect,
@@ -20,6 +20,8 @@ import {
   BatchVendorResult,
   OrderStatusEvent,
 } from "../types";
+
+import type { Order } from "@the-copy/breakapp/lib/types";
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
 

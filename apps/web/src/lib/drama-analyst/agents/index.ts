@@ -134,7 +134,15 @@ export const loadAgentConfig = async (
   const importedModule = (await import(
     /* @vite-ignore */ mapping.path
   )) as Record<string, AIAgentConfig>;
-  return importedModule[mapping.configName];
+  const config = importedModule[mapping.configName];
+
+  if (!config) {
+    throw new Error(
+      `Missing agent config export: ${mapping.configName} for ${taskType}`
+    );
+  }
+
+  return config;
 };
 // Static imports removed to eliminate Vite dynamic import warnings
 // All agent configs are now loaded dynamically via loadAgentConfig()

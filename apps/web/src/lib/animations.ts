@@ -39,7 +39,7 @@ export function createScrollAnimation(
     type ScrollTimelineCtor = new (
       options?: ScrollTimelineOptions
     ) => AnimationTimeline;
-    const scrollTimelineWindow = window as Window & {
+    const scrollTimelineWindow = window as unknown as {
       ScrollTimeline?: ScrollTimelineCtor;
     };
 

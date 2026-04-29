@@ -440,6 +440,31 @@ export class MarkdownNormalizer {
     return out;
   }
 
+  private shouldMergeWithPrevious(line: string, prev: string): boolean {
+    const isHeaderLine = [...this.headerKeywords].some((kw) =>
+      line.includes(kw)
+    );
+    const isPrevHeader = [...this.headerKeywords].some((kw) =>
+      prev.includes(kw)
+    );
+    const isStructuralLine = this.isStructuralBoundary(line);
+    const isPrevStructural = this.isStructuralBoundary(prev);
+    const prevEndsSentence = this.sentenceEndPattern.test(prev);
+
+    return (
+      line.length > 0 &&
+      !this.isHeading(line) &&
+      !this.isBullet(line) &&
+      !isHeaderLine &&
+      !isStructuralLine &&
+      prev.length > 0 &&
+      !this.isHeading(prev) &&
+      !isPrevHeader &&
+      !isPrevStructural &&
+      !prevEndsSentence
+    );
+  }
+
   private mergeWrappedLines(lines: string[]): string[] {
     const merged: string[] = [];
 
@@ -458,34 +483,13 @@ export class MarkdownNormalizer {
         merged.push(line);
         continue;
       }
+
       if (this.continuationPrefixRe.test(line)) {
         merged[merged.length - 1] = `${prev.trimEnd()} ${line.trimStart()}`;
         continue;
       }
 
-      const isHeaderLine = [...this.headerKeywords].some((kw) =>
-        line.includes(kw)
-      );
-      const isPrevHeader = [...this.headerKeywords].some((kw) =>
-        prev.includes(kw)
-      );
-      const isStructuralLine = this.isStructuralBoundary(line);
-      const isPrevStructural = this.isStructuralBoundary(prev);
-      const prevEndsSentence = this.sentenceEndPattern.test(prev);
-
-      const shouldMerge =
-        line &&
-        !this.isHeading(line) &&
-        !this.isBullet(line) &&
-        !isHeaderLine &&
-        !isStructuralLine &&
-        prev &&
-        !this.isHeading(prev) &&
-        !isPrevHeader &&
-        !isPrevStructural &&
-        !prevEndsSentence;
-
-      if (shouldMerge) {
+      if (this.shouldMergeWithPrevious(line, prev)) {
         merged[merged.length - 1] = `${prev.trimEnd()} ${line.trimStart()}`;
       } else {
         merged.push(line);

@@ -1,4 +1,4 @@
-import type { DriftResult, FingerprintState, IdeTarget, RepoFacts } from "./repo-state";
+import type { DriftResult, IdeTarget, RepoFacts } from "./repo-state";
 
 function formatCodeBlockLines(lines: string[]): string {
   return `\`\`\`text\n${lines.join("\n")}\n\`\`\``;
@@ -457,40 +457,26 @@ ${(openIssues.length > 0 ? openIssues : ["لا توجد أعطال مفتوحة 
 `;
 }
 
-export function shouldAppendSessionStart(
-  previousFingerprint: FingerprintState | null,
-  facts: RepoFacts,
-  drift: DriftResult,
-): boolean {
-  if (!previousFingerprint) {
-    return true;
-  }
-
-  if (previousFingerprint.branch !== facts.git.branch || previousFingerprint.headCommit !== facts.git.headCommit) {
-    return true;
-  }
-
-  return drift.level !== "no-drift";
-}
-
-export function renderRoundNote(
-  roundNumber: number,
+export function renderCurrentRoundNote(
   facts: RepoFacts,
   drift: DriftResult,
   updatedPaths: string[],
+  observedTimestamp: string,
   referenceTimestamp: string,
 ): string {
-  const roundId = String(roundNumber).padStart(3, "0");
+  return `## لقطة الحالة الحالية
 
-  return `## الجولة ${roundId}
+### وقت الرصد الحالي
 
-### التاريخ والوقت
+${observedTimestamp}
+
+### آخر مزامنة مرجعية
 
 ${referenceTimestamp}
 
-### نوع الجولة
+### نوع الرصد
 
-بدء جلسة
+تشغيل بداية الجلسة
 
 ### ما الذي فحصه bootstrap
 
@@ -505,7 +491,7 @@ ${referenceTimestamp}
 
 ### ما الذي تم تحديثه
 
-${updatedPaths.length > 0 ? updatedPaths.map((entry) => `- ${entry}`).join("\n") : "- لم يلزم تحديث أي ملف مولد"}
+${updatedPaths.length > 0 ? updatedPaths.map((entry) => `- ${entry}`).join("\n") : "- لم يلزم تحديث أي ملف مولد قبل كتابة هذه اللقطة"}
 
 ### مستوى drift
 

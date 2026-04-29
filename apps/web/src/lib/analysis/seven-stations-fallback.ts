@@ -76,7 +76,7 @@ export function buildFallbackSevenStationsResult(
     warnings: warningList,
     stationOutputs: buildStationOutputs({
       projectName: input.projectName,
-      warning: input.warning,
+      ...(input.warning ? { warning: input.warning } : {}),
       normalizedText,
       paragraphs,
       sentences,

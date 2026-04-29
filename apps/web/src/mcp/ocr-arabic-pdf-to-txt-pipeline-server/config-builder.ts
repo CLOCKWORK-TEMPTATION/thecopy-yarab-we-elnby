@@ -145,9 +145,9 @@ function getTableFormat(args: ParsedArgs): "markdown" | "html" | undefined {
 }
 
 function getAnnotationConfig(args: ParsedArgs): {
-  annotationSchemaPath?: string;
-  annotationPrompt?: string;
-  annotationOutputPath?: string;
+  annotationSchemaPath?: string | undefined;
+  annotationPrompt?: string | undefined;
+  annotationOutputPath?: string | undefined;
 } {
   const annotationSchemaPath =
     argOptionalString(args, "mistral-annotation-schema") ??
@@ -168,19 +168,11 @@ function getAnnotationConfig(args: ParsedArgs): {
   };
 }
 
-function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
-  const tableFormat = getTableFormat(args);
-  const annotationConfig = getAnnotationConfig(args);
-
-  const mistral: MistralOCRConfig = {
-    model: argString(
-      args,
-      "mistral-ocr-model",
-      (process.env["MISTRAL_OCR_MODEL"] ?? DEFAULT_MISTRAL_OCR_MODEL).trim() ||
-        DEFAULT_MISTRAL_OCR_MODEL
-    ),
-    useDocumentInput: !argBool(args, "mistral-disable-document-input"),
-    useBatchOCR: argBool(args, "mistral-use-batch"),
+function buildBatchConfig(args: ParsedArgs): {
+  batchTimeoutSec: number;
+  batchPollIntervalSec: number;
+} {
+  return {
     batchTimeoutSec: Math.max(
       5,
       toNumberInt(
@@ -197,27 +189,60 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
         3
       )
     ),
+  };
+}
+
+function buildOptionalFields(
+  annotationConfig: ReturnType<typeof getAnnotationConfig>,
+  tableFormat: "markdown" | "html" | undefined
+): Partial<MistralOCRConfig> {
+  const optional: Partial<MistralOCRConfig> = {};
+
+  if (annotationConfig.annotationSchemaPath !== undefined) {
+    optional.annotationSchemaPath = annotationConfig.annotationSchemaPath;
+  }
+  if (annotationConfig.annotationPrompt !== undefined) {
+    optional.annotationPrompt = annotationConfig.annotationPrompt;
+  }
+  if (annotationConfig.annotationOutputPath !== undefined) {
+    optional.annotationOutputPath = annotationConfig.annotationOutputPath;
+  }
+  if (tableFormat !== undefined) {
+    optional.tableFormat = tableFormat;
+  }
+
+  return optional;
+}
+
+function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
+  const tableFormat = getTableFormat(args);
+  const annotationConfig = getAnnotationConfig(args);
+  const batchConfig = buildBatchConfig(args);
+
+  const model = argString(
+    args,
+    "mistral-ocr-model",
+    (process.env["MISTRAL_OCR_MODEL"] ?? DEFAULT_MISTRAL_OCR_MODEL).trim() ||
+      DEFAULT_MISTRAL_OCR_MODEL
+  );
+
+  if (model !== DEFAULT_MISTRAL_OCR_MODEL) {
+    throw new Error(
+      `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${model}`
+    );
+  }
+
+  return {
+    model,
+    useDocumentInput: !argBool(args, "mistral-disable-document-input"),
+    useBatchOCR: argBool(args, "mistral-use-batch"),
+    ...batchConfig,
     annotationStrict: !argBool(args, "mistral-annotation-non-strict"),
     extractHeader: argBool(args, "mistral-extract-header"),
     extractFooter: argBool(args, "mistral-extract-footer"),
     includeImageBase64: argBool(args, "mistral-include-image-base64"),
-    ...(annotationConfig.annotationSchemaPath !== undefined
-      ? { annotationSchemaPath: annotationConfig.annotationSchemaPath }
-      : {}),
-    ...(annotationConfig.annotationPrompt !== undefined
-      ? { annotationPrompt: annotationConfig.annotationPrompt }
-      : {}),
-    ...(annotationConfig.annotationOutputPath !== undefined
-      ? { annotationOutputPath: annotationConfig.annotationOutputPath }
-      : {}),
-    ...(tableFormat !== undefined ? { tableFormat } : {}),
+    ...buildOptionalFields(annotationConfig, tableFormat),
   };
-  if (mistral.model !== DEFAULT_MISTRAL_OCR_MODEL) {
-    throw new Error(
-      `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${mistral.model}`
-    );
-  }
-  return mistral;
 }
 
 function buildPreOcrConfig(args: ParsedArgs): PreOCRConfig {

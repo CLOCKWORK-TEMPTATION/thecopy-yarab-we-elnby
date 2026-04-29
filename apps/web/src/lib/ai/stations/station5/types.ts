@@ -157,32 +157,27 @@ export interface Motif {
 
 export interface StylisticAnalysis {
   toneAssessment: ToneAssessment;
-  languageMetrics: LanguageMetrics;
+  languageComplexity: LanguageMetrics;
   pacingAnalysis: PacingAnalysis;
-  descriptiveMetrics: DescriptiveMetrics;
+  descriptiveRichness: DescriptiveMetrics;
 }
 
 export interface ToneAssessment {
   primaryTone: string;
+  secondaryTones: string[];
   toneConsistency: number;
-  toneShifts: {
-    location: string;
-    fromTone: string;
-    toTone: string;
-    justification: string;
-  }[];
+  explanation: string;
 }
 
 export interface LanguageMetrics {
+  level: "simple" | "moderate" | "complex" | "highly_complex";
+  readabilityScore: number;
   vocabularyRichness: number;
-  sentenceComplexity: number;
-  dialogueRatio: number;
-  narrativeVoice: string;
 }
 
 export interface PacingAnalysis {
-  overallPacing: string;
-  pacingVariability: number;
+  overallPacing: "very_slow" | "slow" | "balanced" | "fast" | "very_fast";
+  pacingVariation: number;
   sceneLengthDistribution: number[];
 }
 

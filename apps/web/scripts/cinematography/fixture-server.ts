@@ -17,7 +17,10 @@ interface StartedFixtureServer {
   close: () => Promise<void>;
 }
 
-const fixtureImagePath = resolve(process.cwd(), "../../public/sample-shot.png");
+const fixtureImagePath = resolve(
+  process.cwd(),
+  "tests/fixtures/media/sample-shot.png"
+);
 
 /**
  * إنشاء ملف صورة fixture
