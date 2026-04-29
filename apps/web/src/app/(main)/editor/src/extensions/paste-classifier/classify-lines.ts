@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @module extensions/paste-classifier/classify-lines
  *
  * نقطة الدخول الأساسية للتصنيف الخالص للنصوص (بدون ProseMirror):
@@ -77,117 +77,550 @@ import {
 } from "./schema-seed";
 import { buildDraftForType } from "./utils/draft-builders";
 
-import type { ClassifiedDraft, ElementType } from "../classification-types";
 import type { ClassifyLinesContext } from "./types";
+import type {
+  ClassifiedDraft,
+  ClassificationContext,
+  ElementType,
+} from "../classification-types";
+import type { ContextMemorySnapshot } from "../context-memory-manager";
 
-/**
- * تصنيف النصوص المُلصقة محلياً مع توليد معرف فريد (_itemId) لكل عنصر.
- * المعرّف يُستخدم لاحقاً في تتبع الأوامر من الوكيل.
- */
-export const classifyLines = (
-  text: string,
-  context?: ClassifyLinesContext
-): ClassifiedDraftWithId[] => {
-  // ── توحيد النص: إزالة الحروف غير المرئية التي يضيفها Word clipboard ──
-  const normalizedText = normalizeRawInputText(text);
+// ─── أنواع مساعدة داخلية ────────────────────────────────────────────
 
-  // ── diagnostic: بصمة النص المُدخل للمقارنة بين المسارات ──
-  const _diagRawLen = normalizedText.length;
-  const _diagRawLines = normalizedText.split(/\r?\n/).length;
-  const _diagRawHash = Array.from(normalizedText).reduce(
-    (h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0,
-    0
-  );
-  const _diagFirst80 = normalizedText.slice(0, 80).replace(/\n/g, "↵");
-  const _diagLast80 = normalizedText.slice(-80).replace(/\n/g, "↵");
+interface LineClassifierState {
+  classified: ClassifiedDraftWithId[];
+  memoryManager: ContextMemoryManager;
+  hybridClassifier: HybridClassifier;
+  dcg: DocumentContextGraph | undefined;
+  push: (entry: ClassifiedDraft) => void;
+}
 
-  // ── diagnostic: تفصيل أنواع الحروف الخاصة في النص الأصلي ──
-  const _diagCharBreakdown = {
-    cr: (text.match(/\r/g) ?? []).length,
-    nbsp: (text.match(/\u00A0/g) ?? []).length,
-    zwnj: (text.match(/\u200C/g) ?? []).length,
-    zwj: (text.match(/\u200D/g) ?? []).length,
-    zwsp: (text.match(/\u200B/g) ?? []).length,
-    lrm: (text.match(/\u200E/g) ?? []).length,
-    rlm: (text.match(/\u200F/g) ?? []).length,
-    bom: (text.match(/\uFEFF/g) ?? []).length,
-    tab: (text.match(/\t/g) ?? []).length,
-    softHyphen: (text.match(/\u00AD/g) ?? []).length,
-    alm: (text.match(/\u061C/g) ?? []).length,
-    fullwidthColon: (text.match(/\uFF1A/g) ?? []).length,
-  };
+interface SchemaSeedCounters {
+  adopted: number;
+  overridden: number;
+}
 
+// ─── دوال تشخيص النص ─────────────────────────────────────────────────
+
+const countMatches = (text: string, re: RegExp): number =>
+  (text.match(re) ?? []).length;
+
+const buildCharBreakdown = (text: string): Record<string, number> => ({
+  cr: countMatches(text, /\r/g),
+  nbsp: countMatches(text, /\u00A0/gu),
+  zwnj: countMatches(text, /‌/gu),
+  zwj: countMatches(text, /‍/gu),
+  zwsp: countMatches(text, /\u200B/gu),
+  lrm: countMatches(text, /‎/gu),
+  rlm: countMatches(text, /‏/gu),
+  bom: countMatches(text, /\uFEFF/gu),
+  tab: countMatches(text, /\t/g),
+  softHyphen: countMatches(text, /­/gu),
+  alm: countMatches(text, /؜/gu),
+  fullwidthColon: countMatches(text, /：/gu),
+});
+
+const logNormalizeDiag = (text: string, normalizedText: string): void => {
   agentReviewLogger.info("diag:normalize-delta", {
     originalLength: text.length,
     normalizedLength: normalizedText.length,
     charsRemoved: text.length - normalizedText.length,
-    charBreakdown: JSON.stringify(_diagCharBreakdown),
+    charBreakdown: JSON.stringify(buildCharBreakdown(text)),
   });
+};
 
-  const { sanitizedText, removedLines } =
-    sanitizeOcrArtifactsForClassification(normalizedText);
-  if (removedLines > 0) {
-    agentReviewLogger.telemetry("artifact-lines-stripped", {
-      layer: "frontend-classifier",
-      artifactLinesRemoved: removedLines,
-    });
-  }
-  const lines = sanitizedText.split(/\r?\n/);
-
+const logClassifyLinesInput = (
+  normalizedText: string,
+  lines: string[],
+  removedLines: number,
+  context?: ClassifyLinesContext
+): void => {
+  const rawLen = normalizedText.length;
+  const rawLines = normalizedText.split(/\r?\n/).length;
+  const rawHash = Array.from(normalizedText).reduce(
+    (h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0,
+    0
+  );
   agentReviewLogger.info("diag:classifyLines-input", {
     classificationProfile: context?.classificationProfile,
     sourceFileType: context?.sourceFileType,
     hasStructuredHints: !!(
       context?.structuredHints && context.structuredHints.length > 0
     ),
-    rawTextLength: _diagRawLen,
-    rawLineCount: _diagRawLines,
-    rawTextHash: _diagRawHash,
+    rawTextLength: rawLen,
+    rawLineCount: rawLines,
+    rawTextHash: rawHash,
     sanitizedLineCount: lines.length,
     sanitizedRemovedLines: removedLines,
-    first80: _diagFirst80,
-    last80: _diagLast80,
+    first80: normalizedText.slice(0, 80).replace(/\n/g, "↵"),
+    last80: normalizedText.slice(-80).replace(/\n/g, "↵"),
   });
-  const classified: ClassifiedDraftWithId[] = [];
+};
 
-  const memoryManager = new ContextMemoryManager();
-  // بذر الـ registry من inline patterns (regex-based) قبل الـ loop
-  memoryManager.seedFromInlinePatterns(lines);
-  // بذر الـ registry من standalone patterns (اسم: سطر + حوار سطر تالي)
-  memoryManager.seedFromStandalonePatterns(lines);
-  const hybridClassifier = new HybridClassifier();
+interface OutputDiagParams {
+  normalizedText: string;
+  lines: string[];
+  classified: ClassifiedDraftWithId[];
+  seqOptResult: { totalDisagreements: number };
+  schemaSeedAdopted: number;
+  schemaSeedOverridden: number;
+  context?: ClassifyLinesContext;
+}
 
-  // ── بناء Document Context Graph (مسح أولي — O(n)) ──
-  const dcg: DocumentContextGraph | undefined = PIPELINE_FLAGS.DCG_ENABLED
-    ? buildDocumentContextGraph(lines)
-    : undefined;
+const logClassifyLinesOutput = (params: OutputDiagParams): void => {
+  const {
+    normalizedText,
+    lines,
+    classified,
+    seqOptResult,
+    schemaSeedAdopted,
+    schemaSeedOverridden,
+    context,
+  } = params;
+  const typeDist: Record<string, number> = {};
+  for (const item of classified) {
+    typeDist[item.type] = (typeDist[item.type] ?? 0) + 1;
+  }
+  agentReviewLogger.info("diag:classifyLines-output", {
+    classificationProfile: context?.classificationProfile,
+    sourceFileType: context?.sourceFileType,
+    rawTextHash: Array.from(normalizedText).reduce(
+      (h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0,
+      0
+    ),
+    inputLineCount: lines.length,
+    classifiedCount: classified.length,
+    mergedOrSkipped: lines.length - classified.length,
+    typeDistribution: typeDist,
+    viterbiDisagreements: seqOptResult.totalDisagreements,
+    schemaSeedAdopted,
+    schemaSeedOverridden,
+  });
+};
 
-  // استخراج الخيارات من السياق
-  const sourceProfile = toSourceProfile(context?.classificationProfile);
-  const hintQueues = buildStructuredHintQueues(context?.structuredHints);
-  const schemaSeedQueues = buildSchemaSeedQueues(context?.schemaElements);
+// ─── قواعد دمج الأسطر السابقة ────────────────────────────────────────
+
+/**
+ * محاولة دمج السطر الحالي بالسطر السابق (إصلاح اسم شخصية مكسور أو سطر ملفوف).
+ * @returns true إذا تم الدمج (skip السطر الحالي)
+ */
+const tryMergePreviousLine = (
+  trimmed: string,
+  state: LineClassifierState
+): boolean => {
+  const { classified, memoryManager } = state;
+  const previous = classified[classified.length - 1];
+  if (!previous) return false;
+
+  const mergedCharacter = mergeBrokenCharacterName(previous.text, trimmed);
+  if (mergedCharacter && previous.type === "action") {
+    const corrected: ClassifiedDraft = {
+      ...previous,
+      type: "character",
+      text: ensureCharacterTrailingColon(mergedCharacter),
+      confidence: 92,
+      classificationMethod: "context",
+    };
+    classified[classified.length - 1] = corrected;
+    memoryManager.replaceLast(corrected);
+    return true;
+  }
+
+  if (shouldMergeWrappedLines(previous.text, trimmed, previous.type)) {
+    const merged: ClassifiedDraft = {
+      ...previous,
+      text: `${previous.text} ${trimmed}`.replace(/\s+/g, " ").trim(),
+      confidence: Math.max(previous.confidence, 86),
+      classificationMethod: "context",
+    };
+    classified[classified.length - 1] = merged;
+    memoryManager.replaceLast(merged);
+    return true;
+  }
+
+  return false;
+};
+
+// ─── قواعد تصنيف per-line ────────────────────────────────────────────
+
+/** قاعدة 1: بسملة */
+const tryClassifyBasmala = (
+  normalizedForClassification: string,
+  trimmed: string,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (!isStandaloneBasmalaLine(normalizedForClassification)) return false;
+  push({
+    type: "basmala",
+    text: trimmed,
+    confidence: 99,
+    classificationMethod: "regex",
+  });
+  return true;
+};
+
+/** قاعدة 2: رأس مشهد كامل */
+const tryClassifyCompleteSceneHeader = (
+  normalizedForClassification: string,
+  trimmed: string,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (!isCompleteSceneHeaderLine(normalizedForClassification)) return false;
+  const parts = splitSceneHeaderLine(normalizedForClassification);
+  if (!parts) return false;
+  push({
+    type: "scene_header_1",
+    text: parts.header1,
+    confidence: 96,
+    classificationMethod: "regex",
+  });
+  if (parts.header2) {
+    push({
+      type: "scene_header_2",
+      text: parts.header2,
+      confidence: 96,
+      classificationMethod: "regex",
+    });
+  }
+  return true;
+};
+
+/** قاعدة 3: انتقال */
+const tryClassifyTransition = (
+  normalizedForClassification: string,
+  trimmed: string,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (!isTransitionLine(normalizedForClassification)) return false;
+  push({
+    type: "transition",
+    text: trimmed,
+    confidence: 95,
+    classificationMethod: "regex",
+  });
+  return true;
+};
+
+/** قاعدة 4: رأس مشهد 3 (بعد top_line أو regex مباشر) */
+const tryClassifySceneHeader3 = (
+  normalizedForClassification: string,
+  trimmed: string,
+  context: ClassificationContext,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  const temporalSceneSignal = hasTemporalSceneSignal(
+    normalizedForClassification
+  );
+  if (
+    context.isAfterSceneHeaderTopLine &&
+    (isSceneHeader3Line(normalizedForClassification, context) ||
+      temporalSceneSignal)
+  ) {
+    push({
+      type: "scene_header_3",
+      text: trimmed,
+      confidence: temporalSceneSignal ? 88 : 90,
+      classificationMethod: "context",
+    });
+    return true;
+  }
+  if (isSceneHeader3Line(normalizedForClassification, context)) {
+    push({
+      type: "scene_header_3",
+      text: trimmed,
+      confidence: 82,
+      classificationMethod: "regex",
+    });
+    return true;
+  }
+  return false;
+};
+
+/** قاعدة 5: حوار مضمّن (character + dialogue في سطر واحد) */
+const tryClassifyInlineCharacterDialogue = (
+  trimmed: string,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  const inlineParsed = parseInlineCharacterDialogue(trimmed);
+  if (!inlineParsed) return false;
+  if (inlineParsed.cue) {
+    push({
+      type: "action",
+      text: inlineParsed.cue,
+      confidence: 92,
+      classificationMethod: "regex",
+    });
+  }
+  push({
+    type: "character",
+    text: ensureCharacterTrailingColon(inlineParsed.characterName),
+    confidence: 98,
+    classificationMethod: "regex",
+  });
+  push({
+    type: "dialogue",
+    text: inlineParsed.dialogueText,
+    confidence: 98,
+    classificationMethod: "regex",
+  });
+  return true;
+};
+
+/** قاعدة 6: إرشاد مسرحي (parenthetical) داخل كتلة حوار */
+const tryClassifyParenthetical = (
+  normalizedForClassification: string,
+  trimmed: string,
+  context: ClassificationContext,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (
+    !isParentheticalLine(normalizedForClassification) ||
+    !context.isInDialogueBlock
+  )
+    return false;
+  push({
+    type: "parenthetical",
+    text: trimmed,
+    confidence: 90,
+    classificationMethod: "regex",
+  });
+  return true;
+};
+
+/** قاعدة 7: استمرار حوار */
+const tryClassifyDialogueContinuation = (
+  rawLine: string,
+  trimmed: string,
+  context: ClassificationContext,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (!isDialogueContinuationLine(rawLine, context.previousType)) return false;
+  push({
+    type: "dialogue",
+    text: trimmed,
+    confidence: 82,
+    classificationMethod: "context",
+  });
+  return true;
+};
+
+/** قاعدة 8: حوار ضمني بدون نقطتين */
+const tryClassifyImplicitCharacterDialogue = (
+  trimmed: string,
+  context: ClassificationContext,
+  snapshot: ContextMemorySnapshot,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  const implicit = parseImplicitCharacterDialogueWithoutColon(
+    trimmed,
+    context,
+    snapshot.confirmedCharacters
+  );
+  if (!implicit) return false;
+  if (implicit.cue) {
+    push({
+      type: "action",
+      text: implicit.cue,
+      confidence: 85,
+      classificationMethod: "context",
+    });
+  }
+  push({
+    type: "character",
+    text: ensureCharacterTrailingColon(implicit.characterName),
+    confidence: 78,
+    classificationMethod: "context",
+  });
+  push({
+    type: "dialogue",
+    text: implicit.dialogueText,
+    confidence: 78,
+    classificationMethod: "context",
+  });
+  return true;
+};
+
+/** قاعدة 9: اسم شخصية */
+const tryClassifyCharacter = (
+  normalizedForClassification: string,
+  trimmed: string,
+  context: ClassificationContext,
+  snapshot: ContextMemorySnapshot,
+  push: (entry: ClassifiedDraft) => void
+): boolean => {
+  if (
+    !isCharacterLine(
+      normalizedForClassification,
+      context,
+      snapshot.confirmedCharacters
+    )
+  )
+    return false;
+  push({
+    type: "character",
+    text: ensureCharacterTrailingColon(trimmed),
+    confidence: 88,
+    classificationMethod: "regex",
+  });
+  return true;
+};
+
+/** قاعدة 10: حوار بالاحتمالية */
+interface DialogueClassifyArgs {
+  normalized: string;
+  trimmed: string;
+  context: ClassificationContext;
+  snapshot: ContextMemorySnapshot;
+  detectedDialect: boolean;
+  push: (entry: ClassifiedDraft) => void;
+}
+
+const tryClassifyDialogue = (args: DialogueClassifyArgs): boolean => {
+  const { normalized, trimmed, context, snapshot, detectedDialect, push } =
+    args;
+  const dialogueProbability = getDialogueProbability(normalized, context);
+  const dialogueThreshold = detectedDialect ? 5 : 6;
+  if (
+    !isDialogueLine(normalized, context, snapshot) &&
+    dialogueProbability < dialogueThreshold
+  ) {
+    return false;
+  }
+  const dialectBoost = detectedDialect ? 3 : 0;
+  push({
+    type: "dialogue",
+    text: trimmed,
+    confidence: Math.max(
+      72,
+      Math.min(94, 64 + dialogueProbability * 4 + dialectBoost)
+    ),
+    classificationMethod: "context",
+  });
+  return true;
+};
+
+// ─── قاعدة 11: schema seed + hybrid fallback ─────────────────────────
+
+interface HybridFallbackParams {
+  normalizedForClassification: string;
+  trimmed: string;
+  lineIdx: number;
+  context: ClassificationContext;
+  state: LineClassifierState;
+  activeSchemaSeedType: ElementType | undefined;
+  counters: SchemaSeedCounters;
+}
+
+const classifyWithHybridFallback = (params: HybridFallbackParams): void => {
+  const {
+    normalizedForClassification,
+    trimmed,
+    lineIdx,
+    context,
+    state,
+    activeSchemaSeedType,
+    counters,
+  } = params;
+  const { memoryManager, hybridClassifier, dcg, push } = state;
+
+  const decision = resolveNarrativeDecision(
+    normalizedForClassification,
+    context,
+    memoryManager.getSnapshot()
+  );
+  const hybridResult = hybridClassifier.classifyLine(
+    normalizedForClassification,
+    decision.type,
+    context,
+    memoryManager.getSnapshot(),
+    dcg?.lineContexts[lineIdx]
+  );
+
+  if (
+    shouldPreferSchemaSeedDecision({
+      schemaType: activeSchemaSeedType,
+      localType: hybridResult.type,
+      localConfidence: hybridResult.confidence,
+      localMethod: hybridResult.classificationMethod,
+    })
+  ) {
+    counters.adopted += 1;
+    push(
+      buildDraftForType(
+        activeSchemaSeedType!,
+        trimmed,
+        Math.max(0.9, hybridResult.confidence),
+        "external-engine"
+      )
+    );
+    return;
+  }
+  if (activeSchemaSeedType && hybridResult.type !== activeSchemaSeedType) {
+    counters.overridden += 1;
+  }
+
+  if (hybridResult.type === "scene_header_1") {
+    const parts = splitSceneHeaderLine(normalizedForClassification);
+    if (parts?.header2) {
+      push({
+        type: "scene_header_1",
+        text: parts.header1,
+        confidence: Math.max(85, hybridResult.confidence),
+        classificationMethod: hybridResult.classificationMethod,
+      });
+      push({
+        type: "scene_header_2",
+        text: parts.header2,
+        confidence: Math.max(85, hybridResult.confidence),
+        classificationMethod: hybridResult.classificationMethod,
+      });
+      return;
+    }
+  }
+
+  if (hybridResult.type === "character") {
+    push({
+      type: "character",
+      text: ensureCharacterTrailingColon(trimmed),
+      confidence: Math.max(78, hybridResult.confidence),
+      classificationMethod: hybridResult.classificationMethod,
+    });
+    return;
+  }
+
+  if (
+    hybridResult.type === "action" ||
+    isActionLine(normalizedForClassification, context)
+  ) {
+    push({
+      type: "action",
+      text: trimmed.replace(/^[-–—]\s*/, ""),
+      confidence: Math.max(74, hybridResult.confidence),
+      classificationMethod: hybridResult.classificationMethod,
+    });
+    return;
+  }
+
+  push({
+    type: hybridResult.type,
+    text: trimmed,
+    confidence: Math.max(68, hybridResult.confidence),
+    classificationMethod: hybridResult.classificationMethod,
+  });
+};
+
+// ─── حلقة التصنيف الرئيسية ──────────────────────────────────────────
+
+const runClassificationLoop = (
+  lines: string[],
+  state: LineClassifierState,
+  hintQueues: ReturnType<typeof buildStructuredHintQueues>,
+  schemaSeedQueues: ReturnType<typeof buildSchemaSeedQueues>,
+  counters: SchemaSeedCounters
+): { chunkStartIdx: number; linesInChunk: number } => {
+  const { classified, memoryManager } = state;
   let activeSourceHintType: ElementType | undefined;
   let activeSchemaSeedType: ElementType | undefined;
-  let schemaSeedAdopted = 0;
-  let schemaSeedOverridden = 0;
-
-  const push = (entry: ClassifiedDraft): void => {
-    const hintType = activeSourceHintType ?? activeSchemaSeedType;
-    const withId: ClassifiedDraftWithId = {
-      ...entry,
-      _itemId: generateItemId(),
-      // إضافة بيانات المصدر إذا كانت متوفرة
-      ...(sourceProfile !== undefined && { sourceProfile }),
-      ...(hintType !== undefined && { sourceHintType: hintType }),
-    };
-    classified.push(withId);
-    memoryManager.record(entry);
-  };
-
-  // ── Recorder: بداية run جديد + snapshot أولي ──
-  traceCollector.clear();
-
-  // ── Self-Reflection: عدّاد أسطر الـ chunk الحالي ──
   let chunkStartIdx = 0;
   let linesInChunk = 0;
 
@@ -196,320 +629,111 @@ export const classifyLines = (
     if (rawLine === undefined) continue;
     const trimmed = parseBulletLine(rawLine);
     if (!trimmed) continue;
+
     activeSourceHintType = consumeSourceHintTypeForLine(trimmed, hintQueues);
     activeSchemaSeedType = consumeSchemaSeedTypeForLine(
       trimmed,
       schemaSeedQueues
     );
+
+    // Update push closure to include current hint types
+    const currentHintType = activeSourceHintType ?? activeSchemaSeedType;
+    const boundPush = (entry: ClassifiedDraft): void => {
+      const withId: ClassifiedDraftWithId = {
+        ...entry,
+        _itemId: generateItemId(),
+        ...(currentHintType !== undefined && {
+          sourceHintType: currentHintType,
+        }),
+      };
+      classified.push(withId);
+      memoryManager.record(entry);
+    };
+
     const normalizedForClassification = convertHindiToArabic(trimmed);
     const detectedDialect = detectDialect(normalizedForClassification);
 
-    const previous = classified[classified.length - 1];
-    if (previous) {
-      const mergedCharacter = mergeBrokenCharacterName(previous.text, trimmed);
-      if (mergedCharacter && previous.type === "action") {
-        const corrected: ClassifiedDraft = {
-          ...previous,
-          type: "character",
-          text: ensureCharacterTrailingColon(mergedCharacter),
-          confidence: 92,
-          classificationMethod: "context",
-        };
-        classified[classified.length - 1] = corrected;
-        memoryManager.replaceLast(corrected);
-        continue;
-      }
-
-      if (shouldMergeWrappedLines(previous.text, trimmed, previous.type)) {
-        const merged: ClassifiedDraft = {
-          ...previous,
-          text: `${previous.text} ${trimmed}`.replace(/\s+/g, " ").trim(),
-          confidence: Math.max(previous.confidence, 86),
-          classificationMethod: "context",
-        };
-        classified[classified.length - 1] = merged;
-        memoryManager.replaceLast(merged);
-        continue;
-      }
-    }
+    if (tryMergePreviousLine(trimmed, state)) continue;
 
     const context = buildContext(classified.map((item) => item.type));
 
-    if (isStandaloneBasmalaLine(normalizedForClassification)) {
-      push({
-        type: "basmala",
-        text: trimmed,
-        confidence: 99,
-        classificationMethod: "regex",
-      });
+    if (tryClassifyBasmala(normalizedForClassification, trimmed, boundPush))
       continue;
-    }
-
-    if (isCompleteSceneHeaderLine(normalizedForClassification)) {
-      const parts = splitSceneHeaderLine(normalizedForClassification);
-      if (parts) {
-        push({
-          type: "scene_header_1",
-          text: parts.header1,
-          confidence: 96,
-          classificationMethod: "regex",
-        });
-        if (parts.header2) {
-          push({
-            type: "scene_header_2",
-            text: parts.header2,
-            confidence: 96,
-            classificationMethod: "regex",
-          });
-        }
-        continue;
-      }
-    }
-
-    if (isTransitionLine(normalizedForClassification)) {
-      push({
-        type: "transition",
-        text: trimmed,
-        confidence: 95,
-        classificationMethod: "regex",
-      });
-      continue;
-    }
-
-    const temporalSceneSignal = hasTemporalSceneSignal(
-      normalizedForClassification
-    );
     if (
-      context.isAfterSceneHeaderTopLine &&
-      (isSceneHeader3Line(normalizedForClassification, context) ||
-        temporalSceneSignal)
-    ) {
-      push({
-        type: "scene_header_3",
-        text: trimmed,
-        confidence: temporalSceneSignal ? 88 : 90,
-        classificationMethod: "context",
-      });
+      tryClassifyCompleteSceneHeader(
+        normalizedForClassification,
+        trimmed,
+        boundPush
+      )
+    )
       continue;
-    }
-
-    if (isSceneHeader3Line(normalizedForClassification, context)) {
-      push({
-        type: "scene_header_3",
-        text: trimmed,
-        confidence: 82,
-        classificationMethod: "regex",
-      });
+    if (tryClassifyTransition(normalizedForClassification, trimmed, boundPush))
       continue;
-    }
-
-    const inlineParsed = parseInlineCharacterDialogue(trimmed);
-    if (inlineParsed) {
-      if (inlineParsed.cue) {
-        push({
-          type: "action",
-          text: inlineParsed.cue,
-          confidence: 92,
-          classificationMethod: "regex",
-        });
-      }
-
-      push({
-        type: "character",
-        text: ensureCharacterTrailingColon(inlineParsed.characterName),
-        confidence: 98,
-        classificationMethod: "regex",
-      });
-
-      push({
-        type: "dialogue",
-        text: inlineParsed.dialogueText,
-        confidence: 98,
-        classificationMethod: "regex",
-      });
-      continue;
-    }
-
     if (
-      isParentheticalLine(normalizedForClassification) &&
-      context.isInDialogueBlock
-    ) {
-      push({
-        type: "parenthetical",
-        text: trimmed,
-        confidence: 90,
-        classificationMethod: "regex",
-      });
+      tryClassifySceneHeader3(
+        normalizedForClassification,
+        trimmed,
+        context,
+        boundPush
+      )
+    )
       continue;
-    }
-
-    if (isDialogueContinuationLine(rawLine, context.previousType)) {
-      push({
-        type: "dialogue",
-        text: trimmed,
-        confidence: 82,
-        classificationMethod: "context",
-      });
+    if (tryClassifyInlineCharacterDialogue(trimmed, boundPush)) continue;
+    if (
+      tryClassifyParenthetical(
+        normalizedForClassification,
+        trimmed,
+        context,
+        boundPush
+      )
+    )
       continue;
-    }
+    if (tryClassifyDialogueContinuation(rawLine, trimmed, context, boundPush))
+      continue;
 
-    // أخذ snapshot قبل parseImplicit عشان نمرر confirmedCharacters
     const snapshot = memoryManager.getSnapshot();
 
-    const implicit = parseImplicitCharacterDialogueWithoutColon(
-      trimmed,
-      context,
-      snapshot.confirmedCharacters
-    );
-    if (implicit) {
-      if (implicit.cue) {
-        push({
-          type: "action",
-          text: implicit.cue,
-          confidence: 85,
-          classificationMethod: "context",
-        });
-      }
-
-      push({
-        type: "character",
-        text: ensureCharacterTrailingColon(implicit.characterName),
-        confidence: 78,
-        classificationMethod: "context",
-      });
-
-      push({
-        type: "dialogue",
-        text: implicit.dialogueText,
-        confidence: 78,
-        classificationMethod: "context",
-      });
-      continue;
-    }
     if (
-      isCharacterLine(
-        normalizedForClassification,
+      tryClassifyImplicitCharacterDialogue(
+        trimmed,
         context,
-        snapshot.confirmedCharacters
+        snapshot,
+        boundPush
       )
-    ) {
-      push({
-        type: "character",
-        text: ensureCharacterTrailingColon(trimmed),
-        confidence: 88,
-        classificationMethod: "regex",
-      });
+    )
       continue;
-    }
-
-    const dialogueProbability = getDialogueProbability(
-      normalizedForClassification,
-      context
-    );
-    const dialogueThreshold = detectedDialect ? 5 : 6;
     if (
-      isDialogueLine(normalizedForClassification, context, snapshot) ||
-      dialogueProbability >= dialogueThreshold
-    ) {
-      const dialectBoost = detectedDialect ? 3 : 0;
-      push({
-        type: "dialogue",
-        text: trimmed,
-        confidence: Math.max(
-          72,
-          Math.min(94, 64 + dialogueProbability * 4 + dialectBoost)
-        ),
-        classificationMethod: "context",
-      });
+      tryClassifyCharacter(
+        normalizedForClassification,
+        trimmed,
+        context,
+        snapshot,
+        boundPush
+      )
+    )
       continue;
-    }
-
-    const decision = resolveNarrativeDecision(
-      normalizedForClassification,
-      context,
-      snapshot
-    );
-    const hybridResult = hybridClassifier.classifyLine(
-      normalizedForClassification,
-      decision.type,
-      context,
-      memoryManager.getSnapshot(),
-      dcg?.lineContexts[_lineIdx]
-    );
-
     if (
-      shouldPreferSchemaSeedDecision({
-        schemaType: activeSchemaSeedType,
-        localType: hybridResult.type,
-        localConfidence: hybridResult.confidence,
-        localMethod: hybridResult.classificationMethod,
+      tryClassifyDialogue({
+        normalized: normalizedForClassification,
+        trimmed,
+        context,
+        snapshot,
+        detectedDialect,
+        push: boundPush,
       })
-    ) {
-      schemaSeedAdopted += 1;
-      push(
-        buildDraftForType(
-          activeSchemaSeedType!,
-          trimmed,
-          Math.max(0.9, hybridResult.confidence),
-          "external-engine"
-        )
-      );
+    )
       continue;
-    }
-    if (activeSchemaSeedType && hybridResult.type !== activeSchemaSeedType) {
-      schemaSeedOverridden += 1;
-    }
 
-    if (hybridResult.type === "scene_header_1") {
-      const parts = splitSceneHeaderLine(normalizedForClassification);
-      if (parts?.header2) {
-        push({
-          type: "scene_header_1",
-          text: parts.header1,
-          confidence: Math.max(85, hybridResult.confidence),
-          classificationMethod: hybridResult.classificationMethod,
-        });
-        push({
-          type: "scene_header_2",
-          text: parts.header2,
-          confidence: Math.max(85, hybridResult.confidence),
-          classificationMethod: hybridResult.classificationMethod,
-        });
-        continue;
-      }
-    }
-
-    if (hybridResult.type === "character") {
-      push({
-        type: "character",
-        text: ensureCharacterTrailingColon(trimmed),
-        confidence: Math.max(78, hybridResult.confidence),
-        classificationMethod: hybridResult.classificationMethod,
-      });
-      continue;
-    }
-
-    if (
-      hybridResult.type === "action" ||
-      isActionLine(normalizedForClassification, context)
-    ) {
-      push({
-        type: "action",
-        text: trimmed.replace(/^[-–—]\s*/, ""),
-        confidence: Math.max(74, hybridResult.confidence),
-        classificationMethod: hybridResult.classificationMethod,
-      });
-      continue;
-    }
-
-    push({
-      type: hybridResult.type,
-      text: trimmed,
-      confidence: Math.max(68, hybridResult.confidence),
-      classificationMethod: hybridResult.classificationMethod,
+    classifyWithHybridFallback({
+      normalizedForClassification,
+      trimmed,
+      lineIdx: _lineIdx,
+      context,
+      state: { ...state, push: boundPush },
+      activeSchemaSeedType,
+      counters,
     });
 
-    // ── Self-Reflection: مراجعة ذاتية دورية أثناء الـ forward pass ──
     if (PIPELINE_FLAGS.SELF_REFLECTION_ENABLED) {
       linesInChunk++;
       const lastType = classified[classified.length - 1]?.type;
@@ -522,13 +746,83 @@ export const classifyLines = (
           chunkStartIdx,
           classified.length,
           memoryManager,
-          dcg
+          state.dcg
         );
         chunkStartIdx = classified.length;
         linesInChunk = 0;
       }
     }
   }
+
+  return { chunkStartIdx, linesInChunk };
+};
+
+/**
+ * تصنيف النصوص المُلصقة محلياً مع توليد معرف فريد (_itemId) لكل عنصر.
+ * المعرّف يُستخدم لاحقاً في تتبع الأوامر من الوكيل.
+ */
+export const classifyLines = (
+  text: string,
+  context?: ClassifyLinesContext
+): ClassifiedDraftWithId[] => {
+  const normalizedText = normalizeRawInputText(text);
+
+  logNormalizeDiag(text, normalizedText);
+
+  const { sanitizedText, removedLines } =
+    sanitizeOcrArtifactsForClassification(normalizedText);
+  if (removedLines > 0) {
+    agentReviewLogger.telemetry("artifact-lines-stripped", {
+      layer: "frontend-classifier",
+      artifactLinesRemoved: removedLines,
+    });
+  }
+  const lines = sanitizedText.split(/\r?\n/);
+
+  logClassifyLinesInput(normalizedText, lines, removedLines, context);
+
+  const classified: ClassifiedDraftWithId[] = [];
+  const memoryManager = new ContextMemoryManager();
+  memoryManager.seedFromInlinePatterns(lines);
+  memoryManager.seedFromStandalonePatterns(lines);
+  const hybridClassifier = new HybridClassifier();
+
+  const dcg: DocumentContextGraph | undefined = PIPELINE_FLAGS.DCG_ENABLED
+    ? buildDocumentContextGraph(lines)
+    : undefined;
+
+  const sourceProfile = toSourceProfile(context?.classificationProfile);
+  const hintQueues = buildStructuredHintQueues(context?.structuredHints);
+  const schemaSeedQueues = buildSchemaSeedQueues(context?.schemaElements);
+  const counters: SchemaSeedCounters = { adopted: 0, overridden: 0 };
+
+  const push = (entry: ClassifiedDraft): void => {
+    const withId: ClassifiedDraftWithId = {
+      ...entry,
+      _itemId: generateItemId(),
+      ...(sourceProfile !== undefined && { sourceProfile }),
+    };
+    classified.push(withId);
+    memoryManager.record(entry);
+  };
+
+  const state: LineClassifierState = {
+    classified,
+    memoryManager,
+    hybridClassifier,
+    dcg,
+    push,
+  };
+
+  traceCollector.clear();
+
+  const { chunkStartIdx, linesInChunk } = runClassificationLoop(
+    lines,
+    state,
+    hintQueues,
+    schemaSeedQueues,
+    counters
+  );
 
   const matchedSchemaVotes = recordSchemaSeedVotes(
     classified,
@@ -542,7 +836,6 @@ export const classifyLines = (
     });
   }
 
-  // ── Self-Reflection: مراجعة الـ chunk الأخير المتبقي ──
   if (PIPELINE_FLAGS.SELF_REFLECTION_ENABLED && linesInChunk >= 3) {
     reflectOnChunk(
       classified,
@@ -553,7 +846,6 @@ export const classifyLines = (
     );
   }
 
-  // ── post-passes (forward → retro → reverse → viterbi → suspicion) ──
   const _seqOptResult = applyClassifyLinesPostPasses({
     classified,
     memoryManager,
@@ -561,25 +853,14 @@ export const classifyLines = (
     context,
   });
 
-  // ── diagnostic: ملخص نتائج التصنيف للمقارنة ──
-  const _diagTypeDist: Record<string, number> = {};
-  for (const item of classified) {
-    _diagTypeDist[item.type] = (_diagTypeDist[item.type] ?? 0) + 1;
-  }
-  agentReviewLogger.info("diag:classifyLines-output", {
-    classificationProfile: context?.classificationProfile,
-    sourceFileType: context?.sourceFileType,
-    rawTextHash: Array.from(normalizedText).reduce(
-      (h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0,
-      0
-    ),
-    inputLineCount: lines.length,
-    classifiedCount: classified.length,
-    mergedOrSkipped: lines.length - classified.length,
-    typeDistribution: _diagTypeDist,
-    viterbiDisagreements: _seqOptResult.totalDisagreements,
-    schemaSeedAdopted,
-    schemaSeedOverridden,
+  logClassifyLinesOutput({
+    normalizedText,
+    lines,
+    classified,
+    seqOptResult: _seqOptResult,
+    schemaSeedAdopted: counters.adopted,
+    schemaSeedOverridden: counters.overridden,
+    context,
   });
 
   return classified;

@@ -5,6 +5,7 @@ import {
   CODE_MEMORY_CHUNK_MAX_CHARS,
   CODE_MEMORY_CHUNK_OVERLAP_CHARS,
   CODE_MEMORY_EXCLUDED_DIRECTORIES,
+  CODE_MEMORY_EXCLUDED_FILES,
   CODE_MEMORY_PRIORITY_FILES,
   CODE_MEMORY_SOURCE_ROOTS,
 } from "./config";
@@ -14,7 +15,10 @@ import { fileExists, fromRepoRoot, toPosixPath } from "../utils";
 
 function isExcludedPath(repoRelativePath: string): boolean {
   const parts = toPosixPath(repoRelativePath).split("/");
-  return CODE_MEMORY_EXCLUDED_DIRECTORIES.some((directory) => parts.includes(directory));
+  if (CODE_MEMORY_EXCLUDED_DIRECTORIES.some((directory) => parts.includes(directory))) {
+    return true;
+  }
+  return CODE_MEMORY_EXCLUDED_FILES.some((file) => repoRelativePath === file);
 }
 
 function summarize(content: string): string {

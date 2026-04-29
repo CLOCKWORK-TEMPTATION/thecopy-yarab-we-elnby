@@ -49,13 +49,15 @@ const visualAnalyzerPlugin = {
   category: "ai-analytics",
 };
 
-describe("Art Director Integration Tests", () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-    mockFetchArtDirectorJson.mockReset();
-    mockLoadRemoteAppState.mockResolvedValue(null);
-    mockPersistRemoteAppState.mockResolvedValue({});
-  });
+function setupDefaultMocks() {
+  window.localStorage.clear();
+  mockFetchArtDirectorJson.mockReset();
+  mockLoadRemoteAppState.mockResolvedValue(null);
+  mockPersistRemoteAppState.mockResolvedValue({});
+}
+
+describe("Art Director Integration Tests — API Path and Tools", () => {
+  beforeEach(setupDefaultMocks);
 
   it("يبني مسار الواجهة البرمجية الرسمي", () => {
     expect(artDirectorApiPath("/test")).toBe("/api/art-director/test");
@@ -67,12 +69,8 @@ describe("Art Director Integration Tests", () => {
 
     mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/plugins") {
-        return {
-          success: true,
-          plugins: [visualAnalyzerPlugin],
-        };
+        return { success: true, plugins: [visualAnalyzerPlugin] };
       }
-
       if (path === "/analyze/visual-consistency") {
         return {
           success: true,
@@ -92,7 +90,6 @@ describe("Art Director Integration Tests", () => {
           },
         };
       }
-
       return { success: true };
     });
 
@@ -118,16 +115,11 @@ describe("Art Director Integration Tests", () => {
 
     mockFetchArtDirectorJson.mockImplementation((path) => {
       if (path === "/plugins") {
-        return {
-          success: true,
-          plugins: [visualAnalyzerPlugin],
-        };
+        return { success: true, plugins: [visualAnalyzerPlugin] };
       }
-
       if (path === "/analyze/visual-consistency") {
         throw new Error("الخادم غير متاح");
       }
-
       return { success: true };
     });
 
@@ -139,16 +131,16 @@ describe("Art Director Integration Tests", () => {
     expect(await screen.findByText("فشل التنفيذ")).toBeInTheDocument();
     expect(screen.getAllByText("الخادم غير متاح").length).toBeGreaterThan(0);
   });
+});
+
+describe("Art Director Integration Tests — Inspiration", () => {
+  beforeEach(setupDefaultMocks);
 
   it("يستعيد مدخلات ونتائج الإلهام البصري من الحالة المحفوظة", async () => {
     mockLoadRemoteAppState.mockResolvedValueOnce({
       version: 1,
       activeTab: "inspiration",
-      tools: {
-        selectedTool: null,
-        formsByTool: {},
-        resultsByTool: {},
-      },
+      tools: { selectedTool: null, formsByTool: {}, resultsByTool: {} },
       inspiration: {
         sceneDescription: "مشهد رومانسي في مقهى قديم",
         mood: "romantic",
@@ -231,6 +223,10 @@ describe("Art Director Integration Tests", () => {
       expect(mockPersistRemoteAppState).toHaveBeenCalled();
     });
   });
+});
+
+describe("Art Director Integration Tests — Locations and Sets", () => {
+  beforeEach(setupDefaultMocks);
 
   it("يضيف موقعا ويعيد عرضه بعد البحث", async () => {
     const user = userEvent.setup();
@@ -239,7 +235,6 @@ describe("Art Director Integration Tests", () => {
       if (path === "/locations/add") {
         return { success: true };
       }
-
       if (path === "/locations/search") {
         return {
           success: true,
@@ -257,7 +252,6 @@ describe("Art Director Integration Tests", () => {
           },
         };
       }
-
       return { success: true };
     });
 
@@ -291,7 +285,6 @@ describe("Art Director Integration Tests", () => {
       if (path === "/sets/add-piece") {
         return { success: true };
       }
-
       if (path === "/sets/inventory") {
         return {
           success: true,
@@ -309,7 +302,6 @@ describe("Art Director Integration Tests", () => {
           },
         };
       }
-
       if (path === "/sets/sustainability-report") {
         return {
           success: true,
@@ -321,7 +313,6 @@ describe("Art Director Integration Tests", () => {
           },
         };
       }
-
       return { success: true };
     });
 

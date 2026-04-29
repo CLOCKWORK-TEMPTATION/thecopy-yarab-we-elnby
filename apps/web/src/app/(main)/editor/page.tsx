@@ -26,6 +26,80 @@ const EditorApp = dynamic(
 
 let initialized = false;
 
+async function fetchAndSyncProject(
+  projectId: string,
+  setProjectSyncError: (msg: string | null) => void,
+  activeRef: { current: boolean }
+): Promise<void> {
+  directorsEditorLogger.info({
+    event: "editor-project-sync-started",
+    message: "Project sync from editor query has started.",
+    data: { projectId },
+  });
+  setProjectSyncError(null);
+
+  try {
+    const response = await fetch(
+      `/api/projects/${encodeURIComponent(projectId)}`,
+      {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      }
+    );
+    const payload = (await response.json()) as ApiResponse<Project>;
+    const project = payload?.data;
+
+    if (!response.ok || !payload?.success || !project?.id) {
+      const reason =
+        payload?.error ?? `تعذر تحميل المشروع المطلوب (${response.status}).`;
+      throw new Error(reason);
+    }
+
+    const normalizedProject: Project = {
+      ...project,
+      scriptContent: project.scriptContent ?? null,
+    };
+    setCurrentProject(normalizedProject);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("directors-editor:project-synced"));
+    }
+
+    if (!activeRef.current) return;
+    setProjectSyncError(null);
+
+    directorsEditorLogger.info({
+      event: "editor-project-sync-succeeded",
+      message: "Editor query project synced successfully.",
+      data: {
+        projectId: normalizedProject.id,
+        projectTitle: normalizedProject.title,
+      },
+    });
+  } catch (error) {
+    clearCurrentProject();
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("directors-editor:project-synced"));
+    }
+
+    const message =
+      error instanceof Error && error.message.trim()
+        ? error.message.trim()
+        : "تعذر مزامنة المشروع المطلوب.";
+
+    directorsEditorLogger.error({
+      event: "editor-project-sync-failed",
+      message: "Failed to sync editor project context from query.",
+      data: { projectId, error: message },
+    });
+
+    if (!activeRef.current) return;
+    setProjectSyncError(message);
+  }
+}
+
 export default function EditorPage() {
   const searchParams = useSearchParams();
   const searchParamsKey = searchParams?.toString() ?? "";
@@ -77,87 +151,11 @@ export default function EditorPage() {
       return;
     }
 
-    let active = true;
-
-    const syncProjectFromQuery = async () => {
-      directorsEditorLogger.info({
-        event: "editor-project-sync-started",
-        message: "Project sync from editor query has started.",
-        data: { projectId },
-      });
-      setProjectSyncError(null);
-
-      try {
-        const response = await fetch(
-          `/api/projects/${encodeURIComponent(projectId)}`,
-          {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          }
-        );
-        const payload = (await response.json()) as ApiResponse<Project>;
-        const project = payload?.data;
-
-        if (!response.ok || !payload?.success || !project?.id) {
-          const reason =
-            payload?.error ??
-            `تعذر تحميل المشروع المطلوب (${response.status}).`;
-          throw new Error(reason);
-        }
-
-        const normalizedProject: Project = {
-          ...project,
-          scriptContent: project.scriptContent ?? null,
-        };
-        setCurrentProject(normalizedProject);
-
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("directors-editor:project-synced")
-          );
-        }
-
-        if (!active) return;
-        setProjectSyncError(null);
-
-        directorsEditorLogger.info({
-          event: "editor-project-sync-succeeded",
-          message: "Editor query project synced successfully.",
-          data: {
-            projectId: normalizedProject.id,
-            projectTitle: normalizedProject.title,
-          },
-        });
-      } catch (error) {
-        clearCurrentProject();
-
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("directors-editor:project-synced")
-          );
-        }
-
-        const message =
-          error instanceof Error && error.message.trim()
-            ? error.message.trim()
-            : "تعذر مزامنة المشروع المطلوب.";
-
-        directorsEditorLogger.error({
-          event: "editor-project-sync-failed",
-          message: "Failed to sync editor project context from query.",
-          data: { projectId, error: message },
-        });
-
-        if (!active) return;
-        setProjectSyncError(message);
-      }
-    };
-
-    void syncProjectFromQuery();
+    const activeRef = { current: true };
+    void fetchAndSyncProject(projectId, setProjectSyncError, activeRef);
 
     return () => {
-      active = false;
+      activeRef.current = false;
     };
   }, [searchParamsKey]);
 

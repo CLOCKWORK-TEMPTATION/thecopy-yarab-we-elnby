@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { toast } from "react-hot-toast";
 
 import { createLocalFootageSummary } from "../lib/local-shot-analysis";
@@ -42,6 +42,94 @@ import {
 } from "./usePostProduction-utils";
 
 import type { VisualMood, ExportSettings } from "../types";
+
+// ============================================
+// دالة مساعدة لتحليل المشاهد
+// ============================================
+
+async function runFootageAnalysis(
+  file: File,
+  mood: VisualMood,
+  setFootage: React.Dispatch<React.SetStateAction<FootageState>>,
+  initialFootageState: FootageState
+): Promise<void> {
+  const allComplete: FootageState["analysisStatus"] = {
+    exposure: "complete",
+    colorConsistency: "complete",
+    focusQuality: "complete",
+    motionBlur: "complete",
+  };
+
+  toast.loading("جاري تحليل الإطار المرجعي...", { id: "analysis" });
+
+  setFootage((prev) => ({
+    ...prev,
+    analysisStatus: {
+      exposure: "analyzing",
+      colorConsistency: "analyzing",
+      focusQuality: "analyzing",
+      motionBlur: "analyzing",
+    },
+  }));
+
+  const localPromise = createLocalFootageSummary(file, mood).catch(() => null);
+
+  const formData = new FormData();
+  formData.set("image", file);
+
+  const remotePromise = postStudioFormData<ValidateShotResponse>(
+    "/api/cineai/validate-shot",
+    formData,
+    {
+      timeoutMs: REMOTE_ANALYSIS_TIMEOUT_MS,
+      timeoutMessage:
+        "انتهت المهلة الزمنية لتحليل المشهد. سيُستخدم التحليل المحلي.",
+    }
+  )
+    .then((remoteResult) => {
+      if (!remoteResult?.validation) return null;
+      return normalizeFootageSummary(remoteResult.validation);
+    })
+    .catch(() => null);
+
+  const winner = await resolveAnalysisWinner({
+    remote: remotePromise,
+    local: localPromise,
+  });
+
+  if (winner?.source === "remote") {
+    setFootage((prev) => ({
+      ...prev,
+      summary: winner.value,
+      analysisSource: "remote",
+      error: null,
+      analysisStatus: allComplete,
+    }));
+    toast.success("اكتمل تحليل الإطار المرجعي!", { id: "analysis" });
+    toast.success("تم رفع الإطار المرجعي بنجاح!", { id: "upload" });
+    return;
+  }
+
+  if (winner?.source === "local-fallback") {
+    setFootage((prev) => ({
+      ...prev,
+      summary: winner.value,
+      analysisSource: "local-fallback",
+      error: null,
+      analysisStatus: allComplete,
+    }));
+    toast.success("تم تفعيل التحليل المحلي البديل للمشاهد", { id: "analysis" });
+    return;
+  }
+
+  setFootage((prev) => ({
+    ...prev,
+    analysisSource: null,
+    error: "فشل في تحليل الإطار المرجعي من جميع المصادر",
+    analysisStatus: initialFootageState.analysisStatus,
+  }));
+  toast.error("فشل في تحليل الإطار المرجعي", { id: "analysis" });
+}
 
 /**
  * Hook مخصص لإدارة أدوات ما بعد الإنتاج
@@ -219,89 +307,7 @@ export function usePostProduction(mood: VisualMood = "noir") {
    */
   const analyzeFootage = useCallback(
     async (file: File) => {
-      const allComplete: FootageState["analysisStatus"] = {
-        exposure: "complete",
-        colorConsistency: "complete",
-        focusQuality: "complete",
-        motionBlur: "complete",
-      };
-
-      toast.loading("جاري تحليل الإطار المرجعي...", { id: "analysis" });
-
-      setFootage((prev) => ({
-        ...prev,
-        analysisStatus: {
-          exposure: "analyzing",
-          colorConsistency: "analyzing",
-          focusQuality: "analyzing",
-          motionBlur: "analyzing",
-        },
-      }));
-
-      const localPromise = createLocalFootageSummary(file, mood).catch(
-        () => null
-      );
-
-      const formData = new FormData();
-      formData.set("image", file);
-
-      const remotePromise = postStudioFormData<ValidateShotResponse>(
-        "/api/cineai/validate-shot",
-        formData,
-        {
-          timeoutMs: REMOTE_ANALYSIS_TIMEOUT_MS,
-          timeoutMessage:
-            "انتهت المهلة الزمنية لتحليل المشهد. سيُستخدم التحليل المحلي.",
-        }
-      )
-        .then((remoteResult) => {
-          if (!remoteResult?.validation) {
-            return null;
-          }
-
-          return normalizeFootageSummary(remoteResult.validation);
-        })
-        .catch(() => null);
-
-      const winner = await resolveAnalysisWinner({
-        remote: remotePromise,
-        local: localPromise,
-      });
-
-      if (winner?.source === "remote") {
-        setFootage((prev) => ({
-          ...prev,
-          summary: winner.value,
-          analysisSource: "remote",
-          error: null,
-          analysisStatus: allComplete,
-        }));
-        toast.success("اكتمل تحليل الإطار المرجعي!", { id: "analysis" });
-        toast.success("تم رفع الإطار المرجعي بنجاح!", { id: "upload" });
-        return;
-      }
-
-      if (winner?.source === "local-fallback") {
-        setFootage((prev) => ({
-          ...prev,
-          summary: winner.value,
-          analysisSource: "local-fallback",
-          error: null,
-          analysisStatus: allComplete,
-        }));
-        toast.success("تم تفعيل التحليل المحلي البديل للمشاهد", {
-          id: "analysis",
-        });
-        return;
-      }
-
-      setFootage((prev) => ({
-        ...prev,
-        analysisSource: null,
-        error: "فشل في تحليل الإطار المرجعي من جميع المصادر",
-        analysisStatus: initialFootageState.analysisStatus,
-      }));
-      toast.error("فشل في تحليل الإطار المرجعي", { id: "analysis" });
+      await runFootageAnalysis(file, mood, setFootage, initialFootageState);
     },
     [mood]
   );

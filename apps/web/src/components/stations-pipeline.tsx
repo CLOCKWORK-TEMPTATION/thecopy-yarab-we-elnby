@@ -63,6 +63,89 @@ function restoreResults(
     {}
   );
 }
+
+function buildFormattedResults(
+  pipelineResult: Awaited<ReturnType<typeof runFullPipeline>>
+): Record<number, unknown> {
+  return {
+    1: pipelineResult?.stationOutputs?.station1,
+    2: pipelineResult?.stationOutputs?.station2,
+    3: pipelineResult?.stationOutputs?.station3,
+    4: pipelineResult?.stationOutputs?.station4,
+    5: pipelineResult?.stationOutputs?.station5,
+    6: pipelineResult?.stationOutputs?.station6,
+    7: pipelineResult?.stationOutputs?.station7,
+  };
+}
+
+function saveAnalysisToSession(
+  pipelineResult: Awaited<ReturnType<typeof runFullPipeline>>,
+  contextMap: ContextMap | null,
+  isLongText: boolean,
+  text: string
+): string {
+  const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const analysisData = {
+    ...(pipelineResult || {}),
+    contextMap,
+    isLongText,
+    originalTextLength: text.length,
+  };
+  sessionStorage.setItem(
+    "stationAnalysisResults",
+    JSON.stringify(analysisData)
+  );
+  sessionStorage.setItem("analysisId", analysisId);
+  sessionStorage.setItem("originalText", text);
+  sessionStorage.setItem("contextMap", JSON.stringify(contextMap));
+  return analysisId;
+}
+
+function buildExportReport(
+  stations: typeof STATIONS,
+  results: Record<number, unknown>
+): string {
+  const sections = [
+    "===========================================",
+    "التقرير النهائي الشامل - جميع المحطات",
+    "===========================================",
+    "",
+    `تاريخ التقرير: ${new Date().toLocaleDateString("ar")}`,
+    "",
+  ];
+
+  stations.forEach((station) => {
+    sections.push(`## ${station.name}`);
+    sections.push("-------------------------------------------");
+    const data = results[station.id];
+    if (data) {
+      sections.push(
+        typeof data === "string" ? data : JSON.stringify(data, null, 2)
+      );
+    } else {
+      sections.push("لا توجد بيانات");
+    }
+    sections.push("");
+  });
+
+  sections.push("===========================================");
+  sections.push("نهاية التقرير");
+  sections.push("===========================================");
+  return sections.join("\n");
+}
+
+function triggerDownload(content: string, filename: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // Dynamically import heavy components
 const FileUpload = dynamic(() => import("./file-upload"), {
   loading: () => (
@@ -81,7 +164,7 @@ const StationCard = dynamic(() => import("./station-card"), {
   ssr: false,
 });
 
-const stations = [
+const STATIONS = [
   {
     id: 1,
     name: "المحطة 1: التحليل الأساسي",
@@ -130,7 +213,7 @@ const StationsPipeline = () => {
   const [text, setText] = useState("");
   const [results, setResults] = useState<Record<number, unknown>>({});
   const [statuses, setStatuses] = useState<string[]>(
-    Array<string>(stations.length).fill("pending")
+    Array<string>(STATIONS.length).fill("pending")
   );
   const [activeStation, setActiveStation] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -142,8 +225,7 @@ const StationsPipeline = () => {
   const { toast } = useToast();
 
   const progress =
-    (statuses.filter((s) => s === "completed").length / stations.length) * 100;
-
+    (statuses.filter((s) => s === "completed").length / STATIONS.length) * 100;
   const allStationsCompleted = statuses.every((s) => s === "completed");
 
   useEffect(() => {
@@ -151,22 +233,18 @@ const StationsPipeline = () => {
 
     void loadRemoteAppState<AnalysisSnapshot>("analysis")
       .then((snapshot) => {
-        if (cancelled || !snapshot) {
-          return;
-        }
-
+        if (cancelled || !snapshot) return;
         setText(snapshot.text ?? "");
         setResults(restoreResults(snapshot.results));
         setStatuses(
           Array.isArray(snapshot.statuses) &&
-            snapshot.statuses.length === stations.length
+            snapshot.statuses.length === STATIONS.length
             ? snapshot.statuses
-            : Array<string>(stations.length).fill("pending")
+            : Array<string>(STATIONS.length).fill("pending")
         );
         setActiveStation(snapshot.activeStation ?? null);
         setErrorMessage(snapshot.errorMessage ?? null);
         setAnalysisId(snapshot.analysisId ?? null);
-
         if (snapshot.analysisId) {
           toast({
             title: "تمت استعادة آخر تحليل",
@@ -179,9 +257,7 @@ const StationsPipeline = () => {
         /* empty */
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsRemoteStateReady(true);
-        }
+        if (!cancelled) setIsRemoteStateReady(true);
       });
 
     return () => {
@@ -190,9 +266,7 @@ const StationsPipeline = () => {
   }, [toast]);
 
   useEffect(() => {
-    if (!isRemoteStateReady) {
-      return;
-    }
+    if (!isRemoteStateReady) return;
 
     const timeoutId = window.setTimeout(() => {
       void persistRemoteAppState<AnalysisSnapshot>("analysis", {
@@ -225,7 +299,7 @@ const StationsPipeline = () => {
   const handleReset = () => {
     setText("");
     setResults({});
-    setStatuses(Array<string>(stations.length).fill("pending"));
+    setStatuses(Array<string>(STATIONS.length).fill("pending"));
     setActiveStation(null);
     setErrorMessage(null);
     setAnalysisId(null);
@@ -245,55 +319,28 @@ const StationsPipeline = () => {
       return;
     }
 
-    setStatuses(Array<string>(stations.length).fill("pending"));
+    setStatuses(Array<string>(STATIONS.length).fill("pending"));
     setResults({});
     setErrorMessage(null);
 
     startTransition(async () => {
       try {
-        // Check if text needs chunking - commented out due to missing module
-        // const chunkedData = textChunker.chunkText(text);
-        // setContextMap(chunkedData);
-        // setIsLongText(chunkedData.chunks.length > 1);
-
-        // Process as single text (chunking disabled)
         const pipelineResult = await runFullPipeline({
           fullText: text,
           projectName: "تحليل درامي شامل",
         });
-
-        const formattedResults: Record<number, unknown> = {
-          1: pipelineResult?.stationOutputs?.station1,
-          2: pipelineResult?.stationOutputs?.station2,
-          3: pipelineResult?.stationOutputs?.station3,
-          4: pipelineResult?.stationOutputs?.station4,
-          5: pipelineResult?.stationOutputs?.station5,
-          6: pipelineResult?.stationOutputs?.station6,
-          7: pipelineResult?.stationOutputs?.station7,
-        };
-
-        const nextStatuses = stations.map((station) =>
+        const formattedResults = buildFormattedResults(pipelineResult);
+        const nextStatuses = STATIONS.map((station) =>
           formattedResults[station.id] ? "completed" : "failed"
         );
-
-        // Save to session storage for development pipeline
-        const analysisId = `analysis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const analysisData = {
-          ...(pipelineResult || {}),
+        const newAnalysisId = saveAnalysisToSession(
+          pipelineResult,
           contextMap,
           isLongText,
-          originalTextLength: text.length,
-        };
-
-        sessionStorage.setItem(
-          "stationAnalysisResults",
-          JSON.stringify(analysisData)
+          text
         );
-        sessionStorage.setItem("analysisId", analysisId);
-        sessionStorage.setItem("originalText", text);
-        sessionStorage.setItem("contextMap", JSON.stringify(contextMap));
 
-        setAnalysisId(analysisId);
+        setAnalysisId(newAnalysisId);
         setResults(formattedResults);
         setStatuses(nextStatuses);
         setActiveStation(null);
@@ -336,47 +383,8 @@ const StationsPipeline = () => {
       });
       return;
     }
-
-    const sections = [
-      "===========================================",
-      "التقرير النهائي الشامل - جميع المحطات",
-      "===========================================",
-      "",
-      `تاريخ التقرير: ${new Date().toLocaleDateString("ar")}`,
-      "",
-    ];
-
-    stations.forEach((station) => {
-      sections.push(`## ${station.name}`);
-      sections.push("-------------------------------------------");
-      const data = results[station.id];
-      if (data) {
-        if (typeof data === "string") {
-          sections.push(data);
-        } else {
-          sections.push(JSON.stringify(data, null, 2));
-        }
-      } else {
-        sections.push("لا توجد بيانات");
-      }
-      sections.push("");
-    });
-
-    sections.push("===========================================");
-    sections.push("نهاية التقرير");
-    sections.push("===========================================");
-
-    const fullReport = sections.join("\n");
-    const blob = new Blob([fullReport], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `final-report-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
+    const fullReport = buildExportReport(STATIONS, results);
+    triggerDownload(fullReport, `final-report-${Date.now()}.txt`);
     toast({
       title: "تم التصدير بنجاح",
       description: "تم تصدير التقرير النهائي الشامل",
@@ -462,7 +470,7 @@ const StationsPipeline = () => {
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {stations.map((station, index) => (
+        {STATIONS.map((station, index) => (
           <StationCard
             key={station.id}
             station={station}

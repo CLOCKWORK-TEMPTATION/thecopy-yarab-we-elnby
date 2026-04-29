@@ -14,383 +14,421 @@ vi.mock("@/ai/gemini-service", () => ({
   },
 }));
 
-describe("IntegratedAgent", () => {
+function makeAgent() {
+  const agent = new IntegratedAgent();
+  vi.clearAllMocks();
+  return agent;
+}
+
+describe("IntegratedAgent — Configuration", () => {
   let agent: IntegratedAgent;
 
   beforeEach(() => {
-    agent = new IntegratedAgent();
-    vi.clearAllMocks();
+    agent = makeAgent();
   });
 
-  describe("Configuration", () => {
-    it("should initialize with correct configuration", () => {
-      const config = agent.getConfig();
-      expect(config.taskType).toBe(TaskType.INTEGRATED);
-      expect(config.name).toBe("SynthesisOrchestrator AI");
-      expect(config.supportsRAG).toBe(true);
-      expect(config.supportsSelfCritique).toBe(true);
-      expect(config.supportsConstitutional).toBe(true);
-      expect(config.supportsUncertainty).toBe(true);
-      expect(config.supportsHallucination).toBe(true);
-      expect(config.supportsDebate).toBe(true);
-    });
-
-    it("should have correct confidence floor", () => {
-      const config = agent.getConfig();
-      expect(config.confidenceFloor).toBeGreaterThanOrEqual(0.87);
-    });
+  it("should initialize with correct configuration", () => {
+    const config = agent.getConfig();
+    expect(config.taskType).toBe(TaskType.INTEGRATED);
+    expect(config.name).toBe("SynthesisOrchestrator AI");
+    expect(config.supportsRAG).toBe(true);
+    expect(config.supportsSelfCritique).toBe(true);
+    expect(config.supportsConstitutional).toBe(true);
+    expect(config.supportsUncertainty).toBe(true);
+    expect(config.supportsHallucination).toBe(true);
+    expect(config.supportsDebate).toBe(true);
   });
 
-  describe("Success Path", () => {
-    it("should execute integrated synthesis successfully", async () => {
+  it("should have correct confidence floor", () => {
+    const config = agent.getConfig();
+    expect(config.confidenceFloor).toBeGreaterThanOrEqual(0.87);
+  });
+});
+
+describe("IntegratedAgent — Success Path", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should execute integrated synthesis successfully", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج التحليل والإبداع",
+      options: { enableRAG: true, confidenceThreshold: 0.75 },
+      context: {
+        originalText: "نص للتحليل والإبداع",
+        targetOutput: "synthesis",
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.text).not.toMatch(/```json/);
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.notes).toBeDefined();
+  });
+
+  it("should return text-only output without JSON blocks", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result.text).not.toContain("```json");
+    expect(result.text).not.toContain("```");
+    expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
+  });
+
+  it("should handle different target outputs", async () => {
+    const targets = ["analysis", "creative", "synthesis"] as const;
+    for (const target of targets) {
       const input: StandardAgentInput = {
-        input: "دمج نتائج التحليل والإبداع",
-        options: { enableRAG: true, confidenceThreshold: 0.75 },
-        context: {
-          originalText: "نص للتحليل والإبداع",
-          targetOutput: "synthesis",
-        },
+        input: "دمج النتائج",
+        options: {},
+        context: { targetOutput: target },
       };
       const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
       expect(result.text).toBeTruthy();
-      expect(result.text).not.toMatch(/```json/);
       expect(result.confidence).toBeGreaterThanOrEqual(0);
-      expect(result.notes).toBeDefined();
-    });
-
-    it("should return text-only output without JSON blocks", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: {},
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result.text).not.toContain("```json");
-      expect(result.text).not.toContain("```");
-      expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
-    });
-
-    it("should handle different target outputs", async () => {
-      const targets = ["analysis", "creative", "synthesis"] as const;
-      for (const target of targets) {
-        const input: StandardAgentInput = {
-          input: "دمج النتائج",
-          options: {},
-          context: { targetOutput: target },
-        };
-        const result = await agent.executeTask(input);
-        expect(result.text).toBeTruthy();
-        expect(result.confidence).toBeGreaterThanOrEqual(0);
-      }
-    });
-
-    it("should handle different synthesis depths", async () => {
-      const depths = ["basic", "moderate", "deep"] as const;
-      for (const depth of depths) {
-        const input: StandardAgentInput = {
-          input: "دمج النتائج",
-          options: {},
-          context: { synthesisDepth: depth },
-        };
-        const result = await agent.executeTask(input);
-        expect(result.text).toBeTruthy();
-        expect(result.confidence).toBeGreaterThanOrEqual(0);
-      }
-    });
-
-    it("should handle different integration strategies", async () => {
-      const strategies = ["sequential", "parallel", "iterative"] as const;
-      for (const strategy of strategies) {
-        const input: StandardAgentInput = {
-          input: "دمج النتائج",
-          options: {},
-          context: { integrationStrategy: strategy },
-        };
-        const result = await agent.executeTask(input);
-        expect(result.text).toBeTruthy();
-        expect(result.confidence).toBeGreaterThanOrEqual(0);
-      }
-    });
+    }
   });
 
-  describe("Integration with Analysis and Creative", () => {
-    it("should integrate analysis results", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج نتائج التحليل",
-        options: {},
-        context: {
-          analysisResults: {
-            mainFindings: "نتائج التحليل الرئيسية",
-            recommendations: ["توصية 1", "توصية 2"],
-          },
-        },
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.text.length).toBeGreaterThan(50);
-    });
-
-    it("should integrate creative results", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج نتائج الإبداع",
-        options: {},
-        context: {
-          creativeResults: {
-            content: "محتوى إبداعي",
-            creativeElements: ["عنصر 1", "عنصر 2"],
-          },
-        },
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
-
-    it("should integrate both analysis and creative results", async () => {
-      // اختبار دمج نتائج التحليل والإبداع معاً
-      const input: StandardAgentInput = {
-        input: "دمج نتائج التحليل والإبداع",
-        options: {},
-        context: {
-          analysisResults: {
-            mainFindings: "نتائج التحليل الرئيسية",
-            recommendations: ["توصية 1", "توصية 2"],
-          },
-          creativeResults: {
-            content: "محتوى إبداعي",
-            creativeElements: ["عنصر 1", "عنصر 2"],
-          },
-        },
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.text.length).toBeGreaterThan(50);
-    });
-  });
-
-  describe("Low Confidence Path", () => {
-    it("should handle uncertainty in synthesis", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: { enableUncertainty: true, confidenceThreshold: 0.9 },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.confidence).toBeDefined();
-      expect(result.notes).toBeDefined();
-    });
-
-    it("should trigger debate when confidence is low", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج نتائج معقدة",
-        options: {
-          enableDebate: true,
-          confidenceThreshold: 0.5,
-          maxDebateRounds: 2,
-        },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.confidence).toBeDefined();
-    });
-  });
-
-  describe("Hallucination Detection", () => {
-    it("should detect and handle hallucinations", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: { enableHallucination: true },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.metadata).toBeDefined();
-    });
-  });
-
-  describe("Post-Processing", () => {
-    it("should clean up JSON artifacts from output", async () => {
+  it("should handle different synthesis depths", async () => {
+    const depths = ["basic", "moderate", "deep"] as const;
+    for (const depth of depths) {
       const input: StandardAgentInput = {
         input: "دمج النتائج",
         options: {},
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result.text).not.toContain("```json");
-      expect(result.text).not.toContain("```");
-      expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
-    });
-
-    it("should structure synthesis sections properly", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج بشكل شامل",
-        options: {},
-        context: {},
+        context: { synthesisDepth: depth },
       };
       const result = await agent.executeTask(input);
       expect(result.text).toBeTruthy();
-      expect(result.text.length).toBeGreaterThan(50);
-    });
-  });
-
-  describe("Error Handling", () => {
-    it("should handle errors gracefully", async () => {
-      const agentWithBuildPrompt = agent as unknown as {
-        buildPrompt: (input: StandardAgentInput) => string;
-      };
-      vi.spyOn(agentWithBuildPrompt, "buildPrompt").mockImplementation(() => {
-        throw new Error("Test error");
-      });
-
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: {},
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeLessThan(0.5);
-      expect(result.notes).toBeDefined();
-    });
-
-    it("should provide fallback response on failure", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: {},
-        context: {},
-      };
-      // Force an error
-      vi.spyOn(agent, "executeTask").mockRejectedValueOnce(
-        new Error("Test error")
-      );
-
-      await expect(agent.executeTask(input)).rejects.toBeDefined();
-    });
-  });
-
-  describe("Advanced Options", () => {
-    it("should respect enableRAG option", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: { enableRAG: false },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
-
-    it("should respect enableSelfCritique option", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: { enableSelfCritique: true },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.metadata).toBeDefined();
-    });
-
-    it("should respect all advanced options", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج بشكل شامل",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: false,
-        },
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.metadata).toBeDefined();
-    });
-  });
-
-  describe("Integration with Standard Pattern", () => {
-    it("should execute full pipeline", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج نتائج التحليل والإبداع بشكل شامل",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-        },
-        context: {
-          originalText: "نص للتحليل والإبداع",
-          analysisResults: {
-            mainFindings: "نتائج التحليل",
-            recommendations: ["توصية 1"],
-          },
-          creativeResults: {
-            content: "محتوى إبداعي",
-            creativeElements: ["عنصر 1"],
-          },
-          targetOutput: "synthesis",
-          synthesisDepth: "deep",
-        },
-      };
-      const result = await agent.executeTask(input);
-      expect(result.text).toBeTruthy();
-      expect(result.metadata).toBeDefined();
-      expect(result.text).not.toContain("```");
       expect(result.confidence).toBeGreaterThanOrEqual(0);
-      expect(result.notes).toBeDefined();
-    });
+    }
   });
 
-  describe("Balance Assessment", () => {
-    it("should assess balance between analysis and creative", async () => {
+  it("should handle different integration strategies", async () => {
+    const strategies = ["sequential", "parallel", "iterative"] as const;
+    for (const strategy of strategies) {
       const input: StandardAgentInput = {
         input: "دمج النتائج",
         options: {},
-        context: {
-          analysisResults: { mainFindings: "تحليل" },
-          creativeResults: { content: "إبداع" },
-        },
+        context: { integrationStrategy: strategy },
       };
       const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.metadata).toBeDefined();
-      expect(result.metadata?.["balanceQuality"]).toBeDefined();
-    });
+      expect(result.text).toBeTruthy();
+      expect(result.confidence).toBeGreaterThanOrEqual(0);
+    }
+  });
+});
+
+describe("IntegratedAgent — Analysis and Creative Integration", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
   });
 
-  describe("Context Handling", () => {
-    it("should handle empty context gracefully", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: {},
-        context: {},
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
+  it("should integrate analysis results", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج التحليل",
+      options: {},
+      context: {
+        analysisResults: {
+          mainFindings: "نتائج التحليل الرئيسية",
+          recommendations: ["توصية 1", "توصية 2"],
+        },
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.text.length).toBeGreaterThan(50);
+  });
+
+  it("should integrate creative results", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج الإبداع",
+      options: {},
+      context: {
+        creativeResults: {
+          content: "محتوى إبداعي",
+          creativeElements: ["عنصر 1", "عنصر 2"],
+        },
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+
+  it("should integrate both analysis and creative results", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج التحليل والإبداع",
+      options: {},
+      context: {
+        analysisResults: {
+          mainFindings: "نتائج التحليل الرئيسية",
+          recommendations: ["توصية 1", "توصية 2"],
+        },
+        creativeResults: {
+          content: "محتوى إبداعي",
+          creativeElements: ["عنصر 1", "عنصر 2"],
+        },
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.text.length).toBeGreaterThan(50);
+  });
+});
+
+describe("IntegratedAgent — Low Confidence Path", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should handle uncertainty in synthesis", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: { enableUncertainty: true, confidenceThreshold: 0.9 },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.confidence).toBeDefined();
+    expect(result.notes).toBeDefined();
+  });
+
+  it("should trigger debate when confidence is low", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج معقدة",
+      options: {
+        enableDebate: true,
+        confidenceThreshold: 0.5,
+        maxDebateRounds: 2,
+      },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.confidence).toBeDefined();
+  });
+});
+
+describe("IntegratedAgent — Hallucination and Post-Processing", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should detect and handle hallucinations", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: { enableHallucination: true },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.metadata).toBeDefined();
+  });
+
+  it("should clean up JSON artifacts from output", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result.text).not.toContain("```json");
+    expect(result.text).not.toContain("```");
+    expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
+  });
+
+  it("should structure synthesis sections properly", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج بشكل شامل",
+      options: {},
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result.text).toBeTruthy();
+    expect(result.text.length).toBeGreaterThan(50);
+  });
+});
+
+describe("IntegratedAgent — Error Handling", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should handle errors gracefully", async () => {
+    const agentWithBuildPrompt = agent as unknown as {
+      buildPrompt: (input: StandardAgentInput) => string;
+    };
+    vi.spyOn(agentWithBuildPrompt, "buildPrompt").mockImplementation(() => {
+      throw new Error("Test error");
     });
 
-    it("should handle partial context", async () => {
-      const input: StandardAgentInput = {
-        input: "دمج النتائج",
-        options: {},
-        context: {
-          analysisResults: { mainFindings: "نتائج" },
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeLessThan(0.5);
+    expect(result.notes).toBeDefined();
+  });
+
+  it("should provide fallback response on failure", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {},
+    };
+    // Force an error
+    vi.spyOn(agent, "executeTask").mockRejectedValueOnce(
+      new Error("Test error")
+    );
+
+    await expect(agent.executeTask(input)).rejects.toBeDefined();
+  });
+});
+
+describe("IntegratedAgent — Advanced Options and Standard Pattern", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should respect enableRAG option", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: { enableRAG: false },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+
+  it("should respect enableSelfCritique option", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: { enableSelfCritique: true },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.metadata).toBeDefined();
+  });
+
+  it("should respect all advanced options", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج بشكل شامل",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: false,
+      },
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.metadata).toBeDefined();
+  });
+
+  it("should execute full pipeline", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج نتائج التحليل والإبداع بشكل شامل",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+      },
+      context: {
+        originalText: "نص للتحليل والإبداع",
+        analysisResults: {
+          mainFindings: "نتائج التحليل",
+          recommendations: ["توصية 1"],
         },
-      };
-      const result = await agent.executeTask(input);
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
+        creativeResults: {
+          content: "محتوى إبداعي",
+          creativeElements: ["عنصر 1"],
+        },
+        targetOutput: "synthesis",
+        synthesisDepth: "deep",
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result.text).toBeTruthy();
+    expect(result.metadata).toBeDefined();
+    expect(result.text).not.toContain("```");
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.notes).toBeDefined();
+  });
+});
+
+describe("IntegratedAgent — Balance and Context", () => {
+  let agent: IntegratedAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should assess balance between analysis and creative", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {
+        analysisResults: { mainFindings: "تحليل" },
+        creativeResults: { content: "إبداع" },
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.metadata).toBeDefined();
+    expect(result.metadata?.["balanceQuality"]).toBeDefined();
+  });
+
+  it("should handle empty context gracefully", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {},
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+
+  it("should handle partial context", async () => {
+    const input: StandardAgentInput = {
+      input: "دمج النتائج",
+      options: {},
+      context: {
+        analysisResults: { mainFindings: "نتائج" },
+      },
+    };
+    const result = await agent.executeTask(input);
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
   });
 });

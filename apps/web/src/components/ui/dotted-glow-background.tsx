@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 interface DottedGlowBackgroundProps {
   className?: string;
   /** distance between dot centers in pixels */
@@ -34,6 +35,200 @@ interface DottedGlowBackgroundProps {
   /** global speed multiplier for all dots */
   speedScale?: number;
 }
+
+interface DotMeta {
+  x: number;
+  y: number;
+  phase: number;
+  speed: number;
+}
+
+interface CanvasAnimationConfig {
+  gap: number;
+  radius: number;
+  resolvedColor: string;
+  resolvedGlowColor: string;
+  opacity: number;
+  backgroundOpacity: number;
+  speedMin: number;
+  speedMax: number;
+  speedScale: number;
+}
+
+function buildDots(
+  container: HTMLElement,
+  config: CanvasAnimationConfig
+): DotMeta[] {
+  const { gap, speedMin, speedMax } = config;
+  const { width, height } = container.getBoundingClientRect();
+  const cols = Math.ceil(width / gap) + 2;
+  const rows = Math.ceil(height / gap) + 2;
+  const min = Math.min(speedMin, speedMax);
+  const max = Math.max(speedMin, speedMax);
+  const dots: DotMeta[] = [];
+  for (let i = -1; i < cols; i++) {
+    for (let j = -1; j < rows; j++) {
+      const x = i * gap + (j % 2 === 0 ? 0 : gap * 0.5);
+      const y = j * gap;
+      const phase = Math.random() * Math.PI * 2;
+      const span = Math.max(max - min, 0);
+      const speed = min + Math.random() * span;
+      dots.push({ x, y, phase, speed });
+    }
+  }
+  return dots;
+}
+
+interface DrawFrameContext {
+  ctx: CanvasRenderingContext2D,
+  el: HTMLCanvasElement,
+  container: HTMLElement,
+  dots: DotMeta[],
+  now: number,
+  config: CanvasAnimationConfig
+}
+
+function drawFrame(context: DrawFrameContext) {
+  const { ctx, el, container, dots, now, config } = context;
+  const { width, height } = container.getBoundingClientRect();
+  const {
+    radius,
+    opacity,
+    backgroundOpacity,
+    resolvedColor,
+    resolvedGlowColor,
+    speedScale,
+  } = config;
+
+  ctx.clearRect(0, 0, el.width, el.height);
+  ctx.globalAlpha = opacity;
+
+  if (backgroundOpacity > 0) {
+    const grad = ctx.createRadialGradient(
+      width * 0.5,
+      height * 0.4,
+      Math.min(width, height) * 0.1,
+      width * 0.5,
+      height * 0.5,
+      Math.max(width, height) * 0.7
+    );
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(
+      1,
+      `rgba(0,0,0,${Math.min(Math.max(backgroundOpacity, 0), 1)})`
+    );
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  ctx.save();
+  ctx.fillStyle = resolvedColor;
+  const time = (now / 1000) * Math.max(speedScale, 0);
+  for (const d of dots) {
+    const mod = (time * d.speed + d.phase) % 2;
+    const lin = mod < 1 ? mod : 2 - mod;
+    const a = 0.25 + 0.55 * lin;
+    if (a > 0.6) {
+      const glow = (a - 0.6) / 0.4;
+      ctx.shadowColor = resolvedGlowColor;
+      ctx.shadowBlur = 6 * glow;
+    } else {
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = a * opacity;
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function initCanvasAnimation(
+  el: HTMLCanvasElement,
+  container: HTMLElement,
+  config: CanvasAnimationConfig
+): () => void {
+  const ctx = el.getContext("2d");
+  if (!ctx) return () => undefined;
+
+  let raf = 0;
+  let stopped = false;
+  let isVisible = true;
+  const dpr = Math.min(Math.max(1, window.devicePixelRatio || 1), 2);
+
+  const resize = () => {
+    const { width, height } = container.getBoundingClientRect();
+    el.width = Math.max(1, Math.floor(width * dpr));
+    el.height = Math.max(1, Math.floor(height * dpr));
+    el.style.width = `${Math.floor(width)}px`;
+    el.style.height = `${Math.floor(height)}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+
+  const ro = new ResizeObserver(resize);
+  ro.observe(container);
+  resize();
+
+  let dots = buildDots(container, config);
+
+  const regenDots = () => {
+    dots = buildDots(container, config);
+  };
+
+  const draw = (now: number) => {
+    if (stopped) return;
+    if (!isVisible) {
+      raf = requestAnimationFrame(draw);
+      return;
+    }
+    drawFrame({ ctx, el, container, dots, now, config });
+    raf = requestAnimationFrame(draw);
+  };
+
+  const handleResize = () => {
+    resize();
+    regenDots();
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      isVisible = entries[0]?.isIntersecting ?? true;
+    },
+    { threshold: 0.1 }
+  );
+  observer.observe(container);
+  window.addEventListener("resize", handleResize);
+  raf = requestAnimationFrame(draw);
+
+  return () => {
+    stopped = true;
+    cancelAnimationFrame(raf);
+    window.removeEventListener("resize", handleResize);
+    observer.disconnect();
+    ro.disconnect();
+  };
+}
+
+function resolveCssVariable(el: Element, variableName?: string): string | null {
+  if (!variableName) return null;
+  const normalized = variableName.startsWith("--")
+    ? variableName
+    : `--${variableName}`;
+  const fromEl = getComputedStyle(el).getPropertyValue(normalized).trim();
+  if (fromEl) return fromEl;
+  const root = document.documentElement;
+  const fromRoot = getComputedStyle(root).getPropertyValue(normalized).trim();
+  return fromRoot || null;
+}
+
+function detectDarkMode(): boolean {
+  const root = document.documentElement;
+  if (root.classList.contains("dark")) return true;
+  if (root.classList.contains("light")) return false;
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+}
+
 /**
  * Canvas-based dotted background that randomly glows and dims.
  * - Uses a stable grid of dots.
@@ -62,28 +257,7 @@ export const DottedGlowBackground = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [resolvedColor, setResolvedColor] = useState<string>(color);
   const [resolvedGlowColor, setResolvedGlowColor] = useState<string>(glowColor);
-  // Resolve CSS variable value from the container or root
-  const resolveCssVariable = (
-    el: Element,
-    variableName?: string
-  ): string | null => {
-    if (!variableName) return null;
-    const normalized = variableName.startsWith("--")
-      ? variableName
-      : `--${variableName}`;
-    const fromEl = getComputedStyle(el).getPropertyValue(normalized).trim();
-    if (fromEl) return fromEl;
-    const root = document.documentElement;
-    const fromRoot = getComputedStyle(root).getPropertyValue(normalized).trim();
-    return fromRoot || null;
-  };
-  const detectDarkMode = (): boolean => {
-    const root = document.documentElement;
-    if (root.classList.contains("dark")) return true;
-    if (root.classList.contains("light")) return false;
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
-  };
-  // Keep resolved colors in sync with theme changes and prop updates
+
   useEffect(() => {
     const container = containerRef.current ?? document.documentElement;
     const compute = () => {
@@ -129,126 +303,25 @@ export const DottedGlowBackground = ({
     glowColorLightVar,
     glowColorDarkVar,
   ]);
+
   useEffect(() => {
     const el = canvasRef.current;
     const container = containerRef.current;
     if (!el || !container) return;
-    const ctx = el.getContext("2d");
-    if (!ctx) return;
-    let raf = 0;
-    let stopped = false;
-    let isVisible = true;
-    const dpr = Math.min(Math.max(1, window.devicePixelRatio || 1), 2);
-    const resize = () => {
-      const { width, height } = container.getBoundingClientRect();
-      el.width = Math.max(1, Math.floor(width * dpr));
-      el.height = Math.max(1, Math.floor(height * dpr));
-      el.style.width = `${Math.floor(width)}px`;
-      el.style.height = `${Math.floor(height)}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    const ro = new ResizeObserver(resize);
-    ro.observe(container);
-    resize();
-    // Precompute dot metadata for a medium-sized grid and regenerate on resize
-    let dots: { x: number; y: number; phase: number; speed: number }[] = [];
-    const regenDots = () => {
-      dots = [];
-      const { width, height } = container.getBoundingClientRect();
-      const cols = Math.ceil(width / gap) + 2;
-      const rows = Math.ceil(height / gap) + 2;
-      const min = Math.min(speedMin, speedMax);
-      const max = Math.max(speedMin, speedMax);
-      for (let i = -1; i < cols; i++) {
-        for (let j = -1; j < rows; j++) {
-          const x = i * gap + (j % 2 === 0 ? 0 : gap * 0.5); // offset every other row
-          const y = j * gap;
-          // Randomize phase and speed slightly per dot
-          const phase = Math.random() * Math.PI * 2;
-          const span = Math.max(max - min, 0);
-          const speed = min + Math.random() * span; // configurable rad/s
-          dots.push({ x, y, phase, speed });
-        }
-      }
-    };
-    const regenThrottled = () => {
-      regenDots();
-    };
-    regenDots();
 
-    const draw = (now: number) => {
-      if (stopped) return;
-      if (!isVisible) {
-        raf = requestAnimationFrame(draw);
-        return;
-      }
-      const { width, height } = container.getBoundingClientRect();
-      ctx.clearRect(0, 0, el.width, el.height);
-      ctx.globalAlpha = opacity;
-      // optional subtle background fade for depth (defaults to 0 = transparent)
-      if (backgroundOpacity > 0) {
-        const grad = ctx.createRadialGradient(
-          width * 0.5,
-          height * 0.4,
-          Math.min(width, height) * 0.1,
-          width * 0.5,
-          height * 0.5,
-          Math.max(width, height) * 0.7
-        );
-        grad.addColorStop(0, "rgba(0,0,0,0)");
-        grad.addColorStop(
-          1,
-          `rgba(0,0,0,${Math.min(Math.max(backgroundOpacity, 0), 1)})`
-        );
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, width, height);
-      }
-      // animate dots
-      ctx.save();
-      ctx.fillStyle = resolvedColor;
-      const time = (now / 1000) * Math.max(speedScale, 0);
-      for (const d of dots) {
-        // Linear triangle wave 0..1..0 for linear glow/dim
-        const mod = (time * d.speed + d.phase) % 2;
-        const lin = mod < 1 ? mod : 2 - mod; // 0..1..0
-        const a = 0.25 + 0.55 * lin; // 0.25..0.8 linearly
-        // draw glow when bright
-        if (a > 0.6) {
-          const glow = (a - 0.6) / 0.4; // 0..1
-          ctx.shadowColor = resolvedGlowColor;
-          ctx.shadowBlur = 6 * glow;
-        } else {
-          ctx.shadowColor = "transparent";
-          ctx.shadowBlur = 0;
-        }
-        ctx.globalAlpha = a * opacity;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
-      raf = requestAnimationFrame(draw);
+    const config: CanvasAnimationConfig = {
+      gap,
+      radius,
+      resolvedColor,
+      resolvedGlowColor,
+      opacity,
+      backgroundOpacity,
+      speedMin,
+      speedMax,
+      speedScale,
     };
-    const handleResize = () => {
-      resize();
-      regenThrottled();
-    };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        isVisible = entries[0]?.isIntersecting ?? true;
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(container);
-    window.addEventListener("resize", handleResize);
-    raf = requestAnimationFrame(draw);
-    return () => {
-      stopped = true;
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", handleResize);
-      observer.disconnect();
-      ro.disconnect();
-    };
+
+    return initCanvasAnimation(el, container, config);
   }, [
     gap,
     radius,
@@ -260,6 +333,7 @@ export const DottedGlowBackground = ({
     speedMax,
     speedScale,
   ]);
+
   return (
     <div
       ref={containerRef}

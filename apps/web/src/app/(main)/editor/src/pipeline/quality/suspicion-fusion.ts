@@ -108,6 +108,35 @@ function fuseScores(rawScore: number, clsScore: number): number {
   return Math.min(100, Math.round(rawScore * 0.6 + clsScore * 0.4));
 }
 
+interface RoutingThresholds {
+  fusedThresholdForOcrFallback: number;
+  classificationOnlyThreshold: number;
+}
+
+function resolveRoutingBand(
+  rawScore: number,
+  clsScore: number,
+  fusedScore: number,
+  cls: ClassificationSuspiciousLine | undefined,
+  thresholds: RoutingThresholds
+): FusedSuspiciousLineCandidate["routingBand"] {
+  const { fusedThresholdForOcrFallback, classificationOnlyThreshold } =
+    thresholds;
+  if (
+    rawScore >= fusedThresholdForOcrFallback ||
+    fusedScore >= fusedThresholdForOcrFallback
+  ) {
+    return "ocr-fallback";
+  }
+  if (cls && clsScore >= classificationOnlyThreshold) {
+    return cls.routingBand;
+  }
+  if (cls) {
+    return "local-review";
+  }
+  return "pass";
+}
+
 export function fuseSuspiciousSignals(
   lines: readonly PipelineLineRef[],
   classifiedLines: readonly ClassifiedLine[],
@@ -159,18 +188,16 @@ export function fuseSuspiciousSignals(
       ...(cls?.findings.map((f) => `${f.detectorId}: ${f.reason}`) ?? []),
     ];
 
-    let routingBand: FusedSuspiciousLineCandidate["routingBand"] = "pass";
-
-    if (
-      rawScore >= fusedThresholdForOcrFallback ||
-      fusedScore >= fusedThresholdForOcrFallback
-    ) {
-      routingBand = "ocr-fallback";
-    } else if (cls && clsScore >= classificationOnlyThreshold) {
-      routingBand = cls.routingBand;
-    } else if (cls) {
-      routingBand = "local-review";
-    }
+    const routingBand = resolveRoutingBand(
+      rawScore,
+      clsScore,
+      fusedScore,
+      cls,
+      {
+        fusedThresholdForOcrFallback,
+        classificationOnlyThreshold,
+      }
+    );
 
     fused.push({
       lineIndex,

@@ -40,6 +40,193 @@ interface RecorderPanelProps {
   setNotesTakeId: (takeId: string | null) => void;
 }
 
+// ─── Sub-components ───
+
+interface CameraPreviewProps {
+  cameraState: RecorderPanelProps["cameraState"];
+  isRecording: boolean;
+  isFinalizingTake: boolean;
+  recordingTime: number;
+  currentPromptLine: string;
+  previewVideoRef: React.RefObject<HTMLVideoElement | null>;
+}
+
+function CameraPreview({
+  cameraState,
+  isRecording,
+  isFinalizingTake,
+  recordingTime,
+  currentPromptLine,
+  previewVideoRef,
+}: CameraPreviewProps) {
+  return (
+    <div className="relative aspect-video overflow-hidden rounded-xl border-2 border-purple-500/30 bg-black">
+      {cameraState === "ready" ? (
+        <video
+          ref={previewVideoRef}
+          autoPlay
+          muted
+          playsInline
+          className="h-full w-full object-cover"
+        >
+          <track
+            kind="captions"
+            src={EMPTY_CAPTIONS_TRACK}
+            srcLang="ar"
+            label="لا توجد ترجمة"
+          />
+        </video>
+      ) : (
+        <div className="flex h-full items-center justify-center text-center">
+          <div>
+            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-purple-500/20">
+              <span className="text-5xl">
+                {cameraState === "requesting" ? "⏳" : "📹"}
+              </span>
+            </div>
+            <p className="text-lg text-white">
+              {cameraState === "requesting"
+                ? "جاري طلب الإذن للوصول إلى الكاميرا..."
+                : "معاينة الكاميرا ستظهر هنا بعد التفعيل"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isRecording && (
+        <>
+          <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-2">
+            <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+            <span className="font-mono text-red-300">
+              {formatTime(recordingTime)}
+            </span>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-3 text-center text-white">
+            <p className="line-clamp-2 text-lg">{currentPromptLine}</p>
+          </div>
+        </>
+      )}
+
+      {isFinalizingTake && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+          <div className="text-center text-white">
+            <div className="mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+            <p>جاري إنهاء التسجيل وتحليل النتيجة...</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface TakeCardProps {
+  take: Take;
+  exportableTakeIds: Set<string>;
+  setActiveTool: (tool: string) => void;
+  setNotesTakeId: (takeId: string | null) => void;
+  exportTake: (takeId: string) => Promise<void>;
+  deleteTake: (takeId: string) => void;
+}
+
+function TakeCard({
+  take,
+  exportableTakeIds,
+  setActiveTool,
+  setNotesTakeId,
+  exportTake,
+  deleteTake,
+}: TakeCardProps) {
+  return (
+    <div className="rounded-xl border border-purple-500/20 bg-black/14 p-4 transition-all hover:border-purple-500/50">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h4 className="flex items-center gap-2 font-medium text-white">
+            {take.name}
+            {take.source === "captured" ? (
+              <Badge className="bg-emerald-500/20 text-emerald-300">
+                جلسة حيّة
+              </Badge>
+            ) : (
+              <Badge className="bg-black/22/60 text-white/85">نموذج</Badge>
+            )}
+            {take.status === "exported" && (
+              <Badge className="bg-blue-500/20 text-blue-300">مُصدَّر</Badge>
+            )}
+          </h4>
+          <p className="text-sm text-white/55">
+            {formatRecordedAt(take.recordedAt)} • {formatTime(take.duration)}
+          </p>
+        </div>
+        <div className={`text-2xl font-bold ${getScoreColor(take.score)}`}>
+          {take.score ?? 0}%
+        </div>
+      </div>
+
+      {take.videoUrl ? (
+        <video
+          src={take.videoUrl}
+          controls
+          muted
+          className="mb-3 aspect-video w-full rounded-[22px] bg-black object-cover"
+        >
+          <track
+            kind="captions"
+            src={EMPTY_CAPTIONS_TRACK}
+            srcLang="ar"
+            label="لا توجد ترجمة"
+          />
+        </video>
+      ) : (
+        <div className="mb-3 flex aspect-video items-center justify-center rounded-[22px] border border-dashed border-purple-500/20 bg-black/40 text-center text-sm text-white/55">
+          <div>
+            <p>لا يوجد ملف فيديو محفوظ مع هذا التسجيل.</p>
+            <p>البيانات الوصفية محفوظة، لكن التصدير يتطلب جلسة حيّة.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-3 text-sm text-white/68">
+        <p>{take.notes[0]?.content ?? "لا توجد ملاحظات بعد."}</p>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex-1 border-purple-500/50 text-purple-300 hover:bg-purple-500/20"
+          onClick={() => {
+            setActiveTool("notes");
+            setNotesTakeId(take.id);
+          }}
+        >
+          📝 الملاحظات
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex-1 border-green-500/50 text-green-300 hover:bg-green-500/20"
+          onClick={() => {
+            void exportTake(take.id);
+          }}
+          disabled={!exportableTakeIds.has(take.id)}
+        >
+          📤 تصدير
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="border-red-500/50 text-red-300 hover:bg-red-500/20"
+          onClick={() => deleteTake(take.id)}
+        >
+          🗑️
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ───
+
 export const RecorderPanel: React.FC<RecorderPanelProps> = ({
   cameraState,
   cameraError,
@@ -88,63 +275,14 @@ export const RecorderPanel: React.FC<RecorderPanelProps> = ({
               </Alert>
             )}
 
-            <div className="relative aspect-video overflow-hidden rounded-xl border-2 border-purple-500/30 bg-black">
-              {cameraState === "ready" ? (
-                <video
-                  ref={previewVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="h-full w-full object-cover"
-                >
-                  <track
-                    kind="captions"
-                    src={EMPTY_CAPTIONS_TRACK}
-                    srcLang="ar"
-                    label="لا توجد ترجمة"
-                  />
-                </video>
-              ) : (
-                <div className="flex h-full items-center justify-center text-center">
-                  <div>
-                    <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-purple-500/20">
-                      <span className="text-5xl">
-                        {cameraState === "requesting" ? "⏳" : "📹"}
-                      </span>
-                    </div>
-                    <p className="text-lg text-white">
-                      {cameraState === "requesting"
-                        ? "جاري طلب الإذن للوصول إلى الكاميرا..."
-                        : "معاينة الكاميرا ستظهر هنا بعد التفعيل"}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {isRecording && (
-                <>
-                  <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-2">
-                    <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
-                    <span className="font-mono text-red-300">
-                      {formatTime(recordingTime)}
-                    </span>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-3 text-center text-white">
-                    <p className="line-clamp-2 text-lg">{currentPromptLine}</p>
-                  </div>
-                </>
-              )}
-
-              {isFinalizingTake && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-                  <div className="text-center text-white">
-                    <div className="mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-                    <p>جاري إنهاء التسجيل وتحليل النتيجة...</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            <CameraPreview
+              cameraState={cameraState}
+              isRecording={isRecording}
+              isFinalizingTake={isFinalizingTake}
+              recordingTime={recordingTime}
+              currentPromptLine={currentPromptLine}
+              previewVideoRef={previewVideoRef}
+            />
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <Button
@@ -229,104 +367,15 @@ export const RecorderPanel: React.FC<RecorderPanelProps> = ({
           <CardContent>
             <div className="max-h-[560px] space-y-3 overflow-y-auto">
               {availableTakes.map((take) => (
-                <div
+                <TakeCard
                   key={take.id}
-                  className="rounded-xl border border-purple-500/20 bg-black/14 p-4 transition-all hover:border-purple-500/50"
-                >
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="flex items-center gap-2 font-medium text-white">
-                        {take.name}
-                        {take.source === "captured" ? (
-                          <Badge className="bg-emerald-500/20 text-emerald-300">
-                            جلسة حيّة
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-black/22/60 text-white/85">
-                            نموذج
-                          </Badge>
-                        )}
-                        {take.status === "exported" && (
-                          <Badge className="bg-blue-500/20 text-blue-300">
-                            مُصدَّر
-                          </Badge>
-                        )}
-                      </h4>
-                      <p className="text-sm text-white/55">
-                        {formatRecordedAt(take.recordedAt)} •{" "}
-                        {formatTime(take.duration)}
-                      </p>
-                    </div>
-
-                    <div
-                      className={`text-2xl font-bold ${getScoreColor(take.score)}`}
-                    >
-                      {take.score ?? 0}%
-                    </div>
-                  </div>
-
-                  {take.videoUrl ? (
-                    <video
-                      src={take.videoUrl}
-                      controls
-                      muted
-                      className="mb-3 aspect-video w-full rounded-[22px] bg-black object-cover"
-                    >
-                      <track
-                        kind="captions"
-                        src={EMPTY_CAPTIONS_TRACK}
-                        srcLang="ar"
-                        label="لا توجد ترجمة"
-                      />
-                    </video>
-                  ) : (
-                    <div className="mb-3 flex aspect-video items-center justify-center rounded-[22px] border border-dashed border-purple-500/20 bg-black/40 text-center text-sm text-white/55">
-                      <div>
-                        <p>لا يوجد ملف فيديو محفوظ مع هذا التسجيل.</p>
-                        <p>
-                          البيانات الوصفية محفوظة، لكن التصدير يتطلب جلسة حيّة.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mb-3 text-sm text-white/68">
-                    <p>{take.notes[0]?.content ?? "لا توجد ملاحظات بعد."}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-purple-500/50 text-purple-300 hover:bg-purple-500/20"
-                      onClick={() => {
-                        setActiveTool("notes");
-                        setNotesTakeId(take.id);
-                      }}
-                    >
-                      📝 الملاحظات
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-green-500/50 text-green-300 hover:bg-green-500/20"
-                      onClick={() => {
-                        void exportTake(take.id);
-                      }}
-                      disabled={!exportableTakeIds.has(take.id)}
-                    >
-                      📤 تصدير
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-500/50 text-red-300 hover:bg-red-500/20"
-                      onClick={() => deleteTake(take.id)}
-                    >
-                      🗑️
-                    </Button>
-                  </div>
-                </div>
+                  take={take}
+                  exportableTakeIds={exportableTakeIds}
+                  setActiveTool={setActiveTool}
+                  setNotesTakeId={setNotesTakeId}
+                  exportTake={exportTake}
+                  deleteTake={deleteTake}
+                />
               ))}
             </div>
           </CardContent>

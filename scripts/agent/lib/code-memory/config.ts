@@ -43,5 +43,10 @@ export const CODE_MEMORY_EXCLUDED_DIRECTORIES = [
   "test-results",
 ];
 
+export const CODE_MEMORY_EXCLUDED_FILES = [
+  "apps/web/eslint.config.js",
+  "apps/web/src/app/(main)/editor/eslint.config.js",
+];
+
 export const CODE_MEMORY_CHUNK_MAX_CHARS = 3000;
 export const CODE_MEMORY_CHUNK_OVERLAP_CHARS = 300;

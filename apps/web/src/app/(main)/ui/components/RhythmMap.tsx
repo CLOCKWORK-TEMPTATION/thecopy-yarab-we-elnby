@@ -57,6 +57,99 @@ const getIntensityLabel = (intensity: number): string => {
   return "هادئ";
 };
 
+interface RhythmActProps {
+  act: number;
+  actScenes: RhythmData[];
+  maxIntensity: number;
+}
+
+function RhythmAct({ act, actScenes, maxIntensity }: RhythmActProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: act * 0.1 }}
+    >
+      <div className="mb-3">
+        <h4 className="text-[var(--color-text)]" dir="rtl">
+          الفصل {act}
+        </h4>
+        <p className="text-[var(--color-muted)]" dir="rtl">
+          {actScenes.length} مشهد
+        </p>
+      </div>
+      <div
+        className="grid gap-2"
+        style={{
+          gridTemplateColumns: `repeat(${Math.min(actScenes.length, 8)}, minmax(0, 1fr))`,
+        }}
+      >
+        <TooltipProvider>
+          {actScenes.map((scene, idx) => (
+            <Tooltip key={scene.sceneId}>
+              <TooltipTrigger asChild>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: act * 0.1 + idx * 0.03 }}
+                  className="aspect-square rounded-lg cursor-pointer transition-transform hover:scale-110"
+                  style={{
+                    backgroundColor: getIntensityColor(scene.intensity),
+                    opacity: 0.2 + (scene.intensity / maxIntensity) * 0.8,
+                  }}
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                className="bg-[var(--color-panel)] border-[var(--color-surface)]"
+              >
+                <div className="text-right" dir="rtl">
+                  <p className="text-[var(--color-text)] mb-1">
+                    {scene.sceneName}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[var(--color-muted)]">الإيقاع:</span>
+                    <span style={{ color: getIntensityColor(scene.intensity) }}>
+                      {getIntensityLabel(scene.intensity)} ({scene.intensity}%)
+                    </span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
+      </div>
+    </motion.div>
+  );
+}
+
+function RhythmLegend() {
+  const items = [
+    { color: "var(--state-draft)", opacity: 0.6, label: "هادئ" },
+    { color: "var(--color-accent)", opacity: 0.6, label: "متوسط" },
+    { color: "var(--state-alt)", opacity: 0.8, label: "عالي" },
+    { color: "var(--state-flagged)", opacity: 1, label: "ذروة" },
+  ];
+  return (
+    <div className="mt-6 pt-6 border-t border-[var(--color-surface)]">
+      <h4 className="text-[var(--color-text)] mb-3" dir="rtl">
+        مقياس الكثافة
+      </h4>
+      <div className="flex items-center gap-4">
+        {items.map(({ color, opacity, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 rounded"
+              style={{ backgroundColor: color, opacity }}
+            />
+            <span className="text-[var(--color-muted)]">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RhythmMap({
   data = defaultData,
   showMap = true,
@@ -105,128 +198,16 @@ export function RhythmMap({
       {isVisible && (
         <div className="p-6">
           <div className="space-y-6">
-            {/* Acts */}
-            {acts.map((act) => {
-              const actScenes = data.filter((d) => d.act === act);
-
-              return (
-                <motion.div
-                  key={act}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: act * 0.1 }}
-                >
-                  <div className="mb-3">
-                    <h4 className="text-[var(--color-text)]" dir="rtl">
-                      الفصل {act}
-                    </h4>
-                    <p className="text-[var(--color-muted)]" dir="rtl">
-                      {actScenes.length} مشهد
-                    </p>
-                  </div>
-
-                  {/* Heatmap Grid */}
-                  <div
-                    className="grid gap-2"
-                    style={{
-                      gridTemplateColumns: `repeat(${Math.min(actScenes.length, 8)}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    <TooltipProvider>
-                      {actScenes.map((scene, idx) => (
-                        <Tooltip key={scene.sceneId}>
-                          <TooltipTrigger asChild>
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: act * 0.1 + idx * 0.03 }}
-                              className="aspect-square rounded-lg cursor-pointer transition-transform hover:scale-110"
-                              style={{
-                                backgroundColor: getIntensityColor(
-                                  scene.intensity
-                                ),
-                                opacity:
-                                  0.2 + (scene.intensity / maxIntensity) * 0.8,
-                              }}
-                            />
-                          </TooltipTrigger>
-                          <TooltipContent
-                            side="top"
-                            className="bg-[var(--color-panel)] border-[var(--color-surface)]"
-                          >
-                            <div className="text-right" dir="rtl">
-                              <p className="text-[var(--color-text)] mb-1">
-                                {scene.sceneName}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[var(--color-muted)]">
-                                  الإيقاع:
-                                </span>
-                                <span
-                                  style={{
-                                    color: getIntensityColor(scene.intensity),
-                                  }}
-                                >
-                                  {getIntensityLabel(scene.intensity)} (
-                                  {scene.intensity}%)
-                                </span>
-                              </div>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-                    </TooltipProvider>
-                  </div>
-                </motion.div>
-              );
-            })}
+            {acts.map((act) => (
+              <RhythmAct
+                key={act}
+                act={act}
+                actScenes={data.filter((d) => d.act === act)}
+                maxIntensity={maxIntensity}
+              />
+            ))}
           </div>
-
-          {/* Legend */}
-          <div className="mt-6 pt-6 border-t border-[var(--color-surface)]">
-            <h4 className="text-[var(--color-text)] mb-3" dir="rtl">
-              مقياس الكثافة
-            </h4>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{
-                    backgroundColor: "var(--state-draft)",
-                    opacity: 0.6,
-                  }}
-                />
-                <span className="text-[var(--color-muted)]">هادئ</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{
-                    backgroundColor: "var(--color-accent)",
-                    opacity: 0.6,
-                  }}
-                />
-                <span className="text-[var(--color-muted)]">متوسط</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{ backgroundColor: "var(--state-alt)", opacity: 0.8 }}
-                />
-                <span className="text-[var(--color-muted)]">عالي</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded"
-                  style={{
-                    backgroundColor: "var(--state-flagged)",
-                    opacity: 1,
-                  }}
-                />
-                <span className="text-[var(--color-muted)]">ذروة</span>
-              </div>
-            </div>
-          </div>
+          <RhythmLegend />
         </div>
       )}
     </Card>

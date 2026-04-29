@@ -50,6 +50,65 @@ function buildSettings(initialSettings?: Partial<AppSettings>): AppSettings {
   };
 }
 
+function buildChallengeProject(): CreativeProject {
+  const prompt = ACTIVE_WEEKLY_CHALLENGE.prompt;
+  return {
+    id: `challenge_${Date.now()}`,
+    title: prompt.title,
+    content: "",
+    promptId: prompt.id,
+    genre: prompt.genre,
+    wordCount: 0,
+    characterCount: 0,
+    paragraphCount: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    tags: [...prompt.tags, ACTIVE_WEEKLY_CHALLENGE.id],
+    isCompleted: false,
+  };
+}
+
+function buildNewProject(prompt?: CreativePrompt): CreativeProject {
+  return {
+    id: `project_${Date.now()}`,
+    title: prompt ? prompt.title : "مشروع جديد",
+    content: "",
+    promptId: prompt?.id ?? "",
+    genre: prompt?.genre ?? "cross_genre",
+    wordCount: 0,
+    characterCount: 0,
+    paragraphCount: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    tags: prompt?.tags ?? [],
+    isCompleted: false,
+  };
+}
+
+async function runAnalyzeText(
+  geminiService: GeminiService,
+  text: string
+): Promise<{ success: boolean; data?: TextAnalysis; error?: string }> {
+  const response = await geminiService.analyzeText(text);
+  if (response.success) {
+    return { success: true, data: buildTextAnalysis(text, response.data) };
+  }
+  return { success: false, error: response.error ?? "فشل في تحليل النص" };
+}
+
+async function runEnhancePrompt(
+  geminiService: GeminiService,
+  prompt: string,
+  genre: CreativeGenre,
+  technique: WritingTechnique
+): Promise<{ success: boolean; data?: string; error?: string }> {
+  const response = await geminiService.enhancePrompt(prompt, genre, technique);
+  if (response.success) {
+    return { success: true, data: response.data };
+  }
+  return { success: false, error: response.error ?? "فشل في تحسين المحفز" };
+}
+
 interface UseCreativeStudioProps {
   initialSettings?: Partial<AppSettings>;
   showNotification: (type: NotificationState["type"], message: string) => void;
@@ -87,16 +146,13 @@ export function useCreativeStudio({
   const [isRemoteStateReady, setIsRemoteStateReady] = useState(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Load persisted state
   useEffect(() => {
     let cancelled = false;
-
     void loadRemoteAppState<CreativeWritingStudioSnapshot>(
       "arabic-creative-writing-studio"
     )
       .then((snapshot) => {
         if (cancelled || !snapshot) return;
-
         setCurrentView(snapshot.currentView ?? "home");
         setProjects(
           (snapshot.projects ?? [])
@@ -111,20 +167,15 @@ export function useCreativeStudio({
         /* empty */
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsRemoteStateReady(true);
-        }
+        if (!cancelled) setIsRemoteStateReady(true);
       });
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Auto-save state
   useEffect(() => {
     if (!isRemoteStateReady) return;
-
     const timeoutId = window.setTimeout(() => {
       void persistRemoteAppState<CreativeWritingStudioSnapshot>(
         "arabic-creative-writing-studio",
@@ -141,7 +192,6 @@ export function useCreativeStudio({
         /* empty */
       });
     }, 400);
-
     return () => window.clearTimeout(timeoutId);
   }, [
     currentView,
@@ -154,11 +204,7 @@ export function useCreativeStudio({
 
   const saveProject = useCallback(
     (project: CreativeProject) => {
-      const projectToSave = {
-        ...project,
-        updatedAt: new Date(),
-      };
-
+      const projectToSave = { ...project, updatedAt: new Date() };
       setProjects((previous) => {
         const existingIndex = previous.findIndex((p) => p.id === project.id);
         if (existingIndex >= 0) {
@@ -175,22 +221,7 @@ export function useCreativeStudio({
   );
 
   const createNewProject = useCallback((prompt?: CreativePrompt) => {
-    const newProject: CreativeProject = {
-      id: `project_${Date.now()}`,
-      title: prompt ? prompt.title : "مشروع جديد",
-      content: "",
-      promptId: prompt?.id ?? "",
-      genre: prompt?.genre ?? "cross_genre",
-      wordCount: 0,
-      characterCount: 0,
-      paragraphCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: prompt?.tags ?? [],
-      isCompleted: false,
-    };
-
-    setCurrentProject(newProject);
+    setCurrentProject(buildNewProject(prompt));
     setSelectedPrompt(prompt ?? null);
     setActiveChallenge(null);
     setCurrentView("editor");
@@ -205,24 +236,8 @@ export function useCreativeStudio({
   }, [createNewProject, showNotification]);
 
   const startWeeklyChallenge = useCallback(() => {
-    const prompt = ACTIVE_WEEKLY_CHALLENGE.prompt;
-    const challengeProject: CreativeProject = {
-      id: `challenge_${Date.now()}`,
-      title: prompt.title,
-      content: "",
-      promptId: prompt.id,
-      genre: prompt.genre,
-      wordCount: 0,
-      characterCount: 0,
-      paragraphCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: [...prompt.tags, ACTIVE_WEEKLY_CHALLENGE.id],
-      isCompleted: false,
-    };
-
-    setCurrentProject(challengeProject);
-    setSelectedPrompt(prompt);
+    setCurrentProject(buildChallengeProject());
+    setSelectedPrompt(ACTIVE_WEEKLY_CHALLENGE.prompt);
     setActiveChallenge(ACTIVE_WEEKLY_CHALLENGE);
     setCurrentView("editor");
     showNotification(
@@ -238,7 +253,6 @@ export function useCreativeStudio({
         showNotification("error", "المشروع المطلوب لم يعد متوفراً");
         return;
       }
-
       setCurrentProject(project);
       setSelectedPrompt(null);
       setActiveChallenge(null);
@@ -253,12 +267,10 @@ export function useCreativeStudio({
       setProjects((previous) =>
         previous.filter((project) => project.id !== projectId)
       );
-
       if (currentProject?.id === projectId) {
         setCurrentProject(null);
         setActiveChallenge(null);
       }
-
       showNotification("info", "تم حذف المشروع من الأرشيف المحلي للمساحة");
     },
     [currentProject?.id, showNotification]
@@ -270,15 +282,14 @@ export function useCreativeStudio({
         showNotification("warning", analysisBlockedReason);
         return null;
       }
-
       setLoading(true);
       try {
-        const response = await geminiService.analyzeText(text);
-        if (response.success) {
+        const result = await runAnalyzeText(geminiService, text);
+        if (result.success) {
           showNotification("success", "تم تحليل النص بنجاح 📊");
-          return buildTextAnalysis(text, response.data);
+          return result.data ?? null;
         }
-        showNotification("error", response.error ?? "فشل في تحليل النص");
+        showNotification("error", result.error ?? "فشل في تحليل النص");
         return null;
       } catch {
         showNotification("error", "حدث خطأ أثناء تحليل النص");
@@ -300,19 +311,19 @@ export function useCreativeStudio({
         showNotification("warning", "يرجى إعداد مفتاح Gemini API أولاً");
         return null;
       }
-
       setLoading(true);
       try {
-        const response = await geminiService.enhancePrompt(
+        const result = await runEnhancePrompt(
+          geminiService,
           prompt,
           genre,
           technique
         );
-        if (response.success) {
+        if (result.success) {
           showNotification("success", "تم تحسين المحفز بنجاح 🚀");
-          return response.data;
+          return result.data ?? null;
         }
-        showNotification("error", response.error ?? "فشل في تحسين المحفز");
+        showNotification("error", result.error ?? "فشل في تحسين المحفز");
         return null;
       } catch {
         showNotification("error", "حدث خطأ أثناء تحسين المحفز");

@@ -55,6 +55,197 @@ import type {
 } from "./types";
 import type { EditorView } from "@tiptap/pm/view";
 
+// ─── أنواع مساعدة ────────────────────────────────────────────────────
+
+type FinishFn = (stage: string, message: string, code: string) => void;
+type MarkSettledFn = (
+  classified: readonly ClassifiedDraftWithId[],
+  metadata?: Record<string, unknown>
+) => void;
+
+interface FlowState {
+  classificationText: string;
+  previewText: string;
+  sourceMethod?: string;
+  schemaElements?: ApplyPasteClassifierFlowOptions["schemaElements"];
+  activeRange: { from: number; to: number };
+  previewDocumentSignature: string | null;
+  textHash: number;
+  hasPreviewDrafts: boolean;
+}
+
+// ─── helpers لـ runFinalReviewPipeline ───────────────────────────────
+
+const makeMarkSettled = (): MarkSettledFn => (classified, metadata) => {
+  pipelineRecorder.trackFile("paste-classifier.ts");
+  pipelineRecorder.snapshot("settled", classified, {
+    ...(metadata ?? {}),
+    visibleStage: "settled",
+  });
+};
+
+const handleNoCases = (
+  locallyReviewed: ClassifiedDraftWithId[],
+  markSettled: MarkSettledFn
+): void => {
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "suspicion-review-summary",
+    localSuspicionCases: 0,
+    sentToSuspicionModel: 0,
+    modelDismissed: 0,
+    modelEscalated: 0,
+    finalReviewEligible: 0,
+    finalReviewReceived: 0,
+  });
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "final-review-skipped",
+    reason: "no-suspicion-cases",
+  });
+  markSettled(locallyReviewed, { reason: "no-suspicion-cases" });
+};
+
+const logSuspicionModelDone = (
+  output: Awaited<ReturnType<typeof applySuspicionReviewLayer>>,
+  remainingCount: number
+): void => {
+  const d = output.dispatchSummary;
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "suspicion-model-complete",
+    suspicionCount: d.totalLocalCases,
+    sentToSuspicionModel: d.sentToModel,
+    sentLocalReview: d.sentLocalReview,
+    sentAgentCandidate: d.sentAgentCandidate,
+    sentAgentForced: d.sentAgentForced,
+    reviewedCount: output.reviewedCount,
+    dismissedCount: output.dismissedCount,
+    heldLocalReviewCount: output.heldLocalReviewCount,
+    escalatedCount: output.escalatedCount,
+    discoveredCount: output.discoveredCount,
+    remainingCandidates: remainingCount,
+  });
+};
+
+/** Checks gating conditions; returns false if final review should be skipped. */
+const gateFinalReview = (
+  candidates: ClassifiedDraftWithId[],
+  totalCount: number,
+  locallyReviewed: ClassifiedDraftWithId[],
+  markSettled: MarkSettledFn
+): boolean => {
+  if (candidates.length === 0) {
+    agentReviewLogger.telemetry("paste-pipeline-stage", {
+      stage: "final-review-skipped",
+      reason: "no-remaining-suspicion-cases",
+    });
+    markSettled(locallyReviewed, { reason: "no-remaining-suspicion-cases" });
+    return false;
+  }
+  const selectedCount = selectFinalReviewPayloads(
+    candidates,
+    totalCount
+  ).length;
+  if (selectedCount === 0) {
+    agentReviewLogger.telemetry("paste-pipeline-stage", {
+      stage: "final-review-skipped",
+      reason: "no-final-review-selected-after-suspicion-model",
+    });
+    markSettled(locallyReviewed, {
+      reason: "no-final-review-selected-after-suspicion-model",
+    });
+    return false;
+  }
+  if (!PIPELINE_FLAGS.FINAL_REVIEW_ENABLED) {
+    agentReviewLogger.telemetry("paste-pipeline-stage", {
+      stage: "final-review-skipped",
+      reason: "FINAL_REVIEW_ENABLED=false",
+    });
+    markSettled(locallyReviewed, { reason: "FINAL_REVIEW_ENABLED=false" });
+    return false;
+  }
+  return true;
+};
+
+interface ExecuteFinalReviewArgs {
+  view: EditorView;
+  locallyReviewed: ClassifiedDraftWithId[];
+  candidates: ClassifiedDraftWithId[];
+  importOpId: string;
+  sessionId: string;
+  routingStats: ReturnType<typeof computeFinalReviewRoutingStats>;
+  markSettled: MarkSettledFn;
+  updateSession: ReturnType<typeof progressiveUpdater.createSession>;
+}
+
+const executeFinalReview = async (
+  args: ExecuteFinalReviewArgs
+): Promise<void> => {
+  const {
+    view,
+    locallyReviewed,
+    candidates,
+    importOpId,
+    sessionId,
+    routingStats,
+    markSettled,
+    updateSession,
+  } = args;
+  const selectedCount = selectFinalReviewPayloads(
+    candidates,
+    locallyReviewed.length
+  ).length;
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "final-review-start",
+    suspicionCount: selectedCount,
+  });
+
+  const finalReviewed = await applyFinalReviewLayer(
+    locallyReviewed,
+    candidates,
+    importOpId,
+    sessionId
+  );
+
+  let appliedCount = 0;
+  const len = Math.min(locallyReviewed.length, finalReviewed.length);
+  for (let i = 0; i < len; i++) {
+    const original = locallyReviewed[i];
+    const corrected = finalReviewed[i];
+    if (!original || !corrected || original.type === corrected.type) continue;
+    const applied = updateSession.applyCorrection(view, {
+      lineIndex: i,
+      correctedType: corrected.type,
+      confidence: Math.max(0.65, corrected.confidence),
+      reason: "Final review correction",
+      source: "final-review",
+      expectedCurrentText: original.text,
+    });
+    if (applied) appliedCount++;
+  }
+
+  pipelineRecorder.trackFile("paste-classifier.ts");
+  pipelineRecorder.snapshot("final-review", finalReviewed, {
+    appliedCount,
+    suspicionCount: selectedCount,
+    ...routingStats,
+    visibleStage: "final-reviewed",
+  });
+  markSettled(finalReviewed, {
+    appliedCount,
+    suspicionCount: selectedCount,
+    ...routingStats,
+  });
+
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "final-review-complete",
+    appliedCount,
+    suspicionCount: selectedCount,
+    countPass: routingStats.countPass,
+    countLocalReview: routingStats.countLocalReview,
+    countAgentCandidate: routingStats.countAgentCandidate,
+    countAgentForced: routingStats.countAgentForced,
+  });
+};
+
 /**
  * تطبيق طبقة المراجعة النهائية بعد العرض الفوري.
  * تعمل في الخلفية بعد render-first ولا تكسر التدفق إذا فشلت.
@@ -78,45 +269,15 @@ const runFinalReviewPipeline = async (
   const routingStats = computeFinalReviewRoutingStats(
     promoteHighSeveritySuspicionCases(suspicionCases)
   );
-  const markSettled = (
-    classified: readonly ClassifiedDraftWithId[],
-    metadata?: Record<string, unknown>
-  ): void => {
-    pipelineRecorder.trackFile("paste-classifier.ts");
-    pipelineRecorder.snapshot("settled", classified, {
-      ...(metadata ?? {}),
-      visibleStage: "settled",
-    });
-  };
+  const markSettled = makeMarkSettled();
 
   try {
     if (suspicionCases.length === 0) {
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "suspicion-review-summary",
-        localSuspicionCases: 0,
-        sentToSuspicionModel: 0,
-        modelDismissed: 0,
-        modelEscalated: 0,
-        finalReviewEligible: 0,
-        finalReviewReceived: 0,
-      });
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "final-review-skipped",
-        reason: "no-suspicion-cases",
-      });
-      markSettled(locallyReviewed, { reason: "no-suspicion-cases" });
+      handleNoCases(locallyReviewed, markSettled);
       return;
     }
 
-    const {
-      finalReviewCandidates,
-      reviewedCount,
-      dismissedCount,
-      heldLocalReviewCount,
-      escalatedCount,
-      discoveredCount,
-      dispatchSummary,
-    } = await applySuspicionReviewLayer({
+    const output = await applySuspicionReviewLayer({
       classified: locallyReviewed,
       suspicionCases,
       importOpId,
@@ -125,143 +286,61 @@ const runFinalReviewPipeline = async (
     });
 
     (locallyReviewed as ClassifiedDraftPipelineState)._finalReviewCandidates =
-      finalReviewCandidates;
+      output.finalReviewCandidates;
 
     pipelineRecorder.trackFile("paste-classifier.ts");
     pipelineRecorder.snapshot("suspicion-model", locallyReviewed, {
-      localCases: dispatchSummary.totalLocalCases,
-      sentToModel: dispatchSummary.sentToModel,
-      sentLocalReview: dispatchSummary.sentLocalReview,
-      sentAgentCandidate: dispatchSummary.sentAgentCandidate,
-      sentAgentForced: dispatchSummary.sentAgentForced,
-      reviewedCount,
-      dismissedCount,
-      heldLocalReviewCount,
-      escalatedCount,
-      discoveredCount,
-      remainingCandidates: finalReviewCandidates.length,
+      localCases: output.dispatchSummary.totalLocalCases,
+      sentToModel: output.dispatchSummary.sentToModel,
+      sentLocalReview: output.dispatchSummary.sentLocalReview,
+      sentAgentCandidate: output.dispatchSummary.sentAgentCandidate,
+      sentAgentForced: output.dispatchSummary.sentAgentForced,
+      reviewedCount: output.reviewedCount,
+      dismissedCount: output.dismissedCount,
+      heldLocalReviewCount: output.heldLocalReviewCount,
+      escalatedCount: output.escalatedCount,
+      discoveredCount: output.discoveredCount,
+      remainingCandidates: output.finalReviewCandidates.length,
       visibleStage: "suspicion-reviewed",
     });
 
-    agentReviewLogger.telemetry("paste-pipeline-stage", {
-      stage: "suspicion-model-complete",
-      suspicionCount: dispatchSummary.totalLocalCases,
-      sentToSuspicionModel: dispatchSummary.sentToModel,
-      sentLocalReview: dispatchSummary.sentLocalReview,
-      sentAgentCandidate: dispatchSummary.sentAgentCandidate,
-      sentAgentForced: dispatchSummary.sentAgentForced,
-      reviewedCount,
-      dismissedCount,
-      heldLocalReviewCount,
-      escalatedCount,
-      discoveredCount,
-      remainingCandidates: finalReviewCandidates.length,
-    });
+    logSuspicionModelDone(output, output.finalReviewCandidates.length);
 
-    const selectedFinalReviewCount = selectFinalReviewPayloads(
-      finalReviewCandidates,
+    const selectedCount = selectFinalReviewPayloads(
+      output.finalReviewCandidates,
       locallyReviewed.length
     ).length;
-
     agentReviewLogger.telemetry("paste-pipeline-stage", {
       stage: "suspicion-review-summary",
-      localSuspicionCases: dispatchSummary.totalLocalCases,
-      sentToSuspicionModel: dispatchSummary.sentToModel,
-      modelDismissed: dismissedCount,
-      modelEscalated: escalatedCount,
-      finalReviewEligible: selectedFinalReviewCount,
+      localSuspicionCases: output.dispatchSummary.totalLocalCases,
+      sentToSuspicionModel: output.dispatchSummary.sentToModel,
+      modelDismissed: output.dismissedCount,
+      modelEscalated: output.escalatedCount,
+      finalReviewEligible: selectedCount,
       finalReviewReceived: PIPELINE_FLAGS.FINAL_REVIEW_ENABLED
-        ? selectedFinalReviewCount
+        ? selectedCount
         : 0,
     });
 
-    if (finalReviewCandidates.length === 0) {
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "final-review-skipped",
-        reason: "no-remaining-suspicion-cases",
-      });
-      markSettled(locallyReviewed, { reason: "no-remaining-suspicion-cases" });
+    if (
+      !gateFinalReview(
+        output.finalReviewCandidates,
+        locallyReviewed.length,
+        locallyReviewed,
+        markSettled
+      )
+    )
       return;
-    }
 
-    if (selectedFinalReviewCount === 0) {
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "final-review-skipped",
-        reason: "no-final-review-selected-after-suspicion-model",
-      });
-      markSettled(locallyReviewed, {
-        reason: "no-final-review-selected-after-suspicion-model",
-      });
-      return;
-    }
-
-    if (!PIPELINE_FLAGS.FINAL_REVIEW_ENABLED) {
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "final-review-skipped",
-        reason: "FINAL_REVIEW_ENABLED=false",
-      });
-      markSettled(locallyReviewed, { reason: "FINAL_REVIEW_ENABLED=false" });
-      return;
-    }
-
-    agentReviewLogger.telemetry("paste-pipeline-stage", {
-      stage: "final-review-start",
-      suspicionCount: selectedFinalReviewCount,
-    });
-
-    const finalReviewed = await applyFinalReviewLayer(
+    await executeFinalReview({
+      view,
       locallyReviewed,
-      finalReviewCandidates,
+      candidates: output.finalReviewCandidates,
       importOpId,
-      sessionId
-    );
-
-    let appliedCount = 0;
-    const comparableLength = Math.min(
-      locallyReviewed.length,
-      finalReviewed.length
-    );
-    for (let index = 0; index < comparableLength; index += 1) {
-      const original = locallyReviewed[index];
-      const corrected = finalReviewed[index];
-      if (!original || !corrected) continue;
-      if (original.type === corrected.type) continue;
-
-      const applied = updateSession.applyCorrection(view, {
-        lineIndex: index,
-        correctedType: corrected.type,
-        confidence: Math.max(0.65, corrected.confidence),
-        reason: "Final review correction",
-        source: "final-review",
-        expectedCurrentText: original.text,
-      });
-      if (applied) {
-        appliedCount += 1;
-      }
-    }
-
-    pipelineRecorder.trackFile("paste-classifier.ts");
-    pipelineRecorder.snapshot("final-review", finalReviewed, {
-      appliedCount,
-      suspicionCount: selectedFinalReviewCount,
-      ...routingStats,
-      visibleStage: "final-reviewed",
-    });
-
-    markSettled(finalReviewed, {
-      appliedCount,
-      suspicionCount: selectedFinalReviewCount,
-      ...routingStats,
-    });
-
-    agentReviewLogger.telemetry("paste-pipeline-stage", {
-      stage: "final-review-complete",
-      appliedCount,
-      suspicionCount: selectedFinalReviewCount,
-      countPass: routingStats.countPass,
-      countLocalReview: routingStats.countLocalReview,
-      countAgentCandidate: routingStats.countAgentCandidate,
-      countAgentForced: routingStats.countAgentForced,
+      sessionId,
+      routingStats,
+      markSettled,
+      updateSession,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -284,6 +363,279 @@ const runFinalReviewPipeline = async (
   }
 };
 
+// ─── مراحل applyPasteClassifierFlowToView ─────────────────────────────
+
+const buildFlowState = (
+  view: EditorView,
+  text: string,
+  options?: ApplyPasteClassifierFlowOptions
+): FlowState => {
+  const from = options?.from ?? view.state.selection.from;
+  const to = options?.to ?? view.state.selection.to;
+  const previewText =
+    typeof options?.rawExtractedText === "string" &&
+    options.rawExtractedText.trim().length > 0
+      ? options.rawExtractedText
+      : text;
+  return {
+    classificationText: text,
+    previewText,
+    sourceMethod: options?.sourceMethod,
+    schemaElements: options?.schemaElements,
+    activeRange: { from, to },
+    previewDocumentSignature: null,
+    textHash: simpleHash(text),
+    hasPreviewDrafts: false,
+  };
+};
+
+interface PreviewPhaseArgs {
+  view: EditorView;
+  state: FlowState;
+  classificationProfile: string | undefined;
+  sourceFileType: string | undefined;
+  firstVisibleSourceKind: string | undefined;
+  finishRun: FinishFn;
+}
+
+/** Phase 1: literal preview render */
+const runPreviewPhase = (args: PreviewPhaseArgs): boolean => {
+  const {
+    view,
+    state,
+    classificationProfile,
+    sourceFileType,
+    firstVisibleSourceKind,
+    finishRun,
+  } = args;
+  const drafts = buildLiteralPreviewDrafts(state.previewText);
+  state.hasPreviewDrafts = drafts.length > 0;
+  if (!state.hasPreviewDrafts) return true;
+
+  const render = renderClassifiedDraftsToView(
+    view,
+    drafts,
+    state.activeRange,
+    "preview-literal"
+  );
+  if (!render) {
+    finishRun(
+      "local-classification",
+      "تعذر عرض المعاينة الأولية داخل المحرر.",
+      "PREVIEW_RENDER_FAILED"
+    );
+    return false;
+  }
+  state.activeRange = { from: render.from, to: render.to };
+  state.previewDocumentSignature = render.documentSignature;
+  pipelineRecorder.trackFile("paste-classifier.ts");
+  pipelineRecorder.snapshot("preview-literal", drafts, {
+    nodesRendered: render.nodesRendered,
+    visibleStage:
+      classificationProfile === "paste" ? "user-paste" : "extracted",
+    firstVisibleSourceKind:
+      classificationProfile === "paste"
+        ? "user-paste"
+        : (firstVisibleSourceKind ??
+          (sourceFileType === "pdf" ? "ocr" : "direct-extraction")),
+  });
+  return true;
+};
+
+interface BridgePhaseArgs {
+  view: EditorView;
+  text: string;
+  state: FlowState;
+  classificationProfile: string | undefined;
+  sourceFileType: string | undefined;
+  finishRun: FinishFn;
+}
+
+/** Phase 2: karank bridge fetch + optional visible render */
+const runBridgePhase = async (args: BridgePhaseArgs): Promise<boolean> => {
+  const {
+    view,
+    text,
+    state,
+    classificationProfile,
+    sourceFileType,
+    finishRun,
+  } = args;
+  const bridgeStart = performance.now();
+  const shouldFetch =
+    !state.schemaElements &&
+    (classificationProfile === "paste" ||
+      sourceFileType === "doc" ||
+      sourceFileType === "docx" ||
+      sourceFileType === "pdf");
+
+  if (!shouldFetch) {
+    if (
+      state.schemaElements &&
+      state.schemaElements.length > 0 &&
+      classificationProfile !== "paste"
+    ) {
+      pipelineRecorder.logBridgeCall(
+        classificationProfile ?? "file-import",
+        state.schemaElements.length,
+        Math.round(performance.now() - bridgeStart)
+      );
+    }
+    return true;
+  }
+
+  const bridgeSourceType =
+    classificationProfile === "paste"
+      ? "paste"
+      : sourceFileType === "doc" ||
+          sourceFileType === "docx" ||
+          sourceFileType === "pdf"
+        ? sourceFileType
+        : "paste";
+
+  const unifiedResult = await fetchUnifiedTextExtract(text, bridgeSourceType);
+  state.schemaElements = unifiedResult.schemaElements;
+  state.classificationText =
+    unifiedResult.rawText.trim().length > 0 ? unifiedResult.rawText : text;
+  state.sourceMethod = state.sourceMethod ?? "karank-engine-bridge";
+
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "engine-text-extract-success",
+    sourceType: bridgeSourceType,
+    elementCount: state.schemaElements.length,
+  });
+  pipelineRecorder.logBridgeCall(
+    bridgeSourceType,
+    state.schemaElements.length,
+    Math.round(performance.now() - bridgeStart)
+  );
+
+  const normalizedKarank = normalizeComparableText(state.classificationText);
+  const normalizedPreview = normalizeComparableText(state.previewText);
+  if (normalizedKarank.length > 0 && normalizedKarank !== normalizedPreview) {
+    const karankDrafts = buildLiteralPreviewDrafts(state.classificationText);
+    const karankRender = renderClassifiedDraftsToView(
+      view,
+      karankDrafts,
+      state.activeRange,
+      "karank-visible"
+    );
+    if (!karankRender) {
+      finishRun(
+        "karank",
+        "تعذر عرض نسخة محرك التصنيف الوسيط داخل المحرر.",
+        "KARANK_RENDER_FAILED"
+      );
+      return false;
+    }
+    state.activeRange = { from: karankRender.from, to: karankRender.to };
+    state.previewDocumentSignature = karankRender.documentSignature;
+    pipelineRecorder.trackFile("paste-classifier.ts");
+    pipelineRecorder.snapshot("karank-visible", karankDrafts, {
+      nodesRendered: karankRender.nodesRendered,
+      visibleStage: "karank",
+    });
+  }
+
+  return true;
+};
+
+interface ClassifyRenderPhaseArgs {
+  view: EditorView;
+  state: FlowState;
+  options: ApplyPasteClassifierFlowOptions | undefined;
+  classificationProfile: string | undefined;
+  sourceFileType: string | undefined;
+  finishRun: FinishFn;
+}
+
+/** Phase 3: local classification + render-first */
+const runClassifyAndRenderPhase = (
+  args: ClassifyRenderPhaseArgs
+): ClassifiedDraftWithId[] | "skipped" | null => {
+  const {
+    view,
+    state,
+    options,
+    classificationProfile,
+    sourceFileType,
+    finishRun,
+  } = args;
+  const initiallyClassified = classifyLines(state.classificationText, {
+    ...(classificationProfile !== undefined && { classificationProfile }),
+    ...(sourceFileType !== undefined && { sourceFileType }),
+    ...(state.sourceMethod !== undefined && {
+      sourceMethod: state.sourceMethod,
+    }),
+    ...(options?.structuredHints !== undefined && {
+      structuredHints: options.structuredHints,
+    }),
+    ...(state.schemaElements !== undefined && {
+      schemaElements: state.schemaElements,
+    }),
+  });
+  const locallyReviewed = applyAgentReview(
+    initiallyClassified,
+    options?.agentReview
+  );
+
+  if (locallyReviewed.length === 0 || view.isDestroyed) {
+    finishRun(
+      "local-classification",
+      view.isDestroyed
+        ? "توقف مسار التصنيف لأن المحرر لم يعد نشطاً."
+        : "لم ينتج مسار التصنيف أي عناصر قابلة للعرض.",
+      view.isDestroyed ? "EDITOR_VIEW_DESTROYED" : "EMPTY_CLASSIFICATION"
+    );
+    return null;
+  }
+
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "frontend-classify-complete",
+    totalLines: locallyReviewed.length,
+    sourceFileType,
+    sourceMethod: state.sourceMethod,
+  });
+
+  if (
+    state.previewDocumentSignature &&
+    computeDocumentSignature(view) !== state.previewDocumentSignature
+  ) {
+    agentReviewLogger.telemetry("paste-pipeline-stage", {
+      stage: "render-first-skipped",
+      reason: "document-changed-after-preview",
+    });
+    return "skipped";
+  }
+
+  const renderResult = renderClassifiedDraftsToView(
+    view,
+    locallyReviewed,
+    state.activeRange,
+    "render-first"
+  );
+  if (!renderResult) {
+    finishRun(
+      "local-classification",
+      "تعذر عرض النسخة المصنفة داخل المحرر.",
+      "CLASSIFIED_RENDER_FAILED"
+    );
+    return null;
+  }
+
+  agentReviewLogger.telemetry("paste-pipeline-stage", {
+    stage: "frontend-render-first",
+    nodesApplied: renderResult.nodesRendered,
+  });
+  pipelineRecorder.trackFile("paste-classifier.ts");
+  pipelineRecorder.snapshot("render-first", locallyReviewed, {
+    nodesRendered: renderResult.nodesRendered,
+    visibleStage: "local-classified",
+  });
+
+  return locallyReviewed;
+};
+
 /**
  * تطبيق تصنيف اللصق على العرض بنمط Render-First.
  *
@@ -304,35 +656,24 @@ export const applyPasteClassifierFlowToView = async (
     return false;
   }
 
-  const textHash = simpleHash(text);
-  const startNow = performance.now();
-  if (isDuplicateOfRecentText(textHash, startNow)) {
-    agentReviewLogger.telemetry("pipeline-dedup-skip", { hash: textHash });
+  const state = buildFlowState(view, text, options);
+  if (isDuplicateOfRecentText(state.textHash, state.startNow)) {
+    agentReviewLogger.telemetry("pipeline-dedup-skip", {
+      hash: state.textHash,
+    });
     return false;
   }
 
+  const classificationProfile = options?.classificationProfile;
+  const sourceFileType = options?.sourceFileType;
+
   markPipelineStarted();
   try {
-    const customReview = options?.agentReview;
-    const classificationProfile = options?.classificationProfile;
-    const sourceFileType = options?.sourceFileType;
-    let sourceMethod = options?.sourceMethod;
-    const structuredHints = options?.structuredHints;
-    let schemaElements = options?.schemaElements;
-    let classificationText = text;
-    const previewText =
-      typeof options?.rawExtractedText === "string" &&
-      options.rawExtractedText.trim().length > 0
-        ? options.rawExtractedText
-        : text;
-    const from = options?.from ?? view.state.selection.from;
-    const to = options?.to ?? view.state.selection.to;
-
     pipelineRecorder.startRun(
       classificationProfile ?? "paste",
       {
-        textLength: previewText.length,
-        lineCount: normalizePreviewText(previewText).split("\n").length,
+        textLength: state.previewText.length,
+        lineCount: normalizePreviewText(state.previewText).split("\n").length,
       },
       {
         ...(classificationProfile === "paste"
@@ -347,203 +688,54 @@ export const applyPasteClassifierFlowToView = async (
       }
     );
 
-    const finishRunWithFailure = (
-      stage: string,
-      message: string,
-      code: string
-    ): void => {
+    const finishRun: FinishFn = (stage, message, code) => {
       pipelineRecorder.logRunFailure(stage, message, code);
       pipelineRecorder.finishRun();
     };
 
-    let activeRange = { from, to };
-    let previewDocumentSignature: string | null = null;
-    const previewDrafts = buildLiteralPreviewDrafts(previewText);
-    if (previewDrafts.length > 0) {
-      const previewRender = renderClassifiedDraftsToView(
-        view,
-        previewDrafts,
-        activeRange,
-        "preview-literal"
-      );
-      if (!previewRender) {
-        finishRunWithFailure(
-          "local-classification",
-          "تعذر عرض المعاينة الأولية داخل المحرر.",
-          "PREVIEW_RENDER_FAILED"
-        );
-        return false;
-      }
-      activeRange = { from: previewRender.from, to: previewRender.to };
-      previewDocumentSignature = previewRender.documentSignature;
-      pipelineRecorder.trackFile("paste-classifier.ts");
-      pipelineRecorder.snapshot("preview-literal", previewDrafts, {
-        nodesRendered: previewRender.nodesRendered,
-        visibleStage:
-          classificationProfile === "paste" ? "user-paste" : "extracted",
-        firstVisibleSourceKind:
-          classificationProfile === "paste"
-            ? "user-paste"
-            : (options?.firstVisibleSourceKind ??
-              (sourceFileType === "pdf" ? "ocr" : "direct-extraction")),
-      });
-    }
-
-    const bridgeStart = performance.now();
-    const shouldFetchKarankBridge =
-      !schemaElements &&
-      (classificationProfile === "paste" ||
-        sourceFileType === "doc" ||
-        sourceFileType === "docx" ||
-        sourceFileType === "pdf");
-
-    if (shouldFetchKarankBridge) {
-      const bridgeSourceType =
-        classificationProfile === "paste"
-          ? "paste"
-          : sourceFileType === "doc" ||
-              sourceFileType === "docx" ||
-              sourceFileType === "pdf"
-            ? sourceFileType
-            : "paste";
-      const unifiedResult = await fetchUnifiedTextExtract(
-        text,
-        bridgeSourceType
-      );
-      schemaElements = unifiedResult.schemaElements;
-      classificationText =
-        unifiedResult.rawText.trim().length > 0 ? unifiedResult.rawText : text;
-      sourceMethod = sourceMethod ?? "karank-engine-bridge";
-
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "engine-text-extract-success",
-        sourceType: bridgeSourceType,
-        elementCount: schemaElements.length,
-      });
-      pipelineRecorder.logBridgeCall(
-        bridgeSourceType,
-        schemaElements.length,
-        Math.round(performance.now() - bridgeStart)
-      );
-    }
-
-    if (
-      schemaElements &&
-      schemaElements.length > 0 &&
-      classificationProfile !== "paste"
-    ) {
-      pipelineRecorder.logBridgeCall(
-        classificationProfile ?? "file-import",
-        schemaElements.length,
-        Math.round(performance.now() - bridgeStart)
-      );
-    }
-
-    const normalizedKarankText = normalizeComparableText(classificationText);
-    const normalizedPreviewText = normalizeComparableText(previewText);
-    const shouldRenderKarankVisible =
-      normalizedKarankText.length > 0 &&
-      normalizedKarankText !== normalizedPreviewText;
-
-    if (shouldRenderKarankVisible) {
-      const karankPreviewDrafts = buildLiteralPreviewDrafts(classificationText);
-      const karankRender = renderClassifiedDraftsToView(
-        view,
-        karankPreviewDrafts,
-        activeRange,
-        "karank-visible"
-      );
-      if (!karankRender) {
-        finishRunWithFailure(
-          "karank",
-          "تعذر عرض نسخة محرك التصنيف الوسيط داخل المحرر.",
-          "KARANK_RENDER_FAILED"
-        );
-        return previewDrafts.length > 0;
-      }
-
-      activeRange = { from: karankRender.from, to: karankRender.to };
-      previewDocumentSignature = karankRender.documentSignature;
-
-      pipelineRecorder.trackFile("paste-classifier.ts");
-      pipelineRecorder.snapshot("karank-visible", karankPreviewDrafts, {
-        nodesRendered: karankRender.nodesRendered,
-        visibleStage: "karank",
-      });
-    }
-
-    const initiallyClassified = classifyLines(classificationText, {
-      ...(classificationProfile !== undefined && { classificationProfile }),
-      ...(sourceFileType !== undefined && { sourceFileType }),
-      ...(sourceMethod !== undefined && { sourceMethod }),
-      ...(structuredHints !== undefined && { structuredHints }),
-      ...(schemaElements !== undefined && { schemaElements }),
-    });
-    const locallyReviewed = applyAgentReview(initiallyClassified, customReview);
-
-    if (locallyReviewed.length === 0 || view.isDestroyed) {
-      finishRunWithFailure(
-        "local-classification",
-        view.isDestroyed
-          ? "توقف مسار التصنيف لأن المحرر لم يعد نشطاً."
-          : "لم ينتج مسار التصنيف أي عناصر قابلة للعرض.",
-        view.isDestroyed ? "EDITOR_VIEW_DESTROYED" : "EMPTY_CLASSIFICATION"
-      );
-      return false;
-    }
-
-    agentReviewLogger.telemetry("paste-pipeline-stage", {
-      stage: "frontend-classify-complete",
-      totalLines: locallyReviewed.length,
+    const previewOk = runPreviewPhase({
+      view,
+      state,
+      classificationProfile,
       sourceFileType,
-      sourceMethod,
+      firstVisibleSourceKind: options?.firstVisibleSourceKind,
+      finishRun,
+    });
+    if (!previewOk) return false;
+
+    const bridgeOk = await runBridgePhase({
+      view,
+      text,
+      state,
+      classificationProfile,
+      sourceFileType,
+      finishRun,
+    });
+    if (!bridgeOk) return state.hasPreviewDrafts;
+
+    const classifyResult = runClassifyAndRenderPhase({
+      view,
+      state,
+      options,
+      classificationProfile,
+      sourceFileType,
+      finishRun,
     });
 
-    if (
-      previewDocumentSignature &&
-      computeDocumentSignature(view) !== previewDocumentSignature
-    ) {
-      agentReviewLogger.telemetry("paste-pipeline-stage", {
-        stage: "render-first-skipped",
-        reason: "document-changed-after-preview",
-      });
-      recordProcessedText(textHash, performance.now());
+    if (classifyResult === "skipped") {
+      recordProcessedText(state.textHash, performance.now());
       pipelineRecorder.finishRun();
       return true;
     }
 
-    const renderResult = renderClassifiedDraftsToView(
-      view,
-      locallyReviewed,
-      activeRange,
-      "render-first"
-    );
-    if (!renderResult) {
-      finishRunWithFailure(
-        "local-classification",
-        "تعذر عرض النسخة المصنفة داخل المحرر.",
-        "CLASSIFIED_RENDER_FAILED"
-      );
-      return previewDrafts.length > 0;
-    }
-
-    agentReviewLogger.telemetry("paste-pipeline-stage", {
-      stage: "frontend-render-first",
-      nodesApplied: renderResult.nodesRendered,
-    });
-
-    pipelineRecorder.trackFile("paste-classifier.ts");
-    pipelineRecorder.snapshot("render-first", locallyReviewed, {
-      nodesRendered: renderResult.nodesRendered,
-      visibleStage: "local-classified",
-    });
+    if (!classifyResult) return state.hasPreviewDrafts;
 
     const importOpId = generateItemId();
     void runFinalReviewPipeline(
       view,
-      locallyReviewed,
+      classifyResult,
       importOpId,
-      sourceMethod
+      state.sourceMethod
     ).catch((error) => {
       const message = error instanceof Error ? error.message : String(error);
       agentReviewLogger.error("final-review-pipeline-error", {
@@ -551,7 +743,7 @@ export const applyPasteClassifierFlowToView = async (
       });
     });
 
-    recordProcessedText(textHash, performance.now());
+    recordProcessedText(state.textHash, performance.now());
     return true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -559,7 +751,7 @@ export const applyPasteClassifierFlowToView = async (
       error: message,
     });
     pipelineRecorder.logRunFailure("local-classification", message);
-    recordProcessedText(textHash, performance.now());
+    recordProcessedText(state.textHash, performance.now());
     pipelineRecorder.finishRun();
     return true;
   } finally {

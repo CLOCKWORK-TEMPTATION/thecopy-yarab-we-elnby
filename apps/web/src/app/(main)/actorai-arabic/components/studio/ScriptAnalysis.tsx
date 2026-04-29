@@ -36,6 +36,129 @@ interface ScriptAnalysisProps {
   analyzeScript: () => void;
 }
 
+function getEmotionEmoji(emotion: string): string {
+  if (emotion === "شوق") return "💭";
+  if (emotion === "أمل") return "✨";
+  return "❤️";
+}
+
+interface AnalysisObjectivesProps {
+  objectives: AnalysisResult["objectives"];
+}
+
+const AnalysisObjectives: React.FC<AnalysisObjectivesProps> = ({
+  objectives,
+}) => (
+  <div>
+    <h4 className="font-semibold mb-2 text-lg">الأهداف:</h4>
+    <div className="space-y-2 bg-white p-4 rounded-[22px]">
+      <p>
+        <strong>الهدف الرئيسي:</strong> {objectives.main}
+      </p>
+      <p>
+        <strong>هدف المشهد:</strong> {objectives.scene}
+      </p>
+      <div>
+        <strong>النبضات:</strong>
+        <ul className="list-disc list-inside mt-1">
+          {objectives.beats.map((beat, idx) => (
+            <li key={idx}>{beat}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+);
+
+interface AnalysisObstaclesProps {
+  obstacles: AnalysisResult["obstacles"];
+}
+
+const AnalysisObstacles: React.FC<AnalysisObstaclesProps> = ({ obstacles }) => (
+  <div>
+    <h4 className="font-semibold mb-2 text-lg">العقبات:</h4>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="bg-white/[0.04] p-4 rounded-[22px]">
+        <strong>داخلية:</strong>
+        <ul className="list-disc list-inside mt-1">
+          {obstacles.internal.map((obs, idx) => (
+            <li key={idx}>{obs}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="bg-white/[0.04] p-4 rounded-[22px]">
+        <strong>خارجية:</strong>
+        <ul className="list-disc list-inside mt-1">
+          {obstacles.external.map((obs, idx) => (
+            <li key={idx}>{obs}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+);
+
+interface EmotionalArcProps {
+  emotionalArc: AnalysisResult["emotionalArc"];
+}
+
+const EmotionalArc: React.FC<EmotionalArcProps> = ({ emotionalArc }) => (
+  <div>
+    <h4 className="font-semibold mb-2 text-lg">المسار العاطفي:</h4>
+    <div className="flex gap-4 flex-wrap">
+      {emotionalArc.map((arc, idx) => (
+        <div key={idx} className="bg-white p-4 rounded-[22px] text-center">
+          <div className="text-2xl mb-2">{getEmotionEmoji(arc.emotion)}</div>
+          <Badge variant="outline">{arc.emotion}</Badge>
+          <Progress value={arc.intensity} className="mt-2 w-20" />
+          <span className="text-sm text-white/55">{arc.intensity}%</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+interface CoachingTipsProps {
+  coachingTips: AnalysisResult["coachingTips"];
+}
+
+const CoachingTips: React.FC<CoachingTipsProps> = ({ coachingTips }) => (
+  <div>
+    <h4 className="font-semibold mb-2 text-lg">💡 نصائح التدريب:</h4>
+    <ul className="space-y-2">
+      {coachingTips.map((tip, idx) => (
+        <li
+          key={idx}
+          className="flex items-start gap-2 bg-white p-3 rounded-[22px]"
+        >
+          <span className="text-green-500">✓</span>
+          {tip}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+interface AnalysisResultsProps {
+  analysisResult: AnalysisResult;
+}
+
+const AnalysisResults: React.FC<AnalysisResultsProps> = ({
+  analysisResult,
+}) => (
+  <Card className="bg-blue-50 mt-6">
+    <CardHeader>
+      <CardTitle className="text-blue-900">🎯 نتائج التحليل</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-6">
+      <AnalysisObjectives objectives={analysisResult.objectives} />
+      <AnalysisObstacles obstacles={analysisResult.obstacles} />
+      <EmotionalArc emotionalArc={analysisResult.emotionalArc} />
+      <CoachingTips coachingTips={analysisResult.coachingTips} />
+    </CardContent>
+  </Card>
+);
+
 export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
   scriptText,
   setScriptText,
@@ -55,7 +178,6 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* منطقة النص */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <Label>النص المسرحي/السينمائي</Label>
@@ -71,7 +193,6 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
           />
         </div>
 
-        {/* اختيار المنهجية */}
         <div className="space-y-2">
           <Label>منهجية التمثيل</Label>
           <Select
@@ -91,7 +212,6 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
           </Select>
         </div>
 
-        {/* زر التحليل */}
         <Button
           className="w-full"
           onClick={analyzeScript}
@@ -107,105 +227,7 @@ export const ScriptAnalysis: React.FC<ScriptAnalysisProps> = ({
           )}
         </Button>
 
-        {/* نتائج التحليل */}
-        {analysisResult && (
-          <Card className="bg-blue-50 mt-6">
-            <CardHeader>
-              <CardTitle className="text-blue-900">🎯 نتائج التحليل</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* الأهداف */}
-              <div>
-                <h4 className="font-semibold mb-2 text-lg">الأهداف:</h4>
-                <div className="space-y-2 bg-white p-4 rounded-[22px]">
-                  <p>
-                    <strong>الهدف الرئيسي:</strong>{" "}
-                    {analysisResult.objectives.main}
-                  </p>
-                  <p>
-                    <strong>هدف المشهد:</strong>{" "}
-                    {analysisResult.objectives.scene}
-                  </p>
-                  <div>
-                    <strong>النبضات:</strong>
-                    <ul className="list-disc list-inside mt-1">
-                      {analysisResult.objectives.beats.map((beat, idx) => (
-                        <li key={idx}>{beat}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* العقبات */}
-              <div>
-                <h4 className="font-semibold mb-2 text-lg">العقبات:</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/[0.04] p-4 rounded-[22px]">
-                    <strong>داخلية:</strong>
-                    <ul className="list-disc list-inside mt-1">
-                      {analysisResult.obstacles.internal.map((obs, idx) => (
-                        <li key={idx}>{obs}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="bg-white/[0.04] p-4 rounded-[22px]">
-                    <strong>خارجية:</strong>
-                    <ul className="list-disc list-inside mt-1">
-                      {analysisResult.obstacles.external.map((obs, idx) => (
-                        <li key={idx}>{obs}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* المسار العاطفي */}
-              <div>
-                <h4 className="font-semibold mb-2 text-lg">المسار العاطفي:</h4>
-                <div className="flex gap-4 flex-wrap">
-                  {analysisResult.emotionalArc.map((arc, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white p-4 rounded-[22px] text-center"
-                    >
-                      <div className="text-2xl mb-2">
-                        {arc.emotion === "شوق"
-                          ? "💭"
-                          : arc.emotion === "أمل"
-                            ? "✨"
-                            : "❤️"}
-                      </div>
-                      <Badge variant="outline">{arc.emotion}</Badge>
-                      <Progress value={arc.intensity} className="mt-2 w-20" />
-                      <span className="text-sm text-white/55">
-                        {arc.intensity}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* نصائح التدريب */}
-              <div>
-                <h4 className="font-semibold mb-2 text-lg">
-                  💡 نصائح التدريب:
-                </h4>
-                <ul className="space-y-2">
-                  {analysisResult.coachingTips.map((tip, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 bg-white p-3 rounded-[22px]"
-                    >
-                      <span className="text-green-500">✓</span>
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {analysisResult && <AnalysisResults analysisResult={analysisResult} />}
       </CardContent>
     </Card>
   </CardSpotlight>

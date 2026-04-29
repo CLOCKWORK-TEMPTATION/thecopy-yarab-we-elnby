@@ -71,9 +71,8 @@ const DEFAULT_METRICS: VoiceMetrics = {
   pauses: { count: 0, averageDuration: 0, isEffective: true, feedback: "" },
 };
 
-// ==================== دوال التحليل ====================
+// ==================== دوال التحليل (file-level) ====================
 
-// تحويل التردد إلى طبقة الصوت
 function analyzePitch(frequency: number): VoiceMetrics["pitch"] {
   if (frequency === 0) {
     return { value: 0, level: "medium", label: "لا يوجد صوت" };
@@ -88,7 +87,6 @@ function analyzePitch(frequency: number): VoiceMetrics["pitch"] {
   }
 }
 
-// تحليل مستوى الصوت
 function analyzeVolume(decibels: number): VoiceMetrics["volume"] {
   if (decibels < -50) {
     return { value: decibels, level: "quiet", label: "هادئ" };
@@ -99,7 +97,6 @@ function analyzeVolume(decibels: number): VoiceMetrics["volume"] {
   }
 }
 
-// تحليل سرعة الكلام
 function analyzeSpeechRate(wpm: number): VoiceMetrics["speechRate"] {
   if (wpm < 100) {
     return {
@@ -118,7 +115,6 @@ function analyzeSpeechRate(wpm: number): VoiceMetrics["speechRate"] {
   }
 }
 
-// تحليل وضوح المخارج
 function analyzeArticulation(clarity: number): VoiceMetrics["articulation"] {
   const score = Math.min(100, Math.max(0, clarity));
 
@@ -133,7 +129,6 @@ function analyzeArticulation(clarity: number): VoiceMetrics["articulation"] {
   }
 }
 
-// خوارزمية بسيطة للكشف عن تردد الصوت الأساسي (autocorrelation)
 function detectPitch(buffer: Float32Array, sampleRate: number): number {
   const SIZE = buffer.length;
   const MAX_SAMPLES = Math.floor(SIZE / 2);
@@ -143,14 +138,12 @@ function detectPitch(buffer: Float32Array, sampleRate: number): number {
   let foundGoodCorrelation = false;
   const correlations = new Array(MAX_SAMPLES);
 
-  // حساب RMS لتحديد إذا كان هناك صوت
   for (let i = 0; i < SIZE; i++) {
     const val = buffer[i] ?? 0;
     rms += val * val;
   }
   rms = Math.sqrt(rms / SIZE);
 
-  // إذا كان الصوت ضعيفاً جداً، لا يوجد طبقة صوت
   if (rms < 0.01) return 0;
 
   let lastCorrelation = 1;
@@ -186,6 +179,91 @@ function detectPitch(buffer: Float32Array, sampleRate: number): number {
   return 0;
 }
 
+// ─── Helper: compute wpm from word count and start time ───
+function computeWpm(wordCount: number, startTime: number): number {
+  const elapsedMinutes = (Date.now() - startTime) / 60000;
+  return elapsedMinutes > 0 ? Math.round(wordCount / elapsedMinutes) : 0;
+}
+
+// ─── Helper: compute pauses feedback string ───
+function computePausesFeedback(avgPauseDuration: number): string {
+  if (avgPauseDuration > 2000) return "الوقفات طويلة جداً، حاول تقصيرها";
+  if (avgPauseDuration > 500) return "وقفات درامية جيدة! 👍";
+  return "أضف وقفات درامية لتعزيز المعنى";
+}
+
+// ─── Helper: compute breathing warning ───
+function computeBreathingWarning(
+  lastBreathTime: number,
+  rms: number
+): string | null {
+  return Date.now() - lastBreathTime > 15000 && rms > 0.01
+    ? "⚠️ تذكر أن تتنفس! لا تحبس نفسك"
+    : null;
+}
+
+// ─── Helper: detect silence events and update tracking refs ───
+interface SilenceTrackers {
+  silenceStartRef: React.MutableRefObject<number>;
+  pauseCountRef: React.MutableRefObject<number>;
+  pauseDurationsRef: React.MutableRefObject<number[]>;
+  wordCountRef: React.MutableRefObject<number>;
+  lastSpeechTimeRef: React.MutableRefObject<number>;
+  breathCountRef: React.MutableRefObject<number>;
+  lastBreathTimeRef: React.MutableRefObject<number>;
+}
+
+function processSilenceTracking(
+  isSilent: boolean,
+  frequency: number,
+  trackers: SilenceTrackers
+): void {
+  const now = Date.now();
+  const {
+    silenceStartRef,
+    pauseCountRef,
+    pauseDurationsRef,
+    wordCountRef,
+    lastSpeechTimeRef,
+    breathCountRef,
+    lastBreathTimeRef,
+  } = trackers;
+
+  if (isSilent) {
+    if (silenceStartRef.current === 0) {
+      silenceStartRef.current = now;
+    }
+
+    const silenceDuration = now - silenceStartRef.current;
+
+    if (
+      silenceDuration > 300 &&
+      silenceDuration < 800 &&
+      lastBreathTimeRef.current + 2000 < now
+    ) {
+      breathCountRef.current++;
+      lastBreathTimeRef.current = now;
+    }
+
+    if (silenceDuration > 500 && lastSpeechTimeRef.current > 0) {
+      if (
+        pauseDurationsRef.current[pauseDurationsRef.current.length - 1] !==
+        silenceDuration
+      ) {
+        pauseCountRef.current++;
+        pauseDurationsRef.current.push(silenceDuration);
+      }
+    }
+  } else {
+    silenceStartRef.current = 0;
+    lastSpeechTimeRef.current = now;
+
+    if (frequency > 80) {
+      wordCountRef.current += 0.05;
+    }
+  }
+}
+
 // ==================== الـ Hook الرئيسي ====================
 
 export function useVoiceAnalytics() {
@@ -199,13 +277,11 @@ export function useVoiceAnalytics() {
     history: [],
   });
 
-  // مراجع للصوت
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // مراجع للتتبع
   const silenceStartRef = useRef<number>(0);
   const pauseCountRef = useRef<number>(0);
   const pauseDurationsRef = useRef<number[]>([]);
@@ -215,7 +291,6 @@ export function useVoiceAnalytics() {
   const breathCountRef = useRef<number>(0);
   const lastBreathTimeRef = useRef<number>(0);
 
-  // تحديث المقاييس
   const updateMetrics = useCallback(() => {
     if (!analyserRef.current || !audioContextRef.current) return;
 
@@ -227,7 +302,6 @@ export function useVoiceAnalytics() {
     analyser.getFloatTimeDomainData(dataArray);
     analyser.getByteFrequencyData(frequencyArray);
 
-    // حساب مستوى الصوت (RMS to dB)
     let sum = 0;
     for (let i = 0; i < bufferLength; i++) {
       const val = dataArray[i] ?? 0;
@@ -236,87 +310,41 @@ export function useVoiceAnalytics() {
     const rms = Math.sqrt(sum / bufferLength);
     const decibels = 20 * Math.log10(rms + 0.0001);
 
-    // الكشف عن تردد الصوت
     const frequency = detectPitch(
       dataArray,
       audioContextRef.current.sampleRate
     );
 
-    // الكشف عن الصمت والوقفات
-    const now = Date.now();
     const isSilent = rms < 0.01;
+    processSilenceTracking(isSilent, frequency, {
+      silenceStartRef,
+      pauseCountRef,
+      pauseDurationsRef,
+      wordCountRef,
+      lastSpeechTimeRef,
+      breathCountRef,
+      lastBreathTimeRef,
+    });
 
-    if (isSilent) {
-      if (silenceStartRef.current === 0) {
-        silenceStartRef.current = now;
-      }
+    const now = Date.now();
+    const wpm = computeWpm(wordCountRef.current, startTimeRef.current);
 
-      const silenceDuration = now - silenceStartRef.current;
-
-      // الكشف عن التنفس (صمت قصير بين 300-800ms)
-      if (
-        silenceDuration > 300 &&
-        silenceDuration < 800 &&
-        lastBreathTimeRef.current + 2000 < now
-      ) {
-        breathCountRef.current++;
-        lastBreathTimeRef.current = now;
-      }
-
-      // الكشف عن الوقفات الدرامية (أكثر من 500ms)
-      if (silenceDuration > 500 && lastSpeechTimeRef.current > 0) {
-        if (
-          pauseDurationsRef.current[pauseDurationsRef.current.length - 1] !==
-          silenceDuration
-        ) {
-          pauseCountRef.current++;
-          pauseDurationsRef.current.push(silenceDuration);
-        }
-      }
-    } else {
-      silenceStartRef.current = 0;
-      lastSpeechTimeRef.current = now;
-
-      // تقدير عدد الكلمات (تقريبي)
-      if (frequency > 80) {
-        wordCountRef.current += 0.05; // تقدير تقريبي
-      }
-    }
-
-    // حساب سرعة الكلام
-    const elapsedMinutes = (now - startTimeRef.current) / 60000;
-    const wpm =
-      elapsedMinutes > 0
-        ? Math.round(wordCountRef.current / elapsedMinutes)
-        : 0;
-
-    // حساب متوسط مدة الوقفات
     const avgPauseDuration =
       pauseDurationsRef.current.length > 0
         ? pauseDurationsRef.current.reduce((a, b) => a + b, 0) /
           pauseDurationsRef.current.length
         : 0;
 
-    // تحديد فعالية الوقفات
-    const pausesFeedback =
-      avgPauseDuration > 2000
-        ? "الوقفات طويلة جداً، حاول تقصيرها"
-        : avgPauseDuration > 500
-          ? "وقفات درامية جيدة! 👍"
-          : "أضف وقفات درامية لتعزيز المعنى";
+    const pausesFeedback = computePausesFeedback(avgPauseDuration);
+    const breathingWarning = computeBreathingWarning(
+      lastBreathTimeRef.current,
+      rms
+    );
 
-    // تنبيه التنفس
-    const breathingWarning =
-      now - lastBreathTimeRef.current > 15000 && rms > 0.01
-        ? "⚠️ تذكر أن تتنفس! لا تحبس نفسك"
-        : null;
-
-    // حساب وضوح المخارج (تقدير بناءً على spectral clarity)
     const spectralSum = frequencyArray.reduce((a, b) => a + b, 0);
     const spectralAvg = spectralSum / frequencyArray.length;
     const articulationScore = Math.min(100, (spectralAvg / 128) * 100);
 
-    // تحديث الحالة
     setState((prev) => ({
       ...prev,
       metrics: {
@@ -341,14 +369,11 @@ export function useVoiceAnalytics() {
       frequencyData: Array.from(frequencyArray.slice(0, 64)),
     }));
 
-    // استمرار التحليل
     animationFrameRef.current = requestAnimationFrame(updateMetrics);
   }, []);
 
-  // بدء الاستماع
   const startListening = useCallback(async () => {
     try {
-      // إعادة تعيين المتتبعات
       silenceStartRef.current = 0;
       pauseCountRef.current = 0;
       pauseDurationsRef.current = [];
@@ -358,7 +383,6 @@ export function useVoiceAnalytics() {
       breathCountRef.current = 0;
       lastBreathTimeRef.current = Date.now();
 
-      // الحصول على إذن الميكروفون
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -368,17 +392,14 @@ export function useVoiceAnalytics() {
       });
       streamRef.current = stream;
 
-      // إنشاء سياق الصوت
       const audioContext = new AudioContext();
       audioContextRef.current = audioContext;
 
-      // إنشاء المحلل
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0.8;
       analyserRef.current = analyser;
 
-      // توصيل الميكروفون بالمحلل
       const source = audioContext.createMediaStreamSource(stream);
       source.connect(analyser);
 
@@ -388,7 +409,6 @@ export function useVoiceAnalytics() {
         error: null,
       }));
 
-      // بدء التحليل
       updateMetrics();
     } catch (error) {
       setState((prev) => ({
@@ -398,15 +418,12 @@ export function useVoiceAnalytics() {
     }
   }, [updateMetrics]);
 
-  // إيقاف الاستماع
   const stopListening = useCallback(() => {
-    // إيقاف التحليل
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
 
-    // إغلاق سياق الصوت
     if (audioContextRef.current) {
       audioContextRef.current.close().catch(() => {
         // لا نعيد رمي خطأ إغلاق سياق الصوت أثناء إيقاف الاستماع.
@@ -414,13 +431,11 @@ export function useVoiceAnalytics() {
       audioContextRef.current = null;
     }
 
-    // إيقاف البث
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
 
-    // حفظ المقاييس في التاريخ + إرسالها للباك إند بشكل best-effort
     setState((prev) => {
       postToBackend("/api/public/actorai/voice-analytics", prev.metrics, {
         bestEffort: true,
@@ -436,7 +451,6 @@ export function useVoiceAnalytics() {
     });
   }, []);
 
-  // إعادة التعيين
   const reset = useCallback(() => {
     stopListening();
     setState({
@@ -450,7 +464,6 @@ export function useVoiceAnalytics() {
     });
   }, [stopListening]);
 
-  // تنظيف عند إزالة المكون
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {

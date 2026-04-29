@@ -54,6 +54,376 @@ const AR_MODE_BY_FEATURE_ID: Record<string, ARMode> = {
   gesture_control: "gestures",
 };
 
+// ─── Sub-components ───
+
+interface ARPreviewProps {
+  arMode: ARMode;
+  teleprompterSettings: TeleprompterSettings;
+  blockingMarks: BlockingMark[];
+  cameraSettings: CameraEyeSettings;
+  holographicPartner: HolographicPartner;
+}
+
+function ARPreviewContent({
+  arMode,
+  teleprompterSettings,
+  blockingMarks,
+  cameraSettings,
+  holographicPartner,
+}: ARPreviewProps) {
+  if (arMode === "teleprompter") {
+    return (
+      <div
+        className="absolute left-1/2 transform -translate-x-1/2 max-w-lg p-6 bg-black/60 rounded-xl border border-cyan-500/50 backdrop-blur"
+        style={{
+          top:
+            teleprompterSettings.position === "top"
+              ? "10%"
+              : teleprompterSettings.position === "center"
+                ? "50%"
+                : "80%",
+          transform:
+            teleprompterSettings.position === "center"
+              ? "translate(-50%, -50%)"
+              : "translateX(-50%)",
+          opacity: teleprompterSettings.opacity / 100,
+          fontSize: `${teleprompterSettings.fontSize}px`,
+        }}
+      >
+        <p className="text-cyan-400 text-center leading-relaxed">
+          يا ليلى، يا قمر الليل، أنتِ نور عيني وروحي.
+          <br />
+          كيف أستطيع أن أعيش بعيداً عنكِ؟
+        </p>
+      </div>
+    );
+  }
+
+  if (arMode === "blocking") {
+    return (
+      <>
+        {blockingMarks.map((mark) => (
+          <div
+            key={mark.id}
+            className="absolute transform -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
+          >
+            <div
+              className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-white font-bold shadow-lg"
+              style={{
+                borderColor: mark.color,
+                backgroundColor: `${mark.color}40`,
+              }}
+            >
+              {mark.label}
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  if (arMode === "camera") {
+    return (
+      <div className="absolute inset-4 border-4 border-yellow-500/70 rounded-[22px]">
+        <div className="absolute top-2 left-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
+          {SHOT_TYPES.find((s) => s.id === cameraSettings.shotType)?.name}
+        </div>
+        <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
+          {cameraSettings.aspectRatio}
+        </div>
+        <div className="absolute bottom-2 left-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
+          {cameraSettings.focalLength}mm
+        </div>
+      </div>
+    );
+  }
+
+  if (arMode === "partner") {
+    return (
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+        <div className="text-8xl mb-4">👤</div>
+        <div className="bg-purple-900/80 px-4 py-2 rounded-[22px] backdrop-blur">
+          <p className="text-purple-200 font-bold">
+            {holographicPartner.character}
+          </p>
+          <p className="text-purple-300 text-sm">
+            العاطفة: {holographicPartner.emotion}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (arMode === "gestures") {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="text-center text-cyan-300">👁️ تتبع العين</div>
+          <div className="text-center text-green-300">🤚 تتبع اليد</div>
+          <div className="text-center text-yellow-300">🗣️ تتبع الرأس</div>
+          <div className="text-center text-red-300">🎙️ أوامر صوتية</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-8xl mb-6 animate-bounce">🥽</div>
+        <h3 className="text-2xl font-bold text-white mb-4">
+          جاهز لتجربة AR/MR
+        </h3>
+        <p className="text-white/55 mb-6 max-w-md">
+          اختر أحد الأدوات من الأعلى للبدء في إعداد بيئة التدريب الغامرة
+        </p>
+      </div>
+    </div>
+  );
+}
+
+interface SidebarSettingsProps {
+  arMode: ARMode;
+  teleprompterSettings: TeleprompterSettings;
+  setTeleprompterSettings: React.Dispatch<
+    React.SetStateAction<TeleprompterSettings>
+  >;
+  blockingMarks: BlockingMark[];
+  setBlockingMarks: React.Dispatch<React.SetStateAction<BlockingMark[]>>;
+  cameraSettings: CameraEyeSettings;
+  setCameraSettings: React.Dispatch<React.SetStateAction<CameraEyeSettings>>;
+  holographicPartner: HolographicPartner;
+  setHolographicPartner: React.Dispatch<
+    React.SetStateAction<HolographicPartner>
+  >;
+  activeGestures: GestureControl[];
+  setActiveGestures: React.Dispatch<React.SetStateAction<GestureControl[]>>;
+}
+
+function TeleprompterSettings({
+  teleprompterSettings,
+  setTeleprompterSettings,
+}: Pick<
+  SidebarSettingsProps,
+  "teleprompterSettings" | "setTeleprompterSettings"
+>) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="text-white">📜 إعدادات Teleprompter</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-white">
+              سرعة التمرير: {teleprompterSettings.speed}%
+            </Label>
+            <input
+              type="range"
+              min="10"
+              max="100"
+              value={teleprompterSettings.speed}
+              onChange={(e) =>
+                setTeleprompterSettings((prev) => ({
+                  ...prev,
+                  speed: parseInt(e.target.value, 10),
+                }))
+              }
+              className="w-full mt-2 accent-white"
+            />
+          </div>
+          <div>
+            <Label className="text-white">
+              حجم الخط: {teleprompterSettings.fontSize}px
+            </Label>
+            <input
+              type="range"
+              min="14"
+              max="48"
+              value={teleprompterSettings.fontSize}
+              onChange={(e) =>
+                setTeleprompterSettings((prev) => ({
+                  ...prev,
+                  fontSize: parseInt(e.target.value, 10),
+                }))
+              }
+              className="w-full mt-2 accent-white"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+function BlockingSettings({
+  blockingMarks,
+  setBlockingMarks,
+}: Pick<SidebarSettingsProps, "blockingMarks" | "setBlockingMarks">) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="text-white">🎯 علامات Blocking</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {blockingMarks.map((mark, idx) => (
+            <div
+              key={mark.id}
+              className="flex items-center gap-3 p-3 border border-white/8 rounded-[22px] bg-black/18"
+            >
+              <div
+                className="w-8 h-8 rounded-full"
+                style={{ backgroundColor: mark.color }}
+              />
+              <Input
+                value={mark.label}
+                onChange={(e) =>
+                  setBlockingMarks((prev) =>
+                    prev.map((item, i) =>
+                      i === idx ? { ...item, label: e.target.value } : item
+                    )
+                  )
+                }
+                className="text-sm bg-black/22 border-white/8 text-white"
+              />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+function CameraSettings({
+  cameraSettings,
+  setCameraSettings,
+}: Pick<SidebarSettingsProps, "cameraSettings" | "setCameraSettings">) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="text-white">📷 عين الكاميرا</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-white">نوع اللقطة</Label>
+            <Select
+              value={cameraSettings.shotType}
+              onValueChange={(val) =>
+                setCameraSettings((prev) => ({
+                  ...prev,
+                  shotType: val as CameraEyeSettings["shotType"],
+                }))
+              }
+            >
+              <SelectTrigger className="mt-2 bg-black/18 border-white/8 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SHOT_TYPES.map((shot) => (
+                  <SelectItem key={shot.id} value={shot.id}>
+                    {shot.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+function PartnerSettings({
+  holographicPartner,
+  setHolographicPartner,
+}: Pick<SidebarSettingsProps, "holographicPartner" | "setHolographicPartner">) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="text-white">👤 الشريك الهولوغرافي</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-white">اسم الشخصية</Label>
+            <Input
+              value={holographicPartner.character}
+              onChange={(e) =>
+                setHolographicPartner((prev) => ({
+                  ...prev,
+                  character: e.target.value,
+                }))
+              }
+              className="mt-2 bg-black/18 border-white/8 text-white placeholder-white/45"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+function GesturesSettings({
+  activeGestures,
+  setActiveGestures,
+}: Pick<SidebarSettingsProps, "activeGestures" | "setActiveGestures">) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="text-white">👁️ التحكم بالإيماءات</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {activeGestures.map((gesture, idx) => (
+            <div
+              key={`${gesture.type}-${idx}`}
+              className={`flex items-center justify-between p-3 border rounded-[22px] ${gesture.enabled ? "bg-green-600/20 border-green-500/30" : "bg-black/18 border-white/8"}`}
+            >
+              <span className="text-sm text-white/85">{gesture.action}</span>
+              <Button
+                size="sm"
+                variant={gesture.enabled ? "default" : "outline"}
+                onClick={() =>
+                  setActiveGestures((prev) =>
+                    prev.map((g, i) =>
+                      i === idx ? { ...g, enabled: !g.enabled } : g
+                    )
+                  )
+                }
+                className={
+                  gesture.enabled
+                    ? ""
+                    : "border-white/20 text-white hover:bg-white/8"
+                }
+              >
+                {gesture.enabled ? "✓" : "○"}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+function ARSidebar(props: SidebarSettingsProps) {
+  const { arMode } = props;
+  return (
+    <div className="space-y-6">
+      {arMode === "teleprompter" && <TeleprompterSettings {...props} />}
+      {arMode === "blocking" && <BlockingSettings {...props} />}
+      {arMode === "camera" && <CameraSettings {...props} />}
+      {arMode === "partner" && <PartnerSettings {...props} />}
+      {arMode === "gestures" && <GesturesSettings {...props} />}
+    </div>
+  );
+}
+
+// ─── Main component ───
+
 export function ARTrainingView() {
   const { showNotification } = useApp();
 
@@ -169,119 +539,13 @@ export function ARTrainingView() {
                     />
                   </div>
 
-                  {arMode === "teleprompter" && (
-                    <div
-                      className="absolute left-1/2 transform -translate-x-1/2 max-w-lg p-6 bg-black/60 rounded-xl border border-cyan-500/50 backdrop-blur"
-                      style={{
-                        top:
-                          teleprompterSettings.position === "top"
-                            ? "10%"
-                            : teleprompterSettings.position === "center"
-                              ? "50%"
-                              : "80%",
-                        transform:
-                          teleprompterSettings.position === "center"
-                            ? "translate(-50%, -50%)"
-                            : "translateX(-50%)",
-                        opacity: teleprompterSettings.opacity / 100,
-                        fontSize: `${teleprompterSettings.fontSize}px`,
-                      }}
-                    >
-                      <p className="text-cyan-400 text-center leading-relaxed">
-                        يا ليلى، يا قمر الليل، أنتِ نور عيني وروحي.
-                        <br />
-                        كيف أستطيع أن أعيش بعيداً عنكِ؟
-                      </p>
-                    </div>
-                  )}
-
-                  {arMode === "blocking" && (
-                    <>
-                      {blockingMarks.map((mark) => (
-                        <div
-                          key={mark.id}
-                          className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                          style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
-                        >
-                          <div
-                            className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-white font-bold shadow-lg"
-                            style={{
-                              borderColor: mark.color,
-                              backgroundColor: `${mark.color}40`,
-                            }}
-                          >
-                            {mark.label}
-                          </div>
-                        </div>
-                      ))}
-                    </>
-                  )}
-
-                  {arMode === "camera" && (
-                    <div className="absolute inset-4 border-4 border-yellow-500/70 rounded-[22px]">
-                      <div className="absolute top-2 left-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
-                        {
-                          SHOT_TYPES.find(
-                            (s) => s.id === cameraSettings.shotType
-                          )?.name
-                        }
-                      </div>
-                      <div className="absolute top-2 right-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
-                        {cameraSettings.aspectRatio}
-                      </div>
-                      <div className="absolute bottom-2 left-2 bg-black/70 px-3 py-1 rounded text-yellow-400 text-sm">
-                        {cameraSettings.focalLength}mm
-                      </div>
-                    </div>
-                  )}
-
-                  {arMode === "partner" && (
-                    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                      <div className="text-8xl mb-4">👤</div>
-                      <div className="bg-purple-900/80 px-4 py-2 rounded-[22px] backdrop-blur">
-                        <p className="text-purple-200 font-bold">
-                          {holographicPartner.character}
-                        </p>
-                        <p className="text-purple-300 text-sm">
-                          العاطفة: {holographicPartner.emotion}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {arMode === "gestures" && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="text-center text-cyan-300">
-                          👁️ تتبع العين
-                        </div>
-                        <div className="text-center text-green-300">
-                          🤚 تتبع اليد
-                        </div>
-                        <div className="text-center text-yellow-300">
-                          🗣️ تتبع الرأس
-                        </div>
-                        <div className="text-center text-red-300">
-                          🎙️ أوامر صوتية
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {arMode === "setup" && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-8xl mb-6 animate-bounce">🥽</div>
-                        <h3 className="text-2xl font-bold text-white mb-4">
-                          جاهز لتجربة AR/MR
-                        </h3>
-                        <p className="text-white/55 mb-6 max-w-md">
-                          اختر أحد الأدوات من الأعلى للبدء في إعداد بيئة التدريب
-                          الغامرة
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <ARPreviewContent
+                    arMode={arMode}
+                    teleprompterSettings={teleprompterSettings}
+                    blockingMarks={blockingMarks}
+                    cameraSettings={cameraSettings}
+                    holographicPartner={holographicPartner}
+                  />
                 </div>
 
                 <div className="mt-6 flex justify-center gap-4">
@@ -315,199 +579,19 @@ export function ARTrainingView() {
           </CardSpotlight>
         </div>
 
-        <div className="space-y-6">
-          {arMode === "teleprompter" && (
-            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-              <Card className="bg-transparent border-0">
-                <CardHeader>
-                  <CardTitle className="text-white">
-                    📜 إعدادات Teleprompter
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-white">
-                      سرعة التمرير: {teleprompterSettings.speed}%
-                    </Label>
-                    <input
-                      type="range"
-                      min="10"
-                      max="100"
-                      value={teleprompterSettings.speed}
-                      onChange={(e) =>
-                        setTeleprompterSettings((prev) => ({
-                          ...prev,
-                          speed: parseInt(e.target.value, 10),
-                        }))
-                      }
-                      className="w-full mt-2 accent-white"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-white">
-                      حجم الخط: {teleprompterSettings.fontSize}px
-                    </Label>
-                    <input
-                      type="range"
-                      min="14"
-                      max="48"
-                      value={teleprompterSettings.fontSize}
-                      onChange={(e) =>
-                        setTeleprompterSettings((prev) => ({
-                          ...prev,
-                          fontSize: parseInt(e.target.value, 10),
-                        }))
-                      }
-                      className="w-full mt-2 accent-white"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </CardSpotlight>
-          )}
-
-          {arMode === "blocking" && (
-            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-              <Card className="bg-transparent border-0">
-                <CardHeader>
-                  <CardTitle className="text-white">
-                    🎯 علامات Blocking
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {blockingMarks.map((mark, idx) => (
-                    <div
-                      key={mark.id}
-                      className="flex items-center gap-3 p-3 border border-white/8 rounded-[22px] bg-black/18"
-                    >
-                      <div
-                        className="w-8 h-8 rounded-full"
-                        style={{ backgroundColor: mark.color }}
-                      />
-                      <Input
-                        value={mark.label}
-                        onChange={(e) =>
-                          setBlockingMarks((prev) =>
-                            prev.map((item, i) =>
-                              i === idx
-                                ? { ...item, label: e.target.value }
-                                : item
-                            )
-                          )
-                        }
-                        className="text-sm bg-black/22 border-white/8 text-white"
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </CardSpotlight>
-          )}
-
-          {arMode === "camera" && (
-            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-              <Card className="bg-transparent border-0">
-                <CardHeader>
-                  <CardTitle className="text-white">📷 عين الكاميرا</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-white">نوع اللقطة</Label>
-                    <Select
-                      value={cameraSettings.shotType}
-                      onValueChange={(val) =>
-                        setCameraSettings((prev) => ({
-                          ...prev,
-                          shotType: val as CameraEyeSettings["shotType"],
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="mt-2 bg-black/18 border-white/8 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SHOT_TYPES.map((shot) => (
-                          <SelectItem key={shot.id} value={shot.id}>
-                            {shot.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-            </CardSpotlight>
-          )}
-
-          {arMode === "partner" && (
-            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-              <Card className="bg-transparent border-0">
-                <CardHeader>
-                  <CardTitle className="text-white">
-                    👤 الشريك الهولوغرافي
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-white">اسم الشخصية</Label>
-                    <Input
-                      value={holographicPartner.character}
-                      onChange={(e) =>
-                        setHolographicPartner((prev) => ({
-                          ...prev,
-                          character: e.target.value,
-                        }))
-                      }
-                      className="mt-2 bg-black/18 border-white/8 text-white placeholder-white/45"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </CardSpotlight>
-          )}
-
-          {arMode === "gestures" && (
-            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-              <Card className="bg-transparent border-0">
-                <CardHeader>
-                  <CardTitle className="text-white">
-                    👁️ التحكم بالإيماءات
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {activeGestures.map((gesture, idx) => (
-                    <div
-                      key={`${gesture.type}-${idx}`}
-                      className={`flex items-center justify-between p-3 border rounded-[22px] ${gesture.enabled ? "bg-green-600/20 border-green-500/30" : "bg-black/18 border-white/8"}`}
-                    >
-                      <span className="text-sm text-white/85">
-                        {gesture.action}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant={gesture.enabled ? "default" : "outline"}
-                        onClick={() =>
-                          setActiveGestures((prev) =>
-                            prev.map((g, i) =>
-                              i === idx ? { ...g, enabled: !g.enabled } : g
-                            )
-                          )
-                        }
-                        className={
-                          gesture.enabled
-                            ? ""
-                            : "border-white/20 text-white hover:bg-white/8"
-                        }
-                      >
-                        {gesture.enabled ? "✓" : "○"}
-                      </Button>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </CardSpotlight>
-          )}
-        </div>
+        <ARSidebar
+          arMode={arMode}
+          teleprompterSettings={teleprompterSettings}
+          setTeleprompterSettings={setTeleprompterSettings}
+          blockingMarks={blockingMarks}
+          setBlockingMarks={setBlockingMarks}
+          cameraSettings={cameraSettings}
+          setCameraSettings={setCameraSettings}
+          holographicPartner={holographicPartner}
+          setHolographicPartner={setHolographicPartner}
+          activeGestures={activeGestures}
+          setActiveGestures={setActiveGestures}
+        />
       </div>
     </div>
   );

@@ -253,174 +253,18 @@ export class ProgressiveSurfaceManager {
   // — يعالج أحداث pipeline الواردة ويحدث حالة السطح وفقاً للمرحلة
   readonly handlePipelineEvent = (event: PipelineEvent): void => {
     switch (event.kind) {
-      case "run-start": {
-        const sourceType = normalizeReceptionSourceType(event.sourceType);
-        this.visibleVersionSequence = 0;
-        this.progressiveSurfaceState = {
-          activeRun: {
-            runId: event.runId,
-            intakeKind: event.intakeKind ?? "paste",
-            sourceType,
-            fileName: event.fileName ?? null,
-            startedAt: new Date().toISOString(),
-            status: "started",
-            currentVisibleVersionId: null,
-            finalSettledVersionId: null,
-            surfaceLocked: true,
-            latestFailureStage: null,
-            latestFailureCode: null,
-            latestFailureMessage: null,
-            failureRecoveryRequired: false,
-            firstVisibleSourceKind: null,
-          },
-          visibleVersion: null,
-          visibleElements: [],
-          failureRecoveryAction: null,
-        };
-        this.applySurfaceLock(true);
-        this.emitProgressiveState();
+      case "run-start":
+        this.handleRunStartEvent(event);
         return;
-      }
-
-      case "snapshot": {
-        const progressiveState = this.progressiveSurfaceState;
-        const activeRun = progressiveState?.activeRun;
-        if (!progressiveState || !activeRun) return;
-
-        const mappedRunStatus = mapSnapshotStageToRunStatus(event.stage);
-        const mappedVisibleStage = mapSnapshotStageToVisibleStage(
-          event.stage,
-          activeRun.sourceType
-        );
-        if (!mappedRunStatus || !mappedVisibleStage) return;
-
-        const nextVisibleVersion = this.createVisibleVersion(
-          activeRun,
-          mappedVisibleStage,
-          mappedRunStatus === "settled",
-          event.stage === "settled",
-          event.metadata
-        );
-
-        this.progressiveSurfaceState = {
-          ...progressiveState,
-          activeRun: {
-            ...activeRun,
-            status: mappedRunStatus,
-            currentVisibleVersionId: nextVisibleVersion.visibleVersionId,
-            finalSettledVersionId:
-              mappedRunStatus === "settled"
-                ? nextVisibleVersion.visibleVersionId
-                : (activeRun.finalSettledVersionId ?? null),
-            surfaceLocked: mappedRunStatus !== "settled",
-            ...definedProps({
-              firstVisibleSourceKind:
-                activeRun.firstVisibleSourceKind ??
-                resolveFirstVisibleSourceKind(
-                  activeRun.sourceType,
-                  event.metadata
-                ),
-            }),
-          },
-          visibleVersion: nextVisibleVersion,
-          visibleElements: nextVisibleVersion.elements,
-          failureRecoveryAction: progressiveState.failureRecoveryAction,
-        };
-
-        this.applySurfaceLock(mappedRunStatus !== "settled");
-        this.emitProgressiveState();
+      case "snapshot":
+        this.handleSnapshotEvent(event);
         return;
-      }
-
-      case "run-failure": {
-        const activeRun = this.progressiveSurfaceState?.activeRun;
-        if (!activeRun) return;
-
-        const nextState: ProgressiveSurfaceState = {
-          ...this.progressiveSurfaceState!,
-          activeRun: {
-            ...activeRun,
-            status: "failed-after-visible",
-            surfaceLocked: !shouldKeepSurfaceEditableAfterFailure(
-              this.progressiveSurfaceState
-            ),
-            latestFailureCode: event.code ?? null,
-            latestFailureMessage: event.message,
-            failureRecoveryRequired: true,
-            ...definedProps({
-              latestFailureStage: normalizeFailureStage(event.stage),
-            }),
-          },
-        };
-        this.progressiveSurfaceState = nextState;
-        this.applySurfaceLock(nextState.activeRun?.surfaceLocked ?? false);
-        this.emitProgressiveState();
+      case "run-failure":
+        this.handleRunFailureEvent(event);
         return;
-      }
-
-      case "run-end": {
-        const activeRun = this.progressiveSurfaceState?.activeRun;
-        const visibleVersion = this.progressiveSurfaceState?.visibleVersion;
-
-        if (!activeRun || !visibleVersion) {
-          if (
-            shouldClearProgressiveStateOnRunEnd(this.progressiveSurfaceState)
-          ) {
-            this.progressiveSurfaceState = null;
-            this.applySurfaceLock(false);
-            this.emitProgressiveState();
-          }
-          return;
-        }
-
-        if (event.outcome === "failed-after-visible") {
-          const keepEditable = shouldKeepSurfaceEditableAfterFailure(
-            this.progressiveSurfaceState
-          );
-          this.progressiveSurfaceState = {
-            ...this.progressiveSurfaceState!,
-            activeRun: {
-              ...activeRun,
-              surfaceLocked: !keepEditable,
-              failureRecoveryRequired: true,
-            },
-          };
-          this.applySurfaceLock(!keepEditable);
-          this.emitProgressiveState();
-          return;
-        }
-
-        const settledVersion =
-          visibleVersion.stage === "settled"
-            ? visibleVersion
-            : {
-                ...visibleVersion,
-                stage: "settled" as const,
-                isSettled: true,
-                approvalEligible: true,
-                approvalToken:
-                  visibleVersion.approvalToken ??
-                  this.createClientId("approval"),
-              };
-
-        this.progressiveSurfaceState = {
-          ...this.progressiveSurfaceState!,
-          activeRun: {
-            ...activeRun,
-            status: "settled",
-            currentVisibleVersionId: settledVersion.visibleVersionId,
-            finalSettledVersionId: settledVersion.visibleVersionId,
-            surfaceLocked: false,
-            failureRecoveryRequired: false,
-          },
-          visibleVersion: settledVersion,
-          visibleElements: settledVersion.elements,
-        };
-        this.applySurfaceLock(false);
-        this.emitProgressiveState();
+      case "run-end":
+        this.handleRunEndEvent(event);
         return;
-      }
-
       default:
         return;
     }
@@ -430,6 +274,185 @@ export class ProgressiveSurfaceManager {
   applySurfaceLock(locked: boolean): void {
     this.editor.setEditable(!locked);
     this.body.dataset["surfaceLocked"] = locked ? "true" : "false";
+  }
+
+  private handleRunStartEvent(
+    event: Extract<PipelineEvent, { kind: "run-start" }>
+  ): void {
+    const sourceType = normalizeReceptionSourceType(event.sourceType);
+    this.visibleVersionSequence = 0;
+    this.progressiveSurfaceState = {
+      activeRun: {
+        runId: event.runId,
+        intakeKind: event.intakeKind ?? "paste",
+        sourceType,
+        fileName: event.fileName ?? null,
+        startedAt: new Date().toISOString(),
+        status: "started",
+        currentVisibleVersionId: null,
+        finalSettledVersionId: null,
+        surfaceLocked: true,
+        latestFailureStage: null,
+        latestFailureCode: null,
+        latestFailureMessage: null,
+        failureRecoveryRequired: false,
+        firstVisibleSourceKind: null,
+      },
+      visibleVersion: null,
+      visibleElements: [],
+      failureRecoveryAction: null,
+    };
+    this.applySurfaceLock(true);
+    this.emitProgressiveState();
+  }
+
+  private handleSnapshotEvent(
+    event: Extract<PipelineEvent, { kind: "snapshot" }>
+  ): void {
+    const progressiveState = this.progressiveSurfaceState;
+    const activeRun = progressiveState?.activeRun;
+    if (!progressiveState || !activeRun) return;
+
+    const mappedRunStatus = mapSnapshotStageToRunStatus(event.stage);
+    const mappedVisibleStage = mapSnapshotStageToVisibleStage(
+      event.stage,
+      activeRun.sourceType
+    );
+    if (!mappedRunStatus || !mappedVisibleStage) return;
+
+    const nextVisibleVersion = this.createVisibleVersion(
+      activeRun,
+      mappedVisibleStage,
+      mappedRunStatus === "settled",
+      event.stage === "settled",
+      event.metadata
+    );
+
+    this.progressiveSurfaceState = {
+      ...progressiveState,
+      activeRun: {
+        ...activeRun,
+        status: mappedRunStatus,
+        currentVisibleVersionId: nextVisibleVersion.visibleVersionId,
+        finalSettledVersionId:
+          mappedRunStatus === "settled"
+            ? nextVisibleVersion.visibleVersionId
+            : (activeRun.finalSettledVersionId ?? null),
+        surfaceLocked: mappedRunStatus !== "settled",
+        ...definedProps({
+          firstVisibleSourceKind:
+            activeRun.firstVisibleSourceKind ??
+            resolveFirstVisibleSourceKind(activeRun.sourceType, event.metadata),
+        }),
+      },
+      visibleVersion: nextVisibleVersion,
+      visibleElements: nextVisibleVersion.elements,
+      failureRecoveryAction: progressiveState.failureRecoveryAction,
+    };
+
+    this.applySurfaceLock(mappedRunStatus !== "settled");
+    this.emitProgressiveState();
+  }
+
+  private handleRunFailureEvent(
+    event: Extract<PipelineEvent, { kind: "run-failure" }>
+  ): void {
+    const activeRun = this.progressiveSurfaceState?.activeRun;
+    if (!activeRun) return;
+
+    const nextState: ProgressiveSurfaceState = {
+      ...this.progressiveSurfaceState!,
+      activeRun: {
+        ...activeRun,
+        status: "failed-after-visible",
+        surfaceLocked: !shouldKeepSurfaceEditableAfterFailure(
+          this.progressiveSurfaceState
+        ),
+        latestFailureCode: event.code ?? null,
+        latestFailureMessage: event.message,
+        failureRecoveryRequired: true,
+        ...definedProps({
+          latestFailureStage: normalizeFailureStage(event.stage),
+        }),
+      },
+    };
+    this.progressiveSurfaceState = nextState;
+    this.applySurfaceLock(nextState.activeRun?.surfaceLocked ?? false);
+    this.emitProgressiveState();
+  }
+
+  private handleRunEndEvent(
+    event: Extract<PipelineEvent, { kind: "run-end" }>
+  ): void {
+    const activeRun = this.progressiveSurfaceState?.activeRun;
+    const visibleVersion = this.progressiveSurfaceState?.visibleVersion;
+
+    if (!activeRun || !visibleVersion) {
+      if (shouldClearProgressiveStateOnRunEnd(this.progressiveSurfaceState)) {
+        this.progressiveSurfaceState = null;
+        this.applySurfaceLock(false);
+        this.emitProgressiveState();
+      }
+      return;
+    }
+
+    if (event.outcome === "failed-after-visible") {
+      this.applyFailedAfterVisibleRunEnd(activeRun);
+      return;
+    }
+
+    this.applySuccessfulRunEnd(activeRun, visibleVersion);
+  }
+
+  private applyFailedAfterVisibleRunEnd(
+    activeRun: NonNullable<ProgressiveSurfaceState["activeRun"]>
+  ): void {
+    const keepEditable = shouldKeepSurfaceEditableAfterFailure(
+      this.progressiveSurfaceState
+    );
+    this.progressiveSurfaceState = {
+      ...this.progressiveSurfaceState!,
+      activeRun: {
+        ...activeRun,
+        surfaceLocked: !keepEditable,
+        failureRecoveryRequired: true,
+      },
+    };
+    this.applySurfaceLock(!keepEditable);
+    this.emitProgressiveState();
+  }
+
+  private applySuccessfulRunEnd(
+    activeRun: NonNullable<ProgressiveSurfaceState["activeRun"]>,
+    visibleVersion: VisibleVersion
+  ): void {
+    const settledVersion =
+      visibleVersion.stage === "settled"
+        ? visibleVersion
+        : {
+            ...visibleVersion,
+            stage: "settled" as const,
+            isSettled: true,
+            approvalEligible: true,
+            approvalToken:
+              visibleVersion.approvalToken ?? this.createClientId("approval"),
+          };
+
+    this.progressiveSurfaceState = {
+      ...this.progressiveSurfaceState!,
+      activeRun: {
+        ...activeRun,
+        status: "settled",
+        currentVisibleVersionId: settledVersion.visibleVersionId,
+        finalSettledVersionId: settledVersion.visibleVersionId,
+        surfaceLocked: false,
+        failureRecoveryRequired: false,
+      },
+      visibleVersion: settledVersion,
+      visibleElements: settledVersion.elements,
+    };
+    this.applySurfaceLock(false);
+    this.emitProgressiveState();
   }
 
   private emitProgressiveState(): void {

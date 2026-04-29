@@ -48,76 +48,16 @@ const verdictLabels = {
   partial: "جزئي",
 };
 
-export function DebateView({
-  density = "cozy",
-  perspective = "chronological",
-  turns,
-  isEmpty = false,
-  insufficientEvidence = false,
-  agentMuted = false,
-}: DebateViewProps) {
-  // Insufficient Evidence State
-  if (insufficientEvidence) {
-    return (
-      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-[var(--state-alt)]/20 flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-[var(--state-alt)]" />
-          </div>
-          <h3 className="text-[var(--color-text)] mb-2">أدلة غير كافية</h3>
-          <p className="text-[var(--color-muted)] mb-4" dir="rtl">
-            لا يوجد عدد كافٍ من الأدلة لإجراء مناظرة ذات معنى
-          </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-surface)] rounded-lg text-[var(--color-muted)]">
-            <MessageSquare className="w-4 h-4" />
-            <span dir="rtl">قم بتشغيل المحطات 1-3 أولاً</span>
-          </div>
-        </div>
-      </Card>
-    );
-  }
+interface DebateTurnListProps {
+  turns: DebateTurn[];
+  isCompact: boolean;
+}
 
-  // Agent Muted State
-  if (agentMuted) {
-    return (
-      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] flex items-center justify-center mx-auto mb-4">
-            <User className="w-8 h-8 text-[var(--color-muted)]" />
-          </div>
-          <h3 className="text-[var(--color-text)] mb-2">الوكيل معطّل</h3>
-          <p className="text-[var(--color-muted)]" dir="rtl">
-            تم تعطيل وكيل المناظرة مؤقتاً
-          </p>
-        </div>
-      </Card>
-    );
-  }
-
-  // Empty State
-  if (isEmpty || turns.length === 0) {
-    return (
-      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] flex items-center justify-center mx-auto mb-4">
-            <MessageSquare className="w-8 h-8 text-[var(--color-muted)]" />
-          </div>
-          <h3 className="text-[var(--color-text)] mb-2">لا توجد مناظرة بعد</h3>
-          <p className="text-[var(--color-muted)]" dir="rtl">
-            انتظر بدء المناظرة بين الوكلاء
-          </p>
-        </div>
-      </Card>
-    );
-  }
-
-  const agents = Array.from(new Set(turns.map((t) => t.agent)));
-  const isCompact = density === "compact";
-
-  const renderTurns = (turnsToRender: DebateTurn[]) => (
+function DebateTurnList({ turns, isCompact }: DebateTurnListProps) {
+  return (
     <ScrollArea className="h-[500px]">
       <div className={`space-y-${isCompact ? "3" : "4"} p-4`}>
-        {turnsToRender.map((turn, index) => (
+        {turns.map((turn, index) => (
           <motion.div
             key={turn.id}
             initial={{ opacity: 0, y: 20 }}
@@ -137,7 +77,6 @@ export function DebateView({
                 >
                   <User className="w-5 h-5" />
                 </div>
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
@@ -160,7 +99,6 @@ export function DebateView({
                       })}
                     </span>
                   </div>
-
                   <div className="space-y-2">
                     <div>
                       <h4 className="text-[var(--color-text)] mb-1" dir="rtl">
@@ -170,7 +108,6 @@ export function DebateView({
                         {turn.claim}
                       </p>
                     </div>
-
                     {turn.evidence.length > 0 && !isCompact && (
                       <div>
                         <h4 className="text-[var(--color-text)] mb-1" dir="rtl">
@@ -200,6 +137,70 @@ export function DebateView({
       </div>
     </ScrollArea>
   );
+}
+
+export function DebateView({
+  density = "cozy",
+  perspective = "chronological",
+  turns,
+  isEmpty = false,
+  insufficientEvidence = false,
+  agentMuted = false,
+}: DebateViewProps) {
+  if (insufficientEvidence) {
+    return (
+      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-[var(--state-alt)]/20 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-[var(--state-alt)]" />
+          </div>
+          <h3 className="text-[var(--color-text)] mb-2">أدلة غير كافية</h3>
+          <p className="text-[var(--color-muted)] mb-4" dir="rtl">
+            لا يوجد عدد كافٍ من الأدلة لإجراء مناظرة ذات معنى
+          </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-surface)] rounded-lg text-[var(--color-muted)]">
+            <MessageSquare className="w-4 h-4" />
+            <span dir="rtl">قم بتشغيل المحطات 1-3 أولاً</span>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (agentMuted) {
+    return (
+      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-[var(--color-muted)]" />
+          </div>
+          <h3 className="text-[var(--color-text)] mb-2">الوكيل معطّل</h3>
+          <p className="text-[var(--color-muted)]" dir="rtl">
+            تم تعطيل وكيل المناظرة مؤقتاً
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (isEmpty || turns.length === 0) {
+    return (
+      <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-8 h-8 text-[var(--color-muted)]" />
+          </div>
+          <h3 className="text-[var(--color-text)] mb-2">لا توجد مناظرة بعد</h3>
+          <p className="text-[var(--color-muted)]" dir="rtl">
+            انتظر بدء المناظرة بين الوكلاء
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  const agents = Array.from(new Set(turns.map((t) => t.agent)));
+  const isCompact = density === "compact";
 
   if (perspective === "by-agent") {
     return (
@@ -223,7 +224,10 @@ export function DebateView({
           </TabsList>
           {agents.map((agent) => (
             <TabsContent key={agent} value={agent}>
-              {renderTurns(turns.filter((t) => t.agent === agent))}
+              <DebateTurnList
+                turns={turns.filter((t) => t.agent === agent)}
+                isCompact={isCompact}
+              />
             </TabsContent>
           ))}
         </Tabs>
@@ -241,7 +245,7 @@ export function DebateView({
           {turns.length} مداخلة من {agents.length} وكيل
         </p>
       </div>
-      {renderTurns(turns)}
+      <DebateTurnList turns={turns} isCompact={isCompact} />
     </Card>
   );
 }

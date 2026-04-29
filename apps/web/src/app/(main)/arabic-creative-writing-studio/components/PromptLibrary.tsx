@@ -7,7 +7,7 @@
  * مكونات Aceternity المستخدمة: CardSpotlight
  */
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 
 import {
   CreativePrompt,
@@ -188,6 +188,245 @@ const DIFFICULTY_LABELS: Record<
   academic: { label: "🎓 أكاديمي", color: "text-purple-600" },
 };
 
+interface PromptCardProps {
+  prompt: CreativePrompt;
+  isExpanded: boolean;
+  loading: boolean;
+  onToggleExpand: (id: string) => void;
+  onPromptSelect: (prompt: CreativePrompt) => void;
+  onEnhancePrompt: (
+    prompt: string,
+    genre: CreativeGenre,
+    technique: WritingTechnique
+  ) => void;
+}
+
+function PromptCard({
+  prompt,
+  isExpanded,
+  loading,
+  onToggleExpand,
+  onPromptSelect,
+  onEnhancePrompt,
+}: PromptCardProps) {
+  return (
+    <Card className="hover:shadow-xl transition-shadow border-white/8 bg-black/14 text-right">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4 gap-4">
+          <CardTitle className="text-xl mb-2 text-white">
+            {prompt.title}
+          </CardTitle>
+          <Badge
+            variant="secondary"
+            className={DIFFICULTY_LABELS[prompt.difficulty].color}
+          >
+            {DIFFICULTY_LABELS[prompt.difficulty].label}
+          </Badge>
+        </div>
+        <CardDescription className="mb-4 text-white/55">
+          {prompt.description}
+        </CardDescription>
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Badge variant="outline">{GENRE_LABELS[prompt.genre]}</Badge>
+          <Badge variant="outline">{TECHNIQUE_LABELS[prompt.technique]}</Badge>
+          {prompt.timeEstimate ? (
+            <Badge variant="outline">⏱️ {prompt.timeEstimate}</Badge>
+          ) : null}
+        </div>
+        {isExpanded ? (
+          <div className="border-t border-white/8 pt-4 mt-4">
+            <div className="bg-white/6 p-4 rounded-lg mb-4">
+              <h4 className="font-semibold mb-2 text-white">
+                📝 المحفز الكامل:
+              </h4>
+              <p className="text-white/72 leading-relaxed">{prompt.arabic}</p>
+            </div>
+            {prompt.tips && prompt.tips.length > 0 ? (
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2 text-white">
+                  💡 نصائح للكتابة:
+                </h4>
+                <ul className="list-disc list-inside text-white/72 space-y-1">
+                  {prompt.tips.map((tip, index) => (
+                    <li key={index}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-2 mb-4 items-center">
+              <span className="text-sm text-white/52">
+                🏷️ الكلمات المفتاحية:
+              </span>
+              {prompt.tags.map((tag, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="bg-white/8 text-white/85"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div className="flex justify-between items-center pt-4 border-t border-white/8">
+          <Button
+            variant="ghost"
+            onClick={() => onToggleExpand(prompt.id)}
+            className="text-white hover:bg-white/10"
+          >
+            {isExpanded ? "▲ أخفِ التفاصيل" : "▼ عرض التفاصيل"}
+          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() =>
+                onEnhancePrompt(prompt.arabic, prompt.genre, prompt.technique)
+              }
+              disabled={loading}
+              variant="outline"
+            >
+              🚀 تحسين
+            </Button>
+            <Button onClick={() => onPromptSelect(prompt)}>
+              ✍️ ابدأ الكتابة
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface FilterBarProps {
+  searchTerm: string;
+  selectedGenre: CreativeGenre | "all";
+  selectedTechnique: WritingTechnique | "all";
+  selectedDifficulty: DifficultyLevel | "all";
+  onSearchChange: (value: string) => void;
+  onGenreChange: (value: CreativeGenre | "all") => void;
+  onTechniqueChange: (value: WritingTechnique | "all") => void;
+  onDifficultyChange: (value: DifficultyLevel | "all") => void;
+}
+
+function FilterBar({
+  searchTerm,
+  selectedGenre,
+  selectedTechnique,
+  selectedDifficulty,
+  onSearchChange,
+  onGenreChange,
+  onTechniqueChange,
+  onDifficultyChange,
+}: FilterBarProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[28px] border border-white/8 bg-black/18 p-6 backdrop-blur-xl mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label
+            htmlFor="field-promptlibrary-1"
+            className="block text-sm font-medium text-white/62 mb-2"
+          >
+            🔍 البحث
+          </label>
+          <Input
+            id="field-promptlibrary-1"
+            type="text"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="ابحث في المحفزات..."
+            className="bg-black/20 border-white/10"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="prompt-library-genre"
+            className="block text-sm font-medium text-white/62 mb-2"
+          >
+            📂 النوع الأدبي
+          </label>
+          <Select
+            value={selectedGenre}
+            onValueChange={(v) => onGenreChange(v as CreativeGenre | "all")}
+          >
+            <SelectTrigger
+              id="prompt-library-genre"
+              className="bg-black/20 border-white/10"
+            >
+              <SelectValue placeholder="جميع الأنواع" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع الأنواع</SelectItem>
+              {Object.entries(GENRE_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label
+            htmlFor="prompt-library-technique"
+            className="block text-sm font-medium text-white/62 mb-2"
+          >
+            🎯 التقنية
+          </label>
+          <Select
+            value={selectedTechnique}
+            onValueChange={(v) =>
+              onTechniqueChange(v as WritingTechnique | "all")
+            }
+          >
+            <SelectTrigger
+              id="prompt-library-technique"
+              className="bg-black/20 border-white/10"
+            >
+              <SelectValue placeholder="جميع التقنيات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع التقنيات</SelectItem>
+              {Object.entries(TECHNIQUE_LABELS).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label
+            htmlFor="prompt-library-difficulty"
+            className="block text-sm font-medium text-white/62 mb-2"
+          >
+            📊 المستوى
+          </label>
+          <Select
+            value={selectedDifficulty}
+            onValueChange={(v) =>
+              onDifficultyChange(v as DifficultyLevel | "all")
+            }
+          >
+            <SelectTrigger
+              id="prompt-library-difficulty"
+              className="bg-black/20 border-white/10"
+            >
+              <SelectValue placeholder="جميع المستويات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع المستويات</SelectItem>
+              {Object.entries(DIFFICULTY_LABELS).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </CardSpotlight>
+  );
+}
+
 export const PromptLibrary: React.FC<PromptLibraryProps> = ({
   onPromptSelect,
   onEnhancePrompt,
@@ -212,7 +451,6 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
         prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prompt.arabic.toLowerCase().includes(searchTerm.toLowerCase()) ||
         prompt.tags.some((tag) => tag.includes(searchTerm));
-
       const matchesGenre =
         selectedGenre === "all" || prompt.genre === selectedGenre;
       const matchesTechnique =
@@ -220,241 +458,42 @@ export const PromptLibrary: React.FC<PromptLibraryProps> = ({
       const matchesDifficulty =
         selectedDifficulty === "all" ||
         prompt.difficulty === selectedDifficulty;
-
       return (
         matchesSearch && matchesGenre && matchesTechnique && matchesDifficulty
       );
     });
   }, [searchTerm, selectedGenre, selectedTechnique, selectedDifficulty]);
 
-  const renderPromptCard = useCallback(
-    (prompt: CreativePrompt) => {
-      const isExpanded = expandedPrompt === prompt.id;
+  const handleToggleExpand = (id: string) => {
+    setExpandedPrompt((prev) => (prev === id ? null : id));
+  };
 
-      return (
-        <Card
-          key={prompt.id}
-          className="hover:shadow-xl transition-shadow border-white/8 bg-black/14 text-right"
-        >
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4 gap-4">
-              <CardTitle className="text-xl mb-2 text-white">
-                {prompt.title}
-              </CardTitle>
-              <Badge
-                variant="secondary"
-                className={DIFFICULTY_LABELS[prompt.difficulty].color}
-              >
-                {DIFFICULTY_LABELS[prompt.difficulty].label}
-              </Badge>
-            </div>
-
-            <CardDescription className="mb-4 text-white/55">
-              {prompt.description}
-            </CardDescription>
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Badge variant="outline">{GENRE_LABELS[prompt.genre]}</Badge>
-              <Badge variant="outline">
-                {TECHNIQUE_LABELS[prompt.technique]}
-              </Badge>
-              {prompt.timeEstimate ? (
-                <Badge variant="outline">⏱️ {prompt.timeEstimate}</Badge>
-              ) : null}
-            </div>
-
-            {isExpanded ? (
-              <div className="border-t border-white/8 pt-4 mt-4">
-                <div className="bg-white/6 p-4 rounded-lg mb-4">
-                  <h4 className="font-semibold mb-2 text-white">
-                    📝 المحفز الكامل:
-                  </h4>
-                  <p className="text-white/72 leading-relaxed">
-                    {prompt.arabic}
-                  </p>
-                </div>
-
-                {prompt.tips && prompt.tips.length > 0 ? (
-                  <div className="mb-4">
-                    <h4 className="font-semibold mb-2 text-white">
-                      💡 نصائح للكتابة:
-                    </h4>
-                    <ul className="list-disc list-inside text-white/72 space-y-1">
-                      {prompt.tips.map((tip, index) => (
-                        <li key={index}>{tip}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-wrap gap-2 mb-4 items-center">
-                  <span className="text-sm text-white/52">
-                    🏷️ الكلمات المفتاحية:
-                  </span>
-                  {prompt.tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="bg-white/8 text-white/85"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="flex justify-between items-center pt-4 border-t border-white/8">
-              <Button
-                variant="ghost"
-                onClick={() => setExpandedPrompt(isExpanded ? null : prompt.id)}
-                className="text-white hover:bg-white/10"
-              >
-                {isExpanded ? "▲ أخفِ التفاصيل" : "▼ عرض التفاصيل"}
-              </Button>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={() =>
-                    onEnhancePrompt(
-                      prompt.arabic,
-                      prompt.genre,
-                      prompt.technique
-                    )
-                  }
-                  disabled={loading}
-                  variant="outline"
-                >
-                  🚀 تحسين
-                </Button>
-                <Button onClick={() => onPromptSelect(prompt)}>
-                  ✍️ ابدأ الكتابة
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    },
-    [expandedPrompt, onPromptSelect, onEnhancePrompt, loading]
+  const renderPromptCard = (prompt: CreativePrompt) => (
+    <PromptCard
+      key={prompt.id}
+      prompt={prompt}
+      isExpanded={expandedPrompt === prompt.id}
+      loading={loading}
+      onToggleExpand={handleToggleExpand}
+      onPromptSelect={onPromptSelect}
+      onEnhancePrompt={onEnhancePrompt}
+    />
   );
 
   return (
     <div className="max-w-7xl mx-auto text-right text-white">
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-6">📚 مكتبة المحفزات الإبداعية</h2>
-
-        <CardSpotlight className="overflow-hidden rounded-[28px] border border-white/8 bg-black/18 p-6 backdrop-blur-xl mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label
-                htmlFor="field-promptlibrary-1"
-                className="block text-sm font-medium text-white/62 mb-2"
-              >
-                🔍 البحث
-              </label>
-              <Input
-                id="field-promptlibrary-1"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="ابحث في المحفزات..."
-                className="bg-black/20 border-white/10"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="prompt-library-genre"
-                className="block text-sm font-medium text-white/62 mb-2"
-              >
-                📂 النوع الأدبي
-              </label>
-              <Select
-                value={selectedGenre}
-                onValueChange={(value) =>
-                  setSelectedGenre(value as CreativeGenre | "all")
-                }
-              >
-                <SelectTrigger
-                  id="prompt-library-genre"
-                  className="bg-black/20 border-white/10"
-                >
-                  <SelectValue placeholder="جميع الأنواع" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الأنواع</SelectItem>
-                  {Object.entries(GENRE_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="prompt-library-technique"
-                className="block text-sm font-medium text-white/62 mb-2"
-              >
-                🎯 التقنية
-              </label>
-              <Select
-                value={selectedTechnique}
-                onValueChange={(value) =>
-                  setSelectedTechnique(value as WritingTechnique | "all")
-                }
-              >
-                <SelectTrigger
-                  id="prompt-library-technique"
-                  className="bg-black/20 border-white/10"
-                >
-                  <SelectValue placeholder="جميع التقنيات" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع التقنيات</SelectItem>
-                  {Object.entries(TECHNIQUE_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="prompt-library-difficulty"
-                className="block text-sm font-medium text-white/62 mb-2"
-              >
-                📊 المستوى
-              </label>
-              <Select
-                value={selectedDifficulty}
-                onValueChange={(value) =>
-                  setSelectedDifficulty(value as DifficultyLevel | "all")
-                }
-              >
-                <SelectTrigger
-                  id="prompt-library-difficulty"
-                  className="bg-black/20 border-white/10"
-                >
-                  <SelectValue placeholder="جميع المستويات" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع المستويات</SelectItem>
-                  {Object.entries(DIFFICULTY_LABELS).map(([key, { label }]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardSpotlight>
-
+        <FilterBar
+          searchTerm={searchTerm}
+          selectedGenre={selectedGenre}
+          selectedTechnique={selectedTechnique}
+          selectedDifficulty={selectedDifficulty}
+          onSearchChange={setSearchTerm}
+          onGenreChange={setSelectedGenre}
+          onTechniqueChange={setSelectedTechnique}
+          onDifficultyChange={setSelectedDifficulty}
+        />
         <div className="text-white/52 mb-4">
           تم العثور على {filteredPrompts.length} محفز من أصل{" "}
           {ARABIC_PROMPTS.length}

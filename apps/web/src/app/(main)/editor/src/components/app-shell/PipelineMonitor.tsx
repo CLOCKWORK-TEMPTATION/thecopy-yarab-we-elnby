@@ -165,7 +165,7 @@ const TypeDistBar: React.FC<{ dist: Record<string, number> }> = ({ dist }) => {
   );
 };
 
-// ─── المكون الرئيسي ──────────────────────────────────────────────
+// ─── ثوابت المراحل المعروفة ──────────────────────────────────────
 
 const KNOWN_STAGES = [
   "schema-style-classify",
@@ -177,6 +177,219 @@ const KNOWN_STAGES = [
   "gemini-context",
   "final-review",
 ];
+
+// ─── مكون مراحل التشغيل ──────────────────────────────────────────
+
+const RunStagesPanel: React.FC<{
+  run: RunState;
+  activeStageIndex: number;
+  completedStages: string[];
+}> = ({ run, activeStageIndex, completedStages }) => (
+  <div className="max-h-[220px] space-y-1 overflow-y-auto border-b border-white/8 px-3 py-2">
+    {KNOWN_STAGES.map((stageKey, idx) => {
+      const entry = run.stages.find((s) => s.stage === stageKey);
+      const isActive = idx === activeStageIndex;
+      const isPending = !entry && !run.finished;
+      const isSkipped = !entry && run.finished;
+
+      if (entry) {
+        return (
+          <StageRow
+            key={stageKey}
+            entry={entry}
+            isActive={isActive}
+            isLast={idx === completedStages.length - 1}
+          />
+        );
+      }
+
+      const meta = getStageMeta(stageKey);
+      return (
+        <div
+          key={stageKey}
+          className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs ${isActive ? "border border-cyan-800/30 bg-cyan-950/30" : ""}`}
+        >
+          <span
+            className={`shrink-0 text-sm ${isPending ? "opacity-30" : "opacity-20"}`}
+          >
+            {meta.icon}
+          </span>
+          <span
+            className={`min-w-[100px] font-medium ${isPending ? "text-white/55" : "text-white/68 line-through"}`}
+          >
+            {meta.label}
+          </span>
+          {isSkipped && <span className="text-[10px] text-white/68">تخطي</span>}
+          {isActive && (
+            <span className="relative ms-auto flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+            </span>
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ─── مكون لوحة استعادة الفشل ─────────────────────────────────────
+
+const FailureRecoveryBanner: React.FC<{
+  message: string | null;
+  onDismiss: () => void;
+}> = ({ message, onDismiss }) => (
+  <div className="border-b border-white/8 bg-black/22 px-4 py-3 text-[11px] text-white/85">
+    <div className="font-bold">آخر نسخة صالحة ما زالت ظاهرة</div>
+    <div className="mt-1 text-white/68">
+      {message ?? "فشل تشغيل لاحق بعد الظهور."}
+    </div>
+    <button
+      type="button"
+      onClick={onDismiss}
+      className="mt-3 rounded-md bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-black transition-colors hover:bg-amber-400"
+    >
+      إغلاق الفشل وفتح السطح
+    </button>
+  </div>
+);
+
+// ─── المكون الرئيسي ──────────────────────────────────────────────
+
+function applyRunStartEvent(
+  event: Extract<PipelineEvent, { kind: "run-start" }>,
+  setRun: React.Dispatch<React.SetStateAction<RunState | null>>,
+  setElapsed: React.Dispatch<React.SetStateAction<number>>,
+  addLog: (msg: string) => void
+): void {
+  setRun({
+    runId: event.runId,
+    source: event.source,
+    inputLines: event.input.lineCount,
+    inputChars: event.input.textLength,
+    startedAt: performance.now(),
+    stages: [],
+    aiCorrections: [],
+    finished: false,
+    totalDurationMs: 0,
+    finalTypeDist: {},
+  });
+  setElapsed(0);
+  addLog(
+    `▶ بداية run — المصدر: ${event.source} | ${event.input.lineCount} سطر`
+  );
+}
+
+function applySnapshotEvent(
+  event: Extract<PipelineEvent, { kind: "snapshot" }>,
+  setRun: React.Dispatch<React.SetStateAction<RunState | null>>,
+  addLog: (msg: string) => void
+): void {
+  setRun((prev) => {
+    if (!prev) return prev;
+    return {
+      ...prev,
+      stages: [
+        ...prev.stages,
+        definedProps({
+          stage: event.stage,
+          lineCount: event.lineCount,
+          changes: event.changes,
+          latencyMs: event.latencyMs,
+          timestamp: performance.now(),
+          metadata: event.metadata,
+          activeFiles: event.activeFiles,
+        }),
+      ],
+    };
+  });
+  addLog(
+    `${getStageMeta(event.stage).icon} ${getStageMeta(event.stage).label} — ${event.lineCount} سطر${event.changes > 0 ? ` | ${event.changes} تغيير` : ""}${event.latencyMs > 0 ? ` | ${event.latencyMs}ms` : ""}${event.activeFiles.length > 0 ? `\n    📁 ${event.activeFiles.join(" · ")}` : ""}`
+  );
+}
+
+function applyRunEndEvent(
+  event: Extract<PipelineEvent, { kind: "run-end" }>,
+  setRun: React.Dispatch<React.SetStateAction<RunState | null>>,
+  addLog: (msg: string) => void
+): void {
+  setRun((prev) => {
+    if (!prev) return prev;
+    return {
+      ...prev,
+      finished: true,
+      totalDurationMs: event.totalDurationMs,
+      finalTypeDist: event.finalTypeDist,
+    };
+  });
+  addLog(
+    `${event.outcome === "failed-after-visible" ? "⚠️ انتهى مع فشل بعد الظهور" : "✅ اكتمل"} في ${(event.totalDurationMs / 1000).toFixed(1)}s — ${event.totalVerdicts} تصحيح AI`
+  );
+}
+
+function buildPipelineEventHandler(
+  setRun: React.Dispatch<React.SetStateAction<RunState | null>>,
+  setElapsed: React.Dispatch<React.SetStateAction<number>>,
+  addLog: (msg: string) => void
+): (event: PipelineEvent) => void {
+  return (event: PipelineEvent) => {
+    switch (event.kind) {
+      case "run-start":
+        applyRunStartEvent(event, setRun, setElapsed, addLog);
+        break;
+
+      case "snapshot":
+        applySnapshotEvent(event, setRun, addLog);
+        break;
+
+      case "ai-correction":
+        setRun((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            aiCorrections: [...prev.aiCorrections, event.correction],
+          };
+        });
+        addLog(
+          `🤖 تصحيح AI [${event.correction.lineIndex}]: ${event.correction.previousType} → ${event.correction.correctedType} (${event.correction.applied ? "✅" : "❌"})`
+        );
+        break;
+
+      case "approval":
+        addLog(
+          `✅ اعتماد النسخة ${event.approval.approvedVersionId} مع ${event.approval.elementCount} عنصر`
+        );
+        break;
+
+      case "run-end":
+        applyRunEndEvent(event, setRun, addLog);
+        break;
+
+      case "run-failure":
+        addLog(
+          `⛔ فشل المرحلة ${event.stage}: ${event.message}${event.code ? ` [${event.code}]` : ""}`
+        );
+        break;
+
+      case "engine-bridge":
+        addLog(
+          `🌉 البريدج — المصدر: ${event.source} | ${event.elementCount} عنصر | ${event.latencyMs}ms`
+        );
+        break;
+
+      case "file-open":
+        addLog(
+          `📂 فتح ملف: ${event.fileName} (نوع: ${event.fileType} | وضع: ${event.mode})`
+        );
+        break;
+
+      case "file-extract-done":
+        addLog(
+          `📦 استخراج: ${event.fileName} — طريقة: ${event.method}${event.usedOcr ? " (OCR)" : ""} | ${event.textLength} حرف | ${event.schemaElementCount} عنصر schema | ${event.latencyMs}ms`
+        );
+        break;
+    }
+  };
+}
 
 export const PipelineMonitor: React.FC<{
   visible: boolean;
@@ -202,111 +415,8 @@ export const PipelineMonitor: React.FC<{
   }, []);
 
   useEffect(() => {
-    const unsub = pipelineRecorder.subscribe((event: PipelineEvent) => {
-      switch (event.kind) {
-        case "run-start":
-          setRun({
-            runId: event.runId,
-            source: event.source,
-            inputLines: event.input.lineCount,
-            inputChars: event.input.textLength,
-            startedAt: performance.now(),
-            stages: [],
-            aiCorrections: [],
-            finished: false,
-            totalDurationMs: 0,
-            finalTypeDist: {},
-          });
-          setElapsed(0);
-          addLog(
-            `▶ بداية run — المصدر: ${event.source} | ${event.input.lineCount} سطر`
-          );
-          break;
-
-        case "snapshot":
-          setRun((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              stages: [
-                ...prev.stages,
-                definedProps({
-                  stage: event.stage,
-                  lineCount: event.lineCount,
-                  changes: event.changes,
-                  latencyMs: event.latencyMs,
-                  timestamp: performance.now(),
-                  metadata: event.metadata,
-                  activeFiles: event.activeFiles,
-                }),
-              ],
-            };
-          });
-          addLog(
-            `${getStageMeta(event.stage).icon} ${getStageMeta(event.stage).label} — ${event.lineCount} سطر${event.changes > 0 ? ` | ${event.changes} تغيير` : ""}${event.latencyMs > 0 ? ` | ${event.latencyMs}ms` : ""}${event.activeFiles.length > 0 ? `\n    📁 ${event.activeFiles.join(" · ")}` : ""}`
-          );
-          break;
-
-        case "ai-correction":
-          setRun((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              aiCorrections: [...prev.aiCorrections, event.correction],
-            };
-          });
-          addLog(
-            `🤖 تصحيح AI [${event.correction.lineIndex}]: ${event.correction.previousType} → ${event.correction.correctedType} (${event.correction.applied ? "✅" : "❌"})`
-          );
-          break;
-
-        case "approval":
-          addLog(
-            `✅ اعتماد النسخة ${event.approval.approvedVersionId} مع ${event.approval.elementCount} عنصر`
-          );
-          break;
-
-        case "run-end":
-          setRun((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              finished: true,
-              totalDurationMs: event.totalDurationMs,
-              finalTypeDist: event.finalTypeDist,
-            };
-          });
-          addLog(
-            `${event.outcome === "failed-after-visible" ? "⚠️ انتهى مع فشل بعد الظهور" : "✅ اكتمل"} في ${(event.totalDurationMs / 1000).toFixed(1)}s — ${event.totalVerdicts} تصحيح AI`
-          );
-          break;
-
-        case "run-failure":
-          addLog(
-            `⛔ فشل المرحلة ${event.stage}: ${event.message}${event.code ? ` [${event.code}]` : ""}`
-          );
-          break;
-
-        case "engine-bridge":
-          addLog(
-            `🌉 البريدج — المصدر: ${event.source} | ${event.elementCount} عنصر | ${event.latencyMs}ms`
-          );
-          break;
-
-        case "file-open":
-          addLog(
-            `📂 فتح ملف: ${event.fileName} (نوع: ${event.fileType} | وضع: ${event.mode})`
-          );
-          break;
-
-        case "file-extract-done":
-          addLog(
-            `📦 استخراج: ${event.fileName} — طريقة: ${event.method}${event.usedOcr ? " (OCR)" : ""} | ${event.textLength} حرف | ${event.schemaElementCount} عنصر schema | ${event.latencyMs}ms`
-          );
-          break;
-      }
-    });
-
+    const handler = buildPipelineEventHandler(setRun, setElapsed, addLog);
+    const unsub = pipelineRecorder.subscribe(handler);
     return unsub;
   }, [addLog]);
 
@@ -425,71 +535,19 @@ export const PipelineMonitor: React.FC<{
 
       {progressiveSurfaceState?.activeRun?.status === "failed-after-visible" &&
         progressiveSurfaceState.activeRun.failureRecoveryRequired && (
-          <div className="border-b border-white/8 bg-black/22 px-4 py-3 text-[11px] text-white/85">
-            <div className="font-bold">آخر نسخة صالحة ما زالت ظاهرة</div>
-            <div className="mt-1 text-white/68">
-              {progressiveSurfaceState.activeRun.latestFailureMessage ??
-                "فشل تشغيل لاحق بعد الظهور."}
-            </div>
-            <button
-              type="button"
-              onClick={onDismissFailure}
-              className="mt-3 rounded-md bg-amber-500 px-3 py-1.5 text-[11px] font-bold text-black transition-colors hover:bg-amber-400"
-            >
-              إغلاق الفشل وفتح السطح
-            </button>
-          </div>
+          <FailureRecoveryBanner
+            message={progressiveSurfaceState.activeRun.latestFailureMessage}
+            onDismiss={onDismissFailure}
+          />
         )}
 
       {/* ── Stages ── */}
       {run && (
-        <div className="max-h-[220px] space-y-1 overflow-y-auto border-b border-white/8 px-3 py-2">
-          {KNOWN_STAGES.map((stageKey, idx) => {
-            const entry = run.stages.find((s) => s.stage === stageKey);
-            const isActive = idx === activeStageIndex;
-            const isPending = !entry && !run.finished;
-            const isSkipped = !entry && run.finished;
-
-            if (entry) {
-              return (
-                <StageRow
-                  key={stageKey}
-                  entry={entry}
-                  isActive={isActive}
-                  isLast={idx === completedStages.length - 1}
-                />
-              );
-            }
-
-            const meta = getStageMeta(stageKey);
-            return (
-              <div
-                key={stageKey}
-                className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs ${isActive ? "border border-cyan-800/30 bg-cyan-950/30" : ""}`}
-              >
-                <span
-                  className={`shrink-0 text-sm ${isPending ? "opacity-30" : "opacity-20"}`}
-                >
-                  {meta.icon}
-                </span>
-                <span
-                  className={`min-w-[100px] font-medium ${isPending ? "text-white/55" : "text-white/68 line-through"}`}
-                >
-                  {meta.label}
-                </span>
-                {isSkipped && (
-                  <span className="text-[10px] text-white/68">تخطي</span>
-                )}
-                {isActive && (
-                  <span className="relative ms-auto flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <RunStagesPanel
+          run={run}
+          activeStageIndex={activeStageIndex}
+          completedStages={completedStages}
+        />
       )}
 
       {/* ── AI Corrections Summary ── */}

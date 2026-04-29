@@ -4,44 +4,61 @@ import type {
   ElementType,
 } from "@editor/suspicion-engine/types";
 
-export function extractContextFeatures(
+function resolvePreviousType(
   lineIndex: number,
-  neighbors: readonly ClassifiedDraft[],
-  totalLines: number
-): ContextFeatures {
-  const previousType: ElementType | null =
-    lineIndex > 0 && neighbors.length > 0
-      ? (neighbors.find((_, i) => i === 0)?.type ?? null)
-      : null;
-  const nextType: ElementType | null =
-    lineIndex < totalLines - 1 && neighbors.length > 1
-      ? (neighbors.find((_, i) => i === neighbors.length - 1)?.type ?? null)
-      : null;
+  neighbors: readonly ClassifiedDraft[]
+): ElementType | null {
+  if (lineIndex > 0 && neighbors.length > 0) {
+    return neighbors.find((_, i) => i === 0)?.type ?? null;
+  }
+  return null;
+}
 
-  let dialogueBlockDepth = 0;
+function resolveNextType(
+  lineIndex: number,
+  totalLines: number,
+  neighbors: readonly ClassifiedDraft[]
+): ElementType | null {
+  if (lineIndex < totalLines - 1 && neighbors.length > 1) {
+    return neighbors.find((_, i) => i === neighbors.length - 1)?.type ?? null;
+  }
+  return null;
+}
+
+function computeDialogueBlockDepth(
+  neighbors: readonly ClassifiedDraft[]
+): number {
+  let depth = 0;
   for (const n of neighbors) {
     if (
       n.type === "dialogue" ||
       n.type === "character" ||
       n.type === "parenthetical"
     ) {
-      dialogueBlockDepth++;
+      depth++;
     } else {
       break;
     }
   }
+  return depth;
+}
 
-  let distanceFromLastCharacter = -1;
+function computeDistanceFromLastCharacter(
+  neighbors: readonly ClassifiedDraft[]
+): number {
   for (let i = neighbors.length - 1; i >= 0; i--) {
     const n = neighbors[i];
     if (!n) continue;
     if (n.type === "character") {
-      distanceFromLastCharacter = neighbors.length - 1 - i;
-      break;
+      return neighbors.length - 1 - i;
     }
   }
+  return -1;
+}
 
-  let distanceFromLastSceneHeader = -1;
+function computeDistanceFromLastSceneHeader(
+  neighbors: readonly ClassifiedDraft[]
+): number {
   for (let i = neighbors.length - 1; i >= 0; i--) {
     const n = neighbors[i];
     if (!n) continue;
@@ -51,16 +68,22 @@ export function extractContextFeatures(
       t === "scene_header_2" ||
       t === "scene_header_3"
     ) {
-      distanceFromLastSceneHeader = neighbors.length - 1 - i;
-      break;
+      return neighbors.length - 1 - i;
     }
   }
+  return -1;
+}
 
+export function extractContextFeatures(
+  lineIndex: number,
+  neighbors: readonly ClassifiedDraft[],
+  totalLines: number
+): ContextFeatures {
   return {
-    previousType,
-    nextType,
-    dialogueBlockDepth,
-    distanceFromLastCharacter,
-    distanceFromLastSceneHeader,
+    previousType: resolvePreviousType(lineIndex, neighbors),
+    nextType: resolveNextType(lineIndex, totalLines, neighbors),
+    dialogueBlockDepth: computeDialogueBlockDepth(neighbors),
+    distanceFromLastCharacter: computeDistanceFromLastCharacter(neighbors),
+    distanceFromLastSceneHeader: computeDistanceFromLastSceneHeader(neighbors),
   };
 }

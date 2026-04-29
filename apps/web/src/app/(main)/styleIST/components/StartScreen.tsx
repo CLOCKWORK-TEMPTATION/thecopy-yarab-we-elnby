@@ -21,6 +21,231 @@ interface StartScreenProps {
   onComplete: (brief: DesignBrief) => void;
 }
 
+interface Step1FieldsProps {
+  brief: DesignBrief;
+  onChange: (brief: DesignBrief) => void;
+}
+
+function Step1Fields({ brief, onChange }: Step1FieldsProps) {
+  return (
+    <>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-1"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Era &amp; Visual Texture
+        </label>
+        <input
+          id="field-startscreen-1"
+          type="text"
+          value={brief.projectType}
+          onChange={(e) => onChange({ ...brief, projectType: e.target.value })}
+          className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
+          placeholder="e.g. Victorian Gothic, Gritty 70s, Cyberpunk..."
+        />
+        <p className="mt-2 text-[10px] text-white/45 font-mono">
+          Defines the silhouette rules and fabric availability.
+        </p>
+      </div>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-2"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Atmosphere &amp; Lighting
+        </label>
+        <textarea
+          id="field-startscreen-2"
+          value={brief.sceneContext}
+          onChange={(e) => onChange({ ...brief, sceneContext: e.target.value })}
+          className="w-full bg-transparent border-b border-white/8 text-xl font-mono text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
+          placeholder="Is it raining? High contrast noir lighting? Neon city? (Affects fabric sheen and texture choice)"
+        />
+      </div>
+    </>
+  );
+}
+
+interface Step2FieldsProps {
+  brief: DesignBrief;
+  onChange: (brief: DesignBrief) => void;
+}
+
+function Step2Fields({ brief, onChange }: Step2FieldsProps) {
+  return (
+    <>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-3"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Archetype &amp; Social Class
+        </label>
+        <input
+          id="field-startscreen-3"
+          type="text"
+          value={brief.characterProfile}
+          onChange={(e) =>
+            onChange({ ...brief, characterProfile: e.target.value })
+          }
+          className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
+          placeholder="e.g. 'The Fallen Aristocrat', 'Blue Collar Hero'..."
+        />
+        <p className="mt-2 text-[10px] text-white/45 font-mono">
+          Dictates the wear-and-tear and quality of garments.
+        </p>
+      </div>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-4"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Visual Subtext (The Mask)
+        </label>
+        <textarea
+          id="field-startscreen-4"
+          value={brief.psychologicalState}
+          onChange={(e) =>
+            onChange({ ...brief, psychologicalState: e.target.value })
+          }
+          className="w-full bg-transparent border-b border-white/8 text-xl font-serif italic text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
+          placeholder="What are they hiding? e.g. 'Trying to look rich but failing', 'Armored against the world'..."
+        />
+      </div>
+    </>
+  );
+}
+
+interface Step3FieldsProps {
+  brief: DesignBrief;
+  onChange: (brief: DesignBrief) => void;
+}
+
+function Step3Fields({ brief, onChange }: Step3FieldsProps) {
+  return (
+    <>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-5"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Filming Location (Weather Check)
+        </label>
+        <input
+          id="field-startscreen-5"
+          type="text"
+          value={brief.filmingLocation}
+          onChange={(e) =>
+            onChange({ ...brief, filmingLocation: e.target.value })
+          }
+          className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
+          placeholder="e.g. Cairo, Egypt (July)"
+        />
+        <p className="mt-2 text-[10px] text-white/45 font-mono">
+          We will check real weather data to suggest fabric weight.
+        </p>
+      </div>
+      <div className="group">
+        <label
+          htmlFor="field-startscreen-6"
+          className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
+          Movement &amp; Stunt Requirements
+        </label>
+        <textarea
+          id="field-startscreen-6"
+          value={brief.productionConstraints}
+          onChange={(e) =>
+            onChange({ ...brief, productionConstraints: e.target.value })
+          }
+          className="w-full bg-transparent border-b border-white/8 text-xl font-mono text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
+          placeholder="Running, Fighting, Wire-work? (Need gussets? Hidden padding?)"
+        />
+      </div>
+    </>
+  );
+}
+
+interface AiAssistantsProps {
+  isRecording: boolean;
+  isAnalyzingMedia: boolean;
+  onDictation: () => void;
+  onVideoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+function AiAssistants({
+  isRecording,
+  isAnalyzingMedia,
+  onDictation,
+  onVideoUpload,
+}: AiAssistantsProps) {
+  return (
+    <CardSpotlight className="rounded-[22px] backdrop-blur-xl">
+      <div className="bg-black/14 border border-white/8 p-6 rounded-[22px] backdrop-blur-xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2 text-white/68">
+            <SparklesIcon className="w-4 h-4 text-[#d4b483]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">
+              Studio Assistants
+            </span>
+          </div>
+          {isAnalyzingMedia && (
+            <span className="text-[9px] text-[#d4b483] animate-pulse">
+              PROCESSING...
+            </span>
+          )}
+        </div>
+        <div className="space-y-3">
+          <button
+            onClick={onDictation}
+            className={`w-full py-4 px-4 border flex items-center gap-4 transition-all group rounded-[18px] ${isRecording ? "bg-red-900/10 border-red-500/30" : "bg-black/22 border-white/8 hover:border-white/12"}`}
+          >
+            <div
+              className={`p-2 rounded-full ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-white/8 text-white/68 group-hover:text-white"}`}
+            >
+              <MicIcon className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <span className="block text-[10px] font-bold uppercase text-white/85">
+                Voice Note
+              </span>
+              <span className="block text-[9px] text-white/55">
+                Dictate scene notes
+              </span>
+            </div>
+          </button>
+          <label className="w-full py-4 px-4 border border-white/8 bg-black/22 hover:border-white/12 flex items-center gap-4 transition-all cursor-pointer group rounded-[18px]">
+            <div className="p-2 rounded-full bg-white/8 text-white/68 group-hover:text-white">
+              <VideoIcon className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <span className="block text-[10px] font-bold uppercase text-white/85">
+                Import Ref
+              </span>
+              <span className="block text-[9px] text-white/55">
+                Analyze moodboard/video
+              </span>
+            </div>
+            <input
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={onVideoUpload}
+            />
+          </label>
+        </div>
+      </div>
+    </CardSpotlight>
+  );
+}
+
 const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [brief, setBrief] = useState<DesignBrief>({
@@ -31,19 +256,16 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
     filmingLocation: "",
     productionConstraints: "",
   });
-
-  // AI Input State
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzingMedia, setIsAnalyzingMedia] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  const handleNext = () => {
-    if (step === 1) setStep(2);
-    else if (step === 2) setStep(3);
-    else onComplete(brief);
+  const stepTitles = {
+    1: "The World & Palette",
+    2: "The Silhouette",
+    3: "Fabric & Function",
   };
 
-  // Validation Logic
   const currentValidity =
     step === 1
       ? brief.projectType.length > 2 && brief.sceneContext.length > 5
@@ -52,65 +274,57 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
           brief.psychologicalState.length > 2
         : brief.filmingLocation.length > 2;
 
-  // عناوين المراحل بلغة مصمم الأزياء
-  const stepTitles = {
-    1: "The World & Palette", // العالم واللوحة اللونية
-    2: "The Silhouette", // الظل الخارجي (الشخصية)
-    3: "Fabric & Function", // الوظيفة والحركة
+  const handleNext = () => {
+    if (step === 1) setStep(2);
+    else if (step === 2) setStep(3);
+    else onComplete(brief);
   };
 
-  // --- AI Input Handlers ---
   const handleDictation = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      const audioChunks: Blob[] = [];
+      mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        const audioFile = new File([audioBlob], "dictation.wav", {
+          type: "audio/wav",
         });
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        const audioChunks: Blob[] = [];
-
-        mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
-
-        mediaRecorder.onstop = async () => {
-          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-          const audioFile = new File([audioBlob], "dictation.wav", {
-            type: "audio/wav",
-          });
-
-          setIsAnalyzingMedia(true);
-          try {
-            const text = await transcribeAudio(audioFile);
-            // Smart Append based on active step
-            if (step === 1)
-              setBrief((prev) => ({
-                ...prev,
-                sceneContext: prev.sceneContext + " " + text,
-              }));
-            if (step === 2)
-              setBrief((prev) => ({
-                ...prev,
-                psychologicalState: prev.psychologicalState + " " + text,
-              }));
-            if (step === 3)
-              setBrief((prev) => ({
-                ...prev,
-                productionConstraints: prev.productionConstraints + " " + text,
-              }));
-          } catch (e) {
-            logger.error("Transcription failed", e);
-          } finally {
-            setIsAnalyzingMedia(false);
-          }
-        };
-        mediaRecorder.start();
-        setIsRecording(true);
-      } catch {
-        alert("Microphone access denied");
-      }
+        setIsAnalyzingMedia(true);
+        try {
+          const text = await transcribeAudio(audioFile);
+          if (step === 1)
+            setBrief((prev) => ({
+              ...prev,
+              sceneContext: prev.sceneContext + " " + text,
+            }));
+          if (step === 2)
+            setBrief((prev) => ({
+              ...prev,
+              psychologicalState: prev.psychologicalState + " " + text,
+            }));
+          if (step === 3)
+            setBrief((prev) => ({
+              ...prev,
+              productionConstraints: prev.productionConstraints + " " + text,
+            }));
+        } catch (e) {
+          logger.error("Transcription failed", e);
+        } finally {
+          setIsAnalyzingMedia(false);
+        }
+      };
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch {
+      alert("Microphone access denied");
     }
   };
 
@@ -134,12 +348,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 font-sans relative flex items-start gap-12 h-[80vh]">
-      {/* Background Ambience */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-900/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* LEFT COLUMN: THE COSTUME BREAKDOWN (The core change) */}
       <div className="w-2/3 h-full flex flex-col">
-        {/* Header */}
         <div className="mb-10 pl-2 border-l-2 border-[#d4b483]">
           <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#d4b483] mb-2">
             Costume Department Breakdown
@@ -147,10 +358,8 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
           <h1 className="text-6xl font-serif text-white">{stepTitles[step]}</h1>
         </div>
 
-        {/* The "Script" Paper Container */}
         <CardSpotlight className="rounded-[22px] overflow-hidden flex-grow">
           <div className="flex-grow bg-black/14 border border-white/8 rounded-[22px] p-10 shadow-2xl relative overflow-hidden flex flex-col justify-center backdrop-blur-xl">
-            {/* Subtle grid lines like a cutting mat */}
             <div
               className="absolute inset-0 opacity-[0.03]"
               style={{
@@ -159,7 +368,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                 backgroundSize: "40px 40px",
               }}
             ></div>
-
             <AnimatePresence mode="wait">
               <motion.div
                 key={step}
@@ -170,151 +378,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
                 className="space-y-12 relative z-10"
               >
                 {step === 1 && (
-                  <>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-1"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Era & Visual Texture
-                      </label>
-                      <input
-                        id="field-startscreen-1"
-                        type="text"
-                        value={brief.projectType}
-                        onChange={(e) =>
-                          setBrief({ ...brief, projectType: e.target.value })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
-                        placeholder="e.g. Victorian Gothic, Gritty 70s, Cyberpunk..."
-                      />
-                      <p className="mt-2 text-[10px] text-white/45 font-mono">
-                        Defines the silhouette rules and fabric availability.
-                      </p>
-                    </div>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-2"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Atmosphere & Lighting
-                      </label>
-                      <textarea
-                        id="field-startscreen-2"
-                        value={brief.sceneContext}
-                        onChange={(e) =>
-                          setBrief({ ...brief, sceneContext: e.target.value })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-xl font-mono text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
-                        placeholder="Is it raining? High contrast noir lighting? Neon city? (Affects fabric sheen and texture choice)"
-                      />
-                    </div>
-                  </>
+                  <Step1Fields brief={brief} onChange={setBrief} />
                 )}
-
                 {step === 2 && (
-                  <>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-3"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Archetype & Social Class
-                      </label>
-                      <input
-                        id="field-startscreen-3"
-                        type="text"
-                        value={brief.characterProfile}
-                        onChange={(e) =>
-                          setBrief({
-                            ...brief,
-                            characterProfile: e.target.value,
-                          })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
-                        placeholder="e.g. 'The Fallen Aristocrat', 'Blue Collar Hero'..."
-                      />
-                      <p className="mt-2 text-[10px] text-white/45 font-mono">
-                        Dictates the wear-and-tear and quality of garments.
-                      </p>
-                    </div>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-4"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Visual Subtext (The Mask)
-                      </label>
-                      <textarea
-                        id="field-startscreen-4"
-                        value={brief.psychologicalState}
-                        onChange={(e) =>
-                          setBrief({
-                            ...brief,
-                            psychologicalState: e.target.value,
-                          })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-xl font-serif italic text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
-                        placeholder="What are they hiding? e.g. 'Trying to look rich but failing', 'Armored against the world'..."
-                      />
-                    </div>
-                  </>
+                  <Step2Fields brief={brief} onChange={setBrief} />
                 )}
-
                 {step === 3 && (
-                  <>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-5"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Filming Location (Weather Check)
-                      </label>
-                      <input
-                        id="field-startscreen-5"
-                        type="text"
-                        value={brief.filmingLocation}
-                        onChange={(e) =>
-                          setBrief({
-                            ...brief,
-                            filmingLocation: e.target.value,
-                          })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-3xl font-serif text-white pb-3 focus:outline-none focus:border-[#d4b483] transition-colors placeholder:text-white/45 placeholder:italic"
-                        placeholder="e.g. Cairo, Egypt (July)"
-                      />
-                      <p className="mt-2 text-[10px] text-white/45 font-mono">
-                        We will check real weather data to suggest fabric
-                        weight.
-                      </p>
-                    </div>
-                    <div className="group">
-                      <label
-                        htmlFor="field-startscreen-6"
-                        className="flex items-center gap-2 text-xs font-bold text-white/55 uppercase tracking-widest mb-3 group-focus-within:text-[#d4b483] transition-colors"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-white/45 group-focus-within:bg-[#d4b483]"></span>
-                        Movement & Stunt Requirements
-                      </label>
-                      <textarea
-                        id="field-startscreen-6"
-                        value={brief.productionConstraints}
-                        onChange={(e) =>
-                          setBrief({
-                            ...brief,
-                            productionConstraints: e.target.value,
-                          })
-                        }
-                        className="w-full bg-transparent border-b border-white/8 text-xl font-mono text-white/68 pb-2 focus:outline-none focus:border-[#d4b483] transition-colors min-h-[120px] resize-none leading-relaxed placeholder:text-white/45"
-                        placeholder="Running, Fighting, Wire-work? (Need gussets? Hidden padding?)"
-                      />
-                    </div>
-                  </>
+                  <Step3Fields brief={brief} onChange={setBrief} />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -322,69 +392,18 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
         </CardSpotlight>
       </div>
 
-      {/* RIGHT COLUMN: TOOLS & NAVIGATION */}
       <div className="w-1/3 h-full flex flex-col pt-24 gap-6">
-        {/* AI Tools Panel (Styled as 'Assistants') */}
-        <CardSpotlight className="rounded-[22px] backdrop-blur-xl">
-          <div className="bg-black/14 border border-white/8 p-6 rounded-[22px] backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2 text-white/68">
-                <SparklesIcon className="w-4 h-4 text-[#d4b483]" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">
-                  Studio Assistants
-                </span>
-              </div>
-              {isAnalyzingMedia && (
-                <span className="text-[9px] text-[#d4b483] animate-pulse">
-                  PROCESSING...
-                </span>
-              )}
-            </div>
+        <AiAssistants
+          isRecording={isRecording}
+          isAnalyzingMedia={isAnalyzingMedia}
+          onDictation={() => {
+            void handleDictation();
+          }}
+          onVideoUpload={(e) => {
+            void handleVideoUpload(e);
+          }}
+        />
 
-            <div className="space-y-3">
-              <button
-                onClick={handleDictation}
-                className={`w-full py-4 px-4 border flex items-center gap-4 transition-all group rounded-[18px] ${isRecording ? "bg-red-900/10 border-red-500/30" : "bg-black/22 border-white/8 hover:border-white/12"}`}
-              >
-                <div
-                  className={`p-2 rounded-full ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-white/8 text-white/68 group-hover:text-white"}`}
-                >
-                  <MicIcon className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <span className="block text-[10px] font-bold uppercase text-white/85">
-                    Voice Note
-                  </span>
-                  <span className="block text-[9px] text-white/55">
-                    Dictate scene notes
-                  </span>
-                </div>
-              </button>
-
-              <label className="w-full py-4 px-4 border border-white/8 bg-black/22 hover:border-white/12 flex items-center gap-4 transition-all cursor-pointer group rounded-[18px]">
-                <div className="p-2 rounded-full bg-white/8 text-white/68 group-hover:text-white">
-                  <VideoIcon className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <span className="block text-[10px] font-bold uppercase text-white/85">
-                    Import Ref
-                  </span>
-                  <span className="block text-[9px] text-white/55">
-                    Analyze moodboard/video
-                  </span>
-                </div>
-                <input
-                  type="file"
-                  accept="video/*"
-                  className="hidden"
-                  onChange={handleVideoUpload}
-                />
-              </label>
-            </div>
-          </div>
-        </CardSpotlight>
-
-        {/* Step Progress & Navigation */}
         <div className="mt-auto">
           <div className="flex justify-between items-end mb-4 px-1">
             <span className="text-4xl font-serif text-white/45">0{step}</span>
@@ -397,7 +416,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
               ))}
             </div>
           </div>
-
           <button
             onClick={handleNext}
             disabled={!currentValidity}
@@ -406,7 +424,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onComplete }) => {
             <span>{step === 3 ? "Generate Design Look" : "Next Phase"}</span>
             <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
-
           {step > 1 && (
             <button
               onClick={() => setStep(step === 3 ? 2 : 1)}

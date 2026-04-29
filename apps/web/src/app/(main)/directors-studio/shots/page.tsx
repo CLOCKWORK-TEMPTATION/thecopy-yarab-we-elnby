@@ -117,6 +117,107 @@ const ShotCard = memo(function ShotCard({
   );
 });
 
+function ShotsContent({
+  shots,
+  isLoading,
+  error,
+  deleteConfirmId,
+  selectedScene,
+  selectedSceneId,
+  currentProjectId,
+  nextShotNumber,
+  onDelete,
+  onCancelDelete,
+}: {
+  shots: Shot[] | undefined;
+  isLoading: boolean;
+  error: Error | null;
+  deleteConfirmId: string | null;
+  selectedScene: Scene | undefined;
+  selectedSceneId: string;
+  currentProjectId: string;
+  nextShotNumber: number;
+  onDelete: (shotId: string) => Promise<void>;
+  onCancelDelete: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 border-4 border-[var(--app-accent)] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[var(--app-text-muted)]">جاري تحميل اللقطات...</p>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <p className="text-destructive">{error.message}</p>
+      </div>
+    );
+  }
+  const renderShots = () => {
+    if (shots && shots.length > 10) {
+      return (
+        <VirtualizedGrid
+          items={shots}
+          renderItem={(shot) => (
+            <ShotCard
+              key={shot.id}
+              shot={shot}
+              onDelete={onDelete}
+              deleteConfirmId={deleteConfirmId}
+              onCancelDelete={onCancelDelete}
+            />
+          )}
+          columnCount={3}
+          itemHeight={320}
+          itemWidth={350}
+        />
+      );
+    }
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {shots?.map((shot) => (
+          <ShotCard
+            key={shot.id}
+            shot={shot}
+            onDelete={onDelete}
+            deleteConfirmId={deleteConfirmId}
+            onCancelDelete={onCancelDelete}
+          />
+        ))}
+      </div>
+    );
+  };
+  return (
+    <>
+      {shots?.length === 0 ? (
+        <div className="text-center py-12">
+          <Camera className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
+          <p className="text-[var(--app-text-muted)]">
+            لا توجد لقطات لهذا المشهد حتى الآن
+          </p>
+        </div>
+      ) : (
+        renderShots()
+      )}
+      {selectedScene && (
+        <div className="mt-8">
+          <ShotPlanningCard
+            shotNumber={nextShotNumber}
+            sceneNumber={selectedScene.sceneNumber}
+            projectId={currentProjectId}
+            sceneId={selectedSceneId}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ShotsPage() {
   const [selectedSceneId, setSelectedSceneId] = useState<string>("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -205,7 +306,6 @@ export default function ShotsPage() {
         </p>
       </div>
 
-      {/* محدد المشهد */}
       <div className="mb-6">
         <label
           htmlFor="scene-selector"
@@ -233,71 +333,18 @@ export default function ShotsPage() {
       </div>
 
       {selectedSceneId ? (
-        <>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 border-4 border-[var(--app-accent)] border-t-transparent rounded-full animate-spin" />
-                <p className="text-[var(--app-text-muted)]">
-                  جاري تحميل اللقطات...
-                </p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-4">
-              <AlertTriangle className="h-12 w-12 text-destructive" />
-              <p className="text-destructive">{error.message}</p>
-            </div>
-          ) : shots && shots.length > 10 ? (
-            <VirtualizedGrid
-              items={shots}
-              renderItem={(shot) => (
-                <ShotCard
-                  key={shot.id}
-                  shot={shot}
-                  onDelete={handleDelete}
-                  deleteConfirmId={deleteConfirmId}
-                  onCancelDelete={handleCancelDelete}
-                />
-              )}
-              columnCount={3}
-              itemHeight={320}
-              itemWidth={350}
-            />
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {shots?.map((shot) => (
-                <ShotCard
-                  key={shot.id}
-                  shot={shot}
-                  onDelete={handleDelete}
-                  deleteConfirmId={deleteConfirmId}
-                  onCancelDelete={handleCancelDelete}
-                />
-              ))}
-            </div>
-          )}
-
-          {shots?.length === 0 && (
-            <div className="text-center py-12">
-              <Camera className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
-              <p className="text-[var(--app-text-muted)]">
-                لا توجد لقطات لهذا المشهد حتى الآن
-              </p>
-            </div>
-          )}
-
-          {selectedScene && (
-            <div className="mt-8">
-              <ShotPlanningCard
-                shotNumber={nextShotNumber}
-                sceneNumber={selectedScene.sceneNumber}
-                projectId={currentProjectId}
-                sceneId={selectedSceneId}
-              />
-            </div>
-          )}
-        </>
+        <ShotsContent
+          shots={shots}
+          isLoading={isLoading}
+          error={error}
+          deleteConfirmId={deleteConfirmId}
+          selectedScene={selectedScene}
+          selectedSceneId={selectedSceneId}
+          currentProjectId={currentProjectId}
+          nextShotNumber={nextShotNumber}
+          onDelete={handleDelete}
+          onCancelDelete={handleCancelDelete}
+        />
       ) : (
         <div className="text-center py-12">
           <Camera className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />

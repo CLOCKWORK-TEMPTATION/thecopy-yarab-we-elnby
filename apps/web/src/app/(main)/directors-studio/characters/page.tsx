@@ -97,6 +97,64 @@ const CharacterCard = memo(function CharacterCard({
   );
 });
 
+function CharactersGrid({
+  characters,
+  onEdit,
+  onDelete,
+  onAdd,
+}: {
+  characters: Character[];
+  onEdit: (c: Character) => void;
+  onDelete: (id: string) => void;
+  onAdd: () => void;
+}) {
+  if (characters.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Users className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
+        <p className="text-[var(--app-text-muted)]">لا توجد شخصيات حتى الآن</p>
+        <Button
+          className="mt-4 bg-[var(--app-accent)] text-white hover:bg-[var(--app-accent)]/90"
+          onClick={onAdd}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          إنشاء شخصية جديدة
+        </Button>
+      </div>
+    );
+  }
+  if (characters.length > 10) {
+    return (
+      <VirtualizedGrid
+        items={characters}
+        renderItem={(character) => (
+          <CharacterCard
+            key={character.id}
+            character={character}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        )}
+        columnCount={3}
+        itemHeight={280}
+        itemWidth={350}
+      />
+    );
+  }
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {characters.map((character) => (
+        <CharacterCard
+          key={character.id}
+          character={character}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function CharactersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
@@ -217,49 +275,12 @@ export default function CharactersPage() {
         </Button>
       </div>
 
-      {characters && characters.length > 10 ? (
-        <VirtualizedGrid
-          items={characters}
-          renderItem={(character) => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          )}
-          columnCount={3}
-          itemHeight={280}
-          itemWidth={350}
-        />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {characters?.map((character) => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
-
-      {characters?.length === 0 && (
-        <div className="text-center py-12">
-          <Users className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
-          <p className="text-[var(--app-text-muted)]">
-            لا توجد شخصيات حتى الآن
-          </p>
-          <Button
-            className="mt-4 bg-[var(--app-accent)] text-white hover:bg-[var(--app-accent)]/90"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            إنشاء شخصية جديدة
-          </Button>
-        </div>
-      )}
+      <CharactersGrid
+        characters={characters ?? []}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAdd={() => setIsDialogOpen(true)}
+      />
 
       <CharacterFormDialog
         open={isDialogOpen}

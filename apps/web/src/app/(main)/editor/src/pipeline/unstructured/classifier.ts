@@ -42,18 +42,158 @@ function mkItem({
   return { i, type, raw, normalized, confidence, evidence };
 }
 
+type PushFn = (
+  type: UnstructuredItemType,
+  raw: string,
+  normalized: string,
+  conf: number,
+  ev: Evidence[]
+) => void;
+
+// — يعالج السطر المعلّق كرأس مشهد-3 إذا تحقق الشرط، يعيد true إذا تمّت المعالجة
+function tryResolvePendingHeader3(
+  norm: string,
+  raw: string,
+  idx: number,
+  operations: UnstructuredOperation[],
+  push: PushFn
+): boolean {
+  const looksSpeaker =
+    PURE_SPEAKER_RE.test(norm) || INLINE_SPEAKER_RE.test(norm);
+  const looksVerb = STARTS_WITH_NARRATIVE_VERB_RE.test(norm);
+  const looksCut = CUT_ONLY_RE.test(norm);
+  const looksHeader1 = SCENE1_RE.test(norm);
+  const looksHeader2 = SCENE2_RE.test(norm);
+
+  if (
+    !looksSpeaker &&
+    !looksVerb &&
+    !looksCut &&
+    !looksHeader1 &&
+    !looksHeader2
+  ) {
+    operations.push({
+      op: "SPLIT",
+      at: idx,
+      detail: `Header-3 inferred from next line: "${norm}"`,
+    });
+    push("scene_header_3", raw, norm, 0.78, ["E_LOCATION_LINE_NEXT"]);
+    return true;
+  }
+  return false;
+}
+
+// — يعالج الأسطر التي تحتوي رأس مشهد-1 أو مشهد-2، يعيد true دائماً
+function handleSceneHeaderLine(
+  norm: string,
+  raw: string,
+  idx: number,
+  operations: UnstructuredOperation[],
+  push: PushFn
+): { consumed: true; pendingHeader3: boolean } {
+  let pendingHeader3 = false;
+
+  const m1 = SCENE1_RE.exec(norm);
+  if (m1) {
+    const scenePart = m1[0];
+    if (scenePart) {
+      const h1 = scenePart.replace(/\s+/g, " ").trim();
+      operations.push({
+        op: "SPLIT",
+        at: idx,
+        detail: `Extract scene_header_1 from: "${norm}"`,
+      });
+      push("scene_header_1", raw, h1, 0.95, ["E_SCENE_1_MATCH"]);
+    }
+  }
+
+  const m2 = SCENE2_RE.exec(norm);
+  if (m2) {
+    const sceneTime = m2[1];
+    const sceneSpace = m2[2];
+    if (sceneTime && sceneSpace) {
+      const h2 = `${sceneTime}-${sceneSpace}`.replace(/\s+/g, "");
+      operations.push({
+        op: "SPLIT",
+        at: idx,
+        detail: `Extract scene_header_2 from: "${norm}"`,
+      });
+      push("scene_header_2", raw, h2, 0.92, ["E_SCENE_2_MATCH"]);
+    }
+  }
+
+  const possibleLocation = norm
+    .replace(SCENE1_RE, "")
+    .replace(SCENE2_RE, "")
+    .trim()
+    .replace(/^[-–]+/u, "")
+    .trim();
+
+  if (possibleLocation && possibleLocation.length >= 3) {
+    const startsWithVerb = STARTS_WITH_NARRATIVE_VERB_RE.test(possibleLocation);
+    const looksSpeaker =
+      INLINE_SPEAKER_RE.test(possibleLocation) ||
+      PURE_SPEAKER_RE.test(possibleLocation);
+
+    if (!startsWithVerb && !looksSpeaker) {
+      operations.push({
+        op: "SPLIT",
+        at: idx,
+        detail: `Extract scene_header_3 from same line: "${norm}"`,
+      });
+      push("scene_header_3", raw, possibleLocation, 0.8, [
+        "E_LOCATION_LINE_SAME",
+      ]);
+    } else {
+      pendingHeader3 = true;
+    }
+  } else {
+    pendingHeader3 = true;
+  }
+
+  return { consumed: true, pendingHeader3 };
+}
+
+// — يعالج السطر الذي يحتوي متحدثاً مدمجاً مع حوار على نفس السطر
+// — يعيد true إذا تمّت المعالجة
+function tryHandleInlineSpeaker(
+  norm: string,
+  raw: string,
+  idx: number,
+  operations: UnstructuredOperation[],
+  push: PushFn
+): boolean {
+  const inline = INLINE_SPEAKER_RE.exec(norm);
+  if (!inline) return false;
+
+  const speaker = inline[1]?.trim();
+  const spoken = inline[2]?.trim();
+
+  if (!speaker || !spoken) {
+    push("ACTION", raw, norm, 0.72, ["E_FALLBACK_ACTION"]);
+    return true;
+  }
+
+  if (!STARTS_WITH_NARRATIVE_VERB_RE.test(norm)) {
+    operations.push({
+      op: "SPLIT",
+      at: idx,
+      detail: `Inline speaker split: "${norm}"`,
+    });
+    push("CHARACTER", raw, `${speaker} :`, 0.9, ["E_INLINE_SPEAKER_SPLIT"]);
+    push("DIALOGUE", raw, spoken, 0.9, ["E_DIALOGUE_AFTER_SPEAKER"]);
+    return true;
+  }
+
+  return false;
+}
+
 export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
   const operations: UnstructuredOperation[] = [];
   const items: UnstructuredItem[] = [];
   let idx = 1;
 
-  const push = (
-    type: UnstructuredItemType,
-    raw: string,
-    normalized: string,
-    conf: number,
-    ev: Evidence[]
-  ): void => {
+  const push: PushFn = (type, raw, normalized, conf, ev): void => {
     items.push(
       mkItem({
         i: idx++,
@@ -89,121 +229,28 @@ export function classifyUnstructuredLines(lines: string[]): UnstructuredResult {
     }
 
     if (pendingHeader3) {
-      const looksSpeaker =
-        PURE_SPEAKER_RE.test(norm) || INLINE_SPEAKER_RE.test(norm);
-      const looksVerb = STARTS_WITH_NARRATIVE_VERB_RE.test(norm);
-      const looksCut = CUT_ONLY_RE.test(norm);
-      const looksHeader1 = SCENE1_RE.test(norm);
-      const looksHeader2 = SCENE2_RE.test(norm);
-
-      if (
-        !looksSpeaker &&
-        !looksVerb &&
-        !looksCut &&
-        !looksHeader1 &&
-        !looksHeader2
-      ) {
-        pendingHeader3 = false;
-        operations.push({
-          op: "SPLIT",
-          at: idx,
-          detail: `Header-3 inferred from next line: "${norm}"`,
-        });
-        push("scene_header_3", raw, norm, 0.78, ["E_LOCATION_LINE_NEXT"]);
-        continue;
-      }
-
+      const resolved = tryResolvePendingHeader3(
+        norm,
+        raw,
+        idx,
+        operations,
+        push
+      );
       pendingHeader3 = false;
+      if (resolved) continue;
     }
 
     const hasScene1 = SCENE1_RE.test(norm);
     const hasScene2 = SCENE2_RE.test(norm);
 
     if (hasScene1 || hasScene2) {
-      const m1 = SCENE1_RE.exec(norm);
-      if (m1) {
-        const scenePart = m1[0];
-        if (!scenePart) {
-          continue;
-        }
-        const h1 = scenePart.replace(/\s+/g, " ").trim();
-        operations.push({
-          op: "SPLIT",
-          at: idx,
-          detail: `Extract scene_header_1 from: "${norm}"`,
-        });
-        push("scene_header_1", raw, h1, 0.95, ["E_SCENE_1_MATCH"]);
-      }
-
-      const m2 = SCENE2_RE.exec(norm);
-      if (m2) {
-        const sceneTime = m2[1];
-        const sceneSpace = m2[2];
-        if (!sceneTime || !sceneSpace) {
-          continue;
-        }
-        const h2 = `${sceneTime}-${sceneSpace}`.replace(/\s+/g, "");
-        operations.push({
-          op: "SPLIT",
-          at: idx,
-          detail: `Extract scene_header_2 from: "${norm}"`,
-        });
-        push("scene_header_2", raw, h2, 0.92, ["E_SCENE_2_MATCH"]);
-      }
-
-      const possibleLocation = norm
-        .replace(SCENE1_RE, "")
-        .replace(SCENE2_RE, "")
-        .trim()
-        .replace(/^[-–]+/u, "")
-        .trim();
-
-      if (possibleLocation && possibleLocation.length >= 3) {
-        const startsWithVerb =
-          STARTS_WITH_NARRATIVE_VERB_RE.test(possibleLocation);
-        const looksSpeaker =
-          INLINE_SPEAKER_RE.test(possibleLocation) ||
-          PURE_SPEAKER_RE.test(possibleLocation);
-
-        if (!startsWithVerb && !looksSpeaker) {
-          operations.push({
-            op: "SPLIT",
-            at: idx,
-            detail: `Extract scene_header_3 from same line: "${norm}"`,
-          });
-          push("scene_header_3", raw, possibleLocation, 0.8, [
-            "E_LOCATION_LINE_SAME",
-          ]);
-        } else {
-          pendingHeader3 = true;
-        }
-      } else {
-        pendingHeader3 = true;
-      }
-
+      const result = handleSceneHeaderLine(norm, raw, idx, operations, push);
+      pendingHeader3 = result.pendingHeader3;
       continue;
     }
 
-    const inline = INLINE_SPEAKER_RE.exec(norm);
-    if (inline) {
-      const speaker = inline[1]?.trim();
-      const spoken = inline[2]?.trim();
-
-      if (!speaker || !spoken) {
-        push("ACTION", raw, norm, 0.72, ["E_FALLBACK_ACTION"]);
-        continue;
-      }
-
-      if (!STARTS_WITH_NARRATIVE_VERB_RE.test(norm)) {
-        operations.push({
-          op: "SPLIT",
-          at: idx,
-          detail: `Inline speaker split: "${norm}"`,
-        });
-        push("CHARACTER", raw, `${speaker} :`, 0.9, ["E_INLINE_SPEAKER_SPLIT"]);
-        push("DIALOGUE", raw, spoken, 0.9, ["E_DIALOGUE_AFTER_SPEAKER"]);
-        continue;
-      }
+    if (tryHandleInlineSpeaker(norm, raw, idx, operations, push)) {
+      continue;
     }
 
     if (PURE_SPEAKER_RE.test(norm)) {

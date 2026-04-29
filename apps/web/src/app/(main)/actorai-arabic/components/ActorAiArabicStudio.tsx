@@ -6,7 +6,7 @@
  * يتضمن: تحليل النصوص، شريك المشهد، تمارين الصوت، التحليل البصري، وغيرها
  */
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { GESTURE_CONTROLS } from "../types/constants";
 
@@ -40,6 +40,71 @@ import type {
   HolographicPartner,
   GestureControl,
 } from "../types";
+
+// ==================== دوال مساعدة للتنقل ====================
+
+type ViewType = string;
+
+interface ContentProps {
+  currentView: ViewType;
+  renderHome: () => React.ReactNode;
+  renderDemo: () => React.ReactNode;
+  renderVocalExercises: () => React.ReactNode;
+  renderVoiceCoach: () => React.ReactNode;
+  renderSceneRhythm: () => React.ReactNode;
+  renderWebcamAnalysis: () => React.ReactNode;
+  renderARTraining: () => React.ReactNode;
+}
+
+const RenderLogin: React.FC<{
+  onLogin: (email: string, password: string) => void;
+  onNavigate: (view: ViewType) => void;
+}> = ({ onLogin, onNavigate }) => (
+  <LoginPage onLogin={onLogin} onNavigate={onNavigate} />
+);
+
+const RenderRegister: React.FC<{
+  onRegister: (name: string, email: string, password: string) => void;
+  onNavigate: (view: ViewType) => void;
+}> = ({ onRegister, onNavigate }) => (
+  <RegisterPage onRegister={onRegister} onNavigate={onNavigate} />
+);
+
+function renderMainContent(props: ContentProps): React.ReactNode {
+  const {
+    currentView,
+    renderHome,
+    renderDemo,
+    renderVocalExercises,
+    renderVoiceCoach,
+    renderSceneRhythm,
+    renderWebcamAnalysis,
+    renderARTraining,
+  } = props;
+
+  switch (currentView) {
+    case "home":
+      return renderHome();
+    case "demo":
+      return renderDemo();
+    case "vocal":
+      return renderVocalExercises();
+    case "voicecoach":
+      return renderVoiceCoach();
+    case "rhythm":
+      return renderSceneRhythm();
+    case "webcam":
+      return renderWebcamAnalysis();
+    case "ar":
+      return renderARTraining();
+    case "login":
+      return null; // handled inline
+    case "register":
+      return null; // handled inline
+    default:
+      return renderHome();
+  }
+}
 
 // ==================== المكون الرئيسي ====================
 
@@ -154,40 +219,9 @@ export const ActorAiArabicStudio: React.FC = () => {
   const [arSessionActive, setArSessionActive] = useState(false);
   const [visionProConnected, _setVisionProConnected] = useState(false);
 
-  // ==================== عرض الإشعارات ====================
-
-  const renderNotification = () => <Notification notification={notification} />;
-
-  // ==================== عرض الهيدر ====================
-
-  const renderHeader = () => (
-    <Header
-      currentView={currentView}
-      user={user}
-      navigate={navigate}
-      handleLogout={handleLogout}
-      toggleTheme={toggleTheme}
-      theme={theme}
-    />
-  );
-
-  // ==================== صفحة تسجيل الدخول ====================
-
-  const RenderLogin = () => (
-    <LoginPage onLogin={handleLogin} onNavigate={navigate} />
-  );
-
-  // ==================== صفحة التسجيل ====================
-
-  const RenderRegister = () => (
-    <RegisterPage onRegister={handleRegister} onNavigate={navigate} />
-  );
-
-  // ==================== الصفحة الرئيسية ====================
+  // ==================== دوال العرض ====================
 
   const renderHome = () => <HomePage onNavigate={navigate} />;
-
-  // ==================== صفحة التجربة ====================
 
   const renderDemo = () => (
     <DemoPage
@@ -215,8 +249,6 @@ export const ActorAiArabicStudio: React.FC = () => {
     />
   );
 
-  // ==================== صفحة تمارين الصوت ====================
-
   const renderVocalExercises = () => (
     <VocalExercisesPage
       activeExercise={activeExercise}
@@ -226,8 +258,6 @@ export const ActorAiArabicStudio: React.FC = () => {
       formatTime={formatTime}
     />
   );
-
-  // ==================== صفحة تحليل الأداء البصري ====================
 
   const renderWebcamAnalysis = () => (
     <WebcamAnalysisPage
@@ -249,8 +279,6 @@ export const ActorAiArabicStudio: React.FC = () => {
     />
   );
 
-  // ==================== صفحة تدريب AR/MR ====================
-
   const renderARTraining = () => (
     <ARTrainingPage
       arMode={arMode}
@@ -271,11 +299,7 @@ export const ActorAiArabicStudio: React.FC = () => {
     />
   );
 
-  // ==================== صفحة مدرب الصوت ====================
-
   const renderVoiceCoach = () => <VoiceCoachPage />;
-
-  // ==================== صفحة إيقاع المشهد ====================
 
   const renderSceneRhythm = () => (
     <RhythmAnalysisPage
@@ -289,48 +313,47 @@ export const ActorAiArabicStudio: React.FC = () => {
     />
   );
 
-  // ==================== الـ Footer ====================
-
-  const renderFooter = () => <Footer />;
-
-  // ==================== تحديد المحتوى الرئيسي ====================
-
-  const renderMainContent = () => {
-    switch (currentView) {
-      case "home":
-        return renderHome();
-      case "demo":
-        return renderDemo();
-      case "vocal":
-        return renderVocalExercises();
-      case "voicecoach":
-        return renderVoiceCoach();
-      case "rhythm":
-        return renderSceneRhythm();
-      case "webcam":
-        return renderWebcamAnalysis();
-      case "ar":
-        return renderARTraining();
-      case "login":
-        return <RenderLogin />;
-      case "register":
-        return <RenderRegister />;
-      default:
-        return renderHome();
-    }
-  };
-
   // ==================== العرض النهائي ====================
+
+  const isLogin = currentView === "login";
+  const isRegister = currentView === "register";
+
+  const mainContent =
+    isLogin || isRegister ? (
+      isLogin ? (
+        <RenderLogin onLogin={handleLogin} onNavigate={navigate} />
+      ) : (
+        <RenderRegister onRegister={handleRegister} onNavigate={navigate} />
+      )
+    ) : (
+      renderMainContent({
+        currentView,
+        renderHome,
+        renderDemo,
+        renderVocalExercises,
+        renderVoiceCoach,
+        renderSceneRhythm,
+        renderWebcamAnalysis,
+        renderARTraining,
+      })
+    );
 
   return (
     <div
       className={`min-h-screen ${theme === "dark" ? "dark bg-black/14" : "bg-white/[0.04]"}`}
       dir="rtl"
     >
-      {renderHeader()}
-      {renderNotification()}
-      <main className="container mx-auto px-4 py-8">{renderMainContent()}</main>
-      {renderFooter()}
+      <Header
+        currentView={currentView}
+        user={user}
+        navigate={navigate}
+        handleLogout={handleLogout}
+        toggleTheme={toggleTheme}
+        theme={theme}
+      />
+      <Notification notification={notification} />
+      <main className="container mx-auto px-4 py-8">{mainContent}</main>
+      <Footer />
     </div>
   );
 };

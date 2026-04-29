@@ -7,6 +7,132 @@ import type { Editor } from "@tiptap/core";
  * الحل: دفع الشخصية إلى الصفحة التالية لضمان ظهور الحوار معها
  */
 
+type GetPageFn = (pos: number) => number;
+
+interface PushResult {
+  target: HTMLElement;
+  prop: string;
+  amount: number;
+}
+
+// — يمسح جميع إصلاحات widow السابقة من الجذر
+function clearPreviousFixes(editorRoot: HTMLElement): void {
+  const previouslyFixed = editorRoot.querySelectorAll<HTMLElement>(
+    "[data-character-widow-fix]"
+  );
+  for (const el of previouslyFixed) {
+    const prop = el.getAttribute("data-character-widow-fix") ?? "margin-top";
+    el.style.removeProperty(prop);
+    el.removeAttribute("data-character-widow-fix");
+  }
+  void editorRoot.offsetHeight;
+}
+
+// — يحسب المساحة المتبقية أسفل العنصر داخل الصفحة
+function computeSpaceBelow(current: HTMLElement, page: Element): number {
+  const charRect = current.getBoundingClientRect();
+  const footer = page.querySelector(".tiptap-page-footer");
+  const contentBottom = footer
+    ? footer.getBoundingClientRect().top
+    : page.getBoundingClientRect().bottom;
+  return contentBottom - charRect.bottom;
+}
+
+// — يتحقق من كون الشخصية يتيمة عبر الفحص الهندسي
+function isWidowByGeometry(spaceBelow: number, charHeight: number): boolean {
+  return spaceBelow >= 0 && spaceBelow < charHeight * 1.5;
+}
+
+// — يتحقق من كون الشخصية يتيمة عبر واجهة امتداد الصفحات
+function isWidowByPageExtension(
+  editor: Editor,
+  current: HTMLElement,
+  next: HTMLElement,
+  getPageFn: GetPageFn
+): boolean {
+  try {
+    const p1 = getPageFn(editor.view.posAtDOM(current, 0));
+    const p2 = getPageFn(editor.view.posAtDOM(next, 0));
+    return p1 !== p2;
+  } catch {
+    return false;
+  }
+}
+
+// — يتحقق من كون الشخصية يتيمة عبر حاويات DOM
+function isWidowByDomContainers(page: Element, next: HTMLElement): boolean {
+  const nextPage = next.closest(".tiptap-page, .page");
+  return nextPage !== null && page !== nextPage;
+}
+
+// — يُحدد هدف الدفع والمبلغ ومعرّف الخاصية
+function resolvePushTarget(
+  current: HTMLElement,
+  prev: HTMLElement | null,
+  page: Element,
+  spaceBelow: number,
+  charHeight: number
+): PushResult {
+  const effectiveSpaceBelow = Math.max(0, spaceBelow);
+  const prevPage = prev ? prev.closest(".tiptap-page, .page") : null;
+
+  if (prev && prevPage === page) {
+    return {
+      target: prev,
+      prop: "margin-bottom",
+      amount: Math.ceil(effectiveSpaceBelow) + 4,
+    };
+  }
+
+  return {
+    target: current,
+    prop: "margin-top",
+    amount: Math.ceil(effectiveSpaceBelow + charHeight) + 4,
+  };
+}
+
+// — يعالج كتلة شخصية واحدة ويُحدد ما إذا كانت يتيمة ثم يُطبّق الإصلاح
+function processCharacterBlock(
+  editor: Editor,
+  allBlocks: HTMLElement[],
+  i: number,
+  page: Element,
+  getPageFn: GetPageFn | undefined
+): boolean {
+  const current = allBlocks[i];
+  if (!current) return false;
+
+  const charRect = current.getBoundingClientRect();
+  const spaceBelow = computeSpaceBelow(current, page);
+
+  const prev = i > 0 ? (allBlocks[i - 1] ?? null) : null;
+  const next = i + 1 < allBlocks.length ? (allBlocks[i + 1] ?? null) : null;
+
+  let isWidow = isWidowByGeometry(spaceBelow, charRect.height);
+
+  if (!isWidow && next && typeof getPageFn === "function") {
+    isWidow = isWidowByPageExtension(editor, current, next, getPageFn);
+  }
+
+  if (!isWidow && next) {
+    isWidow = isWidowByDomContainers(page, next);
+  }
+
+  if (!isWidow) return false;
+
+  const { target, prop, amount } = resolvePushTarget(
+    current,
+    prev,
+    page,
+    spaceBelow,
+    charRect.height
+  );
+
+  target.style.setProperty(prop, `${amount}px`, "important");
+  target.setAttribute("data-character-widow-fix", prop);
+  return true;
+}
+
 export class CharacterWidowFixer {
   private rafId: number | null = null;
   private applyingFix = false;
@@ -46,28 +172,15 @@ export class CharacterWidowFixer {
     );
     if (!editorRoot) return;
 
-    // ── 1. مسح جميع الإصلاحات السابقة لإعادة التخطيط لحالته الطبيعية ──
-    const previouslyFixed = editorRoot.querySelectorAll<HTMLElement>(
-      "[data-character-widow-fix]"
-    );
-    for (const el of previouslyFixed) {
-      const prop = el.getAttribute("data-character-widow-fix") ?? "margin-top";
-      el.style.removeProperty(prop);
-      el.removeAttribute("data-character-widow-fix");
-    }
+    clearPreviousFixes(editorRoot);
 
-    // فرض إعادة تدفق متزامنة لضمان دقة الإحداثيات بعد المسح
-    void editorRoot.offsetHeight;
-
-    // ── 2. تجميع جميع عناصر كتل المحتوى ──
     const allBlocks = Array.from(
       editorRoot.querySelectorAll<HTMLElement>("[data-type]")
     );
     if (allBlocks.length === 0) return;
 
-    // ── 3. كشف عناصر الشخصية "اليتيمة" (المعزولة في أسفل الصفحة) ──
     const pagesStorage = editor.storage as {
-      pages?: { getPageForPosition?: (pos: number) => number };
+      pages?: { getPageForPosition?: GetPageFn };
     };
     const getPageFn = pagesStorage.pages?.getPageForPosition;
 
@@ -78,76 +191,21 @@ export class CharacterWidowFixer {
       if (!current) continue;
       if (current.getAttribute("data-type") !== "character") continue;
 
-      // إيجاد حاوي الصفحة لعنصر الشخصية هذا
       const page = current.closest(".tiptap-page, .page");
       if (!page) continue;
 
-      const charRect = current.getBoundingClientRect();
-      const footer = page.querySelector(".tiptap-page-footer");
-      const contentBottom = footer
-        ? footer.getBoundingClientRect().top
-        : page.getBoundingClientRect().bottom;
-      const spaceBelow = contentBottom - charRect.bottom;
-
-      // الكتلة السابقة والتالية بترتيب المستند
-      const prev = i > 0 ? allBlocks[i - 1] : null;
-      const next = i + 1 < allBlocks.length ? allBlocks[i + 1] : null;
-
-      let isWidow = false;
-
-      // ── أولاً: الفحص الهندسي ──
-      // إذا كانت المساحة المتبقية في الصفحة بعد الشخصية أقل من
-      // 1.5 ضعف ارتفاع السطر، فلا مكان للحوار → الشخصية يتيمة.
-      // نستخدم 1.5 × الارتفاع لضمان مساحة كافية لسطر حوار واحد على الأقل.
-      if (spaceBelow >= 0 && spaceBelow < charRect.height * 1.5) {
-        isWidow = true;
-      }
-
-      // ── ثانياً: واجهة برمجة امتداد الصفحات ──
-      if (!isWidow && next && typeof getPageFn === "function") {
-        try {
-          const p1 = getPageFn(editor.view.posAtDOM(current, 0));
-          const p2 = getPageFn(editor.view.posAtDOM(next, 0));
-          if (p1 !== p2) isWidow = true;
-        } catch {
-          /* fall through to DOM method */
-        }
-      }
-
-      // ── TERTIARY: DOM page containers ──
-      if (!isWidow && next) {
-        const nextPage = next.closest(".tiptap-page, .page");
-        if (page && nextPage && page !== nextPage) isWidow = true;
-      }
-
-      if (!isWidow) continue;
-
-      // ── 4. دفع الشخصية لتجاوز منطقة محتوى الصفحة الحالية ──
-      // لمنع فجوة بصرية كبيرة أعلى الصفحة التالية، نفضّل إضافة
-      // `margin-bottom` للعنصر السابق في نفس الصفحة. إذا تعذّر ذلك،
-      // نرجع لإضافة `margin-top` على عنصر الشخصية نفسه.
-      const prevPage = prev ? prev.closest(".tiptap-page, .page") : null;
-      const effectiveSpaceBelow = Math.max(0, spaceBelow);
-
-      let pushTarget: HTMLElement = current;
-      let targetProp = "margin-top";
-      let pushAmount = Math.ceil(effectiveSpaceBelow + charRect.height) + 4;
-
-      if (prev && prevPage === page) {
-        pushTarget = prev;
-        targetProp = "margin-bottom";
-        // يكفي دفع الحافة السفلية للعنصر الحالي لتجاوز حد الصفحة
-        pushAmount = Math.ceil(effectiveSpaceBelow) + 4;
-      }
-
-      pushTarget.style.setProperty(targetProp, `${pushAmount}px`, "important");
-      pushTarget.setAttribute("data-character-widow-fix", targetProp);
-      hasAdjustment = true;
+      const adjusted = processCharacterBlock(
+        editor,
+        allBlocks,
+        i,
+        page,
+        getPageFn
+      );
+      if (adjusted) hasAdjustment = true;
     }
 
     if (!hasAdjustment) return;
 
-    // ── 5. حارس: إطارا رسوم متحركة مزدوجان لإتمام إعادة تدفق امتداد الصفحات قبل إعادة الفحص ──
     this.applyingFix = true;
     if (typeof window !== "undefined") {
       window.requestAnimationFrame(() => {

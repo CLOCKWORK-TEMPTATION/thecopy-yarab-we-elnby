@@ -34,6 +34,153 @@ const STATUS_CLASSES: Record<OrderStatus, string> = {
   cancelled: "bg-white/4 text-white/55",
 };
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface StatsRowProps {
+  loading: boolean;
+  stats: { total: number; processing: number; completed: number };
+}
+
+function StatsRow({ loading, stats }: StatsRowProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+        <p className="text-sm text-white/55 font-cairo mb-2">إجمالي الطلبات</p>
+        <p className="text-4xl font-bold text-white font-cairo">
+          {loading ? "…" : stats.total}
+        </p>
+      </CardSpotlight>
+      <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+        <p className="text-sm text-white/55 font-cairo mb-2">قيد التحضير</p>
+        <p className="text-4xl font-bold text-white font-cairo">
+          {loading ? "…" : stats.processing}
+        </p>
+      </CardSpotlight>
+      <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+        <p className="text-sm text-white/55 font-cairo mb-2">مكتمل</p>
+        <p className="text-4xl font-bold text-white font-cairo">
+          {loading ? "…" : stats.completed}
+        </p>
+      </CardSpotlight>
+    </div>
+  );
+}
+
+interface OrderCardProps {
+  order: Order;
+  busy: boolean;
+  updateStatus: (orderId: string, status: OrderStatus) => void;
+}
+
+function OrderCard({ order, busy, updateStatus }: OrderCardProps) {
+  return (
+    <div className="p-4 border border-white/8 rounded-[22px] bg-white/[0.02]">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <p className="text-sm text-white font-mono">#{order.id}</p>
+          <p className="text-xs text-white/45 mt-1 font-cairo">
+            {new Date(order.created_at).toLocaleString("ar-SA")}
+          </p>
+        </div>
+        <span
+          className={`px-2 py-1 text-xs rounded-full font-cairo ${STATUS_CLASSES[order.status]}`}
+        >
+          {STATUS_LABELS[order.status]}
+        </span>
+      </div>
+
+      <ul className="text-sm text-white/85 font-cairo mb-3 space-y-1">
+        {order.items.map((item, index) => (
+          <li
+            key={`${order.id}-${item.menuItemId}-${index}`}
+            className="flex justify-between"
+          >
+            <span className="font-mono text-white/55">{item.menuItemId}</span>
+            <span>×{item.quantity}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex items-center gap-2">
+        {order.status === "pending" && (
+          <button
+            onClick={() => void updateStatus(order.id, "processing")}
+            disabled={busy}
+            className="px-4 py-2 text-sm bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:opacity-50 font-cairo transition"
+          >
+            {busy ? "جارٍ..." : "بدء تحضير"}
+          </button>
+        )}
+        {order.status === "processing" && (
+          <button
+            onClick={() => void updateStatus(order.id, "completed")}
+            disabled={busy}
+            className="px-4 py-2 text-sm bg-white/10 text-white rounded-[22px] hover:bg-white/14 disabled:opacity-50 font-cairo transition"
+          >
+            {busy ? "جارٍ..." : "جاهز"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface OrdersListCardProps {
+  orders: Order[];
+  loading: boolean;
+  updatingId: string | null;
+  updateStatus: (orderId: string, status: OrderStatus) => void;
+  onRefresh: () => void;
+}
+
+function OrdersListCard({
+  orders,
+  loading,
+  updatingId,
+  updateStatus,
+  onRefresh,
+}: OrdersListCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-white font-cairo">
+          الطلبات ({orders.length})
+        </h2>
+        <button
+          onClick={onRefresh}
+          disabled={loading}
+          className="px-4 py-2 text-sm bg-white/6 text-white rounded-[22px] hover:bg-white/8 font-cairo transition disabled:opacity-50"
+        >
+          تحديث
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
+        </div>
+      ) : orders.length === 0 ? (
+        <p className="text-white/55 text-center py-8 font-cairo">
+          لا توجد طلبات واردة حالياً
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order: Order) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              busy={updatingId === order.id}
+              updateStatus={updateStatus}
+            />
+          ))}
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function VendorDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -117,120 +264,15 @@ export default function VendorDashboardPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-            <p className="text-sm text-white/55 font-cairo mb-2">
-              إجمالي الطلبات
-            </p>
-            <p className="text-4xl font-bold text-white font-cairo">
-              {loading ? "…" : stats.total}
-            </p>
-          </CardSpotlight>
-          <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-            <p className="text-sm text-white/55 font-cairo mb-2">قيد التحضير</p>
-            <p className="text-4xl font-bold text-white font-cairo">
-              {loading ? "…" : stats.processing}
-            </p>
-          </CardSpotlight>
-          <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-            <p className="text-sm text-white/55 font-cairo mb-2">مكتمل</p>
-            <p className="text-4xl font-bold text-white font-cairo">
-              {loading ? "…" : stats.completed}
-            </p>
-          </CardSpotlight>
-        </div>
+        <StatsRow loading={loading} stats={stats} />
 
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-white font-cairo">
-              الطلبات ({orders.length})
-            </h2>
-            <button
-              onClick={() => void fetchOrders()}
-              disabled={loading}
-              className="px-4 py-2 text-sm bg-white/6 text-white rounded-[22px] hover:bg-white/8 font-cairo transition disabled:opacity-50"
-            >
-              تحديث
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
-            </div>
-          ) : orders.length === 0 ? (
-            <p className="text-white/55 text-center py-8 font-cairo">
-              لا توجد طلبات واردة حالياً
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order: Order) => {
-                const busy = updatingId === order.id;
-                return (
-                  <div
-                    key={order.id}
-                    className="p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="text-sm text-white font-mono">
-                          #{order.id}
-                        </p>
-                        <p className="text-xs text-white/45 mt-1 font-cairo">
-                          {new Date(order.created_at).toLocaleString("ar-SA")}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full font-cairo ${STATUS_CLASSES[order.status]}`}
-                      >
-                        {STATUS_LABELS[order.status]}
-                      </span>
-                    </div>
-
-                    <ul className="text-sm text-white/85 font-cairo mb-3 space-y-1">
-                      {order.items.map((item, index) => (
-                        <li
-                          key={`${order.id}-${item.menuItemId}-${index}`}
-                          className="flex justify-between"
-                        >
-                          <span className="font-mono text-white/55">
-                            {item.menuItemId}
-                          </span>
-                          <span>×{item.quantity}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="flex items-center gap-2">
-                      {order.status === "pending" && (
-                        <button
-                          onClick={() =>
-                            void updateStatus(order.id, "processing")
-                          }
-                          disabled={busy}
-                          className="px-4 py-2 text-sm bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:opacity-50 font-cairo transition"
-                        >
-                          {busy ? "جارٍ..." : "بدء تحضير"}
-                        </button>
-                      )}
-                      {order.status === "processing" && (
-                        <button
-                          onClick={() =>
-                            void updateStatus(order.id, "completed")
-                          }
-                          disabled={busy}
-                          className="px-4 py-2 text-sm bg-white/10 text-white rounded-[22px] hover:bg-white/14 disabled:opacity-50 font-cairo transition"
-                        >
-                          {busy ? "جارٍ..." : "جاهز"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardSpotlight>
+        <OrdersListCard
+          orders={orders}
+          loading={loading}
+          updatingId={updatingId}
+          updateStatus={updateStatus}
+          onRefresh={() => void fetchOrders()}
+        />
       </div>
     </div>
   );

@@ -75,12 +75,12 @@ export interface ValidateRawLinesOptions {
   readonly classifiedLines?: readonly ClassifiedLine[];
 }
 
-const ARABIC_CHAR_RE = /[\u0600-\u06FF]/g;
+const ARABIC_CHAR_RE = /[؀-ۿ]/g;
 const LATIN_CHAR_RE = /[A-Za-z]/g;
 const DIGIT_RE = /[0-9٠-٩]/g;
 const PUNCT_RE = /[.,،؛;:!?؟()\x5B\x5D{}"'«»…\-–—]/g;
 const SYMBOL_NOISE_RE =
-  /[^\u0600-\u06FFA-Za-z0-9٠-٩\s.,،؛;:!?؟()\x5B\x5D{}"'«»…\-–—/\\]/g;
+  /[^؀-ۿA-Za-z0-9٠-٩\s.,،؛;:!?؟()\x5B\x5D{}"'«»…\-–—/\\]/g;
 const PAGE_NUMBER_ONLY_RE = /^\s*(?:صفحة\s*)?\d{1,4}\s*(?:\/\s*\d{1,4})?\s*$/;
 const HEADER_FOOTER_LIKE_RE =
   /^(?:copyright|all rights reserved|www\.|https?:\/\/|\d{1,2}\s*[-–/]\s*\d{1,2}\s*[-–/]\s*\d{2,4})$/i;
@@ -230,6 +230,165 @@ function pushIssue(
   });
 }
 
+function checkStructuralArtifacts(
+  bucket: ValidatorIssue[],
+  ref: PipelineLineRef,
+  normalized: string,
+  knownHeaderFooterLines: readonly string[] | undefined
+): void {
+  if (looksLikePageNumberArtifact(normalized)) {
+    pushIssue(bucket, ref, {
+      code: "page-number-artifact",
+      severity: "medium",
+      score: 28,
+      reason: "يبدو رقم صفحة/ترقيمًا دخيلًا",
+    });
+  }
+
+  if (looksLikeHeaderFooterArtifact(normalized, knownHeaderFooterLines)) {
+    pushIssue(bucket, ref, {
+      code: "header-footer-artifact",
+      severity: "medium",
+      score: 25,
+      reason: "يبدو هيدر/فوتر متكررًا",
+    });
+  }
+}
+
+function checkNoiseSignals(
+  bucket: ValidatorIssue[],
+  ref: PipelineLineRef,
+  signals: LineQualitySignals,
+  pdfMode: boolean
+): void {
+  if (signals.symbolNoiseRatio >= 0.18 && signals.length >= 8) {
+    pushIssue(bucket, ref, {
+      code: "garbled-symbol-ratio",
+      severity: signals.symbolNoiseRatio >= 0.28 ? "high" : "medium",
+      score: Math.min(80, Math.round(signals.symbolNoiseRatio * 220)),
+      reason: `نسبة رموز/أحرف غير متوقعة مرتفعة (${signals.symbolNoiseRatio.toFixed(2)})`,
+    });
+  }
+
+  if (signals.brokenArabicSpacingHits > 0) {
+    pushIssue(bucket, ref, {
+      code: "broken-arabic-tokenization",
+      severity: "high",
+      score: 60,
+      reason: "تفكيك عربي غير منطقي (غالبًا OCR فصل الحروف/الكلمات بشكل خاطئ)",
+    });
+  }
+
+  if (signals.repeatedPunctuationRuns > 0 && signals.length <= 14) {
+    pushIssue(bucket, ref, {
+      code: "repeated-punctuation-noise",
+      severity: "medium",
+      score: 24,
+      reason: "علامات ترقيم متكررة بشكل ضوضائي في سطر قصير",
+    });
+  }
+
+  if (
+    signals.tokenCount <= 2 &&
+    signals.length > 0 &&
+    signals.length <= 3 &&
+    signals.arabicCharCount > 0
+  ) {
+    pushIssue(bucket, ref, {
+      code: "very-short-fragment",
+      severity: "low",
+      score: 12,
+      reason: "شظية قصيرة جدًا قد تكون نتيجة قص/فصل OCR",
+    });
+  }
+
+  if (
+    pdfMode &&
+    signals.arabicCharCount > 0 &&
+    signals.latinCharCount >= 4 &&
+    signals.latinCharCount > signals.arabicCharCount
+  ) {
+    pushIssue(bucket, ref, {
+      code: "latin-heavy-in-arabic-context",
+      severity: "medium",
+      score: 22,
+      reason: "هيمنة أحرف لاتينية في سطر عربي محتمل (قد تكون قراءة OCR خاطئة)",
+    });
+  }
+}
+
+function checkMergePatterns(
+  bucket: ValidatorIssue[],
+  ref: PipelineLineRef,
+  normalized: string
+): void {
+  if (SPEAKER_NAME_WITHOUT_COLON_RE.test(normalized)) {
+    pushIssue(bucket, ref, {
+      code: "suspicious-dialogue-cue-missing-colon",
+      severity: "medium",
+      score: 32,
+      reason:
+        "اسم شخصية/صيغة حوار متوقعة بدون ':' — قد يكون فقدان علامات أثناء الاستخراج",
+      suggestedType: "character",
+    });
+  }
+
+  if (looksLikeMergedSpeakerDialogueAction(normalized)) {
+    pushIssue(bucket, ref, {
+      code: "merged-speaker-dialogue-action",
+      severity: "high",
+      score: 72,
+      reason: "يبدو أن الحوار والوصف مدموجان في سطر واحد",
+      suggestedType: "dialogue",
+    });
+  }
+
+  if (looksLikeMergedActionDialogue(normalized)) {
+    pushIssue(bucket, ref, {
+      code: "merged-action-dialogue",
+      severity: "high",
+      score: 70,
+      reason: "يبدو أن سطر أكشن يحتوي اسم شخصية/حوار مدموجًا داخله",
+      suggestedType: "action",
+    });
+  }
+}
+
+function checkClassificationContext(
+  bucket: ValidatorIssue[],
+  ref: PipelineLineRef,
+  normalized: string,
+  classified: ClassifiedLine | undefined
+): void {
+  if (!classified) return;
+
+  if (
+    classified.assignedType === "action" &&
+    looksLikeMergedActionDialogue(normalized)
+  ) {
+    pushIssue(bucket, ref, {
+      code: "merged-action-dialogue",
+      severity: "high",
+      score: 78,
+      reason: "التصنيف Action + وجود اسم شخصية/نقطتين داخليًا يشير لدمج OCR",
+      suggestedType: "action",
+    });
+  }
+  if (
+    classified.assignedType === "dialogue" &&
+    ACTION_VERB_AFTER_THEN_RE.test(normalized) &&
+    normalized.length >= 50
+  ) {
+    pushIssue(bucket, ref, {
+      code: "merged-speaker-dialogue-action",
+      severity: "high",
+      score: 68,
+      reason:
+        "التصنيف Dialogue لكن السطر يحتوي امتدادًا وصفيًا قويًا (ثم/وهي + فعل)",
+    });
+  }
+}
+
 export function validateRawScreenplayLines(
   inputLines: readonly (string | PipelineLineRef)[],
   options: ValidateRawLinesOptions = {}
@@ -272,144 +431,20 @@ export function validateRawScreenplayLines(
       continue;
     }
 
-    if (looksLikePageNumberArtifact(normalized)) {
-      pushIssue(issues, ref, {
-        code: "page-number-artifact",
-        severity: "medium",
-        score: 28,
-        reason: "يبدو رقم صفحة/ترقيمًا دخيلًا",
-      });
-    }
-
-    if (
-      looksLikeHeaderFooterArtifact(normalized, options.knownHeaderFooterLines)
-    ) {
-      pushIssue(issues, ref, {
-        code: "header-footer-artifact",
-        severity: "medium",
-        score: 25,
-        reason: "يبدو هيدر/فوتر متكررًا",
-      });
-    }
-
-    if (signals.symbolNoiseRatio >= 0.18 && signals.length >= 8) {
-      pushIssue(issues, ref, {
-        code: "garbled-symbol-ratio",
-        severity: signals.symbolNoiseRatio >= 0.28 ? "high" : "medium",
-        score: Math.min(80, Math.round(signals.symbolNoiseRatio * 220)),
-        reason: `نسبة رموز/أحرف غير متوقعة مرتفعة (${signals.symbolNoiseRatio.toFixed(2)})`,
-      });
-    }
-
-    if (signals.brokenArabicSpacingHits > 0) {
-      pushIssue(issues, ref, {
-        code: "broken-arabic-tokenization",
-        severity: "high",
-        score: 60,
-        reason:
-          "تفكيك عربي غير منطقي (غالبًا OCR فصل الحروف/الكلمات بشكل خاطئ)",
-      });
-    }
-
-    if (signals.repeatedPunctuationRuns > 0 && signals.length <= 14) {
-      pushIssue(issues, ref, {
-        code: "repeated-punctuation-noise",
-        severity: "medium",
-        score: 24,
-        reason: "علامات ترقيم متكررة بشكل ضوضائي في سطر قصير",
-      });
-    }
-
-    if (
-      signals.tokenCount <= 2 &&
-      signals.length > 0 &&
-      signals.length <= 3 &&
-      signals.arabicCharCount > 0
-    ) {
-      pushIssue(issues, ref, {
-        code: "very-short-fragment",
-        severity: "low",
-        score: 12,
-        reason: "شظية قصيرة جدًا قد تكون نتيجة قص/فصل OCR",
-      });
-    }
-
-    if (
-      options.pdfMode &&
-      signals.arabicCharCount > 0 &&
-      signals.latinCharCount >= 4 &&
-      signals.latinCharCount > signals.arabicCharCount
-    ) {
-      pushIssue(issues, ref, {
-        code: "latin-heavy-in-arabic-context",
-        severity: "medium",
-        score: 22,
-        reason:
-          "هيمنة أحرف لاتينية في سطر عربي محتمل (قد تكون قراءة OCR خاطئة)",
-      });
-    }
-
-    if (SPEAKER_NAME_WITHOUT_COLON_RE.test(normalized)) {
-      pushIssue(issues, ref, {
-        code: "suspicious-dialogue-cue-missing-colon",
-        severity: "medium",
-        score: 32,
-        reason:
-          "اسم شخصية/صيغة حوار متوقعة بدون ':' — قد يكون فقدان علامات أثناء الاستخراج",
-        suggestedType: "character",
-      });
-    }
-
-    if (looksLikeMergedSpeakerDialogueAction(normalized)) {
-      pushIssue(issues, ref, {
-        code: "merged-speaker-dialogue-action",
-        severity: "high",
-        score: 72,
-        reason: "يبدو أن الحوار والوصف مدموجان في سطر واحد",
-        suggestedType: "dialogue",
-      });
-    }
-
-    if (looksLikeMergedActionDialogue(normalized)) {
-      pushIssue(issues, ref, {
-        code: "merged-action-dialogue",
-        severity: "high",
-        score: 70,
-        reason: "يبدو أن سطر أكشن يحتوي اسم شخصية/حوار مدموجًا داخله",
-        suggestedType: "action",
-      });
-    }
-
-    // تعزيز بالسياق التصنيفي إن توفر
-    const classified = classifiedByIndex.get(ref.lineIndex);
-    if (classified) {
-      if (
-        classified.assignedType === "action" &&
-        looksLikeMergedActionDialogue(normalized)
-      ) {
-        pushIssue(issues, ref, {
-          code: "merged-action-dialogue",
-          severity: "high",
-          score: 78,
-          reason:
-            "التصنيف Action + وجود اسم شخصية/نقطتين داخليًا يشير لدمج OCR",
-          suggestedType: "action",
-        });
-      }
-      if (
-        classified.assignedType === "dialogue" &&
-        ACTION_VERB_AFTER_THEN_RE.test(normalized) &&
-        normalized.length >= 50
-      ) {
-        pushIssue(issues, ref, {
-          code: "merged-speaker-dialogue-action",
-          severity: "high",
-          score: 68,
-          reason:
-            "التصنيف Dialogue لكن السطر يحتوي امتدادًا وصفيًا قويًا (ثم/وهي + فعل)",
-        });
-      }
-    }
+    checkStructuralArtifacts(
+      issues,
+      ref,
+      normalized,
+      options.knownHeaderFooterLines
+    );
+    checkNoiseSignals(issues, ref, signals, options.pdfMode ?? false);
+    checkMergePatterns(issues, ref, normalized);
+    checkClassificationContext(
+      issues,
+      ref,
+      normalized,
+      classifiedByIndex.get(ref.lineIndex)
+    );
   }
 
   // تجميع السكور النهائي لكل سطر مع قصّ أعلى 100

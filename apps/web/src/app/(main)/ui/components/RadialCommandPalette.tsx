@@ -50,6 +50,77 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+interface CommandListProps {
+  commands: Command[];
+  onCommandClick: (cmd: Command) => void;
+  mobile?: boolean;
+}
+
+function CommandList({ commands, onCommandClick, mobile }: CommandListProps) {
+  if (commands.length === 0) {
+    return (
+      <div
+        className={`text-center ${mobile ? "py-12" : "py-8"} text-[var(--color-muted)]`}
+        dir="rtl"
+      >
+        لا توجد نتائج
+      </div>
+    );
+  }
+
+  if (mobile) {
+    return (
+      <>
+        {commands.map((cmd, index) => (
+          <motion.button
+            key={cmd.id}
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-accent)]/10 transition-colors text-right border border-transparent hover:border-[var(--color-accent)]/30"
+            onClick={() => onCommandClick(cmd)}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.03 }}
+          >
+            {cmd.icon && (
+              <div className="text-[var(--color-accent)]">{cmd.icon}</div>
+            )}
+            <span className="flex-1 text-[var(--color-text)]">{cmd.label}</span>
+            {cmd.shortcut && (
+              <span className="text-[var(--color-muted)] px-2 py-1 bg-[var(--color-bg)] rounded text-sm">
+                {cmd.shortcut}
+              </span>
+            )}
+          </motion.button>
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {commands.map((cmd, index) => (
+        <motion.button
+          key={cmd.id}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--color-surface)] transition-colors text-right"
+          onClick={() => onCommandClick(cmd)}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: index * 0.03 }}
+        >
+          {cmd.icon && (
+            <div className="text-[var(--color-accent)]">{cmd.icon}</div>
+          )}
+          <span className="flex-1 text-[var(--color-text)]">{cmd.label}</span>
+          {cmd.shortcut && (
+            <span className="text-[var(--color-muted)] px-2 py-1 bg-[var(--color-bg)] rounded">
+              {cmd.shortcut}
+            </span>
+          )}
+        </motion.button>
+      ))}
+    </>
+  );
+}
+
 export function RadialCommandPalette({
   isOpen,
   onClose,
@@ -62,9 +133,7 @@ export function RadialCommandPalette({
   const isMobile = useIsMobile();
   const debouncedSearch = useDebounce(search, 180);
   const filteredCommands = useMemo(() => {
-    if (!debouncedSearch) {
-      return commands;
-    }
+    if (!debouncedSearch) return commands;
     return commands.filter((cmd) =>
       cmd.label.toLowerCase().includes(debouncedSearch.toLowerCase())
     );
@@ -72,11 +141,8 @@ export function RadialCommandPalette({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
+      if (e.key === "Escape" && isOpen) onClose();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
@@ -100,7 +166,6 @@ export function RadialCommandPalette({
     [notifications, onClose]
   );
 
-  // Mobile view (Bottom Sheet)
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
@@ -116,7 +181,6 @@ export function RadialCommandPalette({
               لوحة الأوامر
             </SheetTitle>
           </SheetHeader>
-
           <div className="mt-4 space-y-4">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-muted)]" />
@@ -128,41 +192,12 @@ export function RadialCommandPalette({
                 dir="rtl"
               />
             </div>
-
             <div className="space-y-2 overflow-y-auto max-h-[60vh]">
-              {filteredCommands.length === 0 ? (
-                <div
-                  className="text-center py-12 text-[var(--color-muted)]"
-                  dir="rtl"
-                >
-                  لا توجد نتائج
-                </div>
-              ) : (
-                filteredCommands.map((cmd, index) => (
-                  <motion.button
-                    key={cmd.id}
-                    className="w-full flex items-center gap-3 p-4 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-accent)]/10 transition-colors text-right border border-transparent hover:border-[var(--color-accent)]/30"
-                    onClick={() => handleCommandClick(cmd)}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                  >
-                    {cmd.icon && (
-                      <div className="text-[var(--color-accent)]">
-                        {cmd.icon}
-                      </div>
-                    )}
-                    <span className="flex-1 text-[var(--color-text)]">
-                      {cmd.label}
-                    </span>
-                    {cmd.shortcut && (
-                      <span className="text-[var(--color-muted)] px-2 py-1 bg-[var(--color-bg)] rounded text-sm">
-                        {cmd.shortcut}
-                      </span>
-                    )}
-                  </motion.button>
-                ))
-              )}
+              <CommandList
+                commands={filteredCommands}
+                onCommandClick={handleCommandClick}
+                mobile
+              />
             </div>
           </div>
         </SheetContent>
@@ -170,7 +205,6 @@ export function RadialCommandPalette({
     );
   }
 
-  // Desktop view (Modal)
   return (
     <AnimatePresence>
       {isOpen && (
@@ -207,43 +241,12 @@ export function RadialCommandPalette({
                   <X className="w-5 h-5 text-[var(--color-muted)]" />
                 </button>
               </div>
-
               <div className="max-h-[400px] overflow-y-auto p-2">
-                {filteredCommands.length === 0 ? (
-                  <div
-                    className="text-center py-8 text-[var(--color-muted)]"
-                    dir="rtl"
-                  >
-                    لا توجد نتائج
-                  </div>
-                ) : (
-                  filteredCommands.map((cmd, index) => (
-                    <motion.button
-                      key={cmd.id}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-[var(--color-surface)] transition-colors text-right"
-                      onClick={() => handleCommandClick(cmd)}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                    >
-                      {cmd.icon && (
-                        <div className="text-[var(--color-accent)]">
-                          {cmd.icon}
-                        </div>
-                      )}
-                      <span className="flex-1 text-[var(--color-text)]">
-                        {cmd.label}
-                      </span>
-                      {cmd.shortcut && (
-                        <span className="text-[var(--color-muted)] px-2 py-1 bg-[var(--color-bg)] rounded">
-                          {cmd.shortcut}
-                        </span>
-                      )}
-                    </motion.button>
-                  ))
-                )}
+                <CommandList
+                  commands={filteredCommands}
+                  onCommandClick={handleCommandClick}
+                />
               </div>
-
               <div className="px-4 py-2 border-t border-[var(--color-surface)] text-[var(--color-muted)] flex items-center justify-between">
                 <span>السياق: {context}</span>
                 <span>Space للفتح • ESC للإغلاق</span>

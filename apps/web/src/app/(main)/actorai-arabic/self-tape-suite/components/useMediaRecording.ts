@@ -15,6 +15,8 @@ import type {
   TeleprompterSettings,
 } from "./types";
 
+// ─── Types ───
+
 interface UseMediaRecordingOptions {
   showNotification: (
     type: "success" | "error" | "info",
@@ -33,6 +35,60 @@ interface UseMediaRecordingOptions {
   blobRegistryRef: React.RefObject<Map<string, Blob>>;
   sessionUrlRegistryRef: React.RefObject<Map<string, string>>;
 }
+
+interface PendingTake {
+  id: string;
+  name: string;
+  recordedAt: string;
+  mimeType: string;
+  teleprompterUsed: boolean;
+}
+
+// ─── File-level helpers ───
+
+function buildVideoBlob(chunks: Blob[], mimeType: string): Blob | null {
+  if (chunks.length === 0) return null;
+  const primaryChunk = chunks[0];
+  return new Blob(chunks, {
+    type: mimeType || (primaryChunk?.type ?? "video/webm"),
+  });
+}
+
+function resolveVideoUrl(blob: Blob | null): string | undefined {
+  if (!blob || typeof URL.createObjectURL !== "function") return undefined;
+  return URL.createObjectURL(blob);
+}
+
+function updateComparisonWithNewTake(
+  previous: ComparisonView,
+  newTakeId: string
+): ComparisonView {
+  return {
+    ...previous,
+    leftTakeId: newTakeId,
+    rightTakeId:
+      previous.leftTakeId && previous.leftTakeId !== newTakeId
+        ? previous.leftTakeId
+        : previous.rightTakeId && previous.rightTakeId !== newTakeId
+          ? previous.rightTakeId
+          : previous.leftTakeId,
+  };
+}
+
+function createMediaRecorder(
+  stream: MediaStream,
+  preferredMimeType: string
+): MediaRecorder {
+  try {
+    return preferredMimeType
+      ? new MediaRecorder(stream, { mimeType: preferredMimeType })
+      : new MediaRecorder(stream);
+  } catch {
+    return new MediaRecorder(stream);
+  }
+}
+
+// ─── Hook ───
 
 export function useMediaRecording(options: UseMediaRecordingOptions) {
   const {
@@ -65,13 +121,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const recordingTimeRef = useRef(0);
-  const pendingTakeRef = useRef<{
-    id: string;
-    name: string;
-    recordedAt: string;
-    mimeType: string;
-    teleprompterUsed: boolean;
-  } | null>(null);
+  const pendingTakeRef = useRef<PendingTake | null>(null);
 
   const clearRecordingInterval = useCallback(() => {
     if (recordingIntervalRef.current) {
@@ -141,21 +191,13 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
   }, [attachStreamToPreview, showNotification, stopCameraTracks]);
 
   const finalizeRecordedTake = useCallback(
-    (pendingTake: NonNullable<typeof pendingTakeRef.current>) => {
-      if (!pendingTake) return;
+    (pendingTake: PendingTake) => {
       const duration = Math.max(recordingTimeRef.current, 1);
-      const primaryChunk = recordedChunksRef.current[0];
-      const blob =
-        recordedChunksRef.current.length > 0
-          ? new Blob(recordedChunksRef.current, {
-              type:
-                pendingTake.mimeType || (primaryChunk?.type ?? "video/webm"),
-            })
-          : null;
-      const videoUrl =
-        blob && typeof URL.createObjectURL === "function"
-          ? URL.createObjectURL(blob)
-          : undefined;
+      const blob = buildVideoBlob(
+        recordedChunksRef.current,
+        pendingTake.mimeType
+      );
+      const videoUrl = resolveVideoUrl(blob);
 
       if (blob && videoUrl) {
         blobRegistryRef.current.set(pendingTake.id, blob);
@@ -185,16 +227,9 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
 
       setTakes((previous) => [take, ...previous]);
       setNotesTakeId(take.id);
-      setComparisonView((previous) => ({
-        ...previous,
-        leftTakeId: take.id,
-        rightTakeId:
-          previous.leftTakeId && previous.leftTakeId !== take.id
-            ? previous.leftTakeId
-            : previous.rightTakeId && previous.rightTakeId !== take.id
-              ? previous.rightTakeId
-              : previous.leftTakeId,
-      }));
+      setComparisonView((previous) =>
+        updateComparisonWithNewTake(previous, take.id)
+      );
       setIsFinalizingTake(false);
       pendingTakeRef.current = null;
       recordedChunksRef.current = [];
@@ -231,16 +266,12 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
       return;
     }
 
-    if (isRecording || isFinalizingTake) {
-      return;
-    }
+    if (isRecording || isFinalizingTake) return;
 
     let stream = mediaStreamRef.current;
     stream ??= await requestCameraAccess();
 
-    if (!stream) {
-      return;
-    }
+    if (!stream) return;
 
     if (typeof MediaRecorder === "undefined") {
       showNotification(
@@ -251,15 +282,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
     }
 
     const preferredMimeType = pickSupportedMimeType(RECORDING_MIME_CANDIDATES);
-    let recorder: MediaRecorder;
-
-    try {
-      recorder = preferredMimeType
-        ? new MediaRecorder(stream, { mimeType: preferredMimeType })
-        : new MediaRecorder(stream);
-    } catch {
-      recorder = new MediaRecorder(stream);
-    }
+    const recorder = createMediaRecorder(stream, preferredMimeType);
 
     recordedChunksRef.current = [];
     clearRecordingInterval();
@@ -268,7 +291,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
 
     const takeNumber =
       takes.filter((take) => take.source === "captured").length + 1;
-    const pendingTake = {
+    const pendingTake: PendingTake = {
       id: `take-${Date.now()}`,
       name: `Take ${takeNumber}`,
       recordedAt: new Date().toISOString(),
@@ -331,9 +354,7 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
 
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
-    if (!recorder || recorder.state === "inactive") {
-      return;
-    }
+    if (!recorder || recorder.state === "inactive") return;
 
     setIsRecording(false);
     setIsFinalizingTake(true);

@@ -15,338 +15,360 @@ vi.mock("../../services/geminiService", () => ({
   },
 }));
 
-describe("PlotPredictorAgent", () => {
+function makeAgent() {
+  const agent = new PlotPredictorAgent();
+  vi.clearAllMocks();
+  return agent;
+}
+
+describe("PlotPredictorAgent — Configuration", () => {
   let agent: PlotPredictorAgent;
 
   beforeEach(() => {
-    agent = new PlotPredictorAgent();
-    vi.clearAllMocks();
+    agent = makeAgent();
   });
 
-  describe("Configuration", () => {
-    it("should initialize with correct configuration", () => {
-      const config = agent.getConfig();
+  it("should initialize with correct configuration", () => {
+    const config = agent.getConfig();
 
-      expect(config.name).toBe("PlotPredictorAgent");
-      expect(config.taskType).toBe(TaskType.PLOT_PREDICTOR);
-      expect(config.confidenceFloor).toBe(0.78);
-      expect(config.supportsRAG).toBe(true);
-      expect(config.supportsSelfCritique).toBe(true);
-      expect(config.supportsConstitutional).toBe(true);
-      expect(config.supportsUncertainty).toBe(true);
-      expect(config.supportsHallucination).toBe(true);
-      expect(config.supportsDebate).toBe(true);
-    });
-
-    it("should allow confidence floor to be updated", () => {
-      agent.setConfidenceFloor(0.85);
-      const config = agent.getConfig();
-      expect(config.confidenceFloor).toBe(0.85);
-    });
+    expect(config.name).toBe("PlotPredictorAgent");
+    expect(config.taskType).toBe(TaskType.PLOT_PREDICTOR);
+    expect(config.confidenceFloor).toBe(0.78);
+    expect(config.supportsRAG).toBe(true);
+    expect(config.supportsSelfCritique).toBe(true);
+    expect(config.supportsConstitutional).toBe(true);
+    expect(config.supportsUncertainty).toBe(true);
+    expect(config.supportsHallucination).toBe(true);
+    expect(config.supportsDebate).toBe(true);
   });
 
-  describe("Success Path", () => {
-    it("should execute plot prediction task successfully", async () => {
-      const input: StandardAgentInput = {
-        input:
-          "تنبأ بمسارات الحبكة المحتملة لقصة تدور حول صراع بين شخصيتين رئيسيتين",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: false,
-          confidenceThreshold: 0.75,
-        },
-        context: {
-          previousStations: {
-            analysis: "تحليل أولي للنص",
-            characterAnalysis: "تحليل الشخصيات الرئيسية",
-          },
-        },
-      };
+  it("should allow confidence floor to be updated", () => {
+    agent.setConfidenceFloor(0.85);
+    const config = agent.getConfig();
+    expect(config.confidenceFloor).toBe(0.85);
+  });
+});
 
-      const result = await agent.executeTask(input);
+describe("PlotPredictorAgent — Success Path", () => {
+  let agent: PlotPredictorAgent;
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeDefined();
-      expect(typeof result.text).toBe("string");
-      expect(result.confidence).toBeGreaterThanOrEqual(0);
-      expect(result.confidence).toBeLessThanOrEqual(1);
-      expect(result.metadata).toBeDefined();
-
-      // Verify no JSON in output
-      expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
-      expect(result.text).not.toMatch(/```json/);
-    });
-
-    it("should include context from previous stations in prompt", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بتطورات الحبكة",
-        options: {},
-        context: {
-          previousStations: {
-            analysis: "النص يحتوي على صراع رئيسي",
-            characterAnalysis: "الشخصية الرئيسية لديها دوافع معقدة",
-            thematicAnalysis: "الثيمات الأساسية: الخيانة والفداء",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
-
-    it("should return text-only output without JSON blocks", async () => {
-      const input: StandardAgentInput = {
-        input: "حلل وتنبأ بمسارات الحبكة",
-        options: {
-          enableRAG: true,
-        },
-        context: {},
-      };
-
-      const result = await agent.executeTask(input);
-
-      // Ensure output is clean text
-      expect(result.text).not.toContain("```json");
-      expect(result.text).not.toContain("```");
-      expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
-    });
+  beforeEach(() => {
+    agent = makeAgent();
   });
 
-  describe("Low Confidence Path", () => {
-    it("should trigger debate when confidence is below threshold", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات معقدة جداً للحبكة مع تحليل عميق",
-        options: {
-          enableDebate: true,
-          confidenceThreshold: 0.95, // High threshold to potentially trigger debate
-          maxDebateRounds: 2,
+  it("should execute plot prediction task successfully", async () => {
+    const input: StandardAgentInput = {
+      input:
+        "تنبأ بمسارات الحبكة المحتملة لقصة تدور حول صراع بين شخصيتين رئيسيتين",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: false,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          analysis: "تحليل أولي للنص",
+          characterAnalysis: "تحليل الشخصيات الرئيسية",
         },
-        context: {},
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.confidence).toBeDefined();
+    expect(result).toBeDefined();
+    expect(result.text).toBeDefined();
+    expect(typeof result.text).toBe("string");
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+    expect(result.confidence).toBeLessThanOrEqual(1);
+    expect(result.metadata).toBeDefined();
 
-      // If confidence is low, notes should indicate additional processing
-      expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(
-        true
-      );
-    });
-
-    it("should handle uncertainty in predictions", async () => {
-      // اختبار معالجة عدم اليقين في التنبؤات
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة مع درجة عالية من عدم اليقين",
-        options: {
-          enableUncertainty: true,
-          confidenceThreshold: 0.65,
-        },
-        context: {
-          previousStations: {
-            analysis: "تحليل محدود وغير مكتمل",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeGreaterThanOrEqual(0);
-    });
+    // Verify no JSON in output
+    expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
+    expect(result.text).not.toMatch(/```json/);
   });
 
-  describe("Hallucination Detection Path", () => {
-    it("should detect and handle unsupported claims", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة بناءً على معلومات غير مذكورة",
-        options: {
-          enableHallucination: true,
-          confidenceThreshold: 0.75,
+  it("should include context from previous stations in prompt", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بتطورات الحبكة",
+      options: {},
+      context: {
+        previousStations: {
+          analysis: "النص يحتوي على صراع رئيسي",
+          characterAnalysis: "الشخصية الرئيسية لديها دوافع معقدة",
+          thematicAnalysis: "الثيمات الأساسية: الخيانة والفداء",
         },
-        context: {
-          previousStations: {
-            analysis: "تحليل بسيط للنص",
-          },
-        },
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeDefined();
-
-      // Hallucination detection should influence confidence or notes
-      expect(result.metadata).toBeDefined();
-    });
-
-    it("should maintain high confidence for well-supported predictions", async () => {
-      // اختبار الحفاظ على ثقة عالية للتنبؤات المدعومة بشكل جيد
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة بناءً على سياق موثق بشكل جيد",
-        options: {
-          enableRAG: true,
-          confidenceThreshold: 0.75,
-        },
-        context: {
-          previousStations: {
-            analysis: "تحليل شامل ومفصل للنص",
-            characterAnalysis: "شخصيات محددة بوضوح مع دوافع واضحة",
-            thematicAnalysis: "ثيمات محددة بدقة",
-          },
-        },
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.confidence).toBeGreaterThanOrEqual(0);
-    });
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
   });
 
-  describe("Post-Processing", () => {
-    it("should clean JSON blocks from output", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بالحبكة",
-        options: {},
-        context: {},
-      };
+  it("should return text-only output without JSON blocks", async () => {
+    const input: StandardAgentInput = {
+      input: "حلل وتنبأ بمسارات الحبكة",
+      options: {
+        enableRAG: true,
+      },
+      context: {},
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      // Verify all JSON is removed
-      expect(result.text).not.toMatch(/```json[\s\S]*?```/);
-      expect(result.text).not.toMatch(/```[\s\S]*?```/);
-      expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
-    });
+    // Ensure output is clean text
+    expect(result.text).not.toContain("```json");
+    expect(result.text).not.toContain("```");
+    expect(result.text).not.toMatch(/\{[^}]*"[^"]*":[^}]*\}/);
+  });
+});
 
-    it("should add appropriate notes based on confidence level", async () => {
-      // اختبار إضافة ملاحظات مناسبة بناءً على مستوى الثقة
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة",
-        options: {
-          confidenceThreshold: 0.75,
-        },
-        context: {},
-      };
+describe("PlotPredictorAgent — Low Confidence Path", () => {
+  let agent: PlotPredictorAgent;
 
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.notes).toBeDefined();
-      expect(result.confidence >= 0.75 || result.notes.length > 0).toBe(true);
-    });
+  beforeEach(() => {
+    agent = makeAgent();
   });
 
-  describe("Error Handling", () => {
-    it("should return fallback response on error", async () => {
-      // اختبار الاستجابة الاحتياطية عند حدوث خطأ
-      const input: StandardAgentInput = {
-        input: "",
-        options: {},
-        context: {},
-      };
+  it("should trigger debate when confidence is below threshold", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات معقدة جداً للحبكة مع تحليل عميق",
+      options: {
+        enableDebate: true,
+        confidenceThreshold: 0.95, // High threshold to potentially trigger debate
+        maxDebateRounds: 2,
+      },
+      context: {},
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeLessThanOrEqual(0.5);
-    });
+    expect(result).toBeDefined();
+    expect(result.confidence).toBeDefined();
 
-    it("should handle missing context gracefully", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بالحبكة",
-        options: {},
-        context: undefined,
-      };
-
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
+    // If confidence is low, notes should indicate additional processing
+    expect(result.confidence >= 0.95 || result.notes !== undefined).toBe(true);
   });
 
-  describe("Advanced Options", () => {
-    it("should respect all advanced options", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: true,
-          maxDebateRounds: 3,
-          confidenceThreshold: 0.8,
-          temperature: 0.8,
-          maxTokens: 8192,
+  it("should handle uncertainty in predictions", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة مع درجة عالية من عدم اليقين",
+      options: {
+        enableUncertainty: true,
+        confidenceThreshold: 0.65,
+      },
+      context: {
+        previousStations: {
+          analysis: "تحليل محدود وغير مكتمل",
         },
-        context: {},
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeDefined();
-      expect(result.metadata).toBeDefined();
-    });
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+  });
+});
 
-    it("should use default options when not provided", async () => {
-      const input: StandardAgentInput = {
-        input: "تنبأ بالحبكة",
-        options: undefined,
-        context: {},
-      };
+describe("PlotPredictorAgent — Hallucination Detection", () => {
+  let agent: PlotPredictorAgent;
 
-      const result = await agent.executeTask(input);
-
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-    });
+  beforeEach(() => {
+    agent = makeAgent();
   });
 
-  describe("Integration with Standard Pattern", () => {
-    it("should execute full standard pattern pipeline", async () => {
-      // اختبار تنفيذ خط أنابيب النمط القياسي الكامل
-      const input: StandardAgentInput = {
-        input: "تنبأ بمسارات الحبكة مع كل الخيارات المتقدمة",
-        options: {
-          enableRAG: true,
-          enableSelfCritique: true,
-          enableConstitutional: true,
-          enableUncertainty: true,
-          enableHallucination: true,
-          enableDebate: true,
-          maxDebateRounds: 2,
-          confidenceThreshold: 0.75,
+  it("should detect and handle unsupported claims", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة بناءً على معلومات غير مذكورة",
+      options: {
+        enableHallucination: true,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          analysis: "تحليل بسيط للنص",
         },
-        context: {
-          previousStations: {
-            analysis: "تحليل شامل",
-            characterAnalysis: "تحليل شخصيات",
-          },
+      },
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeDefined();
+
+    // Hallucination detection should influence confidence or notes
+    expect(result.metadata).toBeDefined();
+  });
+
+  it("should maintain high confidence for well-supported predictions", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة بناءً على سياق موثق بشكل جيد",
+      options: {
+        enableRAG: true,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          analysis: "تحليل شامل ومفصل للنص",
+          characterAnalysis: "شخصيات محددة بوضوح مع دوافع واضحة",
+          thematicAnalysis: "ثيمات محددة بدقة",
         },
-      };
+      },
+    };
 
-      const result = await agent.executeTask(input);
+    const result = await agent.executeTask(input);
 
-      expect(result).toBeDefined();
-      expect(result.text).toBeTruthy();
-      expect(result.confidence).toBeDefined();
-      expect(result.metadata).toBeDefined();
-    });
+    expect(result).toBeDefined();
+    expect(result.confidence).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("PlotPredictorAgent — Post-Processing and Error Handling", () => {
+  let agent: PlotPredictorAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should clean JSON blocks from output", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بالحبكة",
+      options: {},
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    // Verify all JSON is removed
+    expect(result.text).not.toMatch(/```json[\s\S]*?```/);
+    expect(result.text).not.toMatch(/```[\s\S]*?```/);
+    expect(result.text).not.toMatch(/\{[\s\S]*?"[^"]*"\s*:[\s\S]*?\}/);
+  });
+
+  it("should add appropriate notes based on confidence level", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة",
+      options: {
+        confidenceThreshold: 0.75,
+      },
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.notes).toBeDefined();
+    expect(result.confidence >= 0.75 || result.notes.length > 0).toBe(true);
+  });
+
+  it("should return fallback response on error", async () => {
+    const input: StandardAgentInput = {
+      input: "",
+      options: {},
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeLessThanOrEqual(0.5);
+  });
+
+  it("should handle missing context gracefully", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بالحبكة",
+      options: {},
+      context: undefined,
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+});
+
+describe("PlotPredictorAgent — Advanced Options and Standard Pattern", () => {
+  let agent: PlotPredictorAgent;
+
+  beforeEach(() => {
+    agent = makeAgent();
+  });
+
+  it("should respect all advanced options", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: true,
+        maxDebateRounds: 3,
+        confidenceThreshold: 0.8,
+        temperature: 0.8,
+        maxTokens: 8192,
+      },
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeDefined();
+    expect(result.metadata).toBeDefined();
+  });
+
+  it("should use default options when not provided", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بالحبكة",
+      options: undefined,
+      context: {},
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+  });
+
+  it("should execute full standard pattern pipeline", async () => {
+    const input: StandardAgentInput = {
+      input: "تنبأ بمسارات الحبكة مع كل الخيارات المتقدمة",
+      options: {
+        enableRAG: true,
+        enableSelfCritique: true,
+        enableConstitutional: true,
+        enableUncertainty: true,
+        enableHallucination: true,
+        enableDebate: true,
+        maxDebateRounds: 2,
+        confidenceThreshold: 0.75,
+      },
+      context: {
+        previousStations: {
+          analysis: "تحليل شامل",
+          characterAnalysis: "تحليل شخصيات",
+        },
+      },
+    };
+
+    const result = await agent.executeTask(input);
+
+    expect(result).toBeDefined();
+    expect(result.text).toBeTruthy();
+    expect(result.confidence).toBeDefined();
+    expect(result.metadata).toBeDefined();
   });
 });

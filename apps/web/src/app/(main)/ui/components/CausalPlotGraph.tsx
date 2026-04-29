@@ -57,6 +57,86 @@ const edgeColors = {
   normal: "var(--color-muted)",
 };
 
+interface GraphSvgProps {
+  nodes: GraphNode[];
+  filteredEdges: GraphEdge[];
+}
+
+function GraphSvg({ nodes, filteredEdges }: GraphSvgProps) {
+  return (
+    <svg className="w-full h-full">
+      <defs>
+        <marker
+          id="arrowhead"
+          markerWidth="10"
+          markerHeight="10"
+          refX="9"
+          refY="3"
+          orient="auto"
+        >
+          <polygon
+            points="0 0, 10 3, 0 6"
+            fill="var(--color-muted)"
+            opacity="0.5"
+          />
+        </marker>
+      </defs>
+      <g>
+        {filteredEdges.map((edge) => {
+          const fromNode = nodes.find((n) => n.id === edge.from);
+          const toNode = nodes.find((n) => n.id === edge.to);
+          if (!fromNode || !toNode) return null;
+          return (
+            <g key={edge.id}>
+              <line
+                x1={`${fromNode.x}%`}
+                y1={`${fromNode.y}%`}
+                x2={`${toNode.x}%`}
+                y2={`${toNode.y}%`}
+                stroke={edgeColors[edge.type ?? "normal"]}
+                strokeWidth={1 + edge.weight * 2}
+                strokeOpacity={0.3 + edge.weight * 0.4}
+                markerEnd="url(#arrowhead)"
+              />
+            </g>
+          );
+        })}
+      </g>
+      <g>
+        {nodes.map((node) => (
+          <g key={node.id} style={{ opacity: 1 }}>
+            <circle
+              cx={`${node.x}%`}
+              cy={`${node.y}%`}
+              r="20"
+              fill={nodeColors[node.type]}
+              opacity="0.2"
+              className="cursor-pointer hover:opacity-40 transition-opacity"
+            />
+            <circle
+              cx={`${node.x}%`}
+              cy={`${node.y}%`}
+              r="12"
+              fill={nodeColors[node.type]}
+              className="cursor-pointer"
+            />
+            <text
+              x={`${node.x}%`}
+              y={`${node.y + 5}%`}
+              textAnchor="middle"
+              fill="var(--color-text)"
+              fontSize="12"
+              className="pointer-events-none select-none"
+            >
+              {node.label}
+            </text>
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
 export function CausalPlotGraph({
   layout = "force",
   filter = "all",
@@ -69,7 +149,6 @@ export function CausalPlotGraph({
   const [currentLayout, setCurrentLayout] = useState(layout);
   const [currentFilter, setCurrentFilter] = useState(filter);
 
-  // No Causal Links State
   if (noLinks || (edges?.length === 0 && nodes && nodes.length > 0)) {
     return (
       <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
@@ -94,7 +173,6 @@ export function CausalPlotGraph({
     );
   }
 
-  // Empty State
   if (isEmpty || nodes.length === 0) {
     return (
       <Card className="p-8 bg-[var(--color-panel)] border-[var(--color-surface)]">
@@ -135,9 +213,7 @@ export function CausalPlotGraph({
             <Select
               value={currentFilter}
               onValueChange={(value) => {
-                if (isPlotFilter(value)) {
-                  setCurrentFilter(value);
-                }
+                if (isPlotFilter(value)) setCurrentFilter(value);
               }}
             >
               <SelectTrigger className="w-[140px] bg-[var(--color-surface)] border-[var(--color-surface)] text-[var(--color-text)]">
@@ -200,106 +276,24 @@ export function CausalPlotGraph({
       </div>
 
       <div className="relative h-[400px] overflow-hidden bg-[var(--color-bg)]">
-        {/* SVG Graph */}
-        <svg className="w-full h-full">
-          <defs>
-            <marker
-              id="arrowhead"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 10 3, 0 6"
-                fill="var(--color-muted)"
-                opacity="0.5"
-              />
-            </marker>
-          </defs>
+        <GraphSvg nodes={nodes} filteredEdges={filteredEdges} />
 
-          {/* Edges */}
-          <g>
-            {filteredEdges.map((edge) => {
-              const fromNode = nodes.find((n) => n.id === edge.from);
-              const toNode = nodes.find((n) => n.id === edge.to);
-              if (!fromNode || !toNode) return null;
-
-              return (
-                <g key={edge.id}>
-                  <line
-                    x1={`${fromNode.x}%`}
-                    y1={`${fromNode.y}%`}
-                    x2={`${toNode.x}%`}
-                    y2={`${toNode.y}%`}
-                    stroke={edgeColors[edge.type ?? "normal"]}
-                    strokeWidth={1 + edge.weight * 2}
-                    strokeOpacity={0.3 + edge.weight * 0.4}
-                    markerEnd="url(#arrowhead)"
-                  />
-                </g>
-              );
-            })}
-          </g>
-
-          {/* Nodes */}
-          <g>
-            {nodes.map((node) => (
-              <g key={node.id} style={{ opacity: 1 }}>
-                <circle
-                  cx={`${node.x}%`}
-                  cy={`${node.y}%`}
-                  r="20"
-                  fill={nodeColors[node.type]}
-                  opacity="0.2"
-                  className="cursor-pointer hover:opacity-40 transition-opacity"
-                />
-                <circle
-                  cx={`${node.x}%`}
-                  cy={`${node.y}%`}
-                  r="12"
-                  fill={nodeColors[node.type]}
-                  className="cursor-pointer"
-                />
-                <text
-                  x={`${node.x}%`}
-                  y={`${node.y + 5}%`}
-                  textAnchor="middle"
-                  fill="var(--color-text)"
-                  fontSize="12"
-                  className="pointer-events-none select-none"
-                >
-                  {node.label}
-                </text>
-              </g>
-            ))}
-          </g>
-        </svg>
-
-        {/* Legend */}
         <div className="absolute bottom-4 left-4 bg-[var(--color-panel)]/90 backdrop-blur-sm border border-[var(--color-surface)] rounded-lg p-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: nodeColors.scene }}
-            />
-            <span className="text-[var(--color-muted)]">مشهد</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: nodeColors.character }}
-            />
-            <span className="text-[var(--color-muted)]">شخصية</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: nodeColors.event }}
-            />
-            <span className="text-[var(--color-muted)]">حدث</span>
-          </div>
+          {(["scene", "character", "event"] as const).map((type) => (
+            <div key={type} className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: nodeColors[type] }}
+              />
+              <span className="text-[var(--color-muted)]">
+                {type === "scene"
+                  ? "مشهد"
+                  : type === "character"
+                    ? "شخصية"
+                    : "حدث"}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </Card>

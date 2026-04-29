@@ -64,6 +64,51 @@ const DEFAULT_STATS: MemorizationStats = {
   averageResponseTime: 0,
 };
 
+// ─── File-level helpers ───
+
+interface WordMatchResult {
+  correct: number;
+  incorrect: number;
+  weakWords: string[];
+}
+
+function matchWordsAgainstLine(
+  correctLineText: string,
+  userLineText: string
+): WordMatchResult {
+  const correctWords = correctLineText.split(/\s+/);
+  const userWords = userLineText.split(/\s+/);
+
+  let correct = 0;
+  let incorrect = 0;
+  const weakWords: string[] = [];
+
+  correctWords.forEach((word, index) => {
+    if (userWords[index]?.toLowerCase() === word.toLowerCase()) {
+      correct++;
+    } else {
+      incorrect++;
+      weakWords.push(word);
+    }
+  });
+
+  return { correct, incorrect, weakWords };
+}
+
+function resolvePromptWord(script: string, lineIndex: number): string {
+  const lines = script.split("\n");
+  const currentLine = lines[lineIndex];
+  if (!currentLine) return "";
+  const words = currentLine.split(/\s+/);
+  return words[0] ?? "";
+}
+
+function computeAverageResponseTime(times: number[]): number {
+  if (times.length === 0) return 0;
+  const avgMs = times.reduce((a, b) => a + b, 0) / times.length;
+  return Math.round((avgMs / 1000) * 10) / 10;
+}
+
 /**
  * واجهة قيمة العودة من خطاف الحفظ
  */
@@ -162,17 +207,10 @@ export function useMemorization(): UseMemorizationReturn {
       ...prev,
       hesitationCount: prev.hesitationCount + 1,
     }));
-
-    // عرض تلميح للكلمة التالية
-    const lines = script.split("\n");
-    const currentLine = lines[currentLineIndex];
-    if (currentLine) {
-      const words = currentLine.split(/\s+/);
-      const firstWord = words[0];
-      if (firstWord) {
-        setCurrentPromptWord(firstWord);
-        setShowPromptHint(true);
-      }
+    const promptWord = resolvePromptWord(script, currentLineIndex);
+    if (promptWord) {
+      setCurrentPromptWord(promptWord);
+      setShowPromptHint(true);
     }
   }, [script, currentLineIndex]);
 
@@ -225,21 +263,13 @@ export function useMemorization(): UseMemorizationReturn {
     setIsActive(false);
     setIsPaused(false);
     clearHesitationTimer();
-
-    // حساب متوسط وقت الاستجابة
-    const times = responseTimesRef.current;
-    if (times.length > 0) {
-      const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+    const avgTime = computeAverageResponseTime(responseTimesRef.current);
+    if (avgTime > 0) {
       setStats((prev) => {
-        const nextStats = {
-          ...prev,
-          averageResponseTime: Math.round((avgTime / 1000) * 10) / 10,
-        };
-
+        const nextStats = { ...prev, averageResponseTime: avgTime };
         void postToBackend("/api/public/actorai/memorization", nextStats, {
           bestEffort: true,
         });
-
         return nextStats;
       });
     }
@@ -279,41 +309,22 @@ export function useMemorization(): UseMemorizationReturn {
     correct: number;
     incorrect: number;
   } => {
-    const responseTime = Date.now() - attemptStartTimeRef.current;
-    responseTimesRef.current.push(responseTime);
+    responseTimesRef.current.push(Date.now() - attemptStartTimeRef.current);
 
     const lines = script.split("\n");
     const currentLine = lines[currentLineIndex];
+    if (!currentLine) return { correct: 0, incorrect: 0 };
 
-    if (!currentLine) {
-      return { correct: 0, incorrect: 0 };
-    }
+    const { correct, incorrect, weakWords } = matchWordsAgainstLine(
+      currentLine.trim(),
+      userInput.trim()
+    );
 
-    const correctLineText = currentLine.trim();
-    const userLineText = userInput.trim();
-
-    // مقارنة كلمة بكلمة
-    const correctWords = correctLineText.split(/\s+/);
-    const userWords = userLineText.split(/\s+/);
-
-    let correct = 0;
-    let incorrect = 0;
-    const weakWords: string[] = [];
-
-    correctWords.forEach((word, index) => {
-      if (userWords[index]?.toLowerCase() === word.toLowerCase()) {
-        correct++;
-      } else {
-        incorrect++;
-        weakWords.push(word);
-
-        // تتبع نقاط الضعف
-        const currentCount = weakPointsMapRef.current.get(word) ?? 0;
-        weakPointsMapRef.current.set(word, currentCount + 1);
-      }
+    weakWords.forEach((word) => {
+      const currentCount = weakPointsMapRef.current.get(word) ?? 0;
+      weakPointsMapRef.current.set(word, currentCount + 1);
     });
 
-    // تحديث الإحصائيات
     setStats((prev) => ({
       ...prev,
       totalAttempts: prev.totalAttempts + 1,
@@ -322,7 +333,6 @@ export function useMemorization(): UseMemorizationReturn {
       weakPoints: [...new Set([...prev.weakPoints, ...weakWords])].slice(-10),
     }));
 
-    // الانتقال للسطر التالي أو إنهاء الجلسة
     if (currentLineIndex < lines.length - 1) {
       setCurrentLineIndex((prev) => prev + 1);
       setUserInput("");
@@ -330,7 +340,6 @@ export function useMemorization(): UseMemorizationReturn {
       setShowPromptHint(false);
       setIsPromptMode(false);
     } else {
-      // انتهاء النص
       stopSession();
     }
 

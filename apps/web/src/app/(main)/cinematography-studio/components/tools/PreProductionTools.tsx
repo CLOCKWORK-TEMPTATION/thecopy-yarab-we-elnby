@@ -19,6 +19,126 @@ import { StudioMetricCell, StudioPanel } from "../studio-ui";
 
 import type { PreProductionToolsProps } from "../../types";
 
+interface SceneBriefPanelProps {
+  prompt: string;
+  darkness: number[];
+  complexity: number[];
+  isGenerating: boolean;
+  canGenerate: boolean;
+  error: string | null;
+  onPromptChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onDarknessChange: (value: number[]) => void;
+  onComplexityChange: (value: number[]) => void;
+  onGenerate: () => void;
+  onReset: () => void;
+}
+
+function SceneBriefPanel({
+  prompt,
+  darkness,
+  complexity,
+  isGenerating,
+  canGenerate,
+  error,
+  onPromptChange,
+  onDarknessChange,
+  onComplexityChange,
+  onGenerate,
+  onReset,
+}: SceneBriefPanelProps) {
+  return (
+    <StudioPanel
+      title="Scene Brief"
+      subtitle="إعداد وصف المشهد ومعايير التوليد"
+      headerRight={<Clapperboard className="h-4 w-4 text-[#e5b54f]" />}
+    >
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <label
+            htmlFor="field-preproductiontools-1"
+            className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]"
+          >
+            Scene Description
+          </label>
+          <Textarea
+            id="field-preproductiontools-1"
+            placeholder="اكتب وصفًا دقيقًا للمشهد، توزيع الحركة، الإضاءة المطلوبة، وشعور الكاميرا."
+            className="min-h-[180px] border-[#343434] bg-[#0d0d0d] text-white placeholder:text-[#6c675c]"
+            value={prompt}
+            onChange={onPromptChange}
+          />
+        </div>
+
+        <div className="rounded-[10px] border border-[#262626] bg-[#070707] p-4">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-[#e5b54f]" />
+            <p className="text-[11px] uppercase tracking-[0.26em] text-[#e5b54f]">
+              Shot Mood Controls
+            </p>
+          </div>
+
+          <div className="mt-5 space-y-5">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-[#d8caa6]">
+                <span>Shadows &amp; Mystery</span>
+                <span className="font-mono text-[#f6cf72]">{darkness[0]}%</span>
+              </div>
+              <Slider
+                value={darkness}
+                onValueChange={onDarknessChange}
+                max={100}
+                step={1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-[#d8caa6]">
+                <span>Visual Chaos</span>
+                <span className="font-mono text-[#f6cf72]">
+                  {complexity[0]}%
+                </span>
+              </div>
+              <Slider
+                value={complexity}
+                onValueChange={onComplexityChange}
+                max={100}
+                step={1}
+              />
+            </div>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="rounded-[10px] border border-[#6b2f2f] bg-[#211010] px-4 py-3 text-sm text-[#f3b4b4]">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            type="button"
+            onClick={onGenerate}
+            disabled={!canGenerate}
+            className="h-12 border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
+          >
+            {isGenerating ? "جاري التوليد" : "توليد خطة اللقطة"}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onReset}
+            className="h-12 border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            إعادة ضبط
+          </Button>
+        </div>
+      </div>
+    </StudioPanel>
+  );
+}
+
 const PreProductionTools: React.FC<PreProductionToolsProps> = ({
   mood = "noir",
 }) => {
@@ -55,97 +175,19 @@ const PreProductionTools: React.FC<PreProductionToolsProps> = ({
 
   return (
     <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_280px]">
-      <StudioPanel
-        title="Scene Brief"
-        subtitle="إعداد وصف المشهد ومعايير التوليد"
-        headerRight={<Clapperboard className="h-4 w-4 text-[#e5b54f]" />}
-      >
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <label
-              htmlFor="field-preproductiontools-1"
-              className="text-[10px] uppercase tracking-[0.26em] text-[#7f7b71]"
-            >
-              Scene Description
-            </label>
-            <Textarea
-              id="field-preproductiontools-1"
-              placeholder="اكتب وصفًا دقيقًا للمشهد، توزيع الحركة، الإضاءة المطلوبة، وشعور الكاميرا."
-              className="min-h-[180px] border-[#343434] bg-[#0d0d0d] text-white placeholder:text-[#6c675c]"
-              value={prompt}
-              onChange={handlePromptChange}
-            />
-          </div>
-
-          <div className="rounded-[10px] border border-[#262626] bg-[#070707] p-4">
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4 text-[#e5b54f]" />
-              <p className="text-[11px] uppercase tracking-[0.26em] text-[#e5b54f]">
-                Shot Mood Controls
-              </p>
-            </div>
-
-            <div className="mt-5 space-y-5">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-[#d8caa6]">
-                  <span>Shadows &amp; Mystery</span>
-                  <span className="font-mono text-[#f6cf72]">
-                    {darkness[0]}%
-                  </span>
-                </div>
-                <Slider
-                  value={darkness}
-                  onValueChange={setDarkness}
-                  max={100}
-                  step={1}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-[#d8caa6]">
-                  <span>Visual Chaos</span>
-                  <span className="font-mono text-[#f6cf72]">
-                    {complexity[0]}%
-                  </span>
-                </div>
-                <Slider
-                  value={complexity}
-                  onValueChange={setComplexity}
-                  max={100}
-                  step={1}
-                />
-              </div>
-            </div>
-          </div>
-
-          {error ? (
-            <div className="rounded-[10px] border border-[#6b2f2f] bg-[#211010] px-4 py-3 text-sm text-[#f3b4b4]">
-              {error}
-            </div>
-          ) : null}
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button
-              type="button"
-              onClick={handleGenerate}
-              disabled={!canGenerate}
-              className="h-12 border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
-            >
-              {isGenerating ? "جاري التوليد" : "توليد خطة اللقطة"}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={reset}
-              className="h-12 border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              إعادة ضبط
-            </Button>
-          </div>
-        </div>
-      </StudioPanel>
+      <SceneBriefPanel
+        prompt={prompt}
+        darkness={darkness}
+        complexity={complexity}
+        isGenerating={isGenerating}
+        canGenerate={canGenerate}
+        error={error}
+        onPromptChange={handlePromptChange}
+        onDarknessChange={setDarkness}
+        onComplexityChange={setComplexity}
+        onGenerate={handleGenerate}
+        onReset={reset}
+      />
 
       <StudioPanel
         title="Lighting Plot & Floor Plan"
@@ -199,7 +241,6 @@ const PreProductionTools: React.FC<PreProductionToolsProps> = ({
                     {result.suggestionText}
                   </p>
                 </div>
-
                 <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                   <StudioMetricCell label="Lens" value={technicalData.lens} />
                   <StudioMetricCell

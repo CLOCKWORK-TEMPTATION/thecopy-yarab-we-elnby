@@ -13,17 +13,129 @@ interface Location {
   features: string[];
 }
 
+interface LocationFormData {
+  name: string;
+  nameAr: string;
+  type: string;
+  address: string;
+  features: string;
+}
+
+interface AddLocationFormProps {
+  formData: LocationFormData;
+  onChange: (data: LocationFormData) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+function AddLocationForm({
+  formData,
+  onChange,
+  onSubmit,
+  onCancel,
+}: AddLocationFormProps) {
+  return (
+    <div className="add-form card fade-in">
+      <h3>إضافة موقع جديد</h3>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="field-locations-1">اسم الموقع (عربي)</label>
+          <input
+            id="field-locations-1"
+            type="text"
+            className="input"
+            placeholder="مثال: قصر البارون"
+            value={formData.nameAr}
+            onChange={(e) => onChange({ ...formData, nameAr: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-locations-2">اسم الموقع (إنجليزي)</label>
+          <input
+            id="field-locations-2"
+            type="text"
+            className="input"
+            placeholder="Example: Baron Palace"
+            value={formData.name}
+            onChange={(e) => onChange({ ...formData, name: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-locations-3">النوع</label>
+          <select
+            id="field-locations-3"
+            className="input"
+            value={formData.type}
+            onChange={(e) => onChange({ ...formData, type: e.target.value })}
+          >
+            <option value="interior">داخلي</option>
+            <option value="exterior">خارجي</option>
+            <option value="natural">طبيعي</option>
+            <option value="studio">استوديو</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-locations-4">العنوان</label>
+          <input
+            id="field-locations-4"
+            type="text"
+            className="input"
+            placeholder="العنوان الكامل"
+            value={formData.address}
+            onChange={(e) => onChange({ ...formData, address: e.target.value })}
+          />
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="field-locations-5">المميزات (مفصولة بفواصل)</label>
+          <input
+            id="field-locations-5"
+            type="text"
+            className="input"
+            placeholder="مثال: إضاءة طبيعية, مساحة واسعة, موقف سيارات"
+            value={formData.features}
+            onChange={(e) =>
+              onChange({ ...formData, features: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="form-actions">
+        <button className="btn" onClick={onSubmit}>
+          <Plus size={18} />
+          إضافة
+        </button>
+        <button className="btn btn-secondary" onClick={onCancel}>
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function getTypeIcon(type: string) {
+  switch (type) {
+    case "exterior":
+      return Trees;
+    case "natural":
+      return Mountain;
+    default:
+      return Building;
+  }
+}
+
+const defaultFormData: LocationFormData = {
+  name: "",
+  nameAr: "",
+  type: "interior",
+  address: "",
+  features: "",
+};
+
 function Locations() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    nameAr: "",
-    type: "interior",
-    address: "",
-    features: "",
-  });
+  const [formData, setFormData] = useState<LocationFormData>(defaultFormData);
 
   const handleSearch = async () => {
     try {
@@ -60,28 +172,11 @@ function Locations() {
       const data = (await response.json()) as { success?: boolean };
       if (data.success) {
         setShowAddForm(false);
-        setFormData({
-          name: "",
-          nameAr: "",
-          type: "interior",
-          address: "",
-          features: "",
-        });
+        setFormData(defaultFormData);
         await handleSearch();
       }
     } catch (error) {
       console.error("Error:", error);
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "exterior":
-        return Trees;
-      case "natural":
-        return Mountain;
-      default:
-        return Building;
     }
   };
 
@@ -123,93 +218,12 @@ function Locations() {
       </div>
 
       {showAddForm && (
-        <div className="add-form card fade-in">
-          <h3>إضافة موقع جديد</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="field-locations-1">اسم الموقع (عربي)</label>
-              <input
-                id="field-locations-1"
-                type="text"
-                className="input"
-                placeholder="مثال: قصر البارون"
-                value={formData.nameAr}
-                onChange={(e) =>
-                  setFormData({ ...formData, nameAr: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-locations-2">اسم الموقع (إنجليزي)</label>
-              <input
-                id="field-locations-2"
-                type="text"
-                className="input"
-                placeholder="Example: Baron Palace"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-locations-3">النوع</label>
-              <select
-                id="field-locations-3"
-                className="input"
-                value={formData.type}
-                onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value })
-                }
-              >
-                <option value="interior">داخلي</option>
-                <option value="exterior">خارجي</option>
-                <option value="natural">طبيعي</option>
-                <option value="studio">استوديو</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-locations-4">العنوان</label>
-              <input
-                id="field-locations-4"
-                type="text"
-                className="input"
-                placeholder="العنوان الكامل"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group full-width">
-              <label htmlFor="field-locations-5">
-                المميزات (مفصولة بفواصل)
-              </label>
-              <input
-                id="field-locations-5"
-                type="text"
-                className="input"
-                placeholder="مثال: إضاءة طبيعية, مساحة واسعة, موقف سيارات"
-                value={formData.features}
-                onChange={(e) =>
-                  setFormData({ ...formData, features: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button className="btn" onClick={handleAddLocation}>
-              <Plus size={18} />
-              إضافة
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowAddForm(false)}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        <AddLocationForm
+          formData={formData}
+          onChange={setFormData}
+          onSubmit={handleAddLocation}
+          onCancel={() => setShowAddForm(false)}
+        />
       )}
 
       <div className="locations-grid grid grid-3">

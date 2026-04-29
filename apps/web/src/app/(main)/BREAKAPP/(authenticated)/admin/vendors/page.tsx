@@ -32,6 +32,200 @@ const EMPTY_FORM: VendorFormState = {
   lng: "",
 };
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface VendorFormCardProps {
+  form: VendorFormState;
+  editingId: string | null;
+  submitting: boolean;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onLatChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onLngChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onMobileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onReset: () => void;
+}
+
+function VendorFormCard({
+  form,
+  editingId,
+  submitting,
+  onSubmit,
+  onNameChange,
+  onLatChange,
+  onLngChange,
+  onMobileChange,
+  onReset,
+}: VendorFormCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        {editingId ? "تعديل مورد" : "إضافة مورد"}
+      </h2>
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="field-page-1"
+            className="block text-sm font-medium text-white mb-2 font-cairo"
+          >
+            الاسم
+          </label>
+          <input
+            id="field-page-1"
+            type="text"
+            value={form.name}
+            onChange={onNameChange}
+            disabled={submitting}
+            className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white placeholder-white/45 focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
+            required
+            minLength={2}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              htmlFor="field-page-2"
+              className="block text-sm font-medium text-white mb-2 font-cairo"
+            >
+              خط العرض
+            </label>
+            <input
+              id="field-page-2"
+              type="number"
+              step="any"
+              value={form.lat}
+              onChange={onLatChange}
+              disabled={submitting}
+              className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
+              required
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="field-page-3"
+              className="block text-sm font-medium text-white mb-2 font-cairo"
+            >
+              خط الطول
+            </label>
+            <input
+              id="field-page-3"
+              type="number"
+              step="any"
+              value={form.lng}
+              onChange={onLngChange}
+              disabled={submitting}
+              className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
+              required
+            />
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-white font-cairo">
+          <input
+            type="checkbox"
+            checked={form.is_mobile}
+            onChange={onMobileChange}
+            disabled={submitting}
+            className="w-4 h-4 accent-white"
+          />
+          <span>مورد متنقّل</span>
+        </label>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-6 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-cairo transition"
+          >
+            {submitting
+              ? "جارٍ الحفظ..."
+              : editingId
+                ? "تحديث المورد"
+                : "إضافة مورد"}
+          </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={submitting}
+              className="px-4 py-2 bg-white/6 text-white rounded-[22px] hover:bg-white/8 font-cairo transition"
+            >
+              إلغاء التعديل
+            </button>
+          )}
+        </div>
+      </form>
+    </CardSpotlight>
+  );
+}
+
+interface VendorsListCardProps {
+  vendors: Vendor[];
+  loading: boolean;
+  onEdit: (vendor: Vendor) => void;
+  onDelete: (id: string) => void;
+}
+
+function VendorsListCard({
+  vendors,
+  loading,
+  onEdit,
+  onDelete,
+}: VendorsListCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        قائمة الموردين ({vendors.length})
+      </h2>
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
+        </div>
+      ) : vendors.length === 0 ? (
+        <p className="text-white/55 text-center py-8 font-cairo">
+          لا يوجد موردون بعد
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {vendors.map((vendor: Vendor) => (
+            <div
+              key={vendor.id}
+              className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
+            >
+              <div className="flex-1">
+                <h3 className="font-semibold text-white font-cairo">
+                  {vendor.name}
+                </h3>
+                <p className="text-xs text-white/45 mt-1 font-cairo">
+                  {vendor.is_mobile ? "متنقّل" : "ثابت"} •{" "}
+                  {vendor.fixed_location.lat.toFixed(4)},{" "}
+                  {vendor.fixed_location.lng.toFixed(4)}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onEdit(vendor)}
+                  className="px-4 py-2 text-sm bg-white/8 text-white rounded-[22px] hover:bg-white/12 font-cairo transition"
+                >
+                  تعديل
+                </button>
+                <button
+                  onClick={() => void onDelete(vendor.id)}
+                  className="px-4 py-2 text-sm bg-white/6 text-white rounded-[22px] hover:bg-white/12 font-cairo transition border border-white/8"
+                >
+                  حذف
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function AdminVendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -134,9 +328,7 @@ export default function AdminVendorsPage() {
     async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
       event.preventDefault();
       const validation = validateForm();
-      if (!validation.valid) {
-        return;
-      }
+      if (!validation.valid) return;
 
       setSubmitting(true);
       try {
@@ -184,15 +376,11 @@ export default function AdminVendorsPage() {
   const handleDelete = useCallback(
     async (id: string): Promise<void> => {
       const confirmed = window.confirm("هل تريد حذف هذا المورد نهائياً؟");
-      if (!confirmed) {
-        return;
-      }
+      if (!confirmed) return;
       try {
         await api.delete<{ success: boolean }>(`/admin/vendors/${id}`);
         toast({ title: "تم الحذف", description: "تم حذف المورد" });
-        if (editingId === id) {
-          resetForm();
-        }
+        if (editingId === id) resetForm();
         await fetchVendors();
       } catch (error: unknown) {
         const axiosError = error as { message?: string };
@@ -226,153 +414,24 @@ export default function AdminVendorsPage() {
           </Link>
         </div>
 
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            {editingId ? "تعديل مورد" : "إضافة مورد"}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="field-page-1"
-                className="block text-sm font-medium text-white mb-2 font-cairo"
-              >
-                الاسم
-              </label>
-              <input
-                id="field-page-1"
-                type="text"
-                value={form.name}
-                onChange={handleNameChange}
-                disabled={submitting}
-                className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white placeholder-white/45 focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
-                required
-                minLength={2}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="field-page-2"
-                  className="block text-sm font-medium text-white mb-2 font-cairo"
-                >
-                  خط العرض
-                </label>
-                <input
-                  id="field-page-2"
-                  type="number"
-                  step="any"
-                  value={form.lat}
-                  onChange={handleLatChange}
-                  disabled={submitting}
-                  className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="field-page-3"
-                  className="block text-sm font-medium text-white mb-2 font-cairo"
-                >
-                  خط الطول
-                </label>
-                <input
-                  id="field-page-3"
-                  type="number"
-                  step="any"
-                  value={form.lng}
-                  onChange={handleLngChange}
-                  disabled={submitting}
-                  className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
-                  required
-                />
-              </div>
-            </div>
+        <VendorFormCard
+          form={form}
+          editingId={editingId}
+          submitting={submitting}
+          onSubmit={(e) => void handleSubmit(e)}
+          onNameChange={handleNameChange}
+          onLatChange={handleLatChange}
+          onLngChange={handleLngChange}
+          onMobileChange={handleMobileChange}
+          onReset={resetForm}
+        />
 
-            <label className="flex items-center gap-2 text-white font-cairo">
-              <input
-                type="checkbox"
-                checked={form.is_mobile}
-                onChange={handleMobileChange}
-                disabled={submitting}
-                className="w-4 h-4 accent-white"
-              />
-              <span>مورد متنقّل</span>
-            </label>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-6 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-cairo transition"
-              >
-                {submitting
-                  ? "جارٍ الحفظ..."
-                  : editingId
-                    ? "تحديث المورد"
-                    : "إضافة مورد"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  disabled={submitting}
-                  className="px-4 py-2 bg-white/6 text-white rounded-[22px] hover:bg-white/8 font-cairo transition"
-                >
-                  إلغاء التعديل
-                </button>
-              )}
-            </div>
-          </form>
-        </CardSpotlight>
-
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            قائمة الموردين ({vendors.length})
-          </h2>
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
-            </div>
-          ) : vendors.length === 0 ? (
-            <p className="text-white/55 text-center py-8 font-cairo">
-              لا يوجد موردون بعد
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {vendors.map((vendor: Vendor) => (
-                <div
-                  key={vendor.id}
-                  className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white font-cairo">
-                      {vendor.name}
-                    </h3>
-                    <p className="text-xs text-white/45 mt-1 font-cairo">
-                      {vendor.is_mobile ? "متنقّل" : "ثابت"} •{" "}
-                      {vendor.fixed_location.lat.toFixed(4)},{" "}
-                      {vendor.fixed_location.lng.toFixed(4)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEdit(vendor)}
-                      className="px-4 py-2 text-sm bg-white/8 text-white rounded-[22px] hover:bg-white/12 font-cairo transition"
-                    >
-                      تعديل
-                    </button>
-                    <button
-                      onClick={() => void handleDelete(vendor.id)}
-                      className="px-4 py-2 text-sm bg-white/6 text-white rounded-[22px] hover:bg-white/12 font-cairo transition border border-white/8"
-                    >
-                      حذف
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardSpotlight>
+        <VendorsListCard
+          vendors={vendors}
+          loading={loading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );

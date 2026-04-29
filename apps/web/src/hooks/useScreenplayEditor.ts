@@ -14,6 +14,48 @@ import { useScreenplayStore } from "@/lib/stores/screenplayStore";
 
 import type { FormattedLine } from "@/lib/stores/screenplayStore";
 
+function findSelectionLineRange(
+  content: string,
+  start: number,
+  end: number
+): { startLine: number; endLine: number } {
+  let startLine = -1;
+  let endLine = -1;
+  let currentPos = 0;
+  const lines = content.split("\n");
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? "";
+    const lineEnd = currentPos + line.length;
+    if (startLine === -1 && start <= lineEnd) startLine = i;
+    if (endLine === -1 && end <= lineEnd + 1) endLine = i;
+    currentPos = lineEnd + 1;
+  }
+
+  return {
+    startLine: startLine === -1 ? 0 : startLine,
+    endLine: endLine === -1 ? lines.length - 1 : endLine,
+  };
+}
+
+function applyFormatToLines(
+  formattedLines: FormattedLine[],
+  startLine: number,
+  endLine: number,
+  formatType: string
+): { lines: FormattedLine[]; changed: boolean } {
+  const newLines = [...formattedLines];
+  let changed = false;
+  for (let i = startLine; i <= endLine; i++) {
+    const line = newLines[i];
+    if (line && line.type !== formatType) {
+      newLines[i] = { ...line, type: formatType };
+      changed = true;
+    }
+  }
+  return { lines: newLines, changed };
+}
+
 /**
  * hook لمحرر السيناريو
  * يوفر جميع الوظائف المطلوبة للمحرر
@@ -182,53 +224,23 @@ export function useScreenplayEditor(documentId?: string) {
   const applyFormatting = useCallback(
     (formatType: string) => {
       if (selection) {
-        // Format selected text
         const { start, end } = selection;
-
-        let startLine = -1;
-        let endLine = -1;
-        let currentPos = 0;
-
-        const lines = content.split("\n");
-
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i] ?? "";
-          const lineEnd = currentPos + line.length;
-
-          if (startLine === -1 && start <= lineEnd) {
-            startLine = i;
-          }
-
-          if (endLine === -1 && end <= lineEnd + 1) {
-            endLine = i;
-          }
-
-          currentPos = lineEnd + 1;
-        }
-
-        if (endLine === -1) endLine = lines.length - 1;
-        if (startLine === -1) startLine = 0;
-
-        const newFormattedLines = [...formattedLines];
-        let hasChanges = false;
-
-        for (let i = startLine; i <= endLine; i++) {
-          const formattedLine = newFormattedLines[i];
-          if (formattedLine && formattedLine.type !== formatType) {
-            newFormattedLines[i] = {
-              ...formattedLine,
-              type: formatType,
-            };
-            hasChanges = true;
-          }
-        }
-
-        if (hasChanges) {
+        const { startLine, endLine } = findSelectionLineRange(
+          content,
+          start,
+          end
+        );
+        const { lines: newFormattedLines, changed } = applyFormatToLines(
+          formattedLines,
+          startLine,
+          endLine,
+          formatType
+        );
+        if (changed) {
           setFormattedLines(newFormattedLines);
           markDirty();
         }
       } else {
-        // Format current line
         setCurrentFormat(formatType);
       }
     },

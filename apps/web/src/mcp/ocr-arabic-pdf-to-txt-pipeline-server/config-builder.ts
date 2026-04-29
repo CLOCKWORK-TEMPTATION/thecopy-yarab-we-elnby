@@ -96,10 +96,9 @@ function argBool(parsed: ParsedArgs, name: string, fallback = false): boolean {
   return fallback;
 }
 
-export function buildConfig(argv: string[]): ConfigManager {
-  const args = parseArgs(argv);
+function buildLLMConfig(args: ParsedArgs): LLMConfig {
   const llmReferencePath = argOptionalString(args, "llm-reference");
-  const llm: LLMConfig = {
+  return {
     enabled: argBool(args, "use-llm"),
     model: argString(args, "llm-model", DEFAULT_LLM_MODEL),
     strict: argBool(args, "llm-strict"),
@@ -130,7 +129,9 @@ export function buildConfig(argv: string[]): ConfigManager {
       ? { referencePath: llmReferencePath }
       : {}),
   };
+}
 
+function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
   const tableRaw = (
     argOptionalString(args, "mistral-table-format") ??
     process.env["MISTRAL_OCR_TABLE_FORMAT"] ??
@@ -192,8 +193,11 @@ export function buildConfig(argv: string[]): ConfigManager {
       `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${mistral.model}`
     );
   }
+  return mistral;
+}
 
-  const preOcr: PreOCRConfig = {
+function buildPreOcrConfig(args: ParsedArgs): PreOCRConfig {
+  return {
     enabled: !argBool(args, "disable-pre-ocr-filter"),
     lang: argString(
       args,
@@ -225,8 +229,10 @@ export function buildConfig(argv: string[]): ConfigManager {
       )
     ),
   };
+}
 
-  const normalizerOptions: NormalizationOptions = {
+function buildNormalizerOptions(args: ParsedArgs): NormalizationOptions {
+  return {
     normalizeYa: argBool(args, "normalize-ya", false),
     normalizeTaMarbuta: argBool(args, "normalize-ta-marbuta", false),
     normalizeHamza: !argBool(args, "no-normalize-hamza"),
@@ -237,8 +243,16 @@ export function buildConfig(argv: string[]): ConfigManager {
     fixArabicPunctuation: !argBool(args, "no-fix-arabic-punctuation"),
     scriptSpecificRules: !argBool(args, "no-script-specific-rules"),
   };
+}
 
+export function buildConfig(argv: string[]): ConfigManager {
+  const args = parseArgs(argv);
+  const llm = buildLLMConfig(args);
+  const mistral = buildMistralConfig(args);
+  const preOcr = buildPreOcrConfig(args);
+  const normalizerOptions = buildNormalizerOptions(args);
   const outputPath = argOptionalString(args, "output");
+
   return {
     inputPath: argString(args, "input", DEFAULT_INPUT),
     normalizeOutput: !argBool(args, "no-normalize"),

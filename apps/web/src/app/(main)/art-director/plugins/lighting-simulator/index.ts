@@ -119,169 +119,170 @@ export class LightingSimulator implements Plugin {
     }
   }
 
-  private simulateLighting(data: LightingSimulationInput): PluginOutput {
-    const { scene, style = "naturalistic" } = data;
+  private buildExteriorDaylightLights(
+    scene: LightingSimulationInput["scene"],
+    colorTemp: number,
+    equipment: EquipmentItem[]
+  ): { keyLight: Light; fillLight: Light } {
+    const keyLight: Light = {
+      type:
+        scene.weather === "overcast" ? "Diffused Sunlight" : "Direct Sunlight",
+      intensity: scene.weather === "overcast" ? 70 : 100,
+      colorTemperature: colorTemp,
+      position: this.getSunPosition(scene.timeOfDay),
+    };
 
-    const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] ?? 5600;
-    const equipment: EquipmentItem[] = [];
-    const alternatives: AlternativeSetup[] = [];
+    if (scene.weather !== "overcast") {
+      equipment.push({
+        name: "12x12 Silk/Diffusion Frame",
+        nameAr: "إطار حرير/تشتيت 12×12",
+        type: "diffusion",
+        quantity: 1,
+        accessories: ["C-stands", "Sandbags"],
+      });
+    }
 
-    // Determine key light based on location and time
-    let keyLight: Light;
-    let fillLight: Light;
-    let backLight: Light | undefined;
-    const practicals: Light[] = [];
+    const fillLight: Light = {
+      type: "Bounce (Reflector)",
+      intensity: 40,
+      colorTemperature: colorTemp,
+      position: "Opposite key light",
+    };
 
-    if (scene.location === "exterior") {
-      // Exterior lighting setup
-      if (
-        ["dawn", "morning", "midday", "afternoon", "sunset"].includes(
-          scene.timeOfDay
-        )
-      ) {
-        // Daylight scenarios
-        keyLight = {
-          type:
-            scene.weather === "overcast"
-              ? "Diffused Sunlight"
-              : "Direct Sunlight",
-          intensity: scene.weather === "overcast" ? 70 : 100,
-          colorTemperature: colorTemp,
-          position: this.getSunPosition(scene.timeOfDay),
-        };
+    equipment.push({
+      name: "4x4 Reflector (Silver/Gold)",
+      nameAr: "عاكس 4×4 (فضي/ذهبي)",
+      type: "reflector",
+      quantity: 2,
+    });
 
-        if (scene.weather !== "overcast") {
-          equipment.push({
-            name: "12x12 Silk/Diffusion Frame",
-            nameAr: "إطار حرير/تشتيت 12×12",
-            type: "diffusion",
-            quantity: 1,
-            accessories: ["C-stands", "Sandbags"],
-          });
-        }
+    return { keyLight, fillLight };
+  }
 
-        // Bounce for fill
-        fillLight = {
-          type: "Bounce (Reflector)",
-          intensity: 40,
-          colorTemperature: colorTemp,
-          position: "Opposite key light",
-        };
+  private buildExteriorNightLights(equipment: EquipmentItem[]): {
+    keyLight: Light;
+    fillLight: Light;
+  } {
+    equipment.push({
+      name: "ARRI M18 HMI",
+      nameAr: "ARRI M18 HMI",
+      type: "hmi",
+      quantity: 1,
+      power: "1800W",
+      accessories: ["Chimera", "Gel frame"],
+    });
 
-        equipment.push({
-          name: "4x4 Reflector (Silver/Gold)",
-          nameAr: "عاكس 4×4 (فضي/ذهبي)",
-          type: "reflector",
-          quantity: 2,
-        });
-      } else {
-        // Night exterior
-        keyLight = {
-          type: "HMI or LED Panel",
-          intensity: 80,
-          colorTemperature: 5600,
-          position: "High angle, simulating moonlight",
-        };
+    return {
+      keyLight: {
+        type: "HMI or LED Panel",
+        intensity: 80,
+        colorTemperature: 5600,
+        position: "High angle, simulating moonlight",
+      },
+      fillLight: {
+        type: "LED Panel (Dimmable)",
+        intensity: 30,
+        colorTemperature: 4500,
+        position: "Low fill",
+      },
+    };
+  }
 
-        equipment.push({
-          name: "ARRI M18 HMI",
-          nameAr: "ARRI M18 HMI",
-          type: "hmi",
-          quantity: 1,
-          power: "1800W",
-          accessories: ["Chimera", "Gel frame"],
-        });
+  private buildInteriorLights(
+    scene: LightingSimulationInput["scene"],
+    colorTemp: number,
+    equipment: EquipmentItem[],
+    practicals: Light[]
+  ): { keyLight: Light; fillLight: Light } {
+    equipment.push({
+      name: "ARRI SkyPanel S60",
+      nameAr: "ARRI SkyPanel S60",
+      type: "led-panel",
+      quantity: 1,
+      power: "358W",
+      accessories: ["Softbox", "Grid"],
+    });
 
-        fillLight = {
-          type: "LED Panel (Dimmable)",
-          intensity: 30,
-          colorTemperature: 4500,
-          position: "Low fill",
-        };
-      }
-    } else if (scene.location === "interior") {
-      // Interior lighting setup
-      keyLight = {
+    if (scene.timeOfDay === "night") {
+      practicals.push({
+        type: "Practical lamp",
+        intensity: 25,
+        colorTemperature: 2700,
+        position: "Table/desk",
+      });
+      equipment.push({
+        name: "Practical lamps with dimmers",
+        nameAr: "مصابيح عملية مع مخفتات",
+        type: "practical",
+        quantity: 2,
+      });
+    }
+
+    return {
+      keyLight: {
         type: "Soft source through window",
         intensity: 80,
         colorTemperature: colorTemp,
         position: "Window side",
-      };
-
-      equipment.push({
-        name: "ARRI SkyPanel S60",
-        nameAr: "ARRI SkyPanel S60",
-        type: "led-panel",
-        quantity: 1,
-        power: "358W",
-        accessories: ["Softbox", "Grid"],
-      });
-
-      if (scene.timeOfDay === "night") {
-        // Add practicals
-        practicals.push({
-          type: "Practical lamp",
-          intensity: 25,
-          colorTemperature: 2700,
-          position: "Table/desk",
-        });
-
-        equipment.push({
-          name: "Practical lamps with dimmers",
-          nameAr: "مصابيح عملية مع مخفتات",
-          type: "practical",
-          quantity: 2,
-        });
-      }
-
-      fillLight = {
+      },
+      fillLight: {
         type: "Bounce or soft LED",
         intensity: 35,
         colorTemperature: colorTemp,
         position: "Camera side, low",
-      };
-    } else {
-      // Studio setup
-      keyLight = {
+      },
+    };
+  }
+
+  private buildStudioLights(equipment: EquipmentItem[]): {
+    keyLight: Light;
+    fillLight: Light;
+    backLight: Light;
+  } {
+    equipment.push(
+      {
+        name: "ARRI Fresnel 650W",
+        nameAr: "ARRI Fresnel 650W",
+        type: "fresnel",
+        quantity: 2,
+        power: "650W",
+      },
+      {
+        name: "LED Panel Bi-Color",
+        nameAr: "لوح LED ثنائي اللون",
+        type: "led-panel",
+        quantity: 2,
+        accessories: ["Softbox", "Barn doors"],
+      }
+    );
+
+    return {
+      keyLight: {
         type: "Fresnel or LED",
         intensity: 100,
         colorTemperature: 5600,
         position: "45° from camera, slightly above eye level",
-      };
-
-      fillLight = {
+      },
+      fillLight: {
         type: "Soft LED Panel",
         intensity: 50,
         colorTemperature: 5600,
         position: "Opposite key, near camera",
-      };
-
-      backLight = {
+      },
+      backLight: {
         type: "Fresnel or LED Spot",
         intensity: 60,
         colorTemperature: 5600,
         position: "Behind subject, high",
-      };
+      },
+    };
+  }
 
-      equipment.push(
-        {
-          name: "ARRI Fresnel 650W",
-          nameAr: "ARRI Fresnel 650W",
-          type: "fresnel",
-          quantity: 2,
-          power: "650W",
-        },
-        {
-          name: "LED Panel Bi-Color",
-          nameAr: "لوح LED ثنائي اللون",
-          type: "led-panel",
-          quantity: 2,
-          accessories: ["Softbox", "Barn doors"],
-        }
-      );
-    }
-
-    // Apply style modifications
+  private applyStyleModifiers(
+    keyLight: Light,
+    fillLight: Light,
+    style: string
+  ): void {
     if (style === "low-key" || style === "noir") {
       fillLight.intensity *= 0.3;
       keyLight.intensity *= 0.8;
@@ -289,8 +290,51 @@ export class LightingSimulator implements Plugin {
       fillLight.intensity *= 1.5;
       keyLight.intensity *= 1.2;
     }
+  }
 
-    // Build setup object
+  private buildLightsForLocation(
+    scene: LightingSimulationInput["scene"],
+    colorTemp: number,
+    equipment: EquipmentItem[],
+    practicals: Light[]
+  ): { keyLight: Light; fillLight: Light; backLight?: Light } {
+    const isDaylight = [
+      "dawn",
+      "morning",
+      "midday",
+      "afternoon",
+      "sunset",
+    ].includes(scene.timeOfDay);
+
+    if (scene.location === "exterior") {
+      return isDaylight
+        ? this.buildExteriorDaylightLights(scene, colorTemp, equipment)
+        : this.buildExteriorNightLights(equipment);
+    }
+
+    if (scene.location === "interior") {
+      return this.buildInteriorLights(scene, colorTemp, equipment, practicals);
+    }
+
+    return this.buildStudioLights(equipment);
+  }
+
+  private simulateLighting(data: LightingSimulationInput): PluginOutput {
+    const { scene, style = "naturalistic" } = data;
+
+    const colorTemp = TIME_COLOR_TEMPS[scene.timeOfDay] ?? 5600;
+    const equipment: EquipmentItem[] = [];
+    const practicals: Light[] = [];
+
+    const { keyLight, fillLight, backLight } = this.buildLightsForLocation(
+      scene,
+      colorTemp,
+      equipment,
+      practicals
+    );
+
+    this.applyStyleModifiers(keyLight, fillLight, style);
+
     const setup: LightingSetup = {
       type:
         scene.location === "exterior" && scene.timeOfDay !== "night"
@@ -305,8 +349,7 @@ export class LightingSimulator implements Plugin {
       }),
     };
 
-    // Add alternatives
-    alternatives.push(
+    const alternatives: AlternativeSetup[] = [
       {
         name: "Budget Alternative",
         description: "Use available window light with DIY reflectors",
@@ -316,8 +359,8 @@ export class LightingSimulator implements Plugin {
         name: "Premium Setup",
         description: "Full ARRI setup with HMIs and SkyPanels",
         budgetLevel: "high",
-      }
-    );
+      },
+    ];
 
     const recommendation: LightingRecommendation = {
       setup,

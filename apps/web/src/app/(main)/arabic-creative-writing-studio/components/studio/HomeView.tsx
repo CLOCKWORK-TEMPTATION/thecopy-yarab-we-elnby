@@ -25,6 +25,83 @@ interface HomeViewProps {
   onNavigateToLibrary: () => void;
 }
 
+interface ProjectCardProps {
+  project: CreativeProject;
+  onOpen: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function ProjectCard({ project, onOpen, onDelete }: ProjectCardProps) {
+  return (
+    <Card className="text-right border-white/8 bg-black/14">
+      <CardContent className="p-5 space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h4 className="text-lg font-semibold text-white">
+              {project.title}
+            </h4>
+            <p className="text-sm text-white/45">
+              آخر تحديث: {project.updatedAt.toLocaleString("ar-EG")}
+            </p>
+          </div>
+          <span className="text-xs rounded-full bg-purple-500/15 text-purple-200 px-3 py-1">
+            {project.wordCount} كلمة
+          </span>
+        </div>
+        <p className="text-sm text-white/62 line-clamp-3">
+          {project.content || "لم يبدأ المستخدم الكتابة بعد."}
+        </p>
+        <div className="flex gap-2 justify-end">
+          <Button variant="outline" onClick={() => onDelete(project.id)}>
+            حذف
+          </Button>
+          <Button onClick={() => onOpen(project.id)}>فتح المشروع</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ProjectsListProps {
+  projects: CreativeProject[];
+  onOpenProject: (id: string) => void;
+  onDeleteProject: (id: string) => void;
+}
+
+function ProjectsList({
+  projects,
+  onOpenProject,
+  onDeleteProject,
+}: ProjectsListProps) {
+  const sorted = projects
+    .slice()
+    .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
+    .slice(0, 4);
+
+  if (projects.length === 0) {
+    return (
+      <Card className="max-w-3xl mx-auto border-white/8 bg-black/14">
+        <CardContent className="p-6 text-center text-white/52">
+          أول مشروع تحفظه سيظهر هنا تلقائياً لتستعيده من أي إعادة تحميل للصفحة.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {sorted.map((project) => (
+        <ProjectCard
+          key={project.id}
+          project={project}
+          onOpen={onOpenProject}
+          onDelete={onDeleteProject}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function HomeView({
   projects,
   onCreateNewProject,
@@ -112,63 +189,11 @@ export function HomeView({
             {projects.length} مشروع محفوظ على الخادم المحلي
           </span>
         </div>
-
-        {projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {projects
-              .slice()
-              .sort(
-                (left, right) =>
-                  right.updatedAt.getTime() - left.updatedAt.getTime()
-              )
-              .slice(0, 4)
-              .map((project) => (
-                <Card
-                  key={project.id}
-                  className="text-right border-white/8 bg-black/14"
-                >
-                  <CardContent className="p-5 space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 className="text-lg font-semibold text-white">
-                          {project.title}
-                        </h4>
-                        <p className="text-sm text-white/45">
-                          آخر تحديث: {project.updatedAt.toLocaleString("ar-EG")}
-                        </p>
-                      </div>
-                      <span className="text-xs rounded-full bg-purple-500/15 text-purple-200 px-3 py-1">
-                        {project.wordCount} كلمة
-                      </span>
-                    </div>
-
-                    <p className="text-sm text-white/62 line-clamp-3">
-                      {project.content || "لم يبدأ المستخدم الكتابة بعد."}
-                    </p>
-
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="outline"
-                        onClick={() => onDeleteProject(project.id)}
-                      >
-                        حذف
-                      </Button>
-                      <Button onClick={() => onOpenProject(project.id)}>
-                        فتح المشروع
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        ) : (
-          <Card className="max-w-3xl mx-auto border-white/8 bg-black/14">
-            <CardContent className="p-6 text-center text-white/52">
-              أول مشروع تحفظه سيظهر هنا تلقائياً لتستعيده من أي إعادة تحميل
-              للصفحة.
-            </CardContent>
-          </Card>
-        )}
+        <ProjectsList
+          projects={projects}
+          onOpenProject={onOpenProject}
+          onDeleteProject={onDeleteProject}
+        />
       </div>
     </div>
   );

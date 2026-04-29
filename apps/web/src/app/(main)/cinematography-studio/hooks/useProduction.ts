@@ -10,7 +10,13 @@
 
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { toast } from "react-hot-toast";
 
 import { publishDiagnostics } from "../lib/diagnostics-bus";
@@ -43,6 +49,175 @@ import {
 import type { VisualMood } from "../types";
 
 // ============================================
+// دوال مساعدة لتحليل اللقطة والمساعد
+// ============================================
+
+async function runShotAnalysis(
+  effectiveFile: File,
+  mood: VisualMood,
+  setAnalysisState: React.Dispatch<React.SetStateAction<AnalysisState>>
+): Promise<void> {
+  setAnalysisState((prev) => ({ ...prev, isAnalyzing: true, error: null }));
+  toast.loading("جاري المسح الطيفي للقطة...", { id: "analyzing" });
+
+  const localPromise = createLocalShotAnalysis(effectiveFile, mood)
+    .then((analysis) => {
+      const validation = ShotAnalysisSchema.safeParse(analysis);
+      return validation.success ? validation.data : null;
+    })
+    .catch(() => null);
+
+  const formData = new FormData();
+  formData.set("image", effectiveFile);
+
+  const remotePromise = postStudioFormData<ValidateShotResponse>(
+    "/api/cineai/validate-shot",
+    formData,
+    {
+      timeoutMs: REMOTE_ANALYSIS_TIMEOUT_MS,
+      timeoutMessage:
+        "انتهت المهلة الزمنية لتحليل اللقطة. سيُستخدم التحليل المحلي.",
+    }
+  )
+    .then((remoteData) => {
+      if (!remoteData?.validation) return null;
+      const analysis = normalizeShotAnalysis(remoteData.validation);
+      const validation = ShotAnalysisSchema.safeParse(analysis);
+      return validation.success ? validation.data : null;
+    })
+    .catch(() => null);
+
+  const winner = await resolveAnalysisWinner({
+    remote: remotePromise,
+    local: localPromise,
+  });
+
+  if (winner?.source === "remote") {
+    setAnalysisState((prev) => ({
+      ...prev,
+      isAnalyzing: false,
+      analysis: winner.value,
+      source: "remote",
+      error: null,
+    }));
+    if (winner.value.issues.length > 0) {
+      toast.success(
+        `تم التحليل بنجاح - يوجد ${winner.value.issues.length} ملاحظة`,
+        { id: "analyzing" }
+      );
+    } else {
+      toast.success("اللقطة جاهزة للتصوير!", { id: "analyzing" });
+    }
+    return;
+  }
+
+  if (winner?.source === "local-fallback") {
+    setAnalysisState((prev) => ({
+      ...prev,
+      isAnalyzing: false,
+      error: null,
+      analysis: winner.value,
+      source: "local-fallback",
+    }));
+    toast.success("تم تفعيل التحليل المحلي البديل بنجاح", { id: "analyzing" });
+    return;
+  }
+
+  setAnalysisState((prev) => ({
+    ...prev,
+    isAnalyzing: false,
+    source: null,
+    error: "فشل في تحليل اللقطة من جميع المصادر",
+  }));
+  toast.error("فشل في تحليل اللقطة", { id: "analyzing" });
+}
+
+async function runAskAssistant(
+  trimmedQuestion: string,
+  mood: VisualMood,
+  latestAnalysis: AnalysisState["analysis"],
+  setAnalysisState: React.Dispatch<React.SetStateAction<AnalysisState>>,
+  setAssistantState: React.Dispatch<React.SetStateAction<AssistantState>>
+): Promise<void> {
+  setAssistantState({
+    isLoading: true,
+    answer: null,
+    lastQuestion: trimmedQuestion,
+    error: null,
+  });
+
+  try {
+    const response = await postStudioJson<ChatResponse>(
+      "/api/ai/chat",
+      {
+        message: trimmedQuestion,
+        context: {
+          assistant: "cinematography-assistant",
+          mood,
+          latestAnalysis,
+        },
+      },
+      {
+        requireCsrf: true,
+        timeoutMs: ASSISTANT_REQUEST_TIMEOUT_MS,
+        timeoutMessage:
+          "انتهت المهلة الزمنية للمساعد. تحقق من الاتصال ثم أعد المحاولة.",
+      }
+    );
+
+    const answerText = response.data?.response?.trim();
+    if (!answerText)
+      throw new Error("لم يصل المساعد بإجابة قابلة للعرض. حاول مرة أخرى.");
+
+    setAssistantState({
+      isLoading: false,
+      answer: answerText,
+      lastQuestion: trimmedQuestion,
+      error: null,
+    });
+    setAnalysisState((prev) => ({ ...prev, question: "" }));
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "فشل في إرسال السؤال";
+    setAssistantState((prev) => ({
+      ...prev,
+      isLoading: false,
+      answer: null,
+      error: message,
+    }));
+  }
+}
+
+interface InitialProductionState {
+  analysisState: AnalysisState;
+  assistantState: AssistantState;
+  technicalSettings: TechnicalSettings;
+}
+
+function readInitialProductionState(): InitialProductionState {
+  const persisted = readSession();
+  return {
+    analysisState: persisted?.lastAnalysis
+      ? {
+          ...initialAnalysisState,
+          analysis: persisted.lastAnalysis,
+          source: "local-fallback",
+        }
+      : initialAnalysisState,
+    assistantState: persisted?.lastAssistant?.answer
+      ? {
+          isLoading: false,
+          answer: persisted.lastAssistant.answer,
+          lastQuestion: persisted.lastAssistant.question ?? null,
+          error: null,
+        }
+      : initialAssistantState,
+    technicalSettings:
+      persisted?.technicalSettings ?? defaultTechnicalSettings,
+  };
+}
+
+// ============================================
 // الـ Hook الرئيسي
 // ============================================
 
@@ -73,45 +248,20 @@ export function useProduction(mood: VisualMood = "noir") {
   // الحالة
   // ============================================
 
+  const initialState = useMemo(() => readInitialProductionState(), []);
   const [analysisState, setAnalysisState] =
-    useState<AnalysisState>(initialAnalysisState);
+    useState<AnalysisState>(initialState.analysisState);
   const [assistantState, setAssistantState] = useState<AssistantState>(
-    initialAssistantState
+    initialState.assistantState
   );
   const [technicalSettings, setTechnicalSettings] = useState<TechnicalSettings>(
-    defaultTechnicalSettings
+    initialState.technicalSettings
   );
   const mediaInput = useMediaInputPipeline("image");
   const persistenceHydrated = useRef(false);
 
-  // استعادة الإعدادات التقنية وآخر تحليل عند أول تركيب — ثم نسمح بالحفظ.
   useEffect(() => {
-    if (persistenceHydrated.current) {
-      return;
-    }
     persistenceHydrated.current = true;
-    const persisted = readSession();
-    if (!persisted) {
-      return;
-    }
-    if (persisted.technicalSettings) {
-      setTechnicalSettings(persisted.technicalSettings);
-    }
-    if (persisted.lastAnalysis) {
-      setAnalysisState((prev) => ({
-        ...prev,
-        analysis: persisted.lastAnalysis ?? null,
-        source: "local-fallback",
-      }));
-    }
-    if (persisted.lastAssistant?.answer) {
-      setAssistantState({
-        isLoading: false,
-        answer: persisted.lastAssistant.answer,
-        lastQuestion: persisted.lastAssistant.question ?? null,
-        error: null,
-      });
-    }
   }, []);
 
   // حفظ الإعدادات التقنية بعد الهيدرة الأولى.
@@ -164,8 +314,8 @@ export function useProduction(mood: VisualMood = "noir") {
 
   // عدّاد إعادة التركيب للتشخيص.
   const productionRenderCount = useRef(0);
-  productionRenderCount.current += 1;
   useEffect(() => {
+    productionRenderCount.current += 1;
     publishDiagnostics({
       slice: "renderCount",
       data: { production: productionRenderCount.current },
@@ -186,101 +336,13 @@ export function useProduction(mood: VisualMood = "noir") {
   const handleAnalyzeShot = useCallback(
     async (file?: File | null) => {
       const effectiveFile = file ?? mediaInput.state.analysisFile;
-
       if (!effectiveFile) {
         toast.error(
           "يرجى اختيار صورة أو فيديو أو التقاط إطار من الكاميرا أولاً"
         );
         return;
       }
-
-      setAnalysisState((prev) => ({
-        ...prev,
-        isAnalyzing: true,
-        error: null,
-      }));
-
-      toast.loading("جاري المسح الطيفي للقطة...", { id: "analyzing" });
-
-      // تجهيز البديل المحلي بالتوازي من اللحظة الأولى
-      const localPromise = createLocalShotAnalysis(effectiveFile, mood)
-        .then((analysis) => {
-          const validation = ShotAnalysisSchema.safeParse(analysis);
-          return validation.success ? validation.data : null;
-        })
-        .catch(() => null);
-
-      // الطلب البعيد مع مهلة واضحة
-      const formData = new FormData();
-      formData.set("image", effectiveFile);
-
-      const remotePromise = postStudioFormData<ValidateShotResponse>(
-        "/api/cineai/validate-shot",
-        formData,
-        {
-          timeoutMs: REMOTE_ANALYSIS_TIMEOUT_MS,
-          timeoutMessage:
-            "انتهت المهلة الزمنية لتحليل اللقطة. سيُستخدم التحليل المحلي.",
-        }
-      )
-        .then((remoteData) => {
-          if (!remoteData?.validation) {
-            return null;
-          }
-
-          const analysis = normalizeShotAnalysis(remoteData.validation);
-          const validation = ShotAnalysisSchema.safeParse(analysis);
-          return validation.success ? validation.data : null;
-        })
-        .catch(() => null);
-
-      const winner = await resolveAnalysisWinner({
-        remote: remotePromise,
-        local: localPromise,
-      });
-
-      if (winner?.source === "remote") {
-        setAnalysisState((prev) => ({
-          ...prev,
-          isAnalyzing: false,
-          analysis: winner.value,
-          source: "remote",
-          error: null,
-        }));
-
-        if (winner.value.issues.length > 0) {
-          toast.success(
-            `تم التحليل بنجاح - يوجد ${winner.value.issues.length} ملاحظة`,
-            { id: "analyzing" }
-          );
-        } else {
-          toast.success("اللقطة جاهزة للتصوير!", { id: "analyzing" });
-        }
-        return;
-      }
-
-      if (winner?.source === "local-fallback") {
-        setAnalysisState((prev) => ({
-          ...prev,
-          isAnalyzing: false,
-          error: null,
-          analysis: winner.value,
-          source: "local-fallback",
-        }));
-        toast.success("تم تفعيل التحليل المحلي البديل بنجاح", {
-          id: "analyzing",
-        });
-        return;
-      }
-
-      // كلا المسارين فشلا
-      setAnalysisState((prev) => ({
-        ...prev,
-        isAnalyzing: false,
-        source: null,
-        error: "فشل في تحليل اللقطة من جميع المصادر",
-      }));
-      toast.error("فشل في تحليل اللقطة", { id: "analyzing" });
+      await runShotAnalysis(effectiveFile, mood, setAnalysisState);
     },
     [mediaInput.state.analysisFile, mood]
   );
@@ -317,64 +379,16 @@ export function useProduction(mood: VisualMood = "noir") {
     }
 
     if (assistantState.isLoading) {
-      // منع الإرسال المزدوج عبر زر الإدخال أو النقر المتكرر
       return;
     }
 
-    setAssistantState({
-      isLoading: true,
-      answer: null,
-      lastQuestion: trimmedQuestion,
-      error: null,
-    });
-
-    try {
-      const response = await postStudioJson<ChatResponse>(
-        "/api/ai/chat",
-        {
-          message: trimmedQuestion,
-          context: {
-            assistant: "cinematography-assistant",
-            mood,
-            latestAnalysis: analysisState.analysis,
-          },
-        },
-        {
-          requireCsrf: true,
-          timeoutMs: ASSISTANT_REQUEST_TIMEOUT_MS,
-          timeoutMessage:
-            "انتهت المهلة الزمنية للمساعد. تحقق من الاتصال ثم أعد المحاولة.",
-        }
-      );
-
-      const answerText = response.data?.response?.trim();
-
-      if (!answerText) {
-        throw new Error("لم يصل المساعد بإجابة قابلة للعرض. حاول مرة أخرى.");
-      }
-
-      setAssistantState({
-        isLoading: false,
-        answer: answerText,
-        lastQuestion: trimmedQuestion,
-        error: null,
-      });
-
-      // مسح السؤال فقط بعد نجاح الإرسال
-      setAnalysisState((prev) => ({
-        ...prev,
-        question: "",
-      }));
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "فشل في إرسال السؤال";
-      setAssistantState((prev) => ({
-        ...prev,
-        isLoading: false,
-        answer: null,
-        error: message,
-      }));
-    }
+    await runAskAssistant(
+      trimmedQuestion,
+      mood,
+      analysisState.analysis,
+      setAnalysisState,
+      setAssistantState
+    );
   }, [
     analysisState.analysis,
     analysisState.question,

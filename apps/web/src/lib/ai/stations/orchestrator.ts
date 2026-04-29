@@ -104,6 +104,134 @@ export class StationsOrchestrator {
     this.enableDetailedLogging = config.enableDetailedLogging ?? true;
   }
 
+  private async runStation1(
+    fullText: string,
+    projectName: string
+  ): Promise<Station1Output> {
+    const station1 = new Station1TextAnalysis(this.geminiService);
+    const result = await station1.run({ text: fullText, projectName });
+    return result.result as Station1Output;
+  }
+
+  private async runStation2(
+    fullText: string,
+    station1Output: Station1Output
+  ): Promise<Station2Output> {
+    const station2 = new Station2ConceptualAnalysis(this.geminiService);
+    const station2Input: Station2Input = { text: fullText, station1Output };
+    const result = await station2.run(station2Input);
+    return result.result as Station2Output;
+  }
+
+  private async runStation3(
+    fullText: string,
+    station1Output: Station1Output,
+    station2Output: Station2Output
+  ): Promise<Station3Output> {
+    const station3 = new Station3NetworkBuilder(this.geminiService);
+    const station3Input: Station3Input = {
+      text: fullText,
+      station1Output,
+      station2Output,
+    };
+    const result = await station3.run(station3Input);
+    return result.result as Station3Output;
+  }
+
+  private async runStation4(
+    fullText: string,
+    station3Output: Station3Output
+  ): Promise<Station4Output> {
+    const station4 = new Station4EfficiencyMetrics(
+      {
+        stationId: "station4",
+        name: "Efficiency Metrics",
+        description: "Efficiency Metrics",
+        cacheEnabled: this.enableCaching,
+        performanceTracking: true,
+        inputValidation: (input) => !!input,
+        outputValidation: (output) => !!output,
+      },
+      this.geminiService
+    );
+    const result = await station4.execute({
+      station3Output,
+      originalText: fullText,
+    });
+    return result.output;
+  }
+
+  private async runStation5(
+    fullText: string,
+    station3Output: Station3Output,
+    station4Output: Station4Output
+  ): Promise<Station5Output> {
+    const station5 = new Station5DynamicSymbolicStylistic(
+      {
+        stationId: "station5",
+        name: "Dynamic/Symbolic/Stylistic Analysis",
+        description: "Dynamic/Symbolic/Stylistic Analysis",
+        cacheEnabled: this.enableCaching,
+        performanceTracking: true,
+        inputValidation: (input) => !!input,
+        outputValidation: (output) => !!output,
+      },
+      this.geminiService
+    );
+    const result = await station5.execute({
+      conflictNetwork: station3Output.conflictNetwork,
+      station4Output,
+      fullText,
+    });
+    return result.output;
+  }
+
+  private async runStation6(
+    fullText: string,
+    outputs: {
+      station1: Station1Output;
+      station2: Station2Output;
+      station3: Station3Output;
+      station4: Station4Output;
+      station5: Station5Output;
+    }
+  ): Promise<Station6Output> {
+    const station6 = new Station6Diagnostics(this.geminiService);
+    return station6.execute(fullText, {
+      station1: outputs.station1 as unknown as Record<string, unknown>,
+      station2: outputs.station2 as unknown as Record<string, unknown>,
+      station3: outputs.station3 as unknown as Record<string, unknown>,
+      station4: outputs.station4 as unknown as Record<string, unknown>,
+      station5: outputs.station5 as unknown as Record<string, unknown>,
+    });
+  }
+
+  private async runStation7(
+    station3Output: Station3Output,
+    station6Output: Station6Output,
+    allPreviousStationsData: Map<number, unknown>
+  ): Promise<Station7Output> {
+    const station7 = new Station7Finalization(
+      {
+        stationId: "station7",
+        name: "Finalization & Visualization",
+        description: "Finalization & Visualization",
+        cacheEnabled: this.enableCaching,
+        performanceTracking: true,
+        inputValidation: (input) => !!input,
+        outputValidation: (output) => !!output,
+      },
+      this.geminiService,
+      this.outputDirectory
+    );
+    const result = await station7.execute({
+      conflictNetwork: station3Output.conflictNetwork,
+      station6Output,
+      allPreviousStationsData,
+    });
+    return result.output;
+  }
+
   async execute(
     fullText: string,
     projectName = "untitled-project",
@@ -132,169 +260,115 @@ export class StationsOrchestrator {
 
     const allPreviousStationsData = new Map<number, unknown>();
 
+    const shouldRun = (n: number) =>
+      startFromStation <= n && endAtStation >= n && !skipStations.has(n);
+
+    const track = (output: unknown, n: number) => {
+      allPreviousStationsData.set(n, output);
+      stationsCompleted++;
+    };
+
     try {
-      if (startFromStation <= 1 && endAtStation >= 1 && !skipStations.has(1)) {
-        const station1Output = await this.executeStation<Station1Output>(
+      if (shouldRun(1)) {
+        const out = await this.executeStation<Station1Output>(
           1,
           "Text Analysis",
-          async () => {
-            const station1 = new Station1TextAnalysis(this.geminiService);
-            const result = await station1.run({
-              text: fullText,
-              projectName,
-            });
-            return result.result as Station1Output;
-          }
+          () => this.runStation1(fullText, projectName)
         );
-        if (station1Output) {
-          stationOutputs.station1 = station1Output;
-          allPreviousStationsData.set(1, station1Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station1 = out;
+          track(out, 1);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 2 && endAtStation >= 2 && !skipStations.has(2)) {
-        const station2Output = await this.executeStation<Station2Output>(
+      if (shouldRun(2)) {
+        const out = await this.executeStation<Station2Output>(
           2,
           "Conceptual Analysis",
-          async () => {
-            if (!stationOutputs.station1) {
+          () => {
+            if (!stationOutputs.station1)
               throw new Error("Station 1 output is required for Station 2");
-            }
-            const station2 = new Station2ConceptualAnalysis(this.geminiService);
-            const station2Input: Station2Input = {
-              text: fullText,
-              station1Output: stationOutputs.station1,
-            };
-            const result = await station2.run(station2Input);
-            return result.result as Station2Output;
+            return this.runStation2(fullText, stationOutputs.station1);
           }
         );
-        if (station2Output) {
-          stationOutputs.station2 = station2Output;
-          allPreviousStationsData.set(2, station2Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station2 = out;
+          track(out, 2);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 3 && endAtStation >= 3 && !skipStations.has(3)) {
-        const station3Output = await this.executeStation<Station3Output>(
+      if (shouldRun(3)) {
+        const out = await this.executeStation<Station3Output>(
           3,
           "Network Builder",
-          async () => {
+          () => {
             if (!stationOutputs.station1 || !stationOutputs.station2) {
               throw new Error(
                 "Station 1 and 2 outputs are required for Station 3"
               );
             }
-            const station3 = new Station3NetworkBuilder(this.geminiService);
-            const station3Input: Station3Input = {
-              text: fullText,
-              station1Output: stationOutputs.station1,
-              station2Output: stationOutputs.station2,
-            };
-            const result = await station3.run(station3Input);
-            return result.result as Station3Output;
+            return this.runStation3(
+              fullText,
+              stationOutputs.station1,
+              stationOutputs.station2
+            );
           }
         );
-        if (station3Output) {
-          stationOutputs.station3 = station3Output;
-          allPreviousStationsData.set(3, station3Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station3 = out;
+          track(out, 3);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 4 && endAtStation >= 4 && !skipStations.has(4)) {
-        const station4Output = await this.executeStation<Station4Output>(
+      if (shouldRun(4)) {
+        const out = await this.executeStation<Station4Output>(
           4,
           "Efficiency Metrics",
-          async () => {
-            if (!stationOutputs.station3) {
+          () => {
+            if (!stationOutputs.station3)
               throw new Error("Station 3 output is required for Station 4");
-            }
-            const station4 = new Station4EfficiencyMetrics(
-              {
-                stationId: "station4",
-                name: "Efficiency Metrics",
-                description: "Efficiency Metrics",
-                cacheEnabled: this.enableCaching,
-                performanceTracking: true,
-                inputValidation: (input) => !!input,
-                outputValidation: (output) => !!output,
-              },
-              this.geminiService
-            );
-            const result = await station4.execute({
-              station3Output: stationOutputs.station3,
-              originalText: fullText,
-            });
-            return result.output;
+            return this.runStation4(fullText, stationOutputs.station3);
           }
         );
-        if (station4Output) {
-          stationOutputs.station4 = station4Output;
-          allPreviousStationsData.set(4, station4Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station4 = out;
+          track(out, 4);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 5 && endAtStation >= 5 && !skipStations.has(5)) {
-        const station5Output = await this.executeStation<Station5Output>(
+      if (shouldRun(5)) {
+        const out = await this.executeStation<Station5Output>(
           5,
           "Dynamic/Symbolic/Stylistic Analysis",
-          async () => {
+          () => {
             if (!stationOutputs.station3 || !stationOutputs.station4) {
               throw new Error(
                 "Station 3 and 4 outputs are required for Station 5"
               );
             }
-            const station5 = new Station5DynamicSymbolicStylistic(
-              {
-                stationId: "station5",
-                name: "Dynamic/Symbolic/Stylistic Analysis",
-                description: "Dynamic/Symbolic/Stylistic Analysis",
-                cacheEnabled: this.enableCaching,
-                performanceTracking: true,
-                inputValidation: (input) => !!input,
-                outputValidation: (output) => !!output,
-              },
-              this.geminiService
-            );
-            const result = await station5.execute({
-              conflictNetwork: stationOutputs.station3.conflictNetwork,
-              station4Output: stationOutputs.station4,
+            return this.runStation5(
               fullText,
-            });
-            return result.output;
+              stationOutputs.station3,
+              stationOutputs.station4
+            );
           }
         );
-        if (station5Output) {
-          stationOutputs.station5 = station5Output;
-          allPreviousStationsData.set(5, station5Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station5 = out;
+          track(out, 5);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 6 && endAtStation >= 6 && !skipStations.has(6)) {
-        const station6Output = await this.executeStation<Station6Output>(
+      if (shouldRun(6)) {
+        const out = await this.executeStation<Station6Output>(
           6,
           "Diagnostics & Treatment",
-          async () => {
+          () => {
             if (
               !stationOutputs.station1 ||
               !stationOutputs.station2 ||
@@ -306,80 +380,43 @@ export class StationsOrchestrator {
                 "All previous station outputs are required for Station 6"
               );
             }
-            const station6 = new Station6Diagnostics(this.geminiService);
-            const result = await station6.execute(fullText, {
-              station1: stationOutputs.station1 as unknown as Record<
-                string,
-                unknown
-              >,
-              station2: stationOutputs.station2 as unknown as Record<
-                string,
-                unknown
-              >,
-              station3: stationOutputs.station3 as unknown as Record<
-                string,
-                unknown
-              >,
-              station4: stationOutputs.station4 as unknown as Record<
-                string,
-                unknown
-              >,
-              station5: stationOutputs.station5 as unknown as Record<
-                string,
-                unknown
-              >,
+            return this.runStation6(fullText, {
+              station1: stationOutputs.station1,
+              station2: stationOutputs.station2,
+              station3: stationOutputs.station3,
+              station4: stationOutputs.station4,
+              station5: stationOutputs.station5,
             });
-            return result;
           }
         );
-        if (station6Output) {
-          stationOutputs.station6 = station6Output;
-          allPreviousStationsData.set(6, station6Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station6 = out;
+          track(out, 6);
+        } else stationsFailed++;
         await this.delay(6000);
       }
 
-      if (startFromStation <= 7 && endAtStation >= 7 && !skipStations.has(7)) {
-        const station7Output = await this.executeStation<Station7Output>(
+      if (shouldRun(7)) {
+        const out = await this.executeStation<Station7Output>(
           7,
           "Finalization & Visualization",
-          async () => {
+          () => {
             if (!stationOutputs.station3 || !stationOutputs.station6) {
               throw new Error(
                 "Station 3 and 6 outputs are required for Station 7"
               );
             }
-            const station7 = new Station7Finalization(
-              {
-                stationId: "station7",
-                name: "Finalization & Visualization",
-                description: "Finalization & Visualization",
-                cacheEnabled: this.enableCaching,
-                performanceTracking: true,
-                inputValidation: (input) => !!input,
-                outputValidation: (output) => !!output,
-              },
-              this.geminiService,
-              this.outputDirectory
+            return this.runStation7(
+              stationOutputs.station3,
+              stationOutputs.station6,
+              allPreviousStationsData
             );
-            const result = await station7.execute({
-              conflictNetwork: stationOutputs.station3.conflictNetwork,
-              station6Output: stationOutputs.station6,
-              allPreviousStationsData,
-            });
-            return result.output;
           }
         );
-        if (station7Output) {
-          stationOutputs.station7 = station7Output;
-          allPreviousStationsData.set(7, station7Output);
-          stationsCompleted++;
-        } else {
-          stationsFailed++;
-        }
+        if (out) {
+          stationOutputs.station7 = out;
+          track(out, 7);
+        } else stationsFailed++;
       }
 
       const endTime = Date.now();
@@ -460,10 +497,7 @@ export class StationsOrchestrator {
         if (this.enableDetailedLogging) {
           logger.info(
             `[Orchestrator] Executing Station ${stationNumber}: ${stationName}`,
-            {
-              attempt,
-              maxAttempts: this.maxRetries,
-            }
+            { attempt, maxAttempts: this.maxRetries }
           );
         }
 
@@ -476,9 +510,7 @@ export class StationsOrchestrator {
         if (this.enableDetailedLogging) {
           logger.info(
             `[Orchestrator] Station ${stationNumber} completed successfully`,
-            {
-              duration: progress.duration,
-            }
+            { duration: progress.duration }
           );
         }
 
@@ -513,9 +545,7 @@ export class StationsOrchestrator {
 
     logger.error(
       `[Orchestrator] Station ${stationNumber} failed after ${this.maxRetries} attempts`,
-      {
-        lastError: lastError?.message,
-      }
+      { lastError: lastError?.message }
     );
 
     return null;

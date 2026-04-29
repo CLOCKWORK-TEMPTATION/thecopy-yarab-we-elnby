@@ -16,6 +16,8 @@ export interface WebcamAnalysisInput {
   samples: WebcamAnalysisFrameSample[];
 }
 
+// ─── File-level helpers ───
+
 function detectBlinkRate(
   samples: WebcamAnalysisFrameSample[],
   averageFocus: number
@@ -48,85 +50,59 @@ function deriveEyeDirection(
   return "audience";
 }
 
-export function buildWebcamAnalysisSummary(
-  input: WebcamAnalysisInput
-): WebcamAnalysisResult {
-  const { analysisTime, samples } = input;
+interface SampleAverages {
+  averageX: number;
+  averageY: number;
+  averageMotion: number;
+  averageFocus: number;
+  averageBrightness: number;
+  averageOffset: number;
+}
 
-  if (samples.length === 0) {
-    return {
-      eyeLine: {
-        direction: "center",
-        consistency: 62,
-        alerts: ["لم تُجمع عينات كافية، أعد التحليل في إضاءة أوضح."],
-      },
-      expressionSync: {
-        score: clamp(58 + Math.round(analysisTime / 3), 58, 78),
-        matchedEmotions: ["تركيز"],
-        mismatches: ["التحليل يحتاج مدة أطول للحصول على تطابق تعبيري أوضح."],
-      },
-      blinkRate: {
-        rate: 15,
-        status: "normal",
-        tensionIndicator: 34,
-      },
-      blocking: {
-        spaceUsage: 36,
-        movements: ["الحركة المرصودة محدودة بسبب نقص العينات."],
-        suggestions: ["تحرك ضمن الكادر بشكل أوضح ثم أعد التحليل."],
-      },
-      alerts: ["لا توجد بيانات كافية لإنتاج حكم بصري قوي."],
-      overallScore: 58,
-      timestamp: new Date().toISOString(),
-    };
-  }
+function computeSampleAverages(
+  samples: WebcamAnalysisFrameSample[]
+): SampleAverages {
+  const count = samples.length;
+  return {
+    averageX: samples.reduce((sum, s) => sum + s.centroidX, 0) / count,
+    averageY: samples.reduce((sum, s) => sum + s.centroidY, 0) / count,
+    averageMotion: samples.reduce((sum, s) => sum + s.motion, 0) / count,
+    averageFocus: samples.reduce((sum, s) => sum + s.focus, 0) / count,
+    averageBrightness:
+      samples.reduce((sum, s) => sum + s.brightness, 0) / count,
+    averageOffset:
+      samples.reduce(
+        (sum, s) =>
+          sum + Math.abs(s.centroidX - 0.5) + Math.abs(s.centroidY - 0.5),
+        0
+      ) / count,
+  };
+}
 
-  const averageX =
-    samples.reduce((sum, sample) => sum + sample.centroidX, 0) / samples.length;
-  const averageY =
-    samples.reduce((sum, sample) => sum + sample.centroidY, 0) / samples.length;
-  const averageMotion =
-    samples.reduce((sum, sample) => sum + sample.motion, 0) / samples.length;
-  const averageFocus =
-    samples.reduce((sum, sample) => sum + sample.focus, 0) / samples.length;
-  const averageBrightness =
-    samples.reduce((sum, sample) => sum + sample.brightness, 0) /
-    samples.length;
-  const averageOffset =
-    samples.reduce(
-      (sum, sample) =>
-        sum +
-        Math.abs(sample.centroidX - 0.5) +
-        Math.abs(sample.centroidY - 0.5),
-      0
-    ) / samples.length;
+interface AnalysisAlerts {
+  eyeAlerts: string[];
+  alerts: string[];
+  mismatches: string[];
+  suggestions: string[];
+}
 
-  const consistency = clamp(Math.round(100 - averageOffset * 140), 45, 96);
-  const blinkRateValue = detectBlinkRate(samples, averageFocus);
-  const blinkStatus =
-    blinkRateValue > 22 ? "high" : blinkRateValue < 11 ? "low" : "normal";
-  const tensionIndicator = clamp(
-    Math.round(averageMotion * 130 + (blinkRateValue - 12) * 1.8),
-    18,
-    88
-  );
-  const expressionScore = clamp(
-    Math.round(
-      averageFocus * 58 + averageBrightness * 18 + (analysisTime > 45 ? 12 : 0)
-    ),
-    54,
-    93
-  );
-  const spaceUsage = clamp(
-    Math.round(
-      averageMotion * 160 + (1 - consistency / 100) * 32 + averageOffset * 80
-    ),
-    24,
-    90
-  );
+function buildAlerts(params: {
+  consistency: number;
+  blinkStatus: "high" | "low" | "normal";
+  spaceUsage: number;
+  tensionIndicator: number;
+  averageBrightness: number;
+}): AnalysisAlerts {
+  const {
+    consistency,
+    blinkStatus,
+    spaceUsage,
+    tensionIndicator,
+    averageBrightness,
+  } = params;
 
-  const alerts: string[] = [];
   const eyeAlerts: string[] = [];
+  const alerts: string[] = [];
   const mismatches: string[] = [];
   const suggestions: string[] = [];
 
@@ -149,10 +125,89 @@ export function buildWebcamAnalysisSummary(
     alerts.push("الإضاءة منخفضة وقد تؤثر في دقة التقييم البصري.");
   }
 
+  return { eyeAlerts, alerts, mismatches, suggestions };
+}
+
+function buildEmptySamplesResult(analysisTime: number): WebcamAnalysisResult {
+  return {
+    eyeLine: {
+      direction: "center",
+      consistency: 62,
+      alerts: ["لم تُجمع عينات كافية، أعد التحليل في إضاءة أوضح."],
+    },
+    expressionSync: {
+      score: clamp(58 + Math.round(analysisTime / 3), 58, 78),
+      matchedEmotions: ["تركيز"],
+      mismatches: ["التحليل يحتاج مدة أطول للحصول على تطابق تعبيري أوضح."],
+    },
+    blinkRate: {
+      rate: 15,
+      status: "normal",
+      tensionIndicator: 34,
+    },
+    blocking: {
+      spaceUsage: 36,
+      movements: ["الحركة المرصودة محدودة بسبب نقص العينات."],
+      suggestions: ["تحرك ضمن الكادر بشكل أوضح ثم أعد التحليل."],
+    },
+    alerts: ["لا توجد بيانات كافية لإنتاج حكم بصري قوي."],
+    overallScore: 58,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+// ─── Main export ───
+
+export function buildWebcamAnalysisSummary(
+  input: WebcamAnalysisInput
+): WebcamAnalysisResult {
+  const { analysisTime, samples } = input;
+
+  if (samples.length === 0) {
+    return buildEmptySamplesResult(analysisTime);
+  }
+
+  const avg = computeSampleAverages(samples);
+  const consistency = clamp(Math.round(100 - avg.averageOffset * 140), 45, 96);
+  const blinkRateValue = detectBlinkRate(samples, avg.averageFocus);
+  const blinkStatus =
+    blinkRateValue > 22 ? "high" : blinkRateValue < 11 ? "low" : "normal";
+  const tensionIndicator = clamp(
+    Math.round(avg.averageMotion * 130 + (blinkRateValue - 12) * 1.8),
+    18,
+    88
+  );
+  const expressionScore = clamp(
+    Math.round(
+      avg.averageFocus * 58 +
+        avg.averageBrightness * 18 +
+        (analysisTime > 45 ? 12 : 0)
+    ),
+    54,
+    93
+  );
+  const spaceUsage = clamp(
+    Math.round(
+      avg.averageMotion * 160 +
+        (1 - consistency / 100) * 32 +
+        avg.averageOffset * 80
+    ),
+    24,
+    90
+  );
+
+  const { eyeAlerts, alerts, mismatches, suggestions } = buildAlerts({
+    consistency,
+    blinkStatus,
+    spaceUsage,
+    tensionIndicator,
+    averageBrightness: avg.averageBrightness,
+  });
+
   const matchedEmotions = [
-    averageMotion > 0.32 ? "اندفاع" : "هدوء",
-    averageFocus > 0.72 ? "تركيز" : "ترقب",
-    averageBrightness > 0.5 ? "انفتاح" : "انكماش",
+    avg.averageMotion > 0.32 ? "اندفاع" : "هدوء",
+    avg.averageFocus > 0.72 ? "تركيز" : "ترقب",
+    avg.averageBrightness > 0.5 ? "انفتاح" : "انكماش",
   ];
 
   const overallScore = clamp(
@@ -168,7 +223,7 @@ export function buildWebcamAnalysisSummary(
 
   return {
     eyeLine: {
-      direction: deriveEyeDirection(averageX, averageY, consistency),
+      direction: deriveEyeDirection(avg.averageX, avg.averageY, consistency),
       consistency,
       alerts: eyeAlerts,
     },
@@ -185,7 +240,7 @@ export function buildWebcamAnalysisSummary(
     blocking: {
       spaceUsage,
       movements: [
-        averageMotion > 0.3
+        avg.averageMotion > 0.3
           ? "هناك تحرك واضح يخدم لحظات التصعيد."
           : "الحركة محدودة وتميل للثبات داخل الكادر.",
         consistency >= 72

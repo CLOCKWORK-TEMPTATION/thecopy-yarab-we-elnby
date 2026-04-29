@@ -17,6 +17,182 @@ interface MoodBoard {
   suggestedPalette: ColorPalette;
 }
 
+interface InspirationFormProps {
+  sceneDescription: string;
+  mood: string;
+  era: string;
+  loading: boolean;
+  onSceneDescriptionChange: (v: string) => void;
+  onMoodChange: (v: string) => void;
+  onEraChange: (v: string) => void;
+  onAnalyze: () => void;
+  onGeneratePalette: () => void;
+}
+
+function InspirationForm({
+  sceneDescription,
+  mood,
+  era,
+  loading,
+  onSceneDescriptionChange,
+  onMoodChange,
+  onEraChange,
+  onAnalyze,
+  onGeneratePalette,
+}: InspirationFormProps) {
+  return (
+    <section className="input-section card">
+      <h2>
+        <Wand2 size={20} /> تحليل المشهد
+      </h2>
+
+      <div className="form-group">
+        <label htmlFor="field-inspiration-1">وصف المشهد</label>
+        <textarea
+          id="field-inspiration-1"
+          className="input"
+          placeholder="صف المشهد بالتفصيل... مثال: مشهد رومانسي في مقهى قديم بباريس في الثلاثينيات"
+          value={sceneDescription}
+          onChange={(e) => onSceneDescriptionChange(e.target.value)}
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="field-inspiration-2">المزاج العام</label>
+          <select
+            id="field-inspiration-2"
+            className="input"
+            value={mood}
+            onChange={(e) => onMoodChange(e.target.value)}
+          >
+            <option value="">اختر المزاج</option>
+            <option value="romantic">رومانسي</option>
+            <option value="dramatic">درامي</option>
+            <option value="mysterious">غامض</option>
+            <option value="cheerful">مرح</option>
+            <option value="melancholic">حزين</option>
+            <option value="tense">متوتر</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="field-inspiration-3">الحقبة الزمنية</label>
+          <select
+            id="field-inspiration-3"
+            className="input"
+            value={era}
+            onChange={(e) => onEraChange(e.target.value)}
+          >
+            <option value="">اختر الحقبة</option>
+            <option value="ancient">قديمة</option>
+            <option value="medieval">عصور وسطى</option>
+            <option value="victorian">فيكتورية</option>
+            <option value="1920s">العشرينيات</option>
+            <option value="1950s">الخمسينيات</option>
+            <option value="1980s">الثمانينيات</option>
+            <option value="modern">حديثة</option>
+            <option value="futuristic">مستقبلية</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="button-row">
+        <button
+          className="btn"
+          onClick={onAnalyze}
+          disabled={loading || !sceneDescription}
+        >
+          <Sparkles size={18} />
+          {loading ? "جاري التحليل..." : "تحليل المشهد"}
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={onGeneratePalette}
+          disabled={loading || !mood}
+        >
+          <Palette size={18} />
+          اقتراح ألوان
+        </button>
+      </div>
+    </section>
+  );
+}
+
+interface InspirationResultsProps {
+  result: MoodBoard | null;
+  palettes: ColorPalette[];
+}
+
+function InspirationResults({ result, palettes }: InspirationResultsProps) {
+  return (
+    <section className="results-section">
+      {result && (
+        <div className="result-card card fade-in">
+          <h3>
+            <ImageIcon size={20} aria-hidden="true" /> نتائج التحليل
+          </h3>
+
+          <div className="result-theme">
+            <span className="theme-label">الموضوع:</span>
+            <span className="theme-value">{result.themeAr}</span>
+          </div>
+
+          <div className="keywords-section">
+            <span className="keywords-label">الكلمات المفتاحية:</span>
+            <div className="keywords-list">
+              {result.keywords.map((keyword, index) => (
+                <span key={index} className="keyword-tag">
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {result.suggestedPalette && (
+            <div className="palette-section">
+              <span className="palette-label">
+                الباليت المقترح: {result.suggestedPalette.nameAr}
+              </span>
+              <div className="color-row">
+                {result.suggestedPalette.colors.map((color, index) => (
+                  <div
+                    key={index}
+                    className="color-swatch"
+                    style={{ background: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {palettes.length > 0 && (
+        <div className="palettes-grid fade-in">
+          {palettes.map((palette, index) => (
+            <div key={index} className="palette-card card">
+              <h4>{palette.nameAr}</h4>
+              <p className="palette-name-en">{palette.name}</p>
+              <div className="color-row">
+                {palette.colors.map((color, colorIndex) => (
+                  <div
+                    key={colorIndex}
+                    className="color-swatch"
+                    style={{ background: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function Inspiration() {
   const [sceneDescription, setSceneDescription] = useState("");
   const [mood, setMood] = useState("");
@@ -27,7 +203,6 @@ function Inspiration() {
 
   const handleAnalyze = async () => {
     if (!sceneDescription) return;
-
     setLoading(true);
     try {
       const response = await fetch(artDirectorApiPath("/inspiration/analyze"), {
@@ -54,7 +229,6 @@ function Inspiration() {
 
   const handleGeneratePalette = async () => {
     if (!mood) return;
-
     setLoading(true);
     try {
       const response = await fetch(artDirectorApiPath("/inspiration/palette"), {
@@ -86,146 +260,18 @@ function Inspiration() {
       </header>
 
       <div className="inspiration-grid">
-        <section className="input-section card">
-          <h2>
-            <Wand2 size={20} /> تحليل المشهد
-          </h2>
-
-          <div className="form-group">
-            <label htmlFor="field-inspiration-1">وصف المشهد</label>
-            <textarea
-              id="field-inspiration-1"
-              className="input"
-              placeholder="صف المشهد بالتفصيل... مثال: مشهد رومانسي في مقهى قديم بباريس في الثلاثينيات"
-              value={sceneDescription}
-              onChange={(e) => setSceneDescription(e.target.value)}
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="field-inspiration-2">المزاج العام</label>
-              <select
-                id="field-inspiration-2"
-                className="input"
-                value={mood}
-                onChange={(e) => setMood(e.target.value)}
-              >
-                <option value="">اختر المزاج</option>
-                <option value="romantic">رومانسي</option>
-                <option value="dramatic">درامي</option>
-                <option value="mysterious">غامض</option>
-                <option value="cheerful">مرح</option>
-                <option value="melancholic">حزين</option>
-                <option value="tense">متوتر</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="field-inspiration-3">الحقبة الزمنية</label>
-              <select
-                id="field-inspiration-3"
-                className="input"
-                value={era}
-                onChange={(e) => setEra(e.target.value)}
-              >
-                <option value="">اختر الحقبة</option>
-                <option value="ancient">قديمة</option>
-                <option value="medieval">عصور وسطى</option>
-                <option value="victorian">فيكتورية</option>
-                <option value="1920s">العشرينيات</option>
-                <option value="1950s">الخمسينيات</option>
-                <option value="1980s">الثمانينيات</option>
-                <option value="modern">حديثة</option>
-                <option value="futuristic">مستقبلية</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="button-row">
-            <button
-              className="btn"
-              onClick={handleAnalyze}
-              disabled={loading || !sceneDescription}
-            >
-              <Sparkles size={18} />
-              {loading ? "جاري التحليل..." : "تحليل المشهد"}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={handleGeneratePalette}
-              disabled={loading || !mood}
-            >
-              <Palette size={18} />
-              اقتراح ألوان
-            </button>
-          </div>
-        </section>
-
-        <section className="results-section">
-          {result && (
-            <div className="result-card card fade-in">
-              <h3>
-                <ImageIcon size={20} aria-hidden="true" /> نتائج التحليل
-              </h3>
-
-              <div className="result-theme">
-                <span className="theme-label">الموضوع:</span>
-                <span className="theme-value">{result.themeAr}</span>
-              </div>
-
-              <div className="keywords-section">
-                <span className="keywords-label">الكلمات المفتاحية:</span>
-                <div className="keywords-list">
-                  {result.keywords.map((keyword, index) => (
-                    <span key={index} className="keyword-tag">
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {result.suggestedPalette && (
-                <div className="palette-section">
-                  <span className="palette-label">
-                    الباليت المقترح: {result.suggestedPalette.nameAr}
-                  </span>
-                  <div className="color-row">
-                    {result.suggestedPalette.colors.map((color, index) => (
-                      <div
-                        key={index}
-                        className="color-swatch"
-                        style={{ background: color }}
-                        title={color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {palettes.length > 0 && (
-            <div className="palettes-grid fade-in">
-              {palettes.map((palette, index) => (
-                <div key={index} className="palette-card card">
-                  <h4>{palette.nameAr}</h4>
-                  <p className="palette-name-en">{palette.name}</p>
-                  <div className="color-row">
-                    {palette.colors.map((color, colorIndex) => (
-                      <div
-                        key={colorIndex}
-                        className="color-swatch"
-                        style={{ background: color }}
-                        title={color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <InspirationForm
+          sceneDescription={sceneDescription}
+          mood={mood}
+          era={era}
+          loading={loading}
+          onSceneDescriptionChange={setSceneDescription}
+          onMoodChange={setMood}
+          onEraChange={setEra}
+          onAnalyze={handleAnalyze}
+          onGeneratePalette={handleGeneratePalette}
+        />
+        <InspirationResults result={result} palettes={palettes} />
       </div>
     </div>
   );

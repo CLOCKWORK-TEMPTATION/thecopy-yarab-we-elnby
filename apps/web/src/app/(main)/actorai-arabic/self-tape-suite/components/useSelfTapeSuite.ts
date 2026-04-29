@@ -26,10 +26,143 @@ import type {
   TeleprompterSettings,
 } from "./types";
 
+// ─── Types ───
+
 interface UseSelfTapeSuiteOptions {
   blobRegistryRef: React.RefObject<Map<string, Blob>>;
   sessionUrlRegistryRef: React.RefObject<Map<string, string>>;
 }
+
+interface RemoteSnapshot {
+  scriptText: string;
+  takes: import("../../lib/self-tape").PersistedSelfTapeTake[];
+  activeTool: ActiveTool;
+  teleprompterSettings: TeleprompterSettings;
+  exportSettings: ExportSettings;
+  comparisonView: ComparisonView;
+  notesTakeId: string | null;
+}
+
+// ─── File-level helpers ───
+
+function applyRemoteSnapshot(
+  snapshot: Partial<RemoteSnapshot>,
+  setters: {
+    setScriptText: (v: string) => void;
+    setTakes: (v: Take[]) => void;
+    setActiveTool: (v: ActiveTool) => void;
+    setTeleprompterSettings: (v: TeleprompterSettings) => void;
+    setExportSettings: (v: ExportSettings) => void;
+    setComparisonView: React.Dispatch<React.SetStateAction<ComparisonView>>;
+    setNotesTakeId: (v: string | null) => void;
+  }
+): void {
+  if (snapshot.scriptText) {
+    setters.setScriptText(snapshot.scriptText);
+  }
+
+  if (Array.isArray(snapshot.takes) && snapshot.takes.length > 0) {
+    setters.setTakes(
+      snapshot.takes.map((take) => ({
+        ...take,
+        notes: take.notes.map((note) => ({ ...note })),
+      }))
+    );
+  }
+
+  if (snapshot.activeTool) {
+    setters.setActiveTool(snapshot.activeTool);
+  }
+
+  if (snapshot.teleprompterSettings) {
+    setters.setTeleprompterSettings(snapshot.teleprompterSettings);
+  }
+
+  if (snapshot.exportSettings) {
+    setters.setExportSettings(snapshot.exportSettings);
+  }
+
+  if (snapshot.comparisonView) {
+    setters.setComparisonView(snapshot.comparisonView);
+  }
+
+  if (snapshot.notesTakeId !== undefined) {
+    setters.setNotesTakeId(snapshot.notesTakeId);
+  }
+}
+
+function resolveComparisonView(
+  state: ComparisonView,
+  availableTakes: Take[]
+): ComparisonView {
+  const takeIds = new Set(availableTakes.map((take) => take.id));
+  const nextLeft =
+    state.leftTakeId && takeIds.has(state.leftTakeId)
+      ? state.leftTakeId
+      : (availableTakes[0]?.id ?? null);
+  const nextRight =
+    state.rightTakeId && takeIds.has(state.rightTakeId)
+      ? state.rightTakeId
+      : (availableTakes.find((take) => take.id !== nextLeft)?.id ?? null);
+
+  return { ...state, leftTakeId: nextLeft, rightTakeId: nextRight };
+}
+
+function resolveCurrentPromptLine(
+  promptLines: string[],
+  teleprompterPosition: number
+): string {
+  if (promptLines.length === 0) {
+    return "أدخل نصاً لعرضه على التلقين.";
+  }
+
+  const lineIndex = Math.min(
+    Math.max(Math.floor((teleprompterPosition / 100) * promptLines.length), 0),
+    promptLines.length - 1
+  );
+  return promptLines[lineIndex] ?? promptLines[0] ?? "";
+}
+
+function buildExportDetails(
+  take: Take,
+  blob: Blob,
+  exportSettings: ExportSettings
+): { fileName: string; finalExtension: string } {
+  const recordedExtension = inferExtensionFromMimeType(
+    take.mimeType ?? blob.type
+  );
+  const selectedExtension = exportSettings.format;
+  const finalExtension =
+    selectedExtension === recordedExtension
+      ? selectedExtension
+      : recordedExtension;
+  const fileName = buildExportFileName({
+    actorName: exportSettings.actorName || "actor",
+    projectName: exportSettings.projectName || "self-tape",
+    roleName: exportSettings.roleName || "scene",
+    takeName: take.name,
+    extension: finalExtension,
+  });
+  return { fileName, finalExtension };
+}
+
+function buildExportSuccessMessage(
+  take: Take,
+  selectedExtension: string,
+  finalExtension: string,
+  includeSlate: boolean
+): string {
+  const exportSummary =
+    selectedExtension === finalExtension
+      ? `تم تنزيل ${take.name} بنجاح.`
+      : `تم تنزيل ${take.name} بصيغة ${finalExtension} لأن الملف الأصلي سُجِّل بهذه الصيغة.`;
+  const slateNotice = includeSlate
+    ? " تم تضمين بيانات السليت داخل اسم الملف وإعدادات التصدير، لا داخل الصورة نفسها."
+    : "";
+  return `${exportSummary}${slateNotice}`;
+}
+
+// ─── Hook ───
 
 export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
   const { blobRegistryRef, sessionUrlRegistryRef } = options;
@@ -89,14 +222,15 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
     null
   );
 
+  // ─── Derived state ───
+
   const availableTakes = useMemo(
     () => takes.filter((take) => take.status !== "recording"),
     [takes]
   );
+
   const notesTakeId = useMemo(() => {
-    if (availableTakes.length === 0) {
-      return null;
-    }
+    if (availableTakes.length === 0) return null;
     if (
       notesTakeIdState &&
       availableTakes.some((take) => take.id === notesTakeIdState)
@@ -105,38 +239,28 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
     }
     return availableTakes[0]?.id ?? null;
   }, [availableTakes, notesTakeIdState]);
-  const comparisonView = useMemo<ComparisonView>(() => {
-    const takeIds = new Set(availableTakes.map((take) => take.id));
-    const nextLeft =
-      comparisonViewState.leftTakeId &&
-      takeIds.has(comparisonViewState.leftTakeId)
-        ? comparisonViewState.leftTakeId
-        : (availableTakes[0]?.id ?? null);
-    const nextRight =
-      comparisonViewState.rightTakeId &&
-      takeIds.has(comparisonViewState.rightTakeId)
-        ? comparisonViewState.rightTakeId
-        : (availableTakes.find((take) => take.id !== nextLeft)?.id ?? null);
 
-    return {
-      ...comparisonViewState,
-      leftTakeId: nextLeft,
-      rightTakeId: nextRight,
-    };
-  }, [availableTakes, comparisonViewState]);
+  const comparisonView = useMemo<ComparisonView>(
+    () => resolveComparisonView(comparisonViewState, availableTakes),
+    [availableTakes, comparisonViewState]
+  );
+
   const totalDuration = useMemo(
     () => availableTakes.reduce((sum, take) => sum + take.duration, 0),
     [availableTakes]
   );
+
   const bestScore = useMemo(
     () => Math.max(...availableTakes.map((take) => take.score ?? 0), 0),
     [availableTakes]
   );
+
   const bestExportableTake = useMemo(() => {
     return [...availableTakes]
       .filter((take) => exportableTakeIds.has(take.id))
       .sort((left, right) => (right.score ?? 0) - (left.score ?? 0))[0];
   }, [availableTakes, exportableTakeIds]);
+
   const promptLines = useMemo(
     () =>
       scriptText
@@ -145,78 +269,35 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
         .filter(Boolean),
     [scriptText]
   );
-  const currentPromptLine = useMemo(() => {
-    if (promptLines.length === 0) {
-      return "أدخل نصاً لعرضه على التلقين.";
-    }
 
-    const lineIndex = Math.min(
-      Math.max(
-        Math.floor((teleprompterPosition / 100) * promptLines.length),
-        0
-      ),
-      promptLines.length - 1
-    );
-    return promptLines[lineIndex] ?? promptLines[0] ?? "";
-  }, [promptLines, teleprompterPosition]);
+  const currentPromptLine = useMemo(
+    () => resolveCurrentPromptLine(promptLines, teleprompterPosition),
+    [promptLines, teleprompterPosition]
+  );
+
+  // ─── Effects ───
 
   useEffect(() => {
     let cancelled = false;
 
-    void loadRemoteAppState<{
-      scriptText: string;
-      takes: import("../../lib/self-tape").PersistedSelfTapeTake[];
-      activeTool: ActiveTool;
-      teleprompterSettings: TeleprompterSettings;
-      exportSettings: ExportSettings;
-      comparisonView: ComparisonView;
-      notesTakeId: string | null;
-    }>("actorai-arabic-self-tape")
+    void loadRemoteAppState<RemoteSnapshot>("actorai-arabic-self-tape")
       .then((snapshot) => {
-        if (cancelled || !snapshot) {
-          return;
-        }
-
-        if (snapshot.scriptText) {
-          setScriptText(snapshot.scriptText);
-        }
-
-        if (Array.isArray(snapshot.takes) && snapshot.takes.length > 0) {
-          setTakes(
-            snapshot.takes.map((take) => ({
-              ...take,
-              notes: take.notes.map((note) => ({ ...note })),
-            }))
-          );
-        }
-
-        if (snapshot.activeTool) {
-          setActiveTool(snapshot.activeTool);
-        }
-
-        if (snapshot.teleprompterSettings) {
-          setTeleprompterSettings(snapshot.teleprompterSettings);
-        }
-
-        if (snapshot.exportSettings) {
-          setExportSettings(snapshot.exportSettings);
-        }
-
-        if (snapshot.comparisonView) {
-          setComparisonView(snapshot.comparisonView);
-        }
-
-        if (snapshot.notesTakeId !== undefined) {
-          setNotesTakeId(snapshot.notesTakeId);
-        }
+        if (cancelled || !snapshot) return;
+        applyRemoteSnapshot(snapshot, {
+          setScriptText,
+          setTakes,
+          setActiveTool,
+          setTeleprompterSettings,
+          setExportSettings,
+          setComparisonView,
+          setNotesTakeId,
+        });
       })
       .catch(() => {
         /* empty */
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsRemoteStateReady(true);
-        }
+        if (!cancelled) setIsRemoteStateReady(true);
       });
 
     return () => {
@@ -229,9 +310,7 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
   }, [takes]);
 
   useEffect(() => {
-    if (!isRemoteStateReady) {
-      return;
-    }
+    if (!isRemoteStateReady) return;
 
     const timeoutId = window.setTimeout(() => {
       void persistRemoteAppState<import("./types").SelfTapeSuiteSnapshot>(
@@ -265,10 +344,7 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
   ]);
 
   useEffect(() => {
-    if (!notification) {
-      return undefined;
-    }
-
+    if (!notification) return undefined;
     const timeoutId = setTimeout(() => setNotification(null), 4500);
     return () => clearTimeout(timeoutId);
   }, [notification]);
@@ -305,6 +381,19 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
     teleprompterSettings.speed,
   ]);
 
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+      if (teleprompterIntervalRef.current) {
+        clearInterval(teleprompterIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // ─── Callbacks ───
+
   const showNotification = useCallback(
     (type: "success" | "error" | "info", message: string) => {
       setNotification({ type, message });
@@ -321,9 +410,7 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
 
   const markTakeExportable = useCallback((takeId: string) => {
     setExportableTakeIds((previous) => {
-      if (previous.has(takeId)) {
-        return previous;
-      }
+      if (previous.has(takeId)) return previous;
       const next = new Set(previous);
       next.add(takeId);
       return next;
@@ -332,9 +419,7 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
 
   const markTakeNotExportable = useCallback((takeId: string) => {
     setExportableTakeIds((previous) => {
-      if (!previous.has(takeId)) {
-        return previous;
-      }
+      if (!previous.has(takeId)) return previous;
       const next = new Set(previous);
       next.delete(takeId);
       return next;
@@ -413,9 +498,7 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
 
       setTakes((previous) =>
         previous.map((take) => {
-          if (take.id !== takeId) {
-            return take;
-          }
+          if (take.id !== takeId) return take;
 
           const manualNote: TakeNote = {
             id: `manual-${Date.now()}`,
@@ -426,17 +509,11 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
             autoGenerated: false,
           };
 
-          return {
-            ...take,
-            notes: [manualNote, ...take.notes],
-          };
+          return { ...take, notes: [manualNote, ...take.notes] };
         })
       );
 
-      setManualNoteDrafts((previous) => ({
-        ...previous,
-        [takeId]: "",
-      }));
+      setManualNoteDrafts((previous) => ({ ...previous, [takeId]: "" }));
       showNotification("success", "تمت إضافة الملاحظة اليدوية.");
     },
     [manualNoteDrafts, manualNoteTypes, showNotification]
@@ -459,21 +536,11 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
       setExportProgress(15);
       await delay(80);
 
-      const recordedExtension = inferExtensionFromMimeType(
-        take.mimeType ?? blob.type
+      const { fileName, finalExtension } = buildExportDetails(
+        take,
+        blob,
+        exportSettings
       );
-      const selectedExtension = exportSettings.format;
-      const finalExtension =
-        selectedExtension === recordedExtension
-          ? selectedExtension
-          : recordedExtension;
-      const fileName = buildExportFileName({
-        actorName: exportSettings.actorName || "actor",
-        projectName: exportSettings.projectName || "self-tape",
-        roleName: exportSettings.roleName || "scene",
-        takeName: take.name,
-        extension: finalExtension,
-      });
 
       setExportProgress(55);
       await delay(80);
@@ -489,41 +556,27 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
       setTakes((previous) =>
         previous.map((currentTake) =>
           currentTake.id === takeId
-            ? {
-                ...currentTake,
-                status: "exported",
-              }
+            ? { ...currentTake, status: "exported" }
             : currentTake
         )
       );
 
       setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-      const exportSummary =
-        selectedExtension === finalExtension
-          ? `تم تنزيل ${take.name} بنجاح.`
-          : `تم تنزيل ${take.name} بصيغة ${finalExtension} لأن الملف الأصلي سُجِّل بهذه الصيغة.`;
-      const slateNotice = exportSettings.includeSlate
-        ? " تم تضمين بيانات السليت داخل اسم الملف وإعدادات التصدير، لا داخل الصورة نفسها."
-        : "";
-
-      showNotification("success", `${exportSummary}${slateNotice}`);
+      showNotification(
+        "success",
+        buildExportSuccessMessage(
+          take,
+          exportSettings.format,
+          finalExtension,
+          exportSettings.includeSlate
+        )
+      );
       await delay(120);
       setExportingTakeId(null);
       setExportProgress(0);
     },
     [exportSettings, showNotification, takes, blobRegistryRef]
   );
-
-  useEffect(() => {
-    return () => {
-      if (countdownIntervalRef.current) {
-        clearInterval(countdownIntervalRef.current);
-      }
-      if (teleprompterIntervalRef.current) {
-        clearInterval(teleprompterIntervalRef.current);
-      }
-    };
-  }, []);
 
   return {
     activeTool,

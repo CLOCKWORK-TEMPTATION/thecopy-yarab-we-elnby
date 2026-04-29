@@ -41,8 +41,6 @@ const QRScanner = dynamic(
 
 /**
  * عناوين الأخطاء العربية لكل سبب فشل ممكن
- * السبب: تقديم عنوان مناسب للمستخدم بدل رسالة عامة موحدة
- * المفاتيح مطابقة لـ QRCameraFailureReason + أسباب المكون الإضافية
  */
 const ERROR_TITLES: Record<QRScannerErrorDetail["reason"], string> = {
   "insecure-context": "اتصال غير آمن",
@@ -61,33 +59,79 @@ const ERROR_TITLES: Record<QRScannerErrorDetail["reason"], string> = {
  * استجابة خطأ API
  */
 interface ApiErrorResponse {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
+  response?: { data?: { message?: string } };
   message?: string;
 }
 
-/**
- * صفحة تسجيل الدخول بمسح QR
- */
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+function SuccessView() {
+  return (
+    <div className="text-center p-8">
+      <div className="mb-4">
+        <svg
+          className="mx-auto h-16 w-16 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
+      <h2 className="text-2xl font-bold text-white mb-2 font-cairo">نجاح!</h2>
+      <p className="text-white/55 font-cairo">جارٍ التوجيه للوحة التحكم...</p>
+    </div>
+  );
+}
+
+interface ScannerViewProps {
+  loading: boolean;
+  error: string | null;
+  onScan: (token: string) => void;
+  onError: (detail: QRScannerErrorDetail) => void;
+}
+
+function ScannerView({ loading, error, onScan, onError }: ScannerViewProps) {
+  return (
+    <>
+      <QRScanner onScan={onScan} onError={onError} />
+      {loading && (
+        <div className="mt-6 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
+          <p className="mt-2 text-sm text-white/55 font-cairo">
+            جارٍ المصادقة...
+          </p>
+        </div>
+      )}
+      {error && (
+        <div className="mt-6 p-4 bg-white/6 text-white/85 rounded-[22px] border border-white/8">
+          <p className="text-sm font-medium font-cairo">فشلت المصادقة</p>
+          <p className="text-sm mt-1 font-cairo">{error}</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function QRLoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  /**
-   * معالجة مسح رمز QR
-   */
   const handleQRScan = useCallback(
     async (qrToken: string): Promise<void> => {
       try {
         setLoading(true);
         setError(null);
 
-        // التحقق من صيغة الرمز
         const validation = QRTokenSchema.safeParse(qrToken);
         if (!validation.success) {
           setError("صيغة رمز QR غير صالحة");
@@ -100,23 +144,16 @@ export default function QRLoginPage() {
           return;
         }
 
-        // توليد بصمة الجهاز
         const deviceHash = generateDeviceHash();
-
-        // المصادقة مع الخادم
         const result: AuthResponse = await scanQRAndLogin(qrToken, deviceHash);
-
-        // تخزين الرمز
         storeToken(result.access_token);
 
-        // إظهار النجاح
         setSuccess(true);
         toast({
           title: "تم بنجاح",
           description: "تم المصادقة بنجاح، جارٍ التوجيه...",
         });
 
-        // التوجيه للوحة التحكم — مسار صحيح
         setTimeout(() => {
           router.push("/BREAKAPP/dashboard");
         }, 1500);
@@ -138,19 +175,10 @@ export default function QRLoginPage() {
     [router]
   );
 
-  /**
-   * معالجة خطأ المسح القادم من QRScanner
-   * يستقبل detail يحتوي على سبب الفشل والرسالة العربية الموجّهة
-   * السبب: توفير تجربة خطأ متسقة عبر مسارات الكاميرا والرفع والإدخال اليدوي
-   */
   const handleScanError = useCallback((detail: QRScannerErrorDetail): void => {
     const title = ERROR_TITLES[detail.reason] ?? "خطأ في المسح";
     setError(detail.message);
-    toast({
-      title,
-      description: detail.message,
-      variant: "destructive",
-    });
+    toast({ title, description: detail.message, variant: "destructive" });
   }, []);
 
   return (
@@ -159,7 +187,6 @@ export default function QRLoginPage() {
       className="min-h-screen flex flex-col items-center justify-center bg-black/8 backdrop-blur-xl p-4"
     >
       <CardSpotlight className="max-w-md w-full overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-8">
-        {/* العنوان */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2 font-cairo">
             Break Break
@@ -170,57 +197,17 @@ export default function QRLoginPage() {
         </div>
 
         {success ? (
-          /* حالة النجاح */
-          <div className="text-center p-8">
-            <div className="mb-4">
-              <svg
-                className="mx-auto h-16 w-16 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2 font-cairo">
-              نجاح!
-            </h2>
-            <p className="text-white/55 font-cairo">
-              جارٍ التوجيه للوحة التحكم...
-            </p>
-          </div>
+          <SuccessView />
         ) : (
-          <>
-            {/* ماسح QR */}
-            <QRScanner onScan={handleQRScan} onError={handleScanError} />
-
-            {/* مؤشر التحميل */}
-            {loading && (
-              <div className="mt-6 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
-                <p className="mt-2 text-sm text-white/55 font-cairo">
-                  جارٍ المصادقة...
-                </p>
-              </div>
-            )}
-
-            {/* رسالة الخطأ */}
-            {error && (
-              <div className="mt-6 p-4 bg-white/6 text-white/85 rounded-[22px] border border-white/8">
-                <p className="text-sm font-medium font-cairo">فشلت المصادقة</p>
-                <p className="text-sm mt-1 font-cairo">{error}</p>
-              </div>
-            )}
-          </>
+          <ScannerView
+            loading={loading}
+            error={error}
+            onScan={(token) => void handleQRScan(token)}
+            onError={handleScanError}
+          />
         )}
       </CardSpotlight>
 
-      {/* تعليمات */}
       <div className="mt-8 text-center text-sm text-white/55">
         <p className="font-cairo">تأكد من منح إذن الوصول للكاميرا</p>
       </div>

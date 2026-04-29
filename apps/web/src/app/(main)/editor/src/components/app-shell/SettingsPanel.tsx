@@ -25,6 +25,80 @@ interface SettingsPanelProps {
   hasFileImportBackend: boolean;
 }
 
+interface EditorInfoRowsProps {
+  lockedEditorFontLabel: string;
+  lockedEditorSizeLabel: string;
+  supportedLegacyFormatCount: number;
+  classifierOptionCount: number;
+  actionBlockSpacing: string;
+  hasFileImportBackend: boolean;
+}
+
+function EditorInfoRows({
+  lockedEditorFontLabel,
+  lockedEditorSizeLabel,
+  supportedLegacyFormatCount,
+  classifierOptionCount,
+  actionBlockSpacing,
+  hasFileImportBackend,
+}: EditorInfoRowsProps): React.JSX.Element {
+  return (
+    <>
+      <div className="app-settings-info space-y-1.5 px-3 py-2.5 text-[10px]">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[color:var(--mf-text)]">
+            {lockedEditorFontLabel}
+          </span>
+          <span className="text-[color:var(--mf-text-muted)]">الخط النشط</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[color:var(--mf-text)]">
+            {lockedEditorSizeLabel}pt
+          </span>
+          <span className="text-[color:var(--mf-text-muted)]">الحجم النشط</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[color:var(--mf-text)]">
+            {supportedLegacyFormatCount}
+          </span>
+          <span className="text-[color:var(--mf-text-muted)]">
+            تنسيقات مدعومة
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[color:var(--mf-text)]">
+            {classifierOptionCount}
+          </span>
+          <span className="text-[color:var(--mf-text-muted)]">
+            خيارات التصنيف
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[color:var(--mf-text)]">
+            {actionBlockSpacing}
+          </span>
+          <span className="text-[color:var(--mf-text-muted)]">
+            تباعد الحدث→الحدث
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-1 text-[10px] text-[color:var(--mf-text-muted)]">
+        <div className="flex items-center justify-between">
+          <span
+            className={`h-2 w-2 rounded-full ${hasFileImportBackend ? "bg-[color:var(--mf-success)]" : "bg-[color:var(--mf-warning)]"}`}
+            aria-hidden="true"
+          />
+          <span>
+            Backend File Extract:{" "}
+            {hasFileImportBackend ? "Configured" : "Not configured"}
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
+
 /**
  * لوحة الإعدادات الفرعية داخل الشريط الجانبي.
  *
@@ -122,57 +196,14 @@ export function SettingsPanel({
         تشغيل المعالجة الآن
       </button>
 
-      <div className="app-settings-info space-y-1.5 px-3 py-2.5 text-[10px]">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[color:var(--mf-text)]">
-            {lockedEditorFontLabel}
-          </span>
-          <span className="text-[color:var(--mf-text-muted)]">الخط النشط</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[color:var(--mf-text)]">
-            {lockedEditorSizeLabel}pt
-          </span>
-          <span className="text-[color:var(--mf-text-muted)]">الحجم النشط</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[color:var(--mf-text)]">
-            {supportedLegacyFormatCount}
-          </span>
-          <span className="text-[color:var(--mf-text-muted)]">
-            تنسيقات مدعومة
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[color:var(--mf-text)]">
-            {classifierOptionCount}
-          </span>
-          <span className="text-[color:var(--mf-text-muted)]">
-            خيارات التصنيف
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[color:var(--mf-text)]">
-            {actionBlockSpacing}
-          </span>
-          <span className="text-[color:var(--mf-text-muted)]">
-            تباعد الحدث→الحدث
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-1 text-[10px] text-[color:var(--mf-text-muted)]">
-        <div className="flex items-center justify-between">
-          <span
-            className={`h-2 w-2 rounded-full ${hasFileImportBackend ? "bg-[color:var(--mf-success)]" : "bg-[color:var(--mf-warning)]"}`}
-            aria-hidden="true"
-          />
-          <span>
-            Backend File Extract:{" "}
-            {hasFileImportBackend ? "Configured" : "Not configured"}
-          </span>
-        </div>
-      </div>
+      <EditorInfoRows
+        lockedEditorFontLabel={lockedEditorFontLabel}
+        lockedEditorSizeLabel={lockedEditorSizeLabel}
+        supportedLegacyFormatCount={supportedLegacyFormatCount}
+        classifierOptionCount={classifierOptionCount}
+        actionBlockSpacing={actionBlockSpacing}
+        hasFileImportBackend={hasFileImportBackend}
+      />
     </div>
   );
 }

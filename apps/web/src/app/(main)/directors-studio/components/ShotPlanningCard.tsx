@@ -147,6 +147,164 @@ const MemoizedShotPlanningCard = memo(function ShotPlanningCardWrapper(
   return <ShotPlanningCard key={createShotResetKey(props.shot)} {...props} />;
 });
 
+function ShotSelectsGrid({
+  shotType,
+  setShotType,
+  cameraAngle,
+  setCameraAngle,
+  cameraMovement,
+  setCameraMovement,
+  lighting,
+  setLighting,
+}: {
+  shotType: string;
+  setShotType: (v: string) => void;
+  cameraAngle: string;
+  setCameraAngle: (v: string) => void;
+  cameraMovement: string;
+  setCameraMovement: (v: string) => void;
+  lighting: string;
+  setLighting: (v: string) => void;
+}) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-2 text-right">
+        <label
+          htmlFor="shot-planning-shot-type"
+          className="text-sm font-medium flex items-center justify-end gap-2"
+        >
+          <Video className="w-4 h-4" />
+          نوع اللقطة
+        </label>
+        <Select value={shotType} onValueChange={setShotType}>
+          <SelectTrigger
+            id="shot-planning-shot-type"
+            data-testid="select-shot-type"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="extreme-wide">لقطة عريضة جداً</SelectItem>
+            <SelectItem value="wide">لقطة عريضة</SelectItem>
+            <SelectItem value="medium">لقطة متوسطة</SelectItem>
+            <SelectItem value="close-up">لقطة قريبة</SelectItem>
+            <SelectItem value="extreme-close-up">لقطة قريبة جداً</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 text-right">
+        <label
+          htmlFor="shot-planning-camera-angle"
+          className="text-sm font-medium flex items-center justify-end gap-2"
+        >
+          <Maximize2 className="w-4 h-4" />
+          زاوية الكاميرا
+        </label>
+        <Select value={cameraAngle} onValueChange={setCameraAngle}>
+          <SelectTrigger
+            id="shot-planning-camera-angle"
+            data-testid="select-camera-angle"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="high">عالية</SelectItem>
+            <SelectItem value="eye-level">مستوى العين</SelectItem>
+            <SelectItem value="low">منخفضة</SelectItem>
+            <SelectItem value="birds-eye">عين الطائر</SelectItem>
+            <SelectItem value="dutch">مائلة</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 text-right">
+        <label
+          htmlFor="shot-planning-camera-movement"
+          className="text-sm font-medium flex items-center justify-end gap-2"
+        >
+          <Move className="w-4 h-4" />
+          حركة الكاميرا
+        </label>
+        <Select value={cameraMovement} onValueChange={setCameraMovement}>
+          <SelectTrigger
+            id="shot-planning-camera-movement"
+            data-testid="select-camera-movement"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="static">ثابتة</SelectItem>
+            <SelectItem value="pan">حركة أفقية</SelectItem>
+            <SelectItem value="tilt">حركة عمودية</SelectItem>
+            <SelectItem value="dolly">تتبع</SelectItem>
+            <SelectItem value="crane">كرين</SelectItem>
+            <SelectItem value="handheld">محمولة</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 text-right">
+        <label
+          htmlFor="shot-planning-lighting"
+          className="text-sm font-medium flex items-center justify-end gap-2"
+        >
+          <Sun className="w-4 h-4" />
+          الإضاءة
+        </label>
+        <Select value={lighting} onValueChange={setLighting}>
+          <SelectTrigger
+            id="shot-planning-lighting"
+            data-testid="select-lighting"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="natural">طبيعية</SelectItem>
+            <SelectItem value="three-point">ثلاثية النقاط</SelectItem>
+            <SelectItem value="low-key">إضاءة منخفضة</SelectItem>
+            <SelectItem value="high-key">إضاءة عالية</SelectItem>
+            <SelectItem value="dramatic">درامية</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
+
+function AISuggestionPanel({ aiSuggestion }: { aiSuggestion: AISuggestion }) {
+  return (
+    <div className="relative p-4 rounded-lg bg-gradient-to-br from-[var(--app-accent)]/5 to-[var(--app-accent)]/5 border border-[var(--app-accent)]/20 overflow-hidden">
+      <div className="absolute top-0 left-0 w-20 h-20 bg-[var(--app-accent)]/10 rounded-full blur-2xl" />
+      <div className="relative flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-[var(--app-accent)]/10">
+          <Sparkles className="w-5 h-5 text-[var(--app-accent)]" />
+        </div>
+        <div className="flex-1 text-right space-y-2">
+          <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="text-xs">
+              <Eye className="h-3 w-3 ml-1" />
+              اقتراح ذكي
+            </Badge>
+            <p className="text-sm font-medium text-[var(--app-accent)]">
+              اقتراح AI
+            </p>
+          </div>
+          <p className="text-sm text-[var(--app-text-muted)] leading-relaxed">
+            {aiSuggestion.suggestion}
+          </p>
+          {aiSuggestion.reasoning && (
+            <div className="text-xs text-[var(--app-text-muted)] mt-2 pt-2 border-t border-[var(--app-border)]/50">
+              <span className="font-medium text-foreground">السبب:</span>{" "}
+              {aiSuggestion.reasoning}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ShotPlanningCard({
   shot,
   shotNumber,
@@ -174,11 +332,6 @@ function ShotPlanningCard({
   const getSuggestionMutation = useGetShotSuggestion();
   const { toast } = useToast();
 
-  /**
-   * معالج الحصول على اقتراح من AI
-   *
-   * السبب في useCallback: تجنب إنشاء دالة جديدة في كل render
-   */
   const handleGetSuggestion = useCallback(async () => {
     if (!sceneDescription.trim()) {
       toast({
@@ -188,18 +341,13 @@ function ShotPlanningCard({
       });
       return;
     }
-
     try {
       const result = await getSuggestionMutation.mutateAsync({
         sceneDescription,
         shotType,
       });
-
       if (typeof result === "string" && result.trim()) {
-        setAiSuggestion({
-          suggestion: result,
-          reasoning: "",
-        });
+        setAiSuggestion({ suggestion: result, reasoning: "" });
       }
     } catch (error) {
       const errorMessage =
@@ -212,9 +360,6 @@ function ShotPlanningCard({
     }
   }, [sceneDescription, shotType, getSuggestionMutation, toast]);
 
-  /**
-   * معالج إعادة تعيين اللقطة للقيم الافتراضية
-   */
   const handleReset = useCallback(() => {
     setShotType(DEFAULT_VALUES.shotType);
     setCameraAngle(DEFAULT_VALUES.cameraAngle);
@@ -223,9 +368,6 @@ function ShotPlanningCard({
     setAiSuggestion(null);
   }, []);
 
-  /**
-   * معالج حفظ اللقطة
-   */
   const handleSave = useCallback(() => {
     if (onSave) {
       onSave({
@@ -238,9 +380,6 @@ function ShotPlanningCard({
     }
   }, [onSave, shotType, cameraAngle, cameraMovement, lighting, aiSuggestion]);
 
-  /**
-   * الحصول على معلومات نوع اللقطة
-   */
   const shotTypeInfo = useMemo(
     () => SHOT_TYPE_ICONS[shotType] ?? { icon: "📷", description: "" },
     [shotType]
@@ -251,7 +390,6 @@ function ShotPlanningCard({
       data-testid={`card-shot-${shotNumber}`}
       className="card-interactive group overflow-hidden border-[var(--app-border)] bg-[var(--app-surface)]"
     >
-      {/* رأس البطاقة مع تدرج */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--app-accent)]/10 to-[var(--app-accent)]/5" />
         <CardHeader className="relative">
@@ -280,116 +418,17 @@ function ShotPlanningCard({
       </div>
 
       <CardContent className="space-y-6 pt-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* نوع اللقطة */}
-          <div className="space-y-2 text-right">
-            <label
-              htmlFor="shot-planning-shot-type"
-              className="text-sm font-medium flex items-center justify-end gap-2"
-            >
-              <Video className="w-4 h-4" />
-              نوع اللقطة
-            </label>
-            <Select value={shotType} onValueChange={setShotType}>
-              <SelectTrigger
-                id="shot-planning-shot-type"
-                data-testid="select-shot-type"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="extreme-wide">لقطة عريضة جداً</SelectItem>
-                <SelectItem value="wide">لقطة عريضة</SelectItem>
-                <SelectItem value="medium">لقطة متوسطة</SelectItem>
-                <SelectItem value="close-up">لقطة قريبة</SelectItem>
-                <SelectItem value="extreme-close-up">
-                  لقطة قريبة جداً
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <ShotSelectsGrid
+          shotType={shotType}
+          setShotType={setShotType}
+          cameraAngle={cameraAngle}
+          setCameraAngle={setCameraAngle}
+          cameraMovement={cameraMovement}
+          setCameraMovement={setCameraMovement}
+          lighting={lighting}
+          setLighting={setLighting}
+        />
 
-          {/* زاوية الكاميرا */}
-          <div className="space-y-2 text-right">
-            <label
-              htmlFor="shot-planning-camera-angle"
-              className="text-sm font-medium flex items-center justify-end gap-2"
-            >
-              <Maximize2 className="w-4 h-4" />
-              زاوية الكاميرا
-            </label>
-            <Select value={cameraAngle} onValueChange={setCameraAngle}>
-              <SelectTrigger
-                id="shot-planning-camera-angle"
-                data-testid="select-camera-angle"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">عالية</SelectItem>
-                <SelectItem value="eye-level">مستوى العين</SelectItem>
-                <SelectItem value="low">منخفضة</SelectItem>
-                <SelectItem value="birds-eye">عين الطائر</SelectItem>
-                <SelectItem value="dutch">مائلة</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* حركة الكاميرا */}
-          <div className="space-y-2 text-right">
-            <label
-              htmlFor="shot-planning-camera-movement"
-              className="text-sm font-medium flex items-center justify-end gap-2"
-            >
-              <Move className="w-4 h-4" />
-              حركة الكاميرا
-            </label>
-            <Select value={cameraMovement} onValueChange={setCameraMovement}>
-              <SelectTrigger
-                id="shot-planning-camera-movement"
-                data-testid="select-camera-movement"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="static">ثابتة</SelectItem>
-                <SelectItem value="pan">حركة أفقية</SelectItem>
-                <SelectItem value="tilt">حركة عمودية</SelectItem>
-                <SelectItem value="dolly">تتبع</SelectItem>
-                <SelectItem value="crane">كرين</SelectItem>
-                <SelectItem value="handheld">محمولة</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* الإضاءة */}
-          <div className="space-y-2 text-right">
-            <label
-              htmlFor="shot-planning-lighting"
-              className="text-sm font-medium flex items-center justify-end gap-2"
-            >
-              <Sun className="w-4 h-4" />
-              الإضاءة
-            </label>
-            <Select value={lighting} onValueChange={setLighting}>
-              <SelectTrigger
-                id="shot-planning-lighting"
-                data-testid="select-lighting"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="natural">طبيعية</SelectItem>
-                <SelectItem value="three-point">ثلاثية النقاط</SelectItem>
-                <SelectItem value="low-key">إضاءة منخفضة</SelectItem>
-                <SelectItem value="high-key">إضاءة عالية</SelectItem>
-                <SelectItem value="dramatic">درامية</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* زر الحصول على اقتراح AI */}
         <Button
           variant="outline"
           className="w-full"
@@ -410,40 +449,8 @@ function ShotPlanningCard({
           )}
         </Button>
 
-        {/* عرض اقتراح AI */}
-        {aiSuggestion && (
-          <div className="relative p-4 rounded-lg bg-gradient-to-br from-[var(--app-accent)]/5 to-[var(--app-accent)]/5 border border-[var(--app-accent)]/20 overflow-hidden">
-            <div className="absolute top-0 left-0 w-20 h-20 bg-[var(--app-accent)]/10 rounded-full blur-2xl" />
+        {aiSuggestion && <AISuggestionPanel aiSuggestion={aiSuggestion} />}
 
-            <div className="relative flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-[var(--app-accent)]/10">
-                <Sparkles className="w-5 h-5 text-[var(--app-accent)]" />
-              </div>
-              <div className="flex-1 text-right space-y-2">
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs">
-                    <Eye className="h-3 w-3 ml-1" />
-                    اقتراح ذكي
-                  </Badge>
-                  <p className="text-sm font-medium text-[var(--app-accent)]">
-                    اقتراح AI
-                  </p>
-                </div>
-                <p className="text-sm text-[var(--app-text-muted)] leading-relaxed">
-                  {aiSuggestion.suggestion}
-                </p>
-                {aiSuggestion.reasoning && (
-                  <div className="text-xs text-[var(--app-text-muted)] mt-2 pt-2 border-t border-[var(--app-border)]/50">
-                    <span className="font-medium text-foreground">السبب:</span>{" "}
-                    {aiSuggestion.reasoning}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* أزرار الإجراءات */}
         <div className="flex gap-2 justify-end flex-wrap pt-4 border-t">
           {onDelete && shot && (
             <Button

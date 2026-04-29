@@ -22,12 +22,6 @@ import { toast } from "@/hooks/use-toast";
 
 /**
  * شكل الطلب الموسّع القادم من الباك-إند
- *
- * @description
- * الباك-إند يُرجع حقولاً إضافية مع الطلب (اسم المورد، تقدير الوصول،
- * أسماء عناصر القائمة) التي ليست جزءاً من نوع Order الأساسي في
- * الحزمة. نُعلن هذه الحقول محلياً كـ optional لنحترم
- * exactOptionalPropertyTypes ولا نكسر عقد الحزمة.
  */
 interface OrderWithDetails extends Order {
   vendorName?: string;
@@ -66,6 +60,150 @@ const STATUS_INDEX: Record<Order["status"], number> = {
   cancelled: -1,
 };
 
+// ── Helper functions ─────────────────────────────────────────────────────────
+
+function getStatusLabel(status: Order["status"]): string {
+  const labels: Record<Order["status"], string> = {
+    pending: "معلق",
+    processing: "قيد المعالجة",
+    completed: "مكتمل",
+    cancelled: "ملغي",
+  };
+  return labels[status] ?? "";
+}
+
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface StatusCardProps {
+  order: OrderWithDetails;
+  currentIndex: number;
+  isCancelled: boolean;
+}
+
+function StatusCard({ order, currentIndex, isCancelled }: StatusCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-white font-cairo">
+          حالة الطلب
+        </h2>
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-cairo ${isCancelled ? "bg-white/6 text-white/55" : "bg-white/8 text-white"}`}
+        >
+          {getStatusLabel(order.status)}
+        </span>
+      </div>
+
+      {isCancelled ? (
+        <div className="p-4 bg-white/6 text-white/85 rounded-[22px] font-cairo border border-white/8">
+          تم إلغاء هذا الطلب.
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          {STATUS_STEPS.map((step, index: number) => {
+            const reached = currentIndex >= index;
+            return (
+              <div key={step.key} className="flex-1 flex flex-col items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-cairo transition ${reached ? "bg-white/12 text-white border border-white/20" : "bg-white/4 text-white/45 border border-white/8"}`}
+                >
+                  {index + 1}
+                </div>
+                <span
+                  className={`mt-2 text-xs font-cairo ${reached ? "text-white" : "text-white/45"}`}
+                >
+                  {step.label}
+                </span>
+                {index < STATUS_STEPS.length - 1 && (
+                  <div
+                    className={`h-px w-full mt-[-20px] ${currentIndex > index ? "bg-white/20" : "bg-white/8"}`}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+interface InfoCardProps {
+  order: OrderWithDetails;
+  vendorName: string;
+}
+
+function InfoCard({ order, vendorName }: InfoCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        معلومات الطلب
+      </h2>
+      <div className="space-y-3">
+        <div>
+          <span className="text-sm text-white/55 font-cairo">المورد:</span>
+          <p className="text-white font-cairo">{vendorName}</p>
+        </div>
+        <div>
+          <span className="text-sm text-white/55 font-cairo">
+            تاريخ الإنشاء:
+          </span>
+          <p className="text-white font-cairo">
+            {new Date(order.created_at).toLocaleString("ar-SA")}
+          </p>
+        </div>
+        {order.estimatedArrival ? (
+          <div>
+            <span className="text-sm text-white/55 font-cairo">
+              تقدير الوصول:
+            </span>
+            <p className="text-white font-cairo">{order.estimatedArrival}</p>
+          </div>
+        ) : null}
+      </div>
+    </CardSpotlight>
+  );
+}
+
+interface ItemsCardProps {
+  order: OrderWithDetails;
+}
+
+function ItemsCard({ order }: ItemsCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        العناصر ({order.items.length})
+      </h2>
+      {order.items.length === 0 ? (
+        <p className="text-white/55 text-center py-4 font-cairo">
+          لا توجد عناصر في هذا الطلب
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {order.items.map((item, index: number) => {
+            const displayName =
+              item.menuItem?.name ?? item.name ?? item.menuItemId;
+            return (
+              <div
+                key={`${item.menuItemId}-${index}`}
+                className="flex items-center justify-between p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
+              >
+                <span className="text-white font-cairo">{displayName}</span>
+                <span className="text-white font-semibold font-cairo">
+                  x{item.quantity}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function CrewOrderDetailsPage(): React.ReactElement {
   const params = useParams<{ id: string }>();
   const orderId = typeof params?.id === "string" ? params.id : "";
@@ -76,9 +214,6 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
 
   const { connected, on, off } = useSocket({ auth: true });
 
-  /**
-   * جلب تفاصيل الطلب من الخادم
-   */
   const fetchOrder = useCallback(async (): Promise<void> => {
     if (!orderId) {
       setLoading(false);
@@ -110,9 +245,6 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
     });
   }, [fetchOrder]);
 
-  /**
-   * الاستماع لتحديثات حالة الطلب عبر WebSocket
-   */
   useEffect(() => {
     if (!connected || !orderId) return;
 
@@ -146,9 +278,6 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
     };
   }, [connected, orderId, on, off]);
 
-  /**
-   * إلغاء الطلب إذا كان لا يزال pending
-   */
   const cancelOrder = useCallback(async (): Promise<void> => {
     if (order?.status !== "pending") return;
     setCancelling(true);
@@ -157,10 +286,7 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
       setOrder((prev: OrderWithDetails | null): OrderWithDetails | null =>
         prev ? { ...prev, status: "cancelled" } : prev
       );
-      toast({
-        title: "تم الإلغاء",
-        description: "تم إلغاء الطلب بنجاح",
-      });
+      toast({ title: "تم الإلغاء", description: "تم إلغاء الطلب بنجاح" });
     } catch (error: unknown) {
       const axiosError = error as { message?: string };
       toast({
@@ -219,7 +345,6 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
       className="min-h-screen bg-black/8 p-4 md:p-8 backdrop-blur-xl"
     >
       <div className="max-w-4xl mx-auto">
-        {/* العنوان ورجوع */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2 font-cairo">
@@ -237,121 +362,20 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
           </a>
         </div>
 
-        {/* الحالة العامة */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white font-cairo">
-              حالة الطلب
-            </h2>
-            <span
-              className={`px-3 py-1 text-xs rounded-full font-cairo ${isCancelled ? "bg-white/6 text-white/55" : "bg-white/8 text-white"}`}
-            >
-              {getStatusLabel(order.status)}
-            </span>
-          </div>
+        <StatusCard
+          order={order}
+          currentIndex={currentIndex}
+          isCancelled={isCancelled}
+        />
 
-          {/* Timeline */}
-          {isCancelled ? (
-            <div className="p-4 bg-white/6 text-white/85 rounded-[22px] font-cairo border border-white/8">
-              تم إلغاء هذا الطلب.
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-2">
-              {STATUS_STEPS.map((step, index: number) => {
-                const reached = currentIndex >= index;
-                return (
-                  <div
-                    key={step.key}
-                    className="flex-1 flex flex-col items-center"
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-cairo transition ${reached ? "bg-white/12 text-white border border-white/20" : "bg-white/4 text-white/45 border border-white/8"}`}
-                    >
-                      {index + 1}
-                    </div>
-                    <span
-                      className={`mt-2 text-xs font-cairo ${reached ? "text-white" : "text-white/45"}`}
-                    >
-                      {step.label}
-                    </span>
-                    {index < STATUS_STEPS.length - 1 && (
-                      <div
-                        className={`h-px w-full mt-[-20px] ${currentIndex > index ? "bg-white/20" : "bg-white/8"}`}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardSpotlight>
+        <InfoCard order={order} vendorName={vendorName} />
 
-        {/* معلومات المورد والوصول */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            معلومات الطلب
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <span className="text-sm text-white/55 font-cairo">المورد:</span>
-              <p className="text-white font-cairo">{vendorName}</p>
-            </div>
-            <div>
-              <span className="text-sm text-white/55 font-cairo">
-                تاريخ الإنشاء:
-              </span>
-              <p className="text-white font-cairo">
-                {new Date(order.created_at).toLocaleString("ar-SA")}
-              </p>
-            </div>
-            {order.estimatedArrival ? (
-              <div>
-                <span className="text-sm text-white/55 font-cairo">
-                  تقدير الوصول:
-                </span>
-                <p className="text-white font-cairo">
-                  {order.estimatedArrival}
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </CardSpotlight>
+        <ItemsCard order={order} />
 
-        {/* قائمة العناصر */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            العناصر ({order.items.length})
-          </h2>
-          {order.items.length === 0 ? (
-            <p className="text-white/55 text-center py-4 font-cairo">
-              لا توجد عناصر في هذا الطلب
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {order.items.map((item, index: number) => {
-                const displayName =
-                  item.menuItem?.name ?? item.name ?? item.menuItemId;
-                return (
-                  <div
-                    key={`${item.menuItemId}-${index}`}
-                    className="flex items-center justify-between p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
-                  >
-                    <span className="text-white font-cairo">{displayName}</span>
-                    <span className="text-white font-semibold font-cairo">
-                      x{item.quantity}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardSpotlight>
-
-        {/* زر الإلغاء */}
         {order.status === "pending" ? (
           <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
             <button
-              onClick={cancelOrder}
+              onClick={() => void cancelOrder()}
               disabled={cancelling}
               className="w-full px-6 py-3 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-semibold font-cairo transition"
             >
@@ -362,17 +386,4 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
       </div>
     </div>
   );
-}
-
-/**
- * ترجمة حالة الطلب لعربية
- */
-function getStatusLabel(status: Order["status"]): string {
-  const labels: Record<Order["status"], string> = {
-    pending: "معلق",
-    processing: "قيد المعالجة",
-    completed: "مكتمل",
-    cancelled: "ملغي",
-  };
-  return labels[status] ?? "";
 }

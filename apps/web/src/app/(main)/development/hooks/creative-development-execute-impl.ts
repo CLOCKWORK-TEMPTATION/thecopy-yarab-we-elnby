@@ -56,6 +56,141 @@ export function buildSingleStepWorkflow(
   };
 }
 
+// --- المسار الأول: Gemini مباشر ---
+async function tryDirectGeminiPath(
+  task: DevelopmentTaskDefinition,
+  params: ExecuteTaskParams,
+  mergedSpecialRequirements: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const directResponse = await fetch("/api/development/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        taskId: task.id,
+        taskName: task.nameAr,
+        originalText: params.textInput,
+        analysisReport: params.analysisReport || undefined,
+        specialRequirements: mergedSpecialRequirements || undefined,
+        additionalInfo: params.additionalInfo || undefined,
+      }),
+    });
+    if (directResponse.ok) {
+      const directData = (await directResponse
+        .json()
+        .catch(() => null)) as Record<string, unknown> | null;
+      if (directData?.["success"] && directData["result"]) {
+        return directData["result"] as Record<string, unknown>;
+      }
+    }
+  } catch {
+    // المسار المباشر فشل — ننتقل للمسار البديل
+  }
+  return null;
+}
+
+// --- المسار البديل: brainstorm ---
+async function tryBrainstormPath(
+  task: DevelopmentTaskDefinition,
+  params: ExecuteTaskParams,
+  mergedSpecialRequirements: string
+): Promise<Record<string, unknown> | null> {
+  const enhancementAgentIds =
+    task.id === "completion"
+      ? params.selectedCompletionEnhancements
+          .map((enhancement) => TASK_TO_BACKEND_AGENT_ID[enhancement])
+          .filter((agentId): agentId is string => Boolean(agentId))
+      : [];
+  const targetAgentIds = Array.from(new Set([task.id, ...enhancementAgentIds]));
+
+  const parts = [
+    `نوع المهمة: ${task.nameAr}`,
+    `التوجيه الخاص: ${mergedSpecialRequirements || "بدون توجيه خاص"}`,
+    params.additionalInfo ? `معلومات إضافية: ${params.additionalInfo}` : "",
+    "النص الأصلي:",
+    params.textInput,
+  ].filter(Boolean);
+
+  const response = await fetch("/api/brainstorm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({
+      task: parts.join("\n\n"),
+      context: {
+        brief: [
+          params.analysisReport
+            ? `تقرير التحليل:\n${params.analysisReport}`
+            : "",
+          params.additionalInfo
+            ? `معلومات داعمة:\n${params.additionalInfo}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
+        phase: 3,
+        sessionId: params.analysisId ?? `development-${Date.now()}`,
+      },
+      agentIds: targetAgentIds,
+    }),
+  });
+  const backendData = (await response.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
+  return response.ok && backendData ? backendData : null;
+}
+
+// --- المسار البديل: workflow ---
+async function tryWorkflowPath(
+  task: DevelopmentTaskDefinition,
+  params: ExecuteTaskParams,
+  mergedSpecialRequirements: string,
+  effectiveCompletionScope: string
+): Promise<Record<string, unknown> | null> {
+  const workflowConfig: WorkflowTaskTarget =
+    task.executionMode === "workflow-single"
+      ? buildSingleStepWorkflow(task)
+      : (task.backendTarget as WorkflowTaskTarget);
+
+  const response = await fetch("/api/workflow/execute-custom", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({
+      config: workflowConfig,
+      input: {
+        input: params.textInput,
+        text: params.textInput,
+        context: {
+          originalText: params.textInput,
+          analysisReport: params.analysisReport,
+          analysisId: params.analysisId,
+          specialRequirements: mergedSpecialRequirements,
+          additionalInfo: params.additionalInfo,
+        },
+        options: {
+          advancedSettings: params.advancedSettings,
+          completionScope: effectiveCompletionScope || undefined,
+          selectedCompletionEnhancements: params.selectedCompletionEnhancements,
+        },
+        originalText: params.textInput,
+        analysisReport: params.analysisReport,
+        analysisId: params.analysisId,
+        specialRequirements: mergedSpecialRequirements,
+        additionalInfo: params.additionalInfo,
+        advancedSettings: params.advancedSettings,
+      },
+    }),
+  });
+  const backendData = (await response.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
+  return response.ok && backendData ? backendData : null;
+}
+
 /**
  * تنفيذ مهمة من كتالوج المهام الكامل.
  * بعد نجاح التنفيذ: يُطبِّع النتيجة ويُعيد dispatch لتحديث الحالة مباشرةً.
@@ -85,7 +220,7 @@ export async function executeTaskImpl(
 
   const effectiveCompletionScope =
     task.id === "completion"
-      ? params.completionScope.trim() ||
+      ? params.completionScope.trim() ??=
         "إكمال المقطع الحالي بشكل متسق مع النص المتاح"
       : "";
 
@@ -106,128 +241,22 @@ export async function executeTaskImpl(
   });
 
   try {
-    let rawPayload: Record<string, unknown> | null = null;
+    let rawPayload: Record<string, unknown> | null = await tryDirectGeminiPath(
+      task,
+      params,
+      mergedSpecialRequirements
+    );
 
-    // --- المسار الأول: Gemini مباشر ---
-    try {
-      const directResponse = await fetch("/api/development/execute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          taskId: task.id,
-          taskName: task.nameAr,
-          originalText: params.textInput,
-          analysisReport: params.analysisReport || undefined,
-          specialRequirements: mergedSpecialRequirements || undefined,
-          additionalInfo: params.additionalInfo || undefined,
-        }),
-      });
-
-      if (directResponse.ok) {
-        const directData = (await directResponse
-          .json()
-          .catch(() => null)) as Record<string, unknown> | null;
-        if (directData?.["success"] && directData["result"]) {
-          rawPayload = directData["result"] as Record<string, unknown>;
-        }
-      }
-    } catch {
-      // المسار المباشر فشل — ننتقل للمسار البديل
-    }
-
-    // --- المسار البديل: brainstorm أو workflow ---
     if (!rawPayload) {
-      let response: Response;
-
-      if (task.executionMode === "brainstorm") {
-        const enhancementAgentIds =
-          task.id === "completion"
-            ? params.selectedCompletionEnhancements
-                .map((enhancement) => TASK_TO_BACKEND_AGENT_ID[enhancement])
-                .filter((agentId): agentId is string => Boolean(agentId))
-            : [];
-        const targetAgentIds = Array.from(
-          new Set([task.id, ...enhancementAgentIds])
-        );
-
-        const parts = [
-          `نوع المهمة: ${task.nameAr}`,
-          `التوجيه الخاص: ${mergedSpecialRequirements || "بدون توجيه خاص"}`,
-          params.additionalInfo
-            ? `معلومات إضافية: ${params.additionalInfo}`
-            : "",
-          "النص الأصلي:",
-          params.textInput,
-        ].filter(Boolean);
-
-        response = await fetch("/api/brainstorm", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({
-            task: parts.join("\n\n"),
-            context: {
-              brief: [
-                params.analysisReport
-                  ? `تقرير التحليل:\n${params.analysisReport}`
-                  : "",
-                params.additionalInfo
-                  ? `معلومات داعمة:\n${params.additionalInfo}`
-                  : "",
-              ]
-                .filter(Boolean)
-                .join("\n\n"),
-              phase: 3,
-              sessionId: params.analysisId ?? `development-${Date.now()}`,
-            },
-            agentIds: targetAgentIds,
-          }),
-        });
-      } else {
-        const workflowConfig: WorkflowTaskTarget =
-          task.executionMode === "workflow-single"
-            ? buildSingleStepWorkflow(task)
-            : (task.backendTarget as WorkflowTaskTarget);
-
-        response = await fetch("/api/workflow/execute-custom", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify({
-            config: workflowConfig,
-            input: {
-              input: params.textInput,
-              text: params.textInput,
-              context: {
-                originalText: params.textInput,
-                analysisReport: params.analysisReport,
-                analysisId: params.analysisId,
-                specialRequirements: mergedSpecialRequirements,
-                additionalInfo: params.additionalInfo,
-              },
-              options: {
-                advancedSettings: params.advancedSettings,
-                completionScope: effectiveCompletionScope || undefined,
-                selectedCompletionEnhancements:
-                  params.selectedCompletionEnhancements,
-              },
-              originalText: params.textInput,
-              analysisReport: params.analysisReport,
-              analysisId: params.analysisId,
-              specialRequirements: mergedSpecialRequirements,
-              additionalInfo: params.additionalInfo,
-              advancedSettings: params.advancedSettings,
-            },
-          }),
-        });
-      }
-
-      const backendData = (await response.json().catch(() => null)) as Record<
-        string,
-        unknown
-      > | null;
-      if (response.ok && backendData) rawPayload = backendData;
+      rawPayload =
+        task.executionMode === "brainstorm"
+          ? await tryBrainstormPath(task, params, mergedSpecialRequirements)
+          : await tryWorkflowPath(
+              task,
+              params,
+              mergedSpecialRequirements,
+              effectiveCompletionScope
+            );
     }
 
     if (!rawPayload) {

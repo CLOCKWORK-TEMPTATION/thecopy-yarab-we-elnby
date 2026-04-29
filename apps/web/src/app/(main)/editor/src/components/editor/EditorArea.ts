@@ -205,64 +205,19 @@ export class EditorArea implements EditorHandle {
     mode: FileImportMode = "replace",
     context?: ImportClassificationContext
   ): Promise<void> => {
-    const activeRun = this.progressiveManager.getState()?.activeRun;
-    const isPreparationLock =
-      activeRun?.status === "started" &&
-      !activeRun.currentVisibleVersionId &&
-      !this.progressiveManager.getState()?.visibleVersion;
-
-    if (this.isSurfaceLocked() && !isPreparationLock) {
-      throw new Error(
-        "لا يمكن بدء تشغيل جديد قبل استقرار النسخة الحالية أو تنفيذ استرداد صريح بعد الفشل."
-      );
-    }
+    this.checkSurfaceLockForImport();
 
     this.editor.commands.focus(mode === "replace" ? "start" : "end");
 
-    const skipUnstructured =
-      context?.classificationProfile === "paste" ||
-      ((context?.structuredHints && context.structuredHints.length > 0) ??
-        false) ||
-      ((context?.schemaElements && context.schemaElements.length > 0) ??
-        false) ||
-      context?.sourceFileType === "doc" ||
-      context?.sourceFileType === "docx";
-
-    if (!skipUnstructured) {
-      const unstructured = maybeReconstructUnstructured(text, {
-        threshold: 0.7,
-        replaceBullets: true,
-      });
-
-      if (unstructured.applied) {
-        const existingHints = context?.structuredHints ?? [];
-        const mergedHints = unstructured.structuredBlocks.concat(existingHints);
-        text = unstructured.structuredText;
-        context = { ...(context ?? {}), structuredHints: mergedHints };
-      }
-    }
-
-    const state = this.editor.view.state;
-    const replaceAllFrom = 0;
-    const replaceAllTo = state.doc.content.size;
-    const from = mode === "replace" ? replaceAllFrom : state.selection.from;
-    const to = mode === "replace" ? replaceAllTo : state.selection.to;
-
-    const applied = await applyPasteClassifierFlowToView(
-      this.editor.view,
+    const { resolvedText, resolvedContext } = this.resolveUnstructured(
       text,
-      definedProps({
-        from,
-        to,
-        classificationProfile: context?.classificationProfile,
-        sourceFileType: context?.sourceFileType,
-        sourceMethod: context?.sourceMethod,
-        structuredHints: context?.structuredHints,
-        schemaElements: context?.schemaElements,
-        rawExtractedText: context?.rawExtractedText,
-        fileName: context?.fileName,
-        firstVisibleSourceKind: context?.firstVisibleSourceKind,
-      })
+      context
+    );
+
+    const applied = await this.applyClassifierFlow(
+      resolvedText,
+      mode,
+      resolvedContext
     );
     if (!applied) return;
 
@@ -285,17 +240,7 @@ export class EditorArea implements EditorHandle {
     blocks: ScreenplayBlock[],
     mode: FileImportMode = "replace"
   ): Promise<void> => {
-    const activeRun = this.progressiveManager.getState()?.activeRun;
-    const isPreparationLock =
-      activeRun?.status === "started" &&
-      !activeRun.currentVisibleVersionId &&
-      !this.progressiveManager.getState()?.visibleVersion;
-
-    if (this.isSurfaceLocked() && !isPreparationLock) {
-      throw new Error(
-        "لا يمكن بدء تشغيل جديد قبل استقرار النسخة الحالية أو تنفيذ استرداد صريح بعد الفشل."
-      );
-    }
+    this.checkSurfaceLockForImport();
 
     if (!blocks || blocks.length === 0) return;
 
@@ -458,6 +403,86 @@ export class EditorArea implements EditorHandle {
   // ============================================
   // الدوال المساعدة الخاصة
   // ============================================
+
+  private checkSurfaceLockForImport(): void {
+    const activeRun = this.progressiveManager.getState()?.activeRun;
+    const isPreparationLock =
+      activeRun?.status === "started" &&
+      !activeRun.currentVisibleVersionId &&
+      !this.progressiveManager.getState()?.visibleVersion;
+
+    if (this.isSurfaceLocked() && !isPreparationLock) {
+      throw new Error(
+        "لا يمكن بدء تشغيل جديد قبل استقرار النسخة الحالية أو تنفيذ استرداد صريح بعد الفشل."
+      );
+    }
+  }
+
+  private resolveUnstructured(
+    text: string,
+    context: ImportClassificationContext | undefined
+  ): {
+    resolvedText: string;
+    resolvedContext: ImportClassificationContext | undefined;
+  } {
+    const skipUnstructured =
+      context?.classificationProfile === "paste" ||
+      ((context?.structuredHints && context.structuredHints.length > 0) ??
+        false) ||
+      ((context?.schemaElements && context.schemaElements.length > 0) ??
+        false) ||
+      context?.sourceFileType === "doc" ||
+      context?.sourceFileType === "docx";
+
+    if (skipUnstructured) {
+      return { resolvedText: text, resolvedContext: context };
+    }
+
+    const unstructured = maybeReconstructUnstructured(text, {
+      threshold: 0.7,
+      replaceBullets: true,
+    });
+
+    if (!unstructured.applied) {
+      return { resolvedText: text, resolvedContext: context };
+    }
+
+    const existingHints = context?.structuredHints ?? [];
+    const mergedHints = unstructured.structuredBlocks.concat(existingHints);
+    return {
+      resolvedText: unstructured.structuredText,
+      resolvedContext: { ...(context ?? {}), structuredHints: mergedHints },
+    };
+  }
+
+  private async applyClassifierFlow(
+    text: string,
+    mode: FileImportMode,
+    context: ImportClassificationContext | undefined
+  ): Promise<boolean> {
+    const state = this.editor.view.state;
+    const replaceAllFrom = 0;
+    const replaceAllTo = state.doc.content.size;
+    const from = mode === "replace" ? replaceAllFrom : state.selection.from;
+    const to = mode === "replace" ? replaceAllTo : state.selection.to;
+
+    return applyPasteClassifierFlowToView(
+      this.editor.view,
+      text,
+      definedProps({
+        from,
+        to,
+        classificationProfile: context?.classificationProfile,
+        sourceFileType: context?.sourceFileType,
+        sourceMethod: context?.sourceMethod,
+        structuredHints: context?.structuredHints,
+        schemaElements: context?.schemaElements,
+        rawExtractedText: context?.rawExtractedText,
+        fileName: context?.fileName,
+        firstVisibleSourceKind: context?.firstVisibleSourceKind,
+      })
+    );
+  }
 
   private requestProductionSelfCheck(): void {
     if (this.hasRequestedProductionSelfCheck) return;

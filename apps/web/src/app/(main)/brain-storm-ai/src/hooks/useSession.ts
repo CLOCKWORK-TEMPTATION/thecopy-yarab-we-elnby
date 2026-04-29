@@ -119,6 +119,116 @@ export function useSession({
     100
   ).toFixed(1);
 
+  const applyDebateProposals = useCallback(
+    (
+      agents: readonly BrainstormAgentDefinition[],
+      debateResult: Awaited<ReturnType<typeof conductDebate>>["result"]
+    ) => {
+      let completedAgents = 0;
+      const respondedIds = new Set(
+        debateResult.proposals.map((p) => p.agentId)
+      );
+
+      for (const proposal of debateResult.proposals) {
+        const agent = agents.find((a) => a.id === proposal.agentId);
+        if (agent) {
+          updateAgentState(proposal.agentId, {
+            status: "completed",
+            lastMessage: `ثقة: ${(proposal.confidence * 100).toFixed(0)}%`,
+            progress: proposal.confidence * 100,
+          });
+          setDebateMessages((prev) => [
+            ...prev,
+            {
+              agentId: proposal.agentId,
+              agentName: agent.nameAr,
+              message: proposal.proposal,
+              timestamp: new Date(),
+              type: "proposal",
+            },
+          ]);
+          completedAgents++;
+          setPhaseProgress(completedAgents / agents.length);
+        }
+      }
+
+      agents.forEach((agent) => {
+        if (!respondedIds.has(agent.id)) {
+          updateAgentState(agent.id, {
+            status: "completed",
+            lastMessage: "لم يُسهم في هذه الجولة",
+            progress: 0,
+          });
+          completedAgents++;
+          setPhaseProgress(completedAgents / agents.length);
+        }
+      });
+
+      return respondedIds;
+    },
+    [updateAgentState]
+  );
+
+  const finalizePhaseProgress = useCallback((session: Session) => {
+    setPhaseProgress(1);
+    if (session.phase < TOTAL_PHASES) {
+      setTimeout(() => {
+        const nextPhase = (session.phase + 1) as BrainstormPhase;
+        setActivePhase(nextPhase);
+        setPhaseProgress(0);
+        setCurrentSession((prev) =>
+          prev ? { ...prev, phase: nextPhase } : null
+        );
+      }, 2000);
+    } else {
+      setCurrentSession((prev) =>
+        prev ? { ...prev, status: "completed" } : null
+      );
+    }
+  }, []);
+
+  const handleDebateError = useCallback(
+    (
+      err: unknown,
+      agents: readonly BrainstormAgentDefinition[],
+      agentDiags: AgentDiagnosticEntry[],
+      session: Session
+    ) => {
+      const classified = classifyError(err);
+      agentDiags.forEach((diag) => {
+        finalizeAgentDiagnostic(diag, "error", classified.message);
+      });
+      retryCountRef.current = 0;
+      setError(classified.message);
+      agents.forEach((agent) => {
+        updateAgentState(agent.id, {
+          status: "error",
+          lastMessage: classified.retryable
+            ? `فشل بعد إعادة المحاولة: ${classified.message.substring(0, 80)}`
+            : classified.message.substring(0, 100),
+        });
+      });
+      setDiagnostics((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          agentEntries: [...prev.agentEntries, ...agentDiags],
+          errors: [
+            ...prev.errors,
+            {
+              phase: session.phase,
+              error: classified.message,
+              retryable: classified.retryable,
+              timestamp: new Date().toISOString(),
+            },
+          ],
+        };
+      });
+      return classified;
+    },
+    [updateAgentState]
+  );
+
   /** تنفيذ نقاش بين الوكلاء مع إعادة محاولة وتشخيصات */
   const executeAgentDebate = useCallback(
     async (
@@ -128,13 +238,11 @@ export function useSession({
     ) => {
       const agentIds = agents.map((a) => a.id);
       const debateTask = task ?? `تحليل الفكرة: ${session.brief}`;
-
       const agentDiags: AgentDiagnosticEntry[] = agents.map((a) =>
         createAgentDiagnosticEntry(a.id)
       );
 
-      setPhaseProgress(0); // إعادة تعيين التقدم داخل المرحلة
-
+      setPhaseProgress(0);
       agents.forEach((agent) => {
         updateAgentState(agent.id, {
           status: "working",
@@ -156,51 +264,9 @@ export function useSession({
         agentDiags.forEach((diag) => {
           finalizeAgentDiagnostic(diag, "completed");
         });
-
         retryCountRef.current = 0;
 
-        let completedAgents = 0;
-        for (const proposal of debateResult.proposals) {
-          const agent = agents.find((a) => a.id === proposal.agentId);
-          if (agent) {
-            updateAgentState(proposal.agentId, {
-              status: "completed",
-              lastMessage: `ثقة: ${(proposal.confidence * 100).toFixed(0)}%`,
-              progress: proposal.confidence * 100,
-            });
-
-            setDebateMessages((prev) => [
-              ...prev,
-              {
-                agentId: proposal.agentId,
-                agentName: agent.nameAr,
-                message: proposal.proposal,
-                timestamp: new Date(),
-                type: "proposal",
-              },
-            ]);
-
-            completedAgents++;
-            // تحديث التقدم داخل المرحلة
-            setPhaseProgress(completedAgents / agents.length);
-          }
-        }
-
-        // وكلاء لم يرد لهم اقتراح
-        const respondedIds = new Set(
-          debateResult.proposals.map((p) => p.agentId)
-        );
-        agents.forEach((agent) => {
-          if (!respondedIds.has(agent.id)) {
-            updateAgentState(agent.id, {
-              status: "completed",
-              lastMessage: "لم يُسهم في هذه الجولة",
-              progress: 0,
-            });
-            completedAgents++;
-            setPhaseProgress(completedAgents / agents.length);
-          }
-        });
+        const respondedIds = applyDebateProposals(agents, debateResult);
 
         if (debateResult.consensus || debateResult.finalDecision) {
           setDebateMessages((prev) => [
@@ -244,31 +310,10 @@ export function useSession({
           };
         });
 
-        // إكمال المرحلة
-        setPhaseProgress(1);
-
-        if (session.phase < TOTAL_PHASES) {
-          setTimeout(() => {
-            const nextPhase = (session.phase + 1) as BrainstormPhase;
-            setActivePhase(nextPhase);
-            setPhaseProgress(0); // إعادة تعيين للمرحلة الجديدة
-            setCurrentSession((prev) =>
-              prev ? { ...prev, phase: nextPhase } : null
-            );
-          }, 2000);
-        } else {
-          setCurrentSession((prev) =>
-            prev ? { ...prev, status: "completed" } : null
-          );
-        }
+        finalizePhaseProgress(session);
       } catch (err) {
-        const classified = classifyError(err);
+        const classified = handleDebateError(err, agents, agentDiags, session);
 
-        agentDiags.forEach((diag) => {
-          finalizeAgentDiagnostic(diag, "error", classified.message);
-        });
-
-        // إعادة المحاولة إذا كان الخطأ قابلاً لذلك
         if (classified.retryable && retryCountRef.current < MAX_RETRIES) {
           retryCountRef.current += 1;
           const attempt = retryCountRef.current;
@@ -281,7 +326,6 @@ export function useSession({
           });
 
           setError(`جاري إعادة المحاولة... (${attempt}/${MAX_RETRIES})`);
-
           await new Promise((resolve) => setTimeout(resolve, 1500));
 
           try {
@@ -291,39 +335,14 @@ export function useSession({
             // فشل إعادة المحاولة — نتابع أدناه
           }
         }
-
-        retryCountRef.current = 0;
-        setError(classified.message);
-
-        // عرض سبب الخطأ لكل وكيل بدلاً من "فشل" المبهمة
-        agents.forEach((agent) => {
-          updateAgentState(agent.id, {
-            status: "error",
-            lastMessage: classified.retryable
-              ? `فشل بعد إعادة المحاولة: ${classified.message.substring(0, 80)}`
-              : classified.message.substring(0, 100),
-          });
-        });
-
-        setDiagnostics((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            agentEntries: [...prev.agentEntries, ...agentDiags],
-            errors: [
-              ...prev.errors,
-              {
-                phase: session.phase,
-                error: classified.message,
-                retryable: classified.retryable,
-                timestamp: new Date().toISOString(),
-              },
-            ],
-          };
-        });
       }
     },
-    [updateAgentState]
+    [
+      updateAgentState,
+      applyDebateProposals,
+      finalizePhaseProgress,
+      handleDebateError,
+    ]
   );
 
   const handleStartSession = useCallback(async () => {

@@ -54,6 +54,254 @@ const ZOOM_SENSITIVITY = 0.001;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 2;
 
+function getBezierPath(from: IdeaNode, to: IdeaNode) {
+  const fromX = from.position.x + 100;
+  const fromY = from.position.y + 30;
+  const toX = to.position.x + 100;
+  const toY = to.position.y + 30;
+  const midX = (fromX + toX) / 2;
+  return `M ${fromX} ${fromY} C ${midX} ${fromY}, ${midX} ${toY}, ${toX} ${toY}`;
+}
+
+function CanvasToolbar({
+  tool,
+  setTool,
+  selectedNode,
+  onAdd,
+  onDelete,
+}: {
+  tool: "select" | "pan" | "connect";
+  setTool: (t: "select" | "pan" | "connect") => void;
+  selectedNode: string | null;
+  onAdd: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="absolute top-4 right-4 z-10 flex items-center gap-2 p-2 bg-card border border-border rounded-lg shadow-lg">
+      <Button
+        variant={tool === "select" ? "default" : "ghost"}
+        size="icon"
+        onClick={() => setTool("select")}
+        title="أداة التحديد"
+      >
+        <MousePointer className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={tool === "pan" ? "default" : "ghost"}
+        size="icon"
+        onClick={() => setTool("pan")}
+        title="أداة السحب"
+      >
+        <Hand className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={tool === "connect" ? "default" : "ghost"}
+        size="icon"
+        onClick={() => setTool("connect")}
+        title="أداة الربط"
+      >
+        <Link2 className="h-4 w-4" />
+      </Button>
+      <div className="w-px h-6 bg-border mx-1" />
+      <Button variant="ghost" size="icon" onClick={onAdd} title="إضافة فكرة">
+        <Plus className="h-4 w-4" />
+      </Button>
+      {selectedNode && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onDelete}
+          title="حذف"
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function CanvasZoomControls({
+  zoom,
+  onZoomOut,
+  onZoomIn,
+  onReset,
+}: {
+  zoom: number;
+  onZoomOut: () => void;
+  onZoomIn: () => void;
+  onReset: () => void;
+}) {
+  return (
+    <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2 p-2 bg-card border border-border rounded-lg shadow-lg">
+      <Button variant="ghost" size="icon" onClick={onZoomOut} title="تصغير">
+        <ZoomOut className="h-4 w-4" />
+      </Button>
+      <span className="text-sm font-mono w-14 text-center">
+        {Math.round(zoom * 100)}%
+      </span>
+      <Button variant="ghost" size="icon" onClick={onZoomIn} title="تكبير">
+        <ZoomIn className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onReset} title="إعادة تعيين">
+        <Maximize2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function CanvasMiniMap({
+  nodes,
+  offset,
+  zoom,
+}: {
+  nodes: IdeaNode[];
+  offset: Position;
+  zoom: number;
+}) {
+  return (
+    <div className="absolute bottom-4 left-4 z-10 w-40 h-28 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
+      <div className="relative w-full h-full">
+        {nodes.map((node) => (
+          <div
+            key={node.id}
+            className="absolute w-2 h-2 rounded-full"
+            style={{
+              left: `${(node.position.x / 2000) * 100}%`,
+              top: `${(node.position.y / 1500) * 100}%`,
+              backgroundColor: node.color ?? "var(--brand)",
+            }}
+          />
+        ))}
+        <div
+          className="absolute border-2 border-brand rounded"
+          style={{
+            left: `${(-offset.x / zoom / 2000) * 100}%`,
+            top: `${(-offset.y / zoom / 1500) * 100}%`,
+            width: `${100 / zoom}%`,
+            height: `${100 / zoom}%`,
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CanvasConnections({
+  nodes,
+  getBezier,
+}: {
+  nodes: IdeaNode[];
+  getBezier: (from: IdeaNode, to: IdeaNode) => string;
+}) {
+  return (
+    <svg className="absolute inset-0 w-[4000px] h-[3000px] pointer-events-none">
+      {nodes.map((node) =>
+        node.connections.map((connId) => {
+          const connectedNode = nodes.find((n) => n.id === connId);
+          if (!connectedNode) return null;
+          return (
+            <path
+              key={`${node.id}-${connId}`}
+              d={getBezier(connectedNode, node)}
+              className="infinite-canvas__connection"
+              style={{ stroke: node.color ?? "var(--border)" }}
+            />
+          );
+        })
+      )}
+    </svg>
+  );
+}
+
+function CanvasNodeItem({
+  node,
+  selectedNode,
+  connectingFrom,
+  onNodeClick,
+  onNodeDragStart,
+  onActivate,
+  onUpdateContent,
+  onAddChild,
+}: {
+  node: IdeaNode;
+  selectedNode: string | null;
+  connectingFrom: string | null;
+  onNodeClick: (id: string, e: React.MouseEvent) => void;
+  onNodeDragStart: (id: string, e: React.MouseEvent) => void;
+  onActivate: (id: string) => void;
+  onUpdateContent: (id: string, content: string) => void;
+  onAddChild: (parentId: string) => void;
+}) {
+  return (
+    <div
+      key={node.id}
+      className={cn(
+        "infinite-canvas__node group",
+        selectedNode === node.id && "ring-2 ring-brand",
+        connectingFrom === node.id &&
+          "ring-2 ring-accent-creative animate-pulse"
+      )}
+      style={{
+        left: node.position.x,
+        top: node.position.y,
+        borderColor: node.color,
+      }}
+      role="button"
+      tabIndex={0}
+      onClick={(e) => onNodeClick(node.id, e)}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        onActivate(node.id);
+      }}
+      onMouseDown={(e) => onNodeDragStart(node.id, e)}
+    >
+      <div
+        className="absolute top-0 right-0 left-0 h-1 rounded-t-lg"
+        style={{ backgroundColor: node.color }}
+      />
+      <div className="pt-2">
+        <input
+          type="text"
+          value={node.content}
+          onChange={(e) => onUpdateContent(node.id, e.target.value)}
+          className="w-full bg-transparent border-none outline-none text-center font-medium"
+          dir="rtl"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-6 w-6 rounded-full shadow-md"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddChild(node.id);
+          }}
+          title="إضافة فكرة فرعية"
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-6 w-6 rounded-full shadow-md"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          title="توسيع بالذكاء الاصطناعي"
+        >
+          <Sparkles className="h-3 w-3 text-brand" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function InfiniteCanvas({
   nodes: externalNodes,
   onNodesChange,
@@ -62,7 +310,6 @@ export function InfiniteCanvas({
   const canvasRef = React.useRef<HTMLDivElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
 
-  // Canvas state
   const [offset, setOffset] = React.useState<Position>({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
   const [isPanning, setIsPanning] = React.useState(false);
@@ -71,7 +318,6 @@ export function InfiniteCanvas({
     "select"
   );
 
-  // Node state
   const [nodes, setNodes] = React.useState<IdeaNode[]>(
     externalNodes ?? [
       {
@@ -89,53 +335,41 @@ export function InfiniteCanvas({
     null
   );
 
-  // Sync with external nodes
   React.useEffect(() => {
-    if (externalNodes) {
-      setNodes(externalNodes);
-    }
+    if (externalNodes) setNodes(externalNodes);
   }, [externalNodes]);
 
-  // Notify parent of changes
   const updateNodes = (newNodes: IdeaNode[]) => {
     setNodes(newNodes);
     onNodesChange?.(newNodes);
   };
 
-  // Handle wheel zoom
   const handleWheel = React.useCallback(
     (e: WheelEvent) => {
       if (!canvasRef.current) return;
       e.preventDefault();
-
       const rect = canvasRef.current.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
-
       const delta = -e.deltaY * ZOOM_SENSITIVITY;
       const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom + delta));
-
-      // Zoom towards mouse position
       const scale = newZoom / zoom;
-      const newOffsetX = mouseX - (mouseX - offset.x) * scale;
-      const newOffsetY = mouseY - (mouseY - offset.y) * scale;
-
       setZoom(newZoom);
-      setOffset({ x: newOffsetX, y: newOffsetY });
+      setOffset({
+        x: mouseX - (mouseX - offset.x) * scale,
+        y: mouseY - (mouseY - offset.y) * scale,
+      });
     },
     [zoom, offset]
   );
 
-  // Register wheel event
   React.useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     return () => canvas.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
-  // Handle pan start
   const handleMouseDown = (e: React.MouseEvent) => {
     if (tool === "pan" || e.button === 1 || e.shiftKey) {
       setIsPanning(true);
@@ -143,15 +377,10 @@ export function InfiniteCanvas({
     }
   };
 
-  // Handle pan move
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isPanning) {
-      setOffset({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      });
+      setOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
     }
-
     if (draggingNode) {
       const newX = (e.clientX - offset.x) / zoom;
       const newY = (e.clientY - offset.y) / zoom;
@@ -165,16 +394,12 @@ export function InfiniteCanvas({
     }
   };
 
-  // Handle pan end
   const handleMouseUp = () => {
     setIsPanning(false);
     setDraggingNode(null);
-    if (connectingFrom) {
-      setConnectingFrom(null);
-    }
+    if (connectingFrom) setConnectingFrom(null);
   };
 
-  // Add new node
   const addNode = (parentId?: string) => {
     const parent = parentId ? nodes.find((n) => n.id === parentId) : null;
     const newNode: IdeaNode = {
@@ -185,19 +410,14 @@ export function InfiniteCanvas({
             x: parent.position.x + 250,
             y: parent.position.y + Math.random() * 100 - 50,
           }
-        : {
-            x: 400 + Math.random() * 200,
-            y: 300 + Math.random() * 200,
-          },
+        : { x: 400 + Math.random() * 200, y: 300 + Math.random() * 200 },
       color: `oklch(0.7 0.15 ${Math.random() * 360})`,
       connections: parentId ? [parentId] : [],
     };
-
     updateNodes([...nodes, newNode]);
     setSelectedNode(newNode.id);
   };
 
-  // Delete node
   const deleteNode = (id: string) => {
     updateNodes(
       nodes
@@ -231,47 +451,24 @@ export function InfiniteCanvas({
     }
   };
 
-  // Connect nodes
   const handleNodeClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     activateNode(id);
   };
-
-  // Handle node drag start
   const handleNodeDragStart = (id: string, e: React.MouseEvent) => {
     if (tool === "select") {
       e.stopPropagation();
       setDraggingNode(id);
     }
   };
-
-  // Update node content
-  const updateNodeContent = (id: string, content: string) => {
+  const updateNodeContent = (id: string, content: string) =>
     updateNodes(nodes.map((n) => (n.id === id ? { ...n, content } : n)));
-  };
 
-  // Zoom controls
   const zoomIn = () => setZoom(Math.min(MAX_ZOOM, zoom + 0.1));
   const zoomOut = () => setZoom(Math.max(MIN_ZOOM, zoom - 0.1));
   const resetZoom = () => {
     setZoom(1);
     setOffset({ x: 0, y: 0 });
-  };
-
-  // Calculate bezier path between two nodes
-  const getBezierPath = (from: IdeaNode, to: IdeaNode) => {
-    const fromX = from.position.x + 100;
-    const fromY = from.position.y + 30;
-    const toX = to.position.x + 100;
-    const toY = to.position.y + 30;
-
-    const midX = (fromX + toX) / 2;
-    const cp1x = midX;
-    const cp1y = fromY;
-    const cp2x = midX;
-    const cp2y = toY;
-
-    return `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
   };
 
   return (
@@ -291,105 +488,21 @@ export function InfiniteCanvas({
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Toolbar */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 p-2 bg-card border border-border rounded-lg shadow-lg">
-        <Button
-          variant={tool === "select" ? "default" : "ghost"}
-          size="icon"
-          onClick={() => setTool("select")}
-          title="أداة التحديد"
-        >
-          <MousePointer className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={tool === "pan" ? "default" : "ghost"}
-          size="icon"
-          onClick={() => setTool("pan")}
-          title="أداة السحب"
-        >
-          <Hand className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={tool === "connect" ? "default" : "ghost"}
-          size="icon"
-          onClick={() => setTool("connect")}
-          title="أداة الربط"
-        >
-          <Link2 className="h-4 w-4" />
-        </Button>
-        <div className="w-px h-6 bg-border mx-1" />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => addNode()}
-          title="إضافة فكرة"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        {selectedNode && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => deleteNode(selectedNode)}
-            title="حذف"
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+      <CanvasToolbar
+        tool={tool}
+        setTool={setTool}
+        selectedNode={selectedNode}
+        onAdd={() => addNode()}
+        onDelete={() => selectedNode && deleteNode(selectedNode)}
+      />
+      <CanvasZoomControls
+        zoom={zoom}
+        onZoomOut={zoomOut}
+        onZoomIn={zoomIn}
+        onReset={resetZoom}
+      />
+      <CanvasMiniMap nodes={nodes} offset={offset} zoom={zoom} />
 
-      {/* Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2 p-2 bg-card border border-border rounded-lg shadow-lg">
-        <Button variant="ghost" size="icon" onClick={zoomOut} title="تصغير">
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <span className="text-sm font-mono w-14 text-center">
-          {Math.round(zoom * 100)}%
-        </span>
-        <Button variant="ghost" size="icon" onClick={zoomIn} title="تكبير">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={resetZoom}
-          title="إعادة تعيين"
-        >
-          <Maximize2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* MiniMap */}
-      <div className="absolute bottom-4 left-4 z-10 w-40 h-28 bg-card border border-border rounded-lg shadow-lg overflow-hidden">
-        <div className="relative w-full h-full">
-          {nodes.map((node) => (
-            <div
-              key={node.id}
-              className="absolute w-2 h-2 rounded-full"
-              style={{
-                left: `${(node.position.x / 2000) * 100}%`,
-                top: `${(node.position.y / 1500) * 100}%`,
-                backgroundColor: node.color ?? "var(--brand)",
-              }}
-            />
-          ))}
-          {/* Viewport indicator */}
-          <div
-            className="absolute border-2 border-brand rounded"
-            style={{
-              left: `${(-offset.x / zoom / 2000) * 100}%`,
-              top: `${(-offset.y / zoom / 1500) * 100}%`,
-              width: `${100 / zoom}%`,
-              height: `${100 / zoom}%`,
-              maxWidth: "100%",
-              maxHeight: "100%",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Canvas Content */}
       <div
         ref={contentRef}
         className="infinite-canvas__content"
@@ -397,99 +510,22 @@ export function InfiniteCanvas({
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
         }}
       >
-        {/* Connections (SVG) */}
-        <svg className="absolute inset-0 w-[4000px] h-[3000px] pointer-events-none">
-          {nodes.map((node) =>
-            node.connections.map((connId) => {
-              const connectedNode = nodes.find((n) => n.id === connId);
-              if (!connectedNode) return null;
-              return (
-                <path
-                  key={`${node.id}-${connId}`}
-                  d={getBezierPath(connectedNode, node)}
-                  className="infinite-canvas__connection"
-                  style={{ stroke: node.color ?? "var(--border)" }}
-                />
-              );
-            })
-          )}
-        </svg>
-
-        {/* Nodes */}
+        <CanvasConnections nodes={nodes} getBezier={getBezierPath} />
         {nodes.map((node) => (
-          <div
+          <CanvasNodeItem
             key={node.id}
-            className={cn(
-              "infinite-canvas__node group",
-              selectedNode === node.id && "ring-2 ring-brand",
-              connectingFrom === node.id &&
-                "ring-2 ring-accent-creative animate-pulse"
-            )}
-            style={{
-              left: node.position.x,
-              top: node.position.y,
-              borderColor: node.color,
-            }}
-            role="button"
-            tabIndex={0}
-            onClick={(e) => handleNodeClick(node.id, e)}
-            onKeyDown={(e) => {
-              if (e.key !== "Enter" && e.key !== " ") return;
-              e.preventDefault();
-              activateNode(node.id);
-            }}
-            onMouseDown={(e) => handleNodeDragStart(node.id, e)}
-          >
-            {/* Color indicator */}
-            <div
-              className="absolute top-0 right-0 left-0 h-1 rounded-t-lg"
-              style={{ backgroundColor: node.color }}
-            />
-
-            {/* Content */}
-            <div className="pt-2">
-              <input
-                type="text"
-                value={node.content}
-                onChange={(e) => updateNodeContent(node.id, e.target.value)}
-                className="w-full bg-transparent border-none outline-none text-center font-medium"
-                dir="rtl"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-
-            {/* Quick actions */}
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-6 w-6 rounded-full shadow-md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addNode(node.id);
-                }}
-                title="إضافة فكرة فرعية"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-6 w-6 rounded-full shadow-md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // AI expand - placeholder
-                }}
-                title="توسيع بالذكاء الاصطناعي"
-              >
-                <Sparkles className="h-3 w-3 text-brand" />
-              </Button>
-            </div>
-          </div>
+            node={node}
+            selectedNode={selectedNode}
+            connectingFrom={connectingFrom}
+            onNodeClick={handleNodeClick}
+            onNodeDragStart={handleNodeDragStart}
+            onActivate={activateNode}
+            onUpdateContent={updateNodeContent}
+            onAddChild={addNode}
+          />
         ))}
       </div>
 
-      {/* Connecting line preview */}
       {connectingFrom && (
         <div className="absolute inset-0 pointer-events-none">
           <div className="text-center mt-4 text-sm text-muted-foreground bg-card/80 backdrop-blur-sm py-2 px-4 rounded-full mx-auto w-fit">

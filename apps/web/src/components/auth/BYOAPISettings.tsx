@@ -21,6 +21,171 @@ import {
  * 3. الاتصال المباشر بمزود الخدمة
  */
 
+interface FormData {
+  providerName: string;
+  endpointUrl: string;
+  apiKey: string;
+}
+
+interface TestResult {
+  success: boolean;
+  message: string;
+}
+
+function ProvidersList({
+  providers,
+  onDelete,
+}: {
+  providers: Omit<APIProviderConfig, "apiKey">[];
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <div className="mb-6">
+      <h3 className="text-lg font-semibold mb-3">المزودون المحفوظون</h3>
+      {providers.length === 0 ? (
+        <p className="text-gray-500">لا توجد إعدادات محفوظة</p>
+      ) : (
+        <div className="space-y-2">
+          {providers.map((provider) => (
+            <div
+              key={provider.id}
+              className="flex items-center justify-between p-3 border border-gray-300 rounded"
+            >
+              <div>
+                <p className="font-medium">{provider.providerName}</p>
+                <p className="text-sm text-gray-600" dir="ltr">
+                  {provider.endpointUrl}
+                </p>
+              </div>
+              <button
+                onClick={() => onDelete(provider.id)}
+                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                حذف
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddProviderForm({
+  formData,
+  setFormData,
+  onSave,
+  onTest,
+  onCancel,
+  testing,
+  testResult,
+}: {
+  formData: FormData;
+  setFormData: (d: FormData) => void;
+  onSave: (e: React.FormEvent) => void;
+  onTest: () => void;
+  onCancel: () => void;
+  testing: boolean;
+  testResult: TestResult | null;
+}) {
+  return (
+    <div className="border border-gray-300 rounded p-4">
+      <h3 className="text-lg font-semibold mb-4">إضافة مزود API</h3>
+      <form onSubmit={onSave} className="space-y-4">
+        <div>
+          <label
+            htmlFor="field-byoapisettings-1"
+            className="block text-sm font-medium mb-1"
+          >
+            اسم المزود
+          </label>
+          <input
+            id="field-byoapisettings-1"
+            type="text"
+            value={formData.providerName}
+            onChange={(e) =>
+              setFormData({ ...formData, providerName: e.target.value })
+            }
+            required
+            placeholder="مثال: Google Gemini, OpenAI, Groq"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="field-byoapisettings-2"
+            className="block text-sm font-medium mb-1"
+          >
+            Endpoint URL
+          </label>
+          <input
+            id="field-byoapisettings-2"
+            type="url"
+            value={formData.endpointUrl}
+            onChange={(e) =>
+              setFormData({ ...formData, endpointUrl: e.target.value })
+            }
+            required
+            placeholder="https://api.example.com/v1/chat"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            dir="ltr"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="field-byoapisettings-3"
+            className="block text-sm font-medium mb-1"
+          >
+            API Key
+          </label>
+          <input
+            id="field-byoapisettings-3"
+            type="password"
+            value={formData.apiKey}
+            onChange={(e) =>
+              setFormData({ ...formData, apiKey: e.target.value })
+            }
+            required
+            placeholder="sk-..."
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            dir="ltr"
+          />
+        </div>
+        {testResult && (
+          <div
+            className={`p-3 rounded ${testResult.success ? "bg-green-50 border border-green-300 text-green-700" : "bg-red-50 border border-red-300 text-red-700"}`}
+          >
+            {testResult.message}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onTest}
+            disabled={testing}
+            className="flex-1 py-2 px-4 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 disabled:opacity-50"
+          >
+            {testing ? "جارٍ الاختبار..." : "اختبار الاتصال"}
+          </button>
+          <button
+            type="submit"
+            className="flex-1 py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            حفظ
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 py-2 px-4 border border-gray-300 rounded hover:bg-gray-100"
+          >
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function BYOAPISettings() {
   const [providers, setProviders] = useState<
     Omit<APIProviderConfig, "apiKey">[]
@@ -116,11 +281,16 @@ export function BYOAPISettings() {
     }
   };
 
+  const cancelAdding = () => {
+    setIsAdding(false);
+    setFormData({ providerName: "", endpointUrl: "", apiKey: "" });
+    setTestResult(null);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6" dir="rtl">
       <h2 className="text-2xl font-bold mb-6">إعدادات BYO-API</h2>
 
-      {/* تحذير أمني */}
       <div className="bg-yellow-50 border-2 border-yellow-400 rounded p-4 mb-6">
         <h3 className="font-bold text-lg mb-2">⚠️ مهم: BYO-API</h3>
         <ul className="text-sm space-y-1 list-disc list-inside">
@@ -149,37 +319,8 @@ export function BYOAPISettings() {
         </div>
       )}
 
-      {/* قائمة المزودين الحاليين */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3">المزودون المحفوظون</h3>
-        {providers.length === 0 ? (
-          <p className="text-gray-500">لا توجد إعدادات محفوظة</p>
-        ) : (
-          <div className="space-y-2">
-            {providers.map((provider) => (
-              <div
-                key={provider.id}
-                className="flex items-center justify-between p-3 border border-gray-300 rounded"
-              >
-                <div>
-                  <p className="font-medium">{provider.providerName}</p>
-                  <p className="text-sm text-gray-600" dir="ltr">
-                    {provider.endpointUrl}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(provider.id)}
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  حذف
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <ProvidersList providers={providers} onDelete={handleDelete} />
 
-      {/* زر إضافة مزود جديد */}
       {!isAdding && (
         <button
           onClick={() => setIsAdding(true)}
@@ -189,115 +330,16 @@ export function BYOAPISettings() {
         </button>
       )}
 
-      {/* نموذج إضافة مزود */}
       {isAdding && (
-        <div className="border border-gray-300 rounded p-4">
-          <h3 className="text-lg font-semibold mb-4">إضافة مزود API</h3>
-
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label
-                htmlFor="field-byoapisettings-1"
-                className="block text-sm font-medium mb-1"
-              >
-                اسم المزود
-              </label>
-              <input
-                id="field-byoapisettings-1"
-                type="text"
-                value={formData.providerName}
-                onChange={(e) =>
-                  setFormData({ ...formData, providerName: e.target.value })
-                }
-                required
-                placeholder="مثال: Google Gemini, OpenAI, Groq"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="field-byoapisettings-2"
-                className="block text-sm font-medium mb-1"
-              >
-                Endpoint URL
-              </label>
-              <input
-                id="field-byoapisettings-2"
-                type="url"
-                value={formData.endpointUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, endpointUrl: e.target.value })
-                }
-                required
-                placeholder="https://api.example.com/v1/chat"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                dir="ltr"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="field-byoapisettings-3"
-                className="block text-sm font-medium mb-1"
-              >
-                API Key
-              </label>
-              <input
-                id="field-byoapisettings-3"
-                type="password"
-                value={formData.apiKey}
-                onChange={(e) =>
-                  setFormData({ ...formData, apiKey: e.target.value })
-                }
-                required
-                placeholder="sk-..."
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                dir="ltr"
-              />
-            </div>
-
-            {testResult && (
-              <div
-                className={`p-3 rounded ${testResult.success ? "bg-green-50 border border-green-300 text-green-700" : "bg-red-50 border border-red-300 text-red-700"}`}
-              >
-                {testResult.message}
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleTest}
-                disabled={testing}
-                className="flex-1 py-2 px-4 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 disabled:opacity-50"
-              >
-                {testing ? "جارٍ الاختبار..." : "اختبار الاتصال"}
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                حفظ
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setFormData({
-                    providerName: "",
-                    endpointUrl: "",
-                    apiKey: "",
-                  });
-                  setTestResult(null);
-                }}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded hover:bg-gray-100"
-              >
-                إلغاء
-              </button>
-            </div>
-          </form>
-        </div>
+        <AddProviderForm
+          formData={formData}
+          setFormData={setFormData}
+          onSave={handleSave}
+          onTest={handleTest}
+          onCancel={cancelAdding}
+          testing={testing}
+          testResult={testResult}
+        />
       )}
     </div>
   );

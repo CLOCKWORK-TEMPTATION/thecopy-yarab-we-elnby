@@ -50,6 +50,246 @@ export interface HybridResult {
   readonly classificationMethod: ClassificationMethod;
 }
 
+// ─── نتيجة تجميع أدلة التصنيف ────────────────────────────────────────
+
+interface HybridEvidenceResult {
+  readonly actionTotal: number;
+  readonly dialogueTotal: number;
+}
+
+// ─── أدوات مساعدة ────────────────────────────────────────────────────
+
+/** عدد كلمات السطر */
+const wordCount = (line: string): number =>
+  line.split(/\s+/).filter(Boolean).length;
+
+// ─── تصنيف بالـ regex ────────────────────────────────────────────────
+
+/** تصنيف بناءً على أنماط regex الحاسمة */
+const classifyByRegex = (
+  line: string,
+  normalizedLine: string
+): HybridResult | null => {
+  if (isStandaloneBasmalaLine(line)) {
+    return { type: "basmala", confidence: 99, classificationMethod: "regex" };
+  }
+  if (isCompleteSceneHeaderLine(line)) {
+    return {
+      type: "scene_header_1",
+      confidence: 96,
+      classificationMethod: "regex",
+    };
+  }
+  if (SCENE_NUMBER_EXACT_RE.test(normalizedLine)) {
+    return {
+      type: "scene_header_1",
+      confidence: 88,
+      classificationMethod: "regex",
+    };
+  }
+  if (isTransitionLine(line)) {
+    return {
+      type: "transition",
+      confidence: 95,
+      classificationMethod: "regex",
+    };
+  }
+  if (isSceneHeader3Line(normalizedLine)) {
+    return {
+      type: "scene_header_3",
+      confidence: 90,
+      classificationMethod: "regex",
+    };
+  }
+  return null;
+};
+
+// ─── تصنيف الشخصيات ──────────────────────────────────────────────────
+
+/** تصنيف الشخصيات الأحادية والمعروفة من الذاكرة */
+const classifyByCharacterHeuristics = (
+  line: string,
+  normalizedLine: string,
+  fallbackType: ElementType,
+  memory: ContextMemorySnapshot
+): HybridResult | null => {
+  const isSingleTokenCharCandidate =
+    /[:：]\s*$/.test(normalizedLine) &&
+    !SCENE_NUMBER_EXACT_RE.test(normalizedLine) &&
+    !isTransitionLine(normalizedLine) &&
+    wordCount(normalizedLine) <= 4 &&
+    !/[.!؟،]/.test(normalizedLine.replace(/[:：]\s*$/, ""));
+
+  if (isSingleTokenCharCandidate) {
+    const characterName = normalizeCharacterName(line);
+    const seenCount = memory.characterFrequency.get(characterName) ?? 0;
+    if (fallbackType === "character" || seenCount >= 1) {
+      return {
+        type: "character",
+        confidence: seenCount >= 1 ? 92 : 84,
+        classificationMethod: "context",
+      };
+    }
+    if (wordCount(normalizedLine.replace(/[:：]\s*$/, "")) === 1) {
+      return {
+        type: "character",
+        confidence: 78,
+        classificationMethod: "regex",
+      };
+    }
+  }
+
+  if (fallbackType === "character") {
+    const characterName = normalizeCharacterName(line);
+    const seenCount = memory.characterFrequency.get(characterName) ?? 0;
+    if (seenCount >= 1) {
+      return {
+        type: "character",
+        confidence: 92,
+        classificationMethod: "context",
+      };
+    }
+  }
+
+  return null;
+};
+
+// ─── حساب أدلة التصنيف ───────────────────────────────────────────────
+
+/** وزن متناقص لآخر N أنواع — الأحدث = أعلى */
+const CONTEXT_WEIGHTS = [5, 4, 3, 2, 1] as const;
+
+/** حساب context bonus لنوع معين من الأنواع السابقة */
+const contextBonus = (
+  targetType: "action" | "dialogue",
+  recentTypes: readonly string[]
+): number => {
+  const recent = recentTypes.slice(-CONTEXT_WEIGHTS.length);
+  let bonus = 0;
+  for (let i = 0; i < recent.length; i++) {
+    const weight = CONTEXT_WEIGHTS[CONTEXT_WEIGHTS.length - recent.length + i];
+    if (weight === undefined) continue;
+    if (recent[i] === targetType) bonus += weight;
+    if (targetType === "dialogue" && recent[i] === "parenthetical") {
+      bonus += Math.max(1, weight - 1);
+    }
+  }
+  return bonus;
+};
+
+/** حساب نقاط أدلة الوصف من ActionEvidence */
+const scoreActionEvidence = (
+  line: string
+): { score: number; hasVerbOrStructure: boolean } => {
+  const actionEv = collectActionEvidence(line);
+  let score = 0;
+  if (actionEv.byVerb) score += 3;
+  if (actionEv.byStructure) score += 2;
+  if (actionEv.byPattern) score += 2;
+  if (actionEv.byCue) score += 2;
+  if (actionEv.byDash) score += 3;
+  if (actionEv.byNarrativeSyntax) score += 1;
+  if (actionEv.byPronounAction) score += 1;
+  if (actionEv.byThenAction) score += 1;
+  if (actionEv.byAudioNarrative) score += 2;
+  if (wordCount(line) >= 4 && score > 0) score += 1;
+  return { score, hasVerbOrStructure: actionEv.byVerb || actionEv.byStructure };
+};
+
+/** حساب نقاط أدلة الحوار */
+const scoreDialogueEvidence = (line: string): number => {
+  let score = 0;
+  if (hasDirectDialogueCues(line)) score += 4;
+  const dp = getDialogueProbability(line);
+  if (dp >= 4) score += 3;
+  else if (dp >= 2) score += 1;
+  return score;
+};
+
+/** حساب bonus من DCG */
+const computeDcgBonus = (
+  lineCtx: LineContextInfo | undefined,
+  actionScore: number
+): { dcgActionBonus: number; dcgDialogueBonus: number } => {
+  if (!lineCtx) return { dcgActionBonus: 0, dcgDialogueBonus: 0 };
+  const dcgActionBonus =
+    lineCtx.scenePosition < 0.1 && lineCtx.sceneLinesCount > 3 ? 1 : 0;
+  const dcgDialogueBonus =
+    lineCtx.dialogueDensity > 0.7 && actionScore === 0 ? 1 : 0;
+  return { dcgActionBonus, dcgDialogueBonus };
+};
+
+/**
+ * تجميع أدلة التصنيف من مصادر متعددة + context bonus + dialogue flow breaker.
+ */
+const collectHybridEvidence = (
+  line: string,
+  _context: ClassificationContext,
+  memory: ContextMemorySnapshot,
+  lineCtx?: LineContextInfo
+): HybridEvidenceResult => {
+  const { score: actionScore, hasVerbOrStructure } = scoreActionEvidence(line);
+  const dialogueScore = scoreDialogueEvidence(line);
+
+  const actionCtx = contextBonus("action", memory.recentTypes);
+  const dialogueCtx = contextBonus("dialogue", memory.recentTypes);
+
+  const dialoguePenalty =
+    memory.isInDialogueFlow &&
+    hasVerbOrStructure &&
+    !hasDirectDialogueCues(line)
+      ? 8
+      : 0;
+
+  const { dcgActionBonus, dcgDialogueBonus } = computeDcgBonus(
+    lineCtx,
+    actionScore
+  );
+
+  return {
+    actionTotal: actionScore + actionCtx + dcgActionBonus,
+    dialogueTotal:
+      dialogueScore + dialogueCtx + dcgDialogueBonus - dialoguePenalty,
+  };
+};
+
+// ─── تصنيف بالأدلة ───────────────────────────────────────────────────
+
+/** تصنيف بناءً على الأدلة المجمّعة */
+const classifyByEvidence = (
+  line: string,
+  context: ClassificationContext,
+  memory: ContextMemorySnapshot,
+  lineCtx: LineContextInfo | undefined,
+  fallbackType: ElementType
+): HybridResult => {
+  const evidence = collectHybridEvidence(line, context, memory, lineCtx);
+
+  if (evidence.actionTotal > evidence.dialogueTotal + 1) {
+    return {
+      type: "action",
+      confidence: Math.min(92, 78 + evidence.actionTotal),
+      classificationMethod: "context",
+    };
+  }
+
+  if (evidence.dialogueTotal > evidence.actionTotal + 1) {
+    return {
+      type: "dialogue",
+      confidence: Math.min(92, 78 + evidence.dialogueTotal),
+      classificationMethod: "context",
+    };
+  }
+
+  return {
+    type: fallbackType,
+    confidence: 80,
+    classificationMethod: "context",
+  };
+};
+
+// ─── الفئة الرئيسية ────────────────────────────────────────────────────
+
 /**
  * مصنف هجين خفيف: regex قوي + سياق + ذاكرة قصيرة.
  * الهدف تحسين الحالات الرمادية بدون تبعيات خارجية.
@@ -76,226 +316,17 @@ export class HybridClassifier {
     pipelineRecorder.trackFile("hybrid-classifier.ts");
     const normalizedLine = normalizeLine(line);
 
-    // ── أولوية 1: أنماط regex حاسمة ──
-    if (isStandaloneBasmalaLine(line)) {
-      return { type: "basmala", confidence: 99, classificationMethod: "regex" };
-    }
+    const regexResult = classifyByRegex(line, normalizedLine);
+    if (regexResult) return regexResult;
 
-    if (isCompleteSceneHeaderLine(line)) {
-      return {
-        type: "scene_header_1",
-        confidence: 96,
-        classificationMethod: "regex",
-      };
-    }
+    const charResult = classifyByCharacterHeuristics(
+      line,
+      normalizedLine,
+      fallbackType,
+      memory
+    );
+    if (charResult) return charResult;
 
-    // ── أولوية 1.5: رأس مشهد جزئي (رقم المشهد فقط بدون header2، مثل 'مشهد 1:') ──
-    // isCompleteSceneHeaderLine يشترط وجود header2، هنا نكتشف الشكل الجزئي.
-    if (SCENE_NUMBER_EXACT_RE.test(normalizedLine)) {
-      return {
-        type: "scene_header_1",
-        confidence: 88,
-        classificationMethod: "regex",
-      };
-    }
-
-    if (isTransitionLine(line)) {
-      return {
-        type: "transition",
-        confidence: 95,
-        classificationMethod: "regex",
-      };
-    }
-
-    // ── أولوية 1.7: سطر مكان (scene_header_3) — يُفحص قبل الشخصية ──
-    // 'داخلي - المكان' و'خارجي - الموقع' يُصنَّفان كـ scene_header_3
-    if (isSceneHeader3Line(normalizedLine)) {
-      return {
-        type: "scene_header_3",
-        confidence: 90,
-        classificationMethod: "regex",
-      };
-    }
-
-    // ── أولوية 1.9: شخصية أحادية الرمز (تنتهي بـ ':' وقصيرة وليست رأس مشهد) ──
-    // isCharacterLine يرفض الأسماء أحادية الرمز بدون تأكيد مسبق — نُعيد قبولها هنا
-    // بشرط: لا تشترك مع أنماط الانتقال أو الوصف أو البسملة.
-    const isSingleTokenCharCandidate =
-      /[:：]\s*$/.test(normalizedLine) &&
-      !SCENE_NUMBER_EXACT_RE.test(normalizedLine) &&
-      !isTransitionLine(normalizedLine) &&
-      wordCount(normalizedLine) <= 4 &&
-      !/[.!؟،]/.test(normalizedLine.replace(/[:：]\s*$/, ""));
-
-    if (isSingleTokenCharCandidate) {
-      // إذا كان fallbackType شخصية أو الذاكرة تحتوي على الاسم → ثقة عالية
-      const characterName = normalizeCharacterName(line);
-      const seenCount = memory.characterFrequency.get(characterName) ?? 0;
-      if (fallbackType === "character" || seenCount >= 1) {
-        return {
-          type: "character",
-          confidence: seenCount >= 1 ? 92 : 84,
-          classificationMethod: "context",
-        };
-      }
-      // اسم غير معروف أحادي الرمز — ثقة معقولة بناءً على الشكل
-      if (wordCount(normalizedLine.replace(/[:：]\s*$/, "")) === 1) {
-        return {
-          type: "character",
-          confidence: 78,
-          classificationMethod: "regex",
-        };
-      }
-    }
-
-    // ── أولوية 2: شخصية معروفة من الذاكرة ──
-    if (fallbackType === "character") {
-      const characterName = normalizeCharacterName(line);
-      const seenCount = memory.characterFrequency.get(characterName) ?? 0;
-      if (seenCount >= 1) {
-        return {
-          type: "character",
-          confidence: 92,
-          classificationMethod: "context",
-        };
-      }
-    }
-
-    // ── أولوية 3: تصنيف مبني على أدلة (بدل التكرار الأعمى) ──
-    const evidence = collectHybridEvidence(line, context, memory, lineCtx);
-
-    // المقارنة: الفائز هو صاحب أعلى مجموع
-    if (evidence.actionTotal > evidence.dialogueTotal + 1) {
-      return {
-        type: "action",
-        confidence: Math.min(92, 78 + evidence.actionTotal),
-        classificationMethod: "context",
-      };
-    }
-
-    if (evidence.dialogueTotal > evidence.actionTotal + 1) {
-      return {
-        type: "dialogue",
-        confidence: Math.min(92, 78 + evidence.dialogueTotal),
-        classificationMethod: "context",
-      };
-    }
-
-    // متقاربين → نثق بالـ fallbackType
-    return {
-      type: fallbackType,
-      confidence: 80,
-      classificationMethod: "context",
-    };
+    return classifyByEvidence(line, context, memory, lineCtx, fallbackType);
   }
 }
-
-// ─── أدلة التصنيف الهجين ──────────────────────────────────────────
-
-/** نتيجة تجميع أدلة التصنيف */
-interface HybridEvidenceResult {
-  readonly actionTotal: number;
-  readonly dialogueTotal: number;
-}
-
-/** وزن متناقص لآخر N أنواع — الأحدث = أعلى */
-const CONTEXT_WEIGHTS = [5, 4, 3, 2, 1] as const;
-
-/**
- * حساب context bonus لنوع معين من الأنواع السابقة.
- * الأحدث بيساهم أكتر — وزن 5 لآخر نوع، 1 لخامس نوع.
- */
-const contextBonus = (
-  targetType: "action" | "dialogue",
-  recentTypes: readonly string[]
-): number => {
-  const recent = recentTypes.slice(-CONTEXT_WEIGHTS.length);
-  let bonus = 0;
-  for (let i = 0; i < recent.length; i++) {
-    const weight = CONTEXT_WEIGHTS[CONTEXT_WEIGHTS.length - recent.length + i];
-    if (weight === undefined) continue;
-    if (recent[i] === targetType) bonus += weight;
-    // parenthetical يساهم لصالح dialogue
-    if (targetType === "dialogue" && recent[i] === "parenthetical") {
-      bonus += Math.max(1, weight - 1);
-    }
-  }
-  return bonus;
-};
-
-/** عدد كلمات السطر */
-const wordCount = (line: string): number =>
-  line.split(/\s+/).filter(Boolean).length;
-
-/**
- * تجميع أدلة التصنيف من مصادر متعددة + context bonus + dialogue flow breaker.
- *
- * الخطوات:
- * 1. جمع أدلة action (من collectActionEvidence)
- * 2. جمع أدلة dialogue (من getDialogueProbability + hasDirectDialogueCues)
- * 3. حساب context bonus لكل نوع
- * 4. dialogue flow breaker: لو فيه action verb واضح جوا dialogue flow → penalty
- * 5. DCG bonus: بداية مشهد → action أرجح
- */
-const collectHybridEvidence = (
-  line: string,
-  _context: ClassificationContext,
-  memory: ContextMemorySnapshot,
-  lineCtx?: LineContextInfo
-): HybridEvidenceResult => {
-  // ── 1. أدلة Action ──
-  const actionEv = collectActionEvidence(line);
-  let actionScore = 0;
-  if (actionEv.byVerb) actionScore += 3;
-  if (actionEv.byStructure) actionScore += 2;
-  if (actionEv.byPattern) actionScore += 2;
-  if (actionEv.byCue) actionScore += 2;
-  if (actionEv.byDash) actionScore += 3;
-  if (actionEv.byNarrativeSyntax) actionScore += 1;
-  if (actionEv.byPronounAction) actionScore += 1;
-  if (actionEv.byThenAction) actionScore += 1;
-  if (actionEv.byAudioNarrative) actionScore += 2;
-  if (wordCount(line) >= 4 && actionScore > 0) actionScore += 1;
-
-  // ── 2. أدلة Dialogue ──
-  let dialogueScore = 0;
-  if (hasDirectDialogueCues(line)) dialogueScore += 4;
-  const dp = getDialogueProbability(line);
-  if (dp >= 4) dialogueScore += 3;
-  else if (dp >= 2) dialogueScore += 1;
-
-  // ── 3. Context Bonus ──
-  const actionCtx = contextBonus("action", memory.recentTypes);
-  const dialogueCtx = contextBonus("dialogue", memory.recentTypes);
-
-  // ── 4. Dialogue Flow Breaker ──
-  // لو فيه action verb واضح (byVerb أو byStructure) جوا dialogue flow → penalty
-  let dialoguePenalty = 0;
-  if (
-    memory.isInDialogueFlow &&
-    (actionEv.byVerb || actionEv.byStructure) &&
-    !hasDirectDialogueCues(line)
-  ) {
-    dialoguePenalty = 8;
-  }
-
-  // ── 5. DCG Bonus (محافظ — لا يقلب التصنيف بل يرجّح فقط) ──
-  let dcgActionBonus = 0;
-  let dcgDialogueBonus = 0;
-  if (lineCtx) {
-    // بداية مشهد → action أرجح (bonus خفيف)
-    if (lineCtx.scenePosition < 0.1 && lineCtx.sceneLinesCount > 3) {
-      dcgActionBonus += 1;
-    }
-    // منطقة حوار عالية الكثافة جداً + ما فيش أدلة action → dialogue أرجح
-    if (lineCtx.dialogueDensity > 0.7 && actionScore === 0) {
-      dcgDialogueBonus += 1;
-    }
-  }
-
-  return {
-    actionTotal: actionScore + actionCtx + dcgActionBonus,
-    dialogueTotal:
-      dialogueScore + dialogueCtx + dcgDialogueBonus - dialoguePenalty,
-  };
-};

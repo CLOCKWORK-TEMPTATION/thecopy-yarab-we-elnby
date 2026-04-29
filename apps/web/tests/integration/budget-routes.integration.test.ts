@@ -183,28 +183,27 @@ async function startRuntimeServer(): Promise<RuntimeServer> {
   return { port, stateDir, stdoutChunks, stderrChunks, stop };
 }
 
-describe("budget web integration routes", () => {
-  let runtimeServer: RuntimeServer | undefined;
+// Module-level shared server — started once, shared across all describes
+let sharedServer: RuntimeServer | undefined;
 
-  beforeAll(async () => {
-    runtimeServer = await startRuntimeServer();
-    Object.assign(process.env, {
-      NEXT_PUBLIC_BACKEND_URL: `http://127.0.0.1:${runtimeServer.port}`,
-      BACKEND_URL: `http://127.0.0.1:${runtimeServer.port}`,
-    });
-  }, 180_000);
-
-  afterAll(async () => {
-    await runtimeServer?.stop?.();
+beforeAll(async () => {
+  sharedServer = await startRuntimeServer();
+  Object.assign(process.env, {
+    NEXT_PUBLIC_BACKEND_URL: `http://127.0.0.1:${sharedServer.port}`,
+    BACKEND_URL: `http://127.0.0.1:${sharedServer.port}`,
   });
+}, 180_000);
 
+afterAll(async () => {
+  await sharedServer?.stop?.();
+});
+
+describe("budget web integration routes — Generate API", () => {
   it("يمرر توليد الميزانية عبر proxy route ويحافظ على العقد الكامل", async () => {
     const { POST } = await import("@/app/api/budget/generate/route");
     const request = new NextRequest("http://localhost/api/budget/generate", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
         title: "مواجهة ليلية",
         scenario:
@@ -234,12 +233,8 @@ describe("budget web integration routes", () => {
     const { POST } = await import("@/app/api/budget/generate/route");
     const request = new NextRequest("http://localhost/api/budget/generate", {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        title: "عنوان بلا سيناريو",
-      }),
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: "عنوان بلا سيناريو" }),
     });
 
     const response = await POST(request);
@@ -253,20 +248,20 @@ describe("budget web integration routes", () => {
     expect(payload.success).toBe(false);
     expect(payload.error).toContain("Invalid request payload");
   }, 120_000);
+});
 
+describe("budget web integration routes — App-State Proxy", () => {
   it("يحفظ حالة الميزانية ويستعيدها عبر app-state proxy الرسمي", async () => {
     const routeModule = await import("@/app/api/app-state/[app]/route");
     const context = { params: Promise.resolve({ app: "BUDGET" }) };
 
     const readRequest = new NextRequest(
       "http://localhost/api/app-state/BUDGET",
-      {
-        method: "GET",
-      }
+      { method: "GET" }
     );
     const readResponse = await routeModule.GET(readRequest, context);
-
     expect(readResponse.status).toBe(200);
+
     const { cookie, token } = extractCookiePair(
       readResponse.headers.get("set-cookie")
     );
@@ -301,8 +296,8 @@ describe("budget web integration routes", () => {
         [
           `App-state write failed with status ${writeResponse.status}.`,
           failurePayload,
-          runtimeServer?.stdoutChunks.join("\n") ?? "",
-          runtimeServer?.stderrChunks.join("\n") ?? "",
+          sharedServer?.stdoutChunks.join("\n") ?? "",
+          sharedServer?.stderrChunks.join("\n") ?? "",
         ].join("\n---\n")
       );
     }
@@ -310,9 +305,7 @@ describe("budget web integration routes", () => {
 
     const verifyRequest = new NextRequest(
       "http://localhost/api/app-state/BUDGET",
-      {
-        method: "GET",
-      }
+      { method: "GET" }
     );
     const verifyResponse = await routeModule.GET(verifyRequest, context);
     expect(verifyResponse.status).toBe(200);

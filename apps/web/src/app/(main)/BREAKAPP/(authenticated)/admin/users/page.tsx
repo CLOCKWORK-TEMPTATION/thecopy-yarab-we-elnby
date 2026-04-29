@@ -31,6 +31,103 @@ interface ProjectMember {
   joinedAt: string;
 }
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface ProjectSelectorProps {
+  projects: AdminProject[];
+  selectedProjectId: string;
+  loadingProjects: boolean;
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+}
+
+function ProjectSelector({
+  projects,
+  selectedProjectId,
+  loadingProjects,
+  onChange,
+}: ProjectSelectorProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <label
+        htmlFor="field-page-1"
+        className="block text-sm font-medium text-white mb-2 font-cairo"
+      >
+        المشروع
+      </label>
+      <select
+        id="field-page-1"
+        value={selectedProjectId}
+        onChange={onChange}
+        disabled={loadingProjects || projects.length === 0}
+        className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
+      >
+        {projects.length === 0 ? (
+          <option value="" className="bg-black text-white">
+            لا توجد مشاريع
+          </option>
+        ) : (
+          projects.map((project: AdminProject) => (
+            <option
+              key={project.id}
+              value={project.id}
+              className="bg-black text-white"
+            >
+              {project.name}
+            </option>
+          ))
+        )}
+      </select>
+    </CardSpotlight>
+  );
+}
+
+interface MembersListCardProps {
+  members: ProjectMember[];
+  loadingMembers: boolean;
+}
+
+function MembersListCard({ members, loadingMembers }: MembersListCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        الأعضاء ({members.length})
+      </h2>
+      {loadingMembers ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
+        </div>
+      ) : members.length === 0 ? (
+        <p className="text-white/55 text-center py-8 font-cairo">
+          لا يوجد أعضاء في هذا المشروع بعد
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {members.map((member: ProjectMember) => (
+            <div
+              key={`${member.userId}-${member.joinedAt}`}
+              className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white font-mono truncate">
+                  {member.userId}
+                </p>
+                <p className="text-xs text-white/45 mt-1 font-cairo">
+                  انضمّ في {new Date(member.joinedAt).toLocaleString("ar-SA")}
+                </p>
+              </div>
+              <span className="px-3 py-1 text-xs bg-white/8 text-white rounded-full font-cairo border border-white/12">
+                {getRoleLabel(member.role)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function AdminUsersPage() {
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -44,9 +141,7 @@ export default function AdminUsersPage() {
       const response = await api.get<AdminProject[]>("/admin/projects");
       setProjects(response.data);
       const first = response.data[0];
-      if (first) {
-        setSelectedProjectId(first.id);
-      }
+      if (first) setSelectedProjectId(first.id);
     } catch (error: unknown) {
       const axiosError = error as { message?: string };
       toast({
@@ -117,74 +212,14 @@ export default function AdminUsersPage() {
           </Link>
         </div>
 
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <label
-            htmlFor="field-page-1"
-            className="block text-sm font-medium text-white mb-2 font-cairo"
-          >
-            المشروع
-          </label>
-          <select
-            id="field-page-1"
-            value={selectedProjectId}
-            onChange={handleProjectChange}
-            disabled={loadingProjects || projects.length === 0}
-            className="w-full px-4 py-2 border border-white/8 rounded-[22px] bg-white/4 text-white focus:ring-2 focus:ring-white/20 focus:border-transparent font-cairo disabled:opacity-50"
-          >
-            {projects.length === 0 ? (
-              <option value="" className="bg-black text-white">
-                لا توجد مشاريع
-              </option>
-            ) : (
-              projects.map((project: AdminProject) => (
-                <option
-                  key={project.id}
-                  value={project.id}
-                  className="bg-black text-white"
-                >
-                  {project.name}
-                </option>
-              ))
-            )}
-          </select>
-        </CardSpotlight>
+        <ProjectSelector
+          projects={projects}
+          selectedProjectId={selectedProjectId}
+          loadingProjects={loadingProjects}
+          onChange={handleProjectChange}
+        />
 
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            الأعضاء ({members.length})
-          </h2>
-          {loadingMembers ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/40" />
-            </div>
-          ) : members.length === 0 ? (
-            <p className="text-white/55 text-center py-8 font-cairo">
-              لا يوجد أعضاء في هذا المشروع بعد
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {members.map((member: ProjectMember) => (
-                <div
-                  key={`${member.userId}-${member.joinedAt}`}
-                  className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4 border border-white/8 rounded-[22px] bg-white/[0.02]"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white font-mono truncate">
-                      {member.userId}
-                    </p>
-                    <p className="text-xs text-white/45 mt-1 font-cairo">
-                      انضمّ في{" "}
-                      {new Date(member.joinedAt).toLocaleString("ar-SA")}
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 text-xs bg-white/8 text-white rounded-full font-cairo border border-white/12">
-                    {getRoleLabel(member.role)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardSpotlight>
+        <MembersListCard members={members} loadingMembers={loadingMembers} />
       </div>
     </div>
   );

@@ -22,6 +22,212 @@ import type { SceneRhythmAnalysis, TempoLevel } from "../../types";
 
 type RhythmTab = "map" | "comparison" | "monotony" | "suggestions";
 
+// ─── Helper functions (file-level) ───
+
+function getTempoColor(tempo: TempoLevel): string {
+  switch (tempo) {
+    case "slow":
+      return "bg-blue-400";
+    case "medium":
+      return "bg-green-400";
+    case "fast":
+      return "bg-orange-400";
+    case "very-fast":
+      return "bg-red-500";
+    default:
+      return "bg-white/45";
+  }
+}
+
+function getTempoLabel(tempo: TempoLevel): string {
+  switch (tempo) {
+    case "slow":
+      return "بطيء";
+    case "medium":
+      return "متوسط";
+    case "fast":
+      return "سريع";
+    case "very-fast":
+      return "سريع جداً";
+    default:
+      return tempo;
+  }
+}
+
+// ─── Tab content sub-components ───
+
+interface RhythmMapTabProps {
+  analysis: SceneRhythmAnalysis;
+}
+
+function RhythmMapTab({ analysis }: RhythmMapTabProps) {
+  return (
+    <div className="space-y-4">
+      <div className="bg-blue-500/20 p-4 rounded-lg border border-blue-500/30">
+        <h4 className="font-semibold mb-2 text-white">📋 ملخص التحليل:</h4>
+        <p className="text-white/68">{analysis.summary}</p>
+      </div>
+      <div className="space-y-2">
+        {analysis.rhythmMap.map((point, idx) => (
+          <div
+            key={idx}
+            className="flex items-center gap-3 p-3 bg-white/[0.04] rounded-lg border border-white/8"
+          >
+            <div
+              className={`w-10 h-10 rounded-full ${getTempoColor(point.tempo)} flex items-center justify-center text-white font-bold`}
+            >
+              {idx + 1}
+            </div>
+            <div className="flex-1">
+              <div className="font-medium text-white">{point.beat}</div>
+              <div className="text-sm text-white/55">
+                {point.emotion} • {getTempoLabel(point.tempo)}
+              </div>
+            </div>
+            <div className="text-left">
+              <Progress value={point.intensity} className="w-20" />
+              <span className="text-xs text-white/45">{point.intensity}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface ComparisonTabProps {
+  analysis: SceneRhythmAnalysis;
+}
+
+function ComparisonTab({ analysis }: ComparisonTabProps) {
+  return (
+    <div className="space-y-4">
+      {analysis.comparisons.map((comp, idx) => (
+        <div
+          key={idx}
+          className="bg-white/[0.04] p-4 rounded-lg border border-white/8"
+        >
+          <div className="flex justify-between items-start mb-3">
+            <h5 className="font-semibold text-white">{comp.aspect}</h5>
+            <Badge variant={comp.difference >= 0 ? "default" : "outline"}>
+              {comp.difference >= 0 ? `+${comp.difference}` : comp.difference}
+            </Badge>
+          </div>
+          <p className="text-sm text-white/68">💡 {comp.feedback}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface MonotonyTabProps {
+  analysis: SceneRhythmAnalysis;
+}
+
+function MonotonyTab({ analysis }: MonotonyTabProps) {
+  return (
+    <div className="space-y-4">
+      {analysis.monotonyAlerts.map((alert, idx) => (
+        <div
+          key={idx}
+          className={`p-4 rounded-lg border-2 ${
+            alert.severity === "low"
+              ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-100"
+              : alert.severity === "medium"
+                ? "bg-orange-500/20 border-orange-400/50 text-orange-100"
+                : "bg-red-500/20 border-red-400/50 text-red-100"
+          }`}
+        >
+          <h5 className="font-semibold mb-1">{alert.description}</h5>
+          <p className="text-sm">💡 {alert.suggestion}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface SuggestionsTabProps {
+  analysis: SceneRhythmAnalysis;
+}
+
+function SuggestionsTab({ analysis }: SuggestionsTabProps) {
+  return (
+    <div className="space-y-4">
+      {analysis.emotionalSuggestions.map((sugg, idx) => (
+        <Card key={idx} className="bg-white/[0.04] border-white/8">
+          <CardHeader>
+            <CardTitle className="text-base text-white">
+              &quot;{sugg.segment}&quot;
+            </CardTitle>
+            <CardDescription className="text-white/68">
+              {sugg.currentEmotion} ← {sugg.suggestedEmotion}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-white/68">
+            <p>
+              <strong>التقنية:</strong> {sugg.technique}
+            </p>
+            <p>
+              <strong>مثال:</strong> {sugg.example}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+interface RhythmResultsProps {
+  rhythmAnalysis: SceneRhythmAnalysis;
+  selectedRhythmTab: RhythmTab;
+  setSelectedRhythmTab: (tab: RhythmTab) => void;
+}
+
+function RhythmResults({
+  rhythmAnalysis,
+  selectedRhythmTab,
+  setSelectedRhythmTab,
+}: RhythmResultsProps) {
+  const tabs: { id: RhythmTab; label: string }[] = [
+    { id: "map", label: "🗺️ خريطة الإيقاع" },
+    { id: "comparison", label: "📊 المقارنة" },
+    { id: "monotony", label: "⚠️ اكتشاف الرتابة" },
+    { id: "suggestions", label: "🎨 التلوين العاطفي" },
+  ];
+
+  return (
+    <>
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={selectedRhythmTab === tab.id ? "default" : "outline"}
+            onClick={() => setSelectedRhythmTab(tab.id)}
+            size="sm"
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
+
+      {selectedRhythmTab === "map" && (
+        <RhythmMapTab analysis={rhythmAnalysis} />
+      )}
+      {selectedRhythmTab === "comparison" && (
+        <ComparisonTab analysis={rhythmAnalysis} />
+      )}
+      {selectedRhythmTab === "monotony" && (
+        <MonotonyTab analysis={rhythmAnalysis} />
+      )}
+      {selectedRhythmTab === "suggestions" && (
+        <SuggestionsTab analysis={rhythmAnalysis} />
+      )}
+    </>
+  );
+}
+
+// ─── Main component ───
+
 export function SceneRhythmView() {
   const { showNotification } = useApp();
   const [rhythmScriptText, setRhythmScriptText] = useState("");
@@ -48,36 +254,6 @@ export function SceneRhythmView() {
     setAnalyzingRhythm(false);
     showNotification("success", "تم تحليل إيقاع المشهد بنجاح!");
   }, [rhythmScriptText, showNotification]);
-
-  const getTempoColor = (tempo: TempoLevel): string => {
-    switch (tempo) {
-      case "slow":
-        return "bg-blue-400";
-      case "medium":
-        return "bg-green-400";
-      case "fast":
-        return "bg-orange-400";
-      case "very-fast":
-        return "bg-red-500";
-      default:
-        return "bg-white/45";
-    }
-  };
-
-  const getTempoLabel = (tempo: TempoLevel): string => {
-    switch (tempo) {
-      case "slow":
-        return "بطيء";
-      case "medium":
-        return "متوسط";
-      case "fast":
-        return "سريع";
-      case "very-fast":
-        return "سريع جداً";
-      default:
-        return tempo;
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto py-8">
@@ -152,163 +328,11 @@ export function SceneRhythmView() {
                 <p className="text-xl">أدخل نصاً وابدأ التحليل لرؤية النتائج</p>
               </div>
             ) : (
-              <>
-                <div className="flex gap-2 mb-6 flex-wrap">
-                  <Button
-                    variant={
-                      selectedRhythmTab === "map" ? "default" : "outline"
-                    }
-                    onClick={() => setSelectedRhythmTab("map")}
-                    size="sm"
-                  >
-                    🗺️ خريطة الإيقاع
-                  </Button>
-                  <Button
-                    variant={
-                      selectedRhythmTab === "comparison" ? "default" : "outline"
-                    }
-                    onClick={() => setSelectedRhythmTab("comparison")}
-                    size="sm"
-                  >
-                    📊 المقارنة
-                  </Button>
-                  <Button
-                    variant={
-                      selectedRhythmTab === "monotony" ? "default" : "outline"
-                    }
-                    onClick={() => setSelectedRhythmTab("monotony")}
-                    size="sm"
-                  >
-                    ⚠️ اكتشاف الرتابة
-                  </Button>
-                  <Button
-                    variant={
-                      selectedRhythmTab === "suggestions"
-                        ? "default"
-                        : "outline"
-                    }
-                    onClick={() => setSelectedRhythmTab("suggestions")}
-                    size="sm"
-                  >
-                    🎨 التلوين العاطفي
-                  </Button>
-                </div>
-
-                {selectedRhythmTab === "map" && (
-                  <div className="space-y-4">
-                    <div className="bg-blue-500/20 p-4 rounded-lg border border-blue-500/30">
-                      <h4 className="font-semibold mb-2 text-white">
-                        📋 ملخص التحليل:
-                      </h4>
-                      <p className="text-white/68">{rhythmAnalysis.summary}</p>
-                    </div>
-                    <div className="space-y-2">
-                      {rhythmAnalysis.rhythmMap.map((point, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 p-3 bg-white/[0.04] rounded-lg border border-white/8"
-                        >
-                          <div
-                            className={`w-10 h-10 rounded-full ${getTempoColor(point.tempo)} flex items-center justify-center text-white font-bold`}
-                          >
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium text-white">
-                              {point.beat}
-                            </div>
-                            <div className="text-sm text-white/55">
-                              {point.emotion} • {getTempoLabel(point.tempo)}
-                            </div>
-                          </div>
-                          <div className="text-left">
-                            <Progress
-                              value={point.intensity}
-                              className="w-20"
-                            />
-                            <span className="text-xs text-white/45">
-                              {point.intensity}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedRhythmTab === "comparison" && (
-                  <div className="space-y-4">
-                    {rhythmAnalysis.comparisons.map((comp, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-white/[0.04] p-4 rounded-lg border border-white/8"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <h5 className="font-semibold text-white">
-                            {comp.aspect}
-                          </h5>
-                          <Badge
-                            variant={
-                              comp.difference >= 0 ? "default" : "outline"
-                            }
-                          >
-                            {comp.difference >= 0
-                              ? `+${comp.difference}`
-                              : comp.difference}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-white/68">
-                          💡 {comp.feedback}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {selectedRhythmTab === "monotony" && (
-                  <div className="space-y-4">
-                    {rhythmAnalysis.monotonyAlerts.map((alert, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-4 rounded-lg border-2 ${alert.severity === "low" ? "bg-yellow-500/20 border-yellow-400/50 text-yellow-100" : alert.severity === "medium" ? "bg-orange-500/20 border-orange-400/50 text-orange-100" : "bg-red-500/20 border-red-400/50 text-red-100"}`}
-                      >
-                        <h5 className="font-semibold mb-1">
-                          {alert.description}
-                        </h5>
-                        <p className="text-sm">💡 {alert.suggestion}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {selectedRhythmTab === "suggestions" && (
-                  <div className="space-y-4">
-                    {rhythmAnalysis.emotionalSuggestions.map((sugg, idx) => (
-                      <Card
-                        key={idx}
-                        className="bg-white/[0.04] border-white/8"
-                      >
-                        <CardHeader>
-                          <CardTitle className="text-base text-white">
-                            &quot;{sugg.segment}&quot;
-                          </CardTitle>
-                          <CardDescription className="text-white/68">
-                            {sugg.currentEmotion} ← {sugg.suggestedEmotion}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm text-white/68">
-                          <p>
-                            <strong>التقنية:</strong> {sugg.technique}
-                          </p>
-                          <p>
-                            <strong>مثال:</strong> {sugg.example}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </>
+              <RhythmResults
+                rhythmAnalysis={rhythmAnalysis}
+                selectedRhythmTab={selectedRhythmTab}
+                setSelectedRhythmTab={setSelectedRhythmTab}
+              />
             )}
           </CardContent>
         </Card>

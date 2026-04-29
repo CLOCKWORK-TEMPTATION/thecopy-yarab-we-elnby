@@ -20,44 +20,191 @@ interface SustainabilityReport {
   environmentalImpact: string;
 }
 
+interface FormData {
+  name: string;
+  nameAr: string;
+  category: string;
+  condition: string;
+  dimensions: string;
+}
+
+interface AddPieceFormProps {
+  formData: FormData;
+  loading: boolean;
+  onChange: (data: FormData) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+function AddPieceForm({
+  formData,
+  loading,
+  onChange,
+  onSubmit,
+  onCancel,
+}: AddPieceFormProps) {
+  return (
+    <div className="add-form card fade-in">
+      <h3>إضافة قطعة ديكور</h3>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="field-sets-1">الاسم (عربي)</label>
+          <input
+            id="field-sets-1"
+            type="text"
+            className="input"
+            placeholder="مثال: كنبة كلاسيكية"
+            value={formData.nameAr}
+            onChange={(e) => onChange({ ...formData, nameAr: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-sets-2">الاسم (إنجليزي)</label>
+          <input
+            id="field-sets-2"
+            type="text"
+            className="input"
+            placeholder="Example: Classic Sofa"
+            value={formData.name}
+            onChange={(e) => onChange({ ...formData, name: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-sets-3">الفئة</label>
+          <select
+            id="field-sets-3"
+            className="input"
+            value={formData.category}
+            onChange={(e) =>
+              onChange({ ...formData, category: e.target.value })
+            }
+          >
+            <option value="furniture">أثاث</option>
+            <option value="props">إكسسوارات</option>
+            <option value="lighting">إضاءة</option>
+            <option value="textiles">أقمشة</option>
+            <option value="structural">هياكل</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-sets-4">الحالة</label>
+          <select
+            id="field-sets-4"
+            className="input"
+            value={formData.condition}
+            onChange={(e) =>
+              onChange({ ...formData, condition: e.target.value })
+            }
+          >
+            <option value="excellent">ممتاز</option>
+            <option value="good">جيد</option>
+            <option value="fair">مقبول</option>
+            <option value="poor">سيء</option>
+          </select>
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="field-sets-5">الأبعاد</label>
+          <input
+            id="field-sets-5"
+            type="text"
+            className="input"
+            placeholder="مثال: 200×80×90 سم"
+            value={formData.dimensions}
+            onChange={(e) =>
+              onChange({ ...formData, dimensions: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="form-actions">
+        <button className="btn" onClick={onSubmit} disabled={loading}>
+          <Plus size={18} />
+          {loading ? "جاري الإضافة..." : "إضافة"}
+        </button>
+        <button className="btn btn-secondary" onClick={onCancel}>
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface SustainabilityReportCardProps {
+  report: SustainabilityReport;
+}
+
+function SustainabilityReportCard({ report }: SustainabilityReportCardProps) {
+  return (
+    <div className="sustainability-report card fade-in">
+      <h3>
+        <Leaf size={20} /> تقرير الاستدامة
+      </h3>
+      <div className="report-stats">
+        <div className="report-stat">
+          <span className="stat-value">{report.totalPieces}</span>
+          <span className="stat-label">إجمالي القطع</span>
+        </div>
+        <div className="report-stat">
+          <span className="stat-value" style={{ color: "#4ade80" }}>
+            {report.reusablePercentage}%
+          </span>
+          <span className="stat-label">قابل لإعادة الاستخدام</span>
+        </div>
+        <div className="report-stat">
+          <span className="stat-value" style={{ color: "#fbbf24" }}>
+            ${report.estimatedSavings}
+          </span>
+          <span className="stat-label">توفير متوقع</span>
+        </div>
+      </div>
+      <div className="environmental-impact">
+        <Recycle size={18} />
+        <span>{report.environmentalImpact}</span>
+      </div>
+    </div>
+  );
+}
+
+function getConditionColor(condition: string) {
+  switch (condition) {
+    case "excellent":
+      return "#4ade80";
+    case "good":
+      return "#fbbf24";
+    case "fair":
+      return "#f97316";
+    default:
+      return "#ef4444";
+  }
+}
+
+function getConditionLabel(condition: string) {
+  switch (condition) {
+    case "excellent":
+      return "ممتاز";
+    case "good":
+      return "جيد";
+    case "fair":
+      return "مقبول";
+    default:
+      return "سيء";
+  }
+}
+
+const defaultFormData: FormData = {
+  name: "",
+  nameAr: "",
+  category: "furniture",
+  condition: "excellent",
+  dimensions: "",
+};
+
 function Sets() {
   const [pieces, setPieces] = useState<SetPiece[]>([]);
   const [report, setReport] = useState<SustainabilityReport | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    nameAr: "",
-    category: "furniture",
-    condition: "excellent",
-    dimensions: "",
-  });
-
-  const handleAddPiece = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(artDirectorApiPath("/sets/add-piece"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = (await response.json()) as { success?: boolean };
-      if (data.success) {
-        setShowAddForm(false);
-        setFormData({
-          name: "",
-          nameAr: "",
-          category: "furniture",
-          condition: "excellent",
-          dimensions: "",
-        });
-        await loadInventory();
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-    setLoading(false);
-  };
+  const [formData, setFormData] = useState<FormData>(defaultFormData);
 
   const loadInventory = async () => {
     try {
@@ -76,6 +223,26 @@ function Sets() {
     } catch (error) {
       console.error("Error:", error);
     }
+  };
+
+  const handleAddPiece = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(artDirectorApiPath("/sets/add-piece"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = (await response.json()) as { success?: boolean };
+      if (data.success) {
+        setShowAddForm(false);
+        setFormData(defaultFormData);
+        await loadInventory();
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+    setLoading(false);
   };
 
   const loadSustainabilityReport = async () => {
@@ -100,32 +267,6 @@ function Sets() {
       console.error("Error:", error);
     }
     setLoading(false);
-  };
-
-  const getConditionColor = (condition: string) => {
-    switch (condition) {
-      case "excellent":
-        return "#4ade80";
-      case "good":
-        return "#fbbf24";
-      case "fair":
-        return "#f97316";
-      default:
-        return "#ef4444";
-    }
-  };
-
-  const getConditionLabel = (condition: string) => {
-    switch (condition) {
-      case "excellent":
-        return "ممتاز";
-      case "good":
-        return "جيد";
-      case "fair":
-        return "مقبول";
-      default:
-        return "سيء";
-    }
   };
 
   return (
@@ -157,126 +298,16 @@ function Sets() {
       </div>
 
       {showAddForm && (
-        <div className="add-form card fade-in">
-          <h3>إضافة قطعة ديكور</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="field-sets-1">الاسم (عربي)</label>
-              <input
-                id="field-sets-1"
-                type="text"
-                className="input"
-                placeholder="مثال: كنبة كلاسيكية"
-                value={formData.nameAr}
-                onChange={(e) =>
-                  setFormData({ ...formData, nameAr: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-sets-2">الاسم (إنجليزي)</label>
-              <input
-                id="field-sets-2"
-                type="text"
-                className="input"
-                placeholder="Example: Classic Sofa"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-sets-3">الفئة</label>
-              <select
-                id="field-sets-3"
-                className="input"
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-              >
-                <option value="furniture">أثاث</option>
-                <option value="props">إكسسوارات</option>
-                <option value="lighting">إضاءة</option>
-                <option value="textiles">أقمشة</option>
-                <option value="structural">هياكل</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-sets-4">الحالة</label>
-              <select
-                id="field-sets-4"
-                className="input"
-                value={formData.condition}
-                onChange={(e) =>
-                  setFormData({ ...formData, condition: e.target.value })
-                }
-              >
-                <option value="excellent">ممتاز</option>
-                <option value="good">جيد</option>
-                <option value="fair">مقبول</option>
-                <option value="poor">سيء</option>
-              </select>
-            </div>
-            <div className="form-group full-width">
-              <label htmlFor="field-sets-5">الأبعاد</label>
-              <input
-                id="field-sets-5"
-                type="text"
-                className="input"
-                placeholder="مثال: 200×80×90 سم"
-                value={formData.dimensions}
-                onChange={(e) =>
-                  setFormData({ ...formData, dimensions: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button className="btn" onClick={handleAddPiece} disabled={loading}>
-              <Plus size={18} />
-              {loading ? "جاري الإضافة..." : "إضافة"}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowAddForm(false)}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        <AddPieceForm
+          formData={formData}
+          loading={loading}
+          onChange={setFormData}
+          onSubmit={handleAddPiece}
+          onCancel={() => setShowAddForm(false)}
+        />
       )}
 
-      {report && (
-        <div className="sustainability-report card fade-in">
-          <h3>
-            <Leaf size={20} /> تقرير الاستدامة
-          </h3>
-          <div className="report-stats">
-            <div className="report-stat">
-              <span className="stat-value">{report.totalPieces}</span>
-              <span className="stat-label">إجمالي القطع</span>
-            </div>
-            <div className="report-stat">
-              <span className="stat-value" style={{ color: "#4ade80" }}>
-                {report.reusablePercentage}%
-              </span>
-              <span className="stat-label">قابل لإعادة الاستخدام</span>
-            </div>
-            <div className="report-stat">
-              <span className="stat-value" style={{ color: "#fbbf24" }}>
-                ${report.estimatedSavings}
-              </span>
-              <span className="stat-label">توفير متوقع</span>
-            </div>
-          </div>
-          <div className="environmental-impact">
-            <Recycle size={18} />
-            <span>{report.environmentalImpact}</span>
-          </div>
-        </div>
-      )}
+      {report && <SustainabilityReportCard report={report} />}
 
       <div className="pieces-grid grid grid-4">
         {pieces.length === 0 ? (

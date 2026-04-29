@@ -128,6 +128,72 @@ const SceneCard = memo(function SceneCard({
   );
 });
 
+function ScenesGrid({
+  scenes,
+  deleteConfirmId,
+  onEdit,
+  onDelete,
+  onCancelDelete,
+  onAdd,
+}: {
+  scenes: Scene[];
+  deleteConfirmId: string | null;
+  onEdit: (scene: Scene) => void;
+  onDelete: (sceneId: string) => Promise<void>;
+  onCancelDelete: () => void;
+  onAdd: () => void;
+}) {
+  if (scenes.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Layers className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
+        <p className="text-[var(--app-text-muted)]">لا توجد مشاهد حتى الآن</p>
+        <Button
+          className="mt-4 bg-[var(--app-accent)] text-white hover:bg-[var(--app-accent)]/90"
+          onClick={onAdd}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          إنشاء مشهد جديد
+        </Button>
+      </div>
+    );
+  }
+  if (scenes.length > 10) {
+    return (
+      <VirtualizedGrid
+        items={scenes}
+        renderItem={(scene) => (
+          <SceneCard
+            key={scene.id}
+            scene={scene}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            deleteConfirmId={deleteConfirmId}
+            onCancelDelete={onCancelDelete}
+          />
+        )}
+        columnCount={3}
+        itemHeight={350}
+        itemWidth={350}
+      />
+    );
+  }
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {scenes.map((scene) => (
+        <SceneCard
+          key={scene.id}
+          scene={scene}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          deleteConfirmId={deleteConfirmId}
+          onCancelDelete={onCancelDelete}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function ScenesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedScene, setSelectedScene] = useState<Scene | null>(null);
@@ -238,51 +304,14 @@ export default function ScenesPage() {
         </Button>
       </div>
 
-      {scenes && scenes.length > 10 ? (
-        <VirtualizedGrid
-          items={scenes}
-          renderItem={(scene) => (
-            <SceneCard
-              key={scene.id}
-              scene={scene}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              deleteConfirmId={deleteConfirmId}
-              onCancelDelete={handleCancelDelete}
-            />
-          )}
-          columnCount={3}
-          itemHeight={350}
-          itemWidth={350}
-        />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {scenes?.map((scene) => (
-            <SceneCard
-              key={scene.id}
-              scene={scene}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              deleteConfirmId={deleteConfirmId}
-              onCancelDelete={handleCancelDelete}
-            />
-          ))}
-        </div>
-      )}
-
-      {scenes?.length === 0 && (
-        <div className="text-center py-12">
-          <Layers className="h-16 w-16 mx-auto text-[var(--app-text-muted)] mb-4" />
-          <p className="text-[var(--app-text-muted)]">لا توجد مشاهد حتى الآن</p>
-          <Button
-            className="mt-4 bg-[var(--app-accent)] text-white hover:bg-[var(--app-accent)]/90"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            إنشاء مشهد جديد
-          </Button>
-        </div>
-      )}
+      <ScenesGrid
+        scenes={scenes ?? []}
+        deleteConfirmId={deleteConfirmId}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onCancelDelete={handleCancelDelete}
+        onAdd={() => setIsDialogOpen(true)}
+      />
 
       <SceneFormDialog
         open={isDialogOpen}

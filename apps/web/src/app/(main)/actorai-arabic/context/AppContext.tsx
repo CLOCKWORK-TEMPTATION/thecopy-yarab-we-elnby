@@ -50,6 +50,69 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
+const DEFAULT_SCRIPTS: Script[] = [
+  {
+    id: "1",
+    title: "روميو وجولييت - مشهد الشرفة",
+    author: "شكسبير",
+    content: "",
+    uploadDate: "2025-10-28",
+    status: "analyzed",
+  },
+  {
+    id: "2",
+    title: "هاملت - أكون أو لا أكون",
+    author: "شكسبير",
+    content: "...",
+    uploadDate: "2025-10-26",
+    status: "analyzed",
+  },
+  {
+    id: "3",
+    title: "عربة اسمها الرغبة - المشهد 3",
+    author: "تينيسي ويليامز",
+    content: "...",
+    uploadDate: "2025-10-25",
+    status: "processing",
+  },
+];
+
+const DEFAULT_RECORDINGS: Recording[] = [
+  {
+    id: "1",
+    title: "مشهد الحديقة - التجربة 3",
+    duration: "3:42",
+    date: "2025-10-30",
+    score: 82,
+  },
+  {
+    id: "2",
+    title: "مشهد اللقاء - التجربة 1",
+    duration: "4:15",
+    date: "2025-10-29",
+    score: 76,
+  },
+];
+
+interface StateSetters {
+  setCurrentView: (v: ViewType) => void;
+  setTheme: (v: "light" | "dark") => void;
+  setUser: (v: User | null) => void;
+  setScripts: (v: Script[]) => void;
+  setRecordings: (v: Recording[]) => void;
+}
+
+function applyRemoteSnapshot(
+  snapshot: PersistedAppState,
+  setters: StateSetters
+) {
+  if (snapshot.currentView) setters.setCurrentView(snapshot.currentView);
+  if (snapshot.theme) setters.setTheme(snapshot.theme);
+  if (snapshot.user !== undefined) setters.setUser(snapshot.user ?? null);
+  if (snapshot.scripts) setters.setScripts(snapshot.scripts);
+  if (snapshot.recordings) setters.setRecordings(snapshot.recordings);
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const persistedState = readPersistedAppState();
 
@@ -66,52 +129,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     useState<AppContextValue["notification"]>(null);
   const [isRemoteStateReady, setIsRemoteStateReady] = useState(false);
   const [scripts, setScripts] = useState<Script[]>(
-    () =>
-      persistedState.scripts ?? [
-        {
-          id: "1",
-          title: "روميو وجولييت - مشهد الشرفة",
-          author: "شكسبير",
-          content: "",
-          uploadDate: "2025-10-28",
-          status: "analyzed",
-        },
-        {
-          id: "2",
-          title: "هاملت - أكون أو لا أكون",
-          author: "شكسبير",
-          content: "...",
-          uploadDate: "2025-10-26",
-          status: "analyzed",
-        },
-        {
-          id: "3",
-          title: "عربة اسمها الرغبة - المشهد 3",
-          author: "تينيسي ويليامز",
-          content: "...",
-          uploadDate: "2025-10-25",
-          status: "processing",
-        },
-      ]
+    () => persistedState.scripts ?? DEFAULT_SCRIPTS
   );
   const [recordings, setRecordings] = useState<Recording[]>(
-    () =>
-      persistedState.recordings ?? [
-        {
-          id: "1",
-          title: "مشهد الحديقة - التجربة 3",
-          duration: "3:42",
-          date: "2025-10-30",
-          score: 82,
-        },
-        {
-          id: "2",
-          title: "مشهد اللقاء - التجربة 1",
-          duration: "4:15",
-          date: "2025-10-29",
-          score: 76,
-        },
-      ]
+    () => persistedState.recordings ?? DEFAULT_RECORDINGS
   );
 
   useEffect(() => {
@@ -123,37 +144,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     void loadRemoteAppState<PersistedAppState>("actorai-arabic")
       .then((snapshot) => {
-        if (cancelled || !snapshot) {
-          return;
-        }
-
-        if (snapshot.currentView) {
-          setCurrentView(snapshot.currentView);
-        }
-
-        if (snapshot.theme) {
-          setTheme(snapshot.theme);
-        }
-
-        if (snapshot.user !== undefined) {
-          setUser(snapshot.user ?? null);
-        }
-
-        if (snapshot.scripts) {
-          setScripts(snapshot.scripts);
-        }
-
-        if (snapshot.recordings) {
-          setRecordings(snapshot.recordings);
-        }
+        if (cancelled || !snapshot) return;
+        applyRemoteSnapshot(snapshot, {
+          setCurrentView,
+          setTheme,
+          setUser,
+          setScripts,
+          setRecordings,
+        });
       })
       .catch(() => {
         /* empty */
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsRemoteStateReady(true);
-        }
+        if (!cancelled) setIsRemoteStateReady(true);
       });
 
     return () => {
@@ -163,19 +167,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     syncViewToUrl(currentView);
-    writePersistedAppState({
-      currentView,
-      theme,
-      user,
-      scripts,
-      recordings,
-    });
+    writePersistedAppState({ currentView, theme, user, scripts, recordings });
   }, [currentView, theme, user, scripts, recordings]);
 
   useEffect(() => {
-    if (!isRemoteStateReady) {
-      return;
-    }
+    if (!isRemoteStateReady) return;
 
     const timeoutId = window.setTimeout(() => {
       void persistRemoteAppState<PersistedAppState>("actorai-arabic", {
@@ -195,9 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [currentView, isRemoteStateReady, recordings, scripts, theme, user]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     const handlePopState = () => {
       setCurrentView(resolveInitialView("home"));
@@ -241,12 +235,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showNotification("error", "البريد الإلكتروني غير صالح");
         return;
       }
-
       if (!password.trim()) {
         showNotification("error", "يرجى إدخال كلمة المرور");
         return;
       }
-
       if (email && password) {
         setUser({
           id: user?.id ?? "1",
@@ -257,7 +249,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         navigate("dashboard");
         return;
       }
-
       showNotification("error", "يرجى إدخال البيانات الصحيحة");
     },
     [navigate, showNotification, user]
@@ -269,24 +260,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         showNotification("error", "الاسم يجب أن يحتوي على حرفين على الأقل");
         return;
       }
-
       if (!validateEmail(email)) {
         showNotification("error", "البريد الإلكتروني غير صالح");
         return;
       }
-
       if (!validatePassword(password)) {
         showNotification("error", "كلمة المرور يجب أن تكون 8 أحرف على الأقل");
         return;
       }
-
       if (name && email && password) {
         setUser({ id: "1", name, email });
         showNotification("success", "تم إنشاء الحساب بنجاح!");
         navigate("dashboard");
         return;
       }
-
       showNotification("error", "يرجى ملء جميع الحقول");
     },
     [navigate, showNotification]

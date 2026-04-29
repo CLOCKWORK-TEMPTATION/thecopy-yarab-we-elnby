@@ -325,6 +325,68 @@ const runMcpStage = async (
   }
 };
 
+interface OcrPipelineResult {
+  classification: ClassificationResult;
+  rawText: string;
+  warnings: string[];
+  attempts: string[];
+}
+
+interface OcrPipelineInput {
+  inputPath: string;
+  outputJsonPath: string;
+  outputTxtPath: string;
+  pages: string;
+}
+
+const runOcrPipeline = async (
+  pipelineInput: OcrPipelineInput,
+  attempts: string[],
+  warnings: string[]
+): Promise<OcrPipelineResult> => {
+  const { inputPath, outputJsonPath, outputTxtPath, pages } = pipelineInput;
+  const localClassificationRaw = await runTool(
+    classifyPdfTool,
+    { pdfPath: inputPath },
+    "classify_pdf"
+  );
+  attempts.push("classify-local");
+
+  const classification = toClassification(localClassificationRaw);
+  if (!classification) {
+    throw new Error("تعذر بناء نتيجة تصنيف PDF من أدوات الوكيل.");
+  }
+  if (classification.type === "protected") {
+    throw new Error("الملف محمي بكلمة مرور — يتطلب فك التشفير أولاً.");
+  }
+  warnings.push(...toStringArray(classification.notes));
+
+  const ocrResult = await runTool(
+    skillOcrMistral,
+    { input: inputPath, output: outputJsonPath, pages },
+    "skill_ocr_mistral"
+  );
+  attempts.push("ocr-skill");
+  warnings.push(...toStringArray(ocrResult["warnings"]));
+  warnings.push(...toStringArray(ocrResult["notes"]));
+
+  const writeResult = await runTool(
+    skillWriteOutput,
+    { input: outputJsonPath, format: "txt-raw", output: outputTxtPath },
+    "skill_write_output"
+  );
+  attempts.push("write-output-skill");
+  warnings.push(...toStringArray(writeResult["warnings"]));
+  warnings.push(...toStringArray(writeResult["notes"]));
+
+  const rawText = await readFile(outputTxtPath, "utf-8");
+  if (!rawText.trim()) {
+    throw new Error("النص الخام الناتج من OCR فارغ.");
+  }
+
+  return { classification, rawText, warnings, attempts };
+};
+
 const main = async (): Promise<void> => {
   const args = parseArgs(process.argv.slice(2));
   const inputPath = resolve(args.input);
@@ -357,54 +419,11 @@ const main = async (): Promise<void> => {
     attempts.push("pipeline-footprint-skipped");
   }
 
-  const localClassificationRaw = await runTool(
-    classifyPdfTool,
-    { pdfPath: inputPath },
-    "classify_pdf"
+  const { classification, rawText } = await runOcrPipeline(
+    { inputPath, outputJsonPath, outputTxtPath, pages: args.pages },
+    attempts,
+    warnings
   );
-  attempts.push("classify-local");
-
-  // Duplicate skill classification removed — single classify is sufficient
-  const classification = toClassification(localClassificationRaw);
-
-  if (!classification) {
-    throw new Error("تعذر بناء نتيجة تصنيف PDF من أدوات الوكيل.");
-  }
-  if (classification.type === "protected") {
-    throw new Error("الملف محمي بكلمة مرور — يتطلب فك التشفير أولاً.");
-  }
-  warnings.push(...toStringArray(classification.notes));
-
-  const ocrResult = await runTool(
-    skillOcrMistral,
-    {
-      input: inputPath,
-      output: outputJsonPath,
-      pages: args.pages,
-    },
-    "skill_ocr_mistral"
-  );
-  attempts.push("ocr-skill");
-  warnings.push(...toStringArray(ocrResult["warnings"]));
-  warnings.push(...toStringArray(ocrResult["notes"]));
-
-  const writeResult = await runTool(
-    skillWriteOutput,
-    {
-      input: outputJsonPath,
-      format: "txt-raw",
-      output: outputTxtPath,
-    },
-    "skill_write_output"
-  );
-  attempts.push("write-output-skill");
-  warnings.push(...toStringArray(writeResult["warnings"]));
-  warnings.push(...toStringArray(writeResult["notes"]));
-
-  const rawText = await readFile(outputTxtPath, "utf-8");
-  if (!rawText.trim()) {
-    throw new Error("النص الخام الناتج من OCR فارغ.");
-  }
 
   let mcpStage: {
     summary: string | null;

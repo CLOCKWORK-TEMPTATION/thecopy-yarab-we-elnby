@@ -34,6 +34,111 @@ const branchColors = {
   C: "var(--state-final)",
 };
 
+interface TimelineSceneItemProps {
+  scene: TimelineScene;
+  index: number;
+  mode: "linear" | "nonlinear";
+  isActiveBranch: boolean;
+  branchColor: string;
+  draggedSceneId: string | null;
+  onSceneClick?: (id: string) => void;
+  onDragStart: (scene: TimelineScene) => void;
+  onDragEnd: () => void;
+  onBranchCreate: (sceneId: string, branch: "A" | "B" | "C") => void;
+}
+
+function TimelineSceneItem({
+  scene,
+  index,
+  mode,
+  isActiveBranch,
+  branchColor,
+  draggedSceneId,
+  onSceneClick,
+  onDragStart,
+  onDragEnd,
+  onBranchCreate,
+}: TimelineSceneItemProps) {
+  return (
+    <motion.div
+      className="relative pr-10 group"
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <div
+        className="absolute right-3.5 top-2 w-3 h-3 rounded-full border-2 bg-[var(--color-panel)]"
+        style={{
+          borderColor: isActiveBranch ? branchColor : "var(--color-surface)",
+        }}
+      />
+      <div
+        role="button"
+        tabIndex={0}
+        className="p-3 rounded-lg border border-[var(--color-surface)] hover:border-[var(--color-accent-weak)] bg-[var(--color-panel)] cursor-pointer transition-all"
+        onClick={() => onSceneClick?.(scene.id)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            onSceneClick?.(scene.id);
+          }
+        }}
+        draggable={mode === "nonlinear"}
+        onDragStart={() => onDragStart(scene)}
+        onDragEnd={onDragEnd}
+      >
+        <div className="flex items-start gap-2">
+          {mode === "nonlinear" && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <GripVertical className="w-4 h-4 text-[var(--color-muted)] cursor-grab active:cursor-grabbing mt-1" />
+            </div>
+          )}
+          <div className="flex-1">
+            <h4 className="text-[var(--color-text)]" dir="rtl">
+              {scene.title}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              {scene.act && (
+                <span className="text-[var(--color-muted)]">
+                  فصل {scene.act}
+                </span>
+              )}
+              {scene.beat && (
+                <Badge
+                  variant="secondary"
+                  className="bg-[var(--color-surface)] text-[var(--color-muted)]"
+                >
+                  {scene.beat}
+                </Badge>
+              )}
+            </div>
+          </div>
+          {mode === "nonlinear" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onBranchCreate(scene.id, "A");
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-accent)] hover:bg-[var(--color-surface)]"
+              title="إنشاء فرع"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+        {draggedSceneId === scene.id && (
+          <motion.div
+            className="absolute inset-0 border-2 border-dashed border-[var(--color-accent)] rounded-lg pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          />
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export function NarrativeTimeline({
   mode,
   scenes,
@@ -60,7 +165,6 @@ export function NarrativeTimeline({
     targetBranch: "A" | "B" | "C"
   ) => {
     onBranchCreate?.(sceneId, targetBranch);
-    // toast.success(`تم إنشاء فرع ${targetBranch} من المشهد`);
   };
 
   return (
@@ -130,9 +234,7 @@ export function NarrativeTimeline({
                     </span>
                   </div>
                 )}
-
                 <div className="relative">
-                  {/* Timeline line */}
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-[var(--color-surface)]"
                     style={{
@@ -142,95 +244,21 @@ export function NarrativeTimeline({
                         : "var(--color-surface)",
                     }}
                   />
-
-                  {/* Scenes */}
                   <div className="space-y-3">
                     {branchScenes.map((scene, index) => (
-                      <motion.div
+                      <TimelineSceneItem
                         key={scene.id}
-                        className="relative pr-10 group"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        {/* Timeline dot */}
-                        <div
-                          className="absolute right-3.5 top-2 w-3 h-3 rounded-full border-2 bg-[var(--color-panel)]"
-                          style={{
-                            borderColor: isActiveBranch
-                              ? branchColor
-                              : "var(--color-surface)",
-                          }}
-                        />
-
-                        {/* Scene card */}
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          className="p-3 rounded-lg border border-[var(--color-surface)] hover:border-[var(--color-accent-weak)] bg-[var(--color-panel)] cursor-pointer transition-all"
-                          onClick={() => onSceneClick?.(scene.id)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") {
-                              onSceneClick?.(scene.id);
-                            }
-                          }}
-                          draggable={mode === "nonlinear"}
-                          onDragStart={() => setDraggedScene(scene)}
-                          onDragEnd={() => setDraggedScene(null)}
-                        >
-                          <div className="flex items-start gap-2">
-                            {mode === "nonlinear" && (
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <GripVertical className="w-4 h-4 text-[var(--color-muted)] cursor-grab active:cursor-grabbing mt-1" />
-                              </div>
-                            )}
-                            <div className="flex-1">
-                              <h4
-                                className="text-[var(--color-text)]"
-                                dir="rtl"
-                              >
-                                {scene.title}
-                              </h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                {scene.act && (
-                                  <span className="text-[var(--color-muted)]">
-                                    فصل {scene.act}
-                                  </span>
-                                )}
-                                {scene.beat && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="bg-[var(--color-surface)] text-[var(--color-muted)]"
-                                  >
-                                    {scene.beat}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                            {mode === "nonlinear" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBranchCreate(scene.id, "A");
-                                }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-accent)] hover:bg-[var(--color-surface)]"
-                                title="إنشاء فرع"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                          {draggedScene?.id === scene.id && (
-                            <motion.div
-                              className="absolute inset-0 border-2 border-dashed border-[var(--color-accent)] rounded-lg pointer-events-none"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                            />
-                          )}
-                        </div>
-                      </motion.div>
+                        scene={scene}
+                        index={index}
+                        mode={mode}
+                        isActiveBranch={isActiveBranch}
+                        branchColor={branchColor}
+                        draggedSceneId={draggedScene?.id ?? null}
+                        onSceneClick={onSceneClick}
+                        onDragStart={setDraggedScene}
+                        onDragEnd={() => setDraggedScene(null)}
+                        onBranchCreate={handleBranchCreate}
+                      />
                     ))}
                   </div>
                 </div>

@@ -20,6 +20,33 @@ import type { ClassifiedDraftWithId } from "../paste-classifier-helpers";
 import type { RenderClassifiedDraftsResult } from "./types";
 import type { EditorView } from "@tiptap/pm/view";
 
+// ─── helpers لإنشاء عقد scene_header ──────────────────────────────────
+
+const buildSceneHeaderTopLine = (
+  schema: Schema,
+  topId: string,
+  h1Id: string,
+  h2Id: string,
+  h1Text: string | undefined,
+  h2Text: string | undefined
+): PmNode | null => {
+  const h1Type = schema.nodes["scene_header_1"];
+  const h2Type = schema.nodes["scene_header_2"];
+  const topType = schema.nodes["scene_header_top_line"];
+  if (!h1Type || !h2Type || !topType) return null;
+  const h1Node = h1Type.create(
+    buildProgressiveNodeAttrs(`${h1Id}:header1`),
+    h1Text ? schema.text(h1Text) : undefined
+  );
+  const h2Node = h2Type.create(
+    buildProgressiveNodeAttrs(`${h2Id}:header2`),
+    h2Text ? schema.text(h2Text) : undefined
+  );
+  return topType.create(buildProgressiveNodeAttrs(topId), [h1Node, h2Node]);
+};
+
+// ─── createNodeForType ────────────────────────────────────────────────
+
 /**
  * إنشاء عقدة ProseMirror من عنصر مصنّف.
  */
@@ -31,88 +58,104 @@ const createNodeForType = (
   const itemId = item._itemId ?? "";
   const attrs = buildProgressiveNodeAttrs(itemId);
 
-  const getNode = (name: string) => schema.nodes[name];
-
-  switch (type) {
-    case "scene_header_top_line": {
-      const h1Type = getNode("scene_header_1");
-      const h2Type = getNode("scene_header_2");
-      const topType = getNode("scene_header_top_line");
-      if (!h1Type || !h2Type || !topType) return null;
-      const h1Node = h1Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header1`),
-        header1 ? schema.text(header1) : undefined
-      );
-      const h2Node = h2Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header2`),
-        header2 ? schema.text(header2) : undefined
-      );
-      return topType.create(attrs, [h1Node, h2Node]);
-    }
-
-    case "scene_header_1": {
-      const nodeType = getNode("scene_header_1");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "scene_header_2": {
-      const nodeType = getNode("scene_header_2");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "basmala": {
-      const nodeType = getNode("basmala");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "scene_header_3": {
-      const nodeType = getNode("scene_header_3");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "action": {
-      const nodeType = getNode("action");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "character": {
-      const nodeType = getNode("character");
-      if (!nodeType) return null;
-      return nodeType.create(
-        attrs,
-        text ? schema.text(ensureCharacterTrailingColon(text)) : undefined
-      );
-    }
-
-    case "dialogue": {
-      const nodeType = getNode("dialogue");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "parenthetical": {
-      const nodeType = getNode("parenthetical");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    case "transition": {
-      const nodeType = getNode("transition");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
-
-    default: {
-      const nodeType = getNode("action");
-      if (!nodeType) return null;
-      return nodeType.create(attrs, text ? schema.text(text) : undefined);
-    }
+  if (type === "scene_header_top_line") {
+    return buildSceneHeaderTopLine(
+      schema,
+      itemId,
+      itemId,
+      itemId,
+      header1,
+      header2
+    );
   }
+
+  const simpleNodeTypes: readonly string[] = [
+    "scene_header_1",
+    "scene_header_2",
+    "basmala",
+    "scene_header_3",
+    "action",
+    "dialogue",
+    "parenthetical",
+    "transition",
+  ];
+
+  if (simpleNodeTypes.includes(type)) {
+    const nodeType = schema.nodes[type];
+    if (!nodeType) return null;
+    return nodeType.create(attrs, text ? schema.text(text) : undefined);
+  }
+
+  if (type === "character") {
+    const nodeType = schema.nodes["character"];
+    if (!nodeType) return null;
+    return nodeType.create(
+      attrs,
+      text ? schema.text(ensureCharacterTrailingColon(text)) : undefined
+    );
+  }
+
+  // default fallback
+  const nodeType = schema.nodes["action"];
+  if (!nodeType) return null;
+  return nodeType.create(attrs, text ? schema.text(text) : undefined);
+};
+
+// ─── classifiedToNodes ────────────────────────────────────────────────
+
+/** دمج scene_header_1 + scene_header_2 المتتاليين في top_line واحد */
+const tryMergeSceneHeaders = (
+  classified: readonly ClassifiedDraftWithId[],
+  i: number,
+  schema: Schema,
+  nodes: PmNode[]
+): boolean => {
+  const item = classified[i];
+  if (!item) return false;
+  const next = classified[i + 1];
+  const itemId = item._itemId ?? "";
+
+  if (item.type === "scene_header_1" && next?.type === "scene_header_2") {
+    const nextId = next._itemId ?? "";
+    const node = buildSceneHeaderTopLine(
+      schema,
+      itemId,
+      itemId,
+      nextId,
+      item.text,
+      next.text
+    );
+    if (node) nodes.push(node);
+    return true; // consumed 2 items
+  }
+
+  if (item.type === "scene_header_1") {
+    const node = buildSceneHeaderTopLine(
+      schema,
+      itemId,
+      itemId,
+      itemId,
+      item.text,
+      undefined
+    );
+    if (node) nodes.push(node);
+    return false; // consumed 1 item normally
+  }
+
+  if (item.type === "scene_header_2") {
+    const node = buildSceneHeaderTopLine(
+      schema,
+      itemId,
+      itemId,
+      itemId,
+      undefined,
+      item.text
+    );
+    if (node) nodes.push(node);
+    return false; // consumed 1 item normally
+  }
+
+  return false;
 };
 
 /**
@@ -125,71 +168,14 @@ export const classifiedToNodes = (
   schema: Schema
 ): PmNode[] => {
   const nodes: PmNode[] = [];
-  const getNode = (name: string) => schema.nodes[name];
 
   for (let i = 0; i < classified.length; i++) {
     const item = classified[i];
     if (!item) continue;
-    const next = classified[i + 1];
-    const itemId = item._itemId ?? "";
 
-    // look-ahead: scene_header_1 + scene_header_2 → scene_header_top_line display node
-    if (item.type === "scene_header_1" && next?.type === "scene_header_2") {
-      const h1Type = getNode("scene_header_1");
-      const h2Type = getNode("scene_header_2");
-      const topType = getNode("scene_header_top_line");
-      if (!h1Type || !h2Type || !topType) continue;
-      const nextId = next._itemId ?? "";
-      const h1Node = h1Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header1`),
-        item.text ? schema.text(item.text) : undefined
-      );
-      const h2Node = h2Type.create(
-        buildProgressiveNodeAttrs(`${nextId}:header2`),
-        next.text ? schema.text(next.text) : undefined
-      );
-      nodes.push(
-        topType.create(buildProgressiveNodeAttrs(itemId), [h1Node, h2Node])
-      );
-      i++; // skip next (header_2 consumed)
-      continue;
-    }
-
-    // scene_header_1 alone → wrap in top_line with empty header_2
-    if (item.type === "scene_header_1") {
-      const h1Type = getNode("scene_header_1");
-      const h2Type = getNode("scene_header_2");
-      const topType = getNode("scene_header_top_line");
-      if (!h1Type || !h2Type || !topType) continue;
-      const h1Node = h1Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header1`),
-        item.text ? schema.text(item.text) : undefined
-      );
-      const h2Node = h2Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header2`)
-      );
-      nodes.push(
-        topType.create(buildProgressiveNodeAttrs(itemId), [h1Node, h2Node])
-      );
-      continue;
-    }
-
-    // scene_header_2 alone (orphan) → wrap in top_line with empty header_1
-    if (item.type === "scene_header_2") {
-      const h1Type = getNode("scene_header_1");
-      const h2Type = getNode("scene_header_2");
-      const topType = getNode("scene_header_top_line");
-      if (!h1Type || !h2Type || !topType) continue;
-      const h1Node = h1Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header1`)
-      );
-      const h2Node = h2Type.create(
-        buildProgressiveNodeAttrs(`${itemId}:header2`),
-        item.text ? schema.text(item.text) : undefined
-      );
-      nodes.push(
-        topType.create(buildProgressiveNodeAttrs(itemId), [h1Node, h2Node])
-      );
+    if (item.type === "scene_header_1" || item.type === "scene_header_2") {
+      const consumedTwo = tryMergeSceneHeaders(classified, i, schema, nodes);
+      if (consumedTwo) i++; // skip next (header_2 consumed)
       continue;
     }
 
@@ -198,6 +184,39 @@ export const classifiedToNodes = (
   }
 
   return nodes;
+};
+
+// ─── renderClassifiedDraftsToView ─────────────────────────────────────
+
+/** تتبع نطاق عقد top-level معروفة بـ elementId */
+const resolveNodeRange = (
+  view: EditorView,
+  expectedIds: Set<string>,
+  safeFrom: number
+): { resolvedFrom: number; resolvedTo: number } => {
+  let firstMatch: number | null = null;
+  let lastMatchEnd: number | null = null;
+
+  view.state.doc.forEach((node, offset) => {
+    const elementId =
+      typeof node.attrs?.["elementId"] === "string" &&
+      node.attrs["elementId"].trim().length > 0
+        ? node.attrs["elementId"]
+        : null;
+    if (!elementId || !expectedIds.has(elementId)) return;
+
+    firstMatch ??= offset;
+    lastMatchEnd = offset + node.nodeSize;
+  });
+
+  if (firstMatch !== null && lastMatchEnd !== null) {
+    return {
+      resolvedFrom: firstMatch,
+      resolvedTo: Math.min(lastMatchEnd, view.state.doc.content.size),
+    };
+  }
+
+  return { resolvedFrom: safeFrom, resolvedTo: safeFrom };
 };
 
 /**
@@ -219,6 +238,7 @@ export const renderClassifiedDraftsToView = (
   const safeTo = Math.max(safeFrom, Math.min(range.to, currentDocSize));
   const fragment = Fragment.from(nodes);
   const slice = new Slice(fragment, 0, 0);
+
   const expectedTopLevelElementIds = new Set(
     nodes
       .map((node) =>
@@ -229,31 +249,26 @@ export const renderClassifiedDraftsToView = (
       )
       .filter((value): value is string => Boolean(value))
   );
+
   const tr = view.state.tr.replaceRange(safeFrom, safeTo, slice);
   tr.setMeta("silent-pipeline-stage", { stage: metaStage });
   view.dispatch(tr);
 
   let resolvedFrom = safeFrom;
   let resolvedTo = safeFrom + fragment.size;
+
   if (expectedTopLevelElementIds.size > 0) {
-    let firstMatch: number | null = null;
-    let lastMatchEnd: number | null = null;
-
-    view.state.doc.forEach((node, offset) => {
-      const elementId =
-        typeof node.attrs?.["elementId"] === "string" &&
-        node.attrs["elementId"].trim().length > 0
-          ? node.attrs["elementId"]
-          : null;
-      if (!elementId || !expectedTopLevelElementIds.has(elementId)) return;
-
-      firstMatch ??= offset;
-      lastMatchEnd = offset + node.nodeSize;
-    });
-
-    if (firstMatch !== null && lastMatchEnd !== null) {
-      resolvedFrom = firstMatch;
-      resolvedTo = Math.min(lastMatchEnd, view.state.doc.content.size);
+    const resolved = resolveNodeRange(
+      view,
+      expectedTopLevelElementIds,
+      safeFrom
+    );
+    if (
+      resolved.resolvedFrom !== safeFrom ||
+      resolved.resolvedTo !== safeFrom
+    ) {
+      resolvedFrom = resolved.resolvedFrom;
+      resolvedTo = resolved.resolvedTo;
     }
   }
 

@@ -19,6 +19,151 @@ import { useApp } from "../../context/AppContext";
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
 import { formatTime } from "../../lib/utils";
 
+import type {
+  BlinkRateStatus,
+  EyeDirection,
+  WebcamAnalysisResult,
+} from "../../types";
+
+// ─── Helper functions ───
+
+function getScoreLabel(score: number): string {
+  if (score >= 90) return "ممتاز";
+  if (score >= 80) return "جيد جداً";
+  if (score >= 70) return "جيد";
+  return "يحتاج تحسين";
+}
+
+// ─── Sub-components ───
+
+interface AnalysisResultPanelProps {
+  result: WebcamAnalysisResult;
+  getEyeDirectionText: (direction: EyeDirection) => string;
+  getBlinkStatusColor: (status: BlinkRateStatus) => string;
+  getBlinkStatusText: (status: BlinkRateStatus) => string;
+}
+
+function AnalysisResultPanel({
+  result,
+  getEyeDirectionText,
+  getBlinkStatusColor,
+  getBlinkStatusText,
+}: AnalysisResultPanelProps) {
+  return (
+    <>
+      <div className="text-center p-4 bg-gradient-to-br from-black/22 to-black/18 rounded-[22px] border border-white/8">
+        <div className="text-4xl font-bold text-white">
+          {result.overallScore}
+        </div>
+        <div className="text-sm text-white/55">النتيجة الإجمالية</div>
+        <Badge
+          className="mt-2"
+          variant={result.overallScore >= 80 ? "default" : "secondary"}
+        >
+          {getScoreLabel(result.overallScore)}
+        </Badge>
+      </div>
+
+      <div className="space-y-2">
+        <h4 className="font-semibold text-white">👁️ خط النظر</h4>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>الاتجاه:</span>
+          <span>{getEyeDirectionText(result.eyeLine.direction)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>الاتساق:</span>
+          <span>{result.eyeLine.consistency}%</span>
+        </div>
+        <Progress value={result.eyeLine.consistency} className="h-2" />
+        {result.eyeLine.alerts.map((alert, index) => (
+          <p key={index} className="text-xs text-orange-400">
+            ⚠️ {alert}
+          </p>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <h4 className="font-semibold text-white">😊 تزامن التعبيرات</h4>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>النتيجة:</span>
+          <span>{result.expressionSync.score}%</span>
+        </div>
+        <Progress value={result.expressionSync.score} className="h-2" />
+        <div className="flex gap-1 flex-wrap">
+          {result.expressionSync.matchedEmotions.map((emotion, index) => (
+            <Badge
+              key={index}
+              variant="outline"
+              className="text-xs border-white/20 text-white"
+            >
+              ✓ {emotion}
+            </Badge>
+          ))}
+        </div>
+        {result.expressionSync.mismatches.map((mismatch, index) => (
+          <p key={index} className="text-xs text-red-400">
+            ✗ {mismatch}
+          </p>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <h4 className="font-semibold text-white">👀 معدل الرمش</h4>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>المعدل:</span>
+          <span>{result.blinkRate.rate} مرة/دقيقة</span>
+        </div>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>الحالة:</span>
+          <span className={getBlinkStatusColor(result.blinkRate.status)}>
+            {getBlinkStatusText(result.blinkRate.status)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>مؤشر التوتر:</span>
+          <span>{result.blinkRate.tensionIndicator}%</span>
+        </div>
+        <Progress value={result.blinkRate.tensionIndicator} className="h-2" />
+      </div>
+
+      <div className="space-y-2">
+        <h4 className="font-semibold text-white">🎭 استخدام المساحة</h4>
+        <div className="flex justify-between text-sm text-white/85">
+          <span>نسبة الاستخدام:</span>
+          <span>{result.blocking.spaceUsage}%</span>
+        </div>
+        <Progress value={result.blocking.spaceUsage} className="h-2" />
+        {result.blocking.movements.map((movement, index) => (
+          <p key={index} className="text-xs text-white/55">
+            • {movement}
+          </p>
+        ))}
+        {result.blocking.suggestions.map((suggestion, index) => (
+          <p key={index} className="text-xs text-blue-400">
+            💡 {suggestion}
+          </p>
+        ))}
+      </div>
+
+      {result.alerts.length > 0 && (
+        <Alert className="bg-white/8 border-white/20">
+          <AlertDescription className="text-white/85">
+            <ul className="space-y-1">
+              {result.alerts.map((alert, index) => (
+                <li key={index} className="text-sm">
+                  📌 {alert}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
+  );
+}
+
+// ─── Main component ───
+
 export function WebcamAnalysisView() {
   const { showNotification } = useApp();
   const {
@@ -206,165 +351,12 @@ export function WebcamAnalysisView() {
             </CardHeader>
             <CardContent className="space-y-4">
               {state.analysisResult ? (
-                <>
-                  <div className="text-center p-4 bg-gradient-to-br from-black/22 to-black/18 rounded-[22px] border border-white/8">
-                    <div className="text-4xl font-bold text-white">
-                      {state.analysisResult.overallScore}
-                    </div>
-                    <div className="text-sm text-white/55">
-                      النتيجة الإجمالية
-                    </div>
-                    <Badge
-                      className="mt-2"
-                      variant={
-                        state.analysisResult.overallScore >= 80
-                          ? "default"
-                          : "secondary"
-                      }
-                    >
-                      {state.analysisResult.overallScore >= 90
-                        ? "ممتاز"
-                        : state.analysisResult.overallScore >= 80
-                          ? "جيد جداً"
-                          : state.analysisResult.overallScore >= 70
-                            ? "جيد"
-                            : "يحتاج تحسين"}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-white">👁️ خط النظر</h4>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>الاتجاه:</span>
-                      <span>
-                        {getEyeDirectionText(
-                          state.analysisResult.eyeLine.direction
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>الاتساق:</span>
-                      <span>{state.analysisResult.eyeLine.consistency}%</span>
-                    </div>
-                    <Progress
-                      value={state.analysisResult.eyeLine.consistency}
-                      className="h-2"
-                    />
-                    {state.analysisResult.eyeLine.alerts.map((alert, index) => (
-                      <p key={index} className="text-xs text-orange-400">
-                        ⚠️ {alert}
-                      </p>
-                    ))}
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-white">
-                      😊 تزامن التعبيرات
-                    </h4>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>النتيجة:</span>
-                      <span>{state.analysisResult.expressionSync.score}%</span>
-                    </div>
-                    <Progress
-                      value={state.analysisResult.expressionSync.score}
-                      className="h-2"
-                    />
-                    <div className="flex gap-1 flex-wrap">
-                      {state.analysisResult.expressionSync.matchedEmotions.map(
-                        (emotion, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs border-white/20 text-white"
-                          >
-                            ✓ {emotion}
-                          </Badge>
-                        )
-                      )}
-                    </div>
-                    {state.analysisResult.expressionSync.mismatches.map(
-                      (mismatch, index) => (
-                        <p key={index} className="text-xs text-red-400">
-                          ✗ {mismatch}
-                        </p>
-                      )
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-white">👀 معدل الرمش</h4>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>المعدل:</span>
-                      <span>
-                        {state.analysisResult.blinkRate.rate} مرة/دقيقة
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>الحالة:</span>
-                      <span
-                        className={getBlinkStatusColor(
-                          state.analysisResult.blinkRate.status
-                        )}
-                      >
-                        {getBlinkStatusText(
-                          state.analysisResult.blinkRate.status
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>مؤشر التوتر:</span>
-                      <span>
-                        {state.analysisResult.blinkRate.tensionIndicator}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={state.analysisResult.blinkRate.tensionIndicator}
-                      className="h-2"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-white">
-                      🎭 استخدام المساحة
-                    </h4>
-                    <div className="flex justify-between text-sm text-white/85">
-                      <span>نسبة الاستخدام:</span>
-                      <span>{state.analysisResult.blocking.spaceUsage}%</span>
-                    </div>
-                    <Progress
-                      value={state.analysisResult.blocking.spaceUsage}
-                      className="h-2"
-                    />
-                    {state.analysisResult.blocking.movements.map(
-                      (movement, index) => (
-                        <p key={index} className="text-xs text-white/55">
-                          • {movement}
-                        </p>
-                      )
-                    )}
-                    {state.analysisResult.blocking.suggestions.map(
-                      (suggestion, index) => (
-                        <p key={index} className="text-xs text-blue-400">
-                          💡 {suggestion}
-                        </p>
-                      )
-                    )}
-                  </div>
-
-                  {state.analysisResult.alerts.length > 0 && (
-                    <Alert className="bg-white/8 border-white/20">
-                      <AlertDescription className="text-white/85">
-                        <ul className="space-y-1">
-                          {state.analysisResult.alerts.map((alert, index) => (
-                            <li key={index} className="text-sm">
-                              📌 {alert}
-                            </li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </>
+                <AnalysisResultPanel
+                  result={state.analysisResult}
+                  getEyeDirectionText={getEyeDirectionText}
+                  getBlinkStatusColor={getBlinkStatusColor}
+                  getBlinkStatusText={getBlinkStatusText}
+                />
               ) : (
                 <div className="text-center py-8 text-white/55">
                   <div className="text-6xl mb-4">📊</div>

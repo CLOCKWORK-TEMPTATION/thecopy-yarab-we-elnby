@@ -35,10 +35,310 @@ const SAMPLE_SCRIPT = `أكون أو لا أكون، ذلك هو السؤال
 أم أن نتسلح ضد بحر من المتاعب
 وبالمقاومة ننهيها؟`;
 
+// ─── Helper functions ───
+
+function processTextForMemorization(
+  text: string,
+  deletionLevel: number
+): string {
+  const words = text.split(/\s+/);
+  const totalWords = words.length;
+  const wordsToDelete = Math.floor(totalWords * (deletionLevel / 100));
+  const indicesToDelete = new Set<number>();
+  while (indicesToDelete.size < wordsToDelete) {
+    indicesToDelete.add(Math.floor(Math.random() * totalWords));
+  }
+  return words
+    .map((word, index) => (indicesToDelete.has(index) ? "____" : word))
+    .join(" ");
+}
+
+function computeSuccessRate(stats: MemorizationStats): number {
+  if (stats.totalAttempts === 0) return 0;
+  return Math.round(
+    (stats.correctWords / (stats.correctWords + stats.incorrectWords)) * 100
+  );
+}
+
+// ─── Sub-components ───
+
+interface ScriptInputSectionProps {
+  memorizationScript: string;
+  setMemorizationScript: (v: string) => void;
+  memorizationDeletionLevel: 10 | 50 | 90;
+  setMemorizationDeletionLevel: (v: 10 | 50 | 90) => void;
+  memorizationActive: boolean;
+  useSampleScriptForMemorization: () => void;
+  startMemorizationSession: () => void;
+  stopMemorizationSession: () => void;
+  increaseDeletionLevel: () => void;
+}
+
+function ScriptInputSection({
+  memorizationScript,
+  setMemorizationScript,
+  memorizationDeletionLevel,
+  setMemorizationDeletionLevel,
+  memorizationActive,
+  useSampleScriptForMemorization,
+  startMemorizationSession,
+  stopMemorizationSession,
+  increaseDeletionLevel,
+}: ScriptInputSectionProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            📝 النص للحفظ
+          </CardTitle>
+          <CardDescription className="text-white/55">
+            أدخل النص الذي تريد حفظه
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={useSampleScriptForMemorization}
+            >
+              📄 نص نموذجي
+            </Button>
+          </div>
+          <Textarea
+            placeholder="أدخل النص هنا..."
+            value={memorizationScript}
+            onChange={(e) => setMemorizationScript(e.target.value)}
+            className="min-h-[150px] text-right bg-black/18 border-white/8 text-white placeholder-white/45"
+            dir="rtl"
+            disabled={memorizationActive}
+          />
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/55">مستوى الحذف:</span>
+            <div className="flex gap-2">
+              {[10, 50, 90].map((level) => (
+                <Button
+                  key={level}
+                  variant={
+                    memorizationDeletionLevel === level ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    setMemorizationDeletionLevel(level as 10 | 50 | 90)
+                  }
+                  disabled={memorizationActive}
+                >
+                  {level}%
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-center">
+            {!memorizationActive ? (
+              <Button
+                onClick={startMemorizationSession}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                ▶️ بدء جلسة الحفظ
+              </Button>
+            ) : (
+              <>
+                <Button onClick={stopMemorizationSession} variant="destructive">
+                  ⏹️ إنهاء الجلسة
+                </Button>
+                <Button onClick={increaseDeletionLevel} variant="outline">
+                  ⬆️ زيادة الصعوبة
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+interface TrainingAreaProps {
+  memorizationScript: string;
+  currentLineIndex: number;
+  memorizationDeletionLevel: 10 | 50 | 90;
+  hesitationDetected: boolean;
+  showPromptHint: boolean;
+  currentPromptWord: string;
+  userMemorizationInput: string;
+  handleMemorizationInput: (value: string) => void;
+  handleMemorizationSubmit: () => void;
+}
+
+function TrainingArea({
+  memorizationScript,
+  currentLineIndex,
+  memorizationDeletionLevel,
+  hesitationDetected,
+  showPromptHint,
+  currentPromptWord,
+  userMemorizationInput,
+  handleMemorizationInput,
+  handleMemorizationSubmit,
+}: TrainingAreaProps) {
+  const lines = memorizationScript.split("\n");
+  const currentLine = lines[currentLineIndex];
+
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            🎯 منطقة التدريب
+            <Badge variant={hesitationDetected ? "destructive" : "secondary"}>
+              {hesitationDetected ? "تم اكتشاف تردد" : "جاري الحفظ"}
+            </Badge>
+          </CardTitle>
+          <CardDescription className="text-white/55">
+            السطر {currentLineIndex + 1} من {lines.length}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-black/18 rounded-[22px] text-right border border-white/8">
+            <p className="text-lg leading-relaxed text-white">
+              {currentLine
+                ? processTextForMemorization(
+                    currentLine,
+                    memorizationDeletionLevel
+                  )
+                : null}
+            </p>
+          </div>
+
+          {showPromptHint && (
+            <Alert className="border-yellow-400/40 bg-yellow-600/20">
+              <AlertDescription className="text-right text-white/85">
+                💡 تلميح: الكلمة التالية تبدأ بـ &quot;
+                {currentPromptWord.slice(0, 2)}...&quot;
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-white">اكتب السطر كاملاً:</Label>
+            <Textarea
+              value={userMemorizationInput}
+              onChange={(e) => handleMemorizationInput(e.target.value)}
+              placeholder="اكتب النص من ذاكرتك..."
+              className="text-right bg-black/18 border-white/8 text-white placeholder-white/45"
+              dir="rtl"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleMemorizationSubmit();
+                }
+              }}
+            />
+          </div>
+
+          <Button
+            onClick={handleMemorizationSubmit}
+            className="w-full bg-green-600 hover:bg-green-700"
+          >
+            ✓ تحقق من الإجابة
+          </Button>
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+interface StatsCardProps {
+  memorizationStats: MemorizationStats;
+  repeatDifficultParts: () => void;
+}
+
+function StatsCard({
+  memorizationStats,
+  repeatDifficultParts,
+}: StatsCardProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
+      <Card className="bg-transparent border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white">
+            📊 إحصائيات الأداء
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-blue-400">
+                {memorizationStats.totalAttempts}
+              </p>
+              <p className="text-sm text-white/55">المحاولات</p>
+            </div>
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-green-400">
+                {memorizationStats.correctWords}
+              </p>
+              <p className="text-sm text-white/55">كلمات صحيحة</p>
+            </div>
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-red-400">
+                {memorizationStats.incorrectWords}
+              </p>
+              <p className="text-sm text-white/55">كلمات خاطئة</p>
+            </div>
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-yellow-400">
+                {memorizationStats.hesitationCount}
+              </p>
+              <p className="text-sm text-white/55">مرات التردد</p>
+            </div>
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-purple-400">
+                {memorizationStats.averageResponseTime}s
+              </p>
+              <p className="text-sm text-white/55">متوسط الاستجابة</p>
+            </div>
+            <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
+              <p className="text-2xl font-bold text-white">
+                {computeSuccessRate(memorizationStats)}%
+              </p>
+              <p className="text-sm text-white/55">نسبة النجاح</p>
+            </div>
+          </div>
+
+          {memorizationStats.weakPoints.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-semibold mb-2 text-white">نقاط الضعف:</h4>
+              <div className="flex flex-wrap gap-2">
+                {memorizationStats.weakPoints.map((word, index) => (
+                  <Badge key={index} variant="destructive">
+                    {word}
+                  </Badge>
+                ))}
+              </div>
+              <Button
+                onClick={repeatDifficultParts}
+                variant="outline"
+                size="sm"
+                className="mt-2 border-white/20 text-white hover:bg-white/8"
+              >
+                🔄 تكرار الأجزاء الصعبة
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </CardSpotlight>
+  );
+}
+
+// ─── Main component ───
+
 export function MemorizationView() {
   const { showNotification } = useApp();
 
-  // ─── State ───
   const [memorizationScript, setMemorizationScript] = useState("");
   const [memorizationDeletionLevel, setMemorizationDeletionLevel] = useState<
     10 | 50 | 90
@@ -61,24 +361,6 @@ export function MemorizationView() {
   );
   const [showPromptHint, setShowPromptHint] = useState(false);
   const [currentPromptWord, setCurrentPromptWord] = useState("");
-
-  // ─── Callbacks ───
-
-  const processTextForMemorization = useCallback(
-    (text: string, deletionLevel: number): string => {
-      const words = text.split(/\s+/);
-      const totalWords = words.length;
-      const wordsToDelete = Math.floor(totalWords * (deletionLevel / 100));
-      const indicesToDelete = new Set<number>();
-      while (indicesToDelete.size < wordsToDelete) {
-        indicesToDelete.add(Math.floor(Math.random() * totalWords));
-      }
-      return words
-        .map((word, index) => (indicesToDelete.has(index) ? "____" : word))
-        .join(" ");
-    },
-    []
-  );
 
   const stopMemorizationSession = useCallback(() => {
     setMemorizationActive(false);
@@ -230,12 +512,9 @@ export function MemorizationView() {
     showNotification("info", `نقاط الضعف: ${weakWords.join("، ")}`);
   }, [weakPointsMap, showNotification]);
 
-  // ─── Render ───
-
   return (
     <div className="container mx-auto px-4 py-8" dir="rtl">
       <div className="grid gap-6">
-        {/* العنوان الرئيسي */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/18 border border-white/8 backdrop-blur-xl">
           <Card className="bg-transparent border-0">
             <CardHeader>
@@ -249,239 +528,37 @@ export function MemorizationView() {
           </Card>
         </CardSpotlight>
 
-        {/* إدخال النص */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-          <Card className="bg-transparent border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                📝 النص للحفظ
-              </CardTitle>
-              <CardDescription className="text-white/55">
-                أدخل النص الذي تريد حفظه
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={useSampleScriptForMemorization}
-                >
-                  📄 نص نموذجي
-                </Button>
-              </div>
-              <Textarea
-                placeholder="أدخل النص هنا..."
-                value={memorizationScript}
-                onChange={(e) => setMemorizationScript(e.target.value)}
-                className="min-h-[150px] text-right bg-black/18 border-white/8 text-white placeholder-white/45"
-                dir="rtl"
-                disabled={memorizationActive}
-              />
+        <ScriptInputSection
+          memorizationScript={memorizationScript}
+          setMemorizationScript={setMemorizationScript}
+          memorizationDeletionLevel={memorizationDeletionLevel}
+          setMemorizationDeletionLevel={setMemorizationDeletionLevel}
+          memorizationActive={memorizationActive}
+          useSampleScriptForMemorization={useSampleScriptForMemorization}
+          startMemorizationSession={startMemorizationSession}
+          stopMemorizationSession={stopMemorizationSession}
+          increaseDeletionLevel={increaseDeletionLevel}
+        />
 
-              {/* مستوى الصعوبة */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-white/55">مستوى الحذف:</span>
-                <div className="flex gap-2">
-                  {[10, 50, 90].map((level) => (
-                    <Button
-                      key={level}
-                      variant={
-                        memorizationDeletionLevel === level
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() =>
-                        setMemorizationDeletionLevel(level as 10 | 50 | 90)
-                      }
-                      disabled={memorizationActive}
-                    >
-                      {level}%
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* أزرار التحكم */}
-              <div className="flex gap-2 justify-center">
-                {!memorizationActive ? (
-                  <Button
-                    onClick={startMemorizationSession}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    ▶️ بدء جلسة الحفظ
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      onClick={stopMemorizationSession}
-                      variant="destructive"
-                    >
-                      ⏹️ إنهاء الجلسة
-                    </Button>
-                    <Button onClick={increaseDeletionLevel} variant="outline">
-                      ⬆️ زيادة الصعوبة
-                    </Button>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </CardSpotlight>
-
-        {/* منطقة التدريب */}
         {memorizationActive && (
-          <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-            <Card className="bg-transparent border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  🎯 منطقة التدريب
-                  <Badge
-                    variant={hesitationDetected ? "destructive" : "secondary"}
-                  >
-                    {hesitationDetected ? "تم اكتشاف تردد" : "جاري الحفظ"}
-                  </Badge>
-                </CardTitle>
-                <CardDescription className="text-white/55">
-                  السطر {currentLineIndex + 1} من{" "}
-                  {memorizationScript.split("\n").length}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-black/18 rounded-[22px] text-right border border-white/8">
-                  <p className="text-lg leading-relaxed text-white">
-                    {(() => {
-                      const line =
-                        memorizationScript.split("\n")[currentLineIndex];
-                      return line
-                        ? processTextForMemorization(
-                            line,
-                            memorizationDeletionLevel
-                          )
-                        : null;
-                    })()}
-                  </p>
-                </div>
-
-                {showPromptHint && (
-                  <Alert className="border-yellow-400/40 bg-yellow-600/20">
-                    <AlertDescription className="text-right text-white/85">
-                      💡 تلميح: الكلمة التالية تبدأ بـ &quot;
-                      {currentPromptWord.slice(0, 2)}...&quot;
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="space-y-2">
-                  <Label className="text-white">اكتب السطر كاملاً:</Label>
-                  <Textarea
-                    value={userMemorizationInput}
-                    onChange={(e) => handleMemorizationInput(e.target.value)}
-                    placeholder="اكتب النص من ذاكرتك..."
-                    className="text-right bg-black/18 border-white/8 text-white placeholder-white/45"
-                    dir="rtl"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleMemorizationSubmit();
-                      }
-                    }}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleMemorizationSubmit}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  ✓ تحقق من الإجابة
-                </Button>
-              </CardContent>
-            </Card>
-          </CardSpotlight>
+          <TrainingArea
+            memorizationScript={memorizationScript}
+            currentLineIndex={currentLineIndex}
+            memorizationDeletionLevel={memorizationDeletionLevel}
+            hesitationDetected={hesitationDetected}
+            showPromptHint={showPromptHint}
+            currentPromptWord={currentPromptWord}
+            userMemorizationInput={userMemorizationInput}
+            handleMemorizationInput={handleMemorizationInput}
+            handleMemorizationSubmit={handleMemorizationSubmit}
+          />
         )}
 
-        {/* إحصائيات الأداء */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
-          <Card className="bg-transparent border-0">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                📊 إحصائيات الأداء
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-blue-400">
-                    {memorizationStats.totalAttempts}
-                  </p>
-                  <p className="text-sm text-white/55">المحاولات</p>
-                </div>
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-green-400">
-                    {memorizationStats.correctWords}
-                  </p>
-                  <p className="text-sm text-white/55">كلمات صحيحة</p>
-                </div>
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-red-400">
-                    {memorizationStats.incorrectWords}
-                  </p>
-                  <p className="text-sm text-white/55">كلمات خاطئة</p>
-                </div>
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-yellow-400">
-                    {memorizationStats.hesitationCount}
-                  </p>
-                  <p className="text-sm text-white/55">مرات التردد</p>
-                </div>
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-purple-400">
-                    {memorizationStats.averageResponseTime}s
-                  </p>
-                  <p className="text-sm text-white/55">متوسط الاستجابة</p>
-                </div>
-                <div className="text-center p-4 bg-black/18 rounded-[22px] border border-white/8">
-                  <p className="text-2xl font-bold text-white">
-                    {memorizationStats.totalAttempts > 0
-                      ? Math.round(
-                          (memorizationStats.correctWords /
-                            (memorizationStats.correctWords +
-                              memorizationStats.incorrectWords)) *
-                            100
-                        )
-                      : 0}
-                    %
-                  </p>
-                  <p className="text-sm text-white/55">نسبة النجاح</p>
-                </div>
-              </div>
+        <StatsCard
+          memorizationStats={memorizationStats}
+          repeatDifficultParts={repeatDifficultParts}
+        />
 
-              {memorizationStats.weakPoints.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2 text-white">نقاط الضعف:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {memorizationStats.weakPoints.map((word, index) => (
-                      <Badge key={index} variant="destructive">
-                        {word}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Button
-                    onClick={repeatDifficultParts}
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 border-white/20 text-white hover:bg-white/8"
-                  >
-                    🔄 تكرار الأجزاء الصعبة
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </CardSpotlight>
-
-        {/* دليل الاستخدام */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 backdrop-blur-xl">
           <Card className="bg-transparent border-0">
             <CardHeader>

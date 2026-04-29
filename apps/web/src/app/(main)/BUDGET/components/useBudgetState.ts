@@ -91,6 +91,153 @@ interface BudgetAppProps {
   initialScript?: string;
 }
 
+const DEFAULT_PREFERENCES: UserPreferences = {
+  language: "en",
+  theme: "light",
+  currency: "USD",
+  dateFormat: "MM/dd/yyyy",
+  notifications: true,
+  autoSave: false,
+};
+
+const DEFAULT_RISK_CONFIG: SecurityRisk = {
+  bondFee: { percent: 0.02, total: 0 },
+  contingency: { percent: 0.1, total: 0 },
+  credits: { percent: 0.25, total: 0 },
+};
+
+function computeRisk(
+  grandTotal: number,
+  riskConfig: SecurityRisk
+): SecurityRisk {
+  return {
+    bondFee: {
+      ...riskConfig.bondFee,
+      total: grandTotal * riskConfig.bondFee.percent,
+    },
+    contingency: {
+      ...riskConfig.contingency,
+      total: grandTotal * riskConfig.contingency.percent,
+    },
+    credits: {
+      ...riskConfig.credits,
+      total: -(grandTotal * riskConfig.credits.percent),
+    },
+  };
+}
+
+function computeStats(budget: Budget) {
+  const totalItems = budget.sections.reduce(
+    (sum, section) =>
+      sum +
+      section.categories.reduce((catSum, cat) => catSum + cat.items.length, 0),
+    0
+  );
+  const activeItems = budget.sections.reduce(
+    (sum, section) =>
+      sum +
+      section.categories.reduce(
+        (catSum, cat) =>
+          catSum + cat.items.filter((item) => item.total > 0).length,
+        0
+      ),
+    0
+  );
+  return {
+    totalItems,
+    activeItems,
+    totalCategories: budget.sections.reduce(
+      (sum, s) => sum + s.categories.length,
+      0
+    ),
+    efficiency:
+      totalItems > 0 ? Math.round((activeItems / totalItems) * 100) : 0,
+  };
+}
+
+function resolveTheme(preferences: UserPreferences): "light" | "dark" {
+  if (preferences.theme !== "auto") return preferences.theme;
+  return typeof window !== "undefined" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+interface LineItemUpdate {
+  sectionId: string;
+  categoryCode: string;
+  itemCode: string;
+  field: keyof LineItem;
+  value: string | number;
+}
+
+function updateLineItemInBudget(
+  prevBudget: Budget,
+  update: LineItemUpdate
+): Budget {
+  const { sectionId, categoryCode, itemCode, field, value } = update;
+  const newSections = prevBudget.sections.map((section) => {
+    if (section.id !== sectionId) return section;
+    const newCategories = section.categories.map((category) => {
+      if (category.code !== categoryCode) return category;
+      const newItems = category.items.map((item) => {
+        if (item.code !== itemCode) return item;
+        const updatedItem = {
+          ...item,
+          [field]: value,
+          lastModified: new Date().toISOString(),
+        };
+        if (field === "amount" || field === "rate") {
+          updatedItem.total =
+            Number(updatedItem.amount) * Number(updatedItem.rate);
+        }
+        return updatedItem;
+      });
+      const catTotal = newItems.reduce((sum, i) => sum + i.total, 0);
+      return { ...category, items: newItems, total: catTotal };
+    });
+    const secTotal = newCategories.reduce((sum, c) => sum + c.total, 0);
+    return { ...section, categories: newCategories, total: secTotal };
+  });
+  const grandTotal = newSections.reduce((sum, s) => sum + s.total, 0);
+  return { ...prevBudget, sections: newSections, grandTotal };
+}
+
+const EXAMPLE_SCRIPT = `SCENE 1: EXT. DESERT HIGHWAY - DAY
+
+A red 1969 Mustang convertible speeds down Route 66.
+JACK (30s, rugged) drives. He looks tired.
+
+Suddenly, a HELICOPTER rises from the canyon floor behind him.
+Machine gun fire erupts, kicking up dust around the Mustang.
+
+JACK
+Not today.
+
+He punches the gas. The car engine ROARS.
+The chase is on.
+
+EXT. LAS VEGAS STRIP - NIGHT
+
+The Mustang weaves through traffic.
+Police sirens wail. 10 Cop cars are in pursuit.
+
+Jack drifts around a corner, crashing into a fruit stand.
+Stunt Driver needed here.
+Major explosion as the cop car hits a tanker.
+
+SCENE 2: INT. ABANDONED WAREHOUSE - NIGHT
+
+SARAH (28) waits in the shadows. She's dressed in tactical gear.
+The warehouse is filled with shipping containers.
+
+SARAH
+(into radio)
+Target is approaching. Get ready.
+
+This is a high-stakes action sequence with multiple locations,
+stunt work, visual effects, and a large cast.`;
+
 export function useBudgetState({
   initialBudget,
   initialScript,
@@ -112,19 +259,9 @@ export function useBudgetState({
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    language: "en",
-    theme: "light",
-    currency: "USD",
-    dateFormat: "MM/dd/yyyy",
-    notifications: true,
-    autoSave: false,
-  });
-  const [riskConfig, setRisk] = useState<SecurityRisk>({
-    bondFee: { percent: 0.02, total: 0 },
-    contingency: { percent: 0.1, total: 0 },
-    credits: { percent: 0.25, total: 0 },
-  });
+  const [preferences, setPreferences] =
+    useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [riskConfig, setRisk] = useState<SecurityRisk>(DEFAULT_RISK_CONFIG);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
 
   // — مزامنة الـ props عند تغيّرها من الخارج
@@ -182,34 +319,24 @@ export function useBudgetState({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [budget, budgetName, preferences.autoSave]);
 
-  // — حساب المخاطر المشتقة من مجموع الميزانية
-  const risk = useMemo<SecurityRisk>(() => {
-    const baseTotal = budget.grandTotal;
-    return {
-      bondFee: {
-        ...riskConfig.bondFee,
-        total: baseTotal * riskConfig.bondFee.percent,
-      },
-      contingency: {
-        ...riskConfig.contingency,
-        total: baseTotal * riskConfig.contingency.percent,
-      },
-      credits: {
-        ...riskConfig.credits,
-        total: -(baseTotal * riskConfig.credits.percent),
-      },
-    };
-  }, [budget.grandTotal, riskConfig]);
+  const risk = useMemo<SecurityRisk>(
+    () => computeRisk(budget.grandTotal, riskConfig),
+    [budget.grandTotal, riskConfig]
+  );
 
-  const filteredBudgets = useMemo(() => {
-    return savedBudgets
-      .filter(
-        (b) =>
-          b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          b.script.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [savedBudgets, searchTerm]);
+  const filteredBudgets = useMemo(
+    () =>
+      savedBudgets
+        .filter(
+          (b) =>
+            b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            b.script.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        ),
+    [savedBudgets, searchTerm]
+  );
 
   const finalTotal =
     budget.grandTotal +
@@ -217,47 +344,10 @@ export function useBudgetState({
     risk.contingency.total +
     risk.credits.total;
 
-  const stats = useMemo(() => {
-    const totalItems = budget.sections.reduce(
-      (sum, section) =>
-        sum +
-        section.categories.reduce(
-          (catSum, cat) => catSum + cat.items.length,
-          0
-        ),
-      0
-    );
-    const activeItems = budget.sections.reduce(
-      (sum, section) =>
-        sum +
-        section.categories.reduce(
-          (catSum, cat) =>
-            catSum + cat.items.filter((item) => item.total > 0).length,
-          0
-        ),
-      0
-    );
-    return {
-      totalItems,
-      activeItems,
-      totalCategories: budget.sections.reduce(
-        (sum, s) => sum + s.categories.length,
-        0
-      ),
-      efficiency:
-        totalItems > 0 ? Math.round((activeItems / totalItems) * 100) : 0,
-    };
-  }, [budget]);
+  const stats = useMemo(() => computeStats(budget), [budget]);
 
-  const resolvedTheme: "light" | "dark" =
-    preferences.theme === "auto"
-      ? typeof window !== "undefined" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-      : preferences.theme;
+  const resolvedTheme = resolveTheme(preferences);
 
-  // — حفظ التفضيلات في localStorage وتحديث الحالة
   const savePreferences = (newPrefs: Partial<UserPreferences>): void => {
     const updated = { ...preferences, ...newPrefs };
     setPreferences(updated);
@@ -266,7 +356,6 @@ export function useBudgetState({
     }
   };
 
-  // — توليد الميزانية عبر API routes
   const handleGenerate = (): void => {
     if (!scriptText.trim()) {
       setError("Please enter a script or scene description");
@@ -347,72 +436,21 @@ export function useBudgetState({
       field: keyof LineItem,
       value: string | number
     ) => {
-      setBudget((prevBudget) => {
-        const newSections = prevBudget.sections.map((section) => {
-          if (section.id !== sectionId) return section;
-          const newCategories = section.categories.map((category) => {
-            if (category.code !== categoryCode) return category;
-            const newItems = category.items.map((item) => {
-              if (item.code !== itemCode) return item;
-              const updatedItem = {
-                ...item,
-                [field]: value,
-                lastModified: new Date().toISOString(),
-              };
-              if (field === "amount" || field === "rate") {
-                updatedItem.total =
-                  Number(updatedItem.amount) * Number(updatedItem.rate);
-              }
-              return updatedItem;
-            });
-            const catTotal = newItems.reduce((sum, i) => sum + i.total, 0);
-            return { ...category, items: newItems, total: catTotal };
-          });
-          const secTotal = newCategories.reduce((sum, c) => sum + c.total, 0);
-          return { ...section, categories: newCategories, total: secTotal };
-        });
-        const grandTotal = newSections.reduce((sum, s) => sum + s.total, 0);
-        return { ...prevBudget, sections: newSections, grandTotal };
-      });
+      setBudget((prevBudget) =>
+        updateLineItemInBudget(prevBudget, {
+          sectionId,
+          categoryCode,
+          itemCode,
+          field,
+          value,
+        })
+      );
     },
     []
   );
 
   const loadExample = (): void => {
-    setScriptText(`SCENE 1: EXT. DESERT HIGHWAY - DAY
-
-A red 1969 Mustang convertible speeds down Route 66.
-JACK (30s, rugged) drives. He looks tired.
-
-Suddenly, a HELICOPTER rises from the canyon floor behind him.
-Machine gun fire erupts, kicking up dust around the Mustang.
-
-JACK
-Not today.
-
-He punches the gas. The car engine ROARS.
-The chase is on.
-
-EXT. LAS VEGAS STRIP - NIGHT
-
-The Mustang weaves through traffic.
-Police sirens wail. 10 Cop cars are in pursuit.
-
-Jack drifts around a corner, crashing into a fruit stand.
-Stunt Driver needed here.
-Major explosion as the cop car hits a tanker.
-
-SCENE 2: INT. ABANDONED WAREHOUSE - NIGHT
-
-SARAH (28) waits in the shadows. She's dressed in tactical gear.
-The warehouse is filled with shipping containers.
-
-SARAH
-(into radio)
-Target is approaching. Get ready.
-
-This is a high-stakes action sequence with multiple locations,
-stunt work, visual effects, and a large cast.`);
+    setScriptText(EXAMPLE_SCRIPT);
     toast.success("Example script loaded!");
   };
 

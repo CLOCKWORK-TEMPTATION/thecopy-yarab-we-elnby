@@ -29,6 +29,45 @@ import {
 
 export type { UnlockStatus };
 
+function computeUnlockStatus(
+  isAnalysisComplete: boolean,
+  analysisReport: string,
+  textInput: string
+): UnlockStatus {
+  const reportLen = analysisReport.trim().length;
+  const textLen = textInput.trim().length;
+
+  if (isAnalysisComplete) {
+    return {
+      locked: false,
+      reason: "ready" as const,
+      reportLength: reportLen,
+      minRequired: MIN_TEXT_LENGTH,
+      progress: 100,
+    };
+  }
+
+  const bestLen = Math.max(reportLen, textLen);
+  const progress = Math.min(100, Math.round((bestLen / MIN_TEXT_LENGTH) * 100));
+
+  if (bestLen === 0) {
+    return {
+      locked: true,
+      reason: "no-report" as const,
+      reportLength: 0,
+      minRequired: MIN_TEXT_LENGTH,
+      progress: 0,
+    };
+  }
+  return {
+    locked: true,
+    reason: "short-report" as const,
+    reportLength: bestLen,
+    minRequired: MIN_TEXT_LENGTH,
+    progress,
+  };
+}
+
 type AdvancedSettingsUpdate = Partial<
   CreativeDevelopmentState["advancedSettings"]
 >;
@@ -275,43 +314,11 @@ export function useCreativeDevelopment() {
   // حالة الفتح/القفل المحسوبة
   // ============================================
 
-  const unlockStatus: UnlockStatus = (() => {
-    const reportLen = state.analysisReport.trim().length;
-    const textLen = state.textInput.trim().length;
-
-    if (state.isAnalysisComplete) {
-      return {
-        locked: false,
-        reason: "ready" as const,
-        reportLength: reportLen,
-        minRequired: MIN_TEXT_LENGTH,
-        progress: 100,
-      };
-    }
-
-    const bestLen = Math.max(reportLen, textLen);
-    const progress = Math.min(
-      100,
-      Math.round((bestLen / MIN_TEXT_LENGTH) * 100)
-    );
-
-    if (bestLen === 0) {
-      return {
-        locked: true,
-        reason: "no-report" as const,
-        reportLength: 0,
-        minRequired: MIN_TEXT_LENGTH,
-        progress: 0,
-      };
-    }
-    return {
-      locked: true,
-      reason: "short-report" as const,
-      reportLength: bestLen,
-      minRequired: MIN_TEXT_LENGTH,
-      progress,
-    };
-  })();
+  const unlockStatus: UnlockStatus = computeUnlockStatus(
+    state.isAnalysisComplete,
+    state.analysisReport,
+    state.textInput
+  );
 
   // ============================================
   // القيم المرجعة

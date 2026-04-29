@@ -56,6 +56,59 @@ const SAMPLE_WIDTH = 160;
 const SAMPLE_HEIGHT = 120;
 const FRAME_DELTA_THRESHOLD = 24;
 
+// ─── File-level helpers ───
+
+function buildSessionFromResult(
+  result: WebcamAnalysisResult,
+  analysisTime: number
+): WebcamSession {
+  const minutes = Math.floor(analysisTime / 60);
+  const seconds = analysisTime % 60;
+  const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  return {
+    id: Date.now().toString(),
+    date:
+      new Date().toISOString().split("T")[0] ?? new Date().toLocaleDateString(),
+    duration,
+    score: result.overallScore,
+    alerts: result.alerts.slice(0, 2),
+  };
+}
+
+function getBlinkStatusText(status: BlinkRateStatus): string {
+  switch (status) {
+    case "high":
+      return "مرتفع (قد يدل على توتر)";
+    case "low":
+      return "منخفض (تركيز عالي)";
+    default:
+      return "طبيعي";
+  }
+}
+
+function getBlinkStatusColor(status: BlinkRateStatus): string {
+  switch (status) {
+    case "high":
+      return "text-orange-600";
+    case "low":
+      return "text-blue-600";
+    default:
+      return "text-green-600";
+  }
+}
+
+function getEyeDirectionText(direction: EyeDirection): string {
+  const directions: Record<EyeDirection, string> = {
+    up: "للأعلى",
+    down: "للأسفل",
+    left: "لليسار",
+    right: "لليمين",
+    center: "للمركز",
+    audience: "للجمهور",
+  };
+  return directions[direction] ?? direction;
+}
+
 function sampleVideoFrame(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
@@ -290,22 +343,10 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     );
 
     setAnalysisResult(result);
-
-    const minutes = Math.floor(analysisTime / 60);
-    const seconds = analysisTime % 60;
-    const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-
-    const newSession: WebcamSession = {
-      id: Date.now().toString(),
-      date:
-        new Date().toISOString().split("T")[0] ??
-        new Date().toLocaleDateString(),
-      duration,
-      score: result.overallScore,
-      alerts: result.alerts.slice(0, 2),
-    };
-
-    setSessions((prev) => [newSession, ...prev]);
+    setSessions((prev) => [
+      buildSessionFromResult(result, analysisTime),
+      ...prev,
+    ]);
     void postToBackend("/api/public/actorai/webcam-analysis", result, {
       bestEffort: true,
     });
@@ -315,39 +356,20 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     return result;
   }, [analysisTime, stopSampling]);
 
-  const getBlinkStatusText = useCallback((status: BlinkRateStatus): string => {
-    switch (status) {
-      case "high":
-        return "مرتفع (قد يدل على توتر)";
-      case "low":
-        return "منخفض (تركيز عالي)";
-      default:
-        return "طبيعي";
-    }
-  }, []);
+  const getBlinkStatusTextCb = useCallback(
+    (status: BlinkRateStatus) => getBlinkStatusText(status),
+    []
+  );
 
-  const getBlinkStatusColor = useCallback((status: BlinkRateStatus): string => {
-    switch (status) {
-      case "high":
-        return "text-orange-600";
-      case "low":
-        return "text-blue-600";
-      default:
-        return "text-green-600";
-    }
-  }, []);
+  const getBlinkStatusColorCb = useCallback(
+    (status: BlinkRateStatus) => getBlinkStatusColor(status),
+    []
+  );
 
-  const getEyeDirectionText = useCallback((direction: EyeDirection): string => {
-    const directions: Record<EyeDirection, string> = {
-      up: "للأعلى",
-      down: "للأسفل",
-      left: "لليسار",
-      right: "لليمين",
-      center: "للمركز",
-      audience: "للجمهور",
-    };
-    return directions[direction] || direction;
-  }, []);
+  const getEyeDirectionTextCb = useCallback(
+    (direction: EyeDirection) => getEyeDirectionText(direction),
+    []
+  );
 
   const clearSessions = useCallback(() => {
     setSessions([]);
@@ -372,9 +394,9 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     stopWebcam,
     startAnalysis,
     stopAnalysis,
-    getBlinkStatusText,
-    getBlinkStatusColor,
-    getEyeDirectionText,
+    getBlinkStatusText: getBlinkStatusTextCb,
+    getBlinkStatusColor: getBlinkStatusColorCb,
+    getEyeDirectionText: getEyeDirectionTextCb,
     clearSessions,
   };
 }

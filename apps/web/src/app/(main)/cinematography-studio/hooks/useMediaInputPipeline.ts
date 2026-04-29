@@ -10,7 +10,13 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { logger } from "@/lib/ai/utils/logger";
 
@@ -101,6 +107,143 @@ function createInitialState(mode: MediaInputMode): MediaInputPipelineState {
   };
 }
 
+type SetState = React.Dispatch<React.SetStateAction<MediaInputPipelineState>>;
+
+async function processMediaFile(
+  file: File,
+  setState: SetState,
+  applyPreview: (
+    url: string | null,
+    type: MediaInputPipelineState["previewType"]
+  ) => void,
+  stopCamera: () => void,
+  setError: (msg: string) => void,
+  canvasRef: React.RefObject<HTMLCanvasElement | null>
+): Promise<void> {
+  const fileIsImage = isImageFile(file);
+  const fileIsVideo = isVideoFile(file);
+  const inferredMode: MediaInputMode = fileIsVideo ? "video" : "image";
+
+  try {
+    if (!fileIsImage && !fileIsVideo)
+      throw new Error("صيغة الملف غير مدعومة. استخدم صورة أو فيديو.");
+
+    validateMediaFile(file, inferredMode, cinematographyInputConfig);
+    stopCamera();
+
+    const objectUrl = URL.createObjectURL(file);
+    applyPreview(objectUrl, inferredMode);
+
+    if (fileIsImage) {
+      setState((prev) => ({
+        ...prev,
+        mode: "image",
+        selectedFile: file,
+        analysisFile: file,
+        isPreparing: false,
+        error: null,
+      }));
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      mode: "video",
+      selectedFile: file,
+      analysisFile: null,
+      isPreparing: true,
+      error: null,
+    }));
+
+    const canvas = canvasRef.current ?? document.createElement("canvas");
+    const extractedFrame = await extractFrameFromVideoFile(
+      file,
+      canvas,
+      cinematographyInputConfig
+    );
+    setState((prev) => ({
+      ...prev,
+      analysisFile: extractedFrame,
+      isPreparing: false,
+    }));
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "فشل تجهيز الملف المحدد.";
+    setError(message);
+    setState((prev) => ({ ...prev, isPreparing: false, analysisFile: null }));
+  }
+}
+
+async function activateCamera(
+  setState: SetState,
+  applyPreview: (
+    url: string | null,
+    type: MediaInputPipelineState["previewType"]
+  ) => void,
+  stopCamera: () => void,
+  streamRef: React.MutableRefObject<MediaStream | null>,
+  cameraVideoRef: React.RefObject<HTMLVideoElement | null>
+): Promise<void> {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.mediaDevices?.getUserMedia
+  ) {
+    setState((prev) => ({
+      ...prev,
+      cameraPermission: "unsupported",
+      error: "المتصفح الحالي لا يدعم الوصول للكاميرا.",
+    }));
+    return;
+  }
+
+  try {
+    stopCamera();
+    applyPreview(null, null);
+    setState((prev) => ({
+      ...prev,
+      mode: "camera",
+      selectedFile: null,
+      analysisFile: null,
+      isPreparing: false,
+      cameraPermission: "requesting",
+      error: null,
+      previewType: null,
+      previewUrl: null,
+    }));
+
+    const stream = await withCameraRequestTimeout(
+      navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: cinematographyInputConfig.captureWidth },
+          height: { ideal: cinematographyInputConfig.captureHeight },
+          facingMode: "environment",
+        },
+        audio: false,
+      })
+    );
+
+    streamRef.current = stream;
+    if (cameraVideoRef.current && cameraVideoRef.current.srcObject !== stream) {
+      cameraVideoRef.current.srcObject = stream;
+      await cameraVideoRef.current.play().catch(() => undefined);
+    }
+
+    applyPreview(null, "camera");
+    setState((prev) => ({ ...prev, cameraPermission: "granted", error: null }));
+  } catch (error) {
+    const failure = translateCameraFailure(error);
+    logger.error("[CinematographyInput] camera start failed", {
+      permission: failure.permission,
+      message: failure.message,
+    });
+    setState((prev) => ({
+      ...prev,
+      cameraPermission: failure.permission,
+      error: failure.message,
+    }));
+  }
+}
+
 export function useMediaInputPipeline(
   defaultMode: MediaInputMode = "image"
 ): MediaInputPipeline {
@@ -182,143 +325,27 @@ export function useMediaInputPipeline(
 
   const selectMediaFile = useCallback(
     async (file: File | null) => {
-      if (!file) {
-        return;
-      }
-
-      const fileIsImage = isImageFile(file);
-      const fileIsVideo = isVideoFile(file);
-      const inferredMode: MediaInputMode = fileIsVideo ? "video" : "image";
-
-      try {
-        if (!fileIsImage && !fileIsVideo) {
-          throw new Error("صيغة الملف غير مدعومة. استخدم صورة أو فيديو.");
-        }
-
-        validateMediaFile(file, inferredMode, cinematographyInputConfig);
-        stopCamera();
-
-        const objectUrl = URL.createObjectURL(file);
-        applyPreview(objectUrl, inferredMode);
-
-        if (fileIsImage) {
-          setState((prev) => ({
-            ...prev,
-            mode: "image",
-            selectedFile: file,
-            analysisFile: file,
-            isPreparing: false,
-            error: null,
-          }));
-          return;
-        }
-
-        setState((prev) => ({
-          ...prev,
-          mode: "video",
-          selectedFile: file,
-          analysisFile: null,
-          isPreparing: true,
-          error: null,
-        }));
-
-        const canvas =
-          cameraCanvasRef.current ?? document.createElement("canvas");
-        const extractedFrame = await extractFrameFromVideoFile(
-          file,
-          canvas,
-          cinematographyInputConfig
-        );
-
-        setState((prev) => ({
-          ...prev,
-          analysisFile: extractedFrame,
-          isPreparing: false,
-        }));
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "فشل تجهيز الملف المحدد.";
-        setError(message);
-        setState((prev) => ({
-          ...prev,
-          isPreparing: false,
-          analysisFile: null,
-        }));
-      }
+      if (!file) return;
+      await processMediaFile(
+        file,
+        setState,
+        applyPreview,
+        stopCamera,
+        setError,
+        cameraCanvasRef
+      );
     },
     [applyPreview, setError, stopCamera]
   );
 
   const requestCamera = useCallback(async () => {
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia
-    ) {
-      setState((prev) => ({
-        ...prev,
-        cameraPermission: "unsupported",
-        error: "المتصفح الحالي لا يدعم الوصول للكاميرا.",
-      }));
-      return;
-    }
-
-    try {
-      stopCamera();
-      applyPreview(null, null);
-      setState((prev) => ({
-        ...prev,
-        mode: "camera",
-        selectedFile: null,
-        analysisFile: null,
-        isPreparing: false,
-        cameraPermission: "requesting",
-        error: null,
-        previewType: null,
-        previewUrl: null,
-      }));
-
-      const stream = await withCameraRequestTimeout(
-        navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: cinematographyInputConfig.captureWidth },
-            height: { ideal: cinematographyInputConfig.captureHeight },
-            facingMode: "environment",
-          },
-          audio: false,
-        })
-      );
-
-      streamRef.current = stream;
-      // ربط أولي إن كان عنصر الفيديو متاحًا الآن. إن لم يكن (شائع لأن الـ video
-      // لا يُركَّب إلا عند previewType === "camera") سيلتقطه useEffect أدناه فور تركيبه.
-      if (
-        cameraVideoRef.current &&
-        cameraVideoRef.current.srcObject !== stream
-      ) {
-        cameraVideoRef.current.srcObject = stream;
-        await cameraVideoRef.current.play().catch(() => undefined);
-      }
-
-      applyPreview(null, "camera");
-      setState((prev) => ({
-        ...prev,
-        cameraPermission: "granted",
-        error: null,
-      }));
-    } catch (error) {
-      const failure = translateCameraFailure(error);
-
-      logger.error("[CinematographyInput] camera start failed", {
-        permission: failure.permission,
-        message: failure.message,
-      });
-
-      setState((prev) => ({
-        ...prev,
-        cameraPermission: failure.permission,
-        error: failure.message,
-      }));
-    }
+    await activateCamera(
+      setState,
+      applyPreview,
+      stopCamera,
+      streamRef,
+      cameraVideoRef
+    );
   }, [applyPreview, stopCamera]);
 
   const captureCameraFrame = useCallback(async (): Promise<File | null> => {

@@ -30,11 +30,84 @@ interface Stats {
   vendors: number | null;
 }
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface StatCard {
+  key: string;
+  label: string;
+  value: number | null;
+  href: string;
+}
+
+interface StatsGridProps {
+  statCards: StatCard[];
+  loading: boolean;
+}
+
+function StatsGrid({ statCards, loading }: StatsGridProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      {statCards.map((card) => (
+        <CardSpotlight
+          key={card.key}
+          className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6"
+        >
+          <p className="text-sm text-white/55 font-cairo mb-2">{card.label}</p>
+          <p className="text-4xl font-bold text-white font-cairo">
+            {loading ? "…" : card.value === null ? "—" : card.value.toString()}
+          </p>
+          <Link
+            href={card.href}
+            className="mt-4 inline-block text-sm text-white/85 hover:text-white font-cairo transition"
+          >
+            فتح القسم ←
+          </Link>
+        </CardSpotlight>
+      ))}
+    </div>
+  );
+}
+
+function QuickLinksCard() {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        روابط سريعة
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Link
+          href="/BREAKAPP/admin/projects/new"
+          className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
+        >
+          إنشاء مشروع جديد
+        </Link>
+        <Link
+          href="/BREAKAPP/admin/projects"
+          className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
+        >
+          كل المشاريع ورموز QR
+        </Link>
+        <Link
+          href="/BREAKAPP/admin/vendors"
+          className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
+        >
+          إدارة الموردين
+        </Link>
+        <Link
+          href="/BREAKAPP/admin/users"
+          className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
+        >
+          أعضاء المشاريع
+        </Link>
+      </div>
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function AdminOverviewPage() {
-  const [stats, setStats] = useState<Stats>({
-    projects: null,
-    vendors: null,
-  });
+  const [stats, setStats] = useState<Stats>({ projects: null, vendors: null });
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchStats = useCallback(async (): Promise<void> => {
@@ -108,63 +181,9 @@ export default function AdminOverviewPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {statCards.map((card) => (
-            <CardSpotlight
-              key={card.key}
-              className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6"
-            >
-              <p className="text-sm text-white/55 font-cairo mb-2">
-                {card.label}
-              </p>
-              <p className="text-4xl font-bold text-white font-cairo">
-                {loading
-                  ? "…"
-                  : card.value === null
-                    ? "—"
-                    : card.value.toString()}
-              </p>
-              <Link
-                href={card.href}
-                className="mt-4 inline-block text-sm text-white/85 hover:text-white font-cairo transition"
-              >
-                فتح القسم ←
-              </Link>
-            </CardSpotlight>
-          ))}
-        </div>
+        <StatsGrid statCards={statCards} loading={loading} />
 
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            روابط سريعة
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Link
-              href="/BREAKAPP/admin/projects/new"
-              className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
-            >
-              إنشاء مشروع جديد
-            </Link>
-            <Link
-              href="/BREAKAPP/admin/projects"
-              className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
-            >
-              كل المشاريع ورموز QR
-            </Link>
-            <Link
-              href="/BREAKAPP/admin/vendors"
-              className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
-            >
-              إدارة الموردين
-            </Link>
-            <Link
-              href="/BREAKAPP/admin/users"
-              className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
-            >
-              أعضاء المشاريع
-            </Link>
-          </div>
-        </CardSpotlight>
+        <QuickLinksCard />
       </div>
     </div>
   );

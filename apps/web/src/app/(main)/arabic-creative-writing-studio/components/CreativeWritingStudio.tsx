@@ -74,6 +74,27 @@ interface CreativeWritingStudioProps {
   initialSettings?: import("../types").AppSettings;
 }
 
+interface LoadingDialogProps {
+  open: boolean;
+}
+
+function LoadingDialog({ open }: LoadingDialogProps) {
+  if (!open) return null;
+  return (
+    <Dialog open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>جاري المعالجة...</DialogTitle>
+          <DialogDescription>يرجى الانتظار 🔄</DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
   initialSettings,
 }) => {
@@ -139,7 +160,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
             onNavigateToLibrary={() => setCurrentView("library")}
           />
         );
-
       case "library":
         return (
           <PromptLibrary
@@ -153,7 +173,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
             loading={loading}
           />
         );
-
       case "editor":
         return (
           <WritingEditor
@@ -171,7 +190,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
             loading={loading}
           />
         );
-
       case "settings":
         return (
           <SettingsPanel
@@ -195,7 +213,6 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
             }}
           />
         );
-
       default:
         return <div>المحتوى غير متوفر</div>;
     }
@@ -217,25 +234,12 @@ export const CreativeWritingStudio: React.FC<CreativeWritingStudioProps> = ({
         <BackgroundBeams />
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(194,37,92,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(64,165,179,0.16),transparent_34%)]" />
-
       <div className="relative z-10">
         <StudioHeader currentView={currentView} onViewChange={setCurrentView} />
         <StudioNotification notification={notification} />
         <main className="container mx-auto px-4 pb-8">
           <CardSpotlight className="overflow-hidden rounded-[30px] border border-[var(--page-border)] bg-[var(--page-surface)] p-4 backdrop-blur-2xl md:p-6">
-            {loading ? (
-              <Dialog open={loading}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>جاري المعالجة...</DialogTitle>
-                    <DialogDescription>يرجى الانتظار 🔄</DialogDescription>
-                  </DialogHeader>
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            ) : null}
+            <LoadingDialog open={loading} />
             {renderMainContent()}
           </CardSpotlight>
         </main>

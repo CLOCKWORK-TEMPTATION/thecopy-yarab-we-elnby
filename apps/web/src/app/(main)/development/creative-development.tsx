@@ -48,6 +48,201 @@ const FileUpload = dynamic(() => import("@/components/file-upload"), {
   ),
 });
 
+interface TextInputCardProps {
+  textInput: string;
+  analysisReport: string;
+  specialRequirements: string;
+  additionalInfo: string;
+  isAnalysisComplete: boolean;
+  fieldsLocked: boolean;
+  unlockStatus: { minRequired: number };
+  setTextInput: (v: string) => void;
+  setAnalysisReport: (v: string) => void;
+  setSpecialRequirements: (v: string) => void;
+  setAdditionalInfo: (v: string) => void;
+  handleFileContent: (content: string, filename: string) => void;
+}
+
+function TextInputCard({
+  textInput,
+  analysisReport,
+  specialRequirements,
+  additionalInfo,
+  isAnalysisComplete,
+  fieldsLocked,
+  unlockStatus,
+  setTextInput,
+  setAnalysisReport,
+  setSpecialRequirements,
+  setAdditionalInfo,
+  handleFileContent,
+}: TextInputCardProps) {
+  return (
+    <Card className={SHELL_CARD}>
+      <CardHeader>
+        <CardTitle>النص الدرامي</CardTitle>
+        <CardDescription>
+          أدخل النص الدرامي مباشرة أو حمِّله من ملف (100 حرف على الأقل لفتح
+          أدوات التطوير)
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <FileUpload onFileContent={handleFileContent} />
+        <div>
+          <Label htmlFor="screenplay">
+            النص الدرامي
+            {!isAnalysisComplete && textInput.trim().length > 0 ? (
+              <span className="text-amber-400 text-sm mr-2">
+                ({textInput.trim().length}/{unlockStatus.minRequired} حرف)
+              </span>
+            ) : isAnalysisComplete ? (
+              <span className="text-green-400 text-sm mr-2">✓ جاهز</span>
+            ) : null}
+          </Label>
+          <Textarea
+            id="screenplay"
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            className="min-h-40 bg-black/20 border-white/10"
+            placeholder="أدخل النص الدرامي هنا (100 حرف على الأقل لفتح أدوات التطوير)..."
+            disabled={fieldsLocked}
+            data-testid="screenplay-input"
+          />
+          {fieldsLocked ? (
+            <p className="text-sm text-white/45 mt-1">
+              تم تحميل النص تلقائياً — اضغط &quot;تعديل يدوي&quot; للتعديل
+            </p>
+          ) : null}
+        </div>
+
+        <div>
+          <Label htmlFor="analysisReport">
+            تقرير التحليل السابق{" "}
+            <span className="text-white/40 text-xs">(اختياري)</span>
+            {fieldsLocked ? (
+              <span className="text-green-400 text-sm mr-2">
+                ✓ محمل تلقائياً
+              </span>
+            ) : null}
+          </Label>
+          <Textarea
+            id="analysisReport"
+            value={analysisReport}
+            onChange={(e) => setAnalysisReport(e.target.value)}
+            className="min-h-24 bg-black/20 border-white/10"
+            placeholder="أدخل تقرير تحليل سابق إن وجد (اختياري — يُحسِّن دقة المخرجات)..."
+            disabled={fieldsLocked}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="specialRequirements">متطلبات خاصة</Label>
+            <Textarea
+              id="specialRequirements"
+              value={specialRequirements}
+              onChange={(e) => setSpecialRequirements(e.target.value)}
+              placeholder="توجيهات خاصة للأداة..."
+              className="bg-black/20 border-white/10 min-h-20"
+            />
+          </div>
+          <div>
+            <Label htmlFor="additionalInfo">معلومات إضافية</Label>
+            <Textarea
+              id="additionalInfo"
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              placeholder="سياق أو معلومات داعمة..."
+              className="bg-black/20 border-white/10 min-h-20"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ToolCatalogCard({
+  isAnalysisComplete,
+  catalogByCategory,
+  selectedCatalogTaskId,
+  handleCatalogTaskSelect,
+}: {
+  isAnalysisComplete: boolean;
+  catalogByCategory: Record<string, ReturnType<typeof getTasksByCategory>>;
+  selectedCatalogTaskId: string | null;
+  handleCatalogTaskSelect: (id: string) => void;
+}) {
+  return (
+    <Card className={SHELL_CARD} data-testid="tool-catalog">
+      <CardHeader>
+        <CardTitle>كتالوج أدوات التطوير الإبداعي (27 أداة)</CardTitle>
+        <CardDescription>
+          {isAnalysisComplete
+            ? "اختر الأداة المناسبة ثم اضغط «تنفيذ» للحصول على مخرجات فعلية"
+            : "أدخل 100 حرف على الأقل من النص الدرامي لتفعيل الكتالوج"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {(
+          ["core", "analysis", "creative", "predictive", "advanced"] as const
+        ).map((category) => (
+          <div key={category}>
+            <h3 className="text-sm font-semibold text-white/55 mb-3 uppercase tracking-wide">
+              {CATEGORY_LABELS[category]}
+            </h3>
+            <CatalogTaskButtons
+              tasks={catalogByCategory[category] ?? []}
+              selectedTaskId={selectedCatalogTaskId}
+              onTaskSelect={handleCatalogTaskSelect}
+              disabled={!isAnalysisComplete}
+            />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function AIResultCard({
+  aiResponse,
+  showReport,
+  exportReport,
+}: {
+  aiResponse: NonNullable<
+    ReturnType<typeof useCreativeDevelopment>["aiResponse"]
+  >;
+  showReport: () => void;
+  exportReport: () => void;
+}) {
+  return (
+    <Card className={SHELL_CARD}>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>نتائج التطوير الإبداعي</span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={showReport}>
+              <Eye className="w-4 h-4 mr-2" /> التقرير الكامل
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportReport}>
+              <Download className="w-4 h-4 mr-2" /> تصدير
+            </Button>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Alert className="border-white/10 bg-white/[0.04]">
+          <Lightbulb className="h-4 w-4" />
+          <AlertTitle>المخرجات</AlertTitle>
+          <AlertDescription className="prose prose-sm dark:prose-invert mt-2 whitespace-pre-wrap">
+            {toText(aiResponse.raw)}
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
+  );
+}
+
 const DramaAnalystApp: React.FC = () => {
   const {
     textInput,
@@ -91,10 +286,8 @@ const DramaAnalystApp: React.FC = () => {
     getAgentReport,
   } = useCreativeDevelopment();
 
-  /** هل حقول النص مقفلة (تم التحميل التلقائي ولم يُفعَّل الوضع اليدوي)؟ */
   const fieldsLocked = !!analysisId && !isManualMode;
 
-  /** تنفيذ المهمة المختارة من الكتالوج */
   const handleCatalogSubmit = useCallback(async () => {
     if (!selectedCatalogTaskId) return;
     await executeTask(selectedCatalogTaskId);
@@ -120,7 +313,6 @@ const DramaAnalystApp: React.FC = () => {
 
   const agentReport = useMemo(() => getAgentReport(), [getAgentReport]);
 
-  /** معلومات المهمة المختارة من الكتالوج */
   const selectedCatalogTask = useMemo(
     () =>
       selectedCatalogTaskId
@@ -129,7 +321,6 @@ const DramaAnalystApp: React.FC = () => {
     [selectedCatalogTaskId]
   );
 
-  /** النص الذي يعرض النتيجة — يستوعب كلا المسارين */
   const activeResult = catalogResult ?? aiResponse;
   const activeResultText = activeResult
     ? toText(activeResult.raw || activeResult.text)
@@ -189,115 +380,27 @@ const DramaAnalystApp: React.FC = () => {
         </div>
       ) : null}
 
-      <Card className={SHELL_CARD}>
-        <CardHeader>
-          <CardTitle>النص الدرامي</CardTitle>
-          <CardDescription>
-            أدخل النص الدرامي مباشرة أو حمِّله من ملف (100 حرف على الأقل لفتح
-            أدوات التطوير)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <FileUpload onFileContent={handleFileContent} />
-          <div>
-            <Label htmlFor="screenplay">
-              النص الدرامي
-              {!isAnalysisComplete && textInput.trim().length > 0 ? (
-                <span className="text-amber-400 text-sm mr-2">
-                  ({textInput.trim().length}/{unlockStatus.minRequired} حرف)
-                </span>
-              ) : isAnalysisComplete ? (
-                <span className="text-green-400 text-sm mr-2">✓ جاهز</span>
-              ) : null}
-            </Label>
-            <Textarea
-              id="screenplay"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              className="min-h-40 bg-black/20 border-white/10"
-              placeholder="أدخل النص الدرامي هنا (100 حرف على الأقل لفتح أدوات التطوير)..."
-              disabled={fieldsLocked}
-              data-testid="screenplay-input"
-            />
-            {fieldsLocked ? (
-              <p className="text-sm text-white/45 mt-1">
-                تم تحميل النص تلقائياً — اضغط &quot;تعديل يدوي&quot; للتعديل
-              </p>
-            ) : null}
-          </div>
+      <TextInputCard
+        textInput={textInput}
+        analysisReport={analysisReport}
+        specialRequirements={specialRequirements}
+        additionalInfo={additionalInfo}
+        isAnalysisComplete={isAnalysisComplete}
+        fieldsLocked={fieldsLocked}
+        unlockStatus={unlockStatus}
+        setTextInput={setTextInput}
+        setAnalysisReport={setAnalysisReport}
+        setSpecialRequirements={setSpecialRequirements}
+        setAdditionalInfo={setAdditionalInfo}
+        handleFileContent={handleFileContent}
+      />
 
-          <div>
-            <Label htmlFor="analysisReport">
-              تقرير التحليل السابق{" "}
-              <span className="text-white/40 text-xs">(اختياري)</span>
-              {fieldsLocked ? (
-                <span className="text-green-400 text-sm mr-2">
-                  ✓ محمل تلقائياً
-                </span>
-              ) : null}
-            </Label>
-            <Textarea
-              id="analysisReport"
-              value={analysisReport}
-              onChange={(e) => setAnalysisReport(e.target.value)}
-              className="min-h-24 bg-black/20 border-white/10"
-              placeholder="أدخل تقرير تحليل سابق إن وجد (اختياري — يُحسِّن دقة المخرجات)..."
-              disabled={fieldsLocked}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="specialRequirements">متطلبات خاصة</Label>
-              <Textarea
-                id="specialRequirements"
-                value={specialRequirements}
-                onChange={(e) => setSpecialRequirements(e.target.value)}
-                placeholder="توجيهات خاصة للأداة..."
-                className="bg-black/20 border-white/10 min-h-20"
-              />
-            </div>
-            <div>
-              <Label htmlFor="additionalInfo">معلومات إضافية</Label>
-              <Textarea
-                id="additionalInfo"
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                placeholder="سياق أو معلومات داعمة..."
-                className="bg-black/20 border-white/10 min-h-20"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className={SHELL_CARD} data-testid="tool-catalog">
-        <CardHeader>
-          <CardTitle>كتالوج أدوات التطوير الإبداعي (27 أداة)</CardTitle>
-          <CardDescription>
-            {isAnalysisComplete
-              ? "اختر الأداة المناسبة ثم اضغط «تنفيذ» للحصول على مخرجات فعلية"
-              : "أدخل 100 حرف على الأقل من النص الدرامي لتفعيل الكتالوج"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {(
-            ["core", "analysis", "creative", "predictive", "advanced"] as const
-          ).map((category) => (
-            <div key={category}>
-              <h3 className="text-sm font-semibold text-white/55 mb-3 uppercase tracking-wide">
-                {CATEGORY_LABELS[category]}
-              </h3>
-              <CatalogTaskButtons
-                tasks={catalogByCategory[category]}
-                selectedTaskId={selectedCatalogTaskId}
-                onTaskSelect={handleCatalogTaskSelect}
-                disabled={!isAnalysisComplete}
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <ToolCatalogCard
+        isAnalysisComplete={isAnalysisComplete}
+        catalogByCategory={catalogByCategory}
+        selectedCatalogTaskId={selectedCatalogTaskId}
+        handleCatalogTaskSelect={handleCatalogTaskSelect}
+      />
 
       {isAnalysisComplete && selectedCatalogTask ? (
         <ExecutionPanel
@@ -337,30 +440,11 @@ const DramaAnalystApp: React.FC = () => {
       ) : null}
 
       {aiResponse && !catalogResult ? (
-        <Card className={SHELL_CARD}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>نتائج التطوير الإبداعي</span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={showReport}>
-                  <Eye className="w-4 h-4 mr-2" /> التقرير الكامل
-                </Button>
-                <Button variant="outline" size="sm" onClick={exportReport}>
-                  <Download className="w-4 h-4 mr-2" /> تصدير
-                </Button>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert className="border-white/10 bg-white/[0.04]">
-              <Lightbulb className="h-4 w-4" />
-              <AlertTitle>المخرجات</AlertTitle>
-              <AlertDescription className="prose prose-sm dark:prose-invert mt-2 whitespace-pre-wrap">
-                {toText(aiResponse.raw)}
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+        <AIResultCard
+          aiResponse={aiResponse}
+          showReport={showReport}
+          exportReport={exportReport}
+        />
       ) : null}
 
       {showReportModal && agentReport ? (

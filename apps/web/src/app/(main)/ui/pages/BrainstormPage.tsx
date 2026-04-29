@@ -17,53 +17,151 @@ interface IdeaCard {
   isPinned: boolean;
 }
 
+const INITIAL_IDEAS: IdeaCard[] = [
+  {
+    id: "1",
+    title: "فكرة الصراع الداخلي",
+    content: "استكشاف صراع البطل بين الواجب والرغبة الشخصية",
+    tags: ["شخصيات", "صراع"],
+    isPinned: false,
+  },
+  {
+    id: "2",
+    title: "مشهد الكشف الكبير",
+    content: "لحظة تكشف فيها الحقيقة بشكل درامي",
+    tags: ["مشاهد", "ذروة"],
+    isPinned: true,
+  },
+  {
+    id: "3",
+    title: "تطوير الشخصية الثانوية",
+    content: "إضافة عمق لشخصية الحليف المقرب",
+    tags: ["شخصيات", "تطوير"],
+    isPinned: false,
+  },
+  {
+    id: "4",
+    title: "نهاية مفتوحة",
+    content: "ترك نهاية القصة مفتوحة للتفسير",
+    tags: ["بنية", "نهاية"],
+    group: "النهايات",
+    isPinned: false,
+  },
+  {
+    id: "5",
+    title: "نهاية محسومة",
+    content: "إنهاء القصة بشكل واضح وحاسم",
+    tags: ["بنية", "نهاية"],
+    group: "النهايات",
+    isPinned: false,
+  },
+];
+
+interface IdeasGridViewProps {
+  pinnedIdeas: IdeaCard[];
+  unpinnedIdeas: IdeaCard[];
+  onTogglePin: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function IdeasGridView({
+  pinnedIdeas,
+  unpinnedIdeas,
+  onTogglePin,
+  onDelete,
+}: IdeasGridViewProps) {
+  return (
+    <div className="max-w-7xl mx-auto space-y-8">
+      {pinnedIdeas.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Pin className="w-5 h-5 text-[var(--color-accent)]" />
+            <h2 className="text-[var(--color-text)]" dir="rtl">
+              مثبّت
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pinnedIdeas.map((idea) => (
+              <IdeaCardComponent
+                key={idea.id}
+                idea={idea}
+                onTogglePin={onTogglePin}
+                onDelete={onDelete}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      <div>
+        {pinnedIdeas.length > 0 && (
+          <h2 className="text-[var(--color-text)] mb-4" dir="rtl">
+            جميع الأفكار
+          </h2>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {unpinnedIdeas.map((idea) => (
+            <IdeaCardComponent
+              key={idea.id}
+              idea={idea}
+              onTogglePin={onTogglePin}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface IdeasAffinityViewProps {
+  groupedIdeas: Record<string, IdeaCard[]>;
+  onTogglePin: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function IdeasAffinityView({
+  groupedIdeas,
+  onTogglePin,
+  onDelete,
+}: IdeasAffinityViewProps) {
+  return (
+    <div className="max-w-7xl mx-auto space-y-6">
+      {Object.entries(groupedIdeas).map(([group, groupIdeas]) => (
+        <div key={group}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[var(--color-text)]" dir="rtl">
+              {group}
+            </h2>
+            <Badge
+              variant="outline"
+              className="border-[var(--color-muted)] text-[var(--color-muted)]"
+            >
+              {groupIdeas.length}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groupIdeas.map((idea) => (
+              <IdeaCardComponent
+                key={idea.id}
+                idea={idea}
+                onTogglePin={onTogglePin}
+                onDelete={onDelete}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function BrainstormPage() {
   const [viewMode, setViewMode] = useState<"grid" | "affinity">("grid");
-  const [ideas, setIdeas] = useState<IdeaCard[]>([
-    {
-      id: "1",
-      title: "فكرة الصراع الداخلي",
-      content: "استكشاف صراع البطل بين الواجب والرغبة الشخصية",
-      tags: ["شخصيات", "صراع"],
-      isPinned: false,
-    },
-    {
-      id: "2",
-      title: "مشهد الكشف الكبير",
-      content: "لحظة تكشف فيها الحقيقة بشكل درامي",
-      tags: ["مشاهد", "ذروة"],
-      isPinned: true,
-    },
-    {
-      id: "3",
-      title: "تطوير الشخصية الثانوية",
-      content: "إضافة عمق لشخصية الحليف المقرب",
-      tags: ["شخصيات", "تطوير"],
-      isPinned: false,
-    },
-    {
-      id: "4",
-      title: "نهاية مفتوحة",
-      content: "ترك نهاية القصة مفتوحة للتفسير",
-      tags: ["بنية", "نهاية"],
-      group: "النهايات",
-      isPinned: false,
-    },
-    {
-      id: "5",
-      title: "نهاية محسومة",
-      content: "إنهاء القصة بشكل واضح وحاسم",
-      tags: ["بنية", "نهاية"],
-      group: "النهايات",
-      isPinned: false,
-    },
-  ]);
-
+  const [ideas, setIdeas] = useState<IdeaCard[]>(INITIAL_IDEAS);
   const [newIdeaTitle, setNewIdeaTitle] = useState("");
 
   const handleAddIdea = () => {
     if (!newIdeaTitle.trim()) return;
-
     const newIdea: IdeaCard = {
       id: Date.now().toString(),
       title: newIdeaTitle,
@@ -71,7 +169,6 @@ export function BrainstormPage() {
       tags: [],
       isPinned: false,
     };
-
     setIdeas([...ideas, newIdea]);
     setNewIdeaTitle("");
   };
@@ -113,33 +210,31 @@ export function BrainstormPage() {
               {ideas.length} فكرة • {Object.keys(groupedIdeas).length} مجموعة
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-[var(--color-surface)] rounded-lg p-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className={
-                  viewMode === "grid"
-                    ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
-                    : ""
-                }
-              >
-                <Grid3x3 className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === "affinity" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("affinity")}
-                className={
-                  viewMode === "affinity"
-                    ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
-                    : ""
-                }
-              >
-                <Layers className="w-4 h-4" />
-              </Button>
-            </div>
+          <div className="flex items-center gap-1 bg-[var(--color-surface)] rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className={
+                viewMode === "grid"
+                  ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
+                  : ""
+              }
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "affinity" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("affinity")}
+              className={
+                viewMode === "affinity"
+                  ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
+                  : ""
+              }
+            >
+              <Layers className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
@@ -176,74 +271,18 @@ export function BrainstormPage() {
             </p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="max-w-7xl mx-auto space-y-8">
-            {pinnedIdeas.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <Pin className="w-5 h-5 text-[var(--color-accent)]" />
-                  <h2 className="text-[var(--color-text)]" dir="rtl">
-                    مثبّت
-                  </h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pinnedIdeas.map((idea) => (
-                    <IdeaCardComponent
-                      key={idea.id}
-                      idea={idea}
-                      onTogglePin={handleTogglePin}
-                      onDelete={handleDeleteIdea}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              {pinnedIdeas.length > 0 && (
-                <h2 className="text-[var(--color-text)] mb-4" dir="rtl">
-                  جميع الأفكار
-                </h2>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {unpinnedIdeas.map((idea) => (
-                  <IdeaCardComponent
-                    key={idea.id}
-                    idea={idea}
-                    onTogglePin={handleTogglePin}
-                    onDelete={handleDeleteIdea}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+          <IdeasGridView
+            pinnedIdeas={pinnedIdeas}
+            unpinnedIdeas={unpinnedIdeas}
+            onTogglePin={handleTogglePin}
+            onDelete={handleDeleteIdea}
+          />
         ) : (
-          <div className="max-w-7xl mx-auto space-y-6">
-            {Object.entries(groupedIdeas).map(([group, groupIdeas]) => (
-              <div key={group}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[var(--color-text)]" dir="rtl">
-                    {group}
-                  </h2>
-                  <Badge
-                    variant="outline"
-                    className="border-[var(--color-muted)] text-[var(--color-muted)]"
-                  >
-                    {groupIdeas.length}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {groupIdeas.map((idea) => (
-                    <IdeaCardComponent
-                      key={idea.id}
-                      idea={idea}
-                      onTogglePin={handleTogglePin}
-                      onDelete={handleDeleteIdea}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <IdeasAffinityView
+            groupedIdeas={groupedIdeas}
+            onTogglePin={handleTogglePin}
+            onDelete={handleDeleteIdea}
+          />
         )}
       </div>
 

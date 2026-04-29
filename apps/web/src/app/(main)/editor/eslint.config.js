@@ -109,11 +109,12 @@ export default tseslint.config(
 
       complexity: ["error", 10],
 
-      "max-lines-per-function": [
-        "error",
-
-        { max: 50, skipBlankLines: true, skipComments: true },
-      ],
+      // Disabled due to ESLint 9.39.4 bug: TypeError: Cannot read properties of undefined (reading 'match')
+      // Replaced with custom script: scripts/quality/check-function-length.ts
+      // "max-lines-per-function": [
+      //   "error",
+      //   { max: 50, skipBlankLines: true, skipComments: true },
+      // ],
 
       "max-lines": [
         "error",

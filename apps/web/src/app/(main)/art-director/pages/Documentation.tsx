@@ -17,6 +17,239 @@ interface StyleGuide {
   elements: string[];
 }
 
+interface BookFormState {
+  projectName: string;
+  projectNameAr: string;
+  director: string;
+  productionCompany: string;
+}
+
+interface DecisionFormState {
+  title: string;
+  description: string;
+  category: string;
+  rationale: string;
+}
+
+interface BookFormProps {
+  bookForm: BookFormState;
+  loading: boolean;
+  onChange: (form: BookFormState) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+function BookForm({
+  bookForm,
+  loading,
+  onChange,
+  onSubmit,
+  onCancel,
+}: BookFormProps) {
+  return (
+    <div className="form-modal card fade-in">
+      <h3>
+        <Book size={20} /> إنشاء كتاب الإنتاج
+      </h3>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="field-documentation-1">اسم المشروع (عربي)</label>
+          <input
+            id="field-documentation-1"
+            type="text"
+            className="input"
+            placeholder="مثال: رحلة إلى المجهول"
+            value={bookForm.projectNameAr}
+            onChange={(e) =>
+              onChange({ ...bookForm, projectNameAr: e.target.value })
+            }
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-documentation-2">اسم المشروع (إنجليزي)</label>
+          <input
+            id="field-documentation-2"
+            type="text"
+            className="input"
+            placeholder="Example: Journey to the Unknown"
+            value={bookForm.projectName}
+            onChange={(e) =>
+              onChange({ ...bookForm, projectName: e.target.value })
+            }
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-documentation-3">المخرج</label>
+          <input
+            id="field-documentation-3"
+            type="text"
+            className="input"
+            placeholder="اسم المخرج"
+            value={bookForm.director}
+            onChange={(e) =>
+              onChange({ ...bookForm, director: e.target.value })
+            }
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-documentation-4">شركة الإنتاج</label>
+          <input
+            id="field-documentation-4"
+            type="text"
+            className="input"
+            placeholder="اسم الشركة"
+            value={bookForm.productionCompany}
+            onChange={(e) =>
+              onChange({ ...bookForm, productionCompany: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="form-actions">
+        <button className="btn" onClick={onSubmit} disabled={loading}>
+          <Book size={18} />
+          {loading ? "جاري الإنشاء..." : "إنشاء"}
+        </button>
+        <button className="btn btn-secondary" onClick={onCancel}>
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface DecisionFormProps {
+  decisionForm: DecisionFormState;
+  loading: boolean;
+  onChange: (form: DecisionFormState) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+function DecisionForm({
+  decisionForm,
+  loading,
+  onChange,
+  onSubmit,
+  onCancel,
+}: DecisionFormProps) {
+  return (
+    <div className="form-modal card fade-in">
+      <h3>
+        <PenTool size={20} /> توثيق قرار إبداعي
+      </h3>
+      <div className="form-grid">
+        <div className="form-group full-width">
+          <label htmlFor="field-documentation-5">عنوان القرار</label>
+          <input
+            id="field-documentation-5"
+            type="text"
+            className="input"
+            placeholder="مثال: اختيار اللون الرئيسي للديكور"
+            value={decisionForm.title}
+            onChange={(e) =>
+              onChange({ ...decisionForm, title: e.target.value })
+            }
+          />
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="field-documentation-6">الوصف</label>
+          <textarea
+            id="field-documentation-6"
+            className="input"
+            placeholder="وصف تفصيلي للقرار"
+            value={decisionForm.description}
+            onChange={(e) =>
+              onChange({ ...decisionForm, description: e.target.value })
+            }
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-documentation-7">الفئة</label>
+          <select
+            id="field-documentation-7"
+            className="input"
+            value={decisionForm.category}
+            onChange={(e) =>
+              onChange({ ...decisionForm, category: e.target.value })
+            }
+          >
+            <option value="color">الألوان</option>
+            <option value="lighting">الإضاءة</option>
+            <option value="props">الإكسسوارات</option>
+            <option value="furniture">الأثاث</option>
+            <option value="texture">الخامات</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="field-documentation-8">المبرر</label>
+          <input
+            id="field-documentation-8"
+            type="text"
+            className="input"
+            placeholder="سبب اتخاذ هذا القرار"
+            value={decisionForm.rationale}
+            onChange={(e) =>
+              onChange({ ...decisionForm, rationale: e.target.value })
+            }
+          />
+        </div>
+      </div>
+      <div className="form-actions">
+        <button className="btn" onClick={onSubmit} disabled={loading}>
+          <Plus size={18} />
+          {loading ? "جاري التوثيق..." : "توثيق"}
+        </button>
+        <button className="btn btn-secondary" onClick={onCancel}>
+          إلغاء
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface ProductionBookCardProps {
+  productionBook: ProductionBook;
+  onExport: (format: string) => void;
+}
+
+function ProductionBookCard({
+  productionBook,
+  onExport,
+}: ProductionBookCardProps) {
+  return (
+    <div className="doc-card card fade-in">
+      <div className="doc-header">
+        <Book size={24} />
+        <div>
+          <h3>{productionBook.titleAr}</h3>
+          <p>{productionBook.title}</p>
+        </div>
+      </div>
+      <div className="doc-sections">
+        <h4>الأقسام:</h4>
+        <ul>
+          {productionBook.sections.map((section, index) => (
+            <li key={index}>{section}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="doc-meta">
+        تاريخ الإنشاء:{" "}
+        {new Date(productionBook.createdAt).toLocaleDateString("ar-EG")}
+      </div>
+      <div className="export-buttons">
+        <button className="btn btn-secondary" onClick={() => onExport("pdf")}>
+          <Download size={16} /> PDF
+        </button>
+        <button className="btn btn-secondary" onClick={() => onExport("docx")}>
+          <Download size={16} /> Word
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Documentation() {
   const [showBookForm, setShowBookForm] = useState(false);
   const [showDecisionForm, setShowDecisionForm] = useState(false);
@@ -26,14 +259,14 @@ function Documentation() {
   const [styleGuide, setStyleGuide] = useState<StyleGuide | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [bookForm, setBookForm] = useState({
+  const [bookForm, setBookForm] = useState<BookFormState>({
     projectName: "",
     projectNameAr: "",
     director: "",
     productionCompany: "",
   });
 
-  const [decisionForm, setDecisionForm] = useState({
+  const [decisionForm, setDecisionForm] = useState<DecisionFormState>({
     title: "",
     description: "",
     category: "color",
@@ -170,212 +403,31 @@ function Documentation() {
       </div>
 
       {showBookForm && (
-        <div className="form-modal card fade-in">
-          <h3>
-            <Book size={20} /> إنشاء كتاب الإنتاج
-          </h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label htmlFor="field-documentation-1">اسم المشروع (عربي)</label>
-              <input
-                id="field-documentation-1"
-                type="text"
-                className="input"
-                placeholder="مثال: رحلة إلى المجهول"
-                value={bookForm.projectNameAr}
-                onChange={(e) =>
-                  setBookForm({ ...bookForm, projectNameAr: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-documentation-2">
-                اسم المشروع (إنجليزي)
-              </label>
-              <input
-                id="field-documentation-2"
-                type="text"
-                className="input"
-                placeholder="Example: Journey to the Unknown"
-                value={bookForm.projectName}
-                onChange={(e) =>
-                  setBookForm({ ...bookForm, projectName: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-documentation-3">المخرج</label>
-              <input
-                id="field-documentation-3"
-                type="text"
-                className="input"
-                placeholder="اسم المخرج"
-                value={bookForm.director}
-                onChange={(e) =>
-                  setBookForm({ ...bookForm, director: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-documentation-4">شركة الإنتاج</label>
-              <input
-                id="field-documentation-4"
-                type="text"
-                className="input"
-                placeholder="اسم الشركة"
-                value={bookForm.productionCompany}
-                onChange={(e) =>
-                  setBookForm({
-                    ...bookForm,
-                    productionCompany: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button
-              className="btn"
-              onClick={handleGenerateBook}
-              disabled={loading}
-            >
-              <Book size={18} />
-              {loading ? "جاري الإنشاء..." : "إنشاء"}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowBookForm(false)}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        <BookForm
+          bookForm={bookForm}
+          loading={loading}
+          onChange={setBookForm}
+          onSubmit={handleGenerateBook}
+          onCancel={() => setShowBookForm(false)}
+        />
       )}
 
       {showDecisionForm && (
-        <div className="form-modal card fade-in">
-          <h3>
-            <PenTool size={20} /> توثيق قرار إبداعي
-          </h3>
-          <div className="form-grid">
-            <div className="form-group full-width">
-              <label htmlFor="field-documentation-5">عنوان القرار</label>
-              <input
-                id="field-documentation-5"
-                type="text"
-                className="input"
-                placeholder="مثال: اختيار اللون الرئيسي للديكور"
-                value={decisionForm.title}
-                onChange={(e) =>
-                  setDecisionForm({ ...decisionForm, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="form-group full-width">
-              <label htmlFor="field-documentation-6">الوصف</label>
-              <textarea
-                id="field-documentation-6"
-                className="input"
-                placeholder="وصف تفصيلي للقرار"
-                value={decisionForm.description}
-                onChange={(e) =>
-                  setDecisionForm({
-                    ...decisionForm,
-                    description: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-documentation-7">الفئة</label>
-              <select
-                id="field-documentation-7"
-                className="input"
-                value={decisionForm.category}
-                onChange={(e) =>
-                  setDecisionForm({ ...decisionForm, category: e.target.value })
-                }
-              >
-                <option value="color">الألوان</option>
-                <option value="lighting">الإضاءة</option>
-                <option value="props">الإكسسوارات</option>
-                <option value="furniture">الأثاث</option>
-                <option value="texture">الخامات</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="field-documentation-8">المبرر</label>
-              <input
-                id="field-documentation-8"
-                type="text"
-                className="input"
-                placeholder="سبب اتخاذ هذا القرار"
-                value={decisionForm.rationale}
-                onChange={(e) =>
-                  setDecisionForm({
-                    ...decisionForm,
-                    rationale: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-          <div className="form-actions">
-            <button
-              className="btn"
-              onClick={handleLogDecision}
-              disabled={loading}
-            >
-              <Plus size={18} />
-              {loading ? "جاري التوثيق..." : "توثيق"}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowDecisionForm(false)}
-            >
-              إلغاء
-            </button>
-          </div>
-        </div>
+        <DecisionForm
+          decisionForm={decisionForm}
+          loading={loading}
+          onChange={setDecisionForm}
+          onSubmit={handleLogDecision}
+          onCancel={() => setShowDecisionForm(false)}
+        />
       )}
 
       <div className="documentation-grid">
         {productionBook && (
-          <div className="doc-card card fade-in">
-            <div className="doc-header">
-              <Book size={24} />
-              <div>
-                <h3>{productionBook.titleAr}</h3>
-                <p>{productionBook.title}</p>
-              </div>
-            </div>
-            <div className="doc-sections">
-              <h4>الأقسام:</h4>
-              <ul>
-                {productionBook.sections.map((section, index) => (
-                  <li key={index}>{section}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="doc-meta">
-              تاريخ الإنشاء:{" "}
-              {new Date(productionBook.createdAt).toLocaleDateString("ar-EG")}
-            </div>
-            <div className="export-buttons">
-              <button
-                className="btn btn-secondary"
-                onClick={() => handleExport("pdf")}
-              >
-                <Download size={16} /> PDF
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => handleExport("docx")}
-              >
-                <Download size={16} /> Word
-              </button>
-            </div>
-          </div>
+          <ProductionBookCard
+            productionBook={productionBook}
+            onExport={handleExport}
+          />
         )}
 
         {styleGuide && (

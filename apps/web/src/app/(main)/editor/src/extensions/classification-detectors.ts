@@ -240,6 +240,81 @@ export const createConfidenceDropDetector = (): SuspicionDetector => ({
   },
 });
 
+// ─── helpers for reverse-pattern-mismatch detector ──────────────
+
+const SCENE_HEADER_TYPES = new Set<ElementType>([
+  "scene_header_1",
+  "scene_header_2",
+  "scene_header_3",
+  "basmala",
+]);
+
+const isNotSceneHeaderType = (type: ElementType): boolean =>
+  !SCENE_HEADER_TYPES.has(type);
+
+const checkSceneNumber = (
+  type: ElementType,
+  normalized: string
+): DetectorFinding | null => {
+  if (!isNotSceneHeaderType(type)) return null;
+  if (!SCENE_NUMBER_EXACT_RE.test(normalized)) return null;
+  return {
+    detectorId: "reverse-pattern-mismatch",
+    suspicionScore: 95,
+    reason: `مصنّف "${type}" لكن النص يطابق نمط رقم المشهد (scene_header_1)`,
+    suggestedType: null,
+  };
+};
+
+const checkSceneTimeLocation = (
+  type: ElementType,
+  normalized: string,
+  wordCount: number
+): DetectorFinding | null => {
+  if (!isNotSceneHeaderType(type)) return null;
+  if (!SCENE_TIME_RE.test(normalized)) return null;
+  if (!SCENE_LOCATION_RE.test(normalized)) return null;
+  if (wordCount > 5) return null;
+  return {
+    detectorId: "reverse-pattern-mismatch",
+    suspicionScore: 90,
+    reason: `مصنّف "${type}" لكن النص يطابق نمط زمن/مكان المشهد (scene_header_2)`,
+    suggestedType: null,
+  };
+};
+
+const checkSceneHeader3Place = (
+  type: ElementType,
+  normalized: string,
+  features: TextFeatures
+): DetectorFinding | null => {
+  if (type === "transition") return null;
+  if (!isNotSceneHeaderType(type)) return null;
+  if (!SCENE_HEADER3_KNOWN_PLACES_RE.test(normalized)) return null;
+  if (features.wordCount > 8) return null;
+  if (features.hasActionIndicators) return null;
+  return {
+    detectorId: "reverse-pattern-mismatch",
+    suspicionScore: 80,
+    reason: `مصنّف "${type}" لكن النص يطابق نمط موقع تفصيلي (scene_header_3)`,
+    suggestedType: "scene_header_3",
+  };
+};
+
+const checkTransitionPattern = (
+  type: ElementType,
+  normalized: string
+): DetectorFinding | null => {
+  if (type === "transition") return null;
+  if (!TRANSITION_RE.test(normalized)) return null;
+  return {
+    detectorId: "reverse-pattern-mismatch",
+    suspicionScore: 90,
+    reason: `مصنّف "${type}" لكن النص يطابق نمط انتقال (transition)`,
+    suggestedType: "transition" as ElementType,
+  };
+};
+
 export const createReversePatternMismatchDetector = (): SuspicionDetector => ({
   id: "reverse-pattern-mismatch",
 
@@ -249,65 +324,11 @@ export const createReversePatternMismatchDetector = (): SuspicionDetector => ({
     const type = line.assignedType;
     const normalized = features.normalized;
 
-    if (
-      type !== "scene_header_1" &&
-      type !== "scene_header_2" &&
-      type !== "scene_header_3" &&
-      type !== "basmala" &&
-      SCENE_NUMBER_EXACT_RE.test(normalized)
-    ) {
-      return {
-        detectorId: "reverse-pattern-mismatch",
-        suspicionScore: 95,
-        reason: `مصنّف "${type}" لكن النص يطابق نمط رقم المشهد (scene_header_1)`,
-        suggestedType: null,
-      };
-    }
-
-    if (
-      type !== "scene_header_1" &&
-      type !== "scene_header_2" &&
-      type !== "scene_header_3" &&
-      type !== "basmala" &&
-      SCENE_TIME_RE.test(normalized) &&
-      SCENE_LOCATION_RE.test(normalized) &&
-      features.wordCount <= 5
-    ) {
-      return {
-        detectorId: "reverse-pattern-mismatch",
-        suspicionScore: 90,
-        reason: `مصنّف "${type}" لكن النص يطابق نمط زمن/مكان المشهد (scene_header_2)`,
-        suggestedType: null,
-      };
-    }
-
-    if (
-      type !== "scene_header_3" &&
-      type !== "scene_header_1" &&
-      type !== "scene_header_2" &&
-      type !== "basmala" &&
-      type !== "transition" &&
-      SCENE_HEADER3_KNOWN_PLACES_RE.test(normalized) &&
-      features.wordCount <= 8 &&
-      !features.hasActionIndicators
-    ) {
-      return {
-        detectorId: "reverse-pattern-mismatch",
-        suspicionScore: 80,
-        reason: `مصنّف "${type}" لكن النص يطابق نمط موقع تفصيلي (scene_header_3)`,
-        suggestedType: "scene_header_3",
-      };
-    }
-
-    if (type !== "transition" && TRANSITION_RE.test(normalized)) {
-      return {
-        detectorId: "reverse-pattern-mismatch",
-        suspicionScore: 90,
-        reason: `مصنّف "${type}" لكن النص يطابق نمط انتقال (transition)`,
-        suggestedType: "transition" as ElementType,
-      };
-    }
-
-    return null;
+    return (
+      checkSceneNumber(type, normalized) ??
+      checkSceneTimeLocation(type, normalized, features.wordCount) ??
+      checkSceneHeader3Place(type, normalized, features) ??
+      checkTransitionPattern(type, normalized)
+    );
   },
 });

@@ -94,6 +94,90 @@ function parseBatchArgs(): BatchArgs {
   return { inputDir, outputDir, format };
 }
 
+// ─── إنشاء عميل MCP ─────────────────────────────────────────
+
+async function createBatchMcpClient(mcpServerPath: string): Promise<{
+  mcpClient: MCPClient;
+  mcpTools: Awaited<ReturnType<MCPClient["tools"]>>;
+}> {
+  const transport = new StdioClientTransport({
+    command: "npx",
+    args: ["tsx", mcpServerPath],
+    env: createChildEnv({
+      MISTRAL_API_KEY: process.env["MISTRAL_API_KEY"] ?? "",
+      OPENAI_API_KEY: process.env["OPENAI_API_KEY"] ?? "",
+    }),
+  });
+  const mcpClient = await createMCPClient({ transport });
+  const mcpTools = await mcpClient.tools();
+  return { mcpClient, mcpTools };
+}
+
+// ─── نوع نتيجة الملف ────────────────────────────────────────
+
+interface FileResult {
+  file: string;
+  success: boolean;
+  output?: string;
+  error?: string;
+  timeMs: number;
+}
+
+// ─── معالجة ملف واحد ────────────────────────────────────────
+
+async function processSinglePdf(
+  pdfPath: string,
+  outputPath: string,
+  agentModel: string,
+  mcpTools: Awaited<ReturnType<MCPClient["tools"]>>
+): Promise<void> {
+  await generateText({
+    model: openai(agentModel) as unknown as LanguageModel,
+    tools: mcpTools,
+    stopWhen: stepCountIs(5),
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `حوّل هذا الملف إلى markdown:
+inputPath: ${pdfPath}
+outputPath: ${outputPath}
+استخدم الإعدادات الافتراضية للتطبيع.`,
+          },
+        ],
+      },
+    ],
+  });
+}
+
+// ─── طباعة ملخص النتائج ─────────────────────────────────────
+
+function printResultsSummary(
+  results: FileResult[],
+  pdfCount: number,
+  outputDir: string
+): void {
+  const succeeded = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
+  const totalTimeMs = results.reduce((sum, r) => sum + r.timeMs, 0);
+
+  console.error();
+  log("ملخص", C.green, "═".repeat(50));
+  log("ملخص", C.green, `الإجمالي: ${pdfCount} ملف`);
+  log("ملخص", C.green, `نجاح: ${succeeded} | فشل: ${failed}`);
+  log("ملخص", C.green, `الوقت الكلي: ${(totalTimeMs / 1000).toFixed(1)} ثانية`);
+  log("ملخص", C.green, `مجلد الإخراج: ${outputDir}`);
+
+  if (failed > 0) {
+    log("ملخص", C.red, "الملفات الفاشلة:");
+    for (const r of results.filter((r) => !r.success)) {
+      log("ملخص", C.red, `  - ${r.file}: ${r.error}`);
+    }
+  }
+}
+
 // ─── المنطق الرئيسي ────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -130,16 +214,9 @@ async function main(): Promise<void> {
   let mcpTools: Awaited<ReturnType<MCPClient["tools"]>> = {};
 
   try {
-    const transport = new StdioClientTransport({
-      command: "npx",
-      args: ["tsx", config.mcpServerPath],
-      env: createChildEnv({
-        MISTRAL_API_KEY: process.env["MISTRAL_API_KEY"] ?? "",
-        OPENAI_API_KEY: process.env["OPENAI_API_KEY"] ?? "",
-      }),
-    });
-    mcpClient = await createMCPClient({ transport });
-    mcpTools = await mcpClient.tools();
+    const clientResult = await createBatchMcpClient(config.mcpServerPath);
+    mcpClient = clientResult.mcpClient;
+    mcpTools = clientResult.mcpTools;
     log("MCP", C.green, "تم الاتصال بخادم OCR");
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -148,13 +225,7 @@ async function main(): Promise<void> {
   }
 
   // معالجة كل ملف
-  const results: {
-    file: string;
-    success: boolean;
-    output?: string;
-    error?: string;
-    timeMs: number;
-  }[] = [];
+  const results: FileResult[] = [];
 
   for (let i = 0; i < pdfFiles.length; i++) {
     const pdfFile = pdfFiles[i];
@@ -170,25 +241,7 @@ async function main(): Promise<void> {
     const startTime = Date.now();
 
     try {
-      await generateText({
-        model: openai(config.agentModel) as unknown as LanguageModel,
-        tools: mcpTools,
-        stopWhen: stepCountIs(5),
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `حوّل هذا الملف إلى markdown:
-inputPath: ${pdfPath}
-outputPath: ${outputPath}
-استخدم الإعدادات الافتراضية للتطبيع.`,
-              },
-            ],
-          },
-        ],
-      });
+      await processSinglePdf(pdfPath, outputPath, config.agentModel, mcpTools);
 
       const elapsed = Date.now() - startTime;
       results.push({
@@ -215,24 +268,7 @@ outputPath: ${outputPath}
     }
   }
 
-  // ملخص النتائج
-  const succeeded = results.filter((r) => r.success).length;
-  const failed = results.filter((r) => !r.success).length;
-  const totalTimeMs = results.reduce((sum, r) => sum + r.timeMs, 0);
-
-  console.error();
-  log("ملخص", C.green, "═".repeat(50));
-  log("ملخص", C.green, `الإجمالي: ${pdfFiles.length} ملف`);
-  log("ملخص", C.green, `نجاح: ${succeeded} | فشل: ${failed}`);
-  log("ملخص", C.green, `الوقت الكلي: ${(totalTimeMs / 1000).toFixed(1)} ثانية`);
-  log("ملخص", C.green, `مجلد الإخراج: ${outputDir}`);
-
-  if (failed > 0) {
-    log("ملخص", C.red, "الملفات الفاشلة:");
-    for (const r of results.filter((r) => !r.success)) {
-      log("ملخص", C.red, `  - ${r.file}: ${r.error}`);
-    }
-  }
+  printResultsSummary(results, pdfFiles.length, outputDir);
 
   // تنظيف
   if (mcpClient) {
@@ -244,7 +280,8 @@ outputPath: ${outputPath}
   }
 
   // رمز الخروج
-  process.exitCode = failed > 0 ? 1 : 0;
+  const failedCount = results.filter((r) => !r.success).length;
+  process.exitCode = failedCount > 0 ? 1 : 0;
 }
 
 main().catch((error) => {

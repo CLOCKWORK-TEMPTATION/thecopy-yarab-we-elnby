@@ -1,8 +1,7 @@
-import { api, getCurrentUser, type Order } from "@the-copy/breakapp";
+import { api, type Order } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import {
   useState,
-  useRef,
   useEffect,
   useCallback,
   useMemo,
@@ -22,9 +21,255 @@ import {
   OrderStatusEvent,
 } from "../types";
 
+// ── Pure helpers ──────────────────────────────────────────────────────────────
+
+function mapRunnerPayload(r: RunnerPayload): AvailableRunner {
+  const base: AvailableRunner = { runnerId: r.runnerId, status: r.status };
+  return r.name !== undefined ? { ...base, name: r.name } : base;
+}
+
+function applyStatusEvent(
+  orders: LiveOrder[],
+  evt: OrderStatusEvent
+): LiveOrder[] {
+  return orders.map((o) =>
+    o.id === evt.orderId
+      ? {
+          ...o,
+          status: evt.status,
+          ...(evt.vendorId !== undefined ? { vendorId: evt.vendorId } : {}),
+          ...(evt.runnerId !== undefined ? { runnerId: evt.runnerId } : {}),
+        }
+      : o
+  );
+}
+
+function sortOrders(list: LiveOrder[], timeSort: TimeSortOrder): LiveOrder[] {
+  return [...list].sort((a, b) => {
+    const ta = new Date(a.created_at).getTime();
+    const tb = new Date(b.created_at).getTime();
+    return timeSort === "newest" ? tb - ta : ta - tb;
+  });
+}
+
+function buildVendorOptions(
+  orders: LiveOrder[]
+): { id: string; label: string }[] {
+  const seen = new Map<string, string>();
+  for (const order of orders) {
+    if (order.vendorId && !seen.has(order.vendorId)) {
+      seen.set(order.vendorId, order.vendorName ?? order.vendorId);
+    }
+  }
+  return Array.from(seen.entries()).map(([id, label]) => ({ id, label }));
+}
+
+// ── Async API helpers ─────────────────────────────────────────────────────────
+
+async function fetchOrdersFromApi(
+  sessionId: string,
+  statusFilter: OrderStatusFilter
+): Promise<LiveOrder[]> {
+  const params: Record<string, string> = {};
+  if (statusFilter !== "all") params["status"] = statusFilter;
+  const res = await api.get<LiveOrder[]>(
+    `/breakapp/orders/session/${sessionId}`,
+    Object.keys(params).length > 0 ? { params } : {}
+  );
+  return res.data;
+}
+
+async function fetchRunnersFromApi(
+  sessionId: string
+): Promise<AvailableRunner[]> {
+  const res = await api.get<RunnerPayload[]>(
+    `/breakapp/runners/session/${sessionId}`
+  );
+  return res.data.map(mapRunnerPayload);
+}
+
+async function runBatchingApi(sessionId: string): Promise<BatchVendorResult[]> {
+  const res = await api.post<BatchVendorResult[]>(
+    `/breakapp/orders/session/${sessionId}/batch`,
+    {}
+  );
+  return res.data;
+}
+
+async function updateOrderStatusApi(
+  orderId: string,
+  status: Order["status"]
+): Promise<void> {
+  await api.patch(`/breakapp/orders/${orderId}/status`, { status });
+}
+
+async function assignRunnerApi(
+  orderId: string,
+  runnerId: string
+): Promise<void> {
+  await api.patch(`/breakapp/orders/${orderId}/status`, {
+    status: "processing",
+    runnerId,
+  });
+}
+
+// ── WebSocket handler factory ─────────────────────────────────────────────────
+
+function makeOrderStatusHandler(
+  setOrders: React.Dispatch<React.SetStateAction<LiveOrder[]>>
+): (...args: unknown[]) => void {
+  return (...args: unknown[]): void => {
+    const [p] = args;
+    if (!p || typeof p !== "object" || !("orderId" in p) || !("status" in p))
+      return;
+    setOrders((prev) => applyStatusEvent(prev, p as OrderStatusEvent));
+  };
+}
+
+function applySessionToStorage(trimmed: string): void {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(SESSION_STORAGE_KEY, trimmed);
+  }
+}
+
+// ── Extracted callback implementations ───────────────────────────────────────
+
+async function doFetchOrders(
+  sessionId: string,
+  statusFilter: OrderStatusFilter,
+  setLoadingOrders: (v: boolean) => void,
+  setOrders: (fn: (prev: LiveOrder[]) => LiveOrder[]) => void
+): Promise<void> {
+  setLoadingOrders(true);
+  try {
+    const data = await fetchOrdersFromApi(sessionId, statusFilter);
+    setOrders(() => data);
+  } catch (e: unknown) {
+    toast({
+      title: "خطأ في جلب الطلبات",
+      description: (e as { message?: string }).message ?? "تعذّر تحميل الطلبات",
+      variant: "destructive",
+    });
+  } finally {
+    setLoadingOrders(false);
+  }
+}
+
+async function doFetchRunners(
+  sessionId: string,
+  setRunners: (fn: (prev: AvailableRunner[]) => AvailableRunner[]) => void
+): Promise<void> {
+  try {
+    const data = await fetchRunnersFromApi(sessionId);
+    setRunners(() => data);
+  } catch (e: unknown) {
+    toast({
+      title: "خطأ في جلب الـ Runners",
+      description:
+        (e as { message?: string }).message ?? "تعذّر تحميل قائمة الـ runners",
+      variant: "destructive",
+    });
+  }
+}
+
+async function doRunBatching(
+  sessionId: string | null,
+  setBatching: (v: boolean) => void,
+  setBatchResult: (v: BatchVendorResult[]) => void,
+  refetchOrders: () => Promise<void>
+): Promise<void> {
+  if (!sessionId) {
+    toast({
+      title: "جلسة غير محددة",
+      description: "حدّد معرّف الجلسة أولاً",
+      variant: "destructive",
+    });
+    return;
+  }
+  setBatching(true);
+  try {
+    const data = await runBatchingApi(sessionId);
+    setBatchResult(data);
+    toast({
+      title: "تم تشغيل الـ Batching",
+      description: `تم تجميع ${data.length} مورد/موردين`,
+    });
+    await refetchOrders();
+  } catch (e: unknown) {
+    toast({
+      title: "فشل الـ Batching",
+      description: (e as { message?: string }).message ?? "تعذّر تشغيل التجميع",
+      variant: "destructive",
+    });
+  } finally {
+    setBatching(false);
+  }
+}
+
+async function doUpdateOrderStatus(
+  orderId: string,
+  status: Order["status"],
+  setOrders: (fn: (prev: LiveOrder[]) => LiveOrder[]) => void
+): Promise<void> {
+  try {
+    await updateOrderStatusApi(orderId, status);
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+    );
+    toast({
+      title: "تم تحديث الحالة",
+      description: `أصبحت حالة الطلب: ${STATUS_LABELS[status]}`,
+    });
+  } catch (e: unknown) {
+    toast({
+      title: "فشل التحديث",
+      description: (e as { message?: string }).message ?? "تعذّر تحديث الحالة",
+      variant: "destructive",
+    });
+  }
+}
+
+async function doAssignRunner(
+  orderId: string,
+  runnerId: string,
+  setOrders: (fn: (prev: LiveOrder[]) => LiveOrder[]) => void,
+  setAssignTargetId: (v: string | null) => void
+): Promise<void> {
+  try {
+    await assignRunnerApi(orderId, runnerId);
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: "processing", runnerId } : o
+      )
+    );
+    toast({
+      title: "تم الإسناد",
+      description: `تم إسناد الطلب للـ runner: ${runnerId}`,
+    });
+  } catch (e: unknown) {
+    toast({
+      title: "فشل الإسناد",
+      description: (e as { message?: string }).message ?? "تعذّر إسناد الطلب",
+      variant: "destructive",
+    });
+  } finally {
+    setAssignTargetId(null);
+  }
+}
+
+// ── Hook ─────────────────────────────────────────────────────────────────────
+
 export function useOrdersLive() {
-  const [sessionId, setSessionId] = useState<string>("");
-  const [sessionDraft, setSessionDraft] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string>(() =>
+    typeof window === "undefined"
+      ? ""
+      : (window.localStorage.getItem(SESSION_STORAGE_KEY) ?? "")
+  );
+  const [sessionDraft, setSessionDraft] = useState<string>(() =>
+    typeof window === "undefined"
+      ? ""
+      : (window.localStorage.getItem(SESSION_STORAGE_KEY) ?? "")
+  );
   const [orders, setOrders] = useState<LiveOrder[]>([]);
   const [runners, setRunners] = useState<AvailableRunner[]>([]);
   const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>("all");
@@ -36,71 +281,16 @@ export function useOrdersLive() {
     null
   );
   const [assignTargetId, setAssignTargetId] = useState<string | null>(null);
-  const userIdRef = useRef<string | null>(null);
-
   const { connected, on, off } = useSocket({ auth: true });
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    userIdRef.current = user?.userId ?? null;
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    if (stored) {
-      setSessionId(stored);
-      setSessionDraft(stored);
-    }
-  }, []);
 
   const fetchOrders = useCallback(async (): Promise<void> => {
     if (!sessionId) return;
-    setLoadingOrders(true);
-    try {
-      const params: Record<string, string> = {};
-      if (statusFilter !== "all") {
-        params["status"] = statusFilter;
-      }
-      const response = await api.get<LiveOrder[]>(
-        `/breakapp/orders/session/${sessionId}`,
-        Object.keys(params).length > 0 ? { params } : {}
-      );
-      setOrders(response.data);
-    } catch (error: unknown) {
-      const axiosError = error as { message?: string };
-      toast({
-        title: "خطأ في جلب الطلبات",
-        description: axiosError.message ?? "تعذّر تحميل الطلبات",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingOrders(false);
-    }
+    await doFetchOrders(sessionId, statusFilter, setLoadingOrders, setOrders);
   }, [sessionId, statusFilter]);
 
   const fetchRunners = useCallback(async (): Promise<void> => {
     if (!sessionId) return;
-    try {
-      const response = await api.get<RunnerPayload[]>(
-        `/breakapp/runners/session/${sessionId}`
-      );
-      const mapped: AvailableRunner[] = response.data.map((r) => {
-        const base: AvailableRunner = {
-          runnerId: r.runnerId,
-          status: r.status,
-        };
-        return r.name !== undefined ? { ...base, name: r.name } : base;
-      });
-      setRunners(mapped);
-    } catch (error: unknown) {
-      const axiosError = error as { message?: string };
-      toast({
-        title: "خطأ في جلب الـ Runners",
-        description: axiosError.message ?? "تعذّر تحميل قائمة الـ runners",
-        variant: "destructive",
-      });
-    }
+    await doFetchRunners(sessionId, setRunners);
   }, [sessionId]);
 
   useEffect(() => {
@@ -111,39 +301,10 @@ export function useOrdersLive() {
 
   useEffect(() => {
     if (!connected || !sessionId) return;
-
-    const handleStatusUpdate = (...args: unknown[]): void => {
-      const [payload] = args;
-      if (
-        !payload ||
-        typeof payload !== "object" ||
-        !("orderId" in payload) ||
-        !("status" in payload)
-      ) {
-        return;
-      }
-      const evt = payload as OrderStatusEvent;
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === evt.orderId
-            ? {
-                ...order,
-                status: evt.status,
-                ...(evt.vendorId !== undefined
-                  ? { vendorId: evt.vendorId }
-                  : {}),
-                ...(evt.runnerId !== undefined
-                  ? { runnerId: evt.runnerId }
-                  : {}),
-              }
-            : order
-        )
-      );
-    };
-
-    on("order:status:update", handleStatusUpdate);
+    const handler = makeOrderStatusHandler(setOrders);
+    on("order:status:update", handler);
     return () => {
-      off("order:status:update", handleStatusUpdate);
+      off("order:status:update", handler);
     };
   }, [connected, sessionId, on, off]);
 
@@ -156,83 +317,24 @@ export function useOrdersLive() {
       });
       return;
     }
-    setBatching(true);
-    try {
-      const response = await api.post<BatchVendorResult[]>(
-        `/breakapp/orders/session/${sessionId}/batch`,
-        {}
-      );
-      setBatchResult(response.data);
-      toast({
-        title: "تم تشغيل الـ Batching",
-        description: `تم تجميع ${response.data.length} مورد/موردين`,
-      });
-      await fetchOrders();
-    } catch (error: unknown) {
-      const axiosError = error as { message?: string };
-      toast({
-        title: "فشل الـ Batching",
-        description: axiosError.message ?? "تعذّر تشغيل التجميع",
-        variant: "destructive",
-      });
-    } finally {
-      setBatching(false);
-    }
+    await doRunBatching(
+      sessionId,
+      setBatching,
+      (d) => setBatchResult(d),
+      fetchOrders
+    );
   }, [sessionId, fetchOrders]);
 
   const updateOrderStatus = useCallback(
     async (orderId: string, status: Order["status"]): Promise<void> => {
-      try {
-        await api.patch(`/breakapp/orders/${orderId}/status`, { status });
-        setOrders((prev) =>
-          prev.map((order) =>
-            order.id === orderId ? { ...order, status } : order
-          )
-        );
-        toast({
-          title: "تم تحديث الحالة",
-          description: `أصبحت حالة الطلب: ${STATUS_LABELS[status]}`,
-        });
-      } catch (error: unknown) {
-        const axiosError = error as { message?: string };
-        toast({
-          title: "فشل التحديث",
-          description: axiosError.message ?? "تعذّر تحديث الحالة",
-          variant: "destructive",
-        });
-      }
+      await doUpdateOrderStatus(orderId, status, setOrders);
     },
     []
   );
 
   const assignRunnerToOrder = useCallback(
     async (orderId: string, runnerId: string): Promise<void> => {
-      try {
-        await api.patch(`/breakapp/orders/${orderId}/status`, {
-          status: "processing",
-          runnerId,
-        });
-        setOrders((prev) =>
-          prev.map((order) =>
-            order.id === orderId
-              ? { ...order, status: "processing", runnerId }
-              : order
-          )
-        );
-        toast({
-          title: "تم الإسناد",
-          description: `تم إسناد الطلب للـ runner: ${runnerId}`,
-        });
-      } catch (error: unknown) {
-        const axiosError = error as { message?: string };
-        toast({
-          title: "فشل الإسناد",
-          description: axiosError.message ?? "تعذّر إسناد الطلب",
-          variant: "destructive",
-        });
-      } finally {
-        setAssignTargetId(null);
-      }
+      await doAssignRunner(orderId, runnerId, setOrders, setAssignTargetId);
     },
     []
   );
@@ -241,63 +343,37 @@ export function useOrdersLive() {
     const trimmed = sessionDraft.trim();
     if (!trimmed) return;
     setSessionId(trimmed);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(SESSION_STORAGE_KEY, trimmed);
-    }
+    applySessionToStorage(trimmed);
   }, [sessionDraft]);
 
   const handleSessionDraftChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>): void => {
-      setSessionDraft(e.target.value);
-    },
+    (e: ChangeEvent<HTMLInputElement>) => setSessionDraft(e.target.value),
     []
   );
-
   const handleStatusFilterChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>): void => {
-      setStatusFilter(e.target.value as OrderStatusFilter);
-    },
+    (e: ChangeEvent<HTMLSelectElement>) =>
+      setStatusFilter(e.target.value as OrderStatusFilter),
     []
   );
-
   const handleVendorFilterChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>): void => {
-      setVendorFilter(e.target.value);
-    },
+    (e: ChangeEvent<HTMLSelectElement>) => setVendorFilter(e.target.value),
     []
   );
-
   const handleTimeSortChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>): void => {
-      setTimeSort(e.target.value as TimeSortOrder);
-    },
+    (e: ChangeEvent<HTMLSelectElement>) =>
+      setTimeSort(e.target.value as TimeSortOrder),
     []
   );
 
-  const vendorOptions = useMemo<{ id: string; label: string }[]>(() => {
-    const seen = new Map<string, string>();
-    for (const order of orders) {
-      if (order.vendorId && !seen.has(order.vendorId)) {
-        seen.set(order.vendorId, order.vendorName ?? order.vendorId);
-      }
-    }
-    return Array.from(seen.entries()).map(([id, label]) => ({ id, label }));
-  }, [orders]);
-
-  const filteredOrders = useMemo<LiveOrder[]>(() => {
-    let list = orders;
-    if (vendorFilter !== "all") {
-      list = list.filter((o) => o.vendorId === vendorFilter);
-    }
-    const sorted = [...list].sort((a, b) => {
-      const ta = new Date(a.created_at).getTime();
-      const tb = new Date(b.created_at).getTime();
-      return timeSort === "newest" ? tb - ta : ta - tb;
-    });
-    return sorted;
+  const vendorOptions = useMemo(() => buildVendorOptions(orders), [orders]);
+  const filteredOrders = useMemo(() => {
+    const list =
+      vendorFilter !== "all"
+        ? orders.filter((o) => o.vendorId === vendorFilter)
+        : orders;
+    return sortOrders(list, timeSort);
   }, [orders, vendorFilter, timeSort]);
-
-  const availableRunners = useMemo<AvailableRunner[]>(
+  const availableRunners = useMemo(
     () => runners.filter((r) => r.status === "available"),
     [runners]
   );

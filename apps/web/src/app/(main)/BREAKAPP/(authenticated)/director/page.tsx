@@ -38,6 +38,111 @@ interface SessionResponse {
   id: string;
 }
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface NearbyVendorsListProps {
+  vendors: Vendor[];
+}
+
+function NearbyVendorsList({ vendors }: NearbyVendorsListProps) {
+  if (vendors.length === 0) return null;
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        الموردون القريبون ({vendors.length})
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {vendors.map((vendor: Vendor) => (
+          <div
+            key={vendor.id}
+            className="border border-white/8 rounded-[22px] p-4 hover:bg-white/8 transition-all bg-white/[0.02]"
+          >
+            <h3 className="font-semibold text-white font-cairo">
+              {vendor.name}
+            </h3>
+            {vendor.distance && (
+              <p className="text-sm text-white/55 mt-1 font-cairo">
+                المسافة: {Math.round(vendor.distance)} متر
+              </p>
+            )}
+            <p className="text-xs text-white/45 mt-2">
+              {vendor.fixed_location.lat.toFixed(4)},{" "}
+              {vendor.fixed_location.lng.toFixed(4)}
+            </p>
+          </div>
+        ))}
+      </div>
+    </CardSpotlight>
+  );
+}
+
+interface MapSectionProps {
+  selectedLocation: { lat: number; lng: number } | null;
+  vendorsForMap: VendorMapData[];
+  loading: boolean;
+  projectId: string;
+  sessionId: string | null;
+  onLocationSelect: (lat: number, lng: number) => void;
+  onCreateSession: () => void;
+}
+
+function MapSection({
+  selectedLocation,
+  vendorsForMap,
+  loading,
+  projectId,
+  sessionId,
+  onLocationSelect,
+  onCreateSession,
+}: MapSectionProps) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
+        اختر موقع التصوير
+      </h2>
+      <MapComponent
+        {...(selectedLocation
+          ? {
+              center: [selectedLocation.lat, selectedLocation.lng] as [
+                number,
+                number,
+              ],
+            }
+          : {})}
+        onLocationSelect={onLocationSelect}
+        vendors={vendorsForMap}
+        className="mb-4"
+      />
+
+      {selectedLocation && (
+        <div className="mt-4 p-4 bg-white/6 rounded-[22px] border border-white/8">
+          <p className="text-sm text-white/85 font-cairo">
+            <strong>الموقع المحدد:</strong> {selectedLocation.lat.toFixed(6)},{" "}
+            {selectedLocation.lng.toFixed(6)}
+          </p>
+          <button
+            onClick={onCreateSession}
+            disabled={loading || !projectId}
+            className="mt-2 px-6 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-cairo transition"
+          >
+            {loading ? "جارٍ الإنشاء..." : "إنشاء جلسة يومية"}
+          </button>
+        </div>
+      )}
+
+      {sessionId && (
+        <div className="mt-4 p-4 bg-white/8 rounded-[22px] border border-white/12">
+          <p className="text-sm text-white/85 font-cairo">
+            <strong>تم إنشاء الجلسة!</strong> معرّف الجلسة: {sessionId}
+          </p>
+        </div>
+      )}
+    </CardSpotlight>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+
 export default function DirectorDashboard() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -48,9 +153,6 @@ export default function DirectorDashboard() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string>("");
 
-  /**
-   * معالج اختيار الموقع على الخريطة
-   */
   const handleLocationSelect = useCallback(
     async (lat: number, lng: number): Promise<void> => {
       setSelectedLocation({ lat, lng });
@@ -60,7 +162,6 @@ export default function DirectorDashboard() {
         const response = await api.get<Vendor[]>("/geo/vendors/nearby", {
           params: { lat, lng, radius: 3000 },
         });
-
         setVendors(response.data);
       } catch (error: unknown) {
         const axiosError = error as { message?: string };
@@ -76,9 +177,6 @@ export default function DirectorDashboard() {
     []
   );
 
-  /**
-   * إنشاء جلسة يومية
-   */
   const handleCreateSession = useCallback(async (): Promise<void> => {
     if (!selectedLocation || !projectId) {
       toast({
@@ -114,9 +212,6 @@ export default function DirectorDashboard() {
     }
   }, [selectedLocation, projectId]);
 
-  /**
-   * تحويل بيانات الموردين لصيغة الخريطة
-   */
   const vendorsForMap: VendorMapData[] = useMemo(
     () =>
       vendors.map((v: Vendor) => {
@@ -134,9 +229,6 @@ export default function DirectorDashboard() {
     [vendors]
   );
 
-  /**
-   * معالج تغيير معرّف المشروع
-   */
   const handleProjectIdChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>): void => {
       setProjectId(e.target.value);
@@ -147,7 +239,6 @@ export default function DirectorDashboard() {
   return (
     <div dir="rtl" className="min-h-screen bg-black/8 p-8 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto">
-        {/* العنوان مع زر العودة */}
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2 font-cairo">
@@ -165,7 +256,6 @@ export default function DirectorDashboard() {
           </a>
         </div>
 
-        {/* شريط تنقّل تبويبات المخرج */}
         <nav
           aria-label="تبويبات المخرج"
           className="mb-6 flex items-center gap-3"
@@ -190,7 +280,6 @@ export default function DirectorDashboard() {
           </a>
         </nav>
 
-        {/* إدخال معرّف المشروع */}
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
           <label
             htmlFor="field-page-1"
@@ -208,80 +297,17 @@ export default function DirectorDashboard() {
           />
         </CardSpotlight>
 
-        {/* قسم الخريطة */}
-        <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-            اختر موقع التصوير
-          </h2>
-          <MapComponent
-            {...(selectedLocation
-              ? {
-                  center: [selectedLocation.lat, selectedLocation.lng] as [
-                    number,
-                    number,
-                  ],
-                }
-              : {})}
-            onLocationSelect={handleLocationSelect}
-            vendors={vendorsForMap}
-            className="mb-4"
-          />
+        <MapSection
+          selectedLocation={selectedLocation}
+          vendorsForMap={vendorsForMap}
+          loading={loading}
+          projectId={projectId}
+          sessionId={sessionId}
+          onLocationSelect={(lat, lng) => void handleLocationSelect(lat, lng)}
+          onCreateSession={() => void handleCreateSession()}
+        />
 
-          {selectedLocation && (
-            <div className="mt-4 p-4 bg-white/6 rounded-[22px] border border-white/8">
-              <p className="text-sm text-white/85 font-cairo">
-                <strong>الموقع المحدد:</strong>{" "}
-                {selectedLocation.lat.toFixed(6)},{" "}
-                {selectedLocation.lng.toFixed(6)}
-              </p>
-              <button
-                onClick={handleCreateSession}
-                disabled={loading || !projectId}
-                className="mt-2 px-6 py-2 bg-white/8 text-white rounded-[22px] hover:bg-white/12 disabled:bg-white/4 disabled:cursor-not-allowed font-cairo transition"
-              >
-                {loading ? "جارٍ الإنشاء..." : "إنشاء جلسة يومية"}
-              </button>
-            </div>
-          )}
-
-          {sessionId && (
-            <div className="mt-4 p-4 bg-white/8 rounded-[22px] border border-white/12">
-              <p className="text-sm text-white/85 font-cairo">
-                <strong>تم إنشاء الجلسة!</strong> معرّف الجلسة: {sessionId}
-              </p>
-            </div>
-          )}
-        </CardSpotlight>
-
-        {/* قائمة الموردين */}
-        {vendors.length > 0 && (
-          <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-white font-cairo">
-              الموردون القريبون ({vendors.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vendors.map((vendor: Vendor) => (
-                <div
-                  key={vendor.id}
-                  className="border border-white/8 rounded-[22px] p-4 hover:bg-white/8 transition-all bg-white/[0.02]"
-                >
-                  <h3 className="font-semibold text-white font-cairo">
-                    {vendor.name}
-                  </h3>
-                  {vendor.distance && (
-                    <p className="text-sm text-white/55 mt-1 font-cairo">
-                      المسافة: {Math.round(vendor.distance)} متر
-                    </p>
-                  )}
-                  <p className="text-xs text-white/45 mt-2">
-                    {vendor.fixed_location.lat.toFixed(4)},{" "}
-                    {vendor.fixed_location.lng.toFixed(4)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardSpotlight>
-        )}
+        <NearbyVendorsList vendors={vendors} />
       </div>
     </div>
   );

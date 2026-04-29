@@ -194,6 +194,313 @@ function buildHistogramPath(seed: number): string {
   return `M 0 40 ${points.join(" ")} L 100 40 Z`;
 }
 
+interface GradeMonitorProps {
+  grade: ColorGrade;
+  showOriginal: boolean;
+  copied: boolean;
+  activePreset: LUTPreset | null;
+  generatedFilter: string;
+  generatedOverlay: React.CSSProperties;
+  histogramPaths: { red: string; green: string; blue: string };
+  onToggleOriginal: () => void;
+  onCopySettings: () => void;
+}
+
+function GradeMonitor({
+  grade,
+  showOriginal,
+  copied,
+  activePreset,
+  generatedFilter,
+  generatedOverlay,
+  histogramPaths,
+  onToggleOriginal,
+  onCopySettings,
+}: GradeMonitorProps) {
+  return (
+    <StudioPanel
+      title="Grade Monitor"
+      subtitle="معاينة حية لدرجة الفيلم مع مقارنة قبل وبعد"
+      headerRight={
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={onToggleOriginal}
+            className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
+          >
+            {showOriginal ? (
+              <Eye className="mr-2 h-4 w-4" />
+            ) : (
+              <EyeOff className="mr-2 h-4 w-4" />
+            )}
+            {showOriginal ? "معالج" : "أصلي"}
+          </Button>
+          <Button
+            type="button"
+            onClick={onCopySettings}
+            className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
+          >
+            {copied ? (
+              <Check className="mr-2 h-4 w-4 text-[#97d85c]" />
+            ) : (
+              <Copy className="mr-2 h-4 w-4" />
+            )}
+            نسخ
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <div className="relative aspect-[16/9] overflow-hidden rounded-[10px] border border-[#343434] bg-[#050505]">
+          <div
+            className="absolute inset-0 transition-all duration-300"
+            style={{
+              background: `linear-gradient(135deg, hsl(${200 + grade.temperature}, 40%, 30%) 0%, hsl(${30 + grade.temperature}, 50%, 40%) 50%, hsl(${280 + grade.temperature}, 30%, 20%) 100%)`,
+              filter: generatedFilter,
+            }}
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="grid w-full max-w-3xl grid-cols-3 gap-4 p-8">
+                <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-lg" />
+                <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-500 to-zinc-600 shadow-lg" />
+                <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-200 to-zinc-100 shadow-lg" />
+                <div
+                  className="col-start-2 aspect-square rounded-full shadow-lg"
+                  style={{
+                    background: `linear-gradient(135deg, hsl(${25 + grade.highlightHue * 0.2}, ${50 + grade.saturation * 0.2}%, 70%) 0%, hsl(${20 + grade.shadowHue * 0.1}, ${40 + grade.saturation * 0.1}%, 50%) 100%)`,
+                  }}
+                />
+              </div>
+            </div>
+            <div className="absolute inset-0" style={generatedOverlay} />
+          </div>
+
+          {showOriginal ? (
+            <div className="absolute inset-0 flex">
+              <div className="w-1/2 overflow-hidden border-r-2 border-white/50">
+                <div className="absolute inset-0 bg-gradient-to-br from-zinc-600 via-amber-700/30 to-zinc-800" />
+              </div>
+              <div
+                className="w-1/2 overflow-hidden"
+                style={{ filter: generatedFilter }}
+              />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/80 px-4 py-2 text-xs text-white">
+                قبل / بعد
+              </div>
+            </div>
+          ) : null}
+
+          <div className="absolute left-4 top-4">
+            <Badge className="border-0 bg-[#15100a] text-[#f6cf72]">
+              <Film className="mr-2 h-3 w-3" />
+              {activePreset?.nameAr ?? "درجة مخصصة"}
+            </Badge>
+          </div>
+
+          <div className="absolute bottom-4 right-4 h-20 w-36 overflow-hidden rounded-[10px] border border-[#343434] bg-black/70 p-2">
+            <svg className="h-full w-full" viewBox="0 0 100 40">
+              <path d={histogramPaths.red} fill="rgba(255,0,0,0.3)" />
+              <path d={histogramPaths.green} fill="rgba(0,255,0,0.3)" />
+              <path d={histogramPaths.blue} fill="rgba(0,0,255,0.3)" />
+            </svg>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <StudioMetricCell label="Temperature" value={grade.temperature} />
+          <StudioMetricCell
+            label="Contrast"
+            value={`${grade.contrast}%`}
+            tone="white"
+          />
+          <StudioMetricCell label="Saturation" value={`${grade.saturation}%`} />
+          <StudioMetricCell
+            label="Vibrance"
+            value={`${grade.vibrance}%`}
+            tone="white"
+          />
+        </div>
+      </div>
+    </StudioPanel>
+  );
+}
+
+interface FilmLooksPanelProps {
+  selectedPreset: string | null;
+  activePreset: LUTPreset | null;
+  presetReason: string | null;
+  onApplyPreset: (id: string) => void;
+  onUnlockPreset: () => void;
+}
+
+function FilmLooksPanel({
+  selectedPreset,
+  activePreset,
+  presetReason,
+  onApplyPreset,
+  onUnlockPreset,
+}: FilmLooksPanelProps) {
+  return (
+    <StudioPanel
+      title="Film Looks"
+      subtitle="قوالب درجات مرجعية"
+      headerRight={<Wand2 className="h-4 w-4 text-[#e5b54f]" />}
+    >
+      <div className="space-y-4">
+        <div className="grid gap-2 sm:grid-cols-2">
+          {LUT_PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              type="button"
+              onClick={() => onApplyPreset(preset.id)}
+              className={cn(
+                "rounded-[10px] border px-3 py-3 text-right transition-all",
+                selectedPreset === preset.id
+                  ? "border-[#e5b54f] bg-[#1f170a]"
+                  : "border-[#343434] bg-[#0d0d0d] hover:border-[#73572a]"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="h-4 w-4 rounded-full"
+                  style={{ background: preset.primaryColor }}
+                />
+                <span className="text-sm text-white">{preset.nameAr}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {activePreset ? (
+          <div className="rounded-[10px] border border-[#5b4725] bg-[#140f08] p-4">
+            <p className="text-lg font-semibold text-white">
+              {activePreset.nameAr}
+            </p>
+            {activePreset.film ? (
+              <p className="mt-1 text-sm text-[#d8caa6]">{activePreset.film}</p>
+            ) : null}
+            <p className="mt-3 text-sm leading-7 text-[#cdbf99]">
+              {activePreset.description}
+            </p>
+            {presetReason ? (
+              <p className="mt-3 text-sm leading-7 text-[#eee0ba]">
+                {presetReason}
+              </p>
+            ) : null}
+            {presetReason ? (
+              <Button
+                type="button"
+                onClick={onUnlockPreset}
+                className="mt-4 h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
+              >
+                تحرير الدرجة
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </StudioPanel>
+  );
+}
+
+interface ColorCalibrationPanelProps {
+  grade: ColorGrade;
+  isPresetLocked: boolean;
+  presetReason: string | null;
+  onResetGrade: () => void;
+  onUpdateGrade: (key: keyof ColorGrade, value: number) => void;
+}
+
+function ColorCalibrationPanel({
+  grade,
+  isPresetLocked,
+  presetReason,
+  onResetGrade,
+  onUpdateGrade,
+}: ColorCalibrationPanelProps) {
+  return (
+    <StudioPanel
+      title="Color Calibration"
+      subtitle="تعديلات الدرجة الأساسية"
+      headerRight={
+        <Button
+          type="button"
+          onClick={onResetGrade}
+          className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          إعادة
+        </Button>
+      }
+    >
+      <div className="space-y-5">
+        {presetReason ? (
+          <div className="rounded-[10px] border border-[#5b4725] bg-[#140f08] px-4 py-3 text-sm leading-7 text-[#eee0ba]">
+            {presetReason}
+          </div>
+        ) : null}
+
+        <SliderNumberInput
+          label="حرارة اللون"
+          icon={Thermometer}
+          value={grade.temperature}
+          min={-100}
+          max={100}
+          step={1}
+          disabled={isPresetLocked}
+          onChange={(value) => onUpdateGrade("temperature", value)}
+        />
+
+        <SliderNumberInput
+          label="التباين"
+          icon={Contrast}
+          unit="%"
+          value={grade.contrast}
+          min={50}
+          max={200}
+          step={1}
+          disabled={isPresetLocked}
+          onChange={(value) => onUpdateGrade("contrast", value)}
+        />
+
+        <SliderNumberInput
+          label="التشبّع"
+          icon={Droplets}
+          unit="%"
+          value={grade.saturation}
+          min={0}
+          max={200}
+          step={1}
+          disabled={isPresetLocked}
+          onChange={(value) => onUpdateGrade("saturation", value)}
+        />
+
+        <SliderNumberInput
+          label="الإضاءة"
+          icon={Sun}
+          value={grade.exposure}
+          min={-100}
+          max={100}
+          step={1}
+          disabled={isPresetLocked}
+          onChange={(value) => onUpdateGrade("exposure", value)}
+        />
+
+        <SliderNumberInput
+          label="الظلال"
+          icon={Palette}
+          value={grade.shadows}
+          min={-100}
+          max={100}
+          step={1}
+          disabled={isPresetLocked}
+          onChange={(value) => onUpdateGrade("shadows", value)}
+        />
+      </div>
+    </StudioPanel>
+  );
+}
+
 export function ColorGradingPreviewTool({
   className,
   onGradeChange,
@@ -220,10 +527,7 @@ export function ColorGradingPreviewTool({
       : null;
 
   const generatedFilter = React.useMemo(() => {
-    if (showOriginal) {
-      return "none";
-    }
-
+    if (showOriginal) return "none";
     return [
       `brightness(${1 + grade.exposure / 4})`,
       `contrast(${grade.contrast / 100})`,
@@ -241,13 +545,9 @@ export function ColorGradingPreviewTool({
   ]);
 
   const generatedOverlay = React.useMemo(() => {
-    if (showOriginal) {
-      return {};
-    }
-
+    if (showOriginal) return {};
     const shadowColor = `hsl(${grade.shadowHue}, 50%, 20%)`;
     const highlightColor = `hsl(${grade.highlightHue}, 40%, 80%)`;
-
     return {
       background: `linear-gradient(to bottom, ${highlightColor}${Math.floor(
         (100 - grade.highlights) * 0.2
@@ -277,17 +577,12 @@ export function ColorGradingPreviewTool({
 
   const applyPreset = React.useCallback((presetId: string) => {
     const preset = LUT_PRESETS.find((item) => item.id === presetId);
-    if (!preset) {
-      return;
-    }
-
+    if (!preset) return;
     setGrade({ ...DEFAULT_GRADE, ...preset.grade });
     setSelectedPreset(presetId);
   }, []);
 
-  const unlockPreset = React.useCallback(() => {
-    setSelectedPreset(null);
-  }, []);
+  const unlockPreset = React.useCallback(() => setSelectedPreset(null), []);
 
   const resetGrade = React.useCallback(() => {
     setGrade(DEFAULT_GRADE);
@@ -302,10 +597,7 @@ export function ColorGradingPreviewTool({
   );
 
   const copySettings = React.useCallback(async () => {
-    if (typeof navigator === "undefined" || !navigator.clipboard) {
-      return;
-    }
-
+    if (typeof navigator === "undefined" || !navigator.clipboard) return;
     await navigator.clipboard.writeText(JSON.stringify(grade, null, 2));
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
@@ -332,257 +624,34 @@ export function ColorGradingPreviewTool({
       className={cn("grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]", className)}
     >
       <div className="space-y-4">
-        <StudioPanel
-          title="Grade Monitor"
-          subtitle="معاينة حية لدرجة الفيلم مع مقارنة قبل وبعد"
-          headerRight={
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                onClick={() => setShowOriginal((prev) => !prev)}
-                className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-              >
-                {showOriginal ? (
-                  <Eye className="mr-2 h-4 w-4" />
-                ) : (
-                  <EyeOff className="mr-2 h-4 w-4" />
-                )}
-                {showOriginal ? "معالج" : "أصلي"}
-              </Button>
-              <Button
-                type="button"
-                onClick={copySettings}
-                className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-              >
-                {copied ? (
-                  <Check className="mr-2 h-4 w-4 text-[#97d85c]" />
-                ) : (
-                  <Copy className="mr-2 h-4 w-4" />
-                )}
-                نسخ
-              </Button>
-            </div>
-          }
-        >
-          <div className="space-y-4">
-            <div className="relative aspect-[16/9] overflow-hidden rounded-[10px] border border-[#343434] bg-[#050505]">
-              <div
-                className="absolute inset-0 transition-all duration-300"
-                style={{
-                  background: `linear-gradient(135deg, hsl(${200 + grade.temperature}, 40%, 30%) 0%, hsl(${30 + grade.temperature}, 50%, 40%) 50%, hsl(${280 + grade.temperature}, 30%, 20%) 100%)`,
-                  filter: generatedFilter,
-                }}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="grid w-full max-w-3xl grid-cols-3 gap-4 p-8">
-                    <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-lg" />
-                    <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-500 to-zinc-600 shadow-lg" />
-                    <div className="aspect-square rounded-[10px] bg-gradient-to-br from-zinc-200 to-zinc-100 shadow-lg" />
-                    <div
-                      className="col-start-2 aspect-square rounded-full shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, hsl(${25 + grade.highlightHue * 0.2}, ${50 + grade.saturation * 0.2}%, 70%) 0%, hsl(${20 + grade.shadowHue * 0.1}, ${40 + grade.saturation * 0.1}%, 50%) 100%)`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="absolute inset-0" style={generatedOverlay} />
-              </div>
-
-              {showOriginal ? (
-                <div className="absolute inset-0 flex">
-                  <div className="w-1/2 overflow-hidden border-r-2 border-white/50">
-                    <div className="absolute inset-0 bg-gradient-to-br from-zinc-600 via-amber-700/30 to-zinc-800" />
-                  </div>
-                  <div
-                    className="w-1/2 overflow-hidden"
-                    style={{ filter: generatedFilter }}
-                  />
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/80 px-4 py-2 text-xs text-white">
-                    قبل / بعد
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="absolute left-4 top-4">
-                <Badge className="border-0 bg-[#15100a] text-[#f6cf72]">
-                  <Film className="mr-2 h-3 w-3" />
-                  {activePreset?.nameAr ?? "درجة مخصصة"}
-                </Badge>
-              </div>
-
-              <div className="absolute bottom-4 right-4 h-20 w-36 overflow-hidden rounded-[10px] border border-[#343434] bg-black/70 p-2">
-                <svg className="h-full w-full" viewBox="0 0 100 40">
-                  <path d={histogramPaths.red} fill="rgba(255,0,0,0.3)" />
-                  <path d={histogramPaths.green} fill="rgba(0,255,0,0.3)" />
-                  <path d={histogramPaths.blue} fill="rgba(0,0,255,0.3)" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <StudioMetricCell label="Temperature" value={grade.temperature} />
-              <StudioMetricCell
-                label="Contrast"
-                value={`${grade.contrast}%`}
-                tone="white"
-              />
-              <StudioMetricCell
-                label="Saturation"
-                value={`${grade.saturation}%`}
-              />
-              <StudioMetricCell
-                label="Vibrance"
-                value={`${grade.vibrance}%`}
-                tone="white"
-              />
-            </div>
-          </div>
-        </StudioPanel>
+        <GradeMonitor
+          grade={grade}
+          showOriginal={showOriginal}
+          copied={copied}
+          activePreset={activePreset}
+          generatedFilter={generatedFilter}
+          generatedOverlay={generatedOverlay}
+          histogramPaths={histogramPaths}
+          onToggleOriginal={() => setShowOriginal((prev) => !prev)}
+          onCopySettings={copySettings}
+        />
       </div>
 
       <div className="space-y-4">
-        <StudioPanel
-          title="Film Looks"
-          subtitle="قوالب درجات مرجعية"
-          headerRight={<Wand2 className="h-4 w-4 text-[#e5b54f]" />}
-        >
-          <div className="space-y-4">
-            <div className="grid gap-2 sm:grid-cols-2">
-              {LUT_PRESETS.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => applyPreset(preset.id)}
-                  className={cn(
-                    "rounded-[10px] border px-3 py-3 text-right transition-all",
-                    selectedPreset === preset.id
-                      ? "border-[#e5b54f] bg-[#1f170a]"
-                      : "border-[#343434] bg-[#0d0d0d] hover:border-[#73572a]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="h-4 w-4 rounded-full"
-                      style={{ background: preset.primaryColor }}
-                    />
-                    <span className="text-sm text-white">{preset.nameAr}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {activePreset ? (
-              <div className="rounded-[10px] border border-[#5b4725] bg-[#140f08] p-4">
-                <p className="text-lg font-semibold text-white">
-                  {activePreset.nameAr}
-                </p>
-                {activePreset.film ? (
-                  <p className="mt-1 text-sm text-[#d8caa6]">
-                    {activePreset.film}
-                  </p>
-                ) : null}
-                <p className="mt-3 text-sm leading-7 text-[#cdbf99]">
-                  {activePreset.description}
-                </p>
-                {presetReason ? (
-                  <p className="mt-3 text-sm leading-7 text-[#eee0ba]">
-                    {presetReason}
-                  </p>
-                ) : null}
-                {presetReason ? (
-                  <Button
-                    type="button"
-                    onClick={unlockPreset}
-                    className="mt-4 h-11 w-full border border-[#e5b54f] bg-[#20170a] text-[#f6cf72] hover:bg-[#2c1d0b]"
-                  >
-                    تحرير الدرجة
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </StudioPanel>
-
-        <StudioPanel
-          title="Color Calibration"
-          subtitle="تعديلات الدرجة الأساسية"
-          headerRight={
-            <Button
-              type="button"
-              onClick={resetGrade}
-              className="border border-[#343434] bg-[#0d0d0d] text-[#c6b999] hover:bg-[#171717]"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              إعادة
-            </Button>
-          }
-        >
-          <div className="space-y-5">
-            {presetReason ? (
-              <div className="rounded-[10px] border border-[#5b4725] bg-[#140f08] px-4 py-3 text-sm leading-7 text-[#eee0ba]">
-                {presetReason}
-              </div>
-            ) : null}
-
-            <SliderNumberInput
-              label="حرارة اللون"
-              icon={Thermometer}
-              value={grade.temperature}
-              min={-100}
-              max={100}
-              step={1}
-              disabled={isPresetLocked}
-              onChange={(value) => updateGrade("temperature", value)}
-            />
-
-            <SliderNumberInput
-              label="التباين"
-              icon={Contrast}
-              unit="%"
-              value={grade.contrast}
-              min={50}
-              max={200}
-              step={1}
-              disabled={isPresetLocked}
-              onChange={(value) => updateGrade("contrast", value)}
-            />
-
-            <SliderNumberInput
-              label="التشبّع"
-              icon={Droplets}
-              unit="%"
-              value={grade.saturation}
-              min={0}
-              max={200}
-              step={1}
-              disabled={isPresetLocked}
-              onChange={(value) => updateGrade("saturation", value)}
-            />
-
-            <SliderNumberInput
-              label="الإضاءة"
-              icon={Sun}
-              value={grade.exposure}
-              min={-100}
-              max={100}
-              step={1}
-              disabled={isPresetLocked}
-              onChange={(value) => updateGrade("exposure", value)}
-            />
-
-            <SliderNumberInput
-              label="الظلال"
-              icon={Palette}
-              value={grade.shadows}
-              min={-100}
-              max={100}
-              step={1}
-              disabled={isPresetLocked}
-              onChange={(value) => updateGrade("shadows", value)}
-            />
-          </div>
-        </StudioPanel>
+        <FilmLooksPanel
+          selectedPreset={selectedPreset}
+          activePreset={activePreset}
+          presetReason={presetReason}
+          onApplyPreset={applyPreset}
+          onUnlockPreset={unlockPreset}
+        />
+        <ColorCalibrationPanel
+          grade={grade}
+          isPresetLocked={isPresetLocked}
+          presetReason={presetReason}
+          onResetGrade={resetGrade}
+          onUpdateGrade={updateGrade}
+        />
       </div>
     </div>
   );

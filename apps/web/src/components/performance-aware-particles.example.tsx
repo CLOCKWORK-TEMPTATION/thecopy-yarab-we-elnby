@@ -51,6 +51,207 @@ export interface PerformanceAwareParticlesProps {
   zIndex?: number;
 }
 
+type PerfType = ReturnType<typeof usePerformanceDetection>;
+type BatteryType = ReturnType<typeof useBatteryStatus>;
+type NetworkType = ReturnType<typeof useNetworkCondition>;
+
+function DebugPerformanceSection({ perf }: { perf: PerfType }) {
+  return (
+    <>
+      <div style={{ marginBottom: "0.5rem" }}>
+        <div>📊 Performance: {perf.getPerformanceLabel()}</div>
+        <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
+          Score: {perf.performanceScore}/10
+        </div>
+      </div>
+      <div style={{ marginBottom: "0.5rem" }}>
+        <div>🖥️ Device: {perf.capabilities?.deviceType ?? "Unknown"}</div>
+        <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
+          CPU: {perf.cpuCores} cores | RAM: {perf.deviceMemory}GB
+        </div>
+      </div>
+      <div style={{ marginBottom: "0.5rem" }}>
+        <div>✨ Particles: {perf.particleConfig?.maxParticles ?? 0}</div>
+        <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
+          {perf.particleConfig?.updateFrequency ?? 0} FPS |{" "}
+          {perf.particleConfig?.textureQuality ?? "N/A"}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DebugBatterySection({ battery }: { battery: BatteryType }) {
+  return (
+    <div style={{ marginBottom: "0.5rem" }}>
+      <div>
+        🔋 Battery:{" "}
+        {battery.isCritical
+          ? "⚠️ CRITICAL"
+          : battery.isCharging
+            ? "🔌 Charging"
+            : "Discharging"}
+      </div>
+      <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
+        {(battery.level * 100).toFixed(0)}%
+      </div>
+    </div>
+  );
+}
+
+function DebugNetworkSection({ network }: { network: NetworkType }) {
+  return (
+    <div style={{ marginBottom: "0.5rem" }}>
+      <div>
+        🌐 Network:{" "}
+        {network.isSlowConnection ? "⚠️ SLOW" : network.type.toUpperCase()}
+      </div>
+      <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
+        {network.downlink}Mbps | {network.rtt}ms RTT
+      </div>
+    </div>
+  );
+}
+
+function DebugFlagsSection({
+  perf,
+  shouldReduceAnimations,
+  isInitialized,
+}: {
+  perf: PerfType;
+  shouldReduceAnimations: boolean;
+  isInitialized: boolean;
+}) {
+  return (
+    <div
+      style={{
+        marginBottom: "0.5rem",
+        borderTop: "1px solid #0f0",
+        paddingTop: "0.5rem",
+      }}
+    >
+      <div>{perf.shouldDisable ? "✓" : "✗"} Disable Particles</div>
+      <div>{perf.shouldReduceQuality ? "✓" : "✗"} Reduce Quality</div>
+      <div>{shouldReduceAnimations ? "✓" : "✗"} Reduce Animations</div>
+      <div>{isInitialized ? "✓" : "✗"} Initialized</div>
+    </div>
+  );
+}
+
+function DebugWarningsSection({
+  battery,
+  network,
+  perf,
+}: {
+  battery: BatteryType;
+  network: NetworkType;
+  perf: PerfType;
+}) {
+  return (
+    <>
+      {battery.isCritical && (
+        <div
+          style={{ color: "#ff0000", marginTop: "0.5rem", fontWeight: "bold" }}
+        >
+          ⚠️ Battery critical - particles should be disabled
+        </div>
+      )}
+      {network.isSlowConnection && (
+        <div
+          style={{ color: "#ffaa00", marginTop: "0.5rem", fontWeight: "bold" }}
+        >
+          ⚠️ Slow network detected
+        </div>
+      )}
+      {perf.shouldDisable && (
+        <div
+          style={{ color: "#ffaa00", marginTop: "0.5rem", fontWeight: "bold" }}
+        >
+          ℹ️ Particles disabled for this device
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * Debug panel showing performance metrics
+ */
+function PerformanceDebugPanel({
+  perf,
+  battery,
+  network,
+  isInitialized,
+  shouldReduceAnimations,
+}: {
+  perf: PerfType;
+  battery: BatteryType;
+  network: NetworkType;
+  isInitialized: boolean;
+  shouldReduceAnimations: boolean;
+}) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: "1rem",
+        right: "1rem",
+        background: "rgba(0, 0, 0, 0.9)",
+        color: "#0f0",
+        padding: "1rem",
+        borderRadius: "8px",
+        fontFamily: "monospace",
+        fontSize: "12px",
+        zIndex: 9999,
+        maxWidth: isCollapsed ? "300px" : "400px",
+        transition: "all 0.2s ease",
+        border: "1px solid #0f0",
+      }}
+    >
+      <div
+        role="button"
+        tabIndex={0}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "0.5rem",
+          paddingBottom: "0.5rem",
+          borderBottom: "1px solid #0f0",
+          cursor: "pointer",
+        }}
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ")
+            setIsCollapsed((c) => !c);
+        }}
+      >
+        <span style={{ fontWeight: "bold" }}>Performance Monitor</span>
+        <span>{isCollapsed ? "▶" : "▼"}</span>
+      </div>
+      {!isCollapsed && (
+        <>
+          <DebugPerformanceSection perf={perf} />
+          <DebugBatterySection battery={battery} />
+          <DebugNetworkSection network={network} />
+          <DebugFlagsSection
+            perf={perf}
+            shouldReduceAnimations={shouldReduceAnimations}
+            isInitialized={isInitialized}
+          />
+          <DebugWarningsSection
+            battery={battery}
+            network={network}
+            perf={perf}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
 /**
  * Main component with performance detection
  */
@@ -64,7 +265,6 @@ export function PerformanceAwareParticles({
   const systemRef = useRef<OptimizedParticleSystem | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Performance detection
   const perf = usePerformanceDetection();
   const battery = useBatteryStatus();
   const network = useNetworkCondition();
@@ -73,8 +273,6 @@ export function PerformanceAwareParticles({
   // Initialize particle system
   useEffect(() => {
     if (!canvasRef.current || !perf.particleConfig) return;
-
-    // Don't initialize if we should disable particles
     if (perf.shouldDisable) {
       setIsInitialized(false);
       return;
@@ -90,10 +288,7 @@ export function PerformanceAwareParticles({
           console.warn("[Particles] Performance warning:", warning);
         },
       });
-
       setIsInitialized(true);
-
-      // Notify parent component
       if (onPerformanceChange) {
         onPerformanceChange({
           score: perf.performanceScore,
@@ -127,12 +322,9 @@ export function PerformanceAwareParticles({
       !perf.particleConfig ||
       !isInitialized ||
       !systemRef.current.isHealthy?.()
-    ) {
+    )
       return;
-    }
-
     systemRef.current.updateConfig(perf.particleConfig);
-
     if (onPerformanceChange) {
       onPerformanceChange({
         score: perf.performanceScore,
@@ -152,22 +344,16 @@ export function PerformanceAwareParticles({
   useEffect(() => {
     const handleResize = () => {
       if (!systemRef.current?.isHealthy?.()) return;
-
       systemRef.current.onWindowResize(window.innerWidth, window.innerHeight);
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Don't render if particles should be disabled
-  if (perf.shouldDisable) {
-    return null;
-  }
+  if (perf.shouldDisable) return null;
 
   return (
     <>
-      {/* Particle Canvas */}
       <canvas
         ref={canvasRef}
         className={className}
@@ -182,8 +368,6 @@ export function PerformanceAwareParticles({
         }}
         aria-label="Performance-optimized particle background"
       />
-
-      {/* Debug Panel */}
       {showDebug && (
         <PerformanceDebugPanel
           perf={perf}
@@ -194,176 +378,6 @@ export function PerformanceAwareParticles({
         />
       )}
     </>
-  );
-}
-
-/**
- * Debug panel showing performance metrics
- */
-function PerformanceDebugPanel({
-  perf,
-  battery,
-  network,
-  isInitialized,
-  shouldReduceAnimations,
-}: {
-  perf: ReturnType<typeof usePerformanceDetection>;
-  battery: ReturnType<typeof useBatteryStatus>;
-  network: ReturnType<typeof useNetworkCondition>;
-  isInitialized: boolean;
-  shouldReduceAnimations: boolean;
-}) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        top: "1rem",
-        right: "1rem",
-        background: "rgba(0, 0, 0, 0.9)",
-        color: "#0f0",
-        padding: "1rem",
-        borderRadius: "8px",
-        fontFamily: "monospace",
-        fontSize: "12px",
-        zIndex: 9999,
-        maxWidth: isCollapsed ? "300px" : "400px",
-        transition: "all 0.2s ease",
-        border: "1px solid #0f0",
-      }}
-    >
-      {/* Header */}
-      <div
-        role="button"
-        tabIndex={0}
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "0.5rem",
-          paddingBottom: "0.5rem",
-          borderBottom: "1px solid #0f0",
-          cursor: "pointer",
-        }}
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            setIsCollapsed((current) => !current);
-          }
-        }}
-      >
-        <span style={{ fontWeight: "bold" }}>Performance Monitor</span>
-        <span>{isCollapsed ? "▶" : "▼"}</span>
-      </div>
-
-      {/* Content */}
-      {!isCollapsed && (
-        <>
-          {/* Performance Score */}
-          <div style={{ marginBottom: "0.5rem" }}>
-            <div>📊 Performance: {perf.getPerformanceLabel()}</div>
-            <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              Score: {perf.performanceScore}/10
-            </div>
-          </div>
-
-          {/* Device Info */}
-          <div style={{ marginBottom: "0.5rem" }}>
-            <div>🖥️ Device: {perf.capabilities?.deviceType ?? "Unknown"}</div>
-            <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              CPU: {perf.cpuCores} cores | RAM: {perf.deviceMemory}GB
-            </div>
-          </div>
-
-          {/* Battery Status */}
-          <div style={{ marginBottom: "0.5rem" }}>
-            <div>
-              🔋 Battery:{" "}
-              {battery.isCritical
-                ? "⚠️ CRITICAL"
-                : battery.isCharging
-                  ? "🔌 Charging"
-                  : "Discharging"}
-            </div>
-            <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              {(battery.level * 100).toFixed(0)}%
-            </div>
-          </div>
-
-          {/* Network Status */}
-          <div style={{ marginBottom: "0.5rem" }}>
-            <div>
-              🌐 Network:{" "}
-              {network.isSlowConnection
-                ? "⚠️ SLOW"
-                : network.type.toUpperCase()}
-            </div>
-            <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              {network.downlink}Mbps | {network.rtt}ms RTT
-            </div>
-          </div>
-
-          {/* Particle Config */}
-          <div style={{ marginBottom: "0.5rem" }}>
-            <div>✨ Particles: {perf.particleConfig?.maxParticles ?? 0}</div>
-            <div style={{ marginLeft: "1rem", fontSize: "11px", opacity: 0.8 }}>
-              {perf.particleConfig?.updateFrequency ?? 0} FPS |{" "}
-              {perf.particleConfig?.textureQuality ?? "N/A"}
-            </div>
-          </div>
-
-          {/* Flags */}
-          <div
-            style={{
-              marginBottom: "0.5rem",
-              borderTop: "1px solid #0f0",
-              paddingTop: "0.5rem",
-            }}
-          >
-            <div>{perf.shouldDisable ? "✓" : "✗"} Disable Particles</div>
-            <div>{perf.shouldReduceQuality ? "✓" : "✗"} Reduce Quality</div>
-            <div>{shouldReduceAnimations ? "✓" : "✗"} Reduce Animations</div>
-            <div>{isInitialized ? "✓" : "✗"} Initialized</div>
-          </div>
-
-          {/* Warnings */}
-          {battery.isCritical && (
-            <div
-              style={{
-                color: "#ff0000",
-                marginTop: "0.5rem",
-                fontWeight: "bold",
-              }}
-            >
-              ⚠️ Battery critical - particles should be disabled
-            </div>
-          )}
-          {network.isSlowConnection && (
-            <div
-              style={{
-                color: "#ffaa00",
-                marginTop: "0.5rem",
-                fontWeight: "bold",
-              }}
-            >
-              ⚠️ Slow network detected
-            </div>
-          )}
-          {perf.shouldDisable && (
-            <div
-              style={{
-                color: "#ffaa00",
-                marginTop: "0.5rem",
-                fontWeight: "bold",
-              }}
-            >
-              ℹ️ Particles disabled for this device
-            </div>
-          )}
-        </>
-      )}
-    </div>
   );
 }
 
@@ -397,9 +411,7 @@ export function usePerformanceProfile() {
 export function PerformanceStatsOverlay() {
   const perf = usePerformanceDetection();
 
-  if (!perf.capabilities) {
-    return null;
-  }
+  if (!perf.capabilities) return null;
 
   return (
     <div

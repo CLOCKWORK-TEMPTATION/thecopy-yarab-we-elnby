@@ -247,6 +247,54 @@ async function buildAgent() {
   return { agent, mcpClient, config };
 }
 
+// ─── تحليل طلب المستخدم من سطر الأوامر ─────────────────────
+
+function resolveUserPrompt(args: string[], defaultInputDir: string): string {
+  if (args.length === 0) {
+    log("وضع", C.yellow, "لم يُحدد ملف — سيتم سرد ملفات PDF المتاحة");
+    return `اسرد ملفات PDF في المجلد: ${defaultInputDir}`;
+  }
+
+  if (args[0] === "--prompt" || args[0] === "-p") {
+    return args.slice(1).join(" ");
+  }
+
+  const pdfArg = args[0];
+  if (pdfArg === undefined) {
+    process.exit(1);
+  }
+
+  const pdfPath = resolve(pdfArg);
+  const outputFormat = args.includes("--txt") ? "txt" : "md";
+  const outputPath = args.find((a) => a.startsWith("--output="))?.split("=")[1];
+
+  return `حوّل ملف PDF التالي إلى ${outputFormat}:
+المسار: ${pdfPath}${outputPath ? `\nمسار الإخراج: ${outputPath}` : ""}
+
+الخطوات:
+1. صنّف الملف أولاً
+2. إذا كان ممسوحاً أو مختلطاً — نفّذ OCR عبر convert_document_to_markdown
+3. اكتب النتيجة في ملف ${outputFormat}
+4. أبلغني بالنتائج`;
+}
+
+function logUsageStats(
+  usage: Record<string, number> | undefined,
+  stepCount: number
+): void {
+  if (usage) {
+    const input = usage["promptTokens"] ?? usage["inputTokens"] ?? 0;
+    const output = usage["completionTokens"] ?? usage["outputTokens"] ?? 0;
+    const total = usage["totalTokens"] ?? input + output;
+    log(
+      "إحصائيات",
+      C.dim,
+      `الرموز: ${input} إدخال + ${output} إخراج = ${total} إجمالي`
+    );
+  }
+  log("إحصائيات", C.dim, `الخطوات: ${stepCount}`);
+}
+
 // ─── واجهة سطر الأوامر ──────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -255,68 +303,26 @@ async function main(): Promise<void> {
 
   const { agent, mcpClient, config } = await buildAgent();
 
-  // تحليل معاملات سطر الأوامر
   const args = process.argv.slice(2);
-  let userPrompt: string;
-
-  if (args.length === 0) {
-    // وضع تفاعلي — طلب افتراضي
-    userPrompt = `اسرد ملفات PDF في المجلد: ${config.defaultInputDir}`;
-    log("وضع", C.yellow, "لم يُحدد ملف — سيتم سرد ملفات PDF المتاحة");
-  } else if (args[0] === "--prompt" || args[0] === "-p") {
-    // طلب نصي حر
-    userPrompt = args.slice(1).join(" ");
-  } else {
-    // مسار ملف PDF مباشر
-    const pdfArg = args[0];
-    if (pdfArg === undefined) {
-      process.exit(1);
-    }
-
-    const pdfPath = resolve(pdfArg);
-    const outputFormat = args.includes("--txt") ? "txt" : "md";
-    const outputPath = args
-      .find((a) => a.startsWith("--output="))
-      ?.split("=")[1];
-
-    userPrompt = `حوّل ملف PDF التالي إلى ${outputFormat}:
-المسار: ${pdfPath}${outputPath ? `\nمسار الإخراج: ${outputPath}` : ""}
-
-الخطوات:
-1. صنّف الملف أولاً
-2. إذا كان ممسوحاً أو مختلطاً — نفّذ OCR عبر convert_document_to_markdown
-3. اكتب النتيجة في ملف ${outputFormat}
-4. أبلغني بالنتائج`;
-  }
+  const userPrompt = resolveUserPrompt(args, config.defaultInputDir);
 
   log("طلب", C.blue, userPrompt.substring(0, 150));
   log("بدء", C.dim, "─".repeat(50));
 
   try {
-    // تشغيل الوكيل
     const result = await agent.generate({
       prompt: userPrompt,
     });
 
-    // عرض النتيجة النهائية
     console.error();
     log("نتيجة", C.green, "─".repeat(50));
     console.error(result.text);
     log("نتيجة", C.green, "─".repeat(50));
 
-    // إحصائيات الاستخدام
-    const usage = result.usage as unknown as Record<string, number> | undefined;
-    if (usage) {
-      const input = usage["promptTokens"] ?? usage["inputTokens"] ?? 0;
-      const output = usage["completionTokens"] ?? usage["outputTokens"] ?? 0;
-      const total = usage["totalTokens"] ?? input + output;
-      log(
-        "إحصائيات",
-        C.dim,
-        `الرموز: ${input} إدخال + ${output} إخراج = ${total} إجمالي`
-      );
-    }
-    log("إحصائيات", C.dim, `الخطوات: ${result.steps?.length ?? 0}`);
+    logUsageStats(
+      result.usage as unknown as Record<string, number> | undefined,
+      result.steps?.length ?? 0
+    );
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     log("خطأ", C.red, `فشل تشغيل الوكيل: ${msg}`);
