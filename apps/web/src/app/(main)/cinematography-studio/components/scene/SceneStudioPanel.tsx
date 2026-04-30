@@ -124,18 +124,22 @@ function ScenePreview({ scene, forceWebGLUnavailable }: ScenePreviewProps) {
       data-testid="cine-scene-preview"
     >
       {webglAvailable ? (
-        <Canvas
-          className="h-[360px] w-full"
-          camera={{
-            position: scene.camera.position,
-            fov: Math.max(18, Math.min(72, 80 - scene.camera.focalLength / 3)),
-          }}
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, preserveDrawingBuffer: true }}
-        >
-          <color attach="background" args={["#121212"]} />
-          <SceneGeometry scene={scene} />
-        </Canvas>
+        <div className="h-[360px] w-full">
+          <Canvas
+            camera={{
+              position: scene.camera.position,
+              fov: Math.max(
+                18,
+                Math.min(72, 80 - scene.camera.focalLength / 3)
+              ),
+            }}
+            dpr={[1, 1.5]}
+            gl={{ antialias: true, preserveDrawingBuffer: true }}
+          >
+            <color attach="background" args={["#121212"]} />
+            <SceneGeometry scene={scene} />
+          </Canvas>
+        </div>
       ) : (
         <div className="flex min-h-[360px] items-center justify-center bg-[radial-gradient(circle_at_top_left,rgba(229,181,79,0.18),transparent_30%),linear-gradient(135deg,#080808,#111_52%,#050505)] p-6">
           <div className="max-w-md text-center">
