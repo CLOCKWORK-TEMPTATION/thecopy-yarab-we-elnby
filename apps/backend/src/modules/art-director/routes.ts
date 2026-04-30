@@ -1,4 +1,9 @@
-import { Router } from "express";
+import {
+  Router,
+  type Request,
+  type Response,
+  type Router as ExpressRouter,
+} from "express";
 
 import { handleArtDirectorRequest } from "./handlers";
 import {
@@ -9,7 +14,6 @@ import {
   handleProductivityDelay,
 } from "./handlers-productivity";
 
-import type { Request, Response } from "express";
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function getRouteSegments(pathname: string): string[] {
@@ -98,7 +102,7 @@ async function invokeHandler(
   }
 }
 
-export const artDirectorRouter = Router();
+export const artDirectorRouter: ExpressRouter = Router();
 
 artDirectorRouter.get("/productivity/summary", (_req, res) => {
   void invokeHandler(() => handleProductivitySummary(), res);

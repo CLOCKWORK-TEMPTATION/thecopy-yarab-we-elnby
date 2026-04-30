@@ -192,7 +192,7 @@ describe("LiteraryQualityAnalyzerAgent post processing", () => {
     expect(numericField(quality, "criticalRigor")).toBeGreaterThan(0.7);
     expect(numericField(quality, "comprehensiveness")).toBeGreaterThan(0.7);
     expect(numericField(quality, "overallScore")).toBeLessThanOrEqual(1);
-    expect(result.metadata?.linguisticDepth).toBe(
+    expect(result.metadata?.["linguisticDepth"]).toBe(
       numericField(quality, "linguisticDepth"),
     );
   });

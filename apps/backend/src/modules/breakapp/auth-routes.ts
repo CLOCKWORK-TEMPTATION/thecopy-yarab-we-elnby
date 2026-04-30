@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import {
   handleScanQr,
@@ -11,7 +11,7 @@ import { requireAuth } from "./middlewares";
 
 import type { AuthenticatedRequest } from "./middlewares";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post("/auth/scan-qr", publicAuthLimiter, handleScanQr);
 

@@ -199,7 +199,7 @@ describe("Low Confidence Path", () => {
       options: {
         enableDebate: true,
         confidenceThreshold: 0.5,
-        maxDebateRounds: 2,
+        maxIterations: 2,
       },
       context: {},
     };
@@ -374,7 +374,7 @@ describe("Balance Assessment", () => {
     expect(result).toBeDefined();
     expect(result.metadata).toBeDefined();
     // Should have balance assessment in metadata
-    expect(result.metadata?.balanceQuality).toBeDefined();
+    expect(result.metadata?.["balanceQuality"]).toBeDefined();
   });
 });
 

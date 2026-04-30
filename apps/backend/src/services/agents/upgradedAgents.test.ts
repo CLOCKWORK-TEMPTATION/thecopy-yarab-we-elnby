@@ -199,7 +199,7 @@ describe("executeAgentTask", () => {
     expect(result.text).toContain("لم يتم ترقيته بعد");
     expect(result.confidence).toBe(0.0);
     expect(result.notes).toContain("الوكيل غير متاح");
-    expect(result.metadata.modelUsed).toBe("none");
+    expect(result.metadata?.["modelUsed"]).toBe("none");
   });
 
   it("should include timestamp in metadata", async () => {
@@ -209,8 +209,8 @@ describe("executeAgentTask", () => {
       mockInput,
     );
 
-    expect(result.metadata.timestamp).toBeDefined();
-    expect(typeof result.metadata.timestamp).toBe("string");
+    expect(result.metadata?.timestamp).toBeDefined();
+    expect(typeof result.metadata?.timestamp).toBe("string");
   });
 });
 
@@ -254,8 +254,7 @@ describe("batchExecuteAgentTasks", () => {
   it("should handle task execution errors gracefully", async () => {
     const tasksWithInvalid = [
       {
-        // @ts-expect-error Testing invalid input
-        taskType: "invalid-type",
+        taskType: "invalid-type" as TaskType,
         input: { input: "Test", options: {} },
       },
     ];
@@ -263,7 +262,7 @@ describe("batchExecuteAgentTasks", () => {
     const results = await batchExecuteAgentTasks(tasksWithInvalid);
 
     expect(results).toHaveLength(1);
-    expect(results[0].confidence).toBe(0.0);
-    expect(results[0].notes.length).toBeGreaterThan(0);
+    expect(results[0]?.confidence).toBe(0.0);
+    expect(results[0]?.notes.length).toBeGreaterThan(0);
   });
 });

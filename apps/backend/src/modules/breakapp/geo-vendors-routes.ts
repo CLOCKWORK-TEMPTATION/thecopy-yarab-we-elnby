@@ -1,10 +1,10 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import { protectedLimiter } from "./limiters";
 import { requireAuth } from "./middlewares";
 import { breakappService } from "./service";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get(
   "/geo/vendors/nearby",

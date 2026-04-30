@@ -32,10 +32,11 @@ export function hasCandidates(response: GenerateContentResponse): boolean {
 }
 
 export function hasValidContent(response: GenerateContentResponse): boolean {
+  const candidate = response.candidates?.[0];
   return !!(
     hasCandidates(response) &&
-    response.candidates![0].content?.parts &&
-    response.candidates![0].content.parts.length > 0
+    candidate?.content?.parts &&
+    candidate.content.parts.length > 0
   );
 }
 
@@ -44,7 +45,7 @@ export function extractTextFromCandidates(
 ): string {
   if (!hasValidContent(response)) return "";
 
-  const parts = response.candidates![0].content.parts;
+  const parts = response.candidates?.[0]?.content?.parts ?? [];
   return parts
     .filter((part: Part) => "text" in part && part.text)
     .map((part: Part) => (part as { text: string }).text)
