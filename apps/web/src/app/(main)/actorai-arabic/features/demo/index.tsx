@@ -13,7 +13,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -25,144 +24,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useApp } from "../../context/AppContext";
-import {
-  analyzeScriptText,
-  buildPartnerResponse,
-} from "../../lib/script-analysis";
 import { buildTakeInsights } from "../../lib/self-tape";
 import { formatTime } from "../../lib/utils";
-import { SAMPLE_SCRIPT, ACTING_METHODOLOGIES } from "../../types/constants";
+import { ACTING_METHODOLOGIES } from "../../types/constants";
 
-import type { AnalysisResult, ChatMessage, Recording } from "../../types";
-
-const INITIAL_RECORDINGS: Recording[] = [
-  {
-    id: "1",
-    title: "مشهد الحديقة - التجربة 3",
-    duration: "3:42",
-    date: "2025-10-30",
-    score: 82,
-  },
-  {
-    id: "2",
-    title: "مشهد اللقاء - التجربة 1",
-    duration: "4:15",
-    date: "2025-10-29",
-    score: 76,
-  },
-];
+import type { ChatMessage, Recording } from "../../types";
 
 // ─── Sub-components ───
-
-function getEmotionIcon(emotion: string): string {
-  if (emotion === "شوق") return "💭";
-  if (emotion === "أمل") return "✨";
-  return "❤️";
-}
-
-interface AnalysisResultViewProps {
-  analysisResult: AnalysisResult;
-}
-
-function AnalysisResultView({ analysisResult }: AnalysisResultViewProps) {
-  return (
-    <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 mt-6 backdrop-blur-xl">
-      <Card className="bg-transparent border-0">
-        <CardHeader>
-          <CardTitle className="text-white">🎯 نتائج التحليل</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold mb-2 text-lg text-white">الأهداف:</h4>
-            <div className="space-y-2 bg-black/18 p-4 rounded-[22px] border border-white/8">
-              <p className="text-white/85">
-                <strong>الهدف الرئيسي:</strong> {analysisResult.objectives.main}
-              </p>
-              <p className="text-white/85">
-                <strong>هدف المشهد:</strong> {analysisResult.objectives.scene}
-              </p>
-              <div>
-                <strong className="text-white">النبضات:</strong>
-                <ul className="list-disc list-inside mt-1 text-white/85">
-                  {analysisResult.objectives.beats.map((beat, idx) => (
-                    <li key={idx}>{beat}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-2 text-lg text-white">العقبات:</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-black/18 p-4 rounded-[22px] border border-white/8">
-                <strong className="text-white">داخلية:</strong>
-                <ul className="list-disc list-inside mt-1 text-white/85">
-                  {analysisResult.obstacles.internal.map((obs, idx) => (
-                    <li key={idx}>{obs}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="bg-black/18 p-4 rounded-[22px] border border-white/8">
-                <strong className="text-white">خارجية:</strong>
-                <ul className="list-disc list-inside mt-1 text-white/85">
-                  {analysisResult.obstacles.external.map((obs, idx) => (
-                    <li key={idx}>{obs}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-2 text-lg text-white">
-              المسار العاطفي:
-            </h4>
-            <div className="flex gap-4 flex-wrap">
-              {analysisResult.emotionalArc.map((arc, idx) => (
-                <div
-                  key={idx}
-                  className="bg-black/18 p-4 rounded-[22px] text-center border border-white/8"
-                >
-                  <div className="text-2xl mb-2">
-                    {getEmotionIcon(arc.emotion)}
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="border-white/20 text-white"
-                  >
-                    {arc.emotion}
-                  </Badge>
-                  <Progress value={arc.intensity} className="mt-2 w-20" />
-                  <span className="text-sm text-white/55">
-                    {arc.intensity}%
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-2 text-lg text-white">
-              💡 نصائح التدريب:
-            </h4>
-            <ul className="space-y-2">
-              {analysisResult.coachingTips.map((tip, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-start gap-2 bg-black/18 p-3 rounded-[22px] border border-white/8 text-white/85"
-                >
-                  <span className="text-green-500">✓</span>
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-    </CardSpotlight>
-  );
-}
 
 interface ScriptAnalysisTabProps {
   scriptText: string;
@@ -170,8 +38,7 @@ interface ScriptAnalysisTabProps {
   selectedMethodology: string;
   setSelectedMethodology: (value: string) => void;
   analyzing: boolean;
-  analysisResult: AnalysisResult | null;
-  useSampleScript: () => void;
+  analysisResult: string | null;
   analyzeScript: () => void;
 }
 
@@ -182,7 +49,6 @@ function ScriptAnalysisTab({
   setSelectedMethodology,
   analyzing,
   analysisResult,
-  useSampleScript,
   analyzeScript,
 }: ScriptAnalysisTabProps) {
   return (
@@ -196,14 +62,9 @@ function ScriptAnalysisTab({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label>النص المسرحي/السينمائي</Label>
-              <Button variant="outline" size="sm" onClick={useSampleScript}>
-                📄 استخدم نص تجريبي
-              </Button>
-            </div>
+            <Label>النص المسرحي/السينمائي</Label>
             <Textarea
-              placeholder="الصق نصك هنا أو استخدم النص التجريبي..."
+              placeholder="الصق نصك هنا..."
               className="min-h-[200px] bg-black/18 border-white/8 text-white placeholder-white/45"
               value={scriptText}
               onChange={(e) => setScriptText(e.target.value)}
@@ -245,7 +106,16 @@ function ScriptAnalysisTab({
           </Button>
 
           {analysisResult && (
-            <AnalysisResultView analysisResult={analysisResult} />
+            <CardSpotlight className="overflow-hidden rounded-[22px] bg-black/14 border border-white/8 mt-6 backdrop-blur-xl">
+              <Card className="bg-transparent border-0">
+                <CardHeader>
+                  <CardTitle className="text-white">🎯 نتائج التحليل</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-white/85 whitespace-pre-wrap">{analysisResult}</p>
+                </CardContent>
+              </Card>
+            </CardSpotlight>
           )}
         </CardContent>
       </Card>
@@ -448,9 +318,7 @@ export function StudioView() {
   const [selectedMethodology, setSelectedMethodology] =
     useState("stanislavsky");
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null
-  );
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
   const [rehearsing, setRehearsing] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -459,7 +327,7 @@ export function StudioView() {
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [recordings, setRecordings] = useState<Recording[]>(INITIAL_RECORDINGS);
+  const [recordings, setRecordings] = useState<Recording[]>([]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -471,24 +339,31 @@ export function StudioView() {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  const useSampleScript = useCallback(() => {
-    setScriptText(SAMPLE_SCRIPT);
-    showNotification("info", "تم تحميل النص التجريبي");
-  }, [showNotification]);
-
   const analyzeScript = useCallback(() => {
     if (!scriptText.trim()) {
       showNotification("error", "يرجى إدخال نص أولاً");
       return;
     }
     setAnalyzing(true);
-    const result: AnalysisResult = analyzeScriptText(
-      scriptText,
-      selectedMethodology
-    );
-    setAnalysisResult(result);
-    setAnalyzing(false);
-    showNotification("success", "تم تحليل النص بنجاح!");
+    fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: scriptText,
+        context: { type: "script-analysis", methodology: selectedMethodology },
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload: { data?: { response?: string } }) => {
+        const text = payload?.data?.response ?? "تعذر تحليل النص.";
+        setAnalysisResult(text);
+        showNotification("success", "تم تحليل النص بنجاح!");
+      })
+      .catch(() => {
+        setAnalysisResult("تعذر الاتصال بخادم التحليل.");
+        showNotification("error", "فشل تحليل النص");
+      })
+      .finally(() => setAnalyzing(false));
   }, [scriptText, selectedMethodology, showNotification]);
 
   const startRehearsal = useCallback(() => {
@@ -502,20 +377,42 @@ export function StudioView() {
   }, []);
 
   const sendMessage = useCallback(() => {
-    if (!userInput.trim()) return;
-    const newMessage: ChatMessage = { role: "user", text: userInput };
-    const aiMessage = buildPartnerResponse({
-      scriptText: scriptText || SAMPLE_SCRIPT,
-      history: [...chatMessages, newMessage],
-      userInput,
-    });
+    const trimmedInput = userInput.trim();
+    if (!trimmedInput) return;
+    const newMessage: ChatMessage = { role: "user", text: trimmedInput };
     setChatMessages((prev) => [
       ...prev,
       newMessage,
-      { role: "ai", text: aiMessage },
+      { role: "ai", text: "...", typing: true },
     ]);
     setUserInput("");
-  }, [chatMessages, scriptText, userInput]);
+    fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: trimmedInput,
+        context: { previousMessages: chatMessages, character: "ليلى" },
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload: { data?: { response?: string } }) => {
+        const replyText =
+          payload?.data?.response ?? "تعذر الاتصال بمساعد المشهد.";
+        setChatMessages((prev) => {
+          const withoutTyping = prev.filter((m) => !m.typing);
+          return [...withoutTyping, { role: "ai", text: replyText }];
+        });
+      })
+      .catch(() => {
+        setChatMessages((prev) => {
+          const withoutTyping = prev.filter((m) => !m.typing);
+          return [
+            ...withoutTyping,
+            { role: "ai", text: "تعذر الاتصال بمساعد المشهد." },
+          ];
+        });
+      });
+  }, [chatMessages, userInput]);
 
   const endRehearsal = useCallback(() => {
     setRehearsing(false);
@@ -536,7 +433,7 @@ export function StudioView() {
     const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
     const insights = buildTakeInsights({
       durationSeconds: recordingTime,
-      scriptText: scriptText || SAMPLE_SCRIPT,
+      scriptText: scriptText,
       teleprompterUsed: false,
       hadRetake: recordings.length > 0,
     });
@@ -584,7 +481,6 @@ export function StudioView() {
             setSelectedMethodology={setSelectedMethodology}
             analyzing={analyzing}
             analysisResult={analysisResult}
-            useSampleScript={useSampleScript}
             analyzeScript={analyzeScript}
           />
         </TabsContent>

@@ -139,8 +139,7 @@ export function resolveInitialView(fallback: ViewType): ViewType {
     return fallback;
   }
 
-  const searchParams = new URLSearchParams(window.location.search);
-  const viewFromUrl = searchParams.get("view");
+  const viewFromUrl = new URLSearchParams(window.location.search).get("view");
   if (isValidView(viewFromUrl)) {
     return viewFromUrl;
   }

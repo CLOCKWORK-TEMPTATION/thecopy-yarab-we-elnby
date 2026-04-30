@@ -4,40 +4,41 @@ import { protectedLimiter } from "./limiters";
 import { requireAuth } from "./middlewares";
 import { breakappService } from "./service";
 
-export function registerGeoVendorRoutes(router: Router): void {
-  router.get(
-    "/geo/vendors/nearby",
-    protectedLimiter,
-    requireAuth,
-    async (req, res) => {
-      try {
-        const lat = Number(req.query["lat"]);
-        const lng = Number(req.query["lng"]);
-        const radius = Number(req.query["radius"] ?? 3000);
+const router = Router();
 
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          res
-            .status(400)
-            .json({ success: false, error: "خط العرض والطول مطلوبان" });
-          return;
-        }
+router.get(
+  "/geo/vendors/nearby",
+  protectedLimiter,
+  requireAuth,
+  async (req, res) => {
+    try {
+      const lat = Number(req.query["lat"]);
+      const lng = Number(req.query["lng"]);
+      const radius = Number(req.query["radius"] ?? 3000);
 
-        const vendors = await breakappService.getNearbyVendors(
-          lat,
-          lng,
-          radius,
-        );
-        res.json(vendors);
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل جلب الموردين",
-        });
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        res
+          .status(400)
+          .json({ success: false, error: "خط العرض والطول مطلوبان" });
+        return;
       }
-    },
-  );
 
-  router.get("/vendors", protectedLimiter, requireAuth, async (_req, res) => {
+      const vendors = await breakappService.getNearbyVendors(lat, lng, radius);
+      res.json(vendors);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل جلب الموردين",
+      });
+    }
+  },
+);
+
+router.get(
+  "/vendors",
+  protectedLimiter,
+  requireAuth,
+  async (_req, res) => {
     try {
       const vendors = await breakappService.getVendors();
       res.json(vendors);
@@ -47,27 +48,29 @@ export function registerGeoVendorRoutes(router: Router): void {
         error: error instanceof Error ? error.message : "فشل جلب الموردين",
       });
     }
-  });
+  },
+);
 
-  router.get(
-    "/vendors/:id/menu",
-    protectedLimiter,
-    requireAuth,
-    async (req, res) => {
-      try {
-        const vendorId = req.params["id"];
-        if (typeof vendorId !== "string" || !vendorId) {
-          res.status(400).json({ success: false, error: "معرف المورد مطلوب" });
-          return;
-        }
-        const menu = await breakappService.getVendorMenu(vendorId);
-        res.json(menu);
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل جلب القائمة",
-        });
+router.get(
+  "/vendors/:id/menu",
+  protectedLimiter,
+  requireAuth,
+  async (req, res) => {
+    try {
+      const vendorId = req.params["id"];
+      if (typeof vendorId !== "string" || !vendorId) {
+        res.status(400).json({ success: false, error: "معرف المورد مطلوب" });
+        return;
       }
-    },
-  );
-}
+      const menu = await breakappService.getVendorMenu(vendorId);
+      res.json(menu);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل جلب القائمة",
+      });
+    }
+  },
+);
+
+export { router as geoVendorRouter };

@@ -1,5 +1,4 @@
-import { Router, type Response } from "express";
-import { z } from "zod";
+import { Router } from "express";
 
 import { websocketService } from "@/services/websocket.service";
 
@@ -9,165 +8,147 @@ import { requireAuth, requireRole } from "./middlewares";
 import * as repo from "./repository";
 import { orderStatusSchema, runnerLocationSchema } from "./schemas";
 import { breakappService } from "./service";
+import { handleValidationError } from "./validation";
 
 import type { AuthenticatedRequest } from "./middlewares";
 
-type ValidationErrorHandler = (res: Response, error: z.ZodError) => void;
+const router = Router();
 
-export function registerRunnersRoutes(
-  router: Router,
-  handleValidationError: ValidationErrorHandler,
-): void {
-  registerRunnerLocationRoute(router, handleValidationError);
-  registerRunnerTaskRoutes(router, handleValidationError);
-  registerRunnerSessionRoutes(router);
-}
+router.post(
+  "/runners/location",
+  runnerLocationLimiter,
+  requireAuth,
+  requireRole("runner"),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const body = runnerLocationSchema.safeParse(req.body);
+      if (!body.success) {
+        handleValidationError(res, body.error);
+        return;
+      }
+      const auth = req.breakappAuth;
+      if (!auth) {
+        res.status(401).json({ success: false, error: "غير مصرح" });
+        return;
+      }
+      if (body.data.runnerId !== auth.sub) {
+        res
+          .status(403)
+          .json({ success: false, error: "تعذر التحقق من هوية الراسل" });
+        return;
+      }
 
-function registerRunnerLocationRoute(
-  router: Router,
-  handleValidationError: ValidationErrorHandler,
-): void {
-  router.post(
-    "/runners/location",
-    runnerLocationLimiter,
-    requireAuth,
-    requireRole("runner"),
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const body = runnerLocationSchema.safeParse(req.body);
-        if (!body.success) {
-          handleValidationError(res, body.error);
-          return;
-        }
-        const auth = req.breakappAuth;
-        if (!auth) {
-          res.status(401).json({ success: false, error: "غير مصرح" });
-          return;
-        }
-        if (body.data.runnerId !== auth.sub) {
-          res
-            .status(403)
-            .json({ success: false, error: "تعذر التحقق من هوية الراسل" });
-          return;
-        }
+      await breakappService.updateRunnerLocation({
+        runnerId: body.data.runnerId,
+        lat: body.data.lat,
+        lng: body.data.lng,
+        accuracy: body.data.accuracy ?? undefined,
+        sessionId: body.data.sessionId ?? undefined,
+      });
 
-        await breakappService.updateRunnerLocation({
+      if (body.data.sessionId) {
+        websocketService.emitCustom("runner:location:update", {
           runnerId: body.data.runnerId,
+          sessionId: body.data.sessionId,
           lat: body.data.lat,
           lng: body.data.lng,
-          accuracy: body.data.accuracy ?? undefined,
-          sessionId: body.data.sessionId ?? undefined,
-        });
-
-        if (body.data.sessionId) {
-          websocketService.emitCustom("runner:location:update", {
-            runnerId: body.data.runnerId,
-            sessionId: body.data.sessionId,
-            lat: body.data.lat,
-            lng: body.data.lng,
-            accuracy: body.data.accuracy ?? null,
-          });
-        }
-
-        res.json({ success: true });
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل تسجيل الموقع",
+          accuracy: body.data.accuracy ?? null,
         });
       }
-    },
-  );
-}
 
-function registerRunnerTaskRoutes(
-  router: Router,
-  handleValidationError: ValidationErrorHandler,
-): void {
-  router.get(
-    "/runners/me/tasks",
-    protectedLimiter,
-    requireAuth,
-    requireRole("runner"),
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const auth = req.breakappAuth;
-        if (!auth) {
-          res.status(401).json({ success: false, error: "غير مصرح" });
-          return;
-        }
-        const tasks = await repo.listRunnerTasks(auth.sub);
-        res.json(tasks);
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل جلب المهام",
-        });
-      }
-    },
-  );
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل تسجيل الموقع",
+      });
+    }
+  },
+);
 
-  router.patch(
-    "/runners/tasks/:id/status",
-    protectedLimiter,
-    requireAuth,
-    requireRole("runner"),
-    async (req, res) => {
-      try {
-        const orderId = req.params["id"];
-        if (typeof orderId !== "string" || !orderId) {
-          res.status(400).json({ success: false, error: "معرف المهمة مطلوب" });
-          return;
-        }
-        const body = orderStatusSchema.safeParse(req.body);
-        if (!body.success) {
-          handleValidationError(res, body.error);
-          return;
-        }
-        const existing = await breakappService.getOrder(orderId);
-        if (!existing) {
-          res.status(404).json({ success: false, error: "المهمة غير موجودة" });
-          return;
-        }
-        await breakappService.updateOrderStatus(orderId, body.data.status);
-        breakappGateway.emitOrderStatusUpdate({
-          orderId,
-          status: body.data.status,
-          sessionId: existing.sessionId,
-          vendorId: existing.vendorId,
-        });
-        res.json({ success: true });
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل التحديث",
-        });
+router.get(
+  "/runners/me/tasks",
+  protectedLimiter,
+  requireAuth,
+  requireRole("runner"),
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const auth = req.breakappAuth;
+      if (!auth) {
+        res.status(401).json({ success: false, error: "غير مصرح" });
+        return;
       }
-    },
-  );
-}
+      const tasks = await repo.listRunnerTasks(auth.sub);
+      res.json(tasks);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل جلب المهام",
+      });
+    }
+  },
+);
 
-function registerRunnerSessionRoutes(router: Router): void {
-  router.get(
-    "/runners/session/:sessionId",
-    protectedLimiter,
-    requireAuth,
-    requireRole("director", "admin"),
-    async (req, res) => {
-      try {
-        const sessionId = req.params["sessionId"];
-        if (typeof sessionId !== "string" || !sessionId) {
-          res.status(400).json({ success: false, error: "معرف الجلسة مطلوب" });
-          return;
-        }
-        const runners = await repo.listRunnersForSession(sessionId);
-        res.json(runners);
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "فشل الجلب",
-        });
+router.patch(
+  "/runners/tasks/:id/status",
+  protectedLimiter,
+  requireAuth,
+  requireRole("runner"),
+  async (req, res) => {
+    try {
+      const orderId = req.params["id"];
+      if (typeof orderId !== "string" || !orderId) {
+        res.status(400).json({ success: false, error: "معرف المهمة مطلوب" });
+        return;
       }
-    },
-  );
-}
+      const body = orderStatusSchema.safeParse(req.body);
+      if (!body.success) {
+        handleValidationError(res, body.error);
+        return;
+      }
+      const existing = await breakappService.getOrder(orderId);
+      if (!existing) {
+        res.status(404).json({ success: false, error: "المهمة غير موجودة" });
+        return;
+      }
+      await breakappService.updateOrderStatus(orderId, body.data.status);
+      breakappGateway.emitOrderStatusUpdate({
+        orderId,
+        status: body.data.status,
+        sessionId: existing.sessionId,
+        vendorId: existing.vendorId,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل التحديث",
+      });
+    }
+  },
+);
+
+router.get(
+  "/runners/session/:sessionId",
+  protectedLimiter,
+  requireAuth,
+  requireRole("director", "admin"),
+  async (req, res) => {
+    try {
+      const sessionId = req.params["sessionId"];
+      if (typeof sessionId !== "string" || !sessionId) {
+        res.status(400).json({ success: false, error: "معرف الجلسة مطلوب" });
+        return;
+      }
+      const runners = await repo.listRunnersForSession(sessionId);
+      res.json(runners);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "فشل الجلب",
+      });
+    }
+  },
+);
+
+export { router as runnersRouter };

@@ -75,7 +75,7 @@ async function fetchOrdersFromApi(
   const params: Record<string, string> = {};
   if (statusFilter !== "all") params["status"] = statusFilter;
   return fetchBreakappJson<LiveOrder[]>(
-    `/breakapp/orders/session/${sessionId}`,
+    `/orders/session/${sessionId}`,
     Object.keys(params).length > 0 ? { params } : undefined
   );
 }
@@ -84,14 +84,14 @@ async function fetchRunnersFromApi(
   sessionId: string
 ): Promise<AvailableRunner[]> {
   const data = await fetchBreakappJson<RunnerPayload[]>(
-    `/breakapp/runners/session/${sessionId}`
+    `/runners/session/${sessionId}`
   );
   return data.map(mapRunnerPayload);
 }
 
 async function runBatchingApi(sessionId: string): Promise<BatchVendorResult[]> {
   return postBreakappJson<BatchVendorResult[]>(
-    `/breakapp/orders/session/${sessionId}/batch`,
+    `/orders/session/${sessionId}/batch`,
     {}
   );
 }
@@ -100,14 +100,14 @@ async function updateOrderStatusApi(
   orderId: string,
   status: Order["status"]
 ): Promise<void> {
-  await patchBreakappJson(`/breakapp/orders/${orderId}/status`, { status });
+  await patchBreakappJson(`/orders/${orderId}/status`, { status });
 }
 
 async function assignRunnerApi(
   orderId: string,
   runnerId: string
 ): Promise<void> {
-  await patchBreakappJson(`/breakapp/orders/${orderId}/status`, {
+  await patchBreakappJson(`/orders/${orderId}/status`, {
     status: "processing",
     runnerId,
   });
