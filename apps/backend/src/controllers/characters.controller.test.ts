@@ -47,7 +47,7 @@ type MockFn = ReturnType<typeof vi.fn>;
 type MockRequest = Partial<Request> & {
   body: unknown;
   params: Record<string, string>;
-  user: { email: string; id: string } | undefined;
+  user?: { email: string; id: string };
 };
 type MockResponse = Response & {
   json: MockFn;
@@ -195,7 +195,7 @@ describe("جلب قائمة الشخصيات", () => {
   });
 
   it("يرفض الطلب عند غياب المستخدم المصادق", async () => {
-    mockRequest.user = undefined;
+    delete mockRequest.user;
     mockRequest.params = { projectId: "project-1" };
 
     await controller.getCharacters(asRequest(), asResponse());

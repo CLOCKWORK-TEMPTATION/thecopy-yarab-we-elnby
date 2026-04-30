@@ -18,22 +18,28 @@
  */
 
 /**
- * نوع عنصر السيناريو — 10 أنواع بصيغة kebab-case.
+ * قائمة أنواع عناصر السيناريو الرسمية.
  *
  * تُستخدم في جميع أنظمة التصنيف وعُقد Tiptap وواجهة المستخدم.
  * متطابقة مع {@link LineType} في `types/screenplay.ts`.
  */
-export type ElementType =
-  | "action"
-  | "dialogue"
-  | "character"
-  | "scene_header_1"
-  | "scene_header_2"
-  | "scene_header_3"
-  | "scene_header_top_line"
-  | "transition"
-  | "parenthetical"
-  | "basmala";
+export const ELEMENT_TYPES = [
+  "action",
+  "dialogue",
+  "character",
+  "scene_header_1",
+  "scene_header_2",
+  "scene_header_3",
+  "scene_header_top_line",
+  "transition",
+  "parenthetical",
+  "basmala",
+] as const;
+
+/**
+ * نوع عنصر السيناريو — 10 أنواع بصيغة kebab-case.
+ */
+export type ElementType = (typeof ELEMENT_TYPES)[number];
 
 /**
  * طريقة التصنيف المُستخدمة لتحديد نوع السطر.
@@ -178,18 +184,8 @@ export interface ClassifiedDraft {
   readonly sourceProfile?: ClassificationSourceProfile;
 }
 
-const VALID_ELEMENT_TYPES: ReadonlySet<string> = new Set<ElementType>([
-  "action",
-  "dialogue",
-  "character",
-  "scene_header_1",
-  "scene_header_2",
-  "scene_header_3",
-  "scene_header_top_line",
-  "transition",
-  "parenthetical",
-  "basmala",
-]);
+const VALID_ELEMENT_TYPES: ReadonlySet<string> =
+  new Set<ElementType>(ELEMENT_TYPES);
 
 /**
  * حارس نوع — يتحقق إذا كانت السلسلة النصية عضواً صالحاً في {@link ElementType}.

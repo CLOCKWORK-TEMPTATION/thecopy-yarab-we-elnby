@@ -25,6 +25,19 @@ interface AuthResponseEnvelope {
   details?: { message?: string }[];
 }
 
+const AUTH_REQUIRED_MESSAGE = "غير مصرح - يرجى تسجيل الدخول";
+
+export class AuthRequiredError extends Error {
+  constructor(message = AUTH_REQUIRED_MESSAGE) {
+    super(message);
+    this.name = "AuthRequiredError";
+  }
+}
+
+export function isAuthRequiredError(error: unknown): boolean {
+  return error instanceof AuthRequiredError;
+}
+
 /**
  * Authenticated fetch wrapper
  * Automatically includes auth token and handles common headers

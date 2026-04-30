@@ -55,8 +55,8 @@ describe("TensionOptimizerAgent", () => {
     expect(Array.isArray(result.notes)).toBe(true);
     expect(result.notes.some((note) => note.includes("تحليل"))).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
-    expect(result.metadata?.tensionAnalysisQuality).toBeDefined();
-    expect(result.metadata?.peaksIdentified).toBeGreaterThanOrEqual(1);
+    expect(result.metadata?.["tensionAnalysisQuality"]).toBeDefined();
+    expect(result.metadata?.["peaksIdentified"]).toBeGreaterThanOrEqual(1);
   });
 
   it("should return fallback metadata on failure", async () => {

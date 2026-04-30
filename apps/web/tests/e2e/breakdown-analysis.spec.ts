@@ -114,7 +114,21 @@ const MOCK_ANALYZE_RESPONSE = {
     totalPages: 2,
     totalEstimatedShootDays: 2,
     elementsByCategory: { المواقع: 2, الممثلون: 2 },
-    schedule: [],
+    schedule: [
+      {
+        dayNumber: 1,
+        location: "مطبخ",
+        timeOfDay: "NIGHT",
+        estimatedHours: 6,
+        scenes: [
+          {
+            sceneId: "scene-1",
+            sceneNumber: 1,
+            header: "INT. مطبخ - ليل",
+          },
+        ],
+      },
+    ],
     scenes: [
       {
         reportSceneId: "rs-1",
@@ -473,31 +487,14 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
       path: "reports/e2e/screenshots/breakdown-loading-state.png",
     });
 
-    // انتظار إما النتيجة أو الخطأ
-    const resultOrError = page.locator(
-      // محتوى النتائج أو رسالة الخطأ
-      '[class*="results"], [class*="ResultsView"], [class*="error"], [data-testid="results"]'
-    );
-
-    // انتظار النتيجة بمهلة تحليل كاملة
-    const appeared = await resultOrError
-      .first()
-      .isVisible({ timeout: config.analysisTimeoutMs })
-      .catch(() => false);
-
-    if (!appeared) {
-      // حاول رصد أي نص خطأ ظهر
-      const bodyText = await page.locator("body").innerText();
-
-      // التحقق من غياب رسالة الخطأ الأساسية
-      expect(bodyText).not.toContain("رمز التحقق غير صالح");
-      expect(bodyText).not.toContain("Invalid verification");
-
-      logger.warn(
-        { bodyExcerpt: bodyText.slice(0, 200) },
-        "النتائج لم تظهر في المهلة المحددة"
-      );
-    }
+    await expect(page.getByText("المشاهد المستخرجة")).toBeVisible({
+      timeout: config.analysisTimeoutMs,
+    });
+    await expect(page.getByText("عدد المشاهد")).toBeVisible();
+    await expect(page.getByText("الجدولة الأولية")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "INT. مطبخ - ليل" })
+    ).toBeVisible();
 
     await page.screenshot({
       path: "reports/e2e/screenshots/breakdown-final-state.png",

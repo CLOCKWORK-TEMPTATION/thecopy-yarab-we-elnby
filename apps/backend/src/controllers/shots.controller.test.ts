@@ -102,7 +102,7 @@ interface MockDb {
   update: MockFn;
   delete: MockFn;
 }
-type MockRequest = Partial<Request> & { user?: { id: string } };
+type MockRequest = Partial<Request> & { user?: { email: string; id: string } };
 
 let mockRequest: MockRequest;
 let mockResponse: MockResponseLike;
@@ -127,7 +127,7 @@ beforeEach(() => {
   mockRequest = {
     params: {},
     body: {},
-    user: { id: "user-123" },
+    user: { email: "user@example.com", id: "user-123" },
   };
   mockResponse = {
     status: vi.fn().mockReturnThis(),
@@ -173,7 +173,7 @@ describe("getShots", () => {
   });
 
   it("يعيد 401 عند غياب المستخدم", async () => {
-    mockRequest.user = undefined;
+    delete mockRequest.user;
     mockRequest.params = { sceneId: "scene-1" };
 
     await shotsController.getShots(asRequest(), asResponse());

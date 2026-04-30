@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 
 import compression from "compression";
 import cors from "cors";
-import express from "express";
+import express, { type RequestHandler } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 
@@ -258,7 +258,7 @@ export function createPerUserLimiter(options: {
  * Rate limiter افتراضي لكل مستخدم لمسارات الذكاء الاصطناعي المكلفة
  * 30 طلب لكل ساعة لكل معرف مستخدم
  */
-export const perUserAiLimiter = createPerUserLimiter({
+export const perUserAiLimiter: RequestHandler = createPerUserLimiter({
   windowMs: 60 * 60 * 1000,
   max: 30,
   errorMessage: "تم تجاوز حدّك الخاص لطلبات الذكاء الاصطناعي لهذه الساعة",
@@ -268,7 +268,7 @@ export const perUserAiLimiter = createPerUserLimiter({
  * Rate limiter افتراضي لكل مستخدم لعمليات الكتابة الحساسة
  * 60 عملية لكل دقيقة لكل معرف مستخدم
  */
-export const perUserWriteLimiter = createPerUserLimiter({
+export const perUserWriteLimiter: RequestHandler = createPerUserLimiter({
   windowMs: 60 * 1000,
   max: 60,
   errorMessage: "تم تجاوز حدّك الخاص لعمليات الكتابة لهذه الدقيقة",

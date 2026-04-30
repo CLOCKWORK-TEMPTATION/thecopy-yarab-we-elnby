@@ -40,7 +40,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return hasCausalAnalysis || !params?.requireCausality;
+      return hasCausalAnalysis || !params?.["requireCausality"];
     },
     suggest: (_text: string) => {
       return "وضح كيف تؤدي الأحداث إلى بعضها البعض بشكل منطقي";
@@ -82,7 +82,7 @@ export const plotRules: Rule[] = [
 
       // If plot holes are mentioned, that's good (identifying them)
       // If we require identification and none are mentioned, we check if analysis is comprehensive
-      if (!mentionsPlotHoles && params?.identifyPlotHoles) {
+      if (!mentionsPlotHoles && params?.["identifyPlotHoles"]) {
         // Check if analysis is thorough enough
         const thoroughnessIndicators = [
           /متسق/gi,
@@ -134,7 +134,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return analyzesPacing || !params?.analyzePacing;
+      return analyzesPacing || !params?.["analyzePacing"];
     },
     suggest: (_text: string) => {
       return "ناقش إيقاع السرد: هل هو سريع؟ بطيء؟ متنوع؟";
@@ -174,7 +174,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return recognizesStructure || !params?.requireStructureAnalysis;
+      return recognizesStructure || !params?.["requireStructureAnalysis"];
     },
     suggest: (_text: string) => {
       return "حدد البنية السردية: المقدمة، التصاعد، الذروة، الحل";
@@ -213,7 +213,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return identifiesForeshadowing || !params?.identifyForeshadowing;
+      return identifiesForeshadowing || !params?.["identifyForeshadowing"];
     },
     suggest: (_text: string) => {
       return "ابحث عن التلميحات المسبقة التي تشير إلى أحداث لاحقة";
@@ -243,7 +243,7 @@ export const plotRules: Rule[] = [
     ) => {
       // Check if there are subplots mentioned in context
       const ctx = context as Record<string, unknown> | undefined;
-      const hasSubplots = ctx?.hasSubplots ?? false;
+      const hasSubplots = ctx?.["hasSubplots"] ?? false;
 
       if (!hasSubplots) {
         return true; // Rule doesn't apply
@@ -260,7 +260,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return analyzesSubplots || !params?.analyzeSubplots;
+      return analyzesSubplots || !params?.["analyzeSubplots"];
     },
     suggest: (_text: string) => {
       return "ناقش كيف تتكامل الحبكات الفرعية مع الحبكة الرئيسية";
@@ -300,7 +300,7 @@ export const plotRules: Rule[] = [
         pattern.test(text),
       );
 
-      return analyzesTension || !params?.requireTensionAnalysis;
+      return analyzesTension || !params?.["requireTensionAnalysis"];
     },
     suggest: (_text: string) => {
       return "وصف كيف يتصاعد التوتر الدرامي ويتطور عبر السرد";

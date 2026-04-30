@@ -26,7 +26,9 @@ const {
   mockAppStateController,
   mockAuthController,
   mockAuthMiddleware,
+  mockBrainstormSessionsController,
   mockBreakdownController,
+  mockBreakdownSessionsController,
   mockCharactersController,
   mockHealthController,
   mockPassThroughMiddleware,
@@ -34,6 +36,7 @@ const {
   mockScenesController,
   mockShotsController,
   mockWorkflowController,
+  // eslint-disable-next-line max-lines-per-function
 } = vi.hoisted(() => {
   const handler = vi.fn<RouteHandler>((_req, res) => {
     res.json({ success: true });
@@ -87,6 +90,17 @@ const {
       signup: createdHandler,
     },
     mockAuthMiddleware: auth,
+    mockBrainstormSessionsController: {
+      createBrief: createdHandler,
+      getConcepts: handler,
+      getSession: handler,
+      listBriefs: handler,
+      runConvergent: handler,
+      runCritique: handler,
+      runDivergent: handler,
+      runSynthesis: handler,
+      startSession: createdHandler,
+    },
     mockBreakdownController: {
       analyzeProject: handler,
       bootstrapProject: createdHandler,
@@ -98,6 +112,13 @@ const {
       health: handler,
       parseProject: handler,
       reanalyzeScene: handler,
+    },
+    mockBreakdownSessionsController: {
+      categorizeScene: handler,
+      createScreenplay: createdHandler,
+      createSession: createdHandler,
+      getReport: handler,
+      getSession: handler,
     },
     mockCharactersController: {
       createCharacter: createdHandler,
@@ -174,8 +195,13 @@ vi.mock("@/controllers/auth.controller", () => ({
   authController: mockAuthController,
 }));
 
+vi.mock("@/controllers/brainstorm-sessions.controller", () => ({
+  brainstormSessionsController: mockBrainstormSessionsController,
+}));
+
 vi.mock("@/controllers/breakdown.controller", () => ({
   breakdownController: mockBreakdownController,
+  breakdownSessionsController: mockBreakdownSessionsController,
 }));
 
 vi.mock("@/controllers/characters.controller", () => ({
@@ -295,7 +321,9 @@ describe("تكامل مسارات الواجهة البرمجية", () => {
   it("يرفض مسار الشخصيات المحمي عند غياب رمز التوثيق", async () => {
     const app = buildApp();
 
-    const response = await request(app).get("/api/projects/project-1/characters");
+    const response = await request(app).get(
+      "/api/projects/project-1/characters",
+    );
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({

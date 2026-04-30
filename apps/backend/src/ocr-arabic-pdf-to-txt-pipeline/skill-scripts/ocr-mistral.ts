@@ -104,9 +104,18 @@ function parseArgs(): {
   let pagesStr = "";
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--input" && args[i + 1]) input = args[++i];
-    else if (args[i] === "--output" && args[i + 1]) output = args[++i];
-    else if (args[i] === "--pages" && args[i + 1]) pagesStr = args[++i];
+    const token = args[i];
+    const next = args[i + 1];
+    if (token === "--input" && next) {
+      input = next;
+      i += 1;
+    } else if (token === "--output" && next) {
+      output = next;
+      i += 1;
+    } else if (token === "--pages" && next) {
+      pagesStr = next;
+      i += 1;
+    }
   }
 
   if (!input || !output) {
@@ -121,8 +130,8 @@ function parseArgs(): {
   if (pagesStr && pagesStr !== "all") {
     const match = /^(\d+)-(\d+)$/.exec(pagesStr);
     if (match) {
-      const start = parseInt(match[1], 10);
-      const end = parseInt(match[2], 10);
+      const start = parseInt(match[1] ?? "0", 10);
+      const end = parseInt(match[2] ?? "0", 10);
       pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
     } else {
       // أرقام مفصولة بفاصلة
@@ -200,7 +209,7 @@ function buildNormalizedResult(
         ? response.model
         : "mistral-ocr-latest",
     total_pages: pagesRaw.length,
-    doc_size_bytes: toNumberOrNull(usageInfo?.doc_size_bytes, docSizeBytes),
+    doc_size_bytes: toNumberOrNull(usageInfo?.["doc_size_bytes"], docSizeBytes),
     processing_time_seconds: Math.round(elapsedSeconds * 100) / 100,
     pages: [],
   };
@@ -242,7 +251,7 @@ async function withTimeout<T>(
 function getStatusCode(error: unknown): number | null {
   if (!error || typeof error !== "object") return null;
   const e = error as Record<string, unknown>;
-  const candidates = [e.statusCode, e["status"], e.code];
+  const candidates = [e["statusCode"], e["status"], e["code"]];
   for (const value of candidates) {
     const asNumber = Number(value);
     if (Number.isInteger(asNumber)) {

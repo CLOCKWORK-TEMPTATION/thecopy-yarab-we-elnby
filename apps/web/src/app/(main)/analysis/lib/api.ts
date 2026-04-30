@@ -6,8 +6,9 @@
  * intentionally controlled so upstream HTML or stack output never reaches UI.
  */
 
-import type { AnalysisSnapshot, StationId } from "./types";
 import { getJson, postJson, postBlob } from "@/lib/analysis-fetch";
+
+import type { AnalysisSnapshot, StationId } from "./types";
 
 const ANALYSIS_API_BASE = "/api/public/analysis/seven-stations";
 
@@ -43,9 +44,10 @@ export async function startAnalysisStream(input: {
 export async function fetchAnalysisSnapshot(
   analysisId: string
 ): Promise<AnalysisSnapshot> {
-  const data = await fetchAnalysisJson<{ success: true; snapshot: AnalysisSnapshot }>(
-    `/${encodeURIComponent(analysisId)}/snapshot`
-  );
+  const data = await fetchAnalysisJson<{
+    success: true;
+    snapshot: AnalysisSnapshot;
+  }>(`/${encodeURIComponent(analysisId)}/snapshot`);
   return data.snapshot;
 }
 
@@ -58,10 +60,7 @@ export async function retryStation(
     success: true;
     stationId: number;
     output: unknown;
-  }>(
-    `/${encodeURIComponent(analysisId)}/retry/${stationId}`,
-    { text }
-  );
+  }>(`/${encodeURIComponent(analysisId)}/retry/${stationId}`, { text });
   return data.output;
 }
 
@@ -71,7 +70,7 @@ export async function exportAnalysis(
 ): Promise<Blob> {
   return postBlob(
     `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/export`,
-    { format },
+    { format }
   );
 }
 

@@ -1,11 +1,16 @@
-import { Router, type Request, type Response } from "express";
+import {
+  Router,
+  type Request,
+  type Response,
+  type Router as ExpressRouter,
+} from "express";
 import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 
 import { styleistService } from "./service";
 
-export const styleistRouter = Router();
+export const styleistRouter: ExpressRouter = Router();
 
 const createDesignBodySchema = z
   .object({

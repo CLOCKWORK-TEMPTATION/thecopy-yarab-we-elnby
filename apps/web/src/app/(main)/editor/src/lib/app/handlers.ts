@@ -4,6 +4,8 @@
  *   كل factory يأخذ ما يحتاج من state/deps ويعيد دالة يستخدمها App مباشرة.
  */
 
+import { getCurrentProject } from "@/lib/projectStore";
+
 import {
   minutesToMilliseconds,
   sanitizeTypingSystemSettings,
@@ -279,13 +281,24 @@ export const approveCurrentVersion = (
   const area = refs.editorAreaRef.current;
   if (!area) return;
 
-  try {
-    void area.approveCurrentVersion();
-    deps.toast({
-      title: "تم اعتماد النسخة",
-      description: "تم وسم كل العناصر الظاهرة في النسخة المعتمدة.",
-    });
-  } catch (error) {
+  const currentProject = getCurrentProject();
+  const context = currentProject?.id
+    ? {
+        scenarioId: currentProject.id,
+        scenarioTitle: currentProject.title ?? currentProject.name ?? null,
+      }
+    : undefined;
+
+  void area
+    .approveCurrentVersion(context)
+    .then(() => {
+      deps.toast({
+        title: "تم اعتماد النسخة",
+        description:
+          "تم وسم كل العناصر الظاهرة وحفظ النسخة الموصومة المعتمدة.",
+      });
+    })
+    .catch((error: unknown) => {
     const message =
       error instanceof Error
         ? error.message
@@ -296,7 +309,7 @@ export const approveCurrentVersion = (
       description: message,
       variant: "destructive",
     });
-  }
+    });
 };
 
 export const dismissProgressiveFailure = (refs: EditorAppRefs): boolean => {

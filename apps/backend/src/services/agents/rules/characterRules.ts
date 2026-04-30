@@ -53,14 +53,15 @@ export const characterRules: Rule[] = [
       // Check if context suggests historical setting
       const ctx = context as Record<string, string> | undefined;
       const isHistorical =
-        ctx?.setting?.includes("تاريخي") ?? ctx?.period?.includes("قديم");
+        ctx?.["setting"]?.includes("تاريخي") ??
+        ctx?.["period"]?.includes("قديم");
 
       if (!isHistorical) {
         return true; // Rule doesn't apply
       }
 
-      const modernTerms = (params?.modernPsychTerms ?? []) as string[];
-      const threshold = (params?.threshold ?? 2) as number;
+      const modernTerms = (params?.["modernPsychTerms"] ?? []) as string[];
+      const threshold = (params?.["threshold"] ?? 2) as number;
 
       return countTermOccurrences(text, modernTerms) <= threshold;
     },
@@ -146,7 +147,7 @@ export const characterRules: Rule[] = [
         }
       });
 
-      const maxUnsupported = (params?.maxUnsupportedClaims ?? 1) as number;
+      const maxUnsupported = (params?.["maxUnsupportedClaims"] ?? 1) as number;
       return count <= maxUnsupported;
     },
     suggest: (_text: string) => {
@@ -181,7 +182,7 @@ export const characterRules: Rule[] = [
       _context?: unknown,
       params?: Record<string, unknown>,
     ) => {
-      const stereotypes = (params?.stereotypicalPhrases ?? []) as string[];
+      const stereotypes = (params?.["stereotypicalPhrases"] ?? []) as string[];
 
       return !stereotypes.some((phrase: string) => {
         return text.toLowerCase().includes(phrase.toLowerCase());
@@ -219,7 +220,7 @@ export const characterRules: Rule[] = [
       _context?: unknown,
       params?: Record<string, unknown>,
     ) => {
-      const minLength = (params?.minLength ?? 200) as number;
+      const minLength = (params?.["minLength"] ?? 200) as number;
 
       // Check minimum length
       if (text.length < minLength) {
@@ -236,7 +237,7 @@ export const characterRules: Rule[] = [
 
       const hasDepth = depthIndicators.some((pattern) => pattern.test(text));
 
-      return hasDepth || !params?.requireLayers;
+      return hasDepth || !params?.["requireLayers"];
     },
     suggest: (_text: string) => {
       return "قدم تحليلاً متعدد الأبعاد يستكشف الدوافع الظاهرة والخفية للشخصية";

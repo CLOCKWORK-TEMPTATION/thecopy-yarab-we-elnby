@@ -1,3 +1,8 @@
+import {
+  computeTaggedScenarioSourceHash,
+  ensureTaggedScenarioSnapshot,
+} from "@/lib/tagged-scenario-snapshot";
+
 import { downloadBlob, resolveFilename } from "./budget-page-utils";
 
 import type {
@@ -7,11 +12,23 @@ import type {
   BudgetRuntimePayload,
 } from "../types";
 
+async function ensureBudgetTaggedScenario(scenario: string): Promise<string> {
+  const hash = computeTaggedScenarioSourceHash(scenario).replace("fnv1a:", "");
+  const result = await ensureTaggedScenarioSnapshot({
+    scenarioId: `budget-${hash}`,
+    sourceText: scenario,
+    title: "BUDGET",
+  });
+
+  return result.snapshot.sourceText;
+}
+
 export async function analyzeBudgetScenario(scenario: string) {
+  const taggedScenarioText = await ensureBudgetTaggedScenario(scenario);
   const response = await fetch("/api/budget/analyze", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scenario }),
+    body: JSON.stringify({ scenario: taggedScenarioText }),
   });
   const payload =
     (await response.json()) as BudgetEnvelope<BudgetAnalysisRuntimePayload>;
@@ -30,12 +47,13 @@ export async function generateBudgetDocument({
   title: string;
   scenario: string;
 }) {
+  const taggedScenarioText = await ensureBudgetTaggedScenario(scenario);
   const response = await fetch("/api/budget/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title: title.trim() || undefined,
-      scenario,
+      scenario: taggedScenarioText,
     }),
   });
   const payload =

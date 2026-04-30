@@ -24,7 +24,7 @@ import {
 
 import type { ContextQuery } from "../types";
 
-const router = Router();
+const router: Router = Router();
 
 const memorySearchBodySchema = z
   .object({

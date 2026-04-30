@@ -59,9 +59,9 @@ describe("TargetAudienceAnalyzerAgent", () => {
 
     expect(result.text).not.toContain("```");
     expect(result.text).not.toMatch(/\{[^}]*:[^}]*\}/);
-    expect(result.metadata?.audienceAnalysisQuality).toBeDefined();
-    expect(result.metadata?.demographicCoverage).toBeGreaterThanOrEqual(0);
-    expect(result.metadata?.psychographicDepth).toBeGreaterThanOrEqual(0);
+    expect(result.metadata?.["audienceAnalysisQuality"]).toBeDefined();
+    expect(result.metadata?.["demographicCoverage"]).toBeGreaterThanOrEqual(0);
+    expect(result.metadata?.["psychographicDepth"]).toBeGreaterThanOrEqual(0);
     expect(result.confidence).toBeGreaterThan(0);
   });
 

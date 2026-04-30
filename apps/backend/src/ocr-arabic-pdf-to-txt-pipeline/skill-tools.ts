@@ -16,8 +16,7 @@
 
 import { execFile } from "node:child_process";
 import { stat } from "node:fs/promises";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { promisify } from "node:util";
 
 import { z } from "zod";
@@ -53,8 +52,6 @@ function writeStderr(message: string): void {
 
 // ─── مسارات السكريبتات ──────────────────────────────────────
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const SCRIPTS_DIR = resolve(__dirname, "skill-scripts");
 
 /**

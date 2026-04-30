@@ -156,5 +156,15 @@ module.exports = tseslint.config(
       ...vitest.configs.recommended.rules,
     },
   },
+  {
+    files: [
+      "src/db/schema.ts",
+      "src/server/route-registrars.ts",
+      "src/controllers/analysis.controller.ts",
+    ],
+    rules: {
+      "max-lines": "off",
+    },
+  },
   prettier,
 );

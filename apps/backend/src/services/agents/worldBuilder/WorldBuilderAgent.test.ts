@@ -79,8 +79,8 @@ describe("WorldBuilderAgent", () => {
     ).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
     expect(result.metadata?.worldQuality).toBeDefined();
-    expect(result.metadata?.sectionsCount).toBeGreaterThanOrEqual(5);
-    expect(result.metadata?.worldLength).toBeGreaterThan(100);
+    expect(result.metadata?.["sectionsCount"]).toBeGreaterThanOrEqual(5);
+    expect(result.metadata?.["worldLength"]).toBeGreaterThan(100);
   });
 
   it("should return fallback metadata on failure", async () => {

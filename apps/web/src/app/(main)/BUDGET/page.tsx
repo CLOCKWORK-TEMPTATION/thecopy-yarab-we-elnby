@@ -7,9 +7,18 @@
  * مكونات Aceternity المستخدمة: BackgroundBeams, NoiseBackground, CardSpotlight
  */
 
+import { CardSpotlight } from "@/components/aceternity/card-spotlight";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { BudgetAlerts } from "./components/page/BudgetAlerts";
 import { BudgetAnalysisPanel } from "./components/page/BudgetAnalysisPanel";
 import { BudgetHero } from "./components/page/BudgetHero";
+import { BudgetItemsTable } from "./components/page/BudgetItemsTable";
 import { BudgetPageBackground } from "./components/page/BudgetPageBackground";
 import { BudgetProjectInput } from "./components/page/BudgetProjectInput";
 import { BudgetSummaryPanel } from "./components/page/BudgetSummaryPanel";
@@ -22,11 +31,12 @@ export default function BudgetPage() {
     scenario,
     setScenario,
     analysis,
-    budget,
+    editor,
     runtimeMeta,
     analyzing,
     generating,
     exporting,
+    saving,
     restoringState,
     persistedAt,
     error,
@@ -34,7 +44,11 @@ export default function BudgetPage() {
     handleAnalyze,
     handleGenerate,
     handleExport,
+    handleSave,
   } = useBudgetStudio();
+
+  const currency = editor.editedBudget?.currency ?? "USD";
+  const hasBudget = Boolean(editor.editedBudget);
 
   return (
     <main
@@ -53,7 +67,7 @@ export default function BudgetPage() {
           <BudgetHero
             totalLineItems={totalLineItems}
             hasAnalysis={Boolean(analysis)}
-            budget={budget}
+            budget={editor.editedBudget}
             runtimeMeta={runtimeMeta}
             analyzing={analyzing}
             generating={generating}
@@ -62,31 +76,54 @@ export default function BudgetPage() {
 
           <BudgetAlerts error={error} runtimeMeta={runtimeMeta} />
 
+          {/* Top two-column section */}
           <div className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
             <BudgetProjectInput
               title={title}
               scenario={scenario}
+              currency={currency}
               analyzing={analyzing}
               generating={generating}
               exporting={exporting}
+              saving={saving}
               restoringState={restoringState}
-              hasBudget={Boolean(budget)}
+              hasBudget={hasBudget}
+              hasEdits={editor.hasEdits}
               onTitleChange={setTitle}
               onScenarioChange={setScenario}
+              onCurrencyChange={editor.setCurrency}
               onAnalyze={handleAnalyze}
               onGenerate={handleGenerate}
               onExport={handleExport}
+              onSave={handleSave}
             />
 
             <div className="space-y-6">
               <BudgetAnalysisPanel analysis={analysis} />
               <BudgetSummaryPanel
-                budget={budget}
+                budget={editor.editedBudget}
                 runtimeMeta={runtimeMeta}
                 persistedAt={persistedAt}
               />
             </div>
           </div>
+
+          {/* Editable budget items table — full width, shown only when budget exists */}
+          {editor.editedBudget ? (
+            <CardSpotlight className="overflow-hidden rounded-[32px] border border-[var(--page-border)] bg-black/24 shadow-[0_20px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+              <Card className="border-0 bg-transparent shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-white">بنود الميزانية</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BudgetItemsTable
+                    budget={editor.editedBudget}
+                    editor={editor}
+                  />
+                </CardContent>
+              </Card>
+            </CardSpotlight>
+          ) : null}
         </div>
       </div>
     </main>

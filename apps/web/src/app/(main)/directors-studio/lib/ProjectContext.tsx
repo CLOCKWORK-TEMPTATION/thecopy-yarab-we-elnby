@@ -23,6 +23,10 @@ import {
   setCurrentProject as storeSet,
   clearCurrentProject as storeClear,
 } from "@/lib/projectStore";
+import {
+  ensureProjectTaggedScenarioSnapshot,
+  type TaggedScenarioSnapshot,
+} from "@/lib/tagged-scenario-snapshot";
 
 import type { Project } from "@/types/api";
 
@@ -37,10 +41,18 @@ interface ProjectContextValue {
   project: StoredProject | null;
   /** معرّف المشروع الحالي — سلسلة فارغة إذا لم يُختر */
   projectId: string;
+  /** النسخة الموصومة الرسمية للسيناريو عند توفرها */
+  taggedScenarioSnapshot: TaggedScenarioSnapshot | null;
+  /** حالة ضمان النسخة الموصومة */
+  taggedScenarioSnapshotStatus: "idle" | "loading" | "ready" | "error";
+  /** آخر خطأ في ضمان النسخة الموصومة */
+  taggedScenarioSnapshotError: string | null;
   /** تعيين المشروع الحالي */
   setProject: (project: Project) => void;
   /** مسح المشروع الحالي */
   clearProject: () => void;
+  /** تشغيل ضمان النسخة الموصومة يدويًا عند الحاجة */
+  ensureTaggedScenarioSnapshotForProject: () => Promise<TaggedScenarioSnapshot | null>;
 }
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
@@ -53,6 +65,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     const stored = getCurrentProject();
     return stored;
   });
+  const [taggedScenarioSnapshot, setTaggedScenarioSnapshot] =
+    useState<TaggedScenarioSnapshot | null>(null);
+  const [taggedScenarioSnapshotStatus, setTaggedScenarioSnapshotStatus] =
+    useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [taggedScenarioSnapshotError, setTaggedScenarioSnapshotError] =
+    useState<string | null>(null);
 
   const projectId = project?.id ?? "";
 
@@ -71,8 +89,38 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const clearProject = useCallback(() => {
     storeClear();
     setProjectState(null);
+    setTaggedScenarioSnapshot(null);
+    setTaggedScenarioSnapshotStatus("idle");
+    setTaggedScenarioSnapshotError(null);
     window.dispatchEvent(new CustomEvent(PROJECT_CHANGE_EVENT));
   }, []);
+
+  const ensureTaggedScenarioSnapshotForProject = useCallback(async () => {
+    if (!project?.id || !project.scriptContent?.trim()) {
+      setTaggedScenarioSnapshot(null);
+      setTaggedScenarioSnapshotStatus("idle");
+      setTaggedScenarioSnapshotError(null);
+      return null;
+    }
+
+    setTaggedScenarioSnapshotStatus("loading");
+    setTaggedScenarioSnapshotError(null);
+    try {
+      const result = await ensureProjectTaggedScenarioSnapshot(project);
+      setTaggedScenarioSnapshot(result.snapshot);
+      setTaggedScenarioSnapshotStatus("ready");
+      return result.snapshot;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "فشل إنشاء النسخة الموصومة للسيناريو.";
+      setTaggedScenarioSnapshot(null);
+      setTaggedScenarioSnapshotStatus("error");
+      setTaggedScenarioSnapshotError(message);
+      return null;
+    }
+  }, [project]);
 
   /** الاستماع لتغييرات المشروع من مكونات أخرى */
   useEffect(() => {
@@ -88,9 +136,55 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async (): Promise<void> => {
+      if (!project?.id || !project.scriptContent?.trim()) {
+        setTaggedScenarioSnapshot(null);
+        setTaggedScenarioSnapshotStatus("idle");
+        setTaggedScenarioSnapshotError(null);
+        return;
+      }
+
+      setTaggedScenarioSnapshotStatus("loading");
+      setTaggedScenarioSnapshotError(null);
+      try {
+        const result = await ensureProjectTaggedScenarioSnapshot(project);
+        if (cancelled) return;
+        setTaggedScenarioSnapshot(result.snapshot);
+        setTaggedScenarioSnapshotStatus("ready");
+      } catch (error) {
+        if (cancelled) return;
+        const message =
+          error instanceof Error
+            ? error.message
+            : "فشل إنشاء النسخة الموصومة للسيناريو.";
+        setTaggedScenarioSnapshot(null);
+        setTaggedScenarioSnapshotStatus("error");
+        setTaggedScenarioSnapshotError(message);
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project]);
+
   return (
     <ProjectContext.Provider
-      value={{ project, projectId, setProject, clearProject }}
+      value={{
+        project,
+        projectId,
+        taggedScenarioSnapshot,
+        taggedScenarioSnapshotStatus,
+        taggedScenarioSnapshotError,
+        setProject,
+        clearProject,
+        ensureTaggedScenarioSnapshotForProject,
+      }}
     >
       {children}
     </ProjectContext.Provider>

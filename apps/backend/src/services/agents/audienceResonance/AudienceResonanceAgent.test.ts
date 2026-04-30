@@ -90,11 +90,11 @@ describe("AudienceResonanceAgent", () => {
     expect(Array.isArray(result.notes)).toBe(true);
     expect(result.notes.length).toBeGreaterThan(0);
     expect(result.metadata?.timestamp).toBeDefined();
-    expect(result.metadata?.comprehensiveness).toBeGreaterThan(0);
-    expect(result.metadata?.insightDepth).toBeGreaterThan(0);
-    expect(result.metadata?.actionability).toBeGreaterThan(0);
-    expect(result.metadata?.analysisType).toBe("تحليل شرائح");
-    expect(result.metadata?.wordCount).toBeGreaterThan(20);
+    expect(result.metadata?.["comprehensiveness"]).toBeGreaterThan(0);
+    expect(result.metadata?.["insightDepth"]).toBeGreaterThan(0);
+    expect(result.metadata?.["actionability"]).toBeGreaterThan(0);
+    expect(result.metadata?.["analysisType"]).toBe("تحليل شرائح");
+    expect(result.metadata?.["wordCount"]).toBeGreaterThan(20);
   });
 
   it("should return the fallback contract with error metadata", async () => {

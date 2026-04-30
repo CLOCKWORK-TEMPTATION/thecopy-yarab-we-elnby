@@ -283,7 +283,11 @@ describe("Error Handling", () => {
 
     // Check retry configuration
     expect(job?.opts.attempts).toBe(3);
-    expect(job?.opts.backoff?.type).toBe("exponential");
+    const backoff = job?.opts.backoff;
+    expect(typeof backoff).toBe("object");
+    expect(backoff && typeof backoff !== "number" ? backoff.type : undefined).toBe(
+      "exponential",
+    );
   });
 
   it("should handle job failure gracefully", async () => {

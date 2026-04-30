@@ -1,8 +1,12 @@
-import { Router, type RequestHandler } from "express";
+import {
+  Router,
+  type RequestHandler,
+  type Router as ExpressRouter,
+} from "express";
 
 import { actorAiController } from "../controllers/actorai.controller";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const saveVoiceAnalytics: RequestHandler = (req, res) => {
   void actorAiController.saveVoiceAnalytics(req, res);

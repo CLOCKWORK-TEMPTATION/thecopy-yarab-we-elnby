@@ -162,7 +162,8 @@ const ProjectCard = memo(function ProjectCard({
 });
 
 export default function ProjectManager() {
-  const { data: projects, isLoading } = useProjects();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { data: projects, isLoading } = useProjects({ enabled: dialogOpen });
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
   const { toast } = useToast();
@@ -250,25 +251,13 @@ export default function ProjectManager() {
 
   const projectsList = Array.isArray(projects) ? projects : [];
 
-  if (isLoading) {
-    return (
-      <CardSpotlight className="overflow-hidden rounded-[24px] border border-white/8 bg-black/18 p-4 backdrop-blur-xl">
-        <div className="h-10 w-48 animate-pulse rounded-xl bg-white/8" />
-      </CardSpotlight>
-    );
-  }
-
-  if (!projectsList.length) {
-    return null;
-  }
-
   return (
     <>
-      <Dialog>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" data-testid="button-manage-projects">
             <FolderOpen className="w-4 h-4 ml-2" />
-            إدارة المشاريع ({projectsList.length})
+            إدارة المشاريع
           </Button>
         </DialogTrigger>
         <DialogContent
@@ -281,23 +270,36 @@ export default function ProjectManager() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 max-h-[500px] overflow-y-auto">
-            {projectsList.map((project: Project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                isCurrentProject={
-                  currentProject !== null && currentProject.id === project.id
-                }
-                isEditing={editingId === project.id}
-                editTitle={editTitle}
-                isPending={updateProject.isPending}
-                onEditStart={handleStartEdit}
-                onEditSave={handleSaveEdit}
-                onEditTitleChange={handleEditTitleChange}
-                onDeleteClick={handleDeleteClick}
-                onSelect={handleSelectProject}
-              />
-            ))}
+            {isLoading ? (
+              <CardSpotlight className="overflow-hidden rounded-[24px] border border-white/8 bg-black/18 p-4 backdrop-blur-xl">
+                <div className="h-10 w-48 animate-pulse rounded-xl bg-white/8" />
+              </CardSpotlight>
+            ) : null}
+            {!isLoading && !projectsList.length ? (
+              <div className="rounded-2xl border border-amber-600/30 bg-amber-950/20 px-4 py-4 text-right text-sm text-amber-100">
+                لا توجد مشاريع محفوظة لهذا الحساب.
+              </div>
+            ) : null}
+            {!isLoading
+              ? projectsList.map((project: Project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    isCurrentProject={
+                      currentProject !== null &&
+                      currentProject.id === project.id
+                    }
+                    isEditing={editingId === project.id}
+                    editTitle={editTitle}
+                    isPending={updateProject.isPending}
+                    onEditStart={handleStartEdit}
+                    onEditSave={handleSaveEdit}
+                    onEditTitleChange={handleEditTitleChange}
+                    onDeleteClick={handleDeleteClick}
+                    onSelect={handleSelectProject}
+                  />
+                ))
+              : null}
           </div>
         </DialogContent>
       </Dialog>

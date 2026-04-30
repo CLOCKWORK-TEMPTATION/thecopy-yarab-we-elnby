@@ -419,7 +419,9 @@ describe("WAF Events and Stats", () => {
 
     const events = getWAFEvents(10);
     expect(events.length).toBeGreaterThan(0);
-    expect(events[events.length - 1].eventType).toBe("SQL_INJECTION");
+    const latestEvent = events.at(-1);
+    expect(latestEvent).toBeDefined();
+    expect(latestEvent?.eventType).toBe("SQL_INJECTION");
   });
 
   it("should provide WAF statistics", () => {
@@ -519,7 +521,7 @@ describe("Edge Cases", () => {
     const req = createMockRequest({
       body: null,
       query: undefined,
-    } as Partial<Request>);
+    } as unknown as Partial<Request>);
     const res = createMockResponse();
     const next = vi.fn();
 

@@ -301,3 +301,85 @@ export class BreakdownController {
 }
 
 export const breakdownController = new BreakdownController();
+
+// ============================================================
+// Session-style aliases + 9-category categorize endpoint
+// feat/brainstorm-and-breakdown-integration
+// ============================================================
+
+const screenplayUploadSchema = z.object({
+  title: z.string().optional(),
+  scriptContent: z.string().min(1, "نص السيناريو مطلوب"),
+});
+
+export class BreakdownSessionsController {
+  private requireUserId(req: AuthRequest, res: Response): string | null {
+    if (!req.user?.id) {
+      res.status(401).json({ success: false, error: "غير مصرح" });
+      return null;
+    }
+    return req.user.id;
+  }
+
+  async createScreenplay(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = this.requireUserId(req, res);
+      if (!userId) return;
+
+      const body = screenplayUploadSchema.parse(req.body);
+      const result = await breakdownService.createProjectAndParse(
+        body.scriptContent,
+        body.title,
+        userId,
+      );
+      res.status(201).json({ success: true, data: result });
+    } catch (error) {
+      logger.error("BreakdownSessions.createScreenplay", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+      });
+    }
+  }
+
+  async createSession(req: AuthRequest, res: Response): Promise<void> {
+    const parsed = z
+      .object({ projectId: z.string().min(1) })
+      .safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, error: "projectId مطلوب" });
+      return;
+    }
+    req.params = { ...req.params, projectId: parsed.data.projectId };
+    return breakdownController.analyzeProject(req, res);
+  }
+
+  async getSession(req: AuthRequest, res: Response): Promise<void> {
+    const id = getParam(req, "id");
+    req.params = { ...req.params, projectId: id };
+    return breakdownController.getProjectReport(req, res);
+  }
+
+  categorizeScene(req: AuthRequest, res: Response): void {
+    const sceneId = getParam(req, "sceneId");
+    req.params = { ...req.params, sceneId };
+    void breakdownController.getSceneBreakdown(req, res);
+  }
+
+  async getReport(req: AuthRequest, res: Response): Promise<void> {
+    const id = getParam(req, "id");
+    const type = getParam(req, "type") || "full";
+
+    req.params = { ...req.params, projectId: id };
+
+    const SCHEDULE_TYPES = ["schedule", "budget"];
+
+    if (SCHEDULE_TYPES.includes(type)) {
+      return breakdownController.getProjectSchedule(req, res);
+    }
+
+    return breakdownController.getProjectReport(req, res);
+  }
+}
+
+export const breakdownSessionsController = new BreakdownSessionsController();

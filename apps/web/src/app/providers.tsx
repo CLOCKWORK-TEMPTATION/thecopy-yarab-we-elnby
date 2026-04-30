@@ -7,14 +7,14 @@ import { NotificationProvider } from "@/components/providers/notification-provid
 
 interface E2EDiagnosticsSnapshot {
   url: string;
-  consoleErrors: Array<{ message: string; timestamp: number }>;
-  networkEvents: Array<{
+  consoleErrors: { message: string; timestamp: number }[];
+  networkEvents: {
     url: string;
     method: string;
     status: number | null;
     ok: boolean;
     timestamp: number;
-  }>;
+  }[];
   localStorageKeys: string[];
   sessionStorageKeys: string[];
 }
@@ -29,6 +29,19 @@ declare global {
   interface Window {
     __THE_COPY_E2E_DIAGNOSTICS__?: E2EDiagnosticsApi;
   }
+}
+
+function isDiagnosticsEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  if (process.env["NEXT_PUBLIC_E2E_DIAGNOSTICS"] === "1") return true;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("e2eDiagnostics") === "1") {
+    window.localStorage.setItem("the-copy:e2e-diagnostics", "1");
+    return true;
+  }
+
+  return window.localStorage.getItem("the-copy:e2e-diagnostics") === "1";
 }
 
 function safeConsoleMessage(value: unknown): string {
@@ -69,7 +82,7 @@ function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
 
 function installE2EDiagnostics(): void {
   if (typeof window === "undefined") return;
-  if (process.env["NEXT_PUBLIC_E2E_DIAGNOSTICS"] !== "1") return;
+  if (!isDiagnosticsEnabled()) return;
   if (window.__THE_COPY_E2E_DIAGNOSTICS__) return;
 
   const consoleErrors: E2EDiagnosticsSnapshot["consoleErrors"] = [];

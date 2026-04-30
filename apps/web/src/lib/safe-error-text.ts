@@ -8,9 +8,8 @@ export function looksLikeRawServerOutput(value: string): boolean {
 }
 
 export function createSafeTraceId(prefix = "trace"): string {
-  const randomUUID = globalThis.crypto?.randomUUID;
-  if (typeof randomUUID === "function") {
-    return `${prefix}-${randomUUID.call(globalThis.crypto)}`;
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return `${prefix}-${globalThis.crypto.randomUUID()}`;
   }
 
   return `${prefix}-${Date.now().toString(36)}-${Math.random()

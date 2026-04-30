@@ -4,9 +4,19 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 
+import {
+  createDirectorsStudioDemoProject,
+  isDirectorsStudioDemoProject,
+  isDirectorsStudioDemoProjectId,
+  seedDirectorsStudioDemoEditorDraft,
+} from "@/app/(main)/directors-studio/lib/demoProject";
 import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
 import { directorsEditorLogger } from "@/lib/directors-editor/logger";
-import { clearCurrentProject, setCurrentProject } from "@/lib/projectStore";
+import {
+  clearCurrentProject,
+  getCurrentProject,
+  setCurrentProject,
+} from "@/lib/projectStore";
 
 import type { ApiResponse, Project } from "@/lib/api-types";
 
@@ -26,6 +36,22 @@ const EditorApp = dynamic(
 
 let initialized = false;
 
+function dispatchProjectSynced(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent("directors-editor:project-synced"));
+}
+
+function resolveProjectSyncErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  return "تعذر مزامنة المشروع المطلوب.";
+}
+
 async function fetchAndSyncProject(
   projectId: string,
   setProjectSyncError: (msg: string | null) => void,
@@ -39,6 +65,30 @@ async function fetchAndSyncProject(
   setProjectSyncError(null);
 
   try {
+    if (isDirectorsStudioDemoProjectId(projectId)) {
+      const storedProject = getCurrentProject();
+      const demoProject = isDirectorsStudioDemoProject(storedProject)
+        ? storedProject
+        : createDirectorsStudioDemoProject();
+
+      setCurrentProject(demoProject);
+      seedDirectorsStudioDemoEditorDraft(demoProject, false);
+      dispatchProjectSynced();
+
+      if (!activeRef.current) return;
+      setProjectSyncError(null);
+
+      directorsEditorLogger.info({
+        event: "editor-demo-project-sync-succeeded",
+        message: "Editor guest demo project synced without remote auth.",
+        data: {
+          projectId: demoProject.id,
+          projectTitle: demoProject.title,
+        },
+      });
+      return;
+    }
+
     const response = await fetch(
       `/api/projects/${encodeURIComponent(projectId)}`,
       {
@@ -61,10 +111,7 @@ async function fetchAndSyncProject(
       scriptContent: project.scriptContent ?? null,
     };
     setCurrentProject(normalizedProject);
-
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("directors-editor:project-synced"));
-    }
+    dispatchProjectSynced();
 
     if (!activeRef.current) return;
     setProjectSyncError(null);
@@ -79,15 +126,9 @@ async function fetchAndSyncProject(
     });
   } catch (error) {
     clearCurrentProject();
+    dispatchProjectSynced();
 
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("directors-editor:project-synced"));
-    }
-
-    const message =
-      error instanceof Error && error.message.trim()
-        ? error.message.trim()
-        : "تعذر مزامنة المشروع المطلوب.";
+    const message = resolveProjectSyncErrorMessage(error);
 
     directorsEditorLogger.error({
       event: "editor-project-sync-failed",

@@ -55,8 +55,8 @@ describe("RecommendationsGeneratorAgent", () => {
 
     expect(result.text).toContain("خطة التحسين");
     expect(result.text).toContain("بديل إبداعي");
-    expect(result.metadata?.recommendationsQuality).toBeDefined();
-    expect(result.metadata?.recommendationsCount).toBeGreaterThan(0);
+    expect(result.metadata?.["recommendationsQuality"]).toBeDefined();
+    expect(result.metadata?.["recommendationsCount"]).toBeGreaterThan(0);
     expect(result.confidence).toBeGreaterThan(0);
   });
 

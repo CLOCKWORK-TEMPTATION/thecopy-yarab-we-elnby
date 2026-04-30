@@ -34,15 +34,19 @@ describe("Redis Sentinel Integration", () => {
     )
       .split(",")
       .map((s) => {
-        const [host, port] = s.trim().split(":");
+        const [host = "127.0.0.1", port = "6379"] = s.trim().split(":");
         return { host, port: parseInt(port) };
       });
 
-    client = createClient({
-      sentinels,
-      name: process.env.REDIS_MASTER_NAME ?? "mymaster",
+    const sentinelOptions = {
+      socket: {
+        sentinels,
+        name: process.env.REDIS_MASTER_NAME ?? "mymaster",
+      },
       password: process.env.REDIS_PASSWORD,
-    }) as unknown as SentinelRedisClient;
+    } as unknown as Parameters<typeof createClient>[0];
+
+    client = createClient(sentinelOptions) as unknown as SentinelRedisClient;
 
     await client.connect();
   });

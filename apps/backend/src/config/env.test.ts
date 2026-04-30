@@ -3,11 +3,13 @@ import crypto from "crypto";
 import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 
 const originalEnv = process.env;
-const createBaseEnv = () => ({
+const createBaseEnv = (): NodeJS.ProcessEnv => ({
   NODE_ENV: "test",
   DATABASE_URL: "postgresql://test:test@localhost:5432/test_db",
 });
-const createProductionEnv = (overrides: Record<string, string> = {}) => ({
+const createProductionEnv = (
+  overrides: Record<string, string> = {},
+): NodeJS.ProcessEnv => ({
   NODE_ENV: "production",
   PORT: "3001",
   DATABASE_URL: "postgresql://prod:prod@localhost:5432/prod_db",

@@ -126,7 +126,7 @@ describe("Low Confidence Path", () => {
       options: {
         enableDebate: true,
         confidenceThreshold: 0.5,
-        maxDebateRounds: 2,
+        maxIterations: 2,
       },
       context: { originalText: "نص معقد" },
     };

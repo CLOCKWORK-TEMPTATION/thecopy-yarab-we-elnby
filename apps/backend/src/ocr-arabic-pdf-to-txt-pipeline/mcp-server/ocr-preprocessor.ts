@@ -76,7 +76,7 @@ export class OCRPreprocessor {
     }
 
     let sceneLineIndex = firstIndex;
-    let sceneLine = lines[sceneLineIndex].trim();
+    let sceneLine = (lines[sceneLineIndex] ?? "").trim();
 
     if (/^[٠١٢٣٤٥٦٧٨٩0-9]+$/u.test(sceneLine)) {
       const nextNonEmptyIndex = lines.findIndex(
@@ -84,7 +84,7 @@ export class OCRPreprocessor {
       );
       if (nextNonEmptyIndex >= 0) {
         sceneLineIndex = nextNonEmptyIndex;
-        sceneLine = lines[sceneLineIndex].trim();
+        sceneLine = (lines[sceneLineIndex] ?? "").trim();
       }
     }
 
@@ -106,7 +106,7 @@ export class OCRPreprocessor {
 
     if (
       sceneLineIndex !== firstIndex &&
-      /^[٠١٢٣٤٥٦٧٨٩0-9]+$/u.test(lines[firstIndex].trim())
+      /^[٠١٢٣٤٥٦٧٨٩0-9]+$/u.test((lines[firstIndex] ?? "").trim())
     ) {
       lines.splice(firstIndex, 1);
       sceneLineIndex -= 1;

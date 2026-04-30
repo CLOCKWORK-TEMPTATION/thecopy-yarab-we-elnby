@@ -66,6 +66,11 @@ export interface ProgressiveSurfaceState {
   failureRecoveryAction: FailureRecoveryAction | null;
 }
 
+export interface TaggedScenarioApprovalContext {
+  scenarioId?: string;
+  scenarioTitle?: string | null;
+}
+
 /**
  * @description مقبض واجهة المحرر (Editor Handle) المُصدَّر للمكونات الأب للتحكم الخارجي.
  */
@@ -105,7 +110,9 @@ export interface EditorHandle {
     fileName?: string | null;
   }) => void;
   cancelProgressivePreparation: () => void;
-  approveCurrentVersion: () => Promise<void>;
+  approveCurrentVersion: (
+    context?: TaggedScenarioApprovalContext
+  ) => Promise<void>;
   dismissProgressiveFailure: () => boolean;
 }
 

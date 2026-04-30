@@ -171,7 +171,7 @@ export class ConstitutionalRulesEngine {
             severity: rule.severity,
             message: rule.description,
             context:
-              ((context as Record<string, unknown>)?.agentName as string) ||
+              ((context as Record<string, unknown>)?.["agentName"] as string) ||
               "unknown",
           };
 

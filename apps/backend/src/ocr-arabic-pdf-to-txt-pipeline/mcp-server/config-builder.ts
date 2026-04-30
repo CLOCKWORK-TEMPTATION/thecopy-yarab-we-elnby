@@ -33,6 +33,9 @@ function parseArgs(argv: string[]): ParsedArgs {
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];
+    if (!token) {
+      continue;
+    }
     if (!token.startsWith("--")) {
       continue;
     }
@@ -97,10 +100,9 @@ function argBool(parsed: ParsedArgs, name: string, fallback = false): boolean {
 }
 
 function buildLlmConfig(args: ParsedArgs): LLMConfig {
-  return {
+  const llm: LLMConfig = {
     enabled: argBool(args, "use-llm"),
     model: argString(args, "llm-model", DEFAULT_LLM_MODEL),
-    referencePath: argOptionalString(args, "llm-reference"),
     strict: argBool(args, "llm-strict"),
     iterative: !argBool(args, "llm-no-iterative"),
     maxIterations: Math.max(
@@ -126,6 +128,13 @@ function buildLlmConfig(args: ParsedArgs): LLMConfig {
       ),
     ),
   };
+
+  const referencePath = argOptionalString(args, "llm-reference");
+  if (referencePath !== undefined) {
+    llm.referencePath = referencePath;
+  }
+
+  return llm;
 }
 
 function readMistralTableFormat(
@@ -144,6 +153,17 @@ function readMistralTableFormat(
 }
 
 function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
+  const annotationSchemaPath =
+    argOptionalString(args, "mistral-annotation-schema") ??
+    process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim();
+  const annotationPrompt =
+    argOptionalString(args, "mistral-annotation-prompt") ??
+    process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim();
+  const annotationOutputPath =
+    argOptionalString(args, "mistral-annotation-output") ??
+    process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim();
+  const tableFormat = readMistralTableFormat(args);
+
   const mistral: MistralOCRConfig = {
     model: argString(
       args,
@@ -169,24 +189,25 @@ function buildMistralConfig(args: ParsedArgs): MistralOCRConfig {
         3,
       ),
     ),
-    annotationSchemaPath:
-      argOptionalString(args, "mistral-annotation-schema") ??
-      process.env["MISTRAL_ANNOTATION_SCHEMA_PATH"]?.trim() ??
-      undefined,
-    annotationPrompt:
-      argOptionalString(args, "mistral-annotation-prompt") ??
-      process.env["MISTRAL_ANNOTATION_PROMPT"]?.trim() ??
-      undefined,
-    annotationOutputPath:
-      argOptionalString(args, "mistral-annotation-output") ??
-      process.env["MISTRAL_ANNOTATION_OUTPUT_PATH"]?.trim() ??
-      undefined,
     annotationStrict: !argBool(args, "mistral-annotation-non-strict"),
-    tableFormat: readMistralTableFormat(args),
     extractHeader: argBool(args, "mistral-extract-header"),
     extractFooter: argBool(args, "mistral-extract-footer"),
     includeImageBase64: argBool(args, "mistral-include-image-base64"),
   };
+
+  if (annotationSchemaPath) {
+    mistral.annotationSchemaPath = annotationSchemaPath;
+  }
+  if (annotationPrompt) {
+    mistral.annotationPrompt = annotationPrompt;
+  }
+  if (annotationOutputPath) {
+    mistral.annotationOutputPath = annotationOutputPath;
+  }
+  if (tableFormat !== undefined) {
+    mistral.tableFormat = tableFormat;
+  }
+
   if (mistral.model !== DEFAULT_MISTRAL_OCR_MODEL) {
     throw new Error(
       `Mistral OCR model must be ${DEFAULT_MISTRAL_OCR_MODEL}. Received: ${mistral.model}`,
@@ -247,9 +268,8 @@ function buildNormalizerOptions(args: ParsedArgs): NormalizationOptions {
 export function buildConfig(argv: string[]): ConfigManager {
   const args = parseArgs(argv);
 
-  return {
+  const config: ConfigManager = {
     inputPath: argString(args, "input", DEFAULT_INPUT),
-    outputPath: argOptionalString(args, "output"),
     normalizeOutput: !argBool(args, "no-normalize"),
     normalizerOptions: buildNormalizerOptions(args),
     saveRawMarkdown: !argBool(args, "no-raw"),
@@ -257,4 +277,11 @@ export function buildConfig(argv: string[]): ConfigManager {
     mistral: buildMistralConfig(args),
     preOcr: buildPreOcrConfig(args),
   };
+
+  const outputPath = argOptionalString(args, "output");
+  if (outputPath !== undefined) {
+    config.outputPath = outputPath;
+  }
+
+  return config;
 }
