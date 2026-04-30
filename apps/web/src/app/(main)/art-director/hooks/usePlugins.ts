@@ -101,7 +101,7 @@ const LOCAL_PLUGIN_META: Record<ToolId, Pick<PluginInfo, "name" | "nameAr">> = {
 };
 
 const LOCAL_PLUGINS: PluginInfo[] = Object.keys(toolConfigs).map((toolId) => {
-  const id = toolId as ToolId;
+  const id = toolId;
   const meta = LOCAL_PLUGIN_META[id] ?? {
     name: id,
     nameAr: id,

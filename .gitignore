@@ -874,3 +874,15 @@ __pycache__/
 # validate pipeline
 .validate-reports/
 .validate-state.json
+
+# Local lint/diagnostic dumps (transient, may contain secrets)
+.eslint-full-*.json
+.eslint-full-*.err
+.eslint-out.json
+.full-*.json
+.eslint-summary.mjs
+.lint-extract.mjs
+
+# Accidental editor/OS duplicates
+* copy
+* copy.*

@@ -62,7 +62,7 @@ export async function readSafeResponseMessage(
   }
 
   try {
-    const payload = await response.clone().json();
+    const payload: unknown = await response.clone().json();
     return sanitizePublicErrorMessage(
       extractJsonError(payload),
       fallbackMessage

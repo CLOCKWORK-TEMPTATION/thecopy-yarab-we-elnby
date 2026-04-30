@@ -110,11 +110,14 @@ export class AnalysisController {
   }
 
   startPublicStreamSession(req: Request, res: Response): void {
-    // Generate a unique session token for this public session
     const sessionToken = generatePublicSessionToken();
-    // Add it to the request headers so getPublicOwnerId can use it
     req.headers["x-analysis-token"] = sessionToken;
-    this.startStreamSessionForOwner(req, res, getPublicOwnerId(req), sessionToken);
+    this.startStreamSessionForOwner(
+      req,
+      res,
+      getPublicOwnerId(req),
+      sessionToken,
+    );
   }
 
   private startStreamSessionForOwner(
@@ -139,7 +142,6 @@ export class AnalysisController {
       });
       const analysisId = session.snapshot.analysisId;
 
-      // Fire-and-forget; events flow through the SSE channel.
       void this.analysisService
         .runFullPipelineStreaming({
           analysisId,
@@ -150,7 +152,11 @@ export class AnalysisController {
           logger.error("Streaming pipeline crashed", { analysisId, error });
         });
 
-      const response: { success: true; analysisId: string; sessionToken?: string } = {
+      const response: {
+        success: true;
+        analysisId: string;
+        sessionToken?: string;
+      } = {
         success: true,
         analysisId,
       };

@@ -7,14 +7,14 @@ import { NotificationProvider } from "@/components/providers/notification-provid
 
 interface E2EDiagnosticsSnapshot {
   url: string;
-  consoleErrors: Array<{ message: string; timestamp: number }>;
-  networkEvents: Array<{
+  consoleErrors: { message: string; timestamp: number }[];
+  networkEvents: {
     url: string;
     method: string;
     status: number | null;
     ok: boolean;
     timestamp: number;
-  }>;
+  }[];
   localStorageKeys: string[];
   sessionStorageKeys: string[];
 }

@@ -1,14 +1,12 @@
 import { createHash, randomUUID } from "crypto";
 
-import { AlignmentType, Document, HeadingLevel, Paragraph } from "docx";
+import { Document, Paragraph, HeadingLevel, AlignmentType } from "docx";
 import { type Request, type Response } from "express";
 import { jsPDF } from "jspdf";
 import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import { queueAIAnalysis } from "@/queues/jobs/ai-analysis.job";
-
-import type { StationId } from "@/services/analysisStream.registry";
 
 export const runSevenStationsBodySchema = z
   .object({
@@ -36,12 +34,12 @@ export function getUserId(req: Request): string {
 }
 
 function getForwardedIp(req: Request): string | null {
-  const forwardedFor = req.headers["x-forwarded-for"];
+  const headers = req.headers ?? {};
+  const forwardedFor = headers["x-forwarded-for"];
   const raw = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
   if (!raw) return null;
-
   const ip = raw.split(",")[0]?.trim();
-  if (!ip) return null;
+  if (ip === undefined || ip.length === 0) return null;
   return ip;
 }
 
@@ -59,9 +57,11 @@ export function getPublicOwnerId(req: Request): string {
     getForwardedIp(req) ?? req.ip ?? req.socket.remoteAddress ?? "unknown-ip";
   const userAgent = req.get("user-agent") ?? "unknown-agent";
   const sessionToken = getPublicSessionToken(req);
+
   const input = sessionToken
     ? `${ip}|${userAgent}|${sessionToken}`
     : `${ip}|${userAgent}`;
+
   const digest = createHash("sha256").update(input).digest("hex").slice(0, 32);
   return `public:${digest}`;
 }
@@ -99,7 +99,34 @@ export function sendAnalysisError(
   });
 }
 
-interface AnalysisExportSnapshot {
+function asciiSafe(text: string): string {
+  return Array.from(text)
+    .map((character) => {
+      const code = character.charCodeAt(0);
+      const isSupported =
+        code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126);
+      return isSupported ? character : "?";
+    })
+    .join("");
+}
+
+function stationOutputToText(output: unknown): string {
+  if (typeof output === "string") return output;
+  if (output && typeof output === "object") {
+    const details = (output as { details?: { fullAnalysis?: unknown } })
+      .details;
+    if (details && typeof details.fullAnalysis === "string")
+      return details.fullAnalysis;
+    try {
+      return JSON.stringify(output, null, 2);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
+export function buildDocx(snap: {
   projectName: string;
   finalReport: string | null;
   stations: {
@@ -109,9 +136,7 @@ interface AnalysisExportSnapshot {
     output: unknown;
     error: string | null;
   }[];
-}
-
-export function buildDocx(snap: AnalysisExportSnapshot): Document {
+}) {
   const rtlPara = (
     text: string,
     heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel],
@@ -131,26 +156,35 @@ export function buildDocx(snap: AnalysisExportSnapshot): Document {
     children.push(rtlPara(`الحالة: ${s.status}`));
     if (s.error) children.push(rtlPara(`خطأ: ${s.error}`));
     if (s.output) {
-      for (const line of stationOutputToText(s.output).split("\n")) {
-        children.push(rtlPara(line));
-      }
+      const text = stationOutputToText(s.output);
+      for (const line of text.split("\n")) children.push(rtlPara(line));
     }
   }
   if (snap.finalReport) {
     children.push(rtlPara("التقرير النهائي", HeadingLevel.HEADING_1));
-    for (const line of snap.finalReport.split("\n")) {
+    for (const line of snap.finalReport.split("\n"))
       children.push(rtlPara(line));
-    }
   }
   return new Document({ sections: [{ properties: {}, children }] });
 }
 
-export function buildPdf(snap: AnalysisExportSnapshot): Buffer {
+export function buildPdf(snap: {
+  projectName: string;
+  finalReport: string | null;
+  stations: {
+    id: number;
+    name: string;
+    status: string;
+    output: unknown;
+    error: string | null;
+  }[];
+}): Buffer {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const margin = 40;
   let y = margin;
   const lineHeight = 14;
   const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
   const writeLines = (text: string, size = 10) => {
     doc.setFontSize(size);
     const lines = doc.splitTextToSize(text, maxWidth) as string[];
@@ -173,9 +207,9 @@ export function buildPdf(snap: AnalysisExportSnapshot): Buffer {
     9,
   );
   y += lineHeight;
+
   writeLines(asciiSafe(snap.projectName), 16);
   y += lineHeight;
-
   for (const s of snap.stations) {
     writeLines(`Station ${s.id} - ${asciiSafe(s.name)}`, 13);
     writeLines(`Status: ${s.status}`);
@@ -188,34 +222,6 @@ export function buildPdf(snap: AnalysisExportSnapshot): Buffer {
     writeLines(asciiSafe(snap.finalReport));
   }
   return Buffer.from(doc.output("arraybuffer"));
-}
-
-function asciiSafe(text: string): string {
-  return Array.from(text)
-    .map((character) => {
-      const code = character.charCodeAt(0);
-      const isSupported =
-        code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126);
-      return isSupported ? character : "?";
-    })
-    .join("");
-}
-
-function stationOutputToText(output: unknown): string {
-  if (typeof output === "string") return output;
-  if (output && typeof output === "object") {
-    const details = (output as { details?: { fullAnalysis?: unknown } })
-      .details;
-    if (details && typeof details.fullAnalysis === "string") {
-      return details.fullAnalysis;
-    }
-    try {
-      return JSON.stringify(output, null, 2);
-    } catch {
-      return "";
-    }
-  }
-  return "";
 }
 
 export async function handleAsyncPipeline(
@@ -269,8 +275,4 @@ export function buildPipelineResponse(
     computedConfidence,
     executionTime: endTime - startTime,
   };
-}
-
-export function toStationId(stationIdRaw: number): StationId {
-  return stationIdRaw as StationId;
 }

@@ -1,3 +1,9 @@
+import {
+  createSafeTraceId,
+  pickSafeStatusMessage,
+  sanitizePublicErrorMessage,
+} from "@/lib/safe-error-text";
+
 import type {
   BreakdownBootstrapResponse,
   BreakdownReport,
@@ -7,12 +13,6 @@ import type {
   ScriptSegmentResponse,
   ShootingScheduleDay,
 } from "../domain/models";
-
-import {
-  createSafeTraceId,
-  pickSafeStatusMessage,
-  sanitizePublicErrorMessage,
-} from "@/lib/safe-error-text";
 
 interface ApiEnvelope<T> {
   success: boolean;
@@ -135,7 +135,7 @@ function buildBreakdownError<T>(
 ): BreakdownPlatformError {
   const fallbackMessage = defaultBreakdownMessage(response.status);
   const message = sanitizePublicErrorMessage(
-    readEnvelopeMessage(payload as ApiEnvelope<unknown> | null),
+    readEnvelopeMessage(payload),
     fallbackMessage
   );
 

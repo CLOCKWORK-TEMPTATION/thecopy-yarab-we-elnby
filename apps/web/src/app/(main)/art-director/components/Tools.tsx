@@ -38,7 +38,7 @@ function buildLocalToolResult(
     return null;
   }
 
-  const sceneId = formData["sceneId"]?.trim() || "scene";
+  const sceneId = formData["sceneId"]?.trim() ?? "scene";
 
   return {
     success: true,
