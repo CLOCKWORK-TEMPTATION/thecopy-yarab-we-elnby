@@ -90,7 +90,7 @@ const AttachmentSchema = z.object({
       /^(image\/.+|video\/mp4|application\/pdf)$/,
       "نوع الملف غير مدعوم — يُقبل: image/* | video/mp4 | application/pdf",
     ),
-  sizeBytes: z.number().int().nonneg().max(50 * 1024 * 1024),
+  sizeBytes: z.number().int().nonnegative().max(50 * 1024 * 1024),
   addedAt: z.string().datetime(),
   url: z.string().url().optional(),
   sceneId: z.number().int().optional(),
@@ -216,7 +216,7 @@ export function createEmptyCopyproj(
   const now = new Date().toISOString();
   return {
     "schema-version": SUPPORTED_SCHEMA_VERSION,
-    id: crypto.randomUUID(),
+    id: globalThis.crypto.randomUUID(),
     title,
     createdAt: now,
     updatedAt: now,
