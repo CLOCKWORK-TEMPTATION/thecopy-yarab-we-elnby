@@ -57,9 +57,12 @@ async function fetchWithAuth(
     credentials: "include", // Include cookies for httpOnly token
   });
 
-  // Surface 401 responses so callers can offer login or guest flows.
-  if (response.status === 401) {
-    throw new AuthRequiredError();
+  // Handle 401 Unauthorized - redirect to login
+  if (response.status === 401 || response.status === 403) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    throw new Error("غير مصرح - يرجى تسجيل الدخول");
   }
 
   return response;

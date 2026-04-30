@@ -6,6 +6,7 @@ import { DESKTOP_WEB_APP_BODY_CLASS } from "@/lib/desktop-shell";
 
 import "../styles/globals.css";
 import { Providers } from "./providers";
+import { SecurityGuard } from "@/components/shared/SecurityGuard";
 
 import type { Metadata } from "next";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body
         className={`${DESKTOP_WEB_APP_BODY_CLASS} ${cairo.className} antialiased`}
       >
+        <SecurityGuard />
         <Providers>{children}</Providers>
         {shouldRenderVercelTelemetry ? (
           <>
