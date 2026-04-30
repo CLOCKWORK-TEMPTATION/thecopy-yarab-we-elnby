@@ -666,14 +666,16 @@ UI_*.md
 VERIFICATION_*.md
 WORKFLOW_*.md
 
-# Temporary/Untitled files
-Untitled-*.*
-untitled-*.*
-temp-*.*
-test-*.*
-# استثناء: test-utils.tsx لـ actorai-arabic ملف infrastructure حقيقي
-# يستورده 24 ملف اختبار من "../test-utils" — ليس ملفاً مؤقتاً.
-!apps/web/src/app/(main)/actorai-arabic/test-utils.tsx
+# Temporary/Untitled files (root-scoped only — leading slash anchors to repo root)
+# Previously these were broad recursive patterns (`test-*.*`) which silently swallowed
+# real test infrastructure files inside `apps/**/src/**` (e.g. test-fixtures.ts,
+# test-helpers.ts, test-constants.ts) and caused CI test resolution failures while
+# tests still passed locally. Scoping to root keeps the original intent (catching
+# scratch/temp files dropped at the repo root) without burying tracked source code.
+/Untitled-*.*
+/untitled-*.*
+/temp-*.*
+/test-*.*
 
 # Log files
 log.json
