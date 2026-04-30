@@ -8,16 +8,57 @@ import type {
   ShootingScheduleDay,
 } from "../domain/models";
 
+import {
+  createSafeTraceId,
+  pickSafeStatusMessage,
+  sanitizePublicErrorMessage,
+} from "@/lib/safe-error-text";
+
 interface ApiEnvelope<T> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string;
+  errorCode?: string;
+  traceId?: string;
   details?: unknown;
 }
 
 interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
+}
+
+const BREAKDOWN_STATUS_MESSAGES: Record<number, string> = {
+  400: "بيانات طلب البريك دون غير صحيحة.",
+  401: "جلسة البريك دون غير مصرح بها.",
+  403: "لا تملك صلاحية تنفيذ طلب البريك دون.",
+  404: "خدمة البريك دون غير متاحة الآن.",
+  409: "حالة مشروع البريك دون لا تسمح بهذا الإجراء.",
+  413: "نص السيناريو أكبر من الحد المسموح.",
+  422: "تعذر استخراج مشاهد قابلة للتحليل من السيناريو.",
+  429: "تم الوصول إلى حد طلبات البريك دون مؤقتاً.",
+  500: "تعذر تنفيذ طلب البريك دون.",
+  502: "خدمة البريك دون غير متاحة الآن.",
+  503: "خدمة البريك دون مشغولة الآن.",
+  504: "انتهت مهلة الاتصال بخدمة البريك دون.",
+};
+
+class BreakdownPlatformError extends Error {
+  status: number;
+  errorCode: string;
+  traceId: string;
+
+  constructor(
+    message: string,
+    options: { status: number; errorCode?: string; traceId?: string }
+  ) {
+    super(message);
+    this.name = "BreakdownPlatformError";
+    this.status = options.status;
+    this.errorCode = options.errorCode ?? "BREAKDOWN_REQUEST_FAILED";
+    this.traceId = options.traceId ?? createSafeTraceId("breakdown");
+  }
 }
 
 function getAppOrigin(): string {
@@ -56,6 +97,61 @@ function resolveApiUrl(path: string): string {
   return new URL(path, getAppOrigin()).toString();
 }
 
+function defaultBreakdownMessage(status: number): string {
+  return pickSafeStatusMessage(
+    status,
+    BREAKDOWN_STATUS_MESSAGES,
+    "تعذر تنفيذ طلب البريك دون."
+  );
+}
+
+function readEnvelopeMessage(payload: ApiEnvelope<unknown> | null): unknown {
+  if (!payload) {
+    return undefined;
+  }
+
+  return typeof payload.message === "string" ? payload.message : payload.error;
+}
+
+async function readJsonEnvelope<T>(
+  response: Response
+): Promise<ApiEnvelope<T> | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return null;
+  }
+
+  try {
+    const payload = (await response.json()) as ApiEnvelope<T>;
+    return payload && typeof payload === "object" ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildBreakdownError<T>(
+  response: Response,
+  payload: ApiEnvelope<T> | null
+): BreakdownPlatformError {
+  const fallbackMessage = defaultBreakdownMessage(response.status);
+  const message = sanitizePublicErrorMessage(
+    readEnvelopeMessage(payload as ApiEnvelope<unknown> | null),
+    fallbackMessage
+  );
+
+  return new BreakdownPlatformError(message, {
+    status: response.status,
+    errorCode:
+      typeof payload?.errorCode === "string"
+        ? payload.errorCode
+        : "BREAKDOWN_REQUEST_FAILED",
+    traceId:
+      typeof payload?.traceId === "string"
+        ? payload.traceId
+        : createSafeTraceId("breakdown"),
+  });
+}
+
 async function fetchBreakdown<T>(
   path: string,
   options: RequestOptions = {}
@@ -80,10 +176,15 @@ async function fetchBreakdown<T>(
       ? { body: JSON.stringify(options.body) }
       : {}),
   });
-  const payload = (await response.json()) as ApiEnvelope<T>;
+  const payload = await readJsonEnvelope<T>(response);
 
-  if (!response.ok || !payload.success || payload.data === undefined) {
-    throw new Error(payload.error ?? "فشل طلب البريك دون");
+  if (
+    !response.ok ||
+    !payload ||
+    !payload.success ||
+    payload.data === undefined
+  ) {
+    throw buildBreakdownError(response, payload);
   }
 
   return payload.data;

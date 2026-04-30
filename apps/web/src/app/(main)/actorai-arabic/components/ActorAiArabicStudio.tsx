@@ -22,7 +22,7 @@ import {
   LoginPage,
   RegisterPage,
   HomePage,
-  DemoPage,
+  StudioPage,
   VoiceCoachPage,
   VocalExercisesPage,
   WebcamAnalysisPage,
@@ -47,7 +47,7 @@ import type {
 interface ContentProps {
   currentView: ViewType;
   renderHome: () => React.ReactNode;
-  renderDemo: () => React.ReactNode;
+  renderStudio: () => React.ReactNode;
   renderVocalExercises: () => React.ReactNode;
   renderVoiceCoach: () => React.ReactNode;
   renderSceneRhythm: () => React.ReactNode;
@@ -73,7 +73,7 @@ function renderMainContent(props: ContentProps): React.ReactNode {
   const {
     currentView,
     renderHome,
-    renderDemo,
+    renderStudio,
     renderVocalExercises,
     renderVoiceCoach,
     renderSceneRhythm,
@@ -84,8 +84,8 @@ function renderMainContent(props: ContentProps): React.ReactNode {
   switch (currentView) {
     case "home":
       return renderHome();
-    case "demo":
-      return renderDemo();
+    case "studio":
+      return renderStudio();
     case "vocal":
       return renderVocalExercises();
     case "voicecoach":
@@ -227,8 +227,8 @@ export const ActorAiArabicStudio: React.FC = () => {
 
   const renderHome = () => <HomePage onNavigate={navigate} />;
 
-  const renderDemo = () => (
-    <DemoPage
+  const renderStudio = () => (
+    <StudioPage
       scriptText={scriptText}
       setScriptText={setScriptText}
       selectedMethodology={selectedMethodology}
@@ -338,7 +338,7 @@ export const ActorAiArabicStudio: React.FC = () => {
       renderMainContent({
         currentView,
         renderHome,
-        renderDemo,
+        renderStudio,
         renderVocalExercises,
         renderVoiceCoach,
         renderSceneRhythm,

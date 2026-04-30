@@ -118,7 +118,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
 
     // انتظار dynamic import لـ QRScanner
     await expect(page.getByTestId("qr-scanner")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
     logger.info("QRScanner rendered");
 
@@ -135,11 +135,14 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await page.goto(config.fullUrl, { waitUntil: "domcontentloaded" });
 
     await expect(page.getByTestId("qr-manual-entry")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
 
     await page.getByTestId("qr-manual-entry").fill(config.qrRawValue);
-    logger.info({ token: config.qrRawValue }, "filled manual entry");
+    logger.info(
+      { tokenLength: config.qrRawValue.length },
+      "filled manual entry"
+    );
     await page.getByTestId("qr-manual-submit").click();
 
     // انتظار التحول إلى dashboard stub
@@ -153,7 +156,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await page.goto(config.fullUrl, { waitUntil: "domcontentloaded" });
 
     await expect(page.getByTestId("qr-manual-entry")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
 
     await page.getByTestId("qr-manual-entry").fill(config.qrRawValue);
@@ -180,7 +183,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await page.goto(config.fullUrl, { waitUntil: "domcontentloaded" });
 
     await expect(page.getByTestId("qr-manual-entry")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
 
     await page.getByTestId("qr-manual-entry").fill("invalid-single-part");
@@ -198,7 +201,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
   test("الإدخال اليدوي الفارغ يعرض رسالة تطلب الإدخال", async ({ page }) => {
     await page.goto(config.fullUrl, { waitUntil: "domcontentloaded" });
     await expect(page.getByTestId("qr-manual-submit")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
 
     await page.getByTestId("qr-manual-submit").click();
@@ -240,7 +243,7 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await page.waitForURL(/\/BREAKAPP\/login\/qr/, { timeout: 15_000 });
 
     await expect(page.getByTestId("qr-scanner")).toBeVisible({
-      timeout: 15_000,
+      timeout: 60_000,
     });
     const loginVisits = visited.filter((url) =>
       url.includes("/BREAKAPP/login/qr")

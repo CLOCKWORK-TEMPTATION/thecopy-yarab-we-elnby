@@ -1,8 +1,16 @@
 import { Router } from "express";
 
 import { handleArtDirectorRequest } from "./handlers";
+import {
+  handleProductivitySummary,
+  handleProductivityAnalyze,
+  handleProductivityRecommendations,
+  handleProductivityLogTime,
+  handleProductivityDelay,
+} from "./handlers-productivity";
 
 import type { Request, Response } from "express";
+import type { ArtDirectorHandlerResponse } from "./handlers-shared";
 
 function getRouteSegments(pathname: string): string[] {
   return pathname
@@ -72,7 +80,50 @@ async function respond(req: Request, res: Response): Promise<void> {
   }
 }
 
+async function invokeHandler(
+  fn: () => Promise<ArtDirectorHandlerResponse>,
+  res: Response,
+): Promise<void> {
+  try {
+    const result = await fn();
+    res.status(result.status).json(result.body);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "حدث خطأ غير متوقع أثناء معالجة طلب art-director",
+    });
+  }
+}
+
 export const artDirectorRouter = Router();
+
+artDirectorRouter.get("/productivity/summary", (_req, res) => {
+  void invokeHandler(() => handleProductivitySummary(), res);
+});
+artDirectorRouter.post("/analyze/productivity", (req, res) => {
+  void invokeHandler(
+    () => handleProductivityAnalyze((req.body as Record<string, unknown>) ?? {}),
+    res,
+  );
+});
+artDirectorRouter.post("/productivity/recommendations", (_req, res) => {
+  void invokeHandler(() => handleProductivityRecommendations(), res);
+});
+artDirectorRouter.post("/productivity/log-time", (req, res) => {
+  void invokeHandler(
+    () => handleProductivityLogTime((req.body as Record<string, unknown>) ?? {}),
+    res,
+  );
+});
+artDirectorRouter.post("/productivity/report-delay", (req, res) => {
+  void invokeHandler(
+    () => handleProductivityDelay((req.body as Record<string, unknown>) ?? {}),
+    res,
+  );
+});
 
 artDirectorRouter.use((req, res) => {
   void respond(req, res);

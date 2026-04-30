@@ -1,10 +1,10 @@
 /**
  * خدمة المصادقة - Authentication Service
- * 
+ *
  * @description
  * توفر وظائف إدارة جلسات المستخدم والتحقق من الهوية
  * عبر رموز JWT ومسح QR للانضمام للمشاريع
- * 
+ *
  * السبب: نظام المصادقة القائم على QR يسمح لأعضاء الفريق
  * بالانضمام للمشروع بسرعة دون الحاجة لإنشاء حسابات
  */
@@ -23,8 +23,8 @@ import {
 } from "./types";
 
 const API_URL =
-  process.env['NEXT_PUBLIC_API_URL'] ||
-  process.env['NEXT_PUBLIC_BREAKAPP_API_URL'] ||
+  process.env["NEXT_PUBLIC_API_URL"] ||
+  process.env["NEXT_PUBLIC_BREAKAPP_API_URL"] ||
   "/api/breakapp";
 let inMemoryAccessToken: string | null = null;
 
@@ -82,7 +82,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error),
 );
 
 /**
@@ -106,7 +106,10 @@ api.interceptors.response.use(
 
     // لا نُعيد محاولة طلب /auth/refresh نفسه لتجنب الحلقة اللانهائية
     const requestUrl = originalConfig.url ?? "";
-    if (requestUrl.includes("/auth/refresh") || requestUrl.includes("/auth/logout")) {
+    if (
+      requestUrl.includes("/auth/refresh") ||
+      requestUrl.includes("/auth/logout")
+    ) {
       return Promise.reject(error);
     }
 
@@ -128,7 +131,7 @@ api.interceptors.response.use(
     }
 
     return api.request(originalConfig);
-  }
+  },
 );
 
 /**
@@ -147,11 +150,11 @@ function notifyAuthExpired(): void {
 
 /**
  * حفظ رمز JWT في الذاكرة فقط
- * 
+ *
  * @description
  * يعتمد استمرار الجلسة على الكوكي الآمن من الخادم
  * ويحتفظ بالرمز في الذاكرة فقط للطلبات الحالية
- * 
+ *
  * @param token - رمز JWT المراد تخزينه
  */
 export function storeToken(token: string): void {
@@ -160,11 +163,11 @@ export function storeToken(token: string): void {
 
 /**
  * استرجاع رمز JWT من الذاكرة
- * 
+ *
  * @description
  * يجلب الرمز المؤقت للتحقق من المصادقة
  * أو لإرفاقه مع الطلبات الحالية
- * 
+ *
  * @returns رمز JWT أو null إذا لم يكن موجوداً
  */
 export function getToken(): string | null {
@@ -173,7 +176,7 @@ export function getToken(): string | null {
 
 /**
  * حذف رمز JWT من الذاكرة
- * 
+ *
  * @description
  * يُستخدم عند تسجيل الخروج أو انتهاء صلاحية الجلسة
  */
@@ -211,11 +214,11 @@ function decodeCurrentPayload(): CurrentUser | null {
 
 /**
  * التحقق من حالة المصادقة
- * 
+ *
  * @description
  * يفحص وجود رمز JWT صالح وغير منتهي الصلاحية
  * للتأكد من أن المستخدم لا يزال مُصادقاً عليه
- * 
+ *
  * @returns true إذا كان المستخدم مُصادقاً عليه
  */
 export function isAuthenticated(): boolean {
@@ -243,11 +246,11 @@ export function isAuthenticated(): boolean {
 
 /**
  * استخراج بيانات المستخدم الحالي من الرمز
- * 
+ *
  * @description
  * يفك تشفير JWT ويستخرج معلومات المستخدم الأساسية
  * دون الحاجة للتواصل مع الخادم
- * 
+ *
  * @returns بيانات المستخدم أو null إذا لم يكن مُصادقاً
  */
 export function getCurrentUser(): CurrentUser | null {
@@ -309,7 +312,7 @@ export async function refreshAccessToken(): Promise<string | null> {
     try {
       const response = await api.post<{ access_token: string }>(
         "/auth/refresh",
-        {}
+        {},
       );
       const token = response.data?.access_token;
       if (typeof token !== "string" || token.length === 0) {
@@ -325,6 +328,34 @@ export async function refreshAccessToken(): Promise<string | null> {
   })();
 
   return refreshInFlight;
+}
+
+/**
+ * ضمان وجود مستخدم مصادق عليه قبل قرارات التحويل
+ *
+ * @description
+ * يفحص الرمز الحالي أولاً، ثم يحاول تجديد access_token من كوكي التجديد
+ * الآمن قبل اعتبار الجلسة منتهية. هذا يحافظ على استمرار الجلسة بعد تحديث
+ * الصفحة دون تخزين الرمز في localStorage.
+ */
+export async function ensureAuthenticated(): Promise<CurrentUser | null> {
+  if (isAuthenticated()) {
+    return getCurrentUser();
+  }
+
+  const refreshedToken = await refreshAccessToken();
+  if (!refreshedToken) {
+    removeToken();
+    return null;
+  }
+
+  const user = getCurrentUser();
+  if (!user) {
+    removeToken();
+    return null;
+  }
+
+  return user;
 }
 
 /**
@@ -352,14 +383,14 @@ export async function logout(): Promise<void> {
 
 /**
  * مسح رمز QR والمصادقة
- * 
+ *
  * @description
  * يرسل رمز QR المُمسوح وبصمة الجهاز للخادم
  * للحصول على رمز JWT للوصول
- * 
+ *
  * السبب: يتيح للمستخدمين الانضمام للمشروع بمسح رمز QR
  * مما يُسهل إدارة أذونات الفريق
- * 
+ *
  * @param qrToken - رمز QR المُمسوح
  * @param deviceHash - بصمة الجهاز للتعرف عليه
  * @returns بيانات المصادقة بما فيها رمز الوصول
@@ -367,7 +398,7 @@ export async function logout(): Promise<void> {
  */
 export async function scanQRAndLogin(
   qrToken: string,
-  deviceHash: string
+  deviceHash: string,
 ): Promise<AuthResponse> {
   const validation = QRTokenSchema.safeParse(qrToken);
   if (!validation.success) {
@@ -378,22 +409,22 @@ export async function scanQRAndLogin(
     qr_token: qrToken,
     device_hash: deviceHash,
   });
-  
+
   return response.data;
 }
 
 /**
  * التحقق من صلاحية رمز JWT
- * 
+ *
  * @description
  * يُرسل الرمز للخادم للتحقق من صلاحيته
  * ويُرجع بيانات الحمولة إذا كان صالحاً
- * 
+ *
  * @param token - رمز JWT للتحقق منه
  * @returns نتيجة التحقق وبيانات الحمولة
  */
 export async function verifyToken(
-  token: string
+  token: string,
 ): Promise<{ valid: boolean; payload: CurrentUser | null }> {
   const response = await api.post<{
     valid: boolean;
@@ -404,14 +435,14 @@ export async function verifyToken(
 
 /**
  * توليد بصمة الجهاز
- * 
+ *
  * @description
  * يُنشئ معرّف فريد للجهاز بناءً على خصائص المتصفح
  * لتتبع الأجهزة المصرح لها بالوصول
- * 
+ *
  * السبب: يمنع استخدام نفس رمز QR من أجهزة متعددة
  * غير مصرح لها
- * 
+ *
  * @returns سلسلة نصية تمثل بصمة الجهاز
  * @throws خطأ إذا تم استدعاؤها على جانب الخادم
  */

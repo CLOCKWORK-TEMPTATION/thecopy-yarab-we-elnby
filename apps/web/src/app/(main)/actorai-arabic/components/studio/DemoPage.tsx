@@ -10,7 +10,7 @@ import type {
   Recording as PerformanceRecording,
 } from "../../types";
 
-interface DemoPageProps {
+interface StudioPageProps {
   scriptText: string;
   setScriptText: (text: string) => void;
   selectedMethodology: string;
@@ -35,7 +35,7 @@ interface DemoPageProps {
   formatTime: (seconds: number) => string;
 }
 
-export const DemoPage: React.FC<DemoPageProps> = ({
+export const StudioPage: React.FC<StudioPageProps> = ({
   scriptText,
   setScriptText,
   selectedMethodology,

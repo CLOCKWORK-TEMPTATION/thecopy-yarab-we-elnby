@@ -43,6 +43,11 @@ const FRONTEND_HELPER_PREFIXES = Object.freeze({
   artDirectorApiPath: "/api/art-director",
   fetchArtDirectorJson: "/api/art-director",
   fetchBreakdown: "/api/breakdown",
+  fetchBreakappJson: "/api/breakapp",
+  postBreakappJson: "/api/breakapp",
+  patchBreakappJson: "/api/breakapp",
+  fetchAnalysisJson: "/api/public/analysis/seven-stations",
+  postAnalysisJson: "/api/public/analysis/seven-stations",
   resolveApiUrl: "",
 });
 

@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 
+import { proxyToBackend } from "@/lib/server/backend-proxy";
 import {
-  buildProxyErrorResponse,
-  proxyToBackend,
-} from "@/lib/server/backend-proxy";
+  buildSafeErrorResponse,
+  replaceFailureWithSafeEnvelope,
+} from "@/lib/server/safe-error-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,11 +32,23 @@ export async function GET(
 ): Promise<Response> {
   try {
     const targetPath = await buildTargetPath(context);
-    return await proxyToBackend(request, targetPath, {
+    const response = await proxyToBackend(request, targetPath, {
       timeoutMs: timeoutForTargetPath(targetPath),
     });
+    return await replaceFailureWithSafeEnvelope(response, {
+      status: response.status >= 500 ? 502 : response.status,
+      fallbackMessage: "تعذر تنفيذ طلب التحليل.",
+      errorCode: "ANALYSIS_UPSTREAM_FAILED",
+      traceIdPrefix: "analysis",
+    });
   } catch (error) {
-    return buildProxyErrorResponse(error, "تعذر الاتصال بخدمة التحليل العامة");
+    return buildSafeErrorResponse({
+      status: 503,
+      error,
+      fallbackMessage: "تعذر الاتصال بخدمة التحليل العامة.",
+      errorCode: "ANALYSIS_PUBLIC_PROXY_FAILED",
+      traceIdPrefix: "analysis",
+    });
   }
 }
 
@@ -45,10 +58,22 @@ export async function POST(
 ): Promise<Response> {
   try {
     const targetPath = await buildTargetPath(context);
-    return await proxyToBackend(request, targetPath, {
+    const response = await proxyToBackend(request, targetPath, {
       timeoutMs: timeoutForTargetPath(targetPath),
     });
+    return await replaceFailureWithSafeEnvelope(response, {
+      status: response.status >= 500 ? 502 : response.status,
+      fallbackMessage: "تعذر تنفيذ طلب التحليل.",
+      errorCode: "ANALYSIS_UPSTREAM_FAILED",
+      traceIdPrefix: "analysis",
+    });
   } catch (error) {
-    return buildProxyErrorResponse(error, "تعذر الاتصال بخدمة التحليل العامة");
+    return buildSafeErrorResponse({
+      status: 503,
+      error,
+      fallbackMessage: "تعذر الاتصال بخدمة التحليل العامة.",
+      errorCode: "ANALYSIS_PUBLIC_PROXY_FAILED",
+      traceIdPrefix: "analysis",
+    });
   }
 }

@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { segmentScriptLocally } from "@/app/(main)/breakdown/infrastructure/screenplay/local-segmenter";
 import { storeProjectSession } from "@/app/api/breakdown/_lib/breakdown-session";
 import { logger } from "@/lib/ai/utils/logger";
+import { buildSafeErrorResponse } from "@/lib/server/safe-error-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,10 +32,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       body = (await request.json()) as BootstrapRequestBody;
     } catch {
-      return NextResponse.json(
-        { success: false, error: "تنسيق الطلب غير صالح — يُتوقع JSON" },
-        { status: 400 }
-      );
+      return buildSafeErrorResponse({
+        status: 400,
+        fallbackMessage: "تنسيق طلب البريك دون غير صالح.",
+        errorCode: "BREAKDOWN_INVALID_JSON",
+        traceIdPrefix: "breakdown",
+      });
     }
 
     const scriptContent =
@@ -42,10 +45,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // التحقق من وجود نص السيناريو
     if (!scriptContent) {
-      return NextResponse.json(
-        { success: false, error: "نص السيناريو مطلوب" },
-        { status: 400 }
-      );
+      return buildSafeErrorResponse({
+        status: 400,
+        fallbackMessage: "نص السيناريو مطلوب.",
+        errorCode: "BREAKDOWN_SCRIPT_REQUIRED",
+        traceIdPrefix: "breakdown",
+      });
     }
 
     const title =
@@ -83,10 +88,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const message = err instanceof Error ? err.message : "فشل تجزئة السيناريو";
     logger.error("[breakdown/projects/bootstrap] خطأ:", message);
 
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
+    return buildSafeErrorResponse({
+      status: 500,
+      error: message,
+      fallbackMessage: "فشل تجهيز مشروع البريك دون.",
+      errorCode: "BREAKDOWN_BOOTSTRAP_FAILED",
+      traceIdPrefix: "breakdown",
+    });
   }
 }
 

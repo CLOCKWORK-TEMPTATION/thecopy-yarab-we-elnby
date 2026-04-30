@@ -7,9 +7,16 @@ const BASE_URL = (
 ).replace(/\/+$/, "");
 
 const ANALYSIS_ID = "e2e-analysis";
+const ANALYSIS_INPUT_PLACEHOLDER = "ألصق النص الدرامي هنا لبدء التحليل ...";
 
 function sseEvent(id: number, event: string, data: unknown): string {
   return `id: ${id}\nevent: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+async function getReadyAnalysisInput(page: Page) {
+  const input = page.getByPlaceholder(ANALYSIS_INPUT_PLACEHOLDER);
+  await expect(input).toBeVisible({ timeout: 60_000 });
+  return input;
 }
 
 function completedSseBody(): string {
@@ -106,9 +113,9 @@ test.describe("analysis public flow", () => {
     await mockSuccessfulAnalysis(page);
 
     await page.goto(`${BASE_URL}/analysis`, { waitUntil: "domcontentloaded" });
-    await page
-      .getByPlaceholder("ألصق النص الدرامي هنا لبدء التحليل ...")
-      .fill("نص عربي طويل لاختبار مسار التحليل العام");
+    await (
+      await getReadyAnalysisInput(page)
+    ).fill("نص عربي طويل لاختبار مسار التحليل العام");
     await page.getByRole("button", { name: /ابدأ التحليل/ }).click();
 
     await expect(page).toHaveURL(/analysis=e2e-analysis/);
@@ -150,9 +157,9 @@ test.describe("analysis public flow", () => {
     );
 
     await page.goto(`${BASE_URL}/analysis`, { waitUntil: "domcontentloaded" });
-    await page
-      .getByPlaceholder("ألصق النص الدرامي هنا لبدء التحليل ...")
-      .fill("نص عربي طويل لاختبار فشل الخادم");
+    await (
+      await getReadyAnalysisInput(page)
+    ).fill("نص عربي طويل لاختبار فشل الخادم");
     await page.getByRole("button", { name: /ابدأ التحليل/ }).click();
 
     await expect(
@@ -166,10 +173,7 @@ test.describe("analysis public flow", () => {
     page,
   }) => {
     await page.goto(`${BASE_URL}/analysis`, { waitUntil: "domcontentloaded" });
-    const input = page.getByPlaceholder(
-      "ألصق النص الدرامي هنا لبدء التحليل ..."
-    );
-    await expect(input).toBeVisible();
+    const input = await getReadyAnalysisInput(page);
     await context.setOffline(true);
     await input.fill("نص عربي طويل لاختبار انقطاع الشبكة");
     await page.getByRole("button", { name: /ابدأ التحليل/ }).click();

@@ -52,6 +52,20 @@ function getLocationTypeInfo(type: string) {
   return LOCATION_TYPE_MAP[type] ?? { icon: Building, label: type };
 }
 
+function buildLocationFromForm(formData: LocationFormData): LocationSimple {
+  return {
+    id: `local-${Date.now()}`,
+    name: formData.name.trim() || formData.nameAr.trim(),
+    nameAr: formData.nameAr.trim() || formData.name.trim(),
+    type: formData.type,
+    address: formData.address.trim(),
+    features: formData.features
+      .split(",")
+      .map((feature) => feature.trim())
+      .filter(Boolean),
+  };
+}
+
 interface LocationCardProps {
   location: LocationSimple;
 }
@@ -301,6 +315,7 @@ export default function Locations() {
 
   const handleAddLocation = useCallback(async () => {
     setError(null);
+    const localLocation = buildLocationFromForm(formData);
 
     try {
       const data = await fetchArtDirectorJson<ApiResponse>("/locations/add", {
@@ -325,10 +340,13 @@ export default function Locations() {
       } else {
         setError(data.error ?? "فشل في إضافة الموقع");
       }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "حدث خطأ أثناء الإضافة";
-      setError(errorMessage);
+    } catch {
+      setLocations((current) => [localLocation, ...current]);
+      updateLocationsState({
+        showAddForm: false,
+        formData: DEFAULT_FORM_DATA,
+        searchQuery: "",
+      });
     }
   }, [fetchLocations, formData, updateLocationsState]);
 

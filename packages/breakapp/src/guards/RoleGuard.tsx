@@ -14,12 +14,8 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, isAuthenticated } from "../lib/auth";
-import {
-  getDefaultRedirect,
-  isValidRole,
-  type UserRole,
-} from "../lib/roles";
+import { ensureAuthenticated } from "../lib/auth";
+import { getDefaultRedirect, isValidRole, type UserRole } from "../lib/roles";
 
 export interface RoleGuardProps {
   /** قائمة الأدوار المسموح لها برؤية المحتوى */
@@ -42,29 +38,31 @@ export function RoleGuard({
   const [status, setStatus] = useState<"checking" | "authorized">("checking");
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace(loginPath);
-      return;
-    }
+    let cancelled = false;
 
-    const user = getCurrentUser();
-    if (!user) {
-      router.replace(loginPath);
-      return;
-    }
+    const verifyAccess = async () => {
+      const user = await ensureAuthenticated();
+      if (cancelled) return;
 
-    if (!isValidRole(user.role)) {
-      router.replace(loginPath);
-      return;
-    }
+      if (!user || !isValidRole(user.role)) {
+        router.replace(loginPath);
+        return;
+      }
 
-    const role = user.role as UserRole;
-    if (!allowedRoles.includes(role)) {
-      router.replace(getDefaultRedirect(role));
-      return;
-    }
+      const role = user.role as UserRole;
+      if (!allowedRoles.includes(role)) {
+        router.replace(getDefaultRedirect(role));
+        return;
+      }
 
-    setStatus("authorized");
+      setStatus("authorized");
+    };
+
+    void verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, allowedRoles, loginPath]);
 
   if (status === "checking") {

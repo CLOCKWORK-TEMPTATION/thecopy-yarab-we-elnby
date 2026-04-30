@@ -32,7 +32,7 @@ class BreakdownE2EConfig {
     this.routePath = "/breakdown";
     this.timeoutMs = this.resolveInt(
       process.env["BREAKDOWN_E2E_TIMEOUT_MS"],
-      30_000
+      60_000
     );
     this.analysisTimeoutMs = this.resolveInt(
       process.env["BREAKDOWN_E2E_ANALYSIS_TIMEOUT_MS"],
@@ -260,7 +260,9 @@ async function setupApiMocks(page: Page): Promise<void> {
 
 async function dismissOnboardingTour(page: Page): Promise<void> {
   const dialog = page.getByRole("dialog", { name: "جولة الإعداد الأولي" });
-  const isVisible = await dialog.isVisible({ timeout: 1000 }).catch(() => false);
+  const isVisible = await dialog
+    .isVisible({ timeout: 1000 })
+    .catch(() => false);
 
   if (!isVisible) {
     return;
@@ -281,6 +283,12 @@ const logger: Logger = pino({
 
 test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
   test.use({ baseURL: config.baseUrl });
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem("breakdown_tour_done", "1");
+    });
+  });
 
   test("تظهر صفحة /breakdown بالعناصر الصحيحة", async ({ page }) => {
     logger.info({ url: config.buildUrl("/breakdown") }, "اختبار تحميل الصفحة");

@@ -9,31 +9,17 @@
  * - حماية حسب الدور عبر requireRole()
  */
 
-import { Router, type Response } from "express";
-import { z } from "zod";
+import { Router } from "express";
 
-import { registerAdminRoutes } from "./admin-routes";
-import { registerAuthRoutes } from "./auth-routes";
-import { registerGeoVendorRoutes } from "./geo-vendors-routes";
-import { adminWriteLimiter, protectedLimiter } from "./limiters";
-import { requireAuth, requireRole } from "./middlewares";
-import { registerOrdersRoutes } from "./orders-routes";
-import { registerRunnersRoutes } from "./runners-routes";
+import { adminRouter } from "./admin-routes";
+import { authRouter } from "./auth-routes";
+import { geoVendorRouter } from "./geo-vendors-routes";
+import { ordersRouter } from "./orders-routes";
+import { runnersRouter } from "./runners-routes";
 import { breakappService } from "./service";
-import { registerVendorRoutes } from "./vendor-routes";
+import { vendorRouter } from "./vendor-routes";
 
 const router = Router();
-
-function handleValidationError(res: Response, error: z.ZodError): void {
-  res.status(400).json({
-    success: false,
-    error: "بيانات غير صالحة",
-    details: error.issues.map((issue) => ({
-      path: issue.path.join("."),
-      message: issue.message,
-    })),
-  });
-}
 
 // ---------- Health ----------
 
@@ -44,18 +30,11 @@ router.get("/health", async (_req, res) => {
 
 // ---------- Route Groups ----------
 
-registerAuthRoutes(router);
-registerGeoVendorRoutes(router);
-registerOrdersRoutes(router, handleValidationError);
-registerRunnersRoutes(router, handleValidationError);
-registerVendorRoutes(router, handleValidationError);
-
-registerAdminRoutes(router, {
-  adminWriteLimiter,
-  protectedLimiter,
-  requireAuth,
-  requireRole,
-  handleValidationError,
-});
+router.use("/", authRouter);
+router.use("/", geoVendorRouter);
+router.use("/", ordersRouter);
+router.use("/", runnersRouter);
+router.use("/", vendorRouter);
+router.use("/", adminRouter);
 
 export { router as breakappRouter };

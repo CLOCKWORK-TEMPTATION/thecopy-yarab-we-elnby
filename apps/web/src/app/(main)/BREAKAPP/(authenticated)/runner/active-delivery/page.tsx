@@ -13,7 +13,8 @@
  */
 
 import {
-  api,
+  fetchBreakappJson,
+  patchBreakappJson,
   getCurrentUser,
   type DeliveryTask,
   type CurrentUser,
@@ -99,7 +100,7 @@ async function doUpdateStatus(
   } = context;
   setUpdatingStatus(true);
   try {
-    await api.patch(`/runners/tasks/${taskId}/status`, { status });
+    await patchBreakappJson(`/runners/tasks/${taskId}/status`, { status });
     if (status === "rejected") {
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       if (activeTaskId === taskId) setActiveTaskId(null);
@@ -356,9 +357,9 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
   const fetchTasks = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
-      const res =
-        await api.get<DeliveryTaskWithLocation[]>("/runners/me/tasks");
-      setTasks(res.data);
+      const data =
+        await fetchBreakappJson<DeliveryTaskWithLocation[]>("/runners/me/tasks");
+      setTasks(data);
     } catch (e: unknown) {
       toast({
         title: "خطأ في جلب المهام",

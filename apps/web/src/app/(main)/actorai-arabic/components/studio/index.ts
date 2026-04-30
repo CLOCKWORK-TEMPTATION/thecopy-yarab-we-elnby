@@ -19,7 +19,7 @@ export { useARTraining } from "./useARTraining";
 export { LoginPage } from "./LoginPage";
 export { RegisterPage } from "./RegisterPage";
 export { HomePage } from "./HomePage";
-export { DemoPage } from "./DemoPage";
+export { StudioPage } from "./DemoPage";
 export { VoiceCoachPage } from "./VoiceCoachPage";
 export { VocalExercisesPage } from "./VocalExercisesPage";
 export { WebcamAnalysisPage } from "./WebcamAnalysisPage";

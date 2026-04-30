@@ -12,7 +12,7 @@
  */
 
 import {
-  api,
+  postBreakappJson,
   getCurrentUser,
   getRoleLabel,
   removeToken,
@@ -163,7 +163,7 @@ export default function ProfilePage() {
     if (!confirmed) return;
     setLoggingOut(true);
     try {
-      await api.post("/auth/logout", {});
+      await postBreakappJson("/auth/logout", {});
       toast({
         title: "تم تسجيل الخروج",
         description: "انتهت الجلسة من كل الأجهزة",

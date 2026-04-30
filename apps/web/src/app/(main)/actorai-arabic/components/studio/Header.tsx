@@ -20,7 +20,7 @@ interface HeaderProps {
 
 const PRIMARY_NAV_ITEMS: NavItem[] = [
   { view: "home", label: "🏠 الرئيسية" },
-  { view: "demo", label: "🎬 التجربة" },
+  { view: "studio", label: "🎬 الاستوديو" },
   { view: "vocal", label: "🎤 تمارين الصوت" },
   { view: "voicecoach", label: "🎙️ مدرب الصوت" },
   { view: "rhythm", label: "🎵 إيقاع المشهد" },

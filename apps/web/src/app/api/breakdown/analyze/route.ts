@@ -13,19 +13,38 @@ import { segmentScriptLocally } from "@/app/(main)/breakdown/infrastructure/scre
 import { analyzeBreakdownLocally } from "@/app/api/breakdown/_lib/breakdown-gemini-server";
 import { logger } from "@/lib/ai/utils/logger";
 import { getBackendBaseUrl } from "@/lib/server/backend-proxy";
+import { buildSafeErrorResponse } from "@/lib/server/safe-error-response";
 
 export async function POST(request: NextRequest) {
   try {
-    const { script, title } = (await request.json()) as {
+    let body: {
       script?: string;
       title?: string;
     };
 
+    try {
+      body = (await request.json()) as {
+        script?: string;
+        title?: string;
+      };
+    } catch {
+      return buildSafeErrorResponse({
+        status: 400,
+        fallbackMessage: "تنسيق طلب البريك دون غير صالح.",
+        errorCode: "BREAKDOWN_INVALID_JSON",
+        traceIdPrefix: "breakdown",
+      });
+    }
+
+    const { script, title } = body;
+
     if (!script || !String(script).trim()) {
-      return NextResponse.json(
-        { success: false, error: "Script content is required" },
-        { status: 400 }
-      );
+      return buildSafeErrorResponse({
+        status: 400,
+        fallbackMessage: "نص السيناريو مطلوب.",
+        errorCode: "BREAKDOWN_SCRIPT_REQUIRED",
+        traceIdPrefix: "breakdown",
+      });
     }
 
     const scriptContent = String(script).trim();
@@ -37,14 +56,13 @@ export async function POST(request: NextRequest) {
     const parsed = segmentScriptLocally(scriptContent);
 
     if (parsed.scenes.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "لم يُكتشف أي مشهد في السيناريو. تأكد من تنسيق عناوين المشاهد.",
-        },
-        { status: 422 }
-      );
+      return buildSafeErrorResponse({
+        status: 422,
+        fallbackMessage:
+          "لم يُكتشف أي مشهد في السيناريو. تأكد من تنسيق عناوين المشاهد.",
+        errorCode: "BREAKDOWN_NO_SCENES",
+        traceIdPrefix: "breakdown",
+      });
     }
 
     // التحليل بالذكاء الاصطناعي
@@ -59,10 +77,13 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Analysis failed";
     logger.error("[breakdown/analyze] خطأ:", message);
 
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
+    return buildSafeErrorResponse({
+      status: 500,
+      error: message,
+      fallbackMessage: "فشل تحليل السيناريو.",
+      errorCode: "BREAKDOWN_ANALYSIS_FAILED",
+      traceIdPrefix: "breakdown",
+    });
   }
 }
 

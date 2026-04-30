@@ -8,14 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-30T08:50:00Z |
+| آخر مزامنة مرجعية | 2026-04-30T07:02:07.817Z |
 | الفرع الحالي | `codex/e2e-production-readiness` |
-| آخر commit | `bd49096b80fe0d9229c762253fcf2cf3dd634327` |
-| حالة working tree | غير نظيفة — `.gitignore` معدّل + 7 ملفات helper جديدة staged + ملفات routine غير staged |
+| آخر commit | `4092d021aef0d64971a0c6a88314e4ea517ce6f3` |
+| حالة working tree | غير نظيفة — 60 ملف متغير |
 | مستوى drift | `hard-drift` |
-| فحوصات CI الفاشلة على آخر commit | `Verify Frontend`, `Strict TypeScript and ESLint`, `Hybrid Production Audit` |
-| إصلاح gitignore (test-*.* recursive → root-anchored) | منفّذ ومُتحقّق منه محليًا (type-check 0 errors، lint 0 errors، vitest 25/25) |
-| فحص لم يُحل في هذه الجولة | `Hybrid Production Audit` — Gemini 400 من `scripts/hybrid-audit.js` (سبب منفصل) |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -239,15 +236,15 @@ AGENTS.md
 
 - الملفات:
 
-`2614`
+`2622`
 
 - القطع:
 
-`5548`
+`5566`
 
 - القطع ذات التضمين:
 
-`5548`
+`5566`
 
 - التغطية:
 
@@ -269,4 +266,3 @@ Code memory is current.
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
-- `Hybrid Production Audit` على CI يفشل بـ `Gemini review request failed with 400 Bad Request` من [scripts/hybrid-audit.js:1292-1318](../scripts/hybrid-audit.js) — يحتاج تحقيق منفصل في الـ payload (`responseMimeType: "application/json"` بدون `responseSchema`) أو في صلاحية اسم النموذج `gemini-2.5-flash`.

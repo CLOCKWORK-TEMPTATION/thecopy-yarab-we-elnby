@@ -5,7 +5,32 @@
 
 import { test, expect, type Page } from "@playwright/test";
 
+const ART_DIRECTOR_STORAGE_KEY = "the-copy.art-director.state.v1";
+const ART_DIRECTOR_CLEAR_MARKER = "__art_director_e2e_cleared";
+const REMOTE_APP_STATE_ENABLED =
+  process.env["NEXT_PUBLIC_ENABLE_REMOTE_APP_STATE"] === "true" ||
+  Boolean(process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"]);
+
 async function clearSavedArtDirectorState(page: Page) {
+  await page.addInitScript(
+    ({ storageKey, clearMarker }) => {
+      if (window.sessionStorage.getItem(clearMarker)) {
+        return;
+      }
+
+      window.localStorage.removeItem(storageKey);
+      window.sessionStorage.setItem(clearMarker, "1");
+    },
+    {
+      clearMarker: ART_DIRECTOR_CLEAR_MARKER,
+      storageKey: ART_DIRECTOR_STORAGE_KEY,
+    }
+  );
+
+  if (!REMOTE_APP_STATE_ENABLED) {
+    return;
+  }
+
   const primeResponse = await page.request.get("/api/app-state/art-director");
   let csrfToken = (await page.context().cookies()).find(
     (cookie) => cookie.name === "XSRF-TOKEN"
@@ -30,6 +55,29 @@ async function clearSavedArtDirectorState(page: Page) {
   );
 
   expect([200, 204, 404]).toContain(clearResponse.status());
+}
+
+async function expectLocalInspirationResult(page: Page) {
+  await expect
+    .poll(
+      async () =>
+        page.evaluate((storageKey) => {
+          const raw = window.localStorage.getItem(storageKey);
+          if (!raw) return false;
+
+          try {
+            const payload = JSON.parse(raw) as {
+              inspiration?: { result?: unknown };
+            };
+
+            return Boolean(payload.inspiration?.result);
+          } catch {
+            return false;
+          }
+        }, ART_DIRECTOR_STORAGE_KEY),
+      { timeout: 10000 }
+    )
+    .toBe(true);
 }
 
 async function expectRemoteInspirationResult(page: Page) {
@@ -174,12 +222,14 @@ test.describe("Art Director - الإلهام والأدوات والديكورا
     await page.selectOption("#mood-select", "romantic");
     await page.selectOption("#era-select", "1920s");
 
-    const stateSave = page.waitForResponse(
-      (response) =>
-        response.url().includes("/api/app-state/art-director") &&
-        response.request().method() === "PUT" &&
-        response.ok()
-    );
+    const stateSave = REMOTE_APP_STATE_ENABLED
+      ? page.waitForResponse(
+          (response) =>
+            response.url().includes("/api/app-state/art-director") &&
+            response.request().method() === "PUT" &&
+            response.ok()
+        )
+      : null;
 
     await page.click('button:has-text("تحليل المشهد")');
 
@@ -187,8 +237,12 @@ test.describe("Art Director - الإلهام والأدوات والديكورا
       timeout: 10000,
     });
     await expect(page.getByText(/الباليت المقترح:/)).toBeVisible();
-    await stateSave;
-    await expectRemoteInspirationResult(page);
+    await expectLocalInspirationResult(page);
+
+    if (stateSave) {
+      await stateSave;
+      await expectRemoteInspirationResult(page);
+    }
 
     await page.reload();
     await page.waitForSelector('h1:has-text("الإلهام البصري")', {

@@ -23,8 +23,8 @@ import type { ViewType } from "../types";
 const HomeView = lazy(() =>
   import("../features/home").then((m) => ({ default: m.HomeView }))
 );
-const DemoView = lazy(() =>
-  import("../features/demo").then((m) => ({ default: m.DemoView }))
+const StudioView = lazy(() =>
+  import("../features/demo").then((m) => ({ default: m.StudioView }))
 );
 const LoginForm = lazy(() =>
   import("../features/auth").then((m) => ({ default: m.LoginForm }))
@@ -71,7 +71,7 @@ const VIEW_MAP: Record<
   React.LazyExoticComponent<React.ComponentType>
 > = {
   home: HomeView,
-  demo: DemoView,
+  studio: StudioView,
   login: LoginForm,
   register: RegisterForm,
   vocal: VocalExercisesView,

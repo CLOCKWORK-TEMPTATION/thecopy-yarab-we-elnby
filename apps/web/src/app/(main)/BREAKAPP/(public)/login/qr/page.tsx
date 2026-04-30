@@ -63,6 +63,27 @@ interface ApiErrorResponse {
   message?: string;
 }
 
+const SAFE_AUTH_FAILURE_MESSAGE =
+  "تعذر إتمام المصادقة. تحقق من الرمز وحاول مرة أخرى.";
+
+function isUnsafeAuthErrorMessage(value: string): boolean {
+  return /eyJ[A-Za-z0-9_-]+\.|qr_token|access_token|refreshToken|<!doctype|<html|stack trace|syntaxerror|cannot\s+(get|post)/i.test(
+    value
+  );
+}
+
+function safeAuthErrorMessage(err: unknown): string {
+  const apiError = err as ApiErrorResponse;
+  const message =
+    apiError?.response?.data?.message ?? apiError?.message ?? null;
+
+  if (!message || isUnsafeAuthErrorMessage(message)) {
+    return SAFE_AUTH_FAILURE_MESSAGE;
+  }
+
+  return message;
+}
+
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 function SuccessView() {
@@ -158,11 +179,7 @@ export default function QRLoginPage() {
           router.push("/BREAKAPP/dashboard");
         }, 1500);
       } catch (err: unknown) {
-        const apiError = err as ApiErrorResponse;
-        const errorMsg =
-          apiError?.response?.data?.message ??
-          apiError?.message ??
-          "فشلت عملية المصادقة";
+        const errorMsg = safeAuthErrorMessage(err);
         setError(errorMsg);
         toast({
           title: "فشل المصادقة",

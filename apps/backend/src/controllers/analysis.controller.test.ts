@@ -155,10 +155,15 @@ describe("runSevenStationsPipeline", () => {
     );
 
     expect(mockResponse.status).toHaveBeenCalledWith(400);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      error: "النص مطلوب ولا يمكن أن يكون فارغاً",
-      code: "INVALID_TEXT",
-    });
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: "النص مطلوب ولا يمكن أن يكون فارغاً",
+        errorCode: "INVALID_TEXT",
+        code: "INVALID_TEXT",
+        traceId: anyStringMatcher(),
+      }),
+    );
   });
 
   it("يعيد 400 عندما يكون النص فارغاً", async () => {
@@ -207,11 +212,16 @@ describe("runSevenStationsPipeline", () => {
     );
 
     expect(mockResponse.status).toHaveBeenCalledWith(500);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      error: "حدث خطأ أثناء تحليل النص",
-      message: "Pipeline failed",
-      code: "ANALYSIS_FAILED",
-    });
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: "حدث خطأ أثناء تحليل النص",
+        errorCode: "ANALYSIS_FAILED",
+        code: "ANALYSIS_FAILED",
+        traceId: anyStringMatcher(),
+      }),
+    );
+    expect(JSON.stringify(firstJsonPayload())).not.toContain("Pipeline failed");
   });
 });
 

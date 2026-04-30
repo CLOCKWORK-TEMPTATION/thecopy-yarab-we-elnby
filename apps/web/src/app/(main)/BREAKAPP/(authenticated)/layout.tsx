@@ -11,9 +11,13 @@
  * فيتم في layouts فرعية باستخدام RoleGuard من @the-copy/breakapp.
  */
 
-import { getCurrentUser, isAuthenticated } from "@the-copy/breakapp";
+import {
+  ensureAuthenticated,
+  getCurrentUser,
+  type CurrentUser,
+} from "@the-copy/breakapp";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function AuthenticatedLayout({
   children,
@@ -21,15 +25,33 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const user = getCurrentUser();
+  const [user, setUser] = useState<CurrentUser | null>(() => getCurrentUser());
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated() || !getCurrentUser()) {
-      router.replace("/BREAKAPP/login/qr");
-    }
+    let cancelled = false;
+
+    const verifySession = async () => {
+      const authenticatedUser = await ensureAuthenticated();
+      if (cancelled) return;
+
+      if (!authenticatedUser) {
+        router.replace("/BREAKAPP/login/qr");
+        return;
+      }
+
+      setUser(authenticatedUser);
+      setChecking(false);
+    };
+
+    void verifySession();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
-  if (!user) {
+  if (checking || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black/8 backdrop-blur-xl">
         <div className="text-center">
