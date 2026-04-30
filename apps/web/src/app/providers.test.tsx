@@ -80,7 +80,7 @@ describe("Providers", () => {
       window as Window & {
         __THE_COPY_E2E_DIAGNOSTICS__: {
           getSnapshot: () => {
-            consoleErrors: Array<{ message: string }>;
+            consoleErrors: { message: string }[];
             localStorageKeys: string[];
           };
         };

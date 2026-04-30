@@ -19,12 +19,12 @@ import { useApp } from "../../context/AppContext";
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
 import { formatTime } from "../../lib/utils";
 
-import type { ChangeEvent } from "react";
 import type {
   BlinkRateStatus,
   EyeDirection,
   WebcamAnalysisResult,
 } from "../../types";
+import type { ChangeEvent } from "react";
 
 // ─── Helper functions ───
 
