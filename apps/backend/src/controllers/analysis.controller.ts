@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from "docx";
 import { Request, Response } from "express";
@@ -50,12 +50,41 @@ function getForwardedIp(req: Request): string | null {
   return ip;
 }
 
+/**
+ * Get the public session token from request headers.
+ * For unauthenticated public sessions, a unique token must be provided
+ * to prevent session hijacking by users on the same IP+UserAgent.
+ * The token is generated server-side and returned to the client on session creation.
+ */
+function getPublicSessionToken(req: Request): string | null {
+  const token = req.get("x-analysis-token");
+  return token && token.length > 0 ? token : null;
+}
+
+/**
+ * Generate a cryptographically secure public session token for unauthenticated sessions.
+ * This ensures that even users on the same IP+UserAgent cannot access each other's sessions.
+ */
+function generatePublicSessionToken(): string {
+  return randomUUID();
+}
+
 function getPublicOwnerId(req: Request): string {
   const ip =
     getForwardedIp(req) ?? req.ip ?? req.socket.remoteAddress ?? "unknown-ip";
   const userAgent = req.get("user-agent") ?? "unknown-agent";
+  const sessionToken = getPublicSessionToken(req);
+  
+  // Include the session token in the ownerId if available.
+  // This prevents session hijacking by requiring the exact token.
+  // If no token is provided, fall back to IP+UA only (for backward compatibility
+  // with existing sessions, though new sessions should always have a token).
+  const input = sessionToken
+    ? `${ip}|${userAgent}|${sessionToken}`
+    : `${ip}|${userAgent}`;
+  
   const digest = createHash("sha256")
-    .update(`${ip}|${userAgent}`)
+    .update(input)
     .digest("hex")
     .slice(0, 32);
   return `public:${digest}`;
@@ -360,13 +389,18 @@ export class AnalysisController {
   }
 
   startPublicStreamSession(req: Request, res: Response): void {
-    this.startStreamSessionForOwner(req, res, getPublicOwnerId(req));
+    // Generate a unique session token for this public session
+    const sessionToken = generatePublicSessionToken();
+    // Add it to the request headers so getPublicOwnerId can use it
+    req.headers["x-analysis-token"] = sessionToken;
+    this.startStreamSessionForOwner(req, res, getPublicOwnerId(req), sessionToken);
   }
 
   private startStreamSessionForOwner(
     req: Request,
     res: Response,
     ownerId: string,
+    sessionToken?: string,
   ): void {
     try {
       const validation = startStreamBodySchema.safeParse(req.body);
@@ -399,7 +433,14 @@ export class AnalysisController {
           logger.error("Streaming pipeline crashed", { analysisId, error });
         });
 
-      res.json({ success: true, analysisId });
+      const response: { success: true; analysisId: string; sessionToken?: string } = {
+        success: true,
+        analysisId,
+      };
+      if (sessionToken) {
+        response.sessionToken = sessionToken;
+      }
+      res.json(response);
     } catch (error) {
       logger.error("فشل بدء جلسة بث التحليل:", error);
       res.status(500).json({ error: "تعذر بدء التحليل", code: "START_FAILED" });
