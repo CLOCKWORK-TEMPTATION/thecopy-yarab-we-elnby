@@ -1,10 +1,8 @@
-import React from "react";
-
-import { WebcamAnalysis } from "./index";
+import { WebcamAnalysis } from "./WebcamAnalysis";
 
 import type { WebcamPermission } from "../../hooks/useWebcamAnalysis";
 import type { BlinkRateStatus, WebcamAnalysisResult } from "../../types";
-import type { RefObject } from "react";
+import type { FC, RefObject } from "react";
 
 interface WebcamAnalysisPageProps {
   webcamActive: boolean;
@@ -24,7 +22,7 @@ interface WebcamAnalysisPageProps {
   getBlinkStatusColor: (status: BlinkRateStatus) => string;
 }
 
-export const WebcamAnalysisPage: React.FC<WebcamAnalysisPageProps> = ({
+export const WebcamAnalysisPage: FC<WebcamAnalysisPageProps> = ({
   webcamActive,
   webcamAnalyzing,
   webcamAnalysisTime,

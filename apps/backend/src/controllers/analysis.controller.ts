@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from "docx";
 import { Request, Response } from "express";
 import { jsPDF } from "jspdf";
@@ -36,6 +38,27 @@ const exportBodySchema = z.object({
 
 function getUserId(req: Request): string {
   return (req as unknown as { user?: { id: string } }).user?.id ?? "anonymous";
+}
+
+function getForwardedIp(req: Request): string | null {
+  const headers = req.headers ?? {};
+  const forwardedFor = headers["x-forwarded-for"];
+  const raw = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+  if (!raw) return null;
+  const ip = raw.split(",")[0]?.trim();
+  if (ip === undefined || ip.length === 0) return null;
+  return ip;
+}
+
+function getPublicOwnerId(req: Request): string {
+  const ip =
+    getForwardedIp(req) ?? req.ip ?? req.socket.remoteAddress ?? "unknown-ip";
+  const userAgent = req.get("user-agent") ?? "unknown-agent";
+  const digest = createHash("sha256")
+    .update(`${ip}|${userAgent}`)
+    .digest("hex")
+    .slice(0, 32);
+  return `public:${digest}`;
 }
 
 function sessionBelongsTo(
@@ -333,20 +356,29 @@ export class AnalysisController {
    * Returns the analysisId the client uses to subscribe to /stream/:id.
    */
   startStreamSession(req: Request, res: Response): void {
+    this.startStreamSessionForOwner(req, res, getUserId(req));
+  }
+
+  startPublicStreamSession(req: Request, res: Response): void {
+    this.startStreamSessionForOwner(req, res, getPublicOwnerId(req));
+  }
+
+  private startStreamSessionForOwner(
+    req: Request,
+    res: Response,
+    ownerId: string,
+  ): void {
     try {
       const validation = startStreamBodySchema.safeParse(req.body);
       if (!validation.success) {
-        res
-          .status(400)
-          .json({
-            error: "البيانات غير صحيحة",
-            code: "INVALID_INPUT",
-            details: validation.error.flatten(),
-          });
+        res.status(400).json({
+          error: "البيانات غير صحيحة",
+          code: "INVALID_INPUT",
+          details: validation.error.flatten(),
+        });
         return;
       }
       const { text, projectId, projectName } = validation.data;
-      const ownerId = getUserId(req);
 
       const session = analysisStreamRegistry.create({
         projectId: projectId ?? null,
@@ -378,13 +410,25 @@ export class AnalysisController {
    * SSE endpoint. Honors `Last-Event-ID` for replay-on-reconnect.
    */
   streamEvents(req: Request, res: Response): void {
+    this.streamEventsForOwner(req, res, getUserId(req));
+  }
+
+  streamPublicEvents(req: Request, res: Response): void {
+    this.streamEventsForOwner(req, res, getPublicOwnerId(req));
+  }
+
+  private streamEventsForOwner(
+    req: Request,
+    res: Response,
+    ownerId: string,
+  ): void {
     const analysisId = String(req.params["analysisId"] ?? "");
     const session = analysisStreamRegistry.get(analysisId);
     if (!session) {
       res.status(404).json({ error: "الجلسة غير موجودة أو انتهت" });
       return;
     }
-    if (!sessionBelongsTo(session.snapshot.metadata, getUserId(req))) {
+    if (!sessionBelongsTo(session.snapshot.metadata, ownerId)) {
       res.status(403).json({ error: "غير مصرح" });
       return;
     }
@@ -432,13 +476,25 @@ export class AnalysisController {
    * Snapshot of the current session state — used on resume.
    */
   getAnalysisSnapshot(req: Request, res: Response): void {
+    this.getAnalysisSnapshotForOwner(req, res, getUserId(req));
+  }
+
+  getPublicAnalysisSnapshot(req: Request, res: Response): void {
+    this.getAnalysisSnapshotForOwner(req, res, getPublicOwnerId(req));
+  }
+
+  private getAnalysisSnapshotForOwner(
+    req: Request,
+    res: Response,
+    ownerId: string,
+  ): void {
     const analysisId = String(req.params["analysisId"] ?? "");
     const snap = analysisStreamRegistry.getSnapshot(analysisId);
     if (!snap) {
       res.status(404).json({ error: "الجلسة غير موجودة" });
       return;
     }
-    if (!sessionBelongsTo(snap.metadata, getUserId(req))) {
+    if (!sessionBelongsTo(snap.metadata, ownerId)) {
       res.status(403).json({ error: "غير مصرح" });
       return;
     }
@@ -449,6 +505,18 @@ export class AnalysisController {
    * Re-run a single station for an existing session.
    */
   async retryStation(req: Request, res: Response): Promise<void> {
+    await this.retryStationForOwner(req, res, getUserId(req));
+  }
+
+  async retryPublicStation(req: Request, res: Response): Promise<void> {
+    await this.retryStationForOwner(req, res, getPublicOwnerId(req));
+  }
+
+  private async retryStationForOwner(
+    req: Request,
+    res: Response,
+    ownerId: string,
+  ): Promise<void> {
     try {
       const analysisId = String(req.params["analysisId"] ?? "");
       const stationIdRaw = Number(req.params["stationId"]);
@@ -470,7 +538,7 @@ export class AnalysisController {
         res.status(404).json({ error: "الجلسة غير موجودة" });
         return;
       }
-      if (!sessionBelongsTo(session.snapshot.metadata, getUserId(req))) {
+      if (!sessionBelongsTo(session.snapshot.metadata, ownerId)) {
         res.status(403).json({ error: "غير مصرح" });
         return;
       }
@@ -492,6 +560,18 @@ export class AnalysisController {
    * Export a completed snapshot as JSON / DOCX / PDF.
    */
   async exportAnalysis(req: Request, res: Response): Promise<void> {
+    await this.exportAnalysisForOwner(req, res, getUserId(req));
+  }
+
+  async exportPublicAnalysis(req: Request, res: Response): Promise<void> {
+    await this.exportAnalysisForOwner(req, res, getPublicOwnerId(req));
+  }
+
+  private async exportAnalysisForOwner(
+    req: Request,
+    res: Response,
+    ownerId: string,
+  ): Promise<void> {
     try {
       const analysisId = String(req.params["analysisId"] ?? "");
       const validation = exportBodySchema.safeParse(req.body);
@@ -504,7 +584,7 @@ export class AnalysisController {
         res.status(404).json({ error: "الجلسة غير موجودة" });
         return;
       }
-      if (!sessionBelongsTo(snap.metadata, getUserId(req))) {
+      if (!sessionBelongsTo(snap.metadata, ownerId)) {
         res.status(403).json({ error: "غير مصرح" });
         return;
       }

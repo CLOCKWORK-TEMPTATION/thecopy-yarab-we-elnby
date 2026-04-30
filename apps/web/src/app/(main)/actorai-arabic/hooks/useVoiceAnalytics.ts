@@ -4,6 +4,12 @@ import { useState, useCallback, useRef, useEffect } from "react";
 
 import { postToBackend } from "@/lib/backend-api";
 
+import {
+  isMediaFeatureAllowedByPolicy,
+  translateMediaDeviceError,
+  type MediaDeviceStatus,
+} from "../lib/media-device-errors";
+
 // ==================== أنواع البيانات ====================
 
 export interface VoiceMetrics {
@@ -51,6 +57,7 @@ export interface VoiceAnalyticsState {
   isListening: boolean;
   isSupported: boolean;
   error: string | null;
+  deviceStatus: MediaDeviceStatus | "idle" | "granted";
   metrics: VoiceMetrics;
   waveformData: number[];
   frequencyData: number[];
@@ -264,13 +271,38 @@ function processSilenceTracking(
   }
 }
 
+function supportsMicrophoneCapture(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return false;
+  }
+
+  return (
+    isMediaFeatureAllowedByPolicy("microphone") &&
+    typeof Reflect.get(navigator, "mediaDevices") === "object" &&
+    navigator.mediaDevices !== undefined &&
+    typeof Reflect.get(navigator.mediaDevices, "getUserMedia") === "function" &&
+    typeof AudioContext !== "undefined"
+  );
+}
+
+function getBoundMicrophoneRequest():
+  | ((constraints: MediaStreamConstraints) => Promise<MediaStream>)
+  | null {
+  if (!supportsMicrophoneCapture()) {
+    return null;
+  }
+
+  return navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
 // ==================== الـ Hook الرئيسي ====================
 
 export function useVoiceAnalytics() {
   const [state, setState] = useState<VoiceAnalyticsState>({
     isListening: false,
-    isSupported: typeof window !== "undefined" && !!navigator.mediaDevices,
+    isSupported: supportsMicrophoneCapture(),
     error: null,
+    deviceStatus: "idle",
     metrics: DEFAULT_METRICS,
     waveformData: [],
     frequencyData: [],
@@ -290,6 +322,7 @@ export function useVoiceAnalytics() {
   const lastSpeechTimeRef = useRef<number>(0);
   const breathCountRef = useRef<number>(0);
   const lastBreathTimeRef = useRef<number>(0);
+  const updateMetricsRef = useRef<() => void>(() => undefined);
 
   const updateMetrics = useCallback(() => {
     if (!analyserRef.current || !audioContextRef.current) return;
@@ -369,11 +402,38 @@ export function useVoiceAnalytics() {
       frequencyData: Array.from(frequencyArray.slice(0, 64)),
     }));
 
-    animationFrameRef.current = requestAnimationFrame(updateMetrics);
+    animationFrameRef.current = requestAnimationFrame(() => {
+      updateMetricsRef.current();
+    });
   }, []);
+
+  useEffect(() => {
+    updateMetricsRef.current = updateMetrics;
+  }, [updateMetrics]);
 
   const startListening = useCallback(async () => {
     try {
+      const requestMicrophone = getBoundMicrophoneRequest();
+      if (!requestMicrophone) {
+        const failure = translateMediaDeviceError(
+          new DOMException(
+            isMediaFeatureAllowedByPolicy("microphone")
+              ? "Not supported"
+              : "Blocked by permissions policy",
+            isMediaFeatureAllowedByPolicy("microphone")
+              ? "NotSupportedError"
+              : "SecurityError"
+          ),
+          "microphone"
+        );
+        setState((prev) => ({
+          ...prev,
+          error: failure.message,
+          deviceStatus: failure.status,
+        }));
+        return;
+      }
+
       silenceStartRef.current = 0;
       pauseCountRef.current = 0;
       pauseDurationsRef.current = [];
@@ -383,7 +443,7 @@ export function useVoiceAnalytics() {
       breathCountRef.current = 0;
       lastBreathTimeRef.current = Date.now();
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const stream = await requestMicrophone({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -407,16 +467,19 @@ export function useVoiceAnalytics() {
         ...prev,
         isListening: true,
         error: null,
+        deviceStatus: "granted",
       }));
 
-      updateMetrics();
+      updateMetricsRef.current();
     } catch (error) {
+      const failure = translateMediaDeviceError(error, "microphone");
       setState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : "فشل الوصول للميكروفون",
+        error: failure.message,
+        deviceStatus: failure.status,
       }));
     }
-  }, [updateMetrics]);
+  }, []);
 
   const stopListening = useCallback(() => {
     if (animationFrameRef.current) {
@@ -455,8 +518,9 @@ export function useVoiceAnalytics() {
     stopListening();
     setState({
       isListening: false,
-      isSupported: typeof window !== "undefined" && !!navigator.mediaDevices,
+      isSupported: supportsMicrophoneCapture(),
       error: null,
+      deviceStatus: "idle",
       metrics: DEFAULT_METRICS,
       waveformData: [],
       frequencyData: [],

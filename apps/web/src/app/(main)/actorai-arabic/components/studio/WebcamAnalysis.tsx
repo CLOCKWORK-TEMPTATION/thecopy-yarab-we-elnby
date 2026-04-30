@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
+import type { WebcamPermission } from "../../hooks/useWebcamAnalysis";
 import type { WebcamAnalysisResult } from "../../types";
 import type { RefObject } from "react";
 
@@ -20,7 +21,7 @@ interface WebcamAnalysisProps {
   webcamAnalyzing: boolean;
   webcamAnalysisTime: number;
   webcamAnalysisResult: WebcamAnalysisResult | null;
-  webcamPermission: "granted" | "denied" | "pending";
+  webcamPermission: WebcamPermission;
   videoRef: RefObject<HTMLVideoElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   requestWebcamPermission: () => Promise<void>;
@@ -93,7 +94,7 @@ const VideoArea: React.FC<VideoAreaProps> = ({
 interface CameraControlsProps {
   webcamActive: boolean;
   webcamAnalyzing: boolean;
-  webcamPermission: "granted" | "denied" | "pending";
+  webcamPermission: WebcamPermission;
   onRequestPermission: () => Promise<void>;
   onStopWebcam: () => void;
   onStartAnalysis: () => void;
@@ -140,10 +141,11 @@ const CameraControls: React.FC<CameraControlsProps> = ({
       )}
     </div>
 
-    {webcamPermission === "denied" && (
+    {webcamPermission !== "pending" && webcamPermission !== "granted" && (
       <Alert variant="destructive">
         <AlertDescription>
-          تم رفض الوصول للكاميرا. يرجى السماح بالوصول من إعدادات المتصفح.
+          تعذر تفعيل الكاميرا. استخدم ملفًا مرجعيًا أو عينة تدريب ثم أعد
+          المحاولة عند توفر الجهاز.
         </AlertDescription>
       </Alert>
     )}

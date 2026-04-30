@@ -20,6 +20,7 @@ import {
   type Vendor,
 } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -285,12 +286,12 @@ function MyOrdersList({ myOrders }: MyOrdersListProps) {
               <div className="text-sm text-white/85 font-cairo">
                 {order.items.length} عنصر
               </div>
-              <a
+              <Link
                 href={`/BREAKAPP/crew/orders/${order.id}`}
                 className="px-3 py-1.5 text-xs bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px]"
               >
                 تفاصيل
-              </a>
+              </Link>
             </div>
           </div>
         ))}
@@ -438,12 +439,12 @@ export default function CrewMenuPage() {
               اختر العناصر من الموردين المتاحين
             </p>
           </div>
-          <a
+          <Link
             href="/BREAKAPP/dashboard"
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             العودة للوحة التحكم
-          </a>
+          </Link>
         </div>
         <SessionInput
           sessionId={sessionId}

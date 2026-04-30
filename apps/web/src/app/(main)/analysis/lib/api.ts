@@ -1,18 +1,14 @@
 /**
- * Network helpers for the analysis surface.
+ * Network helpers for the public analysis surface.
  *
- * Auth model (matches the rest of the project — see `art-director/lib/api-client.ts`,
- * `cinematography-studio/lib/studio-route-client.ts`, `breakdown/infrastructure/platform-client.ts`):
- *   - cookie-based session (`credentials: "same-origin"`)
- *   - CSRF: read `XSRF-TOKEN` from `document.cookie`, send back as `X-XSRF-TOKEN`
- *     header on every non-GET / non-HEAD request. If the cookie is missing,
- *     hit `/api/health` once to make the backend mint one, then re-read it.
- *
- * 401/403 are surfaced as `AuthRequiredError` so the UI can route the user
- * back to login instead of swallowing the failure.
+ * The page uses bounded public endpoints. Requests still carry same-origin
+ * credentials and CSRF headers when present, but the user-facing error text is
+ * intentionally controlled so upstream HTML or stack output never reaches UI.
  */
 
 import type { AnalysisSnapshot, StationId } from "./types";
+
+const ANALYSIS_API_BASE = "/api/public/analysis/seven-stations";
 
 export class AuthRequiredError extends Error {
   status: number;
@@ -21,6 +17,66 @@ export class AuthRequiredError extends Error {
     this.name = "AuthRequiredError";
     this.status = status;
   }
+}
+
+const STATUS_MESSAGES: Record<number, string> = {
+  400: "بيانات التحليل غير صحيحة، راجع النص ثم حاول مرة أخرى.",
+  401: "انتهت صلاحية جلسة التحليل، أعد فتح الصفحة وحاول مرة أخرى.",
+  403: "جلسة التحليل غير متاحة لهذا المتصفح.",
+  404: "خدمة التحليل غير متاحة الآن، حاول مرة أخرى بعد لحظات.",
+  408: "استغرق طلب التحليل وقتاً أطول من المتوقع.",
+  409: "حالة التحليل الحالية لا تسمح بتنفيذ هذا الإجراء.",
+  413: "النص المدخل أكبر من الحد المسموح.",
+  429: "تم الوصول إلى حد الطلبات مؤقتاً، انتظر قليلاً ثم حاول مرة أخرى.",
+  500: "حدث خطأ داخلي أثناء التحليل.",
+  502: "خدمة التحليل غير متاحة الآن.",
+  503: "خدمة التحليل مشغولة الآن.",
+  504: "انتهت مهلة الاتصال بخدمة التحليل.",
+};
+
+function looksLikeRawServerBody(value: string): boolean {
+  return /<!doctype|<html|<head|<body|<script|<style|cannot\s+(get|post)|stack trace|syntaxerror/i.test(
+    value
+  );
+}
+
+function safeStatusMessage(status: number): string {
+  return STATUS_MESSAGES[status] ?? "تعذر تنفيذ طلب التحليل.";
+}
+
+function buildNetworkError(): Error {
+  return new Error(
+    "تعذر الاتصال بخدمة التحليل. تحقق من الشبكة وحاول مرة أخرى."
+  );
+}
+
+async function readJsonErrorMessage(
+  response: Response
+): Promise<string | null> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) return null;
+
+  try {
+    const payload: unknown = await response.clone().json();
+    if (!payload || typeof payload !== "object") return null;
+    const record = payload as Record<string, unknown>;
+    const value =
+      typeof record["message"] === "string"
+        ? record["message"]
+        : typeof record["error"] === "string"
+          ? record["error"]
+          : null;
+    if (!value || looksLikeRawServerBody(value)) return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+async function buildSafeHttpError(response: Response): Promise<Error> {
+  const jsonMessage = await readJsonErrorMessage(response);
+  const message = jsonMessage ?? safeStatusMessage(response.status);
+  return new Error(message);
 }
 
 function getCsrfToken(): string | null {
@@ -63,39 +119,43 @@ async function buildHeaders(
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const headers = await buildHeaders("POST", "application/json");
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    credentials: "same-origin",
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers,
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw buildNetworkError();
+  }
   if (res.status === 401 || res.status === 403) {
-    throw new AuthRequiredError(res.status);
+    throw await buildSafeHttpError(res);
   }
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      `HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`
-    );
+    throw await buildSafeHttpError(res);
   }
   return (await res.json()) as T;
 }
 
 async function getJson<T>(url: string): Promise<T> {
   const headers = await buildHeaders("GET");
-  const res = await fetch(url, {
-    headers,
-    credentials: "same-origin",
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers,
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+  } catch {
+    throw buildNetworkError();
+  }
   if (res.status === 401 || res.status === 403) {
-    throw new AuthRequiredError(res.status);
+    throw await buildSafeHttpError(res);
   }
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      `HTTP ${res.status}${text ? ` — ${text.slice(0, 200)}` : ""}`
-    );
+    throw await buildSafeHttpError(res);
   }
   return (await res.json()) as T;
 }
@@ -106,7 +166,7 @@ export async function startAnalysisStream(input: {
   projectName?: string;
 }): Promise<{ analysisId: string }> {
   const data = await postJson<{ success: true; analysisId: string }>(
-    "/api/analysis/seven-stations/start",
+    `${ANALYSIS_API_BASE}/start`,
     input
   );
   return { analysisId: data.analysisId };
@@ -116,7 +176,7 @@ export async function fetchAnalysisSnapshot(
   analysisId: string
 ): Promise<AnalysisSnapshot> {
   const data = await getJson<{ success: true; snapshot: AnalysisSnapshot }>(
-    `/api/analysis/seven-stations/${encodeURIComponent(analysisId)}/snapshot`
+    `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/snapshot`
   );
   return data.snapshot;
 }
@@ -131,7 +191,7 @@ export async function retryStation(
     stationId: number;
     output: unknown;
   }>(
-    `/api/analysis/seven-stations/${encodeURIComponent(analysisId)}/retry/${stationId}`,
+    `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/retry/${stationId}`,
     { text }
   );
   return data.output;
@@ -142,20 +202,25 @@ export async function exportAnalysis(
   format: "json" | "docx" | "pdf"
 ): Promise<Blob> {
   const headers = await buildHeaders("POST", "application/json");
-  const res = await fetch(
-    `/api/analysis/seven-stations/${encodeURIComponent(analysisId)}/export`,
-    {
-      method: "POST",
-      headers,
-      credentials: "same-origin",
-      body: JSON.stringify({ format }),
-    }
-  );
+  let res: Response;
+  try {
+    res = await fetch(
+      `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/export`,
+      {
+        method: "POST",
+        headers,
+        credentials: "same-origin",
+        body: JSON.stringify({ format }),
+      }
+    );
+  } catch {
+    throw buildNetworkError();
+  }
   if (res.status === 401 || res.status === 403) {
-    throw new AuthRequiredError(res.status);
+    throw await buildSafeHttpError(res);
   }
   if (!res.ok) {
-    throw new Error(`Export failed: HTTP ${res.status}`);
+    throw await buildSafeHttpError(res);
   }
   return await res.blob();
 }

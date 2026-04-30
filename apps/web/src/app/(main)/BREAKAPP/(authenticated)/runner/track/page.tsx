@@ -14,6 +14,7 @@
 import { api, getCurrentUser, type DeliveryTask } from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -395,12 +396,12 @@ export default function RunnerTrackPage() {
               تتبع موقعك وإدارة مهام التوصيل
             </p>
           </div>
-          <a
+          <Link
             href="/BREAKAPP/dashboard"
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             العودة للوحة التحكم
-          </a>
+          </Link>
         </div>
         <RunnerInfoCard runnerId={runnerId} connected={connected} />
         <SessionInputCard

@@ -27,7 +27,7 @@ class BreakdownE2EConfig {
     this.baseUrl = (
       process.env["BREAKDOWN_E2E_BASE_URL"] ??
       process.env["PLAYWRIGHT_BASE_URL"] ??
-      "http://localhost:5000"
+      `http://127.0.0.1:${process.env["PLAYWRIGHT_PORT"] ?? "5010"}`
     ).replace(/\/+$/, "");
     this.routePath = "/breakdown";
     this.timeoutMs = this.resolveInt(

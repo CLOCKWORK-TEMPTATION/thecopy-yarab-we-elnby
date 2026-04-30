@@ -22,6 +22,7 @@ interface DemoPageProps {
   rehearsing: boolean;
   chatMessages: ChatMessage[];
   userInput: string;
+  partnerStatus: "ready" | "thinking";
   setUserInput: (input: string) => void;
   startRehearsal: () => void;
   sendMessage: () => void;
@@ -46,6 +47,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({
   rehearsing,
   chatMessages,
   userInput,
+  partnerStatus,
   setUserInput,
   startRehearsal,
   sendMessage,
@@ -87,6 +89,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({
           rehearsing={rehearsing}
           chatMessages={chatMessages}
           userInput={userInput}
+          partnerStatus={partnerStatus}
           setUserInput={setUserInput}
           startRehearsal={startRehearsal}
           sendMessage={sendMessage}

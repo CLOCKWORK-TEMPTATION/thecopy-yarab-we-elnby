@@ -88,6 +88,7 @@ describe("errorHandler", () => {
       method: "GET",
     };
     mockRes = {
+      setHeader: vi.fn().mockReturnThis(),
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
     };
@@ -104,6 +105,10 @@ describe("errorHandler", () => {
     errorHandler(error, mockReq as Request, mockRes as Response, mockNext);
 
     expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.setHeader).toHaveBeenCalledWith(
+      "Content-Type",
+      "application/json; charset=utf-8",
+    );
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,

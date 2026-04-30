@@ -23,6 +23,9 @@ import type {
   Version,
 } from "../../domain/models";
 
+// أقسام التفكيك المتاحة للتنقل في كل الحالات (خمول أو بعد المعالجة)
+export type BreakdownSection = "input" | "cast" | "results" | "chat";
+
 export interface ScriptError {
   message: string;
   code:
@@ -175,7 +178,8 @@ export function useScriptWorkspace() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [isSegmenting, setIsSegmenting] = useState(false);
   const [error, setError] = useState<ScriptError | null>(null);
-  const [view, setView] = useState<"input" | "results">("input");
+  const [section, setSection] = useState<BreakdownSection>("input");
+  const [isProcessed, setIsProcessed] = useState(false);
   const toast = useToastQueue();
 
   const processScript = useCallback(async () => {
@@ -230,7 +234,8 @@ export function useScriptWorkspace() {
       setProjectId(nextReport.projectId);
       setReport(nextReport);
       setScenes(nextScenes);
-      setView("results");
+      setIsProcessed(true);
+      setSection("results");
       writeAnalysisReportToStorage(nextReport);
       return true;
     } catch (err) {
@@ -362,7 +367,8 @@ export function useScriptWorkspace() {
   }, []);
 
   const resetWorkspace = useCallback(() => {
-    setView("input");
+    setSection("input");
+    setIsProcessed(false);
     setScenes([]);
     setReport(null);
     setProjectId(null);
@@ -384,7 +390,9 @@ export function useScriptWorkspace() {
     projectId,
     isSegmenting,
     error,
-    view,
+    section,
+    setSection,
+    isProcessed,
     processScript,
     updateScene,
     restoreVersion,

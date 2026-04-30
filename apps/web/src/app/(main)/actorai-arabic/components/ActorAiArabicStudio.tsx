@@ -140,6 +140,7 @@ export const ActorAiArabicStudio: React.FC = () => {
     rehearsing,
     chatMessages,
     userInput,
+    partnerStatus,
     setUserInput,
     chatEndRef: _chatEndRef,
     startRehearsal,
@@ -239,6 +240,7 @@ export const ActorAiArabicStudio: React.FC = () => {
       rehearsing={rehearsing}
       chatMessages={chatMessages}
       userInput={userInput}
+      partnerStatus={partnerStatus}
       setUserInput={setUserInput}
       startRehearsal={startRehearsal}
       sendMessage={sendMessage}

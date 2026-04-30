@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="The Copy">
+  <rect width="64" height="64" rx="14" fill="#050505"/>
+  <path d="M16 18h32v8H36v20h-8V26H16z" fill="#e5b54f"/>
+  <path d="M41 46c-7.7 0-13-5.3-13-14s5.3-14 13-14c4.2 0 7.8 1.7 10.2 4.7l-5.6 5.2c-1.1-1.6-2.5-2.3-4.3-2.3-3.2 0-5.1 2.5-5.1 6.4s1.9 6.4 5.1 6.4c1.8 0 3.2-.7 4.3-2.3l5.6 5.2C48.8 44.3 45.2 46 41 46z" fill="#f7ead1" fill-opacity=".9"/>
+</svg>

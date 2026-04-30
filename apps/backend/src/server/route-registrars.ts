@@ -73,6 +73,10 @@ function registerHealthAndCostRoutes(
     healthController.getDetailedHealth.bind(healthController),
   );
 
+  // Kubernetes-standard aliases — مطلوبة لـ readinessProbe و livenessProbe
+  app.get("/healthz", healthController.getLiveness.bind(healthController));
+  app.get("/readyz", healthController.getReadiness.bind(healthController));
+
   // Prometheus metrics endpoint
   app.get("/metrics", metricsEndpoint);
 
@@ -387,7 +391,31 @@ function registerActorAndStateRoutes(
   // Public Seven Stations endpoint for the web analysis surface
   app.post(
     "/api/public/analysis/seven-stations",
+    perUserAiLimiter,
     analysisController.runSevenStationsPipeline.bind(analysisController),
+  );
+  app.post(
+    "/api/public/analysis/seven-stations/start",
+    perUserAiLimiter,
+    analysisController.startPublicStreamSession.bind(analysisController),
+  );
+  app.get(
+    "/api/public/analysis/seven-stations/stream/:analysisId",
+    analysisController.streamPublicEvents.bind(analysisController),
+  );
+  app.get(
+    "/api/public/analysis/seven-stations/:analysisId/snapshot",
+    analysisController.getPublicAnalysisSnapshot.bind(analysisController),
+  );
+  app.post(
+    "/api/public/analysis/seven-stations/:analysisId/retry/:stationId",
+    perUserAiLimiter,
+    analysisController.retryPublicStation.bind(analysisController),
+  );
+  app.post(
+    "/api/public/analysis/seven-stations/:analysisId/export",
+    perUserAiLimiter,
+    analysisController.exportPublicAnalysis.bind(analysisController),
   );
 
   // App State endpoints (public - used by frontend to persist/restore analysis state)

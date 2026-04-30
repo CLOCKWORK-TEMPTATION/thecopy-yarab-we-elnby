@@ -210,16 +210,18 @@ export class PerformanceProductivityAnalyzer implements Plugin {
   }
 
   private reportDelay(data: Partial<Delay>): PluginOutput {
-    if (!data.taskId || !data.reason || !data.hoursLost) {
+    // reason و hoursLost إلزاميان — taskId يُولَّد تلقائياً إن غاب
+    if (!data.reason || !data.hoursLost) {
       return {
         success: false,
-        error: "Task ID, reason, and hours lost are required",
+        error: "Reason and hours lost are required",
       };
     }
 
     const delay: Delay = {
       id: uuidv4(),
-      taskId: data.taskId,
+      // توليد taskId تلقائياً إن لم يُرسَل من الواجهة
+      taskId: data.taskId ?? uuidv4(),
       reason: data.reason,
       reasonAr: data.reasonAr ?? data.reason,
       hoursLost: data.hoursLost,
@@ -340,9 +342,26 @@ export class PerformanceProductivityAnalyzer implements Plugin {
       blockers: Array.from(this.blockers.values()).filter((b) => !b.resolvedAt),
     };
 
+    // حساب إجمالي الساعات المهدرة من كل التأخيرات المسجّلة
+    const delayHours = Array.from(this.delays.values()).reduce(
+      (sum, d) => sum + d.hoursLost,
+      0
+    );
+
     return {
       success: true,
       data: {
+        // حقول ProductivityAnalysis المتوقعة من الواجهة
+        period: (data as { period?: string }).period ?? "weekly",
+        department: (data as { department?: string }).department ?? "all",
+        totalHours: totalActualHours,
+        taskCount: entries.length,
+        delayHours,
+        completionRate:
+          entries.length > 0
+            ? Math.round((completedTasks.length / entries.length) * 100)
+            : 0,
+        // بيانات تفصيلية للتشخيص
         metrics: metrics as unknown as Record<string, unknown>,
         summary: {
           totalTasks: entries.length,

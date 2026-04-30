@@ -1,0 +1,249 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://breakbreak.ai/schemas/copyproj/v1",
+  "title": "CopyProj",
+  "description": "مخطط ملف مشروع التفريغ السينمائي (.copyproj) — يُحفظ حالة الجلسة والمشاهد والتقارير قابلة للاستئناف.",
+  "type": "object",
+  "required": ["schema-version", "id", "createdAt", "updatedAt", "title", "scenes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema-version": {
+      "type": "string",
+      "description": "إصدار المخطط — يجب مطابقته عند الفتح لضمان التوافق",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0"]
+    },
+    "id": {
+      "type": "string",
+      "description": "معرّف فريد للمشروع (UUID v4)",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string",
+      "description": "عنوان المشروع كما يظهر في واجهة المستخدم",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "string",
+      "description": "وصف اختياري للمشروع",
+      "maxLength": 2000
+    },
+    "createdAt": {
+      "type": "string",
+      "description": "تاريخ الإنشاء بتنسيق ISO 8601",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "description": "تاريخ آخر تحديث بتنسيق ISO 8601",
+      "format": "date-time"
+    },
+    "scriptText": {
+      "type": "string",
+      "description": "النص الأصلي للسيناريو المُدخَل",
+      "maxLength": 5000000
+    },
+    "projectId": {
+      "type": "string",
+      "description": "معرّف المشروع على الخادم (إذا بُنيَ مع الخادم)"
+    },
+    "reportId": {
+      "type": "string",
+      "description": "معرّف تقرير التحليل على الخادم"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "بيانات وصفية للمشروع",
+      "additionalProperties": false,
+      "properties": {
+        "director": { "type": "string", "maxLength": 255 },
+        "producer": { "type": "string", "maxLength": 255 },
+        "genre": { "type": "string", "maxLength": 100 },
+        "language": { "type": "string", "maxLength": 50 },
+        "productionCompany": { "type": "string", "maxLength": 255 },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 100 },
+          "maxItems": 50
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "قائمة المشاهد المُفرَّغة",
+      "items": { "$ref": "#/definitions/Scene" }
+    },
+    "report": {
+      "$ref": "#/definitions/BreakdownReport",
+      "description": "آخر تقرير تحليل كامل (اختياري)"
+    },
+    "attachments": {
+      "type": "array",
+      "description": "المرفقات المرتبطة بالمشروع (صور، فيديو، PDF)",
+      "items": { "$ref": "#/definitions/Attachment" },
+      "maxItems": 100
+    },
+    "exportedAt": {
+      "type": "string",
+      "description": "تاريخ آخر تصدير لهذا الملف",
+      "format": "date-time"
+    },
+    "appVersion": {
+      "type": "string",
+      "description": "إصدار التطبيق الذي أنشأ هذا الملف",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  },
+  "definitions": {
+    "Scene": {
+      "type": "object",
+      "required": ["id", "header", "content", "isAnalyzed"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "remoteId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "reportId": { "type": "string" },
+        "header": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "content": { "type": "string", "maxLength": 500000 },
+        "isAnalyzed": { "type": "boolean" },
+        "source": { "type": "string", "enum": ["ai", "fallback"] },
+        "headerData": { "$ref": "#/definitions/SceneHeaderData" },
+        "stats": { "$ref": "#/definitions/SceneStats" },
+        "analysis": { "$ref": "#/definitions/SceneBreakdown" },
+        "scenarios": { "$ref": "#/definitions/ScenarioAnalysis" },
+        "elements": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/BreakdownElement" }
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "versions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Version" }
+        }
+      }
+    },
+    "SceneHeaderData": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sceneNumber": { "type": ["string", "integer"] },
+        "interior": { "type": "boolean" },
+        "location": { "type": "string" },
+        "timeOfDay": { "type": "string" }
+      }
+    },
+    "SceneStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wordCount": { "type": "integer", "minimum": 0 },
+        "pageCount": { "type": "number", "minimum": 0 },
+        "estimatedScreenTime": { "type": "number", "minimum": 0 }
+      }
+    },
+    "SceneBreakdown": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "cast": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/CastMember" }
+        },
+        "costumes": { "type": "array", "items": { "type": "string" } },
+        "makeup": { "type": "array", "items": { "type": "string" } },
+        "setDressing": { "type": "array", "items": { "type": "string" } },
+        "graphics": { "type": "array", "items": { "type": "string" } },
+        "sound": { "type": "array", "items": { "type": "string" } },
+        "equipment": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "CastMember": {
+      "type": "object",
+      "required": ["name", "role"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "role": { "type": "string", "maxLength": 100 },
+        "age": { "type": "string", "maxLength": 50 },
+        "gender": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "motivation": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "ScenarioAnalysis": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "BreakdownElement": {
+      "type": "object",
+      "required": ["category", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "category": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "Version": {
+      "type": "object",
+      "required": ["id", "timestamp", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "integer" },
+        "label": { "type": "string", "maxLength": 255 },
+        "analysis": { "$ref": "#/definitions/SceneBreakdown" },
+        "scenarios": { "$ref": "#/definitions/ScenarioAnalysis" },
+        "headerData": { "$ref": "#/definitions/SceneHeaderData" },
+        "stats": { "$ref": "#/definitions/SceneStats" },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "BreakdownReport": {
+      "type": "object",
+      "required": ["id", "projectId", "createdAt", "scenes"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string" },
+        "projectId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "scenes": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "Attachment": {
+      "type": "object",
+      "required": ["id", "name", "mimeType", "addedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+        "mimeType": {
+          "type": "string",
+          "description": "الأنواع المقبولة: image/* | video/mp4 | application/pdf",
+          "pattern": "^(image/.+|video/mp4|application/pdf)$"
+        },
+        "sizeBytes": { "type": "integer", "minimum": 0, "maximum": 52428800 },
+        "addedAt": { "type": "string", "format": "date-time" },
+        "url": { "type": "string", "format": "uri" },
+        "sceneId": {
+          "type": "integer",
+          "description": "ربط المرفق بمشهد محدد — اختياري"
+        }
+      }
+    }
+  }
+}

@@ -8,10 +8,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-30T01:57:20.392Z |
-| الفرع الحالي | `main` |
-| آخر commit | `c06db9397d04870270ef9b68059019780b4ded06` |
-| حالة working tree | غير نظيفة — 6 ملف متغير |
+| آخر مزامنة مرجعية | 2026-04-30T04:13:48.000Z |
+| الفرع الحالي | `codex/e2e-production-readiness` |
+| آخر commit | `332a6b9e1f0ef28c65b2c2f22193ac935323a100` |
+| حالة working tree | غير نظيفة — 80 ملف متغير |
 | مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
@@ -67,6 +67,7 @@ backend: 3001
 
 - `@the-copy/breakapp` — `packages/breakapp`
 - `@the-copy/core-memory` — `packages/core-memory`
+- `@the-copy/copyproj-schema` — `packages/copyproj-schema` ← **جديدة (M2.2)**
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
 - `@the-copy/tsconfig` — `packages/tsconfig`
 
@@ -235,15 +236,15 @@ AGENTS.md
 
 - الملفات:
 
-`2589`
+`2613`
 
 - القطع:
 
-`5487`
+`5545`
 
 - القطع ذات التضمين:
 
-`5487`
+`5545`
 
 - التغطية:
 
@@ -265,3 +266,4 @@ Code memory is current.
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+- `packages/copyproj-schema` يحتاج تحقق من إدراجه في `pnpm-workspace.yaml`

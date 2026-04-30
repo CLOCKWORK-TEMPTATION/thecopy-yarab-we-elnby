@@ -209,7 +209,9 @@ export default function QRLoginPage() {
       </CardSpotlight>
 
       <div className="mt-8 text-center text-sm text-white/55">
-        <p className="font-cairo">تأكد من منح إذن الوصول للكاميرا</p>
+        <p className="font-cairo">
+          إذا لم تعمل الكاميرا، استخدم رفع الصورة أو الإدخال اليدوي.
+        </p>
       </div>
     </div>
   );

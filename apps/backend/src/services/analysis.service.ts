@@ -370,7 +370,7 @@ export class AnalysisService {
       type: "pipeline.started",
       analysisId,
       projectName: args.projectName,
-      capabilities: { exports: ["json", "docx", "pdf"] },
+      capabilities: { exports: ["json", "docx"] },
     });
 
     const results = new Map<TaskType, unknown>();

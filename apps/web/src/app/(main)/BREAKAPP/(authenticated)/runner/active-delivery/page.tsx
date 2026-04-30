@@ -20,6 +20,7 @@ import {
 } from "@the-copy/breakapp";
 import { useGeolocation } from "@the-copy/breakapp/hooks/useGeolocation";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
@@ -439,12 +440,12 @@ export default function RunnerActiveDeliveryPage(): React.ReactElement {
               مهامك الحالية وموقعك المباشر
             </p>
           </div>
-          <a
+          <Link
             href="/BREAKAPP/runner/track"
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             لوحة التتبع
-          </a>
+          </Link>
         </div>
         {!currentUser ? (
           <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">

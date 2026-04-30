@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+
 import compression from "compression";
 import cors from "cors";
 import express from "express";
@@ -369,11 +371,30 @@ export const errorHandler = (
     });
   }
 
+  // إنشاء معرف تتبع فريد لكل خطأ — يُرفق في السجلات وفي الرد للمستخدم
+  const traceId = randomUUID();
+
+  // تسجيل traceId مع الخطأ لتسهيل التشخيص
+  if (statusCode >= 500) {
+    logger.error("Unhandled error:", { ...logPayload, traceId });
+  } else {
+    logger.warn("Request rejected:", {
+      ...logPayload,
+      statusCode,
+      code: errorCode,
+      traceId,
+    });
+  }
+
+  // ضمان Content-Type: application/json دائماً — لا HTML يصل للمستخدم
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+
   // Never expose internal error details to client in production
   res.status(statusCode).json({
     success: false,
     error: getPublicErrorMessage(statusCode),
     ...(errorCode && { code: errorCode }),
+    traceId,
     // Only include error details in development
     ...(env.NODE_ENV === "development" &&
       statusCode === 500 && {

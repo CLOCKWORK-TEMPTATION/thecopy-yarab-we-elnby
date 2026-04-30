@@ -79,7 +79,7 @@ export function useAnalysisMachine(
         dispatch({ type: "SNAPSHOT_LOADED", snapshot: snap });
         if (snap.status === "running") {
           setStreamUrl(
-            `/api/analysis/seven-stations/stream/${encodeURIComponent(snap.analysisId)}`
+            `/api/public/analysis/seven-stations/stream/${encodeURIComponent(snap.analysisId)}`
           );
         }
       } catch (err) {
@@ -117,7 +117,7 @@ export function useAnalysisMachine(
         const { analysisId } = await startAnalysisStream(input);
         dispatch({ type: "SESSION_CREATED", analysisId });
         setStreamUrl(
-          `/api/analysis/seven-stations/stream/${encodeURIComponent(analysisId)}`
+          `/api/public/analysis/seven-stations/stream/${encodeURIComponent(analysisId)}`
         );
       } catch (err) {
         if (err instanceof AuthRequiredError) {

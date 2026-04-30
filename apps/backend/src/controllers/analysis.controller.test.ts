@@ -1,24 +1,40 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { analysisStreamRegistry } from "@/services/analysisStream.registry";
+
 import { AnalysisController } from "./analysis.controller";
 
 import type { Request, Response } from "express";
 
 type MockFn = ReturnType<typeof vi.fn>;
-type MockRequest = Partial<Request> & { user?: { id: string } };
+interface MockRequest {
+  body?: unknown;
+  get?: MockFn;
+  headers?: Record<string, string | string[] | undefined>;
+  ip?: string;
+  socket?: { remoteAddress?: string };
+  user?: { email: string; id: string };
+}
 type MockResponse = Partial<Response> & {
   status: MockFn;
   json: MockFn;
 };
 
-const { mockRunFullPipeline, mockQueueAIAnalysis } = vi.hoisted(() => ({
+const {
+  mockRunFullPipeline,
+  mockRunFullPipelineStreaming,
+  mockQueueAIAnalysis,
+} = vi.hoisted(() => ({
   mockRunFullPipeline: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
+  mockRunFullPipelineStreaming:
+    vi.fn<(...args: unknown[]) => Promise<unknown>>(),
   mockQueueAIAnalysis: vi.fn<(...args: unknown[]) => Promise<unknown>>(),
 }));
 
 vi.mock("@/services/analysis.service", () => ({
   AnalysisService: class MockAnalysisService {
     runFullPipeline = mockRunFullPipeline;
+    runFullPipelineStreaming = mockRunFullPipelineStreaming;
   },
 }));
 
@@ -43,7 +59,7 @@ beforeEach(() => {
   analysisController = new AnalysisController();
   mockRequest = {
     body: {},
-    user: { id: "user-123" },
+    user: { email: "owner@example.com", id: "user-123" },
   };
   mockResponse = {
     status: vi.fn().mockReturnThis(),
@@ -52,7 +68,7 @@ beforeEach(() => {
 });
 
 function asRequest(): Request {
-  return mockRequest as Request;
+  return mockRequest as unknown as Request;
 }
 
 function asResponse(): Response {
@@ -215,5 +231,39 @@ describe("getStationDetails", () => {
     const stations = arrayField(firstJsonPayload(), "stations");
     expect(stations).toHaveLength(7);
     expect(new Set(stations.map(stationId)).size).toBe(7);
+  });
+});
+
+describe("public streaming sessions", () => {
+  it("ينشئ جلسة بث عامة بمالك مشتق من الطلب وليس مالكاً مجهولاً عاماً", () => {
+    mockRunFullPipelineStreaming.mockResolvedValue(undefined);
+    mockRequest.body = {
+      text: "نص عربي طويل للتحقق من جلسة البث العامة",
+      projectName: "اختبار عام",
+    };
+    mockRequest.ip = "203.0.113.15";
+    mockRequest.get = vi.fn((headerName: string) =>
+      headerName.toLowerCase() === "user-agent" ? "vitest-browser" : undefined,
+    );
+
+    analysisController.startPublicStreamSession(asRequest(), asResponse());
+
+    const payload = firstJsonPayload();
+    expect(payload).toMatchObject({ success: true });
+    expect(payload["analysisId"]).toEqual(anyStringMatcher());
+    expect(mockRunFullPipelineStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analysisId: payload["analysisId"],
+        fullText: "نص عربي طويل للتحقق من جلسة البث العامة",
+        projectName: "اختبار عام",
+      }),
+    );
+
+    const snapshot = analysisStreamRegistry.getSnapshot(
+      String(payload["analysisId"]),
+    );
+    expect(snapshot?.metadata["ownerId"]).toMatch(/^public:/);
+    expect(snapshot?.metadata["ownerId"]).not.toBe("anonymous");
+    expect(snapshot?.metadata["ownerId"]).not.toBe("user-123");
   });
 });

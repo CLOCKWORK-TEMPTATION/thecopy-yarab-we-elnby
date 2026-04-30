@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { translateMediaDeviceError } from "../../lib/media-device-errors";
 import { buildTakeInsights, pickSupportedMimeType } from "../../lib/self-tape";
 
 import { RECORDING_MIME_CANDIDATES } from "./constants";
@@ -182,9 +183,13 @@ export function useMediaRecording(options: UseMediaRecordingOptions) {
       setCameraState("ready");
       showNotification("success", "تم تفعيل الكاميرا والميكروفون بنجاح.");
       return stream;
-    } catch {
+    } catch (error) {
+      const cameraFailure = translateMediaDeviceError(error, "camera");
+      const microphoneFailure = translateMediaDeviceError(error, "microphone");
       const errorMessage =
-        "تعذر الوصول إلى الكاميرا أو الميكروفون. تحقق من الأذونات ثم أعد المحاولة.";
+        cameraFailure.status === "error"
+          ? microphoneFailure.message
+          : cameraFailure.message;
       setCameraState("error");
       setCameraError(errorMessage);
       showNotification("error", errorMessage);

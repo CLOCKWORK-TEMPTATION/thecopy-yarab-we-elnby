@@ -74,13 +74,12 @@ const {
 
   return {
     mockAnalysisController: {
-      exportAnalysis: okHandler(),
-      getAnalysisSnapshot: okHandler(),
-      getStationDetails: okHandler(),
-      retryStation: okHandler(),
-      runSevenStationsPipeline: okHandler(),
-      startStreamSession: okHandler(),
-      streamEvents: okHandler(),
+      exportAnalysis: okHandler(), exportPublicAnalysis: okHandler(),
+      getAnalysisSnapshot: okHandler(), getPublicAnalysisSnapshot: okHandler(),
+      getStationDetails: okHandler(), retryStation: okHandler(),
+      retryPublicStation: okHandler(), runSevenStationsPipeline: okHandler(),
+      startPublicStreamSession: okHandler(), startStreamSession: okHandler(),
+      streamEvents: okHandler(), streamPublicEvents: okHandler(),
     },
     mockAppStateController: {
       clearState: okHandler(),
@@ -315,6 +314,32 @@ describe("controllers integration public routes", () => {
 
     expect(response.status).toBe(200);
     expect(response.text).toBe("metrics 1");
+  });
+
+  it("routes public analysis stream start without authentication or csrf", async () => {
+    const response = await request(buildApp())
+      .post("/api/public/analysis/seven-stations/start")
+      .send({ text: "نص عام للتحليل" });
+
+    expect(response.status).toBe(200);
+    expect(bodyOf(response)).toEqual({ success: true });
+    expect(mockAuthMiddleware).not.toHaveBeenCalled();
+    expect(
+      mockAnalysisController.startPublicStreamSession,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes public analysis snapshot without authentication", async () => {
+    const response = await request(buildApp()).get(
+      "/api/public/analysis/seven-stations/analysis-1/snapshot",
+    );
+
+    expect(response.status).toBe(200);
+    expect(bodyOf(response)).toEqual({ success: true });
+    expect(mockAuthMiddleware).not.toHaveBeenCalled();
+    expect(
+      mockAnalysisController.getPublicAnalysisSnapshot,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 

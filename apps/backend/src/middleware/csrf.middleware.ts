@@ -53,6 +53,8 @@ const CSRF_EXEMPT_PATHS = [
   "/health/live",
   "/health/ready",
   "/health/startup",
+  "/healthz",
+  "/readyz",
   "/metrics",
 ];
 

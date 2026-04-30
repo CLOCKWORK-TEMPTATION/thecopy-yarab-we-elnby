@@ -6,7 +6,7 @@
  * - SSE-only streaming (no WebSocket).
  * - Server snapshot is the only source of truth for restored state — no
  *   sessionStorage of analysis results.
- * - Per-station retry, quality badges, warnings, exports (PDF/DOCX/JSON),
+ * - Per-station retry, quality badges, warnings, exports (DOCX/JSON),
  *   relationship graph, full Arabic / RTL.
  */
 
@@ -122,11 +122,20 @@ export default function SevenStationsComponent() {
 
           <RelationshipGraph stations={machine.state.stations} />
 
-          <ExportBar
-            disabled={!machine.allCompleted}
-            formats={machine.state.capabilities.exports}
-            onExport={(f) => void machine.exportAs(f)}
-          />
+          {machine.allCompleted ? (
+            <ExportBar
+              disabled={false}
+              formats={machine.state.capabilities.exports}
+              onExport={(f) => void machine.exportAs(f)}
+            />
+          ) : machine.state.status === "failed" ? (
+            <div
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-right text-sm text-white/70"
+              role="status"
+            >
+              لا توجد نتائج مكتملة قابلة للتصدير بعد.
+            </div>
+          ) : null}
 
           <FinalReport report={machine.state.finalReport} />
         </>

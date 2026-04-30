@@ -22,6 +22,20 @@ function resolveServerBaseUrl(): string {
   return baseUrl.replace(/\/$/, "");
 }
 
+function isRemoteAppStateEnabled(): boolean {
+  const explicitFlag = process.env["NEXT_PUBLIC_ENABLE_REMOTE_APP_STATE"];
+  if (explicitFlag !== undefined) {
+    return explicitFlag === "true";
+  }
+
+  return Boolean(
+    process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"] ??
+      process.env["BACKEND_URL"] ??
+      process.env["NEXT_PUBLIC_BACKEND_URL"] ??
+      process.env["NEXT_PUBLIC_API_URL"]
+  );
+}
+
 function buildAppStateUrl(appId: AppStateId): string {
   const path = `/api/app-state/${appId}`;
 
@@ -68,6 +82,10 @@ async function parseJson<T>(response: Response): Promise<T> {
 export async function loadRemoteAppState<T extends object>(
   appId: AppStateId
 ): Promise<T | null> {
+  if (!isRemoteAppStateEnabled()) {
+    return null;
+  }
+
   const response = await fetch(buildAppStateUrl(appId), {
     method: "GET",
     cache: "no-store",
@@ -86,6 +104,10 @@ export async function persistRemoteAppState<T extends object>(
   appId: AppStateId,
   data: T
 ): Promise<T> {
+  if (!isRemoteAppStateEnabled()) {
+    return data;
+  }
+
   const csrfToken = await ensureCsrfToken();
   const headers = new Headers({
     "Content-Type": "application/json",
@@ -112,6 +134,10 @@ export async function persistRemoteAppState<T extends object>(
 }
 
 export async function clearRemoteAppState(appId: AppStateId): Promise<void> {
+  if (!isRemoteAppStateEnabled()) {
+    return;
+  }
+
   const csrfToken = await ensureCsrfToken();
   const headers = new Headers();
 

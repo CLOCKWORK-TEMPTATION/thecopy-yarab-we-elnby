@@ -19,6 +19,7 @@ interface ScenePartnerProps {
   rehearsing: boolean;
   chatMessages: ChatMessage[];
   userInput: string;
+  partnerStatus: "ready" | "thinking";
   setUserInput: (input: string) => void;
   startRehearsal: () => void;
   sendMessage: () => void;
@@ -29,6 +30,7 @@ export const ScenePartner: React.FC<ScenePartnerProps> = ({
   rehearsing,
   chatMessages,
   userInput,
+  partnerStatus,
   setUserInput,
   startRehearsal,
   sendMessage,
@@ -100,7 +102,10 @@ export const ScenePartner: React.FC<ScenePartnerProps> = ({
                   className="flex-1"
                 />
                 <div className="flex flex-col gap-2">
-                  <Button onClick={sendMessage} disabled={!userInput.trim()}>
+                  <Button
+                    onClick={sendMessage}
+                    disabled={!userInput.trim() || partnerStatus === "thinking"}
+                  >
                     📤 إرسال
                   </Button>
                   <Button variant="outline" onClick={endRehearsal}>

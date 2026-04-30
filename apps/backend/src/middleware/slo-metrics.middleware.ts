@@ -175,6 +175,8 @@ const SLO_WINDOW_MS = 5 * 60 * 1000;
 const LONG_RUNNING_API_PATHS = new Set([
   "/health/ready",
   "/health/detailed",
+  "/healthz",
+  "/readyz",
   "/api/export/pdfa",
   "/api/file-extract",
   "/api/files/extract",
