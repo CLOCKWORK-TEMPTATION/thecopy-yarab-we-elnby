@@ -45,7 +45,10 @@ async function fetchWithAuth(
   });
 
   // Handle 401 Unauthorized - redirect to login
-  if (response.status === 401) {
+  if (response.status === 401 || response.status === 403) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
     throw new Error("غير مصرح - يرجى تسجيل الدخول");
   }
 
