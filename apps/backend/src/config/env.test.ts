@@ -151,6 +151,34 @@ describe("isDevelopment helper", () => {
   });
 });
 
+describe("isProduction helper", () => {
+  it("should return true for production environment", async () => {
+    process.env = createProductionEnv();
+
+    const { isProduction } = await import("./env");
+
+    expect(isProduction).toBe(true);
+  });
+
+  it("should return false for development environment", async () => {
+    process.env.NODE_ENV = "development";
+    delete process.env.JWT_SECRET;
+
+    const { isProduction } = await import("./env");
+
+    expect(isProduction).toBe(false);
+  });
+
+  it("should return false for test environment", async () => {
+    process.env.NODE_ENV = "test";
+    delete process.env.JWT_SECRET;
+
+    const { isProduction } = await import("./env");
+
+    expect(isProduction).toBe(false);
+  });
+});
+
 describe("optional environment variables", () => {
   it("should handle optional GOOGLE_GENAI_API_KEY", async () => {
     process.env = createBaseEnv();
@@ -245,3 +273,101 @@ describe("optional environment variables", () => {
     );
   });
 });
+
+describe("JWT_SECRET_PREVIOUS validation in production", () => {
+  it("should accept valid JWT_SECRET_PREVIOUS in production", async () => {
+    process.env = createProductionEnv({
+      JWT_SECRET_PREVIOUS: crypto.randomBytes(32).toString("hex"),
+    });
+
+    const { env } = await import("./env");
+
+    expect(env.JWT_SECRET_PREVIOUS).toBeDefined();
+    expect(env.JWT_SECRET_PREVIOUS!.length).toBeGreaterThanOrEqual(32);
+  });
+
+  it("should accept multiple previous secrets separated by commas", async () => {
+    const secret1 = crypto.randomBytes(32).toString("hex");
+    const secret2 = crypto.randomBytes(32).toString("hex");
+    process.env = createProductionEnv({
+      JWT_SECRET_PREVIOUS: `${secret1},${secret2}`,
+    });
+
+    const { env } = await import("./env");
+
+    expect(env.JWT_SECRET_PREVIOUS).toBe(`${secret1},${secret2}`);
+  });
+
+  it("should reject JWT_SECRET_PREVIOUS with less than 32 characters in production", async () => {
+    process.env = createProductionEnv({
+      JWT_SECRET_PREVIOUS: "short-secret",
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET_PREVIOUS entries must be at least 32 characters in production",
+    );
+  });
+
+  it("should reject JWT_SECRET_PREVIOUS containing default placeholder values", async () => {
+    process.env = createProductionEnv({
+      JWT_SECRET_PREVIOUS: "dev-secret-CHANGE-THIS-IN-PRODUCTION-minimum-32-chars",
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET_PREVIOUS entries cannot use default placeholder values in production",
+    );
+  });
+
+  it("should reject JWT_SECRET_PREVIOUS when it equals current JWT_SECRET", async () => {
+    const sameSecret = crypto.randomBytes(32).toString("hex");
+    process.env = createProductionEnv({
+      JWT_SECRET: sameSecret,
+      JWT_SECRET_PREVIOUS: sameSecret,
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET_PREVIOUS entries must differ from the active JWT_SECRET",
+    );
+  });
+
+  it("should reject any JWT_SECRET_PREVIOUS entry that equals current JWT_SECRET in a list", async () => {
+    const currentSecret = crypto.randomBytes(32).toString("hex");
+    const validPrevious = crypto.randomBytes(32).toString("hex");
+    process.env = createProductionEnv({
+      JWT_SECRET: currentSecret,
+      JWT_SECRET_PREVIOUS: `${validPrevious},${currentSecret}`,
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET_PREVIOUS entries must differ from the active JWT_SECRET",
+    );
+  });
+});
+
+describe("JWT_SECRET default value validation in production", () => {
+  it("should reject default JWT_SECRET value in production", async () => {
+    process.env = createProductionEnv({
+      JWT_SECRET: "dev-secret-CHANGE-THIS-IN-PRODUCTION-minimum-32-chars",
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET cannot use default value in production. Please set a secure secret.",
+    );
+  });
+
+  it("should reject JWT_SECRET containing CHANGE-THIS placeholder in production", async () => {
+    process.env = createProductionEnv({
+      JWT_SECRET: "my-secret-CHANGE-THIS-NOW-for-security-reasons-123456",
+    });
+
+    await expect(import("./env")).rejects.toThrow(
+      "JWT_SECRET cannot use default value in production. Please set a secure secret.",
+    );
+  });
+});
+
+// Note: Testing "JWT_SECRET missing in production" is skipped because
+// env.ts provides a default value via Zod schema, and the check for
+// !process.env.JWT_SECRET happens after dotenv loading. The actual
+// production validation is covered by the "weak JWT secrets" and
+// "default value" tests above.

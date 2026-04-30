@@ -1,4 +1,5 @@
 import { rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import express from "express";
@@ -24,8 +25,8 @@ interface LocationSearchResponseBody {
 }
 
 const storePath = path.join(
-  process.cwd(),
-  ".tmp-tests",
+  tmpdir(),
+  "the-copy-tests",
   "art-director-routes.test.json",
 );
 
@@ -38,7 +39,7 @@ function createTestApp(): express.Express {
 
 beforeEach(async () => {
   process.env["ART_DIRECTOR_STORE_PATH"] = storePath;
-  await rm(path.dirname(storePath), { recursive: true, force: true });
+  await rm(storePath, { force: true });
   await resetStoreForTests();
 });
 

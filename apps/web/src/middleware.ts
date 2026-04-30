@@ -1,6 +1,6 @@
 /**
 
- * @fileoverview Next.js Proxy — يضيف رؤوس الحماية الأساسية (CSP، HSTS،
+ * @fileoverview Next.js Middleware — يضيف رؤوس الحماية الأساسية (CSP، HSTS،
 
  * X-Frame-Options، X-Content-Type-Options، Referrer-Policy، إلخ).
 
@@ -220,7 +220,7 @@ function collectAllowedConnectOrigins(urls: (string | undefined)[]): string[] {
 
  */
 
-export function proxy(_request: NextRequest) {
+export function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Development mode detection

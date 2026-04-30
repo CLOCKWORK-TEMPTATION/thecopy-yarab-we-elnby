@@ -1,7 +1,7 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "f16df62af02ed258ae50284927a21d9e74dce40b91c948b601d5fa645dadac3c",
+    ".agent-code-memory/manifest.json": "3849baad14dad03a98d10e23ff7095ffcd72241368d4e5dfc786a25b85b76177",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -70,17 +70,17 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "9b52b94666b6bfd178b018ef5a7bb034efc50ad7",
+  "headCommit": "f97de866324e806902fea1350f2587abbfb2c24f",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-29T15:00:13.713Z",
+  "lastBootstrapTimestamp": "2026-04-30T00:53:07.850Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "076c3382e4c9ccfd89e33a2a38edf9175a815914ee0b00dc8cd19663f727fb6a",
-    "output/code-map/code-map.json": "bf1bb6122383d8028f760fda4ad383e1bb5d03dc1624764f90f6b734ba9f8aa2",
-    "output/code-map/CODEMAP.md": "535941cbaaae8292448af243f3e42bcc41f24f809a2b78e62ab075aa10a271ee",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "bae1d4435af796fa69b1e675a150aca827adbb1e3a9f052b062ab4d5a169cdee",
+    "output/code-map/code-map.json": "43785b3fe19e680a75c56d0736d5697c44045006fbbe3f10d8b3147f1b839ee7",
+    "output/code-map/CODEMAP.md": "a7551cc9b25dc128d047b6a89ae964e1a5c684bcc4b8840c54fb97a55cafbea9",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -92,8 +92,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "8ff1e8bb6177c8445fc3d72ebb1151a36f5d86869aa5ed0e2b831783feae10ee",
-    "output/session-state.md": "e9f389d928273532fbc486a94afef479434bed1b309474a39ecb378f62265805"
+    "output/round-notes.md": "d9f9832d272203aa44c7632e02e2012d9a5754c9388be35d00e9c9ec21c85118",
+    "output/session-state.md": "b61113f306518a2446d41ce8215b4408628f7628da20ecd8aa2035fd57d9259f"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +103,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "b16a70fe08b692827374a0b8858ed9cb1d4249adaff4b5771fc396927c5b40f0",
+  "repoFactsHash": "a52bcadf9a2d2318c6ce4959583776e47d60029775e35b76baf29bf327e0501e",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -174,6 +174,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "3af66a2176d4ebe294f641b229fb243071b758fc033f5b8b5e2b029424f4f70f",
-  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  "structuralHash": "1b786d0e64cd09071e582e1706b3d0bffe10fd7c51a0d7049faf7852118753d3",
+  "workingTreeHash": "2d847692bb8054d276fd6e7f04e5e3afa9b179d038c53d1eb5f047a5a31835f6"
 }

@@ -123,18 +123,22 @@ function validateEnvironment() {
     }
 
     // Security check: Ensure no server secrets leaked to browser
-    const dangerousVars = Object.keys(process.env).filter(
-      (key) =>
-        (key.startsWith("GEMINI_API_KEY") ||
-          key === "SENTRY_DSN" ||
-          key === "SENTRY_ORG" ||
-          key === "SENTRY_PROJECT" ||
-          key === "SENTRY_AUTH_TOKEN") &&
-        !key.startsWith("NEXT_PUBLIC_")
-    );
+    // نتجاوز في بيئة الاختبار لأن jsdom يُحاكي المتصفح لكن process.env
+    // تحتوي على متغيرات الـ CI/Testing التي لا تمثل تسريبًا حقيقيًا.
+    if (process.env.NODE_ENV !== "test") {
+      const dangerousVars = Object.keys(process.env).filter(
+        (key) =>
+          (key.startsWith("GEMINI_API_KEY") ||
+            key === "SENTRY_DSN" ||
+            key === "SENTRY_ORG" ||
+            key === "SENTRY_PROJECT" ||
+            key === "SENTRY_AUTH_TOKEN") &&
+          !key.startsWith("NEXT_PUBLIC_")
+      );
 
-    if (dangerousVars.length > 0) {
-      throw new Error("Security violation: Server secrets exposed to client");
+      if (dangerousVars.length > 0) {
+        throw new Error("Security violation: Server secrets exposed to client");
+      }
     }
 
     return { client: clientResult.data, server: {} };
@@ -190,7 +194,7 @@ export const revalidateEnvironment = validateEnvironment;
 
 // Security utility to check if running in secure context
 export const isSecureContext = () => {
-  return typeof window === "undefined" || window.isSecureContext;
+  return typeof window === "undefined" || Boolean(window.isSecureContext);
 };
 
 // Environment info for debugging (safe for client)

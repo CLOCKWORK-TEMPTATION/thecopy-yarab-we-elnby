@@ -5,7 +5,10 @@
  * - رفض body غير JSON بـ 400
  * - رفض body بدون config بـ 400
  * - رفض body بدون input بـ 400
+ * - رفض body فارغ بـ 400
  * - تمرير الطلب الصحيح للـ backend proxy
+ * - معالجة أخطاء الـ proxy بشكل صحيح
+ * - استجابة HEAD تحتوي معلومات الخدمة
  */
 
 import { NextRequest } from "next/server";
@@ -29,7 +32,7 @@ vi.mock("@/lib/server/backend-proxy", () => ({
   getBackendBaseUrl: vi.fn(() => "http://localhost:3001"),
 }));
 
-import { POST } from "../route";
+import { POST, HEAD } from "./route";
 
 // ─── مساعدات ───
 
@@ -133,7 +136,7 @@ describe("POST /api/workflow/execute-custom", () => {
     expect(typeof proxyOptions.body).toBe("string");
   });
 
-  it("يجب أن يمرر config: null كمفقود ويرفض بـ 400", async () => {
+  it("يجب أن يرفض config: null كمفقود بـ 400", async () => {
     const req = createJsonRequest({ config: null, input: "test" });
 
     const response = await POST(req);
@@ -144,5 +147,71 @@ describe("POST /api/workflow/execute-custom", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toContain("config");
+  });
+
+  it("يجب أن يرفض input: null كمفقود بـ 400", async () => {
+    const req = createJsonRequest({ config: { model: "gpt-4" }, input: null });
+
+    const response = await POST(req);
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
+
+    expect(response.status).toBe(400);
+    expect(body.error).toContain("input");
+  });
+
+  it("يجب أن يرفض input: undefined مع config موجود بـ 400", async () => {
+    const req = createJsonRequest({
+      config: { model: "gpt-4" },
+      input: undefined,
+    });
+
+    const response = await POST(req);
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
+
+    expect(response.status).toBe(400);
+    expect(body.error).toContain("input");
+  });
+
+  it("يجب أن يعالج فشل الـ backend proxy بـ 500", async () => {
+    mockProxyToBackend.mockRejectedValue(new Error("Backend unreachable"));
+
+    const req = createJsonRequest({
+      config: { model: "gpt-4" },
+      input: "test",
+    });
+
+    const response = await POST(req);
+    const body = (await response.json()) as {
+      success?: boolean;
+      error?: string;
+    };
+
+    expect(response.status).toBe(500);
+    expect(body.success).toBe(false);
+    expect(body.error).toBeTruthy();
+  });
+});
+
+// ═══ اختبارات HEAD /api/workflow/execute-custom ═══
+
+describe("HEAD /api/workflow/execute-custom", () => {
+  it("تعيد استجابة JSON تحتوي اسم الخدمة وحالة الـ proxy", async () => {
+    const response = HEAD();
+    const body = (await response.json()) as {
+      service?: string;
+      status?: string;
+      backend?: string;
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.service).toBe("Workflow Execute Custom");
+    expect(body.status).toBe("proxied to backend");
+    expect(body.backend).toBe("http://localhost:3001");
   });
 });
