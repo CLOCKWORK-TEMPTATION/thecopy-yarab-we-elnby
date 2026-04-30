@@ -160,13 +160,21 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+async function fetchAnalysisJson<T>(subpath: string): Promise<T> {
+  return getJson<T>(`${ANALYSIS_API_BASE}${subpath}`);
+}
+
+async function postAnalysisJson<T>(subpath: string, body: unknown): Promise<T> {
+  return postJson<T>(`${ANALYSIS_API_BASE}${subpath}`, body);
+}
+
 export async function startAnalysisStream(input: {
   text: string;
   projectId?: string;
   projectName?: string;
 }): Promise<{ analysisId: string }> {
-  const data = await postJson<{ success: true; analysisId: string }>(
-    `${ANALYSIS_API_BASE}/start`,
+  const data = await postAnalysisJson<{ success: true; analysisId: string }>(
+    "/start",
     input
   );
   return { analysisId: data.analysisId };
@@ -175,8 +183,8 @@ export async function startAnalysisStream(input: {
 export async function fetchAnalysisSnapshot(
   analysisId: string
 ): Promise<AnalysisSnapshot> {
-  const data = await getJson<{ success: true; snapshot: AnalysisSnapshot }>(
-    `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/snapshot`
+  const data = await fetchAnalysisJson<{ success: true; snapshot: AnalysisSnapshot }>(
+    `/${encodeURIComponent(analysisId)}/snapshot`
   );
   return data.snapshot;
 }
@@ -186,12 +194,12 @@ export async function retryStation(
   stationId: StationId,
   text: string
 ): Promise<unknown> {
-  const data = await postJson<{
+  const data = await postAnalysisJson<{
     success: true;
     stationId: number;
     output: unknown;
   }>(
-    `${ANALYSIS_API_BASE}/${encodeURIComponent(analysisId)}/retry/${stationId}`,
+    `/${encodeURIComponent(analysisId)}/retry/${stationId}`,
     { text }
   );
   return data.output;

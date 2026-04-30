@@ -20,7 +20,7 @@ export interface PersistedAppState {
 
 const VALID_VIEWS: ViewType[] = [
   "home",
-  "demo",
+  "studio",
   "dashboard",
   "login",
   "register",

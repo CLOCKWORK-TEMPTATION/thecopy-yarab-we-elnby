@@ -43,6 +43,80 @@ beforeEach(async () => {
   await resetStoreForTests();
 });
 
+describe("productivity routes", () => {
+  it("GET /productivity/summary يعيد بيانات الرسوم البيانية", async () => {
+    const response = await request(createTestApp()).get(
+      "/api/art-director/productivity/summary",
+    );
+    const body = response.body as unknown as {
+      success: boolean;
+      data: { chartData: unknown[]; pieData: unknown[] };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data.chartData)).toBe(true);
+    expect(Array.isArray(body.data.pieData)).toBe(true);
+  });
+
+  it("POST /analyze/productivity يعيد تحليل الإنتاجية", async () => {
+    const response = await request(createTestApp())
+      .post("/api/art-director/analyze/productivity")
+      .send({ department: "design", period: "weekly" });
+    const body = response.body as unknown as {
+      success: boolean;
+      data: { period: string };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.period).toBe("weekly");
+  });
+
+  it("POST /productivity/recommendations يعيد توصيات", async () => {
+    const response = await request(createTestApp()).post(
+      "/api/art-director/productivity/recommendations",
+    );
+    const body = response.body as unknown as {
+      success: boolean;
+      data: { recommendations: string[] };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data.recommendations)).toBe(true);
+    expect(body.data.recommendations.length).toBeGreaterThan(0);
+  });
+
+  it("POST /productivity/log-time يسجل وقتًا جديدًا", async () => {
+    const response = await request(createTestApp())
+      .post("/api/art-director/productivity/log-time")
+      .send({ task: "تصميم لوحة إعلانية", hours: 3, category: "design" });
+    const body = response.body as unknown as {
+      success: boolean;
+      data: { entry: { taskName: string } };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.entry.taskName).toBe("تصميم لوحة إعلانية");
+  });
+
+  it("POST /productivity/report-delay يسجل تأخيرًا جديدًا", async () => {
+    const response = await request(createTestApp())
+      .post("/api/art-director/productivity/report-delay")
+      .send({ reason: "عطل تقني", hoursLost: 2, impact: "high" });
+    const body = response.body as unknown as {
+      success: boolean;
+      data: { delay: { reason: string } };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.delay.reason).toBe("عطل تقني");
+  });
+});
+
 describe("art-director routes", () => {
   it("يعيد قائمة الأدوات عبر المسار الرسمي للباك إند", async () => {
     const response = await request(createTestApp()).get(

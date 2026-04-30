@@ -8,7 +8,7 @@
  */
 export type ViewType =
   | "home"
-  | "demo"
+  | "studio"
   | "dashboard"
   | "login"
   | "register"

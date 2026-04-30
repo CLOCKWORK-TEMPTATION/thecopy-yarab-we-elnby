@@ -12,7 +12,7 @@
  * دون الحاجة لإعادة تحميل الصفحة أو العودة لقائمة الطلبات.
  */
 
-import { api, type Order, type MenuItem } from "@the-copy/breakapp";
+import { fetchBreakappJson, patchBreakappJson, type Order, type MenuItem } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -222,8 +222,8 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
     }
     setLoading(true);
     try {
-      const response = await api.get<OrderWithDetails>(`/orders/${orderId}`);
-      setOrder(response.data);
+      const data = await fetchBreakappJson<OrderWithDetails>(`/orders/${orderId}`);
+      setOrder(data);
     } catch (error: unknown) {
       const axiosError = error as { message?: string };
       toast({
@@ -283,7 +283,7 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
     if (order?.status !== "pending") return;
     setCancelling(true);
     try {
-      await api.patch(`/orders/${order.id}/status`, { status: "cancelled" });
+      await patchBreakappJson(`/orders/${order.id}/status`, { status: "cancelled" });
       setOrder((prev: OrderWithDetails | null): OrderWithDetails | null =>
         prev ? { ...prev, status: "cancelled" } : prev
       );

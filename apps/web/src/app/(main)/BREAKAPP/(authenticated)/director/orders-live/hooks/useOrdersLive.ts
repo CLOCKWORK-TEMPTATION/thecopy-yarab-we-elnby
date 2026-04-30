@@ -1,5 +1,5 @@
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { api } from "@the-copy/breakapp/lib/auth";
+import { fetchBreakappJson, postBreakappJson, patchBreakappJson } from "@the-copy/breakapp";
 import {
   useState,
   useEffect,
@@ -74,42 +74,40 @@ async function fetchOrdersFromApi(
 ): Promise<LiveOrder[]> {
   const params: Record<string, string> = {};
   if (statusFilter !== "all") params["status"] = statusFilter;
-  const res = await api.get<LiveOrder[]>(
+  return fetchBreakappJson<LiveOrder[]>(
     `/breakapp/orders/session/${sessionId}`,
-    Object.keys(params).length > 0 ? { params } : {}
+    Object.keys(params).length > 0 ? { params } : undefined
   );
-  return res.data;
 }
 
 async function fetchRunnersFromApi(
   sessionId: string
 ): Promise<AvailableRunner[]> {
-  const res = await api.get<RunnerPayload[]>(
+  const data = await fetchBreakappJson<RunnerPayload[]>(
     `/breakapp/runners/session/${sessionId}`
   );
-  return res.data.map(mapRunnerPayload);
+  return data.map(mapRunnerPayload);
 }
 
 async function runBatchingApi(sessionId: string): Promise<BatchVendorResult[]> {
-  const res = await api.post<BatchVendorResult[]>(
+  return postBreakappJson<BatchVendorResult[]>(
     `/breakapp/orders/session/${sessionId}/batch`,
     {}
   );
-  return res.data;
 }
 
 async function updateOrderStatusApi(
   orderId: string,
   status: Order["status"]
 ): Promise<void> {
-  await api.patch(`/breakapp/orders/${orderId}/status`, { status });
+  await patchBreakappJson(`/breakapp/orders/${orderId}/status`, { status });
 }
 
 async function assignRunnerApi(
   orderId: string,
   runnerId: string
 ): Promise<void> {
-  await api.patch(`/breakapp/orders/${orderId}/status`, {
+  await patchBreakappJson(`/breakapp/orders/${orderId}/status`, {
     status: "processing",
     runnerId,
   });

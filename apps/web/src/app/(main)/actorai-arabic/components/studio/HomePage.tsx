@@ -22,7 +22,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => (
       <div className="flex gap-4 justify-center mb-12 flex-wrap">
         <Button
           size="lg"
-          onClick={() => onNavigate("demo")}
+          onClick={() => onNavigate("studio")}
           className="bg-blue-600 hover:bg-blue-700"
         >
           🎬 جرب التطبيق

@@ -24,14 +24,21 @@ export type {
   DeliveryTask,
   ApiError,
   ApiResponse,
-} from './lib/types';
+} from "./lib/types";
 
 export {
   JWTPayloadSchema,
   QRTokenSchema,
   AuthResponseSchema,
   ScanQRRequestSchema,
-} from './lib/types';
+} from "./lib/types";
+
+// ── API client helpers ───────────────────────────────────────────────────────
+export {
+  fetchBreakappJson,
+  postBreakappJson,
+  patchBreakappJson,
+} from "./lib/api-client";
 
 // ── Auth / API utilities ─────────────────────────────────────────────────────
 export {
@@ -44,16 +51,17 @@ export {
   verifyToken,
   generateDeviceHash,
   refreshAccessToken,
+  ensureAuthenticated,
   getTokenExpiryMs,
   logout,
   api,
-} from './lib/auth';
+} from "./lib/auth";
 
-export type { UserRole } from './lib/roles';
+export type { UserRole } from "./lib/roles";
 export {
   ROLE_PERMISSIONS,
   canAccessPath,
   getDefaultRedirect,
   getRoleLabel,
   isValidRole,
-} from './lib/roles';
+} from "./lib/roles";

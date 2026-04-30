@@ -49,7 +49,7 @@ describe("AppContext", () => {
       return (
         <div>
           <span data-testid="view">{currentView}</span>
-          <button onClick={() => navigate("demo")}>go</button>
+          <button onClick={() => navigate("studio")}>go</button>
         </div>
       );
     }
@@ -57,7 +57,7 @@ describe("AppContext", () => {
     renderWithApp(<Nav />);
     expect(screen.getByTestId("view")).toHaveTextContent("home");
     fireEvent.click(screen.getByText("go"));
-    expect(screen.getByTestId("view")).toHaveTextContent("demo");
+    expect(screen.getByTestId("view")).toHaveTextContent("studio");
   });
 
   it("يبدل السمة بين الفاتحة والداكنة", () => {
@@ -139,7 +139,7 @@ describe("AppHeader", () => {
     renderWithApp(<AppHeader />);
     expect(screen.getByText("الممثل الذكي")).toBeInTheDocument();
     expect(screen.getByText(/الرئيسية/)).toBeInTheDocument();
-    expect(screen.getByText(/التجربة/)).toBeInTheDocument();
+    expect(screen.getByText(/الاستوديو/)).toBeInTheDocument();
   });
 
   it("يعرض أزرار تسجيل الدخول والتسجيل للزائر", () => {

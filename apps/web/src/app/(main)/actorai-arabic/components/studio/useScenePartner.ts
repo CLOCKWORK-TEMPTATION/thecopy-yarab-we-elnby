@@ -1,7 +1,5 @@
 import { useState, useCallback, useRef } from "react";
 
-import { buildScenePartnerReply } from "../../lib/studio-engines";
-
 import type { ChatMessage } from "../../types";
 
 export const useScenePartner = () => {
@@ -38,18 +36,38 @@ export const useScenePartner = () => {
     setChatMessages((prev) => [...prev, newMessage, typingMessage]);
     setUserInput("");
 
-    setTimeout(() => {
-      setChatMessages((prev) => {
-        const withoutTyping = prev.filter((message) => !message.typing);
-        const aiResponse: ChatMessage = {
-          role: "ai",
-          text: buildScenePartnerReply(withoutTyping, trimmedInput),
-        };
-        return [...withoutTyping, aiResponse];
+    const currentMessages = [...chatMessages, newMessage];
+
+    fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: trimmedInput,
+        context: { previousMessages: currentMessages, character: "ليلى" },
+      }),
+    })
+      .then((res) => res.json())
+      .then((payload: { data?: { response?: string } }) => {
+        const replyText =
+          payload?.data?.response ?? "تعذر الاتصال بمساعد المشهد.";
+        setChatMessages((prev) => {
+          const withoutTyping = prev.filter((message) => !message.typing);
+          return [...withoutTyping, { role: "ai", text: replyText }];
+        });
+      })
+      .catch(() => {
+        setChatMessages((prev) => {
+          const withoutTyping = prev.filter((message) => !message.typing);
+          return [
+            ...withoutTyping,
+            { role: "ai", text: "تعذر الاتصال بمساعد المشهد." },
+          ];
+        });
+      })
+      .finally(() => {
+        setPartnerStatus("ready");
       });
-      setPartnerStatus("ready");
-    }, 600);
-  }, [partnerStatus, userInput]);
+  }, [chatMessages, partnerStatus, userInput]);
 
   const endRehearsal = useCallback(() => {
     setRehearsing(false);

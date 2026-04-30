@@ -3,12 +3,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useScenePartner } from "./useScenePartner";
 
+function mockFetch(response: string) {
+  vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+    json: () =>
+      Promise.resolve({ data: { response, timestamp: new Date().toISOString() } }),
+    ok: true,
+  } as Response);
+}
+
 describe("useScenePartner", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.restoreAllMocks();
   });
 
-  it("responds to every user turn and exposes a loading state", () => {
+  it("responds to every user turn and exposes a loading state", async () => {
+    mockFetch("أنا أصدقك يا عزيزي، لكن الأفعال تتحدث أكثر من الكلام");
+
     const { result } = renderHook(() => useScenePartner());
 
     act(() => result.current.startRehearsal());
@@ -19,18 +29,21 @@ describe("useScenePartner", () => {
     expect(result.current.chatMessages.at(-1)?.role).toBe("ai");
     expect(result.current.chatMessages.at(-1)?.typing).toBe(true);
 
-    act(() => {
-      vi.advanceTimersByTime(650);
+    await act(async () => {
+      await Promise.resolve();
     });
 
     expect(result.current.partnerStatus).toBe("ready");
     expect(result.current.chatMessages.at(-1)?.role).toBe("ai");
     expect(result.current.chatMessages.at(-1)?.typing).toBeFalsy();
 
+    mockFetch("الوعد وحده لا يكفي، أريد أن أرى التغيير بنفسي");
+
     act(() => result.current.setUserInput("أعدك أنني لن أرحل."));
     act(() => result.current.sendMessage());
-    act(() => {
-      vi.advanceTimersByTime(650);
+
+    await act(async () => {
+      await Promise.resolve();
     });
 
     const aiReplies = result.current.chatMessages.filter(

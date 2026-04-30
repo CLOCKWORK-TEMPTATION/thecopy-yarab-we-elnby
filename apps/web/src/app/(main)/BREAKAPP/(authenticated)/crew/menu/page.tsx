@@ -12,7 +12,8 @@
  */
 
 import {
-  api,
+  fetchBreakappJson,
+  postBreakappJson,
   getCurrentUser,
   type MenuItem,
   type OrderItem,
@@ -315,8 +316,8 @@ export default function CrewMenuPage() {
 
   const fetchMyOrders = useCallback(async (): Promise<void> => {
     try {
-      const res = await api.get<Order[]>("/orders/my-orders");
-      setMyOrders(res.data);
+      const data = await fetchBreakappJson<Order[]>("/orders/my-orders");
+      setMyOrders(data);
     } catch (error: unknown) {
       const e = error as { message?: string };
       toast({
@@ -330,8 +331,8 @@ export default function CrewMenuPage() {
   useEffect(() => {
     const loadVendors = async () => {
       try {
-        const res = await api.get<Vendor[]>("/vendors");
-        setVendors(res.data);
+        const data = await fetchBreakappJson<Vendor[]>("/vendors");
+        setVendors(data);
       } catch (error: unknown) {
         const e = error as { message?: string };
         toast({
@@ -371,8 +372,8 @@ export default function CrewMenuPage() {
   const fetchMenu = useCallback(async (vendorId: string): Promise<void> => {
     setLoading(true);
     try {
-      const res = await api.get<MenuItem[]>(`/vendors/${vendorId}/menu`);
-      setMenuItems(res.data);
+      const data = await fetchBreakappJson<MenuItem[]>(`/vendors/${vendorId}/menu`);
+      setMenuItems(data);
       setSelectedVendor(vendorId);
     } catch (error: unknown) {
       const e = error as { message?: string };
@@ -399,7 +400,7 @@ export default function CrewMenuPage() {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser) throw new Error("الجلسة غير صالحة. أعد تسجيل الدخول.");
-      await api.post("/orders", {
+      await postBreakappJson("/orders", {
         sessionId,
         userHash: currentUser.userId,
         items: cart,

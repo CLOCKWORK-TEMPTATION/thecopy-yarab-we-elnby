@@ -441,7 +441,7 @@ function RecordingTab({
 
 // ─── Main component ───
 
-export function DemoView() {
+export function StudioView() {
   const { showNotification, addRecording } = useApp();
 
   const [scriptText, setScriptText] = useState("");
