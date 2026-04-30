@@ -202,7 +202,7 @@ export const getSpacingMarginTop = (
 
   // خاصية default لـ basmala
   if (previousFormat === "basmala" && !rulesForPrev[currentFormat]) {
-    return rulesForPrev.default ?? "0";
+    return rulesForPrev["default"] ?? "0";
   }
 
   return rulesForPrev[currentFormat] ?? "";

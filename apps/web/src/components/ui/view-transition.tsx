@@ -22,12 +22,14 @@ interface ViewTransitionProps {
   className?: string;
 }
 
+type ViewTransitionCallback = () => void | Promise<void>;
+
 export function ViewTransition({ children, className }: ViewTransitionProps) {
   const [displayChildren, setDisplayChildren] = React.useState(children);
   const [isTransitioning, setIsTransitioning] = React.useState(false);
 
   type ViewTransitionDocument = Document & {
-    startViewTransition?: (callback: () => void) => {
+    startViewTransition?: (callback: () => Promise<void>) => {
       finished: Promise<void>;
     };
   };
@@ -41,9 +43,11 @@ export function ViewTransition({ children, className }: ViewTransitionProps) {
 
       const doc = document as ViewTransitionDocument;
       if (doc.startViewTransition) {
-        const transition = doc.startViewTransition(() => {
+        const updateChildren = (): Promise<void> => {
           setDisplayChildren(children);
-        });
+          return Promise.resolve();
+        };
+        const transition = doc.startViewTransition(updateChildren);
         transition.finished
           .finally(() => {
             setIsTransitioning(false);
@@ -81,20 +85,26 @@ export function ViewTransition({ children, className }: ViewTransitionProps) {
  */
 export function useViewTransition() {
   type ViewTransitionDocument = Document & {
-    startViewTransition?: (callback: () => void) => {
+    startViewTransition?: (callback: () => Promise<void>) => {
       finished: Promise<void>;
     };
   };
 
-  return React.useCallback((callback: () => void) => {
+  return React.useCallback((callback: ViewTransitionCallback) => {
     const doc = document as ViewTransitionDocument;
+    const runUpdate = async (): Promise<void> => {
+      await callback();
+    };
+
     if ("startViewTransition" in document && doc.startViewTransition) {
-      const transition = doc.startViewTransition(callback);
+      const transition = doc.startViewTransition(runUpdate);
       transition.finished.catch(() => {
         // الانتقال البصري اختياري ولا يجب أن يعطل التحديث الأصلي.
       });
     } else {
-      callback();
+      void runUpdate().catch(() => {
+        // الانتقال البصري اختياري ولا يجب أن يعطل التحديث الأصلي.
+      });
     }
   }, []);
 }
