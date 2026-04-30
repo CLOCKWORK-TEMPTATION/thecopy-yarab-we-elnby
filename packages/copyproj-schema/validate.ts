@@ -9,6 +9,12 @@
 
 import { z } from "zod";
 
+const cryptoApi = (globalThis as { crypto?: { randomUUID(): string } }).crypto;
+function randomUUID(): string {
+  if (cryptoApi) return cryptoApi.randomUUID();
+  throw new Error("Web Crypto API is unavailable in this runtime");
+}
+
 // ============================================================
 // الأنواع الجزئية المشتركة
 // ============================================================
@@ -216,7 +222,7 @@ export function createEmptyCopyproj(
   const now = new Date().toISOString();
   return {
     "schema-version": SUPPORTED_SCHEMA_VERSION,
-    id: globalThis.crypto.randomUUID(),
+    id: randomUUID(),
     title,
     createdAt: now,
     updatedAt: now,
