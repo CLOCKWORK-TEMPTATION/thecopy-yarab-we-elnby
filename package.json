@@ -159,7 +159,7 @@
     "agent:memory:status": "tsx scripts/agent/code-memory-status.ts",
     "agent:memory:verify": "tsx scripts/agent/code-memory-verify.ts",
     "agent:memory:watch": "tsx scripts/agent/code-memory-watch.ts",
-    "build": "turbo build",
+    "build": "turbo build --concurrency=1",
     "dev": "pnpm --filter @the-copy/web dev",
     "dev:watch": "echo 'dev:watch requires a local DOCCCCS install – see README' && exit 1",
     "dev:all": "turbo dev --filter=@the-copy/web --filter=@the-copy/backend",

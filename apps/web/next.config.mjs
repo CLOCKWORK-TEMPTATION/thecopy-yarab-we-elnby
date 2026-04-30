@@ -202,14 +202,13 @@ const nextConfig = {
             value: "strict-origin-when-cross-origin",
           },
           {
-            // Permissions-Policy: السماح لنفس الـ origin فقط بالوصول إلى الكاميرا والموقع
-            // السبب: مسار BreakApp QR login يحتاج getUserMedia للكاميرا، وخريطة BreakApp تحتاج geolocation
-            // الحظر السابق "camera=()" كان يمنع تشغيل الكاميرا نهائياً في الإنتاج — السبب الجذري للعطل
-            // الصيغة "(self)" تسمح للـ origin الحالي فقط، وتمنع أي iframe خارجي من الاستفادة
+            // Permissions-Policy: allow same-origin media and geolocation only.
+            // BreakApp needs camera/geolocation, and ActorAI Arabic needs microphone.
+            // "(self)" keeps third-party iframes blocked while preserving live tools.
             key: "Permissions-Policy",
             value: [
               "camera=(self)",
-              "microphone=()",
+              "microphone=(self)",
               "geolocation=(self)",
               "interest-cohort=()",
               "payment=()",

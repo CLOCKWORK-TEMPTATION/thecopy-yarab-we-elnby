@@ -32,6 +32,19 @@ describe("app-state-client remote fallback", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("does not treat the generic backend URL as remote app-state configuration", async () => {
+    vi.stubEnv("NEXT_PUBLIC_BACKEND_URL", "http://localhost:3001");
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockRejectedValue(new Error("network should not be used"));
+
+    await expect(loadRemoteAppState(APP_ID)).resolves.toBeNull();
+    await expect(persistRemoteAppState(APP_ID, { currentView: "demo" }))
+      .resolves.toEqual({ currentView: "demo" });
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("uses the configured remote endpoint when explicitly enabled", async () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_REMOTE_APP_STATE", "true");
     vi.stubEnv("NEXT_PUBLIC_APP_STATE_BASE_URL", "https://state.example.test");

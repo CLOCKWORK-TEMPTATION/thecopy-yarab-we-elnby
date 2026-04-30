@@ -28,12 +28,7 @@ function isRemoteAppStateEnabled(): boolean {
     return explicitFlag === "true";
   }
 
-  return Boolean(
-    process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"] ??
-      process.env["BACKEND_URL"] ??
-      process.env["NEXT_PUBLIC_BACKEND_URL"] ??
-      process.env["NEXT_PUBLIC_API_URL"]
-  );
+  return Boolean(process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"]);
 }
 
 function buildAppStateUrl(appId: AppStateId): string {

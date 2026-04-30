@@ -8,11 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-30T04:13:48.000Z |
+| آخر مزامنة مرجعية | 2026-04-30T05:20:27.621Z |
 | الفرع الحالي | `codex/e2e-production-readiness` |
-| آخر commit | `332a6b9e1f0ef28c65b2c2f22193ac935323a100` |
-| حالة working tree | غير نظيفة — 80 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر commit | `4ed07c202edc883959e0d960888eb2b86fad94cd` |
+| حالة working tree | غير نظيفة — 18 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -66,8 +66,8 @@ backend: 3001
 ### الحزم الأساسية
 
 - `@the-copy/breakapp` — `packages/breakapp`
+- `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
-- `@the-copy/copyproj-schema` — `packages/copyproj-schema` ← **جديدة (M2.2)**
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
 - `@the-copy/tsconfig` — `packages/tsconfig`
 
@@ -236,15 +236,15 @@ AGENTS.md
 
 - الملفات:
 
-`2613`
+`2614`
 
 - القطع:
 
-`5545`
+`5547`
 
 - القطع ذات التضمين:
 
-`5545`
+`5547`
 
 - التغطية:
 
@@ -261,9 +261,8 @@ Code memory is current.
 
 ## ما تغيّر منذ آخر بصمة
 
-- تغيرت الملفات البنيوية الحرجة
+- لا يوجد drift مؤثر
 
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
-- `packages/copyproj-schema` يحتاج تحقق من إدراجه في `pnpm-workspace.yaml`

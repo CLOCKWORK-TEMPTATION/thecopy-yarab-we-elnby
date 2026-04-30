@@ -550,7 +550,10 @@ export function useSelfTapeSuite(options: UseSelfTapeSuiteOptions) {
       anchor.href = downloadUrl;
       anchor.download = fileName;
       anchor.rel = "noopener";
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
       anchor.click();
+      anchor.remove();
 
       setExportProgress(100);
       setTakes((previous) =>

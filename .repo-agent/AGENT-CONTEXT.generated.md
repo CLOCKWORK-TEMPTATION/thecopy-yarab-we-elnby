@@ -4,11 +4,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-30T04:11:06.297Z |
+| آخر مزامنة مرجعية | 2026-04-30T05:20:27.621Z |
 | الفرع الحالي | `codex/e2e-production-readiness` |
-| آخر commit | `332a6b9e1f0ef28c65b2c2f22193ac935323a100` |
-| حالة الشجرة | غير نظيفة — 80 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر commit | `4ed07c202edc883959e0d960888eb2b86fad94cd` |
+| حالة الشجرة | غير نظيفة — 18 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## المرجع الحاكم
 
@@ -59,6 +59,7 @@ backend: 3001
 - `@the-copy/web` — `apps/web`
 
 - `@the-copy/breakapp` — `packages/breakapp`
+- `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
 - `@the-copy/tsconfig` — `packages/tsconfig`
@@ -209,15 +210,15 @@ backend: 3001
 
 - الملفات:
 
-`2613`
+`2614`
 
 - القطع:
 
-`5545`
+`5547`
 
 - القطع ذات التضمين:
 
-`5545`
+`5547`
 
 - التغطية:
 

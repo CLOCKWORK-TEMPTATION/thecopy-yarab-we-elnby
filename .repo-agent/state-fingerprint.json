@@ -1,7 +1,7 @@
 {
   "branch": "codex/e2e-production-readiness",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "66625f9d2be45009e13464c666e1a24a1282ef15498e9cc5cff8d6682445d9d7",
+    ".agent-code-memory/manifest.json": "0360e10d07392b550615e072a68e3537b0dba1da84232c247da08eed812c2add",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -40,8 +40,9 @@
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "191196ad297d1de448d843d8b0373bf19abfd5a80b66c53229bd25645dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
-    "package.json": "b58a2d3e3b2c1e0f268c09d7c2035e653b781226b9fd547766f6d9428bf6d0a9",
+    "package.json": "64b32f939bb13dec590e23359695bb061087ff7a4d3ceff9fb900969051bb811",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
+    "packages/copyproj-schema/package.json": "41d05a053d60f305cda9877b31c19a15b0cefc5af47953d9f3f91043c5197270",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
     "packages/core-memory/src/types.ts": "fc7881473489a8ebb1ceaceab0ce528e2e8ba7c0793223f3856c6a58cf237dc0",
@@ -66,21 +67,21 @@
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "hard-drift",
+  "driftLevel": "no-drift",
   "driftReasons": [
-    "تغيرت الملفات البنيوية الحرجة"
+    "لا يوجد drift مؤثر"
   ],
-  "headCommit": "332a6b9e1f0ef28c65b2c2f22193ac935323a100",
+  "headCommit": "4ed07c202edc883959e0d960888eb2b86fad94cd",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-30T04:11:06.297Z",
+  "lastBootstrapTimestamp": "2026-04-30T05:20:27.621Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "ff9b209aa871d83423d79334e3ef0a0fa4e83f027927312fc4b436a02718e151",
-    "output/code-map/code-map.json": "bb3dc3314438dfb72f870f9e6f911eb03d089e3322e6799e743501e5af985ca1",
-    "output/code-map/CODEMAP.md": "0fe7f8eb5a04ebb15db4199f81be28477739edd1f61927020e8dab561cae921e",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "8d70568346b1f6782e7d9439440b6e1fcb0ce1ca83569c943739d6ee0316f6ba",
+    "output/code-map/code-map.json": "4e897160de5d157fb14c4b742753ea7a13ae12caf1707c6f5ca636a1989e7719",
+    "output/code-map/CODEMAP.md": "c6eed5093f3a1de47ddb98e4c7d2b7194120c15ee2af12feb7f0b0af18a18036",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -92,8 +93,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "49ab12caddb982c1fc3e5467e4a07ca02e7a8c7b97cb3f77c2cb249343ed0c6a",
-    "output/session-state.md": "3bc2aeada2592e396e1993b4c0dcb906569fd2a06f806bec2e86aaad27cf0c95"
+    "output/round-notes.md": "81c8acbe9ef637bb9bfedddfcc942d9b91685dc39fd4fab8bec9b52e2dd4f926",
+    "output/session-state.md": "1a42db01342d28c0c96cf5d6ea112dc5d327699bfb2d3c2837aabd97a1b30972"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +104,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "235c634bcee54276ff7628710da64c04708bf6c14ac563f977fd29d08aa2ad35",
+  "repoFactsHash": "e7cc7eb9cd852905c8eca3088ad72409a5c523068f465a6893833115f837c0b9",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -148,6 +149,7 @@
     "apps/web/src/lib/drama-analyst/services/ragService.ts",
     "package.json",
     "packages/breakapp/package.json",
+    "packages/copyproj-schema/package.json",
     "packages/core-memory/package.json",
     "packages/core-memory/src/chunking/semanticChunker.ts",
     "packages/core-memory/src/types.ts",
@@ -174,6 +176,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "370cc2aa2283cc4dc98eef0c415fc439672c72a46493cfe84b435d610f8b123d",
-  "workingTreeHash": "fd799e940cf97266e544f2bd58e8c3fc5fb8c5315f8ef506e8e735adb040d2d0"
+  "structuralHash": "bbe6db8fe2e36d9eb8f30896ebb4964f3ffae6749c0635a64327322018dff427",
+  "workingTreeHash": "fba822009b38aa41671bd612afc46a5daa3954c64a506225ca5d3eb09d99a45c"
 }

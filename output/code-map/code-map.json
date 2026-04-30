@@ -43,6 +43,10 @@
       "path": "packages/breakapp"
     },
     {
+      "name": "@the-copy/copyproj-schema",
+      "path": "packages/copyproj-schema"
+    },
+    {
       "name": "@the-copy/core-memory",
       "path": "packages/core-memory"
     },
@@ -793,10 +797,10 @@
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-04-30T04:11:05.537Z",
-    "totalFiles": 2613,
-    "totalChunks": 5545,
-    "embeddedChunks": 5545,
+    "generatedAt": "2026-04-30T04:40:55.510Z",
+    "totalFiles": 2614,
+    "totalChunks": 5547,
+    "embeddedChunks": 5547,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,

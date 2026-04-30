@@ -47,6 +47,7 @@ pnpm workspace:embed
 ## الحزم الأساسية
 
 - `@the-copy/breakapp` — `packages/breakapp`
+- `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
 - `@the-copy/tsconfig` — `packages/tsconfig`
@@ -128,6 +129,6 @@ output/session-state.md
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `2613`
-- القطع: `5545`
+- الملفات: `2614`
+- القطع: `5547`
 - التغطية: `100.0%`

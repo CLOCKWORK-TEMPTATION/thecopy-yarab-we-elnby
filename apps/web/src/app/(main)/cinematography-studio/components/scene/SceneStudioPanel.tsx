@@ -125,12 +125,15 @@ function ScenePreview({ scene, forceWebGLUnavailable }: ScenePreviewProps) {
     >
       {webglAvailable ? (
         <Canvas
+          className="h-[360px] w-full"
           camera={{
             position: scene.camera.position,
             fov: Math.max(18, Math.min(72, 80 - scene.camera.focalLength / 3)),
           }}
           dpr={[1, 1.5]}
+          gl={{ antialias: true, preserveDrawingBuffer: true }}
         >
+          <color attach="background" args={["#121212"]} />
           <SceneGeometry scene={scene} />
         </Canvas>
       ) : (
