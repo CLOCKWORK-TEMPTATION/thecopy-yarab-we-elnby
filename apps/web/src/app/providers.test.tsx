@@ -93,4 +93,25 @@ describe("Providers", () => {
     expect(snapshot.localStorageKeys).toContain("diagnostics-key");
     expect(JSON.stringify(snapshot)).not.toContain("secret-value");
   });
+
+  it("يفتح التشخيص الداخلي من معامل الرابط ويحفظ التفعيل للجلسات اللاحقة", async () => {
+    window.history.replaceState({}, "", "/directors-studio?e2eDiagnostics=1");
+
+    render(
+      <Providers>
+        <div>جاهز</div>
+      </Providers>
+    );
+
+    await waitFor(() => {
+      expect(
+        (
+          window as Window & {
+            __THE_COPY_E2E_DIAGNOSTICS__?: unknown;
+          }
+        ).__THE_COPY_E2E_DIAGNOSTICS__
+      ).toBeDefined();
+      expect(window.localStorage.getItem("the-copy:e2e-diagnostics")).toBe("1");
+    });
+  });
 });

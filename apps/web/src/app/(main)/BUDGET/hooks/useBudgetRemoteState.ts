@@ -7,6 +7,10 @@ import {
   persistRemoteAppState,
 } from "@/lib/app-state-client";
 
+import {
+  loadBudgetFromLocalStorage,
+  saveBudgetToLocalStorage,
+} from "../lib/budget-local-storage";
 import { BUDGET_APP_STATE_ID } from "../lib/budget-page-utils";
 
 import type {
@@ -16,12 +20,31 @@ import type {
   BudgetRuntimeMeta,
 } from "../types";
 
+const REMOTE_STATE_TIMEOUT_MS = 5000;
+
 interface BudgetRemoteStateConfig {
   setTitle: (title: string) => void;
   setScenario: (scenario: string) => void;
   setBudget: (budget: BudgetDocument | null) => void;
   setAnalysis: (analysis: BudgetAnalysis | null) => void;
   setRuntimeMeta: (meta: BudgetRuntimeMeta | null) => void;
+}
+
+async function loadRemoteWithTimeout<T extends object>(
+  appId: typeof BUDGET_APP_STATE_ID,
+): Promise<T | null> {
+  const timeout = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), REMOTE_STATE_TIMEOUT_MS),
+  );
+  try {
+    const result = await Promise.race([
+      loadRemoteAppState<T>(appId).catch(() => null),
+      timeout,
+    ]);
+    return result;
+  } catch {
+    return null;
+  }
 }
 
 export function useBudgetRemoteState({
@@ -35,14 +58,24 @@ export function useBudgetRemoteState({
   const [persistedAt, setPersistedAt] = useState<string | null>(null);
 
   const persistBudgetState = async (
-    nextState: Omit<BudgetPersistedState, "persistedAt">
+    nextState: Omit<BudgetPersistedState, "persistedAt">,
   ) => {
     const nextPersistedAt = new Date().toISOString();
-    await persistRemoteAppState(BUDGET_APP_STATE_ID, {
+    const fullState: BudgetPersistedState = {
       ...nextState,
       persistedAt: nextPersistedAt,
-    });
+    };
+
+    // Always persist locally first so data is never lost
+    saveBudgetToLocalStorage(fullState);
     setPersistedAt(nextPersistedAt);
+
+    // Best-effort remote persist; failures are silent
+    try {
+      await persistRemoteAppState(BUDGET_APP_STATE_ID, fullState);
+    } catch {
+      // remote unavailable — local copy already saved
+    }
   };
 
   useEffect(() => {
@@ -50,36 +83,39 @@ export function useBudgetRemoteState({
 
     const restoreState = async () => {
       try {
-        const savedState =
-          await loadRemoteAppState<BudgetPersistedState>(BUDGET_APP_STATE_ID);
+        // Try remote first with a timeout, fall back to localStorage
+        const remote =
+          await loadRemoteWithTimeout<BudgetPersistedState>(BUDGET_APP_STATE_ID);
 
         if (cancelled) return;
+
+        const savedState = remote ?? loadBudgetFromLocalStorage();
+
         if (!savedState) {
           setPersistedAt(null);
           return;
         }
 
-        setTitle(savedState.title || "");
-        setScenario(savedState.scenario || "");
-        setBudget(savedState.budget);
-        setAnalysis(savedState.analysis);
-        setRuntimeMeta(savedState.meta);
-        setPersistedAt(
-          savedState.persistedAt ?? savedState.meta?.generatedAt ?? null
-        );
+        applyState(savedState);
       } catch {
-        if (!cancelled) {
-          setPersistedAt(null);
-        }
+        if (cancelled) return;
+        const localState = loadBudgetFromLocalStorage();
+        if (localState) applyState(localState);
       } finally {
-        if (!cancelled) {
-          setRestoringState(false);
-        }
+        if (!cancelled) setRestoringState(false);
       }
     };
 
-    void restoreState();
+    const applyState = (state: BudgetPersistedState) => {
+      setTitle(state.title ?? "");
+      setScenario(state.scenario ?? "");
+      setBudget(state.budget);
+      setAnalysis(state.analysis);
+      setRuntimeMeta(state.meta);
+      setPersistedAt(state.persistedAt ?? state.meta?.generatedAt ?? null);
+    };
 
+    void restoreState();
     return () => {
       cancelled = true;
     };

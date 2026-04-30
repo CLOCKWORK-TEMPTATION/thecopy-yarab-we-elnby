@@ -15,7 +15,6 @@ import {
 } from "./handlers-productivity";
 
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
-import type { Request, Response } from "express";
 
 function getRouteSegments(pathname: string): string[] {
   return pathname

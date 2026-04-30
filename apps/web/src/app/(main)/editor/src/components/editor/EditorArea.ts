@@ -1,4 +1,9 @@
 import { definedProps } from "@/lib/defined-props";
+import {
+  computeTaggedScenarioSourceHash,
+  createTaggedScenarioSnapshot,
+  persistTaggedScenarioSnapshot,
+} from "@/lib/tagged-scenario-snapshot";
 
 import { createScreenplayEditor } from "../../editor";
 import {
@@ -21,6 +26,7 @@ import {
 import { logger } from "../../utils/logger";
 
 import { buildEditorMount } from "./editor-area-dom-setup";
+import { captureTaggedScenarioElements } from "./editor-area-element-capture";
 import {
   runEditorCommand,
   setEditorFormat,
@@ -41,6 +47,7 @@ import type {
   FileImportMode,
   ImportClassificationContext,
   ProgressiveSurfaceState,
+  TaggedScenarioApprovalContext,
 } from "./editor-area.types";
 import type { ElementType } from "../../extensions/classification-types";
 import type {
@@ -49,6 +56,21 @@ import type {
 } from "../../types/editor-clipboard";
 import type { RunEditorCommandOptions } from "../../types/editor-engine";
 import type { ReceptionSourceType } from "../../types/unified-reception";
+
+const normalizeOptionalScenarioId = (
+  value: string | undefined
+): string | undefined => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    return undefined;
+  }
+
+  return normalized;
+};
 
 /**
  * @description المكون الرئيسي لمنطقة تحرير السيناريو.
@@ -180,9 +202,33 @@ export class EditorArea implements EditorHandle {
     this.progressiveManager.cancelProgressivePreparation();
   };
 
-  approveCurrentVersion = (): Promise<void> => {
-    this.progressiveManager.approveCurrentVersion();
-    return Promise.resolve();
+  approveCurrentVersion = async (
+    context?: TaggedScenarioApprovalContext
+  ): Promise<void> => {
+    const approvedVersion = this.progressiveManager.approveCurrentVersion();
+    const sourceText = approvedVersion.text;
+    const sourceHash = computeTaggedScenarioSourceHash(sourceText);
+    const scenarioId =
+      normalizeOptionalScenarioId(context?.scenarioId) ??
+      `editor-draft-${sourceHash.replace("fnv1a:", "")}`;
+
+    const snapshot = createTaggedScenarioSnapshot({
+      scenarioId,
+      ...(context?.scenarioTitle !== undefined
+        ? { title: context.scenarioTitle }
+        : {}),
+      source: "editor-approved",
+      sourceText,
+      approvedAt: approvedVersion.createdAt,
+      approvedVersionId: approvedVersion.visibleVersionId,
+      elements: captureTaggedScenarioElements(
+        this.editor,
+        approvedVersion.runId,
+        approvedVersion.visibleVersionId
+      ),
+    });
+
+    await persistTaggedScenarioSnapshot(snapshot);
   };
 
   dismissProgressiveFailure = (): boolean =>

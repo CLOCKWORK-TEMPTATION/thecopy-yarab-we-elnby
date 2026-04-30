@@ -7,9 +7,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useProjectScenes, useProjectCharacters } from "@/hooks/useProject";
+import { getCurrentProject } from "@/lib/projectStore";
 
 import { LoadingSection } from "./components/LoadingSection";
 import { PageLayout } from "./components/PageLayout";
@@ -17,18 +18,18 @@ import {
   hasActiveProject,
   prepareCharacterList,
   type CharacterTrackerProps,
-  type ProjectCharacterInput,
   type SceneCardProps,
 } from "./helpers/projectSummary";
+import {
+  createDirectorsStudioDemoCharacters,
+  createDirectorsStudioDemoScenes,
+  isDirectorsStudioDemoProjectId,
+} from "./lib/demoProject";
 import { useCurrentProject } from "./lib/ProjectContext";
 
 type ValidSceneStatus = "planned" | "in-progress" | "completed";
-const VALID_SCENE_STATUSES: readonly ValidSceneStatus[] = [
-  "planned",
-  "in-progress",
-  "completed",
-] as const;
 const DEFAULT_SCENE_STATUS: ValidSceneStatus = "planned";
+const PROJECT_CHANGE_EVENT = "directors-studio:project-changed";
 
 const NoProjectSection = dynamic(
   () =>
@@ -46,16 +47,46 @@ const ProjectContent = dynamic(
   { ssr: false }
 );
 
+function isValidSceneStatus(
+  status: string | null | undefined
+): status is ValidSceneStatus {
+  return (
+    status === "planned" || status === "in-progress" || status === "completed"
+  );
+}
+
 function normalizeSceneStatus(status?: string | null): ValidSceneStatus {
-  if (status && VALID_SCENE_STATUSES.includes(status as ValidSceneStatus)) {
-    return status as ValidSceneStatus;
+  if (isValidSceneStatus(status)) {
+    return status;
   }
   return DEFAULT_SCENE_STATUS;
 }
 
 export default function DirectorsStudioPage() {
   const { projectId } = useCurrentProject();
-  const activeProjectKey = projectId || undefined;
+  const [observedProjectId, setObservedProjectId] = useState(projectId);
+
+  useEffect(() => {
+    setObservedProjectId(projectId);
+  }, [projectId]);
+
+  useEffect(() => {
+    const syncProjectId = () => {
+      setObservedProjectId(getCurrentProject()?.id ?? "");
+    };
+
+    window.addEventListener(PROJECT_CHANGE_EVENT, syncProjectId);
+    window.addEventListener("storage", syncProjectId);
+    return () => {
+      window.removeEventListener(PROJECT_CHANGE_EVENT, syncProjectId);
+      window.removeEventListener("storage", syncProjectId);
+    };
+  }, []);
+
+  const effectiveProjectId = projectId || observedProjectId;
+  const isDemoProject = isDirectorsStudioDemoProjectId(effectiveProjectId);
+  const activeProjectKey =
+    effectiveProjectId && !isDemoProject ? effectiveProjectId : undefined;
 
   const { data: scenes, isLoading: scenesLoading } =
     useProjectScenes(activeProjectKey);
@@ -63,18 +94,29 @@ export default function DirectorsStudioPage() {
     useProjectCharacters(activeProjectKey);
 
   const scenesList: SceneCardProps[] = useMemo(() => {
+    if (isDemoProject) {
+      return createDirectorsStudioDemoScenes(effectiveProjectId).map(
+        (scene) => ({
+          ...scene,
+          status: normalizeSceneStatus(scene.status),
+        })
+      );
+    }
     if (!Array.isArray(scenes)) return [];
     return scenes.map((scene) => ({
       ...scene,
       status: normalizeSceneStatus(scene.status),
     }));
-  }, [scenes]);
+  }, [effectiveProjectId, isDemoProject, scenes]);
 
   const charactersList: CharacterTrackerProps["characters"] = useMemo(() => {
-    return prepareCharacterList(
-      characters as ProjectCharacterInput | undefined
-    );
-  }, [characters]);
+    if (isDemoProject) {
+      return prepareCharacterList(
+        createDirectorsStudioDemoCharacters(effectiveProjectId)
+      );
+    }
+    return prepareCharacterList(characters);
+  }, [characters, effectiveProjectId, isDemoProject]);
 
   const isLoading = scenesLoading || charactersLoading;
 
@@ -88,7 +130,7 @@ export default function DirectorsStudioPage() {
     );
   }
 
-  if (!hasActiveProject(activeProjectKey ?? null)) {
+  if (!hasActiveProject(effectiveProjectId || null)) {
     return (
       <main>
         <PageLayout>

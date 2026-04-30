@@ -6,6 +6,8 @@ import {
   Clapperboard,
   FolderOpen,
   Import,
+  LogIn,
+  PlayCircle,
   PlusCircle,
   Sparkles,
 } from "lucide-react";
@@ -18,8 +20,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateProject, useProjects } from "@/hooks/useProject";
+import { isAuthRequiredError } from "@/lib/api";
 import { DirectorsEditorConfigManager } from "@/lib/directors-editor/config-manager";
 import { directorsEditorLogger } from "@/lib/directors-editor/logger";
+
+import {
+  createDirectorsStudioDemoProject,
+  seedDirectorsStudioDemoEditorDraft,
+} from "../lib/demoProject";
 
 import type { Project } from "@/types/api";
 
@@ -118,10 +126,64 @@ function NewProjectCard({
   );
 }
 
+function DemoProjectCard({
+  isBusy,
+  onOpenDemo,
+  onOpenDemoInEditor,
+}: {
+  isBusy: boolean;
+  onOpenDemo: () => void;
+  onOpenDemoInEditor: () => void;
+}) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[28px] border border-emerald-500/20 bg-emerald-950/16 p-5 backdrop-blur-xl md:p-6">
+      <div className="space-y-4 text-right">
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-300">
+            <PlayCircle className="h-5 w-5" />
+          </div>
+          <h3 className="text-base font-semibold text-white">
+            مشروع تجريبي جاهز
+          </h3>
+        </div>
+        <p className="text-sm leading-7 text-white/65">
+          يفتح مشروعًا محليًا ببيانات مشاهد وشخصيات ونص سيناريو صالح للاختبار
+          دون تسجيل دخول.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onOpenDemo}
+            disabled={isBusy}
+            data-testid="button-open-demo-project"
+            className="w-full"
+          >
+            <FolderOpen className="ml-2 h-4 w-4" />
+            فتح التجربة
+          </Button>
+          <Button
+            type="button"
+            onClick={onOpenDemoInEditor}
+            disabled={isBusy}
+            data-testid="button-open-demo-project-editor"
+            className="w-full"
+          >
+            <Clapperboard className="ml-2 h-4 w-4" />
+            فتح المحرر
+          </Button>
+        </div>
+      </div>
+    </CardSpotlight>
+  );
+}
+
 function ExistingProjectCard({
   projects,
   selectedProject,
   isLoading,
+  hasRequestedProjects,
+  onLoadProjects,
   onSelectProject,
   onOpenEditor,
   onImport,
@@ -129,6 +191,8 @@ function ExistingProjectCard({
   projects: Project[];
   selectedProject: Project | null;
   isLoading: boolean;
+  hasRequestedProjects: boolean;
+  onLoadProjects: () => void;
   onSelectProject: (project: Project) => void;
   onOpenEditor: () => void;
   onImport: () => void;
@@ -145,7 +209,19 @@ function ExistingProjectCard({
             <span className="text-xs text-white/50">جارٍ التحميل...</span>
           )}
         </div>
-        {!hasProjects && !isLoading && (
+        {!hasRequestedProjects && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onLoadProjects}
+            data-testid="button-load-existing-projects"
+            className="w-full"
+          >
+            <FolderOpen className="ml-2 h-4 w-4" />
+            عرض المشاريع المحفوظة
+          </Button>
+        )}
+        {hasRequestedProjects && !hasProjects && !isLoading && (
           <div className="rounded-2xl border border-amber-600/30 bg-amber-950/20 px-3 py-3 text-xs text-amber-200">
             لا توجد مشاريع محفوظة لهذا الحساب حتى الآن.
           </div>
@@ -202,6 +278,49 @@ function ExistingProjectCard({
   );
 }
 
+function AuthRequiredCard({
+  message,
+  onLogin,
+  onOpenDemo,
+}: {
+  message: string;
+  onLogin: () => void;
+  onOpenDemo: () => void;
+}) {
+  return (
+    <CardSpotlight className="overflow-hidden rounded-[28px] border border-red-500/25 bg-red-950/18 p-4 backdrop-blur-xl md:p-5">
+      <div className="space-y-3 text-right">
+        <div className="flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-300" />
+          <h3 className="text-sm font-semibold text-red-100">
+            يلزم تسجيل الدخول لإنشاء مشروع محفوظ
+          </h3>
+        </div>
+        <p className="text-xs leading-relaxed text-red-100/72">{message}</p>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onOpenDemo}
+            data-testid="button-auth-fallback-demo"
+          >
+            <PlayCircle className="ml-2 h-4 w-4" />
+            فتح المشروع التجريبي
+          </Button>
+          <Button
+            type="button"
+            onClick={onLogin}
+            data-testid="button-auth-fallback-login"
+          >
+            <LogIn className="ml-2 h-4 w-4" />
+            تسجيل الدخول
+          </Button>
+        </div>
+      </div>
+    </CardSpotlight>
+  );
+}
+
 function EditorEntryWarningCard() {
   return (
     <CardSpotlight className="overflow-hidden rounded-[28px] border border-amber-600/20 bg-amber-950/25 p-4 backdrop-blur-xl md:p-5">
@@ -236,6 +355,7 @@ interface CreateProjectAndOpenContext {
   setNewProjectTitle: (v: string) => void;
   setProject: SetProjectFn;
   setSelectedProjectId: (id: string) => void;
+  onAuthRequired: (message: string) => void;
   toast: ToastFn;
 }
 
@@ -250,6 +370,7 @@ async function createProjectAndMaybeOpen(
     setNewProjectTitle,
     setProject,
     setSelectedProjectId,
+    onAuthRequired,
     toast,
   } = context;
   try {
@@ -281,6 +402,16 @@ async function createProjectAndMaybeOpen(
       error,
       "تعذر إنشاء المشروع في الوقت الحالي."
     );
+    if (isAuthRequiredError(error)) {
+      onAuthRequired(message);
+      toast({
+        title: "يلزم تسجيل الدخول",
+        description:
+          "يمكن تسجيل الدخول لحفظ المشروع أو فتح المشروع التجريبي فورًا.",
+        variant: "destructive",
+      });
+      return;
+    }
     directorsEditorLogger.error({
       event: "directors-studio-project-create-failed",
       message: "Project creation failed from no-project entry state.",
@@ -298,11 +429,15 @@ export function NoProjectSection() {
   const router = useRouter();
   const { toast } = useToast();
   const { setProject, project: currentProject } = useCurrentProject();
-  const projectsQuery = useProjects();
+  const [shouldLoadProjects, setShouldLoadProjects] = useState(false);
+  const projectsQuery = useProjects({ enabled: shouldLoadProjects });
   const createProject = useCreateProject();
 
   const [newProjectTitle, setNewProjectTitle] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [authRequiredMessage, setAuthRequiredMessage] = useState<string | null>(
     null
   );
 
@@ -364,6 +499,7 @@ export function NoProjectSection() {
   const createNewProject = useCallback(
     async (openInEditor: boolean) => {
       const title = newProjectTitle.trim();
+      setAuthRequiredMessage(null);
       if (!title) {
         toast({
           title: "عنوان المشروع مطلوب",
@@ -380,10 +516,39 @@ export function NoProjectSection() {
         setNewProjectTitle,
         setProject,
         setSelectedProjectId,
+        onAuthRequired: setAuthRequiredMessage,
         toast,
       });
     },
     [createProject, newProjectTitle, openEditorWithProject, setProject, toast]
+  );
+
+  const openDemoProject = useCallback(
+    (openInEditor: boolean) => {
+      const demoProject = createDirectorsStudioDemoProject(newProjectTitle);
+      setProject(demoProject);
+      setSelectedProjectId(demoProject.id);
+      setNewProjectTitle("");
+      setAuthRequiredMessage(null);
+      seedDirectorsStudioDemoEditorDraft(demoProject);
+      directorsEditorLogger.info({
+        event: "directors-studio-demo-project-opened",
+        message: "Guest demo project opened from no-project entry state.",
+        data: {
+          projectId: demoProject.id,
+          projectTitle: demoProject.title,
+          openInEditor,
+        },
+      });
+      toast({
+        title: "تم فتح المشروع التجريبي",
+        description: "يمكن الآن تجربة الاستوديو والمحرر دون تسجيل دخول.",
+      });
+      if (openInEditor) {
+        openEditorWithProject(demoProject);
+      }
+    },
+    [newProjectTitle, openEditorWithProject, setProject, toast]
   );
 
   const openSelectedProjectInEditor = useCallback(() => {
@@ -413,7 +578,7 @@ export function NoProjectSection() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <HeroCard />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <NewProjectCard
           newProjectTitle={newProjectTitle}
           isBusy={createProject.isPending}
@@ -425,15 +590,29 @@ export function NoProjectSection() {
             void createNewProject(true);
           }}
         />
+        <DemoProjectCard
+          isBusy={createProject.isPending}
+          onOpenDemo={() => openDemoProject(false)}
+          onOpenDemoInEditor={() => openDemoProject(true)}
+        />
         <ExistingProjectCard
           projects={projects}
           selectedProject={selectedProject}
           isLoading={projectsQuery.isLoading}
+          hasRequestedProjects={shouldLoadProjects}
+          onLoadProjects={() => setShouldLoadProjects(true)}
           onSelectProject={selectProject}
           onOpenEditor={openSelectedProjectInEditor}
           onImport={openImportFlow}
         />
       </div>
+      {authRequiredMessage ? (
+        <AuthRequiredCard
+          message={authRequiredMessage}
+          onLogin={() => router.push("/login")}
+          onOpenDemo={() => openDemoProject(true)}
+        />
+      ) : null}
       <EditorEntryWarningCard />
     </div>
   );

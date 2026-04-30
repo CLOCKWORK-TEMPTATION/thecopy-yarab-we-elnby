@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { countBudgetLineItems } from "../lib/budget-selectors";
 
 import { useBudgetActions } from "./useBudgetActions";
+import { useBudgetItemsEditor } from "./useBudgetItemsEditor";
 import { useBudgetRemoteState } from "./useBudgetRemoteState";
 
 import type {
@@ -19,10 +20,16 @@ export function useBudgetStudio() {
   const [analysis, setAnalysis] = useState<BudgetAnalysis | null>(null);
   const [budget, setBudget] = useState<BudgetDocument | null>(null);
   const [runtimeMeta, setRuntimeMeta] = useState<BudgetRuntimeMeta | null>(
-    null
+    null,
   );
 
-  const totalLineItems = useMemo(() => countBudgetLineItems(budget), [budget]);
+  // Editor wraps the generated budget and provides item-level mutations
+  const editor = useBudgetItemsEditor(budget);
+
+  const totalLineItems = useMemo(
+    () => countBudgetLineItems(editor.editedBudget),
+    [editor.editedBudget],
+  );
 
   const { restoringState, persistedAt, persistBudgetState } =
     useBudgetRemoteState({
@@ -37,14 +44,17 @@ export function useBudgetStudio() {
     analyzing,
     generating,
     exporting,
+    saving,
     error,
     handleAnalyze,
     handleGenerate,
     handleExport,
+    handleSave,
   } = useBudgetActions({
     title,
     scenario,
     budget,
+    editedBudget: editor.editedBudget,
     runtimeMeta,
     setTitle,
     setBudget,
@@ -60,10 +70,12 @@ export function useBudgetStudio() {
     setScenario,
     analysis,
     budget,
+    editor,
     runtimeMeta,
     analyzing,
     generating,
     exporting,
+    saving,
     restoringState,
     persistedAt,
     error,
@@ -71,5 +83,6 @@ export function useBudgetStudio() {
     handleAnalyze,
     handleGenerate,
     handleExport,
+    handleSave,
   };
 }

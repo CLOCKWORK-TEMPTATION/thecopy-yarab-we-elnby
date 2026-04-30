@@ -18,14 +18,17 @@ import type {
 interface BudgetActionsConfig {
   title: string;
   scenario: string;
+  /** Original budget from last generation (read-only reference) */
   budget: BudgetDocument | null;
+  /** Edited budget with user modifications — used for export and save */
+  editedBudget: BudgetDocument | null;
   runtimeMeta: BudgetRuntimeMeta | null;
   setTitle: (title: string) => void;
   setBudget: (budget: BudgetDocument | null) => void;
   setAnalysis: (analysis: BudgetAnalysis | null) => void;
   setRuntimeMeta: (meta: BudgetRuntimeMeta | null) => void;
   persistBudgetState: (
-    nextState: Omit<BudgetPersistedState, "persistedAt">
+    nextState: Omit<BudgetPersistedState, "persistedAt">,
   ) => Promise<void>;
 }
 
@@ -33,6 +36,7 @@ export function useBudgetActions({
   title,
   scenario,
   budget,
+  editedBudget,
   runtimeMeta,
   setTitle,
   setBudget,
@@ -43,11 +47,12 @@ export function useBudgetActions({
   const [analyzing, setAnalyzing] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     if (!scenario.trim()) {
-      setError("أدخل السيناريو أولاً لتحليله.");
+      setError("اكتب وصفًا إنتاجيًا أو سيناريو مختصرًا قبل التحليل.");
       return;
     }
 
@@ -56,13 +61,11 @@ export function useBudgetActions({
     try {
       const data = await analyzeBudgetScenario(scenario);
       setAnalysis(data.analysis);
-      if (data.meta) {
-        setRuntimeMeta(data.meta);
-      }
+      if (data.meta) setRuntimeMeta(data.meta);
       await persistBudgetState({
         title,
         scenario,
-        budget,
+        budget: editedBudget ?? budget,
         analysis: data.analysis,
         meta: data.meta ?? runtimeMeta,
       });
@@ -75,7 +78,9 @@ export function useBudgetActions({
 
   const handleGenerate = async () => {
     if (!scenario.trim()) {
-      setError("أدخل السيناريو أولاً لإنشاء الميزانية.");
+      setError(
+        "اكتب وصفًا إنتاجيًا أو سيناريو مختصرًا قبل إنشاء الميزانية.",
+      );
       return;
     }
 
@@ -88,9 +93,7 @@ export function useBudgetActions({
       setBudget(data.budget);
       setAnalysis(data.analysis);
       setRuntimeMeta(data.meta ?? null);
-      if (nextTitle !== title) {
-        setTitle(nextTitle);
-      }
+      if (nextTitle !== title) setTitle(nextTitle);
 
       await persistBudgetState({
         title: nextTitle,
@@ -107,15 +110,18 @@ export function useBudgetActions({
   };
 
   const handleExport = async () => {
-    if (!budget) {
-      setError("لا توجد ميزانية لتصديرها.");
+    const targetBudget = editedBudget ?? budget;
+    if (!targetBudget) {
+      setError(
+        "لا توجد ميزانية لتصديرها. أنشئ الميزانية أولاً ثم حاول مرة أخرى.",
+      );
       return;
     }
 
     setExporting(true);
     setError(null);
     try {
-      await exportBudgetDocument(budget);
+      await exportBudgetDocument(targetBudget);
     } catch (caughtError) {
       setError(resolveBudgetActionError(caughtError, "التصدير"));
     } finally {
@@ -123,20 +129,44 @@ export function useBudgetActions({
     }
   };
 
+  const handleSave = async () => {
+    const targetBudget = editedBudget ?? budget;
+    if (!targetBudget) {
+      setError("لا توجد ميزانية للحفظ.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await persistBudgetState({
+        title,
+        scenario,
+        budget: targetBudget,
+        analysis: null,
+        meta: runtimeMeta,
+      });
+    } catch (caughtError) {
+      setError(resolveBudgetActionError(caughtError, "الحفظ"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     analyzing,
     generating,
     exporting,
+    saving,
     error,
     handleAnalyze,
     handleGenerate,
     handleExport,
+    handleSave,
   };
 }
 
 function resolveBudgetActionError(caughtError: unknown, actionName: string) {
-  if (caughtError instanceof Error) {
-    return caughtError.message;
-  }
+  if (caughtError instanceof Error) return caughtError.message;
   return `حدث خطأ غير متوقع أثناء ${actionName}.`;
 }

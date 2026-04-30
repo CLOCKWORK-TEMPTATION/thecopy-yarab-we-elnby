@@ -25,6 +25,19 @@ interface AuthResponseEnvelope {
   details?: { message?: string }[];
 }
 
+const AUTH_REQUIRED_MESSAGE = "غير مصرح - يرجى تسجيل الدخول";
+
+export class AuthRequiredError extends Error {
+  constructor(message = AUTH_REQUIRED_MESSAGE) {
+    super(message);
+    this.name = "AuthRequiredError";
+  }
+}
+
+export function isAuthRequiredError(error: unknown): boolean {
+  return error instanceof AuthRequiredError;
+}
+
 /**
  * Authenticated fetch wrapper
  * Automatically includes auth token and handles common headers
@@ -44,9 +57,9 @@ async function fetchWithAuth(
     credentials: "include", // Include cookies for httpOnly token
   });
 
-  // Handle 401 Unauthorized - redirect to login
+  // Surface 401 responses so callers can offer login or guest flows.
   if (response.status === 401) {
-    throw new Error("غير مصرح - يرجى تسجيل الدخول");
+    throw new AuthRequiredError();
   }
 
   return response;

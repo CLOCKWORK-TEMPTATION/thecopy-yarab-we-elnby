@@ -31,6 +31,19 @@ declare global {
   }
 }
 
+function isDiagnosticsEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  if (process.env["NEXT_PUBLIC_E2E_DIAGNOSTICS"] === "1") return true;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("e2eDiagnostics") === "1") {
+    window.localStorage.setItem("the-copy:e2e-diagnostics", "1");
+    return true;
+  }
+
+  return window.localStorage.getItem("the-copy:e2e-diagnostics") === "1";
+}
+
 function safeConsoleMessage(value: unknown): string {
   if (typeof value !== "string") {
     return "[non-string console error]";
@@ -69,7 +82,7 @@ function requestMethod(input: RequestInfo | URL, init?: RequestInit): string {
 
 function installE2EDiagnostics(): void {
   if (typeof window === "undefined") return;
-  if (process.env["NEXT_PUBLIC_E2E_DIAGNOSTICS"] !== "1") return;
+  if (!isDiagnosticsEnabled()) return;
   if (window.__THE_COPY_E2E_DIAGNOSTICS__) return;
 
   const consoleErrors: E2EDiagnosticsSnapshot["consoleErrors"] = [];

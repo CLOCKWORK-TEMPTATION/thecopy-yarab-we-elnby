@@ -14,12 +14,20 @@ import type {
   UpdateShotRequest,
 } from "@/types/api";
 
-export function useProjects() {
+export function useProjects(options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: ["/api/projects"],
+    enabled: options.enabled ?? true,
     queryFn: async () => {
-      const response = await api.getProjects();
-      return response.data;
+      try {
+        const response = await api.getProjects();
+        return response.data;
+      } catch (error) {
+        if (api.isAuthRequiredError(error)) {
+          return [];
+        }
+        throw error;
+      }
     },
   });
 }

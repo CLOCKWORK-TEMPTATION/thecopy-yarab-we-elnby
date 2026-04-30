@@ -119,7 +119,7 @@ export class ProgressiveSurfaceManager {
   }
 
   // — يُسجّل موافقة المستخدم على النسخة المستقرة ويُعيّن حالة الموافقة على العناصر
-  approveCurrentVersion(): void {
+  approveCurrentVersion(): VisibleVersion {
     const progressiveState = this.progressiveSurfaceState;
     const activeRun = progressiveState?.activeRun;
     const visibleVersion = progressiveState?.visibleVersion;
@@ -210,6 +210,7 @@ export class ProgressiveSurfaceManager {
 
     this.applySurfaceLock(false);
     this.emitProgressiveState();
+    return approvedVersion;
   }
 
   // — يُلغي حالة الفشل بعد ظهور نسخة ويسمح للمستخدم بمتابعة التحرير

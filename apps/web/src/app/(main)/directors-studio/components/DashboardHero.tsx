@@ -15,6 +15,7 @@ import { useCallback } from "react";
 import ProjectManager from "@/app/(main)/directors-studio/components/ProjectManager";
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 
+const HERO_IMAGE_URL = "/assets/v-shape/v-shape-card-7.jpg";
 const SCRIPT_UPLOAD_TEST_ID = '[data-testid="card-script-upload"]';
 
 export default function DashboardHero() {
@@ -28,13 +29,13 @@ export default function DashboardHero() {
   return (
     <div className="relative h-[420px] overflow-hidden rounded-[28px]">
       <Image
-        src="/directors-studio/Film_production_hero_image_6b2179d4.png"
+        src={HERO_IMAGE_URL}
         alt="Film production hero - خلفية الإنتاج السينمائي"
         fill
         priority
         sizes="100vw"
         className="object-cover object-center"
-        quality={85}
+        quality={75}
       />
 
       <div className="absolute inset-0 bg-gradient-to-l from-black/88 via-black/62 to-black/34" />

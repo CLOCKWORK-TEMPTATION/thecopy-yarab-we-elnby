@@ -33,19 +33,29 @@ export type ProjectCharacterInput = readonly (Omit<
   CharacterTrackerProps["characters"][number],
   "consistencyStatus" | "lastSeen"
 > & {
-  consistencyStatus?:
-    | CharacterTrackerProps["characters"][number]["consistencyStatus"]
-    | null;
+  consistencyStatus?: string | null;
   lastSeen?: string | null;
 })[];
+
+type CharacterConsistencyStatus =
+  CharacterTrackerProps["characters"][number]["consistencyStatus"];
 
 /**
  * القيم الافتراضية لحالة اتساق الشخصية
  * السبب: توحيد القيم الافتراضية في مكان واحد
  */
-const DEFAULT_CONSISTENCY_STATUS: CharacterTrackerProps["characters"][number]["consistencyStatus"] =
-  "good";
+const DEFAULT_CONSISTENCY_STATUS: CharacterConsistencyStatus = "good";
 const DEFAULT_LAST_SEEN = "غير محدد";
+
+function normalizeConsistencyStatus(
+  value: string | null | undefined
+): CharacterConsistencyStatus {
+  if (value === "good" || value === "warning" || value === "issue") {
+    return value;
+  }
+
+  return DEFAULT_CONSISTENCY_STATUS;
+}
 
 /**
  * تحويل قائمة الشخصيات القادمة من API إلى الشكل المطلوب للعرض
@@ -69,8 +79,7 @@ export function prepareCharacterList(
 
   return characters.map((character) => ({
     ...character,
-    consistencyStatus:
-      character.consistencyStatus ?? DEFAULT_CONSISTENCY_STATUS,
+    consistencyStatus: normalizeConsistencyStatus(character.consistencyStatus),
     lastSeen: character.lastSeen ?? DEFAULT_LAST_SEEN,
   }));
 }

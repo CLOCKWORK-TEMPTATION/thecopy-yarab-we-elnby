@@ -1,7 +1,7 @@
 {
-  "branch": "codex/e2e-production-readiness",
+  "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "cba70a023f9c0a232deb365711315cbcea30a677371bd2e32a6b4e81892b850c",
+    ".agent-code-memory/manifest.json": "7c61fd5dcaa89aca3663e0222c2249810d8bd8ba642df56fbe62a7af7fd46c54",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -67,21 +67,21 @@
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "no-drift",
+  "driftLevel": "hard-drift",
   "driftReasons": [
-    "لا يوجد drift مؤثر"
+    "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "bc14cdec94258d80d0826eab97fde01267ae6f23",
+  "headCommit": "a10f91037a42458702fb0c7276fd059828b92c7f",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-30T09:08:11.005Z",
+  "lastBootstrapTimestamp": "2026-04-30T12:37:35.216Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "1373abd1ec27140639379cc50b2db1f4895209a02abfa62e7514aef7db391ae2",
-    "output/code-map/code-map.json": "0107c7b1a66cbce6fc265add5ff39f4406c559273d2b5d515a034bd19faebd5d",
-    "output/code-map/CODEMAP.md": "46cce59d550b11dc699dfed3f04fd728a7be5a4b4b1d2bfa15c0f0a7973536f6",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "9be9d2a78997da01ee9712a0680ee45a936797af6c41d60df44eca0801f7e552",
+    "output/code-map/code-map.json": "8496a4930e7532c30ee8c3ff772e6a440ea68a6103c3298f9c1a5c7bce5d9925",
+    "output/code-map/CODEMAP.md": "616fa99168b65fc645722ef94ce8e16daed13fc7379a144f1f0987b99d900d36",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -93,8 +93,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "d12e7d5eade8e94840fd37353006937bb872072743dd2b142239a9a1aefa2cef",
-    "output/session-state.md": "e035947bea34c09941c09a58625c400c69d4bb895b5397becec59906a0860447"
+    "output/round-notes.md": "1485e1dbd1c62cdfacddf866d611fe10855d73fc009f47e5c8448998eca94363",
+    "output/session-state.md": "81341a1f307cd770c3ebd7f438b11b86b4fc1712653f2cf6f14c3990310b9e78"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -104,7 +104,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "a12ec3824123dc46660b57f9b2a3fbbe12ed048e240bfc5b342465994d7f3c88",
+  "repoFactsHash": "b82e81ece5fb7770955640d7853d5604efa9ea71a613b099a0fd38ef569c6e91",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -176,6 +176,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "bc3a96176e907465dcc30228a9934171b4828be56c0a7059dad7704287c4b716",
-  "workingTreeHash": "9f90b72093767ba15b8cf12d24830e3ffa8f3fdf0e3dafe0e3f781317699bb3e"
+  "structuralHash": "1e94606db665630c09865ee87dc0164eae9e4eabccdf1d1743874c6c5e4ab7e1",
+  "workingTreeHash": "f322e680599d1bf256e73be00eee317113dfdb7a5b94fce677e4da5e49e3ed58"
 }
