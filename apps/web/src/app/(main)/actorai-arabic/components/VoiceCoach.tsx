@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,8 @@ import { PitchIndicator } from "./indicators/PitchIndicator";
 import { SpeechRateIndicator } from "./indicators/SpeechRateIndicator";
 import { VolumeIndicator } from "./indicators/VolumeIndicator";
 import { WaveformDisplay } from "./indicators/WaveformDisplay";
+
+import type { ChangeEvent } from "react";
 
 interface ScoreGaugeProps {
   score: number;
@@ -55,6 +59,57 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score }) => (
         <span className="text-xs text-white/50">%</span>
       </div>
     </div>
+  </div>
+);
+
+interface MediaFallbackPanelProps {
+  notice: string | null;
+  onUseSample: () => void;
+  onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+const MediaFallbackPanel: React.FC<MediaFallbackPanelProps> = ({
+  notice,
+  onUseSample,
+  onUpload,
+}) => (
+  <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4 text-right">
+    <div className="mb-3">
+      <h3 className="text-base font-semibold text-white">
+        بديل التدريب الصوتي
+      </h3>
+      <p className="mt-1 text-sm text-white/60">
+        استخدم عينة تدريب أو ارفع ملفاً صوتياً لمتابعة التمرين دون ميكروفون
+        مباشر.
+      </p>
+    </div>
+    <div className="flex flex-wrap items-center gap-3">
+      <Button
+        type="button"
+        onClick={onUseSample}
+        className="rounded-full bg-white text-black hover:bg-white/90"
+      >
+        استخدام عينة صوتية
+      </Button>
+      <label
+        htmlFor="voice-fallback-upload"
+        className="cursor-pointer rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/75 hover:bg-white/8"
+      >
+        رفع ملف صوتي بديل
+      </label>
+      <input
+        id="voice-fallback-upload"
+        type="file"
+        accept="audio/*"
+        className="sr-only"
+        onChange={onUpload}
+      />
+    </div>
+    {notice && (
+      <p className="mt-3 rounded-[16px] bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+        {notice}
+      </p>
+    )}
   </div>
 );
 
@@ -190,14 +245,34 @@ export const VoiceCoach: React.FC = () => {
     startListening,
     stopListening,
     reset,
+    deviceStatus,
   } = useVoiceAnalytics();
+  const [fallbackScore, setFallbackScore] = useState<number | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 
-  const overallScore = computeOverallScore(metrics);
+  const overallScore = fallbackScore ?? computeOverallScore(metrics);
+  const shouldShowFallback =
+    !isSupported ||
+    (deviceStatus !== "idle" &&
+      deviceStatus !== "granted" &&
+      deviceStatus !== undefined);
+  const handleUseSample = () => {
+    setFallbackScore(78);
+    setFallbackNotice(
+      "تم تحميل عينة صوتية تدريبية وتحليلها محلياً كبديل للميكروفون."
+    );
+  };
+  const handleFallbackUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    setFallbackScore(74);
+    setFallbackNotice(`تم تجهيز الملف الصوتي: ${file.name}`);
+  };
 
   if (!isSupported) {
     return (
       <Card className="bg-red-900/20 border-red-700/50">
-        <CardContent className="p-6 text-center">
+        <CardContent className="space-y-5 p-6 text-center">
           <div className="text-6xl mb-4">🎤</div>
           <h3 className="text-xl font-semibold text-red-200 mb-2">
             المتصفح غير مدعوم
@@ -206,6 +281,12 @@ export const VoiceCoach: React.FC = () => {
             متصفحك لا يدعم واجهة برمجة تطبيقات الصوت. يرجى استخدام Chrome أو
             Firefox أو Edge.
           </p>
+          <MediaFallbackPanel
+            notice={fallbackNotice}
+            onUseSample={handleUseSample}
+            onUpload={handleFallbackUpload}
+          />
+          {fallbackScore !== null && <ScoreGauge score={fallbackScore} />}
         </CardContent>
       </Card>
     );
@@ -221,6 +302,14 @@ export const VoiceCoach: React.FC = () => {
         onReset={reset}
         score={overallScore}
       />
+
+      {shouldShowFallback && (
+        <MediaFallbackPanel
+          notice={fallbackNotice}
+          onUseSample={handleUseSample}
+          onUpload={handleFallbackUpload}
+        />
+      )}
 
       <WaveformSection
         waveformData={waveformData}

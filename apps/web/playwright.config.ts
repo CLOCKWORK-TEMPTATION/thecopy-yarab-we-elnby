@@ -78,7 +78,7 @@ export default defineConfig({
     ? allProjects.filter((project) => project.name === "chromium")
     : allProjects,
   webServer: {
-    command: `pnpm run build && pnpm exec next start -p ${webServerPort} -H 0.0.0.0`,
+    command: `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm run build && cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm exec next start -p ${webServerPort} -H 0.0.0.0`,
     url: baseURL,
     reuseExistingServer: !process.env["CI"],
     timeout: 180 * 1000,

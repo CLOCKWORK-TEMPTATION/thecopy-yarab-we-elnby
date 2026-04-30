@@ -85,10 +85,15 @@ export async function runRouteSuite(): Promise<void> {
     const { POST } =
       await import("../../src/app/api/cineai/validate-shot/route");
 
+    const validateShotUrl = new URL(
+      "/api/cineai/validate-shot",
+      fixture.baseUrl
+    );
+
     const successForm = new FormData();
     successForm.set("image", createFixtureImageFile());
     const successResponse = await POST(
-      new NextRequest("http://localhost:5000/api/cineai/validate-shot", {
+      new NextRequest(validateShotUrl, {
         method: "POST",
         body: successForm,
       })
@@ -111,7 +116,7 @@ export async function runRouteSuite(): Promise<void> {
     const missingImageForm = new FormData();
     missingImageForm.set("note", "missing-image");
     const missingImageResponse = await POST(
-      new NextRequest("http://localhost:5000/api/cineai/validate-shot", {
+      new NextRequest(validateShotUrl, {
         method: "POST",
         body: missingImageForm,
       })
@@ -127,14 +132,13 @@ export async function runRouteSuite(): Promise<void> {
 
     const failureForm = new FormData();
     failureForm.set("image", createFixtureImageFile());
+    const failureUrl = new URL(validateShotUrl);
+    failureUrl.searchParams.set("fixtureMode", "fail");
     const failureResponse = await POST(
-      new NextRequest(
-        "http://localhost:5000/api/cineai/validate-shot?fixtureMode=fail",
-        {
-          method: "POST",
-          body: failureForm,
-        }
-      )
+      new NextRequest(failureUrl, {
+        method: "POST",
+        body: failureForm,
+      })
     );
     const failurePayload = (await failureResponse.json()) as {
       success?: boolean;
@@ -146,9 +150,21 @@ export async function runRouteSuite(): Promise<void> {
     assert.match(failurePayload.error ?? "", /Fixture backend failure/);
   } finally {
     await fixture.close();
-    process.env["BACKEND_URL"] = snapshot.backendUrl;
-    process.env["NEXT_PUBLIC_BACKEND_URL"] = snapshot.nextPublicBackendUrl;
-    process.env["NEXT_PUBLIC_API_URL"] = snapshot.nextPublicApiUrl;
+    if (snapshot.backendUrl === undefined) {
+      delete process.env["BACKEND_URL"];
+    } else {
+      process.env["BACKEND_URL"] = snapshot.backendUrl;
+    }
+    if (snapshot.nextPublicBackendUrl === undefined) {
+      delete process.env["NEXT_PUBLIC_BACKEND_URL"];
+    } else {
+      process.env["NEXT_PUBLIC_BACKEND_URL"] = snapshot.nextPublicBackendUrl;
+    }
+    if (snapshot.nextPublicApiUrl === undefined) {
+      delete process.env["NEXT_PUBLIC_API_URL"];
+    } else {
+      process.env["NEXT_PUBLIC_API_URL"] = snapshot.nextPublicApiUrl;
+    }
   }
 }
 

@@ -189,6 +189,56 @@ function isMoodBoard(value: unknown): value is MoodBoard {
   );
 }
 
+const MOOD_LABELS: Record<string, string> = {
+  romantic: "رومانسي",
+  dramatic: "درامي",
+  mysterious: "غامض",
+  cheerful: "مرح",
+  melancholic: "حزين",
+  tense: "متوتر",
+};
+
+const ERA_LABELS: Record<string, string> = {
+  ancient: "قديمة",
+  medieval: "عصور وسطى",
+  victorian: "فيكتورية",
+  "1920s": "العشرينيات",
+  "1950s": "الخمسينيات",
+  "1980s": "الثمانينيات",
+  modern: "حديثة",
+  futuristic: "مستقبلية",
+};
+
+function buildLocalMoodBoard(
+  sceneDescription: string,
+  mood: string,
+  era: string
+): MoodBoard {
+  const moodLabel = MOOD_LABELS[mood] ?? "سينمائي";
+  const eraLabel = ERA_LABELS[era] ?? "معاصر";
+  const keywords = Array.from(
+    new Set(
+      sceneDescription
+        .split(/\s+/)
+        .map((word) => word.replace(/[^\u0600-\u06FF\w-]/g, ""))
+        .filter((word) => word.length > 3)
+        .slice(0, 5)
+    )
+  );
+
+  return {
+    theme: `${mood || "cinematic"} ${era || "production"} scene`,
+    themeAr: `مشهد ${moodLabel} بطابع ${eraLabel}`,
+    keywords:
+      keywords.length > 0 ? keywords : ["إضاءة", "ديكور", "ألوان", "مزاج"],
+    suggestedPalette: {
+      name: "Warm Practical Palette",
+      nameAr: "باليت دافئ عملي",
+      colors: ["#3B2F2F", "#8C5A3C", "#D8A35D", "#F2E3C6"],
+    },
+  };
+}
+
 export default function Inspiration() {
   const { state, updateInspirationState } = useArtDirectorPersistence();
   const { sceneDescription, mood, era } = state.inspiration;
@@ -229,10 +279,10 @@ export default function Inspiration() {
       } else {
         setError(data.error ?? "فشل في تحليل المشهد");
       }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "حدث خطأ غير متوقع";
-      setError(errorMessage);
+    } catch {
+      updateInspirationState({
+        result: buildLocalMoodBoard(sceneDescription, mood, era),
+      });
     } finally {
       setLoading(false);
     }

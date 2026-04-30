@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 
+import { proxyToBackend } from "@/lib/server/backend-proxy";
 import {
-  buildProxyErrorResponse,
-  proxyToBackend,
-} from "@/lib/server/backend-proxy";
+  buildSafeErrorResponse,
+  replaceFailureWithSafeEnvelope,
+} from "@/lib/server/safe-error-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,13 @@ function getTargetPath(path: string[]): string {
 }
 
 async function handle(request: NextRequest, path: string[]) {
-  return proxyToBackend(request, getTargetPath(path));
+  const response = await proxyToBackend(request, getTargetPath(path));
+  return replaceFailureWithSafeEnvelope(response, {
+    status: response.status >= 500 ? 502 : response.status,
+    fallbackMessage: "تعذر تنفيذ طلب البريك دون.",
+    errorCode: "BREAKDOWN_UPSTREAM_FAILED",
+    traceIdPrefix: "breakdown",
+  });
 }
 
 export async function GET(request: NextRequest, ctx: RouteContext) {
@@ -25,7 +32,13 @@ export async function GET(request: NextRequest, ctx: RouteContext) {
     const { path } = await ctx.params;
     return await handle(request, path);
   } catch (error) {
-    return buildProxyErrorResponse(error, "تعذر الاتصال بخدمة البريك دون");
+    return buildSafeErrorResponse({
+      status: 503,
+      error,
+      fallbackMessage: "تعذر الاتصال بخدمة البريك دون.",
+      errorCode: "BREAKDOWN_PROXY_FAILED",
+      traceIdPrefix: "breakdown",
+    });
   }
 }
 
@@ -34,6 +47,12 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
     const { path } = await ctx.params;
     return await handle(request, path);
   } catch (error) {
-    return buildProxyErrorResponse(error, "تعذر الاتصال بخدمة البريك دون");
+    return buildSafeErrorResponse({
+      status: 503,
+      error,
+      fallbackMessage: "تعذر الاتصال بخدمة البريك دون.",
+      errorCode: "BREAKDOWN_PROXY_FAILED",
+      traceIdPrefix: "breakdown",
+    });
   }
 }

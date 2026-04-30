@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
+import { toolConfigs, type ToolId } from "../core/toolConfigs";
 import { fetchArtDirectorJson } from "../lib/api-client";
 import { PluginInfo, PluginsApiResponseSchema } from "../types";
 
@@ -31,6 +32,88 @@ interface UsePluginsReturn extends UsePluginsState {
   /** دالة لإعادة جلب الإضافات */
   refetch: () => Promise<void>;
 }
+
+const LOCAL_PLUGIN_META: Record<ToolId, Pick<PluginInfo, "name" | "nameAr">> = {
+  "visual-analyzer": {
+    name: "Visual Consistency Analyzer",
+    nameAr: "محلل الاتساق البصري الذكي",
+  },
+  "terminology-translator": {
+    name: "Cinema Terminology Translator",
+    nameAr: "مترجم المصطلحات السينمائية متعدد اللغات",
+  },
+  "budget-optimizer": {
+    name: "Budget Optimizer",
+    nameAr: "محسّن الموارد والميزانية الذكي",
+  },
+  "lighting-simulator": {
+    name: "Lighting Simulator",
+    nameAr: "محاكي الإضاءة الذكي",
+  },
+  "risk-analyzer": {
+    name: "Risk Analyzer",
+    nameAr: "محلل المخاطر الذكي",
+  },
+  "production-readiness-report": {
+    name: "Production Readiness Report",
+    nameAr: "منشئ تقرير جاهزية الإنتاج",
+  },
+  "creative-inspiration": {
+    name: "Creative Inspiration Assistant",
+    nameAr: "المساعد الإبداعي للإلهام البصري",
+  },
+  "location-coordinator": {
+    name: "Location Coordinator",
+    nameAr: "منسّق المواقع والديكورات الذكي",
+  },
+  "set-reusability": {
+    name: "Set Reusability Optimizer",
+    nameAr: "محسّن إعادة استخدام الديكورات",
+  },
+  "productivity-analyzer": {
+    name: "Productivity Analyzer",
+    nameAr: "محلل الأداء والإنتاجية",
+  },
+  "documentation-generator": {
+    name: "Documentation Generator",
+    nameAr: "مولد التوثيق التلقائي",
+  },
+  "mr-previz-studio": {
+    name: "Mixed Reality Previz Studio",
+    nameAr: "استوديو التصور المسبق بالواقع المختلط",
+  },
+  "virtual-set-editor": {
+    name: "Virtual Set Editor",
+    nameAr: "محرر الديكورات الافتراضي في الموقع",
+  },
+  "cinema-skills-trainer": {
+    name: "Cinema Skills Trainer",
+    nameAr: "المدرب الافتراضي للمهارات السينمائية",
+  },
+  "immersive-concept-art": {
+    name: "Immersive Concept Art Studio",
+    nameAr: "استوديو الفن المفاهيمي الغامر",
+  },
+  "virtual-production-engine": {
+    name: "Virtual Production Engine",
+    nameAr: "محرك الإنتاج الافتراضي والتصور المسبق",
+  },
+};
+
+const LOCAL_PLUGINS: PluginInfo[] = Object.keys(toolConfigs).map((toolId) => {
+  const id = toolId as ToolId;
+  const meta = LOCAL_PLUGIN_META[id] ?? {
+    name: id,
+    nameAr: id,
+  };
+
+  return {
+    id,
+    name: meta.name,
+    nameAr: meta.nameAr,
+    category: "ai-analytics",
+  };
+});
 
 /**
  * Hook لجلب وإدارة الإضافات
@@ -66,9 +149,10 @@ export function usePlugins(): UsePluginsReturn {
 
       if (!validationResult.success) {
         setState({
-          plugins: [],
+          plugins: LOCAL_PLUGINS,
           loading: false,
-          error: "استجابة الخادم لقائمة الأدوات لا تطابق البنية المتوقعة",
+          error:
+            "استجابة الخادم لقائمة الأدوات غير صالحة، تم تشغيل الكتالوج المحلي",
         });
         return;
       }
@@ -82,10 +166,12 @@ export function usePlugins(): UsePluginsReturn {
       });
     } catch (err) {
       setState({
-        plugins: [],
+        plugins: LOCAL_PLUGINS,
         loading: false,
         error:
-          err instanceof Error ? err.message : "تعذر تحميل الأدوات من الخادم",
+          err instanceof Error
+            ? `${err.message} تم تشغيل الكتالوج المحلي.`
+            : "تعذر تحميل الأدوات من الخادم، تم تشغيل الكتالوج المحلي.",
       });
     }
   }, []);

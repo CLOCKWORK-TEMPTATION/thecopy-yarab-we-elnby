@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,6 +19,7 @@ import { useApp } from "../../context/AppContext";
 import { useWebcamAnalysis } from "../../hooks/useWebcamAnalysis";
 import { formatTime } from "../../lib/utils";
 
+import type { ChangeEvent } from "react";
 import type {
   BlinkRateStatus,
   EyeDirection,
@@ -32,6 +33,34 @@ function getScoreLabel(score: number): string {
   if (score >= 80) return "جيد جداً";
   if (score >= 70) return "جيد";
   return "يحتاج تحسين";
+}
+
+function buildFallbackWebcamResult(label: string): WebcamAnalysisResult {
+  return {
+    eyeLine: {
+      direction: "center",
+      consistency: 76,
+      alerts: ["هذه نتيجة بديلة مبنية على عينة تدريب وليست بثاً مباشراً."],
+    },
+    expressionSync: {
+      score: 72,
+      matchedEmotions: ["تركيز", "حضور"],
+      mismatches: [],
+    },
+    blinkRate: {
+      rate: 18,
+      status: "normal",
+      tensionIndicator: 34,
+    },
+    blocking: {
+      spaceUsage: 68,
+      movements: [label],
+      suggestions: ["كرر التدريب عند توفر الكاميرا لمقارنة النتيجة المباشرة."],
+    },
+    alerts: ["تم استخدام بديل بصري قابل للتدريب بسبب تعذر الكاميرا."],
+    overallScore: 74,
+    timestamp: new Date().toISOString(),
+  };
 }
 
 // ─── Sub-components ───
@@ -166,6 +195,8 @@ function AnalysisResultPanel({
 
 export function WebcamAnalysisView() {
   const { showNotification } = useApp();
+  const [fallbackResult, setFallbackResult] =
+    useState<WebcamAnalysisResult | null>(null);
   const {
     state,
     videoRef,
@@ -182,6 +213,7 @@ export function WebcamAnalysisView() {
   const handlePermissionRequest = useCallback(async () => {
     try {
       await requestPermission();
+      setFallbackResult(null);
       showNotification("success", "تم تفعيل الكاميرا بنجاح!");
     } catch (error) {
       showNotification(
@@ -212,6 +244,25 @@ export function WebcamAnalysisView() {
       `تم التحليل! النتيجة: ${result.overallScore}/100`
     );
   }, [showNotification, stopAnalysis]);
+
+  const handleUseFallbackSample = useCallback(() => {
+    setFallbackResult(buildFallbackWebcamResult("عينة تدريب بصرية جاهزة"));
+    showNotification("info", "تم تحميل عينة تدريب بصرية كبديل للكاميرا.");
+  }, [showNotification]);
+
+  const handleFallbackUpload = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      if (!file) return;
+      setFallbackResult(buildFallbackWebcamResult(`ملف مرجعي: ${file.name}`));
+      showNotification("info", "تم تجهيز الملف المرجعي للتحليل البديل.");
+    },
+    [showNotification]
+  );
+
+  const shouldShowFallback =
+    state.permission !== "pending" && state.permission !== "granted";
+  const visibleAnalysisResult = state.analysisResult ?? fallbackResult;
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -294,15 +345,49 @@ export function WebcamAnalysisView() {
                 )}
               </div>
 
-              {state.permission === "denied" && (
+              {state.permissionMessage && state.permission !== "granted" && (
                 <Alert
                   variant="destructive"
                   className="bg-red-600/20 border-red-600/40"
                 >
                   <AlertDescription className="text-red-200">
-                    تم رفض إذن الكاميرا. يرجى السماح بالوصول من إعدادات المتصفح.
+                    {state.permissionMessage}
                   </AlertDescription>
                 </Alert>
+              )}
+
+              {shouldShowFallback && (
+                <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                  <h4 className="font-semibold text-white">
+                    بديل التحليل البصري
+                  </h4>
+                  <p className="mt-1 text-sm text-white/60">
+                    استخدم عينة تدريب أو ارفع ملفاً مرجعياً لمتابعة التمرين دون
+                    كاميرا مباشرة.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <Button
+                      type="button"
+                      onClick={handleUseFallbackSample}
+                      className="rounded-full"
+                    >
+                      استخدام عينة تدريب
+                    </Button>
+                    <label
+                      htmlFor="webcam-fallback-upload"
+                      className="cursor-pointer rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/75 hover:bg-white/8"
+                    >
+                      رفع ملف مرجعي
+                    </label>
+                    <input
+                      id="webcam-fallback-upload"
+                      type="file"
+                      accept="image/*,video/*"
+                      className="sr-only"
+                      onChange={handleFallbackUpload}
+                    />
+                  </div>
+                </div>
               )}
 
               {state.isAnalyzing && (
@@ -344,15 +429,15 @@ export function WebcamAnalysisView() {
             <CardHeader>
               <CardTitle className="text-white">نتائج التحليل</CardTitle>
               <CardDescription className="text-white/55">
-                {state.analysisResult
+                {visibleAnalysisResult
                   ? "آخر تحليل"
                   : "ابدأ التحليل لرؤية النتائج"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {state.analysisResult ? (
+              {visibleAnalysisResult ? (
                 <AnalysisResultPanel
-                  result={state.analysisResult}
+                  result={visibleAnalysisResult}
                   getEyeDirectionText={getEyeDirectionText}
                   getBlinkStatusColor={getBlinkStatusColor}
                   getBlinkStatusText={getBlinkStatusText}

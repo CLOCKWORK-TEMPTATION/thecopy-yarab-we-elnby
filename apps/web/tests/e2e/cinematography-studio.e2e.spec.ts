@@ -13,9 +13,20 @@ const videoFixturePath = resolve(
 
 async function openShotAnalyzer(page: import("@playwright/test").Page) {
   await page.goto("/cinematography-studio", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("CineAI Vision")).toBeVisible();
-  await page.getByText("محلل اللقطات", { exact: false }).first().click();
-  await expect(page.getByText("تحليل اللقطة الحي")).toBeVisible();
+  await expect(page.getByText(/VISION CINEAI/i)).toBeVisible({
+    timeout: 60_000,
+  });
+  await page.getByText("محلل اللقطة", { exact: false }).first().click();
+  await expect(page.getByText("محلل اللقطة الحي")).toBeVisible({
+    timeout: 60_000,
+  });
+}
+
+async function expectShotAnalysisResult(page: import("@playwright/test").Page) {
+  await expect(page.getByText(/\d{1,3}\/100/).first()).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByText("Shot Notes")).toBeVisible();
 }
 
 test.describe("cinematography studio end-to-end", () => {
@@ -34,7 +45,7 @@ test.describe("cinematography studio end-to-end", () => {
     await imageInput.setInputFiles(imageFixturePath);
 
     await page.getByRole("button", { name: "تحليل الإدخال المحدد" }).click();
-    await expect(page.getByText("Mood Fit")).toBeVisible();
+    await expectShotAnalysisResult(page);
 
     await page.screenshot({
       path: testInfo.outputPath("cinema-shot-analysis-success.png"),
@@ -49,8 +60,13 @@ test.describe("cinematography studio end-to-end", () => {
     await page.goto("/cinematography-studio", {
       waitUntil: "domcontentloaded",
     });
+    await expect(page.getByRole("button", { name: "المراحل" })).toBeVisible({
+      timeout: 60_000,
+    });
     await page.getByRole("button", { name: "المراحل" }).click();
-    await page.getByRole("tab", { name: "ما بعد الإنتاج" }).click();
+    await page
+      .getByRole("button", { name: /Post-Production|ما بعد الإنتاج/ })
+      .click();
     await expect(
       page.getByText("محلل المشاهد - Footage Analyzer")
     ).toBeVisible();
@@ -88,7 +104,7 @@ test.describe("cinematography studio end-to-end", () => {
         page.getByRole("button", { name: "التقاط وتحليل" }).first()
       ).toBeVisible();
       await page.getByRole("button", { name: "التقاط وتحليل" }).first().click();
-      await expect(page.getByText("Mood Fit")).toBeVisible();
+      await expectShotAnalysisResult(page);
     } else {
       await expect(
         page
@@ -105,7 +121,7 @@ test.describe("cinematography studio end-to-end", () => {
         .first();
       await imageInput.setInputFiles(imageFixturePath);
       await page.getByRole("button", { name: "تحليل الإدخال المحدد" }).click();
-      await expect(page.getByText("Mood Fit")).toBeVisible();
+      await expectShotAnalysisResult(page);
     }
 
     await page.screenshot({

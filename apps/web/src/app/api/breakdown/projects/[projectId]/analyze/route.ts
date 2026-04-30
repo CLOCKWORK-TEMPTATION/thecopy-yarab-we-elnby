@@ -18,6 +18,7 @@ import {
   deleteProjectSession,
 } from "@/app/api/breakdown/_lib/breakdown-session";
 import { logger } from "@/lib/ai/utils/logger";
+import { buildSafeErrorResponse } from "@/lib/server/safe-error-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,40 +39,42 @@ export async function POST(
     const params = await ctx.params;
     projectId = params.projectId ?? "";
   } catch {
-    return NextResponse.json(
-      { success: false, error: "معرف المشروع مطلوب" },
-      { status: 400 }
-    );
+    return buildSafeErrorResponse({
+      status: 400,
+      fallbackMessage: "معرف المشروع مطلوب.",
+      errorCode: "BREAKDOWN_PROJECT_ID_REQUIRED",
+      traceIdPrefix: "breakdown",
+    });
   }
 
   if (!projectId) {
-    return NextResponse.json(
-      { success: false, error: "معرف المشروع غير صالح" },
-      { status: 400 }
-    );
+    return buildSafeErrorResponse({
+      status: 400,
+      fallbackMessage: "معرف المشروع غير صالح.",
+      errorCode: "BREAKDOWN_PROJECT_ID_INVALID",
+      traceIdPrefix: "breakdown",
+    });
   }
 
   // استرداد الجلسة المُخزَّنة
   const session = getProjectSession(projectId);
   if (!session) {
-    return NextResponse.json(
-      {
-        success: false,
-        error:
-          "لم يُعثر على بيانات المشروع أو انتهت صلاحيتها. يرجى إعادة تجزئة السيناريو أولًا.",
-      },
-      { status: 404 }
-    );
+    return buildSafeErrorResponse({
+      status: 404,
+      fallbackMessage:
+        "لم يُعثر على بيانات المشروع أو انتهت صلاحيتها. أعد تجزئة السيناريو أولاً.",
+      errorCode: "BREAKDOWN_PROJECT_SESSION_MISSING",
+      traceIdPrefix: "breakdown",
+    });
   }
 
   if (session.parsed.scenes.length === 0) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "لا توجد مشاهد قابلة للتحليل في السيناريو.",
-      },
-      { status: 422 }
-    );
+    return buildSafeErrorResponse({
+      status: 422,
+      fallbackMessage: "لا توجد مشاهد قابلة للتحليل في السيناريو.",
+      errorCode: "BREAKDOWN_NO_SCENES",
+      traceIdPrefix: "breakdown",
+    });
   }
 
   try {
@@ -90,10 +93,13 @@ export async function POST(
     const message = err instanceof Error ? err.message : "فشل تحليل السيناريو";
     logger.error("[breakdown/projects/analyze] خطأ في التحليل:", message);
 
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
-    );
+    return buildSafeErrorResponse({
+      status: 500,
+      error: message,
+      fallbackMessage: "فشل تحليل السيناريو.",
+      errorCode: "BREAKDOWN_ANALYSIS_FAILED",
+      traceIdPrefix: "breakdown",
+    });
   }
 }
 

@@ -34,6 +34,7 @@ import {
   getToken,
   removeToken,
   refreshAccessToken,
+  ensureAuthenticated,
   getTokenExpiryMs,
   logout,
 } from "../../src/lib/auth";
@@ -71,7 +72,7 @@ function buildAdapter(routes: Map<string, Handler>): AxiosAdapter {
       throw new AxiosError(
         `No mock route for ${key}`,
         "ERR_MOCK_NOT_FOUND",
-        config as InternalAxiosRequestConfig
+        config as InternalAxiosRequestConfig,
       );
     }
 
@@ -81,14 +82,15 @@ function buildAdapter(routes: Map<string, Handler>): AxiosAdapter {
       throw new AxiosError(
         "Network Error",
         "ERR_NETWORK",
-        config as InternalAxiosRequestConfig
+        config as InternalAxiosRequestConfig,
       );
     }
 
     const response: AxiosResponse = {
       data: programmed.data,
       status: programmed.status,
-      statusText: programmed.status >= 200 && programmed.status < 300 ? "OK" : "Error",
+      statusText:
+        programmed.status >= 200 && programmed.status < 300 ? "OK" : "Error",
       headers: {},
       config: config as InternalAxiosRequestConfig,
     };
@@ -99,7 +101,7 @@ function buildAdapter(routes: Map<string, Handler>): AxiosAdapter {
         String(programmed.status),
         config as InternalAxiosRequestConfig,
         undefined,
-        response
+        response,
       );
     }
 
@@ -124,7 +126,7 @@ function makeValidJwt(
     sub: string;
     projectId: string;
     role: string;
-  }> = {}
+  }> = {},
 ): string {
   return makeJwt({
     sub: overrides.sub ?? "user_123",
@@ -185,7 +187,10 @@ describe("breakapp auth — refreshAccessToken + interceptor", () => {
   it("calls /auth/refresh and stores new token on success", async () => {
     const nextToken = makeValidJwt();
     const routes = new Map<string, Handler>([
-      ["post /auth/refresh", () => ({ status: 200, data: { access_token: nextToken } })],
+      [
+        "post /auth/refresh",
+        () => ({ status: 200, data: { access_token: nextToken } }),
+      ],
     ]);
     api.defaults.adapter = buildAdapter(routes);
 
@@ -208,8 +213,12 @@ describe("breakapp auth — refreshAccessToken + interceptor", () => {
   });
 
   it("retries original request once after 401 → refresh → success", async () => {
-    const originalToken = makeValidJwt({ exp: Math.floor(Date.now() / 1000) + 5 });
-    const refreshedToken = makeValidJwt({ exp: Math.floor(Date.now() / 1000) + 3600 });
+    const originalToken = makeValidJwt({
+      exp: Math.floor(Date.now() / 1000) + 5,
+    });
+    const refreshedToken = makeValidJwt({
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    });
     storeToken(originalToken);
 
     let protectedCallCount = 0;
@@ -244,7 +253,10 @@ describe("breakapp auth — refreshAccessToken + interceptor", () => {
 
     const routes = new Map<string, Handler>([
       ["get /protected", () => ({ status: 401, data: { error: "expired" } })],
-      ["post /auth/refresh", () => ({ status: 401, data: { error: "no-cookie" } })],
+      [
+        "post /auth/refresh",
+        () => ({ status: 401, data: { error: "no-cookie" } }),
+      ],
     ]);
     api.defaults.adapter = buildAdapter(routes);
 
@@ -305,6 +317,31 @@ describe("breakapp auth — refreshAccessToken + interceptor", () => {
     expect(b).toBe(refreshedToken);
     expect(c).toBe(refreshedToken);
     expect(refreshCalls).toBe(1);
+  });
+
+  it("restores the current user through refresh before treating the session as expired", async () => {
+    const refreshedToken = makeValidJwt({
+      sub: "restored-user",
+      projectId: "project-restored",
+      role: "director",
+    });
+
+    const routes = new Map<string, Handler>([
+      [
+        "post /auth/refresh",
+        () => ({ status: 200, data: { access_token: refreshedToken } }),
+      ],
+    ]);
+    api.defaults.adapter = buildAdapter(routes);
+
+    const user = await ensureAuthenticated();
+
+    expect(user).toEqual({
+      userId: "restored-user",
+      projectId: "project-restored",
+      role: "director",
+    });
+    expect(getToken()).toBe(refreshedToken);
   });
 });
 
