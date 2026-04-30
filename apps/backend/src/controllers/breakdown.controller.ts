@@ -343,12 +343,14 @@ export class BreakdownSessionsController {
   }
 
   async createSession(req: AuthRequest, res: Response): Promise<void> {
-    const { projectId } = req.body as { projectId?: string };
-    if (!projectId) {
+    const parsed = z
+      .object({ projectId: z.string().min(1) })
+      .safeParse(req.body);
+    if (!parsed.success) {
       res.status(400).json({ success: false, error: "projectId مطلوب" });
       return;
     }
-    req.params = { ...req.params, projectId };
+    req.params = { ...req.params, projectId: parsed.data.projectId };
     return breakdownController.analyzeProject(req, res);
   }
 
