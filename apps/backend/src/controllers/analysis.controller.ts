@@ -1,326 +1,29 @@
-import { createHash, randomUUID } from "crypto";
-
-import { Document, Packer, Paragraph, HeadingLevel, AlignmentType } from "docx";
-import { Request, Response } from "express";
-import { jsPDF } from "jspdf";
-import { z } from "zod";
+import { Packer } from "docx";
+import { type Request, type Response } from "express";
 
 import { logger } from "@/lib/logger";
-import { queueAIAnalysis } from "@/queues/jobs/ai-analysis.job";
 import { AnalysisService } from "@/services/analysis.service";
 import {
   analysisStreamRegistry,
   type StationId,
 } from "@/services/analysisStream.registry";
 
-// تم إيقاف استيراد كود من الواجهة الأمامية لتجنب أخطاء rootDir في TypeScript
-
-const runSevenStationsBodySchema = z
-  .object({
-    text: z.string().trim().min(1),
-    async: z.boolean().optional(),
-  })
-  .passthrough();
-
-const startStreamBodySchema = z.object({
-  text: z.string().trim().min(1),
-  projectId: z.string().min(1).optional(),
-  projectName: z.string().min(1).optional(),
-});
-
-const retryBodySchema = z.object({
-  text: z.string().trim().min(1),
-});
-
-const exportBodySchema = z.object({
-  format: z.enum(["json", "docx", "pdf"]),
-});
-
-function getUserId(req: Request): string {
-  return (req as unknown as { user?: { id: string } }).user?.id ?? "anonymous";
-}
-
-function getForwardedIp(req: Request): string | null {
-  const headers = req.headers ?? {};
-  const forwardedFor = headers["x-forwarded-for"];
-  const raw = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
-  if (!raw) return null;
-  const ip = raw.split(",")[0]?.trim();
-  if (ip === undefined || ip.length === 0) return null;
-  return ip;
-}
-
-/**
- * Get the public session token from request headers.
- * For unauthenticated public sessions, a unique token must be provided
- * to prevent session hijacking by users on the same IP+UserAgent.
- * The token is generated server-side and returned to the client on session creation.
- */
-function getPublicSessionToken(req: Request): string | null {
-  const token = req.get("x-analysis-token");
-  return token && token.length > 0 ? token : null;
-}
-
-/**
- * Generate a cryptographically secure public session token for unauthenticated sessions.
- * This ensures that even users on the same IP+UserAgent cannot access each other's sessions.
- */
-function generatePublicSessionToken(): string {
-  return randomUUID();
-}
-
-function getPublicOwnerId(req: Request): string {
-  const ip =
-    getForwardedIp(req) ?? req.ip ?? req.socket.remoteAddress ?? "unknown-ip";
-  const userAgent = req.get("user-agent") ?? "unknown-agent";
-  const sessionToken = getPublicSessionToken(req);
-  
-  // Include the session token in the ownerId if available.
-  // This prevents session hijacking by requiring the exact token.
-  // If no token is provided, fall back to IP+UA only (for backward compatibility
-  // with existing sessions, though new sessions should always have a token).
-  const input = sessionToken
-    ? `${ip}|${userAgent}|${sessionToken}`
-    : `${ip}|${userAgent}`;
-  
-  const digest = createHash("sha256")
-    .update(input)
-    .digest("hex")
-    .slice(0, 32);
-  return `public:${digest}`;
-}
-
-function sessionBelongsTo(
-  metadata: Record<string, unknown>,
-  ownerId: string,
-): boolean {
-  const owner = metadata["ownerId"];
-  if (typeof owner !== "string") return true; // legacy/anonymous sessions: open
-  return owner === ownerId;
-}
-
-function parseLastEventId(
-  header: string | string[] | undefined,
-): number | null {
-  const raw = Array.isArray(header) ? header[0] : header;
-  if (!raw) return null;
-  const n = Number(raw);
-  return Number.isInteger(n) && n > 0 ? n : null;
-}
-
-function sendAnalysisError(
-  res: Response,
-  status: number,
-  error: string,
-  errorCode: string,
-): void {
-  res.status(status).json({
-    success: false,
-    error,
-    errorCode,
-    code: errorCode,
-    traceId: `analysis-${randomUUID()}`,
-  });
-}
-
-/**
- * DOCX export — Arabic / RTL is fully supported by Word readers when paragraphs
- * are flagged `bidirectional: true`. This is a real RTL export.
- */
-function buildDocx(snap: {
-  projectName: string;
-  finalReport: string | null;
-  stations: {
-    id: number;
-    name: string;
-    status: string;
-    output: unknown;
-    error: string | null;
-  }[];
-}) {
-  const rtlPara = (
-    text: string,
-    heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel],
-  ): Paragraph =>
-    new Paragraph({
-      text,
-      ...(heading !== undefined ? { heading } : {}),
-      bidirectional: true,
-      alignment: AlignmentType.RIGHT,
-    });
-
-  const children: Paragraph[] = [rtlPara(snap.projectName, HeadingLevel.TITLE)];
-  for (const s of snap.stations) {
-    children.push(
-      rtlPara(`المحطة ${s.id} — ${s.name}`, HeadingLevel.HEADING_1),
-    );
-    children.push(rtlPara(`الحالة: ${s.status}`));
-    if (s.error) children.push(rtlPara(`خطأ: ${s.error}`));
-    if (s.output) {
-      const text = stationOutputToText(s.output);
-      for (const line of text.split("\n")) children.push(rtlPara(line));
-    }
-  }
-  if (snap.finalReport) {
-    children.push(rtlPara("التقرير النهائي", HeadingLevel.HEADING_1));
-    for (const line of snap.finalReport.split("\n"))
-      children.push(rtlPara(line));
-  }
-  return new Document({ sections: [{ properties: {}, children }] });
-}
-
-/**
- * PDF export — KNOWN LIMITATION: jsPDF's bundled core fonts (Helvetica/Times/
- * Courier) do not contain Arabic glyphs and jsPDF performs no bidi reshaping.
- * Embedding an Arabic font + reshaper is intentionally out of scope for this
- * fixup. The PDF therefore renders Arabic strings as missing glyphs / boxes.
- *
- * Until an Arabic font is bundled, the PDF is best-effort and is generated as
- * an English-only structural summary with a clear notice on the first page
- * pointing the user to the DOCX export for a faithful Arabic / RTL rendering.
- */
-function buildPdf(snap: {
-  projectName: string;
-  finalReport: string | null;
-  stations: {
-    id: number;
-    name: string;
-    status: string;
-    output: unknown;
-    error: string | null;
-  }[];
-}): Buffer {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const margin = 40;
-  let y = margin;
-  const lineHeight = 14;
-  const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
-
-  const writeLines = (text: string, size = 10) => {
-    doc.setFontSize(size);
-    const lines = doc.splitTextToSize(text, maxWidth) as string[];
-    for (const line of lines) {
-      if (y > doc.internal.pageSize.getHeight() - margin) {
-        doc.addPage();
-        y = margin;
-      }
-      doc.text(line, margin, y);
-      y += lineHeight;
-    }
-  };
-
-  // Honest notice — keeps the PDF usable for non-Arabic workflows and tells
-  // the user where to go for a real RTL export.
-  writeLines(
-    "Notice: PDF export uses jsPDF core fonts which do not include Arabic glyphs.",
-    9,
-  );
-  writeLines(
-    "For a faithful Arabic / RTL rendering, please use the DOCX export instead.",
-    9,
-  );
-  y += lineHeight;
-
-  writeLines(asciiSafe(snap.projectName), 16);
-  y += lineHeight;
-  for (const s of snap.stations) {
-    writeLines(`Station ${s.id} - ${asciiSafe(s.name)}`, 13);
-    writeLines(`Status: ${s.status}`);
-    if (s.error) writeLines(`Error: ${asciiSafe(s.error)}`);
-    if (s.output) writeLines(asciiSafe(stationOutputToText(s.output)));
-    y += lineHeight;
-  }
-  if (snap.finalReport) {
-    writeLines("Final Report", 13);
-    writeLines(asciiSafe(snap.finalReport));
-  }
-  return Buffer.from(doc.output("arraybuffer"));
-}
-
-/**
- * Strip characters that the bundled jsPDF core fonts cannot render so the
- * PDF doesn't fill with empty boxes. This is a deliberate downgrade — see
- * the buildPdf docstring above.
- */
-function asciiSafe(text: string): string {
-  return Array.from(text)
-    .map((character) => {
-      const code = character.charCodeAt(0);
-      const isSupported =
-        code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126);
-      return isSupported ? character : "?";
-    })
-    .join("");
-}
-
-function stationOutputToText(output: unknown): string {
-  if (typeof output === "string") return output;
-  if (output && typeof output === "object") {
-    const details = (output as { details?: { fullAnalysis?: unknown } })
-      .details;
-    if (details && typeof details.fullAnalysis === "string")
-      return details.fullAnalysis;
-    try {
-      return JSON.stringify(output, null, 2);
-    } catch {
-      return "";
-    }
-  }
-  return "";
-}
-
-async function handleAsyncPipeline(
-  req: Request,
-  res: Response,
-  text: string,
-): Promise<void> {
-  const jobId = await queueAIAnalysis({
-    type: "project",
-    entityId: `text_${Date.now()}`,
-    userId: getUserId(req),
-    analysisType: "full",
-    options: { text },
-  });
-
-  logger.info("تم إضافة مهمة التحليل إلى قائمة الانتظار", { jobId });
-
-  res.json({
-    success: true,
-    jobId,
-    message: "تم إضافة التحليل إلى قائمة الانتظار",
-    checkStatus: `/api/queue/jobs/${jobId}`,
-    timestamp: new Date().toISOString(),
-  });
-}
-
-function buildPipelineResponse(
-  pipelineResult: {
-    pipelineMetadata?: { averageConfidence?: number };
-    stationOutputs: { station7: { details?: Record<string, unknown> } };
-  },
-  startTime: number,
-) {
-  const endTime = Date.now();
-  const computedConfidence =
-    pipelineResult.pipelineMetadata?.averageConfidence ?? 0.85;
-  const finalReport =
-    pipelineResult.stationOutputs.station7.details?.["finalReport"];
-
-  return {
-    response: {
-      success: true,
-      report: typeof finalReport === "string" ? finalReport : "تحليل غير متاح",
-      confidence: computedConfidence,
-      executionTime: endTime - startTime,
-      timestamp: new Date().toISOString(),
-      stationsCount: 7,
-      detailedResults: pipelineResult.stationOutputs,
-      metadata: pipelineResult.pipelineMetadata,
-    },
-    computedConfidence,
-    executionTime: endTime - startTime,
-  };
-}
+import {
+  buildDocx,
+  buildPdf,
+  buildPipelineResponse,
+  exportBodySchema,
+  generatePublicSessionToken,
+  getPublicOwnerId,
+  getUserId,
+  handleAsyncPipeline,
+  parseLastEventId,
+  retryBodySchema,
+  runSevenStationsBodySchema,
+  sendAnalysisError,
+  sessionBelongsTo,
+  startStreamBodySchema,
+} from "./analysis.controller.helpers";
 
 export class AnalysisController {
   private analysisService: AnalysisService;
@@ -407,11 +110,14 @@ export class AnalysisController {
   }
 
   startPublicStreamSession(req: Request, res: Response): void {
-    // Generate a unique session token for this public session
     const sessionToken = generatePublicSessionToken();
-    // Add it to the request headers so getPublicOwnerId can use it
     req.headers["x-analysis-token"] = sessionToken;
-    this.startStreamSessionForOwner(req, res, getPublicOwnerId(req), sessionToken);
+    this.startStreamSessionForOwner(
+      req,
+      res,
+      getPublicOwnerId(req),
+      sessionToken,
+    );
   }
 
   private startStreamSessionForOwner(
@@ -436,7 +142,6 @@ export class AnalysisController {
       });
       const analysisId = session.snapshot.analysisId;
 
-      // Fire-and-forget; events flow through the SSE channel.
       void this.analysisService
         .runFullPipelineStreaming({
           analysisId,
@@ -447,7 +152,11 @@ export class AnalysisController {
           logger.error("Streaming pipeline crashed", { analysisId, error });
         });
 
-      const response: { success: true; analysisId: string; sessionToken?: string } = {
+      const response: {
+        success: true;
+        analysisId: string;
+        sessionToken?: string;
+      } = {
         success: true,
         analysisId,
       };

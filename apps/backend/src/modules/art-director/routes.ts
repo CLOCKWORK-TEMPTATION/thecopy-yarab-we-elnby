@@ -9,8 +9,8 @@ import {
   handleProductivityDelay,
 } from "./handlers-productivity";
 
-import type { Request, Response } from "express";
 import type { ArtDirectorHandlerResponse } from "./handlers-shared";
+import type { Request, Response } from "express";
 
 function getRouteSegments(pathname: string): string[] {
   return pathname
@@ -105,7 +105,8 @@ artDirectorRouter.get("/productivity/summary", (_req, res) => {
 });
 artDirectorRouter.post("/analyze/productivity", (req, res) => {
   void invokeHandler(
-    () => handleProductivityAnalyze((req.body as Record<string, unknown>) ?? {}),
+    () =>
+      handleProductivityAnalyze((req.body as Record<string, unknown>) ?? {}),
     res,
   );
 });
@@ -114,7 +115,8 @@ artDirectorRouter.post("/productivity/recommendations", (_req, res) => {
 });
 artDirectorRouter.post("/productivity/log-time", (req, res) => {
   void invokeHandler(
-    () => handleProductivityLogTime((req.body as Record<string, unknown>) ?? {}),
+    () =>
+      handleProductivityLogTime((req.body as Record<string, unknown>) ?? {}),
     res,
   );
 });
