@@ -195,7 +195,7 @@ describe("Output Sanitization", () => {
     guardrails.checkOutput(outputWithPII);
 
     const metrics = guardrails.getMetrics();
-    expect(metrics.violationsByType.pii).toBeGreaterThan(0);
+    expect(metrics.violationsByType["pii"]).toBeGreaterThan(0);
   });
 });
 
@@ -230,7 +230,7 @@ describe("Metrics and Tracking", () => {
     guardrails.checkInput(maliciousInput);
 
     const metrics = guardrails.getMetrics();
-    expect(metrics.violationsByType.prompt_injection).toBeGreaterThan(0);
+    expect(metrics.violationsByType["prompt_injection"]).toBeGreaterThan(0);
   });
 
   it("should track violations by severity", () => {
@@ -238,7 +238,7 @@ describe("Metrics and Tracking", () => {
     guardrails.checkInput(maliciousInput);
 
     const metrics = guardrails.getMetrics();
-    expect(metrics.violationsBySeverity.critical).toBeGreaterThan(0);
+    expect(metrics.violationsBySeverity["critical"]).toBeGreaterThan(0);
   });
 
   it("should track top patterns", () => {

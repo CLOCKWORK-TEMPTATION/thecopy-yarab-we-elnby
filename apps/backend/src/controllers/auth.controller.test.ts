@@ -353,7 +353,7 @@ describe("getCurrentUser", () => {
   });
 
   it("should return 401 if user not authenticated", () => {
-    mockRequest.user = undefined;
+    delete mockRequest.user;
 
     authController.getCurrentUser(asRequest(), asResponse());
 

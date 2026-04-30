@@ -54,8 +54,10 @@ describe("RhythmMappingAgent", () => {
     expect(Array.isArray(result.notes)).toBe(true);
     expect(result.notes.some((note) => note.includes("تحليل"))).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
-    expect(result.metadata?.rhythmAnalysisQuality).toBeDefined();
-    expect(result.metadata?.optimizationSuggestions).toBeGreaterThanOrEqual(1);
+    expect(result.metadata?.["rhythmAnalysisQuality"]).toBeDefined();
+    expect(result.metadata?.["optimizationSuggestions"]).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
   it("should return fallback metadata on failure", async () => {

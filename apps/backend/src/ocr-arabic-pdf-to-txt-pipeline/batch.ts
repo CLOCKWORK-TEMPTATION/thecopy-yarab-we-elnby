@@ -17,7 +17,7 @@ import { format as formatLogLine } from "node:util";
 import { createMCPClient } from "@ai-sdk/mcp";
 import { openai } from "@ai-sdk/openai";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio";
-import { generateText, stepCountIs } from "ai";
+import { generateText, stepCountIs, type ToolSet } from "ai";
 
 import { buildAgentConfig, validateEnvironment } from "./config";
 
@@ -58,15 +58,19 @@ function parseBatchArgs(): BatchArgs {
     process.exit(1);
   }
 
-  const inputDir = resolve(args[0]);
+  const inputDir = resolve(args[0] ?? "");
   let outputDir = "";
   let format: "txt" | "md" = "md";
 
   for (let i = 1; i < args.length; i++) {
-    if (args[i] === "--output" && args[i + 1]) {
-      outputDir = resolve(args[++i]);
-    } else if (args[i] === "--format" && args[i + 1]) {
-      format = args[++i] === "txt" ? "txt" : "md";
+    const token = args[i];
+    const next = args[i + 1];
+    if (token === "--output" && next) {
+      outputDir = resolve(next);
+      i += 1;
+    } else if (token === "--format" && next) {
+      format = next === "txt" ? "txt" : "md";
+      i += 1;
     }
   }
 
@@ -153,7 +157,7 @@ async function main(): Promise<void> {
     try {
       await generateText({
         model: openai(config.agentModel),
-        tools: mcpTools,
+        tools: mcpTools as ToolSet,
         stopWhen: stepCountIs(5),
         messages: [
           {

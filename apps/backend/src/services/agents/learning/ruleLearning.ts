@@ -60,8 +60,8 @@ export class RuleLearningSystem {
     metrics.lastViolation = new Date();
 
     const ctx = context as Record<string, string> | undefined;
-    if (ctx?.agentName && !metrics.contexts.includes(ctx.agentName)) {
-      metrics.contexts.push(ctx.agentName);
+    if (ctx?.["agentName"] && !metrics.contexts.includes(ctx["agentName"])) {
+      metrics.contexts.push(ctx["agentName"]);
     }
 
     // Track pattern
@@ -97,7 +97,8 @@ export class RuleLearningSystem {
       timestamp: new Date(),
       severity: violation.severity,
       context:
-        (context as Record<string, string> | undefined)?.agentName ?? "unknown",
+        (context as Record<string, string> | undefined)?.["agentName"] ??
+        "unknown",
       message: violation.message,
     });
 
@@ -248,7 +249,9 @@ export class RuleLearningSystem {
       if (param.type === "number") {
         // Suggest increasing/decreasing numeric thresholds
         if (patterns.length > 10) {
-          adjustments[param.name] = param.value * 1.2; // Loosen by 20%
+          if (typeof param.value === "number") {
+            adjustments[param.name] = param.value * 1.2; // Loosen by 20%
+          }
         }
       }
     }
@@ -312,14 +315,14 @@ export class RuleLearningSystem {
    * Import learning data
    */
   import(data: Record<string, unknown>): void {
-    if (data.metrics) {
+    if (data["metrics"]) {
       this.performanceMetrics = new Map(
-        data.metrics as [string, RulePerformanceMetrics][],
+        data["metrics"] as [string, RulePerformanceMetrics][],
       );
     }
-    if (data.patterns) {
+    if (data["patterns"]) {
       this.violationPatterns = new Map(
-        data.patterns as [string, ViolationPattern[]][],
+        data["patterns"] as [string, ViolationPattern[]][],
       );
     }
   }

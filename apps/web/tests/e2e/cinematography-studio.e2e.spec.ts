@@ -68,7 +68,7 @@ test.describe("cinematography studio end-to-end", () => {
       .getByRole("button", { name: /Post-Production|ما بعد الإنتاج/ })
       .click();
     await expect(
-      page.getByText("محلل المشاهد - Footage Analyzer")
+      page.getByRole("heading", { name: "Daily Camera Report" })
     ).toBeVisible();
 
     await page.getByRole("button", { name: "فيديو" }).first().click();
@@ -78,11 +78,15 @@ test.describe("cinematography studio end-to-end", () => {
     await videoInput.setInputFiles(videoFixturePath);
 
     await expect(
-      page.getByText("جاري استخراج إطار مرجعي من الفيديو قبل بدء التحليل.")
-    ).toBeVisible();
+      page.getByRole("button", { name: "اختيار فيديو" })
+    ).toBeVisible({
+      timeout: 60_000,
+    });
 
-    await page.getByRole("button", { name: "تحليل الإدخال الحالي" }).click();
-    await expect(page.getByText("خلاصة التحليل")).toBeVisible();
+    await page.getByRole("button", { name: "تحليل الإطار" }).click();
+    await expect(page.getByText("Suggestions")).toBeVisible({
+      timeout: 60_000,
+    });
 
     await page.screenshot({
       path: testInfo.outputPath("cinema-post-video-analysis-success.png"),

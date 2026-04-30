@@ -207,7 +207,7 @@ async function buildAgent() {
   );
 
   // بناء الوكيل
-  const agent = new ToolLoopAgent<never, ToolSet>({
+  const agent = new ToolLoopAgent({
     model: openai(config.agentModel),
     instructions: AGENT_INSTRUCTIONS,
     tools: allTools,
@@ -219,8 +219,8 @@ async function buildAgent() {
         for (const call of toolCalls) {
           const callArgs =
             "input" in call
-              ? (call as Record<string, unknown>).input
-              : (call as Record<string, unknown>).args;
+              ? (call as Record<string, unknown>)["input"]
+              : (call as Record<string, unknown>)["args"];
           log(
             "أداة",
             C.cyan,
@@ -245,11 +245,12 @@ function buildUserPrompt(args: string[], defaultInputDir: string): string {
     return `اسرد ملفات PDF في المجلد: ${defaultInputDir}`;
   }
 
-  if (args[0] === "--prompt" || args[0] === "-p") {
+  const firstArg = args[0] ?? "";
+  if (firstArg === "--prompt" || firstArg === "-p") {
     return args.slice(1).join(" ");
   }
 
-  const pdfPath = resolve(args[0]);
+  const pdfPath = resolve(firstArg);
   const outputFormat = args.includes("--txt") ? "txt" : "md";
   const outputPath = args.find((a) => a.startsWith("--output="))?.split("=")[1];
 

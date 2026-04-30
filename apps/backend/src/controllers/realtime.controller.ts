@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { logger } from "@/lib/logger";
 import { sseService } from "@/services/sse.service";
 import { websocketService } from "@/services/websocket.service";
-import { RealtimeEventType } from "@/types/realtime.types";
+import { RealtimeEvent, RealtimeEventType } from "@/types/realtime.types";
 
 export class RealtimeController {
   /**
@@ -19,7 +19,7 @@ export class RealtimeController {
    */
   connectSSE(req: Request, res: Response): void {
     const clientId = uuidv4();
-    const userId = (req.user as Record<string, unknown>)?.userId as
+    const userId = (req.user as Record<string, unknown>)?.["userId"] as
       | string
       | undefined;
     const lastEventId = req.headers["last-event-id"] as string | undefined;
@@ -34,7 +34,7 @@ export class RealtimeController {
    * Get real-time service statistics
    * GET /api/realtime/stats
    */
-  getStats(req: Request, res: Response): void {
+  getStats(_req: Request, res: Response): void {
     try {
       const wsStats = websocketService.getStats();
       const sseStats = sseService.getStats();
@@ -60,7 +60,7 @@ export class RealtimeController {
    * Health check for real-time services
    * GET /api/realtime/health
    */
-  healthCheck(req: Request, res: Response): void {
+  healthCheck(_req: Request, res: Response): void {
     const wsIO = websocketService.getIO();
     const sseStats = sseService.getStats();
 
@@ -90,16 +90,22 @@ export class RealtimeController {
   /**
    * Build the test event payload from request body
    */
-  private buildTestEvent(body: Record<string, unknown>) {
+  private buildTestEvent(body: Record<string, unknown>): RealtimeEvent {
     const { eventType, payload } = body;
     const typedPayload = payload as Record<string, unknown> | undefined;
+    const resolvedEvent =
+      typeof eventType === "string" &&
+      Object.values(RealtimeEventType).includes(eventType as RealtimeEventType)
+        ? (eventType as RealtimeEventType)
+        : RealtimeEventType.SYSTEM_INFO;
+
     return {
-      event: (eventType as string) || RealtimeEventType.SYSTEM_INFO,
+      event: resolvedEvent,
       payload: {
         ...typedPayload,
         timestamp: new Date().toISOString(),
-        eventType: (eventType as string) || RealtimeEventType.SYSTEM_INFO,
-        message: (typedPayload?.message as string) || "Test event",
+        eventType: resolvedEvent,
+        message: (typedPayload?.["message"] as string) || "Test event",
       },
     };
   }
@@ -126,7 +132,7 @@ export class RealtimeController {
       );
       this.broadcastTestEvent(
         testEvent,
-        (req.body as Record<string, unknown>).target as string | undefined,
+        (req.body as Record<string, unknown>)["target"] as string | undefined,
       );
 
       res.json({
@@ -149,7 +155,9 @@ export class RealtimeController {
    */
   streamAnalysisLogs(req: Request, res: Response): void {
     const analysisId =
-      typeof req.params.analysisId === "string" ? req.params.analysisId : "";
+      typeof req.params["analysisId"] === "string"
+        ? req.params["analysisId"]
+        : "";
     const clientId = uuidv4();
     const userId = (req.user as { userId?: string })?.userId;
 

@@ -133,7 +133,7 @@ describe("WeaviateIndexingService", () => {
 
     expect(stats.filesProcessed).toBe(2);
     expect(stats.chunksIndexed).toBeGreaterThan(0);
-    expect(stats.collections.CodeChunks).toBeGreaterThan(0);
+    expect(stats.collections["CodeChunks"]).toBeGreaterThan(0);
     expect(mockInsertMany).toHaveBeenCalled();
   });
 });

@@ -251,7 +251,8 @@ ${text}
     nodes: PlotNode[],
     edges: PlotEdge[],
   ): Promise<CausalRelation[]> {
-    const promises = edges.map(async (edge) => {
+    const promises: Promise<CausalRelation | null>[] = edges.map(
+      async (edge) => {
       const fromNode = nodes.find((n) => n.id === edge.from);
       const toNode = nodes.find((n) => n.id === edge.to);
 
@@ -271,7 +272,8 @@ ${text}
         };
       }
       return null;
-    });
+      },
+    );
 
     const results = await Promise.all(promises);
     return results.filter(

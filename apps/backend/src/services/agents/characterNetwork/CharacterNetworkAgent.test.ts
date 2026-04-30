@@ -52,8 +52,10 @@ describe("CharacterNetworkAgent", () => {
     expect(Array.isArray(result.notes)).toBe(true);
     expect(result.notes.some((note) => note.includes("تحليل"))).toBe(true);
     expect(result.metadata?.timestamp).toBeDefined();
-    expect(result.metadata?.networkAnalysisQuality).toBeDefined();
-    expect(result.metadata?.relationshipsIdentified).toBeGreaterThanOrEqual(1);
+    expect(result.metadata?.["networkAnalysisQuality"]).toBeDefined();
+    expect(result.metadata?.["relationshipsIdentified"]).toBeGreaterThanOrEqual(
+      1,
+    );
   });
 
   it("should return the fallback contract with error metadata", async () => {

@@ -263,8 +263,14 @@ describe("Failure Scenarios and Retry Logic", () => {
 
     // Verify retry settings
     expect(job?.opts.attempts).toBe(3);
-    expect(job?.opts.backoff?.type).toBe("exponential");
-    expect(job?.opts.backoff?.delay).toBe(3000);
+    const backoff = job?.opts.backoff;
+    expect(typeof backoff).toBe("object");
+    expect(backoff && typeof backoff !== "number" ? backoff.type : undefined).toBe(
+      "exponential",
+    );
+    expect(
+      backoff && typeof backoff !== "number" ? backoff.delay : undefined,
+    ).toBe(3000);
   });
 
   it("should handle missing file error", async () => {

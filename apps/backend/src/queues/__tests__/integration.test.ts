@@ -473,9 +473,13 @@ describe("Job Events", () => {
 
     const events: string[] = [];
 
-    queue.on("waiting", () => events.push("waiting"));
-    queue.on("active", () => events.push("active"));
-    queue.on("completed", () => events.push("completed"));
+    const onQueueEvent = queue.on.bind(queue) as (
+      event: string,
+      listener: () => void,
+    ) => void;
+    onQueueEvent("waiting", () => events.push("waiting"));
+    onQueueEvent("active", () => events.push("active"));
+    onQueueEvent("completed", () => events.push("completed"));
 
     await queueAIAnalysis({
       type: "scene",

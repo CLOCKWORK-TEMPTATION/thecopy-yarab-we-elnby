@@ -183,7 +183,7 @@ describe("MetricsAggregatorService > takeSnapshot", () => {
     expect(snapshot.api.totalRequests).toBe(520);
     expect(snapshot.api.byEndpoint).toHaveProperty("/api/projects");
     expect(snapshot.api.byEndpoint).toHaveProperty("/api/auth");
-    expect(snapshot.api.byEndpoint["/api/auth"].errors).toBe(20);
+    expect(snapshot.api.byEndpoint["/api/auth"]?.errors).toBe(20);
   });
 
   it("should aggregate Gemini metrics correctly", async () => {
