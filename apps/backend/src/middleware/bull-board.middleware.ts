@@ -30,7 +30,7 @@ export function setupBullBoard() {
  * Wraps the Bull Board router with authentication middleware
  */
 export function getAuthenticatedBullBoardRouter(): Router {
-  const router = Router();
+  const router: Router = Router();
 
   // Apply rate limiting for dashboard access
   const dashboardLimiter = rateLimit({

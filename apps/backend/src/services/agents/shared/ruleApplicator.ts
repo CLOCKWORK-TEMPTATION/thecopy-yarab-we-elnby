@@ -73,12 +73,17 @@ export async function applyRulesWithContext(
   // Generate summary
   const summary = generateViolationSummary(violations);
 
-  return {
+  const result: RuleApplicationResult = {
     violations,
-    correctedText: correctedText ?? undefined,
     applied: violations.length === 0,
     summary,
   };
+
+  if (correctedText !== undefined) {
+    result.correctedText = correctedText;
+  }
+
+  return result;
 }
 
 /**
@@ -142,17 +147,17 @@ function generateViolationSummary(violations: RuleViolation[]): string {
 
   const parts: string[] = [];
 
-  if (bySeverity.critical) {
-    parts.push(`${bySeverity.critical} حرج`);
+  if (bySeverity["critical"]) {
+    parts.push(`${bySeverity["critical"]} حرج`);
   }
-  if (bySeverity.major) {
-    parts.push(`${bySeverity.major} رئيسي`);
+  if (bySeverity["major"]) {
+    parts.push(`${bySeverity["major"]} رئيسي`);
   }
-  if (bySeverity.minor) {
-    parts.push(`${bySeverity.minor} ثانوي`);
+  if (bySeverity["minor"]) {
+    parts.push(`${bySeverity["minor"]} ثانوي`);
   }
-  if (bySeverity.warning) {
-    parts.push(`${bySeverity.warning} تحذير`);
+  if (bySeverity["warning"]) {
+    parts.push(`${bySeverity["warning"]} تحذير`);
   }
 
   return `تم اكتشاف ${violations.length} انتهاك: ${parts.join(", ")}`;
@@ -229,14 +234,16 @@ export class RuleExceptionHandler {
         ruleId: "char-no-anachronistic-psychology",
         condition: (ctx: unknown) => {
           const c = ctx as Record<string, unknown> | null;
-          return c?.genre === "fantasy" || c?.genre === "sci-fi";
+          return c?.["genre"] === "fantasy" || c?.["genre"] === "sci-fi";
         },
       },
       {
         ruleId: "dialogue-dialect-awareness",
         condition: (ctx: unknown) => {
           const c = ctx as Record<string, unknown> | null;
-          return c?.setting === "contemporary" && c?.language === "formal";
+          return (
+            c?.["setting"] === "contemporary" && c?.["language"] === "formal"
+          );
         },
       },
     ];

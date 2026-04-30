@@ -266,36 +266,50 @@ export class MarkdownNormalizer {
       return "بسم الله الرحمن الرحيم";
     }
 
-    const glueMatch = stripped.match(this.inlineDialogueGlueRe);
-    if (glueMatch) {
-      const speaker = `${glueMatch[1]} ${glueMatch[2]}`
-        .replace(this.whitespacePattern, " ")
-        .trim();
-      const dialogue = glueMatch[3].replace(this.whitespacePattern, " ").trim();
-      if (speaker && dialogue && this.characterRe.test(`${speaker}:`)) {
-        return `${speaker}: ${dialogue}`;
-      }
-    }
+    const gluedDialogue = this.normalizeGluedDialogue(stripped);
+    if (gluedDialogue) return gluedDialogue;
 
-    const inline = stripped.match(this.inlineDialogueRe);
-    if (inline) {
-      const speaker = inline[1].replace(this.whitespacePattern, " ").trim();
-      const dialogue = inline[2].replace(this.whitespacePattern, " ").trim();
-      if (
-        speaker &&
-        dialogue &&
-        this.arabicOnlyWithNumbersRe.test(speaker) &&
-        this.characterRe.test(`${speaker}:`)
-      ) {
-        return `${speaker}: ${dialogue}`;
-      }
-    }
+    const inlineDialogue = this.normalizeInlineDialogue(stripped);
+    if (inlineDialogue) return inlineDialogue;
 
     if (this.transitionRe.test(stripped)) {
       return stripped.replace(/[:：]+\s*$/u, "").trim();
     }
 
     return stripped;
+  }
+
+  private normalizeGluedDialogue(stripped: string): string | null {
+    const glueMatch = stripped.match(this.inlineDialogueGlueRe);
+    if (!glueMatch) return null;
+
+    const speaker = `${glueMatch[1] ?? ""} ${glueMatch[2] ?? ""}`
+      .replace(this.whitespacePattern, " ")
+      .trim();
+    const dialogue = (glueMatch[3] ?? "")
+      .replace(this.whitespacePattern, " ")
+      .trim();
+    return speaker && dialogue && this.characterRe.test(`${speaker}:`)
+      ? `${speaker}: ${dialogue}`
+      : null;
+  }
+
+  private normalizeInlineDialogue(stripped: string): string | null {
+    const inline = stripped.match(this.inlineDialogueRe);
+    if (!inline) return null;
+
+    const speaker = (inline[1] ?? "")
+      .replace(this.whitespacePattern, " ")
+      .trim();
+    const dialogue = (inline[2] ?? "")
+      .replace(this.whitespacePattern, " ")
+      .trim();
+    return speaker &&
+      dialogue &&
+      this.arabicOnlyWithNumbersRe.test(speaker) &&
+      this.characterRe.test(`${speaker}:`)
+      ? `${speaker}: ${dialogue}`
+      : null;
   }
 
   private isHeading(line: string): boolean {
@@ -347,18 +361,20 @@ export class MarkdownNormalizer {
     let i = 0;
 
     while (i < lines.length) {
-      const line = lines[i];
+      const line = lines[i] ?? "";
       const scene = line.match(this.sceneHeadingPattern);
 
       if (scene) {
         let j = i + 1;
-        while (j < lines.length && !lines[j]) {
+        while (j < lines.length && !(lines[j] ?? "")) {
           j += 1;
         }
         if (j < lines.length) {
-          const num = lines[j].match(this.headingNumberPattern);
+          const num = (lines[j] ?? "").match(this.headingNumberPattern);
           if (num) {
-            merged.push(`${scene[1]} ${scene[2]} ${num[2]}`);
+            merged.push(
+              `${scene[1] ?? ""} ${scene[2] ?? ""} ${num[2] ?? ""}`,
+            );
             i = j + 1;
             continue;
           }
@@ -407,7 +423,7 @@ export class MarkdownNormalizer {
         continue;
       }
 
-      const prev = merged[merged.length - 1];
+      const prev = merged[merged.length - 1] ?? "";
       if (this.continuationPrefixRe.test(line)) {
         merged[merged.length - 1] = `${prev.trimEnd()} ${line.trimStart()}`;
         continue;

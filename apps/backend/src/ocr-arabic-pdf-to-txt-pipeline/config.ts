@@ -4,8 +4,7 @@
  * يقرأ متغيرات البيئة من .env ويُعدّ الإعدادات الافتراضية.
  */
 
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { format as formatLogLine } from "node:util";
 
 import { config as dotenvConfig } from "dotenv";
@@ -17,9 +16,6 @@ function writeStderr(...args: unknown[]): void {
 }
 
 // ─── تحميل متغيرات البيئة ───────────────────────────────────
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // بحث عن .env في جذر المشروع ثم المجلد الأب
 dotenvConfig({ path: resolve(__dirname, "../../.env"), quiet: true });

@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import { breakappGateway } from "./gateway";
 import { protectedLimiter } from "./limiters";
@@ -15,7 +15,7 @@ import { handleValidationError } from "./validation";
 import type { AuthenticatedRequest } from "./middlewares";
 import type { OrderStatus } from "./service.types";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get(
   "/vendor/orders",

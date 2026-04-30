@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { Router } from "express";
+import { Router, type Request, type Router as ExpressRouter } from "express";
 import { z } from "zod";
 
 import { adminWriteLimiter, protectedLimiter } from "./limiters";
@@ -9,7 +9,6 @@ import * as repo from "./repository";
 import { handleValidationError } from "./validation";
 
 import type { BreakappTokenPayload } from "./service.types";
-import type { Request } from "express";
 
 interface AdminAuthenticatedRequest extends Request {
   breakappAuth?: BreakappTokenPayload;
@@ -40,7 +39,7 @@ const updateVendorSchema = z.object({
   ownerUserId: z.string().min(1).nullable().optional(),
 });
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // ── Project admin ──
 

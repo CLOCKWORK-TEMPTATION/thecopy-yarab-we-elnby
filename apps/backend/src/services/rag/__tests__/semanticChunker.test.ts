@@ -87,7 +87,7 @@ describe("SemanticChunker", () => {
       const chunks = await chunker.chunkText(text, mockGetEmbedding);
 
       expect(chunks.length).toBe(1);
-      expect(chunks[0].text).toBe(text);
+      expect(chunks[0]?.text).toBe(text);
     });
 
     it("should respect max chunk size", async () => {

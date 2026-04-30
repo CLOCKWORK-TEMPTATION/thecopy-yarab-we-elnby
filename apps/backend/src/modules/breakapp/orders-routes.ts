@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import { websocketService } from "@/services/websocket.service";
 
@@ -18,7 +18,7 @@ import { handleValidationError } from "./validation";
 import type { AuthenticatedRequest } from "./middlewares";
 import type { OrderStatus } from "./service.types";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.post(
   "/geo/session",

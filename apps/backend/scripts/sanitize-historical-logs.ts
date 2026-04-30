@@ -30,7 +30,7 @@ const LOG_DIRECTORIES = [
 
 const LOG_EXTENSIONS = [".log", ".txt"];
 const BACKUP_SUFFIX = ".backup";
-const DRY_RUN = process.env.DRY_RUN === "true";
+const DRY_RUN = process.env["DRY_RUN"] === "true";
 
 interface SanitizationResult {
   file: string;

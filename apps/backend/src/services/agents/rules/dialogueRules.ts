@@ -73,8 +73,9 @@ export const dialogueRules: Rule[] = [
       // If dialect is present in context, check if analysis mentions it
       const ctx = context as Record<string, unknown> | undefined;
       const hasDialect =
-        ctx?.hasDialect ??
-        (typeof ctx?.language === "string" && ctx.language.includes("لهجة"));
+        ctx?.["hasDialect"] ??
+        (typeof ctx?.["language"] === "string" &&
+          ctx["language"].includes("لهجة"));
 
       if (!hasDialect) {
         return true; // Rule doesn't apply
@@ -92,7 +93,7 @@ export const dialogueRules: Rule[] = [
         pattern.test(text),
       );
 
-      return mentionsDialect || !params?.requireDialectMention;
+      return mentionsDialect || !params?.["requireDialectMention"];
     },
     suggest: (_text: string) => {
       return "ناقش كيف تستخدم اللهجات أو المستويات اللغوية المختلفة في الحوار";
@@ -133,7 +134,7 @@ export const dialogueRules: Rule[] = [
         pattern.test(text),
       );
 
-      return hasSubtextAnalysis || !params?.requireSubtext;
+      return hasSubtextAnalysis || !params?.["requireSubtext"];
     },
     suggest: (_text: string) => {
       return "استكشف المعاني الضمنية والإيحاءات غير المباشرة في الحوار";
@@ -162,7 +163,7 @@ export const dialogueRules: Rule[] = [
       params?: Record<string, unknown>,
     ) => {
       const ctx = context as Record<string, unknown> | undefined;
-      const hasConflict = ctx?.hasConflict ?? false;
+      const hasConflict = ctx?.["hasConflict"] ?? false;
 
       if (!hasConflict) {
         return true; // Rule doesn't apply
@@ -180,7 +181,7 @@ export const dialogueRules: Rule[] = [
         pattern.test(text),
       );
 
-      return analyzesConflict || !params?.requireConflictAnalysis;
+      return analyzesConflict || !params?.["requireConflictAnalysis"];
     },
     suggest: (_text: string) => {
       return "حدد نقاط التوتر والصراع في الحوار وكيف تتطور";
@@ -230,7 +231,7 @@ export const dialogueRules: Rule[] = [
       return (
         addressesNaturalness ||
         addressesArtificiality ||
-        !params?.checkNaturalness
+        !params?.["checkNaturalness"]
       );
     },
     suggest: (_text: string) => {
@@ -273,7 +274,7 @@ export const dialogueRules: Rule[] = [
         pattern.test(text),
       );
 
-      return analyzeFunction || !params?.requireFunctionAnalysis;
+      return analyzeFunction || !params?.["requireFunctionAnalysis"];
     },
     suggest: (_text: string) => {
       return "وضح ما يحققه الحوار في السرد: هل يقدم معلومات؟ يطور الشخصيات؟ يدفع الأحداث؟";

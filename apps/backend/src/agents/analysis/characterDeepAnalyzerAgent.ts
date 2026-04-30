@@ -11,7 +11,7 @@ export class CharacterDeepAnalyzerAgent extends IntegratedAgent {
     super(CHARACTER_DEEP_ANALYZER_AGENT_CONFIG, apiKey);
   }
 
-  public async execute(
+  public override async execute(
     files: ProcessedFile[],
     specialRequirements: string,
     additionalInfo: string,

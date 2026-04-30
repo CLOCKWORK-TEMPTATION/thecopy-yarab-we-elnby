@@ -51,7 +51,7 @@ export class MistralOCRService {
       document_url: documentUrl,
     };
     if (documentName) {
-      documentPayload.document_name = documentName;
+      documentPayload["document_name"] = documentName;
     }
 
     const body: JsonRecord = {

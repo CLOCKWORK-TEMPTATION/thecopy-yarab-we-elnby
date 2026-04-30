@@ -158,7 +158,7 @@ export async function executeAgentTask(
         tokensUsed: 0,
         modelUsed: "none",
         timestamp: new Date().toISOString(),
-        error: true,
+        error: "true",
       },
     };
   }

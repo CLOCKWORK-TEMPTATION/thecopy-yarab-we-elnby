@@ -47,13 +47,21 @@ function parseArgs(): { input: string; format: OutputFormat; output: string } {
   let output = "";
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--input" && args[i + 1]) input = args[++i];
-    else if (args[i] === "--format" && args[i + 1]) {
-      const f = args[++i].toLowerCase();
+    const token = args[i];
+    const next = args[i + 1];
+    if (token === "--input" && next) {
+      input = next;
+      i += 1;
+    } else if (token === "--format" && next) {
+      const f = next.toLowerCase();
       if (f === "md" || f === "markdown") format = "md";
       else if (f === "txt-raw") format = "txt-raw";
       else format = "txt";
-    } else if (args[i] === "--output" && args[i + 1]) output = args[++i];
+      i += 1;
+    } else if (token === "--output" && next) {
+      output = next;
+      i += 1;
+    }
   }
 
   if (!input || !output) {

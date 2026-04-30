@@ -3,6 +3,9 @@
 set -e
 
 echo "🔍 Semgrep — فحص القواعد الصارمة..."
+# Force Python UTF-8 mode so semgrep can read non-ASCII config files on Windows (cp1252 default).
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
 if command -v semgrep >/dev/null 2>&1; then
   pnpm run security:semgrep
 else

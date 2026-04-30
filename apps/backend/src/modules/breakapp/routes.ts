@@ -9,7 +9,7 @@
  * - حماية حسب الدور عبر requireRole()
  */
 
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 
 import { adminRouter } from "./admin-routes";
 import { authRouter } from "./auth-routes";
@@ -19,7 +19,7 @@ import { runnersRouter } from "./runners-routes";
 import { breakappService } from "./service";
 import { vendorRouter } from "./vendor-routes";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // ---------- Health ----------
 

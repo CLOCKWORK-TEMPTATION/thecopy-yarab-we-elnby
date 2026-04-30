@@ -505,6 +505,6 @@ async function main(): Promise<void> {
 }
 
 // Only run main() if this file is executed directly (not imported)
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module || path.resolve(process.argv[1] ?? "") === __filename) {
   void main();
 }

@@ -30,6 +30,10 @@ function eventConfidence(data: unknown): number | undefined {
     : undefined;
 }
 
+function eventField(data: unknown, key: string): unknown {
+  return isRecord(data) ? data[key] : undefined;
+}
+
 /**
  * Example 1: Using Preset Workflows
  */
@@ -241,12 +245,12 @@ async function exampleWithMonitoring() {
     logger.error(
       `[${event.timestamp.toISOString()}] Step failed: ${event.stepId}`,
     );
-    logger.error("Error:", event.data?.error);
+    logger.error("Error:", eventField(event.data, "error"));
   });
 
   workflowExecutor.on("workflow-completed", (event) => {
     logger.info(`[${event.timestamp.toISOString()}] Workflow completed!`);
-    logger.info("Metrics:", event.data?.metrics);
+    logger.info("Metrics:", eventField(event.data, "metrics"));
   });
 
   // Execute workflow

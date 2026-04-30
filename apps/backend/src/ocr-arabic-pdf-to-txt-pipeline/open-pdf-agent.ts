@@ -15,7 +15,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
 import { createMCPClient } from "@ai-sdk/mcp";
 
@@ -60,9 +59,6 @@ interface SuccessPayloadInput {
   mcpServerPath: string;
   outputMcpMdPath: string;
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const toStringArray = (value: unknown): string[] =>
   Array.isArray(value)
