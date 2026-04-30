@@ -252,15 +252,22 @@ describe("public streaming sessions", () => {
       projectName: "اختبار عام",
     };
     mockRequest.ip = "203.0.113.15";
-    mockRequest.get = vi.fn((headerName: string) =>
-      headerName.toLowerCase() === "user-agent" ? "vitest-browser" : undefined,
-    );
+    mockRequest.headers = mockRequest.headers ?? {};
+    mockRequest.get = vi.fn((headerName: string) => {
+      // Check request headers first (needed for dynamically set headers like x-analysis-token)
+      const headerValue = mockRequest.headers?.[headerName.toLowerCase()];
+      if (typeof headerValue === "string") return headerValue;
+      if (Array.isArray(headerValue)) return headerValue[0];
+      // Fall back to static mock values
+      return headerName.toLowerCase() === "user-agent" ? "vitest-browser" : undefined;
+    });
 
     analysisController.startPublicStreamSession(asRequest(), asResponse());
 
     const payload = firstJsonPayload();
     expect(payload).toMatchObject({ success: true });
     expect(payload["analysisId"]).toEqual(anyStringMatcher());
+    expect(payload["sessionToken"]).toEqual(anyStringMatcher());
     expect(mockRunFullPipelineStreaming).toHaveBeenCalledWith(
       expect.objectContaining({
         analysisId: payload["analysisId"],

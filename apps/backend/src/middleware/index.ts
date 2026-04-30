@@ -361,16 +361,6 @@ export const errorHandler = (
     // Don't log request body as it may contain sensitive data
   };
 
-  if (statusCode >= 500) {
-    logger.error("Unhandled error:", logPayload);
-  } else {
-    logger.warn("Request rejected:", {
-      ...logPayload,
-      statusCode,
-      code: errorCode,
-    });
-  }
-
   // إنشاء معرف تتبع فريد لكل خطأ — يُرفق في السجلات وفي الرد للمستخدم
   const traceId = randomUUID();
 
