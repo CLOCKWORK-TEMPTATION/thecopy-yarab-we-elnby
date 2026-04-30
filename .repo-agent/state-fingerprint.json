@@ -1,7 +1,7 @@
 {
-  "branch": "main",
+  "branch": "codex/e2e-production-readiness",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "d12295b715d3a4db535b34fcb7d77932716159345c2952d400481fe241ab8b43",
+    ".agent-code-memory/manifest.json": "c7317e2453aa8bb10f9ab337559defc6a3c79d1954df84f8db59932ac4fee511",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -40,8 +40,9 @@
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "191196ad297d1de448d843d8b0373bf19abfd5a80b66c53229bd25645dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
-    "package.json": "b58a2d3e3b2c1e0f268c09d7c2035e653b781226b9fd547766f6d9428bf6d0a9",
+    "package.json": "9d3ba572a0646ba77a3612c93b2bc7d4ff1fb0f4aa0ba7f77c9dd9bf0aa5671c",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
+    "packages/copyproj-schema/package.json": "41d05a053d60f305cda9877b31c19a15b0cefc5af47953d9f3f91043c5197270",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "15cf98b462cbc80972f682d323913c081a10bef05c7ca80180848ced7f23e542",
     "packages/core-memory/src/types.ts": "fc7881473489a8ebb1ceaceab0ce528e2e8ba7c0793223f3856c6a58cf237dc0",
@@ -70,17 +71,17 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "c06db9397d04870270ef9b68059019780b4ded06",
+  "headCommit": "bd49096b80fe0d9229c762253fcf2cf3dd634327",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-30T02:02:27.124Z",
+  "lastBootstrapTimestamp": "2026-04-30T05:44:41.455Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "22647a1b8cb08fba7ebbcb0ac90b1e7d3336c73853ab6ebfd18b81b25272873f",
-    "output/code-map/code-map.json": "43785b3fe19e680a75c56d0736d5697c44045006fbbe3f10d8b3147f1b839ee7",
-    "output/code-map/CODEMAP.md": "a7551cc9b25dc128d047b6a89ae964e1a5c684bcc4b8840c54fb97a55cafbea9",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "f5ea107615ed46e7c426b6bd7f690f23b2715e3b543fc4b5bfa0b6690de94e97",
+    "output/code-map/code-map.json": "d5b95f5a34f50fbb270f4128ed78d7620aa2895081f693a0c4ea09ce027a8f3e",
+    "output/code-map/CODEMAP.md": "976133b75e621bc29a76d4c7fa9ecbbe4357285638d34d7fc5601e0a56abc376",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -92,8 +93,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "ed1a4b60714378133226e5a368bca89e20faf41a0ddf4f6aca8ccc61ded585de",
-    "output/session-state.md": "27cc8a1ff08b24034a1fcf3581af877779a8948b3629817bea430d7abfd948fe"
+    "output/round-notes.md": "b46e714ad1b49028b5f790df016f4864a5627d48f47d34e2bfb28a83b5bd3d46",
+    "output/session-state.md": "6d4d809f2135fd00aa0df19484ccc02353f5bae175923861af53ecfcf32f4b43"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -103,7 +104,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "a52bcadf9a2d2318c6ce4959583776e47d60029775e35b76baf29bf327e0501e",
+  "repoFactsHash": "04033c3afa4fce001ce3be368d796d8f4cb2d4d793bd63d218e84af1ee80e766",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -148,6 +149,7 @@
     "apps/web/src/lib/drama-analyst/services/ragService.ts",
     "package.json",
     "packages/breakapp/package.json",
+    "packages/copyproj-schema/package.json",
     "packages/core-memory/package.json",
     "packages/core-memory/src/chunking/semanticChunker.ts",
     "packages/core-memory/src/types.ts",
@@ -174,6 +176,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "32c175d29fadd8aeb3001ec48efc9935493e547a393c416c9ac78b5a0f6fa3a5",
-  "workingTreeHash": "92cfdb4b29e8147d712dfc583a1b65237abe4f60d0ca83e14f626097455987bd"
+  "structuralHash": "62e4a7d7f830e8980dd79bac9bf60ded82ab471f7cecc86cd5db7f5010692dce",
+  "workingTreeHash": "3dcb866bffc3ba872f5321a1016230be4ec893f9c298324d8aad25b5ceed2f35"
 }

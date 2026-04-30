@@ -1,0 +1,23 @@
+{
+  "name": "@the-copy/copyproj-schema",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./validate": "./validate.ts",
+    "./schema": "./copyproj.schema.json"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf node_modules .turbo"
+  },
+  "dependencies": {
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@the-copy/tsconfig": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

@@ -8,7 +8,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 import { useCinematographyStudio } from "../hooks";
 
@@ -99,6 +99,18 @@ export const CineAIStudio: React.FC = () => {
   );
 
   const moodLabel = getMoodLabel(visualMood);
+
+  useEffect(() => {
+    document.documentElement.classList.add("cinematography-responsive-page");
+    document.body.classList.add("cinematography-responsive-page");
+
+    return () => {
+      document.documentElement.classList.remove(
+        "cinematography-responsive-page"
+      );
+      document.body.classList.remove("cinematography-responsive-page");
+    };
+  }, []);
 
   const handleToolClick = useCallback(
     (toolId: string, status: ToolStatus) => {

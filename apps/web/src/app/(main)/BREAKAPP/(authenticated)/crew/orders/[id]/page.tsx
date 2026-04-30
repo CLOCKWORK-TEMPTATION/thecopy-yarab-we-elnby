@@ -14,6 +14,7 @@
 
 import { api, type Order, type MenuItem } from "@the-copy/breakapp";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
@@ -322,12 +323,12 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
               لم يتم العثور على الطلب.
             </p>
             <div className="mt-4 flex justify-center">
-              <a
+              <Link
                 href="/BREAKAPP/crew/menu"
                 className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
               >
                 العودة لقائمة الطلبات
-              </a>
+              </Link>
             </div>
           </CardSpotlight>
         </div>
@@ -354,12 +355,12 @@ export default function CrewOrderDetailsPage(): React.ReactElement {
               #{order.id}
             </p>
           </div>
-          <a
+          <Link
             href="/BREAKAPP/crew/menu"
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             رجوع
-          </a>
+          </Link>
         </div>
 
         <StatusCard

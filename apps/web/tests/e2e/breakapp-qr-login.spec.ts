@@ -28,7 +28,9 @@ class QRLoginTestConfig {
 
   private constructor() {
     this.baseUrl = (
-      process.env["BREAKAPP_QR_E2E_BASE_URL"] ?? "http://localhost:5000"
+      process.env["BREAKAPP_QR_E2E_BASE_URL"] ??
+      process.env["PLAYWRIGHT_BASE_URL"] ??
+      `http://127.0.0.1:${process.env["PLAYWRIGHT_PORT"] ?? "5010"}`
     ).replace(/\/+$/, "");
     this.routePath =
       process.env["BREAKAPP_QR_E2E_ROUTE"] ?? "/BREAKAPP/login/qr";
@@ -145,6 +147,33 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await expect(page.getByTestId("dashboard-stub")).toBeVisible();
   });
 
+  test("لا يضع رمز الجلسة في العنوان أو التخزين الخام بعد الدخول", async ({
+    page,
+  }) => {
+    await page.goto(config.fullUrl, { waitUntil: "domcontentloaded" });
+
+    await expect(page.getByTestId("qr-manual-entry")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.getByTestId("qr-manual-entry").fill(config.qrRawValue);
+    await page.getByTestId("qr-manual-submit").click();
+    await page.waitForURL(/\/BREAKAPP\/dashboard/, { timeout: 15_000 });
+
+    expect(page.url()).not.toContain(config.qrRawValue);
+    expect(page.url()).not.toMatch(/eyJ[A-Za-z0-9_-]+\./);
+
+    const storageDump = await page.evaluate(() =>
+      JSON.stringify({
+        local: Object.entries(window.localStorage),
+        session: Object.entries(window.sessionStorage),
+      })
+    );
+
+    expect(storageDump).not.toContain(config.qrRawValue);
+    expect(storageDump).not.toMatch(/eyJ[A-Za-z0-9_-]+\./);
+  });
+
   test("الإدخال اليدوي بصيغة خاطئة يعرض رسالة عربية ولا ينتقل", async ({
     page,
   }) => {
@@ -175,6 +204,48 @@ test.describe("BreakApp QR Login — Production Flow", () => {
     await page.getByTestId("qr-manual-submit").click();
 
     await expect(page.getByTestId("qr-manual-error")).toContainText(/أدخل رمز/);
+  });
+
+  test("المسار الخاطئ داخل البوابة يعرض صفحة عدم وجود واضحة", async ({
+    page,
+  }) => {
+    await page.goto(`${config.baseUrl}/BREAKAPP/not-real-route`, {
+      waitUntil: "domcontentloaded",
+    });
+
+    await expect(
+      page.getByRole("heading", {
+        name: "المسار غير موجود داخل بوابة بريك آب",
+      })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "العودة إلى بوابة الدخول" })
+    ).toHaveAttribute("href", "/BREAKAPP");
+  });
+
+  test("مسح الكوكيز يعيد غير المسجل إلى الدخول دون حلقة توجيه", async ({
+    page,
+  }) => {
+    const visited: string[] = [];
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) {
+        visited.push(frame.url());
+      }
+    });
+
+    await page.context().clearCookies();
+    await page.goto(`${config.baseUrl}/BREAKAPP`, {
+      waitUntil: "domcontentloaded",
+    });
+    await page.waitForURL(/\/BREAKAPP\/login\/qr/, { timeout: 15_000 });
+
+    await expect(page.getByTestId("qr-scanner")).toBeVisible({
+      timeout: 15_000,
+    });
+    const loginVisits = visited.filter((url) =>
+      url.includes("/BREAKAPP/login/qr")
+    );
+    expect(loginVisits.length).toBeLessThanOrEqual(2);
   });
 
   test("عنوان Permissions-Policy يسمح بالكاميرا على origin الحالي", async ({

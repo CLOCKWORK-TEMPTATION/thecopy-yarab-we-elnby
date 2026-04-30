@@ -8,11 +8,14 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-04-30T01:57:20.392Z |
-| الفرع الحالي | `main` |
-| آخر commit | `c06db9397d04870270ef9b68059019780b4ded06` |
-| حالة working tree | غير نظيفة — 6 ملف متغير |
+| آخر مزامنة مرجعية | 2026-04-30T08:50:00Z |
+| الفرع الحالي | `codex/e2e-production-readiness` |
+| آخر commit | `bd49096b80fe0d9229c762253fcf2cf3dd634327` |
+| حالة working tree | غير نظيفة — `.gitignore` معدّل + 7 ملفات helper جديدة staged + ملفات routine غير staged |
 | مستوى drift | `hard-drift` |
+| فحوصات CI الفاشلة على آخر commit | `Verify Frontend`, `Strict TypeScript and ESLint`, `Hybrid Production Audit` |
+| إصلاح gitignore (test-*.* recursive → root-anchored) | منفّذ ومُتحقّق منه محليًا (type-check 0 errors، lint 0 errors، vitest 25/25) |
+| فحص لم يُحل في هذه الجولة | `Hybrid Production Audit` — Gemini 400 من `scripts/hybrid-audit.js` (سبب منفصل) |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -66,6 +69,7 @@ backend: 3001
 ### الحزم الأساسية
 
 - `@the-copy/breakapp` — `packages/breakapp`
+- `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
 - `@the-copy/tsconfig` — `packages/tsconfig`
@@ -235,15 +239,15 @@ AGENTS.md
 
 - الملفات:
 
-`2589`
+`2614`
 
 - القطع:
 
-`5487`
+`5548`
 
 - القطع ذات التضمين:
 
-`5487`
+`5548`
 
 - التغطية:
 
@@ -265,3 +269,4 @@ Code memory is current.
 ## الأعطال المفتوحة الآن
 
 - لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+- `Hybrid Production Audit` على CI يفشل بـ `Gemini review request failed with 400 Bad Request` من [scripts/hybrid-audit.js:1292-1318](../scripts/hybrid-audit.js) — يحتاج تحقيق منفصل في الـ payload (`responseMimeType: "application/json"` بدون `responseSchema`) أو في صلاحية اسم النموذج `gemini-2.5-flash`.

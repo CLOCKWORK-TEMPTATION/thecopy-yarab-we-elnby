@@ -1274,18 +1274,23 @@ function resolveAiConfig() {
   const model =
     (process.env.AI_MODEL || "").trim() ||
     (provider === "anthropic"
-      ? "claude-3-5-sonnet-latest"
-      : "gemini-2.5-flash");
+      ? "claude-4-6-sonnet-latest"
+      : "gemini-3.1-pro-preview");
 
-  const providerKeyFallback =
+  const providerSpecificKey =
     provider === "anthropic"
       ? process.env.ANTHROPIC_API_KEY
       : process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
 
+  // Prefer the provider-specific key over the generic AI_API_KEY. AI_API_KEY
+  // can carry a key for a different vendor (e.g. an Anthropic key in an env
+  // where the gemini provider is selected), which would yield 400 Bad Request
+  // from the wrong vendor's endpoint. AI_API_KEY remains a last-resort fallback
+  // for environments that only set the generic name.
   return {
     provider,
     model,
-    apiKey: (process.env.AI_API_KEY || providerKeyFallback || "").trim(),
+    apiKey: (providerSpecificKey || process.env.AI_API_KEY || "").trim(),
   };
 }
 
@@ -1313,18 +1318,27 @@ async function callGemini(promptText, aiConfig) {
   });
 
   if (!response.ok) {
+    const errorBody = await response.text().catch(() => "");
+    const trimmedBody = errorBody.length > 1500
+      ? `${errorBody.slice(0, 1500)}... [truncated]`
+      : errorBody;
     throw new Error(
-      `Gemini review request failed with ${response.status} ${response.statusText}.`,
+      `Gemini review request failed with ${response.status} ${response.statusText}.${trimmedBody ? `\nResponse body: ${trimmedBody}` : ""}`,
     );
   }
 
   const payload = await response.json();
+  const candidate = payload?.candidates?.[0];
+  const finishReason = candidate?.finishReason;
   const text =
-    payload?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("") || "";
+    candidate?.content?.parts?.map((part) => part.text || "").join("") || "";
   if (!text) {
-    throw new Error("Gemini review response did not contain text.");
+    const promptFeedback = payload?.promptFeedback
+      ? ` promptFeedback=${JSON.stringify(payload.promptFeedback)}`
+      : "";
+    throw new Error(
+      `Gemini review response did not contain text (finishReason=${finishReason || "unknown"}).${promptFeedback}`,
+    );
   }
   return text;
 }

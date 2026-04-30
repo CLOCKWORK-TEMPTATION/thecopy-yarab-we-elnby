@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 
 import { PHASE_CARDS, TAB_VALUE_BY_PHASE, TOOLS } from "./cine-studio-config";
+import { SceneStudioPanel } from "./scene/SceneStudioPanel";
 import { StudioMetricCell, StudioMiniLegend, StudioPanel } from "./studio-ui";
 
 import type { Phase, ToolStatus, VisualMood } from "../types";
@@ -230,6 +231,8 @@ function DashboardPanels({
 }) {
   return (
     <>
+      <SceneStudioPanel />
+
       <StudioPanel
         title="Cinematography Tools"
         subtitle="الأدوات النشطة داخل محطة مدير التصوير"

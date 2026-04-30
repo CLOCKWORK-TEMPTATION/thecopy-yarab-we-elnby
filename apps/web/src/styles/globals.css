@@ -344,6 +344,21 @@
     width: max(100%, var(--desktop-app-min-width));
   }
 
+  html.cinematography-responsive-page,
+  body.desktop-web-app.cinematography-responsive-page,
+  body.desktop-web-app.cinematography-responsive-page > * {
+    min-width: 0;
+  }
+
+  body.desktop-web-app.cinematography-responsive-page {
+    overflow-x: hidden;
+  }
+
+  .cinematography-responsive-page .desktop-web-app-frame {
+    min-width: 0;
+    width: 100%;
+  }
+
   .hero-card-sheen {
     background: linear-gradient(
       135deg,

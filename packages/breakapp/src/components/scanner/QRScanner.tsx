@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ============================================================================
@@ -22,14 +22,20 @@
  * ============================================================================
  */
 
-import { useCallback, useRef, useState } from 'react';
-import { useQRCamera, type QRCameraFailureReason } from '../../hooks/useQRCamera';
+import { useCallback, useRef, useState } from "react";
+import {
+  useQRCamera,
+  type QRCameraFailureReason,
+} from "../../hooks/useQRCamera";
 
 /**
  * مخرجات الخطأ إلى الأعلى
  */
 export interface QRScannerErrorDetail {
-  reason: QRCameraFailureReason | 'manual-entry-invalid' | 'image-decode-failed';
+  reason:
+    | QRCameraFailureReason
+    | "manual-entry-invalid"
+    | "image-decode-failed";
   message: string;
 }
 
@@ -45,7 +51,7 @@ export interface QRScannerProps {
   testId?: string;
 }
 
-const VIEWPORT_ELEMENT_ID = 'qr-scanner-viewport';
+const VIEWPORT_ELEMENT_ID = "qr-scanner-viewport";
 
 /**
  * مكون مسح QR الرئيسي
@@ -53,14 +59,14 @@ const VIEWPORT_ELEMENT_ID = 'qr-scanner-viewport';
 export default function QRScanner({
   onScan,
   onError,
-  testId = 'qr-scanner',
+  testId = "qr-scanner",
 }: QRScannerProps) {
   const camera = useQRCamera({
     elementId: VIEWPORT_ELEMENT_ID,
     onDecoded: onScan,
   });
 
-  const [manualValue, setManualValue] = useState<string>('');
+  const [manualValue, setManualValue] = useState<string>("");
   const [manualError, setManualError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadBusy, setUploadBusy] = useState<boolean>(false);
@@ -73,14 +79,16 @@ export default function QRScanner({
   const submitManual = useCallback((): void => {
     const trimmed = manualValue.trim();
     if (trimmed.length === 0) {
-      setManualError('أدخل رمز QR قبل التأكيد');
+      setManualError("أدخل رمز QR قبل التأكيد");
       return;
     }
-    if (trimmed.split(':').length !== 3) {
-      setManualError('صيغة الرمز غير صحيحة — يجب أن يحتوي على ثلاثة أجزاء مفصولة بنقطتين');
+    if (trimmed.split(":").length !== 3) {
+      setManualError(
+        "صيغة الرمز غير صحيحة — يجب أن يحتوي على ثلاثة أجزاء مفصولة بنقطتين",
+      );
       onError?.({
-        reason: 'manual-entry-invalid',
-        message: 'صيغة الرمز اليدوي غير صحيحة',
+        reason: "manual-entry-invalid",
+        message: "صيغة الرمز اليدوي غير صحيحة",
       });
       return;
     }
@@ -104,16 +112,16 @@ export default function QRScanner({
       } catch (err) {
         const message =
           (err as Error)?.message ||
-          'تعذر استخراج QR من الصورة — تأكد من وضوح الرمز في الصورة';
+          "تعذر استخراج QR من الصورة — تأكد من وضوح الرمز في الصورة";
         setUploadError(message);
-        onError?.({ reason: 'image-decode-failed', message });
+        onError?.({ reason: "image-decode-failed", message });
       } finally {
         setUploadBusy(false);
         // إعادة تعيين الـ input ليتيح رفع نفس الصورة مرة أخرى
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [camera, onError, onScan]
+    [camera, onError, onScan],
   );
 
   /**
@@ -121,10 +129,10 @@ export default function QRScanner({
    * نعرضها دائماً، لكن بعناوين مناسبة عندما تكون الكاميرا محجوبة
    */
   const isCameraBlocked =
-    camera.status === 'unsupported' ||
-    camera.status === 'permission-denied' ||
-    camera.status === 'no-device' ||
-    camera.status === 'error';
+    camera.status === "unsupported" ||
+    camera.status === "permission-denied" ||
+    camera.status === "no-device" ||
+    camera.status === "error";
 
   return (
     <div
@@ -138,13 +146,13 @@ export default function QRScanner({
         data-testid="qr-scanner-viewport"
         className="w-full max-w-md rounded-lg overflow-hidden bg-black/20"
         style={{
-          minHeight: camera.status === 'scanning' ? '300px' : '0',
+          minHeight: camera.status === "scanning" ? "300px" : "0",
         }}
       />
 
       {/* أزرار الكاميرا الأساسية */}
       <div className="flex flex-wrap gap-2 justify-center">
-        {camera.status !== 'scanning' && !isCameraBlocked && (
+        {camera.status !== "scanning" && !isCameraBlocked && (
           <button
             type="button"
             data-testid="qr-start-camera"
@@ -157,7 +165,7 @@ export default function QRScanner({
           </button>
         )}
 
-        {camera.status === 'scanning' && (
+        {camera.status === "scanning" && (
           <button
             type="button"
             data-testid="qr-stop-camera"
@@ -194,13 +202,13 @@ export default function QRScanner({
           <p className="text-sm font-medium">الكاميرا غير متاحة الآن</p>
           <p className="text-sm mt-1">{camera.errorMessage}</p>
           <p className="text-xs mt-2 opacity-80">
-            استخدم أحد المسارات البديلة أدناه لإكمال الدخول.
+            يمكنك إكمال الدخول الآن برفع صورة للرمز أو إدخاله يدوياً أدناه.
           </p>
         </div>
       )}
 
       {/* تعليمات أثناء المسح */}
-      {camera.status === 'scanning' && (
+      {camera.status === "scanning" && (
         <div className="text-sm text-white/70 text-center max-w-md">
           <p>ضع رمز QR داخل الإطار</p>
           <p className="text-xs mt-1">تأكد من وجود إضاءة جيدة وأن الرمز واضح</p>
@@ -233,9 +241,7 @@ export default function QRScanner({
           className="block w-full text-sm text-white/85 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-blue-600/20 file:text-blue-200 hover:file:bg-blue-600/30"
         />
         {uploadBusy && (
-          <p className="text-xs text-white/55 mt-2">
-            جارٍ تحليل الصورة...
-          </p>
+          <p className="text-xs text-white/55 mt-2">جارٍ تحليل الصورة...</p>
         )}
         {uploadError && (
           <p
@@ -259,7 +265,8 @@ export default function QRScanner({
           htmlFor="qr-manual-input"
           className="block text-sm text-white/70 mb-2"
         >
-          أو أدخل رمز QR يدوياً (صيغة مثل: <code className="text-xs">projectId:userId:nonce</code>)
+          أو أدخل رمز QR يدوياً (صيغة مثل:{" "}
+          <code className="text-xs">projectId:userId:nonce</code>)
         </label>
         <div className="flex gap-2">
           <input

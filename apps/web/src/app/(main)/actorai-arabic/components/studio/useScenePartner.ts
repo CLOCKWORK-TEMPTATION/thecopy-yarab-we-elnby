@@ -1,15 +1,21 @@
 import { useState, useCallback, useRef } from "react";
 
+import { buildScenePartnerReply } from "../../lib/studio-engines";
+
 import type { ChatMessage } from "../../types";
 
 export const useScenePartner = () => {
   const [rehearsing, setRehearsing] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
+  const [partnerStatus, setPartnerStatus] = useState<"ready" | "thinking">(
+    "ready"
+  );
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const startRehearsal = useCallback(() => {
     setRehearsing(true);
+    setPartnerStatus("ready");
     setChatMessages([
       {
         role: "ai",
@@ -19,24 +25,35 @@ export const useScenePartner = () => {
   }, []);
 
   const sendMessage = useCallback(() => {
-    if (!userInput.trim()) return;
+    const trimmedInput = userInput.trim();
+    if (!trimmedInput || partnerStatus === "thinking") return;
 
-    const newMessage: ChatMessage = { role: "user", text: userInput };
-    setChatMessages((prev) => [...prev, newMessage]);
+    const newMessage: ChatMessage = { role: "user", text: trimmedInput };
+    const typingMessage: ChatMessage = {
+      role: "ai",
+      text: "ليلى تفكر في الرد...",
+      typing: true,
+    };
+    setPartnerStatus("thinking");
+    setChatMessages((prev) => [...prev, newMessage, typingMessage]);
     setUserInput("");
 
-    // محاكاة رد AI
     setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        role: "ai",
-        text: "ممتاز! لقد عبرت عن مشاعرك بوضوح. حاول إضافة المزيد من العمق العاطفي في الجملة التالية.",
-      };
-      setChatMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
-  }, [userInput]);
+      setChatMessages((prev) => {
+        const withoutTyping = prev.filter((message) => !message.typing);
+        const aiResponse: ChatMessage = {
+          role: "ai",
+          text: buildScenePartnerReply(withoutTyping, trimmedInput),
+        };
+        return [...withoutTyping, aiResponse];
+      });
+      setPartnerStatus("ready");
+    }, 600);
+  }, [partnerStatus, userInput]);
 
   const endRehearsal = useCallback(() => {
     setRehearsing(false);
+    setPartnerStatus("ready");
     setChatMessages([]);
   }, []);
 
@@ -44,6 +61,7 @@ export const useScenePartner = () => {
     rehearsing,
     chatMessages,
     userInput,
+    partnerStatus,
     setUserInput,
     chatEndRef,
     startRehearsal,

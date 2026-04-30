@@ -24,6 +24,8 @@ export async function loadProductivityAnalysis() {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      // إبطال cache الـ browser فوراً بعد كل mutation — يضمن ظهور delayHours المحدَّث
+      cache: "no-store",
       body: JSON.stringify({}),
     }
   );

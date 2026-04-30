@@ -62,11 +62,16 @@ const {
   return {
     mockAnalysisController: {
       exportAnalysis: handler,
+      exportPublicAnalysis: handler,
       getAnalysisSnapshot: handler,
       getStationDetails: handler,
+      getPublicAnalysisSnapshot: handler,
       retryStation: handler,
+      retryPublicStation: handler,
       runSevenStationsPipeline: handler,
+      startPublicStreamSession: handler,
       startStreamSession: handler,
+      streamPublicEvents: handler,
       streamEvents: handler,
     },
     mockAppStateController: {

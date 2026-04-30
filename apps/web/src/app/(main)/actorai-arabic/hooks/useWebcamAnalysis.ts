@@ -16,6 +16,10 @@ import {
 import { postToBackend } from "@/lib/backend-api";
 
 import {
+  isMediaFeatureAllowedByPolicy,
+  translateMediaDeviceError,
+} from "../lib/media-device-errors";
+import {
   summarizeWebcamSamples,
   type WebcamFrameSample,
 } from "../lib/webcam-analysis";
@@ -27,7 +31,14 @@ import type {
   WebcamSession,
 } from "../types";
 
-export type WebcamPermission = "granted" | "denied" | "pending";
+export type WebcamPermission =
+  | "granted"
+  | "denied"
+  | "pending"
+  | "unsupported"
+  | "no-device"
+  | "busy"
+  | "error";
 
 export interface WebcamState {
   isActive: boolean;
@@ -36,6 +47,7 @@ export interface WebcamState {
   analysisResult: WebcamAnalysisResult | null;
   sessions: WebcamSession[];
   permission: WebcamPermission;
+  permissionMessage: string | null;
 }
 
 export interface UseWebcamAnalysisReturn {
@@ -278,6 +290,9 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     useState<WebcamAnalysisResult | null>(null);
   const [sessions, setSessions] = useState<WebcamSession[]>([]);
   const [permission, setPermission] = useState<WebcamPermission>("pending");
+  const [permissionMessage, setPermissionMessage] = useState<string | null>(
+    null
+  );
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -322,6 +337,17 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
 
   const requestPermission = useCallback(async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new DOMException("Not supported", "NotSupportedError");
+      }
+
+      if (!isMediaFeatureAllowedByPolicy("camera")) {
+        throw new DOMException(
+          "Blocked by permissions policy",
+          "SecurityError"
+        );
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "user",
@@ -336,10 +362,13 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
       }
 
       setPermission("granted");
+      setPermissionMessage(null);
       setIsActive(true);
-    } catch {
-      setPermission("denied");
-      throw new Error("لم يتم السماح بالوصول للكاميرا");
+    } catch (error) {
+      const failure = translateMediaDeviceError(error, "camera");
+      setPermission(failure.status);
+      setPermissionMessage(failure.message);
+      throw new Error(failure.message);
     }
   }, []);
 
@@ -457,6 +486,7 @@ export function useWebcamAnalysis(): UseWebcamAnalysisReturn {
     analysisResult,
     sessions,
     permission,
+    permissionMessage,
   };
 
   return {

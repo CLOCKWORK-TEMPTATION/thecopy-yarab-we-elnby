@@ -27,7 +27,7 @@ class BreakdownE2EConfig {
     this.baseUrl = (
       process.env["BREAKDOWN_E2E_BASE_URL"] ??
       process.env["PLAYWRIGHT_BASE_URL"] ??
-      "http://localhost:5000"
+      `http://127.0.0.1:${process.env["PLAYWRIGHT_PORT"] ?? "5010"}`
     ).replace(/\/+$/, "");
     this.routePath = "/breakdown";
     this.timeoutMs = this.resolveInt(
@@ -258,6 +258,18 @@ async function setupApiMocks(page: Page): Promise<void> {
   });
 }
 
+async function dismissOnboardingTour(page: Page): Promise<void> {
+  const dialog = page.getByRole("dialog", { name: "جولة الإعداد الأولي" });
+  const isVisible = await dialog.isVisible({ timeout: 1000 }).catch(() => false);
+
+  if (!isVisible) {
+    return;
+  }
+
+  await page.getByRole("button", { name: "تخطى الجولة" }).click();
+  await expect(dialog).toBeHidden({ timeout: 5000 });
+}
+
 // ─── الاختبارات ──────────────────────────────────────────────────────────────
 
 const config = BreakdownE2EConfig.fromEnv();
@@ -335,6 +347,7 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
       waitUntil: "domcontentloaded",
     });
 
+    await dismissOnboardingTour(page);
     await page.waitForTimeout(1500);
 
     const textarea = page.locator("textarea").first();
@@ -365,6 +378,7 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
       waitUntil: "domcontentloaded",
     });
 
+    await dismissOnboardingTour(page);
     await page.waitForTimeout(1500);
 
     // البحث عن زر التحليل
@@ -409,6 +423,7 @@ test.describe("E2E: صفحة تحليل السيناريو /breakdown", () => {
       waitUntil: "domcontentloaded",
     });
 
+    await dismissOnboardingTour(page);
     await page.waitForTimeout(1500);
 
     logger.info("الخطوة 1: إدخال السيناريو");

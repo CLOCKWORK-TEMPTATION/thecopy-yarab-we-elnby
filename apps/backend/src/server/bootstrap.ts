@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { createServer as createNetServer } from "net";
 
 import { env } from "@/config/env";
@@ -286,11 +287,15 @@ export async function bootstrapServer(
     await registerRuntimeRoutesForBootstrap(app, startupWarnings);
     await bootstrapWeaviateForServer(startupWarnings);
 
-    // 404 handler
+    // معالج 404 — يُرجع JSON دائماً لا HTML، مع traceId للتشخيص
     app.use((_req, res) => {
+      const traceId = randomUUID();
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
       res.status(404).json({
         success: false,
         error: "المسار غير موجود",
+        code: "NOT_FOUND",
+        traceId,
       });
     });
 

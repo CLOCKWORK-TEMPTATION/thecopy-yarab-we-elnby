@@ -55,7 +55,7 @@ export const initialState: MachineState = {
   })),
   warnings: [],
   finalReport: null,
-  capabilities: { exports: ["json", "docx", "pdf"] },
+  capabilities: { exports: ["json", "docx"] },
   lastEventAt: null,
   fatalError: null,
 };

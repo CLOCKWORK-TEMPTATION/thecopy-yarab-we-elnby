@@ -251,6 +251,48 @@ export interface ExportSettings {
   codec?: string;
 }
 
+export type LightKind = "key" | "fill" | "back" | "practical";
+
+export interface LightingRig {
+  id: string;
+  label: string;
+  kind: LightKind;
+  intensity: number;
+  color: string;
+  position: [number, number, number];
+}
+
+export interface CameraRig {
+  focalLength: number;
+  aperture: number;
+  iso: number;
+  shutterAngle: number;
+  position: [number, number, number];
+}
+
+export interface LensRig {
+  preset: "spherical" | "anamorphic" | "vintage" | "macro";
+  label: string;
+  distortion: number;
+  breathing: number;
+}
+
+export interface Scene {
+  id: string;
+  name: string;
+  description: string;
+  lights: LightingRig[];
+  camera: CameraRig;
+  lens: LensRig;
+  updatedAt: string;
+}
+
+export interface ShareSnapshot {
+  scene: Scene;
+  sharedAt: string;
+  version: 2;
+}
+
 /**
  * ملخص تحليل الإطار المرجعي
  */

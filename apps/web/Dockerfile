@@ -17,7 +17,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_WEBPACK_MEMORY_OPTIMIZATIONS=true \
     PUPPETEER_SKIP_DOWNLOAD=true \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    NODE_OPTIONS=--max-old-space-size=1536
+    NODE_OPTIONS=--max-old-space-size=4096
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:3001
 ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
@@ -40,9 +40,11 @@ COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 # Install dependencies after manifests so Docker layer caching remains effective on Railway.
 RUN --mount=type=secret,id=tiptap_pro_token,required=true \
-    export TIPTAP_PRO_TOKEN="$(sed -n 's/^[[:space:]]*TIPTAP_PRO_TOKEN[[:space:]]*=[[:space:]]*//p' /run/secrets/tiptap_pro_token | sed -e 's/\r$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//" | head -n 1)" && \
-    if [ -z "$TIPTAP_PRO_TOKEN" ] && ! grep -q '=' /run/secrets/tiptap_pro_token; then export TIPTAP_PRO_TOKEN="$(tr -d '\r\n' < /run/secrets/tiptap_pro_token)"; fi && \
-    test -n "$TIPTAP_PRO_TOKEN" && \
+    export TIPTAP_PRO_TOKEN="$(cat /run/secrets/tiptap_pro_token | tr -d '\r\n')" && \
+    if [ -z "$TIPTAP_PRO_TOKEN" ]; then \
+      echo "Missing or empty TIPTAP_PRO_TOKEN secret"; \
+      exit 1; \
+    fi && \
     pnpm config set auto-install-peers false && \
     pnpm config set fetch-retries 5 && \
     pnpm config set fetch-retry-mintimeout 10000 && \
@@ -58,7 +60,7 @@ COPY packages/core-memory/ ./packages/core-memory/
 COPY packages/prompt-engineering/ ./packages/prompt-engineering/
 COPY packages/tsconfig/ ./packages/tsconfig/
 
-RUN NODE_OPTIONS=--max-old-space-size=1536 pnpm --filter @the-copy/web build
+RUN NODE_OPTIONS=--max-old-space-size=4096 pnpm --filter @the-copy/web build
 
 # Minimal runtime stage - only production files
 FROM node:24-alpine AS runner

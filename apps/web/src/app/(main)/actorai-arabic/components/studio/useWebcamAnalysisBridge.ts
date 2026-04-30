@@ -21,8 +21,13 @@ export const useWebcamAnalysisBridge = (
     try {
       await webcamEngine.requestPermission();
       showNotification("success", "تم تفعيل الكاميرا بنجاح!");
-    } catch {
-      showNotification("error", "لم يتم السماح بالوصول للكاميرا");
+    } catch (error) {
+      showNotification(
+        "error",
+        error instanceof Error
+          ? error.message
+          : "لم يتم السماح بالوصول للكاميرا"
+      );
     }
   }, [showNotification, webcamEngine]);
 
