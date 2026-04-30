@@ -27,7 +27,9 @@ const {
   mockAppStateController,
   mockAuthController,
   mockAuthMiddleware,
+  mockBrainstormSessionsController,
   mockBreakdownController,
+  mockBreakdownSessionsController,
   mockCharactersController,
   mockHealthController,
   mockMemoryRoutes,
@@ -37,6 +39,7 @@ const {
   mockShotsController,
   mockWeaviateGetStatus,
   mockWorkflowController,
+  // eslint-disable-next-line max-lines-per-function
 } = vi.hoisted(() => {
   const okHandler = (): ReturnType<typeof vi.fn<RouteHandler>> =>
     vi.fn<RouteHandler>((_req, res) => {
@@ -74,12 +77,18 @@ const {
 
   return {
     mockAnalysisController: {
-      exportAnalysis: okHandler(), exportPublicAnalysis: okHandler(),
-      getAnalysisSnapshot: okHandler(), getPublicAnalysisSnapshot: okHandler(),
-      getStationDetails: okHandler(), retryStation: okHandler(),
-      retryPublicStation: okHandler(), runSevenStationsPipeline: okHandler(),
-      startPublicStreamSession: okHandler(), startStreamSession: okHandler(),
-      streamEvents: okHandler(), streamPublicEvents: okHandler(),
+      exportAnalysis: okHandler(),
+      exportPublicAnalysis: okHandler(),
+      getAnalysisSnapshot: okHandler(),
+      getPublicAnalysisSnapshot: okHandler(),
+      getStationDetails: okHandler(),
+      retryStation: okHandler(),
+      retryPublicStation: okHandler(),
+      runSevenStationsPipeline: okHandler(),
+      startPublicStreamSession: okHandler(),
+      startStreamSession: okHandler(),
+      streamEvents: okHandler(),
+      streamPublicEvents: okHandler(),
     },
     mockAppStateController: {
       clearState: okHandler(),
@@ -94,6 +103,17 @@ const {
       signup: createdHandler(),
     },
     mockAuthMiddleware: auth,
+    mockBrainstormSessionsController: {
+      createBrief: createdHandler(),
+      getConcepts: okHandler(),
+      getSession: okHandler(),
+      listBriefs: okHandler(),
+      runConvergent: okHandler(),
+      runCritique: okHandler(),
+      runDivergent: okHandler(),
+      runSynthesis: okHandler(),
+      startSession: createdHandler(),
+    },
     mockBreakdownController: {
       analyzeProject: okHandler(),
       bootstrapProject: createdHandler(),
@@ -105,6 +125,13 @@ const {
       health: okHandler(),
       parseProject: okHandler(),
       reanalyzeScene: okHandler(),
+    },
+    mockBreakdownSessionsController: {
+      categorizeScene: okHandler(),
+      createScreenplay: createdHandler(),
+      createSession: createdHandler(),
+      getReport: okHandler(),
+      getSession: okHandler(),
     },
     mockCharactersController: {
       createCharacter: createdHandler(),
@@ -183,8 +210,13 @@ vi.mock("@/controllers/auth.controller", () => ({
   authController: mockAuthController,
 }));
 
+vi.mock("@/controllers/brainstorm-sessions.controller", () => ({
+  brainstormSessionsController: mockBrainstormSessionsController,
+}));
+
 vi.mock("@/controllers/breakdown.controller", () => ({
   breakdownController: mockBreakdownController,
+  breakdownSessionsController: mockBreakdownSessionsController,
 }));
 
 vi.mock("@/controllers/characters.controller", () => ({

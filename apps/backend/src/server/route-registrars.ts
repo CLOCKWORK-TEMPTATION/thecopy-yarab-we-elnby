@@ -2,7 +2,11 @@ import { actorAiController } from "@/controllers/actorai.controller";
 import { aiController } from "@/controllers/ai.controller";
 import { appStateController } from "@/controllers/appState.controller";
 import { authController } from "@/controllers/auth.controller";
-import { breakdownController } from "@/controllers/breakdown.controller";
+import { brainstormSessionsController } from "@/controllers/brainstorm-sessions.controller";
+import {
+  breakdownController,
+  breakdownSessionsController,
+} from "@/controllers/breakdown.controller";
 import { charactersController } from "@/controllers/characters.controller";
 import { queueController } from "@/controllers/queue.controller";
 import { scenesController } from "@/controllers/scenes.controller";
@@ -46,6 +50,8 @@ export function registerAllRoutes(
   registerProductionRoutes(app);
   registerActorAndStateRoutes(app, analysisController);
   registerBreakdownAndQueueRoutes(app);
+  registerBrainstormSessionRoutes(app);
+  registerBreakdownSessionRoutes(app);
   registerMetricsRoutes(app);
   registerWafRoutes(app);
   registerWorkflowRoutes(app);
@@ -597,5 +603,111 @@ function registerMemoryRoutes(app: Application): void {
       next();
     },
     memoryRoutes,
+  );
+}
+
+function registerBrainstormSessionRoutes(app: Application): void {
+  // Brainstorm Briefs
+  app.get(
+    "/api/brainstorm/briefs",
+    authMiddleware,
+    brainstormSessionsController.listBriefs.bind(brainstormSessionsController),
+  );
+  app.post(
+    "/api/brainstorm/briefs",
+    authMiddleware,
+    csrfProtection,
+    brainstormSessionsController.createBrief.bind(brainstormSessionsController),
+  );
+
+  // Brainstorm Sessions
+  app.post(
+    "/api/brainstorm/sessions",
+    authMiddleware,
+    csrfProtection,
+    brainstormSessionsController.startSession.bind(
+      brainstormSessionsController,
+    ),
+  );
+  app.get(
+    "/api/brainstorm/sessions/:id",
+    authMiddleware,
+    brainstormSessionsController.getSession.bind(brainstormSessionsController),
+  );
+  app.get(
+    "/api/brainstorm/sessions/:id/concepts",
+    authMiddleware,
+    brainstormSessionsController.getConcepts.bind(brainstormSessionsController),
+  );
+
+  // Phase execution
+  app.post(
+    "/api/brainstorm/sessions/:id/divergent",
+    authMiddleware,
+    perUserAiLimiter,
+    csrfProtection,
+    brainstormSessionsController.runDivergent.bind(
+      brainstormSessionsController,
+    ),
+  );
+  app.post(
+    "/api/brainstorm/sessions/:id/convergent",
+    authMiddleware,
+    perUserAiLimiter,
+    csrfProtection,
+    brainstormSessionsController.runConvergent.bind(
+      brainstormSessionsController,
+    ),
+  );
+  app.post(
+    "/api/brainstorm/sessions/:id/critique",
+    authMiddleware,
+    perUserAiLimiter,
+    csrfProtection,
+    brainstormSessionsController.runCritique.bind(brainstormSessionsController),
+  );
+  app.post(
+    "/api/brainstorm/sessions/:id/synthesis",
+    authMiddleware,
+    perUserAiLimiter,
+    csrfProtection,
+    brainstormSessionsController.runSynthesis.bind(
+      brainstormSessionsController,
+    ),
+  );
+}
+
+function registerBreakdownSessionRoutes(app: Application): void {
+  app.post(
+    "/api/breakdown/screenplays",
+    authMiddleware,
+    csrfProtection,
+    breakdownSessionsController.createScreenplay.bind(
+      breakdownSessionsController,
+    ),
+  );
+  app.post(
+    "/api/breakdown/sessions",
+    authMiddleware,
+    perUserAiLimiter,
+    csrfProtection,
+    breakdownSessionsController.createSession.bind(breakdownSessionsController),
+  );
+  app.get(
+    "/api/breakdown/sessions/:id",
+    authMiddleware,
+    breakdownSessionsController.getSession.bind(breakdownSessionsController),
+  );
+  app.post(
+    "/api/breakdown/sessions/:id/scenes/:sceneId/categorize",
+    authMiddleware,
+    breakdownSessionsController.categorizeScene.bind(
+      breakdownSessionsController,
+    ),
+  );
+  app.get(
+    "/api/breakdown/sessions/:id/reports/:type",
+    authMiddleware,
+    breakdownSessionsController.getReport.bind(breakdownSessionsController),
   );
 }

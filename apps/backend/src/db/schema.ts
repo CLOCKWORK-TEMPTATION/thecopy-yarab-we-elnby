@@ -539,3 +539,202 @@ export type BreakappDevice = typeof breakappDevices.$inferSelect;
 export type NewBreakappDevice = typeof breakappDevices.$inferInsert;
 export type BreakappAuditLog = typeof breakappAuditLogs.$inferSelect;
 export type NewBreakappAuditLog = typeof breakappAuditLogs.$inferInsert;
+
+// ==========================================
+// Brain Storm AI — 4-Phase Pipeline
+// feat/brainstorm-and-breakdown-integration
+// ==========================================
+
+export const brainstormBriefs = pgTable("brainstorm_briefs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  audienceProfile: text("audience_profile"),
+  constraints: text("constraints"),
+  creativeSeed: text("creative_seed"),
+  createdBy: uuid("created_by").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const brainstormSessions = pgTable("brainstorm_sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  briefId: uuid("brief_id")
+    .notNull()
+    .references(() => brainstormBriefs.id, { onDelete: "cascade" }),
+  status: text("status")
+    .default("planning")
+    .notNull()
+    .$type<
+      | "planning"
+      | "divergent"
+      | "convergent"
+      | "critique"
+      | "synthesis"
+      | "done"
+      | "error"
+    >(),
+  phaseData: jsonb("phase_data").$type<Record<string, unknown>>().default({}),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const brainstormIdeas = pgTable("brainstorm_ideas", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => brainstormSessions.id, { onDelete: "cascade" }),
+  ideaStrId: text("idea_str_id").notNull(),
+  technique: text("technique").notNull(),
+  headline: text("headline").notNull(),
+  premise: text("premise").notNull(),
+  scores: jsonb("scores")
+    .$type<{
+      originality: number;
+      thematicDepth: number;
+      audienceFit: number;
+      conflictComplexity: number;
+      producibility: number;
+      culturalResonance: number;
+      composite: number;
+    }>()
+    .default({
+      originality: 0,
+      thematicDepth: 0,
+      audienceFit: 0,
+      conflictComplexity: 0,
+      producibility: 0,
+      culturalResonance: 0,
+      composite: 0,
+    }),
+  status: text("status")
+    .default("alive")
+    .notNull()
+    .$type<"alive" | "eliminated" | "critiqued" | "promoted">(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const brainstormCritiques = pgTable("brainstorm_critiques", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ideaId: uuid("idea_id")
+    .notNull()
+    .references(() => brainstormIdeas.id, { onDelete: "cascade" }),
+  attackVectors: jsonb("attack_vectors")
+    .$type<
+      {
+        category: string;
+        attack: string;
+        severity: "low" | "medium" | "high";
+      }[]
+    >()
+    .default([]),
+  recommendation: text("recommendation")
+    .notNull()
+    .$type<"survive_with_changes" | "abandon" | "promote_as_is">(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const brainstormConcepts = pgTable("brainstorm_concepts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => brainstormSessions.id, { onDelete: "cascade" }),
+  ideaId: uuid("idea_id")
+    .notNull()
+    .references(() => brainstormIdeas.id, { onDelete: "cascade" }),
+  dossierMd: text("dossier_md").notNull(),
+  dossierJson: jsonb("dossier_json")
+    .$type<{
+      logline: string;
+      premise: string;
+      themes: string;
+      characters: string;
+      conflictMap: string;
+      plotArc: string;
+      audienceGenre: string;
+      producibilityBrief: string;
+      productionNotes: string;
+    }>()
+    .default({
+      logline: "",
+      premise: "",
+      themes: "",
+      characters: "",
+      conflictMap: "",
+      plotArc: "",
+      audienceGenre: "",
+      producibilityBrief: "",
+      productionNotes: "",
+    }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ==========================================
+// Breakdown — Elements + Continuity (توسعة)
+// ==========================================
+
+export const breakdownElements = pgTable("breakdown_elements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  jobId: uuid("job_id")
+    .notNull()
+    .references(() => breakdownJobs.id, { onDelete: "cascade" }),
+  sceneId: uuid("scene_id").references(() => scenes.id, {
+    onDelete: "set null",
+  }),
+  category: text("category")
+    .notNull()
+    .$type<
+      | "cast"
+      | "location"
+      | "prop"
+      | "wardrobe"
+      | "makeup"
+      | "vehicle"
+      | "sfx"
+      | "stunt"
+      | "set_dressing"
+    >(),
+  elementStrId: text("element_str_id").notNull(),
+  nameRaw: text("name_raw").notNull(),
+  classification: text("classification"),
+  elementProps: jsonb("element_props")
+    .$type<Record<string, unknown>>()
+    .default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const breakdownContinuityLog = pgTable("breakdown_continuity_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  jobId: uuid("job_id")
+    .notNull()
+    .references(() => breakdownJobs.id, { onDelete: "cascade" }),
+  elementId: uuid("element_id").references(() => breakdownElements.id, {
+    onDelete: "set null",
+  }),
+  scenesJson: jsonb("scenes_json").$type<string[]>().default([]),
+  inconsistencyType: text("inconsistency_type"),
+  severity: text("severity").default("low").$type<"low" | "medium" | "high">(),
+  needsReview: boolean("needs_review").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Types
+export type BrainstormBrief = typeof brainstormBriefs.$inferSelect;
+export type NewBrainstormBrief = typeof brainstormBriefs.$inferInsert;
+export type BrainstormSession = typeof brainstormSessions.$inferSelect;
+export type NewBrainstormSession = typeof brainstormSessions.$inferInsert;
+export type BrainstormIdea = typeof brainstormIdeas.$inferSelect;
+export type NewBrainstormIdea = typeof brainstormIdeas.$inferInsert;
+export type BrainstormCritique = typeof brainstormCritiques.$inferSelect;
+export type NewBrainstormCritique = typeof brainstormCritiques.$inferInsert;
+export type BrainstormConcept = typeof brainstormConcepts.$inferSelect;
+export type NewBrainstormConcept = typeof brainstormConcepts.$inferInsert;
+export type BreakdownElement = typeof breakdownElements.$inferSelect;
+export type NewBreakdownElement = typeof breakdownElements.$inferInsert;
+export type BreakdownContinuityEntry =
+  typeof breakdownContinuityLog.$inferSelect;
+export type NewBreakdownContinuityEntry =
+  typeof breakdownContinuityLog.$inferInsert;
