@@ -105,8 +105,11 @@
 - `scripts/agent/lib/code-memory/qdrant.ts`
 - `scripts/agent/lib/code-memory/status.ts`
 - `scripts/agent/lib/code-memory/store.ts`
+- `scripts/agent/lib/persistent-memory/budgets.ts`
+- `scripts/agent/lib/persistent-memory/embeddings.ts`
 - `scripts/agent/lib/persistent-memory/index.ts`
 - `scripts/agent/lib/persistent-memory/injection.ts`
+- `scripts/agent/lib/persistent-memory/metrics.ts`
 - `scripts/agent/lib/persistent-memory/persistent-memory.test.ts`
 - `scripts/agent/lib/persistent-memory/postgres-store.ts`
 - `scripts/agent/lib/persistent-memory/secrets.ts`

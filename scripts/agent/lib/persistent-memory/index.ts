@@ -1,5 +1,16 @@
 import { sha256 } from "../utils";
+import {
+  LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION,
+  LocalDeterministicEmbeddingProvider,
+  assertEmbeddingProviderAdmitted,
+} from "./embeddings";
 import { MemoryInjectionEnvelope } from "./injection";
+import {
+  createRejectedIngestMetrics,
+  createRetrievalMetrics,
+  elapsedMs,
+  nowMs,
+} from "./metrics";
 import { MemorySecretScanner } from "./secrets";
 import { createShadowIndexController, ShadowIndexController } from "./shadow-index";
 import { InMemoryPersistentMemoryStore } from "./store";
@@ -7,6 +18,8 @@ import { InMemoryVectorIndexAdapter } from "./vector-index";
 import type {
   IngestRawEventInput,
   IngestResult,
+  EmbeddingModelVersion,
+  EmbeddingProviderAdapter,
   MemoryRetrievalHit,
   MemoryRetrievalRequest,
   MemoryRetrievalResult,
@@ -17,12 +30,12 @@ import type {
   VectorIndexRebuildResult,
 } from "./types";
 
-const DEFAULT_MODEL_VERSION_ID = "local-deterministic-embedding-v1";
-
 export interface PersistentMemorySystemOptions {
   store?: PersistentMemoryStore;
   secretScanner?: MemorySecretScanner;
   vectorIndex?: VectorIndexAdapter;
+  embeddingProvider?: EmbeddingProviderAdapter;
+  admittedModelVersions?: EmbeddingModelVersion[];
 }
 
 function tokenize(value: string): string[] {
@@ -54,16 +67,26 @@ export class PersistentMemorySystem {
   private readonly store: PersistentMemoryStore;
   private readonly secretScanner: MemorySecretScanner;
   private readonly vectorIndex: VectorIndexAdapter;
+  private readonly embeddingProvider: EmbeddingProviderAdapter;
+  private readonly admittedModelVersions: EmbeddingModelVersion[];
 
   constructor(options: PersistentMemorySystemOptions = {}) {
     this.store = options.store ?? new InMemoryPersistentMemoryStore();
     this.secretScanner = options.secretScanner ?? new MemorySecretScanner();
     this.vectorIndex = options.vectorIndex ?? new InMemoryVectorIndexAdapter();
+    this.embeddingProvider =
+      options.embeddingProvider ?? new LocalDeterministicEmbeddingProvider();
+    this.admittedModelVersions = options.admittedModelVersions ?? [
+      LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION,
+    ];
   }
 
   async ingestRawEvent(input: IngestRawEventInput): Promise<IngestResult> {
+    const ingestStart = nowMs();
     const contentHash = sha256(input.content);
+    const secretScanStart = nowMs();
     const scan = this.secretScanner.scan(input.content);
+    const secretScanLatencyMs = elapsedMs(secretScanStart);
 
     if (!scan.clean) {
       const secretEvent = await this.store.insertSecretScanEvent(
@@ -80,8 +103,18 @@ export class PersistentMemorySystem {
       return {
         status: "rejected",
         secretScanEventId: secretEvent.id,
+        metrics: createRejectedIngestMetrics(
+          secretScanLatencyMs,
+          elapsedMs(ingestStart),
+        ),
       };
     }
+
+    assertEmbeddingProviderAdmitted(
+      this.embeddingProvider.modelVersion,
+      this.admittedModelVersions,
+    );
+    await this.store.upsertModelVersion(this.embeddingProvider.modelVersion);
 
     const rawEvent = await this.store.insertRawEvent({
       sourceRef: input.sourceRef,
@@ -98,7 +131,7 @@ export class PersistentMemorySystem {
       content: input.content.trim(),
       candidateType: input.eventType,
       tags: input.tags ?? [],
-      modelVersionId: DEFAULT_MODEL_VERSION_ID,
+      modelVersionId: this.embeddingProvider.modelVersion.id,
       injectionProbability: 0.1,
       trustLevel,
     });
@@ -121,7 +154,13 @@ export class PersistentMemorySystem {
         memoryCandidateId: candidate.id,
       },
     });
-    await this.vectorIndex.upsertMemory(memory);
+    const ingestAckLatencyMs = elapsedMs(ingestStart);
+    const embeddingStart = nowMs();
+    const [embeddingVector] = await this.embeddingProvider.embed([memory.content]);
+    const embeddingLatencyMs = elapsedMs(embeddingStart);
+    const vectorUpsertStart = nowMs();
+    await this.vectorIndex.upsertMemory(memory, embeddingVector);
+    const vectorUpsertLatencyMs = elapsedMs(vectorUpsertStart);
     await this.store.insertAuditLog({
       action: "persistent_memory.ingested",
       sourceRef: input.sourceRef,
@@ -137,10 +176,18 @@ export class PersistentMemorySystem {
       rawEventId: rawEvent.id,
       memoryCandidateId: candidate.id,
       memoryId: memory.id,
+      metrics: {
+        p95_ingest_ack_latency_ms: ingestAckLatencyMs,
+        p95_ingest_ready_latency_ms: elapsedMs(ingestStart),
+        p95_secret_scan_latency_ms: secretScanLatencyMs,
+        p95_embedding_job_latency_ms: embeddingLatencyMs,
+        p95_vector_upsert_latency_ms: vectorUpsertLatencyMs,
+      },
     };
   }
 
   async retrieve(request: MemoryRetrievalRequest): Promise<MemoryRetrievalResult> {
+    const retrievalStart = nowMs();
     const queryTokens = tokenize(request.query);
     const topK = request.topK ?? 5;
     const intent: QueryIntent = request.intent ?? "default";
@@ -176,6 +223,7 @@ export class PersistentMemorySystem {
       hits: ranked,
       retrievalEventId: retrievalEvent.id,
       auditEventId: auditEvent.id,
+      metrics: createRetrievalMetrics(elapsedMs(retrievalStart), false),
     };
   }
 
@@ -200,9 +248,28 @@ export function isPersistentMemoryInfraRequired(
 }
 
 export { MemoryInjectionEnvelope } from "./injection";
+export {
+  LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION,
+  LocalDeterministicEmbeddingProvider,
+  assertEmbeddingProviderAdmitted,
+} from "./embeddings";
+export {
+  PERSISTENT_MEMORY_LATENCY_BUDGETS,
+  buildLatencyBudgetList,
+  collectLatencyBudgetViolations,
+} from "./metrics";
 export { MemorySecretScanner } from "./secrets";
+export {
+  MEMORY_CONTEXT_BUDGET_PROFILES,
+  getMemoryBudgetProfile,
+  validateMemoryBudgetProfile,
+} from "./budgets";
 export { ShadowIndexController, createShadowIndexController } from "./shadow-index";
 export { InMemoryPersistentMemoryStore } from "./store";
-export { InMemoryVectorIndexAdapter } from "./vector-index";
+export {
+  InMemoryVectorIndexAdapter,
+  getPersistentMemoryVectorCapabilities,
+  supportsPersistentMemoryVectorCapability,
+} from "./vector-index";
 export type * from "./types";
 

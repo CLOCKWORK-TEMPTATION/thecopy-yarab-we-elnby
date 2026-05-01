@@ -1,9 +1,12 @@
 import { promises as fsp } from "node:fs";
 
-import { MemorySecretScanner } from "./lib/persistent-memory/secrets";
+import {
+  MEMORY_SECRET_SCAN_POLICY,
+  MemorySecretScanner,
+} from "./lib/persistent-memory/secrets";
 import { fromRepoRoot, sha256 } from "./lib/utils";
 
-const DEFAULT_SCAN_PATHS = ["output/round-notes.md", "output/session-state.md"];
+const DEFAULT_SCAN_PATHS = [...MEMORY_SECRET_SCAN_POLICY.defaultScanPaths];
 
 async function scanFiles(paths: string[]): Promise<number> {
   const scanner = new MemorySecretScanner();
@@ -22,6 +25,10 @@ async function scanFiles(paths: string[]): Promise<number> {
           findingCount: result.findings.length,
           contentHash: sha256(content),
           scannerVersion: result.scannerVersion,
+          policy: {
+            scannerId: scanner.policy.scannerId,
+            usesGitAllowlist: scanner.policy.usesGitAllowlist,
+          },
           findingIds: result.findings.map((finding) => finding.ruleId),
         },
         null,

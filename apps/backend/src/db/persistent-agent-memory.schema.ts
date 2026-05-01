@@ -23,7 +23,7 @@ const tags = () =>
 export const modelVersions = persistentAgentMemorySchema.table(
   "model_versions",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id").primaryKey(),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
     version: text("version").notNull(),

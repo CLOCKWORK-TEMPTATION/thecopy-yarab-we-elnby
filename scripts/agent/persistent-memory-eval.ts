@@ -1,6 +1,10 @@
 import {
+  MEMORY_CONTEXT_BUDGET_PROFILES,
   MemoryInjectionEnvelope,
+  buildLatencyBudgetList,
+  collectLatencyBudgetViolations,
   createPersistentMemorySystem,
+  validateMemoryBudgetProfile,
 } from "./lib/persistent-memory";
 import { MemorySecretScanner } from "./lib/persistent-memory/secrets";
 import { InMemoryPersistentMemoryStore } from "./lib/persistent-memory/store";
@@ -50,6 +54,11 @@ async function runGoldenEval(): Promise<Record<string, number>> {
     decision_recall_at_5: decision.hits.length > 0 ? 1 : 0,
     fact_recall_at_5: fact.hits.length > 0 ? 1 : 0,
     state_recall_at_5: state.hits.length > 0 ? 1 : 0,
+    latency_budget_violation_count: collectLatencyBudgetViolations({
+      ...decision.metrics,
+      ...fact.metrics,
+      ...state.metrics,
+    }).length,
   };
 }
 
@@ -85,6 +94,17 @@ function runSafetyEval(): Record<string, number> {
   };
 }
 
+function runGovernanceEval(): Record<string, number> {
+  const invalidBudgetProfiles = Object.values(
+    MEMORY_CONTEXT_BUDGET_PROFILES,
+  ).filter((profile) => !validateMemoryBudgetProfile(profile)).length;
+
+  return {
+    latency_budget_definition_count: buildLatencyBudgetList().length,
+    invalid_context_budget_profiles: invalidBudgetProfiles,
+  };
+}
+
 async function main(): Promise<void> {
   const mode = process.argv.includes("--safety")
     ? "safety"
@@ -99,6 +119,7 @@ async function main(): Promise<void> {
         : {
             ...(await runGoldenEval()),
             ...runSafetyEval(),
+            ...runGovernanceEval(),
           };
 
   console.log(JSON.stringify(result, null, 2));
@@ -112,6 +133,18 @@ async function main(): Promise<void> {
   if (
     "high_trust_injection_violation" in result &&
     Number(result.high_trust_injection_violation) !== 0
+  ) {
+    process.exit(1);
+  }
+  if (
+    "latency_budget_violation_count" in result &&
+    Number(result.latency_budget_violation_count) !== 0
+  ) {
+    process.exit(1);
+  }
+  if (
+    "invalid_context_budget_profiles" in result &&
+    Number(result.invalid_context_budget_profiles) !== 0
   ) {
     process.exit(1);
   }

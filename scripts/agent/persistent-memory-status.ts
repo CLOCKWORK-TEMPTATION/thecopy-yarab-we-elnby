@@ -1,4 +1,8 @@
-import { isPersistentMemoryInfraRequired } from "./lib/persistent-memory";
+import {
+  buildLatencyBudgetList,
+  getPersistentMemoryVectorCapabilities,
+  isPersistentMemoryInfraRequired,
+} from "./lib/persistent-memory";
 import {
   buildPersistentMemoryInfraConfig,
   checkPersistentMemoryInfra,
@@ -41,6 +45,13 @@ async function main(): Promise<void> {
           required,
           components: infra.components,
           memories: memories.length,
+          vectorCapabilities: {
+            weaviatePrimary:
+              getPersistentMemoryVectorCapabilities("weaviate-primary"),
+            qdrantShadow:
+              getPersistentMemoryVectorCapabilities("qdrant-shadow"),
+          },
+          latencyBudgets: buildLatencyBudgetList(),
         },
         null,
         2,
