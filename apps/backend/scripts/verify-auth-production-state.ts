@@ -47,7 +47,7 @@ function normalizeEmail(email: string): string {
 }
 
 function getMissingSchema(
-  rows: Array<{ table_name: string; column_name: string }>,
+  rows: { table_name: string; column_name: string }[],
 ): Record<string, string[]> {
   const actualSchema = new Map<string, Set<string>>();
 

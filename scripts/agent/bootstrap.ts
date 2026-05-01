@@ -3,6 +3,7 @@ import fs from "node:fs";
 import {
   AGENT_CONTEXT_PATH,
   FINGERPRINT_PATH,
+  PERSISTENT_MEMORY_CONTEXT_PATH,
   ROUND_NOTES_PATH,
   SESSION_STATE_PATH,
 } from "./lib/constants";
@@ -22,6 +23,10 @@ import {
   verifyManualContractsExist,
   type FingerprintState,
 } from "./lib/repo-state";
+import {
+  buildStartupMemoryContext,
+  writeStartupMemoryContext,
+} from "./lib/persistent-memory/startup-context";
 import { renderRoundNotesSnapshot } from "./lib/round-notes";
 import {
   renderGeneratedContext,
@@ -142,6 +147,15 @@ async function main(): Promise<void> {
   );
   if (roundNotesChanged) {
     updatedPaths.push(ROUND_NOTES_PATH);
+  }
+
+  const startupMemoryContext = await buildStartupMemoryContext();
+  const startupMemoryChanged = await writeStartupMemoryContext(
+    fromRepoRoot(PERSISTENT_MEMORY_CONTEXT_PATH),
+    startupMemoryContext,
+  );
+  if (startupMemoryChanged) {
+    updatedPaths.push(PERSISTENT_MEMORY_CONTEXT_PATH);
   }
 
   const outputHashes = await computeOutputHashes();

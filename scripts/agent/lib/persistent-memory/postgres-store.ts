@@ -1,10 +1,12 @@
-import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
 
 import { fromRepoRoot } from "../utils";
 import type {
   AuditLogEntry,
+  ConsolidationLogEntry,
   EmbeddingModelVersion,
+  InjectionQuarantineRecord,
   JobRun,
   MemoryCandidate,
   PersistentMemoryRecord,
@@ -48,6 +50,7 @@ type MemoryRow = {
   trust_level: "low" | "medium" | "high";
   model_version_id: string;
   injection_probability: number;
+  updated_at: string | Date;
   created_at: string | Date;
 };
 
@@ -94,8 +97,7 @@ export async function ensurePersistentMemorySchema(
       version text NOT NULL,
       dimensions integer,
       metadata jsonb NOT NULL DEFAULT '{}',
-      created_at timestamptz NOT NULL DEFAULT now(),
-      UNIQUE(provider, model, version)
+      created_at timestamptz NOT NULL DEFAULT now()
     )
   `);
   await client.query(`
@@ -113,6 +115,18 @@ export async function ensurePersistentMemorySchema(
           ALTER COLUMN id TYPE text USING id::text;
       END IF;
     END $$;
+  `);
+  await client.query(`
+    ALTER TABLE persistent_agent_memory.model_versions
+      ADD COLUMN IF NOT EXISTS provider text NOT NULL DEFAULT 'unknown',
+      ADD COLUMN IF NOT EXISTS model text NOT NULL DEFAULT 'unknown',
+      ADD COLUMN IF NOT EXISTS version text NOT NULL DEFAULT 'unknown',
+      ADD COLUMN IF NOT EXISTS dimensions integer,
+      ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'
+  `);
+  await client.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS model_versions_provider_model_version_unique
+      ON persistent_agent_memory.model_versions (provider, model, version)
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.sessions (
@@ -151,10 +165,19 @@ export async function ensurePersistentMemorySchema(
       source_ref text NOT NULL,
       event_type text NOT NULL,
       content_hash text NOT NULL,
-      raw_text text NOT NULL,
+      sanitized_content text,
+      secret_scan_status text NOT NULL,
+      rejected_reason text,
       metadata jsonb NOT NULL DEFAULT '{}',
       created_at timestamptz NOT NULL DEFAULT now()
     )
+  `);
+  await client.query(`
+    ALTER TABLE persistent_agent_memory.raw_events
+      ADD COLUMN IF NOT EXISTS sanitized_content text,
+      ADD COLUMN IF NOT EXISTS secret_scan_status text NOT NULL DEFAULT 'clean',
+      ADD COLUMN IF NOT EXISTS rejected_reason text,
+      DROP COLUMN IF EXISTS raw_text
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.secret_scan_events (
@@ -162,11 +185,24 @@ export async function ensurePersistentMemorySchema(
       source_ref text NOT NULL,
       event_type text NOT NULL,
       content_hash text NOT NULL,
+      scanner_name text NOT NULL,
       scanner_version text NOT NULL,
-      finding_ids jsonb NOT NULL DEFAULT '[]',
+      status text NOT NULL,
+      matched_rule_ids jsonb NOT NULL DEFAULT '[]',
+      redacted_preview text NOT NULL,
+      action_taken text NOT NULL,
       redacted_metadata jsonb NOT NULL DEFAULT '{}',
       created_at timestamptz NOT NULL DEFAULT now()
     )
+  `);
+  await client.query(`
+    ALTER TABLE persistent_agent_memory.secret_scan_events
+      ADD COLUMN IF NOT EXISTS scanner_name text NOT NULL DEFAULT 'memory-secret-scanner',
+      ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'clean',
+      ADD COLUMN IF NOT EXISTS matched_rule_ids jsonb NOT NULL DEFAULT '[]',
+      ADD COLUMN IF NOT EXISTS redacted_preview text NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS action_taken text NOT NULL DEFAULT 'stored',
+      ADD COLUMN IF NOT EXISTS redacted_metadata jsonb NOT NULL DEFAULT '{}'
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.memory_candidates (
@@ -197,10 +233,17 @@ export async function ensurePersistentMemorySchema(
       model_version_id text NOT NULL,
       injection_probability real NOT NULL DEFAULT 0,
       archived boolean NOT NULL DEFAULT false,
+      quarantined boolean NOT NULL DEFAULT false,
       metadata jsonb NOT NULL DEFAULT '{}',
       created_at timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
     )
+  `);
+  await client.query(`
+    ALTER TABLE persistent_agent_memory.memories
+      ADD COLUMN IF NOT EXISTS archived boolean NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS quarantined boolean NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now()
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.decisions (
@@ -247,10 +290,21 @@ export async function ensurePersistentMemorySchema(
       id uuid PRIMARY KEY,
       query text NOT NULL,
       intent text NOT NULL,
+      selected_profile text,
       result_memory_ids jsonb NOT NULL DEFAULT '[]',
+      scores jsonb NOT NULL DEFAULT '{}',
+      reranker_used boolean NOT NULL DEFAULT false,
+      latency_ms integer NOT NULL DEFAULT 0,
       metadata jsonb NOT NULL DEFAULT '{}',
       created_at timestamptz NOT NULL DEFAULT now()
     )
+  `);
+  await client.query(`
+    ALTER TABLE persistent_agent_memory.retrieval_events
+      ADD COLUMN IF NOT EXISTS selected_profile text,
+      ADD COLUMN IF NOT EXISTS scores jsonb NOT NULL DEFAULT '{}',
+      ADD COLUMN IF NOT EXISTS reranker_used boolean NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS latency_ms integer NOT NULL DEFAULT 0
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.injection_events (
@@ -290,6 +344,24 @@ export async function ensurePersistentMemorySchema(
       job_run_id uuid,
       reason text NOT NULL,
       metadata jsonb NOT NULL DEFAULT '{}',
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS persistent_agent_memory.injection_quarantine (
+      id uuid PRIMARY KEY,
+      memory_id uuid NOT NULL,
+      reason text NOT NULL,
+      source_ref text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS persistent_agent_memory.consolidation_log (
+      id uuid PRIMARY KEY,
+      source_memory_ids jsonb NOT NULL DEFAULT '[]',
+      result_memory_id uuid,
+      action text NOT NULL,
       created_at timestamptz NOT NULL DEFAULT now()
     )
   `);
@@ -359,14 +431,16 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
     };
     await this.client.query(
       `INSERT INTO persistent_agent_memory.raw_events
-       (id, source_ref, event_type, content_hash, raw_text, metadata, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       (id, source_ref, event_type, content_hash, sanitized_content, secret_scan_status, rejected_reason, metadata, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         stored.id,
         stored.sourceRef,
         stored.eventType,
         stored.contentHash,
-        stored.content,
+        stored.sanitizedContent,
+        stored.secretScanStatus,
+        stored.rejectedReason ?? null,
         JSON.stringify(stored.metadata),
         stored.createdAt,
       ],
@@ -384,15 +458,19 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
     };
     await this.client.query(
       `INSERT INTO persistent_agent_memory.secret_scan_events
-       (id, source_ref, event_type, content_hash, scanner_version, finding_ids, redacted_metadata, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+       (id, source_ref, event_type, content_hash, scanner_name, scanner_version, status, matched_rule_ids, redacted_preview, action_taken, redacted_metadata, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         stored.id,
         stored.sourceRef,
         stored.eventType,
         stored.contentHash,
+        stored.scannerName,
         stored.scannerVersion,
-        JSON.stringify(stored.findingIds),
+        stored.status,
+        JSON.stringify(stored.matchedRuleIds),
+        stored.redactedPreview,
+        stored.actionTaken,
         JSON.stringify(stored.redactedMetadata),
         stored.createdAt,
       ],
@@ -432,10 +510,12 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
   async insertMemory(
     memory: Omit<PersistentMemoryRecord, "id" | "createdAt">,
   ): Promise<PersistentMemoryRecord> {
+    const timestamp = now();
     const stored: PersistentMemoryRecord = {
       ...memory,
       id: randomUUID(),
-      createdAt: now(),
+      createdAt: timestamp,
+      updatedAt: timestamp,
     };
     await this.client.query(
       `INSERT INTO persistent_agent_memory.memories
@@ -489,13 +569,17 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
     };
     await this.client.query(
       `INSERT INTO persistent_agent_memory.retrieval_events
-       (id, query, intent, result_memory_ids, created_at)
-       VALUES ($1, $2, $3, $4, $5)`,
+       (id, query, intent, selected_profile, result_memory_ids, scores, reranker_used, latency_ms, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         stored.id,
         stored.query,
         stored.intent,
+        stored.selectedProfile ?? stored.intent,
         JSON.stringify(stored.resultMemoryIds),
+        JSON.stringify(stored.scores ?? {}),
+        stored.rerankerUsed ?? false,
+        stored.latencyMs ?? 0,
         stored.createdAt,
       ],
     );
@@ -525,12 +609,101 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
     return stored;
   }
 
+  async insertInjectionQuarantine(
+    entry: Omit<InjectionQuarantineRecord, "id" | "createdAt">,
+  ): Promise<InjectionQuarantineRecord> {
+    const stored: InjectionQuarantineRecord = {
+      ...entry,
+      id: randomUUID(),
+      createdAt: now(),
+    };
+    await this.client.query(
+      `INSERT INTO persistent_agent_memory.injection_quarantine
+       (id, memory_id, reason, source_ref, created_at)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [stored.id, stored.memoryId, stored.reason, stored.sourceRef, stored.createdAt],
+    );
+    return stored;
+  }
+
+  async insertConsolidationLog(
+    entry: Omit<ConsolidationLogEntry, "id" | "createdAt">,
+  ): Promise<ConsolidationLogEntry> {
+    const stored: ConsolidationLogEntry = {
+      ...entry,
+      id: randomUUID(),
+      createdAt: now(),
+    };
+    await this.client.query(
+      `INSERT INTO persistent_agent_memory.consolidation_log
+       (id, source_memory_ids, result_memory_id, action, created_at)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        stored.id,
+        JSON.stringify(stored.sourceMemoryIds),
+        stored.resultMemoryId ?? null,
+        stored.action,
+        stored.createdAt,
+      ],
+    );
+    return stored;
+  }
+
+  async purgeBySourceRef(
+    sourceRef: string,
+  ): Promise<{ rawEvents: number; memories: PersistentMemoryRecord[] }> {
+    const memoryResult = await this.client.query<MemoryRow>(
+      `SELECT id, candidate_id, source_ref, content_hash, content, memory_type, tags,
+              trust_level, model_version_id, injection_probability, created_at, updated_at
+       FROM persistent_agent_memory.memories
+       WHERE source_ref = $1 AND archived = false`,
+      [sourceRef],
+    );
+    const rawResult = await this.client.query<{ id: string }>(
+      `UPDATE persistent_agent_memory.raw_events
+       SET sanitized_content = NULL,
+           secret_scan_status = 'quarantined',
+           rejected_reason = 'purged_by_memory_secret_policy'
+       WHERE source_ref = $1 AND sanitized_content IS NOT NULL
+       RETURNING id`,
+      [sourceRef],
+    );
+    await this.client.query(
+      `UPDATE persistent_agent_memory.memories
+       SET archived = true,
+           quarantined = true,
+           updated_at = now()
+       WHERE source_ref = $1 AND archived = false`,
+      [sourceRef],
+    );
+
+    return {
+      rawEvents: rawResult.rows.length,
+      memories: memoryResult.rows.map((row) => ({
+        id: row.id,
+        candidateId: row.candidate_id,
+        sourceRef: row.source_ref,
+        contentHash: row.content_hash,
+        content: row.content,
+        memoryType: row.memory_type as PersistentMemoryRecord["memoryType"],
+        tags: Array.isArray(row.tags) ? row.tags : [],
+        trustLevel: row.trust_level,
+        modelVersionId: row.model_version_id,
+        injectionProbability: Number(row.injection_probability),
+        createdAt: toIso(row.created_at),
+        updatedAt: toIso(row.updated_at),
+        archived: true,
+        quarantined: true,
+      })),
+    };
+  }
+
   async listMemories(): Promise<PersistentMemoryRecord[]> {
     const result = await this.client.query<MemoryRow>(
       `SELECT id, candidate_id, source_ref, content_hash, content, memory_type, tags,
-              trust_level, model_version_id, injection_probability, created_at
+              trust_level, model_version_id, injection_probability, created_at, updated_at
        FROM persistent_agent_memory.memories
-       WHERE archived = false
+       WHERE archived = false AND quarantined = false
        ORDER BY created_at DESC`,
     );
 
@@ -546,7 +719,7 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
       modelVersionId: row.model_version_id,
       injectionProbability: Number(row.injection_probability),
       createdAt: toIso(row.created_at),
+      updatedAt: toIso(row.updated_at),
     }));
   }
 }
-

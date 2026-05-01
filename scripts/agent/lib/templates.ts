@@ -1,4 +1,5 @@
 import type { DriftResult, IdeTarget, RepoFacts } from "./repo-state";
+import { PERSISTENT_MEMORY_CONTEXT_PATH } from "./constants";
 
 function formatCodeBlockLines(lines: string[]): string {
   return `\`\`\`text\n${lines.join("\n")}\n\`\`\``;
@@ -274,6 +275,10 @@ ${formatCodeBlockLines([".repo-agent/RAG-OPERATING-CONTRACT.md"])}
 
 ${formatCodeBlockLines([".repo-agent/AGENT-CONTEXT.generated.md"])}
 
+- سياق الذاكرة الدائمة المولد:
+
+${formatCodeBlockLines([PERSISTENT_MEMORY_CONTEXT_PATH])}
+
 ## حالة المرجع الحي
 
 - session-state:
@@ -353,6 +358,10 @@ export function renderGeneratedContext(
 - عقد RAG التشغيلي:
 
 \`.repo-agent/RAG-OPERATING-CONTRACT.md\`
+
+- سياق الذاكرة الدائمة:
+
+\`${PERSISTENT_MEMORY_CONTEXT_PATH}\`
 
 ## أوامر التشغيل الرسمية الحالية
 

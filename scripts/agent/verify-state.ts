@@ -124,6 +124,21 @@ async function main(): Promise<void> {
       message: "الملف المولد لا يربط طبقة المعرفة والاسترجاع بعقدها التشغيلي.",
     });
   }
+  if (!generatedContext.includes(".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md")) {
+    issues.push({
+      level: "error",
+      message: "الملف المولد لا يربط سياق الذاكرة الدائمة التلقائي.",
+    });
+  }
+  const persistentMemoryContext = await readTextIfExists(
+    fromRepoRoot(".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md"),
+  );
+  if (!persistentMemoryContext.includes("Persistent Memory Startup Context")) {
+    issues.push({
+      level: "error",
+      message: "سياق الذاكرة الدائمة التلقائي مفقود أو غير مولد.",
+    });
+  }
 
   const myAgentContent = await readTextIfExists(
     fromRepoRoot(".github/agents/my-agent.md"),
@@ -291,6 +306,12 @@ async function main(): Promise<void> {
   for (const command of [
     "pnpm agent:persistent-memory:secrets:scan",
     "pnpm agent:persistent-memory:secrets:verify",
+    "pnpm agent:persistent-memory:secrets:purge",
+    "pnpm agent:persistent-memory:init",
+    "pnpm agent:persistent-memory:migrate",
+    "pnpm agent:persistent-memory:index",
+    "pnpm agent:persistent-memory:watch",
+    "pnpm agent:persistent-memory:search",
     "pnpm agent:persistent-memory:ingest",
     "pnpm agent:persistent-memory:retrieve",
     "pnpm agent:persistent-memory:workers",
@@ -305,6 +326,42 @@ async function main(): Promise<void> {
         message: `أمر الذاكرة الدائمة غير ممثل في الأوامر الرسمية: ${command}`,
       });
     }
+  }
+
+  for (const command of [
+    "pnpm infra:up",
+    "pnpm infra:down",
+    "pnpm infra:status",
+    "pnpm infra:logs",
+    "pnpm infra:reset",
+  ]) {
+    if (!facts.officialCommands.includes(command)) {
+      issues.push({
+        level: "error",
+        message: `أمر البنية المحلي غير ممثل في الأوامر الرسمية: ${command}`,
+      });
+    }
+  }
+
+  if (!fs.existsSync(fromRepoRoot("podman-compose.infra.yml"))) {
+    issues.push({
+      level: "error",
+      message: "ملف بنية Podman الرسمي مفقود.",
+    });
+  }
+
+  const infraScript = await readTextIfExists(fromRepoRoot("scripts/infra.ps1"));
+  if (!infraScript.includes("podman")) {
+    issues.push({
+      level: "error",
+      message: "سكربت البنية لا يستخدم Podman.",
+    });
+  }
+  if (/\bdocker\s+compose\b/i.test(infraScript) || /\bTest-Docker\b/.test(infraScript)) {
+    issues.push({
+      level: "error",
+      message: "سكربت البنية ما زال يستخدم مسار Docker.",
+    });
   }
 
   const sessionStateContent = await readTextIfExists(

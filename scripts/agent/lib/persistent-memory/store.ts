@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import type {
   AuditLogEntry,
+  ConsolidationLogEntry,
   EmbeddingModelVersion,
+  InjectionQuarantineRecord,
   JobRun,
   MemoryCandidate,
   PersistentMemoryRecord,
@@ -33,12 +35,17 @@ export class InMemoryPersistentMemoryStore implements PersistentMemoryStore {
   readonly jobRuns: JobRun[] = [];
   readonly retrievalEvents: RetrievalEvent[] = [];
   readonly auditLog: AuditLogEntry[] = [];
+  readonly injectionQuarantine: InjectionQuarantineRecord[] = [];
+  readonly consolidationLog: ConsolidationLogEntry[] = [];
 
   async upsertModelVersion(
     modelVersion: EmbeddingModelVersion,
   ): Promise<EmbeddingModelVersion> {
     const existingIndex = this.modelVersions.findIndex(
-      (stored) => stored.id === modelVersion.id,
+      (stored) =>
+        stored.provider === modelVersion.provider &&
+        stored.model === modelVersion.model &&
+        stored.version === modelVersion.version,
     );
     if (existingIndex >= 0) {
       this.modelVersions[existingIndex] = modelVersion;
@@ -80,7 +87,13 @@ export class InMemoryPersistentMemoryStore implements PersistentMemoryStore {
   async insertMemory(
     memory: Omit<PersistentMemoryRecord, "id" | "createdAt">,
   ): Promise<PersistentMemoryRecord> {
-    const stored = withIdentity(memory);
+    const timestamp = now();
+    const stored = {
+      ...memory,
+      id: randomUUID(),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
     this.memories.push(stored);
     return stored;
   }
@@ -107,8 +120,54 @@ export class InMemoryPersistentMemoryStore implements PersistentMemoryStore {
     return stored;
   }
 
+  async insertInjectionQuarantine(
+    entry: Omit<InjectionQuarantineRecord, "id" | "createdAt">,
+  ): Promise<InjectionQuarantineRecord> {
+    const stored = withIdentity(entry);
+    this.injectionQuarantine.push(stored);
+    return stored;
+  }
+
+  async insertConsolidationLog(
+    entry: Omit<ConsolidationLogEntry, "id" | "createdAt">,
+  ): Promise<ConsolidationLogEntry> {
+    const stored = withIdentity(entry);
+    this.consolidationLog.push(stored);
+    return stored;
+  }
+
+  async purgeBySourceRef(
+    sourceRef: string,
+  ): Promise<{ rawEvents: number; memories: PersistentMemoryRecord[] }> {
+    let purgedRawEvents = 0;
+    for (const rawEvent of this.rawEvents) {
+      if (rawEvent.sourceRef === sourceRef && rawEvent.sanitizedContent !== null) {
+        rawEvent.sanitizedContent = null;
+        rawEvent.secretScanStatus = "quarantined";
+        rawEvent.rejectedReason = "purged_by_memory_secret_policy";
+        purgedRawEvents += 1;
+      }
+    }
+
+    const purgedMemories: PersistentMemoryRecord[] = [];
+    for (const memory of this.memories) {
+      if (memory.sourceRef === sourceRef && !memory.archived) {
+        memory.archived = true;
+        memory.quarantined = true;
+        memory.updatedAt = now();
+        purgedMemories.push(memory);
+      }
+    }
+
+    return {
+      rawEvents: purgedRawEvents,
+      memories: purgedMemories,
+    };
+  }
+
   async listMemories(): Promise<PersistentMemoryRecord[]> {
-    return [...this.memories];
+    return this.memories.filter(
+      (memory) => !memory.archived && !memory.quarantined,
+    );
   }
 }
-

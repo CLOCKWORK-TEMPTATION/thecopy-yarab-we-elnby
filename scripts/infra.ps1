@@ -1,4 +1,4 @@
-# infra.ps1 - Manage infrastructure services for The Copy
+# infra.ps1 - Manage local infrastructure services for The Copy using Podman.
 # Services: PostgreSQL 16 | Redis 7 | Weaviate 1.28.4 | Qdrant
 
 param(
@@ -9,46 +9,72 @@ param(
     [Parameter(Position = 1)]
     [string]$ServiceName = '',
 
-    [ValidateSet('auto', 'docker', 'podman')]
-    [string]$Engine = 'auto'
+    [ValidateSet('podman')]
+    [string]$Engine = 'podman'
 )
 
 $ErrorActionPreference = 'Stop'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptDir
-$ComposeFile = Join-Path $ProjectRoot 'docker-compose.infra.yml'
-$HealthFmt = '{{.State.Health.Status}}'
+$ComposeFile = Join-Path $ProjectRoot 'podman-compose.infra.yml'
+$InfraEnvDir = Join-Path $env:LOCALAPPDATA 'TheCopy'
+$InfraEnvFile = Join-Path $InfraEnvDir 'podman-infra.env'
 $Services = @('postgres', 'redis', 'weaviate', 'qdrant')
-$HostReadyUrls = @{
-    qdrant = 'http://127.0.0.1:6333/readyz'
+$ServiceContainers = @{
+    postgres = 'thecopy-postgres-1'
+    redis = 'thecopy-redis-1'
+    weaviate = 'thecopy-weaviate-1'
+    qdrant = 'thecopy-qdrant-1'
 }
-$script:Runtime = $null
-$script:RuntimeExecutable = $null
-$script:ComposeExecutable = $null
-$script:ComposePrefix = @()
+$HealthFmt = '{{.State.Health.Status}}'
+$script:PodmanExe = ''
+$script:ComposeAvailable = $false
 
 function Write-Msg([string]$Tag, [string]$Msg, [string]$Color = 'White') {
     Write-Host "[$Tag] $Msg" -ForegroundColor $Color
 }
 
-function Resolve-Executable([string]$Name, [string[]]$KnownPaths = @()) {
-    $command = Get-Command $Name -ErrorAction SilentlyContinue
-    if ($command) {
-        return $command.Source
+function Ensure-InfraEnvironment {
+    if (-not [string]::IsNullOrWhiteSpace($env:POSTGRES_PASSWORD)) {
+        return
     }
 
-    foreach ($candidate in $KnownPaths) {
+    if (Test-Path -LiteralPath $InfraEnvFile) {
+        $line = Get-Content -LiteralPath $InfraEnvFile |
+            Where-Object { $_ -match '^POSTGRES_PASSWORD=' } |
+            Select-Object -First 1
+        if ($line) {
+            $env:POSTGRES_PASSWORD = $line.Substring('POSTGRES_PASSWORD='.Length)
+            return
+        }
+    }
+
+    New-Item -ItemType Directory -Force -Path $InfraEnvDir | Out-Null
+    $rawPassword = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
+    $generatedPassword = $rawPassword.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+    Set-Content -LiteralPath $InfraEnvFile -Value "POSTGRES_PASSWORD=$generatedPassword" -Encoding UTF8
+    $env:POSTGRES_PASSWORD = $generatedPassword
+}
+
+function Resolve-Podman {
+    $cmd = Get-Command podman -ErrorAction SilentlyContinue
+    if ($cmd) {
+        return $cmd.Source
+    }
+
+    $candidates = @(
+        'C:\Program Files\RedHat\Podman\podman.exe',
+        'C:\Program Files (x86)\RedHat\Podman\podman.exe'
+    )
+
+    foreach ($candidate in $candidates) {
         if (Test-Path $candidate) {
             return $candidate
         }
     }
 
-    return $null
-}
-
-function Test-CommandAvailable([string]$Name, [string[]]$KnownPaths = @()) {
-    return -not [string]::IsNullOrEmpty((Resolve-Executable $Name $KnownPaths))
+    return ''
 }
 
 function Test-ExternalCommand([string]$Executable, [string[]]$Arguments) {
@@ -71,23 +97,13 @@ function Test-ExternalCommand([string]$Executable, [string[]]$Arguments) {
     }
 }
 
-function Test-PodmanCompose([string]$PodmanExecutable) {
-    if (Test-ExternalCommand $PodmanExecutable @('compose', 'version')) {
-        $script:ComposeExecutable = $PodmanExecutable
-        $script:ComposePrefix = @('compose')
-        return $true
-    }
-
-    if (Test-CommandAvailable 'podman-compose') {
-        $script:ComposeExecutable = 'podman-compose'
-        $script:ComposePrefix = @()
-        return $true
-    }
-
-    return $false
-}
-
 function Ensure-PodmanMachine([string]$PodmanExecutable) {
+    if (Test-ExternalCommand $PodmanExecutable @('info')) {
+        return $true
+    }
+
+    Write-Msg 'WARN' 'Podman is not ready. Trying podman machine start...' 'Yellow'
+    & $PodmanExecutable machine start 2>&1 | Out-Host
     if (Test-ExternalCommand $PodmanExecutable @('info')) {
         return $true
     }
@@ -100,131 +116,69 @@ function Ensure-PodmanMachine([string]$PodmanExecutable) {
     }
 
     if ([string]::IsNullOrWhiteSpace($machinesJson)) {
-        return $false
-    }
-
-    $machines = @()
-    try {
-        $parsed = $machinesJson | ConvertFrom-Json
-        if ($null -ne $parsed) {
-            if ($parsed -is [array]) { $machines = $parsed } else { $machines = @($parsed) }
-        }
-    } catch {
-        return $false
-    }
-
-    if ($machines.Count -eq 0) {
         Write-Msg 'INFO' 'Creating default Podman machine...' 'Cyan'
         & $PodmanExecutable machine init
         if ($LASTEXITCODE -ne 0) { return $false }
-        $machinesJson = (& $PodmanExecutable machine list --format json 2>$null | Out-String).Trim()
-        $parsed = $machinesJson | ConvertFrom-Json
-        if ($parsed -is [array]) { $machines = $parsed } else { $machines = @($parsed) }
+        & $PodmanExecutable machine start
+        return (Test-ExternalCommand $PodmanExecutable @('info'))
     }
 
-    $running = $machines | Where-Object { $_.Running -eq $true } | Select-Object -First 1
-    if ($null -eq $running) {
-        $machine = $machines | Select-Object -First 1
-        if ($null -eq $machine) { return $false }
-        Write-Msg 'INFO' "Starting Podman machine: $($machine.Name)" 'Cyan'
-        & $PodmanExecutable machine start $machine.Name
-        if ($LASTEXITCODE -ne 0) { return $false }
-    }
-
-    return (Test-ExternalCommand $PodmanExecutable @('info'))
+    return $false
 }
 
-function Try-UsePodman {
-    $podmanExecutable = Resolve-Executable 'podman' @('C:\Program Files\RedHat\Podman\podman.exe')
-    if ([string]::IsNullOrEmpty($podmanExecutable)) {
-        return $false
-    }
-    if (-not (Ensure-PodmanMachine $podmanExecutable)) {
-        return $false
+function Test-Podman {
+    $script:PodmanExe = Resolve-Podman
+    if ([string]::IsNullOrEmpty($script:PodmanExe)) {
+        Write-Msg 'ERROR' 'Podman is not installed.' 'Red'
+        exit 1
     }
 
-    $script:Runtime = 'podman'
-    $script:RuntimeExecutable = $podmanExecutable
-    $script:ComposeExecutable = $podmanExecutable
-    $script:ComposePrefix = @('compose')
-    return $true
-}
-
-function Try-UseDocker {
-    $dockerExecutable = Resolve-Executable 'docker'
-    if ([string]::IsNullOrEmpty($dockerExecutable)) {
-        return $false
-    }
-    if (-not (Test-ExternalCommand $dockerExecutable @('compose', 'version'))) {
-        return $false
-    }
-    if (-not (Test-ExternalCommand $dockerExecutable @('info'))) {
-        return $false
+    if (-not (Ensure-PodmanMachine $script:PodmanExe)) {
+        Write-Msg 'ERROR' 'Podman is not running or the machine could not start.' 'Red'
+        exit 1
     }
 
-    $script:Runtime = 'docker'
-    $script:RuntimeExecutable = $dockerExecutable
-    $script:ComposeExecutable = $dockerExecutable
-    $script:ComposePrefix = @('compose')
-    return $true
-}
-
-function Resolve-ContainerRuntime {
-    if ($null -ne $script:Runtime) {
-        return
+    if (-not (Test-Path $ComposeFile)) {
+        Write-Msg 'ERROR' "Missing compose file: $ComposeFile" 'Red'
+        exit 1
     }
 
-    $candidates = if ($Engine -eq 'auto') { @('podman', 'docker') } else { @($Engine) }
-
-    foreach ($candidate in $candidates) {
-        if ($candidate -eq 'podman' -and (Try-UsePodman)) {
-            Write-Msg 'INFO' 'Using container engine: podman' 'Cyan'
-            return
-        }
-        if ($candidate -eq 'docker' -and (Try-UseDocker)) {
-            Write-Msg 'INFO' 'Using container engine: docker' 'Cyan'
-            return
-        }
+    $env:PODMAN_COMPOSE_PROVIDER = 'podman-compose'
+    $script:ComposeAvailable = (Test-ExternalCommand $script:PodmanExe @('compose', 'version'))
+    if (-not $script:ComposeAvailable) {
+        Write-Msg 'WARN' 'podman compose is not available; using direct Podman container commands.' 'Yellow'
     }
-
-    if ($Engine -eq 'podman') {
-        Write-Msg 'ERROR' 'Podman is not installed or its machine/compose support is not available.' 'Red'
-    } elseif ($Engine -eq 'docker') {
-        Write-Msg 'ERROR' 'Docker is not installed or its daemon/compose support is not available.' 'Red'
-    } else {
-        Write-Msg 'ERROR' 'No usable container engine found. Install Podman or fix Docker.' 'Red'
-    }
-    exit 1
 }
 
 function Invoke-Compose([string[]]$ComposeArgs) {
-    Resolve-ContainerRuntime
-    $allArgs = @($script:ComposePrefix + @('-f', $ComposeFile) + $ComposeArgs)
-    & $script:ComposeExecutable @allArgs
+    if (-not $script:ComposeAvailable) {
+        Invoke-DirectPodman $ComposeArgs
+        return
+    }
+
+    & $script:PodmanExe compose -f $ComposeFile @ComposeArgs
     if ($LASTEXITCODE -ne 0) {
         $joined = $ComposeArgs -join ' '
-        Write-Msg 'ERROR' "Command failed: $script:ComposeExecutable $($script:ComposePrefix -join ' ') $joined" 'Red'
+        Write-Msg 'ERROR' "Command failed: podman compose $joined" 'Red'
         exit $LASTEXITCODE
     }
 }
 
-function Get-ServiceHealth([string]$Svc) {
-    Resolve-ContainerRuntime
-    $cid = & $script:RuntimeExecutable ps -a `
-        --filter "label=com.docker.compose.project=thecopy" `
-        --filter "label=com.docker.compose.service=$Svc" `
-        --format "{{.ID}}" 2>$null | Select-Object -First 1
-    if ([string]::IsNullOrEmpty($cid)) { return 'missing' }
-    if ($HostReadyUrls.ContainsKey($Svc)) {
-        if (Test-HttpReady $HostReadyUrls[$Svc]) { return 'healthy' }
-        return 'starting'
-    }
+function Test-ContainerExists([string]$Name) {
+    $null = & $script:PodmanExe container exists $Name 2>$null
+    return $LASTEXITCODE -eq 0
+}
 
-    $h = & $script:RuntimeExecutable inspect --format $HealthFmt $cid 2>$null
-    if ([string]::IsNullOrEmpty($h) -or $h.Trim() -eq '<no value>') {
-        return 'unknown'
+function Test-TcpReady([string]$HostName, [int]$Port) {
+    try {
+        $client = [System.Net.Sockets.TcpClient]::new()
+        $task = $client.ConnectAsync($HostName, $Port)
+        $ready = $task.Wait(1000)
+        $client.Dispose()
+        return $ready
+    } catch {
+        return $false
     }
-    return $h.Trim()
 }
 
 function Test-HttpReady([string]$Url) {
@@ -234,6 +188,172 @@ function Test-HttpReady([string]$Url) {
     } catch {
         return $false
     }
+}
+
+function Ensure-Network {
+    $null = & $script:PodmanExe network exists thecopy-net 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        & $script:PodmanExe network create thecopy-net | Out-Null
+    }
+}
+
+function Ensure-Volume([string]$Name) {
+    $null = & $script:PodmanExe volume exists $Name 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        & $script:PodmanExe volume create $Name | Out-Null
+    }
+}
+
+function Start-Or-Run([string]$Name, [string[]]$RunArgs) {
+    if (Test-ContainerExists $Name) {
+        & $script:PodmanExe start $Name | Out-Null
+        return
+    }
+
+    & $script:PodmanExe run -d --name $Name @RunArgs | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Msg 'ERROR' "Failed to start container: $Name" 'Red'
+        exit $LASTEXITCODE
+    }
+}
+
+function Invoke-DirectUp {
+    Ensure-InfraEnvironment
+    Ensure-Network
+    Ensure-Volume 'thecopy_pgdata'
+    Ensure-Volume 'thecopy_redisdata'
+    Ensure-Volume 'thecopy_weaviatedata'
+    Ensure-Volume 'thecopy_qdrantdata'
+
+    Start-Or-Run 'thecopy-postgres-1' @(
+        '--network', 'thecopy-net',
+        '-p', '5433:5432',
+        '-e', 'POSTGRES_USER=thecopy',
+        '-e', "POSTGRES_PASSWORD=$env:POSTGRES_PASSWORD",
+        '-e', 'POSTGRES_DB=thecopy_dev',
+        '-v', 'thecopy_pgdata:/var/lib/postgresql/data',
+        'docker.io/library/postgres:16-alpine'
+    )
+
+    Start-Or-Run 'thecopy-redis-1' @(
+        '--network', 'thecopy-net',
+        '-p', '6379:6379',
+        '-v', 'thecopy_redisdata:/data',
+        'docker.io/library/redis:7-alpine',
+        'redis-server',
+        '--appendonly',
+        'yes'
+    )
+
+    Start-Or-Run 'thecopy-weaviate-1' @(
+        '--network', 'thecopy-net',
+        '-p', '8080:8080',
+        '-e', 'QUERY_DEFAULTS_LIMIT=25',
+        '-e', 'AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true',
+        '-e', 'PERSISTENCE_DATA_PATH=/var/lib/weaviate',
+        '-e', 'DEFAULT_VECTORIZER_MODULE=none',
+        '-e', 'CLUSTER_HOSTNAME=node1',
+        '-v', 'thecopy_weaviatedata:/var/lib/weaviate',
+        'cr.weaviate.io/semitechnologies/weaviate:1.28.4'
+    )
+
+    Start-Or-Run 'thecopy-qdrant-1' @(
+        '--network', 'thecopy-net',
+        '-p', '6333:6333',
+        '-p', '6334:6334',
+        '-v', 'thecopy_qdrantdata:/qdrant/storage',
+        'docker.io/qdrant/qdrant:v1.13.4'
+    )
+}
+
+function Invoke-DirectStatus {
+    foreach ($svc in $Services) {
+        $name = $ServiceContainers[$svc]
+        if (Test-ContainerExists $name) {
+            & $script:PodmanExe ps --filter "name=$name" --format "{{.Names}} {{.Status}} {{.Ports}}"
+        } else {
+            Write-Host "$name stopped"
+        }
+    }
+}
+
+function Invoke-DirectDown {
+    foreach ($name in $ServiceContainers.Values) {
+        if (Test-ContainerExists $name) {
+            & $script:PodmanExe stop $name 2>$null | Out-Null
+        }
+    }
+}
+
+function Invoke-DirectLogs([string]$Name) {
+    if (-not [string]::IsNullOrEmpty($Name)) {
+        $container = $ServiceContainers[$Name]
+        if ([string]::IsNullOrEmpty($container)) {
+            $container = $Name
+        }
+        & $script:PodmanExe logs --tail=100 -f $container
+        return
+    }
+
+    foreach ($container in $ServiceContainers.Values) {
+        Write-Host "===== $container ====="
+        & $script:PodmanExe logs --tail=50 $container
+    }
+}
+
+function Invoke-DirectReset {
+    foreach ($name in $ServiceContainers.Values) {
+        if (Test-ContainerExists $name) {
+            & $script:PodmanExe rm -f $name 2>$null | Out-Null
+        }
+    }
+    foreach ($volume in @('thecopy_pgdata', 'thecopy_redisdata', 'thecopy_weaviatedata', 'thecopy_qdrantdata')) {
+        $null = & $script:PodmanExe volume exists $volume 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            & $script:PodmanExe volume rm $volume | Out-Null
+        }
+    }
+}
+
+function Invoke-DirectPodman([string[]]$ComposeArgs) {
+    $command = $ComposeArgs[0]
+    switch ($command) {
+        'up'     { Invoke-DirectUp }
+        'down'   {
+            if ($ComposeArgs -contains '-v') { Invoke-DirectReset } else { Invoke-DirectDown }
+        }
+        'ps'     { Invoke-DirectStatus }
+        'logs'   { Invoke-DirectLogs $ServiceName }
+        default  {
+            Write-Msg 'ERROR' "Unsupported direct Podman operation: $command" 'Red'
+            exit 1
+        }
+    }
+}
+
+function Get-ServiceHealth([string]$Svc) {
+    switch ($Svc) {
+        'postgres' { if (Test-TcpReady '127.0.0.1' 5433) { return 'healthy' } }
+        'redis'    { if (Test-TcpReady '127.0.0.1' 6379) { return 'healthy' } }
+        'weaviate' { if (Test-HttpReady 'http://127.0.0.1:8080/v1/.well-known/ready') { return 'healthy' } }
+        'qdrant'   { if (Test-HttpReady 'http://127.0.0.1:6333/readyz') { return 'healthy' } }
+    }
+
+    $cid = ''
+    if ($script:ComposeAvailable) {
+        $cid = & $script:PodmanExe compose -f $ComposeFile ps -q $Svc 2>$null
+    } else {
+        $cid = $ServiceContainers[$Svc]
+    }
+    if ([string]::IsNullOrEmpty($cid)) { return 'missing' }
+    if (-not (Test-ContainerExists $cid)) { return 'missing' }
+
+    $h = & $script:PodmanExe inspect --format $HealthFmt $cid 2>$null
+    if ([string]::IsNullOrEmpty($h) -or $h.Trim() -eq '<no value>') {
+        return 'starting'
+    }
+
+    return $h.Trim()
 }
 
 function Wait-ForHealthy {
@@ -253,14 +373,17 @@ function Wait-ForHealthy {
                 Write-Host 'NOT FOUND' -ForegroundColor Red
                 break
             }
+
             if ($h -eq 'healthy') {
                 Write-Host 'OK' -ForegroundColor Green
                 break
             }
+
             if ($h -eq 'unhealthy') {
                 Write-Host 'UNHEALTHY' -ForegroundColor Red
                 exit 1
             }
+
             if ($waited -ge $maxWait) {
                 Write-Host 'TIMEOUT' -ForegroundColor Yellow
                 break
@@ -274,13 +397,14 @@ function Wait-ForHealthy {
 }
 
 function Invoke-Up {
-    Resolve-ContainerRuntime
-    Write-Msg 'INFO' 'Starting infrastructure services...' 'Cyan'
+    Test-Podman
+    Ensure-InfraEnvironment
+    Write-Msg 'INFO' 'Starting infrastructure services using Podman...' 'Cyan'
     Invoke-Compose @('up', '-d')
     Write-Host ''
     Wait-ForHealthy
     Write-Host ''
-    Write-Msg 'OK' 'All services are running!' 'Green'
+    Write-Msg 'OK' 'Infrastructure command finished.' 'Green'
     Write-Host '  PostgreSQL  -> localhost:5433' -ForegroundColor Blue
     Write-Host '  Redis       -> localhost:6379' -ForegroundColor Blue
     Write-Host '  Weaviate    -> http://localhost:8080' -ForegroundColor Blue
@@ -289,14 +413,14 @@ function Invoke-Up {
 }
 
 function Invoke-Down {
-    Resolve-ContainerRuntime
-    Write-Msg 'INFO' 'Stopping services...' 'Cyan'
+    Test-Podman
+    Write-Msg 'INFO' 'Stopping services using Podman...' 'Cyan'
     Invoke-Compose @('down')
     Write-Msg 'OK' 'All services stopped.' 'Green'
 }
 
 function Invoke-Status {
-    Resolve-ContainerRuntime
+    Test-Podman
     Write-Msg 'INFO' 'Service status:' 'Cyan'
     Write-Host ''
     Invoke-Compose @('ps')
@@ -317,10 +441,14 @@ function Invoke-Status {
 }
 
 function Invoke-Logs {
-    Resolve-ContainerRuntime
+    Test-Podman
     if (-not [string]::IsNullOrEmpty($ServiceName)) {
         Write-Msg 'INFO' "Logs for: $ServiceName" 'Cyan'
-        Invoke-Compose @('logs', '-f', '--tail=100', $ServiceName)
+        if ($script:ComposeAvailable) {
+            & $script:PodmanExe compose -f $ComposeFile logs -f --tail=100 $ServiceName
+        } else {
+            Invoke-DirectLogs $ServiceName
+        }
     } else {
         Write-Msg 'INFO' 'All logs (last 50 lines):' 'Cyan'
         Invoke-Compose @('logs', '--tail=50')
@@ -328,13 +456,14 @@ function Invoke-Logs {
 }
 
 function Invoke-Reset {
-    Resolve-ContainerRuntime
-    Write-Msg 'WARN' 'This will DELETE all PostgreSQL, Redis, Weaviate, and Qdrant data!' 'Yellow'
+    Test-Podman
+    Write-Msg 'WARN' 'This will DELETE all PostgreSQL, Redis, Weaviate, and Qdrant data.' 'Yellow'
     $confirm = Read-Host 'Type yes to continue'
     if ($confirm -ne 'yes' -and $confirm -ne 'y') {
         Write-Msg 'INFO' 'Cancelled.' 'Cyan'
         return
     }
+
     Write-Msg 'INFO' 'Stopping services and removing volumes...' 'Cyan'
     Invoke-Compose @('down', '-v')
     Write-Msg 'INFO' 'Restarting services...' 'Cyan'
@@ -345,12 +474,11 @@ function Show-Help {
     Write-Host ''
     Write-Host 'Usage: .\scripts\infra.ps1 <command>' -ForegroundColor Cyan
     Write-Host ''
-    Write-Host '  up       Start all infrastructure services'
+    Write-Host '  up       Start all infrastructure services using Podman'
     Write-Host '  down     Stop all services'
     Write-Host '  status   Show service health status'
-    Write-Host '  logs     Show logs (e.g. .\scripts\infra.ps1 logs redis)'
-    Write-Host '  reset    Full reset - deletes all data'
-    Write-Host '  -Engine  auto, podman, or docker'
+    Write-Host '  logs     Show logs'
+    Write-Host '  reset    Full reset - deletes all infra data'
     Write-Host '  help     Show this help'
     Write-Host ''
 }

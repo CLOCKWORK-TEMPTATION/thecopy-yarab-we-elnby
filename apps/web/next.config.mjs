@@ -96,7 +96,6 @@ const nextConfig = {
     removeConsole: process.env["NODE_ENV"] === "production",
   },
 
-  // Suppress middleware deprecation warning (using middleware.ts instead of proxy.ts due to Next.js 16.2.3 bug)
   logging: {
     fetches: {
       fullUrl: true,
@@ -312,6 +311,7 @@ const sentrySourceMapIgnore = [
   ),
   sentryDistPath("static/chunks/app/(main)/editor/app/layout-*.js"),
   sentryDistPath("server/middleware.js"),
+  sentryDistPath("server/proxy.js"),
 ];
 const sentryConfig =
   sentryOrg && sentryProject && sentryAuthToken

@@ -74,7 +74,7 @@
 
 ## 6) Middleware & Security Headers
 
-- `src/middleware.ts` بيضيف Security Headers (CSP وغيره) على مستوى Next.
+- `src/proxy.ts` بيضيف Security Headers (CSP وغيره) على مستوى Next.
 - `next.config.ts` بيضيف headers إضافية + ضبط صور + تجاهل تحذيرات معروفة (OpenTelemetry/Sentry).
 
 ## 7) متغيرات البيئة

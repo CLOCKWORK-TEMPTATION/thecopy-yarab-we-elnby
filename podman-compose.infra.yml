@@ -1,0 +1,86 @@
+name: thecopy
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: thecopy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be provided by scripts/infra.ps1}
+      POSTGRES_DB: thecopy_dev
+    volumes:
+      - thecopy_pgdata:/var/lib/postgresql/data:Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thecopy -d thecopy_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - thecopy-net
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - thecopy_redisdata:/data:Z
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - thecopy-net
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.28.4
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: none
+      CLUSTER_HOSTNAME: node1
+    volumes:
+      - thecopy_weaviatedata:/var/lib/weaviate:Z
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O- http://127.0.0.1:8080/v1/.well-known/ready >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - thecopy-net
+
+  qdrant:
+    image: docker.io/qdrant/qdrant:v1.13.4
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - thecopy_qdrantdata:/qdrant/storage:Z
+    networks:
+      - thecopy-net
+
+volumes:
+  thecopy_pgdata:
+  thecopy_redisdata:
+  thecopy_weaviatedata:
+  thecopy_qdrantdata:
+
+networks:
+  thecopy-net:
+    driver: bridge

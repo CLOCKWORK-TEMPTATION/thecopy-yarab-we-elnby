@@ -16,6 +16,8 @@ export interface InjectionMemory {
   trustLevel: TrustLevel;
   modelVersionId: string;
   injectionProbability: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface InjectionEnvelopeInput {
@@ -31,6 +33,8 @@ export interface InjectionEnvelopePayload {
     sourceRef: string;
     trustLevel: TrustLevel;
     modelVersionId: string;
+    createdAt: string;
+    updatedAt: string;
   }>;
 }
 
@@ -42,6 +46,8 @@ function toInjectionMemory(memory: PersistentMemoryRecord): InjectionMemory {
     trustLevel: memory.trustLevel,
     modelVersionId: memory.modelVersionId,
     injectionProbability: memory.injectionProbability,
+    createdAt: memory.createdAt,
+    updatedAt: memory.updatedAt ?? memory.createdAt,
   };
 }
 
@@ -61,6 +67,12 @@ export class MemoryInjectionEnvelope {
       if (!memory.modelVersionId) {
         throw new Error("Memory injection requires model_version.");
       }
+      if (!memory.createdAt) {
+        throw new Error("Memory injection requires created_at.");
+      }
+      if (!memory.updatedAt) {
+        throw new Error("Memory injection requires updated_at.");
+      }
       if (memory.injectionProbability >= 0.7) {
         throw new Error("Memory injection rejected high risk memory.");
       }
@@ -71,6 +83,8 @@ export class MemoryInjectionEnvelope {
         sourceRef: memory.sourceRef,
         trustLevel: memory.trustLevel,
         modelVersionId: memory.modelVersionId,
+        createdAt: memory.createdAt,
+        updatedAt: memory.updatedAt,
       };
     });
 

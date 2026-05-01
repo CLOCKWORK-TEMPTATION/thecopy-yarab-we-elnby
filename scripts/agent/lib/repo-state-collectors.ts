@@ -11,6 +11,7 @@ import {
   CODE_MAP_FILES,
   MIND_MAP_FILES,
   AGENT_CONTEXT_PATH,
+  PERSISTENT_MEMORY_CONTEXT_PATH,
   FINGERPRINT_PATH,
   MANUAL_CONTRACT_FILES,
 } from "./constants";
@@ -252,6 +253,12 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:memory:watch",
     "agent:persistent-memory:secrets:scan",
     "agent:persistent-memory:secrets:verify",
+    "agent:persistent-memory:secrets:purge",
+    "agent:persistent-memory:init",
+    "agent:persistent-memory:migrate",
+    "agent:persistent-memory:index",
+    "agent:persistent-memory:watch",
+    "agent:persistent-memory:search",
     "agent:persistent-memory:ingest",
     "agent:persistent-memory:retrieve",
     "agent:persistent-memory:workers",
@@ -260,6 +267,11 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:persistent-memory:eval:golden",
     "agent:persistent-memory:eval:safety",
     "workspace:embed",
+    "infra:up",
+    "infra:down",
+    "infra:status",
+    "infra:logs",
+    "infra:reset",
   ];
 
   const officialCommands = desiredOfficialCommands
@@ -317,6 +329,7 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
       ...CODE_MAP_FILES,
       ...MIND_MAP_FILES,
       AGENT_CONTEXT_PATH,
+      PERSISTENT_MEMORY_CONTEXT_PATH,
       FINGERPRINT_PATH,
     ],
     knowledgeInventory,

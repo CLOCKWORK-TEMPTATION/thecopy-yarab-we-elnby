@@ -38,6 +38,12 @@ pnpm agent:memory:verify
 pnpm agent:memory:watch
 pnpm agent:persistent-memory:secrets:scan
 pnpm agent:persistent-memory:secrets:verify
+pnpm agent:persistent-memory:secrets:purge
+pnpm agent:persistent-memory:init
+pnpm agent:persistent-memory:migrate
+pnpm agent:persistent-memory:index
+pnpm agent:persistent-memory:watch
+pnpm agent:persistent-memory:search
 pnpm agent:persistent-memory:ingest
 pnpm agent:persistent-memory:retrieve
 pnpm agent:persistent-memory:workers
@@ -46,6 +52,11 @@ pnpm agent:persistent-memory:eval
 pnpm agent:persistent-memory:eval:golden
 pnpm agent:persistent-memory:eval:safety
 pnpm workspace:embed
+pnpm infra:up
+pnpm infra:down
+pnpm infra:status
+pnpm infra:logs
+pnpm infra:reset
 ```
 
 ## التطبيقات الأساسية
@@ -88,10 +99,15 @@ pnpm workspace:embed
 - `scripts/agent/guard.ts`
 - `scripts/agent/lib/persistent-memory/index.ts`
 - `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-index.ts`
 - `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-init.ts`
+- `scripts/agent/persistent-memory-migrate.ts`
 - `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-search.ts`
 - `scripts/agent/persistent-memory-secrets.ts`
 - `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-watch.ts`
 - `scripts/agent/persistent-memory-workers.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
@@ -146,6 +162,6 @@ output/session-state.md
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `2684`
-- القطع: `5739`
+- الملفات: `2694`
+- القطع: `5766`
 - التغطية: `100.0%`

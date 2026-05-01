@@ -8,11 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-01T13:40:31.602Z |
-| الفرع الحالي | `codex/persistent-agent-memory-infra` |
-| آخر commit | `dacd46b0dea0be78fda3b2baead53169efe59995` |
-| حالة working tree | غير نظيفة — 7 ملف متغير |
-| مستوى drift | `no-drift` |
+| آخر مزامنة مرجعية | 2026-05-01T15:55:59.593Z |
+| الفرع الحالي | `codex/persistent-agent-memory-production` |
+| آخر commit | `602fd4b8145478769b438376cf7f41e8626c349f` |
+| حالة working tree | غير نظيفة — 4 ملف متغير |
+| مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -50,6 +50,12 @@ pnpm agent:memory:verify
 pnpm agent:memory:watch
 pnpm agent:persistent-memory:secrets:scan
 pnpm agent:persistent-memory:secrets:verify
+pnpm agent:persistent-memory:secrets:purge
+pnpm agent:persistent-memory:init
+pnpm agent:persistent-memory:migrate
+pnpm agent:persistent-memory:index
+pnpm agent:persistent-memory:watch
+pnpm agent:persistent-memory:search
 pnpm agent:persistent-memory:ingest
 pnpm agent:persistent-memory:retrieve
 pnpm agent:persistent-memory:workers
@@ -58,6 +64,11 @@ pnpm agent:persistent-memory:eval
 pnpm agent:persistent-memory:eval:golden
 pnpm agent:persistent-memory:eval:safety
 pnpm workspace:embed
+pnpm infra:up
+pnpm infra:down
+pnpm infra:status
+pnpm infra:logs
+pnpm infra:reset
 ```
 
 ### المنافذ الرسمية الحالية
@@ -104,6 +115,12 @@ AGENTS.md
 
 ```text
 .repo-agent/AGENT-CONTEXT.generated.md
+```
+
+- سياق الذاكرة الدائمة المولد:
+
+```text
+.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md
 ```
 
 ## حالة المرجع الحي
@@ -215,7 +232,7 @@ AGENTS.md
   - المخازن المتجهية: `qdrant`، `weaviate`
   - المدخلات: `AGENTS.md`، `apps/backend/src/db/persistent-agent-memory.schema.ts`، `output/round-notes.md`، `output/session-state.md`، `scripts/agent/lib/persistent-memory/*`
   - المخرجات أو artifacts: `PostgreSQL:persistent_agent_memory`، `Qdrant:persistent-agent-memory-shadow`، `Redis:bullmq-persistent-memory-jobs`، `Weaviate:persistent-agent-memory-primary`
-  - الاعتماديات: `BullMQ`، `local deterministic embeddings`، `PostgreSQL`، `Qdrant`، `Redis`، `Weaviate`
+  - الاعتماديات: `BAAI/bge-m3`، `BullMQ`، `local deterministic embeddings`، `PostgreSQL`، `Qdrant`، `Redis`، `Weaviate`
 - `Web Legacy RAG Utilities`
   - id: `web-legacy-rag`
   - النوع: `lightweight-search`
@@ -256,15 +273,15 @@ AGENTS.md
 
 - الملفات:
 
-`2684`
+`2694`
 
 - القطع:
 
-`5739`
+`5766`
 
 - القطع ذات التضمين:
 
-`5739`
+`5766`
 
 - التغطية:
 
@@ -281,7 +298,7 @@ Code memory is current.
 
 ## ما تغيّر منذ آخر بصمة
 
-- لا يوجد drift مؤثر
+- تغيرت الملفات البنيوية الحرجة
 
 ## الأعطال المفتوحة الآن
 

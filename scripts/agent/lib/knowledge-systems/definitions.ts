@@ -432,6 +432,12 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
     commands: [
       "pnpm agent:persistent-memory:secrets:scan",
       "pnpm agent:persistent-memory:secrets:verify",
+      "pnpm agent:persistent-memory:secrets:purge",
+      "pnpm agent:persistent-memory:init",
+      "pnpm agent:persistent-memory:migrate",
+      "pnpm agent:persistent-memory:index",
+      "pnpm agent:persistent-memory:watch",
+      "pnpm agent:persistent-memory:search",
       "pnpm agent:persistent-memory:ingest",
       "pnpm agent:persistent-memory:retrieve",
       "pnpm agent:persistent-memory:workers",
@@ -442,6 +448,11 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
     ],
     entrypoints: [
       "scripts/agent/persistent-memory-secrets.ts",
+      "scripts/agent/persistent-memory-init.ts",
+      "scripts/agent/persistent-memory-migrate.ts",
+      "scripts/agent/persistent-memory-index.ts",
+      "scripts/agent/persistent-memory-watch.ts",
+      "scripts/agent/persistent-memory-search.ts",
       "scripts/agent/persistent-memory-ingest.ts",
       "scripts/agent/persistent-memory-retrieve.ts",
       "scripts/agent/persistent-memory-workers.ts",
@@ -452,6 +463,11 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
     criticalFiles: [
       "apps/backend/src/db/persistent-agent-memory.schema.ts",
       "scripts/agent/persistent-memory-secrets.ts",
+      "scripts/agent/persistent-memory-init.ts",
+      "scripts/agent/persistent-memory-migrate.ts",
+      "scripts/agent/persistent-memory-index.ts",
+      "scripts/agent/persistent-memory-watch.ts",
+      "scripts/agent/persistent-memory-search.ts",
       "scripts/agent/persistent-memory-ingest.ts",
       "scripts/agent/persistent-memory-retrieve.ts",
       "scripts/agent/persistent-memory-workers.ts",
@@ -468,6 +484,10 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       "scripts/agent/lib/persistent-memory/vector-index.ts",
       "scripts/agent/lib/persistent-memory/injection.ts",
       "scripts/agent/lib/persistent-memory/shadow-index.ts",
+      "scripts/agent/lib/persistent-memory/startup-context.ts",
+      "scripts/agent/lib/persistent-memory/runtime.ts",
+      "scripts/agent/lib/persistent-memory/infra.ts",
+      "scripts/agent/lib/persistent-memory/embedding.ts",
       "scripts/agent/lib/persistent-memory/persistent-memory.test.ts",
       RAG_CONTRACT_PATH,
     ],
@@ -491,11 +511,32 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       "Weaviate",
       "Qdrant",
       "local deterministic embeddings",
+      "BAAI/bge-m3",
     ],
     components: [
       {
         kind: "entrypoint",
         path: "scripts/agent/persistent-memory-secrets.ts",
+      },
+      {
+        kind: "entrypoint",
+        path: "scripts/agent/persistent-memory-init.ts",
+      },
+      {
+        kind: "entrypoint",
+        path: "scripts/agent/persistent-memory-migrate.ts",
+      },
+      {
+        kind: "entrypoint",
+        path: "scripts/agent/persistent-memory-index.ts",
+      },
+      {
+        kind: "entrypoint",
+        path: "scripts/agent/persistent-memory-watch.ts",
+      },
+      {
+        kind: "entrypoint",
+        path: "scripts/agent/persistent-memory-search.ts",
       },
       {
         kind: "entrypoint",
@@ -548,6 +589,14 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       {
         kind: "context-assembly",
         path: "scripts/agent/lib/persistent-memory/injection.ts",
+      },
+      {
+        kind: "context-assembly",
+        path: "scripts/agent/lib/persistent-memory/startup-context.ts",
+      },
+      {
+        kind: "embedding-generation",
+        path: "scripts/agent/lib/persistent-memory/embedding.ts",
       },
       {
         kind: "governance",
