@@ -3,7 +3,7 @@ services:
     name: thecopy-backend
     runtime: node
     buildCommand: "pnpm install && pnpm build || exit 1"
-    startCommand: "test -f dist/server.js && node dist/server.js || (echo 'Build failed: dist/server.js not found' && exit 1)"
+    startCommand: "pnpm run start:prod"
     envVars:
       - key: NODE_ENV
         value: production
