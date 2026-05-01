@@ -144,21 +144,39 @@ const MAX_WAF_CHECK_LENGTH = 10000;
  */
 export function safeRegexTestSync(
   pattern: RegExp,
-  text: string,
+  text: unknown,
   maxLength: number = MAX_WAF_CHECK_LENGTH,
 ): boolean {
-  const samples = [text];
+  const normalizedText =
+    typeof text === "string"
+      ? text
+      : text == null
+        ? ""
+        : typeof text === "number" ||
+            typeof text === "boolean" ||
+            typeof text === "bigint" ||
+            typeof text === "symbol"
+          ? String(text)
+          : (() => {
+              try {
+                return JSON.stringify(text) ?? "";
+              } catch {
+                return "";
+              }
+            })();
 
-  if (text.length > maxLength) {
+  const samples = [normalizedText];
+
+  if (normalizedText.length > maxLength) {
     logger.warn("WAF: Input too large for regex test, truncating", {
-      originalLength: text.length,
+      originalLength: normalizedText.length,
       maxLength,
     });
     samples.splice(
       0,
       samples.length,
-      text.substring(0, maxLength),
-      text.substring(Math.max(0, text.length - maxLength)),
+      normalizedText.substring(0, maxLength),
+      normalizedText.substring(Math.max(0, normalizedText.length - maxLength)),
     );
   }
 
