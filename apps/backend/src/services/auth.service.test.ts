@@ -25,6 +25,13 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+type SelectCall = [Record<string, unknown>?];
+
+function getFirstSelectColumnKeys(): string[] {
+  const calls = dbMock.select.mock.calls as unknown as SelectCall[];
+  return Object.keys(calls[0]?.[0] ?? {});
+}
+
 describe("AuthService > signup", () => {
   it("should successfully create a new user", async () => {
     const email = "user@example.com";
@@ -51,9 +58,11 @@ describe("AuthService > signup", () => {
           {
             id: userId,
             email,
-            passwordHash: hashedPassword,
             firstName,
             lastName,
+            accountStatus: "active",
+            mfaEnabled: false,
+            lastLogin: null,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -84,6 +93,7 @@ describe("AuthService > signup", () => {
     );
     expect(result.user).not.toHaveProperty("passwordHash");
     expect(bcrypt.hash).toHaveBeenCalledWith(password, 10);
+    expect(getFirstSelectColumnKeys()).toEqual(["id"]);
   });
 
   it("should throw error if user already exists", async () => {
@@ -126,9 +136,11 @@ describe("AuthService > signup", () => {
           {
             id: userId,
             email,
-            passwordHash: hashedPassword,
             firstName: null,
             lastName: null,
+            accountStatus: "active",
+            mfaEnabled: false,
+            lastLogin: null,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -163,6 +175,11 @@ describe("AuthService > login", () => {
               passwordHash: hashedPassword,
               firstName: "Test",
               lastName: "User",
+              accountStatus: "active",
+              mfaEnabled: false,
+              lastLogin: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
             },
           ]),
         }),
@@ -183,6 +200,10 @@ describe("AuthService > login", () => {
     );
     expect(result.user).not.toHaveProperty("passwordHash");
     expect(bcrypt.compare).toHaveBeenCalledWith(password, hashedPassword);
+    const selectedColumnKeys = getFirstSelectColumnKeys();
+    expect(selectedColumnKeys).not.toContain("authVerifierHash");
+    expect(selectedColumnKeys).not.toContain("kdfSalt");
+    expect(selectedColumnKeys).not.toContain("mfaSecret");
   });
 
   it("should throw error if user not found", async () => {
@@ -213,7 +234,18 @@ describe("AuthService > login", () => {
           limit: vi
             .fn()
             .mockResolvedValue([
-              { id: "user-123", email, passwordHash: hashedPassword },
+              {
+                id: "user-123",
+                email,
+                passwordHash: hashedPassword,
+                firstName: null,
+                lastName: null,
+                accountStatus: "active",
+                mfaEnabled: false,
+                lastLogin: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
             ]),
         }),
       }),
@@ -225,6 +257,40 @@ describe("AuthService > login", () => {
       "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     );
   });
+
+});
+
+describe("AuthService > login - account status", () => {
+  it("should throw error if account is inactive", async () => {
+    const email = "test@example.com";
+    const password = TEST_PASSWORD;
+
+    dbMock.select.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([
+            {
+              id: "user-123",
+              email,
+              passwordHash: "hashed-password",
+              firstName: null,
+              lastName: null,
+              accountStatus: "disabled",
+              mfaEnabled: false,
+              lastLogin: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ]),
+        }),
+      }),
+    });
+
+    await expect(authService.login(email, password)).rejects.toThrow(
+      "الحساب غير نشط",
+    );
+    expect(bcrypt.compare).not.toHaveBeenCalled();
+  });
 });
 
 describe("AuthService > getUserById", () => {
@@ -233,9 +299,11 @@ describe("AuthService > getUserById", () => {
     const mockUser = {
       id: userId,
       email: "test@example.com",
-      passwordHash: "hashed-password",
       firstName: "Test",
       lastName: "User",
+      accountStatus: "active",
+      mfaEnabled: false,
+      lastLogin: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -254,6 +322,9 @@ describe("AuthService > getUserById", () => {
       expect.objectContaining({ id: userId, email: "test@example.com" }),
     );
     expect(result).not.toHaveProperty("passwordHash");
+    expect(result).not.toHaveProperty("authVerifierHash");
+    expect(result).not.toHaveProperty("kdfSalt");
+    expect(result).not.toHaveProperty("mfaSecret");
   });
 
   it("should return null if user not found", async () => {
@@ -374,6 +445,32 @@ describe("AuthService > signup - edge cases", () => {
 
     await expect(authService.signup(email, password)).rejects.toThrow(
       "فشل إنشاء المستخدم",
+    );
+  });
+
+  it("should map unique constraint races to duplicate user error", async () => {
+    const email = "test@example.com";
+    const password = TEST_PASSWORD;
+    const hashedPassword = "hashed-password";
+
+    dbMock.select.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([]),
+        }),
+      }),
+    });
+
+    vi.mocked(bcrypt.hash).mockResolvedValue(hashedPassword as never);
+
+    dbMock.insert.mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockRejectedValue({ code: "23505" }),
+      }),
+    });
+
+    await expect(authService.signup(email, password)).rejects.toThrow(
+      "المستخدم موجود بالفعل",
     );
   });
 });

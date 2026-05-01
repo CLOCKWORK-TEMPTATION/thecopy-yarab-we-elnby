@@ -123,6 +123,25 @@ describe("المسارات المستثناة", () => {
     expect(next).toHaveBeenCalled();
   });
 
+  it("يجب أن يتجاوز مسارات الدخول المعتمدة على التحقق الجديد", () => {
+    const paths = [
+      "/api/auth/zk-signup",
+      "/api/auth/zk-login-init",
+      "/api/auth/zk-login-verify",
+    ];
+
+    for (const path of paths) {
+      const req = createMockReq({ method: "POST", path });
+      const res = createMockRes();
+      const next = vi.fn();
+
+      csrfProtection(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    }
+  });
+
   it("يجب أن يتجاوز /health", () => {
     const req = createMockReq({ method: "POST", path: "/health" });
     const res = createMockRes();

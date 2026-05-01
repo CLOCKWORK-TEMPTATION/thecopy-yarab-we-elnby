@@ -6,6 +6,14 @@ import { useState } from "react";
 
 import { loginUser } from "@/lib/api";
 
+export function resolveSafeLoginRedirect(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/";
+  }
+
+  return value;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +28,11 @@ export default function LoginPage() {
 
     try {
       await loginUser(email, password);
-      router.push("/");
+      const currentSearch =
+        typeof window === "undefined" ? "" : window.location.search;
+      const redirectValue = new URLSearchParams(currentSearch).get("redirect");
+
+      router.push(resolveSafeLoginRedirect(redirectValue));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "فشل تسجيل الدخول");
     } finally {

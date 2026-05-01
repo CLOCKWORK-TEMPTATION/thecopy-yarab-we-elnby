@@ -11,10 +11,41 @@ const ACCESS_TOKEN_EXPIRES_IN = "15m";
 const REFRESH_TOKEN_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000; // 7 days
 const SALT_ROUNDS = 10;
 
+type SafeUser = Omit<
+  User,
+  "passwordHash" | "authVerifierHash" | "kdfSalt" | "mfaSecret"
+>;
+
+const safeUserColumns = {
+  id: users.id,
+  email: users.email,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  accountStatus: users.accountStatus,
+  mfaEnabled: users.mfaEnabled,
+  lastLogin: users.lastLogin,
+  createdAt: users.createdAt,
+  updatedAt: users.updatedAt,
+};
+
+const loginUserColumns = {
+  ...safeUserColumns,
+  passwordHash: users.passwordHash,
+};
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function getDbErrorCode(error: unknown): string | undefined {
+  const err = error as { code?: string; cause?: { code?: string } };
+  return err.cause?.code ?? err.code;
+}
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
-  user: Omit<User, "passwordHash">;
+  user: SafeUser;
 }
 
 export interface VerifiedTokenPayload {
@@ -33,91 +64,94 @@ export class AuthService {
     firstName?: string,
     lastName?: string,
   ): Promise<AuthTokens> {
-    // Check if user already exists
-    const existingUser = await db
-      .select()
+    const normalizedEmail = normalizeEmail(email);
+
+    const [existingUser] = await db
+      .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, normalizedEmail))
       .limit(1);
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       throw new Error("المستخدم موجود بالفعل");
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        email,
-        passwordHash,
-        firstName,
-        lastName,
-      })
-      .returning();
+    try {
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          email: normalizedEmail,
+          passwordHash,
+          firstName,
+          lastName,
+        })
+        .returning(safeUserColumns);
 
-    if (!newUser) {
-      throw new Error("فشل إنشاء المستخدم");
+      if (!newUser) {
+        throw new Error("فشل إنشاء المستخدم");
+      }
+
+      const { accessToken, refreshToken } = await this.generateTokenPair(
+        newUser.id,
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+        user: newUser,
+      };
+    } catch (error) {
+      if (getDbErrorCode(error) === "23505") {
+        throw new Error("المستخدم موجود بالفعل");
+      }
+
+      throw error;
     }
-
-    const { passwordHash: _, ...userWithoutPassword } = newUser;
-    const { accessToken, refreshToken } = await this.generateTokenPair(
-      newUser.id,
-    );
-
-    return {
-      accessToken,
-      refreshToken,
-      user: userWithoutPassword,
-    };
   }
 
   async login(email: string, password: string): Promise<AuthTokens> {
-    // Find user by email
+    const normalizedEmail = normalizeEmail(email);
+
     const [user] = await db
-      .select()
+      .select(loginUserColumns)
       .from(users)
-      .where(eq(users.email, email))
+      .where(eq(users.email, normalizedEmail))
       .limit(1);
 
     if (!user) {
       throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
     }
 
-    // Verify password
+    if (user.accountStatus !== "active") {
+      throw new Error("الحساب غير نشط");
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
     }
 
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordHash: _, ...safeUser } = user;
     const { accessToken, refreshToken } = await this.generateTokenPair(user.id);
 
     return {
       accessToken,
       refreshToken,
-      user: userWithoutPassword,
+      user: safeUser,
     };
   }
 
-  async getUserById(
-    userId: string,
-  ): Promise<Omit<User, "passwordHash"> | null> {
+  async getUserById(userId: string): Promise<SafeUser | null> {
     const [user] = await db
-      .select()
+      .select(safeUserColumns)
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
 
-    if (!user) {
-      return null;
-    }
-
-    const { passwordHash: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user ?? null;
   }
 
   verifyToken(token: string): VerifiedTokenPayload {

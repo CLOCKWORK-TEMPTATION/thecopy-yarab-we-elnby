@@ -84,10 +84,20 @@ export class AuthController {
       }
 
       logger.error("Signup error:", error);
-      res.status(400).json({
+
+      const message = error instanceof Error ? error.message : "";
+
+      if (message === "المستخدم موجود بالفعل") {
+        res.status(409).json({
+          success: false,
+          error: "المستخدم موجود بالفعل",
+        });
+        return;
+      }
+
+      res.status(500).json({
         success: false,
-        error:
-          error instanceof Error ? error.message : "حدث خطأ أثناء إنشاء الحساب",
+        error: "حدث خطأ داخلي أثناء إنشاء الحساب",
       });
     }
   }
@@ -134,10 +144,23 @@ export class AuthController {
       }
 
       logger.error("Login error:", error);
-      res.status(401).json({
+
+      const message = error instanceof Error ? error.message : "";
+
+      if (
+        message === "البريد الإلكتروني أو كلمة المرور غير صحيحة" ||
+        message === "الحساب غير نشط"
+      ) {
+        res.status(401).json({
+          success: false,
+          error: message,
+        });
+        return;
+      }
+
+      res.status(500).json({
         success: false,
-        error:
-          error instanceof Error ? error.message : "حدث خطأ أثناء تسجيل الدخول",
+        error: "حدث خطأ داخلي أثناء تسجيل الدخول",
       });
     }
   }

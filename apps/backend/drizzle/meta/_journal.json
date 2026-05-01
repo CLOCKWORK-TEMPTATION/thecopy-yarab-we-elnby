@@ -15,6 +15,34 @@
       "when": 1766607015311,
       "tag": "0001_broad_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770000000000,
+      "tag": "0002_breakapp",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770000001000,
+      "tag": "0003_breakapp_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770000002000,
+      "tag": "0004_app_persistence_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770000003000,
+      "tag": "0005_fix_users_auth_schema",
+      "breakpoints": true
     }
   ]
 }

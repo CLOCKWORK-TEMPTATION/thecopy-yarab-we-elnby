@@ -95,7 +95,10 @@ jest_*
 dump.rdb
 dump/
 *.sql
+!drizzle/0000_boring_klaw.sql
+!drizzle/0001_broad_korath.sql
 !drizzle/0004_app_persistence_records.sql
+!drizzle/0005_fix_users_auth_schema.sql
 *.backup
 *.bak
 *.dump

@@ -1,7 +1,7 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "3cdb5f82ec435a51478c1993c06615844c9f2268a8403f6255e73fce42d5181b",
+    ".agent-code-memory/manifest.json": "b0ad6d12e218da8d2ca3104e9ae43114125339139b9d8d3edd50f64d0601095a",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -40,7 +40,7 @@
     "apps/web/src/lib/ai/text-chunking.ts": "3f20311923b3675276f08186e270fc9363cc9849fefb2ce0356acb682dc77718",
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "191196ad297d1de448d843d8b0373bf19abfd5a80b66c53229bd25645dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "26ff86d08aa7b7efd46f182ac328ae1c942f991994406d5ddab8d392da163dfa",
-    "package.json": "9d3ba572a0646ba77a3612c93b2bc7d4ff1fb0f4aa0ba7f77c9dd9bf0aa5671c",
+    "package.json": "d6daa065e04cdd3fe6cdfe4175116ad54e8e25ea8952808a29b841612f6e4479",
     "packages/breakapp/package.json": "ef352b23e11c4cf35785cdb20094bab470e5abf88f6caceac47dc206501c3cc6",
     "packages/copyproj-schema/package.json": "41d05a053d60f305cda9877b31c19a15b0cefc5af47953d9f3f91043c5197270",
     "packages/core-memory/package.json": "d6d336a7fbd35bebec105f59faf7f245936b08bfdad06b33f28077c786e7436a",
@@ -67,19 +67,19 @@
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "no-drift",
+  "driftLevel": "hard-drift",
   "driftReasons": [
-    "لا يوجد drift مؤثر"
+    "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "87bd53f611da59ee2f505c62fa58da8cf269b167",
+  "headCommit": "e8e9f3da8d6afa43e3fec05e64ffe83c03f40116",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-05-01T03:41:20.088Z",
+  "lastBootstrapTimestamp": "2026-05-01T04:27:31.942Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "082556ec2c37a6cb0e125e6dd9ba7adec301d0d14573d5735e3df8af8caf6f03",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "5f13897eb0d7c362fd5e71ee12f76a731a03e61d2bf1c133c811491bd5df95d0",
     "output/code-map/code-map.json": "2a60593ab7239c7151950c8d1fbf53ddfa06e6e7b0b019a888db1fa607077b10",
     "output/code-map/CODEMAP.md": "10a64680541e8735288f375f5aab10af49c08b7db398f3950154ad5ef4070027",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
@@ -93,8 +93,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "ee2c12de294b0fef51fa4608b3cbea02c2e90c3e64f180ac42d7b63ea2c41314",
-    "output/session-state.md": "07c950ce540a03a8e4dec39d21c42ac488b19cecc2d89a8ebcb638da978e6aec"
+    "output/round-notes.md": "56c357f50aa451ce3da45b7c14b73fd561e3b1ee8c87d0922eab1001a43b8640",
+    "output/session-state.md": "3601c2912ec18b479a3269d7e97ee00612c028fbccf53e396be78fa5e5c12049"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -104,7 +104,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "4f9680e89684e0515aefd55b25c1fae05ac34182a624863c81b3837c0e044e96",
+  "repoFactsHash": "78278c219601f5594d47b18834986f675566cf44b9b7c8da9591af208ca4bfaf",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -176,6 +176,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "13857563fae8ae89c8be070b21a44c0191f9ed90212faf16ab4b83baf6cc916b",
-  "workingTreeHash": "845aea19eca8fd32fcff85f4c1e8cd86dc363ec51c7e886d430ccc176c47a8d1"
+  "structuralHash": "15df207dbb08aca4fa993f5fb06b371e75fc89f34f36a8961719ef5c47a2f95f",
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }

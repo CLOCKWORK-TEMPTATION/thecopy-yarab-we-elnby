@@ -14,10 +14,14 @@ import type { Request, Response } from "express";
 const SALT_ROUNDS = 10;
 const TOKEN_EXPIRY = "7d";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const normalizedEmailSchema = z
+  .string()
+  .email()
+  .transform((value) => value.trim().toLowerCase());
 
 const zkSignupBodySchema = z
   .object({
-    email: z.string().min(1),
+    email: normalizedEmailSchema,
     authVerifier: z.string().min(1),
     kdfSalt: z.string().min(1),
     recoveryArtifact: z.string().optional(),
@@ -27,13 +31,13 @@ const zkSignupBodySchema = z
 
 const zkLoginInitBodySchema = z
   .object({
-    email: z.string().min(1),
+    email: normalizedEmailSchema,
   })
   .passthrough();
 
 const zkLoginVerifyBodySchema = z
   .object({
-    email: z.string().min(1),
+    email: normalizedEmailSchema,
     authVerifier: z.string().min(1),
   })
   .passthrough();
@@ -62,27 +66,29 @@ function createToken(userId: string, email: string): string {
   return signJwt({ userId, email }, { expiresIn: TOKEN_EXPIRY });
 }
 
-async function findUserByEmail(email: string) {
+async function findUserIdByEmail(email: string) {
   const [user] = await db
-    .select()
+    .select({ id: users.id })
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
   return user ?? null;
 }
 
-async function saveRecoveryIfProvided(
-  userId: string,
-  artifact?: string,
-  iv?: string,
-): Promise<void> {
-  if (artifact && iv) {
-    await db.insert(recoveryArtifacts).values({
-      userId,
-      encryptedRecoveryArtifact: artifact,
-      iv,
-    });
-  }
+async function findZkUserByEmail(email: string) {
+  const [user] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      authVerifierHash: users.authVerifierHash,
+      kdfSalt: users.kdfSalt,
+      accountStatus: users.accountStatus,
+    })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  return user ?? null;
 }
 
 export async function zkSignup(req: Request, res: Response): Promise<void> {
@@ -101,7 +107,7 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
     const { email, authVerifier, kdfSalt, recoveryArtifact, recoveryIv } =
       validation.data;
 
-    const existingUser = await findUserByEmail(email);
+    const existingUser = await findUserIdByEmail(email);
     if (existingUser) {
       res
         .status(409)
@@ -110,23 +116,37 @@ export async function zkSignup(req: Request, res: Response): Promise<void> {
     }
 
     const authVerifierHash = await bcrypt.hash(authVerifier, SALT_ROUNDS);
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        email,
-        passwordHash: authVerifierHash,
-        authVerifierHash,
-        kdfSalt,
-        accountStatus: "active",
-      })
-      .returning();
+    const newUser = await db.transaction(async (tx) => {
+      const [createdUser] = await tx
+        .insert(users)
+        .values({
+          email,
+          passwordHash: authVerifierHash,
+          authVerifierHash,
+          kdfSalt,
+          accountStatus: "active",
+        })
+        .returning({
+          id: users.id,
+          email: users.email,
+          kdfSalt: users.kdfSalt,
+        });
 
-    if (!newUser) {
-      res.status(500).json({ success: false, error: "تعذر إنشاء المستخدم" });
-      return;
-    }
+      if (!createdUser) {
+        throw new Error("تعذر إنشاء المستخدم");
+      }
 
-    await saveRecoveryIfProvided(newUser.id, recoveryArtifact, recoveryIv);
+      if (recoveryArtifact && recoveryIv) {
+        await tx.insert(recoveryArtifacts).values({
+          userId: createdUser.id,
+          encryptedRecoveryArtifact: recoveryArtifact,
+          iv: recoveryIv,
+        });
+      }
+
+      return createdUser;
+    });
+
     const token = createToken(newUser.id, newUser.email);
     setAuthCookie(res, token);
     issueCsrfCookie(res);
@@ -207,11 +227,16 @@ export async function zkLoginVerify(
 
     const { email, authVerifier } = validation.data;
 
-    const user = await findUserByEmail(email);
+    const user = await findZkUserByEmail(email);
     if (!user?.authVerifierHash) {
       res
         .status(401)
         .json({ success: false, error: "بيانات اعتماد غير صحيحة" });
+      return;
+    }
+
+    if (user.accountStatus !== "active") {
+      res.status(403).json({ success: false, error: "الحساب غير نشط" });
       return;
     }
 

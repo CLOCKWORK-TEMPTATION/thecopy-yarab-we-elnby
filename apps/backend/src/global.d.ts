@@ -19,9 +19,6 @@ declare global {
         lastName?: string | null;
         profileImageUrl?: string | null;
         mfaEnabled?: boolean;
-        mfaSecret?: string | null;
-        authVerifierHash?: string | null;
-        kdfSalt?: string | null;
         publicKey?: string | null;
         createdAt?: Date;
         updatedAt?: Date;

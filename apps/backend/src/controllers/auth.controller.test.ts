@@ -186,10 +186,29 @@ describe("signup", () => {
 
     await authController.signup(asRequest(), asResponse());
 
-    expect(mockResponse.status).toHaveBeenCalledWith(400);
+    expect(mockResponse.status).toHaveBeenCalledWith(409);
     expect(mockResponse.json).toHaveBeenCalledWith({
       success: false,
       error: "المستخدم موجود بالفعل",
+    });
+  });
+
+  it("should hide database query errors from signup responses", async () => {
+    mockRequest.body = {
+      email: "test@example.com",
+      password: TEST_PASSWORD,
+    };
+
+    vi.mocked(authService.signup).mockRejectedValue(
+      new Error("Failed query: select users.auth_verifier_hash"),
+    );
+
+    await authController.signup(asRequest(), asResponse());
+
+    expect(mockResponse.status).toHaveBeenCalledWith(500);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      success: false,
+      error: "حدث خطأ داخلي أثناء إنشاء الحساب",
     });
   });
 
@@ -311,6 +330,25 @@ describe("login", () => {
     expect(mockResponse.json).toHaveBeenCalledWith({
       success: false,
       error: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    });
+  });
+
+  it("should hide database query errors from login responses", async () => {
+    mockRequest.body = {
+      email: "test@example.com",
+      password: TEST_PASSWORD,
+    };
+
+    vi.mocked(authService.login).mockRejectedValue(
+      new Error("Failed query: select users.auth_verifier_hash"),
+    );
+
+    await authController.login(asRequest(), asResponse());
+
+    expect(mockResponse.status).toHaveBeenCalledWith(500);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      success: false,
+      error: "حدث خطأ داخلي أثناء تسجيل الدخول",
     });
   });
 });

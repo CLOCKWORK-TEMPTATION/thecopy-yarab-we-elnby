@@ -173,7 +173,10 @@ temp/
 dump.rdb
 dump/
 *.sql
+!apps/backend/drizzle/0000_boring_klaw.sql
+!apps/backend/drizzle/0001_broad_korath.sql
 !apps/backend/drizzle/0004_app_persistence_records.sql
+!apps/backend/drizzle/0005_fix_users_auth_schema.sql
 *.backup
 *.bak
 *.dump

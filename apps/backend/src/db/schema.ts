@@ -22,7 +22,7 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   authVerifierHash: text("auth_verifier_hash"),
   kdfSalt: text("kdf_salt"),
-  accountStatus: text("account_status").default("active"),
+  accountStatus: text("account_status").default("active").notNull(),
   mfaEnabled: boolean("mfa_enabled").default(false).notNull(),
   mfaSecret: text("mfa_secret"),
   lastLogin: timestamp("last_login"),
