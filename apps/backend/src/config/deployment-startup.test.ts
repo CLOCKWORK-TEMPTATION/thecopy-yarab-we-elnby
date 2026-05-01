@@ -30,6 +30,29 @@ describe("deployment startup", () => {
     expect(procfile.trim()).toBe("web: pnpm run start:prod");
   });
 
+  it("uses the migration-aware production command in blue-green deploys", () => {
+    const deployScript = readProjectFile(
+      "../../scripts/deploy/blue-green-deploy.sh",
+    );
+
+    expect(deployScript).toContain(
+      'START_COMMAND_ARGS="${START_COMMAND_ARGS:---filter @the-copy/backend start:prod}"',
+    );
+  });
+
+  it("provides the private registry token before deploy installs", () => {
+    const deployWorkflow = readProjectFile(
+      "../../.github/workflows/blue-green-deployment.yml",
+    );
+
+    expect(deployWorkflow).toContain(
+      "export TIPTAP_PRO_TOKEN=\"$(echo \"$SECRETS_JSON\" | jq -r '.TIPTAP_PRO_TOKEN // empty')\"",
+    );
+    expect(deployWorkflow).toContain(
+      "pnpm install --frozen-lockfile --filter @the-copy/backend...",
+    );
+  });
+
   it("uses fixed migrations in the Docker entrypoint", () => {
     const entrypoint = readProjectFile("docker-entrypoint.sh");
 

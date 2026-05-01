@@ -1,0 +1,36 @@
+{
+  "name": "the-copy-quality-pack",
+  "displayName": "The Copy Quality Pack",
+  "version": "0.1.0",
+  "description": "حزمة مهارات منع الأنماط المتكررة في مستودع the-copy: تجاوز سقف الأسطر، ثغرات أمنية بعد الدمج، تذبذب صيغة next.config، تكرار إصلاحات Sentry sourcemaps، غياب Zod validation عند حدود الـ controllers، تذبذب طبقة eslint contract، تكرار جولات e2e production readiness، تشتت أنظمة RAG الخمسة، وأتمتة جولات A-* triage.",
+  "author": {
+    "name": "the-copy maintainers",
+    "email": "mohamedamin.radyahmed@gmail.com"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "scope": "monorepo:the-copy"
+  },
+  "compatibility": {
+    "claudeCode": ">=1.0.0",
+    "cowork": ">=0.1.0"
+  },
+  "skills": [
+    "skills/file-budget-splitter",
+    "skills/security-pre-merge-auditor",
+    "skills/zod-controller-boundary-enforcer",
+    "skills/sentry-sourcemap-doctor",
+    "skills/next-config-format-resolver",
+    "skills/eslint-contract-stabilizer",
+    "skills/e2e-production-readiness-runner",
+    "skills/rag-systems-unifier",
+    "skills/triage-round-orchestrator"
+  ],
+  "governance": {
+    "topContract": "AGENTS.md",
+    "operatingContract": ".repo-agent/OPERATING-CONTRACT.md",
+    "weakeningRule": "ممنوع تعديل أي ملف فحص أو تحقق أو اختبار أو تدقيق أو بناء أو أمن أو صحة تشغيلية بطريقة تجعله أكثر تساهلًا. كل المهارات في هذه الحزمة تُضيف فحوصاً جديدة فقط ولا تخفّف الفحوصات القائمة."
+  }
+}

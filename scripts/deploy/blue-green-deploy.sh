@@ -12,7 +12,7 @@ NGINX_CONFIG="${NGINX_CONFIG:-/etc/nginx/sites-available/theeeecopy}"
 APP_NAME="theeeecopy"
 HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-/health}"
 START_COMMAND="${START_COMMAND:-pnpm}"
-START_COMMAND_ARGS="${START_COMMAND_ARGS:---filter @the-copy/backend start}"
+START_COMMAND_ARGS="${START_COMMAND_ARGS:---filter @the-copy/backend start:prod}"
 
 # Colors for output
 RED='\033[0;31m'
