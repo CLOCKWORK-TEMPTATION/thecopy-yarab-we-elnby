@@ -1,0 +1,23 @@
+- generic:
+  - dialog "Cookie Consent Banner" [ref=e1]:
+    - button "Close this dialog" [ref=e2] [cursor=pointer]:
+      - img "Close this dialog" [ref=e3]
+    - generic [ref=e4]:
+      - generic [ref=e5]: "This website utilizes technologies such as cookies to enable essential site functionality, as well as for analytics, personalization, and marketing. To learn more, view the following link:"
+      - link "Privacy Policy" [ref=e6] [cursor=pointer]:
+        - /url: https://railway.com/legal/privacy
+  - dialog "Login" [active] [ref=e8]:
+    - heading "Login" [level=3] [ref=e10]
+    - generic [ref=e11]:
+      - button "Dismiss"
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e20]:
+          - img "Railway Logo" [ref=e22]
+          - generic [ref=e25]:
+            - paragraph [ref=e26]: Welcome to Railway
+            - paragraph [ref=e27]: Instant deployments, effortless scale
+        - button "Continue with GitHub" [ref=e29] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]: Continue with GitHub
+      - button "Log in using email" [ref=e34] [cursor=pointer]

@@ -84,6 +84,35 @@ function objectContainingMatcher(value: Record<string, unknown>): unknown {
   return expect.objectContaining(value);
 }
 
+const healthySchemaRows = [
+  ["users", "id"],
+  ["users", "email"],
+  ["users", "password_hash"],
+  ["users", "auth_verifier_hash"],
+  ["users", "kdf_salt"],
+  ["users", "account_status"],
+  ["users", "mfa_enabled"],
+  ["users", "created_at"],
+  ["users", "updated_at"],
+  ["refresh_tokens", "id"],
+  ["refresh_tokens", "user_id"],
+  ["refresh_tokens", "token"],
+  ["refresh_tokens", "expires_at"],
+  ["refresh_tokens", "created_at"],
+  ["recovery_artifacts", "id"],
+  ["recovery_artifacts", "user_id"],
+  ["recovery_artifacts", "encrypted_recovery_artifact"],
+  ["recovery_artifacts", "iv"],
+  ["recovery_artifacts", "created_at"],
+  ["app_persistence_records", "id"],
+  ["app_persistence_records", "app_id"],
+  ["app_persistence_records", "scope"],
+  ["app_persistence_records", "record_key"],
+  ["app_persistence_records", "payload"],
+  ["app_persistence_records", "created_at"],
+  ["app_persistence_records", "updated_at"],
+].map(([tableName, columnName]) => ({ tableName, columnName }));
+
 function createMockResponse(): Response & {
   json: ReturnType<typeof vi.fn>;
   status: ReturnType<typeof vi.fn>;
@@ -115,7 +144,7 @@ beforeEach(() => {
   process.env["REDIS_ENABLED"] = "false";
   delete process.env.REDIS_HOST;
 
-  mockDbExecute.mockResolvedValue(undefined);
+  mockDbExecute.mockResolvedValue({ rows: healthySchemaRows });
   mockCreateClient.mockReturnValue(mockRedisClient);
   mockGetRedisConfig.mockReturnValue({});
   mockRedisClient.connect.mockResolvedValue(undefined);
@@ -188,6 +217,38 @@ it("returns not_ready when the AI provider probe fails", async () => {
           status: "unhealthy",
           error:
             "GOOGLE_GENAI_API_KEY is configured but expired. Renew the key before using AI-backed routes.",
+        }),
+      }),
+    }),
+  );
+});
+
+it("returns not_ready when required database schema tables are missing", async () => {
+  mockDbExecute
+    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce({ rows: [] });
+
+  const res = createMockResponse();
+
+  await controller.getReadiness({} as Request, res);
+
+  expect(res.status).toHaveBeenCalledWith(503);
+  expect(res.json).toHaveBeenCalledWith(
+    expect.objectContaining({
+      status: "not_ready",
+      checks: objectContainingMatcher({
+        database_schema: objectContainingMatcher({
+          status: "unhealthy",
+          required: true,
+          error: "Database schema is incomplete.",
+          details: objectContainingMatcher({
+            missingTables: expect.arrayContaining([
+              "users",
+              "refresh_tokens",
+              "recovery_artifacts",
+              "app_persistence_records",
+            ]),
+          }),
         }),
       }),
     }),

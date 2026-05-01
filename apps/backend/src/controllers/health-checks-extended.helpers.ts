@@ -6,6 +6,7 @@ import { getAnalyticsHealth } from "@/utils/connectivity-telemetry";
 
 import {
   checkDatabase,
+  checkDatabaseSchema,
   checkRedis,
   checkMemory,
   checkDisk,
@@ -189,6 +190,7 @@ export async function performHealthChecks(
 ): Promise<HealthStatus> {
   const checks = {
     database: await checkDatabase(),
+    database_schema: await checkDatabaseSchema(),
     redis: await checkRedis(),
     memory: checkMemory(),
     external_services: await checkExternalServices(),
@@ -209,6 +211,7 @@ export async function performHealthChecks(
 export async function performReadinessChecks(): Promise<ReadinessStatus> {
   const checks = {
     database: await checkDatabase(),
+    database_schema: await checkDatabaseSchema(),
     redis: await checkRedis(),
     external_services: await checkExternalServices(),
     weaviate: await checkWeaviate(),
@@ -228,6 +231,7 @@ export async function performDetailedHealthChecks(
 ): Promise<DetailedHealthStatus> {
   const checks = {
     database: await checkDatabase(),
+    database_schema: await checkDatabaseSchema(),
     redis: await checkRedis(),
     memory: checkMemory(),
     disk: await checkDisk(),

@@ -1,0 +1,11 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - heading "تسجيل الدخول" [level=1] [ref=e4]
+    - textbox "البريد الإلكتروني" [ref=e5]
+    - textbox "كلمة المرور" [ref=e6]
+    - button "دخول" [ref=e7]
+    - paragraph [ref=e8]:
+      - text: ليس لديك حساب بعد؟
+      - link "أنشئ حسابًا جديدًا" [ref=e9] [cursor=pointer]:
+        - /url: /register
+  - alert [ref=e10]
