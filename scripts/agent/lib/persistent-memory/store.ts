@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type {
   AuditLogEntry,
+  EmbeddingModelVersion,
   JobRun,
   MemoryCandidate,
   PersistentMemoryRecord,
@@ -24,6 +25,7 @@ function withIdentity<T extends object>(entry: T): T & { id: string; createdAt: 
 }
 
 export class InMemoryPersistentMemoryStore implements PersistentMemoryStore {
+  readonly modelVersions: EmbeddingModelVersion[] = [];
   readonly rawEvents: PersistentRawEvent[] = [];
   readonly secretScanEvents: SecretScanEvent[] = [];
   readonly memoryCandidates: MemoryCandidate[] = [];
@@ -31,6 +33,25 @@ export class InMemoryPersistentMemoryStore implements PersistentMemoryStore {
   readonly jobRuns: JobRun[] = [];
   readonly retrievalEvents: RetrievalEvent[] = [];
   readonly auditLog: AuditLogEntry[] = [];
+
+  async upsertModelVersion(
+    modelVersion: EmbeddingModelVersion,
+  ): Promise<EmbeddingModelVersion> {
+    const existingIndex = this.modelVersions.findIndex(
+      (stored) => stored.id === modelVersion.id,
+    );
+    if (existingIndex >= 0) {
+      this.modelVersions[existingIndex] = modelVersion;
+      return modelVersion;
+    }
+
+    this.modelVersions.push(modelVersion);
+    return modelVersion;
+  }
+
+  async listModelVersions(): Promise<EmbeddingModelVersion[]> {
+    return [...this.modelVersions];
+  }
 
   async insertRawEvent(
     event: Omit<PersistentRawEvent, "id" | "createdAt">,

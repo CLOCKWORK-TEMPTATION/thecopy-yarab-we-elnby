@@ -56,6 +56,7 @@ async function main(): Promise<void> {
           })),
           retrievalEventId: result.retrievalEventId,
           auditEventId: result.auditEventId,
+          metrics: result.metrics,
         },
         null,
         2,

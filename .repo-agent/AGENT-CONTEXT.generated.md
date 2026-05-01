@@ -6,9 +6,9 @@
 |---|---|
 | آخر مزامنة مرجعية | 2026-05-01T13:19:01.129Z |
 | الفرع الحالي | `codex/persistent-agent-memory-infra` |
-| آخر commit | `d1e8e52f70cb6761e72bdaab87eeeba5cdc29992` |
-| حالة الشجرة | غير نظيفة — 23 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر commit | `d83f95848d011db5d6a18c039c35b65636525bf2` |
+| حالة الشجرة | نظيفة |
+| مستوى drift | `no-drift` |
 
 ## المرجع الحاكم
 

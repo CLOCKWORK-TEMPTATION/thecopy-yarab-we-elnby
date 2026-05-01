@@ -10,6 +10,20 @@ export type PersistentMemoryEventType =
 
 export type TrustLevel = "low" | "medium" | "high";
 
+export interface EmbeddingModelVersion {
+  id: string;
+  provider: string;
+  model: string;
+  version: string;
+  dimensions: number;
+  metadata: Record<string, unknown>;
+}
+
+export interface EmbeddingProviderAdapter {
+  readonly modelVersion: EmbeddingModelVersion;
+  embed(input: string[]): Promise<number[][]>;
+}
+
 export type QueryIntent =
   | "execution_or_code_change"
   | "continue_from_last_session"
@@ -129,6 +143,7 @@ export interface MemoryRetrievalResult {
   hits: MemoryRetrievalHit[];
   retrievalEventId: string;
   auditEventId: string;
+  metrics: PersistentMemoryRetrievalMetrics;
 }
 
 export interface VectorIndexRebuildResult {
@@ -136,7 +151,47 @@ export interface VectorIndexRebuildResult {
   sourceMemoryIds: string[];
 }
 
+export type VectorIndexTarget = "weaviate-primary" | "qdrant-shadow";
+
+export type PersistentMemoryVectorCapability =
+  | "lexical_bm25"
+  | "dense_vector"
+  | "metadata_filtering"
+  | "application_rrf"
+  | "application_mmr"
+  | "conditional_reranking"
+  | "named_vectors"
+  | "sparse_vectors"
+  | "multi_vector"
+  | "payload_filtering"
+  | "collection_aliases"
+  | "atomic_alias_switch";
+
+export interface PersistentMemoryIngestMetrics {
+  p95_ingest_ack_latency_ms: number;
+  p95_ingest_ready_latency_ms: number;
+  p95_secret_scan_latency_ms: number;
+  p95_embedding_job_latency_ms: number;
+  p95_vector_upsert_latency_ms: number;
+}
+
+export interface PersistentMemoryRetrievalMetrics {
+  p95_retrieval_without_reranker_ms?: number;
+  p95_retrieval_with_reranker_ms?: number;
+}
+
+export type PersistentMemoryLatencyMetricName =
+  | keyof PersistentMemoryIngestMetrics
+  | keyof PersistentMemoryRetrievalMetrics;
+
+export interface PersistentMemoryLatencyBudget {
+  metric: PersistentMemoryLatencyMetricName;
+  p95LimitMs: number;
+}
+
 export interface PersistentMemoryStore {
+  upsertModelVersion(modelVersion: EmbeddingModelVersion): Promise<EmbeddingModelVersion>;
+  listModelVersions(): Promise<EmbeddingModelVersion[]>;
   insertRawEvent(event: Omit<PersistentRawEvent, "id" | "createdAt">): Promise<PersistentRawEvent>;
   insertSecretScanEvent(event: Omit<SecretScanEvent, "id" | "createdAt">): Promise<SecretScanEvent>;
   insertMemoryCandidate(candidate: Omit<MemoryCandidate, "id" | "createdAt">): Promise<MemoryCandidate>;
@@ -148,7 +203,9 @@ export interface PersistentMemoryStore {
 }
 
 export interface VectorIndexAdapter {
-  upsertMemory(memory: PersistentMemoryRecord): Promise<void>;
+  readonly target: VectorIndexTarget;
+  readonly capabilities: readonly PersistentMemoryVectorCapability[];
+  upsertMemory(memory: PersistentMemoryRecord, vector?: number[]): Promise<void>;
   rebuild(memories: PersistentMemoryRecord[]): Promise<VectorIndexRebuildResult>;
 }
 
@@ -158,5 +215,6 @@ export interface IngestResult {
   memoryCandidateId?: string;
   memoryId?: string;
   secretScanEventId?: string;
+  metrics: PersistentMemoryIngestMetrics;
 }
 

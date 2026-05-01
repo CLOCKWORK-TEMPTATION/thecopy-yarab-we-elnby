@@ -10,6 +10,27 @@ interface SecretRule {
   pattern: RegExp;
 }
 
+export const MEMORY_SECRET_SCAN_POLICY = {
+  scannerId: "persistent-agent-memory-secret-scan",
+  usesGitAllowlist: false,
+  defaultScanPaths: ["output/round-notes.md", "output/session-state.md"],
+  allowedPreScanFields: [
+    "source_ref",
+    "file_path",
+    "event_type",
+    "content_hash",
+    "detected_at",
+    "scanner_version",
+  ],
+  prohibitedPreScanFields: [
+    "raw_text",
+    "full_content",
+    "prompt_body",
+    "file_content",
+    "agent_output_text",
+  ],
+} as const;
+
 export interface SecretScanResult {
   clean: boolean;
   scannerVersion: string;
@@ -45,6 +66,7 @@ const SECRET_RULES: SecretRule[] = [
 
 export class MemorySecretScanner {
   readonly version = "memory-secret-scanner-v1";
+  readonly policy = MEMORY_SECRET_SCAN_POLICY;
 
   scan(content: string): SecretScanResult {
     const findings: SecretFinding[] = [];

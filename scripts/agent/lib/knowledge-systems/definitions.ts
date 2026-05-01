@@ -458,6 +458,9 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       "scripts/agent/persistent-memory-status.ts",
       "scripts/agent/persistent-memory-eval.ts",
       "scripts/agent/lib/persistent-memory/index.ts",
+      "scripts/agent/lib/persistent-memory/embeddings.ts",
+      "scripts/agent/lib/persistent-memory/metrics.ts",
+      "scripts/agent/lib/persistent-memory/budgets.ts",
       "scripts/agent/lib/persistent-memory/types.ts",
       "scripts/agent/lib/persistent-memory/secrets.ts",
       "scripts/agent/lib/persistent-memory/store.ts",
@@ -520,7 +523,15 @@ export const KNOWLEDGE_SYSTEM_DEFINITIONS: KnowledgeSystemDefinition[] = [
       },
       {
         kind: "embedding-generation",
-        path: "scripts/agent/lib/persistent-memory/vector-index.ts",
+        path: "scripts/agent/lib/persistent-memory/embeddings.ts",
+      },
+      {
+        kind: "context-assembly",
+        path: "scripts/agent/lib/persistent-memory/budgets.ts",
+      },
+      {
+        kind: "governance",
+        path: "scripts/agent/lib/persistent-memory/metrics.ts",
       },
       {
         kind: "vector-store",

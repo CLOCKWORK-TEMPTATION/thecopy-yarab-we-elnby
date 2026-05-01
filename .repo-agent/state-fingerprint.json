@@ -83,11 +83,11 @@
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "hard-drift",
+  "driftLevel": "no-drift",
   "driftReasons": [
-    "تغيرت الملفات البنيوية الحرجة"
+    "لا يوجد drift مؤثر"
   ],
-  "headCommit": "d1e8e52f70cb6761e72bdaab87eeeba5cdc29992",
+  "headCommit": "d83f95848d011db5d6a18c039c35b65636525bf2",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
@@ -95,7 +95,7 @@
   "knowledgeStatus": "governed",
   "lastBootstrapTimestamp": "2026-05-01T13:19:01.129Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "b089d5675e0f3a8011628a50a58b40444da14e4e9878d383b13e85a9525ce5c0",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "6fa1bf2d4ee38da87de65500840dd642901d98969dfea9cd96f0cc1ceeb5d33c",
     "output/code-map/code-map.json": "f735d6a5925aa3cf8b3ac0062c26b26e86529f31b117ec7209a91e48cee630f3",
     "output/code-map/CODEMAP.md": "89d2f03d146e62201e970cd69bb432bf91688ccecbe0885f99cd15089ed990c9",
     "output/code-map/dependency-graph.md": "49deb4507633f9c95a571a1b06148da601f8a62b86d632337be080cb7abf4557",
@@ -109,8 +109,8 @@
     "output/mind-map/MINDMAP.md": "75a7224fe591052a0ddc8a12865bf5cc419ea1bcf621585693499b3a14db9b84",
     "output/mind-map/mindmap.mmd": "d3f3dd6ddca5e6ad52cbe9636efd47a8afcbbddf5c11e26fb5cf0aa0df645350",
     "output/mind-map/rag-topology.mmd": "27b4e947214abafb9dba86064d0a204ef802ae2a1f622c87b45739931c7e1d9e",
-    "output/round-notes.md": "0ff54688ea53896bced713eff0e349a094ce46b8cde1080aee986d6fe0569123",
-    "output/session-state.md": "bae501b1a1b3ab40d7453fc1761310c581cc49e087e07b1704a420030049847c"
+    "output/round-notes.md": "fac721ff80b48233cdd0cc659dd87200ae37da70f80b5c413a7406ae36efe523",
+    "output/session-state.md": "2f7dae190dc1f1142aa5fbd36255bd097392df5164c3d2b279cfdfa743a18259"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -209,5 +209,5 @@
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
   "structuralHash": "f3e1e67f0b3c86355be6995662522d7c0c1d811ced3b6f55c581ce737a63f065",
-  "workingTreeHash": "9ab669e487b83d928b446c50d47c43497b2200192c264f1ac435ef3de28a6d2f"
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }

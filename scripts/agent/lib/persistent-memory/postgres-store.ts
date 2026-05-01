@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { fromRepoRoot } from "../utils";
 import type {
   AuditLogEntry,
+  EmbeddingModelVersion,
   JobRun,
   MemoryCandidate,
   PersistentMemoryRecord,
@@ -87,7 +88,7 @@ export async function ensurePersistentMemorySchema(
   await client.query(`CREATE SCHEMA IF NOT EXISTS persistent_agent_memory`);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.model_versions (
-      id uuid PRIMARY KEY,
+      id text PRIMARY KEY,
       provider text NOT NULL,
       model text NOT NULL,
       version text NOT NULL,
@@ -96,6 +97,22 @@ export async function ensurePersistentMemorySchema(
       created_at timestamptz NOT NULL DEFAULT now(),
       UNIQUE(provider, model, version)
     )
+  `);
+  await client.query(`
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'persistent_agent_memory'
+          AND table_name = 'model_versions'
+          AND column_name = 'id'
+          AND udt_name = 'uuid'
+      ) THEN
+        ALTER TABLE persistent_agent_memory.model_versions
+          ALTER COLUMN id TYPE text USING id::text;
+      END IF;
+    END $$;
   `);
   await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.sessions (
@@ -283,6 +300,53 @@ export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
 
   async close(): Promise<void> {
     await this.client.end?.();
+  }
+
+  async upsertModelVersion(
+    modelVersion: EmbeddingModelVersion,
+  ): Promise<EmbeddingModelVersion> {
+    await this.client.query(
+      `INSERT INTO persistent_agent_memory.model_versions
+       (id, provider, model, version, dimensions, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (provider, model, version) DO UPDATE SET
+         id = EXCLUDED.id,
+         dimensions = EXCLUDED.dimensions,
+         metadata = EXCLUDED.metadata`,
+      [
+        modelVersion.id,
+        modelVersion.provider,
+        modelVersion.model,
+        modelVersion.version,
+        modelVersion.dimensions,
+        JSON.stringify(modelVersion.metadata),
+      ],
+    );
+    return modelVersion;
+  }
+
+  async listModelVersions(): Promise<EmbeddingModelVersion[]> {
+    const result = await this.client.query<{
+      id: string;
+      provider: string;
+      model: string;
+      version: string;
+      dimensions: number;
+      metadata: Record<string, unknown>;
+    }>(
+      `SELECT id, provider, model, version, dimensions, metadata
+       FROM persistent_agent_memory.model_versions
+       ORDER BY created_at DESC`,
+    );
+
+    return result.rows.map((row) => ({
+      id: row.id,
+      provider: row.provider,
+      model: row.model,
+      version: row.version,
+      dimensions: Number(row.dimensions),
+      metadata: row.metadata ?? {},
+    }));
   }
 
   async insertRawEvent(
