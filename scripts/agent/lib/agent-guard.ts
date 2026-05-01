@@ -102,6 +102,40 @@ function buildIndexArgs(contract: ToolGuardContract): string[] {
   return args;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function isRetryableCodeMemoryIndexError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Retryable commit conflict") ||
+    message.includes("preempted by concurrent transaction")
+  );
+}
+
+async function runCodeMemoryIndexWithRetry(
+  contract: ToolGuardContract,
+): Promise<void> {
+  const args = buildIndexArgs(contract);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      await runCodeMemoryIndex(args);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!isRetryableCodeMemoryIndexError(error) || attempt === 3) {
+        throw error;
+      }
+      await sleep(250 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
+}
+
 export async function ensureCodeMemoryCurrent(
   contract: ToolGuardContract,
 ): Promise<{
@@ -122,7 +156,7 @@ export async function ensureCodeMemoryCurrent(
     );
   }
 
-  await runCodeMemoryIndex(buildIndexArgs(contract));
+  await runCodeMemoryIndexWithRetry(contract);
   const updatedHealth = await collectCodeMemoryHealth();
 
   if (shouldIndexCodeMemory(updatedHealth)) {

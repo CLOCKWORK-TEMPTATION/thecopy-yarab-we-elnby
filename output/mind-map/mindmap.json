@@ -54,6 +54,10 @@
       "label": "Editor Code RAG"
     },
     {
+      "id": "persistent-agent-memory",
+      "label": "Persistent Agent Memory"
+    },
+    {
       "id": "web-legacy-rag",
       "label": "Web Legacy RAG Utilities"
     }

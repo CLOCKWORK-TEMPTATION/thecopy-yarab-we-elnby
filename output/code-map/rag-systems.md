@@ -5,7 +5,7 @@
 ## الحالة العامة
 
 - governance status: `governed`
-- total systems: `5`
+- total systems: `6`
 
 ## الأنظمة المكتشفة
 
@@ -166,6 +166,60 @@
   - `openrouter`
 - vector stores:
   - `qdrant`
+- rerankers:
+  - none
+- governance notes:
+  - none
+
+### Persistent Agent Memory
+
+- id: `persistent-agent-memory`
+- category: `hybrid-knowledge`
+- policy: `unify-now`
+- status: `governed`
+- root: `scripts/agent/lib/persistent-memory`
+- description: Durable governed agent-thread memory with PostgreSQL source of truth, Redis/BullMQ job handoff, vector index adapters, safe retrieval, and guarded context injection.
+- commands:
+  - `pnpm agent:persistent-memory:secrets:scan`
+  - `pnpm agent:persistent-memory:secrets:verify`
+  - `pnpm agent:persistent-memory:ingest`
+  - `pnpm agent:persistent-memory:retrieve`
+  - `pnpm agent:persistent-memory:workers`
+  - `pnpm agent:persistent-memory:status`
+  - `pnpm agent:persistent-memory:eval`
+  - `pnpm agent:persistent-memory:eval:golden`
+  - `pnpm agent:persistent-memory:eval:safety`
+- entrypoints:
+  - `scripts/agent/lib/persistent-memory/index.ts`
+  - `scripts/agent/persistent-memory-eval.ts`
+  - `scripts/agent/persistent-memory-ingest.ts`
+  - `scripts/agent/persistent-memory-retrieve.ts`
+  - `scripts/agent/persistent-memory-secrets.ts`
+  - `scripts/agent/persistent-memory-status.ts`
+  - `scripts/agent/persistent-memory-workers.ts`
+- inputs:
+  - `AGENTS.md`
+  - `apps/backend/src/db/persistent-agent-memory.schema.ts`
+  - `output/round-notes.md`
+  - `output/session-state.md`
+  - `scripts/agent/lib/persistent-memory/*`
+- artifacts:
+  - `PostgreSQL:persistent_agent_memory`
+  - `Qdrant:persistent-agent-memory-shadow`
+  - `Redis:bullmq-persistent-memory-jobs`
+  - `Weaviate:persistent-agent-memory-primary`
+- dependencies:
+  - `BullMQ`
+  - `local deterministic embeddings`
+  - `PostgreSQL`
+  - `Qdrant`
+  - `Redis`
+  - `Weaviate`
+- embeddings providers:
+  - none
+- vector stores:
+  - `qdrant`
+  - `weaviate`
 - rerankers:
   - none
 - governance notes:

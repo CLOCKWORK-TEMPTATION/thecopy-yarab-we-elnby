@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 import {
-  shouldIndexCodeMemory,
   isRetryableCodeMemoryIndexError,
+  shouldIndexCodeMemory,
   validateLifecycleHooks,
   validatePackageManagerInvocation,
   type ToolGuardContract,

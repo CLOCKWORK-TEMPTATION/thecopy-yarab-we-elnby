@@ -36,6 +36,15 @@ pnpm agent:memory:search
 pnpm agent:memory:status
 pnpm agent:memory:verify
 pnpm agent:memory:watch
+pnpm agent:persistent-memory:secrets:scan
+pnpm agent:persistent-memory:secrets:verify
+pnpm agent:persistent-memory:ingest
+pnpm agent:persistent-memory:retrieve
+pnpm agent:persistent-memory:workers
+pnpm agent:persistent-memory:status
+pnpm agent:persistent-memory:eval
+pnpm agent:persistent-memory:eval:golden
+pnpm agent:persistent-memory:eval:safety
 pnpm workspace:embed
 ```
 
@@ -77,6 +86,13 @@ pnpm workspace:embed
 - `scripts/agent/code-memory-verify.ts`
 - `scripts/agent/code-memory-watch.ts`
 - `scripts/agent/guard.ts`
+- `scripts/agent/lib/persistent-memory/index.ts`
+- `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-secrets.ts`
+- `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-workers.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -113,7 +129,7 @@ output/session-state.md
 
 - عدد الأنظمة المكتشفة:
 
-`5`
+`6`
 
 - الحالة الحاكمة:
 
@@ -123,12 +139,13 @@ output/session-state.md
 
 - `code-retrieval`
 - `drama-retrieval`
+- `hybrid-knowledge`
 - `lightweight-search`
 - `vector-memory`
 
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `2663`
-- القطع: `5690`
+- الملفات: `2679`
+- القطع: `5724`
 - التغطية: `100.0%`
