@@ -168,6 +168,10 @@ const envSchema = z.object({
   REDIS_SENTINELS: z.string().optional(),
   REDIS_MASTER_NAME: z.string().optional(),
   REDIS_SENTINEL_PASSWORD: z.string().optional(),
+  QDRANT_URL: z.string().optional(),
+  QDRANT_API_KEY: z.string().optional(),
+  PERSISTENT_MEMORY_INFRA_REQUIRED: booleanFromEnv("false"),
+  MEMORY_INFRA_REQUIRED: booleanFromEnv("false"),
   // Sentry Configuration (for error tracking and performance monitoring)
   SENTRY_DSN: z.string().optional(),
   SENTRY_ORG: z.string().optional(),

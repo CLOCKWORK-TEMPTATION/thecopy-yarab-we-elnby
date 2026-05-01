@@ -6,11 +6,11 @@
 
 ### وقت الرصد الحالي
 
-2026-05-01T12:23:17.356Z
+2026-05-01T13:19:01.129Z
 
 ### آخر مزامنة مرجعية
 
-2026-05-01T12:23:17.356Z
+2026-05-01T13:19:01.129Z
 
 ### نوع الرصد
 
@@ -31,15 +31,6 @@
 
 - output/code-map/code-map.json
 - output/code-map/CODEMAP.md
-- output/code-map/dependency-graph.md
-- output/code-map/entrypoints.md
-- output/code-map/rag-systems.md
-- output/code-map/rag-entrypoints.md
-- output/mind-map/mindmap.json
-- output/mind-map/MINDMAP.md
-- output/mind-map/mindmap-summary.md
-- output/mind-map/mindmap.mmd
-- output/mind-map/rag-topology.mmd
 - output/session-state.md
 - .repo-agent/AGENT-CONTEXT.generated.md
 
@@ -54,7 +45,7 @@
 
 ### ما الذي بقي مفتوحًا
 
-- لا توجد listeners محلية على `5433` و `6379` و `8080` وقت الفحص
+- لا توجد أعطال مفتوحة مرصودة في الفحص الحالي
 
 ### هل استلزم الأمر تحديث session-state
 

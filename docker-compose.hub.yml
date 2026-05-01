@@ -65,6 +65,16 @@ services:
       retries: 5
       start_period: 15s
 
+  qdrant:
+    image: ${THE_COPY_QDRANT_IMAGE:-qdrant/qdrant:v1.13.4}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+
   backend:
     image: ${THE_COPY_BACKEND_IMAGE:-docker.io/mohamedaminrad/the-copy-backend:codex-e2e-production-readiness}
     pull_policy: always
@@ -85,6 +95,8 @@ services:
       REDIS_ENABLED: "true"
       WEAVIATE_URL: http://weaviate:8080
       WEAVIATE_REQUIRED: "false"
+      QDRANT_URL: http://qdrant:6333
+      PERSISTENT_MEMORY_INFRA_REQUIRED: "false"
       MEMORY_SYSTEM_ENABLED: "false"
       RUN_DB_PUSH_ON_START: "true"
       FILE_IMPORT_HOST: "0.0.0.0"
@@ -96,6 +108,8 @@ services:
         condition: service_healthy
       weaviate:
         condition: service_healthy
+      qdrant:
+        condition: service_started
 
   web:
     image: ${THE_COPY_WEB_IMAGE:-docker.io/mohamedaminrad/the-copy-web:codex-e2e-production-readiness}
@@ -134,4 +148,6 @@ volumes:
   redisdata:
     driver: local
   weaviatedata:
+    driver: local
+  qdrantdata:
     driver: local

@@ -5,7 +5,17 @@ import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 const originalEnv = process.env;
 const createBaseEnv = (): NodeJS.ProcessEnv => ({
   NODE_ENV: "test",
+  PORT: "3001",
   DATABASE_URL: "postgresql://test:test@localhost:5432/test_db",
+  JWT_SECRET: "a-very-long-secret-key-for-testing-purposes-32-chars",
+  CORS_ORIGIN: "http://localhost:5000",
+  RATE_LIMIT_WINDOW_MS: "900000",
+  RATE_LIMIT_MAX_REQUESTS: "100",
+  REDIS_ENABLED: "true",
+  WEAVIATE_URL: "http://localhost:8080",
+  QDRANT_URL: "http://localhost:6333",
+  PERSISTENT_MEMORY_INFRA_REQUIRED: "false",
+  MEMORY_INFRA_REQUIRED: "false",
 });
 const createProductionEnv = (
   overrides: Record<string, string> = {},
@@ -17,6 +27,11 @@ const createProductionEnv = (
   CORS_ORIGIN: "http://localhost:5000",
   RATE_LIMIT_WINDOW_MS: "900000",
   RATE_LIMIT_MAX_REQUESTS: "100",
+  REDIS_ENABLED: "true",
+  WEAVIATE_URL: "http://localhost:8080",
+  QDRANT_URL: "http://localhost:6333",
+  PERSISTENT_MEMORY_INFRA_REQUIRED: "false",
+  MEMORY_INFRA_REQUIRED: "false",
   // مطلوب من apps/backend/.env.example — env-safe يفرضه في production
   NEXT_PUBLIC_BACKEND_URL: "http://localhost:3001",
   ...overrides,
@@ -230,6 +245,9 @@ describe("optional environment variables", () => {
       FILE_IMPORT_HOST: "127.0.0.1",
       FILE_IMPORT_PORT: "3001",
       LOG_LEVEL: "info",
+      QDRANT_URL: "http://localhost:6333",
+      PERSISTENT_MEMORY_INFRA_REQUIRED: "false",
+      MEMORY_INFRA_REQUIRED: "false",
       SENTRY_RELEASE: "the-copy@1.0.0",
       SENTRY_SERVER_NAME: "backend-prod-01",
     };
@@ -241,6 +259,9 @@ describe("optional environment variables", () => {
     expect(env.REDIS_SENTINELS).toBe("127.0.0.1:26379,127.0.0.1:26380");
     expect(env.SERVICE_NAME).toBe("thecopy-backend");
     expect(env.FILE_IMPORT_PORT).toBe("3001");
+    expect(env.QDRANT_URL).toBe("http://localhost:6333");
+    expect(env.PERSISTENT_MEMORY_INFRA_REQUIRED).toBe(false);
+    expect(env.MEMORY_INFRA_REQUIRED).toBe(false);
     expect(env.SENTRY_RELEASE).toBe("the-copy@1.0.0");
   });
 

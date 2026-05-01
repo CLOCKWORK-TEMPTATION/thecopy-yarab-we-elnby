@@ -2,6 +2,7 @@ import {
   createPersistentMemorySystem,
   isPersistentMemoryInfraRequired,
 } from "./lib/persistent-memory";
+import { buildPersistentMemoryInfraConfig } from "./lib/persistent-memory/infra";
 import {
   createPersistentMemorySqlClient,
   PostgresPersistentMemoryStore,
@@ -21,17 +22,22 @@ async function main(): Promise<void> {
     throw new Error("A retrieval query is required.");
   }
 
-  if (!process.env.DATABASE_URL) {
+  const required = isPersistentMemoryInfraRequired();
+  const config = buildPersistentMemoryInfraConfig();
+  let client;
+
+  try {
+    client = await createPersistentMemorySqlClient(config.databaseUrl);
+  } catch {
     const message =
-      "Persistent memory retrieval is degraded because DATABASE_URL is not configured.";
-    if (isPersistentMemoryInfraRequired()) {
+      "Persistent memory retrieval is degraded because local infrastructure is not available.";
+    if (required) {
       throw new Error(message);
     }
     console.log(message);
     return;
   }
 
-  const client = await createPersistentMemorySqlClient();
   const store = new PostgresPersistentMemoryStore(client);
   const system = createPersistentMemorySystem({ store });
 

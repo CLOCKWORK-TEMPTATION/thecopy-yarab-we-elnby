@@ -127,10 +127,12 @@ async function collectCurrentOpenIssues(
     );
   }
 
-  const [postgresReady, redisReady, weaviateReady] = await Promise.all([
+  const [postgresReady, redisReady, weaviateReady, qdrantReady] =
+    await Promise.all([
     probeTcpPort("127.0.0.1", 5433, 750),
     probeTcpPort("127.0.0.1", 6379, 750),
     probeHttpReady("http://127.0.0.1:8080/v1/.well-known/ready", 1500),
+    probeHttpReady("http://127.0.0.1:6333/readyz", 1500),
   ]);
 
   const unavailableInfraPorts: string[] = [];
@@ -142,6 +144,9 @@ async function collectCurrentOpenIssues(
   }
   if (!weaviateReady) {
     unavailableInfraPorts.push("8080");
+  }
+  if (!qdrantReady) {
+    unavailableInfraPorts.push("6333");
   }
 
   if (unavailableInfraPorts.length > 0) {
