@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import {
   shouldIndexCodeMemory,
+  isRetryableCodeMemoryIndexError,
   validateLifecycleHooks,
   validatePackageManagerInvocation,
   type ToolGuardContract,
@@ -73,6 +74,17 @@ describe("agent guard", () => {
     expect(shouldIndexCodeMemory({ ...currentHealth, stale: true })).toBe(true);
     expect(shouldIndexCodeMemory({ ...currentHealth, coverageRate: 0.5 })).toBe(
       true,
+    );
+  });
+
+  test("classifies concurrent Lance commit conflicts as retryable", () => {
+    const error = new Error(
+      "Retryable commit conflict: This Overwrite transaction was preempted by concurrent transaction.",
+    );
+
+    expect(isRetryableCodeMemoryIndexError(error)).toBe(true);
+    expect(isRetryableCodeMemoryIndexError(new Error("syntax error"))).toBe(
+      false,
     );
   });
 });

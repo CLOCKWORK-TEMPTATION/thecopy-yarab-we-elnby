@@ -240,6 +240,17 @@ async function main(): Promise<void> {
     });
   }
 
+  if (
+    !facts.knowledgeInventory.systems.some(
+      (system) => system.id === "persistent-agent-memory",
+    )
+  ) {
+    issues.push({
+      level: "error",
+      message: "نظام persistent-agent-memory غير ممثل داخل الجرد المرجعي.",
+    });
+  }
+
   if (!facts.codeMemory.exists) {
     issues.push({
       level: "error",
@@ -273,6 +284,25 @@ async function main(): Promise<void> {
       issues.push({
         level: "error",
         message: `أمر ذاكرة الكود غير ممثل في الأوامر الرسمية: ${command}`,
+      });
+    }
+  }
+
+  for (const command of [
+    "pnpm agent:persistent-memory:secrets:scan",
+    "pnpm agent:persistent-memory:secrets:verify",
+    "pnpm agent:persistent-memory:ingest",
+    "pnpm agent:persistent-memory:retrieve",
+    "pnpm agent:persistent-memory:workers",
+    "pnpm agent:persistent-memory:status",
+    "pnpm agent:persistent-memory:eval",
+    "pnpm agent:persistent-memory:eval:golden",
+    "pnpm agent:persistent-memory:eval:safety",
+  ]) {
+    if (!facts.officialCommands.includes(command)) {
+      issues.push({
+        level: "error",
+        message: `أمر الذاكرة الدائمة غير ممثل في الأوامر الرسمية: ${command}`,
       });
     }
   }
