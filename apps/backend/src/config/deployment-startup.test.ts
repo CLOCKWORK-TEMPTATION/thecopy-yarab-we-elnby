@@ -14,7 +14,7 @@ describe("deployment startup", () => {
     };
 
     expect(packageJson.scripts?.["start:prod"]).toBe(
-      "pnpm run db:migrate && node dist/server.js",
+      "node scripts/wait-for-database.mjs && pnpm run db:migrate && node dist/server.js",
     );
   });
 
@@ -56,7 +56,17 @@ describe("deployment startup", () => {
   it("uses fixed migrations in the Docker entrypoint", () => {
     const entrypoint = readProjectFile("docker-entrypoint.sh");
 
+    expect(entrypoint).toContain("node scripts/wait-for-database.mjs");
     expect(entrypoint).toContain("pnpm run db:migrate");
     expect(entrypoint).not.toContain("pnpm run db:push");
+  });
+
+  it("ships a bounded database readiness probe for production migrations", () => {
+    const waitScript = readProjectFile("scripts/wait-for-database.mjs");
+
+    expect(waitScript).toContain("DB_READY_WAIT_SECONDS");
+    expect(waitScript).toContain("connectionTimeoutMillis");
+    expect(waitScript).toContain("select 1");
+    expect(waitScript).not.toContain("console.log(databaseUrl)");
   });
 });

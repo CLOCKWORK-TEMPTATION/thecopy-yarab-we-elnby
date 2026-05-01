@@ -1,11 +1,25 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { BatchResults } from "./components/BatchResults";
 import { OrderFilters } from "./components/OrderFilters";
-import { OrderList } from "./components/OrderList";
 import { useOrdersLive } from "./hooks/useOrdersLive";
+
+const OrderList = dynamic(
+  () => import("./components/OrderList").then((module) => module.OrderList),
+  {
+    ssr: false,
+    loading: () => (
+      <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
+        <p className="text-white/55 text-center py-8 font-cairo">
+          جارٍ تحميل الطلبات...
+        </p>
+      </section>
+    ),
+  }
+);
 
 export default function DirectorOrdersLivePage() {
   const {

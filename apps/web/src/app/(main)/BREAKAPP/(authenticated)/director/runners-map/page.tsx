@@ -12,7 +12,7 @@
  */
 
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
-import { api, getCurrentUser } from "@the-copy/breakapp/lib/auth";
+import { fetchBreakappJson } from "@the-copy/breakapp/lib/api-client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -24,9 +24,14 @@ import {
   type ChangeEvent,
 } from "react";
 
-import { toast } from "@/hooks/use-toast";
-
 import type { VendorMapData } from "@the-copy/breakapp/lib/types";
+
+type ToastOptions = Parameters<typeof import("@/hooks/use-toast").toast>[0];
+
+async function showToast(options: ToastOptions): Promise<void> {
+  const { toast } = await import("@/hooks/use-toast");
+  toast(options);
+}
 
 const MapComponent = dynamic(
   () => import("@the-copy/breakapp/components/maps/MapComponent"),
@@ -75,10 +80,9 @@ const STATUS_TONE_MAP: Record<RunnerStatus, string> = {
 // ── Module-level helpers ──────────────────────────────────────────────────────
 
 async function loadRunnersFromApi(sessionId: string): Promise<RunnerRecord[]> {
-  const res = await api.get<RunnerRecord[]>(
+  return fetchBreakappJson<RunnerRecord[]>(
     `/breakapp/runners/session/${sessionId}`
   );
-  return res.data;
 }
 
 function buildRunnerTrail(
@@ -390,10 +394,6 @@ export default function DirectorRunnersMapPage() {
   const { connected, on, off } = useSocket({ auth: true });
 
   useEffect(() => {
-    getCurrentUser();
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
     if (stored) {
@@ -415,7 +415,7 @@ export default function DirectorRunnersMapPage() {
       runnerTrailRef.current = next;
       setRunners(data);
     } catch (e: unknown) {
-      toast({
+      await showToast({
         title: "خطأ في جلب الـ Runners",
         description:
           (e as { message?: string }).message ??

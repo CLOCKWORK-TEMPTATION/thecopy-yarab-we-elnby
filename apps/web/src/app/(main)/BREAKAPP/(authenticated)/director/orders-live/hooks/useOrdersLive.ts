@@ -2,7 +2,7 @@ import {
   fetchBreakappJson,
   postBreakappJson,
   patchBreakappJson,
-} from "@the-copy/breakapp";
+} from "@the-copy/breakapp/lib/api-client";
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import {
   useState,
@@ -11,8 +11,6 @@ import {
   useMemo,
   type ChangeEvent,
 } from "react";
-
-import { toast } from "@/hooks/use-toast";
 
 import { STATUS_LABELS, SESSION_STORAGE_KEY } from "../constants";
 import {
@@ -26,6 +24,13 @@ import {
 } from "../types";
 
 import type { Order } from "@the-copy/breakapp/lib/types";
+
+type ToastOptions = Parameters<typeof import("@/hooks/use-toast").toast>[0];
+
+async function showToast(options: ToastOptions): Promise<void> {
+  const { toast } = await import("@/hooks/use-toast");
+  toast(options);
+}
 
 // ── Pure helpers ──────────────────────────────────────────────────────────────
 
@@ -149,7 +154,7 @@ async function doFetchOrders(
     const data = await fetchOrdersFromApi(sessionId, statusFilter);
     setOrders(() => data);
   } catch (e: unknown) {
-    toast({
+    await showToast({
       title: "خطأ في جلب الطلبات",
       description: (e as { message?: string }).message ?? "تعذّر تحميل الطلبات",
       variant: "destructive",
@@ -167,7 +172,7 @@ async function doFetchRunners(
     const data = await fetchRunnersFromApi(sessionId);
     setRunners(() => data);
   } catch (e: unknown) {
-    toast({
+    await showToast({
       title: "خطأ في جلب الـ Runners",
       description:
         (e as { message?: string }).message ?? "تعذّر تحميل قائمة الـ runners",
@@ -183,7 +188,7 @@ async function doRunBatching(
   refetchOrders: () => Promise<void>
 ): Promise<void> {
   if (!sessionId) {
-    toast({
+    await showToast({
       title: "جلسة غير محددة",
       description: "حدّد معرّف الجلسة أولاً",
       variant: "destructive",
@@ -194,13 +199,13 @@ async function doRunBatching(
   try {
     const data = await runBatchingApi(sessionId);
     setBatchResult(data);
-    toast({
+    await showToast({
       title: "تم تشغيل الـ Batching",
       description: `تم تجميع ${data.length} مورد/موردين`,
     });
     await refetchOrders();
   } catch (e: unknown) {
-    toast({
+    await showToast({
       title: "فشل الـ Batching",
       description: (e as { message?: string }).message ?? "تعذّر تشغيل التجميع",
       variant: "destructive",
@@ -220,12 +225,12 @@ async function doUpdateOrderStatus(
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o))
     );
-    toast({
+    await showToast({
       title: "تم تحديث الحالة",
       description: `أصبحت حالة الطلب: ${STATUS_LABELS[status]}`,
     });
   } catch (e: unknown) {
-    toast({
+    await showToast({
       title: "فشل التحديث",
       description: (e as { message?: string }).message ?? "تعذّر تحديث الحالة",
       variant: "destructive",
@@ -246,12 +251,12 @@ async function doAssignRunner(
         o.id === orderId ? { ...o, status: "processing", runnerId } : o
       )
     );
-    toast({
+    await showToast({
       title: "تم الإسناد",
       description: `تم إسناد الطلب للـ runner: ${runnerId}`,
     });
   } catch (e: unknown) {
-    toast({
+    await showToast({
       title: "فشل الإسناد",
       description: (e as { message?: string }).message ?? "تعذّر إسناد الطلب",
       variant: "destructive",
@@ -314,7 +319,7 @@ export function useOrdersLive() {
 
   const runBatching = useCallback(async (): Promise<void> => {
     if (!sessionId) {
-      toast({
+      await showToast({
         title: "جلسة غير محددة",
         description: "حدّد معرّف الجلسة أولاً",
         variant: "destructive",

@@ -12,6 +12,8 @@ else
 fi
 
 if [ "$should_run_db_migrate" = "1" ] || [ "$should_run_db_migrate" = "true" ] || [ "$should_run_db_migrate" = "yes" ] || [ "$should_run_db_migrate" = "on" ]; then
+  echo "Waiting for database readiness..."
+  node scripts/wait-for-database.mjs
   echo "Running database migrations..."
   if ! pnpm run db:migrate; then
     echo "Database migration failed!"
