@@ -770,3 +770,5 @@ export type BreakdownContinuityEntry =
   typeof breakdownContinuityLog.$inferSelect;
 export type NewBreakdownContinuityEntry =
   typeof breakdownContinuityLog.$inferInsert;
+
+export * from "./persistent-agent-memory.schema";

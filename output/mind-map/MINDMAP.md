@@ -18,4 +18,4 @@ output/code-map/rag-entrypoints.md
 output/mind-map/rag-topology.mmd
 ```
 
-عدد أنظمة المعرفة والاسترجاع المكتشفة الآن: `5`
+عدد أنظمة المعرفة والاسترجاع المكتشفة الآن: `6`

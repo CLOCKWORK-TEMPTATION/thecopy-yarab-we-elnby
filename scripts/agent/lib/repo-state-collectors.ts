@@ -245,6 +245,15 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:memory:status",
     "agent:memory:verify",
     "agent:memory:watch",
+    "agent:persistent-memory:secrets:scan",
+    "agent:persistent-memory:secrets:verify",
+    "agent:persistent-memory:ingest",
+    "agent:persistent-memory:retrieve",
+    "agent:persistent-memory:workers",
+    "agent:persistent-memory:status",
+    "agent:persistent-memory:eval",
+    "agent:persistent-memory:eval:golden",
+    "agent:persistent-memory:eval:safety",
     "workspace:embed",
   ];
 

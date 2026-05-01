@@ -12,6 +12,15 @@
 - `pnpm agent:memory:status`
 - `pnpm agent:memory:verify`
 - `pnpm agent:memory:watch`
+- `pnpm agent:persistent-memory:eval`
+- `pnpm agent:persistent-memory:eval:golden`
+- `pnpm agent:persistent-memory:eval:safety`
+- `pnpm agent:persistent-memory:ingest`
+- `pnpm agent:persistent-memory:retrieve`
+- `pnpm agent:persistent-memory:secrets:scan`
+- `pnpm agent:persistent-memory:secrets:verify`
+- `pnpm agent:persistent-memory:status`
+- `pnpm agent:persistent-memory:workers`
 - `pnpm workspace:embed`
 
 ## Entrypoints
@@ -31,6 +40,13 @@
 - `scripts/agent/code-memory-verify.ts`
 - `scripts/agent/code-memory-watch.ts`
 - `scripts/agent/guard.ts`
+- `scripts/agent/lib/persistent-memory/index.ts`
+- `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-secrets.ts`
+- `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-workers.ts`
 - `scripts/generate-workspace-embeddings.js`
 
 ## Critical Files
@@ -38,6 +54,7 @@
 - `.agent-code-memory/manifest.json`
 - `.embedding-hash-cache.json`
 - `.repo-agent/RAG-OPERATING-CONTRACT.md`
+- `apps/backend/src/db/persistent-agent-memory.schema.ts`
 - `apps/backend/src/memory/api/routes.ts`
 - `apps/backend/src/memory/context/context-assembly.service.ts`
 - `apps/backend/src/memory/embeddings/generator.ts`
@@ -88,6 +105,21 @@
 - `scripts/agent/lib/code-memory/qdrant.ts`
 - `scripts/agent/lib/code-memory/status.ts`
 - `scripts/agent/lib/code-memory/store.ts`
+- `scripts/agent/lib/persistent-memory/index.ts`
+- `scripts/agent/lib/persistent-memory/injection.ts`
+- `scripts/agent/lib/persistent-memory/persistent-memory.test.ts`
+- `scripts/agent/lib/persistent-memory/postgres-store.ts`
+- `scripts/agent/lib/persistent-memory/secrets.ts`
+- `scripts/agent/lib/persistent-memory/shadow-index.ts`
+- `scripts/agent/lib/persistent-memory/store.ts`
+- `scripts/agent/lib/persistent-memory/types.ts`
+- `scripts/agent/lib/persistent-memory/vector-index.ts`
+- `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-secrets.ts`
+- `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-workers.ts`
 - `scripts/generate-workspace-embeddings.js`
 - `WORKSPACE-EMBEDDING-INDEX.json`
 - `WORKSPACE-EMBEDDING-SUMMARY.md`

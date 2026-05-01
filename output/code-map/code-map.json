@@ -21,6 +21,15 @@
     "pnpm agent:memory:status",
     "pnpm agent:memory:verify",
     "pnpm agent:memory:watch",
+    "pnpm agent:persistent-memory:secrets:scan",
+    "pnpm agent:persistent-memory:secrets:verify",
+    "pnpm agent:persistent-memory:ingest",
+    "pnpm agent:persistent-memory:retrieve",
+    "pnpm agent:persistent-memory:workers",
+    "pnpm agent:persistent-memory:status",
+    "pnpm agent:persistent-memory:eval",
+    "pnpm agent:persistent-memory:eval:golden",
+    "pnpm agent:persistent-memory:eval:safety",
     "pnpm workspace:embed"
   ],
   "ports": {
@@ -83,6 +92,13 @@
     "scripts/agent/code-memory-verify.ts",
     "scripts/agent/code-memory-watch.ts",
     "scripts/agent/guard.ts",
+    "scripts/agent/lib/persistent-memory/index.ts",
+    "scripts/agent/persistent-memory-eval.ts",
+    "scripts/agent/persistent-memory-ingest.ts",
+    "scripts/agent/persistent-memory-retrieve.ts",
+    "scripts/agent/persistent-memory-secrets.ts",
+    "scripts/agent/persistent-memory-status.ts",
+    "scripts/agent/persistent-memory-workers.ts",
     "scripts/agent/refresh-maps.ts",
     "scripts/agent/start-agent.ps1",
     "scripts/agent/verify-state.ts",
@@ -594,6 +610,154 @@
         ]
       },
       {
+        "id": "persistent-agent-memory",
+        "label": "Persistent Agent Memory",
+        "category": "hybrid-knowledge",
+        "policy": "unify-now",
+        "root": "scripts/agent/lib/persistent-memory",
+        "status": "governed",
+        "description": "Durable governed agent-thread memory with PostgreSQL source of truth, Redis/BullMQ job handoff, vector index adapters, safe retrieval, and guarded context injection.",
+        "commands": [
+          "pnpm agent:persistent-memory:secrets:scan",
+          "pnpm agent:persistent-memory:secrets:verify",
+          "pnpm agent:persistent-memory:ingest",
+          "pnpm agent:persistent-memory:retrieve",
+          "pnpm agent:persistent-memory:workers",
+          "pnpm agent:persistent-memory:status",
+          "pnpm agent:persistent-memory:eval",
+          "pnpm agent:persistent-memory:eval:golden",
+          "pnpm agent:persistent-memory:eval:safety"
+        ],
+        "entrypoints": [
+          "scripts/agent/lib/persistent-memory/index.ts",
+          "scripts/agent/persistent-memory-eval.ts",
+          "scripts/agent/persistent-memory-ingest.ts",
+          "scripts/agent/persistent-memory-retrieve.ts",
+          "scripts/agent/persistent-memory-secrets.ts",
+          "scripts/agent/persistent-memory-status.ts",
+          "scripts/agent/persistent-memory-workers.ts"
+        ],
+        "criticalFiles": [
+          ".repo-agent/RAG-OPERATING-CONTRACT.md",
+          "apps/backend/src/db/persistent-agent-memory.schema.ts",
+          "scripts/agent/lib/persistent-memory/index.ts",
+          "scripts/agent/lib/persistent-memory/injection.ts",
+          "scripts/agent/lib/persistent-memory/persistent-memory.test.ts",
+          "scripts/agent/lib/persistent-memory/postgres-store.ts",
+          "scripts/agent/lib/persistent-memory/secrets.ts",
+          "scripts/agent/lib/persistent-memory/shadow-index.ts",
+          "scripts/agent/lib/persistent-memory/store.ts",
+          "scripts/agent/lib/persistent-memory/types.ts",
+          "scripts/agent/lib/persistent-memory/vector-index.ts",
+          "scripts/agent/persistent-memory-eval.ts",
+          "scripts/agent/persistent-memory-ingest.ts",
+          "scripts/agent/persistent-memory-retrieve.ts",
+          "scripts/agent/persistent-memory-secrets.ts",
+          "scripts/agent/persistent-memory-status.ts",
+          "scripts/agent/persistent-memory-workers.ts"
+        ],
+        "inputs": [
+          "AGENTS.md",
+          "apps/backend/src/db/persistent-agent-memory.schema.ts",
+          "output/round-notes.md",
+          "output/session-state.md",
+          "scripts/agent/lib/persistent-memory/*"
+        ],
+        "artifacts": [
+          "PostgreSQL:persistent_agent_memory",
+          "Qdrant:persistent-agent-memory-shadow",
+          "Redis:bullmq-persistent-memory-jobs",
+          "Weaviate:persistent-agent-memory-primary"
+        ],
+        "dependencies": [
+          "BullMQ",
+          "local deterministic embeddings",
+          "PostgreSQL",
+          "Qdrant",
+          "Redis",
+          "Weaviate"
+        ],
+        "embeddingsProviders": [],
+        "vectorStores": [
+          "qdrant",
+          "weaviate"
+        ],
+        "rerankers": [],
+        "governanceNotes": [],
+        "components": [
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-secrets.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-ingest.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-retrieve.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-workers.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-status.ts",
+            "exists": true
+          },
+          {
+            "kind": "entrypoint",
+            "path": "scripts/agent/persistent-memory-eval.ts",
+            "exists": true
+          },
+          {
+            "kind": "indexing",
+            "path": "scripts/agent/lib/persistent-memory/index.ts",
+            "exists": true
+          },
+          {
+            "kind": "embedding-generation",
+            "path": "scripts/agent/lib/persistent-memory/vector-index.ts",
+            "exists": true
+          },
+          {
+            "kind": "vector-store",
+            "path": "scripts/agent/lib/persistent-memory/vector-index.ts",
+            "exists": true
+          },
+          {
+            "kind": "vector-store",
+            "path": "scripts/agent/lib/persistent-memory/shadow-index.ts",
+            "exists": true
+          },
+          {
+            "kind": "retrieval",
+            "path": "scripts/agent/lib/persistent-memory/index.ts",
+            "exists": true
+          },
+          {
+            "kind": "context-assembly",
+            "path": "scripts/agent/lib/persistent-memory/injection.ts",
+            "exists": true
+          },
+          {
+            "kind": "governance",
+            "path": "scripts/agent/lib/persistent-memory/secrets.ts",
+            "exists": true
+          },
+          {
+            "kind": "governance",
+            "path": ".repo-agent/RAG-OPERATING-CONTRACT.md",
+            "exists": true
+          }
+        ]
+      },
+      {
         "id": "web-legacy-rag",
         "label": "Web Legacy RAG Utilities",
         "category": "lightweight-search",
@@ -680,10 +844,11 @@
         ]
       }
     ],
-    "totalSystems": 5,
+    "totalSystems": 6,
     "systemTypes": [
       "code-retrieval",
       "drama-retrieval",
+      "hybrid-knowledge",
       "lightweight-search",
       "vector-memory"
     ],
@@ -704,6 +869,7 @@
       ".agent-code-memory/manifest.json",
       ".embedding-hash-cache.json",
       ".repo-agent/RAG-OPERATING-CONTRACT.md",
+      "apps/backend/src/db/persistent-agent-memory.schema.ts",
       "apps/backend/src/memory/api/routes.ts",
       "apps/backend/src/memory/context/context-assembly.service.ts",
       "apps/backend/src/memory/embeddings/generator.ts",
@@ -754,6 +920,21 @@
       "scripts/agent/lib/code-memory/qdrant.ts",
       "scripts/agent/lib/code-memory/status.ts",
       "scripts/agent/lib/code-memory/store.ts",
+      "scripts/agent/lib/persistent-memory/index.ts",
+      "scripts/agent/lib/persistent-memory/injection.ts",
+      "scripts/agent/lib/persistent-memory/persistent-memory.test.ts",
+      "scripts/agent/lib/persistent-memory/postgres-store.ts",
+      "scripts/agent/lib/persistent-memory/secrets.ts",
+      "scripts/agent/lib/persistent-memory/shadow-index.ts",
+      "scripts/agent/lib/persistent-memory/store.ts",
+      "scripts/agent/lib/persistent-memory/types.ts",
+      "scripts/agent/lib/persistent-memory/vector-index.ts",
+      "scripts/agent/persistent-memory-eval.ts",
+      "scripts/agent/persistent-memory-ingest.ts",
+      "scripts/agent/persistent-memory-retrieve.ts",
+      "scripts/agent/persistent-memory-secrets.ts",
+      "scripts/agent/persistent-memory-status.ts",
+      "scripts/agent/persistent-memory-workers.ts",
       "scripts/generate-workspace-embeddings.js",
       "WORKSPACE-EMBEDDING-INDEX.json",
       "WORKSPACE-EMBEDDING-SUMMARY.md"
@@ -774,6 +955,13 @@
       "scripts/agent/code-memory-verify.ts",
       "scripts/agent/code-memory-watch.ts",
       "scripts/agent/guard.ts",
+      "scripts/agent/lib/persistent-memory/index.ts",
+      "scripts/agent/persistent-memory-eval.ts",
+      "scripts/agent/persistent-memory-ingest.ts",
+      "scripts/agent/persistent-memory-retrieve.ts",
+      "scripts/agent/persistent-memory-secrets.ts",
+      "scripts/agent/persistent-memory-status.ts",
+      "scripts/agent/persistent-memory-workers.ts",
       "scripts/generate-workspace-embeddings.js"
     ],
     "commands": [
@@ -787,6 +975,15 @@
       "pnpm agent:memory:status",
       "pnpm agent:memory:verify",
       "pnpm agent:memory:watch",
+      "pnpm agent:persistent-memory:eval",
+      "pnpm agent:persistent-memory:eval:golden",
+      "pnpm agent:persistent-memory:eval:safety",
+      "pnpm agent:persistent-memory:ingest",
+      "pnpm agent:persistent-memory:retrieve",
+      "pnpm agent:persistent-memory:secrets:scan",
+      "pnpm agent:persistent-memory:secrets:verify",
+      "pnpm agent:persistent-memory:status",
+      "pnpm agent:persistent-memory:workers",
       "pnpm workspace:embed"
     ],
     "competingSignals": [],
@@ -797,10 +994,10 @@
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-05-01T09:43:18.888Z",
-    "totalFiles": 2663,
-    "totalChunks": 5690,
-    "embeddedChunks": 5690,
+    "generatedAt": "2026-05-01T12:23:16.353Z",
+    "totalFiles": 2679,
+    "totalChunks": 5724,
+    "embeddedChunks": 5724,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,

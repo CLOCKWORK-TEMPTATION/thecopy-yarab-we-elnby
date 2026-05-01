@@ -19,6 +19,7 @@ flowchart LR
     Agents --> backend-memory["Backend Memory Retrieval"]
     Agents --> backend-enhanced-rag["Backend Enhanced RAG"]
     Agents --> editor-code-rag["Editor Code RAG"]
+    Agents --> persistent-agent-memory["Persistent Agent Memory"]
     Agents --> web-legacy-rag["Web Legacy RAG Utilities"]
     Web --> Backend
     Web --> Packages

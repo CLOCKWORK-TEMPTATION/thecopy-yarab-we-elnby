@@ -18,6 +18,15 @@
 - `pnpm agent:memory:status`
 - `pnpm agent:memory:verify`
 - `pnpm agent:memory:watch`
+- `pnpm agent:persistent-memory:secrets:scan`
+- `pnpm agent:persistent-memory:secrets:verify`
+- `pnpm agent:persistent-memory:ingest`
+- `pnpm agent:persistent-memory:retrieve`
+- `pnpm agent:persistent-memory:workers`
+- `pnpm agent:persistent-memory:status`
+- `pnpm agent:persistent-memory:eval`
+- `pnpm agent:persistent-memory:eval:golden`
+- `pnpm agent:persistent-memory:eval:safety`
 - `pnpm workspace:embed`
 
 ## ملفات الوكلاء
@@ -47,6 +56,13 @@
 - `scripts/agent/code-memory-verify.ts`
 - `scripts/agent/code-memory-watch.ts`
 - `scripts/agent/guard.ts`
+- `scripts/agent/lib/persistent-memory/index.ts`
+- `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-secrets.ts`
+- `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-workers.ts`
 - `scripts/generate-workspace-embeddings.js`
 
 ## التطبيقات

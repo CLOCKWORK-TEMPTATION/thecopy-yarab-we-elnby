@@ -8,10 +8,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-01T09:43:19.590Z |
-| الفرع الحالي | `main` |
-| آخر commit | `5eb6ec6a7efd63c4b1792cabbc7e80c3f9af7483` |
-| حالة working tree | غير نظيفة — 15 ملف متغير |
+| آخر مزامنة مرجعية | 2026-05-01T12:23:17.356Z |
+| الفرع الحالي | `codex/persistent-agent-memory` |
+| آخر commit | `754205a8b85f242ca1dc1f5ebca745d58e1a0600` |
+| حالة working tree | غير نظيفة — 9 ملف متغير |
 | مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
@@ -48,6 +48,15 @@ pnpm agent:memory:search
 pnpm agent:memory:status
 pnpm agent:memory:verify
 pnpm agent:memory:watch
+pnpm agent:persistent-memory:secrets:scan
+pnpm agent:persistent-memory:secrets:verify
+pnpm agent:persistent-memory:ingest
+pnpm agent:persistent-memory:retrieve
+pnpm agent:persistent-memory:workers
+pnpm agent:persistent-memory:status
+pnpm agent:persistent-memory:eval
+pnpm agent:persistent-memory:eval:golden
+pnpm agent:persistent-memory:eval:safety
 pnpm workspace:embed
 ```
 
@@ -129,12 +138,13 @@ AGENTS.md
 
 - عدد الأنظمة المكتشفة:
 
-`5`
+`6`
 
 - الأنواع:
 
 - `code-retrieval`
 - `drama-retrieval`
+- `hybrid-knowledge`
 - `lightweight-search`
 - `vector-memory`
 
@@ -196,6 +206,16 @@ AGENTS.md
   - المدخلات: `apps/web/package.json`، `apps/web/src/app/(main)/editor/scripts/rag-index.ts`، `apps/web/src/app/(main)/editor/src/rag/config.ts`، `apps/web/src/app/(main)/editor/src/rag/query.ts`
   - المخرجات أو artifacts: `Qdrant:codebase-index`
   - الاعتماديات: `GEMINI_API_KEY`، `OPENROUTER_API_KEY`، `QDRANT_API_KEY`، `QDRANT_URL`
+- `Persistent Agent Memory`
+  - id: `persistent-agent-memory`
+  - النوع: `hybrid-knowledge`
+  - السياسة: `unify-now`
+  - الحالة: `governed`
+  - المزودات: لا يوجد
+  - المخازن المتجهية: `qdrant`، `weaviate`
+  - المدخلات: `AGENTS.md`، `apps/backend/src/db/persistent-agent-memory.schema.ts`، `output/round-notes.md`، `output/session-state.md`، `scripts/agent/lib/persistent-memory/*`
+  - المخرجات أو artifacts: `PostgreSQL:persistent_agent_memory`، `Qdrant:persistent-agent-memory-shadow`، `Redis:bullmq-persistent-memory-jobs`، `Weaviate:persistent-agent-memory-primary`
+  - الاعتماديات: `BullMQ`، `local deterministic embeddings`، `PostgreSQL`، `Qdrant`، `Redis`، `Weaviate`
 - `Web Legacy RAG Utilities`
   - id: `web-legacy-rag`
   - النوع: `lightweight-search`
@@ -236,15 +256,15 @@ AGENTS.md
 
 - الملفات:
 
-`2663`
+`2679`
 
 - القطع:
 
-`5690`
+`5724`
 
 - القطع ذات التضمين:
 
-`5690`
+`5724`
 
 - التغطية:
 
@@ -261,7 +281,7 @@ Code memory is current.
 
 ## ما تغيّر منذ آخر بصمة
 
-- تغيرت الملفات البنيوية الحرجة
+- لا توجد بصمة سابقة
 
 ## الأعطال المفتوحة الآن
 

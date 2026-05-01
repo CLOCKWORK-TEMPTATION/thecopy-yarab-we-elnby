@@ -6,11 +6,11 @@
 
 ### وقت الرصد الحالي
 
-2026-05-01T09:43:19.590Z
+2026-05-01T12:23:17.356Z
 
 ### آخر مزامنة مرجعية
 
-2026-05-01T09:43:19.590Z
+2026-05-01T12:23:17.356Z
 
 ### نوع الرصد
 
@@ -31,6 +31,15 @@
 
 - output/code-map/code-map.json
 - output/code-map/CODEMAP.md
+- output/code-map/dependency-graph.md
+- output/code-map/entrypoints.md
+- output/code-map/rag-systems.md
+- output/code-map/rag-entrypoints.md
+- output/mind-map/mindmap.json
+- output/mind-map/MINDMAP.md
+- output/mind-map/mindmap-summary.md
+- output/mind-map/mindmap.mmd
+- output/mind-map/rag-topology.mmd
 - output/session-state.md
 - .repo-agent/AGENT-CONTEXT.generated.md
 
@@ -41,7 +50,7 @@
 ### حالة طبقة المعرفة والاسترجاع
 
 - governance status: `governed`
-- total systems: `5`
+- total systems: `6`
 
 ### ما الذي بقي مفتوحًا
 

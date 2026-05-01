@@ -89,7 +89,11 @@ export function determineDrift(
  * Read fingerprint from file
  */
 export async function readFingerprint(): Promise<FingerprintState | null> {
-  return readJsonIfExists<FingerprintState>(fromRepoRoot(FINGERPRINT_PATH));
+  try {
+    return await readJsonIfExists<FingerprintState>(fromRepoRoot(FINGERPRINT_PATH));
+  } catch {
+    return null;
+  }
 }
 
 /**
