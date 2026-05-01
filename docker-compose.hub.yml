@@ -1,6 +1,102 @@
 name: thecopy-hub
 
 services:
+  postgres:
+    image: ${THE_COPY_POSTGRES_IMAGE:-docker.io/mohamedaminrad/the-copy-postgres:codex-e2e-production-readiness}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${THE_COPY_POSTGRES_USER:-thecopy}
+      POSTGRES_PASSWORD: ${THE_COPY_POSTGRES_PASSWORD:-thecopy_dev}
+      POSTGRES_DB: ${THE_COPY_POSTGRES_DB:-thecopy_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: ${THE_COPY_REDIS_IMAGE:-docker.io/mohamedaminrad/the-copy-redis:codex-e2e-production-readiness}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  weaviate:
+    image: ${THE_COPY_WEAVIATE_IMAGE:-docker.io/mohamedaminrad/the-copy-weaviate:codex-e2e-production-readiness}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      DEFAULT_VECTORIZER_MODULE: none
+      CLUSTER_HOSTNAME: node1
+    volumes:
+      - weaviatedata:/var/lib/weaviate
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O- http://127.0.0.1:8080/v1/.well-known/ready >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  backend:
+    image: ${THE_COPY_BACKEND_IMAGE:-docker.io/mohamedaminrad/the-copy-backend:codex-e2e-production-readiness}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env.docker
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      FRONTEND_URL: ${THE_COPY_PUBLIC_WEB_URL:-http://localhost:5000}
+      CORS_ORIGIN: ${THE_COPY_CORS_ORIGIN:-http://localhost:5000}
+      DATABASE_URL: postgresql://${THE_COPY_POSTGRES_USER:-thecopy}:${THE_COPY_POSTGRES_PASSWORD:-thecopy_dev}@postgres:5432/${THE_COPY_POSTGRES_DB:-thecopy_dev}
+      REDIS_URL: redis://redis:6379
+      REDIS_ENABLED: "true"
+      WEAVIATE_URL: http://weaviate:8080
+      WEAVIATE_REQUIRED: "false"
+      MEMORY_SYSTEM_ENABLED: "false"
+      RUN_DB_PUSH_ON_START: "true"
+      FILE_IMPORT_HOST: "0.0.0.0"
+      FILE_IMPORT_PORT: "3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+
   web:
     image: ${THE_COPY_WEB_IMAGE:-docker.io/mohamedaminrad/the-copy-web:codex-e2e-production-readiness}
     pull_policy: always
@@ -11,13 +107,16 @@ services:
       NODE_ENV: production
       PORT: "5000"
       HOSTNAME: "0.0.0.0"
-      BACKEND_URL: ${THE_COPY_BACKEND_URL:-https://backend-thecopy-production.up.railway.app}
-      EDITOR_RUNTIME_BASE_URL: ${THE_COPY_BACKEND_URL:-https://backend-thecopy-production.up.railway.app}
-      FILE_IMPORT_BACKEND_URL: ${THE_COPY_FILE_IMPORT_BACKEND_URL:-https://backend-thecopy-production.up.railway.app/api/file-extract}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://backend-thecopy-production.up.railway.app}
-      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://backend-thecopy-production.up.railway.app}
-      NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL: ${NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL:-https://backend-thecopy-production.up.railway.app/api/file-extract}
-      NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL: ${NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL:-https://backend-thecopy-production.up.railway.app/api/final-review}
+      BACKEND_URL: http://backend:3001
+      EDITOR_RUNTIME_BASE_URL: http://backend:3001
+      FILE_IMPORT_BACKEND_URL: http://backend:3001/api/file-extract
+      NEXT_PUBLIC_API_URL: ${THE_COPY_PUBLIC_BACKEND_URL:-http://localhost:3001}
+      NEXT_PUBLIC_BACKEND_URL: ${THE_COPY_PUBLIC_BACKEND_URL:-http://localhost:3001}
+      NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL: ${THE_COPY_PUBLIC_BACKEND_URL:-http://localhost:3001}/api/file-extract
+      NEXT_PUBLIC_FINAL_REVIEW_BACKEND_URL: ${THE_COPY_PUBLIC_BACKEND_URL:-http://localhost:3001}/api/final-review
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -28,3 +127,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  weaviatedata:
+    driver: local

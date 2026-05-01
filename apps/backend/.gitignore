@@ -95,10 +95,12 @@ jest_*
 dump.rdb
 dump/
 *.sql
+!drizzle/0004_app_persistence_records.sql
 *.backup
 *.bak
 *.dump
 data/
+.data/
 db/
 !src/db/
 database/

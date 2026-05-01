@@ -173,6 +173,7 @@ temp/
 dump.rdb
 dump/
 *.sql
+!apps/backend/drizzle/0004_app_persistence_records.sql
 *.backup
 *.bak
 *.dump
@@ -198,6 +199,9 @@ mysql/
 postgres/
 mongodb/
 redis/
+
+# Backend runtime fallback data
+apps/backend/.data/
 elasticsearch/
 cassandra/
 

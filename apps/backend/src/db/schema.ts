@@ -7,6 +7,7 @@ import {
   integer,
   jsonb,
   real,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ==========================================
@@ -31,6 +32,37 @@ export const users = pgTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+
+// ==========================================
+// Unified App Persistence
+// ==========================================
+
+export const appPersistenceRecords = pgTable(
+  "app_persistence_records",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    appId: text("app_id").notNull(),
+    scope: text("scope").default("global").notNull(),
+    recordKey: text("record_key").default("state").notNull(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .default({})
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    appPersistenceUnique: uniqueIndex("app_persistence_records_unique").on(
+      table.appId,
+      table.scope,
+      table.recordKey,
+    ),
+  }),
+);
+
+export type AppPersistenceRecord = typeof appPersistenceRecords.$inferSelect;
+export type NewAppPersistenceRecord =
+  typeof appPersistenceRecords.$inferInsert;
 
 export const refreshTokens = pgTable("refresh_tokens", {
   id: uuid("id").defaultRandom().primaryKey(),

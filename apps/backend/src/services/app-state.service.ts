@@ -1,6 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import {
+  clearAppPersistenceRecord,
+  readAppPersistenceRecord,
+  saveAppPersistenceRecord,
+} from "@/services/app-persistence.service";
+
 interface AppStateEnvelope {
   version: 1;
   app: string;
@@ -93,35 +99,48 @@ async function enqueueWrite<T>(
 }
 
 export async function readAppState(appId: string): Promise<AppStateEnvelope> {
-  const filePath = await ensureStoreFile(appId);
-  const raw = await readFile(filePath, "utf8");
-
   try {
-    const parsed = JSON.parse(raw) as Partial<AppStateEnvelope>;
-    if (
-      parsed.version === 1 &&
-      parsed.app === appId &&
-      parsed.data &&
-      typeof parsed.data === "object" &&
-      !Array.isArray(parsed.data) &&
-      typeof parsed.updatedAt === "string"
-    ) {
-      return parsed as AppStateEnvelope;
-    }
+    const stored = await readAppPersistenceRecord(appId);
+    return stored ?? createEmptyEnvelope(appId);
   } catch {
-    // Reset the malformed file below.
-  }
+    const filePath = await ensureStoreFile(appId);
+    const raw = await readFile(filePath, "utf8");
 
-  return enqueueWrite(appId, () => writeEnvelope(appId, {}));
+    try {
+      const parsed = JSON.parse(raw) as Partial<AppStateEnvelope>;
+      if (
+        parsed.version === 1 &&
+        parsed.app === appId &&
+        parsed.data &&
+        typeof parsed.data === "object" &&
+        !Array.isArray(parsed.data) &&
+        typeof parsed.updatedAt === "string"
+      ) {
+        return parsed as AppStateEnvelope;
+      }
+    } catch {
+      // Reset the malformed file below.
+    }
+
+    return enqueueWrite(appId, () => writeEnvelope(appId, {}));
+  }
 }
 
 export async function saveAppState(
   appId: string,
   payload: Record<string, unknown>,
 ): Promise<AppStateEnvelope> {
-  return enqueueWrite(appId, () => writeEnvelope(appId, payload));
+  try {
+    return await saveAppPersistenceRecord(appId, payload);
+  } catch {
+    return enqueueWrite(appId, () => writeEnvelope(appId, payload));
+  }
 }
 
 export async function clearAppState(appId: string): Promise<AppStateEnvelope> {
-  return enqueueWrite(appId, () => writeEnvelope(appId, {}));
+  try {
+    return await clearAppPersistenceRecord(appId);
+  } catch {
+    return enqueueWrite(appId, () => writeEnvelope(appId, {}));
+  }
 }

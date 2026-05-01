@@ -1,7 +1,7 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "fff578eea367a8edbf6995ea44e9be3c409174178b28d65b99028d2ce55faa4d",
+    ".agent-code-memory/manifest.json": "3cdb5f82ec435a51478c1993c06615844c9f2268a8403f6255e73fce42d5181b",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "d598cf00052bcb9fa76e4e71a201a7249abef6c985ad50a2dca9940a35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "b3f90937c917b38cea831c5a04b1552121ac9d4b0e64b17eac8a1b821e6c1349",
     "apps/backend/package.json": "596f5b6ec8ca4ed75fa301031a6894d49ab40921c89af084c8ce1ec1771719fd",
@@ -67,21 +67,21 @@
     "scripts/generate-workspace-embeddings.js": "84645616351067c27fe3ade304a5fbbbef06d07778b8a6f0af9998abb7e76d83",
     "turbo.json": "3fe7214c4d6e6d866644f197ebba76ed74846ae0e1b3c63f220ec88577179ad3"
   },
-  "driftLevel": "hard-drift",
+  "driftLevel": "no-drift",
   "driftReasons": [
-    "تغيرت الملفات البنيوية الحرجة"
+    "لا يوجد drift مؤثر"
   ],
-  "headCommit": "4b0206a018c7551aa3585e9c023eeca0a7425581",
+  "headCommit": "87bd53f611da59ee2f505c62fa58da8cf269b167",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "4fd4299e0e724730252021bf91065719899471879f6f49a53b4bfb8386a67873"
   },
   "knowledgeHash": "7fdf7a0ee68730a91ad191cc37ed2f34a842744e44041cc410899cf577a287b6",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-04-30T23:57:09.528Z",
+  "lastBootstrapTimestamp": "2026-05-01T03:41:20.088Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "cb010c3e62d2412a8502283dac5d241359ca27a5dd57a9a4bda1f0ac9a911063",
-    "output/code-map/code-map.json": "668d5608f56956c7cdf972d3812ee2ffb724e64d747aa1a4b0a3272ec2b95c53",
-    "output/code-map/CODEMAP.md": "3fa2d2a846260e8e3a4e76251c7f3d41d56fa362d7718cb0a668324b600e77db",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "082556ec2c37a6cb0e125e6dd9ba7adec301d0d14573d5735e3df8af8caf6f03",
+    "output/code-map/code-map.json": "2a60593ab7239c7151950c8d1fbf53ddfa06e6e7b0b019a888db1fa607077b10",
+    "output/code-map/CODEMAP.md": "10a64680541e8735288f375f5aab10af49c08b7db398f3950154ad5ef4070027",
     "output/code-map/dependency-graph.md": "57200710b5e9981db98d805feab50ef9a1fbfbafe65bd153bc2b0681d557b02e",
     "output/code-map/entrypoints.md": "299e09e85d774964827b96f116577cefa586afbe5decfb89b6e441b60cffba3d",
     "output/code-map/findings.md": "bcc0230e8dc48409071750cc00089bb2d231d1b545d8460f90a9bd1e8fbdd9ec",
@@ -93,8 +93,8 @@
     "output/mind-map/MINDMAP.md": "d1cbc25d209cf6f9b47e8c442f0e462fba03c2b11a8ac8fe584ad74bda92861f",
     "output/mind-map/mindmap.mmd": "0fe62058c840a43459175386ee9e9e250888fcba9839af8ce1bb2df6f5938b02",
     "output/mind-map/rag-topology.mmd": "c02efff3d2b81904e62e4de79a1e753170855a7151e510b6938cb2574ea9aa2d",
-    "output/round-notes.md": "13127905286cf15f4277b7f25a74f2d1018a8504f64fc2e239c6f5253ab31258",
-    "output/session-state.md": "126941c63e3e1d435eecea8e145fa836bd3077ba6376ab1d05afc5d5bbfe7cab"
+    "output/round-notes.md": "ee2c12de294b0fef51fa4608b3cbea02c2e90c3e64f180ac42d7b63ea2c41314",
+    "output/session-state.md": "07c950ce540a03a8e4dec39d21c42ac488b19cecc2d89a8ebcb638da978e6aec"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -104,7 +104,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "8b75abb106668bc6050f8f238484fdebbb38959fa7cd297a1f8ffaaab7657c2a",
+  "repoFactsHash": "4f9680e89684e0515aefd55b25c1fae05ac34182a624863c81b3837c0e044e96",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -176,6 +176,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "3b2c0c60cf6437ffb024b90ce7f9fc0f5bb00cff7abd678adcb5ced901681d78",
-  "workingTreeHash": "721677f7d1288e01f4a00097868b3e341134ff6b511a2b66d851bce660af4b46"
+  "structuralHash": "13857563fae8ae89c8be070b21a44c0191f9ed90212faf16ab4b83baf6cc916b",
+  "workingTreeHash": "845aea19eca8fd32fcff85f4c1e8cd86dc363ec51c7e886d430ccc176c47a8d1"
 }

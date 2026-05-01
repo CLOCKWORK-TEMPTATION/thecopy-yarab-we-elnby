@@ -17,13 +17,18 @@ type ToastFn = (options: {
   variant?: "default" | "destructive";
 }) => void;
 
-interface DevelopmentDraft {
+export interface DevelopmentDraft {
   textInput?: string;
   analysisReport?: string;
   specialRequirements?: string;
   additionalInfo?: string;
   ts?: number;
 }
+
+type AppStateClientModule = typeof import("@/lib/app-state-client");
+type OptionalAppStateClientModule = Partial<
+  Pick<AppStateClientModule, "persistRemoteAppState">
+>;
 
 const restoreDraftFields = (
   dispatch: React.Dispatch<ActionType>,
@@ -134,6 +139,22 @@ export function loadSavedAnalysisDataImpl(
       /* empty */
     });
 
+  void loadRemoteAppState<DevelopmentDraft>("development")
+    .then((draft) => {
+      if (!draft || currentTextInput || currentAnalysisReport) {
+        return;
+      }
+
+      restoreDraftFields(dispatch, draft);
+      toast({
+        title: "تم استعادة المسودة",
+        description: "تم استعادة المدخلات من قاعدة بيانات التطبيق",
+      });
+    })
+    .catch(() => {
+      /* empty */
+    });
+
   // التحقق من النص الأصلي المحفوظ
   const storedText = sessionStorage.getItem("originalText");
   if (storedText && !currentTextInput) {
@@ -160,4 +181,24 @@ export function loadSavedAnalysisDataImpl(
   } catch {
     // corrupt draft — ignore
   }
+}
+
+export function saveDevelopmentDraft(draft: DevelopmentDraft): void {
+  try {
+    sessionStorage.setItem("development_draft", JSON.stringify(draft));
+  } catch {
+    // quota exceeded — non-critical
+  }
+
+  void import("@/lib/app-state-client")
+    .then((client: OptionalAppStateClientModule) => {
+      if (typeof client.persistRemoteAppState !== "function") {
+        return undefined;
+      }
+
+      return client.persistRemoteAppState("development", draft);
+    })
+    .catch(() => {
+      /* local session storage already captured the draft */
+    });
 }

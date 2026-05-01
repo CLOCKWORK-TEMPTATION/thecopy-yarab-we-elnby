@@ -11,8 +11,8 @@
  *  - useCinematographyStudio: phase transitions, tab mapping, view mode, visual mood
  */
 
-import { renderHook, act } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Global mocks
@@ -36,6 +36,17 @@ vi.mock("../../lib/studio-route-client", () => ({
   postStudioJson: vi.fn().mockResolvedValue({ success: true, data: {} }),
 }));
 
+const mockLoadRemoteAppState =
+  vi.fn<(...args: unknown[]) => Promise<unknown>>();
+const mockPersistRemoteAppState =
+  vi.fn<(...args: unknown[]) => Promise<unknown>>();
+
+vi.mock("@/lib/app-state-client", () => ({
+  loadRemoteAppState: (...args: unknown[]) => mockLoadRemoteAppState(...args),
+  persistRemoteAppState: (...args: unknown[]) =>
+    mockPersistRemoteAppState(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Import hooks AFTER mocks
 // ---------------------------------------------------------------------------
@@ -44,6 +55,13 @@ const { useProduction } = await import("../useProduction");
 const { usePostProduction } = await import("../usePostProduction");
 const { usePreProduction } = await import("../usePreProduction");
 const { useCinematographyStudio } = await import("../useCinematographyStudio");
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+  mockLoadRemoteAppState.mockResolvedValue(null);
+  mockPersistRemoteAppState.mockResolvedValue(undefined);
+});
 
 // ===========================================================================
 // useProduction
@@ -404,5 +422,51 @@ describe("useCinematographyStudio", () => {
 
     act(() => result.current.setActiveView("dashboard"));
     expect(result.current.activeView).toBe("dashboard");
+  });
+
+  it("hydrates persisted studio state from the remote app database", async () => {
+    mockLoadRemoteAppState.mockResolvedValueOnce({
+      phase: "post",
+      mood: "vintage",
+      view: "phases",
+      activeTool: "color-grading",
+    });
+
+    const { result } = renderHook(() => useCinematographyStudio());
+
+    await waitFor(() => {
+      expect(result.current.currentPhase).toBe("post");
+    });
+
+    expect(mockLoadRemoteAppState).toHaveBeenCalledWith(
+      "cinematography-studio"
+    );
+    expect(result.current.visualMood).toBe("vintage");
+    expect(result.current.activeView).toBe("phases");
+    expect(result.current.activeTool).toBe("color-grading");
+  });
+
+  it("persists studio state changes to the remote app database", async () => {
+    const { result } = renderHook(() => useCinematographyStudio());
+
+    await waitFor(() => {
+      expect(mockLoadRemoteAppState).toHaveBeenCalledWith(
+        "cinematography-studio"
+      );
+    });
+    mockPersistRemoteAppState.mockClear();
+
+    act(() => result.current.setPhase("production"));
+
+    await waitFor(() => {
+      expect(mockPersistRemoteAppState).toHaveBeenCalledWith(
+        "cinematography-studio",
+        expect.objectContaining({
+          phase: "production",
+          mood: "noir",
+          view: "dashboard",
+        })
+      );
+    });
   });
 });

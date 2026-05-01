@@ -187,6 +187,8 @@
     "docker:prod:build": "docker compose --env-file .env.docker build --pull",
     "docker:prod:up": "docker compose --env-file .env.docker up -d --build",
     "docker:hub:push-web": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/docker/push-web-hub.ps1",
+    "docker:hub:push-all": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/docker/push-all-hub.ps1",
+    "docker:hub:plan-all": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/docker/push-all-hub.ps1 -PlanOnly",
     "docker:hub:config": "docker compose -f docker-compose.hub.yml config",
     "docker:hub:pull": "docker compose -f docker-compose.hub.yml pull web",
     "docker:hub:up": "docker compose -f docker-compose.hub.yml up -d --no-build web",

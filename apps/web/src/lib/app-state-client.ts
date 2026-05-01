@@ -6,6 +6,14 @@ interface AppStateApiResponse<T extends object> {
   updatedAt: string;
 }
 
+const DATABASE_BACKED_APP_STATE_IDS = new Set<AppStateId>([
+  "BUDGET",
+  "analysis",
+  "art-director",
+  "cinematography-studio",
+  "development",
+]);
+
 function resolveServerBaseUrl(): string {
   const baseUrl =
     process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"] ??
@@ -22,13 +30,16 @@ function resolveServerBaseUrl(): string {
   return baseUrl.replace(/\/$/, "");
 }
 
-function isRemoteAppStateEnabled(): boolean {
+function isRemoteAppStateEnabled(appId: AppStateId): boolean {
   const explicitFlag = process.env["NEXT_PUBLIC_ENABLE_REMOTE_APP_STATE"];
   if (explicitFlag !== undefined) {
     return explicitFlag === "true";
   }
 
-  return Boolean(process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"]);
+  return (
+    Boolean(process.env["NEXT_PUBLIC_APP_STATE_BASE_URL"]) ||
+    DATABASE_BACKED_APP_STATE_IDS.has(appId)
+  );
 }
 
 function buildAppStateUrl(appId: AppStateId): string {
@@ -77,7 +88,7 @@ async function parseJson<T>(response: Response): Promise<T> {
 export async function loadRemoteAppState<T extends object>(
   appId: AppStateId
 ): Promise<T | null> {
-  if (!isRemoteAppStateEnabled()) {
+  if (!isRemoteAppStateEnabled(appId)) {
     return null;
   }
 
@@ -99,7 +110,7 @@ export async function persistRemoteAppState<T extends object>(
   appId: AppStateId,
   data: T
 ): Promise<T> {
-  if (!isRemoteAppStateEnabled()) {
+  if (!isRemoteAppStateEnabled(appId)) {
     return data;
   }
 
@@ -129,7 +140,7 @@ export async function persistRemoteAppState<T extends object>(
 }
 
 export async function clearRemoteAppState(appId: AppStateId): Promise<void> {
-  if (!isRemoteAppStateEnabled()) {
+  if (!isRemoteAppStateEnabled(appId)) {
     return;
   }
 

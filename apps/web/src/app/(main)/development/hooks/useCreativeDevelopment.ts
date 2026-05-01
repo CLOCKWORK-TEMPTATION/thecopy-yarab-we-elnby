@@ -16,7 +16,10 @@ import { CreativeTaskType, CREATIVE_TASK_LABELS } from "../types";
 
 import { executeTaskImpl } from "./creative-development-execute-impl";
 import { creativeDevelopmentReducer } from "./creative-development-reducer";
-import { loadSavedAnalysisDataImpl } from "./creative-development-storage";
+import {
+  loadSavedAnalysisDataImpl,
+  saveDevelopmentDraft,
+} from "./creative-development-storage";
 import { handleSubmitImpl } from "./creative-development-submit-impl";
 import {
   TASKS_REQUIRING_COMPLETION_SCOPE,
@@ -129,20 +132,13 @@ export function useCreativeDevelopment() {
 
   useEffect(() => {
     if (!state.textInput && !state.analysisReport) return;
-    try {
-      sessionStorage.setItem(
-        "development_draft",
-        JSON.stringify({
-          textInput: state.textInput,
-          analysisReport: state.analysisReport,
-          specialRequirements: state.specialRequirements,
-          additionalInfo: state.additionalInfo,
-          ts: Date.now(),
-        })
-      );
-    } catch {
-      // quota exceeded — non-critical
-    }
+    saveDevelopmentDraft({
+      textInput: state.textInput,
+      analysisReport: state.analysisReport,
+      specialRequirements: state.specialRequirements,
+      additionalInfo: state.additionalInfo,
+      ts: Date.now(),
+    });
   }, [
     state.textInput,
     state.analysisReport,

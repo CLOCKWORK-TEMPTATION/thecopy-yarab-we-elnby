@@ -10,7 +10,19 @@
 
 "use client";
 
-import { useReducer, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useReducer,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  loadRemoteAppState,
+  persistRemoteAppState,
+} from "@/lib/app-state-client";
 
 import { publishDiagnostics } from "../lib/diagnostics-bus";
 import {
@@ -25,6 +37,7 @@ import {
   isValidVisualMood,
 } from "../types";
 
+import type { PersistedStudioSession } from "../lib/session-storage";
 import type {
   Phase,
   TabValue,
@@ -151,6 +164,7 @@ function studioReducer(
  */
 export function useCinematographyStudio() {
   const [state, dispatch] = useReducer(studioReducer, initialState);
+  const [remoteHydrated, setRemoteHydrated] = useState(false);
   const hydratedFromStorage = useRef(false);
   const studioRenderCount = useRef(0);
 
@@ -163,44 +177,78 @@ export function useCinematographyStudio() {
     });
   });
 
-  // استعادة الحالة من localStorage على أول mount فقط — مرة واحدة لتجنب
-  // إعادة الكتابة فوق تنقل المستخدم اللاحق.
+  // استعادة الحالة من localStorage ثم قاعدة البيانات على أول mount فقط.
   useEffect(() => {
     if (hydratedFromStorage.current) {
       return;
     }
     hydratedFromStorage.current = true;
     const persisted = readSession();
-    if (!persisted) {
-      return;
+    if (persisted) {
+      if (persisted.phase) {
+        dispatch({ type: "SET_PHASE", payload: persisted.phase });
+      }
+      if (persisted.mood) {
+        dispatch({ type: "SET_VISUAL_MOOD", payload: persisted.mood });
+      }
+      if (persisted.view) {
+        dispatch({ type: "SET_ACTIVE_VIEW", payload: persisted.view });
+      }
+      if (persisted.activeTool !== undefined) {
+        dispatch({ type: "SET_ACTIVE_TOOL", payload: persisted.activeTool });
+      }
     }
-    if (persisted.phase) {
-      dispatch({ type: "SET_PHASE", payload: persisted.phase });
-    }
-    if (persisted.mood) {
-      dispatch({ type: "SET_VISUAL_MOOD", payload: persisted.mood });
-    }
-    if (persisted.view) {
-      dispatch({ type: "SET_ACTIVE_VIEW", payload: persisted.view });
-    }
-    if (persisted.activeTool !== undefined) {
-      dispatch({ type: "SET_ACTIVE_TOOL", payload: persisted.activeTool });
-    }
+
+    void loadRemoteAppState<PersistedStudioSession>("cinematography-studio")
+      .then((remoteSession) => {
+        if (!remoteSession) {
+          return;
+        }
+        if (remoteSession.phase) {
+          dispatch({ type: "SET_PHASE", payload: remoteSession.phase });
+        }
+        if (remoteSession.mood) {
+          dispatch({ type: "SET_VISUAL_MOOD", payload: remoteSession.mood });
+        }
+        if (remoteSession.view) {
+          dispatch({ type: "SET_ACTIVE_VIEW", payload: remoteSession.view });
+        }
+        if (remoteSession.activeTool !== undefined) {
+          dispatch({
+            type: "SET_ACTIVE_TOOL",
+            payload: remoteSession.activeTool,
+          });
+        }
+      })
+      .catch(() => {
+        /* remote state is optional at runtime */
+      })
+      .finally(() => {
+        setRemoteHydrated(true);
+      });
   }, []);
 
   // حفظ الحالة عند كل تغيير (بعد أول هيدرة فقط لتجنب الكتابة بقيم افتراضية فوق
   // القيم المحفوظة قبل قراءتها).
   useEffect(() => {
-    if (!hydratedFromStorage.current) {
+    if (!hydratedFromStorage.current || !remoteHydrated) {
       return;
     }
-    patchSession({
+    const nextSession: PersistedStudioSession = {
       phase: state.currentPhase,
       mood: state.visualMood,
       view: state.activeView,
       activeTool: state.activeTool,
+    };
+    patchSession(nextSession);
+    void persistRemoteAppState<PersistedStudioSession>(
+      "cinematography-studio",
+      nextSession
+    ).catch(() => {
+      /* local persistence already captured the state */
     });
   }, [
+    remoteHydrated,
     state.currentPhase,
     state.visualMood,
     state.activeView,

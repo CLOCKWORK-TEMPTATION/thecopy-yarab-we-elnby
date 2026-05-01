@@ -45,6 +45,28 @@ describe("app-state-client remote fallback", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("uses the same-origin app-state endpoint by default for database-backed apps", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: { textInput: "draft" },
+          updatedAt: new Date().toISOString(),
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(loadRemoteAppState("development")).resolves.toEqual({
+      textInput: "draft",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      "http://localhost:3000/api/app-state/development",
+      expect.objectContaining({ method: "GET" }),
+    );
+  });
+
   it("uses the configured remote endpoint when explicitly enabled", async () => {
     vi.stubEnv("NEXT_PUBLIC_ENABLE_REMOTE_APP_STATE", "true");
     vi.stubEnv("NEXT_PUBLIC_APP_STATE_BASE_URL", "https://state.example.test");

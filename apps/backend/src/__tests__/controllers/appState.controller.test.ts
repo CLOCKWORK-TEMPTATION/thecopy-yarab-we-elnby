@@ -203,7 +203,10 @@ describe("AppStateController", () => {
 
   describe("clearState", () => {
     it("يجب أن يمسح حالة تطبيق صالح", async () => {
-      mockClearAppState.mockResolvedValue(undefined);
+      mockClearAppState.mockResolvedValue({
+        data: {},
+        updatedAt: "2026-05-01T00:00:00Z",
+      });
 
       const req = createReq({ params: { appId: "breakdown" } });
       const res = createRes();
@@ -211,6 +214,12 @@ describe("AppStateController", () => {
       await controller.clearState(req, res);
 
       expect(mockClearAppState).toHaveBeenCalledWith("breakdown");
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          data: {},
+        }),
+      );
     });
 
     it("يجب أن يرفض معرّف غير صالح", async () => {

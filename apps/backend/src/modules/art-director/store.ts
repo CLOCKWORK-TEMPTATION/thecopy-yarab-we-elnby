@@ -3,6 +3,11 @@ import path from "node:path";
 
 import { z } from "zod";
 
+import {
+  readAppPersistenceRecord,
+  saveAppPersistenceRecord,
+} from "@/services/app-persistence.service";
+
 const StoredLocationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -133,6 +138,9 @@ export type StoredDecision = z.infer<typeof StoredDecisionSchema>;
 export type RawEntity = z.infer<typeof RawEntitySchema>;
 export type ArtDirectorStore = z.infer<typeof ArtDirectorStoreSchema>;
 
+const ART_DIRECTOR_APP_ID = "art-director";
+const ART_DIRECTOR_STORE_RECORD = { recordKey: "store" } as const;
+
 let writeQueue = Promise.resolve();
 
 export function createEmptyStore(): ArtDirectorStore {
@@ -211,6 +219,32 @@ async function writeStoreFile(
 }
 
 export async function readStore(): Promise<ArtDirectorStore> {
+  try {
+    const stored = await readAppPersistenceRecord(
+      ART_DIRECTOR_APP_ID,
+      ART_DIRECTOR_STORE_RECORD,
+    );
+
+    if (!stored) {
+      return createEmptyStore();
+    }
+
+    const result = ArtDirectorStoreSchema.safeParse(stored.data);
+    if (result.success) {
+      return result.data;
+    }
+
+    const emptyStore = createEmptyStore();
+    await saveAppPersistenceRecord(
+      ART_DIRECTOR_APP_ID,
+      emptyStore,
+      ART_DIRECTOR_STORE_RECORD,
+    );
+    return emptyStore;
+  } catch {
+    // Fall back to the legacy local file when PostgreSQL is unavailable.
+  }
+
   const filePath = resolveStorePath();
   await ensureStoreFile(filePath);
 
@@ -228,20 +262,26 @@ export async function readStore(): Promise<ArtDirectorStore> {
 }
 
 export async function saveStore(store: ArtDirectorStore): Promise<void> {
+  const nextStore = {
+    ...store,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    await saveAppPersistenceRecord(
+      ART_DIRECTOR_APP_ID,
+      nextStore,
+      ART_DIRECTOR_STORE_RECORD,
+    );
+    return;
+  } catch {
+    // Fall back to the legacy local file when PostgreSQL is unavailable.
+  }
+
   const filePath = resolveStorePath();
   await ensureStoreFile(filePath);
 
-  await writeStoreFile(
-    filePath,
-    JSON.stringify(
-      {
-        ...store,
-        updatedAt: new Date().toISOString(),
-      },
-      null,
-      2,
-    ),
-  );
+  await writeStoreFile(filePath, JSON.stringify(nextStore, null, 2));
 }
 
 export async function updateStore<T>(
