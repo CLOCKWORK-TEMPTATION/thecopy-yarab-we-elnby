@@ -1,25 +1,36 @@
 import { isPersistentMemoryInfraRequired } from "./lib/persistent-memory";
 import {
+  buildPersistentMemoryInfraConfig,
+  checkPersistentMemoryInfra,
+} from "./lib/persistent-memory/infra";
+import {
   createPersistentMemorySqlClient,
   PostgresPersistentMemoryStore,
 } from "./lib/persistent-memory/postgres-store";
 
 async function main(): Promise<void> {
   const required = isPersistentMemoryInfraRequired();
-  if (!process.env.DATABASE_URL) {
-    const payload = {
-      status: required ? "failed" : "degraded",
-      required,
-      postgres: "not-configured",
-    };
-    console.log(JSON.stringify(payload, null, 2));
+  const infra = await checkPersistentMemoryInfra();
+  if (infra.status !== "ready") {
+    console.log(
+      JSON.stringify(
+        {
+          status: required ? "failed" : "degraded",
+          required,
+          components: infra.components,
+        },
+        null,
+        2,
+      ),
+    );
     if (required) {
       process.exit(1);
     }
     return;
   }
 
-  const client = await createPersistentMemorySqlClient();
+  const config = buildPersistentMemoryInfraConfig();
+  const client = await createPersistentMemorySqlClient(config.databaseUrl);
   const store = new PostgresPersistentMemoryStore(client);
   try {
     const memories = await store.listMemories();
@@ -28,7 +39,7 @@ async function main(): Promise<void> {
         {
           status: "ready",
           required,
-          postgres: "connected",
+          components: infra.components,
           memories: memories.length,
         },
         null,

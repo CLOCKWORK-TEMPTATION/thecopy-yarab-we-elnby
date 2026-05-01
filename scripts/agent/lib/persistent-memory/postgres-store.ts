@@ -26,7 +26,10 @@ interface SqlClient {
 }
 
 interface PgPoolConstructor {
-  new (options: { connectionString: string }): SqlClient;
+  new (options: {
+    connectionString: string;
+    connectionTimeoutMillis?: number;
+  }): SqlClient;
 }
 
 interface PgModule {
@@ -70,7 +73,10 @@ export async function createPersistentMemorySqlClient(
   }
 
   const pg = loadPgModule();
-  const client = new pg.Pool({ connectionString: databaseUrl });
+  const client = new pg.Pool({
+    connectionString: databaseUrl,
+    connectionTimeoutMillis: 1000,
+  });
   await ensurePersistentMemorySchema(client);
   return client;
 }
