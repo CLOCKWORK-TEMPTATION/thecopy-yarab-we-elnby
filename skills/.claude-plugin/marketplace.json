@@ -1,0 +1,35 @@
+{
+  "name": "the-copy-marketplace",
+  "displayName": "The Copy Local Marketplace",
+  "description": "Marketplace محلي لمستودع the-copy، يحوي حزم المهارات الخاصة بحوكمة المشروع وفحوصاته.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "the-copy maintainers",
+    "email": "mohamedamin.radyahmed@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "the-copy-quality-pack",
+      "source": "./the-copy-quality-pack",
+      "version": "0.1.0",
+      "description": "تسع مهارات لمنع الأنماط المتكررة في مستودع the-copy: تجاوز سقف الأسطر، ثغرات أمنية بعد الدمج، تذبذب صيغة next.config، تكرار إصلاحات Sentry sourcemaps، غياب Zod validation، تذبذب طبقة eslint contract، تكرار جولات e2e production readiness، تشتت أنظمة RAG الخمسة، وأتمتة جولات A-* triage.",
+      "categories": [
+        "quality",
+        "security",
+        "governance",
+        "monorepo"
+      ],
+      "tags": [
+        "the-copy",
+        "monorepo",
+        "pnpm",
+        "next.js",
+        "sentry",
+        "zod",
+        "eslint",
+        "rag",
+        "triage"
+      ]
+    }
+  ]
+}

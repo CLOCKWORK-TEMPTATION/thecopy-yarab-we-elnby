@@ -34,6 +34,11 @@ vi.mock("@/db/schema", () => ({
   },
 }));
 
+vi.mock("@/middleware/auth.middleware", () => ({
+  getParamAsString: (value: string | string[] | undefined) =>
+    Array.isArray(value) ? value[0] : value,
+}));
+
 vi.mock("drizzle-orm", () => ({
   and: vi.fn((...conditions: unknown[]) => ({ conditions, operator: "and" })),
   eq: vi.fn((column: unknown, value: unknown) => ({ column, value })),

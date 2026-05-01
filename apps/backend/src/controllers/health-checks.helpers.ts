@@ -49,6 +49,97 @@ export interface LivenessStatus {
 
 const DISK_USAGE_LIMIT_PERCENT = 90;
 
+const REQUIRED_DATABASE_SCHEMA: Record<string, string[]> = {
+  users: [
+    "id",
+    "email",
+    "password_hash",
+    "auth_verifier_hash",
+    "kdf_salt",
+    "account_status",
+    "mfa_enabled",
+    "created_at",
+    "updated_at",
+  ],
+  refresh_tokens: ["id", "user_id", "token", "expires_at", "created_at"],
+  recovery_artifacts: [
+    "id",
+    "user_id",
+    "encrypted_recovery_artifact",
+    "iv",
+    "created_at",
+  ],
+  app_persistence_records: [
+    "id",
+    "app_id",
+    "scope",
+    "record_key",
+    "payload",
+    "created_at",
+    "updated_at",
+  ],
+};
+
+type SchemaRow = {
+  tableName?: string;
+  table_name?: string;
+  columnName?: string;
+  column_name?: string;
+};
+
+function getQueryRows(result: unknown): unknown[] {
+  if (Array.isArray(result)) {
+    return result;
+  }
+
+  const rows = (result as { rows?: unknown[] } | null)?.rows;
+  return Array.isArray(rows) ? rows : [];
+}
+
+function buildSchemaDetails(rows: unknown[]): {
+  missingTables: string[];
+  missingColumns: Record<string, string[]>;
+} {
+  const actualSchema = new Map<string, Set<string>>();
+
+  for (const row of rows as SchemaRow[]) {
+    const tableName = row.tableName ?? row.table_name;
+    const columnName = row.columnName ?? row.column_name;
+
+    if (!tableName || !columnName) {
+      continue;
+    }
+
+    const columns = actualSchema.get(tableName) ?? new Set<string>();
+    columns.add(columnName);
+    actualSchema.set(tableName, columns);
+  }
+
+  const missingTables: string[] = [];
+  const missingColumns: Record<string, string[]> = {};
+
+  for (const [tableName, requiredColumns] of Object.entries(
+    REQUIRED_DATABASE_SCHEMA,
+  )) {
+    const actualColumns = actualSchema.get(tableName);
+
+    if (!actualColumns) {
+      missingTables.push(tableName);
+      continue;
+    }
+
+    const missing = requiredColumns.filter(
+      (columnName) => !actualColumns.has(columnName),
+    );
+
+    if (missing.length > 0) {
+      missingColumns[tableName] = missing;
+    }
+  }
+
+  return { missingTables, missingColumns };
+}
+
 export async function checkDatabase(): Promise<HealthCheck> {
   const startTime = Date.now();
   try {
@@ -65,6 +156,61 @@ export async function checkDatabase(): Promise<HealthCheck> {
       required: true,
       error:
         error instanceof Error ? error.message : "Database connection failed",
+    };
+  }
+}
+
+export async function checkDatabaseSchema(): Promise<HealthCheck> {
+  const startTime = Date.now();
+  const tableNames = Object.keys(REQUIRED_DATABASE_SCHEMA);
+
+  try {
+    const result = await db.execute(sql`
+      SELECT
+        table_name AS "tableName",
+        column_name AS "columnName"
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name IN (
+          ${sql.join(
+            tableNames.map((tableName) => sql`${tableName}`),
+            sql`, `,
+          )}
+        )
+    `);
+    const details = buildSchemaDetails(getQueryRows(result));
+    const missingColumnCount = Object.values(details.missingColumns).reduce(
+      (total, columns) => total + columns.length,
+      0,
+    );
+
+    if (details.missingTables.length > 0 || missingColumnCount > 0) {
+      return {
+        status: "unhealthy",
+        required: true,
+        responseTime: Date.now() - startTime,
+        error: "Database schema is incomplete.",
+        details,
+      };
+    }
+
+    return {
+      status: "healthy",
+      required: true,
+      responseTime: Date.now() - startTime,
+      details: {
+        checkedTables: tableNames,
+      },
+    };
+  } catch (error) {
+    logger.error("Database schema health check failed", { error });
+    return {
+      status: "unhealthy",
+      required: true,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Database schema check failed",
     };
   }
 }
