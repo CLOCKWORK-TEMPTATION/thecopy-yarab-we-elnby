@@ -5,10 +5,15 @@ import {
 } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, expect, it } from "vitest";
+
+import {
+  resolveEditorRuntimeRoot,
+  resolveNativeDynamicImportHelperPath,
+} from "./runtime";
 
 type NativeDynamicImport = <T>(modulePath: string) => Promise<T>;
 
@@ -45,4 +50,28 @@ it("loads file URL modules with spaces from the CommonJS helper", async () => {
   );
 
   expect(imported.marker).toBe("runtime-loaded");
+});
+
+it("resolves the editor runtime next to the backend working directory in bundled containers", () => {
+  const cwd = resolve("workspace", "apps", "backend");
+  const baseDir = join(cwd, "dist");
+  const runtimeRoot = join(cwd, "editor-runtime");
+  const helperPath = join(runtimeRoot, "native-dynamic-import.cjs");
+  const existingPaths = new Set([runtimeRoot]);
+  const pathExists = (candidate: string) => existingPaths.has(candidate);
+
+  expect(
+    resolveEditorRuntimeRoot({
+      baseDir,
+      cwd,
+      pathExists,
+    }),
+  ).toBe(runtimeRoot);
+  expect(
+    resolveNativeDynamicImportHelperPath({
+      baseDir,
+      cwd,
+      pathExists,
+    }),
+  ).toBe(helperPath);
 });

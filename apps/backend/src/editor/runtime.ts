@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -9,6 +10,7 @@ import { definedProps } from "@/utils/defined-props";
 import type { Application, RequestHandler } from "express";
 
 type NativeDynamicImport = <T>(modulePath: string) => Promise<T>;
+type PathExists = (path: string) => boolean;
 type RuntimeHandler = RequestHandler;
 interface ModelAvailability {
   available: boolean;
@@ -52,7 +54,38 @@ interface LoadedEditorRuntime {
   docxConverterScriptExists: boolean;
 }
 
-const runtimeRoot = resolve(process.cwd(), "editor-runtime");
+interface RuntimePathOptions {
+  baseDir?: string;
+  cwd?: string;
+  pathExists?: PathExists;
+}
+
+export function resolveEditorRuntimeRoot(
+  options: RuntimePathOptions = {},
+): string {
+  const cwd = options.cwd ?? process.cwd();
+  const baseDir = options.baseDir ?? __dirname;
+  const pathExists = options.pathExists ?? existsSync;
+  const candidates = [
+    resolve(cwd, "editor-runtime"),
+    resolve(cwd, "apps", "backend", "editor-runtime"),
+    resolve(baseDir, "..", "editor-runtime"),
+    resolve(baseDir, "..", "..", "editor-runtime"),
+  ];
+
+  return candidates.find((candidate) => pathExists(candidate)) ?? candidates[0];
+}
+
+export function resolveNativeDynamicImportHelperPath(
+  options: RuntimePathOptions = {},
+): string {
+  return resolve(
+    resolveEditorRuntimeRoot(options),
+    "native-dynamic-import.cjs",
+  );
+}
+
+const runtimeRoot = resolveEditorRuntimeRoot();
 let loadedRuntimePromise: Promise<LoadedEditorRuntime> | null = null;
 const googleModelHealthCache = new Map<
   string,
@@ -92,13 +125,7 @@ function isNativeDynamicImportModule(
 }
 
 function loadNativeDynamicImport(): NativeDynamicImport {
-  const helperPath = resolve(
-    __dirname,
-    "..",
-    "..",
-    "editor-runtime",
-    "native-dynamic-import.cjs",
-  );
+  const helperPath = resolveNativeDynamicImportHelperPath();
   const runtimeRequire = createRequire(__filename) as (
     modulePath: string,
   ) => unknown;
