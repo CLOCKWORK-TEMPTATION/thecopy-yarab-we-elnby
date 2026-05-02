@@ -9,7 +9,7 @@
 | البند | القيمة |
 |---|---|
 | آخر مزامنة مرجعية | 2026-05-02T11:45:15.987Z |
-| الفرع الحالي | `codex/persistent-memory-production-followup` |
+| الفرع الحالي | `main` |
 | آخر commit | `77cd24529eb0a13e08420f6e302df1c4265727b3` |
 | حالة working tree | غير نظيفة — 19 ملف متغير |
 | مستوى drift | `hard-drift` |
