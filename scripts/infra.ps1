@@ -280,6 +280,19 @@ function Test-ContainerExists([string]$Name) {
     return $LASTEXITCODE -eq 0
 }
 
+function Get-ContainerRuntimeStatus([string]$Name) {
+    if (-not (Test-ContainerExists $Name)) {
+        return 'missing'
+    }
+
+    $inspect = Invoke-NativeCapture $script:PodmanExe @('inspect', '--format', '{{.State.Status}}', $Name)
+    if ($inspect.ExitCode -ne 0 -or [string]::IsNullOrWhiteSpace($inspect.Output)) {
+        return 'unknown'
+    }
+
+    return $inspect.Output.Trim()
+}
+
 function Test-TcpReady([string]$HostName, [int]$Port) {
     try {
         $client = [System.Net.Sockets.TcpClient]::new()
@@ -459,6 +472,11 @@ function Get-ServiceHealth([string]$Svc) {
     if ([string]::IsNullOrEmpty($cid)) { return 'missing' }
     if (-not (Test-ContainerExists $cid)) { return 'missing' }
 
+    $runtimeStatus = Get-ContainerRuntimeStatus $cid
+    if ($runtimeStatus -in @('exited', 'created', 'dead', 'removing')) {
+        return 'stopped'
+    }
+
     $inspect = Invoke-NativeCapture $script:PodmanExe @('inspect', '--format', $HealthFmt, $cid)
     if ($inspect.ExitCode -ne 0) {
         return 'starting'
@@ -488,6 +506,11 @@ function Wait-ForHealthy {
             if ($h -eq 'missing') {
                 Write-Host 'NOT FOUND' -ForegroundColor Red
                 break
+            }
+
+            if ($h -eq 'stopped') {
+                Write-Host 'STOPPED' -ForegroundColor Red
+                exit 1
             }
 
             if ($h -eq 'healthy') {
@@ -549,6 +572,7 @@ function Invoke-Status {
             'healthy'   { Write-Host 'healthy'   -ForegroundColor Green }
             'unhealthy' { Write-Host 'unhealthy' -ForegroundColor Red }
             'starting'  { Write-Host 'starting'  -ForegroundColor Yellow }
+            'stopped'   { Write-Host 'stopped'   -ForegroundColor Red }
             'missing'   { Write-Host 'stopped'   -ForegroundColor Red }
             default     { Write-Host $h          -ForegroundColor Yellow }
         }

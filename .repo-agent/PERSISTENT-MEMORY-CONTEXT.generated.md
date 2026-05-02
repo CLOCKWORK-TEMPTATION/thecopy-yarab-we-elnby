@@ -2,11 +2,21 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: 13dc4b2e-f6f3-4d31-87ae-a9c886b5839f
-audit_event_id: c2e43231-312a-4ff1-b6a5-4356302eeeaf
+retrieval_event_id: 2d95bb52-0359-4ba0-ae3b-967ba0144db1
+audit_event_id: a74b1da9-cb34-444a-8f56-238c27f155c7
 
 ## Injected Memories
 
+- id: 20fc862f-744b-4538-87b4-9bb1f0b52500
+  source_ref: output/session-state.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T14:39:03.795Z | | الفرع الحالي | `codex/persistent-memory-production-ci-fix` | | آخر commit | `69e02765e66a78511fa48101d80fed20fe19b671` | | حالة working tree | نظيفة | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة العمل الرسمية ```t
+- id: edc74e8c-ad94-457c-9718-0773986af433
+  source_ref: output/session-state.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T14:39:03.795Z | | الفرع الحالي | `codex/persistent-memory-production-ci-fix` | | آخر commit | `86db7c259e9efb8dddaf12075a2ea4c5c044bd85` | | حالة working tree | غير نظيفة — 12 ملف متغير | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة
 - id: 306214d4-ecb9-497d-8693-decdd50dffdb
   source_ref: output/session-state.md
   trust_level: medium
@@ -37,13 +47,3 @@ audit_event_id: c2e43231-312a-4ff1-b6a5-4356302eeeaf
   trust_level: medium
   model_version: BAAI/bge-m3
   text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-01T14:39:01.094Z | | الفرع الحالي | `codex/persistent-agent-memory-production` | | آخر commit | `d2dbd3408e42360cd062e3a57163ec35322cfed7` | | حالة working tree | غير نظيفة — 4 ملف متغير | | مستوى drift | `hard-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة
-- id: b5446873-91f1-4ae2-af2d-0d518a6e35f8
-  source_ref: output/session-state.md
-  trust_level: medium
-  model_version: local-deterministic-embedding-v1
-  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-01T13:19:01.129Z | | الفرع الحالي | `codex/persistent-agent-memory-infra` | | آخر commit | `d83f95848d011db5d6a18c039c35b65636525bf2` | | حالة working tree | نظيفة | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة العمل الرسمية ```text ap
-- id: c0b88ee1-e81d-4aa5-84d4-e54c3c4c1f5a
-  source_ref: output/session-state.md
-  trust_level: medium
-  model_version: local-deterministic-embedding-v1
-  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-01T12:35:39.507Z | | الفرع الحالي | `main` | | آخر commit | `d1e8e52f70cb6761e72bdaab87eeeba5cdc29992` | | حالة working tree | نظيفة | | مستوى drift | `hard-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة العمل الرسمية ```text apps/* packages/* ``` ### أوامر

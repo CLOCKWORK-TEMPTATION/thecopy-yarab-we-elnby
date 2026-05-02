@@ -1,7 +1,7 @@
 {
-  "branch": "codex/persistent-memory-production-followup",
+  "branch": "codex/persistent-memory-production-ci-fix",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "sha256:4a5eba55-e1256870-9e2f2afc-e0e35dbc-63ad9db2-9ac89665-16c681ed-3dc51cd4",
+    ".agent-code-memory/manifest.json": "sha256:7ef84d81-c10ad672-78af2a44-d40e7d20-c6a22c48-e254134d-30d27737-c4366a07",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "sha256:d598cf00-052bcb9f-a76e4e71-a201a724-9abef6c9-85ad50a2-dca9940a-35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "sha256:f1391fb0-130c7384-f24230ed-44697d8e-6b19adbf-2f628cec-99d01551-0bf601e0",
     "apps/backend/package.json": "sha256:c3ba4f33-470c2feb-6ec70ef1-d6e01425-89d86cbb-3b982a09-39f013be-93f57e62",
@@ -95,20 +95,20 @@
     "scripts/generate-workspace-embeddings.js": "sha256:84645616-351067c2-7fe3ade3-04a5fbbb-ef06d077-78b8a6f0-af9998ab-b7e76d83",
     "turbo.json": "sha256:80a68d93-28eb29c0-0d456888-369d9d2d-c39a32b5-00445138-16a30a4d-df5857ee"
   },
-  "driftLevel": "hard-drift",
+  "driftLevel": "no-drift",
   "driftReasons": [
-    "تغيرت الملفات البنيوية الحرجة"
+    "لا يوجد drift مؤثر"
   ],
-  "headCommit": "77cd24529eb0a13e08420f6e302df1c4265727b3",
+  "headCommit": "69e02765e66a78511fa48101d80fed20fe19b671",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "sha256:4fd4299e-0e724730-252021bf-91065719-89947187-9f6f49a5-3b4bfb83-86a67873"
   },
   "knowledgeHash": "sha256:add8870f-e825f83f-3c2980af-305d3936-d2b33261-2f90b964-01724ec8-bb830547",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-05-02T11:45:15.987Z",
+  "lastBootstrapTimestamp": "2026-05-02T14:39:03.795Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:420c7a5c-e2dda077-cadc8bd9-4760d6f8-2605532e-cd5190dd-03aedffe-9ca47075",
-    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:5f26717a-9dcc438e-9e76b0a9-8b99a3a5-d6ca55ef-a0dedfaa-4fb4c3f9-fb60a8df",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:f4a59f9b-9d8b656b-ef547d4d-369427a4-d01b3de5-effbe2eb-d330d3ef-6ca1add6",
+    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:ed00221f-7422ca11-f79291ac-981a0630-f601f378-fa134bc5-ae28552b-b75a9b9b",
     "output/code-map/code-map.json": "sha256:aebf4a3c-07aa9b21-39d98437-7e34456e-018ed62d-b8265b22-b3b8a8d6-3ea5323b",
     "output/code-map/CODEMAP.md": "sha256:2040aa46-6e5c65d8-67daa7ef-acf2709f-6cfc320f-d8d1b8d9-e2295a6e-f3c073b0",
     "output/code-map/dependency-graph.md": "sha256:49deb450-7633f9c9-5a571a1b-06148da6-01f8a62b-86d63233-7be080cb-7abf4557",
@@ -122,8 +122,8 @@
     "output/mind-map/MINDMAP.md": "sha256:75a7224f-e591052a-0ddc8a12-865bf5cc-419ea1bc-f6215856-93499b3a-14db9b84",
     "output/mind-map/mindmap.mmd": "sha256:d3f3dd6d-dca5e6ad-52cbe963-6efd47a8-afcbbddf-5c11e26f-b5cf0aa0-df645350",
     "output/mind-map/rag-topology.mmd": "sha256:27b4e947-214abafb-9dba8606-4d0a204e-f802ae2a-1f622c87-b4573993-1c7e1d9e",
-    "output/round-notes.md": "sha256:7d683f4e-9b83838a-8c9961e1-4672d1fc-6f55cf85-fbc322aa-2f226a18-bc485816",
-    "output/session-state.md": "sha256:c76a514b-6cd66f48-58c5fe8f-ee6f06ac-8abb4c7a-3904ad18-66c897b6-9ac16baf"
+    "output/round-notes.md": "sha256:a28ab0fd-32598100-8fb6e0b2-8f901878-09cda65b-5038bd14-404a0d35-59ba91b0",
+    "output/session-state.md": "sha256:02a59b45-222a49de-ec047cfa-6f8a81c7-eb61b0bc-b7b1fd85-bfd98bfb-99e559fe"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -233,6 +233,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "sha256:5f0084a8-5861a630-3821e0a3-15812e59-9bcff026-923bc8b7-baa502eb-2a53f2bc",
-  "workingTreeHash": "997a5dda90d1a7895058af7847f540f136780673c7cd2a312e5d3ec38959177b"
+  "structuralHash": "sha256:a4a25caf-061a82e6-13fe4184-a3bde6d7-34cead86-4d107569-bcc941a4-47db8936",
+  "workingTreeHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 }
