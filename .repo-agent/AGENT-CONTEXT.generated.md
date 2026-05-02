@@ -4,11 +4,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-02T11:45:15.987Z |
-| الفرع الحالي | `codex/persistent-memory-production-followup` |
-| آخر commit | `77cd24529eb0a13e08420f6e302df1c4265727b3` |
-| حالة الشجرة | غير نظيفة — 19 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر مزامنة مرجعية | 2026-05-02T14:39:03.795Z |
+| الفرع الحالي | `codex/persistent-memory-production-ci-fix` |
+| آخر commit | `86db7c259e9efb8dddaf12075a2ea4c5c044bd85` |
+| حالة الشجرة | غير نظيفة — 12 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## المرجع الحاكم
 

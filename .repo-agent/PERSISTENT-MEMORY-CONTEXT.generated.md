@@ -2,11 +2,16 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: 13dc4b2e-f6f3-4d31-87ae-a9c886b5839f
-audit_event_id: c2e43231-312a-4ff1-b6a5-4356302eeeaf
+retrieval_event_id: cbb69333-210f-478a-86e5-d2f8def0cb24
+audit_event_id: e75b1239-0543-4d50-9a88-a9c796b3e067
 
 ## Injected Memories
 
+- id: edc74e8c-ad94-457c-9718-0773986af433
+  source_ref: output/session-state.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T14:39:03.795Z | | الفرع الحالي | `codex/persistent-memory-production-ci-fix` | | آخر commit | `86db7c259e9efb8dddaf12075a2ea4c5c044bd85` | | حالة working tree | غير نظيفة — 12 ملف متغير | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة
 - id: 306214d4-ecb9-497d-8693-decdd50dffdb
   source_ref: output/session-state.md
   trust_level: medium
@@ -42,8 +47,3 @@ audit_event_id: c2e43231-312a-4ff1-b6a5-4356302eeeaf
   trust_level: medium
   model_version: local-deterministic-embedding-v1
   text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-01T13:19:01.129Z | | الفرع الحالي | `codex/persistent-agent-memory-infra` | | آخر commit | `d83f95848d011db5d6a18c039c35b65636525bf2` | | حالة working tree | نظيفة | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة العمل الرسمية ```text ap
-- id: c0b88ee1-e81d-4aa5-84d4-e54c3c4c1f5a
-  source_ref: output/session-state.md
-  trust_level: medium
-  model_version: local-deterministic-embedding-v1
-  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-01T12:35:39.507Z | | الفرع الحالي | `main` | | آخر commit | `d1e8e52f70cb6761e72bdaab87eeeba5cdc29992` | | حالة working tree | نظيفة | | مستوى drift | `hard-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة العمل الرسمية ```text apps/* packages/* ``` ### أوامر

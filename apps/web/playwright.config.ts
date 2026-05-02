@@ -30,6 +30,17 @@ const shouldUseEditorCriticalProjectSet =
   isEditorGrepRun &&
   !hasExplicitProjectSelection &&
   process.env["PLAYWRIGHT_ALL_PROJECTS"] !== "1";
+const e2eBuildCommand = "cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm run build";
+const e2eRuntimeEnv = `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 PORT=${webServerPort} HOSTNAME=0.0.0.0`;
+const webServerCommand = process.env["CI"]
+  ? [
+      e2eBuildCommand,
+      `${e2eRuntimeEnv} node .next/standalone/apps/web/server.js`,
+    ].join(" && ")
+  : [
+      e2eBuildCommand,
+      `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm exec next start -p ${webServerPort} -H 0.0.0.0`,
+    ].join(" && ");
 
 const allProjects = [
   {
@@ -78,7 +89,7 @@ export default defineConfig({
     ? allProjects.filter((project) => project.name === "chromium")
     : allProjects,
   webServer: {
-    command: `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm run build && cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm exec next start -p ${webServerPort} -H 0.0.0.0`,
+    command: webServerCommand,
     url: baseURL,
     reuseExistingServer: !process.env["CI"],
     timeout: 180 * 1000,

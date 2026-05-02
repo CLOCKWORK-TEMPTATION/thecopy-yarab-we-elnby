@@ -62,6 +62,8 @@ jobs:
               - ".husky/**"
               - "apps/backend/Dockerfile"
               - "docker-compose.infra.yml"
+              - "podman-compose.infra.yml"
+              - "scripts/infra.ps1"
               - "scripts/ci/**"
               - "scripts/quality/**"
 
@@ -202,19 +204,19 @@ jobs:
 
       - name: Strict frontend type check
         if: needs.changes.outputs.frontend == 'true'
-        run: pnpm --filter @the-copy/web run type-check
+        run: pnpm exec turbo run type-check --filter=@the-copy/web --output-logs=errors-only
 
       - name: Strict frontend lint
         if: needs.changes.outputs.frontend == 'true'
-        run: pnpm --filter @the-copy/web run lint
+        run: pnpm exec turbo run lint --filter=@the-copy/web --output-logs=errors-only
 
       - name: Strict backend type check
         if: needs.changes.outputs.backend == 'true'
-        run: pnpm --filter @the-copy/backend run type-check
+        run: pnpm exec turbo run type-check --filter=@the-copy/backend --output-logs=errors-only
 
       - name: Strict backend lint
         if: needs.changes.outputs.backend == 'true'
-        run: pnpm --filter @the-copy/backend run lint
+        run: pnpm exec turbo run lint --filter=@the-copy/backend --output-logs=errors-only
 
   build-frontend:
     name: Build Frontend
@@ -449,7 +451,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm --filter @the-copy/web exec playwright install --with-deps chromium
+        run: pnpm --filter @the-copy/web exec playwright install --with-deps
 
       - name: Run E2E tests
         run: pnpm --filter @the-copy/web e2e
