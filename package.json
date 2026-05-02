@@ -160,7 +160,7 @@
     "security:trivy:build": "bash scripts/security/trivy-scan.sh --build",
     "security:zap": "bash scripts/security/zap-baseline.sh",
     "security:zap:full": "bash scripts/security/zap-baseline.sh --full",
-    "security:env:check": "pnpm --filter @the-copy/backend exec tsx -e \"import('./src/config/env-safe').then(m => { const r = m.runEnvSafeCheck(); if (!r.ok) process.exit(1); })\"",
+    "security:env:check": "pnpm --filter @the-copy/backend exec tsx -e \"import('./src/config/env-safe.ts').then(m => { const check = m.runEnvSafeCheck || m.default?.runEnvSafeCheck; if (!check) process.exit(1); const r = check(); if (!r.ok) process.exit(1); })\"",
     "security:secrets": "gitleaks detect --source . --redact --verbose --config=.gitleaks.toml",
     "security:secrets:staged": "gitleaks protect --staged --redact --verbose --config=.gitleaks.toml",
     "security:semgrep": "semgrep scan --config .semgrep --config p/typescript --config p/nodejs --config p/secrets --error --severity=ERROR",

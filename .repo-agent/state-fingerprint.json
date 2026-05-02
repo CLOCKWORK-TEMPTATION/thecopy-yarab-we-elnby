@@ -1,7 +1,7 @@
 {
-  "branch": "codex/persistent-agent-memory-production",
+  "branch": "codex/persistent-memory-production-followup",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "sha256:20acc3e4-bc8ae0b6-9a5dd1b0-a66690ba-c56d5f35-e1e8ab31-f60cfc0e-77d6d3fd",
+    ".agent-code-memory/manifest.json": "sha256:4a5eba55-e1256870-9e2f2afc-e0e35dbc-63ad9db2-9ac89665-16c681ed-3dc51cd4",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "sha256:d598cf00-052bcb9f-a76e4e71-a201a724-9abef6c9-85ad50a2-dca9940a-35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "sha256:f1391fb0-130c7384-f24230ed-44697d8e-6b19adbf-2f628cec-99d01551-0bf601e0",
     "apps/backend/package.json": "sha256:c3ba4f33-470c2feb-6ec70ef1-d6e01425-89d86cbb-3b982a09-39f013be-93f57e62",
@@ -41,7 +41,7 @@
     "apps/web/src/lib/ai/text-chunking.ts": "sha256:3f203119-23b36752-76f08186-e270fc93-63cc9849-fefb2ce0-356acb68-2dc77718",
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "sha256:191196ad-297d1de4-48d843d8-b0373bf1-9abfd5a8-0b66c532-29bd2564-5dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "sha256:26ff86d0-8aa7b7ef-d46f182a-c328ae1c-942f9919-94406d5d-dab8d392-da163dfa",
-    "package.json": "sha256:bc2381f6-184d4e6d-dca66963-6b1312ed-a9a12cd7-4b2ad292-5a578dee-fde4d987",
+    "package.json": "sha256:921b569c-8d317b61-87bc60ec-0a18bef7-367a9fa0-99695a08-18bac42b-1ae9c4b1",
     "packages/breakapp/package.json": "sha256:622ddcb2-854cb112-eac9bee2-7a40514c-5392b2d9-56f3eaff-0cf35ef1-52df8054",
     "packages/copyproj-schema/package.json": "sha256:41d05a05-3d60f305-cda9877b-31c19a15-b0cefc5a-f47953d9-f3f91043-c5197270",
     "packages/core-memory/package.json": "sha256:d6d336a7-fbd35beb-ec105f59-faf7f245-936b08bf-dad06b33-f28077c7-86e7436a",
@@ -68,15 +68,15 @@
     "scripts/agent/lib/persistent-memory/embedding.ts": "sha256:3bae7280-1444efce-e542bf09-4efd858d-086964db-f3de9d50-eec50ba2-7b05d388",
     "scripts/agent/lib/persistent-memory/embeddings.ts": "sha256:681eefa1-bb7f4687-86592c3f-136809bb-6ff3e41f-8b4b30f5-36f70555-b30dff16",
     "scripts/agent/lib/persistent-memory/index.ts": "sha256:60fcda10-bdc95b8d-4df9b7dd-ea184894-f7260990-3fe0e301-fbc8424a-a5ef0ea3",
-    "scripts/agent/lib/persistent-memory/infra.ts": "sha256:231104af-070a882c-4f0bade0-1f2e35a6-7e00d872-ed52f3f8-ad6d6a6f-71a1f0cb",
+    "scripts/agent/lib/persistent-memory/infra.ts": "sha256:73e21142-e394fcfb-bad68f85-09714b83-95821375-e2c34bb7-78f45516-35c3731c",
     "scripts/agent/lib/persistent-memory/injection.ts": "sha256:967dc073-c81d9b7f-549e9f12-41206067-f9ce935a-e5867578-6c0fda26-2f8ae194",
     "scripts/agent/lib/persistent-memory/metrics.ts": "sha256:33b18bd4-a2bf708c-fb46e786-e4844d48-589610a8-396352f3-295b03cd-0064b44f",
-    "scripts/agent/lib/persistent-memory/persistent-memory.test.ts": "sha256:94d6dd6b-f995e9de-5894001c-94b1fc9a-90b81bff-73c6f30b-ce287ebd-d48ab505",
-    "scripts/agent/lib/persistent-memory/postgres-store.ts": "sha256:18414bf9-465168f4-b3e3276d-f3de3802-13ba98a8-980687ad-9233c1fc-caf14f2c",
-    "scripts/agent/lib/persistent-memory/runtime.ts": "sha256:6f54d01c-47a736a8-35e1e7c8-680eda6e-d56fefe0-c20d616b-f6b2a8c6-8fcf8f9c",
+    "scripts/agent/lib/persistent-memory/persistent-memory.test.ts": "sha256:c3afe30f-122bcab7-31fc5420-32968e70-9313c8a3-5d249fef-83404e89-e908029d",
+    "scripts/agent/lib/persistent-memory/postgres-store.ts": "sha256:067f421e-c743b341-e9253c4e-3d308e2e-d05a94f6-88180902-36b18a53-87adebc7",
+    "scripts/agent/lib/persistent-memory/runtime.ts": "sha256:7de78849-4a25835c-d42b86b0-94682011-97f355be-68944b96-3910b289-8dc3a526",
     "scripts/agent/lib/persistent-memory/secrets.ts": "sha256:30a12a88-03a6cb9a-5b590189-45307cef-0bf92834-9bb842d4-1602869c-bf5b57fb",
     "scripts/agent/lib/persistent-memory/shadow-index.ts": "sha256:73115070-da4e9807-fbc211f5-158514a5-7966ef48-4bcafb5a-ad05e53d-2eb48f23",
-    "scripts/agent/lib/persistent-memory/startup-context.ts": "sha256:bd99bd2d-be808ad5-5bbdeb64-d5b747d6-d9032b0f-f3c943ad-26475d01-f1971731",
+    "scripts/agent/lib/persistent-memory/startup-context.ts": "sha256:77ff44b2-9781ead5-a2650712-1497386a-71118b2d-2351340d-b26c81c3-7fcb8ba5",
     "scripts/agent/lib/persistent-memory/store.ts": "sha256:7d2c7706-44fa5843-d915574d-cdbcdb3c-8461b8ee-ec0d2185-e513354b-3a38a59d",
     "scripts/agent/lib/persistent-memory/types.ts": "sha256:6d1cd121-4a8863c8-97618c4b-a8cb6315-c9aaf806-c21c6c5b-ff1b35b4-adf0f41a",
     "scripts/agent/lib/persistent-memory/vector-index.ts": "sha256:bd2ce0db-128c9ac0-e4e142c6-b2d02d9f-d46b07cf-d231f7f1-1995c558-a92f2b59",
@@ -99,18 +99,18 @@
   "driftReasons": [
     "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "bc9e19981e902940337afb3dde7fbf2c770373d0",
+  "headCommit": "77cd24529eb0a13e08420f6e302df1c4265727b3",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "sha256:4fd4299e-0e724730-252021bf-91065719-89947187-9f6f49a5-3b4bfb83-86a67873"
   },
   "knowledgeHash": "sha256:add8870f-e825f83f-3c2980af-305d3936-d2b33261-2f90b964-01724ec8-bb830547",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-05-02T10:48:16.264Z",
+  "lastBootstrapTimestamp": "2026-05-02T11:45:15.987Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:00a03a40-0b648a2b-ad256726-3117ef44-8580fa6d-2ced99a9-b7dc005b-d51dc5eb",
-    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:49934962-affd203d-6cf6af18-5a73a635-25d97246-58618ea1-81ec321b-b9461ddc",
-    "output/code-map/code-map.json": "sha256:6ef62b06-45fe2112-9f597e97-d84796c8-5b65eeaa-99d2662d-ff6aa37a-c056af46",
-    "output/code-map/CODEMAP.md": "sha256:46d97ce2-710cc7a3-2d9da3e2-b34db6b7-57e2d68c-e3b1ca78-8470f1a4-162787c4",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:420c7a5c-e2dda077-cadc8bd9-4760d6f8-2605532e-cd5190dd-03aedffe-9ca47075",
+    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:5f26717a-9dcc438e-9e76b0a9-8b99a3a5-d6ca55ef-a0dedfaa-4fb4c3f9-fb60a8df",
+    "output/code-map/code-map.json": "sha256:aebf4a3c-07aa9b21-39d98437-7e34456e-018ed62d-b8265b22-b3b8a8d6-3ea5323b",
+    "output/code-map/CODEMAP.md": "sha256:2040aa46-6e5c65d8-67daa7ef-acf2709f-6cfc320f-d8d1b8d9-e2295a6e-f3c073b0",
     "output/code-map/dependency-graph.md": "sha256:49deb450-7633f9c9-5a571a1b-06148da6-01f8a62b-86d63233-7be080cb-7abf4557",
     "output/code-map/entrypoints.md": "sha256:4a743c34-171ec148-646e54c4-edb7fa9f-c4b7ea0c-9be86e8a-2e163cc4-7914a2fb",
     "output/code-map/findings.md": "sha256:bcc0230e-8dc48409-071750cc-00089bb2-d231d1b5-45d8460f-90a9bd1e-8fbdd9ec",
@@ -122,8 +122,8 @@
     "output/mind-map/MINDMAP.md": "sha256:75a7224f-e591052a-0ddc8a12-865bf5cc-419ea1bc-f6215856-93499b3a-14db9b84",
     "output/mind-map/mindmap.mmd": "sha256:d3f3dd6d-dca5e6ad-52cbe963-6efd47a8-afcbbddf-5c11e26f-b5cf0aa0-df645350",
     "output/mind-map/rag-topology.mmd": "sha256:27b4e947-214abafb-9dba8606-4d0a204e-f802ae2a-1f622c87-b4573993-1c7e1d9e",
-    "output/round-notes.md": "sha256:7cc6439e-347295d7-d5c80ad4-f9035138-ea03aa88-5d6a612d-b778507c-4b567090",
-    "output/session-state.md": "sha256:8f31b064-11199a1f-9ca16268-829a3af9-60cccc87-df4bf68d-8a0e3a23-941eabb7"
+    "output/round-notes.md": "sha256:7d683f4e-9b83838a-8c9961e1-4672d1fc-6f55cf85-fbc322aa-2f226a18-bc485816",
+    "output/session-state.md": "sha256:c76a514b-6cd66f48-58c5fe8f-ee6f06ac-8abb4c7a-3904ad18-66c897b6-9ac16baf"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -133,7 +133,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "sha256:b2e5a896-f4fa78e4-ce5c9bb0-c2789b99-a9554245-3f2e1143-d70c193b-8d13fcad",
+  "repoFactsHash": "sha256:46c69ba1-df0a4482-4b3d143e-762f1fc1-a1177237-af61e68b-66c96270-ab54e289",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -233,6 +233,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "sha256:915e2439-fc95fb0e-acf871ce-926568a0-683cb5a1-affb74b0-9a1fea9b-f5484f49",
-  "workingTreeHash": "8b118b27b3be04f1bcc2ed287a5f8ae6752a94413d5511dedf30f59c53c94cff"
+  "structuralHash": "sha256:5f0084a8-5861a630-3821e0a3-15812e59-9bcff026-923bc8b7-baa502eb-2a53f2bc",
+  "workingTreeHash": "997a5dda90d1a7895058af7847f540f136780673c7cd2a312e5d3ec38959177b"
 }

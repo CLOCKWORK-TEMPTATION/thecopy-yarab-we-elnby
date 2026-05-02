@@ -166,12 +166,16 @@ export function renderStartupMemoryContext(context: StartupMemoryContext): strin
         `  source_ref: ${item.sourceRef}`,
         `  trust_level: ${item.trustLevel}`,
         `  model_version: ${item.modelVersionId}`,
-        `  text: ${item.content.replace(/\s+/g, " ").slice(0, 500)}`,
+        `  text: ${formatInjectedMemoryText(item.content)}`,
       );
     }
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function formatInjectedMemoryText(content: string): string {
+  return content.replace(/\s+/g, " ").trim().slice(0, 500).trimEnd();
 }
 
 export async function writeStartupMemoryContext(

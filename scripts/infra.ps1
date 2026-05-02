@@ -21,6 +21,7 @@ $ComposeFile = Join-Path $ProjectRoot 'podman-compose.infra.yml'
 $InfraEnvDir = Join-Path $env:LOCALAPPDATA 'TheCopy'
 $InfraEnvFile = Join-Path $InfraEnvDir 'podman-infra.env'
 $Services = @('postgres', 'redis', 'weaviate', 'qdrant')
+$DirectPodmanNetworkName = 'thecopy_thecopy-net'
 $ServiceContainers = @{
     postgres = 'thecopy-postgres-1'
     redis = 'thecopy-redis-1'
@@ -35,8 +36,42 @@ function Write-Msg([string]$Tag, [string]$Msg, [string]$Color = 'White') {
     Write-Host "[$Tag] $Msg" -ForegroundColor $Color
 }
 
+function Set-InfraPostgresPassword([string]$Password) {
+    New-Item -ItemType Directory -Force -Path $InfraEnvDir | Out-Null
+    Set-Content -LiteralPath $InfraEnvFile -Value "POSTGRES_PASSWORD=$Password" -Encoding UTF8
+    $env:POSTGRES_PASSWORD = $Password
+}
+
+function Get-ContainerEnvValue([string]$Name, [string]$Key) {
+    if ([string]::IsNullOrWhiteSpace($script:PodmanExe)) {
+        return ''
+    }
+    if (-not (Test-ContainerExists $Name)) {
+        return ''
+    }
+
+    $result = Invoke-NativeCapture $script:PodmanExe @('inspect', '--format', '{{range .Config.Env}}{{println .}}{{end}}', $Name)
+    if ($result.ExitCode -ne 0) {
+        return ''
+    }
+
+    foreach ($line in ($result.Output -split "`r?`n")) {
+        if ($line.StartsWith("${Key}=")) {
+            return $line.Substring($Key.Length + 1)
+        }
+    }
+
+    return ''
+}
+
 function Ensure-InfraEnvironment {
     if (-not [string]::IsNullOrWhiteSpace($env:POSTGRES_PASSWORD)) {
+        return
+    }
+
+    $existingContainerPassword = Get-ContainerEnvValue 'thecopy-postgres-1' 'POSTGRES_PASSWORD'
+    if (-not [string]::IsNullOrWhiteSpace($existingContainerPassword)) {
+        Set-InfraPostgresPassword $existingContainerPassword
         return
     }
 
@@ -50,11 +85,16 @@ function Ensure-InfraEnvironment {
         }
     }
 
-    New-Item -ItemType Directory -Force -Path $InfraEnvDir | Out-Null
-    $rawPassword = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(24))
+    $passwordBytes = New-Object byte[] 24
+    $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $rng.GetBytes($passwordBytes)
+    } finally {
+        $rng.Dispose()
+    }
+    $rawPassword = [Convert]::ToBase64String($passwordBytes)
     $generatedPassword = $rawPassword.Replace('+', '-').Replace('/', '_').TrimEnd('=')
-    Set-Content -LiteralPath $InfraEnvFile -Value "POSTGRES_PASSWORD=$generatedPassword" -Encoding UTF8
-    $env:POSTGRES_PASSWORD = $generatedPassword
+    Set-InfraPostgresPassword $generatedPassword
 }
 
 function Resolve-Podman {
@@ -66,6 +106,26 @@ function Resolve-Podman {
     $candidates = @(
         'C:\Program Files\RedHat\Podman\podman.exe',
         'C:\Program Files (x86)\RedHat\Podman\podman.exe'
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    return ''
+}
+
+function Resolve-PodmanComposeProvider {
+    $cmd = Get-Command podman-compose -ErrorAction SilentlyContinue
+    if ($cmd) {
+        return $cmd.Source
+    }
+
+    $candidates = @(
+        'C:\Program Files\RedHat\Podman\podman-compose.exe',
+        'C:\Program Files (x86)\RedHat\Podman\podman-compose.exe'
     )
 
     foreach ($candidate in $candidates) {
@@ -90,6 +150,32 @@ function Test-ExternalCommand([string]$Executable, [string[]]$Arguments) {
         return $LASTEXITCODE -eq 0
     } catch {
         return $false
+    } finally {
+        if ($hasNativePreference) {
+            $PSNativeCommandUseErrorActionPreference = $previousNativePreference
+        }
+    }
+}
+
+function Invoke-NativeCapture([string]$Executable, [string[]]$Arguments) {
+    $previousNativePreference = $null
+    $hasNativePreference = Get-Variable -Name PSNativeCommandUseErrorActionPreference -ErrorAction SilentlyContinue
+    if ($hasNativePreference) {
+        $previousNativePreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $false
+    }
+
+    try {
+        $output = (& $Executable @Arguments 2>&1 | Out-String).Trim()
+        return @{
+            ExitCode = $LASTEXITCODE
+            Output = $output
+        }
+    } catch {
+        return @{
+            ExitCode = 1
+            Output = $_.Exception.Message
+        }
     } finally {
         if ($hasNativePreference) {
             $PSNativeCommandUseErrorActionPreference = $previousNativePreference
@@ -126,6 +212,30 @@ function Ensure-PodmanMachine([string]$PodmanExecutable) {
     return $false
 }
 
+function Test-PodmanComposeProvider([string]$PodmanExecutable, [string]$ComposeProvider) {
+    if ([string]::IsNullOrWhiteSpace($ComposeProvider)) {
+        return $false
+    }
+
+    $env:PODMAN_COMPOSE_PROVIDER = $ComposeProvider
+    try {
+        $result = Invoke-NativeCapture $PodmanExecutable @('compose', 'version')
+        if ($result.ExitCode -ne 0) {
+            return $false
+        }
+        $providerOutput = $result.Output.ToLowerInvariant()
+        $blockedProviders = @('docker-compose', ('docker' + ' compose'), ('docker' + ' desktop'))
+        foreach ($blockedProvider in $blockedProviders) {
+            if ($providerOutput -match [regex]::Escape($blockedProvider)) {
+                return $false
+            }
+        }
+        return $true
+    } catch {
+        return $false
+    }
+}
+
 function Test-Podman {
     $script:PodmanExe = Resolve-Podman
     if ([string]::IsNullOrEmpty($script:PodmanExe)) {
@@ -143,10 +253,11 @@ function Test-Podman {
         exit 1
     }
 
-    $env:PODMAN_COMPOSE_PROVIDER = 'podman-compose'
-    $script:ComposeAvailable = (Test-ExternalCommand $script:PodmanExe @('compose', 'version'))
+    $composeProvider = Resolve-PodmanComposeProvider
+    $script:ComposeAvailable = Test-PodmanComposeProvider $script:PodmanExe $composeProvider
     if (-not $script:ComposeAvailable) {
-        Write-Msg 'WARN' 'podman compose is not available; using direct Podman container commands.' 'Yellow'
+        Remove-Item Env:PODMAN_COMPOSE_PROVIDER -ErrorAction SilentlyContinue
+        Write-Msg 'WARN' 'podman-compose provider is not available; using direct Podman container commands.' 'Yellow'
     }
 }
 
@@ -191,9 +302,9 @@ function Test-HttpReady([string]$Url) {
 }
 
 function Ensure-Network {
-    $null = & $script:PodmanExe network exists thecopy-net 2>$null
+    $null = & $script:PodmanExe network exists $DirectPodmanNetworkName 2>$null
     if ($LASTEXITCODE -ne 0) {
-        & $script:PodmanExe network create thecopy-net | Out-Null
+        & $script:PodmanExe network create $DirectPodmanNetworkName | Out-Null
     }
 }
 
@@ -226,7 +337,7 @@ function Invoke-DirectUp {
     Ensure-Volume 'thecopy_qdrantdata'
 
     Start-Or-Run 'thecopy-postgres-1' @(
-        '--network', 'thecopy-net',
+        '--network', $DirectPodmanNetworkName,
         '-p', '5433:5432',
         '-e', 'POSTGRES_USER=thecopy',
         '-e', "POSTGRES_PASSWORD=$env:POSTGRES_PASSWORD",
@@ -236,7 +347,7 @@ function Invoke-DirectUp {
     )
 
     Start-Or-Run 'thecopy-redis-1' @(
-        '--network', 'thecopy-net',
+        '--network', $DirectPodmanNetworkName,
         '-p', '6379:6379',
         '-v', 'thecopy_redisdata:/data',
         'docker.io/library/redis:7-alpine',
@@ -246,7 +357,7 @@ function Invoke-DirectUp {
     )
 
     Start-Or-Run 'thecopy-weaviate-1' @(
-        '--network', 'thecopy-net',
+        '--network', $DirectPodmanNetworkName,
         '-p', '8080:8080',
         '-e', 'QUERY_DEFAULTS_LIMIT=25',
         '-e', 'AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true',
@@ -258,7 +369,7 @@ function Invoke-DirectUp {
     )
 
     Start-Or-Run 'thecopy-qdrant-1' @(
-        '--network', 'thecopy-net',
+        '--network', $DirectPodmanNetworkName,
         '-p', '6333:6333',
         '-p', '6334:6334',
         '-v', 'thecopy_qdrantdata:/qdrant/storage',
@@ -348,7 +459,12 @@ function Get-ServiceHealth([string]$Svc) {
     if ([string]::IsNullOrEmpty($cid)) { return 'missing' }
     if (-not (Test-ContainerExists $cid)) { return 'missing' }
 
-    $h = & $script:PodmanExe inspect --format $HealthFmt $cid 2>$null
+    $inspect = Invoke-NativeCapture $script:PodmanExe @('inspect', '--format', $HealthFmt, $cid)
+    if ($inspect.ExitCode -ne 0) {
+        return 'starting'
+    }
+
+    $h = $inspect.Output
     if ([string]::IsNullOrEmpty($h) -or $h.Trim() -eq '<no value>') {
         return 'starting'
     }
