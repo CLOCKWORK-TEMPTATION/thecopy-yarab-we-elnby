@@ -34,7 +34,12 @@ const shouldUseCiChromiumProjectSet =
   !!process.env["CI"] &&
   !hasExplicitProjectSelection &&
   process.env["PLAYWRIGHT_ALL_PROJECTS"] !== "1";
-const e2eBuildCommand = "cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm run build";
+const e2eBuildCommand = process.env["CI"]
+  ? [
+      "cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 NEXT_OUTPUT_MODE=standalone pnpm run build",
+      "node scripts/prepare-standalone-assets.mjs",
+    ].join(" && ")
+  : "cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 pnpm run build";
 const e2eRuntimeEnv = `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 PORT=${webServerPort} HOSTNAME=0.0.0.0`;
 const webServerCommand = process.env["CI"]
   ? [

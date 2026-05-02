@@ -1,9 +1,12 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { expect, test } from "@playwright/test";
-
-import type { APIRequestContext } from "@playwright/test";
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+} from "@playwright/test";
 
 async function ensureArtifactDir(): Promise<string> {
   const artifactDir = path.resolve(
@@ -47,6 +50,18 @@ async function clearBudgetState(
   });
 }
 
+async function gotoReadyBudgetPage(page: Page, baseURL: string): Promise<void> {
+  await page.goto(`${baseURL}/BUDGET`, {
+    waitUntil: "domcontentloaded",
+  });
+
+  await expect(page.getByTestId("budget-title-input")).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(page.getByTestId("budget-scenario-input")).toBeVisible();
+  await expect(page.getByTestId("budget-generate-button")).toBeVisible();
+}
+
 test.describe("budget runtime", () => {
   test.describe.configure({ mode: "serial" });
   // تعليق عربي: هذا المسار يشغّل توليدًا حيًا وتصديرًا فعليًا ثم يتحقق من الاستعادة،
@@ -58,17 +73,22 @@ test.describe("budget runtime", () => {
     request,
     context,
     baseURL,
-  }) => {
+    browserName,
+  }, testInfo) => {
     const resolvedBaseURL = baseURL ?? "http://127.0.0.1:5000";
     const artifactDir = await ensureArtifactDir();
+    const shouldCollectManualTrace =
+      browserName === "chromium" && testInfo.retry === 0;
+    let manualTraceStarted = false;
 
     await clearBudgetState(resolvedBaseURL, request);
-    await context.tracing.start({ screenshots: true, snapshots: true });
+    if (shouldCollectManualTrace) {
+      await context.tracing.start({ screenshots: true, snapshots: true });
+      manualTraceStarted = true;
+    }
 
     try {
-      await page.goto(`${resolvedBaseURL}/BUDGET`, {
-        waitUntil: "networkidle",
-      });
+      await gotoReadyBudgetPage(page, resolvedBaseURL);
 
       await page.getByTestId("budget-title-input").fill("مطاردة الكورنيش");
       await page
@@ -122,7 +142,10 @@ test.describe("budget runtime", () => {
       const download = await downloadPromise;
       await download.saveAs(path.join(artifactDir, "budget-export.xlsx"));
 
-      await page.reload({ waitUntil: "networkidle" });
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await expect(page.getByTestId("budget-title-input")).toBeVisible({
+        timeout: 60_000,
+      });
       await expect(page.getByTestId("budget-title-input")).toHaveValue(
         "مطاردة الكورنيش"
       );
@@ -131,9 +154,17 @@ test.describe("budget runtime", () => {
         "آخر حفظ"
       );
     } finally {
-      await context.tracing.stop({
-        path: path.join(artifactDir, "budget-success-trace.zip"),
-      });
+      if (manualTraceStarted) {
+        try {
+          await context.tracing.stop({
+            path: path.join(artifactDir, "budget-success-trace.zip"),
+          });
+        } catch (error) {
+          if (!String(error).includes("has been closed")) {
+            console.warn("budget trace stop failed", error);
+          }
+        }
+      }
     }
   });
 
@@ -147,9 +178,7 @@ test.describe("budget runtime", () => {
 
     await clearBudgetState(resolvedBaseURL, request);
 
-    await page.goto(`${resolvedBaseURL}/BUDGET`, {
-      waitUntil: "networkidle",
-    });
+    await gotoReadyBudgetPage(page, resolvedBaseURL);
 
     await page.getByTestId("budget-title-input").fill("اختبار بلا سيناريو");
     await page.getByTestId("budget-generate-button").click();

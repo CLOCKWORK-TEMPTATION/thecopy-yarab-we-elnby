@@ -6,11 +6,11 @@
 
 ### وقت الرصد الحالي
 
-2026-05-02T19:52:39.975Z
+2026-05-02T22:06:52.241Z
 
 ### آخر مزامنة مرجعية
 
-2026-05-02T18:50:44.848Z
+2026-05-02T22:06:52.241Z
 
 ### نوع الرصد
 
@@ -29,12 +29,14 @@
 
 ### ما الذي تم تحديثه
 
+- output/code-map/code-map.json
+- output/code-map/CODEMAP.md
 - output/session-state.md
 - .repo-agent/AGENT-CONTEXT.generated.md
 
 ### مستوى drift
 
-`no-drift`
+`hard-drift`
 
 ### حالة طبقة المعرفة والاسترجاع
 
