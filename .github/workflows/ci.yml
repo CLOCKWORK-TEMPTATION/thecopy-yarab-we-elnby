@@ -459,7 +459,7 @@ jobs:
         run: pnpm --filter @the-copy/web exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm --filter @the-copy/web e2e -- --project=chromium --shard=${{ matrix.shard }}/4
+        run: pnpm --filter @the-copy/web exec playwright test --project=chromium --shard=${{ matrix.shard }}/4
         env:
           CI: true
 

@@ -95,11 +95,11 @@
     "scripts/generate-workspace-embeddings.js": "sha256:84645616-351067c2-7fe3ade3-04a5fbbb-ef06d077-78b8a6f0-af9998ab-b7e76d83",
     "turbo.json": "sha256:80a68d93-28eb29c0-0d456888-369d9d2d-c39a32b5-00445138-16a30a4d-df5857ee"
   },
-  "driftLevel": "hard-drift",
+  "driftLevel": "no-drift",
   "driftReasons": [
-    "تغيرت الملفات البنيوية الحرجة"
+    "لا يوجد drift مؤثر"
   ],
-  "headCommit": "48d007d20fdd095e85f04962eff6b335ef787bae",
+  "headCommit": "ad0db1afb14ff93c38721f4e8562fcec61d99451",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "sha256:4fd4299e-0e724730-252021bf-91065719-89947187-9f6f49a5-3b4bfb83-86a67873"
   },
@@ -107,8 +107,8 @@
   "knowledgeStatus": "governed",
   "lastBootstrapTimestamp": "2026-05-02T18:50:44.848Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:74e6de64-76a718ac-09120a5f-c5a9cc7d-6b57da89-b2bfaf6a-a707bbef-b5b8ec20",
-    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:fad0e0ef-55a71c59-f3258260-ccc02d9b-629d3048-100f4ac9-5824a849-d660508f",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:97f81423-f60d6a15-3f3f4ff8-5434b205-3b8e25e8-2d307494-ee46773d-e287f733",
+    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:b07a3010-6d231487-79b0e297-d9dc0efa-277835d7-6121ffad-78ace039-864e3f7f",
     "output/code-map/code-map.json": "sha256:049afe2b-f9477dee-fd84c87b-b614329e-1b453838-98825487-50595501-3157678e",
     "output/code-map/CODEMAP.md": "sha256:dcb1165a-969f734c-217358ee-2c743b2b-916a6045-94fac24b-cf8b47de-3d9bb9ec",
     "output/code-map/dependency-graph.md": "sha256:49deb450-7633f9c9-5a571a1b-06148da6-01f8a62b-86d63233-7be080cb-7abf4557",
@@ -122,8 +122,8 @@
     "output/mind-map/MINDMAP.md": "sha256:75a7224f-e591052a-0ddc8a12-865bf5cc-419ea1bc-f6215856-93499b3a-14db9b84",
     "output/mind-map/mindmap.mmd": "sha256:d3f3dd6d-dca5e6ad-52cbe963-6efd47a8-afcbbddf-5c11e26f-b5cf0aa0-df645350",
     "output/mind-map/rag-topology.mmd": "sha256:27b4e947-214abafb-9dba8606-4d0a204e-f802ae2a-1f622c87-b4573993-1c7e1d9e",
-    "output/round-notes.md": "sha256:492b9aed-91c4cbe8-afbeda12-d10e059c-cc2760c3-924791b4-616dafa7-bbd8ec2a",
-    "output/session-state.md": "sha256:ba839d2b-08057ccb-4470fe68-c3f2529d-fd36ad81-ef877c19-c2d9e2b5-821506a0"
+    "output/round-notes.md": "sha256:0584c283-bc121cc8-c9728e3a-134c8a9a-856d1e97-edb2c3ae-01449728-3c57a1ec",
+    "output/session-state.md": "sha256:b7b49789-83aebe4d-5b61a37f-5449439d-e7d175e7-850084cc-274f9afa-230d1334"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -234,5 +234,5 @@
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
   "structuralHash": "sha256:ec211f61-a18b48a4-59d15116-aa6ba2c4-4719cfa2-35ed03db-aea6a44b-18f75348",
-  "workingTreeHash": "d88ff7377137831f15e94bd351b37ccd1933de63b38ad98201c3576c2bf27055"
+  "workingTreeHash": "193e3c94aaec82f80d7959436593daa351eba19d057e64b4887b37ad03eb2fa1"
 }

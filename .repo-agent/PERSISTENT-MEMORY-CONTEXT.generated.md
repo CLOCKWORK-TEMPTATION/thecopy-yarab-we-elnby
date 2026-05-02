@@ -2,11 +2,16 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: 796c77ec-4d8c-42ea-b8fe-d7eb8aa629fc
-audit_event_id: 64f344ba-fbf4-407f-8af3-351ff226ae0c
+retrieval_event_id: b70cfd2e-d5ae-4aff-a569-5f32e0df9b84
+audit_event_id: b9989082-398b-44d6-9e57-f488dc01df40
 
 ## Injected Memories
 
+- id: 3959b6bf-43b9-4fa9-9516-a3e2c9200059
+  source_ref: output/session-state.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T18:50:44.848Z | | الفرع الحالي | `codex/persistent-memory-production-ci-fix` | | آخر commit | `ad0db1afb14ff93c38721f4e8562fcec61d99451` | | حالة working tree | غير نظيفة — 1 ملف متغير | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة
 - id: bbfa2dcd-4ef5-4113-9245-09e4baf74874
   source_ref: output/session-state.md
   trust_level: medium
@@ -42,8 +47,3 @@ audit_event_id: 64f344ba-fbf4-407f-8af3-351ff226ae0c
   trust_level: medium
   model_version: baai-bge-m3-local
   text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T14:39:03.795Z | | الفرع الحالي | `codex/persistent-memory-production-ci-fix` | | آخر commit | `86db7c259e9efb8dddaf12075a2ea4c5c044bd85` | | حالة working tree | غير نظيفة — 12 ملف متغير | | مستوى drift | `no-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### مساحة
-- id: 306214d4-ecb9-497d-8693-decdd50dffdb
-  source_ref: output/session-state.md
-  trust_level: medium
-  model_version: baai-bge-m3-local
-  text: # الحالة التشغيلية الحالية ## تعريف الملف `output/session-state.md` هو المصدر الوحيد للحالة التشغيلية الحالية للمشروع. ## بيانات التحكم | البند | القيمة | |---|---| | آخر مزامنة مرجعية | 2026-05-02T11:45:15.987Z | | الفرع الحالي | `codex/persistent-memory-production-followup` | | آخر commit | `77cd24529eb0a13e08420f6e302df1c4265727b3` | | حالة working tree | غير نظيفة — 19 ملف متغير | | مستوى drift | `hard-drift` | ## الحقيقة التشغيلية الحالية ### مدير الحزم الرسمي ```text pnpm@10.32.1 ``` ### م

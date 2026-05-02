@@ -6,9 +6,9 @@
 |---|---|
 | آخر مزامنة مرجعية | 2026-05-02T18:50:44.848Z |
 | الفرع الحالي | `codex/persistent-memory-production-ci-fix` |
-| آخر commit | `48d007d20fdd095e85f04962eff6b335ef787bae` |
-| حالة الشجرة | غير نظيفة — 2 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر commit | `ad0db1afb14ff93c38721f4e8562fcec61d99451` |
+| حالة الشجرة | غير نظيفة — 1 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## المرجع الحاكم
 
