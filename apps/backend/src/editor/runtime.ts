@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -7,7 +8,7 @@ import { definedProps } from "@/utils/defined-props";
 
 import type { Application, RequestHandler } from "express";
 
-type DynamicImport = <T>(modulePath: string) => Promise<T>;
+type NativeDynamicImport = <T>(modulePath: string) => Promise<T>;
 type RuntimeHandler = RequestHandler;
 interface ModelAvailability {
   available: boolean;
@@ -51,9 +52,6 @@ interface LoadedEditorRuntime {
   docxConverterScriptExists: boolean;
 }
 
-const dynamicImport: DynamicImport = async <T>(modulePath: string) =>
-  import(modulePath) as Promise<T>;
-
 const runtimeRoot = resolve(process.cwd(), "editor-runtime");
 let loadedRuntimePromise: Promise<LoadedEditorRuntime> | null = null;
 const googleModelHealthCache = new Map<
@@ -85,6 +83,35 @@ function buildRateLimiter(limit: number): RequestHandler {
 const extractLimiter = buildRateLimiter(100);
 const reviewLimiter = buildRateLimiter(100);
 const aiLimiter = buildRateLimiter(200);
+
+function isNativeDynamicImportModule(
+  value: unknown,
+): value is { nativeDynamicImport: NativeDynamicImport } {
+  const candidate = value as { nativeDynamicImport?: unknown };
+  return typeof candidate.nativeDynamicImport === "function";
+}
+
+function loadNativeDynamicImport(): NativeDynamicImport {
+  const helperPath = resolve(
+    __dirname,
+    "..",
+    "..",
+    "editor-runtime",
+    "native-dynamic-import.cjs",
+  );
+  const runtimeRequire = createRequire(__filename) as (
+    modulePath: string,
+  ) => unknown;
+  const imported = runtimeRequire(helperPath);
+
+  if (!isNativeDynamicImportModule(imported)) {
+    throw new Error("Editor runtime dynamic import helper is invalid.");
+  }
+
+  return imported.nativeDynamicImport;
+}
+
+const nativeDynamicImport = loadNativeDynamicImport();
 
 function toTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -212,7 +239,7 @@ async function resolveProviderModelAvailability(
 
 async function importRuntimeModule<T>(relativePath: string): Promise<T> {
   const moduleUrl = pathToFileURL(resolve(runtimeRoot, relativePath)).href;
-  return dynamicImport<T>(moduleUrl);
+  return nativeDynamicImport<T>(moduleUrl);
 }
 
 async function loadEditorRuntime(): Promise<LoadedEditorRuntime> {

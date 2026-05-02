@@ -1,4 +1,7 @@
 const DEV_DEFAULT_FILE_EXTRACT_ENDPOINT = "/api/file-extract";
+const PRODUCTION_BACKEND_HOSTS = new Set([
+  "backend-thecopy-production.up.railway.app",
+]);
 
 const normalizeTrailingSlash = (value: string): string =>
   value.replace(/\/$/, "");
@@ -25,11 +28,30 @@ const toAbsoluteOrRelativeUrl = (value: string): string => {
   return normalizeTrailingSlash(trimmed);
 };
 
+const isKnownProductionBackendUrl = (value: string): boolean => {
+  if (!/^https?:\/\//i.test(value)) {
+    return false;
+  }
+
+  try {
+    return PRODUCTION_BACKEND_HOSTS.has(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+};
+
 export const resolveFileImportExtractEndpoint = (): string => {
   const configured = process.env.NEXT_PUBLIC_FILE_IMPORT_BACKEND_URL ?? "";
   const resolved = toAbsoluteOrRelativeUrl(configured);
 
   if (resolved) {
+    if (
+      process.env.NODE_ENV === "development" &&
+      isKnownProductionBackendUrl(resolved)
+    ) {
+      return DEV_DEFAULT_FILE_EXTRACT_ENDPOINT;
+    }
+
     return resolved;
   }
 
