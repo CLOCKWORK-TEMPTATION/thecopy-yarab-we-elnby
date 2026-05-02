@@ -451,7 +451,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm --filter @the-copy/web exec playwright install --with-deps
+        run: pnpm --filter @the-copy/web exec playwright install --with-deps chromium
 
       - name: Run E2E tests
         run: pnpm --filter @the-copy/web e2e
