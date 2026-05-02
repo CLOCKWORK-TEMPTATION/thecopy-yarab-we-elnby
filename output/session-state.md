@@ -10,8 +10,8 @@
 |---|---|
 | آخر مزامنة مرجعية | 2026-05-02T18:13:40.068Z |
 | الفرع الحالي | `codex/persistent-memory-production-ci-fix` |
-| آخر commit | `2c822d7407644c6be161ed2ef796e87880b2d99e` |
-| حالة working tree | غير نظيفة — 14 ملف متغير |
+| آخر commit | `bf9afe168bc3727bf58f6faec24a8b0105aac2d3` |
+| حالة working tree | نظيفة |
 | مستوى drift | `no-drift` |
 
 ## الحقيقة التشغيلية الحالية
