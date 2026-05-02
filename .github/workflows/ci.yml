@@ -426,6 +426,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, build-frontend]
     if: github.event_name == 'pull_request' && needs.changes.outputs.frontend == 'true' && needs.build-frontend.result == 'success'
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -454,7 +459,7 @@ jobs:
         run: pnpm --filter @the-copy/web exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm --filter @the-copy/web e2e
+        run: pnpm --filter @the-copy/web e2e -- --project=chromium --shard=${{ matrix.shard }}/4
         env:
           CI: true
 
@@ -462,7 +467,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: apps/web/reports/e2e
           retention-days: 7
 
