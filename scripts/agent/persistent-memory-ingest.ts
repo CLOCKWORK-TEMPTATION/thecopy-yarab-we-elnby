@@ -1,14 +1,6 @@
 import { promises as fsp } from "node:fs";
 
-import {
-  createPersistentMemorySystem,
-  isPersistentMemoryInfraRequired,
-} from "./lib/persistent-memory";
-import { buildPersistentMemoryInfraConfig } from "./lib/persistent-memory/infra";
-import {
-  createPersistentMemorySqlClient,
-  PostgresPersistentMemoryStore,
-} from "./lib/persistent-memory/postgres-store";
+import { openPersistentMemoryRuntime } from "./lib/persistent-memory/runtime";
 import { fromRepoRoot } from "./lib/utils";
 
 const DEFAULT_INPUTS = [
@@ -17,30 +9,26 @@ const DEFAULT_INPUTS = [
 ];
 
 async function main(): Promise<void> {
-  const required = isPersistentMemoryInfraRequired();
-  const config = buildPersistentMemoryInfraConfig();
-  let client;
-
-  try {
-    client = await createPersistentMemorySqlClient(config.databaseUrl);
-  } catch {
-    const message =
-      "Persistent memory ingest is degraded because local infrastructure is not available.";
-    if (required) {
-      throw new Error(message);
-    }
-    console.log(message);
+  const runtime = await openPersistentMemoryRuntime();
+  if (!runtime.system) {
+    console.log(
+      JSON.stringify(
+        {
+          status: runtime.status,
+          reason: runtime.reason,
+        },
+        null,
+        2,
+      ),
+    );
     return;
   }
-
-  const store = new PostgresPersistentMemoryStore(client);
-  const system = createPersistentMemorySystem({ store });
 
   try {
     const results = [];
     for (const input of DEFAULT_INPUTS) {
       const content = await fsp.readFile(fromRepoRoot(input.path), "utf8");
-      const result = await system.ingestRawEvent({
+      const result = await runtime.system.ingestRawEvent({
         sourceRef: input.path,
         eventType: input.eventType,
         content,
@@ -49,9 +37,9 @@ async function main(): Promise<void> {
       results.push({ sourceRef: input.path, ...result });
     }
 
-    console.log(JSON.stringify({ results }, null, 2));
+    console.log(JSON.stringify({ status: runtime.status, results }, null, 2));
   } finally {
-    await store.close();
+    await runtime.close();
   }
 }
 
@@ -59,4 +47,3 @@ main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
-

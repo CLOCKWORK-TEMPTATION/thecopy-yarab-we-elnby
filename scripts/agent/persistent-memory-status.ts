@@ -1,49 +1,45 @@
 import {
   buildLatencyBudgetList,
   getPersistentMemoryVectorCapabilities,
-  isPersistentMemoryInfraRequired,
 } from "./lib/persistent-memory";
-import {
-  buildPersistentMemoryInfraConfig,
-  checkPersistentMemoryInfra,
-} from "./lib/persistent-memory/infra";
-import {
-  createPersistentMemorySqlClient,
-  PostgresPersistentMemoryStore,
-} from "./lib/persistent-memory/postgres-store";
+import { probePersistentMemoryInfra } from "./lib/persistent-memory/infra";
+import { openPersistentMemoryRuntime } from "./lib/persistent-memory/runtime";
 
 async function main(): Promise<void> {
-  const required = isPersistentMemoryInfraRequired();
-  const infra = await checkPersistentMemoryInfra();
-  if (infra.status !== "ready") {
+  const infra = await probePersistentMemoryInfra();
+
+  if (infra.missingRequired.length > 0) {
     console.log(
       JSON.stringify(
         {
-          status: required ? "failed" : "degraded",
-          required,
-          components: infra.components,
+          status: "failed",
+          required: infra.required,
+          missingRequired: infra.missingRequired,
+          postgres: infra.postgres,
+          redis: infra.redis,
+          weaviate: infra.weaviate,
+          qdrant: infra.qdrant,
         },
         null,
         2,
       ),
     );
-    if (required) {
-      process.exit(1);
-    }
-    return;
+    process.exit(1);
   }
 
-  const config = buildPersistentMemoryInfraConfig();
-  const client = await createPersistentMemorySqlClient(config.databaseUrl);
-  const store = new PostgresPersistentMemoryStore(client);
+  const runtime = await openPersistentMemoryRuntime();
   try {
-    const memories = await store.listMemories();
+    const memories = runtime.store ? await runtime.store.listMemories() : [];
     console.log(
       JSON.stringify(
         {
-          status: "ready",
-          required,
-          components: infra.components,
+          status: runtime.status,
+          reason: runtime.reason,
+          required: infra.required,
+          postgres: infra.postgres,
+          redis: infra.redis,
+          weaviate: infra.weaviate,
+          qdrant: infra.qdrant,
           memories: memories.length,
           vectorCapabilities: {
             weaviatePrimary:
@@ -57,8 +53,11 @@ async function main(): Promise<void> {
         2,
       ),
     );
+    if (infra.required && runtime.status !== "ready") {
+      process.exit(1);
+    }
   } finally {
-    await store.close();
+    await runtime.close();
   }
 }
 
@@ -66,4 +65,3 @@ main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
-

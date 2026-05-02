@@ -8,9 +8,7 @@ async function main(): Promise<void> {
         {
           status: runtime.status,
           reason: runtime.reason,
-          jobTypes: ["embedding"],
-          durablePayloadPolicy: "ids-only",
-          queueSourceOfTruth: false,
+          schema: runtime.status === "ready" ? "ensured" : "degraded",
         },
         null,
         2,
@@ -25,3 +23,4 @@ main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
+

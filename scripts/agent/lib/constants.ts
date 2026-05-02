@@ -10,6 +10,8 @@ export interface IdeCandidate {
 export const REPO_ROOT = process.cwd();
 
 export const AGENT_CONTEXT_PATH = ".repo-agent/AGENT-CONTEXT.generated.md";
+export const PERSISTENT_MEMORY_CONTEXT_PATH =
+  ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md";
 export const FINGERPRINT_PATH = ".repo-agent/state-fingerprint.json";
 export const SESSION_STATE_PATH = "output/session-state.md";
 export const ROUND_NOTES_PATH = "output/round-notes.md";
@@ -81,6 +83,9 @@ export const INPUT_FACT_FILES = [
   "scripts/agent/lib/code-memory/store.ts",
   "scripts/agent/lib/code-memory/status.ts",
   "scripts/agent/lib/code-memory/types.ts",
+  "scripts/agent/lib/persistent-memory/startup-context.ts",
+  "scripts/agent/lib/persistent-memory/runtime.ts",
+  "scripts/agent/lib/persistent-memory/infra.ts",
   "apps/backend/src/memory/api/routes.ts",
   "apps/backend/src/memory/embeddings/generator.ts",
   "apps/backend/src/memory/indexer/repository-crawler.ts",

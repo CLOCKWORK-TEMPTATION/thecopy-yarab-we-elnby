@@ -78,7 +78,9 @@ export const rawEvents = persistentAgentMemorySchema.table("raw_events", {
   sourceRef: text("source_ref").notNull(),
   eventType: text("event_type").notNull(),
   contentHash: text("content_hash").notNull(),
-  rawText: text("raw_text").notNull(),
+  sanitizedContent: text("sanitized_content"),
+  secretScanStatus: text("secret_scan_status").notNull(),
+  rejectedReason: text("rejected_reason"),
   metadata: metadata(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -90,8 +92,15 @@ export const secretScanEvents = persistentAgentMemorySchema.table(
     sourceRef: text("source_ref").notNull(),
     eventType: text("event_type").notNull(),
     contentHash: text("content_hash").notNull(),
+    scannerName: text("scanner_name").notNull(),
     scannerVersion: text("scanner_version").notNull(),
-    findingIds: jsonb("finding_ids").$type<string[]>().default([]).notNull(),
+    status: text("status").notNull(),
+    matchedRuleIds: jsonb("matched_rule_ids")
+      .$type<string[]>()
+      .default([])
+      .notNull(),
+    redactedPreview: text("redacted_preview").notNull(),
+    actionTaken: text("action_taken").notNull(),
     redactedMetadata: jsonb("redacted_metadata")
       .$type<Record<string, unknown>>()
       .default({})
@@ -134,6 +143,7 @@ export const memories = persistentAgentMemorySchema.table("memories", {
   modelVersionId: text("model_version_id").notNull(),
   injectionProbability: real("injection_probability").default(0).notNull(),
   archived: boolean("archived").default(false).notNull(),
+  quarantined: boolean("quarantined").default(false).notNull(),
   metadata: metadata(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -195,10 +205,14 @@ export const retrievalEvents = persistentAgentMemorySchema.table(
     id: uuid("id").defaultRandom().primaryKey(),
     query: text("query").notNull(),
     intent: text("intent").notNull(),
+    selectedProfile: text("selected_profile"),
     resultMemoryIds: jsonb("result_memory_ids")
       .$type<string[]>()
       .default([])
       .notNull(),
+    scores: jsonb("scores").$type<Record<string, number>>().default({}).notNull(),
+    rerankerUsed: boolean("reranker_used").default(false).notNull(),
+    latencyMs: integer("latency_ms").default(0).notNull(),
     metadata: metadata(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -248,6 +262,31 @@ export const deadLetterJobs = persistentAgentMemorySchema.table(
     }),
     reason: text("reason").notNull(),
     metadata: metadata(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+);
+
+export const injectionQuarantine = persistentAgentMemorySchema.table(
+  "injection_quarantine",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    memoryId: uuid("memory_id").notNull(),
+    reason: text("reason").notNull(),
+    sourceRef: text("source_ref").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+);
+
+export const consolidationLog = persistentAgentMemorySchema.table(
+  "consolidation_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sourceMemoryIds: jsonb("source_memory_ids")
+      .$type<string[]>()
+      .default([])
+      .notNull(),
+    resultMemoryId: uuid("result_memory_id"),
+    action: text("action").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
 );

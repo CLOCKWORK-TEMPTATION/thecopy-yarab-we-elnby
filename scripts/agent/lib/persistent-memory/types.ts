@@ -10,6 +10,12 @@ export type PersistentMemoryEventType =
 
 export type TrustLevel = "low" | "medium" | "high";
 
+export type SecretScanStatus = "clean" | "rejected" | "quarantined";
+
+export type SecretScanAction = "stored" | "rejected" | "purged";
+
+export type PersistentMemoryRuntimeStatus = "ready" | "degraded" | "failed";
+
 export interface EmbeddingModelVersion {
   id: string;
   provider: string;
@@ -19,9 +25,18 @@ export interface EmbeddingModelVersion {
   metadata: Record<string, unknown>;
 }
 
+export interface EmbeddingProviderHealth {
+  status: PersistentMemoryRuntimeStatus;
+  modelName: string;
+  modelVersion: string;
+  dimensions: number;
+  details?: Record<string, unknown>;
+}
+
 export interface EmbeddingProviderAdapter {
   readonly modelVersion: EmbeddingModelVersion;
   embed(input: string[]): Promise<number[][]>;
+  health?(): Promise<EmbeddingProviderHealth>;
 }
 
 export type QueryIntent =
@@ -55,7 +70,9 @@ export interface PersistentRawEvent {
   sourceRef: string;
   eventType: PersistentMemoryEventType;
   contentHash: string;
-  content: string;
+  sanitizedContent: string | null;
+  secretScanStatus: SecretScanStatus;
+  rejectedReason?: string;
   metadata: Record<string, unknown>;
   createdAt: string;
 }
@@ -70,8 +87,12 @@ export interface SecretScanEvent {
   sourceRef: string;
   eventType: PersistentMemoryEventType;
   contentHash: string;
+  scannerName: string;
   scannerVersion: string;
-  findingIds: string[];
+  status: SecretScanStatus;
+  matchedRuleIds: string[];
+  redactedPreview: string;
+  actionTaken: SecretScanAction;
   redactedMetadata: Record<string, unknown>;
   createdAt: string;
 }
@@ -102,6 +123,9 @@ export interface PersistentMemoryRecord {
   modelVersionId: string;
   injectionProbability: number;
   createdAt: string;
+  updatedAt?: string;
+  archived?: boolean;
+  quarantined?: boolean;
 }
 
 export interface JobRun {
@@ -116,7 +140,11 @@ export interface RetrievalEvent {
   id: string;
   query: string;
   intent: QueryIntent;
+  selectedProfile?: QueryIntent;
   resultMemoryIds: string[];
+  scores?: Record<string, number>;
+  rerankerUsed?: boolean;
+  latencyMs?: number;
   createdAt: string;
 }
 
@@ -139,10 +167,35 @@ export interface MemoryRetrievalHit extends PersistentMemoryRecord {
   rank: number;
 }
 
+export interface PersistentMemoryIngestMetrics {
+  p95_ingest_ack_latency_ms: number;
+  p95_ingest_ready_latency_ms: number;
+  p95_secret_scan_latency_ms: number;
+  p95_embedding_job_latency_ms: number;
+  p95_vector_upsert_latency_ms: number;
+}
+
+export interface PersistentMemoryRetrievalMetrics {
+  p95_retrieval_without_reranker_ms?: number;
+  p95_retrieval_with_reranker_ms?: number;
+}
+
+export type PersistentMemoryLatencyMetricName =
+  | keyof PersistentMemoryIngestMetrics
+  | keyof PersistentMemoryRetrievalMetrics;
+
+export interface PersistentMemoryLatencyBudget {
+  metric: PersistentMemoryLatencyMetricName;
+  p95LimitMs: number;
+}
+
 export interface MemoryRetrievalResult {
   hits: MemoryRetrievalHit[];
   retrievalEventId: string;
   auditEventId: string;
+  selectedProfile: QueryIntent;
+  latencyMs: number;
+  rerankerUsed: boolean;
   metrics: PersistentMemoryRetrievalMetrics;
 }
 
@@ -167,26 +220,53 @@ export type PersistentMemoryVectorCapability =
   | "collection_aliases"
   | "atomic_alias_switch";
 
-export interface PersistentMemoryIngestMetrics {
-  p95_ingest_ack_latency_ms: number;
-  p95_ingest_ready_latency_ms: number;
-  p95_secret_scan_latency_ms: number;
-  p95_embedding_job_latency_ms: number;
-  p95_vector_upsert_latency_ms: number;
+export interface VectorPoint {
+  id: string;
+  vector: number[];
+  payload: Record<string, unknown>;
 }
 
-export interface PersistentMemoryRetrievalMetrics {
-  p95_retrieval_without_reranker_ms?: number;
-  p95_retrieval_with_reranker_ms?: number;
+export interface VectorQuery {
+  query: string;
+  vector?: number[];
+  topK: number;
+  filters?: Record<string, unknown>;
 }
 
-export type PersistentMemoryLatencyMetricName =
-  | keyof PersistentMemoryIngestMetrics
-  | keyof PersistentMemoryRetrievalMetrics;
+export interface VectorHit {
+  id: string;
+  score: number;
+  payload: Record<string, unknown>;
+}
 
-export interface PersistentMemoryLatencyBudget {
-  metric: PersistentMemoryLatencyMetricName;
-  p95LimitMs: number;
+export interface VectorIndexHealth {
+  status: PersistentMemoryRuntimeStatus;
+  name: string;
+  details?: Record<string, unknown>;
+}
+
+export interface InjectionQuarantineRecord {
+  id: string;
+  memoryId: string;
+  reason: string;
+  sourceRef: string;
+  createdAt: string;
+}
+
+export interface ConsolidationLogEntry {
+  id: string;
+  sourceMemoryIds: string[];
+  resultMemoryId?: string;
+  action: string;
+  createdAt: string;
+}
+
+export interface PurgeResult {
+  purgedRawEvents: number;
+  purgedMemories: number;
+  quarantinedMemories: number;
+  vectorDeletedIds: string[];
+  auditEventId: string;
 }
 
 export interface PersistentMemoryStore {
@@ -199,6 +279,9 @@ export interface PersistentMemoryStore {
   insertJobRun(job: Omit<JobRun, "id" | "createdAt">): Promise<JobRun>;
   insertRetrievalEvent(event: Omit<RetrievalEvent, "id" | "createdAt">): Promise<RetrievalEvent>;
   insertAuditLog(entry: Omit<AuditLogEntry, "id" | "createdAt">): Promise<AuditLogEntry>;
+  insertInjectionQuarantine?(entry: Omit<InjectionQuarantineRecord, "id" | "createdAt">): Promise<InjectionQuarantineRecord>;
+  insertConsolidationLog?(entry: Omit<ConsolidationLogEntry, "id" | "createdAt">): Promise<ConsolidationLogEntry>;
+  purgeBySourceRef?(sourceRef: string): Promise<{ rawEvents: number; memories: PersistentMemoryRecord[] }>;
   listMemories(): Promise<PersistentMemoryRecord[]>;
 }
 
@@ -206,6 +289,10 @@ export interface VectorIndexAdapter {
   readonly target: VectorIndexTarget;
   readonly capabilities: readonly PersistentMemoryVectorCapability[];
   upsertMemory(memory: PersistentMemoryRecord, vector?: number[]): Promise<void>;
+  upsert?(points: VectorPoint[]): Promise<void>;
+  delete?(ids: string[]): Promise<void>;
+  search?(query: VectorQuery): Promise<VectorHit[]>;
+  health?(): Promise<VectorIndexHealth>;
   rebuild(memories: PersistentMemoryRecord[]): Promise<VectorIndexRebuildResult>;
 }
 
@@ -215,6 +302,6 @@ export interface IngestResult {
   memoryCandidateId?: string;
   memoryId?: string;
   secretScanEventId?: string;
+  auditEventId?: string;
   metrics: PersistentMemoryIngestMetrics;
 }
-

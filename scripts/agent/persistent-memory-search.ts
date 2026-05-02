@@ -1,6 +1,6 @@
 import { openPersistentMemoryRuntime } from "./lib/persistent-memory/runtime";
 
-export function readQuery(): string {
+function readQuery(): string {
   const queryFlagIndex = process.argv.indexOf("--query");
   if (queryFlagIndex >= 0) {
     return process.argv.slice(queryFlagIndex + 1).join(" ").trim();
@@ -8,9 +8,10 @@ export function readQuery(): string {
   return process.argv.slice(2).join(" ").trim();
 }
 
-export async function runPersistentMemorySearch(query: string): Promise<void> {
+async function main(): Promise<void> {
+  const query = readQuery();
   if (!query) {
-    throw new Error("A retrieval query is required.");
+    throw new Error("A search query is required.");
   }
 
   const runtime = await openPersistentMemoryRuntime();
@@ -49,7 +50,6 @@ export async function runPersistentMemorySearch(query: string): Promise<void> {
           selectedProfile: result.selectedProfile,
           latencyMs: result.latencyMs,
           rerankerUsed: result.rerankerUsed,
-          metrics: result.metrics,
         },
         null,
         2,
@@ -60,11 +60,8 @@ export async function runPersistentMemorySearch(query: string): Promise<void> {
   }
 }
 
-async function main(): Promise<void> {
-  await runPersistentMemorySearch(readQuery());
-}
-
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
+

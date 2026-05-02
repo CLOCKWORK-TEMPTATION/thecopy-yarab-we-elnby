@@ -11,7 +11,7 @@
     "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && pnpm exec esbuild src/server.ts --bundle --platform=node --format=cjs --target=node20 --packages=external --tsconfig=tsconfig.build.json --outfile=dist/server.js",
     "start:editor-runtime": "pnpm run start",
     "start": "node dist/server.js",
-    "start:prod": "pnpm run db:migrate && node dist/server.js",
+    "start:prod": "node scripts/wait-for-database.mjs && pnpm run db:migrate && node dist/server.js",
     "test": "vitest run --configLoader runner",
     "test:config": "vitest run src/config/env.test.ts",
     "test:coverage": "vitest run --configLoader runner --coverage",

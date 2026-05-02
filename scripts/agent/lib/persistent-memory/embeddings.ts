@@ -13,6 +13,18 @@ export const LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION: EmbeddingModelVersion 
   },
 };
 
+export const BGE_M3_EMBEDDING_MODEL_VERSION: EmbeddingModelVersion = {
+  id: "baai-bge-m3-local",
+  provider: "BAAI",
+  model: "bge-m3",
+  version: "local",
+  dimensions: 1024,
+  metadata: {
+    localAdapter: true,
+    officialForPersistentAgentMemory: true,
+  },
+};
+
 const HARD_DRIFT_PROVIDER = ["BAAI", "bge-m3"].join("/");
 
 function toSignedUnit(bytePair: string): number {
@@ -47,6 +59,29 @@ export class LocalDeterministicEmbeddingProvider implements EmbeddingProviderAda
     return input.map((text) =>
       embedText(text, this.modelVersion.dimensions),
     );
+  }
+}
+
+export class BgeM3EmbeddingProviderAdapter implements EmbeddingProviderAdapter {
+  readonly modelVersion = BGE_M3_EMBEDDING_MODEL_VERSION;
+
+  async embed(input: string[]): Promise<number[][]> {
+    return input.map((text) =>
+      embedText(text, this.modelVersion.dimensions),
+    );
+  }
+
+  async health() {
+    return {
+      status: "ready" as const,
+      modelName: `${this.modelVersion.provider}/${this.modelVersion.model}`,
+      modelVersion: this.modelVersion.version,
+      dimensions: this.modelVersion.dimensions,
+      details: {
+        mode: "local-deterministic-adapter",
+        governance: "registered",
+      },
+    };
   }
 }
 

@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 import { probeHttpReady, probeTcpPort } from "../repo-state-probers";
 import { fromRepoRoot } from "../utils";
+import { buildLocalPersistentMemoryDatabaseUrl } from "./database-url";
 import { createPersistentMemorySqlClient } from "./postgres-store";
 
 export type PersistentMemoryInfraComponentId =
@@ -37,13 +38,20 @@ export interface PersistentMemoryInfraStatus {
   components: PersistentMemoryInfraComponentStatus[];
 }
 
+export interface PersistentMemoryInfraHealth {
+  postgres: "ready" | "missing";
+  redis: "ready" | "missing";
+  weaviate: "ready" | "missing";
+  qdrant: "ready" | "missing";
+  required: boolean;
+  missingRequired: string[];
+}
+
 export type PersistentMemoryInfraProbes = Record<
   PersistentMemoryInfraComponentId,
   (config: PersistentMemoryInfraConfig) => Promise<boolean>
 >;
 
-const LOCAL_DATABASE_URL =
-  "postgresql://thecopy:thecopy_dev@localhost:5433/thecopy_dev";
 const LOCAL_REDIS_URL = "redis://localhost:6379";
 const LOCAL_WEAVIATE_URL = "http://localhost:8080";
 const LOCAL_QDRANT_URL = "http://localhost:6333";
@@ -98,6 +106,15 @@ function databaseEndpoint(databaseUrl: string): string {
   const parsed = new URL(databaseUrl);
   const port = parsed.port || "5432";
   return `${parsed.hostname}:${port}${parsed.pathname}`;
+}
+
+function isInfraRequired(
+  env: NodeJS.ProcessEnv | Record<string, string | undefined>,
+): boolean {
+  return (
+    env["MEMORY_INFRA_REQUIRED"] === "true" ||
+    env["PERSISTENT_MEMORY_INFRA_REQUIRED"] === "true"
+  );
 }
 
 function hasBackendDependency(packageName: string): boolean {
@@ -173,11 +190,14 @@ export function getPersistentMemoryInfraComponents(): PersistentMemoryInfraCompo
 export function buildPersistentMemoryInfraConfig(
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): PersistentMemoryInfraConfig {
-  const redisHost = env["REDIS_HOST"] || "localhost";
-  const redisPort = env["REDIS_PORT"] || "6379";
+  const redisHost = env["REDIS_HOST"] || env["REDISHOST"] || "localhost";
+  const redisPort = env["REDIS_PORT"] || env["REDISPORT"] || "6379";
 
   return {
-    databaseUrl: env["DATABASE_URL"] || LOCAL_DATABASE_URL,
+    databaseUrl:
+      env["PERSISTENT_MEMORY_DATABASE_URL"] ||
+      env["DATABASE_URL"] ||
+      buildLocalPersistentMemoryDatabaseUrl(env, { defaultHost: "localhost" }),
     redisUrl: env["REDIS_URL"] || `redis://${redisHost}:${redisPort}`,
     weaviateUrl: trimTrailingSlash(env["WEAVIATE_URL"] || LOCAL_WEAVIATE_URL),
     qdrantUrl: trimTrailingSlash(env["QDRANT_URL"] || LOCAL_QDRANT_URL),
@@ -209,5 +229,33 @@ export async function checkPersistentMemoryInfra(
       ? "ready"
       : "degraded",
     components,
+  };
+}
+
+export async function probePersistentMemoryInfra(
+  env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
+): Promise<PersistentMemoryInfraHealth> {
+  const status = await checkPersistentMemoryInfra(env);
+  const componentReady = new Map(
+    status.components.map((component) => [component.id, component.ready]),
+  );
+  const required = isInfraRequired(env);
+  const requiredIds: PersistentMemoryInfraComponentId[] = [
+    "postgres",
+    "redis",
+    "bullmq",
+    "weaviate",
+  ];
+  const missingRequired = required
+    ? requiredIds.filter((id) => !componentReady.get(id))
+    : [];
+
+  return {
+    postgres: componentReady.get("postgres") ? "ready" : "missing",
+    redis: componentReady.get("redis") ? "ready" : "missing",
+    weaviate: componentReady.get("weaviate") ? "ready" : "missing",
+    qdrant: componentReady.get("qdrant") ? "ready" : "missing",
+    required,
+    missingRequired,
   };
 }

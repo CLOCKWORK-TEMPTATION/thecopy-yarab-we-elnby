@@ -1,9 +1,10 @@
 import type {
   PersistentMemoryRecord,
   PersistentMemoryVectorCapability,
-  VectorIndexTarget,
   VectorIndexAdapter,
+  VectorIndexHealth,
   VectorIndexRebuildResult,
+  VectorIndexTarget,
 } from "./types";
 
 export const PERSISTENT_MEMORY_VECTOR_CAPABILITIES: Record<
@@ -75,5 +76,21 @@ export class InMemoryVectorIndexAdapter implements VectorIndexAdapter {
       sourceMemoryIds: memories.map((memory) => memory.id),
     };
   }
-}
 
+  async delete(ids: string[]): Promise<void> {
+    for (const id of ids) {
+      this.indexed.delete(id);
+      this.vectors.delete(id);
+    }
+  }
+
+  async health(): Promise<VectorIndexHealth> {
+    return {
+      status: "ready",
+      name: this.target,
+      details: {
+        indexed: this.indexed.size,
+      },
+    };
+  }
+}

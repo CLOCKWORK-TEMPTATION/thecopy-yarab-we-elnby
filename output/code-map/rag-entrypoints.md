@@ -15,11 +15,17 @@
 - `pnpm agent:persistent-memory:eval`
 - `pnpm agent:persistent-memory:eval:golden`
 - `pnpm agent:persistent-memory:eval:safety`
+- `pnpm agent:persistent-memory:index`
 - `pnpm agent:persistent-memory:ingest`
+- `pnpm agent:persistent-memory:init`
+- `pnpm agent:persistent-memory:migrate`
 - `pnpm agent:persistent-memory:retrieve`
+- `pnpm agent:persistent-memory:search`
+- `pnpm agent:persistent-memory:secrets:purge`
 - `pnpm agent:persistent-memory:secrets:scan`
 - `pnpm agent:persistent-memory:secrets:verify`
 - `pnpm agent:persistent-memory:status`
+- `pnpm agent:persistent-memory:watch`
 - `pnpm agent:persistent-memory:workers`
 - `pnpm workspace:embed`
 
@@ -42,10 +48,15 @@
 - `scripts/agent/guard.ts`
 - `scripts/agent/lib/persistent-memory/index.ts`
 - `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-index.ts`
 - `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-init.ts`
+- `scripts/agent/persistent-memory-migrate.ts`
 - `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-search.ts`
 - `scripts/agent/persistent-memory-secrets.ts`
 - `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-watch.ts`
 - `scripts/agent/persistent-memory-workers.ts`
 - `scripts/generate-workspace-embeddings.js`
 
@@ -106,22 +117,31 @@
 - `scripts/agent/lib/code-memory/status.ts`
 - `scripts/agent/lib/code-memory/store.ts`
 - `scripts/agent/lib/persistent-memory/budgets.ts`
+- `scripts/agent/lib/persistent-memory/embedding.ts`
 - `scripts/agent/lib/persistent-memory/embeddings.ts`
 - `scripts/agent/lib/persistent-memory/index.ts`
+- `scripts/agent/lib/persistent-memory/infra.ts`
 - `scripts/agent/lib/persistent-memory/injection.ts`
 - `scripts/agent/lib/persistent-memory/metrics.ts`
 - `scripts/agent/lib/persistent-memory/persistent-memory.test.ts`
 - `scripts/agent/lib/persistent-memory/postgres-store.ts`
+- `scripts/agent/lib/persistent-memory/runtime.ts`
 - `scripts/agent/lib/persistent-memory/secrets.ts`
 - `scripts/agent/lib/persistent-memory/shadow-index.ts`
+- `scripts/agent/lib/persistent-memory/startup-context.ts`
 - `scripts/agent/lib/persistent-memory/store.ts`
 - `scripts/agent/lib/persistent-memory/types.ts`
 - `scripts/agent/lib/persistent-memory/vector-index.ts`
 - `scripts/agent/persistent-memory-eval.ts`
+- `scripts/agent/persistent-memory-index.ts`
 - `scripts/agent/persistent-memory-ingest.ts`
+- `scripts/agent/persistent-memory-init.ts`
+- `scripts/agent/persistent-memory-migrate.ts`
 - `scripts/agent/persistent-memory-retrieve.ts`
+- `scripts/agent/persistent-memory-search.ts`
 - `scripts/agent/persistent-memory-secrets.ts`
 - `scripts/agent/persistent-memory-status.ts`
+- `scripts/agent/persistent-memory-watch.ts`
 - `scripts/agent/persistent-memory-workers.ts`
 - `scripts/generate-workspace-embeddings.js`
 - `WORKSPACE-EMBEDDING-INDEX.json`

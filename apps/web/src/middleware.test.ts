@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildContentSecurityPolicy } from "./middleware";
+import { buildContentSecurityPolicy } from "./proxy";
 
 describe("content security policy builder", () => {
   it("allows the inline bootstrap needed by the static production app", () => {

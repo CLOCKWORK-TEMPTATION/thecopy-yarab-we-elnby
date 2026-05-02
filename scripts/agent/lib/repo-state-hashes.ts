@@ -1,5 +1,6 @@
 import {
   AGENT_CONTEXT_PATH,
+  PERSISTENT_MEMORY_CONTEXT_PATH,
   CODE_MAP_FILES,
   INPUT_FACT_FILES,
   MIND_MAP_FILES,
@@ -16,6 +17,11 @@ import type { KnowledgeInventory } from "./knowledge-systems";
 import { uniqueSorted } from "./repo-state-parsers";
 import type { IdeTarget } from "./repo-state-types";
 
+function formatFingerprintHash(hash: string): string {
+  const grouped = hash.match(/.{1,8}/g)?.join("-") ?? hash;
+  return `sha256:${grouped}`;
+}
+
 /**
  * Compute hashes for input fact files
  */
@@ -26,7 +32,7 @@ export async function computeInputHashes(
   for (const repoRelativePath of uniqueSorted(filePaths)) {
     const hash = await sha256FileIfExists(fromRepoRoot(repoRelativePath));
     if (hash) {
-      hashes[repoRelativePath] = hash;
+      hashes[repoRelativePath] = formatFingerprintHash(hash);
     }
   }
   return hashes;
@@ -39,6 +45,7 @@ export async function computeOutputHashes(): Promise<Record<string, string>> {
   const hashes: Record<string, string> = {};
   const outputFiles = [
     AGENT_CONTEXT_PATH,
+    PERSISTENT_MEMORY_CONTEXT_PATH,
     SESSION_STATE_PATH,
     ROUND_NOTES_PATH,
     ...CODE_MAP_FILES,
@@ -50,7 +57,7 @@ export async function computeOutputHashes(): Promise<Record<string, string>> {
       ignoreVolatileGeneratedLines: true,
     });
     if (hash) {
-      hashes[repoRelativePath] = hash;
+      hashes[repoRelativePath] = formatFingerprintHash(hash);
     }
   }
   return hashes;
@@ -66,7 +73,7 @@ export async function computeIdeHashes(
   for (const ideTarget of ideTargets.filter((entry) => entry.required)) {
     const hash = await sha256FileIfExists(fromRepoRoot(ideTarget.path));
     if (hash) {
-      hashes[ideTarget.path] = hash;
+      hashes[ideTarget.path] = formatFingerprintHash(hash);
     }
   }
   return hashes;
@@ -78,7 +85,7 @@ export async function computeIdeHashes(
 export function createKnowledgeHash(
   knowledgeInventory: KnowledgeInventory,
 ): string {
-  return sha256(
+  return formatFingerprintHash(sha256(
     stableStringify({
       governanceStatus: knowledgeInventory.governanceStatus,
       totalSystems: knowledgeInventory.totalSystems,
@@ -113,14 +120,14 @@ export function createKnowledgeHash(
         })),
       })),
     }),
-  );
+  ));
 }
 
 /**
  * Create hash from repo facts
  */
 export function createFactsHash(facts: import("./repo-state-types").RepoFacts): string {
-  return sha256(
+  return formatFingerprintHash(sha256(
     stableStringify({
       packageManager: facts.packageManager,
       workspacePatterns: facts.workspacePatterns,
@@ -166,7 +173,7 @@ export function createFactsHash(facts: import("./repo-state-types").RepoFacts): 
         storage: facts.codeMemory.storage,
       },
     }),
-  );
+  ));
 }
 
 /**
@@ -176,7 +183,7 @@ export function createStructuralHash(
   structuralFiles: string[],
   criticalInputHashes: Record<string, string>,
 ): string {
-  return sha256(
+  return formatFingerprintHash(sha256(
     stableStringify({
       structuralFiles,
       hashes: Object.fromEntries(
@@ -186,5 +193,5 @@ export function createStructuralHash(
         ]),
       ),
     }),
-  );
+  ));
 }

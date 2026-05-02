@@ -65,6 +65,7 @@ const SECRET_RULES: SecretRule[] = [
 ];
 
 export class MemorySecretScanner {
+  readonly name = "memory-secret-scanner";
   readonly version = "memory-secret-scanner-v1";
   readonly policy = MEMORY_SECRET_SCAN_POLICY;
 
@@ -94,8 +95,49 @@ export class MemorySecretScanner {
       sourceRef: input.sourceRef,
       eventType: input.eventType,
       contentHash: sha256(input.content),
+      scannerName: this.name,
       scannerVersion: scan.scannerVersion,
-      findingIds: scan.findings.map((finding) => finding.ruleId),
+      status: "rejected",
+      matchedRuleIds: scan.findings.map((finding) => finding.ruleId),
+      redactedPreview: `redacted:${sha256(input.content).slice(0, 16)}`,
+      actionTaken: "rejected",
+      redactedMetadata: {
+        findingCount: scan.findings.length,
+        fingerprints: scan.findings.map((finding) => finding.fingerprint),
+      },
+    };
+  }
+
+  buildCleanEvent(input: IngestRawEventInput): Omit<SecretScanEvent, "id" | "createdAt"> {
+    const contentHash = sha256(input.content);
+    return {
+      sourceRef: input.sourceRef,
+      eventType: input.eventType,
+      contentHash,
+      scannerName: this.name,
+      scannerVersion: this.version,
+      status: "clean",
+      matchedRuleIds: [],
+      redactedPreview: `clean:${contentHash.slice(0, 16)}`,
+      actionTaken: "stored",
+      redactedMetadata: {
+        findingCount: 0,
+      },
+    };
+  }
+
+  buildPurgedEvent(input: IngestRawEventInput): Omit<SecretScanEvent, "id" | "createdAt"> {
+    const scan = this.scan(input.content);
+    return {
+      sourceRef: input.sourceRef,
+      eventType: input.eventType,
+      contentHash: sha256(input.content),
+      scannerName: this.name,
+      scannerVersion: scan.scannerVersion,
+      status: "quarantined",
+      matchedRuleIds: scan.findings.map((finding) => finding.ruleId),
+      redactedPreview: `purged:${sha256(input.content).slice(0, 16)}`,
+      actionTaken: "purged",
       redactedMetadata: {
         findingCount: scan.findings.length,
         fingerprints: scan.findings.map((finding) => finding.fingerprint),

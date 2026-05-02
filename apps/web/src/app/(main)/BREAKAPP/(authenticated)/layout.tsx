@@ -14,10 +14,11 @@
 import {
   ensureAuthenticated,
   getCurrentUser,
-  type CurrentUser,
-} from "@the-copy/breakapp";
+} from "@the-copy/breakapp/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import type { CurrentUser } from "@the-copy/breakapp/lib/types";
 
 export default function AuthenticatedLayout({
   children,

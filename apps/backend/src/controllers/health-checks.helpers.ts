@@ -80,12 +80,12 @@ const REQUIRED_DATABASE_SCHEMA: Record<string, string[]> = {
   ],
 };
 
-type SchemaRow = {
+interface SchemaRow {
   tableName?: string;
   table_name?: string;
   columnName?: string;
   column_name?: string;
-};
+}
 
 function getQueryRows(result: unknown): unknown[] {
   if (Array.isArray(result)) {

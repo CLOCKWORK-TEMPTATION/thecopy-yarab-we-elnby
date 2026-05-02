@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import http from "node:http";
+import https from "node:https";
+import { URL } from "node:url";
 
 const PORT = process.env.PORT || 3001;
 const WAIT_SECONDS = parseInt(
@@ -8,18 +10,47 @@ const WAIT_SECONDS = parseInt(
   10,
 );
 const startTime = Date.now();
+const baseHealthUrl =
+  process.env.BACKEND_HEALTH_BASE_URL || `http://127.0.0.1:${PORT}`;
+
+function resolveHealthUrl() {
+  let parsed;
+
+  try {
+    parsed = new URL(baseHealthUrl);
+  } catch {
+    console.error(`Invalid BACKEND_HEALTH_BASE_URL: ${baseHealthUrl}`);
+    process.exit(1);
+  }
+
+  if (parsed.pathname === "/" || parsed.pathname === "") {
+    parsed.pathname = "/health/live";
+  }
+
+  return parsed;
+}
+
+const healthUrl = resolveHealthUrl();
+const healthClient = healthUrl.protocol === "https:" ? https : http;
+
+if (healthUrl.protocol !== "http:" && healthUrl.protocol !== "https:") {
+  console.error(`Unsupported backend health protocol: ${healthUrl.protocol}`);
+  process.exit(1);
+}
 
 function checkHealth() {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: "127.0.0.1",
-      port: PORT,
-      path: "/health/live",
+      hostname: healthUrl.hostname,
+      port:
+        healthUrl.port ||
+        (healthUrl.protocol === "https:" ? "443" : "80"),
+      path: `${healthUrl.pathname}${healthUrl.search}`,
       method: "GET",
       timeout: 5000,
     };
 
-    const req = http.request(options, (res) => {
+    const req = healthClient.request(options, (res) => {
       const isHealthy = res.statusCode >= 200 && res.statusCode < 300;
       if (isHealthy) {
         resolve(true);

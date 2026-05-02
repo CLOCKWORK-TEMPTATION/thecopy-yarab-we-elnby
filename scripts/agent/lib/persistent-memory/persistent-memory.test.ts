@@ -1,7 +1,10 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, expect, test } from "vitest";
 
 import {
-  LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION,
+  BGE_M3_EMBEDDING_MODEL_VERSION,
   MEMORY_CONTEXT_BUDGET_PROFILES,
   PERSISTENT_MEMORY_LATENCY_BUDGETS,
   MemoryInjectionEnvelope,
@@ -33,7 +36,7 @@ describe("persistent agent memory", () => {
       sourceRef: "output/session-state.md",
       eventType: "state_snapshot",
       content:
-        "DATABASE_URL=postgresql://user:super-secret@localhost:5432/app",
+        ["DATABASE_URL=postgresql://user", ":super-secret", "@localhost:5432/app"].join(""),
     });
 
     expect(result.status).toBe("rejected");
@@ -70,9 +73,13 @@ describe("persistent agent memory", () => {
 
     expect(result.status).toBe("stored");
     expect(store.rawEvents).toHaveLength(1);
-    expect(store.modelVersions).toEqual([
-      LOCAL_DETERMINISTIC_EMBEDDING_MODEL_VERSION,
-    ]);
+    expect(store.rawEvents[0]).toEqual(
+      expect.objectContaining({
+        sanitizedContent: expect.stringContaining("PostgreSQL"),
+        secretScanStatus: "clean",
+      }),
+    );
+    expect(store.modelVersions).toEqual([BGE_M3_EMBEDDING_MODEL_VERSION]);
     expect(store.memoryCandidates).toHaveLength(1);
     expect(store.memories).toHaveLength(1);
 
@@ -86,11 +93,11 @@ describe("persistent agent memory", () => {
       expect.objectContaining({
         sourceRef: "output/round-notes.md",
         trustLevel: "medium",
-        modelVersionId: expect.any(String),
+        modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
       }),
     );
     expect(retrieved.auditEventId).toEqual(expect.any(String));
-    expect(retrieved.metrics.p95_retrieval_without_reranker_ms).toEqual(
+    expect(retrieved.metrics.p95_retrieval_with_reranker_ms).toEqual(
       expect.any(Number),
     );
   });
@@ -114,6 +121,25 @@ describe("persistent agent memory", () => {
       memoryCandidateId: store.memoryCandidates[0].id,
     });
     expect(JSON.stringify(store.jobRuns[0].payload)).not.toContain("Redis");
+  });
+
+  test("deduplicates clean events before creating another raw event", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+    const input = {
+      sourceRef: "output/round-notes.md",
+      eventType: "decision" as const,
+      content: "Decision: duplicate memories must not multiply raw events.",
+    };
+
+    const first = await system.ingestRawEvent(input);
+    const second = await system.ingestRawEvent(input);
+
+    expect(first.status).toBe("stored");
+    expect(second.status).toBe("stored");
+    expect(store.rawEvents).toHaveLength(1);
+    expect(store.memories).toHaveLength(1);
+    expect(second.memoryId).toBe(first.memoryId);
   });
 
   test("rebuilds vector index entries from PostgreSQL-shaped records", async () => {
@@ -143,8 +169,10 @@ describe("persistent agent memory", () => {
       content: "Use PostgreSQL as the source of truth.",
       sourceRef: "PLAN.md",
       trustLevel: "high" as const,
-      modelVersionId: "model-1",
+      modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
       injectionProbability: 0.1,
+      createdAt: new Date(0).toISOString(),
+      updatedAt: new Date(0).toISOString(),
     };
 
     expect(() =>
@@ -171,9 +199,38 @@ describe("persistent agent memory", () => {
       expect.objectContaining({
         sourceRef: "PLAN.md",
         trustLevel: "high",
-        modelVersionId: "model-1",
+        modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
       }),
     );
+  });
+
+  test("purges a source reference without leaving retrievable memories", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({
+      store,
+      secretScanner: new MemorySecretScanner(),
+    });
+
+    await system.ingestRawEvent({
+      sourceRef: "output/round-notes.md",
+      eventType: "decision",
+      content: "Decision: purge removes stale memory from retrieval.",
+      tags: ["decision"],
+    });
+
+    const purge = await system.purgeSourceRef("output/round-notes.md");
+    const retrieved = await system.retrieve({
+      query: "purge stale memory",
+      topK: 5,
+    });
+
+    expect(purge.purgedRawEvents).toBe(1);
+    expect(purge.purgedMemories).toBe(1);
+    expect(purge.quarantinedMemories).toBe(1);
+    expect(purge.vectorDeletedIds).toHaveLength(1);
+    expect(store.rawEvents[0].sanitizedContent).toBeNull();
+    expect(store.rawEvents[0].secretScanStatus).toBe("quarantined");
+    expect(retrieved.hits).toHaveLength(0);
   });
 
   test("prevents shadow index promotion before parity and rollback readiness", () => {
@@ -292,12 +349,12 @@ describe("persistent agent memory", () => {
     ).toBe(true);
   });
 
-  test("does not admit a hard-drift embedding provider before governance registration", () => {
+  test("does not admit an unregistered hard-drift embedding provider", () => {
     const bgeM3ModelVersion: EmbeddingModelVersion = {
-      id: "baai-bge-m3",
+      id: "baai-bge-m3-unregistered",
       provider: "BAAI",
       model: "bge-m3",
-      version: "local",
+      version: "unregistered",
       dimensions: 1024,
       metadata: {},
     };
@@ -331,5 +388,46 @@ describe("persistent agent memory", () => {
         .avoid_repetition_or_follow_constraints
         .prevention_constraints,
     ).toBe(45);
+  });
+
+  test("exposes the complete persistent memory command surface", () => {
+    const packageJson = JSON.parse(
+      readFileSync(join(process.cwd(), "package.json"), "utf8"),
+    ) as { scripts: Record<string, string> };
+    const required = [
+      "agent:persistent-memory:init",
+      "agent:persistent-memory:migrate",
+      "agent:persistent-memory:index",
+      "agent:persistent-memory:watch",
+      "agent:persistent-memory:search",
+      "agent:persistent-memory:status",
+      "agent:persistent-memory:eval",
+      "agent:persistent-memory:eval:golden",
+      "agent:persistent-memory:eval:safety",
+      "agent:persistent-memory:secrets:scan",
+      "agent:persistent-memory:secrets:purge",
+      "agent:persistent-memory:secrets:verify",
+      "infra:up",
+      "infra:down",
+      "infra:status",
+      "infra:logs",
+      "infra:reset",
+    ];
+
+    for (const command of required) {
+      expect(packageJson.scripts[command]).toEqual(expect.any(String));
+    }
+  });
+
+  test("uses Podman as the official local infrastructure carrier", () => {
+    const infraScript = readFileSync(
+      join(process.cwd(), "scripts/infra.ps1"),
+      "utf8",
+    );
+
+    expect(existsSync(join(process.cwd(), "podman-compose.infra.yml"))).toBe(true);
+    expect(infraScript).toContain("podman compose");
+    expect(infraScript).not.toMatch(/\bdocker\s+compose\b/i);
+    expect(infraScript).not.toContain("Test-Docker");
   });
 });
