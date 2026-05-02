@@ -14,6 +14,7 @@ import dotenvSafe from "dotenv-safe";
 let safeCheckRan = false;
 
 const OPTIONAL_ENV_SAFE_KEYS = new Set([
+  "NODE_ENV",
   "PORT",
   "NEXT_PUBLIC_BACKEND_URL",
   "CORS_ORIGIN",
@@ -138,6 +139,10 @@ function extractMissingKeys(error: unknown): string[] {
     return record.missing.map((item) => String(item));
   }
   if (typeof record.message === "string") {
+    const keys = record.message.match(/\b[A-Z][A-Z0-9_]+\b/g) ?? [];
+    if (keys.length > 0) {
+      return [...new Set(keys)];
+    }
     return [record.message];
   }
   return ["<unknown>"];

@@ -56,4 +56,32 @@ describe("persistent memory startup context", () => {
     expect(rendered).toContain("status: degraded");
     expect(rendered).toContain("local infrastructure is not available");
   });
+
+  test("trims injected memory excerpts before writing generated context", () => {
+    const rendered = renderStartupMemoryContext({
+      status: "ready",
+      retrievalEventId: "retrieval-1",
+      auditEventId: "audit-1",
+      envelope: {
+        zone: "memory_context",
+        items: [
+          {
+            id: "memory-1",
+            sourceRef: "output/session-state.md",
+            trustLevel: "high",
+            modelVersionId: "model-1",
+            score: 1,
+            content: `state with trailing whitespace ${" ".repeat(600)}`,
+          },
+        ],
+      },
+    });
+
+    const textLine = rendered
+      .split("\n")
+      .find((line) => line.startsWith("  text: "));
+
+    expect(textLine).toBeDefined();
+    expect(textLine?.endsWith(" ")).toBe(false);
+  });
 });

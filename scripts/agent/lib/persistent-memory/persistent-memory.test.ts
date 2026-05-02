@@ -427,7 +427,24 @@ describe("persistent agent memory", () => {
 
     expect(existsSync(join(process.cwd(), "podman-compose.infra.yml"))).toBe(true);
     expect(infraScript).toContain("podman compose");
+    expect(infraScript).toContain("Resolve-PodmanComposeProvider");
+    expect(infraScript).toContain("Remove-Item Env:PODMAN_COMPOSE_PROVIDER");
+    expect(infraScript).toContain("direct Podman container commands");
+    expect(infraScript).toContain("thecopy_thecopy-net");
+    expect(infraScript).toContain("Get-ContainerEnvValue");
     expect(infraScript).not.toMatch(/\bdocker\s+compose\b/i);
+    expect(infraScript).not.toMatch(/PODMAN_COMPOSE_PROVIDER\s*=\s*['"]docker-compose['"]/i);
     expect(infraScript).not.toContain("Test-Docker");
+  });
+
+  test("removes obsolete model version indexes during schema convergence", () => {
+    const postgresStore = readFileSync(
+      join(process.cwd(), "scripts/agent/lib/persistent-memory/postgres-store.ts"),
+      "utf8",
+    );
+
+    expect(postgresStore).toContain(
+      "DROP INDEX IF EXISTS persistent_agent_memory.model_versions_role_name_version_unique",
+    );
   });
 });

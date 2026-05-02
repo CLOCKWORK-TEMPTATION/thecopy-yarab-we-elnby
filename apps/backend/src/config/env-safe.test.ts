@@ -41,6 +41,16 @@ function mockDotenvSafe(missing: string[]): void {
   }));
 }
 
+function mockDotenvSafeMessage(message: string): void {
+  vi.doMock("dotenv-safe", () => ({
+    default: {
+      config: vi.fn(() => {
+        throw new Error(message);
+      }),
+    },
+  }));
+}
+
 beforeEach(() => {
   vi.resetModules();
   tempDir = "";
@@ -91,5 +101,35 @@ describe("env-safe optional infrastructure keys", () => {
     const { runEnvSafeCheck } = await import("./env-safe");
 
     expect(() => runEnvSafeCheck()).toThrow(/DATABASE_URL/);
+  });
+
+  it("does not fail when NODE_ENV is absent because env.ts owns its default", async () => {
+    mockDotenvSafe(["NODE_ENV"]);
+
+    const { runEnvSafeCheck } = await import("./env-safe");
+
+    expect(runEnvSafeCheck()).toMatchObject({
+      ok: true,
+      missing: ["NODE_ENV"],
+      skipped: false,
+    });
+  });
+
+  it("treats message-only persistent memory infra keys as optional", async () => {
+    mockDotenvSafeMessage(
+      "Missing environment variables: QDRANT_URL, PERSISTENT_MEMORY_INFRA_REQUIRED, MEMORY_INFRA_REQUIRED",
+    );
+
+    const { runEnvSafeCheck } = await import("./env-safe");
+
+    expect(runEnvSafeCheck()).toMatchObject({
+      ok: true,
+      missing: [
+        "QDRANT_URL",
+        "PERSISTENT_MEMORY_INFRA_REQUIRED",
+        "MEMORY_INFRA_REQUIRED",
+      ],
+      skipped: false,
+    });
   });
 });

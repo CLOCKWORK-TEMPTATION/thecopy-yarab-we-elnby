@@ -129,6 +129,9 @@ export async function ensurePersistentMemorySchema(
       ON persistent_agent_memory.model_versions (provider, model, version)
   `);
   await client.query(`
+    DROP INDEX IF EXISTS persistent_agent_memory.model_versions_role_name_version_unique
+  `);
+  await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.sessions (
       id uuid PRIMARY KEY,
       thread_id text NOT NULL,

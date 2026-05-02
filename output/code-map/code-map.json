@@ -1102,10 +1102,10 @@
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-05-01T17:26:21.613Z",
+    "generatedAt": "2026-05-02T11:37:55.565Z",
     "totalFiles": 2695,
-    "totalChunks": 5768,
-    "embeddedChunks": 5768,
+    "totalChunks": 5773,
+    "embeddedChunks": 5773,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,
@@ -1117,7 +1117,5 @@
     "qdrantCollection": null,
     "message": "Code memory is current."
   },
-  "openIssues": [
-    "لا توجد listeners محلية على `5433` و `6379` و `8080` و `6333` وقت الفحص"
-  ]
+  "openIssues": []
 }

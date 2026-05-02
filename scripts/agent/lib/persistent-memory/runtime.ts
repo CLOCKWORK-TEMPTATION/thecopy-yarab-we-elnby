@@ -8,7 +8,7 @@ import {
   type PersistentMemorySystem,
 } from "./index";
 import { probePersistentMemoryInfra } from "./infra";
-import { buildLocalPersistentMemoryDatabaseUrl } from "./database-url";
+import { resolvePersistentMemoryDatabaseUrl } from "./database-url";
 
 export interface PersistentMemoryRuntime {
   status: "ready" | "degraded";
@@ -21,11 +21,7 @@ export interface PersistentMemoryRuntime {
 export function getPersistentMemoryDatabaseUrl(
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): string {
-  return (
-    env.PERSISTENT_MEMORY_DATABASE_URL ||
-    env.DATABASE_URL ||
-    buildLocalPersistentMemoryDatabaseUrl(env, { defaultHost: "127.0.0.1" })
-  );
+  return resolvePersistentMemoryDatabaseUrl(env, { defaultHost: "127.0.0.1" });
 }
 
 export async function openPersistentMemoryRuntime(
