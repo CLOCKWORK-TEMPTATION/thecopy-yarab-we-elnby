@@ -1,25 +1,13 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import Link from "next/link";
-
 import { BatchResults } from "./components/BatchResults";
 import { OrderFilters } from "./components/OrderFilters";
+import { OrderList } from "./components/OrderList";
 import { useOrdersLive } from "./hooks/useOrdersLive";
 
-const OrderList = dynamic(
-  () => import("./components/OrderList").then((module) => module.OrderList),
-  {
-    ssr: false,
-    loading: () => (
-      <section className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">
-        <p className="text-white/55 text-center py-8 font-cairo">
-          جارٍ تحميل الطلبات...
-        </p>
-      </section>
-    ),
-  }
-);
+function navigateTo(path: string): void {
+  window.location.assign(path);
+}
 
 export default function DirectorOrdersLivePage() {
   const {
@@ -69,12 +57,13 @@ export default function DirectorOrdersLivePage() {
             >
               {connected ? "متصل لحظيّاً" : "غير متصل"}
             </span>
-            <Link
-              href="/BREAKAPP/director"
+            <button
+              type="button"
+              onClick={() => navigateTo("/BREAKAPP/director")}
               className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
             >
               رجوع للمخرج
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -83,24 +72,26 @@ export default function DirectorOrdersLivePage() {
           aria-label="تبويبات المخرج"
           className="mb-6 flex items-center gap-3"
         >
-          <Link
-            href="/BREAKAPP/director"
+          <button
+            type="button"
+            onClick={() => navigateTo("/BREAKAPP/director")}
             className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
           >
             الجلسة والموقع
-          </Link>
+          </button>
           <span
             className="px-4 py-2 text-sm bg-white/8 text-white font-cairo rounded-[22px] border border-white/12"
             aria-current="page"
           >
             الطلبات الحيّة
           </span>
-          <Link
-            href="/BREAKAPP/director/runners-map"
+          <button
+            type="button"
+            onClick={() => navigateTo("/BREAKAPP/director/runners-map")}
             className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
           >
             خريطة الـ Runners
-          </Link>
+          </button>
         </nav>
 
         <OrderFilters

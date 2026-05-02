@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 
 import { probeHttpReady, probeTcpPort } from "../repo-state-probers";
 import { fromRepoRoot } from "../utils";
+import { buildLocalPersistentMemoryDatabaseUrl } from "./database-url";
 import { createPersistentMemorySqlClient } from "./postgres-store";
 
 export type PersistentMemoryInfraComponentId =
@@ -51,8 +52,6 @@ export type PersistentMemoryInfraProbes = Record<
   (config: PersistentMemoryInfraConfig) => Promise<boolean>
 >;
 
-const LOCAL_DATABASE_URL =
-  "postgresql://thecopy:thecopy_dev@localhost:5433/thecopy_dev";
 const LOCAL_REDIS_URL = "redis://localhost:6379";
 const LOCAL_WEAVIATE_URL = "http://localhost:8080";
 const LOCAL_QDRANT_URL = "http://localhost:6333";
@@ -198,7 +197,7 @@ export function buildPersistentMemoryInfraConfig(
     databaseUrl:
       env["PERSISTENT_MEMORY_DATABASE_URL"] ||
       env["DATABASE_URL"] ||
-      LOCAL_DATABASE_URL,
+      buildLocalPersistentMemoryDatabaseUrl(env, { defaultHost: "localhost" }),
     redisUrl: env["REDIS_URL"] || `redis://${redisHost}:${redisPort}`,
     weaviateUrl: trimTrailingSlash(env["WEAVIATE_URL"] || LOCAL_WEAVIATE_URL),
     qdrantUrl: trimTrailingSlash(env["QDRANT_URL"] || LOCAL_QDRANT_URL),

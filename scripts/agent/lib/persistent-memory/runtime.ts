@@ -8,9 +8,7 @@ import {
   type PersistentMemorySystem,
 } from "./index";
 import { probePersistentMemoryInfra } from "./infra";
-
-export const DEFAULT_PERSISTENT_MEMORY_DATABASE_URL =
-  "postgresql://thecopy:thecopy_dev@127.0.0.1:5433/thecopy_dev";
+import { buildLocalPersistentMemoryDatabaseUrl } from "./database-url";
 
 export interface PersistentMemoryRuntime {
   status: "ready" | "degraded";
@@ -26,7 +24,7 @@ export function getPersistentMemoryDatabaseUrl(
   return (
     env.PERSISTENT_MEMORY_DATABASE_URL ||
     env.DATABASE_URL ||
-    DEFAULT_PERSISTENT_MEMORY_DATABASE_URL
+    buildLocalPersistentMemoryDatabaseUrl(env, { defaultHost: "127.0.0.1" })
   );
 }
 
@@ -66,4 +64,3 @@ export async function openPersistentMemoryRuntime(
     };
   }
 }
-

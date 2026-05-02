@@ -14,7 +14,6 @@
 import { useSocket } from "@the-copy/breakapp/hooks/useSocket";
 import { fetchBreakappJson } from "@the-copy/breakapp/lib/api-client";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -31,6 +30,10 @@ type ToastOptions = Parameters<typeof import("@/hooks/use-toast").toast>[0];
 async function showToast(options: ToastOptions): Promise<void> {
   const { toast } = await import("@/hooks/use-toast");
   toast(options);
+}
+
+function navigateTo(path: string): void {
+  window.location.assign(path);
 }
 
 const MapComponent = dynamic(
@@ -80,9 +83,7 @@ const STATUS_TONE_MAP: Record<RunnerStatus, string> = {
 // ── Module-level helpers ──────────────────────────────────────────────────────
 
 async function loadRunnersFromApi(sessionId: string): Promise<RunnerRecord[]> {
-  return fetchBreakappJson<RunnerRecord[]>(
-    `/breakapp/runners/session/${sessionId}`
-  );
+  return fetchBreakappJson<RunnerRecord[]>(`/runners/session/${sessionId}`);
 }
 
 function buildRunnerTrail(
@@ -350,27 +351,30 @@ function PageHeader({ connected }: PageHeaderProps) {
           >
             {connected ? "متصل لحظيّاً" : "غير متصل"}
           </span>
-          <Link
-            href="/BREAKAPP/director"
+          <button
+            type="button"
+            onClick={() => navigateTo("/BREAKAPP/director")}
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             رجوع للمخرج
-          </Link>
+          </button>
         </div>
       </div>
       <nav aria-label="تبويبات المخرج" className="mb-6 flex items-center gap-3">
-        <Link
-          href="/BREAKAPP/director"
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/director")}
           className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
         >
           الجلسة والموقع
-        </Link>
-        <Link
-          href="/BREAKAPP/director/orders-live"
+        </button>
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/director/orders-live")}
           className="px-4 py-2 text-sm bg-white/4 text-white/85 hover:bg-white/8 transition font-cairo rounded-[22px] border border-white/8"
         >
           الطلبات الحيّة
-        </Link>
+        </button>
         <span
           className="px-4 py-2 text-sm bg-white/8 text-white font-cairo rounded-[22px] border border-white/12"
           aria-current="page"

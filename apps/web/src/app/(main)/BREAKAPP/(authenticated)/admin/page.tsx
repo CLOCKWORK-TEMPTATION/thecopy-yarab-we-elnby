@@ -11,12 +11,23 @@
  * قبل الغوص في أي عملية CRUD تفصيلية، لذا تُجمع الإحصائيات هنا.
  */
 
-import { api, type Vendor } from "@the-copy/breakapp";
-import Link from "next/link";
+import { fetchBreakappJson } from "@the-copy/breakapp/lib/api-client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { toast } from "@/hooks/use-toast";
+
+import type { Vendor } from "@the-copy/breakapp/lib/types";
+
+type ToastOptions = Parameters<typeof import("@/hooks/use-toast").toast>[0];
+
+async function showToast(options: ToastOptions): Promise<void> {
+  const { toast } = await import("@/hooks/use-toast");
+  toast(options);
+}
+
+function navigateTo(path: string): void {
+  window.location.assign(path);
+}
 
 interface AdminProject {
   id: string;
@@ -56,12 +67,13 @@ function StatsGrid({ statCards, loading }: StatsGridProps) {
           <p className="text-4xl font-bold text-white font-cairo">
             {loading ? "…" : card.value === null ? "—" : card.value.toString()}
           </p>
-          <Link
-            href={card.href}
+          <button
+            type="button"
+            onClick={() => navigateTo(card.href)}
             className="mt-4 inline-block text-sm text-white/85 hover:text-white font-cairo transition"
           >
             فتح القسم ←
-          </Link>
+          </button>
         </CardSpotlight>
       ))}
     </div>
@@ -75,30 +87,34 @@ function QuickLinksCard() {
         روابط سريعة
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Link
-          href="/BREAKAPP/admin/projects/new"
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/admin/projects/new")}
           className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
         >
           إنشاء مشروع جديد
-        </Link>
-        <Link
-          href="/BREAKAPP/admin/projects"
+        </button>
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/admin/projects")}
           className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
         >
           كل المشاريع ورموز QR
-        </Link>
-        <Link
-          href="/BREAKAPP/admin/vendors"
+        </button>
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/admin/vendors")}
           className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
         >
           إدارة الموردين
-        </Link>
-        <Link
-          href="/BREAKAPP/admin/users"
+        </button>
+        <button
+          type="button"
+          onClick={() => navigateTo("/BREAKAPP/admin/users")}
           className="px-4 py-3 text-sm bg-white/8 text-white hover:bg-white/12 transition font-cairo rounded-[22px] border border-white/8"
         >
           أعضاء المشاريع
-        </Link>
+        </button>
       </div>
     </CardSpotlight>
   );
@@ -114,16 +130,16 @@ export default function AdminOverviewPage() {
     setLoading(true);
     try {
       const [projectsRes, vendorsRes] = await Promise.all([
-        api.get<AdminProject[]>("/admin/projects"),
-        api.get<Vendor[]>("/admin/vendors"),
+        fetchBreakappJson<AdminProject[]>("/admin/projects"),
+        fetchBreakappJson<Vendor[]>("/admin/vendors"),
       ]);
       setStats({
-        projects: projectsRes.data.length,
-        vendors: vendorsRes.data.length,
+        projects: projectsRes.length,
+        vendors: vendorsRes.length,
       });
     } catch (error: unknown) {
       const axiosError = error as { message?: string };
-      toast({
+      await showToast({
         title: "خطأ في تحميل الإحصائيات",
         description: axiosError.message ?? "تعذّر جلب البيانات الإدارية",
         variant: "destructive",
@@ -173,12 +189,13 @@ export default function AdminOverviewPage() {
               ملخّص سريع للمشاريع والموردين والأعضاء
             </p>
           </div>
-          <Link
-            href="/BREAKAPP/dashboard"
+          <button
+            type="button"
+            onClick={() => navigateTo("/BREAKAPP/dashboard")}
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             العودة للوحة التحكم
-          </Link>
+          </button>
         </div>
 
         <StatsGrid statCards={statCards} loading={loading} />

@@ -16,12 +16,22 @@ describe("persistent memory infrastructure", () => {
       "qdrant",
     ]);
 
-    expect(buildPersistentMemoryInfraConfig({})).toMatchObject({
-      databaseUrl: "postgresql://thecopy:thecopy_dev@localhost:5433/thecopy_dev",
+    expect(
+      buildPersistentMemoryInfraConfig({
+        PERSISTENT_MEMORY_PGPASSWORD: "local_password",
+      }),
+    ).toMatchObject({
+      databaseUrl: "postgresql://thecopy:local_password@localhost:5433/thecopy_dev",
       redisUrl: "redis://localhost:6379",
       weaviateUrl: "http://localhost:8080",
       qdrantUrl: "http://localhost:6333",
     });
+  });
+
+  test("does not embed a default PostgreSQL password in source-built URLs", () => {
+    expect(buildPersistentMemoryInfraConfig({}).databaseUrl).toBe(
+      "postgresql://thecopy@localhost:5433/thecopy_dev",
+    );
   });
 
   test("marks the stack ready only when every required service is reachable", async () => {

@@ -15,12 +15,7 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
-import {
-  type CurrentUser,
-  type AuthResponse,
-  JWTPayloadSchema,
-  QRTokenSchema,
-} from "./types";
+import { type CurrentUser, type AuthResponse } from "./types";
 
 const API_URL =
   process.env["NEXT_PUBLIC_API_URL"] ||
@@ -46,6 +41,14 @@ const RETRY_FLAG = Symbol("breakapp.auth.retry");
  */
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   [RETRY_FLAG]?: boolean;
+}
+
+interface DecodedJwtPayload {
+  sub: string;
+  projectId: string;
+  role: string;
+  exp: number;
+  iat?: number;
 }
 
 /**
@@ -184,7 +187,35 @@ export function removeToken(): void {
   inMemoryAccessToken = null;
 }
 
-function decodeCurrentPayload(): CurrentUser | null {
+function parseJwtPayload(payload: unknown): DecodedJwtPayload | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const record = payload as Record<string, unknown>;
+  if (
+    typeof record["sub"] !== "string" ||
+    typeof record["projectId"] !== "string" ||
+    typeof record["role"] !== "string" ||
+    typeof record["exp"] !== "number"
+  ) {
+    return null;
+  }
+
+  if (record["iat"] !== undefined && typeof record["iat"] !== "number") {
+    return null;
+  }
+
+  return {
+    sub: record["sub"],
+    projectId: record["projectId"],
+    role: record["role"],
+    exp: record["exp"],
+    ...(record["iat"] !== undefined ? { iat: record["iat"] } : {}),
+  };
+}
+
+function decodeCurrentPayload(): DecodedJwtPayload | null {
   const token = getToken();
   if (!token) {
     return null;
@@ -197,16 +228,7 @@ function decodeCurrentPayload(): CurrentUser | null {
     }
 
     const decodedPayload = JSON.parse(atob(payloadBase64));
-    const parsed = JWTPayloadSchema.safeParse(decodedPayload);
-    if (!parsed.success) {
-      return null;
-    }
-
-    return {
-      userId: parsed.data.sub,
-      projectId: parsed.data.projectId,
-      role: parsed.data.role,
-    };
+    return parseJwtPayload(decodedPayload);
   } catch {
     return null;
   }
@@ -222,26 +244,8 @@ function decodeCurrentPayload(): CurrentUser | null {
  * @returns true إذا كان المستخدم مُصادقاً عليه
  */
 export function isAuthenticated(): boolean {
-  const token = getToken();
-  if (!token) {
-    return false;
-  }
-
-  try {
-    const payloadBase64 = token.split(".")[1];
-    if (!payloadBase64) {
-      return false;
-    }
-    const decodedPayload = JSON.parse(atob(payloadBase64));
-    const parsed = JWTPayloadSchema.safeParse(decodedPayload);
-    if (!parsed.success) {
-      return false;
-    }
-
-    return Date.now() < parsed.data.exp * 1000;
-  } catch {
-    return false;
-  }
+  const payload = decodeCurrentPayload();
+  return payload ? Date.now() < payload.exp * 1000 : false;
 }
 
 /**
@@ -254,7 +258,16 @@ export function isAuthenticated(): boolean {
  * @returns بيانات المستخدم أو null إذا لم يكن مُصادقاً
  */
 export function getCurrentUser(): CurrentUser | null {
-  return decodeCurrentPayload();
+  const payload = decodeCurrentPayload();
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    userId: payload.sub,
+    projectId: payload.projectId,
+    role: payload.role,
+  };
 }
 
 /**
@@ -270,24 +283,8 @@ export function getCurrentUser(): CurrentUser | null {
  * @returns زمن الانتهاء بالملّي ثانية منذ epoch، أو null إن لم يكن هناك توكن صالح
  */
 export function getTokenExpiryMs(): number | null {
-  const token = getToken();
-  if (!token) {
-    return null;
-  }
-  try {
-    const payloadBase64 = token.split(".")[1];
-    if (!payloadBase64) {
-      return null;
-    }
-    const decodedPayload = JSON.parse(atob(payloadBase64));
-    const parsed = JWTPayloadSchema.safeParse(decodedPayload);
-    if (!parsed.success) {
-      return null;
-    }
-    return parsed.data.exp * 1000;
-  } catch {
-    return null;
-  }
+  const payload = decodeCurrentPayload();
+  return payload ? payload.exp * 1000 : null;
 }
 
 /**
@@ -400,9 +397,11 @@ export async function scanQRAndLogin(
   qrToken: string,
   deviceHash: string,
 ): Promise<AuthResponse> {
-  const validation = QRTokenSchema.safeParse(qrToken);
-  if (!validation.success) {
-    throw new Error(validation.error.errors[0]?.message || "رمز QR غير صالح");
+  if (!qrToken) {
+    throw new Error("رمز QR مطلوب");
+  }
+  if (qrToken.split(":").length !== 3) {
+    throw new Error("صيغة رمز QR غير صالحة - يجب أن يحتوي على ثلاثة أجزاء");
   }
 
   const response = await api.post<AuthResponse>("/auth/scan-qr", {

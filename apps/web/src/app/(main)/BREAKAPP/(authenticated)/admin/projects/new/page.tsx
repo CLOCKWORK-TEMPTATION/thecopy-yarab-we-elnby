@@ -11,13 +11,21 @@
  * مبسّطاً يُنهي المهمة في خطوة واحدة دون حقول إضافية.
  */
 
-import { api } from "@the-copy/breakapp";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { postBreakappJson } from "@the-copy/breakapp/lib/api-client";
 import { useCallback, useState } from "react";
 
 import { CardSpotlight } from "@/components/aceternity/card-spotlight";
-import { toast } from "@/hooks/use-toast";
+
+type ToastOptions = Parameters<typeof import("@/hooks/use-toast").toast>[0];
+
+async function showToast(options: ToastOptions): Promise<void> {
+  const { toast } = await import("@/hooks/use-toast");
+  toast(options);
+}
+
+function navigateTo(path: string): void {
+  window.location.assign(path);
+}
 
 interface CreatedProject {
   id: string;
@@ -26,7 +34,6 @@ interface CreatedProject {
 }
 
 export default function AdminNewProjectPage() {
-  const router = useRouter();
   const [name, setName] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -42,7 +49,7 @@ export default function AdminNewProjectPage() {
       event.preventDefault();
       const trimmed = name.trim();
       if (trimmed.length < 2) {
-        toast({
+        await showToast({
           title: "الاسم قصير",
           description: "يجب أن يكون اسم المشروع حرفين على الأقل",
           variant: "destructive",
@@ -52,15 +59,17 @@ export default function AdminNewProjectPage() {
 
       setSubmitting(true);
       try {
-        await api.post<CreatedProject>("/admin/projects", { name: trimmed });
-        toast({
+        await postBreakappJson<CreatedProject>("/admin/projects", {
+          name: trimmed,
+        });
+        await showToast({
           title: "تم الإنشاء",
           description: "تم إنشاء المشروع بنجاح",
         });
-        router.push("/BREAKAPP/admin/projects");
+        window.location.assign("/BREAKAPP/admin/projects");
       } catch (error: unknown) {
         const axiosError = error as { message?: string };
-        toast({
+        await showToast({
           title: "فشل الإنشاء",
           description: axiosError.message ?? "تعذّر إنشاء المشروع، حاول مجدداً",
           variant: "destructive",
@@ -69,7 +78,7 @@ export default function AdminNewProjectPage() {
         setSubmitting(false);
       }
     },
-    [name, router]
+    [name]
   );
 
   return (
@@ -82,12 +91,13 @@ export default function AdminNewProjectPage() {
             </h1>
             <p className="text-white/55 font-cairo">أدخل اسم المشروع لإنشائه</p>
           </div>
-          <Link
-            href="/BREAKAPP/admin/projects"
+          <button
+            type="button"
+            onClick={() => navigateTo("/BREAKAPP/admin/projects")}
             className="px-4 py-2 text-sm bg-white/6 text-white hover:bg-white/8 transition font-cairo rounded-[22px]"
           >
             العودة
-          </Link>
+          </button>
         </div>
 
         <CardSpotlight className="overflow-hidden rounded-[22px] bg-white/[0.04] backdrop-blur-xl border border-white/8 p-6">

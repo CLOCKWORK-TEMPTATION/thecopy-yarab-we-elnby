@@ -9,11 +9,12 @@
 
 import {
   getCurrentUser,
-  getDefaultRedirect,
   isAuthenticated,
+} from "@the-copy/breakapp/lib/auth";
+import {
+  getDefaultRedirect,
   isValidRole,
-} from "@the-copy/breakapp";
-import { useRouter } from "next/navigation";
+} from "@the-copy/breakapp/lib/roles";
 import { useEffect, type CSSProperties } from "react";
 
 import { BackgroundBeams } from "@/components/aceternity/background-beams";
@@ -30,22 +31,20 @@ const shellStyle: CSSProperties = {
 };
 
 export default function BREAKAPPHome() {
-  const router = useRouter();
-
   useEffect(() => {
+    let target = "/BREAKAPP/dashboard";
+
     if (!isAuthenticated()) {
-      router.replace("/BREAKAPP/login/qr");
-      return;
+      target = "/BREAKAPP/login/qr";
+    } else {
+      const user = getCurrentUser();
+      if (user && isValidRole(user.role)) {
+        target = getDefaultRedirect(user.role);
+      }
     }
 
-    const user = getCurrentUser();
-    if (user && isValidRole(user.role)) {
-      router.replace(getDefaultRedirect(user.role));
-      return;
-    }
-
-    router.replace("/BREAKAPP/dashboard");
-  }, [router]);
+    window.location.replace(target);
+  }, []);
 
   return (
     <main

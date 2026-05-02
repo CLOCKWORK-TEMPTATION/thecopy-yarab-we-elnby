@@ -69,4 +69,14 @@ describe("deployment startup", () => {
     expect(waitScript).toContain("select 1");
     expect(waitScript).not.toContain("console.log(databaseUrl)");
   });
+
+  it("honors the configured backend health base url in runtime checks", () => {
+    const healthScript = readProjectFile("scripts/verify-runtime-health.mjs");
+
+    expect(healthScript).toContain("BACKEND_HEALTH_BASE_URL");
+    expect(healthScript).toContain("new URL");
+    expect(healthScript).toContain("healthUrl.hostname");
+    expect(healthScript).toContain("healthUrl.port");
+    expect(healthScript).not.toContain('hostname: "127.0.0.1"');
+  });
 });
