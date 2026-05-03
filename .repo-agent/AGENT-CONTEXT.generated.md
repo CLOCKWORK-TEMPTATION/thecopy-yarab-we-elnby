@@ -6,7 +6,7 @@
 |---|---|
 | آخر مزامنة مرجعية | 2026-05-03T04:21:06.726Z |
 | الفرع الحالي | `main` |
-| آخر commit | `e48a3edd13c2baae260a4d502e654a04a27ea2e7` |
+| آخر commit | `73402688f97916ab50e24d6059aada382f01427d` |
 | حالة الشجرة | غير نظيفة — 9 ملف متغير |
 | مستوى drift | `no-drift` |
 
@@ -52,8 +52,8 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: c01d0e14-5673-47ed-913f-8c338c3f3d8f
-audit_event_id: 58301ece-9e91-4498-94ab-e4933fa10547
+retrieval_event_id: 8186ec58-e14e-44ab-9827-486b215cde45
+audit_event_id: 8c92d39d-0f1a-4f7d-be48-fcb2d542e2be
 
 ## Injected Memories
 
