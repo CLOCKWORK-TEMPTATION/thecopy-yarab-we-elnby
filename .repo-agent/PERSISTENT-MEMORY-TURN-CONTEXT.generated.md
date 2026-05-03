@@ -3,17 +3,31 @@
 turn_context_status: ready
 status: ready
 zone: memory_context
-query_hash: 7035d2343f996d53af737d5f6a629344aae2c9f44a5e68ad488986bd1367bda8
-redacted_query_preview: سؤالك هنا
+query_hash: 8898d4e8cfca74421b2bff08ab650138ec13019ca4abd89c9225cdef999120ea
+redacted_query_preview: القرار الحاسم: لا توجد أربعة مسارات اختيارية، ولا يوجد مجال للمفاضلة أو إعادة ترتيب الخطة حسب الراحة.\n\nنقطة الدخول للجولة الأولى هي:\n\n## أعلى مخاطر الإنتاج
 secret_scan_status: clean
-selected_intent: default
-selected_profile: default
-retrieval_event_id: a44cb65d-303f-40be-b3c2-b4dc0227ca7f
-audit_event_id: e954290d-97f6-49a5-824c-695d04027ed4
-latency_ms: 519
+selected_intent: execution_or_code_change
+selected_profile: execution_or_code_change
+retrieval_event_id: 50e66012-5bc2-46fa-ac67-2c432d65e40e
+audit_event_id: f367a4db-09ec-4877-aefa-0f9991ceb80d
+latency_ms: 17
 degradation_reason: none
 repair_job_id: none
 
 memory_context:
 
-- none
+- id: 30686f9d-ffd2-4f4b-a1c6-32e834e9bc5a
+  source_ref: output/round-notes.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # سجل الحالة التنفيذية الحالية > هذا الملف يرصد الوضع الحالي فقط، ولا يحتفظ بتاريخ الجولات السابقة. ## لقطة الحالة الحالية ### وقت الرصد الحالي 2026-05-03T02:44:34.493Z ### آخر مزامنة مرجعية 2026-05-03T02:44:34.493Z ### نوع الرصد تشغيل بداية الجلسة ### ما الذي فحصه bootstrap - حالة git الحالية - أوامر التشغيل الرسمية - المنافذ الرسمية - التطبيقات والحزم - العقود اليدوية - الملفات المرجعية الحية - مرايا IDE المطلوبة - طبقات المعرفة والاسترجاع ### ما الذي تم تحديثه - لم يلزم تحديث أي ملف مولد قبل
+- id: 17ec82e4-06f1-4dc8-a9b3-6f86dba3a9f5
+  source_ref: output/round-notes.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # سجل الحالة التنفيذية الحالية > هذا الملف يرصد الوضع الحالي فقط، ولا يحتفظ بتاريخ الجولات السابقة. ## لقطة الحالة الحالية ### وقت الرصد الحالي 2026-05-03T02:42:18.600Z ### آخر مزامنة مرجعية 2026-05-03T02:42:18.600Z ### نوع الرصد تشغيل بداية الجلسة ### ما الذي فحصه bootstrap - حالة git الحالية - أوامر التشغيل الرسمية - المنافذ الرسمية - التطبيقات والحزم - العقود اليدوية - الملفات المرجعية الحية - مرايا IDE المطلوبة - طبقات المعرفة والاسترجاع ### ما الذي تم تحديثه - لم يلزم تحديث أي ملف مولد قبل
+- id: 28de4fb8-fe54-4eb8-a726-71ed411a86d2
+  source_ref: output/round-notes.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: # سجل الحالة التنفيذية الحالية > هذا الملف يرصد الوضع الحالي فقط، ولا يحتفظ بتاريخ الجولات السابقة. ## لقطة الحالة الحالية ### وقت الرصد الحالي 2026-05-03T02:36:09.797Z ### آخر مزامنة مرجعية 2026-05-03T02:17:18.156Z ### نوع الرصد تشغيل بداية الجلسة ### ما الذي فحصه bootstrap - حالة git الحالية - أوامر التشغيل الرسمية - المنافذ الرسمية - التطبيقات والحزم - العقود اليدوية - الملفات المرجعية الحية - مرايا IDE المطلوبة - طبقات المعرفة والاسترجاع ### ما الذي تم تحديثه - لم يلزم تحديث أي ملف مولد قبل
