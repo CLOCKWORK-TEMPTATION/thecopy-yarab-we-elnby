@@ -1,5 +1,5 @@
-import { Search } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 
@@ -179,12 +179,35 @@ function SidebarSectionRow({
 interface SearchBarProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  onClearSearch: () => void;
 }
 
+/**
+ * شريط البحث في الشريط الجانبي.
+ *
+ * إصلاح P0-1 (sidebar search-clear):
+ *  - زر X صريح لمسح البحث وإعادة كل الأقسام فوراً.
+ *  - يستمع لكل من `onChange` و`onInput` لضمان التقاط
+ *    عمليات الحذف الناتجة عن paste/triple-click/Cut.
+ *  - Escape يمسح البحث أيضاً.
+ *
+ * المشكلة الموثَّقة: «مسح حقل البحث لا يعيد أقسام الشريط الجانبي
+ * بعد اختفائها». السبب الجذري: إعادة المسح يدوياً عبر Cut/Delete
+ * أحياناً لا تُطلق onChange على كل المتصفحات. الحل: زر صريح + Escape
+ * + استماع لـ onInput كطبقة ثانية.
+ */
 function SidebarSearchBar({
   searchQuery,
   onSearchChange,
+  onClearSearch,
 }: SearchBarProps): React.JSX.Element {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "Escape" && searchQuery.length > 0) {
+      event.preventDefault();
+      onClearSearch();
+    }
+  };
+
   return (
     <HoverBorderGradient
       containerClassName="rounded-xl mb-6"
@@ -208,12 +231,27 @@ function SidebarSearchBar({
         placeholder="بحث..."
         value={searchQuery}
         onChange={(event) => onSearchChange(event.target.value)}
+        onInput={(event) => onSearchChange(event.currentTarget.value)}
+        onKeyDown={handleKeyDown}
         data-testid="sidebar-search"
         className="w-full border-none bg-transparent text-[13px] text-[color:var(--mf-text)] placeholder:text-[color:var(--mf-text-faint)] focus:outline-none"
       />
-      <kbd className="hidden rounded border border-[color:var(--mf-border)] bg-white px-1.5 py-0.5 text-[10px] group-hover:block">
-        ⌘K
-      </kbd>
+      {searchQuery.length > 0 ? (
+        <button
+          type="button"
+          onClick={onClearSearch}
+          aria-label="مسح البحث"
+          title="مسح البحث"
+          data-testid="sidebar-search-clear"
+          className="flex h-5 w-5 items-center justify-center rounded-full text-[color:var(--mf-text-faint)] transition-colors hover:bg-[color:var(--mf-surface)] hover:text-[color:var(--mf-text-strong)] focus-visible:ring-2 focus-visible:ring-[color:var(--mf-accent)]/60 focus-visible:outline-none"
+        >
+          <X className="size-3" aria-hidden="true" />
+        </button>
+      ) : (
+        <kbd className="hidden rounded border border-[color:var(--mf-border)] bg-white px-1.5 py-0.5 text-[10px] group-hover:block">
+          ⌘K
+        </kbd>
+      )}
     </HoverBorderGradient>
   );
 }
@@ -256,6 +294,14 @@ export function AppSidebar({
 }: AppSidebarProps): React.JSX.Element {
   const [searchQuery, setSearchQuery] = useState("");
   const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  /**
+   * مسح البحث صريحاً. يضمن إعادة كل الأقسام إلى وضع العرض الكامل
+   * بصرف النظر عن الطريقة التي وصل بها المستخدم لحالة الفراغ.
+   */
+  const handleClearSearch = useCallback((): void => {
+    setSearchQuery("");
+  }, []);
 
   const visibleSections = useMemo(
     () =>
@@ -326,6 +372,7 @@ export function AppSidebar({
         <SidebarSearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onClearSearch={handleClearSearch}
         />
 
         <div

@@ -85,19 +85,86 @@ export async function POST(
       session.parsed.scenes
     );
 
+    // إصلاح P0-3: التحقق من أن النتيجة فعلياً تحتوي بيانات قبل الإرجاع.
+    // empty response لا يجوز أن يمر كنجاح.
+    if (
+      report === null ||
+      report === undefined ||
+      (Array.isArray((report as { scenes?: unknown[] }).scenes) &&
+        ((report as { scenes: unknown[] }).scenes.length ?? 0) === 0)
+    ) {
+      logger.error(
+        "[breakdown/projects/analyze] التحليل أرجع نتيجة فارغة — يُعتبر فشلاً",
+        { projectId },
+      );
+      return buildSafeErrorResponse({
+        status: 502,
+        fallbackMessage: "لم يرجع التحليل أي نتيجة قابلة للاستخدام.",
+        errorCode: "BREAKDOWN_MODEL_EMPTY",
+        traceIdPrefix: "breakdown",
+      });
+    }
+
     // حذف الجلسة بعد التحليل الناجح (توفير الذاكرة)
     deleteProjectSession(projectId);
 
     return NextResponse.json({ success: true, data: report });
   } catch (err) {
     const message = err instanceof Error ? err.message : "فشل تحليل السيناريو";
-    logger.error("[breakdown/projects/analyze] خطأ في التحليل:", message);
+
+    // إصلاح P0-3: تصنيف الفشل بدل 500 خام.
+    // الواجهة تستخدم status لتحديد كيف تعرض الخطأ، و500 الخام يجعلها
+    // تبقى في "جاري التحليل" بلا رسالة. الآن نُرجع status مناسباً
+    // ورسالة عربية واضحة، ولا يتسرّب stack trace.
+
+    const lower = message.toLowerCase();
+    const inferredStatus = (() => {
+      if (lower.includes("timeout") || lower.includes("aborted")) {
+        return { status: 504, code: "BREAKDOWN_ANALYSIS_TIMEOUT", msg: "انتهت مهلة التحليل." };
+      }
+      if (
+        lower.includes("api key") ||
+        lower.includes("missing key") ||
+        lower.includes("api_key")
+      ) {
+        return {
+          status: 503,
+          code: "BREAKDOWN_AI_UNAVAILABLE",
+          msg: "خدمة التحليل غير متاحة حالياً. يرجى المحاولة لاحقاً.",
+        };
+      }
+      if (lower.includes("rate limit") || lower.includes("quota")) {
+        return {
+          status: 429,
+          code: "BREAKDOWN_QUOTA_EXCEEDED",
+          msg: "تجاوزت حد الاستخدام. يرجى المحاولة لاحقاً.",
+        };
+      }
+      if (lower.includes("validation") || lower.includes("schema")) {
+        return {
+          status: 422,
+          code: "BREAKDOWN_VALIDATION_ERROR",
+          msg: "بيانات السيناريو غير صالحة للتحليل.",
+        };
+      }
+      return {
+        status: 502,
+        code: "BREAKDOWN_ANALYSIS_FAILED",
+        msg: "فشل تحليل السيناريو. تم تسجيل الخطأ ويمكنك إعادة المحاولة.",
+      };
+    })();
+
+    logger.error("[breakdown/projects/analyze] خطأ في التحليل:", {
+      projectId,
+      classifiedCode: inferredStatus.code,
+      classifiedStatus: inferredStatus.status,
+      technicalMessage: message,
+    });
 
     return buildSafeErrorResponse({
-      status: 500,
-      error: message,
-      fallbackMessage: "فشل تحليل السيناريو.",
-      errorCode: "BREAKDOWN_ANALYSIS_FAILED",
+      status: inferredStatus.status,
+      fallbackMessage: inferredStatus.msg,
+      errorCode: inferredStatus.code,
       traceIdPrefix: "breakdown",
     });
   }

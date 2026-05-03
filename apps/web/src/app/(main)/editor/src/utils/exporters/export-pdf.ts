@@ -1,6 +1,8 @@
 import { sanitize } from "isomorphic-dompurify";
 import { jsPDF } from "jspdf";
 
+import { applyExportSafeColors } from "@the-copy/export";
+
 import {
   type ExportRequest,
   buildFullHtmlDocument,
@@ -8,11 +10,39 @@ import {
 } from "./shared";
 
 /**
+ * قائمة خصائص CSS اللونية التي يجب أن تكون rgb/hex فقط
+ * قبل تمرير DOM إلى html2canvas.
+ *
+ * إصلاح فشل PDF الموثَّق:
+ *   "Attempting to parse an unsupported color function 'oklch'"
+ *
+ * يطبَّق على كل عنصر في iframe قبل استدعاء jsPDF.html.
+ * @see packages/export/src/color.ts
+ */
+const forceExportSafeColorsOnSubtree = (root: HTMLElement | null): void => {
+  if (root === null) {
+    return;
+  }
+  applyExportSafeColors(root);
+  const all = root.querySelectorAll<HTMLElement>("*");
+  for (let i = 0; i < all.length; i += 1) {
+    const node = all.item(i);
+    if (node !== null) {
+      applyExportSafeColors(node);
+    }
+  }
+};
+
+/**
  * يُصدّر المستند كـ PDF عبر jsPDF + html2canvas.
  *
  * الإصلاح: النسخة القديمة كانت تحقن HTML خام بدون أي CSS.
  * الآن: يبني HTML كامل عبر buildFullHtmlDocument (نفس تنسيقات المحرر)
  * ثم يحوّله لـ PDF.
+ *
+ * إصلاح إضافي (P0-1): قبل تمرير body إلى pdf.html، نمرّ على كل عنصر
+ * ونحوّل أي قيمة لون oklch/oklab إلى rgb عبر applyExportSafeColors.
+ * هذا يمنع فشل html2canvas عند وجود CSS variables حديثة.
  */
 export const exportAsPdf = async (request: ExportRequest): Promise<void> => {
   const fileBase = sanitizeExportFileBaseName(request.fileNameBase);
@@ -68,6 +98,11 @@ export const exportAsPdf = async (request: ExportRequest): Promise<void> => {
     });
 
     const innerBody = iframeDoc.body;
+
+    // طبقة دفاع ضد oklch/oklab/color-mix قبل html2canvas.
+    // applyExportSafeColors يُستدعى من الـ window الرئيسي ويقرأ
+    // computed style من iframe — لذلك نمرّر العنصر بداخل iframe.
+    forceExportSafeColorsOnSubtree(innerBody);
 
     const pdf = new jsPDF({
       orientation: "portrait",

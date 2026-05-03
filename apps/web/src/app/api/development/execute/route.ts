@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { ApiError, apiSuccess, errorToFailure, generateRequestId, statusForCode } from "@the-copy/api-client";
+import { assertModelTextNotEmpty } from "@the-copy/ai-orchestration";
+
 import { logger } from "@/lib/ai/utils/logger";
 import { platformGenAIService } from "@/lib/drama-analyst/services/platformGenAIService";
 
@@ -211,6 +214,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }),
     });
 
+    const requestId = generateRequestId();
+    const startedAt = Date.now();
+
     const generatedText = await platformGenAIService.generateText(
       `${systemPrompt}\n\n${userPrompt}`,
       {
@@ -220,35 +226,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     );
 
-    if (!generatedText.trim()) {
-      return NextResponse.json(
-        { success: false, error: "لم يُولَّد أي محتوى من النموذج" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      result: {
-        finalDecision: generatedText,
-        proposals: [
-          {
-            agentId: taskId,
-            agentName: taskName,
-            text: generatedText,
-            confidence: 0.85,
-          },
-        ],
-      },
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "فشل تنفيذ المهمة";
-    logger.error("[development/execute] خطأ:", message);
+    // إصلاح P0-5 (development empty response):
+    // التقرير وثّق أن "إكمال النص" يعرض: "نفّذت المهمة لكن لم تُرجع أي محتوى".
+    // الحل: نمنع empty response من المرور كنجاح على الإطلاق.
+    // assertModelTextNotEmpty يرفع ApiError(model_empty) عند الفراغ
+    // أو placeholder شائع، فيُمسك في catch أدناه ويُرجع رد مصنّف.
+    const validatedText = assertModelTextNotEmpty(generatedText, "النموذج");
 
     return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 }
+      apiSuccess(
+        {
+          // نُبقي شكل النجاح القديم لتوافق الواجهة، مع إضافة envelope الموحّد.
+          finalDecision: validatedText,
+          proposals: [
+            {
+              agentId: taskId,
+              agentName: taskName,
+              text: validatedText,
+              confidence: 0.85,
+            },
+          ],
+        },
+        { requestId, startedAt, version: "1.0" },
+      ),
+      { headers: { "x-request-id": requestId } },
     );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logger.error("[development/execute] خطأ مصنّف:", {
+        code: error.code,
+        message: error.message,
+      });
+      return NextResponse.json(error.toFailure(), {
+        status: statusForCode(error.code),
+      });
+    }
+
+    const message = error instanceof Error ? error.message : "فشل تنفيذ المهمة";
+    logger.error("[development/execute] خطأ غير متوقع:", message);
+
+    // لا نكشف رسالة تقنية خام؛ errorToFailure يبني رد server_error مصنّف.
+    return NextResponse.json(errorToFailure(error), { status: 500 });
   }
 }
 

@@ -4,11 +4,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-03T04:38:39.863Z |
+| آخر مزامنة مرجعية | 2026-05-03T05:26:42.128Z |
 | الفرع الحالي | `main` |
-| آخر commit | `09a0d60d30d958de4746103db7673d18607a08bd` |
-| حالة الشجرة | غير نظيفة — 5 ملف متغير |
-| مستوى drift | `no-drift` |
+| آخر commit | `1f68c8b71d89507ba64c7f4c5061157fea9e57d8` |
+| حالة الشجرة | غير نظيفة — 33 ملف متغير |
+| مستوى drift | `hard-drift` |
 
 ## المرجع الحاكم
 
@@ -52,8 +52,8 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: 79278d51-2c8d-44c1-b47c-412e163b58c2
-audit_event_id: 9b1538f8-4d1c-4e2a-99f4-adf959670602
+retrieval_event_id: 60f4de49-0dd0-40d4-a617-9816db440f54
+audit_event_id: 0c11e8ec-de11-4890-b228-2e191d3c7b7f
 
 ## Injected Memories
 
@@ -138,11 +138,18 @@ backend: 3001
 - `@the-copy/backend` — `apps/backend`
 - `@the-copy/web` — `apps/web`
 
+- `@the-copy/ai-orchestration` — `packages/ai-orchestration`
+- `@the-copy/api-client` — `packages/api-client`
 - `@the-copy/breakapp` — `packages/breakapp`
 - `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
+- `@the-copy/error-boundary` — `packages/error-boundary`
+- `@the-copy/export` — `packages/export`
+- `@the-copy/persistence` — `packages/persistence`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
+- `@the-copy/security-middleware` — `packages/security-middleware`
 - `@the-copy/tsconfig` — `packages/tsconfig`
+- `@the-copy/validation` — `packages/validation`
 
 ## نقاط الدخول الأهم
 
@@ -314,15 +321,15 @@ backend: 3001
 
 - الملفات:
 
-`2713`
+`2738`
 
 - القطع:
 
-`5830`
+`5884`
 
 - القطع ذات التضمين:
 
-`5830`
+`5884`
 
 - التغطية:
 

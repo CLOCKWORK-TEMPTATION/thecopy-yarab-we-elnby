@@ -205,16 +205,87 @@ const applyProjectTemplate = (
   });
 };
 
+/**
+ * مفتاح localStorage لحفظ آخر مستند قبل المسح بـ "مستند جديد".
+ * يُستخدم لتمكين الاستعادة بعد المسح غير المقصود.
+ *
+ * إصلاح P0-1: التقرير وثّق أن "مستند جديد" يمسح المحتوى دون تأكيد.
+ * الحل: ConfirmDialog قبل المسح + snapshot احتياطي قابل للاسترجاع.
+ */
+const NEW_FILE_BACKUP_KEY = "the-copy.editor.v1.last-document-before-new";
+
+interface PreNewBackup {
+  html: string;
+  text: string;
+  savedAt: string;
+  version: number;
+}
+
+const askNewFileConfirmation = (hasContent: boolean): boolean => {
+  if (!hasContent) {
+    return true;
+  }
+  if (typeof window === "undefined") {
+    return true;
+  }
+  // confirm() متزامن وكافٍ كطبقة دفاع أولى ضد الفقد العرضي.
+  // عند توفّر ConfirmDialog مخصص يمكن استبداله بنفس الواجهة.
+  return window.confirm(
+    "سيتم استبدال المستند الحالي بمستند فارغ. سيُحفظ نسخة احتياطية يمكن استرجاعها. هل تريد المتابعة؟",
+  );
+};
+
+const backupBeforeNewFile = (
+  html: string,
+  text: string,
+  deps: EditorActionsDeps,
+): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    const backup: PreNewBackup = {
+      html,
+      text,
+      savedAt: new Date().toISOString(),
+      version: 1,
+    };
+    window.localStorage.setItem(NEW_FILE_BACKUP_KEY, JSON.stringify(backup));
+  } catch (error) {
+    deps.recordDiagnostic(
+      "تعذّر حفظ النسخة الاحتياطية قبل مستند جديد",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+};
+
 const runFileMenuAction = async (
   actionId: MenuActionId,
   area: EditorArea,
   deps: EditorActionsDeps
 ): Promise<boolean> => {
   switch (actionId) {
-    case "new-file":
+    case "new-file": {
+      const currentHtml = area.getAllHtml().trim();
+      const currentText = area.getAllText().trim();
+      const hasContent = currentHtml.length > 0 || currentText.length > 0;
+
+      if (!askNewFileConfirmation(hasContent)) {
+        return true;
+      }
+
+      if (hasContent) {
+        backupBeforeNewFile(area.getAllHtml(), area.getAllText(), deps);
+      }
       area.clear();
-      deps.toast({ title: "مستند جديد", description: "تم إنشاء مستند فارغ." });
+      deps.toast({
+        title: "مستند جديد",
+        description: hasContent
+          ? "تم إنشاء مستند فارغ، وتم حفظ نسخة احتياطية من المستند السابق."
+          : "تم إنشاء مستند فارغ.",
+      });
       return true;
+    }
     case "open-file":
       await openFile("replace", deps);
       return true;

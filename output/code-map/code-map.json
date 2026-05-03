@@ -70,6 +70,14 @@
   ],
   "packages": [
     {
+      "name": "@the-copy/ai-orchestration",
+      "path": "packages/ai-orchestration"
+    },
+    {
+      "name": "@the-copy/api-client",
+      "path": "packages/api-client"
+    },
+    {
       "name": "@the-copy/breakapp",
       "path": "packages/breakapp"
     },
@@ -82,12 +90,32 @@
       "path": "packages/core-memory"
     },
     {
+      "name": "@the-copy/error-boundary",
+      "path": "packages/error-boundary"
+    },
+    {
+      "name": "@the-copy/export",
+      "path": "packages/export"
+    },
+    {
+      "name": "@the-copy/persistence",
+      "path": "packages/persistence"
+    },
+    {
       "name": "@the-copy/prompt-engineering",
       "path": "packages/prompt-engineering"
     },
     {
+      "name": "@the-copy/security-middleware",
+      "path": "packages/security-middleware"
+    },
+    {
       "name": "@the-copy/tsconfig",
       "path": "packages/tsconfig"
+    },
+    {
+      "name": "@the-copy/validation",
+      "path": "packages/validation"
     }
   ],
   "entrypoints": [
@@ -1114,10 +1142,10 @@
   "codeMemory": {
     "exists": true,
     "stale": false,
-    "generatedAt": "2026-05-03T04:37:18.988Z",
-    "totalFiles": 2713,
-    "totalChunks": 5830,
-    "embeddedChunks": 5830,
+    "generatedAt": "2026-05-03T05:26:41.457Z",
+    "totalFiles": 2738,
+    "totalChunks": 5884,
+    "embeddedChunks": 5884,
     "coverageRate": 1,
     "missingChunks": 0,
     "deletedChunks": 0,

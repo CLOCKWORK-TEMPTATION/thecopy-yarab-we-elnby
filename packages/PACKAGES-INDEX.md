@@ -592,3 +592,98 @@ pnpm install
 ---
 
 *هذا الملف مُولَّد تلقائيًا من تحليل الكود المصدري للمستودع.*
+
+---
+
+## ملحق — حزم جاهزية الإنتاج المضافة في جولة P0 (2026-05-03)
+
+أُنشئت سبع حزم جديدة استجابةً لتقرير E2E الميداني، تخدم المرحلة 0 من خطة جاهزية الإنتاج P0. كلها تستخدم `@the-copy/tsconfig` ولا تكرّر الكود.
+
+### 1. `@the-copy/api-client`
+
+عميل HTTP موحد + ApiResponse + ApiError مُصنَّف. يفرض عقد البيانات `{ ok, data, meta } | { ok, error: { code, message, requestId } }` ويمنع الفشل الصامت.
+
+نقاط دخول رئيسية:
+
+```typescript
+import { api, apiFetch, ApiError, isApiError } from "@the-copy/api-client";
+import { apiSuccess, apiFailure, errorToFailure, statusForCode, generateRequestId } from "@the-copy/api-client";
+```
+
+### 2. `@the-copy/security-middleware`
+
+فحص التوكنات في التخزين المحلي + rate limiting + actor scoping للمصادق والمجهول.
+
+```typescript
+import { auditClientTokenStorage, assertNoClientTokenStorage, bootstrapClientStorageGuard } from "@the-copy/security-middleware";
+import { enforceRateLimit, readActorIdentity, requireUser, actorScopeFilter, rateLimitKeyFor } from "@the-copy/security-middleware";
+```
+
+### 3. `@the-copy/error-boundary`
+
+`useAsyncOperation` يدير حالة async مع منع double-submit وحالة error مصنفة دائماً.
+
+```typescript
+import { useAsyncOperation, normalizeError, formatErrorForUser } from "@the-copy/error-boundary";
+```
+
+### 4. `@the-copy/persistence`
+
+autosave + snapshot + preferences بـ namespace ثابت `the-copy.{appId}.v{schema}.{projectId}.{kind}`.
+
+```typescript
+import { createAppStorage, bootstrapPersistenceLayer } from "@the-copy/persistence";
+```
+
+### 5. `@the-copy/validation`
+
+Zod schemas + sanitizers لـ Excel/HTML + parseOrThrow.
+
+```typescript
+import { z, NonEmptyString, ProjectTitle, ScriptText, parseOrThrow, sanitizeForExcel, escapeHtml } from "@the-copy/validation";
+```
+
+### 6. `@the-copy/export`
+
+prepare-export-dom (يحلّ مشكلة `oklch` في PDF) + downloadBlob + exportJson/Markdown/Text.
+
+```typescript
+import { prepareExportDom, toExportSafeColor, exportJson, exportMarkdown, downloadBlob } from "@the-copy/export";
+```
+
+### 7. `@the-copy/ai-orchestration`
+
+assertModelTextNotEmpty + assertToolResultNotEmpty + assertActorAnalysisNotEmpty — يمنع empty response من المرور كنجاح.
+
+```typescript
+import { assertModelTextNotEmpty, assertToolResultNotEmpty, assertActorAnalysisNotEmpty } from "@the-copy/ai-orchestration";
+```
+
+### مخطط الاعتماد بين الحزم الجديدة
+
+```
+api-client                      ←  base (لا اعتمادات داخلية)
+security-middleware             ←  api-client
+error-boundary                  ←  api-client
+persistence                     ←  security-middleware
+validation                      ←  api-client + zod
+export                          ←  validation
+ai-orchestration                ←  api-client
+```
+
+### اختبارات الصرامة الإلزامية
+
+| الملف | يضمن |
+|---|---|
+| `packages/api-client/src/__tests__/errors.test.ts` | تصنيف status → code صحيح، رسائل عربية |
+| `packages/security-middleware/src/__tests__/client.test.ts` | كشف JWT/access/refresh في localStorage و sessionStorage |
+| `packages/ai-orchestration/src/__tests__/empty-response.test.ts` | empty response لا يمر كنجاح |
+| `packages/export/src/__tests__/color.test.ts` | تحويل oklch/oklab/color-mix إلى rgb آمن |
+
+أمر التحقق:
+
+```text
+pnpm -r --filter "@the-copy/api-client" --filter "@the-copy/security-middleware" --filter "@the-copy/ai-orchestration" --filter "@the-copy/export" test
+pnpm -r --filter "@the-copy/api-client" --filter "@the-copy/security-middleware" --filter "@the-copy/error-boundary" --filter "@the-copy/persistence" --filter "@the-copy/validation" --filter "@the-copy/export" --filter "@the-copy/ai-orchestration" type-check
+```
+

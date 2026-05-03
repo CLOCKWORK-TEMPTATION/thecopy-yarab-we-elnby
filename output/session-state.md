@@ -8,11 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-03T04:38:39.863Z |
+| آخر مزامنة مرجعية | 2026-05-03T05:26:42.128Z |
 | الفرع الحالي | `main` |
-| آخر commit | `09a0d60d30d958de4746103db7673d18607a08bd` |
-| حالة working tree | غير نظيفة — 5 ملف متغير |
-| مستوى drift | `no-drift` |
+| آخر commit | `1f68c8b71d89507ba64c7f4c5061157fea9e57d8` |
+| حالة working tree | غير نظيفة — 33 ملف متغير |
+| مستوى drift | `hard-drift` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -96,11 +96,18 @@ backend: 3001
 
 ### الحزم الأساسية
 
+- `@the-copy/ai-orchestration` — `packages/ai-orchestration`
+- `@the-copy/api-client` — `packages/api-client`
 - `@the-copy/breakapp` — `packages/breakapp`
 - `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
+- `@the-copy/error-boundary` — `packages/error-boundary`
+- `@the-copy/export` — `packages/export`
+- `@the-copy/persistence` — `packages/persistence`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
+- `@the-copy/security-middleware` — `packages/security-middleware`
 - `@the-copy/tsconfig` — `packages/tsconfig`
+- `@the-copy/validation` — `packages/validation`
 
 ## حالة طبقة الوكلاء
 
@@ -284,15 +291,15 @@ AGENTS.md
 
 - الملفات:
 
-`2713`
+`2738`
 
 - القطع:
 
-`5830`
+`5884`
 
 - القطع ذات التضمين:
 
-`5830`
+`5884`
 
 - التغطية:
 
@@ -309,8 +316,43 @@ Code memory is current.
 
 ## ما تغيّر منذ آخر بصمة
 
-- لا يوجد drift مؤثر
+- تغيرت الملفات البنيوية الحرجة
 
 ## الأعطال المفتوحة الآن
 
-- لا توجد أعطال مفتوحة مرصودة في الفحص الحالي.
+### بنود مغلقة قرائياً (في انتظار تحقق تشغيلي)
+
+كل البنود التالية طُبّقت في الكود وفق العقد، لكن لم تُمرّ بعد على
+`pnpm install` و`pnpm agent:verify` ولم تُغطَّ بـ E2E:
+
+- P0-1 — editor: أمان localStorage + PDF oklch + word counter + sidebar search-clear + ConfirmDialog لمستند جديد + bootstrapClientStorageGuard.
+- P0-2 — analysis: rate limit على start + pre-check قبل proxy.
+- P0-3 — breakdown: تصنيف 5xx بدل خام + منع empty success.
+- P0-4 — actorai-arabic: endpoint جديد + autosave + restore + منع double-submit.
+- P0-5 — development: assertModelTextNotEmpty + ApiResponse الموحَّد.
+- P0-6 — art-director: actor scoping + rate limit + tc_anon_sid cookie.
+- P0-7 — directors-studio: pre-flight auth check + buildLoginRedirectUrl.
+
+### يلزم لإغلاق P0 نهائياً
+
+1. تشغيل `pnpm install` لتسجيل الحزم الجديدة في pnpm-lock.yaml.
+2. تشغيل اختبارات الصرامة:
+   ```text
+   pnpm -r --filter "@the-copy/api-client" --filter "@the-copy/security-middleware" --filter "@the-copy/ai-orchestration" --filter "@the-copy/export" test
+   ```
+3. تشغيل `pnpm agent:refresh-maps`.
+4. تشغيل `pnpm agent:verify`.
+5. كتابة E2E يثبت كل شرط قبول من P0 (موصوف في تقرير E2E الميداني).
+
+### بنود لم تُلمس (P1 وما بعد)
+
+- إصلاح FCP < 2500ms في كل التطبيقات الـ12.
+- BUDGET export الفعلي + إخفاء API paths.
+- brain-storm-ai loading + rate limit + export.
+- BREAKAPP redirect + QR errors.
+- cinematography-studio export + share + WebGL fallback.
+- styleIST Tech Pack + Import Ref + Canvas/Three.js.
+- اختبارات وصولية axe محلية لكل تطبيق.
+- اختبار 20 reload للذاكرة في editor.
+- اختبارات RTL وعربية شاملة.
+- اختبارات أمنية (XSS في export، Excel formula injection، file upload).

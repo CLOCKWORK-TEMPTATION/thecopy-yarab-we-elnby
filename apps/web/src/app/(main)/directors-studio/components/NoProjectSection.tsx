@@ -455,13 +455,56 @@ export function NoProjectSection() {
     return currentProject ? normalizeProject(currentProject) : null;
   }, [currentProject, projects, selectedProjectId]);
 
+  /**
+   * إصلاح P0-7: قبل التحويل إلى /editor نتأكد من أن المستخدم
+   * مصادق. إذا لم يكن، نعرض رسالة واضحة + زر Login بدل الـ
+   * silent redirect الذي وثّقه التقرير.
+   *
+   * نستخدم fetch خفيف إلى /api/auth/me. عند فشله بـ 401 نُحوّل
+   * إلى /login مع redirect target صحيح يعود للمحرر بنفس projectId.
+   */
+  const isUserAuthenticated = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000),
+      });
+      return response.ok;
+    } catch {
+      // إذا تعذّر الوصول للـ endpoint نسمح بالتقدم — backend سيرد بـ
+      // auth_required إن لزم، والمحرر يعرف يعالجها.
+      return true;
+    }
+  }, []);
+
   const openEditorWithProject = useCallback(
-    (project: Project, options?: { importIntent?: boolean }) => {
+    async (project: Project, options?: { importIntent?: boolean }) => {
+      const isAuthenticated = await isUserAuthenticated();
+      const importIntent = options?.importIntent ?? false;
+
+      if (!isAuthenticated) {
+        const loginUrl = DirectorsEditorConfigManager.buildLoginRedirectUrl(
+          project.id,
+          { importIntent },
+        );
+        directorsEditorLogger.info({
+          event: "directors-studio-auth-required",
+          message: "Editor opening requires authentication. Redirecting to login.",
+          data: { projectId: project.id, loginUrl },
+        });
+        toast({
+          title: "تسجيل الدخول مطلوب",
+          description:
+            "فتح المحرر يحتاج إلى حساب مسجَّل. سننقلك إلى صفحة الدخول الآن، وستعود مباشرة إلى المحرر بعد الدخول.",
+        });
+        router.push(loginUrl);
+        return;
+      }
+
       const targetUrl = DirectorsEditorConfigManager.buildEditorUrl(
         project.id,
-        {
-          importIntent: options?.importIntent ?? false,
-        }
+        { importIntent },
       );
       setProject(project);
       directorsEditorLogger.info({
@@ -470,13 +513,13 @@ export function NoProjectSection() {
         data: {
           projectId: project.id,
           projectTitle: project.title,
-          importIntent: options?.importIntent ?? false,
+          importIntent,
           targetUrl,
         },
       });
       router.push(targetUrl);
     },
-    [router, setProject]
+    [isUserAuthenticated, router, setProject, toast]
   );
 
   const selectProject = useCallback(

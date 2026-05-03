@@ -209,14 +209,57 @@ export function extractPasteClassifierErrorMessage(event: Event): string {
     : "تعذر تطبيق نظام الشك على النص الملصوق.";
 }
 
+/**
+ * عدّاد كلمات يدعم العربية بصرامة.
+ *
+ * إصلاح P0-1: التقرير وثّق أن عدّاد الكلمات لا يتحدث مع الكتابة
+ * رغم تحدّث عدّاد الحروف. السبب الأرجح: محارف اتجاه RTL خفية
+ * (U+200E LRM, U+200F RLM, U+202A..U+202E, U+2066..U+2069) ومسافة
+ * غير قاطعة (U+00A0) كانت تُنتج "كلمة" واحدة وهمية تستهلك كل النص.
+ *
+ * المعالجة:
+ *   1. نزيل محارف الاتجاه قبل التقطيع.
+ *   2. نعتمد فاصل Unicode \p{White_Space} لاحتساب كل أنواع المسافات.
+ *   3. نتجاهل القيم الفارغة بعد filter حتى لا يحتسب نص بمسافات فقط ككلمة.
+ */
+const DIRECTIONAL_MARKS_PATTERN = /[‎‏‪-‮⁦-⁩]/g;
+
+export function countArabicWords(text: string): number {
+  if (typeof text !== "string" || text.length === 0) {
+    return 0;
+  }
+  const cleaned = text
+    .replace(DIRECTIONAL_MARKS_PATTERN, "")
+    .replace(/ /g, " ")
+    .trim();
+  if (cleaned.length === 0) {
+    return 0;
+  }
+  // \p{White_Space} يغطي جميع أنواع المسافات في Unicode بما فيها العربية.
+  const tokens = cleaned.split(/[\p{White_Space}]+/u).filter((t) => t.length > 0);
+  return tokens.length;
+}
+
+/**
+ * عدّاد حروف يستثني كل أنواع المسافات ومحارف الاتجاه.
+ */
+export function countArabicCharacters(text: string): number {
+  if (typeof text !== "string" || text.length === 0) {
+    return 0;
+  }
+  return text
+    .replace(DIRECTIONAL_MARKS_PATTERN, "")
+    .replace(/[\p{White_Space}]/gu, "").length;
+}
+
 // — يحسب إحصائيات المستند (كلمات، حروف، صفحات، مشاهد) من النص والـ HTML
 export function computeDocumentStats(
   text: string,
   html: string,
   pagesCount: number
 ): DocumentStats {
-  const words = text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
-  const characters = text.replace(/\s+/g, "").length;
+  const words = countArabicWords(text);
+  const characters = countArabicCharacters(text);
   const scenes = (
     html.match(
       /data-type="scene_header_top_line"|data-type="scene_header_3"/g

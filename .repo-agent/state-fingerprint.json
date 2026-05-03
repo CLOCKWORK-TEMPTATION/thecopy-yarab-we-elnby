@@ -1,7 +1,7 @@
 {
   "branch": "main",
   "criticalInputHashes": {
-    ".agent-code-memory/manifest.json": "sha256:e57195d2-057f914a-0990f313-db90555c-f9f6375a-5dff003a-9264874c-12f8bce5",
+    ".agent-code-memory/manifest.json": "sha256:2db3de0e-d85f1463-73541861-300d9106-5a25381f-c6382924-fae1486d-74842771",
     ".repo-agent/RAG-OPERATING-CONTRACT.md": "sha256:d598cf00-052bcb9f-a76e4e71-a201a724-9abef6c9-85ad50a2-dca9940a-35996789",
     ".repo-agent/TOOL-GUARD-CONTRACT.json": "sha256:f1391fb0-130c7384-f24230ed-44697d8e-6b19adbf-2f628cec-99d01551-0bf601e0",
     "apps/backend/package.json": "sha256:c3ba4f33-470c2feb-6ec70ef1-d6e01425-89d86cbb-3b982a09-39f013be-93f57e62",
@@ -21,7 +21,7 @@
     "apps/backend/src/memory/vector-store/schema.ts": "sha256:d0a9655f-ede3e77f-43713498-4d48c26c-63c89a36-82a0c23a-6eb3679f-1ee659db",
     "apps/backend/src/services/rag/embeddings.service.ts": "sha256:ff329ac1-25392cca-04ad36bf-521ee414-344bb21a-646fb075-ca9ff87c-14de779f",
     "apps/backend/src/services/rag/enhancedRAG.service.ts": "sha256:5e61a39d-9e40bab5-0251644c-1ec4fb69-ced62251-a98268be-94811411-2a114269",
-    "apps/web/package.json": "sha256:33f65688-dfccf90b-156918e7-f89ee251-42ae9796-90a79798-c7709306-b5b96960",
+    "apps/web/package.json": "sha256:99eff26c-c659f3e8-e556c720-8317a7bc-dab36e83-381dc846-26938080-e5104b31",
     "apps/web/src/app/(main)/editor/scripts/rag-index.ts": "sha256:1f7e1d0b-dadd4590-3d48823a-3618d5ca-12f92847-3a4ff60a-139319b3-7877be9c",
     "apps/web/src/app/(main)/editor/scripts/rag-query.ts": "sha256:66bccc78-56bd869f-81440052-ef69ec15-729da2df-ce997bf9-ffe16703-700955f3",
     "apps/web/src/app/(main)/editor/scripts/rag-smoke-test.ts": "sha256:93de51c3-2da203f0-0b8a9cbb-46ee1dcd-4f10ac42-2bf72733-6d8d4ea0-733ded29",
@@ -42,13 +42,20 @@
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts": "sha256:191196ad-297d1de4-48d843d8-b0373bf1-9abfd5a8-0b66c532-29bd2564-5dd9fd10",
     "apps/web/src/lib/drama-analyst/services/ragService.ts": "sha256:26ff86d0-8aa7b7ef-d46f182a-c328ae1c-942f9919-94406d5d-dab8d392-da163dfa",
     "package.json": "sha256:1989f304-be96cc9c-ce430040-423af8b3-7e55ee38-b6936823-de73f3ff-584ffd08",
+    "packages/ai-orchestration/package.json": "sha256:796a58c6-aeed6a18-42ede2bf-5ddb0d33-735122f8-8c007143-341b67a3-9374add6",
+    "packages/api-client/package.json": "sha256:9fa5a96b-afa72847-25e0fbfa-ab1941bb-0af52ef4-94100bff-2dcff61f-e546e6a7",
     "packages/breakapp/package.json": "sha256:622ddcb2-854cb112-eac9bee2-7a40514c-5392b2d9-56f3eaff-0cf35ef1-52df8054",
     "packages/copyproj-schema/package.json": "sha256:41d05a05-3d60f305-cda9877b-31c19a15-b0cefc5a-f47953d9-f3f91043-c5197270",
     "packages/core-memory/package.json": "sha256:d6d336a7-fbd35beb-ec105f59-faf7f245-936b08bf-dad06b33-f28077c7-86e7436a",
     "packages/core-memory/src/chunking/semanticChunker.ts": "sha256:15cf98b4-62cbc809-72f682d3-23913c08-1a10bef0-5c7ca801-80848ced-7f23e542",
     "packages/core-memory/src/types.ts": "sha256:fc788147-3489a8eb-b1ceacea-b0ce528e-2e8ba7c0-793223f3-856c6a58-cf237dc0",
+    "packages/error-boundary/package.json": "sha256:2aa5ccba-2436fd52-c116453d-22b234af-bb77b528-4103fab1-8eb59517-25f99023",
+    "packages/export/package.json": "sha256:2a95eb27-b83dae13-7be56bfd-487f9d47-f8cfeaea-7e2f7451-b645c1f0-6148e753",
+    "packages/persistence/package.json": "sha256:59091734-8fc46e13-a72b2c9e-58fc4fcc-71f263f9-81dee180-12269415-eee92f85",
     "packages/prompt-engineering/package.json": "sha256:37eac45d-12724646-e2121ee8-d8aa55b9-c5d6b114-cca75880-4b23817a-9c4ba58c",
+    "packages/security-middleware/package.json": "sha256:040c06f0-237a59f5-663a52b6-cb50f757-e702c09d-14e2d31a-a5c4f3fe-465c9614",
     "packages/tsconfig/package.json": "sha256:1c2c5d49-272204d3-f0512d29-1a15f14a-65f19fbe-ec211a2b-fcf41e7d-20fb7312",
+    "packages/validation/package.json": "sha256:3fa1e0cc-3bb7a2ff-30a20584-be398dbc-06f2da0e-a1210f20-96eb436f-e36971cc",
     "pnpm-workspace.yaml": "sha256:08d75840-c97ab0e7-2d1d9b5b-84a17e47-a2e06cb1-59a5fbec-5ee0a6a5-6682dad7",
     "scripts/agent/code-memory-index.ts": "sha256:91a78335-851cbc69-9233fe1a-f659ded6-9bcf374b-e562cee1-239c7cf2-74f4457f",
     "scripts/agent/code-memory-search.ts": "sha256:26ea0e28-5eb70d70-04be197d-f10588b8-7ee782e5-4719af6a-e4114958-66ed1e14",
@@ -95,22 +102,22 @@
     "scripts/generate-workspace-embeddings.js": "sha256:84645616-351067c2-7fe3ade3-04a5fbbb-ef06d077-78b8a6f0-af9998ab-b7e76d83",
     "turbo.json": "sha256:85b9e056-6c9873e8-f7df5be4-39ebbaeb-3c635a51-74a1c241-f931ef9d-1db500c3"
   },
-  "driftLevel": "no-drift",
+  "driftLevel": "hard-drift",
   "driftReasons": [
-    "لا يوجد drift مؤثر"
+    "تغيرت الملفات البنيوية الحرجة"
   ],
-  "headCommit": "09a0d60d30d958de4746103db7673d18607a08bd",
+  "headCommit": "1f68c8b71d89507ba64c7f4c5061157fea9e57d8",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "sha256:7b53e96d-e7881192-3d4a30a4-94056fb8-fb76c446-3726d4e9-3f3b791a-e5c9e997"
   },
   "knowledgeHash": "sha256:add8870f-e825f83f-3c2980af-305d3936-d2b33261-2f90b964-01724ec8-bb830547",
   "knowledgeStatus": "governed",
-  "lastBootstrapTimestamp": "2026-05-03T04:38:39.863Z",
+  "lastBootstrapTimestamp": "2026-05-03T05:26:42.128Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:e60fdcf8-f555d382-23a634cc-9e5b53b4-c551ef64-3d995a61-6dfb9989-86cbcade",
-    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:84f24aae-10e82a52-67bed096-4dcc7b99-1096598f-556e0944-eac4f994-2ef35cc7",
-    "output/code-map/code-map.json": "sha256:df433247-7823c65e-5049f869-0ef8d61b-e66abd9b-8ddb0b64-b70cfce4-bf4f6ed6",
-    "output/code-map/CODEMAP.md": "sha256:bb6e19aa-c2af4edb-3d8f3187-508b47cd-86d6d91c-f38111ee-a6c231be-2ca904e8",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:f26057ed-caf833f0-227527e9-10677719-bd34436f-f55f9f35-ebfadd8b-0b05c103",
+    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:d40eaef2-fb86ec94-91b740f3-aa9f0243-40c8d284-d08d5317-eb6c9538-aa31511a",
+    "output/code-map/code-map.json": "sha256:68ad1d73-f0697fe1-815948ea-226db532-b56a94f1-0b0372d5-83698c5a-7a6a4c38",
+    "output/code-map/CODEMAP.md": "sha256:503df351-60dbb267-8c7803af-d643cbab-444d5111-7378382e-ec2fc381-444c9483",
     "output/code-map/dependency-graph.md": "sha256:49deb450-7633f9c9-5a571a1b-06148da6-01f8a62b-86d63233-7be080cb-7abf4557",
     "output/code-map/entrypoints.md": "sha256:95d8c089-634449c4-382e10a2-e7e0a597-2abcba8a-5e497a43-9eb9972b-e8863941",
     "output/code-map/findings.md": "sha256:bcc0230e-8dc48409-071750cc-00089bb2-d231d1b5-45d8460f-90a9bd1e-8fbdd9ec",
@@ -122,8 +129,8 @@
     "output/mind-map/MINDMAP.md": "sha256:75a7224f-e591052a-0ddc8a12-865bf5cc-419ea1bc-f6215856-93499b3a-14db9b84",
     "output/mind-map/mindmap.mmd": "sha256:d3f3dd6d-dca5e6ad-52cbe963-6efd47a8-afcbbddf-5c11e26f-b5cf0aa0-df645350",
     "output/mind-map/rag-topology.mmd": "sha256:27b4e947-214abafb-9dba8606-4d0a204e-f802ae2a-1f622c87-b4573993-1c7e1d9e",
-    "output/round-notes.md": "sha256:a0645e49-7b7741ea-e730f60e-c33da9d4-a3c5eb2e-f4d27dd8-72eba203-c6bf1834",
-    "output/session-state.md": "sha256:a71e27aa-7bb32953-f6842740-023d4305-b8bbc72f-1b530bd4-c828f950-6e7cffd5"
+    "output/round-notes.md": "sha256:86f6b244-8fe0b23c-a617ec8c-aaa995e4-b5f4acdd-77b4bcb6-9d253e3c-02bd7635",
+    "output/session-state.md": "sha256:d9fc44d4-2d2bed1c-1e208c86-7fc12773-48ad52cd-1f1680ef-655755f5-f9edb8f6"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -133,7 +140,7 @@
     "roundNotesCurrent": true,
     "sessionStateCurrent": true
   },
-  "repoFactsHash": "sha256:c9dbf6f5-083ca8d8-2016304a-1bf89c19-cbe2051e-4c11feff-7ba44ab9-5c148679",
+  "repoFactsHash": "sha256:94b39558-5236a247-53f8323b-a9cf0ce3-bc4fcf7e-d4b98f54-705e7c6e-4120f1cc",
   "schemaVersion": 1,
   "structuralFiles": [
     ".agent-code-memory/manifest.json",
@@ -178,13 +185,20 @@
     "apps/web/src/lib/drama-analyst/agents/shared/standardAgentPattern.rag.ts",
     "apps/web/src/lib/drama-analyst/services/ragService.ts",
     "package.json",
+    "packages/ai-orchestration/package.json",
+    "packages/api-client/package.json",
     "packages/breakapp/package.json",
     "packages/copyproj-schema/package.json",
     "packages/core-memory/package.json",
     "packages/core-memory/src/chunking/semanticChunker.ts",
     "packages/core-memory/src/types.ts",
+    "packages/error-boundary/package.json",
+    "packages/export/package.json",
+    "packages/persistence/package.json",
     "packages/prompt-engineering/package.json",
+    "packages/security-middleware/package.json",
     "packages/tsconfig/package.json",
+    "packages/validation/package.json",
     "pnpm-workspace.yaml",
     "scripts/agent/code-memory-index.ts",
     "scripts/agent/code-memory-search.ts",
@@ -233,6 +247,6 @@
     "WORKSPACE-EMBEDDING-INDEX.json",
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
-  "structuralHash": "sha256:e5013c8f-baad7045-5882e63a-a5fdaef1-e4736b5b-b0f5210f-5e0b1646-245b7aab",
-  "workingTreeHash": "49d6ebdb6a545e4a565b6cd87fb573215aeec02921adab8a2f1415305ee7cc46"
+  "structuralHash": "sha256:c582ddf1-179aee7a-3d40a4b4-ca710251-e5559380-f2bb06f3-73acc7f5-2239ba38",
+  "workingTreeHash": "2abbe017b284fd99324ad07633c364782fdd66ba61705101828023b60e2310d5"
 }

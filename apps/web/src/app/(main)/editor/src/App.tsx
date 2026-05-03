@@ -5,9 +5,16 @@
  * @description المكون الجذري لتطبيق أفان تيتر — محرر السيناريو العربي.
  *   نحيف: state عبر `useEditorState`، refs/handlers عبر `useAppControllers`،
  *   side-effects عبر `useEditorEffects`، JSX في `EditorAppLayout`.
+ *
+ *   إصلاح P0-1: عند أول mount نُشغّل bootstrapClientStorageGuard
+ *   لمسح أي توكنات حساسة تكون قد تركها كود قديم في localStorage/sessionStorage.
+ *   لا نعتمد على هذا وحده — العقد الأمني يفرض أيضاً عدم كتابة التوكنات
+ *   في المقام الأول (انظر use-local-storage.ts).
  */
 
 import React from "react";
+
+import { bootstrapClientStorageGuard } from "@the-copy/security-middleware";
 
 import { EditorAppLayout } from "./components/app-shell/EditorAppLayout";
 import { SHORTCUT_FORMAT_BY_DIGIT } from "./constants";
@@ -27,6 +34,14 @@ import { resolveFileImportExtractEndpoint } from "./utils/backend-endpoints";
 import { logger } from "./utils/logger";
 
 export function App(): React.JSX.Element {
+  // طبقة دفاع مبكّرة: نمسح أي توكنات قديمة قبل أن يقرأها كود لاحق.
+  // useRef يضمن التشغيل مرة واحدة فقط لكل instance من المكوّن.
+  const storageGuardRef = React.useRef(false);
+  if (!storageGuardRef.current && typeof window !== "undefined") {
+    storageGuardRef.current = true;
+    bootstrapClientStorageGuard();
+  }
+
   const state = useEditorState();
   const controllers = useAppControllers(state);
   const constants = getConstants();

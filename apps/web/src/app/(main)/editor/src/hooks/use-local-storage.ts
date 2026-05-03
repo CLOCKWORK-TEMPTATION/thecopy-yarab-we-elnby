@@ -1,5 +1,32 @@
+/**
+ * أنماط مفاتيح ممنوعة منعاً باتاً من التخزين المحلي.
+ *
+ * إصلاح P0-1: يمنع تسرّب JWT/access/refresh tokens إلى localStorage.
+ * أي محاولة كتابة مفتاح يطابق هذه الأنماط تُرفض في الكود نفسه،
+ * وليست مجرد تحذير في وقت الفحص. هذه طبقة دفاع داخل المحرر،
+ * تكمّل auditClientTokenStorage في @the-copy/security-middleware.
+ */
+const FORBIDDEN_KEY_PATTERNS: ReadonlyArray<RegExp> = [
+  /\bjwt\b/i,
+  /\baccess[_-]?token\b/i,
+  /\brefresh[_-]?token\b/i,
+  /\bid[_-]?token\b/i,
+  /\bauth[_-]?token\b/i,
+  /\bbearer\b/i,
+  /\bsession[_-]?token\b/i,
+  /^authorization$/i,
+  /\bsecret\b/i,
+];
+
+const isForbiddenKey = (key: string): boolean =>
+  FORBIDDEN_KEY_PATTERNS.some((pattern) => pattern.test(key));
+
 const loadJson = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;
+  if (isForbiddenKey(key)) {
+    // لا نقرأ مفاتيح حساسة حتى لو وُجدت. نتجاهلها.
+    return fallback;
+  }
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return fallback;
@@ -11,6 +38,18 @@ const loadJson = <T>(key: string, fallback: T): T => {
 
 const saveJson = <T>(key: string, value: T): void => {
   if (typeof window === "undefined") return;
+  if (isForbiddenKey(key)) {
+    // لا تكتب توكنات حساسة في التخزين المحلي.
+    // هذا يخالف عقد الأمان: التوكنات تذهب إلى HttpOnly cookies فقط.
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[editor/use-local-storage] refused to write forbidden key: ${key}. ` +
+          `Tokens must be stored in HttpOnly Secure SameSite cookies only.`,
+      );
+    }
+    return;
+  }
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {

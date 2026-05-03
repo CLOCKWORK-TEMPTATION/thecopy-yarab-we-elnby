@@ -77,11 +77,18 @@ pnpm infra:reset
 
 ## الحزم الأساسية
 
+- `@the-copy/ai-orchestration` — `packages/ai-orchestration`
+- `@the-copy/api-client` — `packages/api-client`
 - `@the-copy/breakapp` — `packages/breakapp`
 - `@the-copy/copyproj-schema` — `packages/copyproj-schema`
 - `@the-copy/core-memory` — `packages/core-memory`
+- `@the-copy/error-boundary` — `packages/error-boundary`
+- `@the-copy/export` — `packages/export`
+- `@the-copy/persistence` — `packages/persistence`
 - `@the-copy/prompt-engineering` — `packages/prompt-engineering`
+- `@the-copy/security-middleware` — `packages/security-middleware`
 - `@the-copy/tsconfig` — `packages/tsconfig`
+- `@the-copy/validation` — `packages/validation`
 
 ## نقاط الدخول الأهم
 
@@ -174,6 +181,6 @@ output/session-state.md
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `2713`
-- القطع: `5830`
+- الملفات: `2738`
+- القطع: `5884`
 - التغطية: `100.0%`

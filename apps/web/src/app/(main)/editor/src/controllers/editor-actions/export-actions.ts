@@ -122,19 +122,24 @@ export const runExport = async (
       description: `تم تصدير الملف بصيغة ${LABEL_BY_FORMAT[format]}.`,
     });
   } catch (error) {
-    const message =
+    // لا نكشف رسائل تقنية خام للمستخدم (مثل oklch parser errors).
+    // الرسالة المعروضة عربية مفهومة، والسبب التقني يُسجَّل في logs فقط.
+    const technicalMessage =
       error instanceof Error
         ? error.message
-        : "حدث خطأ غير معروف أثناء التصدير.";
+        : "unknown export error";
+
+    const userMessage = `تعذّر تصدير ${LABEL_BY_FORMAT[format]}. تم تسجيل الخطأ ويمكنك إعادة المحاولة.`;
+
     deps.toast({
       title: "تعذر التصدير",
-      description: message,
+      description: userMessage,
       variant: "destructive",
     });
-    deps.recordDiagnostic("تعذر التصدير", message);
+    deps.recordDiagnostic("تعذر التصدير", technicalMessage);
     logger.error("Document export failed", {
       scope: "export",
-      data: { format, error },
+      data: { format, error, technicalMessage },
     });
   }
 };

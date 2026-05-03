@@ -52,7 +52,21 @@
       "@the-copy/prompt-engineering": ["../../packages/prompt-engineering/src"],
       "@the-copy/prompt-engineering/*": [
         "../../packages/prompt-engineering/src/*"
-      ]
+      ],
+      "@the-copy/api-client": ["../../packages/api-client/src"],
+      "@the-copy/api-client/*": ["../../packages/api-client/src/*"],
+      "@the-copy/security-middleware": ["../../packages/security-middleware/src"],
+      "@the-copy/security-middleware/*": ["../../packages/security-middleware/src/*"],
+      "@the-copy/error-boundary": ["../../packages/error-boundary/src"],
+      "@the-copy/error-boundary/*": ["../../packages/error-boundary/src/*"],
+      "@the-copy/persistence": ["../../packages/persistence/src"],
+      "@the-copy/persistence/*": ["../../packages/persistence/src/*"],
+      "@the-copy/validation": ["../../packages/validation/src"],
+      "@the-copy/validation/*": ["../../packages/validation/src/*"],
+      "@the-copy/export": ["../../packages/export/src"],
+      "@the-copy/export/*": ["../../packages/export/src/*"],
+      "@the-copy/ai-orchestration": ["../../packages/ai-orchestration/src"],
+      "@the-copy/ai-orchestration/*": ["../../packages/ai-orchestration/src/*"]
     },
     "plugins": [
       {
