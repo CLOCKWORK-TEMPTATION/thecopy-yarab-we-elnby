@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -7,7 +9,8 @@ import { definedProps } from "@/utils/defined-props";
 
 import type { Application, RequestHandler } from "express";
 
-type DynamicImport = <T>(modulePath: string) => Promise<T>;
+type NativeDynamicImport = <T>(modulePath: string) => Promise<T>;
+type PathExists = (path: string) => boolean;
 type RuntimeHandler = RequestHandler;
 interface ModelAvailability {
   available: boolean;
@@ -51,10 +54,41 @@ interface LoadedEditorRuntime {
   docxConverterScriptExists: boolean;
 }
 
-const dynamicImport: DynamicImport = async <T>(modulePath: string) =>
-  import(modulePath) as Promise<T>;
+interface RuntimePathOptions {
+  baseDir?: string;
+  cwd?: string;
+  pathExists?: PathExists;
+}
 
-const runtimeRoot = resolve(process.cwd(), "editor-runtime");
+export function resolveEditorRuntimeRoot(
+  options: RuntimePathOptions = {},
+): string {
+  const cwd = options.cwd ?? process.cwd();
+  const baseDir = options.baseDir ?? __dirname;
+  const pathExists = options.pathExists ?? existsSync;
+  const fallbackRuntimeRoot = resolve(cwd, "editor-runtime");
+  const candidates = [
+    fallbackRuntimeRoot,
+    resolve(cwd, "apps", "backend", "editor-runtime"),
+    resolve(baseDir, "..", "editor-runtime"),
+    resolve(baseDir, "..", "..", "editor-runtime"),
+  ];
+
+  return (
+    candidates.find((candidate) => pathExists(candidate)) ?? fallbackRuntimeRoot
+  );
+}
+
+export function resolveNativeDynamicImportHelperPath(
+  options: RuntimePathOptions = {},
+): string {
+  return resolve(
+    resolveEditorRuntimeRoot(options),
+    "native-dynamic-import.cjs",
+  );
+}
+
+const runtimeRoot = resolveEditorRuntimeRoot();
 let loadedRuntimePromise: Promise<LoadedEditorRuntime> | null = null;
 const googleModelHealthCache = new Map<
   string,
@@ -85,6 +119,29 @@ function buildRateLimiter(limit: number): RequestHandler {
 const extractLimiter = buildRateLimiter(100);
 const reviewLimiter = buildRateLimiter(100);
 const aiLimiter = buildRateLimiter(200);
+
+function isNativeDynamicImportModule(
+  value: unknown,
+): value is { nativeDynamicImport: NativeDynamicImport } {
+  const candidate = value as { nativeDynamicImport?: unknown };
+  return typeof candidate.nativeDynamicImport === "function";
+}
+
+function loadNativeDynamicImport(): NativeDynamicImport {
+  const helperPath = resolveNativeDynamicImportHelperPath();
+  const runtimeRequire = createRequire(__filename) as (
+    modulePath: string,
+  ) => unknown;
+  const imported = runtimeRequire(helperPath);
+
+  if (!isNativeDynamicImportModule(imported)) {
+    throw new Error("Editor runtime dynamic import helper is invalid.");
+  }
+
+  return imported.nativeDynamicImport;
+}
+
+const nativeDynamicImport = loadNativeDynamicImport();
 
 function toTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -212,7 +269,7 @@ async function resolveProviderModelAvailability(
 
 async function importRuntimeModule<T>(relativePath: string): Promise<T> {
   const moduleUrl = pathToFileURL(resolve(runtimeRoot, relativePath)).href;
-  return dynamicImport<T>(moduleUrl);
+  return nativeDynamicImport<T>(moduleUrl);
 }
 
 async function loadEditorRuntime(): Promise<LoadedEditorRuntime> {

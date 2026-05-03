@@ -2,6 +2,7 @@ import {
   pgTable,
   uuid,
   text,
+  inet,
   timestamp,
   boolean,
   integer,
@@ -537,7 +538,7 @@ export const breakappAuditLogs = pgTable("breakapp_audit_logs", {
   method: text("method").notNull(),
   path: text("path").notNull(),
   statusCode: integer("status_code").notNull(),
-  ip: text("ip").notNull(),
+  ip: inet("ip").notNull(),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -18,6 +18,7 @@ const vendoredHomePath = join(vendoredRoot, "Resources");
 const legacyWindowsRoot = "C:\\antiword";
 const legacyWindowsBinPath = join(legacyWindowsRoot, "antiword.exe");
 const legacyWindowsHomePath = join(legacyWindowsRoot, "Resources");
+const antiwordHomeResourceFiles = ["Default", "fontnames"];
 
 const systemDefaultAntiwordPath = isWindows ? "antiword.exe" : "antiword";
 const systemDefaultAntiwordHome = isWindows
@@ -31,13 +32,37 @@ const resolveDefaultAntiwordPath = () => {
   return systemDefaultAntiwordPath;
 };
 
-const resolveDefaultAntiwordHome = () => {
-  if (existsSync(vendoredHomePath)) return vendoredHomePath;
-  if (isWindows && existsSync(legacyWindowsHomePath)) {
-    return legacyWindowsHomePath;
+const hasAntiwordHomeResources = (homePath, exists) =>
+  exists(homePath) &&
+  antiwordHomeResourceFiles.every((fileName) => exists(join(homePath, fileName)));
+
+const resolveDefaultAntiwordHomeForRuntime = ({
+  exists = existsSync,
+  isWindows: runtimeIsWindows = isWindows,
+  legacyWindowsRoot: runtimeLegacyWindowsRoot = legacyWindowsRoot,
+  vendoredHomePath: runtimeVendoredHomePath = vendoredHomePath,
+} = {}) => {
+  if (hasAntiwordHomeResources(runtimeVendoredHomePath, exists)) {
+    return runtimeVendoredHomePath;
   }
+
+  if (runtimeIsWindows) {
+    const legacyHomeCandidates = [
+      join(runtimeLegacyWindowsRoot, "Resources"),
+      runtimeLegacyWindowsRoot,
+    ];
+    const existingHome = legacyHomeCandidates.find((homePath) =>
+      hasAntiwordHomeResources(homePath, exists),
+    );
+    if (existingHome) {
+      return existingHome;
+    }
+  }
+
   return systemDefaultAntiwordHome;
 };
+
+const resolveDefaultAntiwordHome = () => resolveDefaultAntiwordHomeForRuntime();
 
 const inferRuntimeSource = (antiwordPath, antiwordHome) => {
   if (process.env.ANTIWORD_PATH?.trim() || process.env.ANTIWORDHOME?.trim()) {
@@ -49,7 +74,8 @@ const inferRuntimeSource = (antiwordPath, antiwordHome) => {
   if (
     isWindows &&
     (antiwordPath === legacyWindowsBinPath ||
-      antiwordHome === legacyWindowsHomePath)
+      antiwordHome === legacyWindowsHomePath ||
+      antiwordHome === legacyWindowsRoot)
   ) {
     return "windows-legacy";
   }
@@ -80,6 +106,7 @@ export {
   DEFAULT_ANTIWORD_PATH,
   DEFAULT_ANTIWORD_HOME,
   resolveAntiwordRuntime,
+  resolveDefaultAntiwordHomeForRuntime,
   vendoredBinPath as VENDORED_ANTIWORD_PATH,
   vendoredHomePath as VENDORED_ANTIWORD_HOME,
 };

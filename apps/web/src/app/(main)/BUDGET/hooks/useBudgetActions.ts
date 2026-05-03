@@ -78,9 +78,7 @@ export function useBudgetActions({
 
   const handleGenerate = async () => {
     if (!scenario.trim()) {
-      setError(
-        "اكتب وصفًا إنتاجيًا أو سيناريو مختصرًا قبل إنشاء الميزانية.",
-      );
+      setError("أدخل السيناريو أولاً لإنشاء الميزانية.");
       return;
     }
 
