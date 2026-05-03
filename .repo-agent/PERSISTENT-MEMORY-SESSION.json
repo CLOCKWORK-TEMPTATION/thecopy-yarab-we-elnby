@@ -329,6 +329,22 @@
       "auditEventId": "7eeb94a7-6867-45ee-bf8e-dc79975eb608",
       "memoryContext": ".repo-agent/STARTUP-PROTOCOL.md:8857a4e1-1e6d-41be-9b55-daeda2c2cc9a",
       "latencyMs": 1
+    },
+    {
+      "turnId": "81a832f5-d140-49ef-ac45-5b9b6b96a6c9",
+      "sessionId": "local-agent-session",
+      "rawQueryForRepair": "اتأكد مرة كمان من ظهور مهارات وكيل مراجعة تنفيذ الخطة",
+      "queryHash": "ce286ad4ed50091dffd728812a483ce79a1402b76e88f5560fdacd203e66bcf5",
+      "redactedQueryPreview": "اتأكد مرة كمان من ظهور مهارات وكيل مراجعة تنفيذ الخطة",
+      "createdAt": "2026-05-03T04:21:19.979Z",
+      "updatedAt": "2026-05-03T04:21:19.979Z",
+      "turnContextStatus": "ready",
+      "selectedIntent": "plan_review_or_evaluation",
+      "selectedProfile": "plan_review_or_evaluation",
+      "retrievalEventId": "6c1db25b-1b91-4ab3-929c-0ef2559fcf45",
+      "auditEventId": "d9d2c29f-8154-4300-9746-da26f7ffd5db",
+      "memoryContext": "AGENTS.md:40a11b3c-08fd-43e3-aeae-74eca7512e99\nAGENTS.md:2ecd1bf8-1728-4423-bf35-9f1de5590ebd\nAGENTS.md:f2427eb5-38a9-456a-a191-ad41121751f3",
+      "latencyMs": 15
     }
   ]
 }
