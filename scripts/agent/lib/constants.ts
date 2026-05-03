@@ -12,6 +12,8 @@ export const REPO_ROOT = process.cwd();
 export const AGENT_CONTEXT_PATH = ".repo-agent/AGENT-CONTEXT.generated.md";
 export const PERSISTENT_MEMORY_CONTEXT_PATH =
   ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md";
+export const PERSISTENT_MEMORY_TURN_CONTEXT_PATH =
+  ".repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md";
 export const FINGERPRINT_PATH = ".repo-agent/state-fingerprint.json";
 export const SESSION_STATE_PATH = "output/session-state.md";
 export const ROUND_NOTES_PATH = "output/round-notes.md";

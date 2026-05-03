@@ -5,7 +5,11 @@ import { fromRepoRoot, writeTextIfChanged } from "../utils";
 import { MemoryInjectionEnvelope, type InjectionEnvelopePayload } from "./injection";
 import { createPersistentMemorySystem, isPersistentMemoryInfraRequired, type PersistentMemorySystem } from "./index";
 import { openPersistentMemoryRuntime } from "./runtime";
-import type { QueryIntent } from "./types";
+import type {
+  MemoryRetrievalHit,
+  PersistentMemoryEventType,
+  QueryIntent,
+} from "./types";
 
 const STARTUP_QUERIES: Array<{ query: string; intent: QueryIntent }> = [
   {
@@ -24,6 +28,33 @@ const STARTUP_QUERIES: Array<{ query: string; intent: QueryIntent }> = [
     query: "current state persistent-agent-memory",
     intent: "current_state_lookup",
   },
+  {
+    query:
+      "هدف الذاكرة الدائمة الوكيل القادم يبدأ فاكر من أول رد بدون أمر يدوي",
+    intent: "avoid_repetition_or_follow_constraints",
+  },
+];
+
+const STARTUP_REQUIREMENT_QUERY =
+  "قبل أول عمل أو رد تنفيذي سياق الذاكرة الدائمة محقون memory_context";
+
+const STARTUP_MEMORY_REQUIREMENTS: Array<{
+  path: string;
+  eventType: PersistentMemoryEventType;
+  content: string;
+}> = [
+  {
+    path: "AGENTS.md",
+    eventType: "decision",
+    content:
+      "قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن.",
+  },
+  {
+    path: ".repo-agent/STARTUP-PROTOCOL.md",
+    eventType: "memory",
+    content:
+      "قيد بداية: يجب قراءة .repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md وإثبات ذلك في brief البداية، ويجب أن يكون هذا السياق محقونًا داخل .repo-agent/AGENT-CONTEXT.generated.md في منطقة memory_context فقط.",
+  },
 ];
 
 export interface StartupMemoryContext {
@@ -40,7 +71,9 @@ export interface BuildStartupMemoryContextOptions {
   env?: NodeJS.ProcessEnv | Record<string, string | undefined>;
 }
 
-async function readStartupSources(): Promise<Array<{ path: string; eventType: "state_snapshot" | "round"; content: string }>> {
+export async function readStartupSources(): Promise<
+  Array<{ path: string; eventType: PersistentMemoryEventType; content: string }>
+> {
   return [
     {
       path: SESSION_STATE_PATH,
@@ -52,6 +85,7 @@ async function readStartupSources(): Promise<Array<{ path: string; eventType: "s
       eventType: "round",
       content: await fsp.readFile(fromRepoRoot(ROUND_NOTES_PATH), "utf8"),
     },
+    ...STARTUP_MEMORY_REQUIREMENTS,
   ];
 }
 
@@ -64,6 +98,54 @@ async function ingestStartupSources(system: PersistentMemorySystem): Promise<voi
       tags: ["agent-startup", "persistent-memory"],
     });
   }
+}
+
+function isFirstResponseStartupRequirement(hit: MemoryRetrievalHit): boolean {
+  return (
+    hit.sourceRef === "AGENTS.md" &&
+    hit.content.includes("قبل أول عمل أو رد تنفيذي")
+  );
+}
+
+function dedupeStartupMemories(hits: MemoryRetrievalHit[]): MemoryRetrievalHit[] {
+  const hasHighTrustFirstResponseRequirement = hits.some(
+    (hit) => isFirstResponseStartupRequirement(hit) && hit.trustLevel === "high",
+  );
+  const seen = new Set<string>();
+  let keptFirstResponseRequirement = false;
+
+  return hits.filter((hit) => {
+    if (isFirstResponseStartupRequirement(hit)) {
+      if (keptFirstResponseRequirement) {
+        return false;
+      }
+
+      if (hasHighTrustFirstResponseRequirement && hit.trustLevel !== "high") {
+        return false;
+      }
+
+      keptFirstResponseRequirement = true;
+    }
+
+    if (seen.has(hit.id)) {
+      return false;
+    }
+
+    seen.add(hit.id);
+    return true;
+  });
+}
+
+function selectStartupRequirementMemories(
+  hits: MemoryRetrievalHit[],
+): MemoryRetrievalHit[] {
+  return dedupeStartupMemories(
+    hits.filter(
+      (hit) =>
+        hit.sourceRef === "AGENTS.md" ||
+        hit.sourceRef === ".repo-agent/STARTUP-PROTOCOL.md",
+    ),
+  );
 }
 
 export async function buildStartupMemoryContext(
@@ -96,25 +178,29 @@ export async function buildStartupMemoryContext(
       await ingestStartupSources(system);
     }
 
-    const query = options.query ?? STARTUP_QUERIES.map((entry) => entry.query).join(" ");
-    const primary = await system.retrieve({
-      query,
-      intent: "continue_from_last_session",
-      topK: 8,
-    });
-    const seen = new Set<string>();
-    const memories = primary.hits.filter((hit) => {
-      if (seen.has(hit.id)) {
-        return false;
-      }
-      seen.add(hit.id);
-      return true;
-    });
+    const query =
+      options.query ?? STARTUP_QUERIES.map((entry) => entry.query).join(" ");
+    const [requirements, primary] = await Promise.all([
+      system.retrieve({
+        query: STARTUP_REQUIREMENT_QUERY,
+        intent: "avoid_repetition_or_follow_constraints",
+        topK: 3,
+      }),
+      system.retrieve({
+        query,
+        intent: "continue_from_last_session",
+        topK: 8,
+      }),
+    ]);
+    const memories = selectStartupRequirementMemories([
+      ...requirements.hits,
+      ...primary.hits,
+    ]).slice(0, 3);
 
     return {
       status: "ready",
-      retrievalEventId: primary.retrievalEventId,
-      auditEventId: primary.auditEventId,
+      retrievalEventId: requirements.retrievalEventId,
+      auditEventId: requirements.auditEventId,
       envelope: envelope.fromPersistentMemories("memory_context", memories),
     };
   } catch (error) {

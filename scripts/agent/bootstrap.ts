@@ -25,6 +25,7 @@ import {
 } from "./lib/repo-state";
 import {
   buildStartupMemoryContext,
+  renderStartupMemoryContext,
   writeStartupMemoryContext,
 } from "./lib/persistent-memory/startup-context";
 import { renderRoundNotesSnapshot } from "./lib/round-notes";
@@ -119,20 +120,6 @@ async function main(): Promise<void> {
     updatedPaths.push(SESSION_STATE_PATH);
   }
 
-  const generatedContextContent = renderGeneratedContext(
-    facts,
-    drift,
-    referenceTimestamp,
-    facts.openIssues,
-  );
-  const generatedContextChanged = await writeTextIfChanged(
-    fromRepoRoot(AGENT_CONTEXT_PATH),
-    generatedContextContent,
-  );
-  if (generatedContextChanged) {
-    updatedPaths.push(AGENT_CONTEXT_PATH);
-  }
-
   const roundNotesPath = fromRepoRoot(ROUND_NOTES_PATH);
   const currentRoundNote = renderCurrentRoundNote(
     facts,
@@ -156,6 +143,21 @@ async function main(): Promise<void> {
   );
   if (startupMemoryChanged) {
     updatedPaths.push(PERSISTENT_MEMORY_CONTEXT_PATH);
+  }
+
+  const generatedContextContent = renderGeneratedContext(
+    facts,
+    drift,
+    referenceTimestamp,
+    facts.openIssues,
+    renderStartupMemoryContext(startupMemoryContext),
+  );
+  const generatedContextChanged = await writeTextIfChanged(
+    fromRepoRoot(AGENT_CONTEXT_PATH),
+    generatedContextContent,
+  );
+  if (generatedContextChanged) {
+    updatedPaths.push(AGENT_CONTEXT_PATH);
   }
 
   const outputHashes = await computeOutputHashes();

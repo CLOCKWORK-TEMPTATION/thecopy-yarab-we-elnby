@@ -20,7 +20,7 @@
 | **BUDGET** | 43 | 14 | 2 | 6 | 21 | كشف مسارات API الداخلية في الواجهة (`نتاج: /api/budget/analyze` و `/api/budget/generate` كـ subtitles) + FCP 10564ms | **شبه** (analyze + generate كلاهما 200 ويولدان محتوى عربي مفصل) |
 | **cinematography-studio** | 45 | 17 | 2 | 7 | 19 | FCP = **9712ms** + التطبيق client-side تمامًا (لا backend AI رغم اسم `Vision CineAI`) | **شبه** (dashboard فاخر، WebGL مفعَّل، حفظ LS) |
 | **development** | 46 | 9 | 5 | 7 | 25 | تنفيذ `إكمال النص` يُرجع **empty response** (`نفّذت المهمة لكن لم تُرجع أي محتوى`) + FCP **11452ms** الثاني الأبطأ | **لا** (كتالوج 27 أداة لكن أداة التجربة فشلت) |
-| **/editor** | 14 | 0 | 2 | 12 | 0 | حاجز مصادقة كامل: `/editor` يُعيد التوجيه إلى `/login` بعد ~10s `جارٍ التحقق من المصادقة` (تكرَّر 3 مرات) | **معاقة** (لا يمكن إصدار حكم) |
+| **/editor** | 13 | 6 | 4 | 0 | 0 | PDF Export معطل (`oklch()` parsing) + schema تصنيف غير قياسي (`basmala` + `scene_header_*` بدل slugline/action/character/dialogue) + فقدان نص طويل صامت (5440→113 بعد 4s) + فتح ملف فشل صامت + إعادة تصنيف يُفسد التصنيفات | **لا** (محدّث 2026-05-03 بعد رفع حاجز المصادقة) |
 | **directors-studio** | 43 | 8 | 1 | 10 | 24 | FCP = **11524ms** + كل أزرار `فتح المحرر` تحيل إلى `/editor` المحجوب | **شبه** (dashboard فقط، الديمو بمشهدين يعمل) |
 | **styleIST** | 46 | 8 | 2 | 9 | 27 | FCP = 9124ms + ادعاء `RENDER: THREE.JS r158` بدون canvas WebGL فعلية (ديكوري) | **شبه** (cockpit cinematic فاخر، Inspector + Timeline) |
 
@@ -40,11 +40,12 @@
 
 ## التطبيقات حسب الجاهزية
 
-### **ليس Production-Ready** (4):
+### **ليس Production-Ready** (5):
 1. **actorai-arabic** — أزرار التحليل صامتة، فقدان البيانات
 2. **analysis** — 403 على stream/snapshot، شريط 5% عالق
 3. **breakdown** — 500 على analyze، فشل صامت
 4. **development** — empty response من 27 أداة
+5. **/editor** — PDF export معطل + schema تصنيف غير قياسي + فقدان نص طويل (محدّث 2026-05-03)
 
 ### **شبه Production-Ready** (7):
 1. **art-director** — APIs تعمل (200)، CRUD كامل، XSS معقّم
@@ -55,8 +56,8 @@
 6. **directors-studio** — dashboard مع ديمو متعدد المشاهد
 7. **styleIST** — cockpit cinematic فاخر
 
-### **معاقة بحاجز مصادقة** (1):
-1. **/editor** — Authentication wall كامل
+### **معاقة بحاجز مصادقة** (0):
+لا توجد بعد رفع حاجز `/editor` في 2026-05-03.
 
 ---
 

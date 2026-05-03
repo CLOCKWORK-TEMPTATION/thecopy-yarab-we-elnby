@@ -1,5 +1,5 @@
 import type { DriftResult, IdeTarget, RepoFacts } from "./repo-state";
-import { PERSISTENT_MEMORY_CONTEXT_PATH } from "./constants";
+import { AGENT_CONTEXT_PATH, PERSISTENT_MEMORY_CONTEXT_PATH } from "./constants";
 
 function formatCodeBlockLines(lines: string[]): string {
   return `\`\`\`text\n${lines.join("\n")}\n\`\`\``;
@@ -140,6 +140,12 @@ AGENTS.md
 output/session-state.md
 \`\`\`
 
+ثم اقرأ سياق الذاكرة الدائمة المولد:
+
+\`\`\`text
+${PERSISTENT_MEMORY_CONTEXT_PATH}
+\`\`\`
+
 ثم اقرأ فقط ما يلزم من:
 
 \`\`\`text
@@ -151,8 +157,9 @@ output/mind-map/*
 
 1. اقرأ العقد الأعلى.
 2. اقرأ الحالة الحية.
-3. أخرج brief قصيرًا من 3 إلى 7 حقائق تشغيلية يثبت القراءة، ويتضمن حقيقة صريحة تثبت قراءة قاعدة الفحوصات الحاكمة.
-4. ثم فقط ابدأ العمل.
+3. اقرأ سياق الذاكرة الدائمة المولد.
+4. أخرج brief قصيرًا من 3 إلى 7 حقائق تشغيلية يثبت القراءة، ويتضمن حقيقة صريحة تثبت قراءة قاعدة الفحوصات الحاكمة وحقيقة صريحة تثبت قراءة سياق الذاكرة الدائمة.
+5. ثم فقط ابدأ العمل.
 
 ممنوع:
 
@@ -327,6 +334,7 @@ export function renderGeneratedContext(
   drift: DriftResult,
   referenceTimestamp: string,
   openIssues: string[],
+  startupMemoryContextContent: string,
 ): string {
   const ideStatus = facts.requiredIdeTargets
     .filter((target) => target.required)
@@ -362,6 +370,18 @@ export function renderGeneratedContext(
 - سياق الذاكرة الدائمة:
 
 \`${PERSISTENT_MEMORY_CONTEXT_PATH}\`
+
+## سياق الذاكرة الدائمة المحقون تلقائيًا
+
+هذا القسم هو منطقة ذاكرة فقط.
+
+لا يضاف إلى مناطق التعليمات الأعلى.
+
+المصدر الكامل:
+
+\`${PERSISTENT_MEMORY_CONTEXT_PATH}\`
+
+${startupMemoryContextContent.trim()}
 
 ## أوامر التشغيل الرسمية الحالية
 
@@ -443,6 +463,7 @@ ${status}
 - الويب الرسمي على المنفذ ${facts.webPort ?? "غير محسوم"}
 - الخلفية المرجعية على المنفذ ${facts.backendPort ?? "غير محسوم"}
 - المصدر الوحيد للحالة الحالية هو output/session-state.md
+- سياق الذاكرة الدائمة محقون داخل ${AGENT_CONTEXT_PATH} ومصدره ${PERSISTENT_MEMORY_CONTEXT_PATH}
 - عدد أنظمة المعرفة والاسترجاع المكتشفة هو ${facts.knowledgeInventory.totalSystems}
 - حالة حوكمة طبقة RAG هي ${facts.knowledgeInventory.governanceStatus}
 - قاعدة الفحوصات الحاكمة مقروءة ومطلوب إثبات قراءتها في brief البداية
@@ -462,7 +483,7 @@ ${updates}
 ${(openIssues.length > 0 ? openIssues : ["لا توجد أعطال مفتوحة مرصودة حاليًا."]).slice(0, 3).map((issue) => `- ${issue}`).join("\n")}
 
 الجاهزية:
-- يمكن بدء المهمة الآن فقط بعد قراءة output/session-state.md
+- يمكن بدء المهمة الآن فقط بعد قراءة output/session-state.md وسياق الذاكرة الدائمة المولد
 `;
 }
 

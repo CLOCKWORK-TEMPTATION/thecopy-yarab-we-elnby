@@ -49,15 +49,21 @@ pnpm agent:bootstrap
 output/session-state.md
 ```
 
-3. اقرأ فقط ما يلزم من:
+3. اقرأ:
+
+```text
+.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md
+```
+
+4. اقرأ فقط ما يلزم من:
 
 ```text
 output/code-map/*
 output/mind-map/*
 ```
 
-4. أخرج brief قصير يثبت القراءة في صورة 3 إلى 7 حقائق تشغيلية، ويتضمن حقيقة صريحة تثبت قراءة قاعدة الفحوصات الحاكمة.
-5. ثم فقط ابدأ العمل.
+5. أخرج brief قصير يثبت القراءة في صورة 3 إلى 7 حقائق تشغيلية، ويتضمن حقيقة صريحة تثبت قراءة قاعدة الفحوصات الحاكمة وحقيقة صريحة تثبت قراءة سياق الذاكرة الدائمة.
+6. ثم فقط ابدأ العمل.
 
 ## قواعد حاكمة
 
@@ -84,6 +90,12 @@ output/round-notes.md
 
 ```text
 .repo-agent/AGENT-CONTEXT.generated.md
+```
+
+- سياق الذاكرة الدائمة المولد والمحقون في السياق الحي يوجد في:
+
+```text
+.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md
 ```
 
 - ملفات IDE وملفات الأدوات مرايا فقط وليست مصدر حقيقة مستقلًا.

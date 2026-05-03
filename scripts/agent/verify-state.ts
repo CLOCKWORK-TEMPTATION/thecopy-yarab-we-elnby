@@ -130,6 +130,17 @@ async function main(): Promise<void> {
       message: "الملف المولد لا يربط سياق الذاكرة الدائمة التلقائي.",
     });
   }
+  if (
+    !generatedContext.includes("## سياق الذاكرة الدائمة المحقون تلقائيًا") ||
+    !generatedContext.includes("# Persistent Memory Startup Context") ||
+    !generatedContext.includes("zone: memory_context")
+  ) {
+    issues.push({
+      level: "error",
+      message:
+        "الملف المولد لا يحتوي سياق الذاكرة الدائمة المحقون داخل منطقة memory_context.",
+    });
+  }
   const persistentMemoryContext = await readTextIfExists(
     fromRepoRoot(".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md"),
   );

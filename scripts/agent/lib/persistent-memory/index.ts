@@ -72,11 +72,11 @@ function shouldUseReranker(intent: QueryIntent, ranked: MemoryRetrievalHit[]): b
 }
 
 function inferTrustLevel(input: IngestRawEventInput): "low" | "medium" | "high" {
-  if (input.eventType === "decision") {
-    return "medium";
-  }
   if (input.sourceRef.includes("OPERATING-CONTRACT") || input.sourceRef === "AGENTS.md") {
     return "high";
+  }
+  if (input.eventType === "decision") {
+    return "medium";
   }
   return "medium";
 }

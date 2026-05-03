@@ -4,10 +4,10 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-03T02:15:39.318Z |
-| الفرع الحالي | `codex/persistent-memory-production-ci-fix` |
-| آخر commit | `3c21c7f7b3c57b2be31c7cceccd0c258c266f65c` |
-| حالة الشجرة | غير نظيفة — 12 ملف متغير |
+| آخر مزامنة مرجعية | 2026-05-03T02:56:22.879Z |
+| الفرع الحالي | `main` |
+| آخر commit | `15a042acb7a55b1afcac4cc49eb90a04ee3e2553` |
+| حالة الشجرة | غير نظيفة — 20 ملف متغير |
 | مستوى drift | `hard-drift` |
 
 ## المرجع الحاكم
@@ -27,6 +27,31 @@
 - سياق الذاكرة الدائمة:
 
 `.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md`
+
+## سياق الذاكرة الدائمة المحقون تلقائيًا
+
+هذا القسم هو منطقة ذاكرة فقط.
+
+لا يضاف إلى مناطق التعليمات الأعلى.
+
+المصدر الكامل:
+
+`.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md`
+
+# Persistent Memory Startup Context
+
+status: ready
+zone: memory_context
+retrieval_event_id: 47df5477-203d-4a8d-973a-0e8b642676e3
+audit_event_id: 91dda79b-97b4-4cda-b74e-84b4e9e130d5
+
+## Injected Memories
+
+- id: 2ecd1bf8-1728-4423-bf35-9f1de5590ebd
+  source_ref: AGENTS.md
+  trust_level: high
+  model_version: baai-bge-m3-local
+  text: قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن.
 
 ## أوامر التشغيل الرسمية الحالية
 
@@ -257,15 +282,15 @@ backend: 3001
 
 - الملفات:
 
-`2700`
+`2703`
 
 - القطع:
 
-`5782`
+`5789`
 
 - القطع ذات التضمين:
 
-`5782`
+`5789`
 
 - التغطية:
 
