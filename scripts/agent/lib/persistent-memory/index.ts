@@ -83,6 +83,16 @@ function shouldUseReranker(intent: QueryIntent, ranked: MemoryRetrievalHit[]): b
   return ranked[0].score - ranked[1].score < 0.12;
 }
 
+function memoryTimestamp(memory: PersistentMemoryRecord): number {
+  const updated = Date.parse(memory.updatedAt ?? "");
+  if (Number.isFinite(updated)) {
+    return updated;
+  }
+
+  const created = Date.parse(memory.createdAt ?? "");
+  return Number.isFinite(created) ? created : 0;
+}
+
 function inferTrustLevel(input: IngestRawEventInput): "low" | "medium" | "high" {
   if (input.sourceRef.includes("OPERATING-CONTRACT") || input.sourceRef === "AGENTS.md") {
     return "high";
@@ -265,7 +275,11 @@ export class PersistentMemorySystem {
         rank: 0,
       }))
       .filter((memory) => memory.score > 0)
-      .sort((left, right) => right.score - left.score)
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          memoryTimestamp(right) - memoryTimestamp(left),
+      )
       .slice(0, topK)
       .map((memory, index) => ({
         ...memory,
@@ -402,6 +416,10 @@ export {
   FileAgentSessionStore,
   InMemoryAgentSessionStore,
 } from "./session-store";
+export {
+  PostgresAgentSessionStore,
+  PostgresRepairJournal,
+} from "./postgres-store";
 export {
   FileRepairJournal,
   InMemoryRepairJournal,

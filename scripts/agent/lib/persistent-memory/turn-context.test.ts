@@ -171,6 +171,77 @@ describe("persistent memory turn context", () => {
     expect(rendered).toContain("memory_context:");
   });
 
+  test("prefers the newest current state memory when matches are otherwise equal", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+
+    store.memories.push(
+      {
+        id: "old-state",
+        candidateId: "old-state-candidate",
+        sourceRef: "output/session-state.md",
+        contentHash: "old-state-hash",
+        content: "حالة البنية المحلية قديمة على فرع سابق.",
+        memoryType: "state_snapshot",
+        tags: ["state", "infra"],
+        trustLevel: "medium",
+        modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
+        injectionProbability: 0.1,
+        createdAt: "2026-05-01T00:00:00.000Z",
+        updatedAt: "2026-05-01T00:00:00.000Z",
+      },
+      {
+        id: "new-state",
+        candidateId: "new-state-candidate",
+        sourceRef: "output/session-state.md",
+        contentHash: "new-state-hash",
+        content: "حالة البنية المحلية حديثة على الفرع الرئيسي.",
+        memoryType: "state_snapshot",
+        tags: ["state", "infra"],
+        trustLevel: "medium",
+        modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
+        injectionProbability: 0.1,
+        createdAt: "2026-05-03T00:00:00.000Z",
+        updatedAt: "2026-05-03T00:00:00.000Z",
+      },
+    );
+
+    const context = await buildTurnMemoryContext({
+      system,
+      query: "ما حالة البنية المحلية؟",
+      topK: 1,
+    });
+
+    expect(context.selectedIntent).toBe("current_state_lookup");
+    expect(context.envelope.items[0]?.id).toBe("new-state");
+  });
+
+  test("injects live state source ahead of stale long term state for current state questions", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+
+    await system.ingestRawEvent({
+      sourceRef: "output/session-state.md",
+      eventType: "state_snapshot",
+      content: "حالة البنية المحلية قديمة على فرع سابق.",
+      tags: ["state", "infra"],
+    });
+
+    const context = await buildTurnMemoryContext({
+      system,
+      query: "ما حالة البنية المحلية؟",
+      liveStateSources: [
+        {
+          sourceRef: "output/session-state.md",
+          content: "حالة البنية المحلية حديثة على الفرع الرئيسي.",
+        },
+      ],
+    });
+
+    expect(context.envelope.items[0]?.id).toBe("live-state-output-session-state-md");
+    expect(context.envelope.items[0]?.content).toContain("حديثة");
+  });
+
   test("high risk memory quarantined away from live turn injection", async () => {
     const store = new InMemoryPersistentMemoryStore();
     const system = createPersistentMemorySystem({ store });
