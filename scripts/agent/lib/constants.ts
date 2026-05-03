@@ -14,6 +14,10 @@ export const PERSISTENT_MEMORY_CONTEXT_PATH =
   ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md";
 export const PERSISTENT_MEMORY_TURN_CONTEXT_PATH =
   ".repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md";
+export const PERSISTENT_MEMORY_SESSION_STATE_PATH =
+  ".repo-agent/PERSISTENT-MEMORY-SESSION.json";
+export const PERSISTENT_MEMORY_SESSION_CLOSE_REPORT_PATH =
+  ".repo-agent/PERSISTENT-MEMORY-SESSION-CLOSE.generated.md";
 export const FINGERPRINT_PATH = ".repo-agent/state-fingerprint.json";
 export const SESSION_STATE_PATH = "output/session-state.md";
 export const ROUND_NOTES_PATH = "output/round-notes.md";
@@ -70,6 +74,7 @@ export const INPUT_FACT_FILES = [
   "scripts/agent/guard.ts",
   "scripts/agent/code-memory-watch.ts",
   "scripts/agent/start-agent.ps1",
+  "scripts/agent/plan-implementation-reviewer.ts",
   "scripts/agent/lib/agent-guard.ts",
   "scripts/generate-workspace-embeddings.js",
   "scripts/agent/code-memory-index.ts",
@@ -86,8 +91,15 @@ export const INPUT_FACT_FILES = [
   "scripts/agent/lib/code-memory/status.ts",
   "scripts/agent/lib/code-memory/types.ts",
   "scripts/agent/lib/persistent-memory/startup-context.ts",
+  "scripts/agent/lib/persistent-memory/turn-context.ts",
+  "scripts/agent/lib/persistent-memory/session-store.ts",
+  "scripts/agent/lib/persistent-memory/session-close-gate.ts",
+  "scripts/agent/lib/persistent-memory/repair-journal.ts",
+  "scripts/agent/lib/persistent-memory/retriever.ts",
   "scripts/agent/lib/persistent-memory/runtime.ts",
   "scripts/agent/lib/persistent-memory/infra.ts",
+  "scripts/agent/persistent-memory-turn.ts",
+  "scripts/agent/persistent-memory-session.ts",
   "apps/backend/src/memory/api/routes.ts",
   "apps/backend/src/memory/embeddings/generator.ts",
   "apps/backend/src/memory/indexer/repository-crawler.ts",
@@ -97,6 +109,7 @@ export const INPUT_FACT_FILES = [
   "apps/backend/src/services/rag/embeddings.service.ts",
   "packages/core-memory/src/chunking/semanticChunker.ts",
   ".github/agents/my-agent.md",
+  ".github/agents/plan-implementation-reviewer.agent.md",
   ".specify/scripts/powershell/update-agent-context.ps1",
   ...MANUAL_CONTRACT_FILES,
 ];

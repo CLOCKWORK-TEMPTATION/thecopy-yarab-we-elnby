@@ -4,11 +4,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-03T02:56:22.879Z |
-| الفرع الحالي | `main` |
-| آخر commit | `15a042acb7a55b1afcac4cc49eb90a04ee3e2553` |
-| حالة الشجرة | غير نظيفة — 20 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر مزامنة مرجعية | 2026-05-03T04:03:25.450Z |
+| الفرع الحالي | `codex/persistent-memory-production-readiness` |
+| آخر commit | `d386df24494150fd3876e4bd695dd0fecddfd2df` |
+| حالة الشجرة | غير نظيفة — 48 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## المرجع الحاكم
 
@@ -28,11 +28,21 @@
 
 `.repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md`
 
+- سياق السؤال الحي:
+
+`.repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md`
+
 ## سياق الذاكرة الدائمة المحقون تلقائيًا
 
 هذا القسم هو منطقة ذاكرة فقط.
 
 لا يضاف إلى مناطق التعليمات الأعلى.
+
+قبل أي رد تنفيذي يجب توليد سياق السؤال الحي الرسمي من نص السؤال الحالي.
+
+الملف الرسمي لسياق السؤال الحي:
+
+`.repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md`
 
 المصدر الكامل:
 
@@ -42,16 +52,26 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: 47df5477-203d-4a8d-973a-0e8b642676e3
-audit_event_id: 91dda79b-97b4-4cda-b74e-84b4e9e130d5
+retrieval_event_id: 0003c184-5843-4e80-a652-1dbcadcef931
+audit_event_id: d3351779-0215-4cb4-b5ac-e37132d1f3ad
 
 ## Injected Memories
 
-- id: 2ecd1bf8-1728-4423-bf35-9f1de5590ebd
+- id: 40a11b3c-08fd-43e3-aeae-74eca7512e99
   source_ref: AGENTS.md
   trust_level: high
   model_version: baai-bge-m3-local
-  text: قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن.
+  text: قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن، ويجب بناء سياق سؤال حي قبل أي حكم تنفيذي.
+- id: 4d51a2c7-01bc-432b-8e80-87d29bfcdba4
+  source_ref: .repo-agent/STARTUP-PROTOCOL.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: قيد بداية: يجب قراءة .repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md كسياق حاكم صغير فقط داخل memory_context، وسياق السؤال الحي الرسمي يجب أن يولد .repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md قبل الرد التنفيذي.
+- id: 9130537a-7e77-4ece-944d-ad756fdfe641
+  source_ref: .repo-agent/STARTUP-PROTOCOL.md
+  trust_level: medium
+  model_version: baai-bge-m3-local
+  text: قيد بداية: سياق البداية يحقن قيودًا حاكمة فقط داخل memory_context، وسياق السؤال الحي الرسمي يجب أن يولد .repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md قبل الرد التنفيذي.
 
 ## أوامر التشغيل الرسمية الحالية
 
@@ -67,6 +87,7 @@ pnpm agent:guard:step
 pnpm agent:guard:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:plan-review
 pnpm agent:memory:index
 pnpm agent:memory:search
 pnpm agent:memory:status
@@ -84,9 +105,19 @@ pnpm agent:persistent-memory:ingest
 pnpm agent:persistent-memory:retrieve
 pnpm agent:persistent-memory:workers
 pnpm agent:persistent-memory:status
+pnpm agent:persistent-memory:session:start
+pnpm agent:persistent-memory:session:append
+pnpm agent:persistent-memory:session:resume
+pnpm agent:persistent-memory:session:compact
+pnpm agent:persistent-memory:session:close
+pnpm agent:persistent-memory:session:repair
+pnpm agent:persistent-memory:turn
+pnpm agent:persistent-memory:turn:repair
+pnpm agent:persistent-memory:turn:verify
 pnpm agent:persistent-memory:eval
 pnpm agent:persistent-memory:eval:golden
 pnpm agent:persistent-memory:eval:safety
+pnpm agent:persistent-memory:eval:latency
 pnpm workspace:embed
 pnpm infra:up
 pnpm infra:down
@@ -150,6 +181,7 @@ backend: 3001
 - `scripts/agent/persistent-memory-status.ts`
 - `scripts/agent/persistent-memory-watch.ts`
 - `scripts/agent/persistent-memory-workers.ts`
+- `scripts/agent/plan-implementation-reviewer.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -282,15 +314,15 @@ backend: 3001
 
 - الملفات:
 
-`2703`
+`2712`
 
 - القطع:
 
-`5789`
+`5816`
 
 - القطع ذات التضمين:
 
-`5789`
+`5816`
 
 - التغطية:
 

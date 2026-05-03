@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import {
   MEMORY_CONTEXT_BUDGET_PROFILES,
   MemoryInjectionEnvelope,
@@ -9,6 +11,7 @@ import {
 import { BGE_M3_EMBEDDING_MODEL_VERSION } from "./lib/persistent-memory/embeddings";
 import { MemorySecretScanner } from "./lib/persistent-memory/secrets";
 import { InMemoryPersistentMemoryStore } from "./lib/persistent-memory/store";
+import { buildTurnMemoryContext } from "./lib/persistent-memory/turn-context";
 import type {
   PersistentMemoryEventType,
   QueryIntent,
@@ -232,6 +235,41 @@ function runGovernanceEval(): Record<string, number> {
   };
 }
 
+async function runLatencyEval(): Promise<Record<string, number>> {
+  const store = new InMemoryPersistentMemoryStore();
+  const system = createPersistentMemorySystem({
+    store,
+    secretScanner: new MemorySecretScanner(),
+  });
+
+  for (let index = 0; index < 30; index += 1) {
+    await system.ingestRawEvent({
+      sourceRef: `latency/${index}`,
+      eventType: "decision",
+      content: `Latency decision ${index}: live turn memory context must remain under the fast path budget.`,
+      tags: ["latency", "turn"],
+    });
+  }
+
+  const latencies: number[] = [];
+  for (let index = 0; index < 25; index += 1) {
+    const startedAt = performance.now();
+    await buildTurnMemoryContext({
+      system,
+      query: `find latency decision ${index % 10} fast path budget`,
+    });
+    latencies.push(performance.now() - startedAt);
+  }
+
+  const sorted = [...latencies].sort((left, right) => left - right);
+  const p95Index = Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1);
+  return {
+    turn_context_latency_sample_n: latencies.length,
+    p95_memory_overhead_before_response_ms: Math.round(sorted[p95Index]),
+    hard_pre_response_timeout_ms: 800,
+  };
+}
+
 function assertThresholds(result: Record<string, number>): void {
   const minimums: Record<string, number> = {
     golden_dataset_n: 120,
@@ -259,23 +297,37 @@ function assertThresholds(result: Record<string, number>): void {
       throw new Error(`Persistent memory eval failed: ${metric} != 0.`);
     }
   }
+
+  if (
+    "p95_memory_overhead_before_response_ms" in result &&
+    Number(result.p95_memory_overhead_before_response_ms) > 300
+  ) {
+    throw new Error(
+      "Persistent memory eval failed: p95_memory_overhead_before_response_ms > 300.",
+    );
+  }
 }
 
 async function main(): Promise<void> {
   const mode = process.argv.includes("--safety")
     ? "safety"
+    : process.argv.includes("--latency")
+      ? "latency"
     : process.argv.includes("--golden")
       ? "golden"
       : "all";
   const result =
     mode === "safety"
       ? runSafetyEval()
+      : mode === "latency"
+        ? await runLatencyEval()
       : mode === "golden"
         ? await runGoldenEval()
         : {
             ...(await runGoldenEval()),
             ...runSafetyEval(),
             ...runGovernanceEval(),
+            ...(await runLatencyEval()),
           };
 
   console.log(JSON.stringify(result, null, 2));

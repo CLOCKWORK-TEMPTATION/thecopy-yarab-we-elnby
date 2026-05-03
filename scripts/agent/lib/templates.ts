@@ -1,5 +1,9 @@
 import type { DriftResult, IdeTarget, RepoFacts } from "./repo-state";
-import { AGENT_CONTEXT_PATH, PERSISTENT_MEMORY_CONTEXT_PATH } from "./constants";
+import {
+  AGENT_CONTEXT_PATH,
+  PERSISTENT_MEMORY_CONTEXT_PATH,
+  PERSISTENT_MEMORY_TURN_CONTEXT_PATH,
+} from "./constants";
 
 function formatCodeBlockLines(lines: string[]): string {
   return `\`\`\`text\n${lines.join("\n")}\n\`\`\``;
@@ -371,11 +375,21 @@ export function renderGeneratedContext(
 
 \`${PERSISTENT_MEMORY_CONTEXT_PATH}\`
 
+- سياق السؤال الحي:
+
+\`${PERSISTENT_MEMORY_TURN_CONTEXT_PATH}\`
+
 ## سياق الذاكرة الدائمة المحقون تلقائيًا
 
 هذا القسم هو منطقة ذاكرة فقط.
 
 لا يضاف إلى مناطق التعليمات الأعلى.
+
+قبل أي رد تنفيذي يجب توليد سياق السؤال الحي الرسمي من نص السؤال الحالي.
+
+الملف الرسمي لسياق السؤال الحي:
+
+\`${PERSISTENT_MEMORY_TURN_CONTEXT_PATH}\`
 
 المصدر الكامل:
 

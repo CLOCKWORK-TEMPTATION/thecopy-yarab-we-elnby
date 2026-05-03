@@ -8,11 +8,11 @@
 
 | البند | القيمة |
 |---|---|
-| آخر مزامنة مرجعية | 2026-05-03T02:56:22.879Z |
-| الفرع الحالي | `main` |
-| آخر commit | `15a042acb7a55b1afcac4cc49eb90a04ee3e2553` |
-| حالة working tree | غير نظيفة — 20 ملف متغير |
-| مستوى drift | `hard-drift` |
+| آخر مزامنة مرجعية | 2026-05-03T04:03:25.450Z |
+| الفرع الحالي | `codex/persistent-memory-production-readiness` |
+| آخر commit | `d386df24494150fd3876e4bd695dd0fecddfd2df` |
+| حالة working tree | غير نظيفة — 48 ملف متغير |
+| مستوى drift | `no-drift` |
 
 ## الحقيقة التشغيلية الحالية
 
@@ -43,6 +43,7 @@ pnpm agent:guard:step
 pnpm agent:guard:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:plan-review
 pnpm agent:memory:index
 pnpm agent:memory:search
 pnpm agent:memory:status
@@ -60,9 +61,19 @@ pnpm agent:persistent-memory:ingest
 pnpm agent:persistent-memory:retrieve
 pnpm agent:persistent-memory:workers
 pnpm agent:persistent-memory:status
+pnpm agent:persistent-memory:session:start
+pnpm agent:persistent-memory:session:append
+pnpm agent:persistent-memory:session:resume
+pnpm agent:persistent-memory:session:compact
+pnpm agent:persistent-memory:session:close
+pnpm agent:persistent-memory:session:repair
+pnpm agent:persistent-memory:turn
+pnpm agent:persistent-memory:turn:repair
+pnpm agent:persistent-memory:turn:verify
 pnpm agent:persistent-memory:eval
 pnpm agent:persistent-memory:eval:golden
 pnpm agent:persistent-memory:eval:safety
+pnpm agent:persistent-memory:eval:latency
 pnpm workspace:embed
 pnpm infra:up
 pnpm infra:down
@@ -273,15 +284,15 @@ AGENTS.md
 
 - الملفات:
 
-`2703`
+`2712`
 
 - القطع:
 
-`5789`
+`5816`
 
 - القطع ذات التضمين:
 
-`5789`
+`5816`
 
 - التغطية:
 
@@ -298,7 +309,7 @@ Code memory is current.
 
 ## ما تغيّر منذ آخر بصمة
 
-- تغيرت الملفات البنيوية الحرجة
+- لا يوجد drift مؤثر
 
 ## الأعطال المفتوحة الآن
 

@@ -9,7 +9,7 @@ import { InMemoryPersistentMemoryStore } from "./store";
 import { createPersistentMemorySystem } from "./index";
 
 describe("persistent memory startup context", () => {
-  test("loads first-response memory requirements as startup sources", async () => {
+  test("loads governing memory requirements as startup sources", async () => {
     const sources = await readStartupSources();
     const requirement = sources.find(
       (source) => source.path === "AGENTS.md" && source.eventType === "decision",
@@ -26,9 +26,15 @@ describe("persistent memory startup context", () => {
       ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md",
     );
     expect(startupProtocolRequirement?.content).toContain("memory_context");
+    expect(sources.map((source) => source.path)).not.toContain(
+      "output/session-state.md",
+    );
+    expect(sources.map((source) => source.path)).not.toContain(
+      "output/round-notes.md",
+    );
   });
 
-  test("renders retrieved memories for automatic startup injection", async () => {
+  test("renders governing memories for automatic startup injection", async () => {
     const store = new InMemoryPersistentMemoryStore();
     const system = createPersistentMemorySystem({ store });
 
@@ -46,10 +52,17 @@ describe("persistent memory startup context", () => {
         "State: persistent-agent-memory is the governed durable memory scope.",
       tags: ["state"],
     });
+    await system.ingestRawEvent({
+      sourceRef: "AGENTS.md",
+      eventType: "decision",
+      content:
+        "قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد، ويجب بناء سياق سؤال حي قبل الرد التنفيذي.",
+      tags: ["startup", "decision"],
+    });
 
     const context = await buildStartupMemoryContext({
       system,
-      query: "next sessions persistent memory",
+      query: "سياق الذاكرة الدائمة وسياق سؤال حي قبل الرد",
     });
     const rendered = renderStartupMemoryContext(context);
 
@@ -58,7 +71,8 @@ describe("persistent memory startup context", () => {
     expect(context.envelope.items.length).toBeGreaterThan(0);
     expect(rendered).toContain("Persistent Memory Startup Context");
     expect(rendered).toContain("memory_context");
-    expect(rendered).toContain("output/round-notes.md");
+    expect(rendered).not.toContain("output/round-notes.md");
+    expect(rendered).not.toContain("output/session-state.md");
   });
 
   test("pins first-response startup requirements ahead of broad state snapshots", async () => {

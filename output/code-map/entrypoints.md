@@ -13,6 +13,7 @@
 - `pnpm agent:guard:verify`
 - `pnpm agent:refresh-maps`
 - `pnpm agent:start`
+- `pnpm agent:plan-review`
 - `pnpm agent:memory:index`
 - `pnpm agent:memory:search`
 - `pnpm agent:memory:status`
@@ -30,9 +31,19 @@
 - `pnpm agent:persistent-memory:retrieve`
 - `pnpm agent:persistent-memory:workers`
 - `pnpm agent:persistent-memory:status`
+- `pnpm agent:persistent-memory:session:start`
+- `pnpm agent:persistent-memory:session:append`
+- `pnpm agent:persistent-memory:session:resume`
+- `pnpm agent:persistent-memory:session:compact`
+- `pnpm agent:persistent-memory:session:close`
+- `pnpm agent:persistent-memory:session:repair`
+- `pnpm agent:persistent-memory:turn`
+- `pnpm agent:persistent-memory:turn:repair`
+- `pnpm agent:persistent-memory:turn:verify`
 - `pnpm agent:persistent-memory:eval`
 - `pnpm agent:persistent-memory:eval:golden`
 - `pnpm agent:persistent-memory:eval:safety`
+- `pnpm agent:persistent-memory:eval:latency`
 - `pnpm workspace:embed`
 - `pnpm infra:up`
 - `pnpm infra:down`

@@ -130,11 +130,11 @@ async function collectCurrentOpenIssues(
 
   const [postgresReady, redisReady, weaviateReady, qdrantReady] =
     await Promise.all([
-    probeTcpPort("127.0.0.1", 5433, 750),
-    probeTcpPort("127.0.0.1", 6379, 750),
-    probeHttpReady("http://127.0.0.1:8080/v1/.well-known/ready", 1500),
-    probeHttpReady("http://127.0.0.1:6333/readyz", 1500),
-  ]);
+      probeTcpPort("127.0.0.1", 5433, 750),
+      probeTcpPort("127.0.0.1", 6379, 750),
+      probeHttpReady("http://127.0.0.1:8080/v1/.well-known/ready", 1500),
+      probeHttpReady("http://127.0.0.1:6333/readyz", 1500),
+    ]);
 
   const unavailableInfraPorts: string[] = [];
   if (!postgresReady) {
@@ -246,6 +246,7 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:guard:verify",
     "agent:refresh-maps",
     "agent:start",
+    "agent:plan-review",
     "agent:memory:index",
     "agent:memory:search",
     "agent:memory:status",
@@ -263,9 +264,19 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
     "agent:persistent-memory:retrieve",
     "agent:persistent-memory:workers",
     "agent:persistent-memory:status",
+    "agent:persistent-memory:session:start",
+    "agent:persistent-memory:session:append",
+    "agent:persistent-memory:session:resume",
+    "agent:persistent-memory:session:compact",
+    "agent:persistent-memory:session:close",
+    "agent:persistent-memory:session:repair",
+    "agent:persistent-memory:turn",
+    "agent:persistent-memory:turn:repair",
+    "agent:persistent-memory:turn:verify",
     "agent:persistent-memory:eval",
     "agent:persistent-memory:eval:golden",
     "agent:persistent-memory:eval:safety",
+    "agent:persistent-memory:eval:latency",
     "workspace:embed",
     "infra:up",
     "infra:down",
@@ -308,6 +319,7 @@ export async function collectRepoFacts(): Promise<RepoFacts> {
       "scripts/agent/verify-state.ts",
       "scripts/agent/refresh-maps.ts",
       "scripts/agent/start-agent.ps1",
+      "scripts/agent/plan-implementation-reviewer.ts",
       "scripts/agent/code-memory-watch.ts",
       "scripts/agent/code-memory-index.ts",
       "scripts/agent/code-memory-search.ts",

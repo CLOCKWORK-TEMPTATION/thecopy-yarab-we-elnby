@@ -53,18 +53,43 @@ output/session-state.md
 .repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md
 ```
 
-5. اقرأ فقط الأجزاء اللازمة من:
+5. قبل أي رد تنفيذي أو حكم على الحالة، ولّد سياق السؤال الحي من السؤال الحالي:
+
+```text
+pnpm agent:persistent-memory:turn -- --query "<current user question>"
+```
+
+ويجب أن ينتج الملف:
+
+```text
+.repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md
+```
+
+ويجب أن يحتوي الحقول:
+
+```text
+turn_context_status
+query_hash
+selected_intent
+retrieval_event_id
+audit_event_id
+memory_context
+```
+
+إذا غاب هذا السياق فلا يجوز الحكم بأن الذاكرة الحية تعمل.
+
+6. اقرأ فقط الأجزاء اللازمة من:
 
 ```text
 output/code-map/*
 output/mind-map/*
 ```
 
-6. بعد ذلك فقط ابدأ المهمة الفعلية.
+7. بعد ذلك فقط ابدأ المهمة الفعلية.
 
 إذا كانت المهمة تمس طبقة المعرفة والاسترجاع أو embeddings أو indexing أو context assembly:
 
-7. اقرأ ما يلزم من:
+8. اقرأ ما يلزم من:
 
 ```text
 .repo-agent/RAG-OPERATING-CONTRACT.md

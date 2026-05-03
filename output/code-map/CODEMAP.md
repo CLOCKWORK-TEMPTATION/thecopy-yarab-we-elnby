@@ -31,6 +31,7 @@ pnpm agent:guard:step
 pnpm agent:guard:verify
 pnpm agent:refresh-maps
 pnpm agent:start
+pnpm agent:plan-review
 pnpm agent:memory:index
 pnpm agent:memory:search
 pnpm agent:memory:status
@@ -48,9 +49,19 @@ pnpm agent:persistent-memory:ingest
 pnpm agent:persistent-memory:retrieve
 pnpm agent:persistent-memory:workers
 pnpm agent:persistent-memory:status
+pnpm agent:persistent-memory:session:start
+pnpm agent:persistent-memory:session:append
+pnpm agent:persistent-memory:session:resume
+pnpm agent:persistent-memory:session:compact
+pnpm agent:persistent-memory:session:close
+pnpm agent:persistent-memory:session:repair
+pnpm agent:persistent-memory:turn
+pnpm agent:persistent-memory:turn:repair
+pnpm agent:persistent-memory:turn:verify
 pnpm agent:persistent-memory:eval
 pnpm agent:persistent-memory:eval:golden
 pnpm agent:persistent-memory:eval:safety
+pnpm agent:persistent-memory:eval:latency
 pnpm workspace:embed
 pnpm infra:up
 pnpm infra:down
@@ -109,6 +120,7 @@ pnpm infra:reset
 - `scripts/agent/persistent-memory-status.ts`
 - `scripts/agent/persistent-memory-watch.ts`
 - `scripts/agent/persistent-memory-workers.ts`
+- `scripts/agent/plan-implementation-reviewer.ts`
 - `scripts/agent/refresh-maps.ts`
 - `scripts/agent/start-agent.ps1`
 - `scripts/agent/verify-state.ts`
@@ -162,6 +174,6 @@ output/session-state.md
 ## ذاكرة الكود الحية
 
 - الحالة: `current`
-- الملفات: `2703`
-- القطع: `5789`
+- الملفات: `2712`
+- القطع: `5816`
 - التغطية: `100.0%`
