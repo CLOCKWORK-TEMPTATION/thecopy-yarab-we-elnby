@@ -99,7 +99,7 @@
   "driftReasons": [
     "لا يوجد drift مؤثر"
   ],
-  "headCommit": "73402688f97916ab50e24d6059aada382f01427d",
+  "headCommit": "9fa841708d044afe88f17e8e84904688c1a2bcc8",
   "ideMirrorHashes": {
     ".github/copilot-instructions.md": "sha256:7b53e96d-e7881192-3d4a30a4-94056fb8-fb76c446-3726d4e9-3f3b791a-e5c9e997"
   },
@@ -107,8 +107,8 @@
   "knowledgeStatus": "governed",
   "lastBootstrapTimestamp": "2026-05-03T04:21:06.726Z",
   "referenceOutputHashes": {
-    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:86621fee-5baf4f19-3d9bbd68-e95f58d3-6a5a63c2-480e5303-e276d622-f0dd79d2",
-    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:059cd897-39d81003-19c35b7b-eda458d5-404a7988-ce6bfd43-b8c326e2-ccc48f06",
+    ".repo-agent/AGENT-CONTEXT.generated.md": "sha256:5e922de5-8b8543ac-663eb387-b6a23040-bbbae972-f927d264-4ac113e7-f92d1c4f",
+    ".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md": "sha256:3cd470dd-3b963b69-204533fb-b3a52fc8-4013536a-5928cb8b-44882cd2-ebbb5583",
     "output/code-map/code-map.json": "sha256:d92ea91a-5e0c062a-758ef126-d08a25d4-ebc70501-586bfedb-b94cb83b-d908aa93",
     "output/code-map/CODEMAP.md": "sha256:cbc0fa41-9ce79a31-48d51e75-a2425f2e-ef5781e9-f7b0b979-17b5fd87-5fec2bc7",
     "output/code-map/dependency-graph.md": "sha256:49deb450-7633f9c9-5a571a1b-06148da6-01f8a62b-86d63233-7be080cb-7abf4557",
@@ -122,8 +122,8 @@
     "output/mind-map/MINDMAP.md": "sha256:75a7224f-e591052a-0ddc8a12-865bf5cc-419ea1bc-f6215856-93499b3a-14db9b84",
     "output/mind-map/mindmap.mmd": "sha256:d3f3dd6d-dca5e6ad-52cbe963-6efd47a8-afcbbddf-5c11e26f-b5cf0aa0-df645350",
     "output/mind-map/rag-topology.mmd": "sha256:27b4e947-214abafb-9dba8606-4d0a204e-f802ae2a-1f622c87-b4573993-1c7e1d9e",
-    "output/round-notes.md": "sha256:0ec7eef0-63a638cd-9cb943ec-446caf96-7aa26053-e85bd59a-d36ae92a-b2f738b1",
-    "output/session-state.md": "sha256:f966ea49-a1783193-ff097d70-7846cb7c-d44d5099-ad3bce8f-b5a3724b-962406d6"
+    "output/round-notes.md": "sha256:ac8d2627-23445414-71045815-aeb6f82d-6d2e794c-937b6901-01a04f81-94aa1ac0",
+    "output/session-state.md": "sha256:1f308900-e3ba7b98-ca72600f-8ef83dc6-e34a2fd5-dc182f09-3d6b54a5-6fb8d5f4"
   },
   "referenceStatus": {
     "codeMapCurrent": true,
@@ -234,5 +234,5 @@
     "WORKSPACE-EMBEDDING-SUMMARY.md"
   ],
   "structuralHash": "sha256:6b6d4a4c-2f695e80-85ade3aa-023f46ed-d421b6bd-4f4ba94b-8dccfa43-ca2c346b",
-  "workingTreeHash": "a6a12a63ab39eb6be74c758d6ec54d537086fc0578f9d13172e73f1ce5c40daa"
+  "workingTreeHash": "12cf40222821010e21769b8057e8db07ac49d4384caae0337f5dd57a8fd5ba4f"
 }

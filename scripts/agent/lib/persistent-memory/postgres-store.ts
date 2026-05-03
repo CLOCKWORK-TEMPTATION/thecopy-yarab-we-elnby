@@ -3,6 +3,18 @@ import { createRequire } from "node:module";
 
 import { fromRepoRoot } from "../utils";
 import type {
+  AgentSessionItem,
+  AgentSessionStore,
+  AgentTurnRecord,
+  CompactSessionOptions,
+  MarkTurnStartedInput,
+} from "./session-store";
+import type {
+  RepairJob,
+  RepairJobInput,
+  RepairJournal,
+} from "./repair-journal";
+import type {
   AuditLogEntry,
   ConsolidationLogEntry,
   EmbeddingModelVersion,
@@ -15,6 +27,7 @@ import type {
   RetrievalEvent,
   SecretScanEvent,
 } from "./types";
+import type { TurnMemoryContext } from "./turn-context";
 
 interface QueryResult<T> {
   rows: T[];
@@ -54,12 +67,148 @@ type MemoryRow = {
   created_at: string | Date;
 };
 
+type SessionItemRow = {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant" | "system";
+  content_ref: string;
+  content: string;
+  tags: string[] | null;
+  created_at: string | Date;
+};
+
+type TurnContextRow = {
+  turn_id: string;
+  session_id: string;
+  query_hash: string | null;
+  redacted_query_preview: string | null;
+  turn_context_status: "ready" | "degraded" | null;
+  selected_intent: string | null;
+  selected_profile: string | null;
+  retrieval_event_id: string | null;
+  audit_event_id: string | null;
+  memory_context: string | null;
+  latency_ms: number | null;
+  answer_ref: string | null;
+  closed: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+};
+
+type RepairJobRow = {
+  id: string;
+  session_id: string;
+  turn_id: string | null;
+  kind: RepairJob["kind"];
+  status: RepairJob["status"];
+  reason: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+};
+
 function now(): string {
   return new Date().toISOString();
 }
 
 function toIso(value: string | Date): string {
   return value instanceof Date ? value.toISOString() : value;
+}
+
+function jsonArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(String);
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function jsonObject(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+
+  return {};
+}
+
+function rowToSessionItem(row: SessionItemRow): AgentSessionItem {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    role: row.role,
+    contentRef: row.content_ref,
+    content: row.content,
+    tags: jsonArray(row.tags),
+    createdAt: toIso(row.created_at),
+  };
+}
+
+function rowToTurnRecord(row: TurnContextRow): AgentTurnRecord {
+  const metadata = jsonObject(row.metadata);
+  return {
+    turnId: row.turn_id,
+    sessionId: row.session_id,
+    rawQueryForRepair:
+      typeof metadata["rawQueryForRepair"] === "string"
+        ? metadata["rawQueryForRepair"]
+        : undefined,
+    queryHash: row.query_hash ?? undefined,
+    redactedQueryPreview: row.redacted_query_preview ?? undefined,
+    turnContextStatus: row.turn_context_status ?? undefined,
+    selectedIntent: row.selected_intent ?? undefined,
+    selectedProfile: row.selected_profile ?? undefined,
+    retrievalEventId: row.retrieval_event_id,
+    auditEventId: row.audit_event_id,
+    memoryContext: row.memory_context ?? undefined,
+    latencyMs: row.latency_ms ?? undefined,
+    answerRef: row.answer_ref ?? undefined,
+    closed: row.closed,
+    createdAt: toIso(row.created_at),
+    updatedAt: toIso(row.updated_at),
+  };
+}
+
+function turnContextMemoryRef(context: TurnMemoryContext): string {
+  return (
+    context.envelope.items
+      .map((item) => `${item.sourceRef}:${item.id}`)
+      .join("\n") || "none"
+  );
+}
+
+function rowToRepairJob(row: RepairJobRow): RepairJob {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    turnId: row.turn_id ?? undefined,
+    kind: row.kind,
+    status: row.status,
+    reason: row.reason,
+    metadata: jsonObject(row.metadata),
+    createdAt: toIso(row.created_at),
+    updatedAt: toIso(row.updated_at),
+  };
 }
 
 function loadPgModule(): PgModule {
@@ -412,6 +561,305 @@ export async function ensurePersistentMemorySchema(
       created_at timestamptz NOT NULL DEFAULT now()
     )
   `);
+}
+
+export class PostgresAgentSessionStore implements AgentSessionStore {
+  constructor(private readonly client: SqlClient) {}
+
+  async getSessionItems(sessionId: string): Promise<AgentSessionItem[]> {
+    const result = await this.client.query<SessionItemRow>(
+      `SELECT id, session_id, role, content_ref, content, tags, created_at
+       FROM persistent_agent_memory.session_items
+       WHERE session_id = $1
+       ORDER BY created_at ASC`,
+      [sessionId],
+    );
+    return result.rows.map(rowToSessionItem);
+  }
+
+  async appendSessionItems(
+    sessionId: string,
+    items: AgentSessionItem[],
+  ): Promise<void> {
+    for (const item of items) {
+      await this.client.query(
+        `INSERT INTO persistent_agent_memory.session_items
+         (id, session_id, role, content_ref, content, tags, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (id) DO UPDATE SET
+           session_id = EXCLUDED.session_id,
+           role = EXCLUDED.role,
+           content_ref = EXCLUDED.content_ref,
+           content = EXCLUDED.content,
+           tags = EXCLUDED.tags`,
+        [
+          item.id,
+          sessionId,
+          item.role,
+          item.contentRef,
+          item.content,
+          JSON.stringify(item.tags ?? []),
+          item.createdAt ?? now(),
+        ],
+      );
+    }
+  }
+
+  async getRecentTurns(
+    sessionId: string,
+    limit: number,
+  ): Promise<AgentSessionItem[]> {
+    const result = await this.client.query<SessionItemRow>(
+      `SELECT id, session_id, role, content_ref, content, tags, created_at
+       FROM persistent_agent_memory.session_items
+       WHERE session_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2`,
+      [sessionId, limit],
+    );
+    return result.rows.map(rowToSessionItem).reverse();
+  }
+
+  async markTurnStarted(
+    turnId: string,
+    input: MarkTurnStartedInput,
+  ): Promise<AgentTurnRecord> {
+    const timestamp = now();
+    const metadata = {
+      rawQueryForRepair: input.rawQueryForRepair,
+    };
+    const result = await this.client.query<TurnContextRow>(
+      `INSERT INTO persistent_agent_memory.turn_context_records
+       (turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+        selected_intent, selected_profile, retrieval_event_id, audit_event_id,
+        memory_context, latency_ms, answer_ref, closed, metadata, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false, $5, $6, $6)
+       ON CONFLICT (turn_id) DO UPDATE SET
+         session_id = EXCLUDED.session_id,
+         query_hash = COALESCE(EXCLUDED.query_hash, persistent_agent_memory.turn_context_records.query_hash),
+         redacted_query_preview = COALESCE(EXCLUDED.redacted_query_preview, persistent_agent_memory.turn_context_records.redacted_query_preview),
+         metadata = persistent_agent_memory.turn_context_records.metadata || EXCLUDED.metadata,
+         updated_at = EXCLUDED.updated_at
+       RETURNING turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+         selected_intent, selected_profile, retrieval_event_id, audit_event_id, memory_context,
+         latency_ms, answer_ref, closed, metadata, created_at, updated_at`,
+      [
+        turnId,
+        input.sessionId,
+        input.queryHash ?? null,
+        input.redactedQueryPreview ?? null,
+        JSON.stringify(metadata),
+        timestamp,
+      ],
+    );
+    return rowToTurnRecord(result.rows[0]);
+  }
+
+  async markTurnContextBuilt(
+    turnId: string,
+    context: TurnMemoryContext,
+  ): Promise<AgentTurnRecord> {
+    const result = await this.client.query<TurnContextRow>(
+      `UPDATE persistent_agent_memory.turn_context_records
+       SET query_hash = $1,
+           redacted_query_preview = $2,
+           turn_context_status = $3,
+           selected_intent = $4,
+           selected_profile = $5,
+           retrieval_event_id = $6,
+           audit_event_id = $7,
+           memory_context = $8,
+           latency_ms = $9,
+           updated_at = $10
+       WHERE turn_id = $11
+       RETURNING turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+         selected_intent, selected_profile, retrieval_event_id, audit_event_id, memory_context,
+         latency_ms, answer_ref, closed, metadata, created_at, updated_at`,
+      [
+        context.queryHash,
+        context.redactedQueryPreview,
+        context.turnContextStatus,
+        context.selectedIntent,
+        context.selectedProfile,
+        context.retrievalEventId,
+        context.auditEventId,
+        turnContextMemoryRef(context),
+        context.latencyMs,
+        now(),
+        turnId,
+      ],
+    );
+    if (result.rows.length === 0) {
+      throw new Error(`Turn does not exist: ${turnId}`);
+    }
+    return rowToTurnRecord(result.rows[0]);
+  }
+
+  async markTurnAnswered(
+    turnId: string,
+    answerRef: string,
+  ): Promise<AgentTurnRecord> {
+    const result = await this.client.query<TurnContextRow>(
+      `UPDATE persistent_agent_memory.turn_context_records
+       SET answer_ref = $1,
+           updated_at = $2
+       WHERE turn_id = $3
+       RETURNING turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+         selected_intent, selected_profile, retrieval_event_id, audit_event_id, memory_context,
+         latency_ms, answer_ref, closed, metadata, created_at, updated_at`,
+      [answerRef, now(), turnId],
+    );
+    if (result.rows.length === 0) {
+      throw new Error(`Turn does not exist: ${turnId}`);
+    }
+    return rowToTurnRecord(result.rows[0]);
+  }
+
+  async markTurnClosed(turnId: string): Promise<AgentTurnRecord> {
+    const result = await this.client.query<TurnContextRow>(
+      `UPDATE persistent_agent_memory.turn_context_records
+       SET closed = true,
+           updated_at = $1
+       WHERE turn_id = $2
+       RETURNING turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+         selected_intent, selected_profile, retrieval_event_id, audit_event_id, memory_context,
+         latency_ms, answer_ref, closed, metadata, created_at, updated_at`,
+      [now(), turnId],
+    );
+    if (result.rows.length === 0) {
+      throw new Error(`Turn does not exist: ${turnId}`);
+    }
+    return rowToTurnRecord(result.rows[0]);
+  }
+
+  async findIncompleteTurns(sessionId: string): Promise<AgentTurnRecord[]> {
+    return (await this.listTurnRecords(sessionId)).filter(
+      (turn) =>
+        !turn.turnContextStatus ||
+        !turn.queryHash ||
+        !turn.selectedIntent ||
+        !turn.retrievalEventId ||
+        !turn.auditEventId ||
+        !turn.memoryContext,
+    );
+  }
+
+  async getTurnContextRecord(
+    turnId: string,
+  ): Promise<AgentTurnRecord | undefined> {
+    const result = await this.client.query<TurnContextRow>(
+      `SELECT turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+              selected_intent, selected_profile, retrieval_event_id, audit_event_id,
+              memory_context, latency_ms, answer_ref, closed, metadata, created_at, updated_at
+       FROM persistent_agent_memory.turn_context_records
+       WHERE turn_id = $1`,
+      [turnId],
+    );
+    return result.rows[0] ? rowToTurnRecord(result.rows[0]) : undefined;
+  }
+
+  async listTurnRecords(sessionId: string): Promise<AgentTurnRecord[]> {
+    const result = await this.client.query<TurnContextRow>(
+      `SELECT turn_id, session_id, query_hash, redacted_query_preview, turn_context_status,
+              selected_intent, selected_profile, retrieval_event_id, audit_event_id,
+              memory_context, latency_ms, answer_ref, closed, metadata, created_at, updated_at
+       FROM persistent_agent_memory.turn_context_records
+       WHERE session_id = $1
+       ORDER BY created_at ASC`,
+      [sessionId],
+    );
+    return result.rows.map(rowToTurnRecord);
+  }
+
+  async compactSession(
+    sessionId: string,
+    options: CompactSessionOptions = {},
+  ): Promise<void> {
+    const keepLast = options.keepLast ?? 20;
+    const items = await this.getSessionItems(sessionId);
+    const protectedIds = new Set(
+      items
+        .filter((item) =>
+          item.tags?.some((tag) => tag === "decision" || tag === "constraint"),
+        )
+        .map((item) => item.id),
+    );
+    const recentIds = new Set(items.slice(-keepLast).map((item) => item.id));
+    const keepIds = [...new Set([...protectedIds, ...recentIds])];
+
+    if (keepIds.length === 0) {
+      await this.client.query(
+        `DELETE FROM persistent_agent_memory.session_items
+         WHERE session_id = $1`,
+        [sessionId],
+      );
+      return;
+    }
+
+    await this.client.query(
+      `DELETE FROM persistent_agent_memory.session_items
+       WHERE session_id = $1
+         AND NOT (id = ANY($2::text[]))`,
+      [sessionId, keepIds],
+    );
+  }
+}
+
+export class PostgresRepairJournal implements RepairJournal {
+  constructor(private readonly client: SqlClient) {}
+
+  async enqueue(job: RepairJobInput): Promise<RepairJob> {
+    const timestamp = now();
+    const result = await this.client.query<RepairJobRow>(
+      `INSERT INTO persistent_agent_memory.repair_journal
+       (id, session_id, turn_id, kind, status, reason, metadata, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'pending', $5, $6, $7, $7)
+       RETURNING id, session_id, turn_id, kind, status, reason, metadata, created_at, updated_at`,
+      [
+        randomUUID(),
+        job.sessionId,
+        job.turnId ?? null,
+        job.kind,
+        job.reason,
+        JSON.stringify(job.metadata ?? {}),
+        timestamp,
+      ],
+    );
+    return rowToRepairJob(result.rows[0]);
+  }
+
+  async markCompleted(jobId: string): Promise<RepairJob> {
+    const result = await this.client.query<RepairJobRow>(
+      `UPDATE persistent_agent_memory.repair_journal
+       SET status = 'completed',
+           updated_at = $1
+       WHERE id = $2
+       RETURNING id, session_id, turn_id, kind, status, reason, metadata, created_at, updated_at`,
+      [now(), jobId],
+    );
+    if (result.rows.length === 0) {
+      throw new Error(`Repair job does not exist: ${jobId}`);
+    }
+    return rowToRepairJob(result.rows[0]);
+  }
+
+  async listPending(sessionId?: string): Promise<RepairJob[]> {
+    const result = sessionId
+      ? await this.client.query<RepairJobRow>(
+          `SELECT id, session_id, turn_id, kind, status, reason, metadata, created_at, updated_at
+           FROM persistent_agent_memory.repair_journal
+           WHERE status = 'pending' AND session_id = $1
+           ORDER BY created_at ASC`,
+          [sessionId],
+        )
+      : await this.client.query<RepairJobRow>(
+          `SELECT id, session_id, turn_id, kind, status, reason, metadata, created_at, updated_at
+           FROM persistent_agent_memory.repair_journal
+           WHERE status = 'pending'
+           ORDER BY created_at ASC`,
+        );
+    return result.rows.map(rowToRepairJob);
+  }
 }
 
 export class PostgresPersistentMemoryStore implements PersistentMemoryStore {
