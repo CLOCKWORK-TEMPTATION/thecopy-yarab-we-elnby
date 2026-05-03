@@ -44,7 +44,7 @@ const e2eRuntimeEnv = `cross-env NEXT_PUBLIC_E2E_DIAGNOSTICS=1 PORT=${webServerP
 const webServerCommand = process.env["CI"]
   ? [
       e2eBuildCommand,
-      `${e2eRuntimeEnv} node .next/standalone/apps/web/server.js`,
+      `${e2eRuntimeEnv} node scripts/start-standalone-server.mjs`,
     ].join(" && ")
   : [
       e2eBuildCommand,

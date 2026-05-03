@@ -66,14 +66,17 @@ export function resolveEditorRuntimeRoot(
   const cwd = options.cwd ?? process.cwd();
   const baseDir = options.baseDir ?? __dirname;
   const pathExists = options.pathExists ?? existsSync;
+  const fallbackRuntimeRoot = resolve(cwd, "editor-runtime");
   const candidates = [
-    resolve(cwd, "editor-runtime"),
+    fallbackRuntimeRoot,
     resolve(cwd, "apps", "backend", "editor-runtime"),
     resolve(baseDir, "..", "editor-runtime"),
     resolve(baseDir, "..", "..", "editor-runtime"),
   ];
 
-  return candidates.find((candidate) => pathExists(candidate)) ?? candidates[0];
+  return (
+    candidates.find((candidate) => pathExists(candidate)) ?? fallbackRuntimeRoot
+  );
 }
 
 export function resolveNativeDynamicImportHelperPath(
