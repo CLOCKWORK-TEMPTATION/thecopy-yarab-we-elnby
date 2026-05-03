@@ -351,6 +351,50 @@ export async function ensurePersistentMemorySchema(
     )
   `);
   await client.query(`
+    CREATE TABLE IF NOT EXISTS persistent_agent_memory.session_items (
+      id text PRIMARY KEY,
+      session_id text NOT NULL,
+      role text NOT NULL,
+      content_ref text NOT NULL,
+      content text NOT NULL,
+      tags jsonb NOT NULL DEFAULT '[]',
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS persistent_agent_memory.turn_context_records (
+      turn_id text PRIMARY KEY,
+      session_id text NOT NULL,
+      query_hash text,
+      redacted_query_preview text,
+      turn_context_status text,
+      selected_intent text,
+      selected_profile text,
+      retrieval_event_id text,
+      audit_event_id text,
+      memory_context text,
+      latency_ms integer,
+      answer_ref text,
+      closed boolean NOT NULL DEFAULT false,
+      metadata jsonb NOT NULL DEFAULT '{}',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS persistent_agent_memory.repair_journal (
+      id uuid PRIMARY KEY,
+      session_id text NOT NULL,
+      turn_id text,
+      kind text NOT NULL,
+      status text NOT NULL DEFAULT 'pending',
+      reason text NOT NULL,
+      metadata jsonb NOT NULL DEFAULT '{}',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await client.query(`
     CREATE TABLE IF NOT EXISTS persistent_agent_memory.injection_quarantine (
       id uuid PRIMARY KEY,
       memory_id uuid NOT NULL,

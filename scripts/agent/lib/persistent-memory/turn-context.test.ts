@@ -2,9 +2,11 @@ import { describe, expect, test } from "vitest";
 
 import {
   buildTurnMemoryContext,
+  classifyTurnMemoryIntent,
   renderTurnMemoryContext,
 } from "./turn-context";
 import { createPersistentMemorySystem } from "./index";
+import { BGE_M3_EMBEDDING_MODEL_VERSION } from "./embeddings";
 import { InMemoryPersistentMemoryStore } from "./store";
 
 describe("persistent memory turn context", () => {
@@ -36,17 +38,49 @@ describe("persistent memory turn context", () => {
       query: "ما قيد تموضع كروت الهيرو؟",
     });
 
-    expect(budgetContext.envelope.items.map((item) => item.content)).toContain(
-      expect.stringContaining("تصدير الميزانية"),
+    expect(budgetContext.envelope.items.map((item) => item.content)).toEqual(
+      expect.arrayContaining([expect.stringContaining("تصدير الميزانية")]),
     );
-    expect(budgetContext.envelope.items.map((item) => item.content)).not.toContain(
-      expect.stringContaining("كروت الهيرو"),
+    expect(budgetContext.envelope.items.map((item) => item.content)).not.toEqual(
+      expect.arrayContaining([expect.stringContaining("كروت الهيرو")]),
     );
-    expect(heroContext.envelope.items.map((item) => item.content)).toContain(
-      expect.stringContaining("كروت الهيرو"),
+    expect(heroContext.envelope.items.map((item) => item.content)).toEqual(
+      expect.arrayContaining([expect.stringContaining("كروت الهيرو")]),
     );
-    expect(heroContext.envelope.items.map((item) => item.content)).not.toContain(
-      expect.stringContaining("تصدير الميزانية"),
+    expect(heroContext.envelope.items.map((item) => item.content)).not.toEqual(
+      expect.arrayContaining([expect.stringContaining("تصدير الميزانية")]),
+    );
+  });
+
+  test("different questions produce different contexts", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+
+    await system.ingestRawEvent({
+      sourceRef: "memory/budget",
+      eventType: "decision",
+      content: "قرار ميزانية: تصدير الميزانية يعمل عبر ملف جدول.",
+      tags: ["budget"],
+    });
+    await system.ingestRawEvent({
+      sourceRef: "memory/constraints",
+      eventType: "memory",
+      content: "قيد عدم التكرار: لا تستخدم حقنًا عامًا لكل الأسئلة.",
+      tags: ["constraints"],
+    });
+
+    const first = await buildTurnMemoryContext({
+      system,
+      query: "ما قرار تصدير الميزانية؟",
+    });
+    const second = await buildTurnMemoryContext({
+      system,
+      query: "ما الذي لا يجب تكراره؟",
+    });
+
+    expect(first.queryHash).not.toBe(second.queryHash);
+    expect(first.envelope.items.map((item) => item.sourceRef)).not.toEqual(
+      second.envelope.items.map((item) => item.sourceRef),
     );
   });
 
@@ -71,7 +105,117 @@ describe("persistent memory turn context", () => {
     expect(context.status).toBe("ready");
     expect(context.envelope.zone).toBe("memory_context");
     expect(rendered).toContain("Persistent Memory Live Turn Context");
-    expect(rendered).toContain("هل الحقن الحي يعتمد على السؤال؟");
+    expect(rendered).toContain("query_hash:");
+    expect(rendered).toContain("redacted_query_preview:");
+    expect(rendered).not.toContain("query: هل الحقن الحي يعتمد على السؤال؟");
     expect(rendered).toContain("memory_context");
+  });
+
+  test("rejects an empty current question before retrieval", async () => {
+    await expect(
+      buildTurnMemoryContext({
+        query: "   ",
+        system: createPersistentMemorySystem({
+          store: new InMemoryPersistentMemoryStore(),
+        }),
+      }),
+    ).rejects.toThrow(/current user question/i);
+  });
+
+  test("keeps secret question text out of rendered context", async () => {
+    const secretQuery =
+      "راجع DATABASE_URL=postgresql://user:super-secret@localhost:5432/app";
+    const context = await buildTurnMemoryContext({
+      system: createPersistentMemorySystem({
+        store: new InMemoryPersistentMemoryStore(),
+      }),
+      query: secretQuery,
+    });
+    const rendered = renderTurnMemoryContext(context);
+
+    expect(context.secretScanStatus).toBe("rejected");
+    expect(context.queryHash).toEqual(expect.any(String));
+    expect(rendered).toContain("query_hash:");
+    expect(rendered).toContain("redacted_query_preview:");
+    expect(rendered).not.toContain("super-secret");
+    expect(rendered).not.toContain(secretQuery);
+  });
+
+  test("records live turn metadata required by the close gate", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+
+    await system.ingestRawEvent({
+      sourceRef: "AGENTS.md",
+      eventType: "decision",
+      content: "قرار: كل دور يجب أن يملك سياق سؤال حي قبل الرد.",
+      tags: ["turn", "context"],
+    });
+
+    const context = await buildTurnMemoryContext({
+      system,
+      query: "ما قرار سياق السؤال الحي لكل دور؟",
+    });
+    const rendered = renderTurnMemoryContext(context);
+
+    expect(context.turnContextStatus).toBe("ready");
+    expect(context.queryHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(context.selectedIntent).toBe("prior_decision_lookup");
+    expect(context.selectedProfile).toBe("prior_decision_lookup");
+    expect(context.retrievalEventId).toEqual(expect.any(String));
+    expect(context.auditEventId).toEqual(expect.any(String));
+    expect(context.latencyMs).toEqual(expect.any(Number));
+    expect(rendered).toContain("turn_context_status: ready");
+    expect(rendered).toContain("degradation_reason:");
+    expect(rendered).toContain("repair_job_id:");
+    expect(rendered).toContain("memory_context:");
+  });
+
+  test("high risk memory quarantined away from live turn injection", async () => {
+    const store = new InMemoryPersistentMemoryStore();
+    const system = createPersistentMemorySystem({ store });
+    const timestamp = new Date(0).toISOString();
+
+    store.memories.push({
+      id: "risk-memory",
+      candidateId: "risk-candidate",
+      sourceRef: "risk/source",
+      contentHash: "hash-risk",
+      content: "risk memory: لا يجب حقن هذه الذاكرة عالية الخطر.",
+      memoryType: "memory",
+      tags: ["risk"],
+      trustLevel: "high",
+      modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
+      injectionProbability: 0.95,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+    await system.ingestRawEvent({
+      sourceRef: "safe/source",
+      eventType: "memory",
+      content: "safe memory: حقن آمن لسؤال risk.",
+      tags: ["risk"],
+    });
+
+    const context = await buildTurnMemoryContext({
+      system,
+      query: "risk memory",
+    });
+
+    expect(context.envelope.items.map((item) => item.id)).not.toContain(
+      "risk-memory",
+    );
+    expect(context.envelope.items.map((item) => item.sourceRef)).toContain(
+      "safe/source",
+    );
+  });
+
+  test("classifies execution and constraint questions from the current query", () => {
+    expect(classifyTurnMemoryIntent("نفذ الخطة واكتب الاختبارات")).toBe(
+      "execution_or_code_change",
+    );
+    expect(classifyTurnMemoryIntent("ما الذي لا يجب تكراره؟")).toBe(
+      "avoid_repetition_or_follow_constraints",
+    );
   });
 });

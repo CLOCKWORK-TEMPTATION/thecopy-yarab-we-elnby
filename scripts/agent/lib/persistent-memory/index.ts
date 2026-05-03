@@ -45,12 +45,24 @@ function tokenize(value: string): string[] {
   return value
     .toLowerCase()
     .split(/[^a-z0-9\u0600-\u06ff]+/u)
+    .map(normalizeToken)
     .filter((token) => token.length > 1);
+}
+
+function normalizeToken(token: string): string {
+  return token
+    .replace(/^[وفبلكس]/u, "")
+    .replace(/^ال/u, "")
+    .replace(/^ي/u, "")
+    .replace(/[هة]$/u, "");
 }
 
 function scoreMemory(queryTokens: string[], memory: PersistentMemoryRecord): number {
   const contentTokens = new Set(tokenize(`${memory.content} ${memory.tags.join(" ")}`));
   const matches = queryTokens.filter((token) => contentTokens.has(token)).length;
+  if (matches === 0) {
+    return 0;
+  }
   const trustBoost =
     memory.trustLevel === "high" ? 0.2 : memory.trustLevel === "medium" ? 0.1 : 0;
   return matches + trustBoost;
@@ -386,4 +398,20 @@ export {
   getPersistentMemoryVectorCapabilities,
   supportsPersistentMemoryVectorCapability,
 } from "./vector-index";
+export {
+  FileAgentSessionStore,
+  InMemoryAgentSessionStore,
+} from "./session-store";
+export {
+  FileRepairJournal,
+  InMemoryRepairJournal,
+} from "./repair-journal";
+export {
+  SessionCloseGate,
+  renderSessionCloseReport,
+} from "./session-close-gate";
+export { PersistentMemoryRetriever } from "./retriever";
 export type * from "./types";
+export type * from "./session-store";
+export type * from "./repair-journal";
+export type * from "./session-close-gate";

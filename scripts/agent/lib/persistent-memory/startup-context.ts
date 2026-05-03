@@ -1,7 +1,4 @@
-import { promises as fsp } from "node:fs";
-
-import { ROUND_NOTES_PATH, SESSION_STATE_PATH } from "../constants";
-import { fromRepoRoot, writeTextIfChanged } from "../utils";
+import { writeTextIfChanged } from "../utils";
 import { MemoryInjectionEnvelope, type InjectionEnvelopePayload } from "./injection";
 import { createPersistentMemorySystem, isPersistentMemoryInfraRequired, type PersistentMemorySystem } from "./index";
 import { openPersistentMemoryRuntime } from "./runtime";
@@ -13,24 +10,7 @@ import type {
 
 const STARTUP_QUERIES: Array<{ query: string; intent: QueryIntent }> = [
   {
-    query: "previous decisions persistent memory source of truth",
-    intent: "prior_decision_lookup",
-  },
-  {
-    query: "continue from last session current state constraints",
-    intent: "continue_from_last_session",
-  },
-  {
-    query: "avoid repetition follow constraints do not repeat",
-    intent: "avoid_repetition_or_follow_constraints",
-  },
-  {
-    query: "current state persistent-agent-memory",
-    intent: "current_state_lookup",
-  },
-  {
-    query:
-      "هدف الذاكرة الدائمة الوكيل القادم يبدأ فاكر من أول رد بدون أمر يدوي",
+    query: "live turn memory context before executive response",
     intent: "avoid_repetition_or_follow_constraints",
   },
 ];
@@ -47,13 +27,13 @@ const STARTUP_MEMORY_REQUIREMENTS: Array<{
     path: "AGENTS.md",
     eventType: "decision",
     content:
-      "قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن.",
+      "قرار حاكم عالي الثقة: يجب أن يبدأ الوكيل من سياق الذاكرة الدائمة المولد قبل أول عمل أو رد تنفيذي، ولا يكفي وجود ملف الذاكرة بلا قراءة وحقن، ويجب بناء سياق سؤال حي قبل أي حكم تنفيذي.",
   },
   {
     path: ".repo-agent/STARTUP-PROTOCOL.md",
     eventType: "memory",
     content:
-      "قيد بداية: يجب قراءة .repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md وإثبات ذلك في brief البداية، ويجب أن يكون هذا السياق محقونًا داخل .repo-agent/AGENT-CONTEXT.generated.md في منطقة memory_context فقط.",
+      "قيد بداية: يجب قراءة .repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md كسياق حاكم صغير فقط داخل memory_context، وسياق السؤال الحي الرسمي يجب أن يولد .repo-agent/PERSISTENT-MEMORY-TURN-CONTEXT.generated.md قبل الرد التنفيذي.",
   },
 ];
 
@@ -74,19 +54,7 @@ export interface BuildStartupMemoryContextOptions {
 export async function readStartupSources(): Promise<
   Array<{ path: string; eventType: PersistentMemoryEventType; content: string }>
 > {
-  return [
-    {
-      path: SESSION_STATE_PATH,
-      eventType: "state_snapshot",
-      content: await fsp.readFile(fromRepoRoot(SESSION_STATE_PATH), "utf8"),
-    },
-    {
-      path: ROUND_NOTES_PATH,
-      eventType: "round",
-      content: await fsp.readFile(fromRepoRoot(ROUND_NOTES_PATH), "utf8"),
-    },
-    ...STARTUP_MEMORY_REQUIREMENTS,
-  ];
+  return [...STARTUP_MEMORY_REQUIREMENTS];
 }
 
 async function ingestStartupSources(system: PersistentMemorySystem): Promise<void> {
@@ -161,19 +129,6 @@ export async function buildStartupMemoryContext(
       (runtime = await openPersistentMemoryRuntime(env)).system ??
       createPersistentMemorySystem();
 
-    if (!options.system && runtime?.status === "degraded") {
-      return {
-        status: "degraded",
-        reason: runtime.reason ?? "persistent memory runtime is degraded",
-        retrievalEventId: null,
-        auditEventId: null,
-        envelope: envelope.build({
-          zone: "memory_context",
-          memories: [],
-        }),
-      };
-    }
-
     if (!options.system) {
       await ingestStartupSources(system);
     }
@@ -196,9 +151,11 @@ export async function buildStartupMemoryContext(
       ...requirements.hits,
       ...primary.hits,
     ]).slice(0, 3);
+    const degraded = !options.system && runtime?.status === "degraded";
 
     return {
-      status: "ready",
+      status: degraded ? "degraded" : "ready",
+      reason: degraded ? runtime?.reason : undefined,
       retrievalEventId: requirements.retrievalEventId,
       auditEventId: requirements.auditEventId,
       envelope: envelope.fromPersistentMemories("memory_context", memories),

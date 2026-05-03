@@ -32,6 +32,33 @@ pnpm agent:verify
 
 ويجب أن يثبت هذا الأمر وجود العقد الآلي والخطافات المانعة وأوامر الحارس، وأن يثبت أن ذاكرة الكود الحية ليست قديمة مقارنة ببصمات ملفات الكود الحرجة.
 
+## بوابة إغلاق الذاكرة الدائمة
+
+قبل أي تسليم يخص طبقة الوكلاء أو الذاكرة الدائمة أو الحكم على الجاهزية، شغّل:
+
+```text
+pnpm agent:persistent-memory:session:close
+```
+
+ولا يمر الإغلاق إذا بقي أي دور بلا:
+
+```text
+turn_context_status
+query_hash
+selected_intent
+retrieval_event_id
+audit_event_id
+memory_context
+```
+
+ويجب تشغيل:
+
+```text
+pnpm agent:persistent-memory:turn:verify
+```
+
+لإثبات أن سياق السؤال الحي المولد الحالي قابل للاستهلاك.
+
 ## تحقق الحارس الآلي
 
 لا يكفي وجود الأوامر نصيًا.

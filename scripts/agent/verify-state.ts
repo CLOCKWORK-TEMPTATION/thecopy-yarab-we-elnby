@@ -6,6 +6,7 @@ import {
   IDE_CANDIDATES,
   MANUAL_CONTRACT_FILES,
   MANUAL_GUIDANCE_FILES,
+  PERSISTENT_MEMORY_TURN_CONTEXT_PATH,
   SESSION_STATE_PATH,
   TOOL_GUARD_CONTRACT_PATH,
 } from "./lib/constants";
@@ -141,6 +142,16 @@ async function main(): Promise<void> {
         "الملف المولد لا يحتوي سياق الذاكرة الدائمة المحقون داخل منطقة memory_context.",
     });
   }
+  if (
+    !generatedContext.includes("سياق السؤال الحي") ||
+    !generatedContext.includes(PERSISTENT_MEMORY_TURN_CONTEXT_PATH)
+  ) {
+    issues.push({
+      level: "error",
+      message:
+        "الملف المولد لا يثبت بروتوكول سياق السؤال الحي قبل الرد التنفيذي.",
+    });
+  }
   const persistentMemoryContext = await readTextIfExists(
     fromRepoRoot(".repo-agent/PERSISTENT-MEMORY-CONTEXT.generated.md"),
   );
@@ -149,6 +160,34 @@ async function main(): Promise<void> {
       level: "error",
       message: "سياق الذاكرة الدائمة التلقائي مفقود أو غير مولد.",
     });
+  }
+  if (
+    persistentMemoryContext.includes("output/session-state.md") ||
+    persistentMemoryContext.includes("output/round-notes.md")
+  ) {
+    issues.push({
+      level: "error",
+      message:
+        "سياق البداية للذاكرة الدائمة يحتوي أرشيف حالة واسعًا بدل القيود الحاكمة فقط.",
+    });
+  }
+  const turnContextContent = await readTextIfExists(
+    fromRepoRoot(PERSISTENT_MEMORY_TURN_CONTEXT_PATH),
+  );
+  for (const field of [
+    "turn_context_status:",
+    "query_hash:",
+    "selected_intent:",
+    "retrieval_event_id:",
+    "audit_event_id:",
+    "memory_context:",
+  ]) {
+    if (!turnContextContent.includes(field)) {
+      issues.push({
+        level: "error",
+        message: `سياق السؤال الحي مفقود أو ينقصه الحقل: ${field}`,
+      });
+    }
   }
 
   const myAgentContent = await readTextIfExists(
@@ -327,9 +366,19 @@ async function main(): Promise<void> {
     "pnpm agent:persistent-memory:retrieve",
     "pnpm agent:persistent-memory:workers",
     "pnpm agent:persistent-memory:status",
+    "pnpm agent:persistent-memory:session:start",
+    "pnpm agent:persistent-memory:session:append",
+    "pnpm agent:persistent-memory:session:resume",
+    "pnpm agent:persistent-memory:session:compact",
+    "pnpm agent:persistent-memory:session:close",
+    "pnpm agent:persistent-memory:session:repair",
+    "pnpm agent:persistent-memory:turn",
+    "pnpm agent:persistent-memory:turn:repair",
+    "pnpm agent:persistent-memory:turn:verify",
     "pnpm agent:persistent-memory:eval",
     "pnpm agent:persistent-memory:eval:golden",
     "pnpm agent:persistent-memory:eval:safety",
+    "pnpm agent:persistent-memory:eval:latency",
   ]) {
     if (!facts.officialCommands.includes(command)) {
       issues.push({
