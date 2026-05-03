@@ -3,25 +3,25 @@
 turn_context_status: ready
 status: ready
 zone: memory_context
-query_hash: 16331ef2c369946144677f6b3ebffcd174e906636618c12deec1296f7eb7ea68
+query_hash: ae2461e064594701ec50d3f059c419731af07c7b3e0351a84929e4aeff7e11e2
 redacted_query_preview: القرار الحاسم: لا توجد أربعة مسارات اختيارية، ولا يوجد مجال للمفاضلة أو إعادة ترتيب الخطة حسب الراحة.\n\nنقطة الدخول للجولة الأولى هي:\n\n## أعلى مخاطر الإنتاج
 secret_scan_status: clean
 selected_intent: execution_or_code_change
 selected_profile: execution_or_code_change
-retrieval_event_id: b52f12c1-5730-4487-a2ae-74720190d790
-audit_event_id: 4a9f198d-1de2-4327-ab64-72717382f100
-latency_ms: 201
+retrieval_event_id: 0a3edb3a-c255-40b8-a4f6-316a1b25ee4e
+audit_event_id: f31790e5-888b-4640-9b2d-942e805c0c26
+latency_ms: 226
 degradation_reason: none
 repair_job_id: none
 
 memory_context:
 
-- id: e48b2f46-5c3f-4fa4-be56-d2337da8a18e
+- id: 70682eb3-7363-4ed1-9318-a9c2b04a0b21
   source_ref: AGENTS.md
   trust_level: high
   model_version: baai-bge-m3-local
   text: قرار حاكم عالي الثقة: عند تدهور بنية الذاكرة الدائمة يستخدم الوكيل أسرع سياق آمن متاح ولا يحقن خارج memory_context.
-- id: 4c0d625e-09f2-4284-9d4f-8df4520b1c1f
+- id: 96c82c5b-64c5-42ad-a61c-3c4618830dc4
   source_ref: .repo-agent/STARTUP-PROTOCOL.md
   trust_level: medium
   model_version: baai-bge-m3-local
