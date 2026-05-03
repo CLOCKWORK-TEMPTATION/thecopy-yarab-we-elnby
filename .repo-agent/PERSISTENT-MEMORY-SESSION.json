@@ -633,6 +633,22 @@
       "auditEventId": "e9ca330e-c4ae-4359-bb0a-f78ecd006977",
       "memoryContext": ".repo-agent/live-runtime-state:live-state-repo-agent-live-runtime-state\noutput/session-state.md:live-state-output-session-state-md\noutput/round-notes.md:live-state-output-round-notes-md\noutput/round-notes.md:9a3fe7de-e1b8-4c6f-9be8-4a22dd2ffdf6\noutput/round-notes.md:b20bec6a-f1a4-4cc4-ad8f-196b1952f9b6",
       "latencyMs": 17
+    },
+    {
+      "turnId": "f4770799-92a1-4dfc-8ce9-7615903b2d75",
+      "sessionId": "local-agent-session",
+      "rawQueryForRepair": "سؤالك هنا",
+      "queryHash": "7035d2343f996d53af737d5f6a629344aae2c9f44a5e68ad488986bd1367bda8",
+      "redactedQueryPreview": "سؤالك هنا",
+      "createdAt": "2026-05-03T04:40:39.347Z",
+      "updatedAt": "2026-05-03T04:40:39.347Z",
+      "turnContextStatus": "ready",
+      "selectedIntent": "default",
+      "selectedProfile": "default",
+      "retrievalEventId": "a44cb65d-303f-40be-b3c2-b4dc0227ca7f",
+      "auditEventId": "e954290d-97f6-49a5-824c-695d04027ed4",
+      "memoryContext": "none",
+      "latencyMs": 519
     }
   ]
 }
