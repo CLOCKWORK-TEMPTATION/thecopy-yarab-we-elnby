@@ -128,7 +128,6 @@ const TURN_TEST_SIGNALS = [
 
 const PLAN_ACCEPTANCE_SCRIPTS = [
   "agent:bootstrap",
-  "agent:persistent-memory:turn",
   "agent:persistent-memory:session:close",
   "agent:persistent-memory:secrets:verify",
   "agent:persistent-memory:eval",
@@ -354,7 +353,7 @@ function runPnpm(args: string[], timeoutMs: number): CommandResult {
   };
 }
 
-function buildCommandPlan(
+export function buildCommandPlan(
   scripts: Record<string, string>,
   runAcceptance: boolean,
 ): string[][] {
@@ -373,6 +372,14 @@ function buildCommandPlan(
       "--query",
       "ما الذي لا يجب تكراره؟",
     ]);
+    if (runAcceptance) {
+      commands.push([
+        "agent:persistent-memory:turn",
+        "--",
+        "--query",
+        "ما حالة البنية المحلية؟",
+      ]);
+    }
   }
 
   if (runAcceptance) {
@@ -555,7 +562,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

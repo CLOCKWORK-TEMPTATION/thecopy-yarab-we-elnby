@@ -2,8 +2,8 @@
 
 status: ready
 zone: memory_context
-retrieval_event_id: e2a92242-741a-452d-a947-110ce0bc356a
-audit_event_id: 065f1e3b-0c0e-429e-9978-4dfad829f93f
+retrieval_event_id: b7b13bb5-fadd-4695-9b8b-3924482432bc
+audit_event_id: 07be5ab9-6fa1-4326-b86a-6f49866f06c3
 
 ## Injected Memories
 

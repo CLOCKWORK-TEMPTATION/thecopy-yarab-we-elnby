@@ -1,5 +1,12 @@
-import { PERSISTENT_MEMORY_TURN_CONTEXT_PATH } from "../constants";
-import { sha256, writeTextIfChanged } from "../utils";
+import { promises as fsp } from "node:fs";
+
+import {
+  PERSISTENT_MEMORY_TURN_CONTEXT_PATH,
+  ROUND_NOTES_PATH,
+  SESSION_STATE_PATH,
+} from "../constants";
+import { fromRepoRoot, runGitCommand, sha256, writeTextIfChanged } from "../utils";
+import { BGE_M3_EMBEDDING_MODEL_VERSION } from "./embeddings";
 import { MemoryInjectionEnvelope, type InjectionEnvelopePayload } from "./injection";
 import { createPersistentMemorySystem } from "./index";
 import { elapsedMs, nowMs } from "./metrics";
@@ -25,12 +32,18 @@ export interface TurnMemoryContext {
   envelope: InjectionEnvelopePayload;
 }
 
+export interface LiveStateSource {
+  sourceRef: string;
+  content: string;
+}
+
 export interface BuildTurnMemoryContextOptions {
   query: string;
   system?: PersistentMemorySystem;
   intent?: QueryIntent;
   topK?: number;
   env?: NodeJS.ProcessEnv | Record<string, string | undefined>;
+  liveStateSources?: LiveStateSource[];
 }
 
 export function classifyTurnMemoryIntent(query: string): QueryIntent {
@@ -93,6 +106,150 @@ function isBroadOperationalSnapshot(hit: MemoryRetrievalHit): boolean {
   );
 }
 
+function shouldUseLiveState(intent: QueryIntent): boolean {
+  return intent === "current_state_lookup" || intent === "continue_from_last_session";
+}
+
+function stableLiveStateId(sourceRef: string): string {
+  const slug = sourceRef
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+
+  return `live-state-${slug}`;
+}
+
+async function readLiveStateSource(sourceRef: string): Promise<LiveStateSource | null> {
+  try {
+    const content = await fsp.readFile(fromRepoRoot(sourceRef), "utf8");
+    return { sourceRef, content };
+  } catch {
+    return null;
+  }
+}
+
+async function readDefaultLiveStateSources(): Promise<LiveStateSource[]> {
+  const sources = await Promise.all(
+    [SESSION_STATE_PATH, ROUND_NOTES_PATH].map((sourceRef) =>
+      readLiveStateSource(sourceRef),
+    ),
+  );
+
+  return [
+    buildRuntimeGitStateSource(),
+    ...sources.filter((source): source is LiveStateSource => source !== null),
+  ];
+}
+
+function buildRuntimeGitStateSource(): LiveStateSource {
+  const branch = runGitCommand(["rev-parse", "--abbrev-ref", "HEAD"]) || "unknown";
+  const commit = runGitCommand(["rev-parse", "HEAD"]) || "unknown";
+  const status = runGitCommand(["status", "--short"]);
+  const changedFiles = status
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const workingTree = changedFiles.length === 0
+    ? "نظيفة"
+    : `غير نظيفة — ${changedFiles.length} ملف متغير`;
+
+  return {
+    sourceRef: ".repo-agent/live-runtime-state",
+    content: [
+      "لقطة حالة حية مولدة لحظة السؤال.",
+      `الفرع الحالي: ${branch}`,
+      `آخر commit: ${commit}`,
+      `حالة working tree: ${workingTree}`,
+      `عدد الملفات المتغيرة: ${changedFiles.length}`,
+      "هذه اللقطة تسبق ملفات الحالة المولدة عند سؤال الحالة الحالية.",
+    ].join("\n"),
+  };
+}
+
+function compactLiveStateContent(sourceRef: string, content: string): string {
+  const normalizedLines = content
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter(Boolean);
+
+  const priorityPatterns = [
+    /الفرع الحالي|current branch/i,
+    /آخر commit|commit/i,
+    /لقطة حالة حية|git الحية/i,
+    /حالة working tree|working tree/i,
+    /drift|انحراف/i,
+    /الجاهزية|ready|readiness/i,
+    /أهم الأعطال|الأعطال المفتوحة|open issues/i,
+    /البنية المحلية|infra|podman|postgres|redis|weaviate|qdrant/i,
+    /الذاكرة الدائمة|persistent memory|turn_context|memory_context/i,
+  ];
+
+  const priorityLines = normalizedLines.filter((line) =>
+    priorityPatterns.some((pattern) => pattern.test(line)),
+  );
+
+  const headLines = normalizedLines.slice(0, sourceRef === ROUND_NOTES_PATH ? 24 : 80);
+  const combined = Array.from(new Set([...priorityLines, ...headLines]));
+
+  return combined.join("\n").replace(/\s+\n/g, "\n").trim().slice(0, 1800);
+}
+
+function buildLiveStateHit(
+  source: LiveStateSource,
+  scanner: MemorySecretScanner,
+  rank: number,
+): MemoryRetrievalHit | null {
+  const compactContent = compactLiveStateContent(source.sourceRef, source.content);
+  if (!compactContent) {
+    return null;
+  }
+
+  const scan = scanner.scan(compactContent);
+  if (!scan.clean) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  const id = stableLiveStateId(source.sourceRef);
+
+  return {
+    id,
+    candidateId: `${id}-candidate`,
+    sourceRef: source.sourceRef,
+    contentHash: sha256(compactContent),
+    content: compactContent,
+    memoryType: "state_snapshot",
+    tags: ["live-state", "current"],
+    trustLevel: "high",
+    modelVersionId: BGE_M3_EMBEDDING_MODEL_VERSION.id,
+    injectionProbability: 0,
+    createdAt: now,
+    updatedAt: now,
+    score: 1_000 - rank,
+    rank,
+  };
+}
+
+function mergeLiveStateHits(
+  liveHits: MemoryRetrievalHit[],
+  retrievedHits: MemoryRetrievalHit[],
+  topK: number,
+): MemoryRetrievalHit[] {
+  if (liveHits.length === 0) {
+    return retrievedHits.slice(0, topK);
+  }
+
+  const liveSourceRefs = new Set(liveHits.map((hit) => hit.sourceRef));
+  const filteredRetrieved = retrievedHits.filter(
+    (hit) => !(liveSourceRefs.has(hit.sourceRef) && isBroadOperationalSnapshot(hit)),
+  );
+
+  return [...liveHits, ...filteredRetrieved]
+    .slice(0, topK)
+    .map((hit, index) => ({ ...hit, rank: index + 1 }));
+}
+
 function isAllowedForIntent(hit: MemoryRetrievalHit, intent: QueryIntent): boolean {
   if (hit.quarantined || hit.injectionProbability >= 0.7) {
     return false;
@@ -150,6 +307,16 @@ export async function buildTurnMemoryContext(
       const fallback = await buildFallbackSystem();
       result = await fallback.retrieve({ query: retrievalQuery, intent, topK });
       hits = result.hits.filter((hit) => isAllowedForIntent(hit, intent));
+    }
+    if (shouldUseLiveState(intent)) {
+      const liveSources =
+        options.liveStateSources ??
+        (options.system ? [] : await readDefaultLiveStateSources());
+      const liveHits = liveSources
+        .map((source, index) => buildLiveStateHit(source, scanner, index + 1))
+        .filter((hit): hit is MemoryRetrievalHit => hit !== null);
+
+      hits = mergeLiveStateHits(liveHits, hits, topK);
     }
     const degraded = !options.system && runtime?.status === "degraded";
 
